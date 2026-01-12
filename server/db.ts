@@ -1,11 +1,23 @@
-import { eq } from "drizzle-orm";
+import { eq, desc, and } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { 
+  InsertUser, 
+  users, 
+  clients, 
+  InsertClient,
+  appointments,
+  InsertAppointment,
+  advisoryRequests,
+  InsertAdvisoryRequest,
+  priorEstimates,
+  InsertPriorEstimate,
+  quotations,
+  InsertQuotation
+} from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
-// Lazily create the drizzle instance so local tooling can run without a DB.
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
@@ -89,4 +101,176 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+// ============ CLIENTS ============
+
+export async function createClient(client: InsertClient) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.insert(clients).values(client);
+  return result[0].insertId;
+}
+
+export async function getClientById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db.select().from(clients).where(eq(clients.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getClientByWhatsApp(whatsappPhone: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db.select().from(clients).where(eq(clients.whatsappPhone, whatsappPhone)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getClientByUserId(userId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db.select().from(clients).where(eq(clients.userId, userId)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getAllClients() {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(clients).orderBy(desc(clients.createdAt));
+}
+
+export async function updateClient(id: number, data: Partial<InsertClient>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(clients).set(data).where(eq(clients.id, id));
+}
+
+// ============ APPOINTMENTS ============
+
+export async function createAppointment(appointment: InsertAppointment) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.insert(appointments).values(appointment);
+  return result[0].insertId;
+}
+
+export async function getAppointmentById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db.select().from(appointments).where(eq(appointments.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getAppointmentsByClientId(clientId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(appointments).where(eq(appointments.clientId, clientId)).orderBy(desc(appointments.scheduledDate));
+}
+
+export async function getAllAppointments() {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(appointments).orderBy(desc(appointments.createdAt));
+}
+
+export async function updateAppointment(id: number, data: Partial<InsertAppointment>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(appointments).set(data).where(eq(appointments.id, id));
+}
+
+// ============ ADVISORY REQUESTS ============
+
+export async function createAdvisoryRequest(request: InsertAdvisoryRequest) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.insert(advisoryRequests).values(request);
+  return result[0].insertId;
+}
+
+export async function getAdvisoryRequestsByClientId(clientId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(advisoryRequests).where(eq(advisoryRequests.clientId, clientId)).orderBy(desc(advisoryRequests.createdAt));
+}
+
+export async function getAllAdvisoryRequests() {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(advisoryRequests).orderBy(desc(advisoryRequests.createdAt));
+}
+
+export async function updateAdvisoryRequest(id: number, data: Partial<InsertAdvisoryRequest>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(advisoryRequests).set(data).where(eq(advisoryRequests.id, id));
+}
+
+// ============ PRIOR ESTIMATES ============
+
+export async function createPriorEstimate(estimate: InsertPriorEstimate) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.insert(priorEstimates).values(estimate);
+  return result[0].insertId;
+}
+
+export async function getPriorEstimatesByClientId(clientId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(priorEstimates).where(eq(priorEstimates.clientId, clientId)).orderBy(desc(priorEstimates.createdAt));
+}
+
+// ============ QUOTATIONS ============
+
+export async function createQuotation(quotation: InsertQuotation) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.insert(quotations).values(quotation);
+  return result[0].insertId;
+}
+
+export async function getQuotationById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db.select().from(quotations).where(eq(quotations.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getQuotationsByClientId(clientId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(quotations).where(eq(quotations.clientId, clientId)).orderBy(desc(quotations.createdAt));
+}
+
+export async function getAllQuotations() {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(quotations).orderBy(desc(quotations.createdAt));
+}
+
+export async function updateQuotation(id: number, data: Partial<InsertQuotation>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(quotations).set(data).where(eq(quotations.id, id));
+}

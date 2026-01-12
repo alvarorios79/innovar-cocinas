@@ -1,0 +1,29 @@
+{
+  "name": "INNOVAR Cocinas Integrales",
+  "short_name": "INNOVAR",
+  "description": "Gestión de citas y estimados para cocinas integrales, closets, puertas y centros de TV en Pereira",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#8B5A3C",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["business", "productivity"],
+  "lang": "es-CO",
+  "dir": "ltr",
+  "scope": "/",
+  "prefer_related_applications": false
+}

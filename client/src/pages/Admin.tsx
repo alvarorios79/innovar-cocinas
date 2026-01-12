@@ -149,7 +149,12 @@ export default function Admin() {
             <Link href="/">
               <Button variant="ghost">← Volver al inicio</Button>
             </Link>
-            <h1 className="text-xl font-bold">Panel Administrativo</h1>
+            <img 
+              src="/logo-light.png" 
+              alt="INNOVAR Cocinas Integrales" 
+              className="h-10 w-auto"
+            />
+            <span className="text-sm text-muted-foreground">Panel Admin</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground">{user?.name}</span>

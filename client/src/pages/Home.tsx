@@ -223,16 +223,14 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
       {/* Header */}
-      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
+      <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container flex h-16 items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center text-primary-foreground font-bold">
-              I
-            </div>
-            <div>
-              <h1 className="text-lg font-bold">INNOVAR</h1>
-              <p className="text-xs text-muted-foreground">Cocinas Integrales</p>
-            </div>
+          <div className="flex items-center gap-3">
+            <img 
+              src="/logo-light.png" 
+              alt="INNOVAR Cocinas Integrales" 
+              className="h-12 w-auto"
+            />
           </div>
           
           <nav className="flex items-center gap-4">

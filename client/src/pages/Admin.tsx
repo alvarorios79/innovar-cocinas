@@ -678,7 +678,7 @@ export default function Admin() {
                               <Badge 
                                 variant={usr.role === "super_admin" || usr.role === "admin" ? "default" : "secondary"}
                                 className={
-                                  usr.role === "super_admin" ? "bg-purple-600" :
+                                  usr.role === "super_admin" ? "bg-red-600" :
                                   usr.role === "admin" ? "bg-blue-500" : ""
                                 }
                               >

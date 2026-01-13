@@ -291,3 +291,37 @@
 - [x] Admins ahora solo ven opción "Usuario" en el selector
 - [x] Super Admin ve todas las opciones: Usuario, Administrador, Super Administrador
 - [x] Agregar placeholder al selector de rol
+
+## Bug: Rol Super Admin No Aplicado v2.8
+
+### Problema Reportado
+- [x] Usuario alvarorios79@gmail.com aparece como admin (azul) en lugar de super_admin (púrpura)
+- [x] No puede crear usuarios con rol administrador
+- [x] Verificar rol actual en base de datos
+- [x] Actualizar a super_admin si es necesario
+
+### Solución Aplicada
+- [x] Consultada base de datos y encontrado usuario con rol "admin"
+- [x] Actualizado rol a "super_admin" en la base de datos
+- [x] Usuario ahora tiene permisos completos de super administrador
+
+## Limpieza de Base de Datos v2.9
+
+### Tarea Solicitada
+- [x] Listar todos los usuarios actuales (41 usuarios encontrados)
+- [x] Identificar super admin y dos administradores creados por el usuario
+- [x] Eliminar todos los usuarios de prueba (38 usuarios eliminados)
+- [x] Conservar solo: 1 super admin + 2 administradores reales
+- [x] Verificar limpieza exitosa (3 usuarios restantes)
+
+### Usuarios Conservados
+- [x] mcfy8jgnym@privaterelay.appleid.com (Super Admin)
+- [x] alejoile300@gmail.com (Administrador)
+- [x] martha79s@hotmail.com (Administrador)
+
+## Ajuste Visual: Badge Super Admin v2.10
+
+### Cambio Solicitado
+- [x] Cambiar color del badge de Super Admin de púrpura a rojo
+- [x] Actualizar componente Admin.tsx (bg-purple-600 → bg-red-600)
+- [x] Verificar que el cambio se refleje correctamente

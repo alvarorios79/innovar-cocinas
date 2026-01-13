@@ -49,10 +49,9 @@ export default function Home() {
     whatsappPhone: "",
     address: "",
     workType: "",
-    length: "",
-    width: "",
-    height: "",
-    counterTopType: "",
+    kitchenShape: "",
+    measurements: "",
+    materialType: "",
     additionalDetails: "",
   });
 
@@ -201,10 +200,9 @@ export default function Home() {
       const result = await createEstimateMutation.mutateAsync({
         clientId: client.id,
         workType: estimateForm.workType as any,
-        length: estimateForm.length || undefined,
-        width: estimateForm.width || undefined,
-        height: estimateForm.height || undefined,
-        counterTopType: estimateForm.counterTopType ? estimateForm.counterTopType as any : undefined,
+        kitchenShape: estimateForm.kitchenShape ? estimateForm.kitchenShape as any : undefined,
+        measurements: estimateForm.measurements || undefined,
+        materialType: estimateForm.materialType ? estimateForm.materialType as any : undefined,
         additionalDetails: estimateForm.additionalDetails || undefined,
       });
 
@@ -223,10 +221,9 @@ export default function Home() {
         whatsappPhone: "",
         address: "",
         workType: "",
-        length: "",
-        width: "",
-        height: "",
-        counterTopType: "",
+        kitchenShape: "",
+        measurements: "",
+        materialType: "",
         additionalDetails: "",
       });
     } catch (error) {
@@ -527,56 +524,50 @@ export default function Home() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="est-length">Largo (metros)</Label>
-                        <Input
-                          id="est-length"
-                          type="number"
-                          step="0.01"
-                          placeholder="3.5"
-                          value={estimateForm.length}
-                          onChange={(e) => setEstimateForm({ ...estimateForm, length: e.target.value })}
-                        />
+                        <Label htmlFor="est-shape">Forma de la cocina *</Label>
+                        <Select
+                          value={estimateForm.kitchenShape}
+                          onValueChange={(value) => setEstimateForm({ ...estimateForm, kitchenShape: value })}
+                        >
+                          <SelectTrigger id="est-shape">
+                            <SelectValue placeholder="Selecciona..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="L">En forma de L</SelectItem>
+                            <SelectItem value="U">En forma de U</SelectItem>
+                            <SelectItem value="lineal">Lineal</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="est-width">Ancho (metros)</Label>
-                        <Input
-                          id="est-width"
-                          type="number"
-                          step="0.01"
-                          placeholder="2.5"
-                          value={estimateForm.width}
-                          onChange={(e) => setEstimateForm({ ...estimateForm, width: e.target.value })}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="est-height">Alto (metros)</Label>
-                        <Input
-                          id="est-height"
-                          type="number"
-                          step="0.01"
-                          placeholder="2.4"
-                          value={estimateForm.height}
-                          onChange={(e) => setEstimateForm({ ...estimateForm, height: e.target.value })}
-                        />
+                        <Label htmlFor="est-material">Tipo de material *</Label>
+                        <Select
+                          value={estimateForm.materialType}
+                          onValueChange={(value) => setEstimateForm({ ...estimateForm, materialType: value })}
+                        >
+                          <SelectTrigger id="est-material">
+                            <SelectValue placeholder="Selecciona..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="quarzone">Quarzone</SelectItem>
+                            <SelectItem value="sinterizado">Sinterizado</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="est-counter">Tipo de mesón (si aplica)</Label>
-                      <Select
-                        value={estimateForm.counterTopType}
-                        onValueChange={(value) => setEstimateForm({ ...estimateForm, counterTopType: value })}
-                      >
-                        <SelectTrigger id="est-counter">
-                          <SelectValue placeholder="Selecciona..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="cuarzo">Cuarzo</SelectItem>
-                          <SelectItem value="sinterizado">Sinterizado</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <Label htmlFor="est-measurements">Medidas específicas *</Label>
+                      <Textarea
+                        id="est-measurements"
+                        rows={2}
+                        required
+                        placeholder="Ej: Lado largo 3.5m, lado corto 2.5m, altura 2.4m"
+                        value={estimateForm.measurements}
+                        onChange={(e) => setEstimateForm({ ...estimateForm, measurements: e.target.value })}
+                      />
                     </div>
 
                     <div className="space-y-2">

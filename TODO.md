@@ -402,3 +402,19 @@
 - [x] Habilitar instalación desde navegador
 - [x] Agregar shortcuts (Agendar Cita, Solicitar Estimado, Panel Admin)
 - [x] Configurar apple-mobile-web-app meta tags
+
+
+## Mejora de Formulario de Cotizaciones v3.4
+
+### Campos Técnicos Nuevos
+- [x] Agregar campo "Forma de Cocina" (selector: L, U, Lineal)
+- [x] Agregar campo "Medidas" (texto para especificar dimensiones)
+- [x] Agregar campo "Tipo de Material" (selector: Quarzone, Sinterizado)
+- [x] Mantener campo "Detalles Adicionales" existente
+- [x] Actualizar esquema de base de datos (quotations y priorEstimates tables)
+- [x] Migrar base de datos con nuevos campos
+- [x] Actualizar endpoints backend (create, list, whatsapp notification)
+- [x] Actualizar formulario en Home.tsx con nuevos campos
+- [x] Actualizar visualización en Panel Admin (muestra forma, medidas, material)
+- [x] Actualizar visualización en Mi Portal (muestra forma, medidas, material)
+- [x] Actualizar función de WhatsApp con nuevos campos

@@ -299,27 +299,21 @@ export default function Portal() {
                     {estimates.map((est) => (
                       <div key={est.id} className="border rounded-lg p-4 space-y-2">
                         <h3 className="font-semibold">{getWorkTypeLabel(est.workType)}</h3>
-                        <div className="grid grid-cols-3 gap-4 text-sm">
-                          {est.length && (
-                            <div>
-                              <span className="font-medium">Largo:</span> {est.length}m
-                            </div>
-                          )}
-                          {est.width && (
-                            <div>
-                              <span className="font-medium">Ancho:</span> {est.width}m
-                            </div>
-                          )}
-                          {est.height && (
-                            <div>
-                              <span className="font-medium">Alto:</span> {est.height}m
-                            </div>
-                          )}
-                        </div>
-                        {est.counterTopType && (
+                        {est.kitchenShape && (
                           <p className="text-sm">
-                            <span className="font-medium">Tipo de mesón:</span>{" "}
-                            {est.counterTopType === "cuarzo" ? "Cuarzo" : "Sinterizado"}
+                            <span className="font-medium">Forma de cocina:</span>{" "}
+                            {est.kitchenShape === "L" ? "En forma de L" : est.kitchenShape === "U" ? "En forma de U" : "Lineal"}
+                          </p>
+                        )}
+                        {est.measurements && (
+                          <p className="text-sm">
+                            <span className="font-medium">Medidas:</span> {est.measurements}
+                          </p>
+                        )}
+                        {est.materialType && (
+                          <p className="text-sm">
+                            <span className="font-medium">Material:</span>{" "}
+                            {est.materialType === "quarzone" ? "Quarzone" : "Sinterizado"}
                           </p>
                         )}
                         {est.additionalDetails && (

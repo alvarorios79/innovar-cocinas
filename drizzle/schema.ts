@@ -76,10 +76,9 @@ export const priorEstimates = mysqlTable("priorEstimates", {
   id: int("id").autoincrement().primaryKey(),
   clientId: int("clientId").notNull().references(() => clients.id),
   workType: mysqlEnum("workType", ["cocina", "closet", "puertas", "centro_tv"]).notNull(),
-  length: decimal("length", { precision: 10, scale: 2 }),
-  width: decimal("width", { precision: 10, scale: 2 }),
-  height: decimal("height", { precision: 10, scale: 2 }),
-  counterTopType: mysqlEnum("counterTopType", ["cuarzo", "sinterizado"]),
+  kitchenShape: mysqlEnum("kitchenShape", ["L", "U", "lineal"]),
+  measurements: text("measurements"),
+  materialType: mysqlEnum("materialType", ["quarzone", "sinterizado"]),
   additionalDetails: text("additionalDetails"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
@@ -95,6 +94,10 @@ export const quotations = mysqlTable("quotations", {
   clientId: int("clientId").notNull().references(() => clients.id),
   appointmentId: int("appointmentId").references(() => appointments.id),
   workType: mysqlEnum("workType", ["cocina", "closet", "puertas", "centro_tv"]).notNull(),
+  // Nuevos campos técnicos para cotizaciones detalladas
+  kitchenShape: mysqlEnum("kitchenShape", ["L", "U", "lineal"]),
+  measurements: text("measurements"), // Medidas específicas del proyecto
+  materialType: mysqlEnum("materialType", ["quarzone", "sinterizado"]),
   description: text("description").notNull(),
   materials: text("materials"),
   totalPrice: decimal("totalPrice", { precision: 12, scale: 2 }).notNull(),

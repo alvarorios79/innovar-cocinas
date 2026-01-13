@@ -292,20 +292,18 @@ export const appRouter = router({
       .input(z.object({
         clientId: z.number(),
         workType: z.enum(["cocina", "closet", "puertas", "centro_tv"]),
-        length: z.string().optional(),
-        width: z.string().optional(),
-        height: z.string().optional(),
-        counterTopType: z.enum(["cuarzo", "sinterizado"]).optional(),
+        kitchenShape: z.enum(["L", "U", "lineal"]).optional(),
+        measurements: z.string().optional(),
+        materialType: z.enum(["quarzone", "sinterizado"]).optional(),
         additionalDetails: z.string().optional(),
       }))
       .mutation(async ({ input }) => {
         const estimateId = await db.createPriorEstimate({
           clientId: input.clientId,
           workType: input.workType,
-          length: input.length,
-          width: input.width,
-          height: input.height,
-          counterTopType: input.counterTopType,
+          kitchenShape: input.kitchenShape,
+          measurements: input.measurements,
+          materialType: input.materialType,
           additionalDetails: input.additionalDetails,
         });
 
@@ -316,10 +314,9 @@ export const appRouter = router({
             clientName: client.name,
             clientPhone: client.whatsappPhone,
             workType: input.workType,
-            length: input.length,
-            width: input.width,
-            height: input.height,
-            counterTopType: input.counterTopType,
+            kitchenShape: input.kitchenShape,
+            measurements: input.measurements,
+            materialType: input.materialType,
             additionalDetails: input.additionalDetails,
           });
           
@@ -345,13 +342,16 @@ export const appRouter = router({
         clientId: z.number(),
         appointmentId: z.number().optional(),
         workType: z.enum(["cocina", "closet", "puertas", "centro_tv"]),
+        kitchenShape: z.enum(["L", "U", "lineal"]).optional(),
+        measurements: z.string().optional(),
+        materialType: z.enum(["quarzone", "sinterizado"]).optional(),
         description: z.string().min(1),
         materials: z.string().optional(),
         totalPrice: z.string(),
         validUntil: z.string().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
-        if (ctx.user.role !== "admin") {
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
           throw new TRPCError({ code: "FORBIDDEN" });
         }
 
@@ -359,6 +359,9 @@ export const appRouter = router({
           clientId: input.clientId,
           appointmentId: input.appointmentId,
           workType: input.workType,
+          kitchenShape: input.kitchenShape,
+          measurements: input.measurements,
+          materialType: input.materialType,
           description: input.description,
           materials: input.materials,
           totalPrice: input.totalPrice,

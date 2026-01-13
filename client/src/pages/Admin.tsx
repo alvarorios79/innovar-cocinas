@@ -622,12 +622,29 @@ export default function Admin() {
                             <p className="text-sm text-muted-foreground">
                               {getWorkTypeLabel(quot.workType)}
                             </p>
+                            {quot.kitchenShape && (
+                              <p className="text-sm">
+                                <span className="font-medium">Forma:</span>{" "}
+                                {quot.kitchenShape === "L" ? "En forma de L" : quot.kitchenShape === "U" ? "En forma de U" : "Lineal"}
+                              </p>
+                            )}
+                            {quot.measurements && (
+                              <p className="text-sm">
+                                <span className="font-medium">Medidas:</span> {quot.measurements}
+                              </p>
+                            )}
+                            {quot.materialType && (
+                              <p className="text-sm">
+                                <span className="font-medium">Material:</span>{" "}
+                                {quot.materialType === "quarzone" ? "Quarzone" : "Sinterizado"}
+                              </p>
+                            )}
                             <p className="text-sm">
                               <span className="font-medium">Descripción:</span> {quot.description}
                             </p>
                             {quot.materials && (
                               <p className="text-sm">
-                                <span className="font-medium">Materiales:</span> {quot.materials}
+                                <span className="font-medium">Materiales adicionales:</span> {quot.materials}
                               </p>
                             )}
                             <p className="text-lg font-bold text-primary">

@@ -149,10 +149,9 @@ export function notifyNewEstimate(data: {
   clientName: string;
   clientPhone: string;
   workType: string;
-  length?: string;
-  width?: string;
-  height?: string;
-  counterTopType?: string;
+  kitchenShape?: string;
+  measurements?: string;
+  materialType?: string;
   additionalDetails?: string;
 }): string {
   const workTypeLabels: Record<string, string> = {
@@ -162,20 +161,32 @@ export function notifyNewEstimate(data: {
     centro_tv: "Centro de TV",
   };
 
+  const shapeLabels: Record<string, string> = {
+    L: "En forma de L",
+    U: "En forma de U",
+    lineal: "Lineal",
+  };
+
+  const materialLabels: Record<string, string> = {
+    quarzone: "Quarzone",
+    sinterizado: "Sinterizado",
+  };
+
   let message = `📐 *NUEVO ESTIMADO PREVIO*\n\n`;
   message += `👤 *Cliente:* ${data.clientName}\n`;
   message += `📱 *WhatsApp:* ${data.clientPhone}\n`;
   message += `🛠️ *Tipo de trabajo:* ${workTypeLabels[data.workType] || data.workType}\n\n`;
   
-  if (data.length || data.width || data.height) {
-    message += `📏 *Medidas:*\n`;
-    if (data.length) message += `  • Largo: ${data.length}m\n`;
-    if (data.width) message += `  • Ancho: ${data.width}m\n`;
-    if (data.height) message += `  • Alto: ${data.height}m\n`;
+  if (data.kitchenShape) {
+    message += `📐 *Forma de cocina:* ${shapeLabels[data.kitchenShape] || data.kitchenShape}\n`;
   }
   
-  if (data.counterTopType) {
-    message += `\n🪨 *Tipo de mesón:* ${data.counterTopType === "cuarzo" ? "Cuarzo" : "Sinterizado"}\n`;
+  if (data.measurements) {
+    message += `📏 *Medidas:* ${data.measurements}\n`;
+  }
+  
+  if (data.materialType) {
+    message += `🪨 *Material:* ${materialLabels[data.materialType] || data.materialType}\n`;
   }
   
   if (data.additionalDetails) {

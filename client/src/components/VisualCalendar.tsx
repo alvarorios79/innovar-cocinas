@@ -166,10 +166,6 @@ export function VisualCalendar({
         {/* Leyenda */}
         <div className="mt-4 flex flex-wrap gap-4 text-xs">
           <div className="flex items-center gap-1">
-            <div className="h-3 w-3 rounded bg-red-100 border border-red-300"></div>
-            <span>Bloqueado</span>
-          </div>
-          <div className="flex items-center gap-1">
             <div className="h-3 w-3 rounded bg-white border border-gray-300"></div>
             <span>Disponible</span>
           </div>
@@ -178,10 +174,6 @@ export function VisualCalendar({
             <span>Seleccionado</span>
           </div>
         </div>
-
-        <p className="text-xs text-muted-foreground mt-2">
-          * Solo disponible martes, jueves y viernes
-        </p>
       </Card>
 
       {/* Horarios disponibles */}

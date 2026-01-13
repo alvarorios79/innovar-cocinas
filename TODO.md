@@ -122,3 +122,10 @@
 
 ### Otros Ajustes
 - [x] Actualizar año en créditos/footer a 2026
+
+## Ajustes Visuales v1.4
+
+### Limpieza de Leyenda del Calendario
+- [x] Quitar "Bloqueado" y punto rojo de la leyenda
+- [x] Quitar texto "* Solo disponible martes, jueves y viernes"
+- [x] Simplificar leyenda dejando solo "Disponible" y "Seleccionado"

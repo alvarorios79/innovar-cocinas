@@ -277,3 +277,17 @@
 - [x] Eliminar campo de tipo de trabajo duplicado debajo del calendario
 - [x] Mantener solo los campos iniciales antes del calendario
 - [x] Dejar solo campo de notas adicionales después del calendario
+
+## Bug: Creación de Usuarios v2.7
+
+### Problema Reportado
+- [x] Error al crear usuario regular: sistema muestra "solo super admin puede crear administradores"
+- [x] Investigar si el formulario está enviando el rol incorrecto
+- [x] Verificar validación de permisos en el backend
+- [x] Corregir lógica para permitir creación de usuarios regulares por admins
+
+### Solución Implementada
+- [x] Ocultar opción "Administrador" para usuarios admin (solo visible para super_admin)
+- [x] Admins ahora solo ven opción "Usuario" en el selector
+- [x] Super Admin ve todas las opciones: Usuario, Administrador, Super Administrador
+- [x] Agregar placeholder al selector de rol

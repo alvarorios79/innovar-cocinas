@@ -631,11 +631,13 @@ export default function Admin() {
                             onValueChange={(value: "user" | "admin" | "super_admin") => setCreateUserForm({ ...createUserForm, role: value })}
                           >
                             <SelectTrigger>
-                              <SelectValue />
+                              <SelectValue placeholder="Selecciona un rol" />
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="user">Usuario</SelectItem>
-                              <SelectItem value="admin">Administrador</SelectItem>
+                              {user?.role === "super_admin" && (
+                                <SelectItem value="admin">Administrador</SelectItem>
+                              )}
                               {user?.role === "super_admin" && (
                                 <SelectItem value="super_admin">Super Administrador</SelectItem>
                               )}

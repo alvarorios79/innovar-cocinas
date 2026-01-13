@@ -10,3 +10,4 @@
 - [x] Diagnosticar y corregir problema de carga de rol super_admin en sesión
 - [x] Verificar por qué el usuario sigue sin permisos de super_admin después del fix
 - [x] Implementar autenticación con email y contraseña para crear usuarios con credenciales compartibles
+- [x] Corregir campo de contraseña que no aparece en formulario de crear usuario

@@ -817,7 +817,7 @@ export default function Admin() {
                             </SelectContent>
                           </Select>
                         </div>
-                        {user?.role === "super_admin" && (
+                        {(user?.role === "super_admin" || user?.role === "admin") && (
                           <div className="space-y-2">
                             <Label htmlFor="create-password">Contraseña (opcional)</Label>
                             <Input

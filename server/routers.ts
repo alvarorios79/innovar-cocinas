@@ -208,12 +208,14 @@ export const appRouter = router({
       .input(z.object({
         clientId: z.number(),
         workType: z.enum(["cocina", "closet", "puertas", "centro_tv"]),
+        preferredCallTime: z.string().optional(),
         notes: z.string().optional(),
       }))
       .mutation(async ({ input }) => {
         const requestId = await db.createAdvisoryRequest({
           clientId: input.clientId,
           workType: input.workType,
+          preferredCallTime: input.preferredCallTime,
           notes: input.notes,
         });
 
@@ -225,6 +227,7 @@ export const appRouter = router({
             clientPhone: client.whatsappPhone,
             clientEmail: client.email || undefined,
             workType: input.workType,
+            preferredCallTime: input.preferredCallTime,
             notes: input.notes,
           });
           

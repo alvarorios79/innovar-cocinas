@@ -428,3 +428,14 @@
 - [x] Actualizar visualización en Panel Admin
 - [x] Actualizar visualización en Mi Portal
 - [x] Actualizar función de WhatsApp (notificaciones)
+
+
+## Formulario de Asesoramiento v3.6
+
+### Problema Reportado
+- [ ] Formulario de Asesoramiento en Home está en blanco
+- [ ] Implementar formulario completo con campos necesarios
+- [ ] Agregar campo "Horario preferido para llamada"
+- [ ] Actualizar esquema de base de datos (advisory table)
+- [ ] Actualizar visualización en Panel Admin
+- [ ] Actualizar notificaciones de WhatsApp

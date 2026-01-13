@@ -61,6 +61,7 @@ export const advisoryRequests = mysqlTable("advisoryRequests", {
   clientId: int("clientId").notNull().references(() => clients.id),
   workType: mysqlEnum("workType", ["cocina", "closet", "puertas", "centro_tv"]).notNull(),
   status: mysqlEnum("status", ["pendiente", "contactado", "completado"]).default("pendiente").notNull(),
+  preferredCallTime: text("preferredCallTime"),
   notes: text("notes"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),

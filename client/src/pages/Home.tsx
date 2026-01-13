@@ -39,6 +39,7 @@ export default function Home() {
     whatsappPhone: "",
     address: "",
     workType: "",
+    preferredCallTime: "",
     notes: "",
   });
 
@@ -168,6 +169,7 @@ export default function Home() {
         whatsappPhone: "",
         address: "",
         workType: "",
+        preferredCallTime: "",
         notes: "",
       });
     } catch (error) {
@@ -456,6 +458,106 @@ export default function Home() {
                     <Button type="submit" className="w-full" size="lg">
                       Agendar Cita
                       <Calendar className="ml-2 h-4 w-4" />
+                    </Button>
+                  </form>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Formulario de Asesoramiento */}
+            <TabsContent value="advisory">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Solicita asesoramiento telefónico</CardTitle>
+                  <CardDescription>
+                    Un comercial te contactará para explicarte todas las opciones y resolver tus dudas
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={handleAdvisorySubmit} className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="adv-name">Nombre completo *</Label>
+                        <Input
+                          id="adv-name"
+                          required
+                          value={advisoryForm.name}
+                          onChange={(e) => setAdvisoryForm({ ...advisoryForm, name: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="adv-email">Correo electrónico</Label>
+                        <Input
+                          id="adv-email"
+                          type="email"
+                          value={advisoryForm.email}
+                          onChange={(e) => setAdvisoryForm({ ...advisoryForm, email: e.target.value })}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="adv-phone">Teléfono WhatsApp *</Label>
+                        <Input
+                          id="adv-phone"
+                          required
+                          placeholder="3136802025"
+                          value={advisoryForm.whatsappPhone}
+                          onChange={(e) => setAdvisoryForm({ ...advisoryForm, whatsappPhone: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="adv-work">Tipo de trabajo *</Label>
+                        <Select
+                          value={advisoryForm.workType}
+                          onValueChange={(value) => setAdvisoryForm({ ...advisoryForm, workType: value })}
+                        >
+                          <SelectTrigger id="adv-work">
+                            <SelectValue placeholder="Selecciona..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="cocina">Cocina Integral</SelectItem>
+                            <SelectItem value="closet">Closet</SelectItem>
+                            <SelectItem value="puertas">Puertas</SelectItem>
+                            <SelectItem value="centro_tv">Centro de TV</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="adv-calltime">Horario preferido para llamada *</Label>
+                      <Select
+                        value={advisoryForm.preferredCallTime}
+                        onValueChange={(value) => setAdvisoryForm({ ...advisoryForm, preferredCallTime: value })}
+                      >
+                        <SelectTrigger id="adv-calltime">
+                          <SelectValue placeholder="Selecciona un horario..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="morning">Mañana (8:00 AM - 12:00 PM)</SelectItem>
+                          <SelectItem value="afternoon">Tarde (12:00 PM - 5:00 PM)</SelectItem>
+                          <SelectItem value="evening">Noche (5:00 PM - 8:00 PM)</SelectItem>
+                          <SelectItem value="anytime">Cualquier hora</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="adv-notes">Consulta o detalles adicionales</Label>
+                      <Textarea
+                        id="adv-notes"
+                        placeholder="Cuéntanos qué necesitas saber..."
+                        className="min-h-[100px]"
+                        value={advisoryForm.notes}
+                        onChange={(e) => setAdvisoryForm({ ...advisoryForm, notes: e.target.value })}
+                      />
+                    </div>
+
+                    <Button type="submit" className="w-full" size="lg">
+                      Solicitar Asesoramiento
+                      <Phone className="ml-2 h-4 w-4" />
                     </Button>
                   </form>
                 </CardContent>

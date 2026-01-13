@@ -77,6 +77,7 @@ export function notifyNewAdvisoryRequest(data: {
   clientPhone: string;
   clientEmail?: string;
   workType: string;
+  preferredCallTime?: string;
   notes?: string;
 }): string {
   const workTypeLabels: Record<string, string> = {
@@ -86,11 +87,19 @@ export function notifyNewAdvisoryRequest(data: {
     centro_tv: "Centro de TV",
   };
 
+  const callTimeLabels: Record<string, string> = {
+    morning: "Mañana (8:00 AM - 12:00 PM)",
+    afternoon: "Tarde (12:00 PM - 5:00 PM)",
+    evening: "Noche (5:00 PM - 8:00 PM)",
+    anytime: "Cualquier hora",
+  };
+
   let message = `📞 *SOLICITUD DE ASESORAMIENTO*\n\n`;
   message += `👤 *Cliente:* ${data.clientName}\n`;
   message += `📱 *WhatsApp:* ${data.clientPhone}\n`;
   if (data.clientEmail) message += `📧 *Email:* ${data.clientEmail}\n`;
   message += `🛠️ *Tipo de trabajo:* ${workTypeLabels[data.workType] || data.workType}\n`;
+  if (data.preferredCallTime) message += `⏰ *Horario preferido:* ${callTimeLabels[data.preferredCallTime] || data.preferredCallTime}\n`;
   if (data.notes) message += `💬 *Consulta:* ${data.notes}\n`;
   message += `\n⚠️ *El cliente solicita asesoramiento telefónico*`;
 

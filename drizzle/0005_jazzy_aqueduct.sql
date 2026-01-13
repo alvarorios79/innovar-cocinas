@@ -1,0 +1,1 @@
+ALTER TABLE `advisoryRequests` ADD `preferredCallTime` text;

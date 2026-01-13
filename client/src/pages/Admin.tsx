@@ -216,6 +216,16 @@ export default function Admin() {
     return labels[workType] || workType;
   };
 
+  const getCallTimeLabel = (callTime: string) => {
+    const labels: Record<string, string> = {
+      morning: "Mañana (8:00 AM - 12:00 PM)",
+      afternoon: "Tarde (12:00 PM - 5:00 PM)",
+      evening: "Noche (5:00 PM - 8:00 PM)",
+      anytime: "Cualquier hora",
+    };
+    return labels[callTime] || callTime;
+  };
+
   const formatDate = (date: Date | string | null) => {
     if (!date) return "No especificada";
     return new Date(date).toLocaleString("es-CO", {
@@ -542,6 +552,11 @@ export default function Admin() {
                             {req.client?.email && (
                               <p className="text-sm">
                                 <span className="font-medium">Email:</span> {req.client?.email}
+                              </p>
+                            )}
+                            {req.preferredCallTime && (
+                              <p className="text-sm">
+                                <span className="font-medium">Horario preferido:</span> {getCallTimeLabel(req.preferredCallTime)}
                               </p>
                             )}
                             {req.notes && (

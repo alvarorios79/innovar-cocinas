@@ -296,7 +296,8 @@ export const appRouter = router({
         clientId: z.number(),
         workType: z.enum(["cocina", "closet", "puertas", "centro_tv"]),
         kitchenShape: z.enum(["L", "U", "lineal"]).optional(),
-        measurements: z.string().optional(),
+        linearLength: z.number().optional(),
+        height: z.number().optional(),
         materialType: z.enum(["quarzone", "sinterizado"]).optional(),
         additionalDetails: z.string().optional(),
       }))
@@ -305,7 +306,8 @@ export const appRouter = router({
           clientId: input.clientId,
           workType: input.workType,
           kitchenShape: input.kitchenShape,
-          measurements: input.measurements,
+          linearLength: input.linearLength?.toString(),
+          height: input.height?.toString(),
           materialType: input.materialType,
           additionalDetails: input.additionalDetails,
         });
@@ -318,7 +320,8 @@ export const appRouter = router({
             clientPhone: client.whatsappPhone,
             workType: input.workType,
             kitchenShape: input.kitchenShape,
-            measurements: input.measurements,
+            linearLength: input.linearLength,
+            height: input.height,
             materialType: input.materialType,
             additionalDetails: input.additionalDetails,
           });

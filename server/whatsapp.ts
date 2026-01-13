@@ -159,7 +159,8 @@ export function notifyNewEstimate(data: {
   clientPhone: string;
   workType: string;
   kitchenShape?: string;
-  measurements?: string;
+  linearLength?: number;
+  height?: number;
   materialType?: string;
   additionalDetails?: string;
 }): string {
@@ -190,8 +191,12 @@ export function notifyNewEstimate(data: {
     message += `📐 *Forma de cocina:* ${shapeLabels[data.kitchenShape] || data.kitchenShape}\n`;
   }
   
-  if (data.measurements) {
-    message += `📏 *Medidas:* ${data.measurements}\n`;
+  if (data.linearLength || data.height) {
+    message += `📏 *Medidas:*`;
+    if (data.linearLength) message += ` Largo lineal: ${data.linearLength}m`;
+    if (data.linearLength && data.height) message += ` |`;
+    if (data.height) message += ` Alto: ${data.height}m`;
+    message += `\n`;
   }
   
   if (data.materialType) {

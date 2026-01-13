@@ -51,7 +51,8 @@ export default function Home() {
     address: "",
     workType: "",
     kitchenShape: "",
-    measurements: "",
+    linearLength: "",
+    height: "",
     materialType: "",
     additionalDetails: "",
   });
@@ -203,7 +204,8 @@ export default function Home() {
         clientId: client.id,
         workType: estimateForm.workType as any,
         kitchenShape: estimateForm.kitchenShape ? estimateForm.kitchenShape as any : undefined,
-        measurements: estimateForm.measurements || undefined,
+        linearLength: estimateForm.linearLength ? parseFloat(estimateForm.linearLength) : undefined,
+        height: estimateForm.height ? parseFloat(estimateForm.height) : undefined,
         materialType: estimateForm.materialType ? estimateForm.materialType as any : undefined,
         additionalDetails: estimateForm.additionalDetails || undefined,
       });
@@ -224,7 +226,8 @@ export default function Home() {
         address: "",
         workType: "",
         kitchenShape: "",
-        measurements: "",
+        linearLength: "",
+        height: "",
         materialType: "",
         additionalDetails: "",
       });
@@ -663,16 +666,33 @@ export default function Home() {
                       </div>
                     )}
 
-                    <div className="space-y-2">
-                      <Label htmlFor="est-measurements">Medidas específicas *</Label>
-                      <Textarea
-                        id="est-measurements"
-                        rows={2}
-                        required
-                        placeholder="Ej: Lado largo 3.5m, lado corto 2.5m, altura 2.4m"
-                        value={estimateForm.measurements}
-                        onChange={(e) => setEstimateForm({ ...estimateForm, measurements: e.target.value })}
-                      />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="est-length">Largo lineal (metros) *</Label>
+                        <Input
+                          id="est-length"
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          required
+                          placeholder="3.5"
+                          value={estimateForm.linearLength}
+                          onChange={(e) => setEstimateForm({ ...estimateForm, linearLength: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="est-height">Alto (metros) *</Label>
+                        <Input
+                          id="est-height"
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          required
+                          placeholder="2.4"
+                          value={estimateForm.height}
+                          onChange={(e) => setEstimateForm({ ...estimateForm, height: e.target.value })}
+                        />
+                      </div>
                     </div>
 
                     <div className="space-y-2">

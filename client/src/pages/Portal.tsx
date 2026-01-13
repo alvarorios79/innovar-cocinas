@@ -305,9 +305,12 @@ export default function Portal() {
                             {est.kitchenShape === "L" ? "En forma de L" : est.kitchenShape === "U" ? "En forma de U" : "Lineal"}
                           </p>
                         )}
-                        {est.measurements && (
+                        {(est.linearLength || est.height) && (
                           <p className="text-sm">
-                            <span className="font-medium">Medidas:</span> {est.measurements}
+                            <span className="font-medium">Medidas:</span>
+                            {est.linearLength && ` Largo lineal: ${est.linearLength}m`}
+                            {est.linearLength && est.height && ` |`}
+                            {est.height && ` Alto: ${est.height}m`}
                           </p>
                         )}
                         {est.materialType && (

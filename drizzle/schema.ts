@@ -78,7 +78,8 @@ export const priorEstimates = mysqlTable("priorEstimates", {
   clientId: int("clientId").notNull().references(() => clients.id),
   workType: mysqlEnum("workType", ["cocina", "closet", "puertas", "centro_tv"]).notNull(),
   kitchenShape: mysqlEnum("kitchenShape", ["L", "U", "lineal"]),
-  measurements: text("measurements"),
+  linearLength: decimal("linearLength", { precision: 10, scale: 2 }), // Largo lineal en metros
+  height: decimal("height", { precision: 10, scale: 2 }), // Alto en metros
   materialType: mysqlEnum("materialType", ["quarzone", "sinterizado"]),
   additionalDetails: text("additionalDetails"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),

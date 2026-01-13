@@ -31,6 +31,7 @@ export default function Admin() {
   const { data: advisoryRequests = [], isLoading: loadingAdvisory } = trpc.advisory.list.useQuery();
   const { data: quotations = [], isLoading: loadingQuotations } = trpc.quotations.list.useQuery();
   const { data: clients = [], isLoading: loadingClients } = trpc.clients.list.useQuery();
+  const { data: allUsers = [], isLoading: loadingUsers } = trpc.userManagement.listAll.useQuery();
 
   const updateAppointmentStatus = trpc.appointments.updateStatus.useMutation({
     onSuccess: () => {
@@ -69,6 +70,16 @@ export default function Admin() {
       if (data.whatsappLink) {
         window.open(data.whatsappLink, "_blank");
       }
+    },
+  });
+
+  const updateUserRole = trpc.userManagement.updateRole.useMutation({
+    onSuccess: () => {
+      utils.userManagement.listAll.invalidate();
+      toast.success("Rol actualizado exitosamente");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Error al actualizar rol");
     },
   });
 
@@ -213,11 +224,12 @@ export default function Admin() {
 
         {/* Main Content */}
         <Tabs defaultValue="appointments" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 h-auto">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-5 h-auto">
             <TabsTrigger value="appointments" className="text-xs sm:text-sm px-2 py-2">Citas</TabsTrigger>
             <TabsTrigger value="advisory" className="text-xs sm:text-sm px-2 py-2">Asesoría</TabsTrigger>
             <TabsTrigger value="quotations" className="text-xs sm:text-sm px-2 py-2">Cotizaciones</TabsTrigger>
             <TabsTrigger value="clients" className="text-xs sm:text-sm px-2 py-2">Clientes</TabsTrigger>
+            <TabsTrigger value="users" className="text-xs sm:text-sm px-2 py-2">Usuarios</TabsTrigger>
           </TabsList>
 
           {/* Appointments Tab */}
@@ -531,6 +543,73 @@ export default function Admin() {
                         <p className="text-xs text-muted-foreground mt-2">
                           Registrado: {formatDate(client.createdAt)}
                         </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Users Tab */}
+          <TabsContent value="users" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Gestión de Usuarios</CardTitle>
+                <CardDescription>Administra los roles de los usuarios del sistema</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {loadingUsers ? (
+                  <p>Cargando...</p>
+                ) : allUsers.length === 0 ? (
+                  <p className="text-muted-foreground">No hay usuarios registrados</p>
+                ) : (
+                  <div className="space-y-4">
+                    {allUsers.map((usr) => (
+                      <div key={usr.id} className="border rounded-lg p-3 sm:p-4 space-y-2">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="space-y-1 flex-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <h3 className="font-semibold">{usr.name || "Sin nombre"}</h3>
+                              <Badge 
+                                variant={usr.role === "admin" ? "default" : "secondary"}
+                                className={usr.role === "admin" ? "bg-blue-500" : ""}
+                              >
+                                {usr.role === "admin" ? "Administrador" : "Usuario"}
+                              </Badge>
+                            </div>
+                            <p className="text-sm text-muted-foreground">{usr.email || "Sin email"}</p>
+                            <p className="text-xs text-muted-foreground">
+                              Registrado: {new Date(usr.createdAt).toLocaleDateString('es-ES')}
+                            </p>
+                          </div>
+                          <div className="flex flex-col gap-2">
+                            {usr.id !== user?.id && (
+                              <Button
+                                size="sm"
+                                variant={usr.role === "admin" ? "destructive" : "default"}
+                                onClick={() => {
+                                  if (window.confirm(
+                                    usr.role === "admin" 
+                                      ? `¿Quitar permisos de administrador a ${usr.name}?`
+                                      : `¿Otorgar permisos de administrador a ${usr.name}?`
+                                  )) {
+                                    updateUserRole.mutate({
+                                      userId: usr.id,
+                                      newRole: usr.role === "admin" ? "user" : "admin",
+                                    });
+                                  }
+                                }}
+                                disabled={updateUserRole.isPending}
+                              >
+                                {usr.role === "admin" ? "Quitar Admin" : "Hacer Admin"}
+                              </Button>
+                            )}
+                            {usr.id === user?.id && (
+                              <Badge variant="outline" className="text-xs">Tú</Badge>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     ))}
                   </div>

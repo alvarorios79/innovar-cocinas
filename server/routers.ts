@@ -446,6 +446,39 @@ export const appRouter = router({
         return await isTimeSlotAvailable(date, input.timeSlot);
       }),
   }),
+
+  // ============ USER MANAGEMENT ============
+  userManagement: router({
+    listAll: protectedProcedure
+      .query(async ({ ctx }) => {
+        if (ctx.user.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Solo administradores pueden ver usuarios" });
+        }
+        return await db.getAllUsers();
+      }),
+
+    updateRole: protectedProcedure
+      .input(z.object({
+        userId: z.number(),
+        newRole: z.enum(["user", "admin"]),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Solo administradores pueden cambiar roles" });
+        }
+
+        // Prevenir que un admin se quite sus propios permisos
+        if (ctx.user.id === input.userId && input.newRole === "user") {
+          throw new TRPCError({ 
+            code: "BAD_REQUEST", 
+            message: "No puedes quitarte tus propios permisos de administrador" 
+          });
+        }
+
+        await db.updateUserRole(input.userId, input.newRole);
+        return { success: true };
+      }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;

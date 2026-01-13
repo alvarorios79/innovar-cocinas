@@ -194,3 +194,18 @@
 - [x] Asegurar que no haya elementos que se salgan de la pantalla
 - [x] Probar en diferentes tamaños de pantalla
 - [x] Verificar que todos los enlaces y botones funcionen correctamente
+
+## Gestión de Roles de Usuario v2.3
+
+### Backend
+- [x] Crear endpoint para listar todos los usuarios
+- [x] Crear endpoint para cambiar rol de usuario
+- [x] Validar que solo admins puedan cambiar roles
+- [x] Prevenir que un admin se quite sus propios permisos
+
+### Frontend
+- [x] Agregar tab "Usuarios" en el Panel Admin
+- [x] Mostrar lista de usuarios con su información
+- [x] Agregar botón para cambiar rol (user ↔ admin)
+- [x] Mostrar badges visuales para identificar roles
+- [x] Agregar confirmación antes de cambiar roles

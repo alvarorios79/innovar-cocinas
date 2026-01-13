@@ -274,3 +274,38 @@ export async function updateQuotation(id: number, data: Partial<InsertQuotation>
 
   await db.update(quotations).set(data).where(eq(quotations.id, id));
 }
+
+// User management functions
+export async function getAllUsers() {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get users: database not available");
+    return [];
+  }
+
+  try {
+    const allUsers = await db.select().from(users);
+    return allUsers;
+  } catch (error) {
+    console.error("[Database] Failed to get users:", error);
+    return [];
+  }
+}
+
+export async function updateUserRole(userId: number, newRole: "user" | "admin") {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot update user role: database not available");
+    throw new Error("Database not available");
+  }
+
+  try {
+    await db.update(users)
+      .set({ role: newRole })
+      .where(eq(users.id, userId));
+    return true;
+  } catch (error) {
+    console.error("[Database] Failed to update user role:", error);
+    throw error;
+  }
+}

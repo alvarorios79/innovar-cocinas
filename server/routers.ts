@@ -100,6 +100,23 @@ export const appRouter = router({
         notes: z.string().optional(),
       }))
       .mutation(async ({ input }) => {
+        // Validar disponibilidad si se proporciona fecha/hora
+        if (input.scheduledDate) {
+          const requestedDate = new Date(input.scheduledDate);
+          const hours = requestedDate.getHours().toString().padStart(2, '0');
+          const minutes = requestedDate.getMinutes().toString().padStart(2, '0');
+          const timeSlot = `${hours}:${minutes}`;
+          
+          const isAvailable = await isTimeSlotAvailable(requestedDate, timeSlot);
+          
+          if (!isAvailable) {
+            throw new TRPCError({
+              code: "CONFLICT",
+              message: "Este horario ya está ocupado. Por favor selecciona otro horario.",
+            });
+          }
+        }
+
         const appointmentId = await db.createAppointment({
           clientId: input.clientId,
           workType: input.workType,
@@ -199,6 +216,23 @@ export const appRouter = router({
         
         await db.deleteAppointment(input.id);
         return { success: true };
+      }),
+
+    getOccupiedSlots: publicProcedure
+      .input(z.object({
+        date: z.string(), // Fecha en formato ISO (YYYY-MM-DD)
+      }))
+      .query(async ({ input }) => {
+        const date = new Date(input.date);
+        const appointments = await db.getAppointmentsByDate(date);
+        
+        // Retornar solo las horas ocupadas (formato HH:mm)
+        return appointments.map(apt => {
+          if (!apt.scheduledDate) return null;
+          const hours = apt.scheduledDate.getHours().toString().padStart(2, '0');
+          const minutes = apt.scheduledDate.getMinutes().toString().padStart(2, '0');
+          return `${hours}:${minutes}`;
+        }).filter(Boolean) as string[];
       }),
   }),
 

@@ -122,8 +122,15 @@ export default function Home() {
       });
       setAppointmentDate("");
       setAppointmentTime("");
-    } catch (error) {
-      toast.error("Error al agendar la cita");
+    } catch (error: any) {
+      // Mostrar mensaje específico si el horario está ocupado
+      if (error?.message?.includes("ocupado")) {
+        toast.error("Horario no disponible", {
+          description: "Este horario ya está ocupado. Por favor selecciona otro horario.",
+        });
+      } else {
+        toast.error("Error al agendar la cita");
+      }
       console.error(error);
     }
   };

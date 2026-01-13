@@ -166,10 +166,10 @@ describe("Prior Estimates API", () => {
     const result = await caller.estimates.create({
       clientId: client.id,
       workType: "cocina",
-      length: "3.5",
-      width: "2.5",
-      height: "2.4",
-      counterTopType: "cuarzo",
+      linearLength: 3.5,
+      height: 2.4,
+      kitchenShape: "L",
+      materialType: "quarzone",
       additionalDetails: "Modern kitchen design",
     });
 

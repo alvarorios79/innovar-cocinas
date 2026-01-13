@@ -1,4 +1,4 @@
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, and, gte, lte, between } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { 
   InsertUser, 
@@ -186,6 +186,56 @@ export async function updateAppointment(id: number, data: Partial<InsertAppointm
   if (!db) throw new Error("Database not available");
 
   await db.update(appointments).set(data).where(eq(appointments.id, id));
+}
+
+/**
+ * Verifica si ya existe una cita en la fecha/hora especificada (excluyendo citas canceladas)
+ */
+export async function isTimeSlotAvailable(scheduledDate: Date): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return true; // Si no hay DB, permitir (fallback)
+
+  const result = await db
+    .select()
+    .from(appointments)
+    .where(
+      and(
+        eq(appointments.scheduledDate, scheduledDate),
+        // Excluir citas canceladas
+        eq(appointments.status, "pendiente") // Solo considerar pendientes
+      )
+    )
+    .limit(1);
+
+  return result.length === 0; // Disponible si no hay resultados
+}
+
+/**
+ * Obtiene todas las citas de un día específico (excluyendo canceladas)
+ */
+export async function getAppointmentsByDate(date: Date) {
+  const db = await getDb();
+  if (!db) return [];
+
+  // Inicio y fin del día
+  const startOfDay = new Date(date);
+  startOfDay.setHours(0, 0, 0, 0);
+  
+  const endOfDay = new Date(date);
+  endOfDay.setHours(23, 59, 59, 999);
+
+  return await db
+    .select()
+    .from(appointments)
+    .where(
+      and(
+        gte(appointments.scheduledDate, startOfDay),
+        lte(appointments.scheduledDate, endOfDay),
+        // Excluir canceladas
+        eq(appointments.status, "pendiente")
+      )
+    )
+    .orderBy(appointments.scheduledDate);
 }
 
 // ============ ADVISORY REQUESTS ============

@@ -101,3 +101,24 @@
 - [x] Implementar bloqueo de horarios ocupados
 - [x] Validar disponibilidad antes de confirmar cita
 - [x] Mostrar solo horarios disponibles en el selector
+
+## Mejoras Solicitadas v1.3 - Calendario Visual
+
+### Calendario Tradicional Completo
+- [x] Implementar calendario visual con todos los días del mes
+- [x] Marcar días bloqueados (lun, mié, sáb, dom) en rojo o deshabilitados
+- [x] Mostrar días disponibles (mar, jue, vie) en blanco/normal
+- [x] Mostrar horarios ocupados en rojo
+- [x] Mostrar horarios libres en verde
+- [x] Permitir selección de fecha y hora en el mismo calendario
+
+### Estados de Citas con Colores
+- [x] Pendiente: color rojo
+- [x] Confirmada: color azul
+- [x] Completada: color verde
+- [x] Cancelada: color marrón
+- [x] Actualizar badges en panel admin
+- [x] Actualizar badges en portal de cliente
+
+### Otros Ajustes
+- [x] Actualizar año en créditos/footer a 2026

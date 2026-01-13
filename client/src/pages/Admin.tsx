@@ -82,18 +82,19 @@ export default function Admin() {
   }
 
   const getStatusBadge = (status: string) => {
-    const variants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
-      pendiente: "secondary",
-      confirmada: "default",
-      completada: "outline",
-      cancelada: "destructive",
-      contactado: "default",
-      completado: "outline",
-      borrador: "secondary",
-      enviada: "default",
+    const statusConfig: Record<string, { variant: "default" | "secondary" | "destructive" | "outline", className: string }> = {
+      pendiente: { variant: "destructive", className: "bg-red-500 hover:bg-red-600" },
+      confirmada: { variant: "default", className: "bg-blue-500 hover:bg-blue-600" },
+      completada: { variant: "default", className: "bg-green-500 hover:bg-green-600" },
+      cancelada: { variant: "default", className: "bg-amber-700 hover:bg-amber-800" },
+      contactado: { variant: "default", className: "bg-blue-500 hover:bg-blue-600" },
+      completado: { variant: "default", className: "bg-green-500 hover:bg-green-600" },
+      borrador: { variant: "secondary", className: "" },
+      enviada: { variant: "default", className: "bg-blue-500 hover:bg-blue-600" },
     };
 
-    return <Badge variant={variants[status] || "default"}>{status}</Badge>;
+    const config = statusConfig[status] || { variant: "default", className: "" };
+    return <Badge variant={config.variant} className={config.className}>{status}</Badge>;
   };
 
   const getWorkTypeLabel = (workType: string) => {

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { AppointmentScheduler } from "@/components/AppointmentScheduler";
+import { VisualCalendar } from "@/components/VisualCalendar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -423,7 +423,7 @@ export default function Home() {
                       />
                     </div>
 
-                    <AppointmentScheduler
+                    <VisualCalendar
                       selectedDate={appointmentDate}
                       selectedTime={appointmentTime}
                       onDateChange={setAppointmentDate}
@@ -620,7 +620,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="border-t py-8 mt-16">
         <div className="container text-center text-sm text-muted-foreground">
-          <p>© 2025 INNOVAR Cocinas Integrales - Pereira, Colombia</p>
+          <p>© 2026 INNOVAR Cocinas Integrales - Pereira, Colombia</p>
           <p className="mt-2">
             <a href="https://cocinasintegralespereira.co/" target="_blank" rel="noopener noreferrer" className="hover:text-primary">
               cocinasintegralespereira.co

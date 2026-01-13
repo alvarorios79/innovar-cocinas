@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { VisualCalendar } from "@/components/VisualCalendar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -56,6 +56,41 @@ export default function Home() {
     materialType: "",
     additionalDetails: "",
   });
+
+  // Obtener datos del cliente si está autenticado
+  const { data: clientProfile } = trpc.clients.getMyProfile.useQuery(undefined, {
+    enabled: isAuthenticated,
+  });
+
+  // Pre-llenar formularios con datos del cliente
+  useEffect(() => {
+    if (clientProfile) {
+      const commonData = {
+        name: clientProfile.name || "",
+        email: clientProfile.email || "",
+        whatsappPhone: clientProfile.whatsappPhone || "",
+        address: clientProfile.address || "",
+      };
+
+      // Pre-llenar formulario de citas
+      setAppointmentForm(prev => ({
+        ...prev,
+        ...commonData,
+      }));
+
+      // Pre-llenar formulario de asesoramiento
+      setAdvisoryForm(prev => ({
+        ...prev,
+        ...commonData,
+      }));
+
+      // Pre-llenar formulario de estimado
+      setEstimateForm(prev => ({
+        ...prev,
+        ...commonData,
+      }));
+    }
+  }, [clientProfile]);
 
   const createClientMutation = trpc.clients.getOrCreateByWhatsApp.useMutation();
   const createAppointmentMutation = trpc.appointments.create.useMutation();

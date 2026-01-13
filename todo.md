@@ -4,3 +4,4 @@
 - [x] Regenerar iconos PWA con logotipo más grande
 - [x] Cambiar campo "Medidas específicas" a dos campos numéricos: Largo lineal y Alto
 - [x] Implementar validación de disponibilidad horaria para evitar citas duplicadas en la misma hora
+- [x] Auto-llenar datos de usuario registrado en formularios (nombre, email, teléfono, dirección)

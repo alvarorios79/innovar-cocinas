@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { AppointmentScheduler } from "@/components/AppointmentScheduler";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
-import { Calendar, Phone, Calculator, CheckCircle2, ArrowRight } from "lucide-react";
+import { Calendar, Phone, Calculator, CheckCircle2, ArrowRight, MapPin, MessageCircle } from "lucide-react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
 import { Link } from "wouter";
@@ -24,9 +25,12 @@ export default function Home() {
     whatsappPhone: "",
     address: "",
     workType: "",
-    scheduledDate: "",
     notes: "",
   });
+  
+  // Estado separado para fecha y hora de la cita
+  const [appointmentDate, setAppointmentDate] = useState("");
+  const [appointmentTime, setAppointmentTime] = useState("");
 
   // Estado para formulario de asesoramiento
   const [advisoryForm, setAdvisoryForm] = useState({
@@ -64,6 +68,11 @@ export default function Home() {
       toast.error("Por favor selecciona el tipo de trabajo");
       return;
     }
+    
+    if (!appointmentDate || !appointmentTime) {
+      toast.error("Por favor selecciona fecha y horario para la cita");
+      return;
+    }
 
     try {
       // Crear o obtener cliente
@@ -78,12 +87,17 @@ export default function Home() {
         toast.error("Error al crear el cliente");
         return;
       }
+      
+      // Combinar fecha y hora
+      const [hours, minutes] = appointmentTime.split(':');
+      const scheduledDateTime = new Date(appointmentDate);
+      scheduledDateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
 
       // Crear cita
       const result = await createAppointmentMutation.mutateAsync({
         clientId: client.id,
         workType: appointmentForm.workType as any,
-        scheduledDate: appointmentForm.scheduledDate || undefined,
+        scheduledDate: scheduledDateTime.toISOString(),
         notes: appointmentForm.notes || undefined,
       });
 
@@ -103,9 +117,10 @@ export default function Home() {
         whatsappPhone: "",
         address: "",
         workType: "",
-        scheduledDate: "",
         notes: "",
       });
+      setAppointmentDate("");
+      setAppointmentTime("");
     } catch (error) {
       toast.error("Error al agendar la cita");
       console.error(error);
@@ -221,36 +236,71 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
-      {/* Header */}
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">      {/* Header */}
       <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container flex h-16 items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img 
-              src="/logo-light.png" 
-              alt="INNOVAR Cocinas Integrales" 
-              className="h-12 w-auto"
-            />
+        <div className="container">
+          {/* Top bar con contacto */}
+          <div className="flex items-center justify-between py-2 text-sm border-b">
+            <div className="flex items-center gap-4 text-muted-foreground">
+              <a href="tel:+573136802025" className="flex items-center gap-1 hover:text-primary transition-colors">
+                <Phone className="h-4 w-4" />
+                <span>313 680 2025</span>
+              </a>
+              <span className="hidden md:flex items-center gap-1">
+                <MapPin className="h-4 w-4" />
+                Pereira, Risaralda
+              </span>
+            </div>
+            <div className="flex items-center gap-3">
+              <a 
+                href="https://cocinasintegralespereira.co/" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="hover:text-primary transition-colors"
+              >
+                Sitio Web
+              </a>
+              <a 
+                href="https://wa.me/573136802025" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 bg-primary text-primary-foreground px-3 py-1 rounded-full hover:opacity-90 transition-opacity"
+              >
+                <MessageCircle className="h-4 w-4" />
+                <span className="hidden sm:inline">WhatsApp</span>
+              </a>
+            </div>
           </div>
           
-          <nav className="flex items-center gap-4">
-            {isAuthenticated ? (
-              <>
-                <Link href="/portal">
-                  <Button variant="ghost">Mi Portal</Button>
-                </Link>
-                {user?.role === "admin" && (
-                  <Link href="/admin">
-                    <Button variant="ghost">Panel Admin</Button>
+          {/* Main header */}
+          <div className="flex h-20 items-center justify-between">
+            <div className="flex items-center gap-3">
+              <img 
+                src="/logo-light.png" 
+                alt="INNOVAR Cocinas Integrales" 
+                className="h-16 w-auto"
+              />
+            </div>
+            
+            <nav className="flex items-center gap-4">
+              {isAuthenticated ? (
+                <>
+                  <Link href="/portal">
+                    <Button variant="ghost">Mi Portal</Button>
                   </Link>
-                )}
-              </>
-            ) : (
-              <Button asChild>
-                <a href={getLoginUrl()}>Iniciar Sesión</a>
-              </Button>
-            )}
-          </nav>
+                  {user?.role === "admin" && (
+                    <Link href="/admin">
+                      <Button variant="ghost">Panel Admin</Button>
+                    </Link>
+                  )}
+                </>
+              ) : (
+                <Button asChild>
+                  <a href={getLoginUrl()}>Iniciar Sesión</a>
+                </Button>
+              )}
+            </nav>
+          </div>
         </div>
       </header>
 
@@ -373,66 +423,12 @@ export default function Home() {
                       />
                     </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="apt-date">Fecha preferida (opcional)</Label>
-                      <Input
-                        id="apt-date"
-                        type="datetime-local"
-                        value={appointmentForm.scheduledDate}
-                        onChange={(e) => setAppointmentForm({ ...appointmentForm, scheduledDate: e.target.value })}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="apt-notes">Notas adicionales</Label>
-                      <Textarea
-                        id="apt-notes"
-                        rows={3}
-                        value={appointmentForm.notes}
-                        onChange={(e) => setAppointmentForm({ ...appointmentForm, notes: e.target.value })}
-                      />
-                    </div>
-
-                    <Button type="submit" className="w-full" size="lg">
-                      Agendar Cita
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
-                  </form>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Formulario de Asesoramiento */}
-            <TabsContent value="advisory">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Solicita asesoramiento telefónico</CardTitle>
-                  <CardDescription>
-                    Un comercial te contactará para resolver tus dudas y orientarte en tu proyecto
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <form onSubmit={handleAdvisorySubmit} className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="adv-name">Nombre completo *</Label>
-                        <Input
-                          id="adv-name"
-                          required
-                          value={advisoryForm.name}
-                          onChange={(e) => setAdvisoryForm({ ...advisoryForm, name: e.target.value })}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="adv-email">Correo electrónico</Label>
-                        <Input
-                          id="adv-email"
-                          type="email"
-                          value={advisoryForm.email}
-                          onChange={(e) => setAdvisoryForm({ ...advisoryForm, email: e.target.value })}
-                        />
-                      </div>
-                    </div>
+                    <AppointmentScheduler
+                      selectedDate={appointmentDate}
+                      selectedTime={appointmentTime}
+                      onDateChange={setAppointmentDate}
+                      onTimeChange={setAppointmentTime}
+                    />
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">

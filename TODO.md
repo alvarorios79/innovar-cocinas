@@ -78,3 +78,26 @@
 - [x] Traducir notificaciones y toasts
 - [x] Traducir labels de formularios
 - [x] Verificar que no queden textos en inglés
+
+## Mejoras Solicitadas v1.2
+
+### Diseño y Header
+- [x] Agrandar logo en el header
+- [x] Agregar enlace a página web oficial (https://cocinasintegralespereira.co/)
+- [x] Agregar teléfono de la empresa en el header
+- [x] Agregar dirección física en el header
+- [x] Agregar botón directo a WhatsApp en el header
+
+### Seguridad y Acceso
+- [x] Proteger panel admin - solo usuarios con rol admin pueden acceder
+- [x] Implementar redirección automática si usuario no es admin
+
+### Sistema de Citas Avanzado
+- [x] Restringir citas solo a martes, jueves y viernes
+- [x] Configurar horarios: 8am-12pm y 2pm-5pm
+- [x] Citas de 1.5 horas de duración
+- [x] Primera cita disponible a las 8am
+- [x] Separar calendario y selector de hora
+- [x] Implementar bloqueo de horarios ocupados
+- [x] Validar disponibilidad antes de confirmar cita
+- [x] Mostrar solo horarios disponibles en el selector

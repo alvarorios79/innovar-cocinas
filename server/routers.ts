@@ -6,6 +6,7 @@ import { z } from "zod";
 import * as db from "./db";
 import * as whatsapp from "./whatsapp";
 import { TRPCError } from "@trpc/server";
+import { getAvailableTimeSlots, isTimeSlotAvailable, APPOINTMENT_CONFIG } from "./availability";
 
 export const appRouter = router({
   system: systemRouter,
@@ -420,6 +421,25 @@ export const appRouter = router({
           ...quotation,
           client,
         };
+      }),
+  }),
+
+  // ============ AVAILABILITY ============
+  availability: router({
+    getConfig: publicProcedure.query(() => {
+      return APPOINTMENT_CONFIG;
+    }),
+    getAvailableSlots: publicProcedure
+      .input(z.object({ date: z.string() }))
+      .query(async ({ input }) => {
+        const date = new Date(input.date);
+        return await getAvailableTimeSlots(date);
+      }),
+    checkSlot: publicProcedure
+      .input(z.object({ date: z.string(), timeSlot: z.string() }))
+      .query(async ({ input }) => {
+        const date = new Date(input.date);
+        return await isTimeSlotAvailable(date, input.timeSlot);
       }),
   }),
 });

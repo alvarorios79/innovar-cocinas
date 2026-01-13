@@ -246,10 +246,15 @@ export default function Home() {
                 <Phone className="h-4 w-4" />
                 <span>313 680 2025</span>
               </a>
-              <span className="hidden md:flex items-center gap-1">
+              <a 
+                href="https://www.google.com/maps/place/Innovar-+Cocinas+integrales+Pereira/@4.802601,-75.8300704,18.22z/data=!4m14!1m7!3m6!1s0x8e388129491d7481:0x900411675d3b35be!2sInnovar-+Cocinas+integrales+Pereira!8m2!3d4.8026875!4d-75.8293125!16s%2Fg%2F11h5q2k28n!3m5!1s0x8e388129491d7481:0x900411675d3b35be!8m2!3d4.8026875!4d-75.8293125!16s%2Fg%2F11h5q2k28n?entry=ttu&g_ep=EgoyMDI2MDExMS4wIKXMDSoKLDEwMDc5MjA3M0gBUAM%3D"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hidden md:flex items-center gap-1 hover:text-primary transition-colors"
+              >
                 <MapPin className="h-4 w-4" />
-                Pereira, Risaralda
-              </span>
+                K9 vía Cerritos a Pereira, Pereira Risaralda
+              </a>
             </div>
             <div className="flex items-center gap-3">
               <a 
@@ -622,6 +627,16 @@ export default function Home() {
         <div className="container text-center text-sm text-muted-foreground">
           <p>© 2026 INNOVAR Cocinas Integrales - Pereira, Colombia</p>
           <p className="mt-2">
+            <a 
+              href="https://www.google.com/maps/place/Innovar-+Cocinas+integrales+Pereira/@4.802601,-75.8300704,18.22z/data=!4m14!1m7!3m6!1s0x8e388129491d7481:0x900411675d3b35be!2sInnovar-+Cocinas+integrales+Pereira!8m2!3d4.8026875!4d-75.8293125!16s%2Fg%2F11h5q2k28n!3m5!1s0x8e388129491d7481:0x900411675d3b35be!8m2!3d4.8026875!4d-75.8293125!16s%2Fg%2F11h5q2k28n?entry=ttu&g_ep=EgoyMDI2MDExMS4wIKXMDSoKLDEwMDc5MjA3M0gBUAM%3D"
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="hover:text-primary inline-flex items-center gap-1"
+            >
+              <MapPin className="h-3 w-3" />
+              K9 vía Cerritos a Pereira, Pereira Risaralda
+            </a>
+            {" • "}
             <a href="https://cocinasintegralespereira.co/" target="_blank" rel="noopener noreferrer" className="hover:text-primary">
               cocinasintegralespereira.co
             </a>

@@ -129,3 +129,8 @@
 - [x] Quitar "Bloqueado" y punto rojo de la leyenda
 - [x] Quitar texto "* Solo disponible martes, jueves y viernes"
 - [x] Simplificar leyenda dejando solo "Disponible" y "Seleccionado"
+
+### Actualización de Dirección
+- [x] Actualizar dirección a "K9 vía Cerritos a Pereira, Pereira Risaralda"
+- [x] Hacer dirección clickeable con enlace a Google Maps
+- [x] Agregar enlace directo a ubicación de INNOVAR en Google Maps

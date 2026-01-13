@@ -239,44 +239,6 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">      {/* Header */}
       <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container">
-          {/* Top bar con contacto */}
-          <div className="flex items-center justify-between py-2 text-sm border-b">
-            <div className="flex items-center gap-4 text-muted-foreground">
-              <a href="tel:+573136802025" className="flex items-center gap-1 hover:text-primary transition-colors">
-                <Phone className="h-4 w-4" />
-                <span>313 680 2025</span>
-              </a>
-              <a 
-                href="https://www.google.com/maps/place/Innovar-+Cocinas+integrales+Pereira/@4.802601,-75.8300704,18.22z/data=!4m14!1m7!3m6!1s0x8e388129491d7481:0x900411675d3b35be!2sInnovar-+Cocinas+integrales+Pereira!8m2!3d4.8026875!4d-75.8293125!16s%2Fg%2F11h5q2k28n!3m5!1s0x8e388129491d7481:0x900411675d3b35be!8m2!3d4.8026875!4d-75.8293125!16s%2Fg%2F11h5q2k28n?entry=ttu&g_ep=EgoyMDI2MDExMS4wIKXMDSoKLDEwMDc5MjA3M0gBUAM%3D"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hidden md:flex items-center gap-1 hover:text-primary transition-colors"
-              >
-                <MapPin className="h-4 w-4" />
-                K9 vía Cerritos a Pereira, Pereira Risaralda
-              </a>
-            </div>
-            <div className="flex items-center gap-3">
-              <a 
-                href="https://cocinasintegralespereira.co/" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="hover:text-primary transition-colors"
-              >
-                Sitio Web
-              </a>
-              <a 
-                href="https://wa.me/573136802025" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="flex items-center gap-1 bg-primary text-primary-foreground px-3 py-1 rounded-full hover:opacity-90 transition-opacity"
-              >
-                <MessageCircle className="h-4 w-4" />
-                <span className="hidden sm:inline">WhatsApp</span>
-              </a>
-            </div>
-          </div>
-          
           {/* Main header */}
           <div className="flex h-20 items-center justify-between">
             <div className="flex items-center gap-3">

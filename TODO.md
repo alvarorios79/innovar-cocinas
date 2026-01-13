@@ -158,3 +158,7 @@
 ### Reducir Espacio Encima del Logotipo
 - [x] Eliminar espacio excesivo entre header y logotipo grande
 - [x] Acercar logotipo al header para mejor aprovechamiento del espacio
+
+### Eliminar Barra Superior del Header
+- [x] Quitar la línea superior del header con información de contacto duplicada
+- [x] Mantener solo el logotipo pequeño y navegación en el header

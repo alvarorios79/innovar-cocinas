@@ -53,7 +53,7 @@ describe("Auto-fill de datos de cliente", () => {
     expect(result?.address).toBe("Calle Test 123");
   });
 
-  it("debe retornar undefined cuando el usuario no tiene cliente asociado", async () => {
+  it("debe retornar null cuando el usuario no tiene cliente asociado", async () => {
     const ctx: TrpcContext = {
       user: {
         id: 88888, // Usuario sin cliente asociado
@@ -68,7 +68,7 @@ describe("Auto-fill de datos de cliente", () => {
 
     const result = await caller.clients.getMyProfile();
 
-    expect(result).toBeUndefined();
+    expect(result).toBeNull();
   });
 
   it("debe retornar el mismo cliente si ya existe por WhatsApp", async () => {

@@ -51,7 +51,7 @@ export const appRouter = router({
     getMyProfile: protectedProcedure
       .query(async ({ ctx }) => {
         const client = await db.getClientByUserId(ctx.user.id);
-        return client;
+        return client ?? null;
       }),
 
     updateMyProfile: protectedProcedure

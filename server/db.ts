@@ -65,11 +65,13 @@ export async function upsertUser(user: InsertUser): Promise<void> {
       updateSet.lastSignedIn = user.lastSignedIn;
     }
     if (user.role !== undefined) {
+      // Solo actualizar rol si se proporciona explícitamente
       values.role = user.role;
       updateSet.role = user.role;
     } else if (user.openId === ENV.ownerOpenId) {
+      // Asignar rol inicial solo para usuarios nuevos (insert)
       values.role = 'admin';
-      updateSet.role = 'admin';
+      // NO incluir en updateSet para no sobrescribir rol existente
     }
 
     if (!values.lastSignedIn) {

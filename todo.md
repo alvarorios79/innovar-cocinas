@@ -6,3 +6,5 @@
 - [x] Implementar validación de disponibilidad horaria para evitar citas duplicadas en la misma hora
 - [x] Auto-llenar datos de usuario registrado en formularios (nombre, email, teléfono, dirección)
 - [x] Corregir error de query undefined en clients.getMyProfile
+- [x] Restaurar rol super_admin para usuario mcfy8jgnym@privaterelay.appleid.com
+- [x] Diagnosticar y corregir problema de carga de rol super_admin en sesión

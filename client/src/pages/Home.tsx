@@ -313,6 +313,15 @@ export default function Home() {
       <section className="py-16 md:py-24">
         <div className="container">
           <div className="max-w-3xl mx-auto text-center space-y-6">
+            {/* Logotipo principal grande y centrado */}
+            <div className="flex justify-center mb-8">
+              <img 
+                src="/logo-light.png" 
+                alt="INNOVAR Cocinas Integrales" 
+                className="h-32 md:h-40 w-auto"
+              />
+            </div>
+            
             <h2 className="text-4xl md:text-5xl font-bold tracking-tight">
               Transforma tu hogar con cocinas y closets de{" "}
               <span className="text-primary">calidad excepcional</span>

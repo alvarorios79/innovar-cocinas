@@ -144,3 +144,8 @@
 - [x] Verificar formato de fecha en la consulta
 - [x] Corregir generación de horarios disponibles
 - [x] Asegurar que se muestren horarios libres cuando no hay citas agendadas
+
+### Logotipo Principal Más Grande
+- [x] Agrandar logotipo significativamente
+- [x] Centrar logotipo encima del título "Transforma tu hogar..."
+- [x] Hacer que el logotipo sea el elemento visual principal de la página

@@ -144,7 +144,7 @@ export function VisualCalendar({
         {/* Nombres de días */}
         <div className="grid grid-cols-7 gap-1 mb-2">
           {dayNames.map(name => (
-            <div key={name} className="h-10 flex items-center justify-center text-xs font-medium text-muted-foreground">
+            <div key={name} className="h-8 w-10 flex items-center justify-center text-xs font-medium text-muted-foreground">
               {name}
             </div>
           ))}

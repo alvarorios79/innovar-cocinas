@@ -134,3 +134,7 @@
 - [x] Actualizar dirección a "K9 vía Cerritos a Pereira, Pereira Risaralda"
 - [x] Hacer dirección clickeable con enlace a Google Maps
 - [x] Agregar enlace directo a ubicación de INNOVAR en Google Maps
+
+### Alineación del Calendario
+- [x] Alinear correctamente los nombres de días con los cuadros del calendario
+- [x] Asegurar que los días comiencen en la columna correcta según el día de la semana

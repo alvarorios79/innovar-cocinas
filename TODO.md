@@ -360,3 +360,17 @@
 - [x] Tests de eliminación de clientes (admin y super_admin)
 - [x] Tests de validación de permisos (user no puede eliminar)
 - [x] 10 tests nuevos pasando (45/45 tests totales)
+
+
+## Bug: No se pueden eliminar cotizaciones v3.1
+
+### Problema Reportado
+- [x] Al intentar eliminar una cotización, requiere hacer clic dos veces
+- [x] Revisar endpoint quotations.delete (funcionando correctamente)
+- [x] Verificar validación de permisos (correcta)
+- [x] Identificar problema: botones en columna causaban clicks accidentales
+
+### Solución Implementada
+- [x] Cambiar botones de flex-col a flex-row en quotations
+- [x] Botones ahora están lado a lado en lugar de apilados
+- [x] Elimina confusión y clicks accidentales

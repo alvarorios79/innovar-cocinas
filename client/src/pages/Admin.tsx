@@ -639,7 +639,7 @@ export default function Admin() {
                               </p>
                             )}
                           </div>
-                          <div className="flex flex-col gap-2">
+                          <div className="flex flex-row gap-2">
                             {quot.status === "borrador" && (
                               <Button
                                 size="sm"

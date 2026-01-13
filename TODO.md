@@ -374,3 +374,17 @@
 - [x] Cambiar botones de flex-col a flex-row en quotations
 - [x] Botones ahora están lado a lado en lugar de apilados
 - [x] Elimina confusión y clicks accidentales
+
+
+## Botón Flotante de WhatsApp v3.2
+
+### Funcionalidad Solicitada
+- [x] Crear componente de botón flotante de WhatsApp
+- [x] Diseño circular con icono de WhatsApp (MessageCircle de lucide-react)
+- [x] Posición fija en esquina inferior derecha (bottom-6 right-6)
+- [x] Número: 313 680 2025
+- [x] Visible en todas las páginas del sitio (integrado en App.tsx)
+- [x] Efecto hover y animación sutil (scale-110, efecto pulso)
+- [x] Enlace directo a WhatsApp con mensaje predefinido
+- [x] Tooltip informativo al hacer hover
+- [x] Color oficial de WhatsApp (#25D366)

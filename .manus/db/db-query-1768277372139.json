@@ -1,0 +1,9 @@
+{
+  "query": "UPDATE users SET role = 'super_admin' WHERE openId = (SELECT OWNER_OPEN_ID FROM (SELECT '${process.env.OWNER_OPEN_ID}' AS OWNER_OPEN_ID) AS tmp);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute UPDATE users SET role = 'super_admin' WHERE openId = (SELECT OWNER_OPEN_ID FROM (SELECT '${process.env.OWNER_OPEN_ID}' AS OWNER_OPEN_ID) AS tmp);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 404
+}

@@ -388,3 +388,17 @@
 - [x] Enlace directo a WhatsApp con mensaje predefinido
 - [x] Tooltip informativo al hacer hover
 - [x] Color oficial de WhatsApp (#25D366)
+
+
+## Configuración PWA Profesional v3.3
+
+### Elementos de PWA
+- [x] Generar iconos de la app en múltiples tamaños (192x192, 512x512) usando logo original
+- [x] Crear manifest.json con configuración completa
+- [x] Service worker ya existía con funcionalidad offline básica
+- [x] Agregar meta tags para iOS y Android
+- [x] Configurar pantalla de carga (splash screen automático)
+- [x] Definir colores de tema (#14b8a6)
+- [x] Habilitar instalación desde navegador
+- [x] Agregar shortcuts (Agendar Cita, Solicitar Estimado, Panel Admin)
+- [x] Configurar apple-mobile-web-app meta tags

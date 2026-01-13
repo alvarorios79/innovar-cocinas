@@ -5,7 +5,7 @@
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#00B8A9",
+  "theme_color": "#14b8a6",
   "orientation": "portrait-primary",
   "icons": [
     {
@@ -21,9 +21,32 @@
       "purpose": "any maskable"
     }
   ],
-  "categories": ["business", "productivity"],
+  "categories": ["business", "lifestyle", "shopping"],
   "lang": "es-CO",
   "dir": "ltr",
   "scope": "/",
-  "prefer_related_applications": false
+  "prefer_related_applications": false,
+  "shortcuts": [
+    {
+      "name": "Agendar Cita",
+      "short_name": "Cita",
+      "description": "Agenda una cita para visita técnica",
+      "url": "/#agendar-cita",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Solicitar Estimado",
+      "short_name": "Estimado",
+      "description": "Solicita un estimado de tu proyecto",
+      "url": "/#estimado-previo",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Panel Admin",
+      "short_name": "Admin",
+      "description": "Accede al panel de administración",
+      "url": "/admin",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
 }

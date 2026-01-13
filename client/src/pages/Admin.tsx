@@ -186,7 +186,10 @@ export default function Admin() {
     return <div className="flex items-center justify-center min-h-screen">Cargando...</div>;
   }
 
+  console.log('[DEBUG Admin] User:', user?.email, 'Role:', user?.role, 'isAuthenticated:', isAuthenticated);
+
   if (!isAuthenticated || (user?.role !== "admin" && user?.role !== "super_admin")) {
+    console.log('[DEBUG Admin] Access denied - redirecting to home');
     setLocation("/");
     return null;
   }

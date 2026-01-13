@@ -115,21 +115,21 @@ describe("Password Authentication", () => {
       ).rejects.toThrow();
     });
 
-    it("debe rechazar creación con contraseña si no es super_admin", async () => {
+    it("debe permitir a admin crear usuario con contraseña", async () => {
       const caller = appRouter.createCaller({
         user: { id: 2, role: "admin", name: "Admin", email: "admin2@test.com" },
         req: {} as any,
         res: {} as any,
       });
 
-      await expect(
-        caller.userManagement.create({
-          name: "Test User",
-          email: `no-super-${Date.now()}@example.com`,
-          role: "user",
-          password: "SecurePass123",
-        })
-      ).rejects.toThrow("Solo super administradores pueden crear usuarios con contraseña");
+      const result = await caller.userManagement.create({
+        name: "Test User",
+        email: `admin-created-${Date.now()}@example.com`,
+        role: "user",
+        password: "SecurePass123",
+      });
+
+      expect(result.success).toBe(true);
     });
   });
 });

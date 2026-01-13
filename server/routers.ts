@@ -12,10 +12,7 @@ import { hashPassword, validatePasswordStrength, authenticateWithPassword } from
 export const appRouter = router({
   system: systemRouter,
   auth: router({
-    me: publicProcedure.query(opts => {
-      console.log('[DEBUG auth.me] User from context:', JSON.stringify(opts.ctx.user, null, 2));
-      return opts.ctx.user;
-    }),
+    me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
@@ -602,11 +599,11 @@ export const appRouter = router({
           });
         }
 
-        // Solo super_admin puede crear usuarios con contraseña
-        if (input.password && ctx.user.role !== "super_admin") {
+        // Solo super_admin y admin pueden crear usuarios con contraseña
+        if (input.password && ctx.user.role !== "super_admin" && ctx.user.role !== "admin") {
           throw new TRPCError({ 
             code: "FORBIDDEN", 
-            message: "Solo super administradores pueden crear usuarios con contraseña" 
+            message: "Solo administradores pueden crear usuarios con contraseña" 
           });
         }
 

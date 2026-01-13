@@ -299,7 +299,7 @@ export default function Home() {
                   <Link href="/portal">
                     <Button variant="ghost">Mi Portal</Button>
                   </Link>
-                  {user?.role === "admin" && (
+                  {(user?.role === "admin" || user?.role === "super_admin") && (
                     <Link href="/admin">
                       <Button variant="ghost">Panel Admin</Button>
                     </Link>

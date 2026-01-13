@@ -1,4 +1,4 @@
-const CACHE_NAME = 'innovar-cocinas-v1';
+const CACHE_NAME = 'innovar-cocinas-v2';
 const urlsToCache = [
   '/',
   '/manifest.json',
@@ -34,12 +34,23 @@ self.addEventListener('activate', (event) => {
 });
 
 // Estrategia de cache: Network First, fallback to cache
+// Solo cachear requests GET (POST, PUT, DELETE no se pueden cachear)
 self.addEventListener('fetch', (event) => {
+  // Ignorar requests que no sean GET
+  if (event.request.method !== 'GET') {
+    return;
+  }
+
+  // Ignorar requests a la API
+  if (event.request.url.includes('/api/')) {
+    return;
+  }
+
   event.respondWith(
     fetch(event.request)
       .then((response) => {
         // Si la respuesta es válida, clonarla y guardarla en cache
-        if (response && response.status === 200) {
+        if (response && response.status === 200 && response.type === 'basic') {
           const responseToCache = response.clone();
           caches.open(CACHE_NAME)
             .then((cache) => {
@@ -56,11 +67,11 @@ self.addEventListener('fetch', (event) => {
               return response;
             }
             // Si no está en cache, mostrar página offline básica
-            return new Response('Offline - No se pudo cargar el recurso', {
+            return new Response('Sin conexión - No se pudo cargar el recurso', {
               status: 503,
               statusText: 'Service Unavailable',
               headers: new Headers({
-                'Content-Type': 'text/plain'
+                'Content-Type': 'text/plain; charset=utf-8'
               })
             });
           });

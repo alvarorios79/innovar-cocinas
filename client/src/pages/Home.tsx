@@ -626,39 +626,42 @@ export default function Home() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="est-shape">Forma de la cocina *</Label>
-                        <Select
-                          value={estimateForm.kitchenShape}
-                          onValueChange={(value) => setEstimateForm({ ...estimateForm, kitchenShape: value })}
-                        >
-                          <SelectTrigger id="est-shape">
-                            <SelectValue placeholder="Selecciona..." />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="L">En forma de L</SelectItem>
-                            <SelectItem value="U">En forma de U</SelectItem>
-                            <SelectItem value="lineal">Lineal</SelectItem>
-                          </SelectContent>
-                        </Select>
+                    {/* Solo mostrar campos de cocina si el tipo de trabajo es "cocina" */}
+                    {estimateForm.workType === "cocina" && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="est-shape">Forma de la cocina *</Label>
+                          <Select
+                            value={estimateForm.kitchenShape}
+                            onValueChange={(value) => setEstimateForm({ ...estimateForm, kitchenShape: value })}
+                          >
+                            <SelectTrigger id="est-shape">
+                              <SelectValue placeholder="Selecciona..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="L">En forma de L</SelectItem>
+                              <SelectItem value="U">En forma de U</SelectItem>
+                              <SelectItem value="lineal">Lineal</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="est-material">Tipo de mesón *</Label>
+                          <Select
+                            value={estimateForm.materialType}
+                            onValueChange={(value) => setEstimateForm({ ...estimateForm, materialType: value })}
+                          >
+                            <SelectTrigger id="est-material">
+                              <SelectValue placeholder="Selecciona..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="quarzone">Quarzone</SelectItem>
+                              <SelectItem value="sinterizado">Sinterizado</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
                       </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="est-material">Tipo de mesón *</Label>
-                        <Select
-                          value={estimateForm.materialType}
-                          onValueChange={(value) => setEstimateForm({ ...estimateForm, materialType: value })}
-                        >
-                          <SelectTrigger id="est-material">
-                            <SelectValue placeholder="Selecciona..." />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="quarzone">Quarzone</SelectItem>
-                            <SelectItem value="sinterizado">Sinterizado</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
+                    )}
 
                     <div className="space-y-2">
                       <Label htmlFor="est-measurements">Medidas específicas *</Label>

@@ -85,10 +85,10 @@ export function VisualCalendar({
     const isToday = date.toDateString() === new Date().toDateString();
 
     return cn(
-      "h-10 w-10 rounded-md flex items-center justify-center text-sm cursor-pointer transition-colors",
+      "h-10 sm:h-12 w-full rounded-md flex items-center justify-center text-sm sm:text-base cursor-pointer transition-colors touch-manipulation",
       {
         "bg-red-100 text-red-700 cursor-not-allowed": !isAllowed,
-        "hover:bg-primary/10": isAllowed && !isSelected,
+        "hover:bg-primary/10 active:bg-primary/20": isAllowed && !isSelected,
         "bg-primary text-primary-foreground": isSelected,
         "font-bold border-2 border-primary": isToday && !isSelected,
       }
@@ -127,31 +127,31 @@ export function VisualCalendar({
   return (
     <div className="space-y-6">
       {/* Calendario */}
-      <Card className="p-4">
-        <div className="flex items-center justify-between mb-4">
-          <Button variant="outline" size="sm" onClick={previousMonth}>
+      <Card className="p-3 sm:p-4">
+        <div className="flex items-center justify-between mb-3 sm:mb-4">
+          <Button variant="outline" size="sm" onClick={previousMonth} className="h-10 w-10 p-0">
             ←
           </Button>
-          <div className="flex items-center gap-2 font-semibold">
+          <div className="flex items-center gap-2 font-semibold text-sm sm:text-base">
             <CalendarIcon className="h-4 w-4" />
             {monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}
           </div>
-          <Button variant="outline" size="sm" onClick={nextMonth}>
+          <Button variant="outline" size="sm" onClick={nextMonth} className="h-10 w-10 p-0">
             →
           </Button>
         </div>
 
         {/* Nombres de días */}
-        <div className="grid grid-cols-7 gap-1 mb-2">
+        <div className="grid grid-cols-7 gap-0.5 sm:gap-1 mb-2">
           {dayNames.map(name => (
-            <div key={name} className="h-8 w-10 flex items-center justify-center text-xs font-medium text-muted-foreground">
+            <div key={name} className="h-8 flex items-center justify-center text-xs font-medium text-muted-foreground">
               {name}
             </div>
           ))}
         </div>
 
         {/* Días del mes */}
-        <div className="grid grid-cols-7 gap-1">
+        <div className="grid grid-cols-7 gap-0.5 sm:gap-1">
           {days.map((date, index) => (
             <div
               key={index}
@@ -184,7 +184,7 @@ export function VisualCalendar({
             <h3 className="font-semibold">Selecciona un horario</h3>
           </div>
           
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
             {allTimeSlots.map((slot) => {
               const isAvailable = availableSlots.includes(slot);
               const isSelected = selectedTime === slot;

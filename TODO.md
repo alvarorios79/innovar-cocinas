@@ -162,3 +162,35 @@
 ### Eliminar Barra Superior del Header
 - [x] Quitar la línea superior del header con información de contacto duplicada
 - [x] Mantener solo el logotipo pequeño y navegación en el header
+
+## Optimización para Móvil v2.2
+
+### Header y Hero Section
+- [x] Ajustar tamaño del logotipo para móvil
+- [x] Optimizar información de contacto en pantallas pequeñas
+- [x] Mejorar espaciado y padding para móvil
+- [x] Asegurar que botones sean fáciles de tocar (mínimo 44x44px)
+
+### Formularios
+- [x] Aumentar tamaño de campos de entrada para móvil
+- [x] Mejorar espaciado entre campos
+- [x] Optimizar botones de envío para pantallas táctiles
+- [x] Asegurar que labels sean legibles en móvil
+
+### Calendario
+- [x] Adaptar calendario para pantallas pequeñas
+- [x] Optimizar selector de horarios para uso táctil
+- [x] Mejorar visualización de días y horarios disponibles
+- [x] Asegurar que sea fácil seleccionar fechas en móvil
+
+### Panel Admin y Portal
+- [x] Optimizar tablas para móvil (scroll horizontal si es necesario)
+- [x] Adaptar cards y badges para pantallas pequeñas
+- [x] Mejorar navegación en móvil
+- [x] Asegurar que todos los botones sean accesibles
+
+### General
+- [x] Verificar que todos los textos sean legibles
+- [x] Asegurar que no haya elementos que se salgan de la pantalla
+- [x] Probar en diferentes tamaños de pantalla
+- [x] Verificar que todos los enlaces y botones funcionen correctamente

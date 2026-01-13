@@ -276,55 +276,55 @@ export default function Home() {
         <div className="container">
           <div className="max-w-3xl mx-auto text-center space-y-6">
             {/* Logotipo principal grande y centrado */}
-            <div className="flex justify-center mb-4">
+            <div className="flex justify-center mb-3 md:mb-4">
               <img 
                 src="/logo-light.png" 
                 alt="INNOVAR Cocinas Integrales" 
-                className="h-32 md:h-40 w-auto"
+                className="h-24 sm:h-32 md:h-40 w-auto"
               />
             </div>
             
             {/* Información de contacto cerca del logo */}
-            <div className="flex flex-wrap items-center justify-center gap-3 md:gap-6 text-sm text-muted-foreground mb-8">
-              <a href="tel:+573136802025" className="flex items-center gap-1 hover:text-primary transition-colors">
-                <Phone className="h-4 w-4" />
-                <span>313 680 2025</span>
+            <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 md:gap-6 text-xs sm:text-sm text-muted-foreground mb-4 md:mb-8 px-4">
+              <a href="tel:+573136802025" className="flex items-center gap-1 hover:text-primary transition-colors min-h-[44px]">
+                <Phone className="h-4 w-4 flex-shrink-0" />
+                <span className="whitespace-nowrap">313 680 2025</span>
               </a>
               <a 
                 href="https://www.google.com/maps/place/Innovar-+Cocinas+integrales+Pereira/@4.802601,-75.8300704,18.22z/data=!4m14!1m7!3m6!1s0x8e388129491d7481:0x900411675d3b35be!2sInnovar-+Cocinas+integrales+Pereira!8m2!3d4.8026875!4d-75.8293125!16s%2Fg%2F11h5q2k28n!3m5!1s0x8e388129491d7481:0x900411675d3b35be!8m2!3d4.8026875!4d-75.8293125!16s%2Fg%2F11h5q2k28n?entry=ttu&g_ep=EgoyMDI2MDExMS4wIKXMDSoKLDEwMDc5MjA3M0gBUAM%3D"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-1 hover:text-primary transition-colors"
+                className="flex items-center gap-1 hover:text-primary transition-colors min-h-[44px]"
               >
-                <MapPin className="h-4 w-4" />
-                <span className="hidden sm:inline">K9 vía Cerritos a Pereira</span>
+                <MapPin className="h-4 w-4 flex-shrink-0" />
+                <span className="hidden sm:inline whitespace-nowrap">K9 vía Cerritos a Pereira</span>
                 <span className="sm:hidden">Pereira</span>
               </a>
               <a 
                 href="https://cocinasintegralespereira.co/" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="flex items-center gap-1 hover:text-primary transition-colors"
+                className="flex items-center gap-1 hover:text-primary transition-colors min-h-[44px]"
               >
-                <Globe className="h-4 w-4" />
-                <span>Sitio Web</span>
+                <Globe className="h-4 w-4 flex-shrink-0" />
+                <span className="whitespace-nowrap">Sitio Web</span>
               </a>
               <a 
                 href="https://wa.me/573136802025" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="flex items-center gap-1 bg-primary text-primary-foreground px-3 py-1.5 rounded-full hover:opacity-90 transition-opacity"
+                className="flex items-center gap-1 bg-primary text-primary-foreground px-4 py-2 rounded-full hover:opacity-90 transition-opacity min-h-[44px]"
               >
-                <MessageCircle className="h-4 w-4" />
-                <span>WhatsApp</span>
+                <MessageCircle className="h-4 w-4 flex-shrink-0" />
+                <span className="whitespace-nowrap font-medium">WhatsApp</span>
               </a>
             </div>
             
-            <h2 className="text-4xl md:text-5xl font-bold tracking-tight">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight px-4">
               Transforma tu hogar con cocinas y closets de{" "}
               <span className="text-primary">calidad excepcional</span>
             </h2>
-            <p className="text-xl text-muted-foreground">
+            <p className="text-base sm:text-lg md:text-xl text-muted-foreground px-4">
               Diseño, fabricación e instalación de cocinas integrales, closets, puertas y centros de TV en Pereira
             </p>
             <div className="flex flex-wrap gap-4 justify-center pt-4">
@@ -349,18 +349,21 @@ export default function Home() {
       <section className="py-12">
         <div className="container max-w-4xl">
           <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="appointment" className="gap-2">
+            <TabsList className="grid w-full grid-cols-3 h-auto">
+              <TabsTrigger value="appointment" className="gap-1 sm:gap-2 flex-col sm:flex-row py-3 sm:py-2 text-xs sm:text-sm">
                 <Calendar className="h-4 w-4" />
-                Agendar Cita
+                <span className="hidden sm:inline">Agendar Cita</span>
+                <span className="sm:hidden">Cita</span>
               </TabsTrigger>
-              <TabsTrigger value="advisory" className="gap-2">
+              <TabsTrigger value="advisory" className="gap-1 sm:gap-2 flex-col sm:flex-row py-3 sm:py-2 text-xs sm:text-sm">
                 <Phone className="h-4 w-4" />
-                Asesoramiento
+                <span className="hidden sm:inline">Asesoramiento</span>
+                <span className="sm:hidden">Asesoría</span>
               </TabsTrigger>
-              <TabsTrigger value="estimate" className="gap-2">
+              <TabsTrigger value="estimate" className="gap-1 sm:gap-2 flex-col sm:flex-row py-3 sm:py-2 text-xs sm:text-sm">
                 <Calculator className="h-4 w-4" />
-                Estimado Previo
+                <span className="hidden sm:inline">Estimado Previo</span>
+                <span className="sm:hidden">Estimado</span>
               </TabsTrigger>
             </TabsList>
 

@@ -213,11 +213,11 @@ export default function Admin() {
 
         {/* Main Content */}
         <Tabs defaultValue="appointments" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="appointments">Citas Agendadas</TabsTrigger>
-            <TabsTrigger value="advisory">Asesoramiento</TabsTrigger>
-            <TabsTrigger value="quotations">Cotizaciones</TabsTrigger>
-            <TabsTrigger value="clients">Clientes</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 h-auto">
+            <TabsTrigger value="appointments" className="text-xs sm:text-sm px-2 py-2">Citas</TabsTrigger>
+            <TabsTrigger value="advisory" className="text-xs sm:text-sm px-2 py-2">Asesoría</TabsTrigger>
+            <TabsTrigger value="quotations" className="text-xs sm:text-sm px-2 py-2">Cotizaciones</TabsTrigger>
+            <TabsTrigger value="clients" className="text-xs sm:text-sm px-2 py-2">Clientes</TabsTrigger>
           </TabsList>
 
           {/* Appointments Tab */}
@@ -235,7 +235,7 @@ export default function Admin() {
                 ) : (
                   <div className="space-y-4">
                     {appointments.map((apt) => (
-                      <div key={apt.id} className="border rounded-lg p-4 space-y-2">
+                      <div key={apt.id} className="border rounded-lg p-3 sm:p-4 space-y-2">
                         <div className="flex items-start justify-between">
                           <div className="space-y-1">
                             <div className="flex items-center gap-2">

@@ -154,3 +154,7 @@
 - [x] Mover teléfono, dirección, sitio web cerca del logotipo centrado
 - [x] Crear bloque unificado de información de contacto
 - [x] Mantener buena legibilidad y organización visual
+
+### Reducir Espacio Encima del Logotipo
+- [x] Eliminar espacio excesivo entre header y logotipo grande
+- [x] Acercar logotipo al header para mejor aprovechamiento del espacio

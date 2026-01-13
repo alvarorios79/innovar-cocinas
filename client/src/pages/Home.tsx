@@ -310,7 +310,7 @@ export default function Home() {
       </header>
 
       {/* Hero Section */}
-      <section className="py-16 md:py-24">
+      <section className="py-6 md:py-8">
         <div className="container">
           <div className="max-w-3xl mx-auto text-center space-y-6">
             {/* Logotipo principal grande y centrado */}

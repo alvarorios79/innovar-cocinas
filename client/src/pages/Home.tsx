@@ -542,7 +542,7 @@ export default function Home() {
                         </Select>
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="est-material">Tipo de material *</Label>
+                        <Label htmlFor="est-material">Tipo de mesón *</Label>
                         <Select
                           value={estimateForm.materialType}
                           onValueChange={(value) => setEstimateForm({ ...estimateForm, materialType: value })}

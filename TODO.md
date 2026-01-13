@@ -418,3 +418,13 @@
 - [x] Actualizar visualización en Panel Admin (muestra forma, medidas, material)
 - [x] Actualizar visualización en Mi Portal (muestra forma, medidas, material)
 - [x] Actualizar función de WhatsApp con nuevos campos
+
+
+## Ajuste de Etiqueta: Tipo de Mesón v3.5
+
+### Cambio Solicitado
+- [x] Cambiar "Tipo de Material" por "Tipo de Mesón" en formulario
+- [x] Actualizar etiqueta en Home.tsx
+- [x] Actualizar visualización en Panel Admin
+- [x] Actualizar visualización en Mi Portal
+- [x] Actualizar función de WhatsApp (notificaciones)

@@ -635,7 +635,7 @@ export default function Admin() {
                             )}
                             {quot.materialType && (
                               <p className="text-sm">
-                                <span className="font-medium">Material:</span>{" "}
+                                <span className="font-medium">Tipo de mesón:</span>{" "}
                                 {quot.materialType === "quarzone" ? "Quarzone" : "Sinterizado"}
                               </p>
                             )}

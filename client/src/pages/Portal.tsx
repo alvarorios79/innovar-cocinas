@@ -312,7 +312,7 @@ export default function Portal() {
                         )}
                         {est.materialType && (
                           <p className="text-sm">
-                            <span className="font-medium">Material:</span>{" "}
+                            <span className="font-medium">Tipo de mesón:</span>{" "}
                             {est.materialType === "quarzone" ? "Quarzone" : "Sinterizado"}
                           </p>
                         )}

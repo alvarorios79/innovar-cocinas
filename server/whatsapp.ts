@@ -186,7 +186,7 @@ export function notifyNewEstimate(data: {
   }
   
   if (data.materialType) {
-    message += `🪨 *Material:* ${materialLabels[data.materialType] || data.materialType}\n`;
+    message += `🪨 *Tipo de mesón:* ${materialLabels[data.materialType] || data.materialType}\n`;
   }
   
   if (data.additionalDetails) {

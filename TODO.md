@@ -209,3 +209,27 @@
 - [x] Agregar botón para cambiar rol (user ↔ admin)
 - [x] Mostrar badges visuales para identificar roles
 - [x] Agregar confirmación antes de cambiar roles
+
+## Creación de Usuarios v2.4
+
+### Backend
+- [x] Crear endpoint para registrar nuevos usuarios
+- [x] Validar que email no esté duplicado
+- [x] Validar formato de email y contraseña
+- [x] Permitir asignar rol al crear usuario
+- [x] Solo admins pueden crear usuarios
+
+### Frontend
+- [x] Agregar botón "Crear Usuario" en tab Usuarios
+- [x] Crear formulario con campos: nombre, email, rol
+- [x] Validación de formulario
+- [x] Mostrar mensajes de éxito/error
+- [x] Actualizar lista de usuarios después de crear
+
+### Tests
+- [x] Test de creación de usuario por admin
+- [x] Test de prevención de duplicados
+- [x] Test de validación de datos
+- [x] Test de permisos (solo admin puede crear)
+- [x] Test de validación de email
+- [x] Test de campos requeridos

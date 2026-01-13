@@ -26,6 +26,14 @@ export default function Admin() {
     validUntil: "",
   });
 
+  const [createUserForm, setCreateUserForm] = useState({
+    name: "",
+    email: "",
+    role: "user" as "user" | "admin",
+  });
+
+  const [showCreateUserDialog, setShowCreateUserDialog] = useState(false);
+
   const utils = trpc.useUtils();
   const { data: appointments = [], isLoading: loadingAppointments } = trpc.appointments.list.useQuery();
   const { data: advisoryRequests = [], isLoading: loadingAdvisory } = trpc.advisory.list.useQuery();
@@ -80,6 +88,18 @@ export default function Admin() {
     },
     onError: (error) => {
       toast.error(error.message || "Error al actualizar rol");
+    },
+  });
+
+  const createUser = trpc.userManagement.create.useMutation({
+    onSuccess: () => {
+      utils.userManagement.listAll.invalidate();
+      toast.success("Usuario creado exitosamente");
+      setShowCreateUserDialog(false);
+      setCreateUserForm({ name: "", email: "", role: "user" });
+    },
+    onError: (error) => {
+      toast.error(error.message || "Error al crear usuario");
     },
   });
 
@@ -555,8 +575,77 @@ export default function Admin() {
           <TabsContent value="users" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Gestión de Usuarios</CardTitle>
-                <CardDescription>Administra los roles de los usuarios del sistema</CardDescription>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Gestión de Usuarios</CardTitle>
+                    <CardDescription>Administra los roles de los usuarios del sistema</CardDescription>
+                  </div>
+                  <Dialog open={showCreateUserDialog} onOpenChange={setShowCreateUserDialog}>
+                    <DialogTrigger asChild>
+                      <Button>
+                        <Users className="mr-2 h-4 w-4" />
+                        Crear Usuario
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Crear Nuevo Usuario</DialogTitle>
+                        <DialogDescription>
+                          Ingresa los datos del nuevo usuario
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="create-name">Nombre</Label>
+                          <Input
+                            id="create-name"
+                            value={createUserForm.name}
+                            onChange={(e) => setCreateUserForm({ ...createUserForm, name: e.target.value })}
+                            placeholder="Nombre completo"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="create-email">Email</Label>
+                          <Input
+                            id="create-email"
+                            type="email"
+                            value={createUserForm.email}
+                            onChange={(e) => setCreateUserForm({ ...createUserForm, email: e.target.value })}
+                            placeholder="correo@ejemplo.com"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="create-role">Rol</Label>
+                          <Select
+                            value={createUserForm.role}
+                            onValueChange={(value: "user" | "admin") => setCreateUserForm({ ...createUserForm, role: value })}
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="user">Usuario</SelectItem>
+                              <SelectItem value="admin">Administrador</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <Button
+                          className="w-full"
+                          onClick={() => {
+                            if (!createUserForm.name || !createUserForm.email) {
+                              toast.error("Completa todos los campos");
+                              return;
+                            }
+                            createUser.mutate(createUserForm);
+                          }}
+                          disabled={createUser.isPending}
+                        >
+                          {createUser.isPending ? "Creando..." : "Crear Usuario"}
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </div>
               </CardHeader>
               <CardContent>
                 {loadingUsers ? (

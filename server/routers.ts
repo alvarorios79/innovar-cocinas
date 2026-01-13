@@ -457,6 +457,37 @@ export const appRouter = router({
         return await db.getAllUsers();
       }),
 
+    create: protectedProcedure
+      .input(z.object({
+        name: z.string().min(1, "El nombre es requerido"),
+        email: z.string().email("Email inválido"),
+        role: z.enum(["user", "admin"]),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Solo administradores pueden crear usuarios" });
+        }
+
+        // Verificar que el email no esté duplicado
+        const allUsers = await db.getAllUsers();
+        const emailExists = allUsers.some(u => u.email?.toLowerCase() === input.email.toLowerCase());
+        
+        if (emailExists) {
+          throw new TRPCError({ 
+            code: "BAD_REQUEST", 
+            message: "Ya existe un usuario con este email" 
+          });
+        }
+
+        await db.createUser({
+          name: input.name,
+          email: input.email,
+          role: input.role,
+        });
+        
+        return { success: true };
+      }),
+
     updateRole: protectedProcedure
       .input(z.object({
         userId: z.number(),

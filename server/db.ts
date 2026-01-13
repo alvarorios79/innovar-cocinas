@@ -309,3 +309,26 @@ export async function updateUserRole(userId: number, newRole: "user" | "admin") 
     throw error;
   }
 }
+
+export async function createUser(userData: {
+  name: string;
+  email: string;
+  role: "user" | "admin";
+}): Promise<void> {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  // Generate a unique openId for manually created users
+  const openId = `manual-${Date.now()}-${Math.random().toString(36).substring(7)}`;
+
+  await db.insert(users).values({
+    openId,
+    name: userData.name,
+    email: userData.email,
+    role: userData.role,
+    loginMethod: "manual",
+    lastSignedIn: new Date(),
+  });
+}

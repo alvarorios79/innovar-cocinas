@@ -7,11 +7,15 @@ import * as db from "./db";
 import * as whatsapp from "./whatsapp";
 import { TRPCError } from "@trpc/server";
 import { getAvailableTimeSlots, isTimeSlotAvailable, APPOINTMENT_CONFIG } from "./availability";
+import { hashPassword, validatePasswordStrength, authenticateWithPassword } from "./password-auth";
 
 export const appRouter = router({
   system: systemRouter,
   auth: router({
-    me: publicProcedure.query(opts => opts.ctx.user),
+    me: publicProcedure.query(opts => {
+      console.log('[DEBUG auth.me] User from context:', JSON.stringify(opts.ctx.user, null, 2));
+      return opts.ctx.user;
+    }),
     logout: publicProcedure.mutation(({ ctx }) => {
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
@@ -19,6 +23,39 @@ export const appRouter = router({
         success: true,
       } as const;
     }),
+    loginWithPassword: publicProcedure
+      .input(z.object({
+        email: z.string().email("Email inválido"),
+        password: z.string().min(1, "La contraseña es requerida"),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const user = await authenticateWithPassword(input.email, input.password);
+        
+        if (!user) {
+          throw new TRPCError({ 
+            code: "UNAUTHORIZED", 
+            message: "Email o contraseña incorrectos" 
+          });
+        }
+
+        // Actualizar lastSignedIn
+        await db.updateUserLastSignedIn(user.id);
+
+        // Crear sesión (cookie)
+        const cookieOptions = getSessionCookieOptions(ctx.req);
+        const sessionToken = JSON.stringify({ userId: user.id });
+        ctx.res.cookie(COOKIE_NAME, sessionToken, cookieOptions);
+
+        return { 
+          success: true,
+          user: {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+          }
+        };
+      }),
   }),
 
   // ============ CLIENTS ============
@@ -549,6 +586,7 @@ export const appRouter = router({
         name: z.string().min(1, "El nombre es requerido"),
         email: z.string().email("Email inválido"),
         role: z.enum(["user", "admin", "super_admin"]),
+        password: z.string().min(8, "La contraseña debe tener al menos 8 caracteres").optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         // Solo super_admin y admin pueden crear usuarios
@@ -564,6 +602,25 @@ export const appRouter = router({
           });
         }
 
+        // Solo super_admin puede crear usuarios con contraseña
+        if (input.password && ctx.user.role !== "super_admin") {
+          throw new TRPCError({ 
+            code: "FORBIDDEN", 
+            message: "Solo super administradores pueden crear usuarios con contraseña" 
+          });
+        }
+
+        // Validar fortaleza de contraseña si se proporciona
+        if (input.password) {
+          const { valid, errors } = validatePasswordStrength(input.password);
+          if (!valid) {
+            throw new TRPCError({ 
+              code: "BAD_REQUEST", 
+              message: errors.join(", ") 
+            });
+          }
+        }
+
         // Verificar que el email no esté duplicado
         const allUsers = await db.getAllUsers();
         const emailExists = allUsers.some(u => u.email?.toLowerCase() === input.email.toLowerCase());
@@ -575,10 +632,17 @@ export const appRouter = router({
           });
         }
 
+        // Hash de contraseña si se proporciona
+        let passwordHash: string | undefined;
+        if (input.password) {
+          passwordHash = await hashPassword(input.password);
+        }
+
         await db.createUser({
           name: input.name,
           email: input.email,
           role: input.role,
+          passwordHash,
         });
         
         return { success: true };

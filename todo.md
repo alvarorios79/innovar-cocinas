@@ -8,3 +8,5 @@
 - [x] Corregir error de query undefined en clients.getMyProfile
 - [x] Restaurar rol super_admin para usuario mcfy8jgnym@privaterelay.appleid.com
 - [x] Diagnosticar y corregir problema de carga de rol super_admin en sesión
+- [x] Verificar por qué el usuario sigue sin permisos de super_admin después del fix
+- [x] Implementar autenticación con email y contraseña para crear usuarios con credenciales compartibles

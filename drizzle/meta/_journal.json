@@ -50,6 +50,13 @@
       "when": 1768283783863,
       "tag": "0006_abandoned_argent",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1768289065968,
+      "tag": "0007_married_mantis",
+      "breakpoints": true
     }
   ]
 }

@@ -366,6 +366,7 @@ export async function createUser(userData: {
   name: string;
   email: string;
   role: "user" | "admin" | "super_admin";
+  passwordHash?: string;
 }): Promise<void> {
   const db = await getDb();
   if (!db) {
@@ -380,9 +381,21 @@ export async function createUser(userData: {
     name: userData.name,
     email: userData.email,
     role: userData.role,
-    loginMethod: "manual",
+    loginMethod: userData.passwordHash ? "password" : "manual",
+    passwordHash: userData.passwordHash,
     lastSignedIn: new Date(),
   });
+}
+
+export async function updateUserLastSignedIn(userId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  await db.update(users)
+    .set({ lastSignedIn: new Date() })
+    .where(eq(users.id, userId));
 }
 
 export async function deleteUser(userId: number): Promise<void> {

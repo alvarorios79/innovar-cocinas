@@ -30,6 +30,7 @@ export default function Admin() {
     name: "",
     email: "",
     role: "user" as "user" | "admin" | "super_admin",
+    password: "" as string | undefined,
   });
 
   const [showCreateUserDialog, setShowCreateUserDialog] = useState(false);
@@ -97,7 +98,7 @@ export default function Admin() {
       utils.userManagement.listAll.invalidate();
       toast.success("Usuario creado exitosamente");
       setShowCreateUserDialog(false);
-      setCreateUserForm({ name: "", email: "", role: "user" });
+      setCreateUserForm({ name: "", email: "", role: "user", password: "" });
     },
     onError: (error) => {
       toast.error(error.message || "Error al crear usuario");
@@ -816,6 +817,21 @@ export default function Admin() {
                             </SelectContent>
                           </Select>
                         </div>
+                        {user?.role === "super_admin" && (
+                          <div className="space-y-2">
+                            <Label htmlFor="create-password">Contraseña (opcional)</Label>
+                            <Input
+                              id="create-password"
+                              type="password"
+                              value={createUserForm.password || ""}
+                              onChange={(e) => setCreateUserForm({ ...createUserForm, password: e.target.value })}
+                              placeholder="Mínimo 8 caracteres"
+                            />
+                            <p className="text-xs text-muted-foreground">
+                              Si se proporciona, el usuario podrá iniciar sesión con email y contraseña
+                            </p>
+                          </div>
+                        )}
                         <Button
                           className="w-full"
                           onClick={() => {

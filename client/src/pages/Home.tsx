@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
-import { Calendar, Phone, Calculator, CheckCircle2, ArrowRight, MapPin, MessageCircle } from "lucide-react";
+import { Calendar, Phone, Calculator, CheckCircle2, ArrowRight, MapPin, MessageCircle, Globe } from "lucide-react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
 import { Link } from "wouter";
@@ -314,12 +314,48 @@ export default function Home() {
         <div className="container">
           <div className="max-w-3xl mx-auto text-center space-y-6">
             {/* Logotipo principal grande y centrado */}
-            <div className="flex justify-center mb-8">
+            <div className="flex justify-center mb-4">
               <img 
                 src="/logo-light.png" 
                 alt="INNOVAR Cocinas Integrales" 
                 className="h-32 md:h-40 w-auto"
               />
+            </div>
+            
+            {/* Información de contacto cerca del logo */}
+            <div className="flex flex-wrap items-center justify-center gap-3 md:gap-6 text-sm text-muted-foreground mb-8">
+              <a href="tel:+573136802025" className="flex items-center gap-1 hover:text-primary transition-colors">
+                <Phone className="h-4 w-4" />
+                <span>313 680 2025</span>
+              </a>
+              <a 
+                href="https://www.google.com/maps/place/Innovar-+Cocinas+integrales+Pereira/@4.802601,-75.8300704,18.22z/data=!4m14!1m7!3m6!1s0x8e388129491d7481:0x900411675d3b35be!2sInnovar-+Cocinas+integrales+Pereira!8m2!3d4.8026875!4d-75.8293125!16s%2Fg%2F11h5q2k28n!3m5!1s0x8e388129491d7481:0x900411675d3b35be!8m2!3d4.8026875!4d-75.8293125!16s%2Fg%2F11h5q2k28n?entry=ttu&g_ep=EgoyMDI2MDExMS4wIKXMDSoKLDEwMDc5MjA3M0gBUAM%3D"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 hover:text-primary transition-colors"
+              >
+                <MapPin className="h-4 w-4" />
+                <span className="hidden sm:inline">K9 vía Cerritos a Pereira</span>
+                <span className="sm:hidden">Pereira</span>
+              </a>
+              <a 
+                href="https://cocinasintegralespereira.co/" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 hover:text-primary transition-colors"
+              >
+                <Globe className="h-4 w-4" />
+                <span>Sitio Web</span>
+              </a>
+              <a 
+                href="https://wa.me/573136802025" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 bg-primary text-primary-foreground px-3 py-1.5 rounded-full hover:opacity-90 transition-opacity"
+              >
+                <MessageCircle className="h-4 w-4" />
+                <span>WhatsApp</span>
+              </a>
             </div>
             
             <h2 className="text-4xl md:text-5xl font-bold tracking-tight">

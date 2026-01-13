@@ -149,3 +149,8 @@
 - [x] Agrandar logotipo significativamente
 - [x] Centrar logotipo encima del título "Transforma tu hogar..."
 - [x] Hacer que el logotipo sea el elemento visual principal de la página
+
+### Reorganizar Información de Contacto
+- [x] Mover teléfono, dirección, sitio web cerca del logotipo centrado
+- [x] Crear bloque unificado de información de contacto
+- [x] Mantener buena legibilidad y organización visual

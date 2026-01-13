@@ -138,3 +138,9 @@
 ### Alineación del Calendario
 - [x] Alinear correctamente los nombres de días con los cuadros del calendario
 - [x] Asegurar que los días comiencen en la columna correcta según el día de la semana
+
+### Bug: Horarios No Disponibles
+- [x] Revisar consulta de disponibilidad de horarios
+- [x] Verificar formato de fecha en la consulta
+- [x] Corregir generación de horarios disponibles
+- [x] Asegurar que se muestren horarios libres cuando no hay citas agendadas

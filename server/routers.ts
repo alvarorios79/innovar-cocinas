@@ -432,13 +432,17 @@ export const appRouter = router({
     getAvailableSlots: publicProcedure
       .input(z.object({ date: z.string() }))
       .query(async ({ input }) => {
-        const date = new Date(input.date);
+        // Parsear fecha correctamente para evitar problemas de zona horaria
+        const [year, month, day] = input.date.split('-').map(Number);
+        const date = new Date(year, month - 1, day);
         return await getAvailableTimeSlots(date);
       }),
     checkSlot: publicProcedure
       .input(z.object({ date: z.string(), timeSlot: z.string() }))
       .query(async ({ input }) => {
-        const date = new Date(input.date);
+        // Parsear fecha correctamente para evitar problemas de zona horaria
+        const [year, month, day] = input.date.split('-').map(Number);
+        const date = new Date(year, month - 1, day);
         return await isTimeSlotAvailable(date, input.timeSlot);
       }),
   }),

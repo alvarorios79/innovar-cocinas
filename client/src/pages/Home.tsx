@@ -445,50 +445,20 @@ export default function Home() {
                       onTimeChange={setAppointmentTime}
                     />
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="adv-phone">Teléfono WhatsApp *</Label>
-                        <Input
-                          id="adv-phone"
-                          required
-                          placeholder="3136802025"
-                          value={advisoryForm.whatsappPhone}
-                          onChange={(e) => setAdvisoryForm({ ...advisoryForm, whatsappPhone: e.target.value })}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="adv-work">Tipo de trabajo *</Label>
-                        <Select
-                          value={advisoryForm.workType}
-                          onValueChange={(value) => setAdvisoryForm({ ...advisoryForm, workType: value })}
-                        >
-                          <SelectTrigger id="adv-work">
-                            <SelectValue placeholder="Selecciona..." />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="cocina">Cocina Integral</SelectItem>
-                            <SelectItem value="closet">Closet</SelectItem>
-                            <SelectItem value="puertas">Puertas</SelectItem>
-                            <SelectItem value="centro_tv">Centro de TV</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-
                     <div className="space-y-2">
-                      <Label htmlFor="adv-notes">¿Qué te gustaría saber?</Label>
+                      <Label htmlFor="apt-notes">Notas adicionales</Label>
                       <Textarea
-                        id="adv-notes"
+                        id="apt-notes"
                         rows={4}
-                        placeholder="Cuéntanos sobre tu proyecto y tus dudas..."
-                        value={advisoryForm.notes}
-                        onChange={(e) => setAdvisoryForm({ ...advisoryForm, notes: e.target.value })}
+                        placeholder="Cuéntanos más sobre tu proyecto..."
+                        value={appointmentForm.notes}
+                        onChange={(e) => setAppointmentForm({ ...appointmentForm, notes: e.target.value })}
                       />
                     </div>
 
                     <Button type="submit" className="w-full" size="lg">
-                      Solicitar Asesoramiento
-                      <ArrowRight className="ml-2 h-4 w-4" />
+                      Agendar Cita
+                      <Calendar className="ml-2 h-4 w-4" />
                     </Button>
                   </form>
                 </CardContent>

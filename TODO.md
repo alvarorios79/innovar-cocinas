@@ -269,3 +269,11 @@
 - [x] Test de creación: solo super_admin puede crear admins
 - [x] Test de modificación: solo super_admin puede modificar roles de admins
 - [x] 13 tests nuevos de jerarquía de roles (35/35 tests pasando)
+
+## Ajustes de Formulario v2.6
+
+### Formulario de Agendar Cita
+- [x] Eliminar campo de teléfono duplicado debajo del calendario
+- [x] Eliminar campo de tipo de trabajo duplicado debajo del calendario
+- [x] Mantener solo los campos iniciales antes del calendario
+- [x] Dejar solo campo de notas adicionales después del calendario

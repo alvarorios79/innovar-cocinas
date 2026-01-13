@@ -29,7 +29,7 @@ export default function Admin() {
   const [createUserForm, setCreateUserForm] = useState({
     name: "",
     email: "",
-    role: "user" as "user" | "admin",
+    role: "user" as "user" | "admin" | "super_admin",
   });
 
   const [showCreateUserDialog, setShowCreateUserDialog] = useState(false);
@@ -103,11 +103,21 @@ export default function Admin() {
     },
   });
 
+  const deleteUser = trpc.userManagement.delete.useMutation({
+    onSuccess: () => {
+      utils.userManagement.listAll.invalidate();
+      toast.success("Usuario eliminado exitosamente");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Error al eliminar usuario");
+    },
+  });
+
   if (loading) {
     return <div className="flex items-center justify-center min-h-screen">Cargando...</div>;
   }
 
-  if (!isAuthenticated || user?.role !== "admin") {
+  if (!isAuthenticated || (user?.role !== "admin" && user?.role !== "super_admin")) {
     setLocation("/");
     return null;
   }
@@ -618,7 +628,7 @@ export default function Admin() {
                           <Label htmlFor="create-role">Rol</Label>
                           <Select
                             value={createUserForm.role}
-                            onValueChange={(value: "user" | "admin") => setCreateUserForm({ ...createUserForm, role: value })}
+                            onValueChange={(value: "user" | "admin" | "super_admin") => setCreateUserForm({ ...createUserForm, role: value })}
                           >
                             <SelectTrigger>
                               <SelectValue />
@@ -626,6 +636,9 @@ export default function Admin() {
                             <SelectContent>
                               <SelectItem value="user">Usuario</SelectItem>
                               <SelectItem value="admin">Administrador</SelectItem>
+                              {user?.role === "super_admin" && (
+                                <SelectItem value="super_admin">Super Administrador</SelectItem>
+                              )}
                             </SelectContent>
                           </Select>
                         </div>
@@ -661,10 +674,14 @@ export default function Admin() {
                             <div className="flex items-center gap-2 flex-wrap">
                               <h3 className="font-semibold">{usr.name || "Sin nombre"}</h3>
                               <Badge 
-                                variant={usr.role === "admin" ? "default" : "secondary"}
-                                className={usr.role === "admin" ? "bg-blue-500" : ""}
+                                variant={usr.role === "super_admin" || usr.role === "admin" ? "default" : "secondary"}
+                                className={
+                                  usr.role === "super_admin" ? "bg-purple-600" :
+                                  usr.role === "admin" ? "bg-blue-500" : ""
+                                }
                               >
-                                {usr.role === "admin" ? "Administrador" : "Usuario"}
+                                {usr.role === "super_admin" ? "Super Admin" :
+                                 usr.role === "admin" ? "Administrador" : "Usuario"}
                               </Badge>
                             </div>
                             <p className="text-sm text-muted-foreground">{usr.email || "Sin email"}</p>
@@ -673,29 +690,56 @@ export default function Admin() {
                             </p>
                           </div>
                           <div className="flex flex-col gap-2">
-                            {usr.id !== user?.id && (
-                              <Button
-                                size="sm"
-                                variant={usr.role === "admin" ? "destructive" : "default"}
-                                onClick={() => {
-                                  if (window.confirm(
-                                    usr.role === "admin" 
-                                      ? `¿Quitar permisos de administrador a ${usr.name}?`
-                                      : `¿Otorgar permisos de administrador a ${usr.name}?`
-                                  )) {
-                                    updateUserRole.mutate({
-                                      userId: usr.id,
-                                      newRole: usr.role === "admin" ? "user" : "admin",
-                                    });
-                                  }
-                                }}
-                                disabled={updateUserRole.isPending}
-                              >
-                                {usr.role === "admin" ? "Quitar Admin" : "Hacer Admin"}
-                              </Button>
-                            )}
                             {usr.id === user?.id && (
-                              <Badge variant="outline" className="text-xs">Tú</Badge>
+                              <Badge variant="outline" className="text-xs self-end">Tú</Badge>
+                            )}
+                            {usr.id !== user?.id && (
+                              <div className="flex gap-2">
+                                {/* Botón Cambiar Rol - Solo visible si tiene permisos */}
+                                {(user?.role === "super_admin" || 
+                                  (user?.role === "admin" && usr.role === "user")) && (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => {
+                                      const newRole = 
+                                        usr.role === "user" ? "admin" :
+                                        usr.role === "admin" ? "user" :
+                                        "user";
+                                      
+                                      if (window.confirm(
+                                        `¿Cambiar rol de ${usr.name} a ${newRole === "admin" ? "Administrador" : "Usuario"}?`
+                                      )) {
+                                        updateUserRole.mutate({
+                                          userId: usr.id,
+                                          newRole: newRole as "user" | "admin" | "super_admin",
+                                        });
+                                      }
+                                    }}
+                                    disabled={updateUserRole.isPending}
+                                  >
+                                    {usr.role === "admin" ? "Quitar Admin" : "Hacer Admin"}
+                                  </Button>
+                                )}
+                                {/* Botón Eliminar - Solo visible si tiene permisos */}
+                                {(user?.role === "super_admin" || 
+                                  (user?.role === "admin" && usr.role === "user")) && (
+                                  <Button
+                                    size="sm"
+                                    variant="destructive"
+                                    onClick={() => {
+                                      if (window.confirm(
+                                        `¿Estás seguro de eliminar a ${usr.name}? Esta acción no se puede deshacer.`
+                                      )) {
+                                        deleteUser.mutate({ userId: usr.id });
+                                      }
+                                    }}
+                                    disabled={deleteUser.isPending}
+                                  >
+                                    Eliminar
+                                  </Button>
+                                )}
+                              </div>
                             )}
                           </div>
                         </div>

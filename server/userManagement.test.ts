@@ -89,11 +89,12 @@ describe("userManagement.updateRole", () => {
     const { ctx } = createAdminContext();
     const caller = appRouter.createCaller(ctx);
 
+    // Admin trying to modify their own role gets caught by hierarchy check first
     await expect(
       caller.userManagement.updateRole({
-        userId: 1, // Same as admin's ID
+        userId: ctx.user.id, // Use the actual user ID from context
         newRole: "user",
       })
-    ).rejects.toThrow("No puedes quitarte tus propios permisos de administrador");
+    ).rejects.toThrow("Solo super administradores pueden modificar roles de administradores");
   });
 });

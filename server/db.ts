@@ -292,7 +292,7 @@ export async function getAllUsers() {
   }
 }
 
-export async function updateUserRole(userId: number, newRole: "user" | "admin") {
+export async function updateUserRole(userId: number, newRole: "user" | "admin" | "super_admin") {
   const db = await getDb();
   if (!db) {
     console.warn("[Database] Cannot update user role: database not available");
@@ -313,7 +313,7 @@ export async function updateUserRole(userId: number, newRole: "user" | "admin") 
 export async function createUser(userData: {
   name: string;
   email: string;
-  role: "user" | "admin";
+  role: "user" | "admin" | "super_admin";
 }): Promise<void> {
   const db = await getDb();
   if (!db) {
@@ -331,4 +331,18 @@ export async function createUser(userData: {
     loginMethod: "manual",
     lastSignedIn: new Date(),
   });
+}
+
+export async function deleteUser(userId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  try {
+    await db.delete(users).where(eq(users.id, userId));
+  } catch (error) {
+    console.error("[Database] Failed to delete user:", error);
+    throw error;
+  }
 }

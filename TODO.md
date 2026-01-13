@@ -233,3 +233,39 @@
 - [x] Test de permisos (solo admin puede crear)
 - [x] Test de validación de email
 - [x] Test de campos requeridos
+
+## Sistema de Roles Jerárquico v2.5
+
+### Estructura de Roles
+- [x] Agregar rol "super_admin" al esquema de base de datos
+- [x] Definir jerarquía: super_admin > admin > user
+- [x] Asignar rol super_admin al usuario alvarorios79@gmail.com
+
+### Permisos por Rol
+- [x] Super Admin: puede crear/eliminar admins y users
+- [x] Admin: puede crear/eliminar solo users (no otros admins)
+- [x] User: sin permisos de gestión
+
+### Funcionalidad de Eliminación
+- [x] Crear endpoint backend para eliminar usuarios
+- [x] Validar permisos según jerarquía de roles
+- [x] Prevenir que usuarios se eliminen a sí mismos
+- [x] Prevenir que admins eliminen super admins
+- [x] Prevenir que admins eliminen otros admins
+
+### Frontend
+- [x] Agregar botón "Eliminar" en cada usuario de la lista
+- [x] Mostrar confirmación antes de eliminar
+- [x] Mostrar badge distintivo para super_admin (color púrpura)
+- [x] Ocultar botón eliminar según permisos del usuario actual
+- [x] Actualizar selector de rol para incluir super_admin (solo visible para super_admin)
+
+### Tests
+- [x] Test de eliminación exitosa por super_admin
+- [x] Test de eliminación exitosa por admin (solo users)
+- [x] Test de prevención: admin no puede eliminar admin
+- [x] Test de prevención: admin no puede eliminar super_admin
+- [x] Test de prevención: user no puede eliminar nadie
+- [x] Test de creación: solo super_admin puede crear admins
+- [x] Test de modificación: solo super_admin puede modificar roles de admins
+- [x] 13 tests nuevos de jerarquía de roles (35/35 tests pasando)

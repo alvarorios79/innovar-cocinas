@@ -74,8 +74,10 @@ describe("userManagement.create", () => {
     expect(result.success).toBe(true);
   });
 
-  it("should create a new admin successfully", async () => {
+  it("should create a new admin successfully as super_admin", async () => {
+    // Cambiar a super_admin porque solo super_admin puede crear admins
     const ctx = createAdminContext();
+    ctx.user.role = "super_admin";
     const caller = appRouter.createCaller(ctx);
 
     const uniqueEmail = `newadmin-${Date.now()}@test.com`;

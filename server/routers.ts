@@ -451,7 +451,7 @@ export const appRouter = router({
   userManagement: router({
     listAll: protectedProcedure
       .query(async ({ ctx }) => {
-        if (ctx.user.role !== "admin") {
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
           throw new TRPCError({ code: "FORBIDDEN", message: "Solo administradores pueden ver usuarios" });
         }
         return await db.getAllUsers();
@@ -461,11 +461,20 @@ export const appRouter = router({
       .input(z.object({
         name: z.string().min(1, "El nombre es requerido"),
         email: z.string().email("Email inválido"),
-        role: z.enum(["user", "admin"]),
+        role: z.enum(["user", "admin", "super_admin"]),
       }))
       .mutation(async ({ ctx, input }) => {
-        if (ctx.user.role !== "admin") {
+        // Solo super_admin y admin pueden crear usuarios
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
           throw new TRPCError({ code: "FORBIDDEN", message: "Solo administradores pueden crear usuarios" });
+        }
+
+        // Solo super_admin puede crear otros admins o super_admins
+        if ((input.role === "admin" || input.role === "super_admin") && ctx.user.role !== "super_admin") {
+          throw new TRPCError({ 
+            code: "FORBIDDEN", 
+            message: "Solo super administradores pueden crear administradores" 
+          });
         }
 
         // Verificar que el email no esté duplicado
@@ -491,15 +500,46 @@ export const appRouter = router({
     updateRole: protectedProcedure
       .input(z.object({
         userId: z.number(),
-        newRole: z.enum(["user", "admin"]),
+        newRole: z.enum(["user", "admin", "super_admin"]),
       }))
       .mutation(async ({ ctx, input }) => {
-        if (ctx.user.role !== "admin") {
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
           throw new TRPCError({ code: "FORBIDDEN", message: "Solo administradores pueden cambiar roles" });
         }
 
-        // Prevenir que un admin se quite sus propios permisos
-        if (ctx.user.id === input.userId && input.newRole === "user") {
+        // Obtener el usuario objetivo
+        const allUsers = await db.getAllUsers();
+        const targetUser = allUsers.find(u => u.id === input.userId);
+        
+        if (!targetUser) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Usuario no encontrado" });
+        }
+
+        // Solo super_admin puede modificar roles de admin o super_admin
+        if ((targetUser.role === "admin" || targetUser.role === "super_admin") && ctx.user.role !== "super_admin") {
+          throw new TRPCError({ 
+            code: "FORBIDDEN", 
+            message: "Solo super administradores pueden modificar roles de administradores" 
+          });
+        }
+
+        // Solo super_admin puede asignar roles de admin o super_admin
+        if ((input.newRole === "admin" || input.newRole === "super_admin") && ctx.user.role !== "super_admin") {
+          throw new TRPCError({ 
+            code: "FORBIDDEN", 
+            message: "Solo super administradores pueden asignar roles de administrador" 
+          });
+        }
+
+        // Prevenir que un usuario se quite sus propios permisos
+        if (ctx.user.id === input.userId && (input.newRole === "user" || input.newRole === "admin") && ctx.user.role === "super_admin") {
+          throw new TRPCError({ 
+            code: "BAD_REQUEST", 
+            message: "No puedes quitarte tus propios permisos de super administrador" 
+          });
+        }
+
+        if (ctx.user.id === input.userId && input.newRole === "user" && ctx.user.role === "admin") {
           throw new TRPCError({ 
             code: "BAD_REQUEST", 
             message: "No puedes quitarte tus propios permisos de administrador" 
@@ -507,6 +547,43 @@ export const appRouter = router({
         }
 
         await db.updateUserRole(input.userId, input.newRole);
+        return { success: true };
+      }),
+
+    delete: protectedProcedure
+      .input(z.object({
+        userId: z.number(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Solo administradores pueden eliminar usuarios" });
+        }
+
+        // No se puede eliminar a sí mismo
+        if (ctx.user.id === input.userId) {
+          throw new TRPCError({ 
+            code: "BAD_REQUEST", 
+            message: "No puedes eliminarte a ti mismo" 
+          });
+        }
+
+        // Obtener el usuario objetivo
+        const allUsers = await db.getAllUsers();
+        const targetUser = allUsers.find(u => u.id === input.userId);
+        
+        if (!targetUser) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Usuario no encontrado" });
+        }
+
+        // Solo super_admin puede eliminar admins o super_admins
+        if ((targetUser.role === "admin" || targetUser.role === "super_admin") && ctx.user.role !== "super_admin") {
+          throw new TRPCError({ 
+            code: "FORBIDDEN", 
+            message: "Solo super administradores pueden eliminar administradores" 
+          });
+        }
+
+        await db.deleteUser(input.userId);
         return { success: true };
       }),
   }),

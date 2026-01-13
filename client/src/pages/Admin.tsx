@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
-import { Calendar, Phone, FileText, Users } from "lucide-react";
+import { Calendar, Phone, FileText, Users, Trash2, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -33,6 +33,7 @@ export default function Admin() {
   });
 
   const [showCreateUserDialog, setShowCreateUserDialog] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ type: string; id: number; name: string } | null>(null);
 
   const utils = trpc.useUtils();
   const { data: appointments = [], isLoading: loadingAppointments } = trpc.appointments.list.useQuery();
@@ -107,11 +108,78 @@ export default function Admin() {
     onSuccess: () => {
       utils.userManagement.listAll.invalidate();
       toast.success("Usuario eliminado exitosamente");
+      setDeleteConfirm(null);
     },
     onError: (error) => {
       toast.error(error.message || "Error al eliminar usuario");
     },
   });
+
+  const deleteAppointment = trpc.appointments.delete.useMutation({
+    onSuccess: () => {
+      utils.appointments.list.invalidate();
+      toast.success("Cita eliminada exitosamente");
+      setDeleteConfirm(null);
+    },
+    onError: (error) => {
+      toast.error(error.message || "Error al eliminar cita");
+    },
+  });
+
+  const deleteAdvisory = trpc.advisory.delete.useMutation({
+    onSuccess: () => {
+      utils.advisory.list.invalidate();
+      toast.success("Asesoramiento eliminado exitosamente");
+      setDeleteConfirm(null);
+    },
+    onError: (error) => {
+      toast.error(error.message || "Error al eliminar asesoramiento");
+    },
+  });
+
+  const deleteQuotation = trpc.quotations.delete.useMutation({
+    onSuccess: () => {
+      utils.quotations.list.invalidate();
+      toast.success("Cotización eliminada exitosamente");
+      setDeleteConfirm(null);
+    },
+    onError: (error) => {
+      toast.error(error.message || "Error al eliminar cotización");
+    },
+  });
+
+  const deleteClient = trpc.clients.delete.useMutation({
+    onSuccess: () => {
+      utils.clients.list.invalidate();
+      toast.success("Cliente eliminado exitosamente");
+      setDeleteConfirm(null);
+    },
+    onError: (error) => {
+      toast.error(error.message || "Error al eliminar cliente");
+    },
+  });
+
+  const handleDelete = () => {
+    if (!deleteConfirm) return;
+    
+    switch (deleteConfirm.type) {
+      case "appointment":
+        deleteAppointment.mutate({ id: deleteConfirm.id });
+        break;
+      case "advisory":
+        deleteAdvisory.mutate({ id: deleteConfirm.id });
+        break;
+      case "quotation":
+        deleteQuotation.mutate({ id: deleteConfirm.id });
+        break;
+      case "client":
+        deleteClient.mutate({ id: deleteConfirm.id });
+        break;
+      case "user":
+        deleteUser.mutate({ userId: deleteConfirm.id });
+        break;
+    }
+  };
 
   if (loading) {
     return <div className="flex items-center justify-center min-h-screen">Cargando...</div>;
@@ -266,8 +334,18 @@ export default function Admin() {
           <TabsContent value="appointments" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Citas Agendadas</CardTitle>
-                <CardDescription>Gestiona las citas de los clientes</CardDescription>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Citas Agendadas</CardTitle>
+                    <CardDescription>Gestiona las citas de los clientes</CardDescription>
+                  </div>
+                  <Link href="/#agendar-cita">
+                    <Button>
+                      <Plus className="mr-2 h-4 w-4" />
+                      Crear Cita
+                    </Button>
+                  </Link>
+                </div>
               </CardHeader>
               <CardContent>
                 {loadingAppointments ? (
@@ -326,6 +404,14 @@ export default function Admin() {
                                 <SelectItem value="cancelada">Cancelada</SelectItem>
                               </SelectContent>
                             </Select>
+
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => setDeleteConfirm({ type: "appointment", id: apt.id, name: apt.client?.name || "Cita" })}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
 
                             {apt.status === "completada" && (
                               <Dialog>
@@ -419,8 +505,18 @@ export default function Admin() {
           <TabsContent value="advisory" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Solicitudes de Asesoramiento</CardTitle>
-                <CardDescription>Clientes que solicitan asesoramiento telefónico</CardDescription>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Solicitudes de Asesoramiento</CardTitle>
+                    <CardDescription>Clientes que solicitan asesoramiento telefónico</CardDescription>
+                  </div>
+                  <Link href="/#asesoramiento">
+                    <Button>
+                      <Plus className="mr-2 h-4 w-4" />
+                      Crear Asesoramiento
+                    </Button>
+                  </Link>
+                </div>
               </CardHeader>
               <CardContent>
                 {loadingAdvisory ? (
@@ -457,21 +553,31 @@ export default function Admin() {
                               Creada: {formatDate(req.createdAt)}
                             </p>
                           </div>
-                          <Select
-                            value={req.status}
-                            onValueChange={(value) =>
-                              updateAdvisoryStatus.mutate({ id: req.id, status: value as any })
-                            }
-                          >
-                            <SelectTrigger className="w-[140px]">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="pendiente">Pendiente</SelectItem>
-                              <SelectItem value="contactado">Contactado</SelectItem>
-                              <SelectItem value="completado">Completado</SelectItem>
-                            </SelectContent>
-                          </Select>
+                          <div className="flex flex-col gap-2">
+                            <Select
+                              value={req.status}
+                              onValueChange={(value) =>
+                                updateAdvisoryStatus.mutate({ id: req.id, status: value as any })
+                              }
+                            >
+                              <SelectTrigger className="w-[140px]">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="pendiente">Pendiente</SelectItem>
+                                <SelectItem value="contactado">Contactado</SelectItem>
+                                <SelectItem value="completado">Completado</SelectItem>
+                              </SelectContent>
+                            </Select>
+
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => setDeleteConfirm({ type: "advisory", id: req.id, name: req.client?.name || "Asesoramiento" })}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -485,8 +591,18 @@ export default function Admin() {
           <TabsContent value="quotations" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Cotizaciones</CardTitle>
-                <CardDescription>Gestiona las cotizaciones enviadas a clientes</CardDescription>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Cotizaciones</CardTitle>
+                    <CardDescription>Gestiona las cotizaciones enviadas a clientes</CardDescription>
+                  </div>
+                  <Link href="/#estimado-previo">
+                    <Button>
+                      <Plus className="mr-2 h-4 w-4" />
+                      Solicitar Estimado
+                    </Button>
+                  </Link>
+                </div>
               </CardHeader>
               <CardContent>
                 {loadingQuotations ? (
@@ -523,14 +639,23 @@ export default function Admin() {
                               </p>
                             )}
                           </div>
-                          {quot.status === "borrador" && (
+                          <div className="flex flex-col gap-2">
+                            {quot.status === "borrador" && (
+                              <Button
+                                size="sm"
+                                onClick={() => sendQuotation.mutate({ id: quot.id })}
+                              >
+                                Enviar al Cliente
+                              </Button>
+                            )}
                             <Button
                               size="sm"
-                              onClick={() => sendQuotation.mutate({ id: quot.id })}
+                              variant="destructive"
+                              onClick={() => setDeleteConfirm({ type: "quotation", id: quot.id, name: `Cotización de ${quot.client?.name}` })}
                             >
-                              Enviar al Cliente
+                              <Trash2 className="h-4 w-4" />
                             </Button>
-                          )}
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -544,8 +669,12 @@ export default function Admin() {
           <TabsContent value="clients" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Clientes</CardTitle>
-                <CardDescription>Base de datos de clientes</CardDescription>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Clientes</CardTitle>
+                    <CardDescription>Los clientes se crean automáticamente al agendar citas o solicitar servicios</CardDescription>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent>
                 {loadingClients ? (
@@ -556,23 +685,34 @@ export default function Admin() {
                   <div className="space-y-4">
                     {clients.map((client) => (
                       <div key={client.id} className="border rounded-lg p-4">
-                        <h3 className="font-semibold">{client.name}</h3>
-                        <p className="text-sm">
-                          <span className="font-medium">WhatsApp:</span> {client.whatsappPhone}
-                        </p>
-                        {client.email && (
-                          <p className="text-sm">
-                            <span className="font-medium">Email:</span> {client.email}
-                          </p>
-                        )}
-                        {client.address && (
-                          <p className="text-sm">
-                            <span className="font-medium">Dirección:</span> {client.address}
-                          </p>
-                        )}
-                        <p className="text-xs text-muted-foreground mt-2">
-                          Registrado: {formatDate(client.createdAt)}
-                        </p>
+                        <div className="flex items-start justify-between">
+                          <div className="space-y-1">
+                            <h3 className="font-semibold">{client.name}</h3>
+                            <p className="text-sm">
+                              <span className="font-medium">WhatsApp:</span> {client.whatsappPhone}
+                            </p>
+                            {client.email && (
+                              <p className="text-sm">
+                                <span className="font-medium">Email:</span> {client.email}
+                              </p>
+                            )}
+                            {client.address && (
+                              <p className="text-sm">
+                                <span className="font-medium">Dirección:</span> {client.address}
+                              </p>
+                            )}
+                            <p className="text-xs text-muted-foreground mt-2">
+                              Registrado: {formatDate(client.createdAt)}
+                            </p>
+                          </div>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => setDeleteConfirm({ type: "client", id: client.id, name: client.name })}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -729,15 +869,9 @@ export default function Admin() {
                                   <Button
                                     size="sm"
                                     variant="destructive"
-                                    onClick={() => {
-                                      if (window.confirm(
-                                        `¿Estás seguro de eliminar a ${usr.name}? Esta acción no se puede deshacer.`
-                                      )) {
-                                        deleteUser.mutate({ userId: usr.id });
-                                      }
-                                    }}
-                                    disabled={deleteUser.isPending}
+                                    onClick={() => setDeleteConfirm({ type: "user", id: usr.id, name: usr.name || "Usuario" })}
                                   >
+                                    <Trash2 className="h-4 w-4 mr-2" />
                                     Eliminar
                                   </Button>
                                 )}
@@ -754,6 +888,30 @@ export default function Admin() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Diálogo de confirmación de eliminación */}
+      <Dialog open={!!deleteConfirm} onOpenChange={() => setDeleteConfirm(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>¿Eliminar {deleteConfirm?.type === "appointment" ? "cita" : deleteConfirm?.type === "advisory" ? "asesoramiento" : deleteConfirm?.type === "quotation" ? "cotización" : deleteConfirm?.type === "client" ? "cliente" : "usuario"}?</DialogTitle>
+            <DialogDescription>
+              Estás a punto de eliminar: <strong>{deleteConfirm?.name}</strong>. Esta acción no se puede deshacer.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex gap-2 justify-end mt-4">
+            <Button variant="outline" onClick={() => setDeleteConfirm(null)}>
+              Cancelar
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={handleDelete}
+              disabled={deleteAppointment.isPending || deleteAdvisory.isPending || deleteQuotation.isPending || deleteClient.isPending || deleteUser.isPending}
+            >
+              Eliminar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

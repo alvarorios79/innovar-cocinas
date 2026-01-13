@@ -346,3 +346,61 @@ export async function deleteUser(userId: number): Promise<void> {
     throw error;
   }
 }
+
+// ============ DELETE FUNCTIONS ============
+
+export async function deleteAppointment(appointmentId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  try {
+    await db.delete(appointments).where(eq(appointments.id, appointmentId));
+  } catch (error) {
+    console.error("[Database] Failed to delete appointment:", error);
+    throw error;
+  }
+}
+
+export async function deleteAdvisoryRequest(advisoryId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  try {
+    await db.delete(advisoryRequests).where(eq(advisoryRequests.id, advisoryId));
+  } catch (error) {
+    console.error("[Database] Failed to delete advisory request:", error);
+    throw error;
+  }
+}
+
+export async function deleteQuotation(quotationId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  try {
+    await db.delete(quotations).where(eq(quotations.id, quotationId));
+  } catch (error) {
+    console.error("[Database] Failed to delete quotation:", error);
+    throw error;
+  }
+}
+
+export async function deleteClient(clientId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  try {
+    await db.delete(clients).where(eq(clients.id, clientId));
+  } catch (error) {
+    console.error("[Database] Failed to delete client:", error);
+    throw error;
+  }
+}

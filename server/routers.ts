@@ -72,10 +72,21 @@ export const appRouter = router({
 
     list: protectedProcedure
       .query(async ({ ctx }) => {
-        if (ctx.user.role !== "admin") {
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
           throw new TRPCError({ code: "FORBIDDEN" });
         }
         return await db.getAllClients();
+      }),
+
+    delete: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para eliminar clientes" });
+        }
+        
+        await db.deleteClient(input.id);
+        return { success: true };
       }),
   }),
 
@@ -162,7 +173,7 @@ export const appRouter = router({
 
     list: protectedProcedure
       .query(async ({ ctx }) => {
-        if (ctx.user.role !== "admin") {
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
           throw new TRPCError({ code: "FORBIDDEN" });
         }
         
@@ -177,6 +188,17 @@ export const appRouter = router({
             client,
           };
         });
+      }),
+
+    delete: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para eliminar citas" });
+        }
+        
+        await db.deleteAppointment(input.id);
+        return { success: true };
       }),
   }),
 
@@ -236,7 +258,7 @@ export const appRouter = router({
 
     list: protectedProcedure
       .query(async ({ ctx }) => {
-        if (ctx.user.role !== "admin") {
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
           throw new TRPCError({ code: "FORBIDDEN" });
         }
         
@@ -250,6 +272,17 @@ export const appRouter = router({
             client,
           };
         });
+      }),
+
+    delete: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para eliminar asesoramientos" });
+        }
+        
+        await db.deleteAdvisoryRequest(input.id);
+        return { success: true };
       }),
   }),
 
@@ -409,7 +442,7 @@ export const appRouter = router({
         }
 
         // Si no es admin, verificar que sea su cotización
-        if (ctx.user.role !== "admin") {
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
           const client = await db.getClientByUserId(ctx.user.id);
           if (!client || quotation.clientId !== client.id) {
             throw new TRPCError({ code: "FORBIDDEN" });
@@ -421,6 +454,17 @@ export const appRouter = router({
           ...quotation,
           client,
         };
+      }),
+
+    delete: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para eliminar cotizaciones" });
+        }
+        
+        await db.deleteQuotation(input.id);
+        return { success: true };
       }),
   }),
 

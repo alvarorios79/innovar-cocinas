@@ -325,3 +325,38 @@
 - [x] Cambiar color del badge de Super Admin de púrpura a rojo
 - [x] Actualizar componente Admin.tsx (bg-purple-600 → bg-red-600)
 - [x] Verificar que el cambio se refleje correctamente
+
+## Botones de Crear y Eliminar en Panel Admin v3.0
+
+### Backend - Endpoints de Eliminación
+- [x] Crear endpoint para eliminar citas (appointments.delete)
+- [x] Crear endpoint para eliminar asesoramientos (advisory.delete)
+- [x] Crear endpoint para eliminar cotizaciones (quotes.delete)
+- [x] Crear endpoint para eliminar clientes (clients.delete)
+- [x] Validar permisos (solo admin y super_admin)
+- [x] Agregar funciones en db.ts para cada tipo de eliminación
+
+### Frontend - Botones y UI
+- [x] Agregar botón "Crear Cita" en pestaña Citas Pendientes (redirige a formulario)
+- [x] Agregar botón "Eliminar" en cada cita con icono
+- [x] Agregar botón "Crear Asesoramiento" en pestaña Asesoramiento (redirige a formulario)
+- [x] Agregar botón "Eliminar" en cada asesoramiento con icono
+- [x] Agregar botón "Solicitar Estimado" en pestaña Cotizaciones (redirige a formulario)
+- [x] Agregar botón "Eliminar" en cada cotización con icono
+- [x] Nota informativa en pestaña Clientes (se crean automáticamente)
+- [x] Agregar botón "Eliminar" en cada cliente con icono
+
+### Diálogos y Confirmación
+- [x] Crear diálogo de confirmación unificado para eliminar
+- [x] Mostrar nombre del elemento a eliminar en confirmación
+- [x] Implementar lógica handleDelete para todos los tipos
+- [x] Botones de crear redirigen a formularios existentes en Home
+- [x] Actualizar botón eliminar usuario para usar nuevo sistema
+
+### Tests
+- [x] Tests de eliminación de citas (admin y super_admin)
+- [x] Tests de eliminación de asesoramientos (admin y super_admin)
+- [x] Tests de eliminación de cotizaciones (admin y super_admin)
+- [x] Tests de eliminación de clientes (admin y super_admin)
+- [x] Tests de validación de permisos (user no puede eliminar)
+- [x] 10 tests nuevos pasando (45/45 tests totales)

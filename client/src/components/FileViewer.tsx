@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useGesture } from "@use-gesture/react";
 import { 
   X, 
   ChevronLeft, 
@@ -8,8 +9,6 @@ import {
   RotateCw, 
   Download,
   FileText,
-  Maximize2,
-  Minimize2,
   RotateCcw
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -41,18 +40,9 @@ export function FileViewer({ files, initialIndex = 0, isOpen, onClose }: FileVie
   const [scale, setScale] = useState(1);
   const [rotation, setRotation] = useState(0);
   const [position, setPosition] = useState({ x: 0, y: 0 });
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const [showMobileControls, setShowMobileControls] = useState(true);
+  const [showControls, setShowControls] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
-  const imageRef = useRef<HTMLImageElement>(null);
-  
-  // Para gestos táctiles mejorados
-  const lastTouchDistance = useRef<number | null>(null);
-  const lastTouchCenter = useRef<{ x: number; y: number } | null>(null);
-  const touchStartTime = useRef<number>(0);
-  const touchStartPos = useRef<{ x: number; y: number } | null>(null);
+  const imageContainerRef = useRef<HTMLDivElement>(null);
 
   const currentFile = files[currentIndex];
   const isPdf = currentFile ? isPdfFile(currentFile) : false;
@@ -71,7 +61,7 @@ export function FileViewer({ files, initialIndex = 0, isOpen, onClose }: FileVie
       setScale(1);
       setRotation(0);
       setPosition({ x: 0, y: 0 });
-      setShowMobileControls(true);
+      setShowControls(true);
     }
   }, [isOpen, initialIndex]);
 
@@ -82,11 +72,7 @@ export function FileViewer({ files, initialIndex = 0, isOpen, onClose }: FileVie
     const handleKeyDown = (e: KeyboardEvent) => {
       switch (e.key) {
         case "Escape":
-          if (isFullscreen) {
-            setIsFullscreen(false);
-          } else {
-            onClose();
-          }
+          onClose();
           break;
         case "ArrowLeft":
           goToPrevious();
@@ -104,26 +90,30 @@ export function FileViewer({ files, initialIndex = 0, isOpen, onClose }: FileVie
         case "r":
           if (!isPdf) rotate();
           break;
-        case "f":
-          toggleFullscreen();
-          break;
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, currentIndex, files.length, isPdf, isFullscreen]);
+  }, [isOpen, currentIndex, files.length, isPdf]);
 
   // Bloquear scroll del body cuando está abierto
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
+      // Prevenir zoom del navegador en iOS
+      const meta = document.querySelector('meta[name="viewport"]');
+      const originalContent = meta?.getAttribute('content') || '';
+      if (meta) {
+        meta.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no');
+      }
+      return () => {
+        document.body.style.overflow = "";
+        if (meta) {
+          meta.setAttribute('content', originalContent);
+        }
+      };
     }
-    return () => {
-      document.body.style.overflow = "";
-    };
   }, [isOpen]);
 
   const goToPrevious = useCallback(() => {
@@ -152,41 +142,6 @@ export function FileViewer({ files, initialIndex = 0, isOpen, onClose }: FileVie
     setPosition({ x: 0, y: 0 });
   }, []);
 
-  const toggleFullscreen = useCallback(() => {
-    setIsFullscreen((prev) => !prev);
-  }, []);
-
-  // Manejo de gestos táctiles para zoom con rueda del mouse
-  const handleWheel = useCallback((e: React.WheelEvent) => {
-    if (isPdf) return;
-    e.preventDefault();
-    const delta = e.deltaY > 0 ? -0.1 : 0.1;
-    setScale((prev) => Math.max(0.5, Math.min(5, prev + delta)));
-  }, [isPdf]);
-
-  // Manejo de arrastre con mouse
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    if (isPdf) return;
-    if (scale > 1) {
-      setIsDragging(true);
-      setDragStart({ x: e.clientX - position.x, y: e.clientY - position.y });
-    }
-  }, [scale, position, isPdf]);
-
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (isPdf) return;
-    if (isDragging && scale > 1) {
-      setPosition({
-        x: e.clientX - dragStart.x,
-        y: e.clientY - dragStart.y,
-      });
-    }
-  }, [isDragging, dragStart, scale, isPdf]);
-
-  const handleMouseUp = useCallback(() => {
-    setIsDragging(false);
-  }, []);
-
   // Descargar archivo
   const downloadFile = useCallback(async () => {
     const file = files[currentIndex];
@@ -209,139 +164,86 @@ export function FileViewer({ files, initialIndex = 0, isOpen, onClose }: FileVie
     }
   }, [currentIndex, files]);
 
-  // ============ GESTOS TÁCTILES MEJORADOS PARA MÓVILES ============
-  
-  const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    if (isPdf) return;
-    
-    touchStartTime.current = Date.now();
-    
-    if (e.touches.length === 1) {
-      // Un dedo - preparar para swipe o tap
-      touchStartPos.current = { 
-        x: e.touches[0].clientX, 
-        y: e.touches[0].clientY 
-      };
-      
-      // Si hay zoom, preparar para arrastrar
-      if (scale > 1) {
-        setIsDragging(true);
-        setDragStart({ 
-          x: e.touches[0].clientX - position.x, 
-          y: e.touches[0].clientY - position.y 
-        });
-      }
-    } else if (e.touches.length === 2) {
-      // Dos dedos - preparar para pinch zoom
-      e.preventDefault();
-      const distance = Math.hypot(
-        e.touches[0].clientX - e.touches[1].clientX,
-        e.touches[0].clientY - e.touches[1].clientY
-      );
-      lastTouchDistance.current = distance;
-      lastTouchCenter.current = {
-        x: (e.touches[0].clientX + e.touches[1].clientX) / 2,
-        y: (e.touches[0].clientY + e.touches[1].clientY) / 2,
-      };
-    }
-  }, [isPdf, scale, position]);
-
-  const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    if (isPdf) return;
-    
-    if (e.touches.length === 1 && touchStartPos.current) {
-      const deltaX = e.touches[0].clientX - touchStartPos.current.x;
-      const deltaY = e.touches[0].clientY - touchStartPos.current.y;
-      
-      // Si hay zoom, arrastrar la imagen
-      if (scale > 1 && isDragging) {
-        e.preventDefault();
-        setPosition({
-          x: e.touches[0].clientX - dragStart.x,
-          y: e.touches[0].clientY - dragStart.y,
-        });
-      }
-      // Si no hay zoom y es un swipe horizontal significativo
-      else if (scale === 1 && Math.abs(deltaX) > 80 && Math.abs(deltaY) < 50) {
-        if (deltaX > 0) {
-          goToPrevious();
-        } else {
-          goToNext();
+  // Usar @use-gesture/react para gestos táctiles (compatible con iOS y Android)
+  const bind = useGesture(
+    {
+      onPinch: ({ offset: [s], memo }) => {
+        if (isPdf) return memo;
+        const newScale = Math.max(0.5, Math.min(5, s));
+        setScale(newScale);
+        return memo;
+      },
+      onDrag: ({ offset: [x, y], pinching, cancel, first, movement: [mx, my] }) => {
+        if (isPdf) return;
+        
+        // Si está haciendo pinch, cancelar el drag
+        if (pinching) {
+          cancel();
+          return;
         }
-        touchStartPos.current = null;
+        
+        // Si hay zoom, permitir arrastrar
+        if (scale > 1) {
+          setPosition({ x, y });
+        } 
+        // Si no hay zoom y es un swipe horizontal significativo
+        else if (!first && Math.abs(mx) > 80 && Math.abs(my) < 50) {
+          if (mx > 0) {
+            goToPrevious();
+          } else {
+            goToNext();
+          }
+          cancel();
+        }
+      },
+      onWheel: ({ delta: [, dy] }) => {
+        if (isPdf) return;
+        const newScale = Math.max(0.5, Math.min(5, scale - dy * 0.001));
+        setScale(newScale);
+      },
+      onClick: ({ event }) => {
+        // Toggle controles al hacer tap (solo si no es un drag)
+        if (event.type === 'click' || event.type === 'touchend') {
+          setShowControls(prev => !prev);
+        }
+      },
+      onDoubleClick: () => {
+        if (isPdf) return;
+        // Doble tap para resetear o hacer zoom
+        if (scale > 1) {
+          resetView();
+        } else {
+          setScale(2);
+        }
       }
-    } else if (e.touches.length === 2 && lastTouchDistance.current !== null) {
-      // Pinch to zoom
-      e.preventDefault();
-      const newDistance = Math.hypot(
-        e.touches[0].clientX - e.touches[1].clientX,
-        e.touches[0].clientY - e.touches[1].clientY
-      );
-      
-      const scaleFactor = newDistance / lastTouchDistance.current;
-      const newScale = Math.max(0.5, Math.min(5, scale * scaleFactor));
-      
-      setScale(newScale);
-      lastTouchDistance.current = newDistance;
+    },
+    {
+      drag: {
+        from: () => [position.x, position.y],
+        bounds: scale > 1 ? { left: -500, right: 500, top: -500, bottom: 500 } : { left: 0, right: 0, top: 0, bottom: 0 },
+        rubberband: true,
+        filterTaps: true,
+      },
+      pinch: {
+        scaleBounds: { min: 0.5, max: 5 },
+        from: () => [scale, 0],
+        rubberband: true,
+      },
     }
-  }, [isPdf, scale, isDragging, dragStart, goToPrevious, goToNext]);
-
-  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
-    if (isPdf) return;
-    
-    const touchDuration = Date.now() - touchStartTime.current;
-    
-    // Doble tap para resetear zoom (tap rápido sin mucho movimiento)
-    if (touchDuration < 300 && touchStartPos.current && e.changedTouches.length === 1) {
-      const endX = e.changedTouches[0].clientX;
-      const endY = e.changedTouches[0].clientY;
-      const moveDistance = Math.hypot(
-        endX - touchStartPos.current.x,
-        endY - touchStartPos.current.y
-      );
-      
-      // Si fue un tap (poco movimiento), toggle controles móviles
-      if (moveDistance < 10) {
-        setShowMobileControls(prev => !prev);
-      }
-    }
-    
-    setIsDragging(false);
-    touchStartPos.current = null;
-    lastTouchDistance.current = null;
-    lastTouchCenter.current = null;
-  }, [isPdf]);
-
-  // Prevenir el zoom nativo del navegador en el contenedor
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container || !isOpen) return;
-
-    const preventDefaultTouch = (e: TouchEvent) => {
-      if (e.touches.length > 1) {
-        e.preventDefault();
-      }
-    };
-
-    container.addEventListener('touchmove', preventDefaultTouch, { passive: false });
-    return () => {
-      container.removeEventListener('touchmove', preventDefaultTouch);
-    };
-  }, [isOpen]);
+  );
 
   if (!isOpen || files.length === 0) return null;
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-black/95 flex flex-col touch-none"
+      className="fixed inset-0 z-50 bg-black/95 flex flex-col select-none"
       ref={containerRef}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseUp}
+      style={{ touchAction: 'none' }}
     >
-      {/* Header - siempre visible en desktop, toggle en móvil */}
+      {/* Header */}
       <div className={cn(
-        "flex items-center justify-between p-2 sm:p-4 text-white transition-opacity duration-300",
-        !showMobileControls && "sm:opacity-100 opacity-0 pointer-events-none sm:pointer-events-auto"
+        "flex items-center justify-between p-2 sm:p-4 text-white transition-opacity duration-300 z-10",
+        !showControls && "opacity-0 pointer-events-none"
       )}>
         <div className="flex items-center gap-2 sm:gap-4">
           <span className="text-xs sm:text-sm opacity-75">
@@ -360,8 +262,8 @@ export function FileViewer({ files, initialIndex = 0, isOpen, onClose }: FileVie
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-white hover:bg-white/20 h-10 w-10 sm:h-10 sm:w-10"
-                onClick={zoomOut}
+                className="text-white hover:bg-white/20 h-10 w-10"
+                onClick={(e) => { e.stopPropagation(); zoomOut(); }}
                 disabled={scale <= 0.5}
               >
                 <ZoomOut className="h-5 w-5" />
@@ -372,8 +274,8 @@ export function FileViewer({ files, initialIndex = 0, isOpen, onClose }: FileVie
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-white hover:bg-white/20 h-10 w-10 sm:h-10 sm:w-10"
-                onClick={zoomIn}
+                className="text-white hover:bg-white/20 h-10 w-10"
+                onClick={(e) => { e.stopPropagation(); zoomIn(); }}
                 disabled={scale >= 5}
               >
                 <ZoomIn className="h-5 w-5" />
@@ -381,8 +283,8 @@ export function FileViewer({ files, initialIndex = 0, isOpen, onClose }: FileVie
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-white hover:bg-white/20 h-10 w-10 sm:h-10 sm:w-10"
-                onClick={rotate}
+                className="text-white hover:bg-white/20 h-10 w-10"
+                onClick={(e) => { e.stopPropagation(); rotate(); }}
               >
                 <RotateCw className="h-5 w-5" />
               </Button>
@@ -392,7 +294,7 @@ export function FileViewer({ files, initialIndex = 0, isOpen, onClose }: FileVie
             variant="ghost"
             size="icon"
             className="text-white hover:bg-white/20 h-10 w-10"
-            onClick={downloadFile}
+            onClick={(e) => { e.stopPropagation(); downloadFile(); }}
           >
             <Download className="h-5 w-5" />
           </Button>
@@ -400,7 +302,7 @@ export function FileViewer({ files, initialIndex = 0, isOpen, onClose }: FileVie
             variant="ghost"
             size="icon"
             className="text-white hover:bg-white/20 h-10 w-10"
-            onClick={onClose}
+            onClick={(e) => { e.stopPropagation(); onClose(); }}
           >
             <X className="h-5 w-5" />
           </Button>
@@ -409,97 +311,89 @@ export function FileViewer({ files, initialIndex = 0, isOpen, onClose }: FileVie
 
       {/* Content container */}
       <div
+        ref={imageContainerRef}
+        {...(isPdf ? {} : bind())}
         className={cn(
           "flex-1 flex items-center justify-center overflow-hidden relative",
-          !isPdf && scale > 1 && "cursor-grab active:cursor-grabbing"
+          !isPdf && "touch-none"
         )}
-        onWheel={handleWheel}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-        onDoubleClick={!isPdf ? resetView : undefined}
+        style={{ touchAction: isPdf ? 'auto' : 'none' }}
       >
         {isPdf ? (
           // PDF Viewer usando iframe
           <iframe
             src={`${currentFile?.url}#toolbar=1&navpanes=0&scrollbar=1`}
-            className={cn(
-              "bg-white rounded-lg shadow-2xl",
-              isFullscreen 
-                ? "w-full h-full" 
-                : "w-[95%] sm:w-[90%] md:w-[85%] lg:w-[80%] h-[85%] sm:h-[90%]"
-            )}
+            className="w-[95%] sm:w-[90%] md:w-[85%] lg:w-[80%] h-[85%] sm:h-[90%] bg-white rounded-lg shadow-2xl"
             title={currentFile?.title || "PDF Viewer"}
           />
         ) : (
           // Image Viewer
           <img
-            ref={imageRef}
             src={currentFile?.url}
             alt={currentFile?.title || `Imagen ${currentIndex + 1}`}
-            className="max-h-full max-w-full object-contain select-none transition-transform duration-100"
+            className="max-h-full max-w-full object-contain select-none pointer-events-none"
             style={{
               transform: `translate(${position.x}px, ${position.y}px) scale(${scale}) rotate(${rotation}deg)`,
+              transition: 'transform 0.1s ease-out',
             }}
             draggable={false}
           />
         )}
       </div>
 
-      {/* Controles flotantes para móvil - siempre visibles cuando showMobileControls es true */}
+      {/* Controles flotantes para móvil */}
       {!isPdf && (
         <div className={cn(
-          "absolute bottom-20 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-black/70 rounded-full px-4 py-2 transition-opacity duration-300 sm:hidden",
-          showMobileControls ? "opacity-100" : "opacity-0 pointer-events-none"
+          "absolute bottom-24 left-1/2 -translate-x-1/2 flex items-center gap-3 bg-black/80 rounded-full px-5 py-3 transition-opacity duration-300 sm:hidden z-20",
+          showControls ? "opacity-100" : "opacity-0 pointer-events-none"
         )}>
           <Button
             variant="ghost"
             size="icon"
-            className="text-white hover:bg-white/20 h-12 w-12"
-            onClick={zoomOut}
+            className="text-white hover:bg-white/20 h-14 w-14 rounded-full"
+            onClick={(e) => { e.stopPropagation(); zoomOut(); }}
             disabled={scale <= 0.5}
           >
-            <ZoomOut className="h-6 w-6" />
+            <ZoomOut className="h-7 w-7" />
           </Button>
-          <span className="text-white text-sm w-14 text-center font-medium">
+          <span className="text-white text-base w-16 text-center font-bold">
             {Math.round(scale * 100)}%
           </span>
           <Button
             variant="ghost"
             size="icon"
-            className="text-white hover:bg-white/20 h-12 w-12"
-            onClick={zoomIn}
+            className="text-white hover:bg-white/20 h-14 w-14 rounded-full"
+            onClick={(e) => { e.stopPropagation(); zoomIn(); }}
             disabled={scale >= 5}
           >
-            <ZoomIn className="h-6 w-6" />
+            <ZoomIn className="h-7 w-7" />
           </Button>
-          <div className="w-px h-8 bg-white/30 mx-1" />
+          <div className="w-px h-10 bg-white/30 mx-1" />
           <Button
             variant="ghost"
             size="icon"
-            className="text-white hover:bg-white/20 h-12 w-12"
-            onClick={rotate}
+            className="text-white hover:bg-white/20 h-14 w-14 rounded-full"
+            onClick={(e) => { e.stopPropagation(); rotate(); }}
           >
-            <RotateCw className="h-6 w-6" />
+            <RotateCw className="h-7 w-7" />
           </Button>
           <Button
             variant="ghost"
             size="icon"
-            className="text-white hover:bg-white/20 h-12 w-12"
-            onClick={resetView}
+            className="text-white hover:bg-white/20 h-14 w-14 rounded-full"
+            onClick={(e) => { e.stopPropagation(); resetView(); }}
           >
-            <RotateCcw className="h-6 w-6" />
+            <RotateCcw className="h-7 w-7" />
           </Button>
         </div>
       )}
 
       {/* Indicador de instrucciones para móvil */}
-      {!isPdf && scale === 1 && showMobileControls && (
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white/50 text-center pointer-events-none sm:hidden">
-          <p className="text-xs">Pellizca para zoom</p>
-          <p className="text-xs">Toca para ocultar controles</p>
+      {!isPdf && scale === 1 && showControls && (
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white/40 text-center pointer-events-none sm:hidden z-10">
+          <p className="text-sm font-medium">Pellizca para zoom</p>
+          <p className="text-xs mt-1">Doble tap para ampliar</p>
+          <p className="text-xs">Desliza para cambiar</p>
         </div>
       )}
 
@@ -510,51 +404,51 @@ export function FileViewer({ files, initialIndex = 0, isOpen, onClose }: FileVie
             variant="ghost"
             size="icon"
             className={cn(
-              "absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 h-12 w-12 sm:h-14 sm:w-14 transition-opacity duration-300",
-              !showMobileControls && "sm:opacity-100 opacity-0 pointer-events-none sm:pointer-events-auto"
+              "absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 h-14 w-14 rounded-full transition-opacity duration-300 z-20",
+              !showControls && "opacity-0 pointer-events-none"
             )}
-            onClick={goToPrevious}
+            onClick={(e) => { e.stopPropagation(); goToPrevious(); }}
           >
-            <ChevronLeft className="h-8 w-8" />
+            <ChevronLeft className="h-10 w-10" />
           </Button>
           <Button
             variant="ghost"
             size="icon"
             className={cn(
-              "absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 h-12 w-12 sm:h-14 sm:w-14 transition-opacity duration-300",
-              !showMobileControls && "sm:opacity-100 opacity-0 pointer-events-none sm:pointer-events-auto"
+              "absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 h-14 w-14 rounded-full transition-opacity duration-300 z-20",
+              !showControls && "opacity-0 pointer-events-none"
             )}
-            onClick={goToNext}
+            onClick={(e) => { e.stopPropagation(); goToNext(); }}
           >
-            <ChevronRight className="h-8 w-8" />
+            <ChevronRight className="h-10 w-10" />
           </Button>
         </>
       )}
 
       {/* Description */}
-      {currentFile?.description && showMobileControls && (
-        <div className="p-2 sm:p-4 text-white text-center">
+      {currentFile?.description && showControls && (
+        <div className="p-2 sm:p-4 text-white text-center z-10">
           <p className="text-xs sm:text-sm opacity-75">{currentFile.description}</p>
         </div>
       )}
 
       {/* Thumbnails */}
-      {files.length > 1 && !isFullscreen && showMobileControls && (
-        <div className="p-2 flex justify-center gap-2 overflow-x-auto">
+      {files.length > 1 && showControls && (
+        <div className="p-2 flex justify-center gap-2 overflow-x-auto z-10">
           {files.map((file, index) => (
             <button
               key={index}
-              onClick={() => setCurrentIndex(index)}
+              onClick={(e) => { e.stopPropagation(); setCurrentIndex(index); }}
               className={cn(
-                "w-12 h-12 sm:w-16 sm:h-16 rounded overflow-hidden flex-shrink-0 border-2 transition-all",
+                "w-14 h-14 sm:w-16 sm:h-16 rounded-lg overflow-hidden flex-shrink-0 border-2 transition-all",
                 index === currentIndex
-                  ? "border-white opacity-100"
+                  ? "border-white opacity-100 ring-2 ring-white/50"
                   : "border-transparent opacity-50 hover:opacity-75"
               )}
             >
               {isPdfFile(file) ? (
                 <div className="w-full h-full bg-gray-700 flex items-center justify-center">
-                  <FileText className="h-5 w-5 sm:h-8 sm:w-8 text-red-400" />
+                  <FileText className="h-6 w-6 sm:h-8 sm:w-8 text-red-400" />
                 </div>
               ) : (
                 <img

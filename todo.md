@@ -296,3 +296,14 @@
 - [x] Agregar indicador de instrucciones ("Pellizca para zoom")
 - [x] Toggle de controles al tocar la pantalla
 - [x] Prevenir zoom nativo del navegador en el visor
+
+
+## Bug: Pinch-to-zoom no funciona en iPad
+
+- [x] Investigar compatibilidad de touch events en Safari iOS/iPadOS
+- [x] Implementar solución usando @use-gesture/react (compatible con iOS y Android)
+- [x] Pinch-to-zoom funcional en dispositivos táctiles
+- [x] Doble tap para zoom rápido (2x) o resetear
+- [x] Swipe horizontal para cambiar de imagen
+- [x] Botones flotantes grandes para móviles
+- [ ] Probar en iPad y Android real (pendiente usuario)

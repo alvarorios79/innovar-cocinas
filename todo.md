@@ -265,3 +265,11 @@
 - [x] Actualizar validación de tipos de archivo (image/* y application/pdf)
 - [x] Actualizar texto de ayuda en el uploader
 - [x] PDFs se suben sin compresión (solo imágenes se comprimen)
+
+
+## Bug: Error al subir PDFs
+
+- [x] Identificar causa del error en subida de PDFs (validación de contentType solo permitía image/*)
+- [x] Corregir validación en el backend (ahora acepta image/* y application/pdf)
+- [x] Corregir regex de base64 para PDFs (ahora usa /^data:[^;]+;base64,/ en lugar de /^data:image\/\w+;base64,/)
+- [ ] Verificar que PDFs se suben correctamente (pendiente prueba del usuario)

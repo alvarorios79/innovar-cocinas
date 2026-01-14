@@ -1576,8 +1576,8 @@ export const appRouter = router({
         fileName: z.string(),
         fileData: z.string(), // Base64 encoded
         contentType: z.string().refine(
-          (type) => type.startsWith("image/"),
-          { message: "Solo se permiten archivos de imagen" }
+          (type) => type.startsWith("image/") || type === "application/pdf",
+          { message: "Solo se permiten archivos de imagen o PDF" }
         ),
         projectId: z.number().optional(),
         stage: z.enum(["inicial", "diseno", "corte", "enchape", "ensamble", "final"]).optional(),
@@ -1612,7 +1612,7 @@ export const appRouter = router({
         const fileKey = `${filePath}/${safeFileName}`;
 
         // Decodificar base64 y subir
-        const base64Data = input.fileData.replace(/^data:image\/\w+;base64,/, "");
+        const base64Data = input.fileData.replace(/^data:[^;]+;base64,/, "");
         const buffer = Buffer.from(base64Data, "base64");
 
         // Validar tamaño máximo (10MB)

@@ -226,3 +226,26 @@
 - [x] Botón de WhatsApp para contactar cliente desde recordatorio
 - [x] Enlace directo al proyecto desde recordatorio
 - [x] Tests para el router de recordatorios (12 tests pasando)
+
+
+## Recordatorios Automáticos y Edición de Fechas
+
+### Recordatorios Automáticos
+- [x] Verificar que createRemindersForStatusChange se llama al cambiar estado
+- [x] Probar flujo completo: cotización → adelanto → diseño → producción → instalación (13 tests)
+- [x] Verificar que los recordatorios se cancelan al avanzar de estado
+- [x] Confirmar que cada rol recibe sus recordatorios correspondientes:
+  - cotizacion_sin_respuesta: 2 días hábiles → admin/comercial
+  - diseno_pendiente: 3 días hábiles → diseñador
+  - aprobacion_pendiente: 5 días hábiles → admin/comercial
+  - produccion_retrasada: 20 días hábiles → jefe_taller
+  - instalacion_proxima: 3 días antes → jefe_taller
+
+### Edición de Fecha Estimada
+- [x] Agregar botón de editar fecha (lápiz) en Card "Fechas del Proyecto"
+- [x] Crear endpoint projects.updateEstimatedDate
+- [x] Permitir solo a admin/super_admin/jefe_taller editar la fecha
+- [x] Mostrar selector de fecha con calendario y campo de motivo opcional
+- [x] Registrar cambios en el historial del proyecto
+- [x] Actualizar la vista después de guardar
+- [x] Tests para permisos y actualización (11 tests)

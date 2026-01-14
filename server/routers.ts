@@ -1240,14 +1240,51 @@ export const appRouter = router({
         id: z.number(),
         name: z.string().optional(),
         initialMeasurements: z.string().optional(),
+        estimatedInstallDate: z.date().optional(),
+        scheduledInstallDate: z.date().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
-        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
-          throw new TRPCError({ code: "FORBIDDEN", message: "Solo administradores pueden editar proyectos" });
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "jefe_taller") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Solo administradores o jefe de taller pueden editar proyectos" });
         }
 
         const { id, ...data } = input;
         await db.updateProject(id, data);
+        return { success: true };
+      }),
+
+    // Actualizar fecha estimada de entrega
+    updateEstimatedDate: protectedProcedure
+      .input(z.object({
+        projectId: z.number(),
+        estimatedInstallDate: z.date(),
+        reason: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const allowedRoles = ["admin", "super_admin", "jefe_taller"];
+        if (!allowedRoles.includes(ctx.user.role)) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para modificar la fecha estimada" });
+        }
+
+        const project = await db.getProjectById(input.projectId);
+        if (!project) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Proyecto no encontrado" });
+        }
+
+        // Registrar el cambio en el historial
+        const oldDate = project.estimatedInstallDate;
+        await db.createProjectStatusHistory({
+          projectId: input.projectId,
+          fromStatus: project.status,
+          toStatus: project.status,
+          changedBy: ctx.user.id,
+          notes: `Fecha estimada cambiada de ${oldDate ? new Date(oldDate).toLocaleDateString('es-CO') : 'sin fecha'} a ${input.estimatedInstallDate.toLocaleDateString('es-CO')}${input.reason ? `. Motivo: ${input.reason}` : ''}`,
+        });
+
+        await db.updateProject(input.projectId, {
+          estimatedInstallDate: input.estimatedInstallDate,
+        });
+
         return { success: true };
       }),
 

@@ -25,7 +25,9 @@ import {
   ZoomIn,
   MessageCircle,
   Send,
-  ExternalLink
+  ExternalLink,
+  Calendar,
+  Pencil
 } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -102,6 +104,13 @@ export default function Projects() {
   const [whatsAppLink, setWhatsAppLink] = useState("");
   const [whatsAppPhone, setWhatsAppPhone] = useState("");
   
+  // Estado para editar fecha estimada
+  const [showEditDateDialog, setShowEditDateDialog] = useState(false);
+  const [editDateForm, setEditDateForm] = useState({
+    estimatedInstallDate: "",
+    reason: "",
+  });
+  
   const { data: projects = [], isLoading: loadingProjects } = trpc.projects.list.useQuery(
     statusFilter !== "all" ? { status: statusFilter } : undefined
   );
@@ -151,6 +160,19 @@ export default function Projects() {
     },
     onError: (error) => {
       toast.error(error.message || "Error al subir foto");
+    },
+  });
+
+  const updateEstimatedDate = trpc.projects.updateEstimatedDate.useMutation({
+    onSuccess: () => {
+      utils.projects.getById.invalidate();
+      utils.projects.list.invalidate();
+      toast.success("Fecha estimada actualizada");
+      setShowEditDateDialog(false);
+      setEditDateForm({ estimatedInstallDate: "", reason: "" });
+    },
+    onError: (error) => {
+      toast.error(error.message || "Error al actualizar fecha");
     },
   });
 
@@ -643,10 +665,29 @@ export default function Projects() {
                   {/* Fechas importantes del proyecto */}
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-sm flex items-center gap-2">
-                        <Clock className="h-4 w-4" />
-                        Fechas del Proyecto
-                      </CardTitle>
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-sm flex items-center gap-2">
+                          <Clock className="h-4 w-4" />
+                          Fechas del Proyecto
+                        </CardTitle>
+                        {(user?.role === "admin" || user?.role === "super_admin" || user?.role === "jefe_taller") && projectDetail.status !== "entregado" && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setEditDateForm({
+                                estimatedInstallDate: projectDetail.estimatedInstallDate 
+                                  ? new Date(projectDetail.estimatedInstallDate).toISOString().split('T')[0]
+                                  : "",
+                                reason: "",
+                              });
+                              setShowEditDateDialog(true);
+                            }}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
                     </CardHeader>
                     <CardContent className="text-sm space-y-2">
                       <p><strong>Creado:</strong> {new Date(projectDetail.createdAt).toLocaleDateString("es-CO")}</p>
@@ -1105,6 +1146,73 @@ export default function Projects() {
               </Button>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Diálogo de editar fecha estimada */}
+      <Dialog open={showEditDateDialog} onOpenChange={setShowEditDateDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-primary" />
+              Editar Fecha Estimada de Entrega
+            </DialogTitle>
+            <DialogDescription>
+              Modifica la fecha estimada de instalación del proyecto. El cambio quedará registrado en el historial.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (!editDateForm.estimatedInstallDate || !selectedProject) return;
+              updateEstimatedDate.mutate({
+                projectId: selectedProject.id,
+                estimatedInstallDate: new Date(editDateForm.estimatedInstallDate),
+                reason: editDateForm.reason || undefined,
+              });
+            }}
+            className="space-y-4"
+          >
+            <div className="space-y-2">
+              <Label htmlFor="estimatedDate">Nueva Fecha Estimada *</Label>
+              <Input
+                id="estimatedDate"
+                type="date"
+                required
+                value={editDateForm.estimatedInstallDate}
+                onChange={(e) => setEditDateForm({ ...editDateForm, estimatedInstallDate: e.target.value })}
+                min={new Date().toISOString().split('T')[0]}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="reason">Motivo del cambio (opcional)</Label>
+              <Textarea
+                id="reason"
+                placeholder="Ej: Retraso en materiales, solicitud del cliente..."
+                value={editDateForm.reason}
+                onChange={(e) => setEditDateForm({ ...editDateForm, reason: e.target.value })}
+                rows={3}
+              />
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowEditDateDialog(false)}
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="submit"
+                disabled={updateEstimatedDate.isPending || !editDateForm.estimatedInstallDate}
+              >
+                {updateEstimatedDate.isPending ? "Guardando..." : "Guardar Fecha"}
+              </Button>
+            </div>
+          </form>
         </DialogContent>
       </Dialog>
     </div>

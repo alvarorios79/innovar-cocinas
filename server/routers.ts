@@ -1288,6 +1288,144 @@ export const appRouter = router({
         }));
       }),
   }),
+
+  // ============ FILE UPLOAD ============
+  upload: router({
+    // Subir imagen a S3
+    image: protectedProcedure
+      .input(z.object({
+        fileName: z.string(),
+        fileData: z.string(), // Base64 encoded
+        contentType: z.string().refine(
+          (type) => type.startsWith("image/"),
+          { message: "Solo se permiten archivos de imagen" }
+        ),
+        projectId: z.number().optional(),
+        stage: z.enum(["inicial", "diseno", "corte", "enchape", "ensamble", "final"]).optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const { storagePut } = await import("./storage");
+        
+        // Validar permisos si es para un proyecto
+        if (input.stage) {
+          if (!validatePhotoUploadPermission(ctx.user.role, input.stage)) {
+            throw new TRPCError({ 
+              code: "FORBIDDEN", 
+              message: "No tienes permisos para subir fotos en esta etapa" 
+            });
+          }
+        }
+
+        // Generar nombre único para el archivo
+        const timestamp = Date.now();
+        const randomSuffix = Math.random().toString(36).substring(2, 8);
+        const extension = input.fileName.split(".").pop() || "jpg";
+        const safeFileName = `${timestamp}-${randomSuffix}.${extension}`;
+        
+        // Construir la ruta en S3
+        let filePath = `uploads/${ctx.user.id}`;
+        if (input.projectId) {
+          filePath = `projects/${input.projectId}`;
+          if (input.stage) {
+            filePath += `/${input.stage}`;
+          }
+        }
+        const fileKey = `${filePath}/${safeFileName}`;
+
+        // Decodificar base64 y subir
+        const base64Data = input.fileData.replace(/^data:image\/\w+;base64,/, "");
+        const buffer = Buffer.from(base64Data, "base64");
+
+        // Validar tamaño máximo (10MB)
+        const maxSize = 10 * 1024 * 1024;
+        if (buffer.length > maxSize) {
+          throw new TRPCError({ 
+            code: "BAD_REQUEST", 
+            message: "El archivo es demasiado grande. Máximo 10MB." 
+          });
+        }
+
+        try {
+          const { url } = await storagePut(fileKey, buffer, input.contentType);
+          return { success: true, url, key: fileKey };
+        } catch (error) {
+          console.error("Error uploading file:", error);
+          throw new TRPCError({ 
+            code: "INTERNAL_SERVER_ERROR", 
+            message: "Error al subir el archivo" 
+          });
+        }
+      }),
+
+    // Subir múltiples imágenes
+    multipleImages: protectedProcedure
+      .input(z.object({
+        files: z.array(z.object({
+          fileName: z.string(),
+          fileData: z.string(),
+          contentType: z.string(),
+        })).max(10, "Máximo 10 archivos a la vez"),
+        projectId: z.number().optional(),
+        stage: z.enum(["inicial", "diseno", "corte", "enchape", "ensamble", "final"]).optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const { storagePut } = await import("./storage");
+        
+        // Validar permisos
+        if (input.stage) {
+          if (!validatePhotoUploadPermission(ctx.user.role, input.stage)) {
+            throw new TRPCError({ 
+              code: "FORBIDDEN", 
+              message: "No tienes permisos para subir fotos en esta etapa" 
+            });
+          }
+        }
+
+        const results: { url: string; key: string; fileName: string }[] = [];
+        const errors: { fileName: string; error: string }[] = [];
+
+        for (const file of input.files) {
+          try {
+            // Validar tipo
+            if (!file.contentType.startsWith("image/")) {
+              errors.push({ fileName: file.fileName, error: "No es una imagen válida" });
+              continue;
+            }
+
+            const timestamp = Date.now();
+            const randomSuffix = Math.random().toString(36).substring(2, 8);
+            const extension = file.fileName.split(".").pop() || "jpg";
+            const safeFileName = `${timestamp}-${randomSuffix}.${extension}`;
+            
+            let filePath = `uploads/${ctx.user.id}`;
+            if (input.projectId) {
+              filePath = `projects/${input.projectId}`;
+              if (input.stage) {
+                filePath += `/${input.stage}`;
+              }
+            }
+            const fileKey = `${filePath}/${safeFileName}`;
+
+            const base64Data = file.fileData.replace(/^data:image\/\w+;base64,/, "");
+            const buffer = Buffer.from(base64Data, "base64");
+
+            // Validar tamaño
+            const maxSize = 10 * 1024 * 1024;
+            if (buffer.length > maxSize) {
+              errors.push({ fileName: file.fileName, error: "Archivo muy grande (máx 10MB)" });
+              continue;
+            }
+
+            const { url } = await storagePut(fileKey, buffer, file.contentType);
+            results.push({ url, key: fileKey, fileName: file.fileName });
+          } catch (error) {
+            errors.push({ fileName: file.fileName, error: "Error al subir" });
+          }
+        }
+
+        return { success: true, uploaded: results, errors };
+      }),
+  }),
 });
 
 // ============ HELPER FUNCTIONS ============

@@ -11,12 +11,18 @@ import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { PhotoUploader } from "@/components/PhotoUploader";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function Portal() {
   const { user, isAuthenticated, loading } = useAuth();
   const [, setLocation] = useLocation();
   const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
   const [rescheduleDate, setRescheduleDate] = useState("");
+  const [showPhotoDialog, setShowPhotoDialog] = useState(false);
+  const [selectedProjectForPhoto, setSelectedProjectForPhoto] = useState<any>(null);
+  const [photoDescription, setPhotoDescription] = useState("");
 
   const utils = trpc.useUtils();
   const { data: appointments = [], isLoading: loadingAppointments } = trpc.appointments.getMyAppointments.useQuery();
@@ -31,6 +37,16 @@ export default function Portal() {
     },
     onError: (error) => {
       toast.error(error.message || "Error al procesar la aprobación");
+    },
+  });
+
+  const uploadPhoto = trpc.projectPhotos.upload.useMutation({
+    onSuccess: () => {
+      utils.projects.getMyProjects.invalidate();
+      toast.success("Foto subida exitosamente");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Error al subir la foto");
     },
   });
 
@@ -236,6 +252,23 @@ export default function Portal() {
                             />
                           </div>
                         </div>
+
+                        {/* Botón para subir fotos de referencia */}
+                        {["pendiente", "aprobado_diseno", "en_diseno"].includes(project.status) && (
+                          <div className="flex justify-end">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setSelectedProjectForPhoto(project);
+                                setShowPhotoDialog(true);
+                              }}
+                            >
+                              <ImageIcon className="h-4 w-4 mr-1" />
+                              Subir Fotos de Referencia
+                            </Button>
+                          </div>
+                        )}
 
                         {/* Aprobación de diseño */}
                         {project.status === "pendiente_cliente" && (
@@ -517,6 +550,57 @@ export default function Portal() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Diálogo para subir fotos de referencia */}
+      <Dialog open={showPhotoDialog} onOpenChange={setShowPhotoDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Subir Fotos de Referencia</DialogTitle>
+            <DialogDescription>
+              Sube fotos de referencia para tu proyecto: {selectedProjectForPhoto?.name}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Puedes subir fotos de inspiración, imágenes del espacio actual, o cualquier referencia 
+              que ayude al diseñador a entender mejor lo que buscas.
+            </p>
+
+            {selectedProjectForPhoto && (
+              <PhotoUploader
+                projectId={selectedProjectForPhoto.id}
+                stage="inicial"
+                maxFiles={10}
+                onUploadComplete={(urls) => {
+                  // Guardar cada foto en la base de datos
+                  urls.forEach((url) => {
+                    uploadPhoto.mutate({
+                      projectId: selectedProjectForPhoto.id,
+                      stage: "inicial",
+                      photoUrl: url,
+                      description: photoDescription || "Foto de referencia del cliente",
+                    });
+                  });
+                  setShowPhotoDialog(false);
+                  setSelectedProjectForPhoto(null);
+                  setPhotoDescription("");
+                }}
+              />
+            )}
+
+            <div className="space-y-2">
+              <Label>Descripción (opcional)</Label>
+              <Textarea
+                value={photoDescription}
+                onChange={(e) => setPhotoDescription(e.target.value)}
+                placeholder="Describe qué muestran estas fotos o qué te gustaría lograr..."
+                rows={3}
+              />
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -28,6 +28,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { PhotoUploader } from "@/components/PhotoUploader";
 
 // Estados del proyecto con sus configuraciones
 const PROJECT_STATUSES = {
@@ -715,26 +716,15 @@ export default function Projects() {
 
         {/* Diálogo para subir foto */}
         <Dialog open={showPhotoDialog} onOpenChange={setShowPhotoDialog}>
-          <DialogContent>
+          <DialogContent className="max-w-2xl">
             <DialogHeader>
-              <DialogTitle>Subir Foto</DialogTitle>
+              <DialogTitle>Subir Fotos</DialogTitle>
               <DialogDescription>
-                Agrega una foto al proyecto: {selectedProject?.name}
+                Agrega fotos al proyecto: {selectedProject?.name}
               </DialogDescription>
             </DialogHeader>
-            <form onSubmit={(e) => {
-              e.preventDefault();
-              if (!photoForm.stage || !photoForm.photoUrl || !selectedProject) {
-                toast.error("Por favor completa los campos requeridos");
-                return;
-              }
-              uploadPhoto.mutate({
-                projectId: selectedProject.id,
-                stage: photoForm.stage,
-                photoUrl: photoForm.photoUrl,
-                description: photoForm.description || undefined,
-              });
-            }} className="space-y-4">
+            
+            <div className="space-y-4">
               <div className="space-y-2">
                 <Label>Etapa *</Label>
                 <Select 
@@ -755,36 +745,36 @@ export default function Projects() {
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <Label>URL de la Foto *</Label>
-                <Input
-                  value={photoForm.photoUrl}
-                  onChange={(e) => setPhotoForm({ ...photoForm, photoUrl: e.target.value })}
-                  placeholder="https://ejemplo.com/foto.jpg"
+              {photoForm.stage && selectedProject && (
+                <PhotoUploader
+                  projectId={selectedProject.id}
+                  stage={photoForm.stage as any}
+                  maxFiles={10}
+                  onUploadComplete={(urls) => {
+                    // Guardar cada foto en la base de datos
+                    urls.forEach((url) => {
+                      uploadPhoto.mutate({
+                        projectId: selectedProject.id,
+                        stage: photoForm.stage as "inicial" | "diseno" | "corte" | "enchape" | "ensamble" | "final",
+                        photoUrl: url,
+                        description: photoForm.description || undefined,
+                      });
+                    });
+                    setShowPhotoDialog(false);
+                    setPhotoForm({ stage: "", photoUrl: "", description: "" });
+                  }}
                 />
-                <p className="text-xs text-muted-foreground">
-                  Sube la foto a un servicio de almacenamiento y pega la URL aquí
-                </p>
-              </div>
+              )}
 
               <div className="space-y-2">
                 <Label>Descripción (opcional)</Label>
                 <Input
                   value={photoForm.description}
                   onChange={(e) => setPhotoForm({ ...photoForm, description: e.target.value })}
-                  placeholder="Descripción de la foto..."
+                  placeholder="Descripción de las fotos..."
                 />
               </div>
-
-              <div className="flex justify-end gap-2">
-                <Button type="button" variant="outline" onClick={() => setShowPhotoDialog(false)}>
-                  Cancelar
-                </Button>
-                <Button type="submit" disabled={uploadPhoto.isPending}>
-                  {uploadPhoto.isPending ? "Subiendo..." : "Subir Foto"}
-                </Button>
-              </div>
-            </form>
+            </div>
           </DialogContent>
         </Dialog>
 

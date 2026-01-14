@@ -66,3 +66,20 @@
 
 ### Mejoras adicionales
 - [x] Permitir que Super Admin y Admin/Comercial aprueben diseño en nombre del cliente
+
+## Subida Directa de Fotos
+
+### Backend
+- [x] Crear endpoint de subida de archivos a S3
+- [x] Validar tipos de archivo (solo imágenes)
+- [x] Limitar tamaño máximo de archivo (10MB)
+
+### Frontend
+- [x] Crear componente PhotoUploader con vista previa
+- [x] Implementar compresión de imágenes en el cliente
+- [x] Agregar indicador de progreso de subida
+- [x] Soporte para múltiples fotos
+
+### Integración
+- [x] Integrar en página de Proyectos (para todos los roles de trabajo)
+- [x] Integrar en Portal del Cliente (para fotos de referencia)

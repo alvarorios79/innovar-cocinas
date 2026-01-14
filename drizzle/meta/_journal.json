@@ -64,6 +64,13 @@
       "when": 1768349723397,
       "tag": "0008_lively_thundra",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "5",
+      "when": 1768351702492,
+      "tag": "0009_fearless_sharon_carter",
+      "breakpoints": true
     }
   ]
 }

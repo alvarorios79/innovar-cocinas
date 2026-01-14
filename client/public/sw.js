@@ -1,4 +1,4 @@
-const CACHE_NAME = 'innovar-cocinas-v2';
+const CACHE_NAME = 'innovar-cocinas-v3';
 const urlsToCache = [
   '/',
   '/manifest.json',
@@ -34,7 +34,6 @@ self.addEventListener('activate', (event) => {
 });
 
 // Estrategia de cache: Network First, fallback to cache
-// Solo cachear requests GET (POST, PUT, DELETE no se pueden cachear)
 self.addEventListener('fetch', (event) => {
   // Ignorar requests que no sean GET
   if (event.request.method !== 'GET') {
@@ -49,7 +48,6 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     fetch(event.request)
       .then((response) => {
-        // Si la respuesta es válida, clonarla y guardarla en cache
         if (response && response.status === 200 && response.type === 'basic') {
           const responseToCache = response.clone();
           caches.open(CACHE_NAME)
@@ -60,13 +58,11 @@ self.addEventListener('fetch', (event) => {
         return response;
       })
       .catch(() => {
-        // Si falla la red, intentar obtener del cache
         return caches.match(event.request)
           .then((response) => {
             if (response) {
               return response;
             }
-            // Si no está en cache, mostrar página offline básica
             return new Response('Sin conexión - No se pudo cargar el recurso', {
               status: 503,
               statusText: 'Service Unavailable',
@@ -77,4 +73,83 @@ self.addEventListener('fetch', (event) => {
           });
       })
   );
+});
+
+// ============ NOTIFICACIONES PUSH ============
+
+// Recibir notificación push
+self.addEventListener('push', (event) => {
+  console.log('[Service Worker] Push recibido');
+  
+  let data = {
+    title: 'INNOVAR Cocinas',
+    body: 'Tienes una nueva notificación',
+    icon: '/icon-192.png',
+    badge: '/icon-192.png',
+    tag: 'default',
+    data: { url: '/' }
+  };
+
+  try {
+    if (event.data) {
+      const payload = event.data.json();
+      data = { ...data, ...payload };
+    }
+  } catch (e) {
+    console.error('Error parsing push data:', e);
+  }
+
+  const options = {
+    body: data.body,
+    icon: data.icon || '/icon-192.png',
+    badge: data.badge || '/icon-192.png',
+    tag: data.tag || 'default',
+    data: data.data || { url: '/' },
+    vibrate: [200, 100, 200],
+    requireInteraction: data.requireInteraction || false,
+    actions: data.actions || []
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(data.title, options)
+  );
+});
+
+// Click en notificación
+self.addEventListener('notificationclick', (event) => {
+  console.log('[Service Worker] Notificación clickeada');
+  
+  event.notification.close();
+
+  const urlToOpen = event.notification.data?.url || '/';
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true })
+      .then((clientList) => {
+        // Si ya hay una ventana abierta, enfocarla
+        for (const client of clientList) {
+          if (client.url.includes(self.registration.scope) && 'focus' in client) {
+            client.navigate(urlToOpen);
+            return client.focus();
+          }
+        }
+        // Si no hay ventana, abrir una nueva
+        if (clients.openWindow) {
+          return clients.openWindow(urlToOpen);
+        }
+      })
+  );
+});
+
+// Cerrar notificación
+self.addEventListener('notificationclose', (event) => {
+  console.log('[Service Worker] Notificación cerrada');
+});
+
+// Sincronización en segundo plano (para notificaciones pendientes)
+self.addEventListener('sync', (event) => {
+  if (event.tag === 'sync-notifications') {
+    console.log('[Service Worker] Sincronizando notificaciones');
+    // Aquí se pueden sincronizar notificaciones pendientes
+  }
 });

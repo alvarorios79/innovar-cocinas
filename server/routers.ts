@@ -1426,6 +1426,131 @@ export const appRouter = router({
         return { success: true, uploaded: results, errors };
       }),
   }),
+
+  // ============ NOTIFICATIONS & PUSH ============
+  notifications: router({
+    // Obtener clave pública VAPID para suscripciones push
+    getVapidPublicKey: publicProcedure
+      .query(async () => {
+        const { getVapidPublicKey } = await import("./push-notifications");
+        return { publicKey: getVapidPublicKey() };
+      }),
+
+    // Registrar suscripción push
+    subscribe: protectedProcedure
+      .input(z.object({
+        endpoint: z.string(),
+        p256dh: z.string(),
+        auth: z.string(),
+        userAgent: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const subscriptionId = await db.createPushSubscription({
+          userId: ctx.user.id,
+          endpoint: input.endpoint,
+          p256dh: input.p256dh,
+          auth: input.auth,
+          userAgent: input.userAgent,
+        });
+        return { success: true, subscriptionId };
+      }),
+
+    // Cancelar suscripción push
+    unsubscribe: protectedProcedure
+      .input(z.object({ endpoint: z.string() }))
+      .mutation(async ({ input }) => {
+        await db.deletePushSubscription(input.endpoint);
+        return { success: true };
+      }),
+
+    // Obtener mis notificaciones
+    getMyNotifications: protectedProcedure
+      .input(z.object({ limit: z.number().optional() }).optional())
+      .query(async ({ ctx, input }) => {
+        return await db.getNotificationsByUserId(ctx.user.id, input?.limit || 50);
+      }),
+
+    // Obtener contador de no leídas
+    getUnreadCount: protectedProcedure
+      .query(async ({ ctx }) => {
+        const count = await db.getUnreadNotificationsCount(ctx.user.id);
+        return { count };
+      }),
+
+    // Marcar notificación como leída
+    markAsRead: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        await db.markNotificationAsRead(input.id);
+        return { success: true };
+      }),
+
+    // Marcar todas como leídas
+    markAllAsRead: protectedProcedure
+      .mutation(async ({ ctx }) => {
+        await db.markAllNotificationsAsRead(ctx.user.id);
+        return { success: true };
+      }),
+
+    // Eliminar notificación
+    delete: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        await db.deleteNotification(input.id);
+        return { success: true };
+      }),
+
+    // Enviar notificación de prueba (solo admin)
+    sendTest: protectedProcedure
+      .mutation(async ({ ctx }) => {
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Solo administradores pueden enviar notificaciones de prueba" });
+        }
+
+        const { createAndSendNotification } = await import("./push-notifications");
+        await createAndSendNotification(ctx.user.id, {
+          title: "Notificación de Prueba",
+          body: "¡Las notificaciones push están funcionando correctamente!",
+          type: "sistema",
+          url: "/",
+        });
+
+        return { success: true };
+      }),
+  }),
+
+  // ============ PDF EXPORT ============
+  pdf: router({
+    // Generar reporte HTML del proyecto (para convertir a PDF en el cliente)
+    generateProjectReport: protectedProcedure
+      .input(z.object({ projectId: z.number() }))
+      .query(async ({ ctx, input }) => {
+        // Verificar que el usuario tenga acceso al proyecto
+        const project = await db.getProjectById(input.projectId);
+        if (!project) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Proyecto no encontrado" });
+        }
+
+        // Verificar permisos: admin, super_admin, o cliente dueño del proyecto
+        const isAdmin = ctx.user.role === "admin" || ctx.user.role === "super_admin";
+        const isWorker = ["disenador", "jefe_taller", "operario"].includes(ctx.user.role);
+        let isOwner = false;
+        
+        if (!isAdmin && !isWorker) {
+          const client = await db.getClientByUserId(ctx.user.id);
+          isOwner = !!(client && client.id === project.clientId);
+        }
+
+        if (!isAdmin && !isWorker && !isOwner) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "No tienes acceso a este proyecto" });
+        }
+
+        const { generateProjectReportHTML } = await import("./pdf-generator");
+        const html = await generateProjectReportHTML(input.projectId);
+
+        return { html, projectName: project.name };
+      }),
+  }),
 });
 
 // ============ HELPER FUNCTIONS ============

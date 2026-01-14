@@ -241,3 +241,40 @@ export const projectStatusHistory = mysqlTable("projectStatusHistory", {
 
 export type ProjectStatusHistory = typeof projectStatusHistory.$inferSelect;
 export type InsertProjectStatusHistory = typeof projectStatusHistory.$inferInsert;
+
+
+/**
+ * Suscripciones a notificaciones push
+ */
+export const pushSubscriptions = mysqlTable("pushSubscriptions", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().references(() => users.id),
+  endpoint: text("endpoint").notNull(),
+  p256dh: varchar("p256dh", { length: 255 }).notNull(),
+  auth: varchar("auth", { length: 255 }).notNull(),
+  userAgent: text("userAgent"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type PushSubscription = typeof pushSubscriptions.$inferSelect;
+export type InsertPushSubscription = typeof pushSubscriptions.$inferInsert;
+
+/**
+ * Notificaciones del sistema
+ */
+export const notifications = mysqlTable("notifications", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().references(() => users.id),
+  title: varchar("title", { length: 255 }).notNull(),
+  body: text("body").notNull(),
+  type: mysqlEnum("type", ["proyecto", "tarea", "cita", "cotizacion", "sistema"]).default("sistema").notNull(),
+  referenceId: int("referenceId"),
+  referenceType: varchar("referenceType", { length: 50 }),
+  read: boolean("read").default(false).notNull(),
+  sentPush: boolean("sentPush").default(false).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Notification = typeof notifications.$inferSelect;
+export type InsertNotification = typeof notifications.$inferInsert;

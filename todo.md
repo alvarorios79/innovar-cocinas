@@ -83,3 +83,31 @@
 ### Integración
 - [x] Integrar en página de Proyectos (para todos los roles de trabajo)
 - [x] Integrar en Portal del Cliente (para fotos de referencia)
+
+## PWA y Notificaciones Push
+
+### Configuración PWA
+- [x] Crear manifest.json con iconos y configuración (ya existía)
+- [x] Implementar service worker para cache y offline (actualizado con push)
+- [x] Agregar prompt de instalación de la app (NotificationBell solicita permiso)
+
+### Notificaciones Push
+- [x] Configurar Web Push API
+- [x] Crear endpoint para registrar suscripciones
+- [x] Implementar envío de notificaciones desde el servidor
+- [x] Agregar badge con contador de notificaciones
+
+## Galería con Zoom
+
+- [x] Crear componente ImageViewer con zoom
+- [x] Implementar navegación entre fotos (anterior/siguiente)
+- [x] Agregar gestos táctiles para zoom en móviles
+- [x] Integrar en página de Proyectos y Portal del Cliente
+
+## Exportar Proyecto a PDF
+
+- [x] Crear endpoint para generar HTML del proyecto
+- [x] Incluir información del proyecto, cliente y estado
+- [x] Incluir fotos de cada etapa
+- [x] Incluir timeline de cambios de estado
+- [x] Agregar botón de descarga en la interfaz

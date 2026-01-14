@@ -20,7 +20,9 @@ import {
   Hammer,
   Paintbrush,
   Package,
-  Truck
+  Truck,
+  FileDown,
+  ZoomIn
 } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -29,6 +31,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PhotoUploader } from "@/components/PhotoUploader";
+import { ImageViewer, useImageViewer } from "@/components/ImageViewer";
 
 // Estados del proyecto con sus configuraciones
 const PROJECT_STATUSES = {
@@ -80,6 +83,12 @@ export default function Projects() {
   });
 
   const utils = trpc.useUtils();
+  
+  // Hook para visor de imágenes
+  const imageViewer = useImageViewer();
+  
+  // Estado para generar PDF
+  const [generatingPdf, setGeneratingPdf] = useState(false);
   
   const { data: projects = [], isLoading: loadingProjects } = trpc.projects.list.useQuery(
     statusFilter !== "all" ? { status: statusFilter } : undefined
@@ -182,6 +191,36 @@ export default function Projects() {
       workType: createForm.workType,
       initialMeasurements: createForm.initialMeasurements || undefined,
     });
+  };
+
+  // Función para exportar proyecto a PDF
+  const handleExportPdf = async (projectId: number, projectName: string) => {
+    setGeneratingPdf(true);
+    try {
+      const response = await fetch(`/api/trpc/pdf.generateProjectReport?input=${encodeURIComponent(JSON.stringify({ projectId }))}`);
+      const data = await response.json();
+      
+      if (data.result?.data?.html) {
+        // Abrir en nueva ventana para imprimir/guardar como PDF
+        const printWindow = window.open("", "_blank");
+        if (printWindow) {
+          printWindow.document.write(data.result.data.html);
+          printWindow.document.close();
+          printWindow.focus();
+          // Dar tiempo para cargar imágenes antes de imprimir
+          setTimeout(() => {
+            printWindow.print();
+          }, 1000);
+        }
+      } else {
+        toast.error("Error al generar el reporte");
+      }
+    } catch (error) {
+      console.error("Error exporting PDF:", error);
+      toast.error("Error al exportar el proyecto");
+    } finally {
+      setGeneratingPdf(false);
+    }
   };
 
   const getNextStatus = (currentStatus: string): string | null => {
@@ -456,8 +495,17 @@ export default function Projects() {
                 {selectedProject?.name}
                 {selectedProject && getStatusBadge(selectedProject.status)}
               </DialogTitle>
-              <DialogDescription>
-                {WORK_TYPES[selectedProject?.workType as keyof typeof WORK_TYPES]} - {selectedProject?.client?.name}
+              <DialogDescription className="flex items-center justify-between">
+                <span>{WORK_TYPES[selectedProject?.workType as keyof typeof WORK_TYPES]} - {selectedProject?.client?.name}</span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => selectedProject && handleExportPdf(selectedProject.id, selectedProject.name)}
+                  disabled={generatingPdf}
+                >
+                  <FileDown className="h-4 w-4 mr-1" />
+                  {generatingPdf ? "Generando..." : "Exportar PDF"}
+                </Button>
               </DialogDescription>
             </DialogHeader>
 
@@ -618,14 +666,24 @@ export default function Projects() {
                             <p className="text-sm text-muted-foreground">Sin fotos en esta etapa</p>
                           ) : (
                             <div className="grid grid-cols-3 gap-2">
-                              {stagePhotos.map((photo: any) => (
+                              {stagePhotos.map((photo: any, photoIndex: number) => (
                                 <div key={photo.id} className="relative group">
                                   <img
                                     src={photo.photoUrl}
                                     alt={photo.description || "Foto del proyecto"}
-                                    className="w-full h-24 object-cover rounded cursor-pointer"
-                                    onClick={() => window.open(photo.photoUrl, "_blank")}
+                                    className="w-full h-24 object-cover rounded cursor-pointer hover:opacity-80 transition-opacity"
+                                    onClick={() => imageViewer.openViewer(
+                                      stagePhotos.map((p: any) => ({
+                                        url: p.photoUrl,
+                                        title: `${stageLabels[stage]} - Foto ${stagePhotos.indexOf(p) + 1}`,
+                                        description: p.description,
+                                      })),
+                                      photoIndex
+                                    )}
                                   />
+                                  <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <ZoomIn className="h-4 w-4 text-white drop-shadow-lg" />
+                                  </div>
                                   {photo.description && (
                                     <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-xs p-1 truncate opacity-0 group-hover:opacity-100 transition-opacity">
                                       {photo.description}
@@ -858,6 +916,14 @@ export default function Projects() {
           </DialogContent>
         </Dialog>
       </div>
+
+      {/* Visor de imágenes con zoom */}
+      <ImageViewer
+        images={imageViewer.images}
+        initialIndex={imageViewer.initialIndex}
+        isOpen={imageViewer.isOpen}
+        onClose={imageViewer.closeViewer}
+      />
     </div>
   );
 }

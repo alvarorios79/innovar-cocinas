@@ -13,6 +13,7 @@ import { Calendar, Phone, Calculator, CheckCircle2, ArrowRight, MapPin, MessageC
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
 import { Link } from "wouter";
+import { NotificationBell } from "@/components/NotificationBell";
 
 export default function Home() {
   const { user, isAuthenticated } = useAuth();
@@ -323,6 +324,7 @@ export default function Home() {
                       </Link>
                     </>
                   )}
+                  <NotificationBell />
                 </>
               ) : (
                 <Button asChild>

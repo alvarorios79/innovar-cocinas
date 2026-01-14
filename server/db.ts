@@ -1,4 +1,4 @@
-import { eq, desc, and, gte, lte, between } from "drizzle-orm";
+import { eq, desc, and, gte, lte, between, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { 
   InsertUser, 
@@ -746,4 +746,124 @@ export async function getUsersByRole(role: string) {
   return await db.select().from(users)
     .where(eq(users.role, role as any))
     .orderBy(users.name);
+}
+
+
+// ============ PUSH SUBSCRIPTIONS ============
+
+import { 
+  pushSubscriptions, 
+  InsertPushSubscription,
+  notifications,
+  InsertNotification
+} from "../drizzle/schema";
+
+export async function createPushSubscription(subscription: InsertPushSubscription) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  // Verificar si ya existe una suscripción con el mismo endpoint para este usuario
+  const existing = await db.select().from(pushSubscriptions)
+    .where(and(
+      eq(pushSubscriptions.userId, subscription.userId),
+      eq(pushSubscriptions.endpoint, subscription.endpoint)
+    ))
+    .limit(1);
+
+  if (existing.length > 0) {
+    // Actualizar la existente
+    await db.update(pushSubscriptions)
+      .set({ p256dh: subscription.p256dh, auth: subscription.auth, userAgent: subscription.userAgent })
+      .where(eq(pushSubscriptions.id, existing[0].id));
+    return existing[0].id;
+  }
+
+  const result = await db.insert(pushSubscriptions).values(subscription);
+  return result[0].insertId;
+}
+
+export async function getPushSubscriptionsByUserId(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(pushSubscriptions)
+    .where(eq(pushSubscriptions.userId, userId));
+}
+
+export async function deletePushSubscription(endpoint: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.delete(pushSubscriptions).where(eq(pushSubscriptions.endpoint, endpoint));
+}
+
+export async function getAllPushSubscriptions() {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(pushSubscriptions);
+}
+
+// ============ NOTIFICATIONS ============
+
+export async function createNotification(notification: InsertNotification) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.insert(notifications).values(notification);
+  return result[0].insertId;
+}
+
+export async function getNotificationsByUserId(userId: number, limit = 50) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(notifications)
+    .where(eq(notifications.userId, userId))
+    .orderBy(desc(notifications.createdAt))
+    .limit(limit);
+}
+
+export async function getUnreadNotificationsCount(userId: number) {
+  const db = await getDb();
+  if (!db) return 0;
+
+  const result = await db.select({ count: sql<number>`count(*)` })
+    .from(notifications)
+    .where(and(
+      eq(notifications.userId, userId),
+      eq(notifications.read, false)
+    ));
+
+  return result[0]?.count || 0;
+}
+
+export async function markNotificationAsRead(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(notifications).set({ read: true }).where(eq(notifications.id, id));
+}
+
+export async function markAllNotificationsAsRead(userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(notifications)
+    .set({ read: true })
+    .where(eq(notifications.userId, userId));
+}
+
+export async function deleteNotification(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.delete(notifications).where(eq(notifications.id, id));
+}
+
+export async function updateNotificationPushSent(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(notifications).set({ sentPush: true }).where(eq(notifications.id, id));
 }

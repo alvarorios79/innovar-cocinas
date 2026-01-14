@@ -184,3 +184,21 @@
 - [x] Optimizar página de Login
 - [x] Verificar formularios en todos los tamaños de pantalla
 - [x] Pruebas finales en móvil, tablet y desktop
+
+## Registro de Clientes y Recuperación de Contraseña
+
+### Problema de Registro
+- [x] Corregir flujo de registro para clientes nuevos (actualmente asume que ya están registrados)
+- [x] Crear página de registro separada para nuevos usuarios (/register)
+- [x] Implementar endpoint de registro con email y contraseña (auth.register)
+- [x] Crear registro de cliente asociado automáticamente al registrarse
+- [x] Validación de contraseña en tiempo real (mayúscula, minúscula, número, 8+ caracteres)
+
+### Olvidé mi Contraseña
+- [x] Crear página de recuperación de contraseña (/forgot-password)
+- [x] Implementar endpoint para solicitar recuperación (auth.requestPasswordReset)
+- [x] Implementar endpoint para restablecer contraseña con token (auth.resetPassword)
+- [x] Crear página para restablecer contraseña (/reset-password)
+- [x] Enviar enlace de recuperación por WhatsApp
+- [x] Agregar enlace "Olvidé mi contraseña" en página de login
+- [x] Tests para registro y recuperación (11 tests pasando)

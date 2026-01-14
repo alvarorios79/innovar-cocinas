@@ -1,4 +1,4 @@
-import { eq, desc, and, gte, lte, between, sql } from "drizzle-orm";
+import { eq, desc, and, gte, lte, gt, between, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { 
   InsertUser, 
@@ -103,6 +103,30 @@ export async function getUserByOpenId(openId: string) {
   }
 
   const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
+
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getUserById(id: number) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get user: database not available");
+    return undefined;
+  }
+
+  const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
+
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getUserByEmail(email: string) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get user: database not available");
+    return undefined;
+  }
+
+  const result = await db.select().from(users).where(eq(users.email, email)).limit(1);
 
   return result.length > 0 ? result[0] : undefined;
 }
@@ -750,6 +774,58 @@ export async function getUsersByRole(role: string) {
   return await db.select().from(users)
     .where(eq(users.role, role as any))
     .orderBy(users.name);
+}
+
+// ============ PASSWORD RESET ============
+
+export async function setPasswordResetToken(userId: number, token: string, expires: Date) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(users)
+    .set({ 
+      passwordResetToken: token,
+      passwordResetExpires: expires 
+    })
+    .where(eq(users.id, userId));
+}
+
+export async function getUserByResetToken(token: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db.select().from(users)
+    .where(and(
+      eq(users.passwordResetToken, token),
+      gt(users.passwordResetExpires, new Date())
+    ))
+    .limit(1);
+
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function updateUserPassword(userId: number, passwordHash: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(users)
+    .set({ 
+      passwordHash,
+      loginMethod: "password"
+    })
+    .where(eq(users.id, userId));
+}
+
+export async function clearPasswordResetToken(userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(users)
+    .set({ 
+      passwordResetToken: null,
+      passwordResetExpires: null 
+    })
+    .where(eq(users.id, userId));
 }
 
 

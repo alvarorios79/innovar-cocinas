@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -109,7 +109,19 @@ export default function Login() {
             </Button>
           </form>
 
-          <div className="mt-6 text-center">
+          <div className="mt-4 text-center">
+            <Link href="/forgot-password" className="text-sm text-amber-600 hover:text-amber-700">
+              ¿Olvidaste tu contraseña?
+            </Link>
+          </div>
+
+          <div className="mt-6 text-center space-y-2 pt-4 border-t">
+            <p className="text-sm text-gray-600">
+              ¿No tienes cuenta?{" "}
+              <Link href="/register" className="text-amber-600 hover:text-amber-700 font-medium">
+                Regístrate aquí
+              </Link>
+            </p>
             <button
               onClick={() => setLocation("/")}
               className="text-sm text-gray-500 hover:text-amber-600 transition-colors"

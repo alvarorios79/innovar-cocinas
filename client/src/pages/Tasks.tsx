@@ -324,14 +324,14 @@ export default function Tasks() {
                       <div className="space-y-2">
                         <Label>Proyecto (opcional)</Label>
                         <Select 
-                          value={createForm.projectId} 
-                          onValueChange={(v) => setCreateForm({ ...createForm, projectId: v })}
+                          value={createForm.projectId || "none"} 
+                          onValueChange={(v) => setCreateForm({ ...createForm, projectId: v === "none" ? "" : v })}
                         >
                           <SelectTrigger>
                             <SelectValue placeholder="Sin proyecto" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="">Sin proyecto</SelectItem>
+                            <SelectItem value="none">Sin proyecto</SelectItem>
                             {projects.map((p: any) => (
                               <SelectItem key={p.id} value={p.id.toString()}>
                                 {p.name}

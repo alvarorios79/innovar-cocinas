@@ -353,3 +353,11 @@
 - [x] Agregar filtro por categoría en galería de fotos
 - [x] Mostrar badge de categoría en cada foto de la galería
 - [x] Actualizar Portal.tsx para enviar categoría por defecto
+
+
+## Corrección de Errores
+
+### Error en Creación de Tareas
+- [x] Investigar error al crear nueva tarea en sección Tareas
+- [x] Corregir el error identificado (SelectItem con value="" cambiado a value="none")
+- [x] Verificar que la creación de tareas funciona correctamente

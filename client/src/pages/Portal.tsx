@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
-import { Calendar, FileText, LogOut } from "lucide-react";
+import { Calendar, FileText, LogOut, FolderKanban, CheckCircle2, Clock, Hammer, Paintbrush, Package, Truck, AlertCircle, Image as ImageIcon, ThumbsUp, ThumbsDown } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -22,6 +22,17 @@ export default function Portal() {
   const { data: appointments = [], isLoading: loadingAppointments } = trpc.appointments.getMyAppointments.useQuery();
   const { data: quotations = [], isLoading: loadingQuotations } = trpc.quotations.getMyQuotations.useQuery();
   const { data: estimates = [], isLoading: loadingEstimates } = trpc.estimates.getMyEstimates.useQuery();
+  const { data: myProjects = [], isLoading: loadingProjects } = trpc.projects.getMyProjects.useQuery();
+
+  const approveDesign = trpc.projects.approveDesign.useMutation({
+    onSuccess: (_, variables) => {
+      utils.projects.getMyProjects.invalidate();
+      toast.success(variables.approved ? "Diseño aprobado exitosamente" : "Diseño rechazado, se enviará a revisión");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Error al procesar la aprobación");
+    },
+  });
 
   const rescheduleAppointment = trpc.appointments.reschedule.useMutation({
     onSuccess: () => {
@@ -93,6 +104,38 @@ export default function Portal() {
     }).format(Number(price));
   };
 
+  // Configuración de estados de proyecto
+  const PROJECT_STATUSES: Record<string, { label: string; color: string; icon: any }> = {
+    pendiente: { label: "Pendiente", color: "bg-gray-500", icon: Clock },
+    aprobado_diseno: { label: "Aprobado para Diseño", color: "bg-blue-500", icon: CheckCircle2 },
+    en_diseno: { label: "En Diseño", color: "bg-purple-500", icon: Paintbrush },
+    pendiente_cliente: { label: "Pendiente tu Aprobación", color: "bg-yellow-500", icon: AlertCircle },
+    corte: { label: "En Corte", color: "bg-orange-500", icon: Hammer },
+    enchape: { label: "En Enchape", color: "bg-orange-600", icon: Paintbrush },
+    ensamble: { label: "En Ensamble", color: "bg-orange-700", icon: Package },
+    listo_instalacion: { label: "Listo para Instalación", color: "bg-green-500", icon: Truck },
+    entregado: { label: "Entregado", color: "bg-green-700", icon: CheckCircle2 },
+  };
+
+  const getProjectStatusBadge = (status: string) => {
+    const config = PROJECT_STATUSES[status];
+    if (!config) return <Badge>{status}</Badge>;
+    
+    const Icon = config.icon;
+    return (
+      <Badge className={`${config.color} text-white`}>
+        <Icon className="h-3 w-3 mr-1" />
+        {config.label}
+      </Badge>
+    );
+  };
+
+  const getProgressPercentage = (status: string): number => {
+    const statusOrder = ["pendiente", "aprobado_diseno", "en_diseno", "pendiente_cliente", "corte", "enchape", "ensamble", "listo_instalacion", "entregado"];
+    const index = statusOrder.indexOf(status);
+    return Math.round(((index + 1) / statusOrder.length) * 100);
+  };
+
   const handleReschedule = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedAppointment || !rescheduleDate) return;
@@ -136,12 +179,152 @@ export default function Portal() {
         </Card>
 
         {/* Main Content */}
-        <Tabs defaultValue="appointments" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="appointments">Mis Citas</TabsTrigger>
-            <TabsTrigger value="quotations">Cotizaciones</TabsTrigger>
-            <TabsTrigger value="estimates">Estimados Previos</TabsTrigger>
+        <Tabs defaultValue="projects" className="space-y-4">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 h-auto">
+            <TabsTrigger value="projects" className="text-xs sm:text-sm">Mis Proyectos</TabsTrigger>
+            <TabsTrigger value="appointments" className="text-xs sm:text-sm">Mis Citas</TabsTrigger>
+            <TabsTrigger value="quotations" className="text-xs sm:text-sm">Cotizaciones</TabsTrigger>
+            <TabsTrigger value="estimates" className="text-xs sm:text-sm">Estimados</TabsTrigger>
           </TabsList>
+
+          {/* Projects Tab */}
+          <TabsContent value="projects" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FolderKanban className="h-5 w-5" />
+                  Mis Proyectos
+                </CardTitle>
+                <CardDescription>Sigue el progreso de tus proyectos en tiempo real</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {loadingProjects ? (
+                  <p>Cargando...</p>
+                ) : myProjects.length === 0 ? (
+                  <div className="text-center py-8">
+                    <FolderKanban className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground">No tienes proyectos activos</p>
+                    <p className="text-sm text-muted-foreground mt-2">
+                      Una vez que aceptes una cotización, tu proyecto aparecerá aquí
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    {myProjects.map((project: any) => (
+                      <div key={project.id} className="border rounded-lg p-4 space-y-4">
+                        {/* Header del proyecto */}
+                        <div className="flex flex-col sm:flex-row justify-between gap-2">
+                          <div>
+                            <h3 className="font-semibold text-lg">{project.name}</h3>
+                            <p className="text-sm text-muted-foreground">
+                              {getWorkTypeLabel(project.workType)}
+                            </p>
+                          </div>
+                          {getProjectStatusBadge(project.status)}
+                        </div>
+
+                        {/* Barra de progreso */}
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-sm">
+                            <span>Progreso</span>
+                            <span>{getProgressPercentage(project.status)}%</span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div 
+                              className="bg-primary h-2 rounded-full transition-all duration-500"
+                              style={{ width: `${getProgressPercentage(project.status)}%` }}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Aprobación de diseño */}
+                        {project.status === "pendiente_cliente" && (
+                          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                            <h4 className="font-medium text-yellow-800 mb-2 flex items-center gap-2">
+                              <AlertCircle className="h-4 w-4" />
+                              Acción Requerida: Aprobar Diseño
+                            </h4>
+                            <p className="text-sm text-yellow-700 mb-4">
+                              El diseño 3D de tu proyecto está listo. Por favor revísalo y apruébalo para continuar con la producción.
+                            </p>
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                onClick={() => approveDesign.mutate({ projectId: project.id, approved: true })}
+                                disabled={approveDesign.isPending}
+                              >
+                                <ThumbsUp className="h-4 w-4 mr-1" />
+                                Aprobar Diseño
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  const notes = prompt("Por favor indica qué cambios necesitas:");
+                                  if (notes) {
+                                    approveDesign.mutate({ projectId: project.id, approved: false, notes });
+                                  }
+                                }}
+                                disabled={approveDesign.isPending}
+                              >
+                                <ThumbsDown className="h-4 w-4 mr-1" />
+                                Solicitar Cambios
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Galería de fotos por etapa */}
+                        {project.photos && project.photos.length > 0 && (
+                          <div className="space-y-3">
+                            <h4 className="font-medium flex items-center gap-2">
+                              <ImageIcon className="h-4 w-4" />
+                              Fotos del Proceso
+                            </h4>
+                            {["inicial", "diseno", "corte", "enchape", "ensamble", "final"].map((stage) => {
+                              const stagePhotos = project.photos.filter((p: any) => p.stage === stage);
+                              if (stagePhotos.length === 0) return null;
+                              
+                              const stageLabels: Record<string, string> = {
+                                inicial: "Fotos Iniciales",
+                                diseno: "Diseño",
+                                corte: "Corte",
+                                enchape: "Enchape",
+                                ensamble: "Ensamble",
+                                final: "Producto Final",
+                              };
+
+                              return (
+                                <div key={stage} className="space-y-2">
+                                  <p className="text-sm font-medium text-muted-foreground">{stageLabels[stage]}</p>
+                                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                                    {stagePhotos.map((photo: any) => (
+                                      <img
+                                        key={photo.id}
+                                        src={photo.photoUrl}
+                                        alt={photo.description || "Foto del proyecto"}
+                                        className="w-full h-20 sm:h-24 object-cover rounded cursor-pointer hover:opacity-90"
+                                        onClick={() => window.open(photo.photoUrl, "_blank")}
+                                      />
+                                    ))}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+
+                        {/* Fecha de creación */}
+                        <p className="text-xs text-muted-foreground">
+                          Creado: {formatDate(project.createdAt)}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           {/* Appointments Tab */}
           <TabsContent value="appointments" className="space-y-4">

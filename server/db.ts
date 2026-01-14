@@ -469,3 +469,281 @@ export async function deleteClient(clientId: number): Promise<void> {
     throw error;
   }
 }
+
+
+// ============ PROJECTS ============
+
+import { 
+  projects, 
+  InsertProject, 
+  projectPhotos, 
+  InsertProjectPhoto,
+  projectDetails,
+  InsertProjectDetail,
+  tasks,
+  InsertTask,
+  projectStatusHistory,
+  InsertProjectStatusHistory
+} from "../drizzle/schema";
+
+export async function createProject(project: InsertProject) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.insert(projects).values(project);
+  return result[0].insertId;
+}
+
+export async function getProjectById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db.select().from(projects).where(eq(projects.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getAllProjects() {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(projects).orderBy(desc(projects.createdAt));
+}
+
+export async function getProjectsByStatus(status: string) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(projects)
+    .where(eq(projects.status, status as any))
+    .orderBy(desc(projects.createdAt));
+}
+
+export async function getProjectsByClientId(clientId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(projects)
+    .where(eq(projects.clientId, clientId))
+    .orderBy(desc(projects.createdAt));
+}
+
+export async function getProjectsByDesignerId(designerId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(projects)
+    .where(eq(projects.designerId, designerId))
+    .orderBy(desc(projects.createdAt));
+}
+
+export async function updateProject(id: number, data: Partial<InsertProject>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(projects).set(data).where(eq(projects.id, id));
+}
+
+export async function deleteProject(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.delete(projects).where(eq(projects.id, id));
+}
+
+// ============ PROJECT PHOTOS ============
+
+export async function createProjectPhoto(photo: InsertProjectPhoto) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.insert(projectPhotos).values(photo);
+  return result[0].insertId;
+}
+
+export async function getProjectPhotosByProjectId(projectId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(projectPhotos)
+    .where(eq(projectPhotos.projectId, projectId))
+    .orderBy(desc(projectPhotos.createdAt));
+}
+
+export async function getProjectPhotosByStage(projectId: number, stage: string) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(projectPhotos)
+    .where(and(
+      eq(projectPhotos.projectId, projectId),
+      eq(projectPhotos.stage, stage as any)
+    ))
+    .orderBy(desc(projectPhotos.createdAt));
+}
+
+export async function deleteProjectPhoto(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.delete(projectPhotos).where(eq(projectPhotos.id, id));
+}
+
+// ============ PROJECT DETAILS ============
+
+export async function createProjectDetail(detail: InsertProjectDetail) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.insert(projectDetails).values(detail);
+  return result[0].insertId;
+}
+
+export async function getProjectDetailsByProjectId(projectId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(projectDetails)
+    .where(eq(projectDetails.projectId, projectId))
+    .orderBy(desc(projectDetails.createdAt));
+}
+
+export async function updateProjectDetail(id: number, data: Partial<InsertProjectDetail>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(projectDetails).set(data).where(eq(projectDetails.id, id));
+}
+
+export async function deleteProjectDetail(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.delete(projectDetails).where(eq(projectDetails.id, id));
+}
+
+// ============ TASKS ============
+
+export async function createTask(task: InsertTask) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.insert(tasks).values(task);
+  return result[0].insertId;
+}
+
+export async function getTaskById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db.select().from(tasks).where(eq(tasks.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getTasksByAssignedTo(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(tasks)
+    .where(eq(tasks.assignedTo, userId))
+    .orderBy(desc(tasks.createdAt));
+}
+
+export async function getTasksByProjectId(projectId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(tasks)
+    .where(eq(tasks.projectId, projectId))
+    .orderBy(desc(tasks.createdAt));
+}
+
+export async function getAllTasks() {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(tasks).orderBy(desc(tasks.createdAt));
+}
+
+export async function updateTask(id: number, data: Partial<InsertTask>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(tasks).set(data).where(eq(tasks.id, id));
+}
+
+export async function deleteTask(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.delete(tasks).where(eq(tasks.id, id));
+}
+
+// ============ PROJECT STATUS HISTORY ============
+
+export async function createProjectStatusHistory(history: InsertProjectStatusHistory) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.insert(projectStatusHistory).values(history);
+  return result[0].insertId;
+}
+
+export async function getProjectStatusHistoryByProjectId(projectId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(projectStatusHistory)
+    .where(eq(projectStatusHistory.projectId, projectId))
+    .orderBy(desc(projectStatusHistory.createdAt));
+}
+
+// ============ HELPER: Update user role with new roles ============
+
+export async function updateUserRoleExtended(userId: number, newRole: "user" | "admin" | "super_admin" | "disenador" | "jefe_taller" | "operario") {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  await db.update(users)
+    .set({ role: newRole })
+    .where(eq(users.id, userId));
+  return true;
+}
+
+export async function createUserExtended(userData: {
+  name: string;
+  email: string;
+  role: "user" | "admin" | "super_admin" | "disenador" | "jefe_taller" | "operario";
+  passwordHash?: string;
+}): Promise<number> {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  const openId = `manual-${Date.now()}-${Math.random().toString(36).substring(7)}`;
+
+  const result = await db.insert(users).values({
+    openId,
+    name: userData.name,
+    email: userData.email,
+    role: userData.role,
+    loginMethod: userData.passwordHash ? "password" : "manual",
+    passwordHash: userData.passwordHash,
+    lastSignedIn: new Date(),
+  });
+
+  return result[0].insertId;
+}
+
+// ============ GET USERS BY ROLE ============
+
+export async function getUsersByRole(role: string) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(users)
+    .where(eq(users.role, role as any))
+    .orderBy(users.name);
+}

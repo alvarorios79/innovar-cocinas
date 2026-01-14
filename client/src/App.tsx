@@ -8,6 +8,8 @@ import { WhatsAppButton } from "./components/WhatsAppButton";
 import Home from "./pages/Home";
 import Admin from "./pages/Admin";
 import Portal from "./pages/Portal";
+import Projects from "./pages/Projects";
+import Tasks from "./pages/Tasks";
 
 function Router() {
   return (
@@ -15,6 +17,8 @@ function Router() {
       <Route path={"/"} component={Home} />
       <Route path={"/admin"} component={Admin} />
       <Route path={"/portal"} component={Portal} />
+      <Route path={"/projects"} component={Projects} />
+      <Route path={"/tasks"} component={Tasks} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>

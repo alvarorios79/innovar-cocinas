@@ -735,6 +735,622 @@ export const appRouter = router({
         return { success: true };
       }),
   }),
+
+  // ============ PROJECTS ============
+  projects: router({
+    // Crear proyecto (Admin/Comercial)
+    create: protectedProcedure
+      .input(z.object({
+        quotationId: z.number().optional(),
+        clientId: z.number(),
+        name: z.string().min(1, "El nombre es requerido"),
+        workType: z.enum(["cocina", "closet", "puertas", "centro_tv"]),
+        initialMeasurements: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        // Solo admin, super_admin pueden crear proyectos
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Solo administradores pueden crear proyectos" });
+        }
+
+        const projectId = await db.createProject({
+          ...input,
+          status: "pendiente",
+          createdBy: ctx.user.id,
+        });
+
+        // Registrar en historial
+        await db.createProjectStatusHistory({
+          projectId,
+          fromStatus: null,
+          toStatus: "pendiente",
+          changedBy: ctx.user.id,
+          notes: "Proyecto creado",
+        });
+
+        return { success: true, projectId };
+      }),
+
+    // Obtener todos los proyectos (filtrados por rol)
+    list: protectedProcedure
+      .input(z.object({
+        status: z.string().optional(),
+      }).optional())
+      .query(async ({ ctx, input }) => {
+        const role = ctx.user.role;
+        let projectsList;
+
+        // Filtrar por estado si se proporciona
+        if (input?.status) {
+          projectsList = await db.getProjectsByStatus(input.status);
+        } else {
+          projectsList = await db.getAllProjects();
+        }
+
+        // Diseñador solo ve proyectos aprobados para diseño o en diseño
+        if (role === "disenador") {
+          projectsList = projectsList.filter(p => 
+            ["aprobado_diseno", "en_diseno", "pendiente_cliente"].includes(p.status)
+          );
+        }
+
+        // Jefe de taller y operario ven proyectos en producción
+        if (role === "jefe_taller" || role === "operario") {
+          projectsList = projectsList.filter(p => 
+            ["corte", "enchape", "ensamble", "listo_instalacion"].includes(p.status)
+          );
+        }
+
+        // Obtener info de clientes
+        const allClients = await db.getAllClients();
+        const clientMap = new Map(allClients.map(c => [c.id, c]));
+
+        return projectsList.map(p => ({
+          ...p,
+          client: clientMap.get(p.clientId),
+        }));
+      }),
+
+    // Obtener proyecto por ID
+    getById: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ ctx, input }) => {
+        const project = await db.getProjectById(input.id);
+        if (!project) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Proyecto no encontrado" });
+        }
+
+        const client = await db.getClientById(project.clientId);
+        const photos = await db.getProjectPhotosByProjectId(input.id);
+        const details = await db.getProjectDetailsByProjectId(input.id);
+        const history = await db.getProjectStatusHistoryByProjectId(input.id);
+        const projectTasks = await db.getTasksByProjectId(input.id);
+
+        return {
+          ...project,
+          client,
+          photos,
+          details,
+          history,
+          tasks: projectTasks,
+        };
+      }),
+
+    // Obtener proyectos del cliente actual
+    getMyProjects: protectedProcedure
+      .query(async ({ ctx }) => {
+        // Buscar cliente asociado al usuario
+        const client = await db.getClientByUserId(ctx.user.id);
+        if (!client) {
+          return [];
+        }
+
+        const projectsList = await db.getProjectsByClientId(client.id);
+        
+        // Para cada proyecto, obtener fotos
+        const projectsWithPhotos = await Promise.all(
+          projectsList.map(async (p) => {
+            const photos = await db.getProjectPhotosByProjectId(p.id);
+            return { ...p, photos };
+          })
+        );
+
+        return projectsWithPhotos;
+      }),
+
+    // Cambiar estado del proyecto
+    updateStatus: protectedProcedure
+      .input(z.object({
+        projectId: z.number(),
+        newStatus: z.enum([
+          "pendiente", "aprobado_diseno", "en_diseno", "pendiente_cliente",
+          "corte", "enchape", "ensamble", "listo_instalacion", "entregado"
+        ]),
+        notes: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const project = await db.getProjectById(input.projectId);
+        if (!project) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Proyecto no encontrado" });
+        }
+
+        const role = ctx.user.role;
+        const currentStatus = project.status;
+        const newStatus = input.newStatus;
+
+        // Validar permisos según el cambio de estado
+        const canChangeStatus = validateStatusChange(role, currentStatus, newStatus);
+        if (!canChangeStatus) {
+          throw new TRPCError({ 
+            code: "FORBIDDEN", 
+            message: "No tienes permisos para realizar este cambio de estado" 
+          });
+        }
+
+        await db.updateProject(input.projectId, { status: newStatus });
+
+        // Registrar en historial
+        await db.createProjectStatusHistory({
+          projectId: input.projectId,
+          fromStatus: currentStatus,
+          toStatus: newStatus,
+          changedBy: ctx.user.id,
+          notes: input.notes,
+        });
+
+        return { success: true };
+      }),
+
+    // Aprobar diseño (Cliente, Admin o Super Admin)
+    approveDesign: protectedProcedure
+      .input(z.object({
+        projectId: z.number(),
+        approved: z.boolean(),
+        notes: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const project = await db.getProjectById(input.projectId);
+        if (!project) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Proyecto no encontrado" });
+        }
+
+        // Verificar permisos: Admin, Super Admin, o el cliente dueño del proyecto
+        const isAdmin = ctx.user.role === "admin" || ctx.user.role === "super_admin";
+        let isOwner = false;
+        
+        if (!isAdmin) {
+          const client = await db.getClientByUserId(ctx.user.id);
+          isOwner = !!(client && client.id === project.clientId);
+        }
+
+        if (!isAdmin && !isOwner) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para aprobar este proyecto" });
+        }
+
+        if (project.status !== "pendiente_cliente") {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "El proyecto no está pendiente de aprobación" });
+        }
+
+        const approverLabel = isAdmin ? "Admin" : "Cliente";
+
+        if (input.approved) {
+          await db.updateProject(input.projectId, {
+            status: "corte",
+            clientApprovedAt: new Date(),
+            clientApprovalNotes: input.notes,
+          });
+
+          await db.createProjectStatusHistory({
+            projectId: input.projectId,
+            fromStatus: "pendiente_cliente",
+            toStatus: "corte",
+            changedBy: ctx.user.id,
+            notes: `${approverLabel} aprobó el diseño: ${input.notes || ""}`,
+          });
+        } else {
+          // Si rechaza, vuelve a diseño
+          await db.updateProject(input.projectId, {
+            status: "en_diseno",
+            clientApprovalNotes: input.notes,
+          });
+
+          await db.createProjectStatusHistory({
+            projectId: input.projectId,
+            fromStatus: "pendiente_cliente",
+            toStatus: "en_diseno",
+            changedBy: ctx.user.id,
+            notes: `${approverLabel} rechazó el diseño: ${input.notes || ""}`,
+          });
+        }
+
+        return { success: true };
+      }),
+
+    // Subir diseño 3D (Diseñador)
+    uploadDesign: protectedProcedure
+      .input(z.object({
+        projectId: z.number(),
+        design3dFiles: z.string().optional(),
+        despieceFiles: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "disenador" && ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Solo diseñadores pueden subir diseños" });
+        }
+
+        const project = await db.getProjectById(input.projectId);
+        if (!project) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Proyecto no encontrado" });
+        }
+
+        await db.updateProject(input.projectId, {
+          design3dFiles: input.design3dFiles,
+          despieceFiles: input.despieceFiles,
+          designerId: ctx.user.id,
+        });
+
+        return { success: true };
+      }),
+
+    // Actualizar proyecto
+    update: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        name: z.string().optional(),
+        initialMeasurements: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Solo administradores pueden editar proyectos" });
+        }
+
+        const { id, ...data } = input;
+        await db.updateProject(id, data);
+        return { success: true };
+      }),
+
+    // Eliminar proyecto
+    delete: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Solo administradores pueden eliminar proyectos" });
+        }
+
+        await db.deleteProject(input.id);
+        return { success: true };
+      }),
+  }),
+
+  // ============ PROJECT PHOTOS ============
+  projectPhotos: router({
+    // Subir foto
+    upload: protectedProcedure
+      .input(z.object({
+        projectId: z.number(),
+        stage: z.enum(["inicial", "diseno", "corte", "enchape", "ensamble", "final"]),
+        photoUrl: z.string(),
+        description: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const role = ctx.user.role;
+        const stage = input.stage;
+
+        // Validar permisos por etapa
+        const canUpload = validatePhotoUploadPermission(role, stage);
+        if (!canUpload) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para subir fotos en esta etapa" });
+        }
+
+        const photoId = await db.createProjectPhoto({
+          ...input,
+          uploadedBy: ctx.user.id,
+        });
+
+        return { success: true, photoId };
+      }),
+
+    // Obtener fotos por proyecto
+    getByProject: protectedProcedure
+      .input(z.object({ projectId: z.number() }))
+      .query(async ({ input }) => {
+        return await db.getProjectPhotosByProjectId(input.projectId);
+      }),
+
+    // Obtener fotos por etapa
+    getByStage: protectedProcedure
+      .input(z.object({
+        projectId: z.number(),
+        stage: z.string(),
+      }))
+      .query(async ({ input }) => {
+        return await db.getProjectPhotosByStage(input.projectId, input.stage);
+      }),
+
+    // Eliminar foto
+    delete: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Solo administradores pueden eliminar fotos" });
+        }
+
+        await db.deleteProjectPhoto(input.id);
+        return { success: true };
+      }),
+  }),
+
+  // ============ PROJECT DETAILS ============
+  projectDetails: router({
+    // Crear detalle
+    create: protectedProcedure
+      .input(z.object({
+        projectId: z.number(),
+        type: z.enum(["medida_especial", "nota_importante", "foto_referencia"]),
+        title: z.string().min(1, "El título es requerido"),
+        content: z.string().min(1, "El contenido es requerido"),
+        photoUrl: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        // Solo diseñador, jefe_taller, operario, admin, super_admin pueden crear detalles
+        const allowedRoles = ["disenador", "jefe_taller", "operario", "admin", "super_admin"];
+        if (!allowedRoles.includes(ctx.user.role)) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para agregar detalles" });
+        }
+
+        const detailId = await db.createProjectDetail({
+          ...input,
+          createdBy: ctx.user.id,
+        });
+
+        return { success: true, detailId };
+      }),
+
+    // Obtener detalles por proyecto
+    getByProject: protectedProcedure
+      .input(z.object({ projectId: z.number() }))
+      .query(async ({ input }) => {
+        return await db.getProjectDetailsByProjectId(input.projectId);
+      }),
+
+    // Actualizar detalle
+    update: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        title: z.string().optional(),
+        content: z.string().optional(),
+        photoUrl: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const allowedRoles = ["disenador", "jefe_taller", "operario", "admin", "super_admin"];
+        if (!allowedRoles.includes(ctx.user.role)) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para editar detalles" });
+        }
+
+        const { id, ...data } = input;
+        await db.updateProjectDetail(id, data);
+        return { success: true };
+      }),
+
+    // Eliminar detalle
+    delete: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const allowedRoles = ["disenador", "jefe_taller", "admin", "super_admin"];
+        if (!allowedRoles.includes(ctx.user.role)) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para eliminar detalles" });
+        }
+
+        await db.deleteProjectDetail(input.id);
+        return { success: true };
+      }),
+  }),
+
+  // ============ TASKS ============
+  tasks: router({
+    // Crear tarea
+    create: protectedProcedure
+      .input(z.object({
+        projectId: z.number().optional(),
+        title: z.string().min(1, "El título es requerido"),
+        description: z.string().optional(),
+        priority: z.enum(["alta", "media", "baja"]).default("media"),
+        dueDate: z.date().optional(),
+        assignedTo: z.number(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        // Validar permisos de asignación
+        const canAssign = validateTaskAssignmentPermission(ctx.user.role, input.assignedTo);
+        if (!canAssign.allowed) {
+          throw new TRPCError({ code: "FORBIDDEN", message: canAssign.message });
+        }
+
+        const taskId = await db.createTask({
+          ...input,
+          assignedBy: ctx.user.id,
+          status: "pendiente",
+        });
+
+        return { success: true, taskId };
+      }),
+
+    // Obtener mis tareas
+    getMyTasks: protectedProcedure
+      .query(async ({ ctx }) => {
+        const tasksList = await db.getTasksByAssignedTo(ctx.user.id);
+        
+        // Obtener info de proyectos asociados
+        const projectIds = Array.from(new Set(tasksList.filter(t => t.projectId).map(t => t.projectId!)));
+        const projectsInfo = await Promise.all(
+          projectIds.map(id => db.getProjectById(id))
+        );
+        const projectMap = new Map(projectsInfo.filter(Boolean).map(p => [p!.id, p]));
+
+        // Obtener info de quién asignó
+        const allUsers = await db.getAllUsers();
+        const userMap = new Map(allUsers.map(u => [u.id, u]));
+
+        return tasksList.map(t => ({
+          ...t,
+          project: t.projectId ? projectMap.get(t.projectId) : null,
+          assignedByUser: userMap.get(t.assignedBy),
+        }));
+      }),
+
+    // Obtener todas las tareas (admin)
+    list: protectedProcedure
+      .query(async ({ ctx }) => {
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "jefe_taller") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para ver todas las tareas" });
+        }
+
+        const tasksList = await db.getAllTasks();
+        const allUsers = await db.getAllUsers();
+        const userMap = new Map(allUsers.map(u => [u.id, u]));
+
+        return tasksList.map(t => ({
+          ...t,
+          assignedToUser: userMap.get(t.assignedTo),
+          assignedByUser: userMap.get(t.assignedBy),
+        }));
+      }),
+
+    // Obtener tareas por proyecto
+    getByProject: protectedProcedure
+      .input(z.object({ projectId: z.number() }))
+      .query(async ({ input }) => {
+        return await db.getTasksByProjectId(input.projectId);
+      }),
+
+    // Actualizar estado de tarea
+    updateStatus: protectedProcedure
+      .input(z.object({
+        taskId: z.number(),
+        status: z.enum(["pendiente", "en_progreso", "completada"]),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const task = await db.getTaskById(input.taskId);
+        if (!task) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Tarea no encontrada" });
+        }
+
+        // Solo el asignado o admin puede cambiar el estado
+        if (task.assignedTo !== ctx.user.id && ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para modificar esta tarea" });
+        }
+
+        const updateData: any = { status: input.status };
+        if (input.status === "completada") {
+          updateData.completedAt = new Date();
+        }
+
+        await db.updateTask(input.taskId, updateData);
+        return { success: true };
+      }),
+
+    // Eliminar tarea
+    delete: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const task = await db.getTaskById(input.id);
+        if (!task) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Tarea no encontrada" });
+        }
+
+        // Solo quien creó la tarea o admin puede eliminarla
+        if (task.assignedBy !== ctx.user.id && ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para eliminar esta tarea" });
+        }
+
+        await db.deleteTask(input.id);
+        return { success: true };
+      }),
+
+    // Obtener usuarios a los que puedo asignar tareas
+    getAssignableUsers: protectedProcedure
+      .query(async ({ ctx }) => {
+        const allUsers = await db.getAllUsers();
+        const myRole = ctx.user.role;
+
+        // Filtrar según permisos de asignación
+        return allUsers.filter(u => {
+          if (myRole === "super_admin") return true;
+          if (myRole === "admin") return ["disenador", "jefe_taller", "operario"].includes(u.role);
+          if (myRole === "disenador") return ["jefe_taller", "operario"].includes(u.role);
+          if (myRole === "jefe_taller") return ["admin", "disenador", "operario"].includes(u.role);
+          if (myRole === "operario") return ["disenador", "jefe_taller"].includes(u.role);
+          return false;
+        }).map(u => ({
+          id: u.id,
+          name: u.name,
+          email: u.email,
+          role: u.role,
+        }));
+      }),
+  }),
 });
+
+// ============ HELPER FUNCTIONS ============
+
+// Validar cambio de estado según rol
+function validateStatusChange(role: string, currentStatus: string, newStatus: string): boolean {
+  // Super admin y admin pueden hacer cualquier cambio
+  if (role === "super_admin" || role === "admin") return true;
+
+  // Diseñador puede: aprobado_diseno -> en_diseno, en_diseno -> pendiente_cliente
+  if (role === "disenador") {
+    if (currentStatus === "aprobado_diseno" && newStatus === "en_diseno") return true;
+    if (currentStatus === "en_diseno" && newStatus === "pendiente_cliente") return true;
+    return false;
+  }
+
+  // Jefe de taller puede: corte -> enchape -> ensamble -> listo_instalacion
+  if (role === "jefe_taller") {
+    const productionFlow = ["corte", "enchape", "ensamble", "listo_instalacion"];
+    const currentIndex = productionFlow.indexOf(currentStatus);
+    const newIndex = productionFlow.indexOf(newStatus);
+    if (currentIndex >= 0 && newIndex === currentIndex + 1) return true;
+    return false;
+  }
+
+  // Operario puede: corte -> enchape -> ensamble (no puede marcar como listo)
+  if (role === "operario") {
+    const operarioFlow = ["corte", "enchape", "ensamble"];
+    const currentIndex = operarioFlow.indexOf(currentStatus);
+    const newIndex = operarioFlow.indexOf(newStatus);
+    if (currentIndex >= 0 && newIndex === currentIndex + 1) return true;
+    return false;
+  }
+
+  return false;
+}
+
+// Validar permisos de subida de fotos
+function validatePhotoUploadPermission(role: string, stage: string): boolean {
+  if (role === "super_admin" || role === "admin") return true;
+
+  if (role === "disenador") {
+    return ["inicial", "diseno"].includes(stage);
+  }
+
+  if (role === "jefe_taller" || role === "operario") {
+    return ["corte", "enchape", "ensamble", "final"].includes(stage);
+  }
+
+  return false;
+}
+
+// Validar permisos de asignación de tareas
+function validateTaskAssignmentPermission(assignerRole: string, assignedToId: number): { allowed: boolean; message: string } {
+  // Por ahora, validamos que el rol tenga permisos generales de asignar
+  // La validación específica del usuario asignado se hace en getAssignableUsers
+  const canAssignRoles = ["super_admin", "admin", "disenador", "jefe_taller", "operario"];
+  
+  if (!canAssignRoles.includes(assignerRole)) {
+    return { allowed: false, message: "No tienes permisos para asignar tareas" };
+  }
+
+  return { allowed: true, message: "" };
+}
 
 export type AppRouter = typeof appRouter;

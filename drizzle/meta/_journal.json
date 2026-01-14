@@ -57,6 +57,13 @@
       "when": 1768289065968,
       "tag": "0007_married_mantis",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "5",
+      "when": 1768349723397,
+      "tag": "0008_lively_thundra",
+      "breakpoints": true
     }
   ]
 }

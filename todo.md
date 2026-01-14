@@ -273,3 +273,15 @@
 - [x] Corregir validación en el backend (ahora acepta image/* y application/pdf)
 - [x] Corregir regex de base64 para PDFs (ahora usa /^data:[^;]+;base64,/ en lugar de /^data:image\/\w+;base64,/)
 - [ ] Verificar que PDFs se suben correctamente (pendiente prueba del usuario)
+
+
+## Visor Integrado de PDF y JPG
+
+- [x] Crear componente FileViewer para visualizar PDFs y JPG
+- [x] Implementar visor de imágenes con zoom, rotación y navegación
+- [x] Implementar visor de PDF embebido usando iframe
+- [x] Integrar visor en la galería de fotos del proyecto
+- [x] Permitir abrir archivos en pantalla completa
+- [x] Mostrar icono de PDF en miniaturas de la galería
+- [x] Soporte para gestos táctiles (swipe, pinch-to-zoom)
+- [x] Botón de descarga para todos los archivos

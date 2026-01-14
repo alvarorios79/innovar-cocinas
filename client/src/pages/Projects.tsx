@@ -36,7 +36,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PhotoUploader } from "@/components/PhotoUploader";
-import { ImageViewer, useImageViewer } from "@/components/ImageViewer";
+import { FileViewer, useFileViewer } from "@/components/FileViewer";
 
 // Estados del proyecto según Ruta INNOVAR
 const PROJECT_STATUSES = {
@@ -92,8 +92,8 @@ export default function Projects() {
 
   const utils = trpc.useUtils();
   
-  // Hook para visor de imágenes
-  const imageViewer = useImageViewer();
+  // Hook para visor de archivos (imágenes y PDFs)
+  const fileViewer = useFileViewer();
   
   // Estado para generar PDF
   const [generatingPdf, setGeneratingPdf] = useState(false);
@@ -835,31 +835,45 @@ export default function Projects() {
                             <p className="text-sm text-muted-foreground">Sin fotos en esta etapa</p>
                           ) : (
                             <div className="grid grid-cols-3 gap-2">
-                              {stagePhotos.map((photo: any, photoIndex: number) => (
-                                <div key={photo.id} className="relative group">
-                                  <img
-                                    src={photo.photoUrl}
-                                    alt={photo.description || "Foto del proyecto"}
-                                    className="w-full h-24 object-cover rounded cursor-pointer hover:opacity-80 transition-opacity"
-                                    onClick={() => imageViewer.openViewer(
+                              {stagePhotos.map((photo: any, photoIndex: number) => {
+                                const isPdf = photo.photoUrl.toLowerCase().endsWith('.pdf');
+                                return (
+                                  <div 
+                                    key={photo.id} 
+                                    className="relative group cursor-pointer"
+                                    onClick={() => fileViewer.openViewer(
                                       stagePhotos.map((p: any) => ({
                                         url: p.photoUrl,
-                                        title: `${stageLabels[stage]} - Foto ${stagePhotos.indexOf(p) + 1}`,
+                                        title: `${stageLabels[stage]} - Archivo ${stagePhotos.indexOf(p) + 1}`,
                                         description: p.description,
+                                        type: p.photoUrl.toLowerCase().endsWith('.pdf') ? 'pdf' as const : 'image' as const,
                                       })),
                                       photoIndex
                                     )}
-                                  />
-                                  <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <ZoomIn className="h-4 w-4 text-white drop-shadow-lg" />
-                                  </div>
-                                  {photo.description && (
-                                    <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-xs p-1 truncate opacity-0 group-hover:opacity-100 transition-opacity">
-                                      {photo.description}
+                                  >
+                                    {isPdf ? (
+                                      <div className="w-full h-24 bg-gray-100 dark:bg-gray-800 rounded flex flex-col items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                                        <FileText className="h-8 w-8 text-red-500" />
+                                        <span className="text-xs text-muted-foreground mt-1">PDF</span>
+                                      </div>
+                                    ) : (
+                                      <img
+                                        src={photo.photoUrl}
+                                        alt={photo.description || "Foto del proyecto"}
+                                        className="w-full h-24 object-cover rounded hover:opacity-80 transition-opacity"
+                                      />
+                                    )}
+                                    <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                      <ZoomIn className="h-4 w-4 text-white drop-shadow-lg" />
                                     </div>
-                                  )}
-                                </div>
-                              ))}
+                                    {photo.description && (
+                                      <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-xs p-1 truncate opacity-0 group-hover:opacity-100 transition-opacity">
+                                        {photo.description}
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })}
                             </div>
                           )}
                         </CardContent>
@@ -1087,12 +1101,12 @@ export default function Projects() {
         </Dialog>
       </div>
 
-      {/* Visor de imágenes con zoom */}
-      <ImageViewer
-        images={imageViewer.images}
-        initialIndex={imageViewer.initialIndex}
-        isOpen={imageViewer.isOpen}
-        onClose={imageViewer.closeViewer}
+      {/* Visor de archivos (imágenes y PDFs) */}
+      <FileViewer
+        files={fileViewer.files}
+        initialIndex={fileViewer.initialIndex}
+        isOpen={fileViewer.isOpen}
+        onClose={fileViewer.closeViewer}
       />
 
       {/* Diálogo de notificación WhatsApp */}

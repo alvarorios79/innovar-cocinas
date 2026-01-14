@@ -285,3 +285,14 @@
 - [x] Mostrar icono de PDF en miniaturas de la galería
 - [x] Soporte para gestos táctiles (swipe, pinch-to-zoom)
 - [x] Botón de descarga para todos los archivos
+
+
+## Bug: Gestos táctiles no funcionan en iPad/móvil
+
+- [x] Corregir pinch-to-zoom en iPad y teléfono
+- [x] Agregar botones de zoom flotantes visibles en móviles (barra inferior)
+- [x] Mejorar controles táctiles para dispositivos touch
+- [x] Agregar botón de resetear vista
+- [x] Agregar indicador de instrucciones ("Pellizca para zoom")
+- [x] Toggle de controles al tocar la pantalla
+- [x] Prevenir zoom nativo del navegador en el visor

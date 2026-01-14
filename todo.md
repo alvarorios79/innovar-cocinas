@@ -249,3 +249,10 @@
 - [x] Registrar cambios en el historial del proyecto
 - [x] Actualizar la vista después de guardar
 - [x] Tests para permisos y actualización (11 tests)
+
+## Corrección del Logo
+
+- [x] Revisar configuración actual del logo en la aplicación
+- [x] Corregir iconos de la PWA (icon-192.png, icon-512.png, favicon.png)
+- [x] Usar el símbolo completo de la N de INNOVAR con márgenes reducidos
+- [x] Los usuarios con la app instalada recibirán la actualización automáticamente

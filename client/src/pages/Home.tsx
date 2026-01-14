@@ -287,12 +287,12 @@ export default function Home() {
       <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container">
           {/* Main header */}
-          <div className="flex h-16 md:h-20 items-center justify-between">
+          <div className="flex h-14 md:h-16 items-center justify-between">
             <Link href="/">
               <img 
                 src="/logo-light.png" 
                 alt="INNOVAR Cocinas Integrales" 
-                className="h-10 sm:h-12 md:h-16 w-auto cursor-pointer"
+                className="h-12 sm:h-14 md:h-14 w-auto cursor-pointer object-contain"
               />
             </Link>
             

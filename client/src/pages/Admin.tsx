@@ -280,7 +280,7 @@ export default function Admin() {
             <img 
               src="/logo-light.png" 
               alt="INNOVAR" 
-              className="h-8 md:h-10 w-auto"
+              className="h-10 md:h-12 w-auto object-contain"
             />
             <span className="hidden md:inline text-sm text-muted-foreground">Panel Admin</span>
           </div>

@@ -80,7 +80,7 @@ export function MobileNav() {
               <img 
                 src="/logo-light.png" 
                 alt="INNOVAR" 
-                className="h-8 w-auto"
+                className="h-10 w-auto object-contain"
               />
             </SheetTitle>
           </SheetHeader>

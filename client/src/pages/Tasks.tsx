@@ -18,6 +18,7 @@ import {
   Eye
 } from "lucide-react";
 import { RemindersPanel } from "@/components/RemindersPanel";
+import { NotificationBell } from "@/components/NotificationBell";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -488,6 +489,7 @@ export default function Tasks() {
             <span className="hidden lg:inline text-sm text-muted-foreground">Tareas</span>
           </div>
           <div className="flex items-center gap-1 md:gap-2">
+            <NotificationBell />
             <Badge variant="outline" className="text-xs md:text-sm">{getRoleLabel(user?.role || "")}</Badge>
             <span className="hidden sm:inline text-sm text-muted-foreground truncate max-w-[100px]">{user?.name}</span>
           </div>

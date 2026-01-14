@@ -1467,6 +1467,46 @@ export const appRouter = router({
           status: "pendiente",
         });
 
+        // Crear notificación para el usuario asignado
+        const priorityLabels: Record<string, string> = {
+          alta: "🔴 Alta",
+          media: "🟡 Media",
+          baja: "🟢 Baja",
+        };
+        
+        let notificationBody = `${ctx.user.name || "Un administrador"} te ha asignado una nueva tarea: "${input.title}"`;
+        notificationBody += `\nPrioridad: ${priorityLabels[input.priority] || input.priority}`;
+        if (input.dueDate) {
+          notificationBody += `\nFecha límite: ${new Date(input.dueDate).toLocaleDateString("es-CO")}`;
+        }
+        if (input.description) {
+          notificationBody += `\n${input.description.substring(0, 100)}${input.description.length > 100 ? "..." : ""}`;
+        }
+
+        // Crear notificación en la base de datos
+        await db.createNotification({
+          userId: input.assignedTo,
+          title: "📝 Nueva tarea asignada",
+          body: notificationBody,
+          type: "tarea",
+          referenceId: taskId,
+          referenceType: "task",
+        });
+
+        // Intentar enviar notificación push (no bloquea si falla)
+        try {
+          const { createAndSendNotification } = await import("./push-notifications");
+          await createAndSendNotification(input.assignedTo, {
+            title: "📝 Nueva tarea asignada",
+            body: `${ctx.user.name || "Alguien"} te asignó: ${input.title}`,
+            type: "tarea",
+            url: "/tasks",
+          });
+        } catch (e) {
+          // Silenciar error de push - la notificación en app ya se creó
+          console.log("Push notification failed (non-blocking):", e);
+        }
+
         return { success: true, taskId };
       }),
 

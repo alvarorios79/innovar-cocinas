@@ -380,3 +380,11 @@
 - [x] Actualizar permisos para incluir comercial
 - [x] Cambiar rol de Martha Serna a comercial
 - [x] Incluir comercial en usuarios asignables
+
+### Sistema de Notificaciones de Tareas
+- [x] Verificar tabla de notificaciones existente
+- [x] Crear endpoint para obtener notificaciones del usuario (ya existía)
+- [x] Modificar creación de tareas para generar notificación
+- [x] Agregar indicador de notificaciones no leídas en la interfaz
+- [x] Implementar panel de notificaciones con opción de marcar como leídas
+- [x] Agregar navegación a tareas al hacer clic en notificación

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { Bell, Check, CheckCheck, Trash2, X } from "lucide-react";
+import { Bell, Check, CheckCheck, Trash2, ExternalLink } from "lucide-react";
+import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -86,6 +87,7 @@ function getNotificationColor(type: string): string {
 
 export function NotificationBell() {
   const { user } = useAuth();
+  const [, setLocation] = useLocation();
   const [open, setOpen] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
 
@@ -195,6 +197,17 @@ export function NotificationBell() {
                   onClick={() => {
                     if (!notification.read) {
                       markAsReadMutation.mutate({ id: notification.id });
+                    }
+                    // Navegar según el tipo de notificación
+                    if (notification.type === "tarea") {
+                      setOpen(false);
+                      setLocation("/tasks");
+                    } else if (notification.type === "proyecto" && notification.referenceId) {
+                      setOpen(false);
+                      setLocation("/projects");
+                    } else if (notification.type === "cita") {
+                      setOpen(false);
+                      setLocation("/admin");
                     }
                   }}
                 >

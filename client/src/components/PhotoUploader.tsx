@@ -9,7 +9,8 @@ import {
   CheckCircle2, 
   AlertCircle,
   Camera,
-  Loader2
+  Loader2,
+  FileText
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
@@ -104,9 +105,11 @@ export function PhotoUploader({
     }
 
     for (const file of filesToAdd) {
-      // Validar tipo
-      if (!file.type.startsWith("image/")) {
-        toast.error(`${file.name} no es una imagen válida`);
+      // Validar tipo (imágenes y PDFs)
+      const isImage = file.type.startsWith("image/");
+      const isPdf = file.type === "application/pdf";
+      if (!isImage && !isPdf) {
+        toast.error(`${file.name} no es un archivo válido (solo imágenes y PDF)`);
         continue;
       }
 
@@ -176,14 +179,28 @@ export function PhotoUploader({
           )
         );
 
-        // Comprimir imagen
+        // Procesar archivo (comprimir si es imagen, mantener si es PDF)
         setFiles((prev) =>
           prev.map((f) =>
             f.id === photoFile.id ? { ...f, progress: 30 } : f
           )
         );
         
-        const compressedData = await compressImage(photoFile.file);
+        let fileData: string;
+        const isPdf = photoFile.file.type === "application/pdf";
+        
+        if (isPdf) {
+          // Para PDFs, convertir a base64 sin compresión
+          fileData = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = () => reject(new Error("Error al leer el PDF"));
+            reader.readAsDataURL(photoFile.file);
+          });
+        } else {
+          // Para imágenes, comprimir
+          fileData = await compressImage(photoFile.file);
+        }
         
         setFiles((prev) =>
           prev.map((f) =>
@@ -194,7 +211,7 @@ export function PhotoUploader({
         // Subir a S3
         const result = await uploadMutation.mutateAsync({
           fileName: photoFile.file.name,
-          fileData: compressedData,
+          fileData,
           contentType: photoFile.file.type,
           projectId,
           stage,
@@ -268,9 +285,9 @@ export function PhotoUploader({
             <Upload className="h-6 w-6 text-muted-foreground" />
           </div>
           <div>
-            <p className="font-medium">Arrastra fotos aquí o haz clic para seleccionar</p>
+            <p className="font-medium">Arrastra archivos aquí o haz clic para seleccionar</p>
             <p className="text-sm text-muted-foreground">
-              PNG, JPG, WEBP hasta 10MB (máx. {maxFiles} fotos)
+              PNG, JPG, WEBP, PDF hasta 10MB (máx. {maxFiles} archivos)
             </p>
           </div>
           <div className="flex gap-2 mt-2">
@@ -317,15 +334,24 @@ export function PhotoUploader({
             {files.map((photoFile) => (
               <Card key={photoFile.id} className="relative overflow-hidden">
                 <CardContent className="p-0">
-                  {/* Preview de imagen */}
+                  {/* Preview de imagen o PDF */}
                   <div className="relative aspect-square">
-                    <img
-                      src={photoFile.preview}
-                      alt={photoFile.file.name}
-                      className={`w-full h-full object-cover ${
+                    {photoFile.file.type === "application/pdf" ? (
+                      <div className={`w-full h-full flex flex-col items-center justify-center bg-muted ${
                         photoFile.status === "uploading" ? "opacity-50" : ""
-                      }`}
-                    />
+                      }`}>
+                        <FileText className="h-12 w-12 text-red-500 mb-2" />
+                        <span className="text-xs text-muted-foreground">PDF</span>
+                      </div>
+                    ) : (
+                      <img
+                        src={photoFile.preview}
+                        alt={photoFile.file.name}
+                        className={`w-full h-full object-cover ${
+                          photoFile.status === "uploading" ? "opacity-50" : ""
+                        }`}
+                      />
+                    )}
                     
                     {/* Overlay de estado */}
                     {photoFile.status === "uploading" && (

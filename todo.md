@@ -256,3 +256,12 @@
 - [x] Corregir iconos de la PWA (icon-192.png, icon-512.png, favicon.png)
 - [x] Usar el símbolo completo de la N de INNOVAR con márgenes reducidos
 - [x] Los usuarios con la app instalada recibirán la actualización automáticamente
+
+
+## Soporte para Archivos PDF
+
+- [x] Agregar soporte para subir archivos PDF además de imágenes
+- [x] Permitir visualización de PDFs subidos (icono de PDF en preview)
+- [x] Actualizar validación de tipos de archivo (image/* y application/pdf)
+- [x] Actualizar texto de ayuda en el uploader
+- [x] PDFs se suben sin compresión (solo imágenes se comprimen)

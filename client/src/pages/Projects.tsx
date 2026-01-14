@@ -977,6 +977,7 @@ export default function Projects() {
                   projectId={selectedProject.id}
                   stage={photoForm.stage as any}
                   maxFiles={10}
+                  accept="image/*,application/pdf"
                   onUploadComplete={(urls) => {
                     // Guardar cada foto en la base de datos
                     urls.forEach((url) => {

@@ -657,6 +657,7 @@ export default function Portal() {
                 projectId={selectedProjectForPhoto.id}
                 stage="inicial"
                 maxFiles={10}
+                accept="image/*,application/pdf"
                 onUploadComplete={(urls) => {
                   // Guardar cada foto en la base de datos
                   urls.forEach((url) => {

@@ -9,6 +9,8 @@ import { TRPCError } from "@trpc/server";
 import { getAvailableTimeSlots, isTimeSlotAvailable, APPOINTMENT_CONFIG } from "./availability";
 import { hashPassword, validatePasswordStrength, authenticateWithPassword } from "./password-auth";
 import { prepareWhatsAppNotification } from "./whatsapp-notifications";
+import { createRemindersForStatusChange } from "./reminders-service";
+import { addBusinessDays, calculateEstimatedDeliveryDate } from "./business-days";
 
 export const appRouter = router({
   system: systemRouter,
@@ -756,7 +758,8 @@ export const appRouter = router({
 
         const projectId = await db.createProject({
           ...input,
-          status: "pendiente",
+          status: "cotizacion_enviada",
+          quotationSentAt: new Date(),
           createdBy: ctx.user.id,
         });
 
@@ -764,9 +767,9 @@ export const appRouter = router({
         await db.createProjectStatusHistory({
           projectId,
           fromStatus: null,
-          toStatus: "pendiente",
+          toStatus: "cotizacion_enviada",
           changedBy: ctx.user.id,
-          notes: "Proyecto creado",
+          notes: "Proyecto creado - Cotización enviada",
         });
 
         return { success: true, projectId };
@@ -864,10 +867,16 @@ export const appRouter = router({
       .input(z.object({
         projectId: z.number(),
         newStatus: z.enum([
-          "pendiente", "aprobado_diseno", "en_diseno", "pendiente_cliente",
-          "corte", "enchape", "ensamble", "listo_instalacion", "entregado"
+          "cotizacion_enviada", "cotizacion_aprobada", "adelanto_recibido",
+          "en_diseno", "pendiente_cliente", "aprobacion_final",
+          "despiece", "corte", "enchape", "ensamble", 
+          "listo_instalacion", "instalacion_programada", "entregado"
         ]),
         notes: z.string().optional(),
+        advanceAmount: z.number().optional(),
+        selectedColors: z.string().optional(),
+        selectedMaterials: z.string().optional(),
+        scheduledInstallDate: z.date().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         const project = await db.getProjectById(input.projectId);
@@ -888,8 +897,6 @@ export const appRouter = router({
           });
         }
 
-        await db.updateProject(input.projectId, { status: newStatus });
-
         // Registrar en historial
         await db.createProjectStatusHistory({
           projectId: input.projectId,
@@ -898,6 +905,46 @@ export const appRouter = router({
           changedBy: ctx.user.id,
           notes: input.notes,
         });
+
+        // Crear recordatorios automáticos según el nuevo estado
+        await createRemindersForStatusChange(input.projectId, newStatus, {
+          name: project.name,
+          createdBy: project.createdBy,
+          designerId: project.designerId,
+          clientId: project.clientId,
+        });
+
+        // Actualizar fechas clave según el estado
+        const updateData: Record<string, unknown> = { status: newStatus };
+        
+        if (newStatus === "cotizacion_enviada" && !project.quotationSentAt) {
+          updateData.quotationSentAt = new Date();
+        }
+        if (newStatus === "cotizacion_aprobada" && !project.quotationApprovedAt) {
+          updateData.quotationApprovedAt = new Date();
+        }
+        if (newStatus === "adelanto_recibido" && !project.advanceReceivedAt) {
+          updateData.advanceReceivedAt = new Date();
+          if (input.advanceAmount) {
+            updateData.advanceAmount = input.advanceAmount;
+          }
+        }
+        if (newStatus === "aprobacion_final" && !project.clientApprovedAt) {
+          updateData.clientApprovedAt = new Date();
+          // Calcular fecha estimada de instalación (25 días hábiles)
+          updateData.estimatedInstallDate = await calculateEstimatedDeliveryDate(new Date());
+          if (input.selectedColors) {
+            updateData.selectedColors = input.selectedColors;
+          }
+          if (input.selectedMaterials) {
+            updateData.selectedMaterials = input.selectedMaterials;
+          }
+        }
+        if (newStatus === "instalacion_programada" && input.scheduledInstallDate) {
+          updateData.scheduledInstallDate = input.scheduledInstallDate;
+        }
+
+        await db.updateProject(input.projectId, updateData);
 
         // Obtener datos del cliente para notificación WhatsApp
         const client = await db.getClientById(project.clientId);
@@ -1578,21 +1625,29 @@ export const appRouter = router({
 
 // ============ HELPER FUNCTIONS ============
 
-// Validar cambio de estado según rol
+// Validar cambio de estado según rol - RUTA INNOVAR
 function validateStatusChange(role: string, currentStatus: string, newStatus: string): boolean {
   // Super admin y admin pueden hacer cualquier cambio
   if (role === "super_admin" || role === "admin") return true;
 
-  // Diseñador puede: aprobado_diseno -> en_diseno, en_diseno -> pendiente_cliente
+  // Diseñador puede:
+  // - adelanto_recibido -> en_diseno (empezar a diseñar)
+  // - en_diseno -> pendiente_cliente (entregar diseño)
+  // - aprobacion_final -> despiece (hacer despiece)
   if (role === "disenador") {
-    if (currentStatus === "aprobado_diseno" && newStatus === "en_diseno") return true;
+    if (currentStatus === "adelanto_recibido" && newStatus === "en_diseno") return true;
     if (currentStatus === "en_diseno" && newStatus === "pendiente_cliente") return true;
+    if (currentStatus === "aprobacion_final" && newStatus === "despiece") return true;
     return false;
   }
 
-  // Jefe de taller puede: corte -> enchape -> ensamble -> listo_instalacion
+  // Jefe de taller puede:
+  // - despiece -> corte (pasar a producción)
+  // - corte -> enchape -> ensamble -> listo_instalacion
+  // - listo_instalacion -> instalacion_programada
   if (role === "jefe_taller") {
-    const productionFlow = ["corte", "enchape", "ensamble", "listo_instalacion"];
+    if (currentStatus === "despiece" && newStatus === "corte") return true;
+    const productionFlow = ["corte", "enchape", "ensamble", "listo_instalacion", "instalacion_programada"];
     const currentIndex = productionFlow.indexOf(currentStatus);
     const newIndex = productionFlow.indexOf(newStatus);
     if (currentIndex >= 0 && newIndex === currentIndex + 1) return true;

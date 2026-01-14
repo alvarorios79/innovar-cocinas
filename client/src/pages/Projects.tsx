@@ -36,16 +36,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { PhotoUploader } from "@/components/PhotoUploader";
 import { ImageViewer, useImageViewer } from "@/components/ImageViewer";
 
-// Estados del proyecto con sus configuraciones
+// Estados del proyecto según Ruta INNOVAR
 const PROJECT_STATUSES = {
-  pendiente: { label: "Pendiente", color: "bg-gray-500", icon: Clock },
-  aprobado_diseno: { label: "Aprobado para Diseño", color: "bg-blue-500", icon: CheckCircle2 },
+  cotizacion_enviada: { label: "Cotización Enviada", color: "bg-gray-500", icon: Clock },
+  cotizacion_aprobada: { label: "Cotización Aprobada", color: "bg-blue-400", icon: CheckCircle2 },
+  adelanto_recibido: { label: "Adelanto Recibido", color: "bg-blue-500", icon: CheckCircle2 },
   en_diseno: { label: "En Diseño", color: "bg-purple-500", icon: Paintbrush },
-  pendiente_cliente: { label: "Pendiente Aprobación", color: "bg-yellow-500", icon: AlertCircle },
+  pendiente_cliente: { label: "Diseño Listo", color: "bg-yellow-500", icon: AlertCircle },
+  aprobacion_final: { label: "Aprobación Final", color: "bg-green-400", icon: CheckCircle2 },
   corte: { label: "En Corte", color: "bg-orange-500", icon: Hammer },
   enchape: { label: "En Enchape", color: "bg-orange-600", icon: Paintbrush },
   ensamble: { label: "En Ensamble", color: "bg-orange-700", icon: Package },
-  listo_instalacion: { label: "Listo para Instalación", color: "bg-green-500", icon: Truck },
+  listo_instalacion: { label: "Listo para Instalación", color: "bg-teal-500", icon: Truck },
+  instalacion_programada: { label: "Instalación Programada", color: "bg-teal-600", icon: Truck },
   entregado: { label: "Entregado", color: "bg-green-700", icon: CheckCircle2 },
 };
 
@@ -241,14 +244,19 @@ export default function Projects() {
   };
 
   const getNextStatus = (currentStatus: string): string | null => {
+    // Flujo según Ruta INNOVAR
     const flow: Record<string, string> = {
-      pendiente: "aprobado_diseno",
-      aprobado_diseno: "en_diseno",
+      cotizacion_enviada: "cotizacion_aprobada",
+      cotizacion_aprobada: "adelanto_recibido",
+      adelanto_recibido: "en_diseno",
       en_diseno: "pendiente_cliente",
+      // pendiente_cliente -> aprobacion_final (se hace con approveDesign)
+      aprobacion_final: "corte",
       corte: "enchape",
       enchape: "ensamble",
       ensamble: "listo_instalacion",
-      listo_instalacion: "entregado",
+      listo_instalacion: "instalacion_programada",
+      instalacion_programada: "entregado",
     };
     return flow[currentStatus] || null;
   };
@@ -258,10 +266,10 @@ export default function Projects() {
     if (role === "super_admin" || role === "admin") return true;
     
     if (role === "disenador") {
-      return ["aprobado_diseno", "en_diseno"].includes(status);
+      return ["adelanto_recibido", "en_diseno"].includes(status);
     }
     if (role === "jefe_taller") {
-      return ["corte", "enchape", "ensamble", "listo_instalacion"].includes(status);
+      return ["aprobacion_final", "corte", "enchape", "ensamble", "listo_instalacion", "instalacion_programada"].includes(status);
     }
     if (role === "operario") {
       return ["corte", "enchape", "ensamble"].includes(status);

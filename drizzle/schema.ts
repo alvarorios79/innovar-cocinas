@@ -126,25 +126,56 @@ export const projects = mysqlTable("projects", {
   name: varchar("name", { length: 255 }).notNull(),
   workType: mysqlEnum("workType", ["cocina", "closet", "puertas", "centro_tv"]).notNull(),
   status: mysqlEnum("status", [
-    "pendiente",           // Proyecto creado, esperando aprobación
-    "aprobado_diseno",     // Aprobado para que diseñador empiece
+    "cotizacion_enviada",  // Cotización enviada, esperando respuesta
+    "cotizacion_aprobada", // Cliente aprobó cotización, esperando adelanto
+    "adelanto_recibido",   // Adelanto recibido, inicia diseño (3 días hábiles)
     "en_diseno",           // Diseñador trabajando
-    "pendiente_cliente",   // Esperando aprobación del cliente
+    "pendiente_cliente",   // Esperando aprobación del cliente (5 días máx)
+    "aprobacion_final",    // Cliente aprobó diseño, inician 25 días hábiles
+    "despiece",            // Realizando despiece
     "corte",               // En producción - etapa corte
     "enchape",             // En producción - etapa enchape
     "ensamble",            // En producción - etapa ensamble
     "listo_instalacion",   // Listo para instalar
+    "instalacion_programada", // Instalación programada en calendario
     "entregado"            // Proyecto completado
-  ]).default("pendiente").notNull(),
+  ]).default("cotizacion_enviada").notNull(),
+  
   // Medidas iniciales
   initialMeasurements: text("initialMeasurements"),
   // Archivos de diseño 3D (URLs separadas por coma)
   design3dFiles: text("design3dFiles"),
   // Archivos de despiece (URLs separadas por coma)
   despieceFiles: text("despieceFiles"),
-  // Fecha de aprobación del cliente
+  
+  // === FECHAS CLAVE DE RUTA INNOVAR ===
+  // Fecha de envío de cotización
+  quotationSentAt: timestamp("quotationSentAt"),
+  // Fecha de aprobación de cotización por el cliente
+  quotationApprovedAt: timestamp("quotationApprovedAt"),
+  // Fecha de recepción del adelanto (inicia contador de 3 días para diseño)
+  advanceReceivedAt: timestamp("advanceReceivedAt"),
+  // Monto del adelanto
+  advanceAmount: decimal("advanceAmount", { precision: 12, scale: 2 }),
+  // Fecha límite para entregar diseño (3 días hábiles desde adelanto)
+  designDeadline: timestamp("designDeadline"),
+  // Fecha de entrega del diseño al cliente
+  designDeliveredAt: timestamp("designDeliveredAt"),
+  // Fecha de aprobación final del cliente (inicia 25 días hábiles)
   clientApprovedAt: timestamp("clientApprovedAt"),
   clientApprovalNotes: text("clientApprovalNotes"),
+  // Selección de colores y materiales
+  selectedColors: text("selectedColors"),
+  selectedMaterials: text("selectedMaterials"),
+  // Fecha estimada de instalación (25 días hábiles desde aprobación final)
+  estimatedInstallDate: timestamp("estimatedInstallDate"),
+  // Fecha real programada de instalación
+  scheduledInstallDate: timestamp("scheduledInstallDate"),
+  // Duración estimada de instalación (en días)
+  installDurationDays: int("installDurationDays").default(1),
+  // Fecha de entrega real
+  deliveredAt: timestamp("deliveredAt"),
+  
   // Responsables
   createdBy: int("createdBy").notNull().references(() => users.id),
   designerId: int("designerId").references(() => users.id),
@@ -278,3 +309,40 @@ export const notifications = mysqlTable("notifications", {
 
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = typeof notifications.$inferInsert;
+
+/**
+ * Festivos colombianos para cálculo de días hábiles
+ */
+export const colombianHolidays = mysqlTable("colombianHolidays", {
+  id: int("id").autoincrement().primaryKey(),
+  date: timestamp("date").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  year: int("year").notNull(),
+});
+
+export type ColombianHoliday = typeof colombianHolidays.$inferSelect;
+export type InsertColombianHoliday = typeof colombianHolidays.$inferInsert;
+
+/**
+ * Recordatorios automáticos del sistema
+ */
+export const reminders = mysqlTable("reminders", {
+  id: int("id").autoincrement().primaryKey(),
+  projectId: int("projectId").notNull().references(() => projects.id),
+  type: mysqlEnum("type", [
+    "cotizacion_sin_respuesta",  // 2 días sin respuesta a cotización
+    "diseno_pendiente",          // 3 días para entregar diseño
+    "aprobacion_pendiente",      // 5 días esperando aprobación del cliente
+    "produccion_retrasada",      // Producción retrasada
+    "instalacion_proxima"        // Instalación próxima (3 días antes)
+  ]).notNull(),
+  assignedTo: int("assignedTo").notNull().references(() => users.id),
+  dueDate: timestamp("dueDate").notNull(),
+  status: mysqlEnum("status", ["pendiente", "enviado", "completado", "cancelado"]).default("pendiente").notNull(),
+  message: text("message"),
+  sentAt: timestamp("sentAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Reminder = typeof reminders.$inferSelect;
+export type InsertReminder = typeof reminders.$inferInsert;

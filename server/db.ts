@@ -12,7 +12,11 @@ import {
   priorEstimates,
   InsertPriorEstimate,
   quotations,
-  InsertQuotation
+  InsertQuotation,
+  colombianHolidays,
+  InsertColombianHoliday,
+  reminders,
+  InsertReminder
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -866,4 +870,107 @@ export async function updateNotificationPushSent(id: number) {
   if (!db) throw new Error("Database not available");
 
   await db.update(notifications).set({ sentPush: true }).where(eq(notifications.id, id));
+}
+
+// ============ COLOMBIAN HOLIDAYS ============
+
+export async function createColombianHoliday(holiday: InsertColombianHoliday) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.insert(colombianHolidays).values(holiday);
+  return result[0].insertId;
+}
+
+export async function getColombianHolidays(yearStart: number, yearEnd: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(colombianHolidays)
+    .where(and(
+      gte(colombianHolidays.year, yearStart),
+      lte(colombianHolidays.year, yearEnd)
+    ))
+    .orderBy(colombianHolidays.date);
+}
+
+export async function getColombianHolidaysByYear(year: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(colombianHolidays)
+    .where(eq(colombianHolidays.year, year))
+    .orderBy(colombianHolidays.date);
+}
+
+// ============ REMINDERS ============
+
+export async function createReminder(reminder: InsertReminder) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.insert(reminders).values(reminder);
+  return result[0].insertId;
+}
+
+export async function getRemindersByProjectId(projectId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(reminders)
+    .where(eq(reminders.projectId, projectId))
+    .orderBy(desc(reminders.dueDate));
+}
+
+export async function getRemindersByUserId(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(reminders)
+    .where(eq(reminders.assignedTo, userId))
+    .orderBy(reminders.dueDate);
+}
+
+export async function getPendingReminders() {
+  const db = await getDb();
+  if (!db) return [];
+
+  const now = new Date();
+  return await db.select().from(reminders)
+    .where(and(
+      eq(reminders.status, "pendiente"),
+      lte(reminders.dueDate, now)
+    ))
+    .orderBy(reminders.dueDate);
+}
+
+export async function updateReminderStatus(id: number, status: "pendiente" | "enviado" | "completado" | "cancelado") {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const updateData: { status: typeof status; sentAt?: Date } = { status };
+  if (status === "enviado") {
+    updateData.sentAt = new Date();
+  }
+
+  await db.update(reminders).set(updateData).where(eq(reminders.id, id));
+}
+
+export async function deleteReminder(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.delete(reminders).where(eq(reminders.id, id));
+}
+
+export async function cancelProjectReminders(projectId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(reminders)
+    .set({ status: "cancelado" })
+    .where(and(
+      eq(reminders.projectId, projectId),
+      eq(reminders.status, "pendiente")
+    ));
 }

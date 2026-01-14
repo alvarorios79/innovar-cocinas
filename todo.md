@@ -130,3 +130,35 @@
 - [x] Mensaje de inicio de producción (corte, enchape, ensamble)
 - [x] Mensaje de proyecto listo para instalación
 - [x] Mensaje de proyecto entregado
+
+## Ruta INNOVAR - Flujo Completo
+
+### Base de Datos
+- [x] Agregar estados de cotización (enviada, aprobada, rechazada)
+- [x] Agregar campo de fecha de adelanto recibido
+- [x] Agregar campo de fecha de aprobación final del diseño
+- [x] Agregar campo de fecha estimada de instalación (25 días hábiles)
+- [x] Crear tabla de festivos colombianos
+
+### Cálculo de Días Hábiles
+- [x] Implementar función para calcular días hábiles (sin sáb, dom, festivos)
+- [x] Cargar festivos colombianos 2024-2026
+- [x] Calcular automáticamente fecha de entrega (25 días hábiles desde aprobación)
+
+### Sistema de Recordatorios
+- [x] Recordatorio: Cotización sin respuesta (2 días) → Comercial
+- [x] Recordatorio: Adelanto recibido, diseño pendiente (3 días) → Diseñador
+- [x] Recordatorio: Diseño sin aprobar (5 días) → Comercial
+- [x] Recordatorio: Producción retrasada (20 días) → Jefe Taller
+- [x] Recordatorio: Instalación próxima (3 días antes) → Jefe Taller
+### Calendario de Instalaciones
+- [x] Vista de calendario mensual con instalaciones programadas
+- [x] Evitar cruces de instalaciones en el mismo día (alerta visual)
+- [x] Mostrar disponibilidad (L-V completo, Sáb medio día, Dom/Festivos no)
+- [x] Programar instalación desde el detalle del proyecto (vía calendario)
+
+### Interfaz de Usuario
+- [x] Actualizar flujo de estados del proyecto según Ruta INNOVAR
+- [ ] Mostrar fecha estimada de entrega en el proyecto
+- [ ] Panel de recordatorios pendientes para cada rol
+- [ ] Vista de timeline del proyecto con fechas clave

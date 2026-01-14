@@ -10,6 +10,7 @@ import Admin from "./pages/Admin";
 import Portal from "./pages/Portal";
 import Projects from "./pages/Projects";
 import Tasks from "./pages/Tasks";
+import InstallationCalendar from "./pages/InstallationCalendar";
 
 function Router() {
   return (
@@ -19,6 +20,7 @@ function Router() {
       <Route path={"/portal"} component={Portal} />
       <Route path={"/projects"} component={Projects} />
       <Route path={"/tasks"} component={Tasks} />
+      <Route path={"/calendar"} component={InstallationCalendar} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>

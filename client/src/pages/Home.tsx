@@ -309,6 +309,11 @@ export default function Home() {
                       <Link href="/tasks">
                         <Button variant="ghost">Tareas</Button>
                       </Link>
+                      {user?.role === "jefe_taller" && (
+                        <Link href="/calendar">
+                          <Button variant="ghost">Calendario</Button>
+                        </Link>
+                      )}
                     </>
                   )}
                   {(user?.role === "admin" || user?.role === "super_admin") && (
@@ -318,6 +323,9 @@ export default function Home() {
                       </Link>
                       <Link href="/tasks">
                         <Button variant="ghost">Tareas</Button>
+                      </Link>
+                      <Link href="/calendar">
+                        <Button variant="ghost">Calendario</Button>
                       </Link>
                       <Link href="/admin">
                         <Button variant="ghost">Panel Admin</Button>

@@ -203,6 +203,15 @@ export const projectPhotos = mysqlTable("projectPhotos", {
     "ensamble",     // Fotos de producción - ensamble
     "final"         // Fotos del producto terminado
   ]).notNull(),
+  category: mysqlEnum("category", [
+    "medidas",      // Documentos de medidas (GoodNotes, PDFs)
+    "disenos",      // Diseños 3D, renders, planos
+    "avance",       // Fotos de avance de producción
+    "materiales",   // Fotos de materiales seleccionados
+    "instalacion", // Fotos de instalación
+    "entrega",      // Fotos de entrega final
+    "otros"         // Otros documentos
+  ]).default("otros").notNull(),
   photoUrl: text("photoUrl").notNull(),
   description: text("description"),
   uploadedBy: int("uploadedBy").notNull().references(() => users.id),

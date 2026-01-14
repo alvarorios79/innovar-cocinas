@@ -1308,6 +1308,7 @@ export const appRouter = router({
       .input(z.object({
         projectId: z.number(),
         stage: z.enum(["inicial", "diseno", "corte", "enchape", "ensamble", "final"]),
+        category: z.enum(["medidas", "disenos", "avance", "materiales", "instalacion", "entrega", "otros"]).optional().default("otros"),
         photoUrl: z.string(),
         description: z.string().optional(),
       }))
@@ -1331,8 +1332,14 @@ export const appRouter = router({
 
     // Obtener fotos por proyecto
     getByProject: protectedProcedure
-      .input(z.object({ projectId: z.number() }))
+      .input(z.object({ 
+        projectId: z.number(),
+        category: z.enum(["medidas", "disenos", "avance", "materiales", "instalacion", "entrega", "otros"]).optional(),
+      }))
       .query(async ({ input }) => {
+        if (input.category) {
+          return await db.getProjectPhotosByCategory(input.projectId, input.category);
+        }
         return await db.getProjectPhotosByProjectId(input.projectId);
       }),
 
@@ -1344,6 +1351,16 @@ export const appRouter = router({
       }))
       .query(async ({ input }) => {
         return await db.getProjectPhotosByStage(input.projectId, input.stage);
+      }),
+
+    // Obtener fotos por categoría
+    getByCategory: protectedProcedure
+      .input(z.object({
+        projectId: z.number(),
+        category: z.enum(["medidas", "disenos", "avance", "materiales", "instalacion", "entrega", "otros"]),
+      }))
+      .query(async ({ input }) => {
+        return await db.getProjectPhotosByCategory(input.projectId, input.category);
       }),
 
     // Eliminar foto

@@ -80,9 +80,13 @@ export default function Projects() {
   const [showDetailDialog, setShowDetailDialog] = useState(false);
   const [photoForm, setPhotoForm] = useState({
     stage: "" as "inicial" | "diseno" | "corte" | "enchape" | "ensamble" | "final" | "",
+    category: "otros" as "medidas" | "disenos" | "avance" | "materiales" | "instalacion" | "entrega" | "otros",
     photoUrl: "",
     description: "",
   });
+  
+  // Estado para filtro de categoría en galería
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [detailForm, setDetailForm] = useState({
     type: "nota_importante" as "medida_especial" | "nota_importante" | "foto_referencia",
     title: "",
@@ -156,7 +160,7 @@ export default function Projects() {
       utils.projects.getById.invalidate();
       toast.success("Foto subida exitosamente");
       setShowPhotoDialog(false);
-      setPhotoForm({ stage: "", photoUrl: "", description: "" });
+      setPhotoForm({ stage: "", category: "otros", photoUrl: "", description: "" });
     },
     onError: (error) => {
       toast.error(error.message || "Error al subir foto");
@@ -772,10 +776,37 @@ export default function Projects() {
                 </TabsContent>
 
                 <TabsContent value="photos" className="space-y-4">
-                  {/* Botón para subir foto */}
-                  {(user?.role === "admin" || user?.role === "super_admin" || 
-                    user?.role === "disenador" || user?.role === "jefe_taller" || user?.role === "operario") && (
-                    <div className="flex justify-end">
+                  {/* Filtro por categoría y botón para subir foto */}
+                  <div className="flex flex-col sm:flex-row gap-3 justify-between items-start sm:items-center">
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        size="sm"
+                        variant={categoryFilter === "all" ? "default" : "outline"}
+                        onClick={() => setCategoryFilter("all")}
+                      >
+                        Todas
+                      </Button>
+                      {[
+                        { value: "medidas", label: "Medidas" },
+                        { value: "disenos", label: "Diseños" },
+                        { value: "avance", label: "Avance" },
+                        { value: "materiales", label: "Materiales" },
+                        { value: "instalacion", label: "Instalación" },
+                        { value: "entrega", label: "Entrega" },
+                        { value: "otros", label: "Otros" },
+                      ].map((cat) => (
+                        <Button
+                          key={cat.value}
+                          size="sm"
+                          variant={categoryFilter === cat.value ? "default" : "outline"}
+                          onClick={() => setCategoryFilter(cat.value)}
+                        >
+                          {cat.label}
+                        </Button>
+                      ))}
+                    </div>
+                    {(user?.role === "admin" || user?.role === "super_admin" || 
+                      user?.role === "disenador" || user?.role === "jefe_taller" || user?.role === "operario") && (
                       <Button
                         size="sm"
                         onClick={() => setShowPhotoDialog(true)}
@@ -783,11 +814,16 @@ export default function Projects() {
                         <Upload className="h-4 w-4 mr-1" />
                         Subir Foto
                       </Button>
-                    </div>
-                  )}
+                    )}
+                  </div>
 
                   {["inicial", "diseno", "corte", "enchape", "ensamble", "final"].map((stage) => {
-                    const stagePhotos = projectDetail.photos?.filter((p: any) => p.stage === stage) || [];
+                    // Filtrar fotos por etapa y categoría
+                    const allStagePhotos = projectDetail.photos?.filter((p: any) => p.stage === stage) || [];
+                    const stagePhotos = categoryFilter === "all" 
+                      ? allStagePhotos 
+                      : allStagePhotos.filter((p: any) => p.category === categoryFilter);
+                    
                     const stageLabels: Record<string, string> = {
                       inicial: "Fotos Iniciales",
                       diseno: "Diseño",
@@ -795,6 +831,16 @@ export default function Projects() {
                       enchape: "Enchape",
                       ensamble: "Ensamble",
                       final: "Producto Final",
+                    };
+                    
+                    const categoryLabels: Record<string, string> = {
+                      medidas: "Medidas",
+                      disenos: "Diseños",
+                      avance: "Avance",
+                      materiales: "Materiales",
+                      instalacion: "Instalación",
+                      entrega: "Entrega",
+                      otros: "Otros",
                     };
 
                     // Determinar qué etapas puede subir cada rol
@@ -862,6 +908,14 @@ export default function Projects() {
                                         alt={photo.description || "Foto del proyecto"}
                                         className="w-full h-24 object-cover rounded hover:opacity-80 transition-opacity"
                                       />
+                                    )}
+                                    {/* Badge de categoría */}
+                                    {photo.category && photo.category !== "otros" && (
+                                      <div className="absolute top-1 left-1">
+                                        <span className="text-[10px] bg-primary/80 text-primary-foreground px-1.5 py-0.5 rounded">
+                                          {categoryLabels[photo.category] || photo.category}
+                                        </span>
+                                      </div>
                                     )}
                                     <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                       <ZoomIn className="h-4 w-4 text-white drop-shadow-lg" />
@@ -966,24 +1020,47 @@ export default function Projects() {
             </DialogHeader>
             
             <div className="space-y-4">
-              <div className="space-y-2">
-                <Label>Etapa *</Label>
-                <Select 
-                  value={photoForm.stage} 
-                  onValueChange={(v: any) => setPhotoForm({ ...photoForm, stage: v })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecciona la etapa" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="inicial">Fotos Iniciales</SelectItem>
-                    <SelectItem value="diseno">Diseño</SelectItem>
-                    <SelectItem value="corte">Corte</SelectItem>
-                    <SelectItem value="enchape">Enchape</SelectItem>
-                    <SelectItem value="ensamble">Ensamble</SelectItem>
-                    <SelectItem value="final">Producto Final</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Etapa *</Label>
+                  <Select 
+                    value={photoForm.stage} 
+                    onValueChange={(v: any) => setPhotoForm({ ...photoForm, stage: v })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecciona la etapa" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="inicial">Fotos Iniciales</SelectItem>
+                      <SelectItem value="diseno">Diseño</SelectItem>
+                      <SelectItem value="corte">Corte</SelectItem>
+                      <SelectItem value="enchape">Enchape</SelectItem>
+                      <SelectItem value="ensamble">Ensamble</SelectItem>
+                      <SelectItem value="final">Producto Final</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Categoría *</Label>
+                  <Select 
+                    value={photoForm.category} 
+                    onValueChange={(v: any) => setPhotoForm({ ...photoForm, category: v })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecciona la categoría" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="medidas">Medidas</SelectItem>
+                      <SelectItem value="disenos">Diseños</SelectItem>
+                      <SelectItem value="avance">Fotos de Avance</SelectItem>
+                      <SelectItem value="materiales">Materiales</SelectItem>
+                      <SelectItem value="instalacion">Instalación</SelectItem>
+                      <SelectItem value="entrega">Entrega</SelectItem>
+                      <SelectItem value="otros">Otros</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               {photoForm.stage && selectedProject && (
@@ -998,12 +1075,13 @@ export default function Projects() {
                       uploadPhoto.mutate({
                         projectId: selectedProject.id,
                         stage: photoForm.stage as "inicial" | "diseno" | "corte" | "enchape" | "ensamble" | "final",
+                        category: photoForm.category,
                         photoUrl: url,
                         description: photoForm.description || undefined,
                       });
                     });
                     setShowPhotoDialog(false);
-                    setPhotoForm({ stage: "", photoUrl: "", description: "" });
+                    setPhotoForm({ stage: "", category: "otros", photoUrl: "", description: "" });
                   }}
                 />
               )}

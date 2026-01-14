@@ -664,6 +664,7 @@ export default function Portal() {
                     uploadPhoto.mutate({
                       projectId: selectedProjectForPhoto.id,
                       stage: "inicial",
+                      category: "otros", // Fotos del cliente van a "otros" por defecto
                       photoUrl: url,
                       description: photoDescription || "Foto de referencia del cliente",
                     });

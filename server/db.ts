@@ -609,6 +609,18 @@ export async function getProjectPhotosByStage(projectId: number, stage: string) 
     .orderBy(desc(projectPhotos.createdAt));
 }
 
+export async function getProjectPhotosByCategory(projectId: number, category: string) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(projectPhotos)
+    .where(and(
+      eq(projectPhotos.projectId, projectId),
+      eq(projectPhotos.category, category as any)
+    ))
+    .orderBy(desc(projectPhotos.createdAt));
+}
+
 export async function deleteProjectPhoto(id: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");

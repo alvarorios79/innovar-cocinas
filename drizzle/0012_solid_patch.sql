@@ -1,0 +1,1 @@
+ALTER TABLE `projectPhotos` ADD `category` enum('medidas','disenos','avance','materiales','instalacion','entrega','otros') DEFAULT 'otros' NOT NULL;

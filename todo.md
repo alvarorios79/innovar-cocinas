@@ -327,3 +327,29 @@
 - [x] Agregar botón "Abrir PDF" para abrir en nueva pestaña (mejor experiencia en iOS)
 - [x] Agregar botón de descarga
 - [ ] Verificar que funciona en iPad (pendiente usuario)
+
+
+## Categorías de Archivos
+
+- [ ] Definir categorías: Medidas, Diseños, Fotos de Avance, Documentos, Otros
+- [ ] Agregar campo de categoría al schema de project_photos
+- [ ] Actualizar endpoint de upload para incluir categoría
+- [ ] Agregar selector de categoría al subir archivos
+- [ ] Implementar filtros por categoría en la galería
+- [ ] Mostrar archivos agrupados por categoría
+
+
+## Categorías de Archivos
+
+### Backend
+- [x] Agregar campo category al schema de projectPhotos (medidas, disenos, avance, materiales, instalacion, entrega, otros)
+- [x] Ejecutar migración de base de datos (pnpm db:push)
+- [x] Agregar endpoint getProjectPhotosByCategory en db.ts
+- [x] Actualizar endpoint projectPhotos.upload para aceptar categoría
+- [x] Agregar endpoint projectPhotos.getByCategory
+
+### Frontend
+- [x] Agregar selector de categoría en diálogo de subir fotos (Projects.tsx)
+- [x] Agregar filtro por categoría en galería de fotos
+- [x] Mostrar badge de categoría en cada foto de la galería
+- [x] Actualizar Portal.tsx para enviar categoría por defecto

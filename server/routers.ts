@@ -1493,21 +1493,31 @@ export const appRouter = router({
         }));
       }),
 
-    // Obtener todas las tareas (admin)
+    // Obtener todas las tareas (admin, super_admin, comercial)
     list: protectedProcedure
       .query(async ({ ctx }) => {
-        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "jefe_taller") {
+        // admin incluye al comercial (Martha Serna)
+        const canViewAll = ["admin", "super_admin", "jefe_taller"];
+        if (!canViewAll.includes(ctx.user.role)) {
           throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para ver todas las tareas" });
         }
 
         const tasksList = await db.getAllTasks();
         const allUsers = await db.getAllUsers();
         const userMap = new Map(allUsers.map(u => [u.id, u]));
+        
+        // Obtener info de proyectos asociados
+        const projectIds = Array.from(new Set(tasksList.filter(t => t.projectId).map(t => t.projectId!)));
+        const projectsInfo = await Promise.all(
+          projectIds.map(id => db.getProjectById(id))
+        );
+        const projectMap = new Map(projectsInfo.filter(Boolean).map(p => [p!.id, p]));
 
         return tasksList.map(t => ({
           ...t,
           assignedToUser: userMap.get(t.assignedTo),
           assignedByUser: userMap.get(t.assignedBy),
+          project: t.projectId ? projectMap.get(t.projectId) : null,
         }));
       }),
 

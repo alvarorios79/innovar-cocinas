@@ -361,3 +361,13 @@
 - [x] Investigar error al crear nueva tarea en sección Tareas
 - [x] Corregir el error identificado (SelectItem con value="" cambiado a value="none")
 - [x] Verificar que la creación de tareas funciona correctamente
+
+### Creación de Usuarios de Trabajo
+- [x] Crear usuario Jefe de Taller (Luis Cardoso)
+- [x] Crear usuario Operario (Daniel Beltran)
+
+### Vista de Supervisión de Tareas
+- [x] Agregar endpoint para obtener todas las tareas (super_admin y admin)
+- [x] Modificar interfaz de Tareas con vista de supervisión
+- [x] Agregar filtro por usuario asignado
+- [x] Mostrar estadísticas por usuario

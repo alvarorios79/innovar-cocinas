@@ -307,3 +307,13 @@
 - [x] Swipe horizontal para cambiar de imagen
 - [x] Botones flotantes grandes para móviles
 - [ ] Probar en iPad y Android real (pendiente usuario)
+
+
+## Bug: PDFs no se pueden ampliar en iPad
+
+- [x] Investigar opciones para zoom de PDF en dispositivos táctiles
+- [x] Implementar visor de PDF con react-pdf (renderiza como canvas)
+- [x] Zoom táctil funcional con pinch-to-zoom en PDFs
+- [x] Navegación entre páginas del PDF con botones
+- [x] Doble tap para zoom rápido en PDFs
+- [ ] Probar en iPad (pendiente usuario)

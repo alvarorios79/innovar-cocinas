@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useGesture } from "@use-gesture/react";
+import { Document, Page, pdfjs } from "react-pdf";
+// Estilos de react-pdf se manejan inline
 import { 
   X, 
   ChevronLeft, 
@@ -9,10 +11,15 @@ import {
   RotateCw, 
   Download,
   FileText,
-  RotateCcw
+  RotateCcw,
+  ChevronUp,
+  ChevronDown
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+
+// Configurar worker de PDF.js
+pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 interface FileItem {
   url: string;
@@ -41,8 +48,11 @@ export function FileViewer({ files, initialIndex = 0, isOpen, onClose }: FileVie
   const [rotation, setRotation] = useState(0);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [showControls, setShowControls] = useState(true);
+  const [numPages, setNumPages] = useState<number | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pdfError, setPdfError] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const imageContainerRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   const currentFile = files[currentIndex];
   const isPdf = currentFile ? isPdfFile(currentFile) : false;
@@ -52,6 +62,9 @@ export function FileViewer({ files, initialIndex = 0, isOpen, onClose }: FileVie
     setScale(1);
     setRotation(0);
     setPosition({ x: 0, y: 0 });
+    setCurrentPage(1);
+    setNumPages(null);
+    setPdfError(false);
   }, [currentIndex]);
 
   // Reset index cuando se abre
@@ -62,6 +75,9 @@ export function FileViewer({ files, initialIndex = 0, isOpen, onClose }: FileVie
       setRotation(0);
       setPosition({ x: 0, y: 0 });
       setShowControls(true);
+      setCurrentPage(1);
+      setNumPages(null);
+      setPdfError(false);
     }
   }, [isOpen, initialIndex]);
 
@@ -80,12 +96,18 @@ export function FileViewer({ files, initialIndex = 0, isOpen, onClose }: FileVie
         case "ArrowRight":
           goToNext();
           break;
+        case "ArrowUp":
+          if (isPdf && currentPage > 1) setCurrentPage(p => p - 1);
+          break;
+        case "ArrowDown":
+          if (isPdf && numPages && currentPage < numPages) setCurrentPage(p => p + 1);
+          break;
         case "+":
         case "=":
-          if (!isPdf) zoomIn();
+          zoomIn();
           break;
         case "-":
-          if (!isPdf) zoomOut();
+          zoomOut();
           break;
         case "r":
           if (!isPdf) rotate();
@@ -95,13 +117,12 @@ export function FileViewer({ files, initialIndex = 0, isOpen, onClose }: FileVie
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, currentIndex, files.length, isPdf]);
+  }, [isOpen, currentIndex, files.length, isPdf, currentPage, numPages]);
 
   // Bloquear scroll del body cuando está abierto
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
-      // Prevenir zoom del navegador en iOS
       const meta = document.querySelector('meta[name="viewport"]');
       const originalContent = meta?.getAttribute('content') || '';
       if (meta) {
@@ -142,6 +163,14 @@ export function FileViewer({ files, initialIndex = 0, isOpen, onClose }: FileVie
     setPosition({ x: 0, y: 0 });
   }, []);
 
+  const goToPreviousPage = useCallback(() => {
+    if (currentPage > 1) setCurrentPage(p => p - 1);
+  }, [currentPage]);
+
+  const goToNextPage = useCallback(() => {
+    if (numPages && currentPage < numPages) setCurrentPage(p => p + 1);
+  }, [currentPage, numPages]);
+
   // Descargar archivo
   const downloadFile = useCallback(async () => {
     const file = files[currentIndex];
@@ -164,30 +193,23 @@ export function FileViewer({ files, initialIndex = 0, isOpen, onClose }: FileVie
     }
   }, [currentIndex, files]);
 
-  // Usar @use-gesture/react para gestos táctiles (compatible con iOS y Android)
+  // Gestos táctiles para imágenes y PDFs
   const bind = useGesture(
     {
       onPinch: ({ offset: [s], memo }) => {
-        if (isPdf) return memo;
         const newScale = Math.max(0.5, Math.min(5, s));
         setScale(newScale);
         return memo;
       },
       onDrag: ({ offset: [x, y], pinching, cancel, first, movement: [mx, my] }) => {
-        if (isPdf) return;
-        
-        // Si está haciendo pinch, cancelar el drag
         if (pinching) {
           cancel();
           return;
         }
         
-        // Si hay zoom, permitir arrastrar
         if (scale > 1) {
           setPosition({ x, y });
-        } 
-        // Si no hay zoom y es un swipe horizontal significativo
-        else if (!first && Math.abs(mx) > 80 && Math.abs(my) < 50) {
+        } else if (!first && !isPdf && Math.abs(mx) > 80 && Math.abs(my) < 50) {
           if (mx > 0) {
             goToPrevious();
           } else {
@@ -197,19 +219,15 @@ export function FileViewer({ files, initialIndex = 0, isOpen, onClose }: FileVie
         }
       },
       onWheel: ({ delta: [, dy] }) => {
-        if (isPdf) return;
         const newScale = Math.max(0.5, Math.min(5, scale - dy * 0.001));
         setScale(newScale);
       },
       onClick: ({ event }) => {
-        // Toggle controles al hacer tap (solo si no es un drag)
         if (event.type === 'click' || event.type === 'touchend') {
           setShowControls(prev => !prev);
         }
       },
       onDoubleClick: () => {
-        if (isPdf) return;
-        // Doble tap para resetear o hacer zoom
         if (scale > 1) {
           resetView();
         } else {
@@ -232,6 +250,15 @@ export function FileViewer({ files, initialIndex = 0, isOpen, onClose }: FileVie
     }
   );
 
+  const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
+    setNumPages(numPages);
+    setPdfError(false);
+  };
+
+  const onDocumentLoadError = () => {
+    setPdfError(true);
+  };
+
   if (!isOpen || files.length === 0) return null;
 
   return (
@@ -252,43 +279,41 @@ export function FileViewer({ files, initialIndex = 0, isOpen, onClose }: FileVie
           {isPdf && (
             <span className="flex items-center gap-1 text-xs sm:text-sm bg-red-500/20 text-red-300 px-2 py-1 rounded">
               <FileText className="h-3 w-3 sm:h-4 sm:w-4" />
-              PDF
+              PDF {numPages && `(${currentPage}/${numPages})`}
             </span>
           )}
         </div>
         <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-white hover:bg-white/20 h-10 w-10"
+            onClick={(e) => { e.stopPropagation(); zoomOut(); }}
+            disabled={scale <= 0.5}
+          >
+            <ZoomOut className="h-5 w-5" />
+          </Button>
+          <span className="text-xs w-12 text-center">
+            {Math.round(scale * 100)}%
+          </span>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-white hover:bg-white/20 h-10 w-10"
+            onClick={(e) => { e.stopPropagation(); zoomIn(); }}
+            disabled={scale >= 5}
+          >
+            <ZoomIn className="h-5 w-5" />
+          </Button>
           {!isPdf && (
-            <>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-white hover:bg-white/20 h-10 w-10"
-                onClick={(e) => { e.stopPropagation(); zoomOut(); }}
-                disabled={scale <= 0.5}
-              >
-                <ZoomOut className="h-5 w-5" />
-              </Button>
-              <span className="text-xs w-12 text-center">
-                {Math.round(scale * 100)}%
-              </span>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-white hover:bg-white/20 h-10 w-10"
-                onClick={(e) => { e.stopPropagation(); zoomIn(); }}
-                disabled={scale >= 5}
-              >
-                <ZoomIn className="h-5 w-5" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-white hover:bg-white/20 h-10 w-10"
-                onClick={(e) => { e.stopPropagation(); rotate(); }}
-              >
-                <RotateCw className="h-5 w-5" />
-              </Button>
-            </>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-white hover:bg-white/20 h-10 w-10"
+              onClick={(e) => { e.stopPropagation(); rotate(); }}
+            >
+              <RotateCw className="h-5 w-5" />
+            </Button>
           )}
           <Button
             variant="ghost"
@@ -311,21 +336,52 @@ export function FileViewer({ files, initialIndex = 0, isOpen, onClose }: FileVie
 
       {/* Content container */}
       <div
-        ref={imageContainerRef}
-        {...(isPdf ? {} : bind())}
-        className={cn(
-          "flex-1 flex items-center justify-center overflow-hidden relative",
-          !isPdf && "touch-none"
-        )}
-        style={{ touchAction: isPdf ? 'auto' : 'none' }}
+        ref={contentRef}
+        {...bind()}
+        className="flex-1 flex items-center justify-center overflow-hidden relative touch-none"
+        style={{ touchAction: 'none' }}
       >
         {isPdf ? (
-          // PDF Viewer usando iframe
-          <iframe
-            src={`${currentFile?.url}#toolbar=1&navpanes=0&scrollbar=1`}
-            className="w-[95%] sm:w-[90%] md:w-[85%] lg:w-[80%] h-[85%] sm:h-[90%] bg-white rounded-lg shadow-2xl"
-            title={currentFile?.title || "PDF Viewer"}
-          />
+          // PDF Viewer con react-pdf
+          <div
+            className="flex items-center justify-center"
+            style={{
+              transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
+              transition: 'transform 0.1s ease-out',
+            }}
+          >
+            {pdfError ? (
+              <div className="bg-white rounded-lg p-8 text-center">
+                <FileText className="h-16 w-16 mx-auto text-red-500 mb-4" />
+                <p className="text-gray-800 font-medium mb-2">No se pudo cargar el PDF</p>
+                <p className="text-gray-500 text-sm mb-4">El archivo puede estar dañado o no ser accesible</p>
+                <Button onClick={downloadFile} className="bg-teal-600 hover:bg-teal-700">
+                  <Download className="h-4 w-4 mr-2" />
+                  Descargar PDF
+                </Button>
+              </div>
+            ) : (
+              <Document
+                file={currentFile?.url}
+                onLoadSuccess={onDocumentLoadSuccess}
+                onLoadError={onDocumentLoadError}
+                loading={
+                  <div className="bg-white rounded-lg p-8 text-center">
+                    <div className="animate-spin h-8 w-8 border-4 border-teal-500 border-t-transparent rounded-full mx-auto mb-4" />
+                    <p className="text-gray-600">Cargando PDF...</p>
+                  </div>
+                }
+              >
+                <Page
+                  pageNumber={currentPage}
+                  renderTextLayer={false}
+                  renderAnnotationLayer={false}
+                  className="shadow-2xl"
+                  width={Math.min(window.innerWidth * 0.9, 800)}
+                />
+              </Document>
+            )}
+          </div>
         ) : (
           // Image Viewer
           <img
@@ -342,58 +398,85 @@ export function FileViewer({ files, initialIndex = 0, isOpen, onClose }: FileVie
       </div>
 
       {/* Controles flotantes para móvil */}
-      {!isPdf && (
-        <div className={cn(
-          "absolute bottom-24 left-1/2 -translate-x-1/2 flex items-center gap-3 bg-black/80 rounded-full px-5 py-3 transition-opacity duration-300 sm:hidden z-20",
-          showControls ? "opacity-100" : "opacity-0 pointer-events-none"
-        )}>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-white hover:bg-white/20 h-14 w-14 rounded-full"
-            onClick={(e) => { e.stopPropagation(); zoomOut(); }}
-            disabled={scale <= 0.5}
-          >
-            <ZoomOut className="h-7 w-7" />
-          </Button>
-          <span className="text-white text-base w-16 text-center font-bold">
-            {Math.round(scale * 100)}%
-          </span>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-white hover:bg-white/20 h-14 w-14 rounded-full"
-            onClick={(e) => { e.stopPropagation(); zoomIn(); }}
-            disabled={scale >= 5}
-          >
-            <ZoomIn className="h-7 w-7" />
-          </Button>
-          <div className="w-px h-10 bg-white/30 mx-1" />
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-white hover:bg-white/20 h-14 w-14 rounded-full"
-            onClick={(e) => { e.stopPropagation(); rotate(); }}
-          >
-            <RotateCw className="h-7 w-7" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-white hover:bg-white/20 h-14 w-14 rounded-full"
-            onClick={(e) => { e.stopPropagation(); resetView(); }}
-          >
-            <RotateCcw className="h-7 w-7" />
-          </Button>
-        </div>
-      )}
+      <div className={cn(
+        "absolute bottom-24 left-1/2 -translate-x-1/2 flex items-center gap-3 bg-black/80 rounded-full px-5 py-3 transition-opacity duration-300 sm:hidden z-20",
+        showControls ? "opacity-100" : "opacity-0 pointer-events-none"
+      )}>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="text-white hover:bg-white/20 h-14 w-14 rounded-full"
+          onClick={(e) => { e.stopPropagation(); zoomOut(); }}
+          disabled={scale <= 0.5}
+        >
+          <ZoomOut className="h-7 w-7" />
+        </Button>
+        <span className="text-white text-base w-16 text-center font-bold">
+          {Math.round(scale * 100)}%
+        </span>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="text-white hover:bg-white/20 h-14 w-14 rounded-full"
+          onClick={(e) => { e.stopPropagation(); zoomIn(); }}
+          disabled={scale >= 5}
+        >
+          <ZoomIn className="h-7 w-7" />
+        </Button>
+        <div className="w-px h-10 bg-white/30 mx-1" />
+        {isPdf && numPages && numPages > 1 ? (
+          <>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-white hover:bg-white/20 h-14 w-14 rounded-full"
+              onClick={(e) => { e.stopPropagation(); goToPreviousPage(); }}
+              disabled={currentPage <= 1}
+            >
+              <ChevronUp className="h-7 w-7" />
+            </Button>
+            <span className="text-white text-sm w-12 text-center">
+              {currentPage}/{numPages}
+            </span>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-white hover:bg-white/20 h-14 w-14 rounded-full"
+              onClick={(e) => { e.stopPropagation(); goToNextPage(); }}
+              disabled={currentPage >= numPages}
+            >
+              <ChevronDown className="h-7 w-7" />
+            </Button>
+          </>
+        ) : !isPdf ? (
+          <>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-white hover:bg-white/20 h-14 w-14 rounded-full"
+              onClick={(e) => { e.stopPropagation(); rotate(); }}
+            >
+              <RotateCw className="h-7 w-7" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-white hover:bg-white/20 h-14 w-14 rounded-full"
+              onClick={(e) => { e.stopPropagation(); resetView(); }}
+            >
+              <RotateCcw className="h-7 w-7" />
+            </Button>
+          </>
+        ) : null}
+      </div>
 
       {/* Indicador de instrucciones para móvil */}
-      {!isPdf && scale === 1 && showControls && (
+      {scale === 1 && showControls && (
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white/40 text-center pointer-events-none sm:hidden z-10">
           <p className="text-sm font-medium">Pellizca para zoom</p>
           <p className="text-xs mt-1">Doble tap para ampliar</p>
-          <p className="text-xs">Desliza para cambiar</p>
+          {!isPdf && <p className="text-xs">Desliza para cambiar</p>}
+          {isPdf && numPages && numPages > 1 && <p className="text-xs">Usa las flechas para páginas</p>}
         </div>
       )}
 
@@ -423,6 +506,36 @@ export function FileViewer({ files, initialIndex = 0, isOpen, onClose }: FileVie
             <ChevronRight className="h-10 w-10" />
           </Button>
         </>
+      )}
+
+      {/* PDF Page navigation for desktop */}
+      {isPdf && numPages && numPages > 1 && (
+        <div className={cn(
+          "absolute right-4 top-1/2 -translate-y-1/2 hidden sm:flex flex-col gap-2 z-20 transition-opacity duration-300",
+          !showControls && "opacity-0 pointer-events-none"
+        )}>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-white hover:bg-white/20 h-12 w-12 rounded-full"
+            onClick={(e) => { e.stopPropagation(); goToPreviousPage(); }}
+            disabled={currentPage <= 1}
+          >
+            <ChevronUp className="h-6 w-6" />
+          </Button>
+          <div className="text-white text-center text-sm py-2">
+            {currentPage}<br/><span className="opacity-50">de {numPages}</span>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-white hover:bg-white/20 h-12 w-12 rounded-full"
+            onClick={(e) => { e.stopPropagation(); goToNextPage(); }}
+            disabled={currentPage >= numPages}
+          >
+            <ChevronDown className="h-6 w-6" />
+          </Button>
+        </div>
       )}
 
       {/* Description */}

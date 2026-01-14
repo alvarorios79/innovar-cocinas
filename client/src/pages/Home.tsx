@@ -335,9 +335,9 @@ export default function Home() {
                   <NotificationBell />
                 </>
               ) : (
-                <Button asChild>
-                  <a href={getLoginUrl()}>Iniciar Sesión</a>
-                </Button>
+                <Link href="/login">
+                  <Button>Iniciar Sesión</Button>
+                </Link>
               )}
             </nav>
           </div>

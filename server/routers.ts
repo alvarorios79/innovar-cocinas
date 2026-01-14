@@ -41,9 +41,12 @@ export const appRouter = router({
         // Actualizar lastSignedIn
         await db.updateUserLastSignedIn(user.id);
 
-        // Crear sesión (cookie)
+        // Crear sesión JWT usando el SDK (usa openId del usuario)
+        const { sdk } = await import("./_core/sdk");
+        const sessionToken = await sdk.createSessionToken(user.openId, { name: user.name || "" });
+        
+        // Establecer cookie de sesión
         const cookieOptions = getSessionCookieOptions(ctx.req);
-        const sessionToken = JSON.stringify({ userId: user.id });
         ctx.res.cookie(COOKIE_NAME, sessionToken, cookieOptions);
 
         return { 

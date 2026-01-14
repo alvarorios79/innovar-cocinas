@@ -162,3 +162,11 @@
 - [ ] Mostrar fecha estimada de entrega en el proyecto
 - [ ] Panel de recordatorios pendientes para cada rol
 - [ ] Vista de timeline del proyecto con fechas clave
+## Simplificación de Autenticación
+
+- [x] Eliminar paso de verificación por código de email
+- [x] Permitir inicio de sesión directo con email y contraseña
+- [x] Crear página de login con email/contraseña (/login)
+- [x] Implementar endpoint loginWithPassword en tRPC
+- [x] Verificar sesión funciona correctamente con usuarios con contraseña
+- [x] Martha Serna (martha79s@hotmail.com) puede iniciar sesión exitosamente

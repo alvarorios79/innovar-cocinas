@@ -477,6 +477,23 @@ export default function Projects() {
                         <p><strong>Cliente:</strong> {project.client?.name || "N/A"}</p>
                         <p><strong>Tipo:</strong> {WORK_TYPES[project.workType as keyof typeof WORK_TYPES]}</p>
                         <p><strong>Creado:</strong> {new Date(project.createdAt).toLocaleDateString("es-CO")}</p>
+                        {project.estimatedInstallDate && project.status !== "entregado" && (
+                          <p className={`font-medium ${
+                            new Date(project.estimatedInstallDate) < new Date() 
+                              ? "text-red-600" 
+                              : new Date(project.estimatedInstallDate) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+                                ? "text-yellow-600"
+                                : "text-green-600"
+                          }`}>
+                            <strong>Entrega estimada:</strong> {new Date(project.estimatedInstallDate).toLocaleDateString("es-CO")}
+                            {new Date(project.estimatedInstallDate) < new Date() && " (Vencida)"}
+                          </p>
+                        )}
+                        {project.scheduledInstallDate && project.status !== "entregado" && (
+                          <p className="text-blue-600 font-medium">
+                            <strong>Instalación:</strong> {new Date(project.scheduledInstallDate).toLocaleDateString("es-CO")}
+                          </p>
+                        )}
                       </div>
                     </div>
 
@@ -620,6 +637,62 @@ export default function Projects() {
                       <p><strong>Teléfono:</strong> {projectDetail.client?.whatsappPhone}</p>
                       <p><strong>Email:</strong> {projectDetail.client?.email || "N/A"}</p>
                       <p><strong>Dirección:</strong> {projectDetail.client?.address || "N/A"}</p>
+                    </CardContent>
+                  </Card>
+
+                  {/* Fechas importantes del proyecto */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-sm flex items-center gap-2">
+                        <Clock className="h-4 w-4" />
+                        Fechas del Proyecto
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="text-sm space-y-2">
+                      <p><strong>Creado:</strong> {new Date(projectDetail.createdAt).toLocaleDateString("es-CO")}</p>
+                      {projectDetail.quotationSentAt && (
+                        <p><strong>Cotización enviada:</strong> {new Date(projectDetail.quotationSentAt).toLocaleDateString("es-CO")}</p>
+                      )}
+                      {projectDetail.quotationApprovedAt && (
+                        <p><strong>Cotización aprobada:</strong> {new Date(projectDetail.quotationApprovedAt).toLocaleDateString("es-CO")}</p>
+                      )}
+                      {projectDetail.advanceReceivedAt && (
+                        <p><strong>Adelanto recibido:</strong> {new Date(projectDetail.advanceReceivedAt).toLocaleDateString("es-CO")}</p>
+                      )}
+                      {projectDetail.designDeadline && (
+                        <p className={new Date(projectDetail.designDeadline) < new Date() && projectDetail.status === "en_diseno" ? "text-red-600 font-medium" : ""}>
+                          <strong>Límite diseño:</strong> {new Date(projectDetail.designDeadline).toLocaleDateString("es-CO")}
+                          {new Date(projectDetail.designDeadline) < new Date() && projectDetail.status === "en_diseno" && " (Vencido)"}
+                        </p>
+                      )}
+                      {projectDetail.designDeliveredAt && (
+                        <p><strong>Diseño entregado:</strong> {new Date(projectDetail.designDeliveredAt).toLocaleDateString("es-CO")}</p>
+                      )}
+                      {projectDetail.clientApprovedAt && (
+                        <p><strong>Aprobación cliente:</strong> {new Date(projectDetail.clientApprovedAt).toLocaleDateString("es-CO")}</p>
+                      )}
+                      {projectDetail.estimatedInstallDate && projectDetail.status !== "entregado" && (
+                        <p className={`font-medium ${
+                          new Date(projectDetail.estimatedInstallDate) < new Date() 
+                            ? "text-red-600" 
+                            : new Date(projectDetail.estimatedInstallDate) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+                              ? "text-yellow-600"
+                              : "text-green-600"
+                        }`}>
+                          <strong>Entrega estimada:</strong> {new Date(projectDetail.estimatedInstallDate).toLocaleDateString("es-CO")}
+                          {new Date(projectDetail.estimatedInstallDate) < new Date() && " (Vencida)"}
+                        </p>
+                      )}
+                      {projectDetail.scheduledInstallDate && projectDetail.status !== "entregado" && (
+                        <p className="text-blue-600 font-medium">
+                          <strong>Instalación programada:</strong> {new Date(projectDetail.scheduledInstallDate).toLocaleDateString("es-CO")}
+                        </p>
+                      )}
+                      {projectDetail.deliveredAt && (
+                        <p className="text-green-600 font-medium">
+                          <strong>Entregado:</strong> {new Date(projectDetail.deliveredAt).toLocaleDateString("es-CO")}
+                        </p>
+                      )}
                     </CardContent>
                   </Card>
 

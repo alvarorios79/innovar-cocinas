@@ -6,7 +6,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
-import { Calendar, Phone, FileText, Users, Trash2, Plus } from "lucide-react";
+import { Calendar, Phone, FileText, Users, Trash2, Plus, Bell } from "lucide-react";
+import { RemindersPanel } from "@/components/RemindersPanel";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -337,6 +338,13 @@ export default function Admin() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Panel de Recordatorios */}
+        {user && (
+          <div className="mb-4 md:mb-8">
+            <RemindersPanel userId={user.id} userRole={user.role} />
+          </div>
+        )}
 
         {/* Main Content */}
         <Tabs defaultValue="appointments" className="space-y-4">

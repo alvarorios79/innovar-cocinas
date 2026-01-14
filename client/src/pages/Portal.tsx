@@ -256,6 +256,88 @@ export default function Portal() {
                           </div>
                         </div>
 
+                        {/* Fecha estimada de entrega */}
+                        {project.estimatedInstallDate && project.status !== "entregado" && (
+                          <div className={`flex items-center gap-2 p-3 rounded-lg ${
+                            new Date(project.estimatedInstallDate) < new Date() 
+                              ? "bg-red-50 border border-red-200" 
+                              : new Date(project.estimatedInstallDate) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+                                ? "bg-yellow-50 border border-yellow-200"
+                                : "bg-green-50 border border-green-200"
+                          }`}>
+                            <Truck className={`h-5 w-5 ${
+                              new Date(project.estimatedInstallDate) < new Date() 
+                                ? "text-red-600" 
+                                : new Date(project.estimatedInstallDate) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+                                  ? "text-yellow-600"
+                                  : "text-green-600"
+                            }`} />
+                            <div>
+                              <p className={`text-sm font-medium ${
+                                new Date(project.estimatedInstallDate) < new Date() 
+                                  ? "text-red-800" 
+                                  : new Date(project.estimatedInstallDate) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+                                    ? "text-yellow-800"
+                                    : "text-green-800"
+                              }`}>
+                                {new Date(project.estimatedInstallDate) < new Date() 
+                                  ? "Fecha de entrega vencida" 
+                                  : "Fecha estimada de instalación"}
+                              </p>
+                              <p className={`text-sm ${
+                                new Date(project.estimatedInstallDate) < new Date() 
+                                  ? "text-red-600" 
+                                  : new Date(project.estimatedInstallDate) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+                                    ? "text-yellow-600"
+                                    : "text-green-600"
+                              }`}>
+                                {new Date(project.estimatedInstallDate).toLocaleDateString("es-CO", {
+                                  weekday: "long",
+                                  year: "numeric",
+                                  month: "long",
+                                  day: "numeric"
+                                })}
+                              </p>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Fecha de instalación programada */}
+                        {project.scheduledInstallDate && project.status !== "entregado" && (
+                          <div className="flex items-center gap-2 p-3 rounded-lg bg-blue-50 border border-blue-200">
+                            <Calendar className="h-5 w-5 text-blue-600" />
+                            <div>
+                              <p className="text-sm font-medium text-blue-800">Instalación Programada</p>
+                              <p className="text-sm text-blue-600">
+                                {new Date(project.scheduledInstallDate).toLocaleDateString("es-CO", {
+                                  weekday: "long",
+                                  year: "numeric",
+                                  month: "long",
+                                  day: "numeric"
+                                })}
+                              </p>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Proyecto entregado */}
+                        {project.status === "entregado" && project.deliveredAt && (
+                          <div className="flex items-center gap-2 p-3 rounded-lg bg-green-50 border border-green-200">
+                            <CheckCircle2 className="h-5 w-5 text-green-600" />
+                            <div>
+                              <p className="text-sm font-medium text-green-800">¡Proyecto Entregado!</p>
+                              <p className="text-sm text-green-600">
+                                Entregado el {new Date(project.deliveredAt).toLocaleDateString("es-CO", {
+                                  weekday: "long",
+                                  year: "numeric",
+                                  month: "long",
+                                  day: "numeric"
+                                })}
+                              </p>
+                            </div>
+                          </div>
+                        )}
+
                         {/* Botón para subir fotos de referencia */}
                         {["pendiente", "aprobado_diseno", "en_diseno"].includes(project.status) && (
                           <div className="flex justify-end">

@@ -12,8 +12,10 @@ import {
   Clock,
   AlertTriangle,
   Play,
-  User
+  User,
+  Bell
 } from "lucide-react";
+import { RemindersPanel } from "@/components/RemindersPanel";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -210,6 +212,13 @@ export default function Tasks() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Panel de Recordatorios */}
+        {user && (
+          <div className="mb-4 md:mb-6">
+            <RemindersPanel userId={user.id} userRole={user.role} compact />
+          </div>
+        )}
 
         {/* Header con filtros y botón crear */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">

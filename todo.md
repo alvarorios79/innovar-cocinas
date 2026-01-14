@@ -159,9 +159,9 @@
 
 ### Interfaz de Usuario
 - [x] Actualizar flujo de estados del proyecto según Ruta INNOVAR
-- [ ] Mostrar fecha estimada de entrega en el proyecto
-- [ ] Panel de recordatorios pendientes para cada rol
-- [ ] Vista de timeline del proyecto con fechas clave
+- [x] Mostrar fecha estimada de entrega en el proyecto
+- [x] Panel de recordatorios pendientes para cada rol
+- [x] Vista de timeline del proyecto con fechas clave (Card "Fechas del Proyecto")
 ## Simplificación de Autenticación
 
 - [x] Eliminar paso de verificación por código de email
@@ -202,3 +202,27 @@
 - [x] Enviar enlace de recuperación por WhatsApp
 - [x] Agregar enlace "Olvidé mi contraseña" en página de login
 - [x] Tests para registro y recuperación (11 tests pasando)
+
+## Fecha Estimada de Entrega y Panel de Recordatorios
+
+### Fecha Estimada de Entrega en Proyectos
+- [x] Verificar que el campo estimatedInstallDate existe en el schema de proyectos
+- [x] Mostrar fecha estimada en la vista de proyectos para clientes (Portal.tsx)
+- [x] Mostrar fecha estimada en la lista de proyectos (Projects.tsx)
+- [x] Mostrar fecha estimada en el detalle del proyecto (Card "Fechas del Proyecto")
+- [x] Mostrar indicador visual si la fecha está próxima (amarillo) o vencida (rojo)
+- [x] Mostrar fecha de instalación programada (azul)
+- [x] Mostrar fecha de entrega cuando el proyecto está completado (verde)
+
+### Panel de Recordatorios Pendientes
+- [x] Crear endpoint reminders.getMyReminders para obtener recordatorios del usuario
+- [x] Crear endpoint reminders.complete para marcar como completado
+- [x] Crear endpoint reminders.getSummary para resumen de recordatorios
+- [x] Crear componente RemindersPanel con vista compacta y expandida
+- [x] Filtrar recordatorios según el rol del usuario (asignados a cada usuario)
+- [x] Mostrar panel en Panel Admin
+- [x] Mostrar panel en página de Tareas (modo compacto)
+- [x] Indicadores visuales para recordatorios vencidos (rojo, animación)
+- [x] Botón de WhatsApp para contactar cliente desde recordatorio
+- [x] Enlace directo al proyecto desde recordatorio
+- [x] Tests para el router de recordatorios (12 tests pasando)

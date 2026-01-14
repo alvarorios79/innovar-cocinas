@@ -317,3 +317,13 @@
 - [x] Navegación entre páginas del PDF con botones
 - [x] Doble tap para zoom rápido en PDFs
 - [ ] Probar en iPad (pendiente usuario)
+
+
+## Bug: PDF no carga en el visor
+
+- [x] Diagnosticar error de carga de PDF con react-pdf (CSS imports fallaban)
+- [x] Implementar solución alternativa usando object tag nativo del navegador
+- [x] Agregar zoom con gestos táctiles al contenedor del PDF
+- [x] Agregar botón "Abrir PDF" para abrir en nueva pestaña (mejor experiencia en iOS)
+- [x] Agregar botón de descarga
+- [ ] Verificar que funciona en iPad (pendiente usuario)

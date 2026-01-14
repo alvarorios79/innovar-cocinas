@@ -1,7 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useGesture } from "@use-gesture/react";
-import { Document, Page, pdfjs } from "react-pdf";
-// Estilos de react-pdf se manejan inline
 import { 
   X, 
   ChevronLeft, 
@@ -12,14 +10,10 @@ import {
   Download,
   FileText,
   RotateCcw,
-  ChevronUp,
-  ChevronDown
+  ExternalLink
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-
-// Configurar worker de PDF.js
-pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 interface FileItem {
   url: string;
@@ -48,9 +42,6 @@ export function FileViewer({ files, initialIndex = 0, isOpen, onClose }: FileVie
   const [rotation, setRotation] = useState(0);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [showControls, setShowControls] = useState(true);
-  const [numPages, setNumPages] = useState<number | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pdfError, setPdfError] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
@@ -62,9 +53,6 @@ export function FileViewer({ files, initialIndex = 0, isOpen, onClose }: FileVie
     setScale(1);
     setRotation(0);
     setPosition({ x: 0, y: 0 });
-    setCurrentPage(1);
-    setNumPages(null);
-    setPdfError(false);
   }, [currentIndex]);
 
   // Reset index cuando se abre
@@ -75,9 +63,6 @@ export function FileViewer({ files, initialIndex = 0, isOpen, onClose }: FileVie
       setRotation(0);
       setPosition({ x: 0, y: 0 });
       setShowControls(true);
-      setCurrentPage(1);
-      setNumPages(null);
-      setPdfError(false);
     }
   }, [isOpen, initialIndex]);
 
@@ -96,12 +81,6 @@ export function FileViewer({ files, initialIndex = 0, isOpen, onClose }: FileVie
         case "ArrowRight":
           goToNext();
           break;
-        case "ArrowUp":
-          if (isPdf && currentPage > 1) setCurrentPage(p => p - 1);
-          break;
-        case "ArrowDown":
-          if (isPdf && numPages && currentPage < numPages) setCurrentPage(p => p + 1);
-          break;
         case "+":
         case "=":
           zoomIn();
@@ -117,7 +96,7 @@ export function FileViewer({ files, initialIndex = 0, isOpen, onClose }: FileVie
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, currentIndex, files.length, isPdf, currentPage, numPages]);
+  }, [isOpen, currentIndex, files.length, isPdf]);
 
   // Bloquear scroll del body cuando está abierto
   useEffect(() => {
@@ -163,14 +142,6 @@ export function FileViewer({ files, initialIndex = 0, isOpen, onClose }: FileVie
     setPosition({ x: 0, y: 0 });
   }, []);
 
-  const goToPreviousPage = useCallback(() => {
-    if (currentPage > 1) setCurrentPage(p => p - 1);
-  }, [currentPage]);
-
-  const goToNextPage = useCallback(() => {
-    if (numPages && currentPage < numPages) setCurrentPage(p => p + 1);
-  }, [currentPage, numPages]);
-
   // Descargar archivo
   const downloadFile = useCallback(async () => {
     const file = files[currentIndex];
@@ -193,7 +164,15 @@ export function FileViewer({ files, initialIndex = 0, isOpen, onClose }: FileVie
     }
   }, [currentIndex, files]);
 
-  // Gestos táctiles para imágenes y PDFs
+  // Abrir PDF en nueva pestaña
+  const openInNewTab = useCallback(() => {
+    const file = files[currentIndex];
+    if (file) {
+      window.open(file.url, '_blank');
+    }
+  }, [currentIndex, files]);
+
+  // Gestos táctiles para imágenes Y PDFs
   const bind = useGesture(
     {
       onPinch: ({ offset: [s], memo }) => {
@@ -250,15 +229,6 @@ export function FileViewer({ files, initialIndex = 0, isOpen, onClose }: FileVie
     }
   );
 
-  const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
-    setNumPages(numPages);
-    setPdfError(false);
-  };
-
-  const onDocumentLoadError = () => {
-    setPdfError(true);
-  };
-
   if (!isOpen || files.length === 0) return null;
 
   return (
@@ -279,7 +249,7 @@ export function FileViewer({ files, initialIndex = 0, isOpen, onClose }: FileVie
           {isPdf && (
             <span className="flex items-center gap-1 text-xs sm:text-sm bg-red-500/20 text-red-300 px-2 py-1 rounded">
               <FileText className="h-3 w-3 sm:h-4 sm:w-4" />
-              PDF {numPages && `(${currentPage}/${numPages})`}
+              PDF
             </span>
           )}
         </div>
@@ -315,6 +285,17 @@ export function FileViewer({ files, initialIndex = 0, isOpen, onClose }: FileVie
               <RotateCw className="h-5 w-5" />
             </Button>
           )}
+          {isPdf && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-white hover:bg-white/20 h-10 w-10"
+              onClick={(e) => { e.stopPropagation(); openInNewTab(); }}
+              title="Abrir en nueva pestaña"
+            >
+              <ExternalLink className="h-5 w-5" />
+            </Button>
+          )}
           <Button
             variant="ghost"
             size="icon"
@@ -342,45 +323,47 @@ export function FileViewer({ files, initialIndex = 0, isOpen, onClose }: FileVie
         style={{ touchAction: 'none' }}
       >
         {isPdf ? (
-          // PDF Viewer con react-pdf
+          // PDF Viewer - usando img de Google Docs Viewer para preview con zoom
           <div
-            className="flex items-center justify-center"
+            className="flex items-center justify-center w-full h-full"
             style={{
               transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
               transition: 'transform 0.1s ease-out',
             }}
           >
-            {pdfError ? (
-              <div className="bg-white rounded-lg p-8 text-center">
-                <FileText className="h-16 w-16 mx-auto text-red-500 mb-4" />
-                <p className="text-gray-800 font-medium mb-2">No se pudo cargar el PDF</p>
-                <p className="text-gray-500 text-sm mb-4">El archivo puede estar dañado o no ser accesible</p>
-                <Button onClick={downloadFile} className="bg-teal-600 hover:bg-teal-700">
-                  <Download className="h-4 w-4 mr-2" />
-                  Descargar PDF
-                </Button>
-              </div>
-            ) : (
-              <Document
-                file={currentFile?.url}
-                onLoadSuccess={onDocumentLoadSuccess}
-                onLoadError={onDocumentLoadError}
-                loading={
-                  <div className="bg-white rounded-lg p-8 text-center">
-                    <div className="animate-spin h-8 w-8 border-4 border-teal-500 border-t-transparent rounded-full mx-auto mb-4" />
-                    <p className="text-gray-600">Cargando PDF...</p>
-                  </div>
-                }
+            <div className="bg-white rounded-lg shadow-2xl overflow-hidden" style={{ width: '90vw', maxWidth: '800px', height: '80vh' }}>
+              {/* Usar object tag para embeber PDF directamente */}
+              <object
+                data={currentFile?.url}
+                type="application/pdf"
+                className="w-full h-full"
               >
-                <Page
-                  pageNumber={currentPage}
-                  renderTextLayer={false}
-                  renderAnnotationLayer={false}
-                  className="shadow-2xl"
-                  width={Math.min(window.innerWidth * 0.9, 800)}
-                />
-              </Document>
-            )}
+                {/* Fallback si object no funciona */}
+                <div className="w-full h-full flex flex-col items-center justify-center p-8 text-center bg-gray-100">
+                  <FileText className="h-20 w-20 text-red-500 mb-6" />
+                  <h3 className="text-xl font-semibold text-gray-800 mb-2">Documento PDF</h3>
+                  <p className="text-gray-600 mb-6">
+                    Tu dispositivo no puede mostrar el PDF directamente.
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <Button 
+                      onClick={openInNewTab}
+                      className="bg-teal-600 hover:bg-teal-700"
+                    >
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      Abrir PDF
+                    </Button>
+                    <Button 
+                      onClick={downloadFile}
+                      variant="outline"
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Descargar
+                    </Button>
+                  </div>
+                </div>
+              </object>
+            </div>
           </div>
         ) : (
           // Image Viewer
@@ -424,31 +407,27 @@ export function FileViewer({ files, initialIndex = 0, isOpen, onClose }: FileVie
           <ZoomIn className="h-7 w-7" />
         </Button>
         <div className="w-px h-10 bg-white/30 mx-1" />
-        {isPdf && numPages && numPages > 1 ? (
+        {isPdf ? (
           <>
             <Button
               variant="ghost"
               size="icon"
               className="text-white hover:bg-white/20 h-14 w-14 rounded-full"
-              onClick={(e) => { e.stopPropagation(); goToPreviousPage(); }}
-              disabled={currentPage <= 1}
+              onClick={(e) => { e.stopPropagation(); openInNewTab(); }}
+              title="Abrir en nueva pestaña"
             >
-              <ChevronUp className="h-7 w-7" />
+              <ExternalLink className="h-7 w-7" />
             </Button>
-            <span className="text-white text-sm w-12 text-center">
-              {currentPage}/{numPages}
-            </span>
             <Button
               variant="ghost"
               size="icon"
               className="text-white hover:bg-white/20 h-14 w-14 rounded-full"
-              onClick={(e) => { e.stopPropagation(); goToNextPage(); }}
-              disabled={currentPage >= numPages}
+              onClick={(e) => { e.stopPropagation(); downloadFile(); }}
             >
-              <ChevronDown className="h-7 w-7" />
+              <Download className="h-7 w-7" />
             </Button>
           </>
-        ) : !isPdf ? (
+        ) : (
           <>
             <Button
               variant="ghost"
@@ -467,7 +446,7 @@ export function FileViewer({ files, initialIndex = 0, isOpen, onClose }: FileVie
               <RotateCcw className="h-7 w-7" />
             </Button>
           </>
-        ) : null}
+        )}
       </div>
 
       {/* Indicador de instrucciones para móvil */}
@@ -476,7 +455,6 @@ export function FileViewer({ files, initialIndex = 0, isOpen, onClose }: FileVie
           <p className="text-sm font-medium">Pellizca para zoom</p>
           <p className="text-xs mt-1">Doble tap para ampliar</p>
           {!isPdf && <p className="text-xs">Desliza para cambiar</p>}
-          {isPdf && numPages && numPages > 1 && <p className="text-xs">Usa las flechas para páginas</p>}
         </div>
       )}
 
@@ -506,36 +484,6 @@ export function FileViewer({ files, initialIndex = 0, isOpen, onClose }: FileVie
             <ChevronRight className="h-10 w-10" />
           </Button>
         </>
-      )}
-
-      {/* PDF Page navigation for desktop */}
-      {isPdf && numPages && numPages > 1 && (
-        <div className={cn(
-          "absolute right-4 top-1/2 -translate-y-1/2 hidden sm:flex flex-col gap-2 z-20 transition-opacity duration-300",
-          !showControls && "opacity-0 pointer-events-none"
-        )}>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-white hover:bg-white/20 h-12 w-12 rounded-full"
-            onClick={(e) => { e.stopPropagation(); goToPreviousPage(); }}
-            disabled={currentPage <= 1}
-          >
-            <ChevronUp className="h-6 w-6" />
-          </Button>
-          <div className="text-white text-center text-sm py-2">
-            {currentPage}<br/><span className="opacity-50">de {numPages}</span>
-          </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-white hover:bg-white/20 h-12 w-12 rounded-full"
-            onClick={(e) => { e.stopPropagation(); goToNextPage(); }}
-            disabled={currentPage >= numPages}
-          >
-            <ChevronDown className="h-6 w-6" />
-          </Button>
-        </div>
       )}
 
       {/* Description */}

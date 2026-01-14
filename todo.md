@@ -111,3 +111,22 @@
 - [x] Incluir fotos de cada etapa
 - [x] Incluir timeline de cambios de estado
 - [x] Agregar botón de descarga en la interfaz
+
+## Notificaciones por WhatsApp
+
+### Servicio de Mensajes
+- [x] Crear plantillas de mensaje para cada estado del proyecto
+- [x] Generar enlaces de WhatsApp con mensaje pre-escrito
+- [x] Incluir enlace al portal del cliente en los mensajes
+
+### Integración
+- [x] Enviar WhatsApp automático al cambiar estado del proyecto
+- [x] Agregar botón para enviar WhatsApp manual desde el detalle del proyecto
+- [x] Opción de personalizar mensaje antes de enviar
+
+### Plantillas de Mensajes
+- [x] Mensaje de bienvenida (proyecto creado)
+- [x] Mensaje de diseño listo para aprobación
+- [x] Mensaje de inicio de producción (corte, enchape, ensamble)
+- [x] Mensaje de proyecto listo para instalación
+- [x] Mensaje de proyecto entregado

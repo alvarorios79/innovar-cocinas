@@ -22,7 +22,10 @@ import {
   Package,
   Truck,
   FileDown,
-  ZoomIn
+  ZoomIn,
+  MessageCircle,
+  Send,
+  ExternalLink
 } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -90,6 +93,12 @@ export default function Projects() {
   // Estado para generar PDF
   const [generatingPdf, setGeneratingPdf] = useState(false);
   
+  // Estados para notificación WhatsApp
+  const [showWhatsAppDialog, setShowWhatsAppDialog] = useState(false);
+  const [whatsAppMessage, setWhatsAppMessage] = useState("");
+  const [whatsAppLink, setWhatsAppLink] = useState("");
+  const [whatsAppPhone, setWhatsAppPhone] = useState("");
+  
   const { data: projects = [], isLoading: loadingProjects } = trpc.projects.list.useQuery(
     statusFilter !== "all" ? { status: statusFilter } : undefined
   );
@@ -112,10 +121,18 @@ export default function Projects() {
   });
 
   const updateStatus = trpc.projects.updateStatus.useMutation({
-    onSuccess: () => {
+    onSuccess: (data) => {
       utils.projects.list.invalidate();
       utils.projects.getById.invalidate();
       toast.success("Estado actualizado");
+      
+      // Mostrar diálogo de WhatsApp si hay notificación disponible
+      if (data.whatsappNotification) {
+        setWhatsAppMessage(data.whatsappNotification.message);
+        setWhatsAppLink(data.whatsappNotification.whatsappLink);
+        setWhatsAppPhone(data.whatsappNotification.phone);
+        setShowWhatsAppDialog(true);
+      }
     },
     onError: (error) => {
       toast.error(error.message || "Error al actualizar estado");
@@ -497,15 +514,40 @@ export default function Projects() {
               </DialogTitle>
               <DialogDescription className="flex items-center justify-between">
                 <span>{WORK_TYPES[selectedProject?.workType as keyof typeof WORK_TYPES]} - {selectedProject?.client?.name}</span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => selectedProject && handleExportPdf(selectedProject.id, selectedProject.name)}
-                  disabled={generatingPdf}
-                >
-                  <FileDown className="h-4 w-4 mr-1" />
-                  {generatingPdf ? "Generando..." : "Exportar PDF"}
-                </Button>
+                <div className="flex gap-2">
+                  {/* Botón WhatsApp manual */}
+                  {selectedProject?.client?.whatsappPhone && (user?.role === "admin" || user?.role === "super_admin") && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-green-600 border-green-600 hover:bg-green-50"
+                      onClick={() => {
+                        const baseUrl = window.location.origin;
+                        const portalUrl = `${baseUrl}/portal?project=${selectedProject.id}`;
+                        const workTypeLabel = WORK_TYPES[selectedProject.workType as keyof typeof WORK_TYPES] || selectedProject.workType;
+                        const statusLabel = PROJECT_STATUSES[selectedProject.status as keyof typeof PROJECT_STATUSES]?.label || selectedProject.status;
+                        
+                        const message = `Hola ${selectedProject.client.name}, te escribimos de INNOVAR Cocinas Integrales.\n\nTu proyecto "${selectedProject.name}" (${workTypeLabel}) está en estado: ${statusLabel}.\n\nPuedes ver el seguimiento en:\n${portalUrl}\n\n¿Tienes alguna pregunta?`;
+                        
+                        setWhatsAppMessage(message);
+                        setWhatsAppPhone(selectedProject.client.whatsappPhone);
+                        setShowWhatsAppDialog(true);
+                      }}
+                    >
+                      <MessageCircle className="h-4 w-4 mr-1" />
+                      WhatsApp
+                    </Button>
+                  )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => selectedProject && handleExportPdf(selectedProject.id, selectedProject.name)}
+                    disabled={generatingPdf}
+                  >
+                    <FileDown className="h-4 w-4 mr-1" />
+                    {generatingPdf ? "Generando..." : "Exportar PDF"}
+                  </Button>
+                </div>
               </DialogDescription>
             </DialogHeader>
 
@@ -924,6 +966,61 @@ export default function Projects() {
         isOpen={imageViewer.isOpen}
         onClose={imageViewer.closeViewer}
       />
+
+      {/* Diálogo de notificación WhatsApp */}
+      <Dialog open={showWhatsAppDialog} onOpenChange={setShowWhatsAppDialog}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <MessageCircle className="h-5 w-5 text-green-500" />
+              Notificar al Cliente por WhatsApp
+            </DialogTitle>
+            <DialogDescription>
+              El estado del proyecto ha sido actualizado. Puedes enviar una notificación al cliente por WhatsApp.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <span>Teléfono:</span>
+              <span className="font-medium text-foreground">{whatsAppPhone}</span>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Mensaje (puedes editarlo antes de enviar)</Label>
+              <Textarea
+                value={whatsAppMessage}
+                onChange={(e) => setWhatsAppMessage(e.target.value)}
+                rows={12}
+                className="font-mono text-sm"
+              />
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setShowWhatsAppDialog(false)}
+              >
+                Cerrar
+              </Button>
+              <Button
+                className="bg-green-600 hover:bg-green-700"
+                onClick={() => {
+                  // Regenerar el enlace con el mensaje editado
+                  const cleanPhone = whatsAppPhone.replace(/\D/g, "");
+                  const fullPhone = cleanPhone.startsWith("57") ? cleanPhone : `57${cleanPhone}`;
+                  const newLink = `https://wa.me/${fullPhone}?text=${encodeURIComponent(whatsAppMessage)}`;
+                  window.open(newLink, "_blank");
+                  setShowWhatsAppDialog(false);
+                }}
+              >
+                <Send className="h-4 w-4 mr-2" />
+                Enviar por WhatsApp
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

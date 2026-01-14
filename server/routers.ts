@@ -8,6 +8,7 @@ import * as whatsapp from "./whatsapp";
 import { TRPCError } from "@trpc/server";
 import { getAvailableTimeSlots, isTimeSlotAvailable, APPOINTMENT_CONFIG } from "./availability";
 import { hashPassword, validatePasswordStrength, authenticateWithPassword } from "./password-auth";
+import { prepareWhatsAppNotification } from "./whatsapp-notifications";
 
 export const appRouter = router({
   system: systemRouter,
@@ -898,7 +899,29 @@ export const appRouter = router({
           notes: input.notes,
         });
 
-        return { success: true };
+        // Obtener datos del cliente para notificación WhatsApp
+        const client = await db.getClientById(project.clientId);
+        let whatsappNotification = null;
+        
+        if (client) {
+          const baseUrl = ctx.req.headers.origin || `https://${ctx.req.headers.host}`;
+          const projectWithClient = {
+            id: project.id,
+            name: project.name,
+            status: newStatus,
+            workType: project.workType,
+            client: {
+              name: client.name,
+              whatsappPhone: client.whatsappPhone,
+            },
+          };
+          whatsappNotification = prepareWhatsAppNotification(projectWithClient, baseUrl);
+        }
+
+        return { 
+          success: true,
+          whatsappNotification,
+        };
       }),
 
     // Aprobar diseño (Cliente, Admin o Super Admin)

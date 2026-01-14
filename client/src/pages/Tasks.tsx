@@ -58,7 +58,7 @@ export default function Tasks() {
   const utils = trpc.useUtils();
   
   // Verificar si el usuario puede ver todas las tareas
-  const canViewAllTasks = ["admin", "super_admin", "jefe_taller"].includes(user?.role || "");
+  const canViewAllTasks = ["admin", "super_admin", "comercial", "jefe_taller"].includes(user?.role || "");
   
   const { data: myTasks = [], isLoading: loadingMyTasks } = trpc.tasks.getMyTasks.useQuery();
   const { data: allTasks = [], isLoading: loadingAllTasks } = trpc.tasks.list.useQuery(undefined, {
@@ -100,7 +100,7 @@ export default function Tasks() {
   }
 
   // Verificar permisos
-  const allowedRoles = ["admin", "super_admin", "disenador", "jefe_taller", "operario"];
+  const allowedRoles = ["admin", "super_admin", "comercial", "disenador", "jefe_taller", "operario"];
   if (!isAuthenticated || !allowedRoles.includes(user?.role || "")) {
     setLocation("/");
     return null;
@@ -169,6 +169,7 @@ export default function Tasks() {
     const labels: Record<string, string> = {
       super_admin: "Super Admin",
       admin: "Administrador",
+      comercial: "Comercial",
       disenador: "Diseñador",
       jefe_taller: "Jefe de Taller",
       operario: "Operario",

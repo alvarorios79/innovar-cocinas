@@ -217,8 +217,8 @@ export default function Projects() {
     return <div className="flex items-center justify-center min-h-screen">Cargando...</div>;
   }
 
-  // Verificar permisos - solo admin, super_admin, diseñador, jefe_taller, operario
-  const allowedRoles = ["admin", "super_admin", "disenador", "jefe_taller", "operario"];
+  // Verificar permisos - solo admin, super_admin, comercial, diseñador, jefe_taller, operario
+  const allowedRoles = ["admin", "super_admin", "comercial", "disenador", "jefe_taller", "operario"];
   if (!isAuthenticated || !allowedRoles.includes(user?.role || "")) {
     setLocation("/");
     return null;
@@ -320,6 +320,7 @@ export default function Projects() {
     const labels: Record<string, string> = {
       super_admin: "Super Admin",
       admin: "Administrador",
+      comercial: "Comercial",
       disenador: "Diseñador",
       jefe_taller: "Jefe de Taller",
       operario: "Operario",

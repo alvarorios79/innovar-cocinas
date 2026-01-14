@@ -92,6 +92,13 @@
       "when": 1768378307817,
       "tag": "0012_solid_patch",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "5",
+      "when": 1768382821769,
+      "tag": "0013_wide_zarda",
+      "breakpoints": true
     }
   ]
 }

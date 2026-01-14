@@ -1496,8 +1496,7 @@ export const appRouter = router({
     // Obtener todas las tareas (admin, super_admin, comercial)
     list: protectedProcedure
       .query(async ({ ctx }) => {
-        // admin incluye al comercial (Martha Serna)
-        const canViewAll = ["admin", "super_admin", "jefe_taller"];
+        const canViewAll = ["admin", "super_admin", "comercial", "jefe_taller"];
         if (!canViewAll.includes(ctx.user.role)) {
           throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para ver todas las tareas" });
         }
@@ -1572,26 +1571,30 @@ export const appRouter = router({
         return { success: true };
       }),
 
-    // Obtener usuarios a los que puedo asignar tareas
+    // Obtener usuarios a los que puedo asignar tareas (solo equipo de trabajo)
     getAssignableUsers: protectedProcedure
       .query(async ({ ctx }) => {
         const allUsers = await db.getAllUsers();
         const myRole = ctx.user.role;
+        
+        // Solo roles de equipo de trabajo pueden recibir tareas (incluye comercial)
+        const workTeamRoles = ["comercial", "disenador", "jefe_taller", "operario"];
+        
+        // Verificar si el usuario puede asignar tareas
+        const canAssignRoles = ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"];
+        if (!canAssignRoles.includes(myRole)) {
+          return [];
+        }
 
-        // Filtrar según permisos de asignación
-        return allUsers.filter(u => {
-          if (myRole === "super_admin") return true;
-          if (myRole === "admin") return ["disenador", "jefe_taller", "operario"].includes(u.role);
-          if (myRole === "disenador") return ["jefe_taller", "operario"].includes(u.role);
-          if (myRole === "jefe_taller") return ["admin", "disenador", "operario"].includes(u.role);
-          if (myRole === "operario") return ["disenador", "jefe_taller"].includes(u.role);
-          return false;
-        }).map(u => ({
-          id: u.id,
-          name: u.name,
-          email: u.email,
-          role: u.role,
-        }));
+        // Filtrar solo equipo de trabajo
+        return allUsers
+          .filter(u => workTeamRoles.includes(u.role))
+          .map(u => ({
+            id: u.id,
+            name: u.name,
+            email: u.email,
+            role: u.role,
+          }));
       }),
   }),
 

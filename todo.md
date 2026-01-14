@@ -371,3 +371,12 @@
 - [x] Modificar interfaz de Tareas con vista de supervisión
 - [x] Agregar filtro por usuario asignado
 - [x] Mostrar estadísticas por usuario
+
+### Filtro de Usuarios Asignables
+- [x] Modificar getAssignableUsers para mostrar solo equipo de trabajo (comercial, diseñador, jefe_taller, operario)
+
+### Rol Comercial
+- [x] Agregar rol comercial al schema
+- [x] Actualizar permisos para incluir comercial
+- [x] Cambiar rol de Martha Serna a comercial
+- [x] Incluir comercial en usuarios asignables

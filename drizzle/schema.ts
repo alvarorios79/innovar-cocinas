@@ -2,7 +2,7 @@ import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, decimal, boolean 
 
 /**
  * Core user table backing auth flow.
- * Roles: user (cliente), admin, super_admin, diseñador, jefe_taller, operario
+ * Roles: user (cliente), admin, super_admin, comercial, diseñador, jefe_taller, operario
  */
 export const users = mysqlTable("users", {
   id: int("id").autoincrement().primaryKey(),
@@ -13,7 +13,7 @@ export const users = mysqlTable("users", {
   passwordHash: varchar("passwordHash", { length: 255 }),
   passwordResetToken: varchar("passwordResetToken", { length: 100 }),
   passwordResetExpires: timestamp("passwordResetExpires"),
-  role: mysqlEnum("role", ["user", "admin", "super_admin", "disenador", "jefe_taller", "operario"]).default("user").notNull(),
+  role: mysqlEnum("role", ["user", "admin", "super_admin", "comercial", "disenador", "jefe_taller", "operario"]).default("user").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),

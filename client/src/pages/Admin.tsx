@@ -268,27 +268,31 @@ export default function Admin() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b">
-        <div className="container flex h-16 items-center justify-between">
-          <div className="flex items-center gap-4">
+        <div className="container flex h-14 md:h-16 items-center justify-between px-3 md:px-4">
+          <div className="flex items-center gap-2 md:gap-4">
             <Link href="/">
-              <Button variant="ghost">← Volver al inicio</Button>
+              <Button variant="ghost" size="sm" className="px-2 md:px-3">
+                <span className="hidden sm:inline">← Inicio</span>
+                <span className="sm:hidden">←</span>
+              </Button>
             </Link>
             <img 
               src="/logo-light.png" 
-              alt="INNOVAR Cocinas Integrales" 
-              className="h-10 w-auto"
+              alt="INNOVAR" 
+              className="h-8 md:h-10 w-auto"
             />
-            <span className="text-sm text-muted-foreground">Panel Admin</span>
+            <span className="hidden md:inline text-sm text-muted-foreground">Panel Admin</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">{user?.name}</span>
+            <Badge variant="outline" className="text-xs">Admin</Badge>
+            <span className="hidden sm:inline text-sm text-muted-foreground truncate max-w-[100px]">{user?.name}</span>
           </div>
         </div>
       </header>
 
-      <div className="container py-8">
+      <div className="container py-4 md:py-8 px-3 md:px-4">
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 mb-4 md:mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Citas Pendientes</CardTitle>

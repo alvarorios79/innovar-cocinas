@@ -42,19 +42,19 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-100 flex items-center justify-center p-3 md:p-4">
       <Card className="w-full max-w-md shadow-xl">
-        <CardHeader className="text-center space-y-2">
-          <div className="mx-auto w-20 h-20 bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl flex items-center justify-center mb-2">
-            <span className="text-white text-3xl font-bold">I</span>
+        <CardHeader className="text-center space-y-2 p-4 md:p-6">
+          <div className="mx-auto w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl flex items-center justify-center mb-2">
+            <span className="text-white text-2xl md:text-3xl font-bold">I</span>
           </div>
-          <CardTitle className="text-2xl font-bold text-gray-800">INNOVAR Cocinas</CardTitle>
-          <CardDescription className="text-gray-600">
+          <CardTitle className="text-xl md:text-2xl font-bold text-gray-800">INNOVAR Cocinas</CardTitle>
+          <CardDescription className="text-sm md:text-base text-gray-600">
             Ingresa tus credenciales para acceder al sistema
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+        <CardContent className="p-4 md:p-6 pt-0">
+          <form onSubmit={handleSubmit} className="space-y-3 md:space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input

@@ -166,28 +166,31 @@ export default function Portal() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b">
-        <div className="container flex h-16 items-center justify-between">
-          <div className="flex items-center gap-4">
+        <div className="container flex h-14 md:h-16 items-center justify-between px-3 md:px-4">
+          <div className="flex items-center gap-2 md:gap-4">
             <Link href="/">
-              <Button variant="ghost">← Volver al inicio</Button>
+              <Button variant="ghost" size="sm" className="px-2 md:px-3">
+                <span className="hidden sm:inline">← Inicio</span>
+                <span className="sm:hidden">←</span>
+              </Button>
             </Link>
-            <h1 className="text-xl font-bold">Mi Portal</h1>
+            <h1 className="text-lg md:text-xl font-bold">Mi Portal</h1>
           </div>
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-muted-foreground">{user?.name}</span>
-            <Button variant="ghost" size="sm" onClick={() => logoutMutation.mutate()}>
-              <LogOut className="h-4 w-4 mr-2" />
-              Cerrar Sesión
+          <div className="flex items-center gap-2 md:gap-4">
+            <span className="hidden sm:inline text-sm text-muted-foreground truncate max-w-[120px]">{user?.name}</span>
+            <Button variant="ghost" size="sm" onClick={() => logoutMutation.mutate()} className="px-2 md:px-3">
+              <LogOut className="h-4 w-4 md:mr-2" />
+              <span className="hidden md:inline">Cerrar Sesión</span>
             </Button>
           </div>
         </div>
       </header>
 
-      <div className="container py-8">
+      <div className="container py-4 md:py-8 px-3 md:px-4">
         {/* Welcome Card */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle>Bienvenido, {user?.name}</CardTitle>
+        <Card className="mb-4 md:mb-8">
+          <CardHeader className="p-4 md:p-6">
+            <CardTitle className="text-lg md:text-xl">Bienvenido, {user?.name}</CardTitle>
             <CardDescription>
               Aquí puedes ver tus citas, reagendarlas y consultar tus cotizaciones
             </CardDescription>

@@ -14,6 +14,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
 import { Link } from "wouter";
 import { NotificationBell } from "@/components/NotificationBell";
+import { MobileNav } from "@/components/MobileNav";
 
 export default function Home() {
   const { user, isAuthenticated } = useAuth();
@@ -281,37 +282,39 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">      {/* Header */}
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
+      {/* Header */}
       <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container">
           {/* Main header */}
-          <div className="flex h-20 items-center justify-between">
-            <div className="flex items-center gap-3">
+          <div className="flex h-16 md:h-20 items-center justify-between">
+            <Link href="/">
               <img 
                 src="/logo-light.png" 
                 alt="INNOVAR Cocinas Integrales" 
-                className="h-16 w-auto"
+                className="h-10 sm:h-12 md:h-16 w-auto cursor-pointer"
               />
-            </div>
+            </Link>
             
-            <nav className="flex items-center gap-4">
+            {/* Desktop Navigation */}
+            <nav className="hidden md:flex items-center gap-1 lg:gap-2">
               {isAuthenticated ? (
                 <>
                   <Link href="/portal">
-                    <Button variant="ghost">Mi Portal</Button>
+                    <Button variant="ghost" size="sm" className="text-sm">Mi Portal</Button>
                   </Link>
                   {/* Enlaces para roles de trabajo */}
                   {["disenador", "jefe_taller", "operario"].includes(user?.role || "") && (
                     <>
                       <Link href="/projects">
-                        <Button variant="ghost">Proyectos</Button>
+                        <Button variant="ghost" size="sm" className="text-sm">Proyectos</Button>
                       </Link>
                       <Link href="/tasks">
-                        <Button variant="ghost">Tareas</Button>
+                        <Button variant="ghost" size="sm" className="text-sm">Tareas</Button>
                       </Link>
                       {user?.role === "jefe_taller" && (
                         <Link href="/calendar">
-                          <Button variant="ghost">Calendario</Button>
+                          <Button variant="ghost" size="sm" className="text-sm">Calendario</Button>
                         </Link>
                       )}
                     </>
@@ -319,16 +322,16 @@ export default function Home() {
                   {(user?.role === "admin" || user?.role === "super_admin") && (
                     <>
                       <Link href="/projects">
-                        <Button variant="ghost">Proyectos</Button>
+                        <Button variant="ghost" size="sm" className="text-sm">Proyectos</Button>
                       </Link>
                       <Link href="/tasks">
-                        <Button variant="ghost">Tareas</Button>
+                        <Button variant="ghost" size="sm" className="text-sm">Tareas</Button>
                       </Link>
                       <Link href="/calendar">
-                        <Button variant="ghost">Calendario</Button>
+                        <Button variant="ghost" size="sm" className="text-sm">Calendario</Button>
                       </Link>
                       <Link href="/admin">
-                        <Button variant="ghost">Panel Admin</Button>
+                        <Button variant="ghost" size="sm" className="text-sm">Panel Admin</Button>
                       </Link>
                     </>
                   )}
@@ -336,10 +339,13 @@ export default function Home() {
                 </>
               ) : (
                 <Link href="/login">
-                  <Button>Iniciar Sesión</Button>
+                  <Button size="sm">Iniciar Sesión</Button>
                 </Link>
               )}
             </nav>
+
+            {/* Mobile Navigation */}
+            <MobileNav />
           </div>
         </div>
       </header>

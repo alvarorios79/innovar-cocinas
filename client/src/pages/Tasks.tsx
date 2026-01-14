@@ -152,31 +152,34 @@ export default function Tasks() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b">
-        <div className="container flex h-16 items-center justify-between">
-          <div className="flex items-center gap-4">
+        <div className="container flex h-14 md:h-16 items-center justify-between px-3 md:px-4">
+          <div className="flex items-center gap-2 md:gap-4">
             <Link href="/">
-              <Button variant="ghost">← Inicio</Button>
+              <Button variant="ghost" size="sm" className="px-2 md:px-3">
+                <span className="hidden sm:inline">← Inicio</span>
+                <span className="sm:hidden">←</span>
+              </Button>
             </Link>
-            <Link href="/projects">
-              <Button variant="ghost">Proyectos</Button>
+            <Link href="/projects" className="hidden md:block">
+              <Button variant="ghost" size="sm">Proyectos</Button>
             </Link>
             <img 
               src="/logo-light.png" 
               alt="INNOVAR" 
-              className="h-10 w-auto"
+              className="h-8 md:h-10 w-auto"
             />
-            <span className="text-sm text-muted-foreground">Mis Tareas</span>
+            <span className="hidden lg:inline text-sm text-muted-foreground">Mis Tareas</span>
           </div>
-          <div className="flex items-center gap-2">
-            <Badge variant="outline">{getRoleLabel(user?.role || "")}</Badge>
-            <span className="text-sm text-muted-foreground">{user?.name}</span>
+          <div className="flex items-center gap-1 md:gap-2">
+            <Badge variant="outline" className="text-xs md:text-sm">{getRoleLabel(user?.role || "")}</Badge>
+            <span className="hidden sm:inline text-sm text-muted-foreground truncate max-w-[100px]">{user?.name}</span>
           </div>
         </div>
       </header>
 
-      <div className="container py-8">
+      <div className="container py-4 md:py-8 px-3 md:px-4">
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-3 gap-2 md:gap-4 mb-4 md:mb-6">
           <Card className="cursor-pointer hover:shadow-md" onClick={() => setStatusFilter("pendiente")}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Pendientes</CardTitle>

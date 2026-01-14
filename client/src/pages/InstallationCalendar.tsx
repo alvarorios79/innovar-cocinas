@@ -191,36 +191,37 @@ export default function InstallationCalendar() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-white border-b sticky top-0 z-10">
-        <div className="container py-4">
+        <div className="container py-3 md:py-4 px-3 md:px-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 md:gap-4">
               <Link href="/">
-                <Button variant="ghost" size="sm">
-                  <ChevronLeft className="h-4 w-4 mr-1" />
-                  Volver
+                <Button variant="ghost" size="sm" className="px-2">
+                  <ChevronLeft className="h-4 w-4" />
+                  <span className="hidden sm:inline ml-1">Volver</span>
                 </Button>
               </Link>
               <div>
-                <h1 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                  <Calendar className="h-5 w-5 text-teal-600" />
-                  Calendario de Instalaciones
+                <h1 className="text-base md:text-xl font-bold text-gray-900 flex items-center gap-2">
+                  <Calendar className="h-4 w-4 md:h-5 md:w-5 text-teal-600" />
+                  <span className="hidden sm:inline">Calendario de Instalaciones</span>
+                  <span className="sm:hidden">Instalaciones</span>
                 </h1>
-                <p className="text-sm text-gray-500">
+                <p className="hidden md:block text-sm text-gray-500">
                   Gestiona las instalaciones programadas
                 </p>
               </div>
             </div>
             <Link href="/projects">
-              <Button variant="outline">
-                <Wrench className="h-4 w-4 mr-2" />
-                Ver Proyectos
+              <Button variant="outline" size="sm" className="px-2 md:px-3">
+                <Wrench className="h-4 w-4 md:mr-2" />
+                <span className="hidden md:inline">Ver Proyectos</span>
               </Button>
             </Link>
           </div>
         </div>
       </header>
 
-      <main className="container py-6">
+      <main className="container py-4 md:py-6 px-3 md:px-4">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Calendario */}
           <div className="lg:col-span-3">

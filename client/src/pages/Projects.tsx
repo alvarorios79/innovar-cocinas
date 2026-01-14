@@ -306,52 +306,56 @@ export default function Projects() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b">
-        <div className="container flex h-16 items-center justify-between">
-          <div className="flex items-center gap-4">
+        <div className="container flex h-14 md:h-16 items-center justify-between px-3 md:px-4">
+          <div className="flex items-center gap-2 md:gap-4">
             <Link href="/">
-              <Button variant="ghost">← Inicio</Button>
+              <Button variant="ghost" size="sm" className="px-2 md:px-3">
+                <span className="hidden sm:inline">← Inicio</span>
+                <span className="sm:hidden">←</span>
+              </Button>
             </Link>
             {(user?.role === "admin" || user?.role === "super_admin") && (
-              <Link href="/admin">
-                <Button variant="ghost">Panel Admin</Button>
+              <Link href="/admin" className="hidden md:block">
+                <Button variant="ghost" size="sm">Panel Admin</Button>
               </Link>
             )}
             <img 
               src="/logo-light.png" 
               alt="INNOVAR" 
-              className="h-10 w-auto"
+              className="h-8 md:h-10 w-auto"
             />
-            <span className="text-sm text-muted-foreground">Gestión de Proyectos</span>
+            <span className="hidden lg:inline text-sm text-muted-foreground">Gestión de Proyectos</span>
           </div>
-          <div className="flex items-center gap-2">
-            <Badge variant="outline">{getRoleLabel(user?.role || "")}</Badge>
-            <span className="text-sm text-muted-foreground">{user?.name}</span>
+          <div className="flex items-center gap-1 md:gap-2">
+            <Badge variant="outline" className="text-xs md:text-sm">{getRoleLabel(user?.role || "")}</Badge>
+            <span className="hidden sm:inline text-sm text-muted-foreground truncate max-w-[100px] md:max-w-none">{user?.name}</span>
           </div>
         </div>
       </header>
 
-      <div className="container py-8">
+      <div className="container py-4 md:py-8 px-3 md:px-4">
         {/* Header con filtros y botón crear */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-          <div>
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <FolderKanban className="h-6 w-6" />
-              Proyectos
-            </h1>
-            <p className="text-muted-foreground">
-              {user?.role === "disenador" && "Proyectos pendientes de diseño"}
-              {(user?.role === "jefe_taller" || user?.role === "operario") && "Proyectos en producción"}
-              {(user?.role === "admin" || user?.role === "super_admin") && "Todos los proyectos"}
-            </p>
-          </div>
+        <div className="flex flex-col gap-4 mb-4 md:mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <h1 className="text-xl md:text-2xl font-bold flex items-center gap-2">
+                <FolderKanban className="h-5 w-5 md:h-6 md:w-6" />
+                Proyectos
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                {user?.role === "disenador" && "Proyectos pendientes de diseño"}
+                {(user?.role === "jefe_taller" || user?.role === "operario") && "Proyectos en producción"}
+                {(user?.role === "admin" || user?.role === "super_admin") && "Todos los proyectos"}
+              </p>
+            </div>
 
-          <div className="flex gap-2">
-            {/* Filtro por estado */}
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Filtrar por estado" />
-              </SelectTrigger>
-              <SelectContent>
+            <div className="flex flex-wrap gap-2">
+              {/* Filtro por estado */}
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-full sm:w-[180px]">
+                  <SelectValue placeholder="Filtrar" />
+                </SelectTrigger>
+                <SelectContent>
                 <SelectItem value="all">Todos los estados</SelectItem>
                 {Object.entries(PROJECT_STATUSES).map(([key, config]) => (
                   <SelectItem key={key} value={key}>{config.label}</SelectItem>
@@ -443,6 +447,7 @@ export default function Projects() {
                 </DialogContent>
               </Dialog>
             )}
+            </div>
           </div>
         </div>
 

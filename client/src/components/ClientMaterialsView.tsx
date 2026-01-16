@@ -64,12 +64,12 @@ export function ClientMaterialsView({ projectId }: ClientMaterialsViewProps) {
   }, {} as Record<string, typeof selections>);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Materiales Base */}
       {hasMaterials && (
         <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center gap-2">
+          <CardHeader className="pb-2 sm:pb-3">
+            <CardTitle className="text-base sm:text-lg flex items-center gap-2">
               <Square className="h-5 w-5" />
               Materiales Seleccionados
             </CardTitle>
@@ -77,7 +77,7 @@ export function ClientMaterialsView({ projectId }: ClientMaterialsViewProps) {
           <CardContent className="space-y-4">
             {/* Madera */}
             {materials.woodType && (
-              <div className="flex items-start gap-4 p-4 bg-muted/50 rounded-lg">
+              <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4 p-3 sm:p-4 bg-muted/50 rounded-lg">
                 <div className="flex-shrink-0">
                   {materials.woodPhotoUrl ? (
                     <img 
@@ -111,7 +111,7 @@ export function ClientMaterialsView({ projectId }: ClientMaterialsViewProps) {
 
             {/* Mesón */}
             {materials.countertopType && (
-              <div className="flex items-start gap-4 p-4 bg-muted/50 rounded-lg">
+              <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4 p-3 sm:p-4 bg-muted/50 rounded-lg">
                 <div className="flex-shrink-0">
                   {materials.countertopPhotoUrl ? (
                     <img 
@@ -150,7 +150,7 @@ export function ClientMaterialsView({ projectId }: ClientMaterialsViewProps) {
 
             {/* Lavaplatos */}
             {materials.sinkMeasure && (
-              <div className="flex items-start gap-4 p-4 bg-muted/50 rounded-lg">
+              <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4 p-3 sm:p-4 bg-muted/50 rounded-lg">
                 <div className="flex-shrink-0">
                   {materials.sinkPhotoUrl ? (
                     <img 
@@ -183,8 +183,8 @@ export function ClientMaterialsView({ projectId }: ClientMaterialsViewProps) {
       {/* Herrajes */}
       {hasHardware && (
         <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center gap-2">
+          <CardHeader className="pb-2 sm:pb-3">
+            <CardTitle className="text-base sm:text-lg flex items-center gap-2">
               <Wrench className="h-5 w-5" />
               Herrajes Incluidos
               <Badge variant="secondary" className="ml-2">{selections.length}</Badge>

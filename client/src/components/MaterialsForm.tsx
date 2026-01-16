@@ -90,16 +90,16 @@ export function MaterialsForm({ projectId, readOnly = false }: MaterialsFormProp
     <div className="space-y-6">
       {/* Madera */}
       <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg flex items-center gap-2">
+        <CardHeader className="pb-2 sm:pb-3">
+          <CardTitle className="text-base sm:text-lg flex items-center gap-2">
             <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center">
               <span className="text-amber-700">🪵</span>
             </div>
             Madera
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <CardContent className="space-y-3 sm:space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div className="space-y-2">
               <Label>Tipo de Madera</Label>
               <Select
@@ -169,16 +169,16 @@ export function MaterialsForm({ projectId, readOnly = false }: MaterialsFormProp
 
       {/* Mesón */}
       <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg flex items-center gap-2">
+        <CardHeader className="pb-2 sm:pb-3">
+          <CardTitle className="text-base sm:text-lg flex items-center gap-2">
             <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
               <span className="text-slate-700">🪨</span>
             </div>
             Mesón
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <CardContent className="space-y-3 sm:space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div className="space-y-2">
               <Label>Tipo de Mesón</Label>
               <Select
@@ -249,15 +249,15 @@ export function MaterialsForm({ projectId, readOnly = false }: MaterialsFormProp
 
       {/* Lavaplatos */}
       <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg flex items-center gap-2">
+        <CardHeader className="pb-2 sm:pb-3">
+          <CardTitle className="text-base sm:text-lg flex items-center gap-2">
             <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
               <span className="text-blue-700">🚰</span>
             </div>
             Lavaplatos
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-3 sm:space-y-4">
           <div className="space-y-2">
             <Label>Medida</Label>
             <Input

@@ -121,30 +121,33 @@ export function HardwareSelector({ projectId, readOnly = false }: HardwareSelect
   return (
     <div className="space-y-4">
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)}>
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="cocinas" className="flex items-center gap-2">
-            <ChefHat className="h-4 w-4" />
-            Cocinas
+        <TabsList className="grid w-full grid-cols-3 h-auto">
+          <TabsTrigger value="cocinas" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 py-2">
+            <ChefHat className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Cocinas</span>
+            <span className="sm:hidden">Coc.</span>
             {selectedCount.cocinas > 0 && (
-              <Badge variant="secondary" className="ml-1 bg-primary text-primary-foreground">
+              <Badge variant="secondary" className="ml-0.5 sm:ml-1 bg-primary text-primary-foreground text-xs px-1.5">
                 {selectedCount.cocinas}
               </Badge>
             )}
           </TabsTrigger>
-          <TabsTrigger value="closets" className="flex items-center gap-2">
-            <Shirt className="h-4 w-4" />
-            Closets
+          <TabsTrigger value="closets" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 py-2">
+            <Shirt className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Closets</span>
+            <span className="sm:hidden">Clos.</span>
             {selectedCount.closets > 0 && (
-              <Badge variant="secondary" className="ml-1 bg-primary text-primary-foreground">
+              <Badge variant="secondary" className="ml-0.5 sm:ml-1 bg-primary text-primary-foreground text-xs px-1.5">
                 {selectedCount.closets}
               </Badge>
             )}
           </TabsTrigger>
-          <TabsTrigger value="puertas" className="flex items-center gap-2">
-            <DoorOpen className="h-4 w-4" />
-            Puertas
+          <TabsTrigger value="puertas" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 py-2">
+            <DoorOpen className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Puertas</span>
+            <span className="sm:hidden">Ptas.</span>
             {selectedCount.puertas > 0 && (
-              <Badge variant="secondary" className="ml-1 bg-primary text-primary-foreground">
+              <Badge variant="secondary" className="ml-0.5 sm:ml-1 bg-primary text-primary-foreground text-xs px-1.5">
                 {selectedCount.puertas}
               </Badge>
             )}
@@ -153,7 +156,7 @@ export function HardwareSelector({ projectId, readOnly = false }: HardwareSelect
 
         {["cocinas", "closets", "puertas"].map((category) => (
           <TabsContent key={category} value={category} className="mt-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4">
               {catalog?.filter(item => item.category === category).map((hardware) => {
                 const selected = isSelected(hardware.id);
                 const selection = getSelection(hardware.id);

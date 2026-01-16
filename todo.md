@@ -463,3 +463,7 @@
 
 - [x] Implementar permisos de subida de fotos por rol y carpeta
 - [x] Implementar permisos de visualización de fotos por rol y carpeta
+
+- [x] Crear paleta de colores corporativos basada en verde turquesa
+- [x] Mejorar diseño responsivo para móvil, tablet y escritorio
+- [x] Corregir textos que se sobreponen en diferentes pantallas

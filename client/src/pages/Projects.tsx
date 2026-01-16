@@ -499,9 +499,9 @@ export default function Projects() {
                 <CardContent className="p-4">
                   <div className="flex flex-col sm:flex-row justify-between gap-4">
                     {/* Info del proyecto */}
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <h3 className="font-semibold text-lg">{project.name}</h3>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2 mb-2">
+                        <h3 className="font-semibold text-base sm:text-lg truncate max-w-[200px] sm:max-w-none">{project.name}</h3>
                         {getStatusBadge(project.status)}
                       </div>
                       <div className="text-sm text-muted-foreground space-y-1">
@@ -567,7 +567,7 @@ export default function Projects() {
 
         {/* Modal de detalle del proyecto */}
         <Dialog open={!!selectedProject} onOpenChange={(open) => !open && setSelectedProject(null)}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="w-full max-w-[95vw] sm:max-w-[90vw] md:max-w-4xl max-h-[90vh] overflow-y-auto p-3 sm:p-6">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 {selectedProject?.name}
@@ -651,12 +651,12 @@ export default function Projects() {
 
             {projectDetail && (
               <Tabs defaultValue="info" className="mt-4">
-                <TabsList className="grid w-full grid-cols-5">
-                  <TabsTrigger value="info">Información</TabsTrigger>
-                  <TabsTrigger value="materials">Materiales</TabsTrigger>
-                  <TabsTrigger value="photos">Fotos</TabsTrigger>
-                  <TabsTrigger value="details">Detalles</TabsTrigger>
-                  <TabsTrigger value="history">Historial</TabsTrigger>
+                <TabsList className="flex flex-wrap sm:grid sm:grid-cols-5 w-full gap-1">
+                  <TabsTrigger value="info" className="text-xs sm:text-sm px-2 sm:px-3">Información</TabsTrigger>
+                  <TabsTrigger value="materials" className="text-xs sm:text-sm px-2 sm:px-3">Materiales</TabsTrigger>
+                  <TabsTrigger value="photos" className="text-xs sm:text-sm px-2 sm:px-3">Fotos</TabsTrigger>
+                  <TabsTrigger value="details" className="text-xs sm:text-sm px-2 sm:px-3">Detalles</TabsTrigger>
+                  <TabsTrigger value="history" className="text-xs sm:text-sm px-2 sm:px-3">Historial</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="info" className="space-y-4">
@@ -797,11 +797,12 @@ export default function Projects() {
                 <TabsContent value="photos" className="space-y-4">
                   {/* Filtro por categoría y botón para subir foto */}
                   <div className="flex flex-col sm:flex-row gap-3 justify-between items-start sm:items-center">
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-1 sm:gap-2">
                       <Button
                         size="sm"
                         variant={categoryFilter === "all" ? "default" : "outline"}
                         onClick={() => { setCategoryFilter("all"); setSubcategoryFilter("all"); }}
+                        className="text-xs sm:text-sm px-2 sm:px-3 h-7 sm:h-8"
                       >
                         Todas
                       </Button>
@@ -818,6 +819,7 @@ export default function Projects() {
                           size="sm"
                           variant={categoryFilter === cat.value ? "default" : "outline"}
                           onClick={() => { setCategoryFilter(cat.value); setSubcategoryFilter("all"); }}
+                          className="text-xs sm:text-sm px-2 sm:px-3 h-7 sm:h-8"
                         >
                           {cat.label}
                         </Button>
@@ -1269,7 +1271,7 @@ export default function Projects() {
 
         {/* Diálogo para subir foto */}
         <Dialog open={showPhotoDialog} onOpenChange={setShowPhotoDialog}>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="w-full max-w-[95vw] sm:max-w-[85vw] md:max-w-2xl p-3 sm:p-6">
             <DialogHeader>
               <DialogTitle>Subir Fotos</DialogTitle>
               <DialogDescription>
@@ -1493,7 +1495,7 @@ export default function Projects() {
 
       {/* Diálogo de notificación WhatsApp */}
       <Dialog open={showWhatsAppDialog} onOpenChange={setShowWhatsAppDialog}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="w-full max-w-[95vw] sm:max-w-lg p-3 sm:p-6">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <MessageCircle className="h-5 w-5 text-green-500" />
@@ -1548,7 +1550,7 @@ export default function Projects() {
 
       {/* Diálogo de editar fecha estimada */}
       <Dialog open={showEditDateDialog} onOpenChange={setShowEditDateDialog}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="w-full max-w-[95vw] sm:max-w-md p-3 sm:p-6">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Calendar className="h-5 w-5 text-primary" />

@@ -37,6 +37,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PhotoUploader } from "@/components/PhotoUploader";
 import { FileViewer, useFileViewer } from "@/components/FileViewer";
+import { MaterialsForm } from "@/components/MaterialsForm";
+import { HardwareSelector } from "@/components/HardwareSelector";
 
 // Estados del proyecto según Ruta INNOVAR
 const PROJECT_STATUSES = {
@@ -648,8 +650,9 @@ export default function Projects() {
 
             {projectDetail && (
               <Tabs defaultValue="info" className="mt-4">
-                <TabsList className="grid w-full grid-cols-4">
+                <TabsList className="grid w-full grid-cols-5">
                   <TabsTrigger value="info">Información</TabsTrigger>
+                  <TabsTrigger value="materials">Materiales</TabsTrigger>
                   <TabsTrigger value="photos">Fotos</TabsTrigger>
                   <TabsTrigger value="details">Detalles</TabsTrigger>
                   <TabsTrigger value="history">Historial</TabsTrigger>
@@ -775,6 +778,19 @@ export default function Projects() {
                       </CardContent>
                     </Card>
                   )}
+                </TabsContent>
+
+                <TabsContent value="materials" className="space-y-6">
+                  <div className="space-y-6">
+                    <div>
+                      <h3 className="text-lg font-semibold mb-4">Materiales Base</h3>
+                      <MaterialsForm projectId={projectDetail.id} />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold mb-4">Herrajes del Proyecto</h3>
+                      <HardwareSelector projectId={projectDetail.id} />
+                    </div>
+                  </div>
                 </TabsContent>
 
                 <TabsContent value="photos" className="space-y-4">

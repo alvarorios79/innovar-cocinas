@@ -425,7 +425,10 @@
 - [ ] Subir fotos fijas de herrajes (Cocinas, Closets, Puertas)
 
 ### Fase 3: Formulario de Materiales
-- [ ] Crear formulario de materiales base (Madera, Mesón, Lavaplatos)
+- [x] Crear componente MaterialsForm (Madera, Mesón, Lavaplatos)
+- [x] Crear componente HardwareSelector con checkboxes visuales
+- [x] Integrar componentes en página de proyectos
+- [x] Agregar pestaña Materiales en detalle de proyecto
 - [ ] Implementar selector de herrajes con catálogo visual
 - [ ] Guardar selecciones de materiales por proyecto
 

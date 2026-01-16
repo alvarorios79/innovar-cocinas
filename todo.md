@@ -444,5 +444,7 @@
 - [x] Actualizar filtros y galería
 
 ### Fase 5: Vista Cliente
-- [ ] Mostrar materiales seleccionados en portal del cliente
-- [ ] Permitir ver catálogo de herrajes (solo lectura)
+- [x] Agregar sección Materiales en portal del cliente (expandible)
+- [x] Mostrar materiales base (Madera, Mesón, Lavaplatos) en modo lectura
+- [x] Mostrar herrajes seleccionados con fotos en modo lectura
+- [x] Permitir ver foto ampliada al hacer clic en herraje

@@ -1,0 +1,39 @@
+{
+  "query": "SELECT * FROM projects WHERE name = 'Prueba 1' LIMIT 1;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT * FROM projects WHERE name = 'Prueba 1' LIMIT 1;",
+  "rows": [
+    {
+      "id": "1",
+      "quotationId": "NULL",
+      "clientId": "90091",
+      "name": "Prueba 1",
+      "workType": "cocina",
+      "status": "corte",
+      "initialMeasurements": "2,30 x 2,34",
+      "design3dFiles": "NULL",
+      "despieceFiles": "NULL",
+      "clientApprovedAt": "2026-01-16 03:22:40",
+      "clientApprovalNotes": "NULL",
+      "createdBy": "1",
+      "designerId": "NULL",
+      "createdAt": "2026-01-14 05:10:09",
+      "updatedAt": "2026-01-16 03:22:39",
+      "quotationSentAt": "2026-01-14 05:10:09",
+      "quotationApprovedAt": "2026-01-14 07:03:21",
+      "advanceReceivedAt": "2026-01-14 07:27:00",
+      "advanceAmount": "NULL",
+      "designDeadline": "NULL",
+      "designDeliveredAt": "NULL",
+      "selectedColors": "NULL",
+      "selectedMaterials": "NULL",
+      "estimatedInstallDate": "NULL",
+      "scheduledInstallDate": "NULL",
+      "installDurationDays": "1",
+      "deliveredAt": "NULL"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tquotationId\tclientId\tname\tworkType\tstatus\tinitialMeasurements\tdesign3dFiles\tdespieceFiles\tclientApprovedAt\tclientApprovalNotes\tcreatedBy\tdesignerId\tcreatedAt\tupdatedAt\tquotationSentAt\tquotationApprovedAt\tadvanceReceivedAt\tadvanceAmount\tdesignDeadline\tdesignDeliveredAt\tselectedColors\tselectedMaterials\testimatedInstallDate\tscheduledInstallDate\tinstallDurationDays\tdeliveredAt\n1\tNULL\t90091\tPrueba 1\tcocina\tcorte\t2,30 x 2,34\tNULL\tNULL\t2026-01-16 03:22:40\tNULL\t1\tNULL\t2026-01-14 05:10:09\t2026-01-16 03:22:39\t2026-01-14 05:10:09\t2026-01-14 07:03:21\t2026-01-14 07:27:00\tNULL\tNULL\tNULL\tNULL\tNULL\tNULL\tNULL\t1\tNULL\n",
+  "stderr": "",
+  "execution_time_ms": 354
+}

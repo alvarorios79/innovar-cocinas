@@ -6,12 +6,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
-import { Calendar, FileText, LogOut, FolderKanban, CheckCircle2, Clock, Hammer, Paintbrush, Package, Truck, AlertCircle, Image as ImageIcon, ThumbsUp, ThumbsDown } from "lucide-react";
+import { Calendar, FileText, LogOut, FolderKanban, CheckCircle2, Clock, Hammer, Paintbrush, Package, Truck, AlertCircle, Image as ImageIcon, ThumbsUp, ThumbsDown, Wrench } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { PhotoUploader } from "@/components/PhotoUploader";
+import { ClientMaterialsView } from "@/components/ClientMaterialsView";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -391,6 +392,21 @@ export default function Portal() {
                             </div>
                           </div>
                         )}
+
+                        {/* Sección de Materiales */}
+                        <div className="space-y-3">
+                          <details className="group">
+                            <summary className="font-medium flex items-center gap-2 cursor-pointer list-none">
+                              <Wrench className="h-4 w-4" />
+                              Ver Materiales y Herrajes
+                              <span className="text-xs text-muted-foreground ml-auto group-open:hidden">Clic para expandir</span>
+                              <span className="text-xs text-muted-foreground ml-auto hidden group-open:inline">Clic para cerrar</span>
+                            </summary>
+                            <div className="mt-4">
+                              <ClientMaterialsView projectId={project.id} />
+                            </div>
+                          </details>
+                        </div>
 
                         {/* Galería de fotos por etapa */}
                         {project.photos && project.photos.length > 0 && (

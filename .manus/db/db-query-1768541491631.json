@@ -1,0 +1,18 @@
+{
+  "query": "SELECT p.id, p.name, p.clientId, c.name as client_name, c.userId, u.name as user_name\nFROM projects p\nJOIN clients c ON p.clientId = c.id\nLEFT JOIN users u ON c.userId = u.id\nWHERE p.name = 'Prueba 1';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT p.id, p.name, p.clientId, c.name as client_name, c.userId, u.name as user_name\nFROM projects p\nJOIN clients c ON p.clientId = c.id\nLEFT JOIN users u ON c.userId = u.id\nWHERE p.name = 'Prueba 1';",
+  "rows": [
+    {
+      "id": "1",
+      "name": "Prueba 1",
+      "clientId": "90091",
+      "client_name": "Carlos Albeiro Betancurt ",
+      "userId": "271067",
+      "user_name": "Carlos Albeiro Betancurt "
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\tclientId\tclient_name\tuserId\tuser_name\n1\tPrueba 1\t90091\tCarlos Albeiro Betancurt \t271067\tCarlos Albeiro Betancurt \n",
+  "stderr": "",
+  "execution_time_ms": 361
+}

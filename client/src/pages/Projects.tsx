@@ -955,7 +955,25 @@ export default function Projects() {
                     </div>
                   )}
 
-                  {["inicial", "diseno", "corte", "enchape", "ensamble", "final"].map((stage) => {
+                  {/* Mapeo de categorías a etapas */}
+                  {(() => {
+                    // Definir qué etapas corresponden a cada categoría
+                    const categoryToStages: Record<string, string[]> = {
+                      cotizacion: ["inicial"], // Documentos de cotización van en inicial
+                      medidas: ["inicial"], // Fotos iniciales y dibujos
+                      disenos: ["diseno"], // Renders, despieces, detalles
+                      avance: ["corte", "enchape", "ensamble"], // Etapas de producción
+                      instalacion: ["final"], // Proceso de instalación
+                      entrega: ["final"], // Fotos finales
+                    };
+                    
+                    // Determinar qué etapas mostrar según el filtro de categoría
+                    const stagesToShow = categoryFilter === "all" 
+                      ? ["inicial", "diseno", "corte", "enchape", "ensamble", "final"]
+                      : categoryToStages[categoryFilter] || [];
+                    
+                    return stagesToShow;
+                  })().map((stage) => {
                     // Filtrar fotos por etapa, categoría y subcategoría
                     const allStagePhotos = projectDetail.photos?.filter((p: any) => p.stage === stage) || [];
                     let stagePhotos = categoryFilter === "all" 

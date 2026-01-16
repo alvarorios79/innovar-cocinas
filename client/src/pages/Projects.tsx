@@ -88,8 +88,9 @@ export default function Projects() {
     description: "",
   });
   
-  // Estado para filtro de categoría en galería
+  // Estado para filtro de categoría y subcategoría en galería
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [subcategoryFilter, setSubcategoryFilter] = useState<string>("all");
   const [detailForm, setDetailForm] = useState({
     type: "nota_importante" as "medida_especial" | "nota_importante" | "foto_referencia",
     title: "",
@@ -800,7 +801,7 @@ export default function Projects() {
                       <Button
                         size="sm"
                         variant={categoryFilter === "all" ? "default" : "outline"}
-                        onClick={() => setCategoryFilter("all")}
+                        onClick={() => { setCategoryFilter("all"); setSubcategoryFilter("all"); }}
                       >
                         Todas
                       </Button>
@@ -816,7 +817,7 @@ export default function Projects() {
                           key={cat.value}
                           size="sm"
                           variant={categoryFilter === cat.value ? "default" : "outline"}
-                          onClick={() => setCategoryFilter(cat.value)}
+                          onClick={() => { setCategoryFilter(cat.value); setSubcategoryFilter("all"); }}
                         >
                           {cat.label}
                         </Button>
@@ -834,12 +835,137 @@ export default function Projects() {
                     )}
                   </div>
 
+                  {/* Filtro de subcategorías dinámico según categoría seleccionada */}
+                  {categoryFilter !== "all" && (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      <Button
+                        size="sm"
+                        variant={subcategoryFilter === "all" ? "secondary" : "ghost"}
+                        onClick={() => setSubcategoryFilter("all")}
+                        className="h-7 text-xs"
+                      >
+                        Todas
+                      </Button>
+                      {categoryFilter === "cotizacion" && (
+                        <Button
+                          size="sm"
+                          variant={subcategoryFilter === "documento_cotizacion" ? "secondary" : "ghost"}
+                          onClick={() => setSubcategoryFilter("documento_cotizacion")}
+                          className="h-7 text-xs"
+                        >
+                          Documento
+                        </Button>
+                      )}
+                      {categoryFilter === "medidas" && (
+                        <>
+                          <Button
+                            size="sm"
+                            variant={subcategoryFilter === "fotos_iniciales" ? "secondary" : "ghost"}
+                            onClick={() => setSubcategoryFilter("fotos_iniciales")}
+                            className="h-7 text-xs"
+                          >
+                            Fotos Iniciales
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant={subcategoryFilter === "dibujo" ? "secondary" : "ghost"}
+                            onClick={() => setSubcategoryFilter("dibujo")}
+                            className="h-7 text-xs"
+                          >
+                            Dibujo
+                          </Button>
+                        </>
+                      )}
+                      {categoryFilter === "disenos" && (
+                        <>
+                          <Button
+                            size="sm"
+                            variant={subcategoryFilter === "renders" ? "secondary" : "ghost"}
+                            onClick={() => setSubcategoryFilter("renders")}
+                            className="h-7 text-xs"
+                          >
+                            Renders
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant={subcategoryFilter === "despieces" ? "secondary" : "ghost"}
+                            onClick={() => setSubcategoryFilter("despieces")}
+                            className="h-7 text-xs"
+                          >
+                            Despieces
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant={subcategoryFilter === "detalles" ? "secondary" : "ghost"}
+                            onClick={() => setSubcategoryFilter("detalles")}
+                            className="h-7 text-xs"
+                          >
+                            Detalles
+                          </Button>
+                        </>
+                      )}
+                      {categoryFilter === "avance" && (
+                        <>
+                          <Button
+                            size="sm"
+                            variant={subcategoryFilter === "corte" ? "secondary" : "ghost"}
+                            onClick={() => setSubcategoryFilter("corte")}
+                            className="h-7 text-xs"
+                          >
+                            Corte
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant={subcategoryFilter === "enchape" ? "secondary" : "ghost"}
+                            onClick={() => setSubcategoryFilter("enchape")}
+                            className="h-7 text-xs"
+                          >
+                            Enchape
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant={subcategoryFilter === "armado" ? "secondary" : "ghost"}
+                            onClick={() => setSubcategoryFilter("armado")}
+                            className="h-7 text-xs"
+                          >
+                            Armado
+                          </Button>
+                        </>
+                      )}
+                      {categoryFilter === "instalacion" && (
+                        <Button
+                          size="sm"
+                          variant={subcategoryFilter === "proceso_instalacion" ? "secondary" : "ghost"}
+                          onClick={() => setSubcategoryFilter("proceso_instalacion")}
+                          className="h-7 text-xs"
+                        >
+                          Proceso
+                        </Button>
+                      )}
+                      {categoryFilter === "entrega" && (
+                        <Button
+                          size="sm"
+                          variant={subcategoryFilter === "fotos_finales" ? "secondary" : "ghost"}
+                          onClick={() => setSubcategoryFilter("fotos_finales")}
+                          className="h-7 text-xs"
+                        >
+                          Fotos Finales
+                        </Button>
+                      )}
+                    </div>
+                  )}
+
                   {["inicial", "diseno", "corte", "enchape", "ensamble", "final"].map((stage) => {
-                    // Filtrar fotos por etapa y categoría
+                    // Filtrar fotos por etapa, categoría y subcategoría
                     const allStagePhotos = projectDetail.photos?.filter((p: any) => p.stage === stage) || [];
-                    const stagePhotos = categoryFilter === "all" 
+                    let stagePhotos = categoryFilter === "all" 
                       ? allStagePhotos 
                       : allStagePhotos.filter((p: any) => p.category === categoryFilter);
+                    
+                    // Aplicar filtro de subcategoría si está activo
+                    if (subcategoryFilter !== "all") {
+                      stagePhotos = stagePhotos.filter((p: any) => p.subcategory === subcategoryFilter);
+                    }
                     
                     const stageLabels: Record<string, string> = {
                       inicial: "Fotos Iniciales",
@@ -939,14 +1065,19 @@ export default function Projects() {
                                         className="w-full h-24 object-cover rounded hover:opacity-80 transition-opacity"
                                       />
                                     )}
-                                    {/* Badge de categoría */}
-                                    {photo.category && (
-                                      <div className="absolute top-1 left-1">
+                                    {/* Badge de categoría y subcategoría */}
+                                    <div className="absolute top-1 left-1 flex flex-col gap-0.5">
+                                      {photo.category && (
                                         <span className="text-[10px] bg-primary/80 text-primary-foreground px-1.5 py-0.5 rounded">
                                           {categoryLabels[photo.category] || photo.category}
                                         </span>
-                                      </div>
-                                    )}
+                                      )}
+                                      {photo.subcategory && (
+                                        <span className="text-[10px] bg-secondary/90 text-secondary-foreground px-1.5 py-0.5 rounded">
+                                          {subcategoryLabels[photo.subcategory] || photo.subcategory}
+                                        </span>
+                                      )}
+                                    </div>
                                     <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                       <ZoomIn className="h-4 w-4 text-white drop-shadow-lg" />
                                     </div>

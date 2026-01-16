@@ -433,9 +433,12 @@
 - [ ] Guardar selecciones de materiales por proyecto
 
 ### Fase 4: Interfaz de Fotos con Subcategorías
-- [ ] Actualizar categorías: Cotización, Medidas, Diseños, Avance, Instalación, Entrega
-- [ ] Agregar subcategorías: Medidas(Fotos Iniciales, Dibujo), Diseños(Renders, Despieces, Detalles), Avance(Corte, Enchape, Armado)
-- [ ] Actualizar filtros y galería
+- [x] Actualizar formulario de subida con subcategorías dinámicas por categoría
+- [x] Actualizar galería para mostrar y filtrar por subcategorías
+- [x] Implementar subcategorías: Cotización(1), Medidas(2), Diseños(3), Avance(3), Instalación(1), Entrega(1)
+- [x] Actualizar categorías: Cotización, Medidas, Diseños, Avance, Instalación, Entrega
+- [x] Agregar subcategorías: Medidas(Fotos Iniciales, Dibujo), Diseños(Renders, Despieces, Detalles), Avance(Corte, Enchape, Armado)
+- [x] Actualizar filtros y galería
 
 ### Fase 5: Vista Cliente
 - [ ] Mostrar materiales seleccionados en portal del cliente

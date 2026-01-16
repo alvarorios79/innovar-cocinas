@@ -396,3 +396,11 @@
 
 ### Mejora de Acceso para Clientes
 - [x] Agregar enlace "Inscríbete" debajo del botón "Iniciar Sesión" en página principal
+
+### Limpieza de Usuarios de Prueba
+- [x] Identificar usuarios super_admin de prueba (27 encontrados)
+- [x] Eliminar usuarios super_admin excepto Alvaro Rios
+- [x] Eliminar usuario duplicado de Martha
+
+### Mejora Acceso Móvil
+- [x] Mostrar botones Inscríbete e Iniciar Sesión visibles en header móvil (sin menú hamburguesa)

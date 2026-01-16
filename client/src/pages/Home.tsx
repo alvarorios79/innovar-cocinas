@@ -350,7 +350,19 @@ export default function Home() {
             </nav>
 
             {/* Mobile Navigation */}
-            <MobileNav />
+            <div className="flex items-center gap-2 md:hidden">
+              {!isAuthenticated && (
+                <>
+                  <Link href="/register">
+                    <Button variant="outline" size="sm" className="text-xs px-2 py-1 h-8">Inscríbete</Button>
+                  </Link>
+                  <Link href="/login">
+                    <Button size="sm" className="text-xs px-2 py-1 h-8">Iniciar</Button>
+                  </Link>
+                </>
+              )}
+              {isAuthenticated && <MobileNav />}
+            </div>
           </div>
         </div>
       </header>

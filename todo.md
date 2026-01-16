@@ -458,3 +458,5 @@
 - [x] Filtrar subcategorías en sección Fotos según la categoría seleccionada
 
 - [x] Filtrar carpetas de etapas según la categoría seleccionada en Fotos
+
+- [x] Corregir mapeo de categorías a carpetas en Fotos (Cotización→Documento, Medidas→Fotos Iniciales+Dibujo, Diseños→Renders+Despieces+Detalles, Instalación→Proceso)

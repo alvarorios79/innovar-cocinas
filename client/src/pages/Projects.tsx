@@ -957,42 +957,59 @@ export default function Projects() {
 
                   {/* Mapeo de categorías a etapas */}
                   {(() => {
-                    // Definir qué etapas corresponden a cada categoría
-                    const categoryToStages: Record<string, string[]> = {
-                      cotizacion: ["inicial"], // Documentos de cotización van en inicial
-                      medidas: ["inicial"], // Fotos iniciales y dibujos
-                      disenos: ["diseno"], // Renders, despieces, detalles
-                      avance: ["corte", "enchape", "ensamble"], // Etapas de producción
-                      instalacion: ["final"], // Proceso de instalación
-                      entrega: ["final"], // Fotos finales
+                    // Definir qué subcarpetas corresponden a cada categoría
+                    // Ahora usamos subcategorías como carpetas en lugar de etapas
+                    const categoryToFolders: Record<string, string[]> = {
+                      cotizacion: ["documento_cotizacion"], // Documento
+                      medidas: ["fotos_iniciales", "dibujo"], // Fotos Iniciales + Dibujo
+                      disenos: ["renders", "despieces", "detalles"], // Renders, Despieces, Detalles
+                      avance: ["corte", "enchape", "armado"], // Corte, Enchape, Armado
+                      instalacion: ["proceso_instalacion"], // Proceso
+                      entrega: ["fotos_finales"], // Fotos Finales
                     };
                     
-                    // Determinar qué etapas mostrar según el filtro de categoría
-                    const stagesToShow = categoryFilter === "all" 
-                      ? ["inicial", "diseno", "corte", "enchape", "ensamble", "final"]
-                      : categoryToStages[categoryFilter] || [];
+                    // Todas las subcarpetas disponibles
+                    const allFolders = [
+                      "documento_cotizacion", "fotos_iniciales", "dibujo",
+                      "renders", "despieces", "detalles",
+                      "corte", "enchape", "armado",
+                      "proceso_instalacion", "fotos_finales"
+                    ];
                     
-                    return stagesToShow;
-                  })().map((stage) => {
-                    // Filtrar fotos por etapa, categoría y subcategoría
-                    const allStagePhotos = projectDetail.photos?.filter((p: any) => p.stage === stage) || [];
-                    let stagePhotos = categoryFilter === "all" 
-                      ? allStagePhotos 
-                      : allStagePhotos.filter((p: any) => p.category === categoryFilter);
+                    // Determinar qué carpetas mostrar según el filtro de categoría
+                    const foldersToShow = categoryFilter === "all" 
+                      ? allFolders
+                      : categoryToFolders[categoryFilter] || [];
+                    
+                    return foldersToShow;
+                  })().map((folder) => {
+                    // Filtrar fotos por subcategoría (carpeta)
+                    const allFolderPhotos = projectDetail.photos?.filter((p: any) => p.subcategory === folder) || [];
+                    let folderPhotos = categoryFilter === "all" 
+                      ? allFolderPhotos 
+                      : allFolderPhotos.filter((p: any) => p.category === categoryFilter);
                     
                     // Aplicar filtro de subcategoría si está activo
                     if (subcategoryFilter !== "all") {
-                      stagePhotos = stagePhotos.filter((p: any) => p.subcategory === subcategoryFilter);
+                      folderPhotos = folderPhotos.filter((p: any) => p.subcategory === subcategoryFilter);
                     }
                     
-                    const stageLabels: Record<string, string> = {
-                      inicial: "Fotos Iniciales",
-                      diseno: "Diseño",
+                    const folderLabels: Record<string, string> = {
+                      documento_cotizacion: "Documento",
+                      fotos_iniciales: "Fotos Iniciales",
+                      dibujo: "Dibujo",
+                      renders: "Renders",
+                      despieces: "Despieces",
+                      detalles: "Detalles",
                       corte: "Corte",
                       enchape: "Enchape",
-                      ensamble: "Ensamble",
-                      final: "Producto Final",
+                      armado: "Armado",
+                      proceso_instalacion: "Proceso",
+                      fotos_finales: "Fotos Finales",
                     };
+                    
+                    // Mantener compatibilidad con stageLabels para el resto del código
+                    const stageLabels: Record<string, string> = folderLabels;
                     
                     const categoryLabels: Record<string, string> = {
                       cotizacion: "Cotización",
@@ -1021,6 +1038,22 @@ export default function Projects() {
                     const canUploadStage = () => {
                       const role = user?.role;
                       if (role === "admin" || role === "super_admin") return true;
+                      // Mapear subcategorías a etapas para subir fotos
+                      const folderToStage: Record<string, string> = {
+                        documento_cotizacion: "inicial",
+                        fotos_iniciales: "inicial",
+                        dibujo: "inicial",
+                        renders: "diseno",
+                        despieces: "diseno",
+                        detalles: "diseno",
+                        corte: "corte",
+                        enchape: "enchape",
+                        armado: "ensamble",
+                        proceso_instalacion: "final",
+                        fotos_finales: "final",
+                      };
+                      const stage = folderToStage[folder] || "inicial";
+                      
                       if (role === "disenador" && (stage === "inicial" || stage === "diseno")) return true;
                       if ((role === "jefe_taller" || role === "operario") && 
                           ["corte", "enchape", "ensamble", "final"].includes(stage)) return true;
@@ -1028,20 +1061,34 @@ export default function Projects() {
                     };
 
                     return (
-                      <Card key={stage}>
+                      <Card key={folder}>
                         <CardHeader className="py-3">
                           <CardTitle className="text-sm flex items-center justify-between">
                             <div className="flex items-center gap-2">
                               <ImageIcon className="h-4 w-4" />
-                              {stageLabels[stage]}
-                              <Badge variant="outline">{stagePhotos.length}</Badge>
+                              {stageLabels[folder]}
+                              <Badge variant="outline">{folderPhotos.length}</Badge>
                             </div>
                             {canUploadStage() && (
                               <Button
                                 size="sm"
                                 variant="ghost"
                                 onClick={() => {
-                                  setPhotoForm({ ...photoForm, stage: stage as any });
+                                  // Mapear folder a stage para el formulario
+                                  const folderToStageMap: Record<string, string> = {
+                                    documento_cotizacion: "inicial",
+                                    fotos_iniciales: "inicial",
+                                    dibujo: "inicial",
+                                    renders: "diseno",
+                                    despieces: "diseno",
+                                    detalles: "diseno",
+                                    corte: "corte",
+                                    enchape: "enchape",
+                                    armado: "ensamble",
+                                    proceso_instalacion: "final",
+                                    fotos_finales: "final",
+                                  };
+                                  setPhotoForm({ ...photoForm, stage: folderToStageMap[folder] as any, subcategory: folder as any });
                                   setShowPhotoDialog(true);
                                 }}
                               >
@@ -1051,20 +1098,20 @@ export default function Projects() {
                           </CardTitle>
                         </CardHeader>
                         <CardContent>
-                          {stagePhotos.length === 0 ? (
-                            <p className="text-sm text-muted-foreground">Sin fotos en esta etapa</p>
+                          {folderPhotos.length === 0 ? (
+                            <p className="text-sm text-muted-foreground">Sin fotos en esta carpeta</p>
                           ) : (
                             <div className="grid grid-cols-3 gap-2">
-                              {stagePhotos.map((photo: any, photoIndex: number) => {
+                              {folderPhotos.map((photo: any, photoIndex: number) => {
                                 const isPdf = photo.photoUrl.toLowerCase().endsWith('.pdf');
                                 return (
                                   <div 
                                     key={photo.id} 
                                     className="relative group cursor-pointer"
                                     onClick={() => fileViewer.openViewer(
-                                      stagePhotos.map((p: any) => ({
+                                      folderPhotos.map((p: any) => ({
                                         url: p.photoUrl,
-                                        title: `${stageLabels[stage]} - Archivo ${stagePhotos.indexOf(p) + 1}`,
+                                        title: `${stageLabels[folder]} - Archivo ${folderPhotos.indexOf(p) + 1}`,
                                         description: p.description,
                                         type: p.photoUrl.toLowerCase().endsWith('.pdf') ? 'pdf' as const : 'image' as const,
                                       })),

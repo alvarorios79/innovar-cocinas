@@ -460,3 +460,6 @@
 - [x] Filtrar carpetas de etapas según la categoría seleccionada en Fotos
 
 - [x] Corregir mapeo de categorías a carpetas en Fotos (Cotización→Documento, Medidas→Fotos Iniciales+Dibujo, Diseños→Renders+Despieces+Detalles, Instalación→Proceso)
+
+- [x] Implementar permisos de subida de fotos por rol y carpeta
+- [x] Implementar permisos de visualización de fotos por rol y carpeta

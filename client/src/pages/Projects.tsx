@@ -976,10 +976,38 @@ export default function Projects() {
                       "proceso_instalacion", "fotos_finales"
                     ];
                     
+                    // Permisos de visualización por carpeta según rol
+                    const viewPermissions: Record<string, string[]> = {
+                      // Cotización/Documento: solo Cliente/Usuario
+                      documento_cotizacion: ["user", "super_admin", "admin"],
+                      // Medidas: Diseñador, Jefe Taller, Super Admin, Admin
+                      fotos_iniciales: ["disenador", "jefe_taller", "super_admin", "admin"],
+                      dibujo: ["disenador", "jefe_taller", "super_admin", "admin"],
+                      // Diseños: Super Admin, Admin, Jefe Taller, Operario
+                      renders: ["super_admin", "admin", "jefe_taller", "operario"],
+                      despieces: ["super_admin", "admin", "jefe_taller", "operario"],
+                      detalles: ["super_admin", "admin", "jefe_taller", "operario"],
+                      // Avance: Todos (incluido Cliente)
+                      corte: ["super_admin", "admin", "disenador", "jefe_taller", "operario", "user", "comercial"],
+                      enchape: ["super_admin", "admin", "disenador", "jefe_taller", "operario", "user", "comercial"],
+                      armado: ["super_admin", "admin", "disenador", "jefe_taller", "operario", "user", "comercial"],
+                      // Instalación: Todos (incluido Cliente)
+                      proceso_instalacion: ["super_admin", "admin", "disenador", "jefe_taller", "operario", "user", "comercial"],
+                      // Entrega: Todos (incluido Cliente)
+                      fotos_finales: ["super_admin", "admin", "disenador", "jefe_taller", "operario", "user", "comercial"],
+                    };
+                    
+                    // Filtrar carpetas según permisos de visualización del usuario
+                    const userRole = user?.role || "user";
+                    const canViewFolder = (folderName: string) => {
+                      const allowedRoles = viewPermissions[folderName] || [];
+                      return allowedRoles.includes(userRole);
+                    };
+                    
                     // Determinar qué carpetas mostrar según el filtro de categoría
-                    const foldersToShow = categoryFilter === "all" 
+                    const foldersToShow = (categoryFilter === "all" 
                       ? allFolders
-                      : categoryToFolders[categoryFilter] || [];
+                      : categoryToFolders[categoryFilter] || []).filter(canViewFolder);
                     
                     return foldersToShow;
                   })().map((folder) => {
@@ -1035,29 +1063,33 @@ export default function Projects() {
                     };
 
                     // Determinar qué etapas puede subir cada rol
-                    const canUploadStage = () => {
+                    // Permisos de subida por carpeta según rol
+                    const canUploadToFolder = () => {
                       const role = user?.role;
-                      if (role === "admin" || role === "super_admin") return true;
-                      // Mapear subcategorías a etapas para subir fotos
-                      const folderToStage: Record<string, string> = {
-                        documento_cotizacion: "inicial",
-                        fotos_iniciales: "inicial",
-                        dibujo: "inicial",
-                        renders: "diseno",
-                        despieces: "diseno",
-                        detalles: "diseno",
-                        corte: "corte",
-                        enchape: "enchape",
-                        armado: "ensamble",
-                        proceso_instalacion: "final",
-                        fotos_finales: "final",
-                      };
-                      const stage = folderToStage[folder] || "inicial";
                       
-                      if (role === "disenador" && (stage === "inicial" || stage === "diseno")) return true;
-                      if ((role === "jefe_taller" || role === "operario") && 
-                          ["corte", "enchape", "ensamble", "final"].includes(stage)) return true;
-                      return false;
+                      // Definir qué roles pueden subir a cada carpeta
+                      const uploadPermissions: Record<string, string[]> = {
+                        // Cotización/Documento: solo Super Admin y Admin
+                        documento_cotizacion: ["super_admin", "admin"],
+                        // Medidas: solo Super Admin y Admin
+                        fotos_iniciales: ["super_admin", "admin"],
+                        dibujo: ["super_admin", "admin"],
+                        // Diseños: solo Diseñador
+                        renders: ["disenador"],
+                        despieces: ["disenador"],
+                        detalles: ["disenador"],
+                        // Avance: Jefe Taller y Operario
+                        corte: ["jefe_taller", "operario"],
+                        enchape: ["jefe_taller", "operario"],
+                        armado: ["jefe_taller", "operario"],
+                        // Instalación: Jefe Taller y Operario
+                        proceso_instalacion: ["jefe_taller", "operario"],
+                        // Entrega: Jefe Taller y Operario
+                        fotos_finales: ["jefe_taller", "operario"],
+                      };
+                      
+                      const allowedRoles = uploadPermissions[folder] || [];
+                      return allowedRoles.includes(role || "");
                     };
 
                     return (
@@ -1069,7 +1101,7 @@ export default function Projects() {
                               {stageLabels[folder]}
                               <Badge variant="outline">{folderPhotos.length}</Badge>
                             </div>
-                            {canUploadStage() && (
+                            {canUploadToFolder() && (
                               <Button
                                 size="sm"
                                 variant="ghost"

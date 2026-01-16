@@ -204,14 +204,32 @@ export const projectPhotos = mysqlTable("projectPhotos", {
     "final"         // Fotos del producto terminado
   ]).notNull(),
   category: mysqlEnum("category", [
+    "cotizacion",   // Documento de cotización
     "medidas",      // Documentos de medidas (GoodNotes, PDFs)
     "disenos",      // Diseños 3D, renders, planos
     "avance",       // Fotos de avance de producción
-    "materiales",   // Fotos de materiales seleccionados
     "instalacion", // Fotos de instalación
-    "entrega",      // Fotos de entrega final
-    "otros"         // Otros documentos
-  ]).default("otros").notNull(),
+    "entrega"       // Fotos de entrega final
+  ]).default("medidas").notNull(),
+  subcategory: mysqlEnum("subcategory", [
+    // Medidas
+    "fotos_iniciales",
+    "dibujo",
+    // Diseños
+    "renders",
+    "despieces",
+    "detalles",
+    // Avance
+    "corte",
+    "enchape",
+    "armado",
+    // Instalación
+    "proceso_instalacion",
+    // Entrega
+    "fotos_finales",
+    // Cotización
+    "documento_cotizacion"
+  ]),
   photoUrl: text("photoUrl").notNull(),
   description: text("description"),
   uploadedBy: int("uploadedBy").notNull().references(() => users.id),
@@ -357,3 +375,70 @@ export const reminders = mysqlTable("reminders", {
 
 export type Reminder = typeof reminders.$inferSelect;
 export type InsertReminder = typeof reminders.$inferInsert;
+
+
+/**
+ * Catálogo de herrajes con fotos fijas
+ * Categorías: cocinas, closets, puertas
+ */
+export const hardwareCatalog = mysqlTable("hardwareCatalog", {
+  id: int("id").autoincrement().primaryKey(),
+  category: mysqlEnum("category", ["cocinas", "closets", "puertas"]).notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  options: text("options"), // JSON con opciones disponibles
+  photoUrl: text("photoUrl"),
+  sortOrder: int("sortOrder").default(0).notNull(),
+  active: boolean("active").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type HardwareCatalog = typeof hardwareCatalog.$inferSelect;
+export type InsertHardwareCatalog = typeof hardwareCatalog.$inferInsert;
+
+/**
+ * Materiales base del proyecto (Madera, Mesón, Lavaplatos)
+ */
+export const projectMaterials = mysqlTable("projectMaterials", {
+  id: int("id").autoincrement().primaryKey(),
+  projectId: int("projectId").notNull().references(() => projects.id),
+  
+  // Madera
+  woodType: mysqlEnum("woodType", ["rh", "estandar"]),
+  woodColor: varchar("woodColor", { length: 255 }),
+  woodPhotoUrl: text("woodPhotoUrl"),
+  
+  // Mesón
+  countertopType: mysqlEnum("countertopType", ["granito", "cuarzo", "sinterizado"]),
+  countertopName: varchar("countertopName", { length: 255 }),
+  countertopPhotoUrl: text("countertopPhotoUrl"),
+  
+  // Lavaplatos
+  sinkMeasure: varchar("sinkMeasure", { length: 100 }),
+  sinkPhotoUrl: text("sinkPhotoUrl"),
+  
+  notes: text("notes"),
+  createdBy: int("createdBy").notNull().references(() => users.id),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type ProjectMaterial = typeof projectMaterials.$inferSelect;
+export type InsertProjectMaterial = typeof projectMaterials.$inferInsert;
+
+/**
+ * Herrajes seleccionados para cada proyecto
+ */
+export const projectHardwareSelections = mysqlTable("projectHardwareSelections", {
+  id: int("id").autoincrement().primaryKey(),
+  projectId: int("projectId").notNull().references(() => projects.id),
+  hardwareId: int("hardwareId").notNull().references(() => hardwareCatalog.id),
+  selectedOption: text("selectedOption"), // Opción específica seleccionada
+  notes: text("notes"),
+  createdBy: int("createdBy").notNull().references(() => users.id),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type ProjectHardwareSelection = typeof projectHardwareSelections.$inferSelect;
+export type InsertProjectHardwareSelection = typeof projectHardwareSelections.$inferInsert;

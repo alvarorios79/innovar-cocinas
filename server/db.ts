@@ -1062,3 +1062,199 @@ export async function cancelProjectReminders(projectId: number) {
       eq(reminders.status, "pendiente")
     ));
 }
+
+
+// ============ HARDWARE CATALOG ============
+
+import { 
+  hardwareCatalog, 
+  projectMaterials, 
+  projectHardwareSelections 
+} from "../drizzle/schema";
+
+export async function getHardwareCatalog(category?: "cocinas" | "closets" | "puertas") {
+  const db = await getDb();
+  if (!db) return [];
+
+  if (category) {
+    return await db.select().from(hardwareCatalog)
+      .where(and(
+        eq(hardwareCatalog.category, category),
+        eq(hardwareCatalog.active, true)
+      ))
+      .orderBy(hardwareCatalog.sortOrder, hardwareCatalog.name);
+  }
+
+  return await db.select().from(hardwareCatalog)
+    .where(eq(hardwareCatalog.active, true))
+    .orderBy(hardwareCatalog.category, hardwareCatalog.sortOrder, hardwareCatalog.name);
+}
+
+export async function createHardwareItem(item: {
+  category: "cocinas" | "closets" | "puertas";
+  name: string;
+  description?: string;
+  options?: string;
+  photoUrl?: string;
+  sortOrder?: number;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.insert(hardwareCatalog).values({
+    category: item.category,
+    name: item.name,
+    description: item.description,
+    options: item.options,
+    photoUrl: item.photoUrl,
+    sortOrder: item.sortOrder || 0,
+    active: true,
+  });
+  return result[0].insertId;
+}
+
+export async function updateHardwareItem(id: number, data: {
+  name?: string;
+  description?: string;
+  options?: string;
+  photoUrl?: string;
+  sortOrder?: number;
+  active?: boolean;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(hardwareCatalog).set(data).where(eq(hardwareCatalog.id, id));
+}
+
+export async function deleteHardwareItem(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  // Soft delete - just mark as inactive
+  await db.update(hardwareCatalog).set({ active: false }).where(eq(hardwareCatalog.id, id));
+}
+
+// ============ PROJECT MATERIALS ============
+
+export async function getProjectMaterials(projectId: number) {
+  const db = await getDb();
+  if (!db) return null;
+
+  const result = await db.select().from(projectMaterials)
+    .where(eq(projectMaterials.projectId, projectId))
+    .limit(1);
+  
+  return result.length > 0 ? result[0] : null;
+}
+
+export async function saveProjectMaterials(projectId: number, data: {
+  woodType?: "rh" | "estandar";
+  woodColor?: string;
+  woodPhotoUrl?: string;
+  countertopType?: "granito" | "cuarzo" | "sinterizado";
+  countertopName?: string;
+  countertopPhotoUrl?: string;
+  sinkMeasure?: string;
+  sinkPhotoUrl?: string;
+  notes?: string;
+}, createdBy: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  // Check if materials already exist for this project
+  const existing = await db.select().from(projectMaterials)
+    .where(eq(projectMaterials.projectId, projectId))
+    .limit(1);
+
+  if (existing.length > 0) {
+    // Update existing
+    await db.update(projectMaterials)
+      .set(data)
+      .where(eq(projectMaterials.projectId, projectId));
+    return existing[0].id;
+  } else {
+    // Create new
+    const result = await db.insert(projectMaterials).values({
+      projectId,
+      ...data,
+      createdBy,
+    });
+    return result[0].insertId;
+  }
+}
+
+// ============ PROJECT HARDWARE SELECTIONS ============
+
+export async function getProjectHardwareSelections(projectId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select({
+    id: projectHardwareSelections.id,
+    projectId: projectHardwareSelections.projectId,
+    hardwareId: projectHardwareSelections.hardwareId,
+    selectedOption: projectHardwareSelections.selectedOption,
+    notes: projectHardwareSelections.notes,
+    createdBy: projectHardwareSelections.createdBy,
+    createdAt: projectHardwareSelections.createdAt,
+    hardware: {
+      id: hardwareCatalog.id,
+      category: hardwareCatalog.category,
+      name: hardwareCatalog.name,
+      description: hardwareCatalog.description,
+      options: hardwareCatalog.options,
+      photoUrl: hardwareCatalog.photoUrl,
+    }
+  })
+    .from(projectHardwareSelections)
+    .innerJoin(hardwareCatalog, eq(projectHardwareSelections.hardwareId, hardwareCatalog.id))
+    .where(eq(projectHardwareSelections.projectId, projectId));
+}
+
+export async function addProjectHardwareSelection(
+  projectId: number, 
+  hardwareId: number, 
+  selectedOption?: string, 
+  notes?: string,
+  createdBy?: number
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  // Check if already selected
+  const existing = await db.select().from(projectHardwareSelections)
+    .where(and(
+      eq(projectHardwareSelections.projectId, projectId),
+      eq(projectHardwareSelections.hardwareId, hardwareId)
+    ))
+    .limit(1);
+
+  if (existing.length > 0) {
+    // Update existing selection
+    await db.update(projectHardwareSelections)
+      .set({ selectedOption, notes })
+      .where(eq(projectHardwareSelections.id, existing[0].id));
+    return existing[0].id;
+  }
+
+  const result = await db.insert(projectHardwareSelections).values({
+    projectId,
+    hardwareId,
+    selectedOption,
+    notes,
+    createdBy: createdBy || 0,
+  });
+  return result[0].insertId;
+}
+
+export async function removeProjectHardwareSelection(projectId: number, hardwareId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.delete(projectHardwareSelections)
+    .where(and(
+      eq(projectHardwareSelections.projectId, projectId),
+      eq(projectHardwareSelections.hardwareId, hardwareId)
+    ));
+}

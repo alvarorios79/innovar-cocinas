@@ -1352,7 +1352,8 @@ export const appRouter = router({
       .input(z.object({
         projectId: z.number(),
         stage: z.enum(["inicial", "diseno", "corte", "enchape", "ensamble", "final"]),
-        category: z.enum(["medidas", "disenos", "avance", "materiales", "instalacion", "entrega", "otros"]).optional().default("otros"),
+        category: z.enum(["cotizacion", "medidas", "disenos", "avance", "instalacion", "entrega"]).optional().default("medidas"),
+        subcategory: z.enum(["fotos_iniciales", "dibujo", "renders", "despieces", "detalles", "corte", "enchape", "armado", "proceso_instalacion", "fotos_finales", "documento_cotizacion"]).optional(),
         photoUrl: z.string(),
         description: z.string().optional(),
       }))
@@ -1378,7 +1379,7 @@ export const appRouter = router({
     getByProject: protectedProcedure
       .input(z.object({ 
         projectId: z.number(),
-        category: z.enum(["medidas", "disenos", "avance", "materiales", "instalacion", "entrega", "otros"]).optional(),
+        category: z.enum(["cotizacion", "medidas", "disenos", "avance", "instalacion", "entrega"]).optional(),
       }))
       .query(async ({ input }) => {
         if (input.category) {
@@ -1401,7 +1402,7 @@ export const appRouter = router({
     getByCategory: protectedProcedure
       .input(z.object({
         projectId: z.number(),
-        category: z.enum(["medidas", "disenos", "avance", "materiales", "instalacion", "entrega", "otros"]),
+        category: z.enum(["cotizacion", "medidas", "disenos", "avance", "instalacion", "entrega"]),
       }))
       .query(async ({ input }) => {
         return await db.getProjectPhotosByCategory(input.projectId, input.category);
@@ -2042,6 +2043,131 @@ export const appRouter = router({
             instalacion_proxima: pending.filter(r => r.type === "instalacion_proxima").length,
           },
         };
+      }),
+  }),
+
+  // ============ CATÁLOGO DE HERRAJES ============
+  hardwareCatalog: router({
+    list: protectedProcedure
+      .input(z.object({
+        category: z.enum(["cocinas", "closets", "puertas"]).optional(),
+      }).optional())
+      .query(async ({ input }) => {
+        return await db.getHardwareCatalog(input?.category);
+      }),
+
+    create: protectedProcedure
+      .input(z.object({
+        category: z.enum(["cocinas", "closets", "puertas"]),
+        name: z.string().min(1),
+        description: z.string().optional(),
+        options: z.string().optional(),
+        photoUrl: z.string().optional(),
+        sortOrder: z.number().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "super_admin" && ctx.user.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Solo administradores pueden gestionar el catálogo" });
+        }
+        const id = await db.createHardwareItem(input);
+        return { success: true, id };
+      }),
+
+    update: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        name: z.string().optional(),
+        description: z.string().optional(),
+        options: z.string().optional(),
+        photoUrl: z.string().optional(),
+        sortOrder: z.number().optional(),
+        active: z.boolean().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "super_admin" && ctx.user.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Solo administradores pueden gestionar el catálogo" });
+        }
+        const { id, ...data } = input;
+        await db.updateHardwareItem(id, data);
+        return { success: true };
+      }),
+
+    delete: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "super_admin" && ctx.user.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Solo administradores pueden gestionar el catálogo" });
+        }
+        await db.deleteHardwareItem(input.id);
+        return { success: true };
+      }),
+  }),
+
+  // ============ MATERIALES DE PROYECTO ============
+  projectMaterials: router({
+    get: protectedProcedure
+      .input(z.object({ projectId: z.number() }))
+      .query(async ({ input }) => {
+        return await db.getProjectMaterials(input.projectId);
+      }),
+
+    save: protectedProcedure
+      .input(z.object({
+        projectId: z.number(),
+        woodType: z.enum(["rh", "estandar"]).optional(),
+        woodColor: z.string().optional(),
+        woodPhotoUrl: z.string().optional(),
+        countertopType: z.enum(["granito", "cuarzo", "sinterizado"]).optional(),
+        countertopName: z.string().optional(),
+        countertopPhotoUrl: z.string().optional(),
+        sinkMeasure: z.string().optional(),
+        sinkPhotoUrl: z.string().optional(),
+        notes: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const allowedRoles = ["super_admin", "admin", "comercial", "disenador"];
+        if (!allowedRoles.includes(ctx.user.role)) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para editar materiales" });
+        }
+        const { projectId, ...data } = input;
+        const id = await db.saveProjectMaterials(projectId, data, ctx.user.id);
+        return { success: true, id };
+      }),
+
+    getSelectedHardware: protectedProcedure
+      .input(z.object({ projectId: z.number() }))
+      .query(async ({ input }) => {
+        return await db.getProjectHardwareSelections(input.projectId);
+      }),
+
+    selectHardware: protectedProcedure
+      .input(z.object({
+        projectId: z.number(),
+        hardwareId: z.number(),
+        selectedOption: z.string().optional(),
+        notes: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const allowedRoles = ["super_admin", "admin", "comercial", "disenador"];
+        if (!allowedRoles.includes(ctx.user.role)) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para seleccionar herrajes" });
+        }
+        const id = await db.addProjectHardwareSelection(input.projectId, input.hardwareId, input.selectedOption, input.notes, ctx.user.id);
+        return { success: true, id };
+      }),
+
+    removeHardware: protectedProcedure
+      .input(z.object({
+        projectId: z.number(),
+        hardwareId: z.number(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const allowedRoles = ["super_admin", "admin", "comercial", "disenador"];
+        if (!allowedRoles.includes(ctx.user.role)) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para modificar herrajes" });
+        }
+        await db.removeProjectHardwareSelection(input.projectId, input.hardwareId);
+        return { success: true };
       }),
   }),
 });

@@ -409,3 +409,31 @@
 - [x] Crear endpoint para resetear contraseña (solo super_admin)
 - [x] Agregar botón "Cambiar contraseña" en sección Usuarios
 - [x] Mostrar contraseña temporal generada una sola vez
+
+## Reestructuración Sección Fotos/Archivos
+
+### Fase 1: Schema de Base de Datos
+- [x] Agregar campo subcategory a projectPhotos
+- [x] Crear tabla hardwareCatalog para catálogo de herrajes
+- [x] Crear tabla projectMaterials para materiales de cada proyecto
+- [x] Crear tabla projectHardwareSelections para herrajes seleccionados
+
+### Fase 2: Catálogo de Herrajes
+- [x] Crear endpoints CRUD para catálogo de herrajes
+- [ ] Crear panel admin para gestionar catálogo de herrajes
+- [x] Poblar catálogo inicial con herrajes de cocinas, closets y puertas (21 herrajes)
+- [ ] Subir fotos fijas de herrajes (Cocinas, Closets, Puertas)
+
+### Fase 3: Formulario de Materiales
+- [ ] Crear formulario de materiales base (Madera, Mesón, Lavaplatos)
+- [ ] Implementar selector de herrajes con catálogo visual
+- [ ] Guardar selecciones de materiales por proyecto
+
+### Fase 4: Interfaz de Fotos con Subcategorías
+- [ ] Actualizar categorías: Cotización, Medidas, Diseños, Avance, Instalación, Entrega
+- [ ] Agregar subcategorías: Medidas(Fotos Iniciales, Dibujo), Diseños(Renders, Despieces, Detalles), Avance(Corte, Enchape, Armado)
+- [ ] Actualizar filtros y galería
+
+### Fase 5: Vista Cliente
+- [ ] Mostrar materiales seleccionados en portal del cliente
+- [ ] Permitir ver catálogo de herrajes (solo lectura)

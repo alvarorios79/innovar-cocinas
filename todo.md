@@ -448,3 +448,7 @@
 - [x] Mostrar materiales base (Madera, Mesón, Lavaplatos) en modo lectura
 - [x] Mostrar herrajes seleccionados con fotos en modo lectura
 - [x] Permitir ver foto ampliada al hacer clic en herraje
+
+
+## Bug Fixes
+- [x] Corregir error FORBIDDEN en página /admin para super_admin (quotations.list, appointments.updateStatus, advisory.updateStatus, quotations.send)

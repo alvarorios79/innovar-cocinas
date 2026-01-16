@@ -366,7 +366,7 @@ export const appRouter = router({
         status: z.enum(["pendiente", "confirmada", "completada", "cancelada"]),
       }))
       .mutation(async ({ ctx, input }) => {
-        if (ctx.user.role !== "admin") {
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
           throw new TRPCError({ code: "FORBIDDEN" });
         }
         
@@ -494,7 +494,7 @@ export const appRouter = router({
         status: z.enum(["pendiente", "contactado", "completado"]),
       }))
       .mutation(async ({ ctx, input }) => {
-        if (ctx.user.role !== "admin") {
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
           throw new TRPCError({ code: "FORBIDDEN" });
         }
         
@@ -627,7 +627,7 @@ export const appRouter = router({
         id: z.number(),
       }))
       .mutation(async ({ ctx, input }) => {
-        if (ctx.user.role !== "admin") {
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
           throw new TRPCError({ code: "FORBIDDEN" });
         }
 
@@ -669,7 +669,7 @@ export const appRouter = router({
 
     list: protectedProcedure
       .query(async ({ ctx }) => {
-        if (ctx.user.role !== "admin") {
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
           throw new TRPCError({ code: "FORBIDDEN" });
         }
         

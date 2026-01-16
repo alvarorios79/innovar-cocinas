@@ -388,3 +388,8 @@
 - [x] Agregar indicador de notificaciones no leídas en la interfaz
 - [x] Implementar panel de notificaciones con opción de marcar como leídas
 - [x] Agregar navegación a tareas al hacer clic en notificación
+
+### Corrección Selector Asignar a
+- [x] Agregar rol diseñador al selector de usuarios asignables en Tareas (cambiado rol de Alejo a disenador)
+
+- [x] Agregar super_admin a la lista de usuarios asignables

@@ -1617,8 +1617,8 @@ export const appRouter = router({
         const allUsers = await db.getAllUsers();
         const myRole = ctx.user.role;
         
-        // Solo roles de equipo de trabajo pueden recibir tareas (incluye comercial)
-        const workTeamRoles = ["comercial", "disenador", "jefe_taller", "operario"];
+        // Roles que pueden recibir tareas (equipo de trabajo + super_admin para auto-asignación)
+        const workTeamRoles = ["super_admin", "comercial", "disenador", "jefe_taller", "operario"];
         
         // Verificar si el usuario puede asignar tareas
         const canAssignRoles = ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"];

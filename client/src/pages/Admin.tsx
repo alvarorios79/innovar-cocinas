@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
-import { Calendar, Phone, FileText, Users, Trash2, Plus, Bell } from "lucide-react";
+import { Calendar, Phone, FileText, Users, Trash2, Plus, Bell, Key } from "lucide-react";
 import { RemindersPanel } from "@/components/RemindersPanel";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -36,6 +36,7 @@ export default function Admin() {
 
   const [showCreateUserDialog, setShowCreateUserDialog] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<{ type: string; id: number; name: string } | null>(null);
+  const [resetPasswordResult, setResetPasswordResult] = useState<{ userName: string; userEmail: string; tempPassword: string } | null>(null);
 
   const utils = trpc.useUtils();
   const { data: appointments = [], isLoading: loadingAppointments } = trpc.appointments.list.useQuery();
@@ -114,6 +115,20 @@ export default function Admin() {
     },
     onError: (error) => {
       toast.error(error.message || "Error al eliminar usuario");
+    },
+  });
+
+  const resetPassword = trpc.userManagement.resetPassword.useMutation({
+    onSuccess: (data) => {
+      setResetPasswordResult({
+        userName: data.userName || "",
+        userEmail: data.userEmail || "",
+        tempPassword: data.tempPassword,
+      });
+      toast.success("Contraseña reseteada exitosamente");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Error al resetear contraseña");
     },
   });
 
@@ -926,6 +941,24 @@ export default function Admin() {
                                     {usr.role === "admin" ? "Quitar Admin" : "Hacer Admin"}
                                   </Button>
                                 )}
+                                {/* Botón Resetear Contraseña - Solo super_admin */}
+                                {user?.role === "super_admin" && (
+                                  <Button
+                                    size="sm"
+                                    variant="secondary"
+                                    onClick={() => {
+                                      if (window.confirm(
+                                        `¿Resetear contraseña de ${usr.name}? Se generará una contraseña temporal.`
+                                      )) {
+                                        resetPassword.mutate({ userId: usr.id });
+                                      }
+                                    }}
+                                    disabled={resetPassword.isPending}
+                                  >
+                                    <Key className="h-4 w-4 mr-1" />
+                                    Contraseña
+                                  </Button>
+                                )}
                                 {/* Botón Eliminar - Solo visible si tiene permisos */}
                                 {(user?.role === "super_admin" || 
                                   (user?.role === "admin" && usr.role === "user")) && (
@@ -971,6 +1004,58 @@ export default function Admin() {
               disabled={deleteAppointment.isPending || deleteAdvisory.isPending || deleteQuotation.isPending || deleteClient.isPending || deleteUser.isPending}
             >
               Eliminar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Diálogo de contraseña reseteada */}
+      <Dialog open={!!resetPasswordResult} onOpenChange={() => setResetPasswordResult(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Key className="h-5 w-5 text-green-600" />
+              Contraseña Reseteada
+            </DialogTitle>
+            <DialogDescription>
+              La contraseña ha sido cambiada exitosamente. Comparte esta información con el usuario.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="bg-muted p-4 rounded-lg space-y-3">
+              <div>
+                <p className="text-sm text-muted-foreground">Usuario</p>
+                <p className="font-semibold">{resetPasswordResult?.userName}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Email</p>
+                <p className="font-semibold">{resetPasswordResult?.userEmail}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Nueva Contraseña Temporal</p>
+                <p className="font-mono text-lg font-bold text-primary bg-background p-2 rounded border">
+                  {resetPasswordResult?.tempPassword}
+                </p>
+              </div>
+            </div>
+            <p className="text-xs text-amber-600 bg-amber-50 p-2 rounded">
+              ⚠️ Esta contraseña solo se mostrará una vez. Asegúrate de guardarla o compartirla ahora.
+            </p>
+          </div>
+          <div className="flex gap-2 justify-end">
+            <Button
+              variant="outline"
+              onClick={() => {
+                if (resetPasswordResult?.tempPassword) {
+                  navigator.clipboard.writeText(resetPasswordResult.tempPassword);
+                  toast.success("Contraseña copiada al portapapeles");
+                }
+              }}
+            >
+              Copiar Contraseña
+            </Button>
+            <Button onClick={() => setResetPasswordResult(null)}>
+              Cerrar
             </Button>
           </div>
         </DialogContent>

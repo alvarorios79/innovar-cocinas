@@ -404,3 +404,8 @@
 
 ### Mejora Acceso Móvil
 - [x] Mostrar botones Inscríbete e Iniciar Sesión visibles en header móvil (sin menú hamburguesa)
+
+### Cambio de Contraseña desde Panel Admin
+- [x] Crear endpoint para resetear contraseña (solo super_admin)
+- [x] Agregar botón "Cambiar contraseña" en sección Usuarios
+- [x] Mostrar contraseña temporal generada una sola vez

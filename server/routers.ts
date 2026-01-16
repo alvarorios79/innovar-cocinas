@@ -909,6 +909,50 @@ export const appRouter = router({
         await db.deleteUser(input.userId);
         return { success: true };
       }),
+
+    resetPassword: protectedProcedure
+      .input(z.object({
+        userId: z.number(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        // Solo super_admin puede resetear contraseñas
+        if (ctx.user.role !== "super_admin") {
+          throw new TRPCError({ 
+            code: "FORBIDDEN", 
+            message: "Solo super administradores pueden resetear contraseñas" 
+          });
+        }
+
+        // No se puede resetear la propia contraseña por este método
+        if (ctx.user.id === input.userId) {
+          throw new TRPCError({ 
+            code: "BAD_REQUEST", 
+            message: "No puedes resetear tu propia contraseña por este método" 
+          });
+        }
+
+        // Obtener el usuario objetivo
+        const allUsers = await db.getAllUsers();
+        const targetUser = allUsers.find(u => u.id === input.userId);
+        
+        if (!targetUser) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Usuario no encontrado" });
+        }
+
+        // Generar contraseña temporal
+        const tempPassword = "Innovar" + Math.floor(1000 + Math.random() * 9000) + "*";
+        const hashedPassword = await hashPassword(tempPassword);
+
+        // Actualizar contraseña en la base de datos
+        await db.updateUserPassword(input.userId, hashedPassword);
+
+        return { 
+          success: true, 
+          tempPassword,
+          userName: targetUser.name,
+          userEmail: targetUser.email
+        };
+      }),
   }),
 
   // ============ PROJECTS ============

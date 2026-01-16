@@ -420,7 +420,10 @@
 
 ### Fase 2: Catálogo de Herrajes
 - [x] Crear endpoints CRUD para catálogo de herrajes
-- [ ] Crear panel admin para gestionar catálogo de herrajes
+- [x] Crear panel admin para gestionar catálogo de herrajes
+- [x] Implementar subida de fotos para cada herraje
+- [x] Actualizar visualización en pestaña Materiales con fotos de herrajes
+- [x] Permitir ver foto ampliada al hacer clic en herraje
 - [x] Poblar catálogo inicial con herrajes de cocinas, closets y puertas (21 herrajes)
 - [ ] Subir fotos fijas de herrajes (Cocinas, Closets, Puertas)
 

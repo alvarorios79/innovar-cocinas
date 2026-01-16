@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
-import { Calendar, Phone, FileText, Users, Trash2, Plus, Bell, Key } from "lucide-react";
+import { Calendar, Phone, FileText, Users, Trash2, Plus, Bell, Key, Wrench } from "lucide-react";
 import { RemindersPanel } from "@/components/RemindersPanel";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Link } from "wouter";
+import { HardwareCatalogAdmin } from "@/components/HardwareCatalogAdmin";
 
 export default function Admin() {
   const { user, isAuthenticated, loading } = useAuth();
@@ -363,12 +364,13 @@ export default function Admin() {
 
         {/* Main Content */}
         <Tabs defaultValue="appointments" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-5 h-auto">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-6 h-auto">
             <TabsTrigger value="appointments" className="text-xs sm:text-sm px-2 py-2">Citas</TabsTrigger>
             <TabsTrigger value="advisory" className="text-xs sm:text-sm px-2 py-2">Asesoría</TabsTrigger>
             <TabsTrigger value="quotations" className="text-xs sm:text-sm px-2 py-2">Cotizaciones</TabsTrigger>
             <TabsTrigger value="clients" className="text-xs sm:text-sm px-2 py-2">Clientes</TabsTrigger>
             <TabsTrigger value="users" className="text-xs sm:text-sm px-2 py-2">Usuarios</TabsTrigger>
+            <TabsTrigger value="hardware" className="text-xs sm:text-sm px-2 py-2">Herrajes</TabsTrigger>
           </TabsList>
 
           {/* Appointments Tab */}
@@ -981,6 +983,11 @@ export default function Admin() {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Hardware Catalog Tab */}
+          <TabsContent value="hardware" className="space-y-4">
+            <HardwareCatalogAdmin />
           </TabsContent>
         </Tabs>
       </div>

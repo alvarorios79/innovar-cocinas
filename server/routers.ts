@@ -2101,6 +2101,41 @@ export const appRouter = router({
         await db.deleteHardwareItem(input.id);
         return { success: true };
       }),
+
+    uploadPhoto: protectedProcedure
+      .input(z.object({
+        hardwareId: z.number(),
+        photoData: z.string(), // base64
+        fileName: z.string(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "super_admin" && ctx.user.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Solo administradores pueden subir fotos" });
+        }
+        
+        // Extraer datos base64
+        const matches = input.photoData.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+        if (!matches || matches.length !== 3) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Formato de imagen inválido" });
+        }
+        
+        const contentType = matches[1];
+        const base64Data = matches[2];
+        const buffer = Buffer.from(base64Data, "base64");
+        
+        // Generar nombre único
+        const ext = input.fileName.split(".").pop() || "jpg";
+        const uniqueName = `hardware/${input.hardwareId}-${Date.now()}.${ext}`;
+        
+        // Subir a S3
+        const { storagePut } = await import("./storage");
+        const { url } = await storagePut(uniqueName, buffer, contentType);
+        
+        // Actualizar en DB
+        await db.updateHardwareItem(input.hardwareId, { photoUrl: url });
+        
+        return { success: true, url };
+      }),
   }),
 
   // ============ MATERIALES DE PROYECTO ============

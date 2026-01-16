@@ -168,13 +168,13 @@ export function HardwareSelector({ projectId, readOnly = false }: HardwareSelect
                     )}
                     onClick={() => handleToggle(hardware)}
                   >
-                    <CardContent className="p-4">
-                      <div className="flex items-start gap-3">
+                    <CardContent className="p-3">
+                      <div className="flex flex-col items-center text-center">
                         {/* Photo or placeholder */}
                         <div 
                           className={cn(
-                            "w-16 h-16 rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden",
-                            hardware.photoUrl ? "bg-white" : "bg-muted"
+                            "w-20 h-20 rounded-lg flex items-center justify-center overflow-hidden mb-3",
+                            hardware.photoUrl ? "bg-white border" : "bg-muted"
                           )}
                           onClick={(e) => {
                             if (hardware.photoUrl) {
@@ -190,33 +190,33 @@ export function HardwareSelector({ projectId, readOnly = false }: HardwareSelect
                               className="w-full h-full object-cover"
                             />
                           ) : (
-                            <ImageIcon className="h-6 w-6 text-muted-foreground" />
+                            <ImageIcon className="h-8 w-8 text-muted-foreground" />
                           )}
                         </div>
 
                         {/* Content */}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between">
-                            <h4 className="font-medium text-sm truncate">{hardware.name}</h4>
+                        <div className="w-full">
+                          <div className="flex items-center justify-center gap-2 mb-1">
+                            <h4 className="font-semibold text-sm leading-tight">{hardware.name}</h4>
                             <div className={cn(
-                              "w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 transition-colors",
+                              "w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 transition-colors",
                               selected ? "bg-primary text-primary-foreground" : "bg-muted"
                             )}>
-                              {selected ? <Check className="h-4 w-4" /> : null}
+                              {selected ? <Check className="h-3 w-3" /> : null}
                             </div>
                           </div>
                           {hardware.description && (
-                            <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                            <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
                               {hardware.description}
                             </p>
                           )}
                           {selection?.selectedOption && (
-                            <Badge variant="outline" className="mt-2 text-xs">
+                            <Badge variant="outline" className="text-xs">
                               {selection.selectedOption}
                             </Badge>
                           )}
                           {hardware.options && !selected && (
-                            <p className="text-xs text-muted-foreground mt-1 italic">
+                            <p className="text-xs text-muted-foreground italic">
                               Opciones disponibles
                             </p>
                           )}

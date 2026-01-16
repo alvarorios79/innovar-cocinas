@@ -452,3 +452,5 @@
 
 ## Bug Fixes
 - [x] Corregir error FORBIDDEN en página /admin para super_admin (quotations.list, appointments.updateStatus, advisory.updateStatus, quotations.send)
+
+- [x] Corregir letra de nombres en fotos de herrajes para que se vea bien centrada

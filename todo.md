@@ -393,3 +393,6 @@
 - [x] Agregar rol diseñador al selector de usuarios asignables en Tareas (cambiado rol de Alejo a disenador)
 
 - [x] Agregar super_admin a la lista de usuarios asignables
+
+### Mejora de Acceso para Clientes
+- [x] Agregar enlace "Inscríbete" debajo del botón "Iniciar Sesión" en página principal

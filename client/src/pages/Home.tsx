@@ -338,9 +338,14 @@ export default function Home() {
                   <NotificationBell />
                 </>
               ) : (
-                <Link href="/login">
-                  <Button size="sm">Iniciar Sesión</Button>
-                </Link>
+                <div className="flex items-center gap-3">
+                  <Link href="/register">
+                    <Button variant="outline" size="sm">Inscríbete</Button>
+                  </Link>
+                  <Link href="/login">
+                    <Button size="sm">Iniciar Sesión</Button>
+                  </Link>
+                </div>
               )}
             </nav>
 

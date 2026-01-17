@@ -6,12 +6,52 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { trpc } from "@/lib/trpc";
-import { Loader2, Save, Upload, Image as ImageIcon } from "lucide-react";
+import { Loader2, Save, Upload, Image as ImageIcon, X } from "lucide-react";
 import { toast } from "sonner";
 
 interface MaterialsFormProps {
   projectId: number;
   readOnly?: boolean;
+}
+
+// Función para comprimir imagen antes de subir
+async function compressImage(file: File, maxWidth = 1200, quality = 0.8): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        let width = img.width;
+        let height = img.height;
+        
+        // Redimensionar si es muy grande
+        if (width > maxWidth) {
+          height = (height * maxWidth) / width;
+          width = maxWidth;
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          reject(new Error("No se pudo crear el contexto del canvas"));
+          return;
+        }
+        
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        // Convertir a base64 con compresión
+        const compressedBase64 = canvas.toDataURL("image/jpeg", quality);
+        resolve(compressedBase64);
+      };
+      img.onerror = () => reject(new Error("Error al cargar la imagen"));
+      img.src = e.target?.result as string;
+    };
+    reader.onerror = () => reject(new Error("Error al leer el archivo"));
+    reader.readAsDataURL(file);
+  });
 }
 
 export function MaterialsForm({ projectId, readOnly = false }: MaterialsFormProps) {
@@ -27,7 +67,17 @@ export function MaterialsForm({ projectId, readOnly = false }: MaterialsFormProp
     notes: "",
   });
 
+  const [uploadingPhoto, setUploadingPhoto] = useState<"wood" | "countertop" | "sink" | null>(null);
+
   const { data: materials, isLoading } = trpc.projectMaterials.get.useQuery({ projectId });
+  
+  const uploadPhotoMutation = trpc.projectMaterials.uploadPhoto.useMutation({
+    onError: (error) => {
+      toast.error(error.message || "Error al subir la foto");
+      setUploadingPhoto(null);
+    },
+  });
+
   const saveMutation = trpc.projectMaterials.save.useMutation({
     onSuccess: () => {
       toast.success("Materiales guardados correctamente");
@@ -68,14 +118,39 @@ export function MaterialsForm({ projectId, readOnly = false }: MaterialsFormProp
     });
   };
 
-  const handlePhotoUpload = async (field: "woodPhotoUrl" | "countertopPhotoUrl" | "sinkPhotoUrl", file: File) => {
-    // Convert to base64 for now - in production would upload to S3
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const base64 = e.target?.result as string;
-      setFormData(prev => ({ ...prev, [field]: base64 }));
-    };
-    reader.readAsDataURL(file);
+  const handlePhotoUpload = async (
+    photoType: "wood" | "countertop" | "sink",
+    fieldName: "woodPhotoUrl" | "countertopPhotoUrl" | "sinkPhotoUrl",
+    file: File
+  ) => {
+    try {
+      setUploadingPhoto(photoType);
+      
+      // Comprimir imagen antes de subir
+      toast.info("Comprimiendo imagen...");
+      const compressedBase64 = await compressImage(file);
+      
+      // Subir a S3
+      toast.info("Subiendo imagen...");
+      const result = await uploadPhotoMutation.mutateAsync({
+        projectId,
+        photoType,
+        photoData: compressedBase64,
+        fileName: file.name,
+      });
+      
+      // Actualizar el formulario con la URL de S3
+      setFormData(prev => ({ ...prev, [fieldName]: result.url }));
+      toast.success("Foto subida correctamente");
+    } catch (error) {
+      console.error("Error uploading photo:", error);
+    } finally {
+      setUploadingPhoto(null);
+    }
+  };
+
+  const handleRemovePhoto = (fieldName: "woodPhotoUrl" | "countertopPhotoUrl" | "sinkPhotoUrl") => {
+    setFormData(prev => ({ ...prev, [fieldName]: "" }));
   };
 
   if (isLoading) {
@@ -85,6 +160,82 @@ export function MaterialsForm({ projectId, readOnly = false }: MaterialsFormProp
       </div>
     );
   }
+
+  const renderPhotoSection = (
+    photoType: "wood" | "countertop" | "sink",
+    fieldName: "woodPhotoUrl" | "countertopPhotoUrl" | "sinkPhotoUrl",
+    label: string,
+    photoUrl: string
+  ) => (
+    <div className="space-y-2">
+      <Label>{label}</Label>
+      <div className="flex items-center gap-4">
+        {photoUrl ? (
+          <div className="relative w-24 h-24 rounded-lg overflow-hidden border">
+            <img src={photoUrl} alt={label} className="w-full h-full object-cover" />
+            {!readOnly && (
+              <button
+                onClick={() => handleRemovePhoto(fieldName)}
+                className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="w-24 h-24 rounded-lg border-2 border-dashed flex items-center justify-center bg-muted/50">
+            {uploadingPhoto === photoType ? (
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            ) : (
+              <ImageIcon className="h-8 w-8 text-muted-foreground" />
+            )}
+          </div>
+        )}
+        {!readOnly && (
+          <label className="cursor-pointer">
+            <Input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              disabled={uploadingPhoto !== null}
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  // Validar tamaño máximo (10MB antes de comprimir)
+                  if (file.size > 10 * 1024 * 1024) {
+                    toast.error("La imagen es muy grande. Máximo 10MB.");
+                    return;
+                  }
+                  handlePhotoUpload(photoType, fieldName, file);
+                }
+              }}
+            />
+            <Button 
+              type="button" 
+              variant="outline" 
+              size="sm" 
+              asChild
+              disabled={uploadingPhoto !== null}
+            >
+              <span>
+                {uploadingPhoto === photoType ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Subiendo...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="h-4 w-4 mr-2" />
+                    Subir foto
+                  </>
+                )}
+              </span>
+            </Button>
+          </label>
+        )}
+      </div>
+    </div>
+  );
 
   return (
     <div className="space-y-6">
@@ -126,44 +277,7 @@ export function MaterialsForm({ projectId, readOnly = false }: MaterialsFormProp
               />
             </div>
           </div>
-          <div className="space-y-2">
-            <Label>Foto del Material</Label>
-            <div className="flex items-center gap-4">
-              {formData.woodPhotoUrl ? (
-                <div className="relative w-24 h-24 rounded-lg overflow-hidden border">
-                  <img src={formData.woodPhotoUrl} alt="Madera" className="w-full h-full object-cover" />
-                  {!readOnly && (
-                    <button
-                      onClick={() => setFormData(prev => ({ ...prev, woodPhotoUrl: "" }))}
-                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
-                    >
-                      ×
-                    </button>
-                  )}
-                </div>
-              ) : (
-                <div className="w-24 h-24 rounded-lg border-2 border-dashed flex items-center justify-center bg-muted/50">
-                  <ImageIcon className="h-8 w-8 text-muted-foreground" />
-                </div>
-              )}
-              {!readOnly && (
-                <label className="cursor-pointer">
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) handlePhotoUpload("woodPhotoUrl", file);
-                    }}
-                  />
-                  <Button type="button" variant="outline" size="sm" asChild>
-                    <span><Upload className="h-4 w-4 mr-2" /> Subir foto</span>
-                  </Button>
-                </label>
-              )}
-            </div>
-          </div>
+          {renderPhotoSection("wood", "woodPhotoUrl", "Foto del Material", formData.woodPhotoUrl)}
         </CardContent>
       </Card>
 
@@ -206,44 +320,7 @@ export function MaterialsForm({ projectId, readOnly = false }: MaterialsFormProp
               />
             </div>
           </div>
-          <div className="space-y-2">
-            <Label>Foto del Mesón</Label>
-            <div className="flex items-center gap-4">
-              {formData.countertopPhotoUrl ? (
-                <div className="relative w-24 h-24 rounded-lg overflow-hidden border">
-                  <img src={formData.countertopPhotoUrl} alt="Mesón" className="w-full h-full object-cover" />
-                  {!readOnly && (
-                    <button
-                      onClick={() => setFormData(prev => ({ ...prev, countertopPhotoUrl: "" }))}
-                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
-                    >
-                      ×
-                    </button>
-                  )}
-                </div>
-              ) : (
-                <div className="w-24 h-24 rounded-lg border-2 border-dashed flex items-center justify-center bg-muted/50">
-                  <ImageIcon className="h-8 w-8 text-muted-foreground" />
-                </div>
-              )}
-              {!readOnly && (
-                <label className="cursor-pointer">
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) handlePhotoUpload("countertopPhotoUrl", file);
-                    }}
-                  />
-                  <Button type="button" variant="outline" size="sm" asChild>
-                    <span><Upload className="h-4 w-4 mr-2" /> Subir foto</span>
-                  </Button>
-                </label>
-              )}
-            </div>
-          </div>
+          {renderPhotoSection("countertop", "countertopPhotoUrl", "Foto del Mesón", formData.countertopPhotoUrl)}
         </CardContent>
       </Card>
 
@@ -267,44 +344,7 @@ export function MaterialsForm({ projectId, readOnly = false }: MaterialsFormProp
               disabled={readOnly}
             />
           </div>
-          <div className="space-y-2">
-            <Label>Foto del Lavaplatos</Label>
-            <div className="flex items-center gap-4">
-              {formData.sinkPhotoUrl ? (
-                <div className="relative w-24 h-24 rounded-lg overflow-hidden border">
-                  <img src={formData.sinkPhotoUrl} alt="Lavaplatos" className="w-full h-full object-cover" />
-                  {!readOnly && (
-                    <button
-                      onClick={() => setFormData(prev => ({ ...prev, sinkPhotoUrl: "" }))}
-                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
-                    >
-                      ×
-                    </button>
-                  )}
-                </div>
-              ) : (
-                <div className="w-24 h-24 rounded-lg border-2 border-dashed flex items-center justify-center bg-muted/50">
-                  <ImageIcon className="h-8 w-8 text-muted-foreground" />
-                </div>
-              )}
-              {!readOnly && (
-                <label className="cursor-pointer">
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) handlePhotoUpload("sinkPhotoUrl", file);
-                    }}
-                  />
-                  <Button type="button" variant="outline" size="sm" asChild>
-                    <span><Upload className="h-4 w-4 mr-2" /> Subir foto</span>
-                  </Button>
-                </label>
-              )}
-            </div>
-          </div>
+          {renderPhotoSection("sink", "sinkPhotoUrl", "Foto del Lavaplatos", formData.sinkPhotoUrl)}
         </CardContent>
       </Card>
 
@@ -327,7 +367,10 @@ export function MaterialsForm({ projectId, readOnly = false }: MaterialsFormProp
       {/* Botón guardar */}
       {!readOnly && (
         <div className="flex justify-end">
-          <Button onClick={handleSave} disabled={saveMutation.isPending}>
+          <Button 
+            onClick={handleSave} 
+            disabled={saveMutation.isPending || uploadingPhoto !== null}
+          >
             {saveMutation.isPending ? (
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
             ) : (

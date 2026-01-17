@@ -467,3 +467,7 @@
 - [x] Crear paleta de colores corporativos basada en verde turquesa
 - [x] Mejorar diseño responsivo para móvil, tablet y escritorio
 - [x] Corregir textos que se sobreponen en diferentes pantallas
+
+## Bug Fixes - Enero 16
+- [x] Corregir subida de fotos en Materiales (usar S3 en lugar de Base64)
+- [x] Agregar indicador de carga mientras se sube la foto

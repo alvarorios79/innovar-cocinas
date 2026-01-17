@@ -2146,6 +2146,40 @@ export const appRouter = router({
         return await db.getProjectMaterials(input.projectId);
       }),
 
+    uploadPhoto: protectedProcedure
+      .input(z.object({
+        projectId: z.number(),
+        photoType: z.enum(["wood", "countertop", "sink"]),
+        photoData: z.string(), // base64
+        fileName: z.string(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const allowedRoles = ["super_admin", "admin", "comercial", "disenador"];
+        if (!allowedRoles.includes(ctx.user.role)) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para subir fotos" });
+        }
+        
+        // Extraer datos base64
+        const matches = input.photoData.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+        if (!matches || matches.length !== 3) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Formato de imagen inválido" });
+        }
+        
+        const contentType = matches[1];
+        const base64Data = matches[2];
+        const buffer = Buffer.from(base64Data, "base64");
+        
+        // Generar nombre único
+        const ext = input.fileName.split(".").pop() || "jpg";
+        const uniqueName = `materials/${input.projectId}-${input.photoType}-${Date.now()}.${ext}`;
+        
+        // Subir a S3
+        const { storagePut } = await import("./storage");
+        const { url } = await storagePut(uniqueName, buffer, contentType);
+        
+        return { success: true, url };
+      }),
+
     save: protectedProcedure
       .input(z.object({
         projectId: z.number(),

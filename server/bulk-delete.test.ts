@@ -215,4 +215,52 @@ describe("Bulk Delete Operations", () => {
       await adminCaller.appointments.delete({ id: apt.id });
     });
   });
+
+  describe("Bulk Delete Tasks", () => {
+    it("should delete multiple tasks", async () => {
+      const caller = appRouter.createCaller({
+        user: testUser,
+        req: {} as any,
+        res: {} as any,
+      });
+
+      // Crear 3 tareas de prueba
+      const task1 = await caller.tasks.create({
+        title: "Tarea 1 para eliminación masiva",
+        description: "Descripción 1",
+        priority: "alta",
+        assignedTo: testUser.id,
+      });
+
+      const task2 = await caller.tasks.create({
+        title: "Tarea 2 para eliminación masiva",
+        description: "Descripción 2",
+        priority: "media",
+        assignedTo: testUser.id,
+      });
+
+      const task3 = await caller.tasks.create({
+        title: "Tarea 3 para eliminación masiva",
+        description: "Descripción 3",
+        priority: "baja",
+        assignedTo: testUser.id,
+      });
+
+      // Verificar que se crearon
+      const allTasks = await caller.tasks.list();
+      const createdIds = [task1.taskId, task2.taskId, task3.taskId];
+      const foundTasks = allTasks.filter(t => createdIds.includes(t.id));
+      expect(foundTasks.length).toBe(3);
+
+      // Eliminar las 3 tareas (simulando eliminación masiva)
+      for (const id of createdIds) {
+        await caller.tasks.delete({ id });
+      }
+
+      // Verificar que se eliminaron
+      const remainingTasks = await caller.tasks.list();
+      const stillExists = remainingTasks.filter(t => createdIds.includes(t.id));
+      expect(stillExists.length).toBe(0);
+    });
+  });
 });

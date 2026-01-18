@@ -15,8 +15,10 @@ import {
   User,
   Bell,
   Users,
-  Eye
+  Eye,
+  Trash2
 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { RemindersPanel } from "@/components/RemindersPanel";
 import { NotificationBell } from "@/components/NotificationBell";
 import { toast } from "sonner";
@@ -55,6 +57,9 @@ export default function Tasks() {
     projectId: "",
     dueDate: "",
   });
+  
+  // Estados para selección múltiple
+  const [selectedTasks, setSelectedTasks] = useState<number[]>([]);
 
   const utils = trpc.useUtils();
   
@@ -95,6 +100,49 @@ export default function Tasks() {
       toast.error(error.message || "Error al actualizar estado");
     },
   });
+
+  const deleteTask = trpc.tasks.delete.useMutation({
+    onSuccess: () => {
+      utils.tasks.getMyTasks.invalidate();
+      if (canViewAllTasks) {
+        utils.tasks.list.invalidate();
+      }
+      toast.success("Tarea eliminada exitosamente");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Error al eliminar tarea");
+    },
+  });
+
+  // Funciones para selección múltiple
+  const toggleSelectTask = (id: number) => {
+    setSelectedTasks(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
+
+  const toggleSelectAllTasks = (tasks: any[]) => {
+    if (selectedTasks.length === tasks.length) {
+      setSelectedTasks([]);
+    } else {
+      setSelectedTasks(tasks.map(t => t.id));
+    }
+  };
+
+  const handleBulkDelete = (tasks: any[]) => {
+    const count = selectedTasks.length;
+    if (count === 0) return;
+
+    if (confirm(`¿Estás seguro de eliminar ${count} ${count === 1 ? 'tarea' : 'tareas'}?`)) {
+      // Eliminar cada tarea individualmente
+      selectedTasks.forEach(id => {
+        deleteTask.mutate({ id });
+      });
+      
+      // Limpiar selección
+      setSelectedTasks([]);
+    }
+  };
 
   if (loading) {
     return <div className="flex items-center justify-center min-h-screen">Cargando...</div>;
@@ -220,7 +268,15 @@ export default function Tasks() {
   const renderTaskCard = (task: any, showAssignedTo: boolean = false) => (
     <Card key={task.id} className="hover:shadow-md transition-shadow">
       <CardContent className="p-4">
-        <div className="flex flex-col sm:flex-row justify-between gap-4">
+        <div className="flex items-start gap-3">
+          {/* Checkbox individual */}
+          <Checkbox
+            checked={selectedTasks.includes(task.id)}
+            onCheckedChange={() => toggleSelectTask(task.id)}
+            className="mt-1"
+          />
+          
+          <div className="flex-1 flex flex-col sm:flex-row justify-between gap-4">
           {/* Info de la tarea */}
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2 flex-wrap">
@@ -282,6 +338,7 @@ export default function Tasks() {
               </Badge>
             )}
           </div>
+          </div>
         </div>
       </CardContent>
     </Card>
@@ -308,8 +365,33 @@ export default function Tasks() {
     }
     
     return (
-      <div className="grid gap-4">
-        {tasks.map((task: any) => renderTaskCard(task, showAssignedTo))}
+      <div className="space-y-4">
+        {/* Controles de selección múltiple */}
+        <div className="flex items-center justify-between gap-2 pb-2 border-b">
+          <div className="flex items-center gap-2">
+            <Checkbox
+              checked={selectedTasks.length === tasks.length && tasks.length > 0}
+              onCheckedChange={() => toggleSelectAllTasks(tasks)}
+            />
+            <span className="text-sm font-medium">
+              Seleccionar todas ({tasks.length})
+            </span>
+          </div>
+          {selectedTasks.length > 0 && (
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => handleBulkDelete(tasks)}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Eliminar ({selectedTasks.length})
+            </Button>
+          )}
+        </div>
+        
+        <div className="grid gap-4">
+          {tasks.map((task: any) => renderTaskCard(task, showAssignedTo))}
+        </div>
       </div>
     );
   };

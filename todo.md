@@ -499,3 +499,13 @@
 - [x] Escribir tests para eliminación masiva de citas
 - [x] Escribir tests para eliminación masiva de asesoramientos
 - [x] Escribir tests para eliminación masiva de cotizaciones
+
+## Selección Múltiple en Tareas
+
+- [x] Agregar estados para selección múltiple en Tasks.tsx
+- [x] Agregar funciones helper para manejar selección múltiple
+- [x] Agregar checkboxes individuales en tabla de tareas
+- [x] Agregar checkbox "Seleccionar todo" en tabla de tareas
+- [x] Agregar botón de eliminación masiva para tareas
+- [x] Agregar confirmación antes de eliminar múltiples tareas
+- [x] Escribir tests para eliminación masiva de tareas

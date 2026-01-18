@@ -6,7 +6,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
-import { Calendar, Phone, FileText, Users, Trash2, Plus, Bell, Key, Wrench } from "lucide-react";
+import { Calendar, Phone, FileText, Users, Trash2, Plus, Bell, Key, Wrench, CheckSquare, Square } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { RemindersPanel } from "@/components/RemindersPanel";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -38,6 +39,11 @@ export default function Admin() {
   const [showCreateUserDialog, setShowCreateUserDialog] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<{ type: string; id: number; name: string } | null>(null);
   const [resetPasswordResult, setResetPasswordResult] = useState<{ userName: string; userEmail: string; tempPassword: string } | null>(null);
+  
+  // Estados para selección múltiple
+  const [selectedAppointments, setSelectedAppointments] = useState<number[]>([]);
+  const [selectedAdvisory, setSelectedAdvisory] = useState<number[]>([]);
+  const [selectedQuotations, setSelectedQuotations] = useState<number[]>([]);
 
   const utils = trpc.useUtils();
   const { data: appointments = [], isLoading: loadingAppointments } = trpc.appointments.list.useQuery();
@@ -176,6 +182,101 @@ export default function Admin() {
       toast.error(error.message || "Error al eliminar cliente");
     },
   });
+
+  // Funciones para selección múltiple
+  const toggleSelectAppointment = (id: number) => {
+    setSelectedAppointments(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
+
+  const toggleSelectAllAppointments = () => {
+    if (selectedAppointments.length === appointments.length) {
+      setSelectedAppointments([]);
+    } else {
+      setSelectedAppointments(appointments.map(a => a.id));
+    }
+  };
+
+  const toggleSelectAdvisory = (id: number) => {
+    setSelectedAdvisory(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
+
+  const toggleSelectAllAdvisory = () => {
+    if (selectedAdvisory.length === advisoryRequests.length) {
+      setSelectedAdvisory([]);
+    } else {
+      setSelectedAdvisory(advisoryRequests.map(a => a.id));
+    }
+  };
+
+  const toggleSelectQuotation = (id: number) => {
+    setSelectedQuotations(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
+
+  const toggleSelectAllQuotations = () => {
+    if (selectedQuotations.length === quotations.length) {
+      setSelectedQuotations([]);
+    } else {
+      setSelectedQuotations(quotations.map(q => q.id));
+    }
+  };
+
+  const handleBulkDelete = (type: 'appointments' | 'advisory' | 'quotations') => {
+    let count = 0;
+    let items: number[] = [];
+    
+    switch (type) {
+      case 'appointments':
+        count = selectedAppointments.length;
+        items = selectedAppointments;
+        break;
+      case 'advisory':
+        count = selectedAdvisory.length;
+        items = selectedAdvisory;
+        break;
+      case 'quotations':
+        count = selectedQuotations.length;
+        items = selectedQuotations;
+        break;
+    }
+
+    if (count === 0) return;
+
+    if (confirm(`¿Estás seguro de eliminar ${count} ${type === 'appointments' ? 'citas' : type === 'advisory' ? 'asesoramientos' : 'cotizaciones'}?`)) {
+      // Eliminar cada item individualmente
+      items.forEach(id => {
+        switch (type) {
+          case 'appointments':
+            deleteAppointment.mutate({ id });
+            break;
+          case 'advisory':
+            deleteAdvisory.mutate({ id });
+            break;
+          case 'quotations':
+            deleteQuotation.mutate({ id });
+            break;
+        }
+      });
+
+      // Limpiar selección
+      switch (type) {
+        case 'appointments':
+          setSelectedAppointments([]);
+          break;
+        case 'advisory':
+          setSelectedAdvisory([]);
+          break;
+        case 'quotations':
+          setSelectedQuotations([]);
+          break;
+      }
+    }
+  };
 
   const handleDelete = () => {
     if (!deleteConfirm) return;
@@ -382,17 +483,28 @@ export default function Admin() {
           <TabsContent value="appointments" className="space-y-4">
             <Card>
               <CardHeader>
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between flex-wrap gap-2">
                   <div>
                     <CardTitle>Citas Agendadas</CardTitle>
                     <CardDescription>Gestiona las citas de los clientes</CardDescription>
                   </div>
-                  <Link href="/#agendar-cita">
-                    <Button>
-                      <Plus className="mr-2 h-4 w-4" />
-                      Crear Cita
-                    </Button>
-                  </Link>
+                  <div className="flex gap-2">
+                    {selectedAppointments.length > 0 && (
+                      <Button
+                        variant="destructive"
+                        onClick={() => handleBulkDelete('appointments')}
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Eliminar ({selectedAppointments.length})
+                      </Button>
+                    )}
+                    <Link href="/#agendar-cita">
+                      <Button>
+                        <Plus className="mr-2 h-4 w-4" />
+                        Crear Cita
+                      </Button>
+                    </Link>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>
@@ -402,9 +514,28 @@ export default function Admin() {
                   <p className="text-muted-foreground">No hay citas agendadas</p>
                 ) : (
                   <div className="space-y-4">
+                    {/* Checkbox Seleccionar Todo */}
+                    <div className="flex items-center gap-2 pb-2 border-b">
+                      <Checkbox
+                        checked={selectedAppointments.length === appointments.length && appointments.length > 0}
+                        onCheckedChange={toggleSelectAllAppointments}
+                      />
+                      <span className="text-sm font-medium">
+                        Seleccionar todas ({appointments.length})
+                      </span>
+                    </div>
+                    
                     {appointments.map((apt) => (
                       <div key={apt.id} className="border rounded-lg p-3 sm:p-4 space-y-2">
-                        <div className="flex items-start justify-between">
+                        <div className="flex items-start gap-3">
+                          {/* Checkbox individual */}
+                          <Checkbox
+                            checked={selectedAppointments.includes(apt.id)}
+                            onCheckedChange={() => toggleSelectAppointment(apt.id)}
+                            className="mt-1"
+                          />
+                          
+                          <div className="flex-1 flex items-start justify-between">
                           <div className="space-y-1">
                             <div className="flex items-center gap-2">
                               <h3 className="font-semibold">{apt.client?.name}</h3>
@@ -540,6 +671,7 @@ export default function Admin() {
                               </Dialog>
                             )}
                           </div>
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -553,17 +685,28 @@ export default function Admin() {
           <TabsContent value="advisory" className="space-y-4">
             <Card>
               <CardHeader>
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between flex-wrap gap-2">
                   <div>
                     <CardTitle>Solicitudes de Asesoramiento</CardTitle>
                     <CardDescription>Clientes que solicitan asesoramiento telefónico</CardDescription>
                   </div>
-                  <Link href="/#asesoramiento">
-                    <Button>
-                      <Plus className="mr-2 h-4 w-4" />
-                      Crear Asesoramiento
-                    </Button>
-                  </Link>
+                  <div className="flex gap-2">
+                    {selectedAdvisory.length > 0 && (
+                      <Button
+                        variant="destructive"
+                        onClick={() => handleBulkDelete('advisory')}
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Eliminar ({selectedAdvisory.length})
+                      </Button>
+                    )}
+                    <Link href="/#asesoramiento">
+                      <Button>
+                        <Plus className="mr-2 h-4 w-4" />
+                        Crear Asesoramiento
+                      </Button>
+                    </Link>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>
@@ -573,9 +716,28 @@ export default function Admin() {
                   <p className="text-muted-foreground">No hay solicitudes de asesoramiento</p>
                 ) : (
                   <div className="space-y-4">
+                    {/* Checkbox Seleccionar Todo */}
+                    <div className="flex items-center gap-2 pb-2 border-b">
+                      <Checkbox
+                        checked={selectedAdvisory.length === advisoryRequests.length && advisoryRequests.length > 0}
+                        onCheckedChange={toggleSelectAllAdvisory}
+                      />
+                      <span className="text-sm font-medium">
+                        Seleccionar todas ({advisoryRequests.length})
+                      </span>
+                    </div>
+                    
                     {advisoryRequests.map((req) => (
                       <div key={req.id} className="border rounded-lg p-4 space-y-2">
-                        <div className="flex items-start justify-between">
+                        <div className="flex items-start gap-3">
+                          {/* Checkbox individual */}
+                          <Checkbox
+                            checked={selectedAdvisory.includes(req.id)}
+                            onCheckedChange={() => toggleSelectAdvisory(req.id)}
+                            className="mt-1"
+                          />
+                          
+                          <div className="flex-1 flex items-start justify-between">
                           <div className="space-y-1">
                             <div className="flex items-center gap-2">
                               <h3 className="font-semibold">{req.client?.name}</h3>
@@ -631,6 +793,7 @@ export default function Admin() {
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </div>
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -644,17 +807,28 @@ export default function Admin() {
           <TabsContent value="quotations" className="space-y-4">
             <Card>
               <CardHeader>
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between flex-wrap gap-2">
                   <div>
                     <CardTitle>Cotizaciones</CardTitle>
                     <CardDescription>Gestiona las cotizaciones enviadas a clientes</CardDescription>
                   </div>
-                  <Link href="/#estimado-previo">
-                    <Button>
-                      <Plus className="mr-2 h-4 w-4" />
-                      Solicitar Estimado
-                    </Button>
-                  </Link>
+                  <div className="flex gap-2">
+                    {selectedQuotations.length > 0 && (
+                      <Button
+                        variant="destructive"
+                        onClick={() => handleBulkDelete('quotations')}
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Eliminar ({selectedQuotations.length})
+                      </Button>
+                    )}
+                    <Link href="/#estimado-previo">
+                      <Button>
+                        <Plus className="mr-2 h-4 w-4" />
+                        Solicitar Estimado
+                      </Button>
+                    </Link>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>
@@ -664,9 +838,28 @@ export default function Admin() {
                   <p className="text-muted-foreground">No hay cotizaciones creadas</p>
                 ) : (
                   <div className="space-y-4">
+                    {/* Checkbox Seleccionar Todo */}
+                    <div className="flex items-center gap-2 pb-2 border-b">
+                      <Checkbox
+                        checked={selectedQuotations.length === quotations.length && quotations.length > 0}
+                        onCheckedChange={toggleSelectAllQuotations}
+                      />
+                      <span className="text-sm font-medium">
+                        Seleccionar todas ({quotations.length})
+                      </span>
+                    </div>
+                    
                     {quotations.map((quot) => (
                       <div key={quot.id} className="border rounded-lg p-4 space-y-2">
-                        <div className="flex items-start justify-between">
+                        <div className="flex items-start gap-3">
+                          {/* Checkbox individual */}
+                          <Checkbox
+                            checked={selectedQuotations.includes(quot.id)}
+                            onCheckedChange={() => toggleSelectQuotation(quot.id)}
+                            className="mt-1"
+                          />
+                          
+                          <div className="flex-1 flex items-start justify-between">
                           <div className="space-y-1 flex-1">
                             <div className="flex items-center gap-2">
                               <h3 className="font-semibold">{quot.client?.name}</h3>
@@ -725,6 +918,7 @@ export default function Admin() {
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
+                          </div>
                           </div>
                         </div>
                       </div>

@@ -482,3 +482,20 @@
 
 - [x] Bloquear visualmente los horarios ocupados para que no se puedan seleccionar (ya estaba implementado)
 - [ ] Permitir seleccionar múltiples tipos de trabajo en el formulario de citas
+
+## Selección Múltiple para Eliminación Masiva
+
+- [x] Agregar checkboxes individuales en tabla de citas (Admin.tsx)
+- [x] Agregar checkbox "Seleccionar todo" en tabla de citas
+- [x] Agregar botón de eliminación masiva para citas
+- [x] Agregar checkboxes individuales en tabla de asesoramientos (Admin.tsx)
+- [x] Agregar checkbox "Seleccionar todo" en tabla de asesoramientos
+- [x] Agregar botón de eliminación masiva para asesoramientos
+- [x] Agregar checkboxes individuales en tabla de cotizaciones (Admin.tsx)
+- [x] Agregar checkbox "Seleccionar todo" en tabla de cotizaciones
+- [x] Agregar botón de eliminación masiva para cotizaciones
+- [x] Usar endpoints existentes para eliminación (no se necesitan nuevos endpoints)
+- [x] Agregar confirmación antes de eliminar múltiples registros
+- [x] Escribir tests para eliminación masiva de citas
+- [x] Escribir tests para eliminación masiva de asesoramientos
+- [x] Escribir tests para eliminación masiva de cotizaciones

@@ -471,3 +471,11 @@
 ## Bug Fixes - Enero 16
 - [x] Corregir subida de fotos en Materiales (usar S3 en lugar de Base64)
 - [x] Agregar indicador de carga mientras se sube la foto
+
+- [ ] Corregir error de disponibilidad de horarios en calendario de citas (todos aparecen ocupados)
+
+
+## Bug Fixes - Enero 18
+- [x] Corregir error de disponibilidad de horarios en calendario de citas (problema de zona horaria UTC vs Colombia)
+- [x] Mejorar visualización del calendario: días disponibles en verde, no disponibles en rojo
+- [x] Corregir envío de fecha y hora como strings separados para evitar problemas de zona horaria

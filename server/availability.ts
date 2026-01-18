@@ -24,18 +24,24 @@ export const APPOINTMENT_CONFIG = {
 
 /**
  * Verifica si una fecha es un día permitido
+ * @param dayOfWeek - Día de la semana (0-6)
  */
-export function isAllowedDay(date: Date): boolean {
-  const dayOfWeek = date.getDay();
+export function isAllowedDay(dayOfWeek: number): boolean {
   return APPOINTMENT_CONFIG.allowedDays.includes(dayOfWeek);
 }
 
 /**
  * Obtiene todos los horarios disponibles para una fecha específica
+ * @param dateStr - Fecha en formato "YYYY-MM-DD"
  */
-export async function getAvailableTimeSlots(date: Date): Promise<string[]> {
+export async function getAvailableTimeSlots(dateStr: string): Promise<string[]> {
+  // Parsear la fecha directamente sin conversión de zona horaria
+  const [year, month, day] = dateStr.split('-').map(Number);
+  const date = new Date(year, month - 1, day, 12, 0, 0); // Usar mediodía para evitar problemas de zona horaria
+  
   // Verificar si es un día permitido
-  if (!isAllowedDay(date)) {
+  const dayOfWeek = date.getDay();
+  if (!isAllowedDay(dayOfWeek)) {
     return [];
   }
 
@@ -45,11 +51,8 @@ export async function getAvailableTimeSlots(date: Date): Promise<string[]> {
   }
 
   // Obtener el inicio y fin del día
-  const startOfDay = new Date(date);
-  startOfDay.setHours(0, 0, 0, 0);
-  
-  const endOfDay = new Date(date);
-  endOfDay.setHours(23, 59, 59, 999);
+  const startOfDay = new Date(year, month - 1, day, 0, 0, 0);
+  const endOfDay = new Date(year, month - 1, day, 23, 59, 59);
 
   // Buscar citas existentes para ese día (que no estén canceladas)
   const existingAppointments = await db
@@ -63,9 +66,10 @@ export async function getAvailableTimeSlots(date: Date): Promise<string[]> {
       )
     );
 
-  // Obtener horarios ocupados
+  // Obtener horarios ocupados - usar la hora local almacenada
   const occupiedSlots = existingAppointments.map(apt => {
     if (!apt.scheduledDate) return null;
+    // La fecha en la BD ya está en hora local de Colombia
     const hours = apt.scheduledDate.getHours().toString().padStart(2, '0');
     const minutes = apt.scheduledDate.getMinutes().toString().padStart(2, '0');
     return `${hours}:${minutes}`;
@@ -81,10 +85,17 @@ export async function getAvailableTimeSlots(date: Date): Promise<string[]> {
 
 /**
  * Verifica si un horario específico está disponible
+ * @param dateStr - Fecha en formato "YYYY-MM-DD"
+ * @param timeSlot - Horario en formato "HH:MM"
  */
-export async function isTimeSlotAvailable(date: Date, timeSlot: string): Promise<boolean> {
+export async function isTimeSlotAvailable(dateStr: string, timeSlot: string): Promise<boolean> {
+  // Parsear la fecha directamente sin conversión de zona horaria
+  const [year, month, day] = dateStr.split('-').map(Number);
+  const date = new Date(year, month - 1, day, 12, 0, 0); // Usar mediodía para evitar problemas
+  
   // Verificar si es un día permitido
-  if (!isAllowedDay(date)) {
+  const dayOfWeek = date.getDay();
+  if (!isAllowedDay(dayOfWeek)) {
     return false;
   }
 
@@ -99,24 +110,36 @@ export async function isTimeSlotAvailable(date: Date, timeSlot: string): Promise
     return true;
   }
 
-  // Crear fecha completa con el horario
-  const [hours, minutes] = timeSlot.split(':').map(Number);
-  const appointmentDate = new Date(date);
-  appointmentDate.setHours(hours, minutes, 0, 0);
+  // Buscar citas existentes para ese día
+  const startOfDay = new Date(year, month - 1, day, 0, 0, 0);
+  const endOfDay = new Date(year, month - 1, day, 23, 59, 59);
 
   // Buscar si ya existe una cita en ese horario (que no esté cancelada)
-  const existingAppointment = await db
+  const existingAppointments = await db
     .select()
     .from(appointments)
     .where(
       and(
-        eq(appointments.scheduledDate, appointmentDate),
+        gte(appointments.scheduledDate, startOfDay),
+        lte(appointments.scheduledDate, endOfDay),
         sql`${appointments.status} != 'cancelada'`
       )
-    )
-    .limit(1);
+    );
 
-  return existingAppointment.length === 0;
+  // Verificar si alguna cita existente tiene el mismo horario
+  const [hours, minutes] = timeSlot.split(':').map(Number);
+  
+  for (const apt of existingAppointments) {
+    if (apt.scheduledDate) {
+      const aptHours = apt.scheduledDate.getHours();
+      const aptMinutes = apt.scheduledDate.getMinutes();
+      if (aptHours === hours && aptMinutes === minutes) {
+        return false; // Horario ocupado
+      }
+    }
+  }
+
+  return true;
 }
 
 /**

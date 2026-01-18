@@ -126,16 +126,12 @@ export default function Home() {
         return;
       }
       
-      // Combinar fecha y hora
-      const [hours, minutes] = appointmentTime.split(':');
-      const scheduledDateTime = new Date(appointmentDate);
-      scheduledDateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
-
-      // Crear cita
+      // Crear cita - enviar fecha y hora como strings separados para evitar problemas de zona horaria
       const result = await createAppointmentMutation.mutateAsync({
         clientId: client.id,
         workType: appointmentForm.workType as any,
-        scheduledDate: scheduledDateTime.toISOString(),
+        scheduledDateStr: appointmentDate, // "YYYY-MM-DD"
+        scheduledTimeStr: appointmentTime, // "HH:MM"
         notes: appointmentForm.notes || undefined,
       });
 

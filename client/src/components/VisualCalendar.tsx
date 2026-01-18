@@ -40,8 +40,8 @@ export function VisualCalendar({
   const getDaysInMonth = () => {
     const year = currentMonth.getFullYear();
     const month = currentMonth.getMonth();
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
+    const firstDay = new Date(year, month, 1, 12, 0, 0); // Usar mediodía para evitar problemas de zona horaria
+    const lastDay = new Date(year, month + 1, 0, 12, 0, 0);
     const daysInMonth = lastDay.getDate();
     const startingDayOfWeek = firstDay.getDay();
 
@@ -52,9 +52,9 @@ export function VisualCalendar({
       days.push(null);
     }
     
-    // Agregar días del mes
+    // Agregar días del mes (usar mediodía para evitar problemas de zona horaria)
     for (let day = 1; day <= daysInMonth; day++) {
-      days.push(new Date(year, month, day));
+      days.push(new Date(year, month, day, 12, 0, 0));
     }
     
     return days;
@@ -69,17 +69,29 @@ export function VisualCalendar({
   // Verificar si un día está permitido
   const isDayAllowed = (date: Date | null) => {
     if (!date) return false;
+    
+    // Obtener la fecha actual (ya está a mediodía por getDaysInMonth)
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    if (date < today) return false; // No permitir días pasados
-    return allowedDays.includes(date.getDay());
+    const todayAtNoon = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 12, 0, 0);
+    
+    // No permitir días pasados
+    if (date < todayAtNoon) return false;
+    
+    // El día de la semana ya es correcto porque la fecha está a mediodía
+    const dayOfWeek = date.getDay();
+    
+    return allowedDays.includes(dayOfWeek);
   };
 
   // Obtener clase CSS para el día
   const getDayClass = (date: Date | null) => {
     if (!date) return "";
     
-    const dateStr = date.toISOString().split('T')[0];
+    // Generar fecha en formato YYYY-MM-DD sin usar toISOString para evitar problemas de zona horaria
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const dateStr = `${year}-${month}-${day}`;
     const isSelected = dateStr === selectedDate;
     const isAllowed = isDayAllowed(date);
     const isToday = date.toDateString() === new Date().toDateString();
@@ -88,7 +100,7 @@ export function VisualCalendar({
       "h-10 sm:h-12 w-full rounded-md flex items-center justify-center text-sm sm:text-base cursor-pointer transition-colors touch-manipulation",
       {
         "bg-red-100 text-red-700 cursor-not-allowed": !isAllowed,
-        "hover:bg-primary/10 active:bg-primary/20": isAllowed && !isSelected,
+        "bg-green-100 text-green-800 hover:bg-green-200 active:bg-green-300": isAllowed && !isSelected,
         "bg-primary text-primary-foreground": isSelected,
         "font-bold border-2 border-primary": isToday && !isSelected,
       }
@@ -98,7 +110,11 @@ export function VisualCalendar({
   // Manejar clic en día
   const handleDayClick = (date: Date | null) => {
     if (!date || !isDayAllowed(date)) return;
-    const dateStr = date.toISOString().split('T')[0];
+    // Generar fecha en formato YYYY-MM-DD sin usar toISOString para evitar problemas de zona horaria
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const dateStr = `${year}-${month}-${day}`;
     onDateChange(dateStr);
     onTimeChange(""); // Limpiar hora seleccionada
   };

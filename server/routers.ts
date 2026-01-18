@@ -305,18 +305,17 @@ export const appRouter = router({
       .input(z.object({
         clientId: z.number(),
         workType: z.enum(["cocina", "closet", "puertas", "centro_tv"]),
-        scheduledDate: z.string().optional(),
+        scheduledDateStr: z.string().optional(), // "YYYY-MM-DD"
+        scheduledTimeStr: z.string().optional(), // "HH:MM"
         notes: z.string().optional(),
       }))
       .mutation(async ({ input }) => {
+        let scheduledDate: Date | undefined;
+        
         // Validar disponibilidad si se proporciona fecha/hora
-        if (input.scheduledDate) {
-          const requestedDate = new Date(input.scheduledDate);
-          const hours = requestedDate.getHours().toString().padStart(2, '0');
-          const minutes = requestedDate.getMinutes().toString().padStart(2, '0');
-          const timeSlot = `${hours}:${minutes}`;
-          
-          const isAvailable = await isTimeSlotAvailable(requestedDate, timeSlot);
+        if (input.scheduledDateStr && input.scheduledTimeStr) {
+          // Usar los strings directamente para validar disponibilidad
+          const isAvailable = await isTimeSlotAvailable(input.scheduledDateStr, input.scheduledTimeStr);
           
           if (!isAvailable) {
             throw new TRPCError({
@@ -324,12 +323,17 @@ export const appRouter = router({
               message: "Este horario ya está ocupado. Por favor selecciona otro horario.",
             });
           }
+          
+          // Crear la fecha para guardar en BD
+          const [year, month, day] = input.scheduledDateStr.split('-').map(Number);
+          const [hours, minutes] = input.scheduledTimeStr.split(':').map(Number);
+          scheduledDate = new Date(year, month - 1, day, hours, minutes, 0, 0);
         }
 
         const appointmentId = await db.createAppointment({
           clientId: input.clientId,
           workType: input.workType,
-          scheduledDate: input.scheduledDate ? new Date(input.scheduledDate) : undefined,
+          scheduledDate,
           notes: input.notes,
         });
 
@@ -342,7 +346,7 @@ export const appRouter = router({
             clientEmail: client.email || undefined,
             clientAddress: client.address || undefined,
             workType: input.workType,
-            scheduledDate: input.scheduledDate ? new Date(input.scheduledDate) : undefined,
+            scheduledDate,
             notes: input.notes,
           });
           
@@ -728,18 +732,14 @@ export const appRouter = router({
     getAvailableSlots: publicProcedure
       .input(z.object({ date: z.string() }))
       .query(async ({ input }) => {
-        // Parsear fecha correctamente para evitar problemas de zona horaria
-        const [year, month, day] = input.date.split('-').map(Number);
-        const date = new Date(year, month - 1, day);
-        return await getAvailableTimeSlots(date);
+        // Pasar la fecha como string directamente
+        return await getAvailableTimeSlots(input.date);
       }),
     checkSlot: publicProcedure
       .input(z.object({ date: z.string(), timeSlot: z.string() }))
       .query(async ({ input }) => {
-        // Parsear fecha correctamente para evitar problemas de zona horaria
-        const [year, month, day] = input.date.split('-').map(Number);
-        const date = new Date(year, month - 1, day);
-        return await isTimeSlotAvailable(date, input.timeSlot);
+        // Pasar la fecha como string directamente
+        return await isTimeSlotAvailable(input.date, input.timeSlot);
       }),
   }),
 

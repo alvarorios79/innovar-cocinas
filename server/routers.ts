@@ -304,7 +304,7 @@ export const appRouter = router({
     create: publicProcedure
       .input(z.object({
         clientId: z.number(),
-        workType: z.enum(["cocina", "closet", "puertas", "centro_tv"]),
+        workTypes: z.array(z.enum(["cocina", "closet", "puertas", "centro_tv"])),
         scheduledDateStr: z.string().optional(), // "YYYY-MM-DD"
         scheduledTimeStr: z.string().optional(), // "HH:MM"
         notes: z.string().optional(),
@@ -332,20 +332,37 @@ export const appRouter = router({
 
         const appointmentId = await db.createAppointment({
           clientId: input.clientId,
-          workType: input.workType,
           scheduledDate,
           notes: input.notes,
         });
 
+        // Insertar los tipos de trabajo en la tabla appointmentWorkTypes
+        for (const workType of input.workTypes) {
+          await db.createAppointmentWorkType({
+            appointmentId,
+            workType,
+          });
+        }
+
         // Obtener datos del cliente para notificación
         const client = await db.getClientById(input.clientId);
         if (client) {
+          const workTypesText = input.workTypes.map(wt => {
+            const labels: Record<string, string> = {
+              cocina: "Cocina Integral",
+              closet: "Closet",
+              puertas: "Puertas",
+              centro_tv: "Centro de TV",
+            };
+            return labels[wt] || wt;
+          }).join(", ");
+
           const whatsappLink = whatsapp.notifyNewAppointment({
             clientName: client.name,
             clientPhone: client.whatsappPhone,
             clientEmail: client.email || undefined,
             clientAddress: client.address || undefined,
-            workType: input.workType,
+            workType: workTypesText,
             scheduledDate,
             notes: input.notes,
           });

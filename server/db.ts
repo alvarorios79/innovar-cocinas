@@ -7,6 +7,8 @@ import {
   InsertClient,
   appointments,
   InsertAppointment,
+  appointmentWorkTypes,
+  InsertAppointmentWorkType,
   advisoryRequests,
   InsertAdvisoryRequest,
   priorEstimates,
@@ -186,6 +188,14 @@ export async function createAppointment(appointment: InsertAppointment) {
   if (!db) throw new Error("Database not available");
 
   const result = await db.insert(appointments).values(appointment);
+  return result[0].insertId;
+}
+
+export async function createAppointmentWorkType(appointmentWorkType: InsertAppointmentWorkType) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.insert(appointmentWorkTypes).values(appointmentWorkType);
   return result[0].insertId;
 }
 

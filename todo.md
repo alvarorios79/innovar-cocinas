@@ -479,3 +479,6 @@
 - [x] Corregir error de disponibilidad de horarios en calendario de citas (problema de zona horaria UTC vs Colombia)
 - [x] Mejorar visualización del calendario: días disponibles en verde, no disponibles en rojo
 - [x] Corregir envío de fecha y hora como strings separados para evitar problemas de zona horaria
+
+- [x] Bloquear visualmente los horarios ocupados para que no se puedan seleccionar (ya estaba implementado)
+- [ ] Permitir seleccionar múltiples tipos de trabajo en el formulario de citas

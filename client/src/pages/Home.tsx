@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import clsx from "clsx";
 import { Button } from "@/components/ui/button";
 import { VisualCalendar } from "@/components/VisualCalendar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,7 +27,7 @@ export default function Home() {
     email: "",
     whatsappPhone: "",
     address: "",
-    workType: "",
+    workTypes: [] as ("cocina" | "closet" | "puertas" | "centro_tv")[], // Cambiado a array para selección múltiple
     notes: "",
   });
   
@@ -102,8 +103,8 @@ export default function Home() {
   const handleAppointmentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!appointmentForm.workType) {
-      toast.error("Por favor selecciona el tipo de trabajo");
+    if (appointmentForm.workTypes.length === 0) {
+      toast.error("Por favor selecciona al menos un tipo de trabajo");
       return;
     }
     
@@ -129,7 +130,7 @@ export default function Home() {
       // Crear cita - enviar fecha y hora como strings separados para evitar problemas de zona horaria
       const result = await createAppointmentMutation.mutateAsync({
         clientId: client.id,
-        workType: appointmentForm.workType as any,
+        workTypes: appointmentForm.workTypes,
         scheduledDateStr: appointmentDate, // "YYYY-MM-DD"
         scheduledTimeStr: appointmentTime, // "HH:MM"
         notes: appointmentForm.notes || undefined,
@@ -150,7 +151,7 @@ export default function Home() {
         email: "",
         whatsappPhone: "",
         address: "",
-        workType: "",
+        workTypes: [],
         notes: "",
       });
       setAppointmentDate("");
@@ -503,21 +504,45 @@ export default function Home() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="apt-work">Tipo de trabajo *</Label>
-                        <Select
-                          value={appointmentForm.workType}
-                          onValueChange={(value) => setAppointmentForm({ ...appointmentForm, workType: value })}
-                        >
-                          <SelectTrigger id="apt-work">
-                            <SelectValue placeholder="Selecciona..." />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="cocina">Cocina Integral</SelectItem>
-                            <SelectItem value="closet">Closet</SelectItem>
-                            <SelectItem value="puertas">Puertas</SelectItem>
-                            <SelectItem value="centro_tv">Centro de TV</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <Label>Tipo de trabajo * (puedes seleccionar varios)</Label>
+                        <div className="grid grid-cols-2 gap-3 mt-2">
+                          {([
+                            { value: "cocina" as const, label: "Cocina Integral" },
+                            { value: "closet" as const, label: "Closet" },
+                            { value: "puertas" as const, label: "Puertas" },
+                            { value: "centro_tv" as const, label: "Centro de TV" },
+                          ] as const).map((option) => (
+                            <label
+                              key={option.value}
+                              className={clsx(
+                                "flex items-center gap-2 p-3 border rounded-md cursor-pointer transition-colors",
+                                appointmentForm.workTypes.includes(option.value)
+                                  ? "bg-primary/10 border-primary"
+                                  : "hover:bg-muted"
+                              )}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={appointmentForm.workTypes.includes(option.value)}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setAppointmentForm({
+                                      ...appointmentForm,
+                                      workTypes: [...appointmentForm.workTypes, option.value],
+                                    });
+                                  } else {
+                                    setAppointmentForm({
+                                      ...appointmentForm,
+                                      workTypes: appointmentForm.workTypes.filter((t) => t !== option.value),
+                                    });
+                                  }
+                                }}
+                                className="h-4 w-4"
+                              />
+                              <span className="text-sm">{option.label}</span>
+                            </label>
+                          ))}
+                        </div>
                       </div>
                     </div>
 

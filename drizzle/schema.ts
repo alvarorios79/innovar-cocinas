@@ -45,7 +45,6 @@ export type InsertClient = typeof clients.$inferInsert;
 export const appointments = mysqlTable("appointments", {
   id: int("id").autoincrement().primaryKey(),
   clientId: int("clientId").notNull().references(() => clients.id),
-  workType: mysqlEnum("workType", ["cocina", "closet", "puertas", "centro_tv"]).notNull(),
   scheduledDate: timestamp("scheduledDate"),
   status: mysqlEnum("status", ["pendiente", "confirmada", "completada", "cancelada"]).default("pendiente").notNull(),
   notes: text("notes"),
@@ -55,6 +54,19 @@ export const appointments = mysqlTable("appointments", {
 
 export type Appointment = typeof appointments.$inferSelect;
 export type InsertAppointment = typeof appointments.$inferInsert;
+
+/**
+ * Tipos de trabajo asociados a cada cita (relación muchos a muchos)
+ */
+export const appointmentWorkTypes = mysqlTable("appointmentWorkTypes", {
+  id: int("id").autoincrement().primaryKey(),
+  appointmentId: int("appointmentId").notNull().references(() => appointments.id, { onDelete: "cascade" }),
+  workType: mysqlEnum("workType", ["cocina", "closet", "puertas", "centro_tv"]).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type AppointmentWorkType = typeof appointmentWorkTypes.$inferSelect;
+export type InsertAppointmentWorkType = typeof appointmentWorkTypes.$inferInsert;
 
 /**
  * Solicitudes de asesoramiento telefónico

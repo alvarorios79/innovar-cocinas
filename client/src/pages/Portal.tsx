@@ -92,13 +92,18 @@ export default function Portal() {
     return <Badge variant={config.variant} className={config.className}>{status}</Badge>;
   };
 
-  const getWorkTypeLabel = (workType: string) => {
+  const getWorkTypeLabel = (workType: string | string[]) => {
     const labels: Record<string, string> = {
       cocina: "Cocina Integral",
       closet: "Closet",
       puertas: "Puertas",
       centro_tv: "Centro de TV",
     };
+    
+    if (Array.isArray(workType)) {
+      return workType.map(wt => labels[wt] || wt).join(", ");
+    }
+    
     return labels[workType] || workType;
   };
 
@@ -485,7 +490,7 @@ export default function Portal() {
                         <div className="flex items-start justify-between">
                           <div className="space-y-1 flex-1">
                             <div className="flex items-center gap-2">
-                              <h3 className="font-semibold">{getWorkTypeLabel(apt.workType)}</h3>
+                              <h3 className="font-semibold">{getWorkTypeLabel(apt.workTypes)}</h3>
                               {getStatusBadge(apt.status)}
                             </div>
                             <p className="text-sm">
@@ -510,7 +515,7 @@ export default function Portal() {
                                 <DialogHeader>
                                   <DialogTitle>Reagendar Cita</DialogTitle>
                                   <DialogDescription>
-                                    {getWorkTypeLabel(apt.workType)} - {formatDate(apt.scheduledDate)}
+                                    {getWorkTypeLabel(apt.workTypes)} - {formatDate(apt.scheduledDate)}
                                   </DialogDescription>
                                 </DialogHeader>
                                 <form onSubmit={handleReschedule} className="space-y-4">

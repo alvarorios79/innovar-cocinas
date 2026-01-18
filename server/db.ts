@@ -183,12 +183,27 @@ export async function updateClient(id: number, data: Partial<InsertClient>) {
 
 // ============ APPOINTMENTS ============
 
-export async function createAppointment(appointment: InsertAppointment) {
+export async function createAppointment(appointment: InsertAppointment & { workTypes?: string[] }) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  const result = await db.insert(appointments).values(appointment);
-  return result[0].insertId;
+  const { workTypes, ...appointmentData } = appointment;
+  const result = await db.insert(appointments).values(appointmentData);
+  const appointmentId = result[0].insertId;
+  
+  // Si se proporcionan workTypes, crear los registros relacionados
+  if (workTypes && workTypes.length > 0) {
+    await Promise.all(
+      workTypes.map(workType =>
+        db.insert(appointmentWorkTypes).values({
+          appointmentId,
+          workType: workType as "cocina" | "closet" | "puertas" | "centro_tv"
+        })
+      )
+    );
+  }
+  
+  return appointmentId;
 }
 
 export async function createAppointmentWorkType(appointmentWorkType: InsertAppointmentWorkType) {
@@ -211,14 +226,40 @@ export async function getAppointmentsByClientId(clientId: number) {
   const db = await getDb();
   if (!db) return [];
 
-  return await db.select().from(appointments).where(eq(appointments.clientId, clientId)).orderBy(desc(appointments.scheduledDate));
+  const appointmentsList = await db.select().from(appointments).where(eq(appointments.clientId, clientId)).orderBy(desc(appointments.scheduledDate));
+  
+  // Para cada cita, obtener sus workTypes
+  const appointmentsWithWorkTypes = await Promise.all(
+    appointmentsList.map(async (appointment) => {
+      const workTypes = await db.select().from(appointmentWorkTypes).where(eq(appointmentWorkTypes.appointmentId, appointment.id));
+      return {
+        ...appointment,
+        workTypes: workTypes.map(wt => wt.workType)
+      };
+    })
+  );
+  
+  return appointmentsWithWorkTypes;
 }
 
 export async function getAllAppointments() {
   const db = await getDb();
   if (!db) return [];
 
-  return await db.select().from(appointments).orderBy(desc(appointments.createdAt));
+  const appointmentsList = await db.select().from(appointments).orderBy(desc(appointments.createdAt));
+  
+  // Para cada cita, obtener sus workTypes
+  const appointmentsWithWorkTypes = await Promise.all(
+    appointmentsList.map(async (appointment) => {
+      const workTypes = await db.select().from(appointmentWorkTypes).where(eq(appointmentWorkTypes.appointmentId, appointment.id));
+      return {
+        ...appointment,
+        workTypes: workTypes.map(wt => wt.workType)
+      };
+    })
+  );
+  
+  return appointmentsWithWorkTypes;
 }
 
 export async function updateAppointment(id: number, data: Partial<InsertAppointment>) {

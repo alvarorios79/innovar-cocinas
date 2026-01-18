@@ -79,7 +79,7 @@ describe("Appointments API", () => {
 
     const result = await caller.appointments.create({
       clientId: client.id,
-      workType: "cocina",
+      workTypes: ["cocina"],
       notes: "Test appointment",
     });
 

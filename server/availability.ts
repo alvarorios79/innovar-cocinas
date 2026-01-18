@@ -34,10 +34,20 @@ export function isAllowedDay(dayOfWeek: number): boolean {
  * Obtiene todos los horarios disponibles para una fecha específica
  * @param dateStr - Fecha en formato "YYYY-MM-DD"
  */
-export async function getAvailableTimeSlots(dateStr: string): Promise<string[]> {
+export async function getAvailableTimeSlots(dateStr: string | Date): Promise<string[]> {
   // Parsear la fecha directamente sin conversión de zona horaria
-  const [year, month, day] = dateStr.split('-').map(Number);
-  const date = new Date(year, month - 1, day, 12, 0, 0); // Usar mediodía para evitar problemas de zona horaria
+  let year: number, month: number, day: number;
+  let date: Date;
+  
+  if (dateStr instanceof Date) {
+    date = dateStr;
+    year = date.getFullYear();
+    month = date.getMonth() + 1;
+    day = date.getDate();
+  } else {
+    [year, month, day] = dateStr.split('-').map(Number);
+    date = new Date(year, month - 1, day, 12, 0, 0); // Usar mediodía para evitar problemas de zona horaria
+  }
   
   // Verificar si es un día permitido
   const dayOfWeek = date.getDay();
@@ -51,8 +61,9 @@ export async function getAvailableTimeSlots(dateStr: string): Promise<string[]> 
   }
 
   // Obtener el inicio y fin del día
-  const startOfDay = new Date(year, month - 1, day, 0, 0, 0);
-  const endOfDay = new Date(year, month - 1, day, 23, 59, 59);
+  // Crear fechas en UTC para comparar correctamente con las fechas de la BD
+  const startOfDay = new Date(Date.UTC(year, month - 1, day, 0, 0, 0));
+  const endOfDay = new Date(Date.UTC(year, month - 1, day, 23, 59, 59));
 
   // Buscar citas existentes para ese día (que no estén canceladas)
   const existingAppointments = await db
@@ -88,10 +99,20 @@ export async function getAvailableTimeSlots(dateStr: string): Promise<string[]> 
  * @param dateStr - Fecha en formato "YYYY-MM-DD"
  * @param timeSlot - Horario en formato "HH:MM"
  */
-export async function isTimeSlotAvailable(dateStr: string, timeSlot: string): Promise<boolean> {
+export async function isTimeSlotAvailable(dateStr: string | Date, timeSlot: string): Promise<boolean> {
   // Parsear la fecha directamente sin conversión de zona horaria
-  const [year, month, day] = dateStr.split('-').map(Number);
-  const date = new Date(year, month - 1, day, 12, 0, 0); // Usar mediodía para evitar problemas
+  let date: Date;
+  let year: number, month: number, day: number;
+  
+  if (dateStr instanceof Date) {
+    date = dateStr;
+    year = date.getFullYear();
+    month = date.getMonth() + 1;
+    day = date.getDate();
+  } else {
+    [year, month, day] = dateStr.split('-').map(Number);
+    date = new Date(year, month - 1, day, 12, 0, 0); // Usar mediodía para evitar problemas
+  }
   
   // Verificar si es un día permitido
   const dayOfWeek = date.getDay();
@@ -111,8 +132,9 @@ export async function isTimeSlotAvailable(dateStr: string, timeSlot: string): Pr
   }
 
   // Buscar citas existentes para ese día
-  const startOfDay = new Date(year, month - 1, day, 0, 0, 0);
-  const endOfDay = new Date(year, month - 1, day, 23, 59, 59);
+  // Crear fechas en UTC para comparar correctamente con las fechas de la BD
+  const startOfDay = new Date(Date.UTC(year, month - 1, day, 0, 0, 0));
+  const endOfDay = new Date(Date.UTC(year, month - 1, day, 23, 59, 59));
 
   // Buscar si ya existe una cita en ese horario (que no esté cancelada)
   const existingAppointments = await db
@@ -131,6 +153,7 @@ export async function isTimeSlotAvailable(dateStr: string, timeSlot: string): Pr
   
   for (const apt of existingAppointments) {
     if (apt.scheduledDate) {
+      // Usar getHours() para comparar en zona horaria local (Colombia)
       const aptHours = apt.scheduledDate.getHours();
       const aptMinutes = apt.scheduledDate.getMinutes();
       if (aptHours === hours && aptMinutes === minutes) {

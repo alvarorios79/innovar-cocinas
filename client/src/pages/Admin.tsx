@@ -227,13 +227,18 @@ export default function Admin() {
     return <Badge variant={config.variant} className={config.className}>{status}</Badge>;
   };
 
-  const getWorkTypeLabel = (workType: string) => {
+  const getWorkTypeLabel = (workType: string | string[]) => {
     const labels: Record<string, string> = {
       cocina: "Cocina Integral",
       closet: "Closet",
       puertas: "Puertas",
       centro_tv: "Centro de TV",
     };
+    
+    if (Array.isArray(workType)) {
+      return workType.map(wt => labels[wt] || wt).join(", ");
+    }
+    
     return labels[workType] || workType;
   };
 
@@ -273,7 +278,7 @@ export default function Admin() {
     await createQuotation.mutateAsync({
       clientId: selectedAppointment.clientId,
       appointmentId: selectedAppointment.id,
-      workType: selectedAppointment.workType,
+      workType: selectedAppointment.workTypes[0] || "cocina",
       description: quotationForm.description,
       materials: quotationForm.materials || undefined,
       totalPrice: quotationForm.totalPrice,
@@ -406,7 +411,7 @@ export default function Admin() {
                               {getStatusBadge(apt.status)}
                             </div>
                             <p className="text-sm text-muted-foreground">
-                              {getWorkTypeLabel(apt.workType)}
+                              {getWorkTypeLabel(apt.workTypes)}
                             </p>
                             <p className="text-sm">
                               <span className="font-medium">WhatsApp:</span> {apt.client?.whatsappPhone}
@@ -471,7 +476,7 @@ export default function Admin() {
                                   <DialogHeader>
                                     <DialogTitle>Crear Cotización</DialogTitle>
                                     <DialogDescription>
-                                      Cliente: {apt.client?.name} - {getWorkTypeLabel(apt.workType)}
+                                      Cliente: {apt.client?.name} - {getWorkTypeLabel(apt.workTypes)}
                                     </DialogDescription>
                                   </DialogHeader>
                                   <form onSubmit={handleCreateQuotation} className="space-y-4">

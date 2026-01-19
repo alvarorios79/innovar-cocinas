@@ -544,3 +544,12 @@
 - [x] Configurar contraseña Innovar2024*
 - [x] Verificar que el usuario se creó correctamente
 - [x] Verificar que todos los roles aparezcan en la interfaz de Gestión de Usuarios
+
+## Reorganización y Limpieza de Usuarios
+
+- [x] Modificar interfaz para agrupar equipo de trabajo arriba
+- [x] Agregar separador visual entre equipo y usuarios normales
+- [x] Cambiar color morado del diseñador por cyan
+- [x] Consultar usuarios de prueba innecesarios
+- [x] Eliminar usuarios de prueba manteniendo solo equipo real y clientes registrados (albetan1530@gmail.com)
+- [x] Verificar que la lista se muestra correctamente organizada

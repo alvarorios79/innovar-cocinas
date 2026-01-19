@@ -1087,9 +1087,106 @@ export default function Admin() {
                 ) : allUsers.length === 0 ? (
                   <p className="text-muted-foreground">No hay usuarios registrados</p>
                 ) : (
-                  <div className="space-y-4">
-                    {allUsers.map((usr) => (
-                      <div key={usr.id} className="border rounded-lg p-3 sm:p-4 space-y-2">
+                  <div className="space-y-6">
+                    {/* Equipo de Trabajo */}
+                    {(() => {
+                      const teamRoles = ['super_admin', 'admin', 'comercial', 'disenador', 'jefe_taller', 'operario'];
+                      const teamUsers = allUsers.filter(u => teamRoles.includes(u.role));
+                      const regularUsers = allUsers.filter(u => !teamRoles.includes(u.role));
+                      
+                      return (
+                        <>
+                          {teamUsers.length > 0 && (
+                            <div className="space-y-3">
+                              <div className="flex items-center gap-2">
+                                <h3 className="font-semibold text-lg">Equipo de Trabajo</h3>
+                                <Badge variant="outline">{teamUsers.length}</Badge>
+                              </div>
+                              <div className="space-y-3">
+                                {teamUsers.map((usr) => (
+                                  <div key={usr.id} className="border rounded-lg p-3 sm:p-4 space-y-2 bg-muted/30">
+                                    <div className="flex items-start justify-between gap-4">
+                                      <div className="space-y-1 flex-1">
+                                        <div className="flex items-center gap-2 flex-wrap">
+                                          <h3 className="font-semibold">{usr.name || "Sin nombre"}</h3>
+                                          <Badge 
+                                            variant={usr.role === "super_admin" || usr.role === "admin" ? "default" : "secondary"}
+                                            className={
+                                              usr.role === "super_admin" ? "bg-red-600" :
+                                              usr.role === "admin" ? "bg-blue-500" :
+                                              usr.role === "comercial" ? "bg-green-600" :
+                                              usr.role === "disenador" ? "bg-cyan-600" :
+                                              usr.role === "jefe_taller" ? "bg-orange-600" :
+                                              usr.role === "operario" ? "bg-yellow-600 text-black" : ""
+                                            }
+                                          >
+                                            {usr.role === "super_admin" ? "Super Admin" :
+                                             usr.role === "admin" ? "Administrador" :
+                                             usr.role === "comercial" ? "Comercial" :
+                                             usr.role === "disenador" ? "Diseñador" :
+                                             usr.role === "jefe_taller" ? "Jefe de Taller" :
+                                             usr.role === "operario" ? "Operario" : "Usuario"}
+                                          </Badge>
+                                        </div>
+                                        <p className="text-sm text-muted-foreground">{usr.email || "Sin email"}</p>
+                                        <p className="text-xs text-muted-foreground">
+                                          Registrado: {new Date(usr.createdAt).toLocaleDateString('es-ES')}
+                                        </p>
+                                      </div>
+                                      <div className="flex flex-col gap-2">
+                                        {usr.id === user?.id && (
+                                          <Badge variant="outline" className="text-xs self-end">Tú</Badge>
+                                        )}
+                                        {usr.id !== user?.id && (
+                                          <div className="flex gap-2">
+                                            {user?.role === "super_admin" && (
+                                              <Button
+                                                size="sm"
+                                                variant="secondary"
+                                                onClick={() => {
+                                                  if (window.confirm(
+                                                    `¿Resetear contraseña de ${usr.name}? Se generará una contraseña temporal.`
+                                                  )) {
+                                                    resetPassword.mutate({ userId: usr.id });
+                                                  }
+                                                }}
+                                                disabled={resetPassword.isPending}
+                                              >
+                                                Resetear Contraseña
+                                              </Button>
+                                            )}
+                                            {user?.role === "super_admin" && (
+                                              <Button
+                                                size="sm"
+                                                variant="destructive"
+                                                onClick={() => {
+                                                  setDeleteConfirm({ type: "user", id: usr.id, name: usr.name || "Usuario" });
+                                                }}
+                                                disabled={deleteUser.isPending}
+                                              >
+                                                Eliminar
+                                              </Button>
+                                            )}
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Usuarios Regulares */}
+                          {regularUsers.length > 0 && (
+                            <div className="space-y-3">
+                              <div className="flex items-center gap-2 pt-4 border-t">
+                                <h3 className="font-semibold text-lg">Usuarios Registrados</h3>
+                                <Badge variant="outline">{regularUsers.length}</Badge>
+                              </div>
+                              <div className="space-y-3">
+                                {regularUsers.map((usr) => (
+                                  <div key={usr.id} className="border rounded-lg p-3 sm:p-4 space-y-2">
                         <div className="flex items-start justify-between gap-4">
                           <div className="space-y-1 flex-1">
                             <div className="flex items-center gap-2 flex-wrap">
@@ -1100,7 +1197,7 @@ export default function Admin() {
                                   usr.role === "super_admin" ? "bg-red-600" :
                                   usr.role === "admin" ? "bg-blue-500" :
                                   usr.role === "comercial" ? "bg-green-600" :
-                                  usr.role === "disenador" ? "bg-purple-600" :
+                                  usr.role === "disenador" ? "bg-cyan-600" :
                                   usr.role === "jefe_taller" ? "bg-orange-600" :
                                   usr.role === "operario" ? "bg-yellow-600 text-black" : ""
                                 }
@@ -1184,8 +1281,14 @@ export default function Admin() {
                             )}
                           </div>
                         </div>
-                      </div>
-                    ))}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </>
+                      );
+                    })()}
                   </div>
                 )}
               </CardContent>

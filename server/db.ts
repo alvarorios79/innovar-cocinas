@@ -178,7 +178,16 @@ export async function updateClient(id: number, data: Partial<InsertClient>) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  await db.update(clients).set(data).where(eq(clients.id, id));
+  // Filtrar valores undefined para evitar error "No values to set"
+  const filteredData = Object.fromEntries(
+    Object.entries(data).filter(([_, v]) => v !== undefined)
+  );
+  
+  if (Object.keys(filteredData).length === 0) {
+    return; // No hay nada que actualizar
+  }
+
+  await db.update(clients).set(filteredData).where(eq(clients.id, id));
 }
 
 // ============ APPOINTMENTS ============

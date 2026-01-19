@@ -239,19 +239,24 @@ export const appRouter = router({
         whatsappPhone: z.string().min(10),
         address: z.string().optional(),
       }))
-      .mutation(async ({ input }) => {
+      .mutation(async ({ ctx, input }) => {
         // Buscar cliente existente por WhatsApp
         let client = await db.getClientByWhatsApp(input.whatsappPhone);
         
         if (!client) {
-          // Crear nuevo cliente
+          // Crear nuevo cliente, asociando con usuario si está autenticado
           const clientId = await db.createClient({
+            userId: ctx.user?.id, // Asociar con usuario autenticado si existe
             name: input.name,
             email: input.email,
             whatsappPhone: input.whatsappPhone,
             address: input.address,
           });
           client = await db.getClientById(clientId);
+        } else if (ctx.user && !client.userId) {
+          // Si el cliente ya existe pero no tiene userId, asociarlo con el usuario autenticado
+          await db.updateClient(client.id, { userId: ctx.user.id });
+          client = await db.getClientById(client.id);
         }
         
         return client;

@@ -577,3 +577,34 @@
 - [x] Corregir la conversión para que se guarde y muestre correctamente
 - [x] Probar creando una cita con horario específico (ej: 8:00 AM)
 - [x] Verificar que el horario se muestre igual en Panel Admin
+
+## Establecer Contraseña para Super Admin
+
+- [x] Generar hash de contraseña Innovar2026*
+- [x] Actualizar usuario mcfy8jgnym@privaterelay.appleid.com con nueva contraseña
+- [x] Verificar que el usuario puede acceder con la nueva contraseña
+
+## Corrección de Visualización en Portal del Cliente
+
+- [x] Investigar por qué las citas creadas no aparecen en el portal del usuario
+- [x] Verificar la consulta que trae las citas del usuario actual
+- [x] Corregir la lógica de asociación entre usuario y cliente
+- [x] Implementar visualización de proyectos en portal del cliente (ya existía)
+- [x] Implementar visualización de cotizaciones en portal del cliente (ya existía)
+- [x] Implementar visualización de estimados previos en portal del cliente (ya existía)
+- [ ] Probar creando una cita como usuario y verificar que aparece en portal
+- [ ] Verificar que todos los datos (citas, proyectos, cotizaciones, estimados) se muestran correctamente
+
+## Corrección de Asociación Cliente-Usuario
+
+- [x] Diagnosticar problema: citas creadas por usuarios autenticados no aparecen en su portal
+- [x] Implementar asociación automática de cliente con userId al crear cita desde Home.tsx
+- [x] Modificar getOrCreateByWhatsApp para asociar cliente con usuario autenticado
+- [x] Agregar función updateClient en db.ts para actualizar cliente existente
+- [x] Implementar lógica: si cliente existe sin userId, asociarlo al usuario autenticado
+- [x] Crear tests completos para verificar asociación cliente-usuario (3 tests pasando)
+- [x] Verificar que getMyAppointments muestra citas del usuario correctamente
+- [x] Verificar que getMyProjects muestra proyectos del usuario correctamente
+- [x] Verificar que getMyQuotations muestra cotizaciones del usuario correctamente
+- [x] Verificar que getMyEstimates muestra estimados del usuario correctamente
+- [x] Todos los tests del proyecto pasando (266 tests)

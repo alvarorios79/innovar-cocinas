@@ -44,6 +44,7 @@ export default function Admin() {
   const [selectedAppointments, setSelectedAppointments] = useState<number[]>([]);
   const [selectedAdvisory, setSelectedAdvisory] = useState<number[]>([]);
   const [selectedQuotations, setSelectedQuotations] = useState<number[]>([]);
+  const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
 
   const utils = trpc.useUtils();
   const { data: appointments = [], isLoading: loadingAppointments } = trpc.appointments.list.useQuery();
@@ -226,7 +227,22 @@ export default function Admin() {
     }
   };
 
-  const handleBulkDelete = (type: 'appointments' | 'advisory' | 'quotations') => {
+  const toggleSelectUser = (id: number) => {
+    setSelectedUsers(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
+
+  const toggleSelectAllUsers = (usersList: any[]) => {
+    const userIds = usersList.map(u => u.id);
+    if (userIds.every(id => selectedUsers.includes(id))) {
+      setSelectedUsers(prev => prev.filter(id => !userIds.includes(id)));
+    } else {
+      setSelectedUsers(prev => Array.from(new Set([...prev, ...userIds])));
+    }
+  };
+
+  const handleBulkDelete = (type: 'appointments' | 'advisory' | 'quotations' | 'users') => {
     let count = 0;
     let items: number[] = [];
     
@@ -243,25 +259,36 @@ export default function Admin() {
         count = selectedQuotations.length;
         items = selectedQuotations;
         break;
+      case 'users':
+        count = selectedUsers.length;
+        items = selectedUsers;
+        break;
     }
 
     if (count === 0) return;
 
-    if (confirm(`¿Estás seguro de eliminar ${count} ${type === 'appointments' ? 'citas' : type === 'advisory' ? 'asesoramientos' : 'cotizaciones'}?`)) {
+    if (confirm(`¿Estás seguro de eliminar ${count} ${type === 'appointments' ? 'citas' : type === 'advisory' ? 'asesoramientos' : type === 'quotations' ? 'cotizaciones' : 'usuarios'}?`)) {
       // Eliminar cada item individualmente
-      items.forEach(id => {
-        switch (type) {
-          case 'appointments':
-            deleteAppointment.mutate({ id });
-            break;
-          case 'advisory':
-            deleteAdvisory.mutate({ id });
-            break;
-          case 'quotations':
-            deleteQuotation.mutate({ id });
-            break;
-        }
-      });
+      if (type === 'users') {
+        // Para usuarios, eliminamos uno por uno esperando confirmación
+        items.forEach(id => {
+          deleteUser.mutate({ userId: id });
+        });
+      } else {
+        items.forEach(id => {
+          switch (type) {
+            case 'appointments':
+              deleteAppointment.mutate({ id });
+              break;
+            case 'advisory':
+              deleteAdvisory.mutate({ id });
+              break;
+            case 'quotations':
+              deleteQuotation.mutate({ id });
+              break;
+          }
+        });
+      }
 
       // Limpiar selección
       switch (type) {
@@ -273,6 +300,9 @@ export default function Admin() {
           break;
         case 'quotations':
           setSelectedQuotations([]);
+          break;
+        case 'users':
+          setSelectedUsers([]);
           break;
       }
     }
@@ -1098,14 +1128,36 @@ export default function Admin() {
                         <>
                           {teamUsers.length > 0 && (
                             <div className="space-y-3">
-                              <div className="flex items-center gap-2">
-                                <h3 className="font-semibold text-lg">Equipo de Trabajo</h3>
-                                <Badge variant="outline">{teamUsers.length}</Badge>
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <Checkbox
+                                    checked={teamUsers.every(u => selectedUsers.includes(u.id))}
+                                    onCheckedChange={() => toggleSelectAllUsers(teamUsers)}
+                                  />
+                                  <h3 className="font-semibold text-lg">Equipo de Trabajo</h3>
+                                  <Badge variant="outline">{teamUsers.length}</Badge>
+                                </div>
+                                {selectedUsers.some(id => teamUsers.map(u => u.id).includes(id)) && (
+                                  <Button
+                                    size="sm"
+                                    variant="destructive"
+                                    onClick={() => handleBulkDelete('users')}
+                                  >
+                                    <Trash2 className="h-4 w-4 mr-2" />
+                                    Eliminar seleccionados ({selectedUsers.filter(id => teamUsers.map(u => u.id).includes(id)).length})
+                                  </Button>
+                                )}
                               </div>
                               <div className="space-y-3">
                                 {teamUsers.map((usr) => (
                                   <div key={usr.id} className="border rounded-lg p-3 sm:p-4 space-y-2 bg-muted/30">
-                                    <div className="flex items-start justify-between gap-4">
+                                    <div className="flex items-start gap-3">
+                                      <Checkbox
+                                        checked={selectedUsers.includes(usr.id)}
+                                        onCheckedChange={() => toggleSelectUser(usr.id)}
+                                        className="mt-1"
+                                      />
+                                      <div className="flex items-start justify-between gap-4 flex-1">
                                       <div className="space-y-1 flex-1">
                                         <div className="flex items-center gap-2 flex-wrap">
                                           <h3 className="font-semibold">{usr.name || "Sin nombre"}</h3>
@@ -1170,6 +1222,7 @@ export default function Admin() {
                                           </div>
                                         )}
                                       </div>
+                                      </div>
                                     </div>
                                   </div>
                                 ))}
@@ -1180,14 +1233,36 @@ export default function Admin() {
                           {/* Usuarios Regulares */}
                           {regularUsers.length > 0 && (
                             <div className="space-y-3">
-                              <div className="flex items-center gap-2 pt-4 border-t">
-                                <h3 className="font-semibold text-lg">Usuarios Registrados</h3>
-                                <Badge variant="outline">{regularUsers.length}</Badge>
+                              <div className="flex items-center justify-between pt-4 border-t">
+                                <div className="flex items-center gap-2">
+                                  <Checkbox
+                                    checked={regularUsers.every(u => selectedUsers.includes(u.id))}
+                                    onCheckedChange={() => toggleSelectAllUsers(regularUsers)}
+                                  />
+                                  <h3 className="font-semibold text-lg">Usuarios Registrados</h3>
+                                  <Badge variant="outline">{regularUsers.length}</Badge>
+                                </div>
+                                {selectedUsers.some(id => regularUsers.map(u => u.id).includes(id)) && (
+                                  <Button
+                                    size="sm"
+                                    variant="destructive"
+                                    onClick={() => handleBulkDelete('users')}
+                                  >
+                                    <Trash2 className="h-4 w-4 mr-2" />
+                                    Eliminar seleccionados ({selectedUsers.filter(id => regularUsers.map(u => u.id).includes(id)).length})
+                                  </Button>
+                                )}
                               </div>
                               <div className="space-y-3">
                                 {regularUsers.map((usr) => (
                                   <div key={usr.id} className="border rounded-lg p-3 sm:p-4 space-y-2">
-                        <div className="flex items-start justify-between gap-4">
+                                    <div className="flex items-start gap-3">
+                                      <Checkbox
+                                        checked={selectedUsers.includes(usr.id)}
+                                        onCheckedChange={() => toggleSelectUser(usr.id)}
+                                        className="mt-1"
+                                      />
+                                      <div className="flex items-start justify-between gap-4 flex-1">
                           <div className="space-y-1 flex-1">
                             <div className="flex items-center gap-2 flex-wrap">
                               <h3 className="font-semibold">{usr.name || "Sin nombre"}</h3>
@@ -1279,6 +1354,7 @@ export default function Admin() {
                                 )}
                               </div>
                             )}
+                          </div>
                           </div>
                         </div>
                                   </div>

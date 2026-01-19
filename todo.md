@@ -553,3 +553,12 @@
 - [x] Consultar usuarios de prueba innecesarios
 - [x] Eliminar usuarios de prueba manteniendo solo equipo real y clientes registrados (albetan1530@gmail.com)
 - [x] Verificar que la lista se muestra correctamente organizada
+
+## Selección Múltiple para Eliminación de Usuarios
+
+- [x] Agregar estados para selección múltiple de usuarios
+- [x] Agregar checkbox "Seleccionar todos" en sección de Equipo de Trabajo
+- [x] Agregar checkbox "Seleccionar todos" en sección de Usuarios Registrados
+- [x] Agregar checkboxes individuales para cada usuario
+- [x] Agregar botón de eliminación masiva
+- [x] Agregar confirmación antes de eliminar múltiples usuarios

@@ -15,6 +15,17 @@ describe("Validación de disponibilidad horaria", () => {
   });
 
   it("debe permitir agendar cita en horario disponible", async () => {
+    // Limpiar citas residuales de otros tests para esta fecha
+    const allAppointments = await db.getAllAppointments();
+    for (const apt of allAppointments) {
+      if (apt.scheduledDate) {
+        const aptDate = new Date(apt.scheduledDate);
+        if (aptDate.getFullYear() === 2026 && aptDate.getMonth() === 0 && aptDate.getDate() === 20) {
+          await db.deleteAppointment(apt.id);
+        }
+      }
+    }
+
     // Martes 20 de enero de 2026 a las 08:00
     const date = new Date(2026, 0, 20, 8, 0, 0, 0);
     const timeSlot = "08:00";
@@ -85,14 +96,26 @@ describe("Validación de disponibilidad horaria", () => {
     // Martes 20 de enero de 2026
     const date = new Date(2026, 0, 20);
 
+    // Limpiar citas residuales de otros tests para esta fecha
+    const allAppointments = await db.getAllAppointments();
+    for (const apt of allAppointments) {
+      if (apt.scheduledDate) {
+        const aptDate = new Date(apt.scheduledDate);
+        if (aptDate.getFullYear() === 2026 && aptDate.getMonth() === 0 && aptDate.getDate() === 20) {
+          await db.deleteAppointment(apt.id);
+        }
+      }
+    }
+
     // Obtener horarios disponibles antes de agendar
     const slotsBefore = await getAvailableTimeSlots(date);
     expect(slotsBefore.length).toBeGreaterThan(0);
     expect(slotsBefore).toContain("08:00");
     expect(slotsBefore).toContain("09:30");
 
-    // Agendar cita a las 08:00
-    const appointmentDate = new Date(2026, 0, 20, 8, 0, 0, 0);
+    // Agendar cita a las 08:00 en zona horaria de Colombia
+    const dateStr = `2026-01-20T08:00:00-05:00`;
+    const appointmentDate = new Date(dateStr);
     testAppointmentId = await db.createAppointment({
       clientId: testClientId,
       workTypes: ["puertas"],

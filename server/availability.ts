@@ -77,13 +77,17 @@ export async function getAvailableTimeSlots(dateStr: string | Date): Promise<str
       )
     );
 
-  // Obtener horarios ocupados - usar la hora local almacenada
+  // Obtener horarios ocupados - convertir a zona horaria de Colombia
   const occupiedSlots = existingAppointments.map(apt => {
     if (!apt.scheduledDate) return null;
-    // La fecha en la BD ya está en hora local de Colombia
-    const hours = apt.scheduledDate.getHours().toString().padStart(2, '0');
-    const minutes = apt.scheduledDate.getMinutes().toString().padStart(2, '0');
-    return `${hours}:${minutes}`;
+    // Convertir la fecha a zona horaria de Colombia
+    const colombiaTime = new Date(apt.scheduledDate).toLocaleString("en-US", {
+      timeZone: "America/Bogota",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+    return colombiaTime;
   }).filter(Boolean) as string[];
 
   // Filtrar horarios disponibles
@@ -149,14 +153,16 @@ export async function isTimeSlotAvailable(dateStr: string | Date, timeSlot: stri
     );
 
   // Verificar si alguna cita existente tiene el mismo horario
-  const [hours, minutes] = timeSlot.split(':').map(Number);
-  
   for (const apt of existingAppointments) {
     if (apt.scheduledDate) {
-      // Usar getHours() para comparar en zona horaria local (Colombia)
-      const aptHours = apt.scheduledDate.getHours();
-      const aptMinutes = apt.scheduledDate.getMinutes();
-      if (aptHours === hours && aptMinutes === minutes) {
+      // Convertir la fecha a zona horaria de Colombia
+      const colombiaTime = new Date(apt.scheduledDate).toLocaleString("en-US", {
+        timeZone: "America/Bogota",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      });
+      if (colombiaTime === timeSlot) {
         return false; // Horario ocupado
       }
     }

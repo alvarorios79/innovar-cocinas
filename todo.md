@@ -568,3 +568,12 @@
 - [x] Agregar estado para controlar visibilidad de contraseña
 - [x] Agregar botón de ojo en campo de contraseña del formulario
 - [x] Implementar toggle entre tipo "password" y "text"
+
+## Corrección de Conversión de Zona Horaria en Citas
+
+- [x] Investigar código del formulario de agendar cita (Home.tsx)
+- [x] Investigar código de visualización en Panel Admin (Admin.tsx)
+- [x] Identificar dónde ocurre la conversión incorrecta de zona horaria
+- [x] Corregir la conversión para que se guarde y muestre correctamente
+- [x] Probar creando una cita con horario específico (ej: 8:00 AM)
+- [x] Verificar que el horario se muestre igual en Panel Admin

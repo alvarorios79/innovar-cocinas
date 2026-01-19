@@ -324,10 +324,12 @@ export const appRouter = router({
             });
           }
           
-          // Crear la fecha para guardar en BD
+          // Crear la fecha para guardar en BD en zona horaria de Colombia (UTC-5)
           const [year, month, day] = input.scheduledDateStr.split('-').map(Number);
           const [hours, minutes] = input.scheduledTimeStr.split(':').map(Number);
-          scheduledDate = new Date(year, month - 1, day, hours, minutes, 0, 0);
+          // Crear fecha en UTC y luego ajustar a Colombia (UTC-5)
+          const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}T${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00-05:00`;
+          scheduledDate = new Date(dateStr);
         }
 
         const appointmentId = await db.createAppointment({

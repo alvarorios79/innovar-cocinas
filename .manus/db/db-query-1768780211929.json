@@ -1,0 +1,16 @@
+{
+  "query": "SELECT id, name, email, whatsappPhone FROM clients WHERE name LIKE '%Carlos%Betancurt%' OR name LIKE '%Betancurt%';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT id, name, email, whatsappPhone FROM clients WHERE name LIKE '%Carlos%Betancurt%' OR name LIKE '%Betancurt%';",
+  "rows": [
+    {
+      "id": "90091",
+      "name": "Carlos Albeiro Betancurt ",
+      "email": "albetan1530@gmail.com",
+      "whatsappPhone": "3208515567"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\temail\twhatsappPhone\n90091\tCarlos Albeiro Betancurt \talbetan1530@gmail.com\t3208515567\n",
+  "stderr": "",
+  "execution_time_ms": 55
+}

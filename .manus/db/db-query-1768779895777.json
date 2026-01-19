@@ -1,0 +1,34 @@
+{
+  "query": "SELECT id, name, email, role FROM users WHERE email IN ('alvarorios79@gmail.com', 'alejoile300@gmail.com', 'martha79s@hotmail.com') OR name LIKE '%Alvaro%' ORDER BY id;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT id, name, email, role FROM users WHERE email IN ('alvarorios79@gmail.com', 'alejoile300@gmail.com', 'martha79s@hotmail.com') OR name LIKE '%Alvaro%' ORDER BY id;",
+  "rows": [
+    {
+      "id": "1",
+      "name": "Alvaro Rios",
+      "email": "mcfy8jgnym@privaterelay.appleid.com",
+      "role": "super_admin"
+    },
+    {
+      "id": "30257",
+      "name": "Alejo Gutiérrez",
+      "email": "alejoile300@gmail.com",
+      "role": "disenador"
+    },
+    {
+      "id": "30390",
+      "name": "Martha Serna",
+      "email": "martha79s@hotmail.com",
+      "role": "comercial"
+    },
+    {
+      "id": "60367",
+      "name": "Alvaro Gutierrez",
+      "email": "alvarorios79@hotmail.com",
+      "role": "admin"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\temail\trole\n1\tAlvaro Rios\tmcfy8jgnym@privaterelay.appleid.com\tsuper_admin\n30257\tAlejo Gutiérrez\talejoile300@gmail.com\tdisenador\n30390\tMartha Serna\tmartha79s@hotmail.com\tcomercial\n60367\tAlvaro Gutierrez\talvarorios79@hotmail.com\tadmin\n",
+  "stderr": "",
+  "execution_time_ms": 58
+}

@@ -1,0 +1,8 @@
+{
+  "query": "DELETE FROM users WHERE role IN ('admin', 'comercial', 'disenador', 'jefe_taller', 'operario') AND email NOT IN ('alejoile300@gmail.com', 'martha79s@hotmail.com');",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute DELETE FROM users WHERE role IN ('admin', 'comercial', 'disenador', 'jefe_taller', 'operario') AND email NOT IN ('alejoile300@gmail.com', 'martha79s@hotmail.com');",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1451 (23000) at line 1: Cannot delete or update a parent row: a foreign key constraint fails (`xhekcr8yxcaedfyuqebdjq`.`pushsubscriptions`, CONSTRAINT `pushSubscriptions_userId_users_id_fk` FOREIGN KEY (`userId`) REFERENCES `users` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION)"
+  ]
+}

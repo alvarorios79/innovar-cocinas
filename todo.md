@@ -509,3 +509,38 @@
 - [x] Agregar botón de eliminación masiva para tareas
 - [x] Agregar confirmación antes de eliminar múltiples tareas
 - [x] Escribir tests para eliminación masiva de tareas
+
+## Limpieza de Datos de Prueba
+
+- [x] Consultar usuarios existentes en la base de datos
+- [x] Identificar usuarios de prueba vs usuarios reales
+- [x] Eliminar usuarios de prueba manteniendo usuarios de la aplicación
+- [x] Consultar clientes existentes en la base de datos
+- [x] Identificar clientes de prueba vs clientes reales
+- [x] Eliminar clientes de prueba manteniendo clientes reales
+- [x] Verificar que los datos reales se mantuvieron correctamente
+
+## Restauración de Roles de Usuario
+
+- [x] Consultar usuarios actuales para verificar el estado
+- [x] Verificar si los usuarios con emails específicos aún existen
+- [x] Restaurar o actualizar rol de diseñador (alejoile300@gmail.com)
+- [x] Restaurar o actualizar rol de comercial (martha79s@hotmail.com)
+- [x] Identificar o crear usuario para jefe de taller (no existen, deben crearse desde Panel Admin)
+- [x] Identificar o crear usuario para operario (no existen, deben crearse desde Panel Admin)
+- [x] Verificar que todos los roles del equipo estén correctos
+
+## Creación de Usuario Jefe de Taller
+
+- [x] Crear usuario Luis Cardoso con email jefe.taller@innovar.temp
+- [x] Asignar rol jefe_taller
+- [x] Configurar contraseña Innovar2024*
+- [x] Verificar que el usuario se creó correctamente
+
+## Creación de Usuario Operario y Visualización de Roles
+
+- [x] Crear usuario Daniel Beltran con email operario@innovar.temp
+- [x] Asignar rol operario
+- [x] Configurar contraseña Innovar2024*
+- [x] Verificar que el usuario se creó correctamente
+- [x] Verificar que todos los roles aparezcan en la interfaz de Gestión de Usuarios

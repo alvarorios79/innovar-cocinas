@@ -1098,11 +1098,19 @@ export default function Admin() {
                                 variant={usr.role === "super_admin" || usr.role === "admin" ? "default" : "secondary"}
                                 className={
                                   usr.role === "super_admin" ? "bg-red-600" :
-                                  usr.role === "admin" ? "bg-blue-500" : ""
+                                  usr.role === "admin" ? "bg-blue-500" :
+                                  usr.role === "comercial" ? "bg-green-600" :
+                                  usr.role === "disenador" ? "bg-purple-600" :
+                                  usr.role === "jefe_taller" ? "bg-orange-600" :
+                                  usr.role === "operario" ? "bg-yellow-600 text-black" : ""
                                 }
                               >
                                 {usr.role === "super_admin" ? "Super Admin" :
-                                 usr.role === "admin" ? "Administrador" : "Usuario"}
+                                 usr.role === "admin" ? "Administrador" :
+                                 usr.role === "comercial" ? "Comercial" :
+                                 usr.role === "disenador" ? "Diseñador" :
+                                 usr.role === "jefe_taller" ? "Jefe de Taller" :
+                                 usr.role === "operario" ? "Operario" : "Usuario"}
                               </Badge>
                             </div>
                             <p className="text-sm text-muted-foreground">{usr.email || "Sin email"}</p>

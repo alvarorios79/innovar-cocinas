@@ -562,3 +562,9 @@
 - [x] Agregar checkboxes individuales para cada usuario
 - [x] Agregar botón de eliminación masiva
 - [x] Agregar confirmación antes de eliminar múltiples usuarios
+
+## Botón Mostrar/Ocultar Contraseña en Crear Usuario
+
+- [x] Agregar estado para controlar visibilidad de contraseña
+- [x] Agregar botón de ojo en campo de contraseña del formulario
+- [x] Implementar toggle entre tipo "password" y "text"

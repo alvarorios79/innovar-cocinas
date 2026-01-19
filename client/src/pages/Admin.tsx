@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
-import { Calendar, Phone, FileText, Users, Trash2, Plus, Bell, Key, Wrench, CheckSquare, Square } from "lucide-react";
+import { Calendar, Phone, FileText, Users, Trash2, Plus, Bell, Key, Wrench, CheckSquare, Square, Eye, EyeOff } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RemindersPanel } from "@/components/RemindersPanel";
 import { toast } from "sonner";
@@ -39,6 +39,7 @@ export default function Admin() {
   const [showCreateUserDialog, setShowCreateUserDialog] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<{ type: string; id: number; name: string } | null>(null);
   const [resetPasswordResult, setResetPasswordResult] = useState<{ userName: string; userEmail: string; tempPassword: string } | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
   
   // Estados para selección múltiple
   const [selectedAppointments, setSelectedAppointments] = useState<number[]>([]);
@@ -1081,13 +1082,29 @@ export default function Admin() {
                         {(user?.role === "super_admin" || user?.role === "admin") && (
                           <div className="space-y-2">
                             <Label htmlFor="create-password">Contraseña (opcional)</Label>
-                            <Input
-                              id="create-password"
-                              type="password"
-                              value={createUserForm.password || ""}
-                              onChange={(e) => setCreateUserForm({ ...createUserForm, password: e.target.value })}
-                              placeholder="Mínimo 8 caracteres"
-                            />
+                            <div className="relative">
+                              <Input
+                                id="create-password"
+                                type={showPassword ? "text" : "password"}
+                                value={createUserForm.password || ""}
+                                onChange={(e) => setCreateUserForm({ ...createUserForm, password: e.target.value })}
+                                placeholder="Mínimo 8 caracteres"
+                                className="pr-10"
+                              />
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                                onClick={() => setShowPassword(!showPassword)}
+                              >
+                                {showPassword ? (
+                                  <EyeOff className="h-4 w-4 text-muted-foreground" />
+                                ) : (
+                                  <Eye className="h-4 w-4 text-muted-foreground" />
+                                )}
+                              </Button>
+                            </div>
                             <p className="text-xs text-muted-foreground">
                               Si se proporciona, el usuario podrá iniciar sesión con email y contraseña
                             </p>

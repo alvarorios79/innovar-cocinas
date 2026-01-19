@@ -1,0 +1,22 @@
+{
+  "query": "SELECT \n  a.id as appointment_id,\n  a.clientId,\n  a.scheduledDate,\n  a.status,\n  a.notes,\n  a.createdAt,\n  c.name as client_name,\n  c.userId as client_userId,\n  u.id as user_id,\n  u.email as user_email\nFROM appointments a\nJOIN clients c ON a.clientId = c.id\nJOIN users u ON c.userId = u.id\nWHERE u.email = 'alvarorios79@hotmail.com'\nORDER BY a.createdAt DESC;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT \n  a.id as appointment_id,\n  a.clientId,\n  a.scheduledDate,\n  a.status,\n  a.notes,\n  a.createdAt,\n  c.name as client_name,\n  c.userId as client_userId,\n  u.id as user_id,\n  u.email as user_email\nFROM appointments a\nJOIN clients c ON a.clientId = c.id\nJOIN users u ON c.userId = u.id\nWHERE u.email = 'alvarorios79@hotmail.com'\nORDER BY a.createdAt DESC;",
+  "rows": [
+    {
+      "appointment_id": "270053",
+      "clientId": "300053",
+      "scheduledDate": "2026-01-20 14:30:00",
+      "status": "pendiente",
+      "notes": "NULL",
+      "createdAt": "2026-01-19 01:59:19",
+      "client_name": "Álvaro prueba ",
+      "client_userId": "840718",
+      "user_id": "840718",
+      "user_email": "alvarorios79@hotmail.com"
+    }
+  ],
+  "messages": [],
+  "stdout": "appointment_id\tclientId\tscheduledDate\tstatus\tnotes\tcreatedAt\tclient_name\tclient_userId\tuser_id\tuser_email\n270053\t300053\t2026-01-20 14:30:00\tpendiente\tNULL\t2026-01-19 01:59:19\tÁlvaro prueba \t840718\t840718\talvarorios79@hotmail.com\n",
+  "stderr": "",
+  "execution_time_ms": 59
+}

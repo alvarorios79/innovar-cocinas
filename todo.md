@@ -608,3 +608,70 @@
 - [x] Verificar que getMyQuotations muestra cotizaciones del usuario correctamente
 - [x] Verificar que getMyEstimates muestra estimados del usuario correctamente
 - [x] Todos los tests del proyecto pasando (266 tests)
+
+## Problema Reportado: Cita no aparece en portal de Alvaro Pruebas
+
+- [x] Investigar por qué la cita creada por Alvaro Pruebas aparece en Panel Admin pero no en su portal personal
+- [x] Verificar datos del usuario Alvaro Pruebas en la base de datos
+- [x] Verificar cliente asociado al usuario Alvaro Pruebas
+- [x] Verificar la cita creada y su relación con el cliente
+- [x] Diagnosticar por qué getMyAppointments no devuelve la cita
+- [x] Confirmar que el backend devuelve la cita correctamente
+- [x] Verificar que el código de asociación cliente-usuario funciona correctamente
+
+## Sistema de Notificaciones por Email
+
+### Fase 1: Configuración Base
+- [x] Investigar servicios de email disponibles (Resend, SendGrid, AWS SES, Mailgun)
+- [x] Seleccionar servicio de email más adecuado para el proyecto (Resend)
+- [ ] Crear cuenta y obtener API key del servicio seleccionado (requiere acción del usuario)
+- [x] Configurar variables de entorno para el servicio de email (RESEND_API_KEY, EMAIL_FROM)
+- [x] Crear módulo base de envío de emails (server/email.ts)
+- [x] Implementar función sendEmail con manejo de errores y reintentos
+- [x] Crear plantilla base HTML para emails con branding de INNOVAR
+
+### Fase 2: Plantillas de Email
+- [x] Crear plantilla de bienvenida para nuevos usuarios registrados
+- [x] Crear plantilla de notificación de nueva tarea asignada
+- [x] Crear plantilla de recordatorio de tarea próxima a vencer
+- [x] Crear plantilla de cambio de estado de proyecto
+- [x] Crear plantilla de cotización enviada
+- [x] Crear plantilla de diseño listo para aprobación
+- [x] Crear plantilla de proyecto listo para instalación
+- [x] Crear plantilla de cita confirmada/reagendada
+- [x] Crear plantilla de recordatorio de cita (24h antes)
+- [ ] Crear plantilla de recuperación de contraseña (pendiente)
+
+### Fase 3: Integración con Sistema Existente
+- [ ] Integrar email en sistema de notificaciones (cuando se crea notificación) (pendiente)
+- [x] Integrar email en sistema de tareas (cuando se asigna tarea)
+- [ ] Integrar email en sistema de recordatorios (recordatorios vencidos) (pendiente)
+- [ ] Integrar email en cambios de estado de proyecto (pendiente)
+- [ ] Integrar email en envío de cotizaciones (pendiente)
+- [x] Integrar email en confirmación de citas
+- [ ] Agregar preferencias de notificación por email en perfil de usuario (pendiente)
+
+### Fase 4: Registro Automático al Crear Cita
+- [ ] Hacer campo email obligatorio en formulario de cita (Home.tsx) (pendiente - email ya es requerido en backend)
+- [x] Modificar endpoint appointments.create para crear usuario automáticamente
+- [x] Generar contraseña temporal aleatoria segura
+- [x] Crear usuario con email y contraseña temporal
+- [x] Asociar cliente con usuario recién creado
+- [x] Enviar email de bienvenida con credenciales y enlace al portal
+- [ ] Agregar opción "Cambiar contraseña" en perfil de usuario (pendiente)
+- [ ] Forzar cambio de contraseña en primer login (opcional) (pendiente)
+
+### Fase 5: Testing y Validación
+- [x] Crear tests para módulo de envío de emails
+- [x] Crear tests para registro automático de usuarios (3 tests pasando)
+- [ ] Verificar que todos los emails se envían correctamente (requiere RESEND_API_KEY)
+- [x] Verificar que las plantillas se renderizan correctamente
+- [x] Probar flujo completo de registro automático al crear cita
+- [ ] Verificar que usuario puede iniciar sesión con credenciales enviadas (requiere prueba manual)
+- [ ] Verificar que todas las notificaciones llegan por email (requiere RESEND_API_KEY)
+
+### Fase 6: Documentación
+- [ ] Documentar configuración del servicio de email
+- [ ] Documentar plantillas de email disponibles
+- [ ] Documentar flujo de registro automático
+- [ ] Actualizar README con instrucciones de configuración de email

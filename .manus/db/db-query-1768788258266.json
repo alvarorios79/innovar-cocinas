@@ -1,0 +1,9 @@
+{
+  "query": "SELECT \n  c.id as client_id,\n  c.name as client_name,\n  c.whatsappPhone,\n  c.userId,\n  u.email as user_email,\n  a.id as appointment_id,\n  a.scheduledDate,\n  a.createdAt as appointment_created\nFROM clients c\nLEFT JOIN users u ON c.userId = u.id\nLEFT JOIN appointments a ON a.clientId = c.id\nWHERE c.name LIKE '%Alvaro%'\nORDER BY a.createdAt DESC\nLIMIT 10;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT \n  c.id as client_id,\n  c.name as client_name,\n  c.whatsappPhone,\n  c.userId,\n  u.email as user_email,\n  a.id as appointment_id,\n  a.scheduledDate,\n  a.createdAt as appointment_created\nFROM clients c\nLEFT JOIN users u ON c.userId = u.id\nLEFT JOIN appointments a ON a.clientId = c.id\nWHERE c.name LIKE '%Alvaro%'\nORDER BY a.createdAt DESC\nLIMIT 10;",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 60
+}

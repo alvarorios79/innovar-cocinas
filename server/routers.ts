@@ -364,6 +364,81 @@ export const appRouter = router({
             return labels[wt] || wt;
           }).join(", ");
 
+          // Si el cliente tiene email pero no tiene userId, crear usuario automáticamente
+          if (client.email && !client.userId) {
+            try {
+              // Verificar si ya existe un usuario con este email
+              const existingUsers = await db.getAllUsers();
+              const userExists = existingUsers.some(u => u.email?.toLowerCase() === client.email?.toLowerCase());
+              
+              if (!userExists) {
+                const { generateTemporaryPassword } = await import("./password-generator");
+                const { hashPassword } = await import("./password-auth");
+                
+                // Generar contraseña temporal
+                const temporaryPassword = generateTemporaryPassword();
+                const hashedPassword = await hashPassword(temporaryPassword);
+                
+                // Crear usuario
+                const userId = await db.createUserExtended({
+                  name: client.name,
+                  email: client.email,
+                  role: "user",
+                  passwordHash: hashedPassword,
+                });
+                
+                // Asociar cliente con usuario
+                await db.updateClient(client.id, { userId });
+                
+                // Enviar email de bienvenida con credenciales
+                try {
+                  const { sendEmail } = await import("./email");
+                  const { welcomeEmailTemplate } = await import("./email-templates");
+                  const emailData = welcomeEmailTemplate({
+                    userName: client.name,
+                    email: client.email,
+                    temporaryPassword,
+                    portalUrl: `${process.env.VITE_APP_URL || ""}/portal`,
+                  });
+                  await sendEmail({
+                    to: client.email,
+                    subject: emailData.subject,
+                    html: emailData.html,
+                  });
+                  console.log(`[Auto-registro] Usuario creado y email enviado a ${client.email}`);
+                } catch (emailError) {
+                  console.error("[Auto-registro] Error al enviar email de bienvenida:", emailError);
+                  // No bloquear el proceso si falla el email
+                }
+              }
+            } catch (error) {
+              console.error("[Auto-registro] Error al crear usuario automáticamente:", error);
+              // No bloquear el proceso si falla el registro automático
+            }
+          }
+
+          // Enviar email de confirmación de cita si el cliente tiene email
+          if (client.email && scheduledDate) {
+            try {
+              const { sendEmail } = await import("./email");
+              const { appointmentConfirmedEmailTemplate } = await import("./email-templates");
+              const emailData = appointmentConfirmedEmailTemplate({
+                clientName: client.name,
+                appointmentDate: scheduledDate,
+                workTypes: input.workTypes,
+                notes: input.notes,
+                portalUrl: `${process.env.VITE_APP_URL || ""}/portal`,
+              });
+              await sendEmail({
+                to: client.email,
+                subject: emailData.subject,
+                html: emailData.html,
+              });
+            } catch (emailError) {
+              console.error("[Cita] Error al enviar email de confirmación:", emailError);
+            }
+          }
+
           const whatsappLink = whatsapp.notifyNewAppointment({
             clientName: client.name,
             clientPhone: client.whatsappPhone,
@@ -1574,6 +1649,32 @@ export const appRouter = router({
         } catch (e) {
           // Silenciar error de push - la notificación en app ya se creó
           console.log("Push notification failed (non-blocking):", e);
+        }
+
+        // Enviar email de notificación de tarea (no bloquea si falla)
+        try {
+          const assignedUser = await db.getUserById(input.assignedTo);
+          if (assignedUser?.email) {
+            const { sendEmail } = await import("./email");
+            const { taskAssignedEmailTemplate } = await import("./email-templates");
+            const emailData = taskAssignedEmailTemplate({
+              recipientName: assignedUser.name || "Usuario",
+              taskTitle: input.title,
+              taskDescription: input.description,
+              priority: input.priority,
+              dueDate: input.dueDate,
+              assignedBy: ctx.user.name || "Un administrador",
+              portalUrl: `${process.env.VITE_APP_URL || ""}/tasks`,
+            });
+            await sendEmail({
+              to: assignedUser.email,
+              subject: emailData.subject,
+              html: emailData.html,
+            });
+          }
+        } catch (e) {
+          // Silenciar error de email - la notificación en app ya se creó
+          console.log("Email notification failed (non-blocking):", e);
         }
 
         return { success: true, taskId };

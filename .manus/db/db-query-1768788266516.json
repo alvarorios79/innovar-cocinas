@@ -1,0 +1,19 @@
+{
+  "query": "SELECT \n  c.id as client_id,\n  c.name as client_name,\n  c.whatsappPhone,\n  c.email,\n  c.userId,\n  u.email as user_email,\n  (SELECT COUNT(*) FROM appointments WHERE clientId = c.id) as appointment_count\nFROM clients c\nLEFT JOIN users u ON c.userId = u.id\nWHERE c.email LIKE '%alvarorios79%' OR c.email LIKE '%alvaro%'\nORDER BY c.createdAt DESC\nLIMIT 5;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT \n  c.id as client_id,\n  c.name as client_name,\n  c.whatsappPhone,\n  c.email,\n  c.userId,\n  u.email as user_email,\n  (SELECT COUNT(*) FROM appointments WHERE clientId = c.id) as appointment_count\nFROM clients c\nLEFT JOIN users u ON c.userId = u.id\nWHERE c.email LIKE '%alvarorios79%' OR c.email LIKE '%alvaro%'\nORDER BY c.createdAt DESC\nLIMIT 5;",
+  "rows": [
+    {
+      "client_id": "300053",
+      "client_name": "Álvaro prueba ",
+      "whatsappPhone": "3002826317",
+      "email": "alvarorios79@hotmail.com",
+      "userId": "840718",
+      "user_email": "alvarorios79@hotmail.com",
+      "appointment_count": "1"
+    }
+  ],
+  "messages": [],
+  "stdout": "client_id\tclient_name\twhatsappPhone\temail\tuserId\tuser_email\tappointment_count\n300053\tÁlvaro prueba \t3002826317\talvarorios79@hotmail.com\t840718\talvarorios79@hotmail.com\t1\n",
+  "stderr": "",
+  "execution_time_ms": 68
+}

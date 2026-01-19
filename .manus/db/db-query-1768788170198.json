@@ -1,0 +1,65 @@
+{
+  "query": "SELECT \n  a.id as appointment_id,\n  a.clientId,\n  a.scheduledDate,\n  a.status,\n  a.createdAt,\n  c.name as client_name,\n  c.whatsappPhone,\n  c.email as client_email,\n  c.userId as client_userId\nFROM appointments a\nJOIN clients c ON a.clientId = c.id\nORDER BY a.createdAt DESC\nLIMIT 5;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT \n  a.id as appointment_id,\n  a.clientId,\n  a.scheduledDate,\n  a.status,\n  a.createdAt,\n  c.name as client_name,\n  c.whatsappPhone,\n  c.email as client_email,\n  c.userId as client_userId\nFROM appointments a\nJOIN clients c ON a.clientId = c.id\nORDER BY a.createdAt DESC\nLIMIT 5;",
+  "rows": [
+    {
+      "appointment_id": "270053",
+      "clientId": "300053",
+      "scheduledDate": "2026-01-20 14:30:00",
+      "status": "pendiente",
+      "createdAt": "2026-01-19 01:59:19",
+      "client_name": "Álvaro prueba ",
+      "whatsappPhone": "3002826317",
+      "client_email": "alvarorios79@hotmail.com",
+      "client_userId": "840718"
+    },
+    {
+      "appointment_id": "270049",
+      "clientId": "300112",
+      "scheduledDate": "2026-01-20 13:00:00",
+      "status": "pendiente",
+      "createdAt": "2026-01-19 01:55:37",
+      "client_name": "Cliente Timezone Test",
+      "whatsappPhone": "+573001234567",
+      "client_email": "timezone@test.com",
+      "client_userId": "NULL"
+    },
+    {
+      "appointment_id": "270052",
+      "clientId": "300114",
+      "scheduledDate": "2026-01-20 22:45:00",
+      "status": "pendiente",
+      "createdAt": "2026-01-19 01:55:37",
+      "client_name": "Cliente Timezone Test",
+      "whatsappPhone": "+573001234567",
+      "client_email": "timezone@test.com",
+      "client_userId": "NULL"
+    },
+    {
+      "appointment_id": "270050",
+      "clientId": "300114",
+      "scheduledDate": "2026-01-20 14:00:00",
+      "status": "pendiente",
+      "createdAt": "2026-01-19 01:55:37",
+      "client_name": "Cliente Timezone Test",
+      "whatsappPhone": "+573001234567",
+      "client_email": "timezone@test.com",
+      "client_userId": "NULL"
+    },
+    {
+      "appointment_id": "270051",
+      "clientId": "300114",
+      "scheduledDate": "2026-01-20 19:30:00",
+      "status": "pendiente",
+      "createdAt": "2026-01-19 01:55:37",
+      "client_name": "Cliente Timezone Test",
+      "whatsappPhone": "+573001234567",
+      "client_email": "timezone@test.com",
+      "client_userId": "NULL"
+    }
+  ],
+  "messages": [],
+  "stdout": "appointment_id\tclientId\tscheduledDate\tstatus\tcreatedAt\tclient_name\twhatsappPhone\tclient_email\tclient_userId\n270053\t300053\t2026-01-20 14:30:00\tpendiente\t2026-01-19 01:59:19\tÁlvaro prueba \t3002826317\talvarorios79@hotmail.com\t840718\n270049\t300112\t2026-01-20 13:00:00\tpendiente\t2026-01-19 01:55:37\tCliente Timezone Test\t+573001234567\ttimezone@test.com\tNULL\n270052\t300114\t2026-01-20 22:45:00\tpendiente\t2026-01-19 01:55:37\tCliente Timezone Test\t+573001234567\ttimezone@test.com\tNULL\n270050\t300114\t2026-01-20 14:00:00\tpendiente\t2026-01-19 01:55:37\tCliente Timezone Test\t+573001234567\ttimezone@test.com\tNULL\n270051\t300114\t2026-01-20 19:30:00\tpendiente\t2026-01-19 01:55:37\tCliente Timezone Test\t+573001234567\ttimezone@test.com\tNULL\n",
+  "stderr": "",
+  "execution_time_ms": 52
+}

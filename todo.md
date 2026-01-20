@@ -785,3 +785,9 @@
 - [x] Actualizar endpoint para usar nuevo generador
 - [x] Probar generación de PDF
 - [ ] Eliminar código Python obsoleto
+
+
+## Corrección __dirname en PDFKit
+
+- [x] Reemplazar __dirname con import.meta.url para módulos ES
+- [x] Probar generación de PDF con logo

@@ -1,6 +1,11 @@
 import PDFDocument from "pdfkit";
 import { createWriteStream, readFileSync } from "fs";
 import path from "path";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 interface QuotationItem {
   itemNumber: number;
@@ -46,6 +51,7 @@ export async function generateQuotationPDF(
 
       // Logo
       const logoPath = path.join(__dirname, "../innovar_logo.png");
+      console.log(`[PDF] Intentando cargar logo desde: ${logoPath}`);
       try {
         doc.image(logoPath, 50, 40, { width: 80, height: 102 });
       } catch (e) {

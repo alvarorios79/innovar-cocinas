@@ -990,3 +990,10 @@
 - [x] Causa real: La columna productType NO EXISTÍA en la tabla quotations de la base de datos
 - [x] Solución: Agregar columna productType a la base de datos con ALTER TABLE
 - [x] Actualizar schema de Drizzle para incluir valor por defecto "otro"
+
+## Bug: Error al insertar cotización en base de datos
+
+- [x] Error: "Failed query: insert into `quotations`..." con valores `default` que fallan
+- [x] Causa: Desincronización entre schema de Drizzle y estructura real de la base de datos
+- [x] Problemas encontrados: columna workType extra, fixedCosts vs transportCost, createdBy nullable
+- [x] Solución: Eliminar workType, renombrar fixedCosts a transportCost, hacer createdBy NOT NULL

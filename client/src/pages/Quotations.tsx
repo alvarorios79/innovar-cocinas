@@ -27,6 +27,7 @@ interface QuotationItem {
   quantity: string;
   unitPrice?: string;
   totalPrice: number;
+  includesFixedCosts?: boolean;
 }
 
 export default function Quotations() {
@@ -37,7 +38,7 @@ export default function Quotations() {
   const [vendorName, setVendorName] = useState("Alvaro Gutierrez");
   const [workType, setWorkType] = useState("");
   const [items, setItems] = useState<QuotationItem[]>([
-    { itemNumber: 1, description: "", quantity: "", totalPrice: 0 },
+    { itemNumber: 1, description: "", quantity: "", totalPrice: 0, includesFixedCosts: false },
   ]);
 
   const { data: quotations = [], isLoading } = trpc.quotations.list.useQuery();
@@ -110,7 +111,7 @@ export default function Quotations() {
     setSelectedClient(null);
     setVendorName("Alvaro Gutierrez");
     setWorkType("");
-    setItems([{ itemNumber: 1, description: "", quantity: "", totalPrice: 0 }]);
+    setItems([{ itemNumber: 1, description: "", quantity: "", totalPrice: 0, includesFixedCosts: false }]);
   };
 
   const handleEdit = async (quotationId: number) => {
@@ -155,6 +156,7 @@ export default function Quotations() {
         description: "",
         quantity: "",
         totalPrice: 0,
+        includesFixedCosts: false,
       },
     ]);
   };
@@ -179,9 +181,7 @@ export default function Quotations() {
   };
 
   const calculateTotal = () => {
-    const subtotal = items.reduce((sum, item) => sum + item.totalPrice, 0);
-    const fixedCosts = 600000;
-    return subtotal + fixedCosts;
+    return items.reduce((sum, item) => sum + item.totalPrice, 0);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -483,6 +483,34 @@ export default function Quotations() {
                             />
                           </div>
                         </div>
+
+                        <div className="flex items-center space-x-2 mt-2">
+                          <input
+                            type="checkbox"
+                            id={`fixedCosts-${index}`}
+                            checked={item.includesFixedCosts || false}
+                            onChange={(e) => {
+                              const newItems = [...items];
+                              const currentTotal = newItems[index].totalPrice;
+                              const wasChecked = newItems[index].includesFixedCosts || false;
+                              
+                              if (e.target.checked && !wasChecked) {
+                                // Agregar $600,000
+                                newItems[index].totalPrice = currentTotal + 600000;
+                              } else if (!e.target.checked && wasChecked) {
+                                // Restar $600,000
+                                newItems[index].totalPrice = Math.max(0, currentTotal - 600000);
+                              }
+                              
+                              newItems[index].includesFixedCosts = e.target.checked;
+                              setItems(newItems);
+                            }}
+                            className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                          />
+                          <Label htmlFor={`fixedCosts-${index}`} className="text-sm font-normal cursor-pointer">
+                            Incluye transporte e imprevistos ($600,000)
+                          </Label>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
@@ -493,19 +521,7 @@ export default function Quotations() {
             <Card className="bg-muted">
               <CardContent className="pt-4">
                 <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span>Subtotal:</span>
-                    <span className="font-bold">
-                      {formatPrice(
-                        items.reduce((sum, item) => sum + item.totalPrice, 0)
-                      )}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Transporte e imprevistos:</span>
-                    <span className="font-bold">{formatPrice(600000)}</span>
-                  </div>
-                  <div className="flex justify-between text-lg border-t pt-2">
+                  <div className="flex justify-between text-lg">
                     <span className="font-bold">TOTAL:</span>
                     <span className="font-bold text-primary">
                       {formatPrice(calculateTotal())}

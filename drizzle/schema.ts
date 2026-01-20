@@ -138,6 +138,7 @@ export const quotationItems = mysqlTable("quotationItems", {
   quantity: varchar("quantity", { length: 50 }).notNull(), // "1", "4.5 ml", etc.
   unitPrice: varchar("unitPrice", { length: 50 }), // "$850,000" o vacío
   totalPrice: decimal("totalPrice", { precision: 12, scale: 2 }).notNull(),
+  includesFixedCosts: boolean("includesFixedCosts").default(false).notNull(), // Si incluye transporte e imprevistos
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 

@@ -791,3 +791,20 @@
 
 - [x] Reemplazar __dirname con import.meta.url para módulos ES
 - [x] Probar generación de PDF con logo
+
+
+## Ajuste de Costos Fijos en Cotizaciones
+
+- [x] Actualizar frontend para incluir costos fijos en el total del ítem cocina
+- [x] Actualizar generador de PDF para no mostrar línea separada de costos fijos
+- [x] Actualizar cálculo de total (solo suma de items, sin costos fijos adicionales)
+- [x] Probar generación de PDF con nuevo formato
+
+
+## Checkbox de Costos Fijos en Items
+
+- [x] Agregar campo includesFixedCosts a tabla quotation_items
+- [x] Agregar checkbox en formulario de items
+- [x] Implementar suma automática de $600,000 al marcar checkbox
+- [x] Actualizar PDF para mostrar nota cuando item incluye costos fijos
+- [x] Probar creación y edición de cotizaciones con checkbox

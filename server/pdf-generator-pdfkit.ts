@@ -13,6 +13,7 @@ interface QuotationItem {
   quantity: string;
   unitPrice?: string;
   totalPrice: string;
+  includesFixedCosts?: boolean;
 }
 
 interface QuotationData {
@@ -162,25 +163,26 @@ export async function generateQuotationPDF(
           align: "right",
         });
 
+        // Nota si incluye costos fijos
+        if (item.includesFixedCosts) {
+          currentY += 20;
+          doc.fontSize(8).fillColor(gray).font("Helvetica-Oblique");
+          doc.text(
+            "* Incluye transporte e imprevistos ($600,000)",
+            110,
+            currentY,
+            { width: 430 }
+          );
+          doc.font("Helvetica");
+          currentY += 10;
+        }
+
         currentY += 25;
         rowBackground = !rowBackground;
       }
 
-      // Totales
-      currentY += 10;
-      doc.fontSize(10).font("Helvetica-Bold");
-      doc.text("Subtotal:", 400, currentY);
-      doc.text(formatCurrency(data.subtotal), 510, currentY, {
-        align: "right",
-      });
-
+      // Total
       currentY += 20;
-      doc.text("Transporte e imprevistos:", 400, currentY);
-      doc.text(formatCurrency(data.fixedCosts), 510, currentY, {
-        align: "right",
-      });
-
-      currentY += 30;
       doc
         .fillColor(turquoise)
         .rect(380, currentY - 5, 182, 30)

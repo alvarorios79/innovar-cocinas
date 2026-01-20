@@ -958,3 +958,10 @@
 - [x] Actualizar backend para guardar configuración de cocina (itemType + kitchenConfig JSON)
 - [ ] Actualizar PDF para mostrar desglose completo de cocina
 - [x] Tests de cálculos automáticos (13 tests pasando)
+
+## Bug: Descuento de metraje en cocinas
+
+- [x] Corregir lógica de cálculo de metraje resultante: solo descontar anchos de muebles especiales cuando están SELECCIONADOS (checkbox marcado)
+- [x] Solución implementada: calcular metraje resultante directamente en el render con lógica correcta
+- [x] El metraje resultante determina los metros lineales de muebles inferiores, superiores y mesón
+- [x] 13 tests backend verificados y pasando correctamente

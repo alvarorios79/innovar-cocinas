@@ -367,12 +367,12 @@ export default function Quotations() {
     }
     current[fields[fields.length - 1]] = value;
     
-    // Recalcular automáticamente
-    calculateKitchenTotal(index);
+    // Recalcular automáticamente con el item actualizado
+    calculateKitchenTotal(index, newItems);
   };
 
-  const calculateKitchenTotal = (index: number) => {
-    const item = items[index];
+  const calculateKitchenTotal = (index: number, itemsArray: typeof items = items) => {
+    const item = itemsArray[index];
     const config = item.kitchenConfig!;
     let total = 0;
 
@@ -387,7 +387,7 @@ export default function Quotations() {
     const resultingMeters = Math.max(0, config.totalMeters - deductions);
     
     // Actualizar muebles lineales automáticamente
-    const newItems = [...items];
+    const newItems = [...itemsArray];
     newItems[index].kitchenConfig!.lowerCabinets = resultingMeters;
     newItems[index].kitchenConfig!.upperCabinets = resultingMeters;
     setItems(newItems);
@@ -849,7 +849,17 @@ export default function Quotations() {
                             <div className="p-3 bg-blue-50 rounded">
                               <p className="text-sm">
                                 <span className="font-medium">Metraje resultante para muebles:</span>{" "}
-                                {item.kitchenConfig?.lowerCabinets.toFixed(2) || "0.00"} ml
+                                {(() => {
+                                  const config = item.kitchenConfig;
+                                  if (!config) return "0.00";
+                                  let deductions = 0;
+                                  if (config.specialModules.nichoNevecon) deductions += 1.0;
+                                  if (config.specialModules.nichoNevera) deductions += 0.75;
+                                  if (config.specialModules.alacenaEntrepanos) deductions += 0.5;
+                                  if (config.specialModules.alacenaHerraje) deductions += 0.5;
+                                  if (config.specialModules.torreHornos) deductions += 0.7;
+                                  return Math.max(0, config.totalMeters - deductions).toFixed(2);
+                                })()} ml
                               </p>
                             </div>
 

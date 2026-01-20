@@ -27,10 +27,7 @@ export default function Portal() {
 
   const utils = trpc.useUtils();
   const { data: appointments = [], isLoading: loadingAppointments } = trpc.appointments.getMyAppointments.useQuery();
-  // NOTA: Quotations temporalmente deshabilitado durante migración
-  // const { data: quotations = [], isLoading: loadingQuotations } = trpc.quotations.getMyQuotations.useQuery();
-  const quotations: any[] = [];
-  const loadingQuotations = false;
+  const { data: quotations = [], isLoading: loadingQuotations } = trpc.quotations.getMyQuotations.useQuery();
   const { data: estimates = [], isLoading: loadingEstimates } = trpc.estimates.getMyEstimates.useQuery();
   const { data: myProjects = [], isLoading: loadingProjects } = trpc.projects.getMyProjects.useQuery();
 
@@ -575,16 +572,18 @@ export default function Portal() {
                               <h3 className="font-semibold">{getWorkTypeLabel(quot.workType)}</h3>
                               {getStatusBadge(quot.status)}
                             </div>
-                            <p className="text-sm">{quot.description}</p>
-                            {quot.materials && (
-                              <div className="mt-2">
-                                <p className="text-sm font-medium">Materiales:</p>
-                                <p className="text-sm text-muted-foreground">{quot.materials}</p>
-                              </div>
-                            )}
+                            <p className="text-sm">
+                              <span className="font-medium">Número:</span> {quot.quotationNumber}
+                            </p>
+                            <p className="text-sm">
+                              <span className="font-medium">Vendedor:</span> {quot.vendorName}
+                            </p>
+                            <p className="text-sm">
+                              <span className="font-medium">Trabajo:</span> {quot.workType}
+                            </p>
                             <div className="mt-3">
                               <p className="text-2xl font-bold text-primary">
-                                {formatPrice(quot.totalPrice)}
+                                {formatPrice(quot.total)}
                               </p>
                             </div>
                             {quot.validUntil && (

@@ -11,6 +11,7 @@ import Portal from "./pages/Portal";
 import Projects from "./pages/Projects";
 import Tasks from "./pages/Tasks";
 import InstallationCalendar from "./pages/InstallationCalendar";
+import Quotations from "./pages/Quotations";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -25,6 +26,7 @@ function Router() {
       <Route path={"/projects"} component={Projects} />
       <Route path={"/tasks"} component={Tasks} />
       <Route path={"/calendar"} component={InstallationCalendar} />
+      <Route path={"/quotations"} component={Quotations} />
       <Route path={"/login"} component={Login} />
       <Route path={"/register"} component={Register} />
       <Route path={"/forgot-password"} component={ForgotPassword} />

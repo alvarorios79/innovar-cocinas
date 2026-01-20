@@ -384,6 +384,29 @@ export async function createQuotation(quotation: InsertQuotation) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
+  // Generar quotationNumber automáticamente si no se proporciona
+  if (!quotation.quotationNumber) {
+    const year = new Date().getFullYear();
+    
+    // Obtener el último número de cotización del año actual
+    const lastQuotation = await db
+      .select()
+      .from(quotations)
+      .where(sql`${quotations.quotationNumber} LIKE ${`COT-${year}-%`}`)
+      .orderBy(sql`${quotations.id} DESC`)
+      .limit(1);
+
+    let nextNumber = 620; // Número inicial
+    if (lastQuotation.length > 0 && lastQuotation[0].quotationNumber) {
+      const match = lastQuotation[0].quotationNumber.match(/COT-\d{4}-(\d+)/);
+      if (match) {
+        nextNumber = parseInt(match[1]) + 1;
+      }
+    }
+
+    quotation.quotationNumber = `COT-${year}-${nextNumber}`;
+  }
+
   const result = await db.insert(quotations).values(quotation);
   return result[0].insertId;
 }

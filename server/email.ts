@@ -13,6 +13,10 @@ export interface SendEmailOptions {
   html: string;
   from?: string;
   replyTo?: string;
+  attachments?: Array<{
+    filename: string;
+    content: Buffer | string;
+  }>;
 }
 
 /**
@@ -41,7 +45,8 @@ export async function sendEmail(options: SendEmailOptions): Promise<{ success: b
       subject: options.subject,
       html: options.html,
       replyTo: options.replyTo,
-    });
+      attachments: options.attachments,
+    } as any);
 
     if (result.error) {
       console.error("[Email] Error al enviar:", result.error);

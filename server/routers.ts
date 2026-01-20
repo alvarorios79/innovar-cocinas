@@ -688,11 +688,370 @@ export const appRouter = router({
   }),
 
   // ============ QUOTATIONS ============
-  // NOTA: Routers antiguos comentados temporalmente durante migración a nuevo schema
-  // Se reemplazarán con nuevos routers en la siguiente fase
   quotations: router({
-    // TODO: Implementar nuevos routers con schema actualizado
-    placeholder: publicProcedure.query(() => ({ message: "En desarrollo" })),
+    // Crear nueva cotización con items
+    create: protectedProcedure
+      .input(z.object({
+        clientId: z.number(),
+        vendorName: z.string(),
+        workType: z.string(),
+        items: z.array(z.object({
+          itemNumber: z.number(),
+          description: z.string(),
+          quantity: z.string(),
+          unitPrice: z.string().optional(),
+          totalPrice: z.number(),
+        })),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        // Solo admin y super_admin pueden crear cotizaciones
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para crear cotizaciones" });
+        }
+
+        // Obtener siguiente número de cotización
+        const quotationNumber = await db.getNextQuotationNumber();
+
+        // Calcular subtotal y total
+        const subtotal = input.items.reduce((sum, item) => sum + item.totalPrice, 0);
+        const fixedCosts = 600000; // Transporte + imprevistos
+        const total = subtotal + fixedCosts;
+
+        // Fecha de validez: 7 días desde hoy
+        const validUntil = new Date();
+        validUntil.setDate(validUntil.getDate() + 7);
+
+        // Crear cotización
+        const quotationId = await db.createQuotation({
+          quotationNumber,
+          clientId: input.clientId,
+          vendorName: input.vendorName,
+          workType: input.workType,
+          status: "draft",
+          validUntil,
+          subtotal: subtotal.toString(),
+          fixedCosts: fixedCosts.toString(),
+          total: total.toString(),
+          createdBy: ctx.user.id,
+        });
+
+        // Crear items
+        for (const item of input.items) {
+          await db.createQuotationItem({
+            quotationId,
+            itemNumber: item.itemNumber,
+            description: item.description,
+            quantity: item.quantity,
+            unitPrice: item.unitPrice,
+            totalPrice: item.totalPrice.toString(),
+          });
+        }
+
+        return { success: true, quotationId, quotationNumber };
+      }),
+
+    // Actualizar cotización existente
+    update: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        clientId: z.number().optional(),
+        vendorName: z.string().optional(),
+        workType: z.string().optional(),
+        items: z.array(z.object({
+          itemNumber: z.number(),
+          description: z.string(),
+          quantity: z.string(),
+          unitPrice: z.string().optional(),
+          totalPrice: z.number(),
+        })).optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+          throw new TRPCError({ code: "FORBIDDEN" });
+        }
+
+        const { id, items, ...quotationData } = input;
+
+        // Si se actualizan items, recalcular totales
+        if (items) {
+          const subtotal = items.reduce((sum, item) => sum + item.totalPrice, 0);
+          const fixedCosts = 600000;
+          const total = subtotal + fixedCosts;
+
+          // Eliminar items antiguos
+          await db.deleteQuotationItems(id);
+
+          // Crear nuevos items
+          for (const item of items) {
+            await db.createQuotationItem({
+              quotationId: id,
+              itemNumber: item.itemNumber,
+              description: item.description,
+              quantity: item.quantity,
+              unitPrice: item.unitPrice,
+              totalPrice: item.totalPrice.toString(),
+            });
+          }
+
+          // Actualizar totales
+          await db.updateQuotation(id, {
+            ...quotationData,
+            subtotal: subtotal.toString(),
+            total: total.toString(),
+          });
+        } else {
+          await db.updateQuotation(id, quotationData);
+        }
+
+        return { success: true };
+      }),
+
+    // Listar todas las cotizaciones (Admin)
+    list: protectedProcedure
+      .query(async ({ ctx }) => {
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+          throw new TRPCError({ code: "FORBIDDEN" });
+        }
+
+        const quotations = await db.getAllQuotations();
+        const clients = await db.getAllClients();
+
+        return quotations.map(quot => {
+          const client = clients.find(c => c.id === quot.clientId);
+          return {
+            ...quot,
+            client,
+          };
+        });
+      }),
+
+    // Obtener cotización por ID con items
+    getById: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ ctx, input }) => {
+        const quotation = await db.getQuotationById(input.id);
+        if (!quotation) {
+          throw new TRPCError({ code: "NOT_FOUND" });
+        }
+
+        // Verificar permisos
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+          const client = await db.getClientByUserId(ctx.user.id);
+          if (!client || quotation.clientId !== client.id) {
+            throw new TRPCError({ code: "FORBIDDEN" });
+          }
+        }
+
+        const client = await db.getClientById(quotation.clientId);
+        const items = await db.getQuotationItems(input.id);
+
+        return {
+          ...quotation,
+          client,
+          items,
+        };
+      }),
+
+    // Obtener mis cotizaciones (Cliente)
+    getMyQuotations: protectedProcedure
+      .query(async ({ ctx }) => {
+        const client = await db.getClientByUserId(ctx.user.id);
+        if (!client) return [];
+
+        return await db.getQuotationsByClientId(client.id);
+      }),
+
+    // Cambiar estado de cotización
+    updateStatus: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        status: z.enum(["draft", "sent", "approved", "rejected"]),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+          throw new TRPCError({ code: "FORBIDDEN" });
+        }
+
+        const updateData: any = { status: input.status };
+        
+        // Si se envía, registrar fecha
+        if (input.status === "sent") {
+          updateData.sentAt = new Date();
+        }
+
+        await db.updateQuotation(input.id, updateData);
+        return { success: true };
+      }),
+
+    // Eliminar cotización
+    delete: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+          throw new TRPCError({ code: "FORBIDDEN" });
+        }
+
+        await db.deleteQuotation(input.id);
+        return { success: true };
+      }),
+
+    // Generar PDF de cotización
+    generatePDF: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+          throw new TRPCError({ code: "FORBIDDEN" });
+        }
+
+        const quotation = await db.getQuotationById(input.id);
+        if (!quotation) {
+          throw new TRPCError({ code: "NOT_FOUND" });
+        }
+
+        const client = await db.getClientById(quotation.clientId);
+        if (!client) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Cliente no encontrado" });
+        }
+
+        const items = await db.getQuotationItems(input.id);
+
+        // Preparar datos para el PDF
+        const pdfData = {
+          quotationNumber: quotation.quotationNumber,
+          date: new Date().toLocaleDateString('es-CO'),
+          clientName: client.name,
+          vendorName: quotation.vendorName,
+          workType: quotation.workType,
+          validUntil: quotation.validUntil ? new Date(quotation.validUntil).toLocaleDateString('es-CO') : '',
+          items: items.map(item => ({
+            itemNumber: item.itemNumber,
+            description: item.description,
+            quantity: item.quantity,
+            unitPrice: item.unitPrice || '',
+            totalPrice: item.totalPrice,
+          })),
+          subtotal: quotation.subtotal,
+          fixedCosts: quotation.fixedCosts,
+          total: quotation.total,
+        };
+
+        // Generar PDF usando Python
+        const { exec } = require('child_process');
+        const { promisify } = require('util');
+        const execAsync = promisify(exec);
+
+        const outputPath = `/tmp/quotation_${quotation.id}_${Date.now()}.pdf`;
+        const jsonData = JSON.stringify(pdfData).replace(/'/g, "'\\''");
+
+        try {
+          await execAsync(`python3 /home/ubuntu/innovar_cocinas/server/generate_quotation_pdf.py '${jsonData}' ${outputPath}`);
+
+          // Leer el PDF generado
+          const fs = require('fs');
+          const pdfBuffer = fs.readFileSync(outputPath);
+          const pdfBase64 = pdfBuffer.toString('base64');
+
+          // Limpiar archivo temporal
+          fs.unlinkSync(outputPath);
+
+          return {
+            success: true,
+            pdfBase64,
+            filename: `${quotation.quotationNumber}.pdf`,
+          };
+        } catch (error: any) {
+          console.error('Error generando PDF:', error);
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Error generando PDF" });
+        }
+      }),
+
+    // Enviar cotización por email con PDF adjunto
+    sendByEmail: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+          throw new TRPCError({ code: "FORBIDDEN" });
+        }
+
+        const quotation = await db.getQuotationById(input.id);
+        if (!quotation) {
+          throw new TRPCError({ code: "NOT_FOUND" });
+        }
+
+        const client = await db.getClientById(quotation.clientId);
+        if (!client || !client.email) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Cliente sin email" });
+        }
+
+        const items = await db.getQuotationItems(input.id);
+
+        // Generar PDF
+        const pdfData = {
+          quotationNumber: quotation.quotationNumber,
+          date: new Date().toLocaleDateString('es-CO'),
+          clientName: client.name,
+          vendorName: quotation.vendorName,
+          workType: quotation.workType,
+          validUntil: quotation.validUntil ? new Date(quotation.validUntil).toLocaleDateString('es-CO') : '',
+          items: items.map(item => ({
+            itemNumber: item.itemNumber,
+            description: item.description,
+            quantity: item.quantity,
+            unitPrice: item.unitPrice || '',
+            totalPrice: item.totalPrice,
+          })),
+          subtotal: quotation.subtotal,
+          fixedCosts: quotation.fixedCosts,
+          total: quotation.total,
+        };
+
+        const { exec } = require('child_process');
+        const { promisify } = require('util');
+        const execAsync = promisify(exec);
+
+        const outputPath = `/tmp/quotation_${quotation.id}_${Date.now()}.pdf`;
+        const jsonData = JSON.stringify(pdfData).replace(/'/g, "'\\''");
+
+        try {
+          await execAsync(`python3 /home/ubuntu/innovar_cocinas/server/generate_quotation_pdf.py '${jsonData}' ${outputPath}`);
+
+          // Leer el PDF generado
+          const fs = require('fs');
+          const pdfBuffer = fs.readFileSync(outputPath);
+
+          // Enviar email con Resend
+          const { sendEmail } = await import('./email');
+          await sendEmail({
+            to: client.email,
+            subject: `Cotización ${quotation.quotationNumber} - INNOVAR Cocinas`,
+            html: `
+              <h2>Hola ${client.name},</h2>
+              <p>Adjunto encontrarás la cotización <strong>${quotation.quotationNumber}</strong> para tu proyecto de <strong>${quotation.workType}</strong>.</p>
+              <p><strong>Total:</strong> ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(Number(quotation.total))}</p>
+              <p>Esta cotización tiene una validez de <strong>1 semana</strong>.</p>
+              <br>
+              <p>Quedamos atentos a cualquier consulta.</p>
+              <p>Saludos cordiales,<br><strong>INNOVAR Cocinas Integrales</strong></p>
+            `,
+            attachments: [{
+              filename: `${quotation.quotationNumber}.pdf`,
+              content: pdfBuffer,
+            }],
+          });
+
+          // Limpiar archivo temporal
+          fs.unlinkSync(outputPath);
+
+          // Actualizar estado a "sent"
+          await db.updateQuotation(input.id, { status: "sent", sentAt: new Date() });
+
+          return { success: true };
+        } catch (error: any) {
+          console.error('Error enviando cotización:', error);
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Error enviando cotización" });
+        }
+      }),
+
     /*
     create: protectedProcedure
       .input(z.object({

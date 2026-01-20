@@ -684,35 +684,35 @@
 - [x] Configurar numeración automática iniciando en COT-2026-620
 
 ### Backend (tRPC)
-- [ ] Crear endpoints CRUD para cotizaciones (create, update, delete, getAll, getById)
-- [ ] Crear endpoint para generar PDF de cotización
-- [ ] Crear endpoint para enviar cotización por email con PDF adjunto
-- [ ] Crear endpoint para cambiar estado de cotización (draft, sent, approved, rejected)
-- [ ] Implementar permisos: solo super_admin y admin pueden acceder
+- [x] Crear endpoints CRUD para cotizaciones (create, update, delete, getAll, getById)
+- [x] Crear endpoint para generar PDF de cotización
+- [x] Crear endpoint para enviar cotización por email con PDF adjunto
+- [x] Crear endpoint para cambiar estado de cotización (draft, sent, approved, rejected)
+- [x] Implementar permisos: solo super_admin y admin pueden acceder
 
 ### Generación de PDF
-- [ ] Copiar logo oficial a directorio del proyecto
-- [ ] Crear módulo Python para generar PDF con diseño aprobado
-- [ ] Integrar datos dinámicos de la base de datos
-- [ ] Implementar formato de moneda colombiana ($15.435.000)
-- [ ] Incluir todos los términos y condiciones
+- [x] Copiar logo oficial a directorio del proyecto
+- [x] Crear módulo Python para generación de PDF con diseño aprobado
+- [x] Integrar datos dinámicos de la base de datos
+- [x] Implementar formato de moneda colombiana ($15.435.000)
+- [x] Incluir todos los términos y condiciones
 
 ### Frontend - Panel Admin
-- [ ] Crear nueva pestaña "Cotizaciones" en Panel Admin (solo visible para super_admin y admin)
-- [ ] Crear página de lista de cotizaciones con filtros por estado
-- [ ] Crear formulario de nueva cotización con:
+- [x] Crear nueva pestaña "Cotizaciones" en Panel Admin (solo visible para super_admin y admin)
+- [x] Crear página de lista de cotizaciones con filtros por estado
+- [x] Crear formulario de nueva cotización con:
   - Select de cliente
   - Select de vendedor (Alvaro Gutierrez / Martha Serna)
   - Input de trabajo (texto libre)
   - Items dinámicos (agregar/eliminar)
-- [ ] Implementar botones: Guardar Borrador, Generar PDF, Enviar por Email
+- [x] Implementar botones: Guardar Borrador, Generar PDF, Enviar por Email
 - [ ] Crear vista de detalle/edición de cotización
 - [ ] Implementar cambio de estado (Aprobada/Rechazada)
 - [ ] Agregar botón de eliminar cotización con confirmación
 
 ### Email
-- [ ] Crear plantilla de email para envío de cotización
-- [ ] Integrar con Resend para envío con PDF adjunto
+- [x] Crear plantilla de email para envío de cotización
+- [x] Integrar con Resend para envío con PDF adjunto
 - [ ] Incluir enlace al portal del cliente en el email
 
 ### Tests

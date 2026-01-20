@@ -50,10 +50,7 @@ export default function Admin() {
   const utils = trpc.useUtils();
   const { data: appointments = [], isLoading: loadingAppointments } = trpc.appointments.list.useQuery();
   const { data: advisoryRequests = [], isLoading: loadingAdvisory } = trpc.advisory.list.useQuery();
-  // NOTA: Quotations temporalmente deshabilitado durante migración
-  // const { data: quotations = [], isLoading: loadingQuotations } = trpc.quotations.list.useQuery();
-  const quotations: any[] = [];
-  const loadingQuotations = false;
+  const { data: quotations = [], isLoading: loadingQuotations } = trpc.quotations.list.useQuery();
   const { data: clients = [], isLoading: loadingClients } = trpc.clients.list.useQuery();
   const { data: allUsers = [], isLoading: loadingUsers } = trpc.userManagement.listAll.useQuery();
 
@@ -71,7 +68,6 @@ export default function Admin() {
     },
   });
 
-  /* NOTA: Mutations de quotations comentadas temporalmente
   const createQuotation = trpc.quotations.create.useMutation({
     onSuccess: () => {
       utils.quotations.list.invalidate();
@@ -86,15 +82,10 @@ export default function Admin() {
     },
   });
 
-  const sendQuotation = trpc.quotations.send.useMutation({
-    onSuccess: (data) => {
+  const sendQuotation = trpc.quotations.updateStatus.useMutation({
+    onSuccess: () => {
       utils.quotations.list.invalidate();
       toast.success("Cotización enviada al cliente");
-      
-      // Abrir WhatsApp para enviar cotización
-      if (data.whatsappLink) {
-        window.open(data.whatsappLink, "_blank");
-      }
     },
   });
 
@@ -170,13 +161,10 @@ export default function Admin() {
   const deleteQuotation = trpc.quotations.delete.useMutation({
     onSuccess: () => {
       utils.quotations.list.invalidate();
-      toast.success("Cotización eliminada exitosamente")      setDeleteConfirm(null);
+      toast.success("Cotización eliminada exitosamente");
+      setDeleteConfirm(null);
     },
   });
-  */
-  const createQuotation = { mutate: () => {} } as any;
-  const sendQuotation = { mutate: () => {} } as any;
-  const deleteQuotation = { mutate: () => {} } as any;
 
   const deleteClient = trpc.clients.delete.useMutation({
     onSuccess: () => {
@@ -412,15 +400,16 @@ export default function Admin() {
     e.preventDefault();
     if (!selectedAppointment) return;
 
+    // TODO: Implementar nuevo formulario con items dinámicos
+    toast.info("Formulario de cotizaciones en desarrollo");
+    /*
     await createQuotation.mutateAsync({
       clientId: selectedAppointment.clientId,
-      appointmentId: selectedAppointment.id,
+      vendorName: "Alvaro Gutierrez",
       workType: selectedAppointment.workTypes[0] || "cocina",
-      description: quotationForm.description,
-      materials: quotationForm.materials || undefined,
-      totalPrice: quotationForm.totalPrice,
-      validUntil: quotationForm.validUntil || undefined,
+      items: [],
     });
+    */
   };
 
   return (
@@ -904,33 +893,17 @@ export default function Admin() {
                             <p className="text-sm text-muted-foreground">
                               {getWorkTypeLabel(quot.workType)}
                             </p>
-                            {quot.kitchenShape && (
-                              <p className="text-sm">
-                                <span className="font-medium">Forma:</span>{" "}
-                                {quot.kitchenShape === "L" ? "En forma de L" : quot.kitchenShape === "U" ? "En forma de U" : "Lineal"}
-                              </p>
-                            )}
-                            {quot.measurements && (
-                              <p className="text-sm">
-                                <span className="font-medium">Medidas:</span> {quot.measurements}
-                              </p>
-                            )}
-                            {quot.materialType && (
-                              <p className="text-sm">
-                                <span className="font-medium">Tipo de mesón:</span>{" "}
-                                {quot.materialType === "quarzone" ? "Quarzone" : "Sinterizado"}
-                              </p>
-                            )}
                             <p className="text-sm">
-                              <span className="font-medium">Descripción:</span> {quot.description}
+                              <span className="font-medium">Número:</span> {quot.quotationNumber}
                             </p>
-                            {quot.materials && (
-                              <p className="text-sm">
-                                <span className="font-medium">Materiales adicionales:</span> {quot.materials}
-                              </p>
-                            )}
+                            <p className="text-sm">
+                              <span className="font-medium">Vendedor:</span> {quot.vendorName}
+                            </p>
+                            <p className="text-sm">
+                              <span className="font-medium">Trabajo:</span> {quot.workType}
+                            </p>
                             <p className="text-lg font-bold text-primary">
-                              {formatPrice(quot.totalPrice)}
+                              {formatPrice(quot.total)}
                             </p>
                             {quot.validUntil && (
                               <p className="text-xs text-muted-foreground">
@@ -939,10 +912,10 @@ export default function Admin() {
                             )}
                           </div>
                           <div className="flex flex-row gap-2">
-                            {quot.status === "borrador" && (
+                            {quot.status === "draft" && (
                               <Button
                                 size="sm"
-                                onClick={() => sendQuotation.mutate({ id: quot.id })}
+                                onClick={() => sendQuotation.mutate({ id: quot.id, status: "sent" })}
                               >
                                 Enviar al Cliente
                               </Button>

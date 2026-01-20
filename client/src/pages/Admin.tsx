@@ -832,108 +832,38 @@ export default function Admin() {
           <TabsContent value="quotations" className="space-y-4">
             <Card>
               <CardHeader>
-                <div className="flex items-center justify-between flex-wrap gap-2">
-                  <div>
-                    <CardTitle>Cotizaciones</CardTitle>
-                    <CardDescription>Gestiona las cotizaciones enviadas a clientes</CardDescription>
+                <CardTitle>Sistema de Cotizaciones Profesionales</CardTitle>
+                <CardDescription>Crea y gestiona cotizaciones con generación de PDF y envío automático por email</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="text-center py-8">
+                  <FileText className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">Gestiona tus Cotizaciones</h3>
+                  <p className="text-muted-foreground mb-6">
+                    Accede al sistema completo de cotizaciones para crear, editar y enviar cotizaciones profesionales con PDF personalizado.
+                  </p>
+                  <Link href="/quotations">
+                    <Button size="lg" className="gap-2">
+                      <FileText className="h-5 w-5" />
+                      Ir a Cotizaciones
+                    </Button>
+                  </Link>
+                </div>
+                
+                <div className="grid gap-4 md:grid-cols-3 pt-4 border-t">
+                  <div className="text-center p-4">
+                    <div className="font-semibold mb-1">✅ Items Dinámicos</div>
+                    <p className="text-sm text-muted-foreground">Agrega múltiples items con descripción detallada</p>
                   </div>
-                  <div className="flex gap-2">
-                    {selectedQuotations.length > 0 && (
-                      <Button
-                        variant="destructive"
-                        onClick={() => handleBulkDelete('quotations')}
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Eliminar ({selectedQuotations.length})
-                      </Button>
-                    )}
-                    <Link href="/#estimado-previo">
-                      <Button>
-                        <Plus className="mr-2 h-4 w-4" />
-                        Solicitar Estimado
-                      </Button>
-                    </Link>
+                  <div className="text-center p-4">
+                    <div className="font-semibold mb-1">✅ PDF Profesional</div>
+                    <p className="text-sm text-muted-foreground">Genera PDFs con tu logo y diseño corporativo</p>
+                  </div>
+                  <div className="text-center p-4">
+                    <div className="font-semibold mb-1">✅ Envío Automático</div>
+                    <p className="text-sm text-muted-foreground">Envía por email con un solo clic</p>
                   </div>
                 </div>
-              </CardHeader>
-              <CardContent>
-                {loadingQuotations ? (
-                  <p>Cargando...</p>
-                ) : quotations.length === 0 ? (
-                  <p className="text-muted-foreground">No hay cotizaciones creadas</p>
-                ) : (
-                  <div className="space-y-4">
-                    {/* Checkbox Seleccionar Todo */}
-                    <div className="flex items-center gap-2 pb-2 border-b">
-                      <Checkbox
-                        checked={selectedQuotations.length === quotations.length && quotations.length > 0}
-                        onCheckedChange={toggleSelectAllQuotations}
-                      />
-                      <span className="text-sm font-medium">
-                        Seleccionar todas ({quotations.length})
-                      </span>
-                    </div>
-                    
-                    {quotations.map((quot) => (
-                      <div key={quot.id} className="border rounded-lg p-4 space-y-2">
-                        <div className="flex items-start gap-3">
-                          {/* Checkbox individual */}
-                          <Checkbox
-                            checked={selectedQuotations.includes(quot.id)}
-                            onCheckedChange={() => toggleSelectQuotation(quot.id)}
-                            className="mt-1"
-                          />
-                          
-                          <div className="flex-1 flex items-start justify-between">
-                          <div className="space-y-1 flex-1">
-                            <div className="flex items-center gap-2">
-                              <h3 className="font-semibold">{quot.client?.name}</h3>
-                              {getStatusBadge(quot.status)}
-                            </div>
-                            <p className="text-sm text-muted-foreground">
-                              {getWorkTypeLabel(quot.workType)}
-                            </p>
-                            <p className="text-sm">
-                              <span className="font-medium">Número:</span> {quot.quotationNumber}
-                            </p>
-                            <p className="text-sm">
-                              <span className="font-medium">Vendedor:</span> {quot.vendorName}
-                            </p>
-                            <p className="text-sm">
-                              <span className="font-medium">Trabajo:</span> {quot.workType}
-                            </p>
-                            <p className="text-lg font-bold text-primary">
-                              {formatPrice(quot.total)}
-                            </p>
-                            {quot.validUntil && (
-                              <p className="text-xs text-muted-foreground">
-                                Válida hasta: {formatDate(quot.validUntil)}
-                              </p>
-                            )}
-                          </div>
-                          <div className="flex flex-row gap-2">
-                            {quot.status === "draft" && (
-                              <Button
-                                size="sm"
-                                onClick={() => sendQuotation.mutate({ id: quot.id, status: "sent" })}
-                              >
-                                Enviar al Cliente
-                              </Button>
-                            )}
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              onClick={() => setDeleteConfirm({ type: "quotation", id: quot.id, name: `Cotización de ${quot.client?.name}` })}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
               </CardContent>
             </Card>
           </TabsContent>

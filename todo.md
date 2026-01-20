@@ -733,3 +733,14 @@
 - [ ] Vidrio ahumado: Largo $600,000, Corto $450,000
 - [ ] Herrajes: 11 tipos a $500,000 (temporal)
 - [ ] Costos fijos: $600,000 (transporte + imprevistos)
+
+## Corrección de Errores
+
+- [x] Corregir error "Failed to fetch" en página principal
+- [x] Verificar que todos los endpoints tRPC estén funcionando correctamente
+
+## Integración de Navegación
+
+- [x] Agregar link de Cotizaciones en Panel Admin
+- [x] Verificar que sea visible solo para super_admin y admin
+- [x] Probar navegación completa

@@ -403,8 +403,8 @@ export default function Quotations() {
     if (config.specialModules.alacenaHerraje) total += 900000;
     if (config.specialModules.torreHornos) total += 1350000;
 
-    // 4. Mesón principal
-    if (config.countertop.type && config.countertop.meters > 0) {
+    // 4. Mesón principal (usa metraje resultante automáticamente)
+    if (config.countertop.type) {
       const basePrice = config.countertop.type === "quarzone" ? 850000 : 1200000;
       let countertopPrice = basePrice;
       
@@ -414,7 +414,8 @@ export default function Quotations() {
         countertopPrice = basePrice * 2;
       }
       
-      total += config.countertop.meters * countertopPrice;
+      // Usar metraje resultante automáticamente
+      total += resultingMeters * countertopPrice;
     }
 
     // 5. Isla
@@ -845,10 +846,10 @@ export default function Quotations() {
                               </div>
                             </div>
 
-                            {/* Mostrar metraje resultante */}
-                            <div className="p-3 bg-blue-50 rounded">
+                            {/* Mostrar metraje resultante y muebles */}
+                            <div className="p-3 bg-blue-50 rounded space-y-1">
                               <p className="text-sm">
-                                <span className="font-medium">Metraje resultante para muebles:</span>{" "}
+                                <span className="font-medium">Metraje resultante:</span>{" "}
                                 {(() => {
                                   const config = item.kitchenConfig;
                                   if (!config) return "0.00";
@@ -861,20 +862,59 @@ export default function Quotations() {
                                   return Math.max(0, config.totalMeters - deductions).toFixed(2);
                                 })()} ml
                               </p>
+                              <p className="text-sm text-gray-600">
+                                • Muebles Inferiores: {(() => {
+                                  const config = item.kitchenConfig;
+                                  if (!config) return "0.00";
+                                  let deductions = 0;
+                                  if (config.specialModules.nichoNevecon) deductions += 1.0;
+                                  if (config.specialModules.nichoNevera) deductions += 0.75;
+                                  if (config.specialModules.alacenaEntrepanos) deductions += 0.5;
+                                  if (config.specialModules.alacenaHerraje) deductions += 0.5;
+                                  if (config.specialModules.torreHornos) deductions += 0.7;
+                                  return Math.max(0, config.totalMeters - deductions).toFixed(2);
+                                })()} ml
+                              </p>
+                              <p className="text-sm text-gray-600">
+                                • Muebles Superiores: {(() => {
+                                  const config = item.kitchenConfig;
+                                  if (!config) return "0.00";
+                                  let deductions = 0;
+                                  if (config.specialModules.nichoNevecon) deductions += 1.0;
+                                  if (config.specialModules.nichoNevera) deductions += 0.75;
+                                  if (config.specialModules.alacenaEntrepanos) deductions += 0.5;
+                                  if (config.specialModules.alacenaHerraje) deductions += 0.5;
+                                  if (config.specialModules.torreHornos) deductions += 0.7;
+                                  return Math.max(0, config.totalMeters - deductions).toFixed(2);
+                                })()} ml
+                              </p>
+                              <p className="text-sm text-gray-600">
+                                • Mesón Principal: {(() => {
+                                  const config = item.kitchenConfig;
+                                  if (!config) return "0.00";
+                                  let deductions = 0;
+                                  if (config.specialModules.nichoNevecon) deductions += 1.0;
+                                  if (config.specialModules.nichoNevera) deductions += 0.75;
+                                  if (config.specialModules.alacenaEntrepanos) deductions += 0.5;
+                                  if (config.specialModules.alacenaHerraje) deductions += 0.5;
+                                  if (config.specialModules.torreHornos) deductions += 0.7;
+                                  return Math.max(0, config.totalMeters - deductions).toFixed(2);
+                                })()} ml (automático)
+                              </p>
                             </div>
 
                             {/* 4. Mesón principal */}
                             <div className="space-y-2">
                               <Label className="text-base font-semibold">Mesón Principal</Label>
-                              <div className="grid grid-cols-3 gap-2">
+                              <div className="grid grid-cols-2 gap-3">
                                 <div>
-                                  <Label>Tipo</Label>
+                                  <Label>Tipo de Mesón *</Label>
                                   <Select 
                                     value={item.kitchenConfig?.countertop.type || ""} 
                                     onValueChange={(value) => updateKitchenConfig(index, "countertop.type", value)}
                                   >
                                     <SelectTrigger>
-                                      <SelectValue placeholder="Tipo" />
+                                      <SelectValue placeholder="Selecciona tipo" />
                                     </SelectTrigger>
                                     <SelectContent>
                                       <SelectItem value="quarzone">Quarzone ($850k/ml)</SelectItem>
@@ -883,17 +923,7 @@ export default function Quotations() {
                                   </Select>
                                 </div>
                                 <div>
-                                  <Label>Metros (ml)</Label>
-                                  <Input
-                                    type="number"
-                                    step="0.01"
-                                    value={item.kitchenConfig?.countertop.meters || ""}
-                                    onChange={(e) => updateKitchenConfig(index, "countertop.meters", parseFloat(e.target.value) || 0)}
-                                    placeholder="0.00"
-                                  />
-                                </div>
-                                <div>
-                                  <Label>Recargo por fondo</Label>
+                                  <Label>Recargo por Fondo</Label>
                                   <Select 
                                     value={item.kitchenConfig?.countertop.depthSurcharge || "none"} 
                                     onValueChange={(value) => updateKitchenConfig(index, "countertop.depthSurcharge", value)}
@@ -1031,15 +1061,15 @@ export default function Quotations() {
                               )}
                             </div>
 
-                            {/* 7. Luz LED */}
+                            {/* 7. Luz LED (opcional) */}
                             <div>
-                              <Label>Luz LED (ml) - $180,000/ml</Label>
+                              <Label>Luz LED (opcional) - $180,000/ml</Label>
                               <Input
                                 type="number"
                                 step="0.01"
                                 value={item.kitchenConfig?.ledLighting || ""}
                                 onChange={(e) => updateKitchenConfig(index, "ledLighting", parseFloat(e.target.value) || 0)}
-                                placeholder="0.00"
+                                placeholder="Dejar en 0 si no lleva LED"
                               />
                             </div>
 

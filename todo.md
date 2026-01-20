@@ -965,3 +965,13 @@
 - [x] Solución implementada: calcular metraje resultante directamente en el render con lógica correcta
 - [x] El metraje resultante determina los metros lineales de muebles inferiores, superiores y mesón
 - [x] 13 tests backend verificados y pasando correctamente
+
+## Mejoras UX Formulario de Cocinas
+
+- [x] Hacer campos opcionales: si no se llenan, no se incluyen en el cálculo (isla, barra, LED, muebles especiales)
+- [x] Corregir superposición visual entre tipo de mesón y campo de metraje (grid 2 columnas en lugar de 3)
+- [x] El metraje resultante se usa automáticamente para mesón (eliminado campo de metros manual)
+- [x] El metraje de LED es opcional e independiente (placeholder mejorado)
+- [x] Agregar campo visual "Muebles Superiores: X.XX ml" que muestre el mismo valor que metraje resultante
+- [x] Mostrar desglose completo: Muebles Inferiores, Muebles Superiores, Mesón Principal (todos con metraje resultante)
+- [x] 13 tests verificados y pasando

@@ -517,13 +517,19 @@ export default function Quotations() {
       }
     }
 
+    // Debug: verificar qué se está enviando
+    console.log("=== DEBUG COTIZACIÓN ===");
+    console.log("workType:", workType);
+    console.log("items[0].itemType:", items[0]?.itemType);
+    console.log("productType final:", workType || items[0]?.itemType || "otro");
+
     if (editingQuotation) {
       // Actualizar cotización existente
       updateQuotation.mutate({
         id: editingQuotation,
         clientId: selectedClient,
         vendorName,
-        productType: workType as "cocina" | "closet" | "puerta" | "centro_tv" | "otro",
+        productType: (workType || items[0]?.itemType || "otro") as "cocina" | "closet" | "puerta" | "centro_tv" | "otro",
         items,
       });
     } else {
@@ -531,7 +537,7 @@ export default function Quotations() {
       createQuotation.mutate({
         clientId: selectedClient,
         vendorName,
-        productType: workType as "cocina" | "closet" | "puerta" | "centro_tv" | "otro",
+        productType: (workType || items[0]?.itemType || "otro") as "cocina" | "closet" | "puerta" | "centro_tv" | "otro",
         items,
       });
     }

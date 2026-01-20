@@ -808,3 +808,11 @@
 - [x] Implementar suma automática de $600,000 al marcar checkbox
 - [x] Actualizar PDF para mostrar nota cuando item incluye costos fijos
 - [x] Probar creación y edición de cotizaciones con checkbox
+
+
+## Configuración de Resend para Envío de Cotizaciones
+
+- [x] Configurar RESEND_API_KEY en variables de entorno
+- [x] Configurar EMAIL_FROM (ventas@cocinasintegralespereira.co)
+- [x] Validar credenciales con test automatizado
+- [x] Reiniciar servidor para cargar nuevas variables

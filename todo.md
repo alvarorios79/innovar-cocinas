@@ -753,3 +753,9 @@
 - [x] Permitir agregar/eliminar items
 - [x] Actualizar totales al editar
 - [x] Guardar cambios en la base de datos
+
+## Corrección Error PDF
+
+- [x] Corregir error "Dynamic require of child_process is not supported"
+- [x] Asegurar que generación de PDF se ejecute solo en backend
+- [x] Probar descarga de PDF desde frontend

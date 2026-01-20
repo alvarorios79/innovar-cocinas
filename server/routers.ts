@@ -935,29 +935,14 @@ export const appRouter = router({
           total: quotation.total,
         };
 
-        // Generar PDF usando Python
-        const { exec } = require('child_process');
-        const { promisify } = require('util');
-        const execAsync = promisify(exec);
-
-        const outputPath = `/tmp/quotation_${quotation.id}_${Date.now()}.pdf`;
-        const jsonData = JSON.stringify(pdfData).replace(/'/g, "'\\''");
-
+        // Generar PDF usando módulo separado
         try {
-          await execAsync(`python3 /home/ubuntu/innovar_cocinas/server/generate_quotation_pdf.py '${jsonData}' ${outputPath}`);
-
-          // Leer el PDF generado
-          const fs = require('fs');
-          const pdfBuffer = fs.readFileSync(outputPath);
-          const pdfBase64 = pdfBuffer.toString('base64');
-
-          // Limpiar archivo temporal
-          fs.unlinkSync(outputPath);
-
+          const { generateQuotationPDF } = await import('./quotation-pdf-generator');
+          const result = await generateQuotationPDF(pdfData, quotation.id);
+          
           return {
             success: true,
-            pdfBase64,
-            filename: `${quotation.quotationNumber}.pdf`,
+            ...result,
           };
         } catch (error: any) {
           console.error('Error generando PDF:', error);

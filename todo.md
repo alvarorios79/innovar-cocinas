@@ -744,3 +744,12 @@
 - [x] Agregar link de Cotizaciones en Panel Admin
 - [x] Verificar que sea visible solo para super_admin y admin
 - [x] Probar navegación completa
+
+## Edición de Cotizaciones
+
+- [x] Agregar botón "Editar" en cotizaciones con estado borrador
+- [x] Cargar datos de cotización existente en el formulario
+- [x] Permitir modificar items existentes
+- [x] Permitir agregar/eliminar items
+- [x] Actualizar totales al editar
+- [x] Guardar cambios en la base de datos

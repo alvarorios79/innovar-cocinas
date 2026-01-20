@@ -32,6 +32,7 @@ interface QuotationItem {
 export default function Quotations() {
   const utils = trpc.useUtils();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [editingQuotation, setEditingQuotation] = useState<number | null>(null);
   const [selectedClient, setSelectedClient] = useState<number | null>(null);
   const [vendorName, setVendorName] = useState("Alvaro Gutierrez");
   const [workType, setWorkType] = useState("");
@@ -51,6 +52,18 @@ export default function Quotations() {
     },
     onError: (error) => {
       toast.error(error.message || "Error al crear cotización");
+    },
+  });
+
+  const updateQuotation = trpc.quotations.update.useMutation({
+    onSuccess: () => {
+      utils.quotations.list.invalidate();
+      toast.success("Cotización actualizada exitosamente");
+      setShowCreateDialog(false);
+      resetForm();
+    },
+    onError: (error) => {
+      toast.error(error.message || "Error al actualizar cotización");
     },
   });
 
@@ -93,10 +106,45 @@ export default function Quotations() {
   });
 
   const resetForm = () => {
+    setEditingQuotation(null);
     setSelectedClient(null);
     setVendorName("Alvaro Gutierrez");
     setWorkType("");
     setItems([{ itemNumber: 1, description: "", quantity: "", totalPrice: 0 }]);
+  };
+
+  const handleEdit = async (quotationId: number) => {
+    const quotation = quotations.find(q => q.id === quotationId);
+    if (!quotation) return;
+
+    try {
+      // Cargar items de la cotización usando el endpoint getById
+      const quotationData: any = await new Promise((resolve, reject) => {
+        utils.client.quotations.getById.query({ id: quotationId })
+          .then(resolve)
+          .catch(reject);
+      });
+      
+      setEditingQuotation(quotationId);
+      setSelectedClient(quotation.clientId);
+      setVendorName(quotation.vendorName);
+      setWorkType(quotation.workType);
+      
+      // Cargar items si existen
+      if (quotationData && quotationData.items && Array.isArray(quotationData.items)) {
+        setItems(quotationData.items.map((item: any) => ({
+          itemNumber: item.itemNumber,
+          description: item.description,
+          quantity: item.quantity,
+          unitPrice: item.unitPrice || "",
+          totalPrice: item.totalPrice,
+        })));
+      }
+      
+      setShowCreateDialog(true);
+    } catch (error) {
+      toast.error("Error al cargar la cotización");
+    }
   };
 
   const addItem = () => {
@@ -154,12 +202,24 @@ export default function Quotations() {
       return;
     }
 
-    createQuotation.mutate({
-      clientId: selectedClient,
-      vendorName,
-      workType,
-      items,
-    });
+    if (editingQuotation) {
+      // Actualizar cotización existente
+      updateQuotation.mutate({
+        id: editingQuotation,
+        clientId: selectedClient,
+        vendorName,
+        workType,
+        items,
+      });
+    } else {
+      // Crear nueva cotización
+      createQuotation.mutate({
+        clientId: selectedClient,
+        vendorName,
+        workType,
+        items,
+      });
+    }
   };
 
   const formatPrice = (price: string | number) => {
@@ -245,18 +305,28 @@ export default function Quotations() {
                   </Button>
 
                   {quot.status === "draft" && (
-                    <Button
-                      size="sm"
-                      onClick={() => {
-                        if (window.confirm(`¿Enviar cotización por email a ${quot.client?.email}?`)) {
-                          sendByEmail.mutate({ id: quot.id });
-                        }
-                      }}
-                      disabled={sendByEmail.isPending}
-                    >
-                      <Send className="h-4 w-4 mr-1" />
-                      Enviar Email
-                    </Button>
+                    <>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleEdit(quot.id)}
+                      >
+                        <Eye className="h-4 w-4 mr-1" />
+                        Editar
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          if (window.confirm(`¿Enviar cotización por email a ${quot.client?.email}?`)) {
+                            sendByEmail.mutate({ id: quot.id });
+                          }
+                        }}
+                        disabled={sendByEmail.isPending}
+                      >
+                        <Send className="h-4 w-4 mr-1" />
+                        Enviar Email
+                      </Button>
+                    </>
                   )}
 
                   <Button
@@ -285,7 +355,7 @@ export default function Quotations() {
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Nueva Cotización</DialogTitle>
+            <DialogTitle>{editingQuotation ? "Editar Cotización" : "Nueva Cotización"}</DialogTitle>
           </DialogHeader>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -453,8 +523,11 @@ export default function Quotations() {
               >
                 Cancelar
               </Button>
-              <Button type="submit" disabled={createQuotation.isPending}>
-                {createQuotation.isPending ? "Creando..." : "Crear Cotización"}
+              <Button type="submit" disabled={createQuotation.isPending || updateQuotation.isPending}>
+                {editingQuotation 
+                  ? (updateQuotation.isPending ? "Guardando..." : "Guardar Cambios")
+                  : (createQuotation.isPending ? "Creando..." : "Crear Cotización")
+                }
               </Button>
             </div>
           </form>

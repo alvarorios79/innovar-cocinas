@@ -693,7 +693,7 @@ export const appRouter = router({
       .input(z.object({
         clientId: z.number(),
         vendorName: z.string(),
-        productType: z.enum(["cocina", "closet", "puerta", "centro_tv", "otro"]),
+        productType: z.enum(["cocina", "closet", "puerta", "centro_tv", "otro"]).optional(),
         items: z.array(z.object({
           itemNumber: z.number(),
           itemType: z.string(),
@@ -706,6 +706,8 @@ export const appRouter = router({
         })),
       }))
       .mutation(async ({ ctx, input }) => {
+        // Si no se especifica productType, usar el itemType del primer item
+        const productType = input.productType || (input.items[0]?.itemType as any) || "otro";
         // Solo admin y super_admin pueden crear cotizaciones
         if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
           throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para crear cotizaciones" });
@@ -732,7 +734,7 @@ export const appRouter = router({
           quotationNumber,
           clientId: input.clientId,
           vendorName: input.vendorName,
-          productType: input.productType,
+          productType,
           status: "draft",
           validUntil,
           subtotal: subtotal.toString(),

@@ -983,3 +983,9 @@
 - [x] Está exigiendo campos opcionales (isla, barra, LED) que deberían ser opcionales
 - [x] Para cocinas, solo debería exigir: forma, metraje total, tipo de mesón
 - [x] Mejorar mensaje de error para indicar exactamente qué falta (ahora muestra "Item X: campo específico")
+
+## Bug: Error al guardar cotización - productType inválido
+
+- [x] Al guardar cotización muestra error: "Invalid option: expected one of \"cocina\"|\"closet\"|\"puerta\"|\"centro_tv\"|\"otro\""
+- [x] El valor de productType que se está enviando no coincide con las opciones esperadas por el backend
+- [x] Solución: Hacer productType opcional en backend y usar itemType del primer item como valor por defecto

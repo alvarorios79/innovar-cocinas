@@ -1,4 +1,4 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, decimal, boolean } from "drizzle-orm/mysql-core";
+import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, decimal, boolean, json } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -546,11 +546,13 @@ export const quotationItems = mysqlTable("quotationItems", {
   id: int("id").primaryKey().autoincrement(),
   quotationId: int("quotationId").notNull().references(() => quotations.id, { onDelete: "cascade" }),
   itemNumber: int("itemNumber").notNull(),
+  itemType: varchar("itemType", { length: 50 }).notNull(),
   description: text("description").notNull(),
   quantity: varchar("quantity", { length: 50 }).notNull(),
   unitPrice: varchar("unitPrice", { length: 50 }),
   totalPrice: varchar("totalPrice", { length: 50 }).notNull(),
   includesFixedCosts: boolean("includesFixedCosts").default(false).notNull(),
+  kitchenConfig: json("kitchenConfig"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 

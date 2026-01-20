@@ -696,11 +696,13 @@ export const appRouter = router({
         productType: z.enum(["cocina", "closet", "puerta", "centro_tv", "otro"]),
         items: z.array(z.object({
           itemNumber: z.number(),
+          itemType: z.string(),
           description: z.string(),
           quantity: z.string(),
           unitPrice: z.string().optional(),
           totalPrice: z.union([z.number(), z.string()]).transform(val => typeof val === 'string' ? parseFloat(val) : val),
           includesFixedCosts: z.boolean().optional(),
+          kitchenConfig: z.any().optional(),
         })),
       }))
       .mutation(async ({ ctx, input }) => {
@@ -744,11 +746,13 @@ export const appRouter = router({
           await db.createQuotationItem({
             quotationId,
             itemNumber: item.itemNumber,
+            itemType: item.itemType,
             description: item.description,
             quantity: item.quantity,
             unitPrice: item.unitPrice,
             totalPrice: item.totalPrice.toString(),
             includesFixedCosts: item.includesFixedCosts || false,
+            kitchenConfig: item.kitchenConfig ? JSON.stringify(item.kitchenConfig) : null,
           });
         }
 
@@ -764,11 +768,13 @@ export const appRouter = router({
         productType: z.enum(["cocina", "closet", "puerta", "centro_tv", "otro"]).optional(),
         items: z.array(z.object({
           itemNumber: z.number(),
+          itemType: z.string(),
           description: z.string(),
           quantity: z.string(),
           unitPrice: z.string().optional(),
           totalPrice: z.union([z.number(), z.string()]).transform(val => typeof val === 'string' ? parseFloat(val) : val),
           includesFixedCosts: z.boolean().optional(),
+          kitchenConfig: z.any().optional(),
         })).optional(),
       }))
       .mutation(async ({ ctx, input }) => {
@@ -796,11 +802,13 @@ export const appRouter = router({
             await db.createQuotationItem({
               quotationId: id,
               itemNumber: item.itemNumber,
+              itemType: item.itemType,
               description: item.description,
               quantity: item.quantity,
               unitPrice: item.unitPrice,
               totalPrice: item.totalPrice.toString(),
               includesFixedCosts: item.includesFixedCosts || false,
+              kitchenConfig: item.kitchenConfig ? JSON.stringify(item.kitchenConfig) : null,
             });
           }
 

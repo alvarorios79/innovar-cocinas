@@ -941,3 +941,20 @@
 - [x] Modificar formulario para mostrar selector de tipo en cada item
 - [ ] Actualizar backend para guardar itemType en quotationItems
 - [ ] Actualizar PDF para mostrar tipo de cada item
+
+## Sistema de Cotizaciones de Cocinas Integrales
+
+### Formulario Dinámico de Cocinas
+- [x] Implementar campos dinámicos cuando itemType = "cocina"
+- [x] Campo selector de forma (L, U, Lineal)
+- [x] Campo de metraje total de cocina (ml)
+- [x] Checkboxes de muebles especiales con descuento automático de metraje
+- [x] Sección de mesón principal con tipo, ml, y recargos por fondo
+- [x] Sección de isla (opcional) con muebles, mesón y checkbox de laterales
+- [x] Sección de barra (opcional) con muebles, mesón y checkbox de lateral
+- [x] Campo de luz LED (ml)
+- [x] Cálculo automático de totales según especificación
+- [x] Validaciones de metraje y recargos
+- [x] Actualizar backend para guardar configuración de cocina (itemType + kitchenConfig JSON)
+- [ ] Actualizar PDF para mostrar desglose completo de cocina
+- [x] Tests de cálculos automáticos (13 tests pasando)

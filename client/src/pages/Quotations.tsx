@@ -21,6 +21,38 @@ import {
 import { Plus, Trash2, FileText, Send, Eye } from "lucide-react";
 import { toast } from "sonner";
 
+interface KitchenConfig {
+  shape: string;
+  totalMeters: number;
+  lowerCabinets: number;
+  upperCabinets: number;
+  specialModules: {
+    nichoNevecon: boolean;
+    nichoNevera: boolean;
+    alacenaEntrepanos: boolean;
+    alacenaHerraje: boolean;
+    torreHornos: boolean;
+  };
+  countertop: {
+    type: string;
+    meters: number;
+    depthSurcharge: string;
+  };
+  island: {
+    enabled: boolean;
+    meters: number;
+    countertopType: string;
+    hasLaterals: boolean;
+  };
+  bar: {
+    enabled: boolean;
+    meters: number;
+    countertopType: string;
+    hasLateral: boolean;
+  };
+  ledLighting: number;
+}
+
 interface QuotationItem {
   itemNumber: number;
   itemType: string;
@@ -29,6 +61,7 @@ interface QuotationItem {
   unitPrice?: string;
   totalPrice: number;
   includesFixedCosts?: boolean;
+  kitchenConfig?: KitchenConfig;
 }
 
 export default function Quotations() {
@@ -39,7 +72,45 @@ export default function Quotations() {
   const [vendorName, setVendorName] = useState("Alvaro Gutierrez");
   const [workType, setWorkType] = useState("");
   const [items, setItems] = useState<QuotationItem[]>([
-    { itemNumber: 1, itemType: "", description: "", quantity: "", totalPrice: 0, includesFixedCosts: false },
+    { 
+      itemNumber: 1, 
+      itemType: "", 
+      description: "", 
+      quantity: "", 
+      totalPrice: 0, 
+      includesFixedCosts: false,
+      kitchenConfig: {
+        shape: "",
+        totalMeters: 0,
+        lowerCabinets: 0,
+        upperCabinets: 0,
+        specialModules: {
+          nichoNevecon: false,
+          nichoNevera: false,
+          alacenaEntrepanos: false,
+          alacenaHerraje: false,
+          torreHornos: false,
+        },
+        countertop: {
+          type: "",
+          meters: 0,
+          depthSurcharge: "none",
+        },
+        island: {
+          enabled: false,
+          meters: 0,
+          countertopType: "",
+          hasLaterals: false,
+        },
+        bar: {
+          enabled: false,
+          meters: 0,
+          countertopType: "",
+          hasLateral: false,
+        },
+        ledLighting: 0,
+      }
+    },
   ]);
 
   const { data: quotations = [], isLoading } = trpc.quotations.list.useQuery();
@@ -112,7 +183,45 @@ export default function Quotations() {
     setSelectedClient(null);
     setVendorName("Alvaro Gutierrez");
     setWorkType("");
-    setItems([{ itemNumber: 1, itemType: "", description: "", quantity: "", totalPrice: 0, includesFixedCosts: false }]);
+    setItems([{ 
+      itemNumber: 1, 
+      itemType: "", 
+      description: "", 
+      quantity: "", 
+      totalPrice: 0, 
+      includesFixedCosts: false,
+      kitchenConfig: {
+        shape: "",
+        totalMeters: 0,
+        lowerCabinets: 0,
+        upperCabinets: 0,
+        specialModules: {
+          nichoNevecon: false,
+          nichoNevera: false,
+          alacenaEntrepanos: false,
+          alacenaHerraje: false,
+          torreHornos: false,
+        },
+        countertop: {
+          type: "",
+          meters: 0,
+          depthSurcharge: "none",
+        },
+        island: {
+          enabled: false,
+          meters: 0,
+          countertopType: "",
+          hasLaterals: false,
+        },
+        bar: {
+          enabled: false,
+          meters: 0,
+          countertopType: "",
+          hasLateral: false,
+        },
+        ledLighting: 0,
+      }
+    }]);
   };
 
   const handleEdit = async (quotationId: number) => {
@@ -136,10 +245,43 @@ export default function Quotations() {
       if (quotationData && quotationData.items && Array.isArray(quotationData.items)) {
         setItems(quotationData.items.map((item: any) => ({
           itemNumber: item.itemNumber,
+          itemType: item.itemType || "",
           description: item.description,
           quantity: item.quantity,
           unitPrice: item.unitPrice || "",
           totalPrice: item.totalPrice,
+          includesFixedCosts: item.includesFixedCosts || false,
+          kitchenConfig: item.kitchenConfig || {
+            shape: "",
+            totalMeters: 0,
+            lowerCabinets: 0,
+            upperCabinets: 0,
+            specialModules: {
+              nichoNevecon: false,
+              nichoNevera: false,
+              alacenaEntrepanos: false,
+              alacenaHerraje: false,
+              torreHornos: false,
+            },
+            countertop: {
+              type: "",
+              meters: 0,
+              depthSurcharge: "none",
+            },
+            island: {
+              enabled: false,
+              meters: 0,
+              countertopType: "",
+              hasLaterals: false,
+            },
+            bar: {
+              enabled: false,
+              meters: 0,
+              countertopType: "",
+              hasLateral: false,
+            },
+            ledLighting: 0,
+          }
         })));
       }
       
@@ -159,6 +301,37 @@ export default function Quotations() {
         quantity: "",
         totalPrice: 0,
         includesFixedCosts: false,
+        kitchenConfig: {
+          shape: "",
+          totalMeters: 0,
+          lowerCabinets: 0,
+          upperCabinets: 0,
+          specialModules: {
+            nichoNevecon: false,
+            nichoNevera: false,
+            alacenaEntrepanos: false,
+            alacenaHerraje: false,
+            torreHornos: false,
+          },
+          countertop: {
+            type: "",
+            meters: 0,
+            depthSurcharge: "none",
+          },
+          island: {
+            enabled: false,
+            meters: 0,
+            countertopType: "",
+            hasLaterals: false,
+          },
+          bar: {
+            enabled: false,
+            meters: 0,
+            countertopType: "",
+            hasLateral: false,
+          },
+          ledLighting: 0,
+        }
       },
     ]);
   };
@@ -180,6 +353,119 @@ export default function Quotations() {
     const newItems = [...items];
     newItems[index] = { ...newItems[index], [field]: value };
     setItems(newItems);
+  };
+
+  const updateKitchenConfig = (index: number, field: string, value: any) => {
+    const newItems = [...items];
+    const config = newItems[index].kitchenConfig!;
+    
+    // Actualizar campo específico usando notación de punto
+    const fields = field.split('.');
+    let current: any = config;
+    for (let i = 0; i < fields.length - 1; i++) {
+      current = current[fields[i]];
+    }
+    current[fields[fields.length - 1]] = value;
+    
+    // Recalcular automáticamente
+    calculateKitchenTotal(index);
+  };
+
+  const calculateKitchenTotal = (index: number) => {
+    const item = items[index];
+    const config = item.kitchenConfig!;
+    let total = 0;
+
+    // 1. Calcular metraje resultante después de descontar muebles especiales
+    let deductions = 0;
+    if (config.specialModules.nichoNevecon) deductions += 1.0; // 100cm
+    if (config.specialModules.nichoNevera) deductions += 0.75; // 75cm
+    if (config.specialModules.alacenaEntrepanos) deductions += 0.5; // 50cm
+    if (config.specialModules.alacenaHerraje) deductions += 0.5; // 50cm
+    if (config.specialModules.torreHornos) deductions += 0.7; // 70cm
+
+    const resultingMeters = Math.max(0, config.totalMeters - deductions);
+    
+    // Actualizar muebles lineales automáticamente
+    const newItems = [...items];
+    newItems[index].kitchenConfig!.lowerCabinets = resultingMeters;
+    newItems[index].kitchenConfig!.upperCabinets = resultingMeters;
+    setItems(newItems);
+
+    // 2. Muebles lineales (inferiores + superiores)
+    total += resultingMeters * 900000; // Inferiores
+    total += resultingMeters * 900000; // Superiores
+
+    // 3. Muebles especiales
+    if (config.specialModules.nichoNevecon) total += 1200000;
+    if (config.specialModules.nichoNevera) total += 1200000;
+    if (config.specialModules.alacenaEntrepanos) total += 1250000;
+    if (config.specialModules.alacenaHerraje) total += 900000;
+    if (config.specialModules.torreHornos) total += 1350000;
+
+    // 4. Mesón principal
+    if (config.countertop.type && config.countertop.meters > 0) {
+      const basePrice = config.countertop.type === "quarzone" ? 850000 : 1200000;
+      let countertopPrice = basePrice;
+      
+      if (config.countertop.depthSurcharge === "30percent") {
+        countertopPrice = basePrice * 1.3;
+      } else if (config.countertop.depthSurcharge === "double") {
+        countertopPrice = basePrice * 2;
+      }
+      
+      total += config.countertop.meters * countertopPrice;
+    }
+
+    // 5. Isla
+    if (config.island.enabled && config.island.meters > 0) {
+      // Muebles de isla
+      total += config.island.meters * 900000;
+      
+      // Mesón superior de isla
+      if (config.island.countertopType) {
+        const islandCountertopPrice = config.island.countertopType === "quarzone" ? 850000 : 1200000;
+        total += config.island.meters * islandCountertopPrice;
+        
+        // Laterales de isla
+        if (config.island.hasLaterals) {
+          total += 1.8 * islandCountertopPrice; // Lateral
+          total += 0.9 * islandCountertopPrice; // Regrueso
+        }
+      }
+    }
+
+    // 6. Barra
+    if (config.bar.enabled && config.bar.meters > 0) {
+      // Muebles de barra
+      total += config.bar.meters * 900000;
+      
+      // Mesón superior de barra
+      if (config.bar.countertopType) {
+        const barCountertopPrice = config.bar.countertopType === "quarzone" ? 850000 : 1200000;
+        total += config.bar.meters * barCountertopPrice;
+        
+        // Lateral de barra
+        if (config.bar.hasLateral) {
+          total += 0.9 * barCountertopPrice;
+        }
+      }
+    }
+
+    // 7. Luz LED
+    if (config.ledLighting > 0) {
+      total += config.ledLighting * 180000;
+    }
+
+    // 8. Transporte e imprevistos (si está marcado el checkbox)
+    if (item.includesFixedCosts) {
+      total += 600000;
+    }
+
+    // Actualizar total del item
+    const finalItems = [...items];
+    finalItems[index].totalPrice = total;
+    setItems(finalItems);
   };
 
   const calculateTotal = () => {
@@ -397,8 +683,6 @@ export default function Quotations() {
               </div>
             </div>
 
-
-
             <div>
               <div className="flex justify-between items-center mb-2">
                 <Label>Items</Label>
@@ -449,85 +733,416 @@ export default function Quotations() {
                           </Select>
                         </div>
 
-                        <div>
-                          <Label>Descripción *</Label>
-                          <Textarea
-                            value={item.description}
-                            onChange={(e) =>
-                              updateItem(index, "description", e.target.value)
-                            }
-                            placeholder="Descripción detallada del ítem..."
-                            rows={3}
-                          />
-                        </div>
+                        {/* Campos dinámicos para COCINA */}
+                        {item.itemType === "cocina" && (
+                          <div className="space-y-4 p-4 bg-muted rounded-lg">
+                            <h3 className="font-semibold text-lg">Configuración de Cocina Integral</h3>
+                            
+                            {/* 1. Forma */}
+                            <div>
+                              <Label>Forma de la Cocina</Label>
+                              <Select 
+                                value={item.kitchenConfig?.shape || ""} 
+                                onValueChange={(value) => updateKitchenConfig(index, "shape", value)}
+                              >
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Selecciona la forma" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="L">En L</SelectItem>
+                                  <SelectItem value="U">En U</SelectItem>
+                                  <SelectItem value="lineal">Lineal</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
 
-                        <div className="grid grid-cols-3 gap-2">
-                          <div>
-                            <Label>Cantidad *</Label>
-                            <Input
-                              value={item.quantity}
-                              onChange={(e) =>
-                                updateItem(index, "quantity", e.target.value)
-                              }
-                              placeholder="Ej: 5ml, 2 unidades"
-                            />
-                          </div>
+                            {/* 2. Metraje total */}
+                            <div>
+                              <Label>Metraje Total de la Cocina (ml)</Label>
+                              <Input
+                                type="number"
+                                step="0.01"
+                                value={item.kitchenConfig?.totalMeters || ""}
+                                onChange={(e) => updateKitchenConfig(index, "totalMeters", parseFloat(e.target.value) || 0)}
+                                placeholder="Ej: 5.00"
+                              />
+                            </div>
 
-                          <div>
-                            <Label>Precio Unitario</Label>
-                            <Input
-                              value={item.unitPrice || ""}
-                              onChange={(e) =>
-                                updateItem(index, "unitPrice", e.target.value)
-                              }
-                              placeholder="Opcional"
-                            />
-                          </div>
+                            {/* 3. Muebles especiales */}
+                            <div>
+                              <Label className="mb-2 block">Muebles Especiales (se descuentan del metraje)</Label>
+                              <div className="space-y-2">
+                                <div className="flex items-center space-x-2">
+                                  <input
+                                    type="checkbox"
+                                    id={`nichoNevecon-${index}`}
+                                    checked={item.kitchenConfig?.specialModules.nichoNevecon || false}
+                                    onChange={(e) => {
+                                      updateKitchenConfig(index, "specialModules.nichoNevecon", e.target.checked);
+                                    }}
+                                    className="h-4 w-4"
+                                  />
+                                  <Label htmlFor={`nichoNevecon-${index}`} className="text-sm font-normal cursor-pointer">
+                                    Nicho para nevecon (100cm) - $1,200,000
+                                  </Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <input
+                                    type="checkbox"
+                                    id={`nichoNevera-${index}`}
+                                    checked={item.kitchenConfig?.specialModules.nichoNevera || false}
+                                    onChange={(e) => {
+                                      updateKitchenConfig(index, "specialModules.nichoNevera", e.target.checked);
+                                    }}
+                                    className="h-4 w-4"
+                                  />
+                                  <Label htmlFor={`nichoNevera-${index}`} className="text-sm font-normal cursor-pointer">
+                                    Nicho para nevera estándar (75cm) - $1,200,000
+                                  </Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <input
+                                    type="checkbox"
+                                    id={`alacenaEntrepanos-${index}`}
+                                    checked={item.kitchenConfig?.specialModules.alacenaEntrepanos || false}
+                                    onChange={(e) => {
+                                      updateKitchenConfig(index, "specialModules.alacenaEntrepanos", e.target.checked);
+                                    }}
+                                    className="h-4 w-4"
+                                  />
+                                  <Label htmlFor={`alacenaEntrepanos-${index}`} className="text-sm font-normal cursor-pointer">
+                                    Alacena con entrepaños (50cm) - $1,250,000
+                                  </Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <input
+                                    type="checkbox"
+                                    id={`alacenaHerraje-${index}`}
+                                    checked={item.kitchenConfig?.specialModules.alacenaHerraje || false}
+                                    onChange={(e) => {
+                                      updateKitchenConfig(index, "specialModules.alacenaHerraje", e.target.checked);
+                                    }}
+                                    className="h-4 w-4"
+                                  />
+                                  <Label htmlFor={`alacenaHerraje-${index}`} className="text-sm font-normal cursor-pointer">
+                                    Alacena para herraje (50cm) - $900,000
+                                  </Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <input
+                                    type="checkbox"
+                                    id={`torreHornos-${index}`}
+                                    checked={item.kitchenConfig?.specialModules.torreHornos || false}
+                                    onChange={(e) => {
+                                      updateKitchenConfig(index, "specialModules.torreHornos", e.target.checked);
+                                    }}
+                                    className="h-4 w-4"
+                                  />
+                                  <Label htmlFor={`torreHornos-${index}`} className="text-sm font-normal cursor-pointer">
+                                    Torre de hornos (70cm) - $1,350,000
+                                  </Label>
+                                </div>
+                              </div>
+                            </div>
 
-                          <div>
-                            <Label>Total *</Label>
-                            <Input
-                              type="number"
-                              value={item.totalPrice}
-                              onChange={(e) =>
-                                updateItem(
-                                  index,
-                                  "totalPrice",
-                                  parseFloat(e.target.value) || 0
-                                )
-                              }
-                              placeholder="0"
-                            />
-                          </div>
-                        </div>
+                            {/* Mostrar metraje resultante */}
+                            <div className="p-3 bg-blue-50 rounded">
+                              <p className="text-sm">
+                                <span className="font-medium">Metraje resultante para muebles:</span>{" "}
+                                {item.kitchenConfig?.lowerCabinets.toFixed(2) || "0.00"} ml
+                              </p>
+                            </div>
 
-                        <div className="flex items-center space-x-2 mt-2">
-                          <input
-                            type="checkbox"
-                            id={`fixedCosts-${index}`}
-                            checked={item.includesFixedCosts || false}
-                            onChange={(e) => {
-                              const newItems = [...items];
-                              const currentTotal = newItems[index].totalPrice;
-                              const wasChecked = newItems[index].includesFixedCosts || false;
+                            {/* 4. Mesón principal */}
+                            <div className="space-y-2">
+                              <Label className="text-base font-semibold">Mesón Principal</Label>
+                              <div className="grid grid-cols-3 gap-2">
+                                <div>
+                                  <Label>Tipo</Label>
+                                  <Select 
+                                    value={item.kitchenConfig?.countertop.type || ""} 
+                                    onValueChange={(value) => updateKitchenConfig(index, "countertop.type", value)}
+                                  >
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Tipo" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="quarzone">Quarzone ($850k/ml)</SelectItem>
+                                      <SelectItem value="sinterizado">Sinterizado ($1.2M/ml)</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <div>
+                                  <Label>Metros (ml)</Label>
+                                  <Input
+                                    type="number"
+                                    step="0.01"
+                                    value={item.kitchenConfig?.countertop.meters || ""}
+                                    onChange={(e) => updateKitchenConfig(index, "countertop.meters", parseFloat(e.target.value) || 0)}
+                                    placeholder="0.00"
+                                  />
+                                </div>
+                                <div>
+                                  <Label>Recargo por fondo</Label>
+                                  <Select 
+                                    value={item.kitchenConfig?.countertop.depthSurcharge || "none"} 
+                                    onValueChange={(value) => updateKitchenConfig(index, "countertop.depthSurcharge", value)}
+                                  >
+                                    <SelectTrigger>
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="none">Sin recargo (≤60cm)</SelectItem>
+                                      <SelectItem value="30percent">+30% (61-90cm)</SelectItem>
+                                      <SelectItem value="double">×2 (91-120cm)</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* 5. Isla */}
+                            <div className="space-y-2">
+                              <div className="flex items-center space-x-2">
+                                <input
+                                  type="checkbox"
+                                  id={`islandEnabled-${index}`}
+                                  checked={item.kitchenConfig?.island.enabled || false}
+                                  onChange={(e) => updateKitchenConfig(index, "island.enabled", e.target.checked)}
+                                  className="h-4 w-4"
+                                />
+                                <Label htmlFor={`islandEnabled-${index}`} className="text-base font-semibold cursor-pointer">
+                                  Isla
+                                </Label>
+                              </div>
                               
-                              if (e.target.checked && !wasChecked) {
-                                // Agregar $600,000
-                                newItems[index].totalPrice = currentTotal + 600000;
-                              } else if (!e.target.checked && wasChecked) {
-                                // Restar $600,000
-                                newItems[index].totalPrice = Math.max(0, currentTotal - 600000);
-                              }
+                              {item.kitchenConfig?.island.enabled && (
+                                <div className="pl-6 space-y-2">
+                                  <div className="grid grid-cols-2 gap-2">
+                                    <div>
+                                      <Label>Metros de isla (ml)</Label>
+                                      <Input
+                                        type="number"
+                                        step="0.01"
+                                        value={item.kitchenConfig?.island.meters || ""}
+                                        onChange={(e) => updateKitchenConfig(index, "island.meters", parseFloat(e.target.value) || 0)}
+                                        placeholder="0.00"
+                                      />
+                                    </div>
+                                    <div>
+                                      <Label>Tipo de mesón</Label>
+                                      <Select 
+                                        value={item.kitchenConfig?.island.countertopType || ""} 
+                                        onValueChange={(value) => updateKitchenConfig(index, "island.countertopType", value)}
+                                      >
+                                        <SelectTrigger>
+                                          <SelectValue placeholder="Tipo" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          <SelectItem value="quarzone">Quarzone</SelectItem>
+                                          <SelectItem value="sinterizado">Sinterizado</SelectItem>
+                                        </SelectContent>
+                                      </Select>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center space-x-2">
+                                    <input
+                                      type="checkbox"
+                                      id={`islandLaterals-${index}`}
+                                      checked={item.kitchenConfig?.island.hasLaterals || false}
+                                      onChange={(e) => updateKitchenConfig(index, "island.hasLaterals", e.target.checked)}
+                                      className="h-4 w-4"
+                                    />
+                                    <Label htmlFor={`islandLaterals-${index}`} className="text-sm font-normal cursor-pointer">
+                                      Incluir laterales (+1.80ml lateral + 0.90ml regrueso)
+                                    </Label>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* 6. Barra */}
+                            <div className="space-y-2">
+                              <div className="flex items-center space-x-2">
+                                <input
+                                  type="checkbox"
+                                  id={`barEnabled-${index}`}
+                                  checked={item.kitchenConfig?.bar.enabled || false}
+                                  onChange={(e) => updateKitchenConfig(index, "bar.enabled", e.target.checked)}
+                                  className="h-4 w-4"
+                                />
+                                <Label htmlFor={`barEnabled-${index}`} className="text-base font-semibold cursor-pointer">
+                                  Barra
+                                </Label>
+                              </div>
                               
-                              newItems[index].includesFixedCosts = e.target.checked;
-                              setItems(newItems);
-                            }}
-                            className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                          />
-                          <Label htmlFor={`fixedCosts-${index}`} className="text-sm font-normal cursor-pointer">
-                            Incluye transporte e imprevistos ($600,000)
-                          </Label>
-                        </div>
+                              {item.kitchenConfig?.bar.enabled && (
+                                <div className="pl-6 space-y-2">
+                                  <div className="grid grid-cols-2 gap-2">
+                                    <div>
+                                      <Label>Metros de barra (ml)</Label>
+                                      <Input
+                                        type="number"
+                                        step="0.01"
+                                        value={item.kitchenConfig?.bar.meters || ""}
+                                        onChange={(e) => updateKitchenConfig(index, "bar.meters", parseFloat(e.target.value) || 0)}
+                                        placeholder="0.00"
+                                      />
+                                    </div>
+                                    <div>
+                                      <Label>Tipo de mesón</Label>
+                                      <Select 
+                                        value={item.kitchenConfig?.bar.countertopType || ""} 
+                                        onValueChange={(value) => updateKitchenConfig(index, "bar.countertopType", value)}
+                                      >
+                                        <SelectTrigger>
+                                          <SelectValue placeholder="Tipo" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          <SelectItem value="quarzone">Quarzone</SelectItem>
+                                          <SelectItem value="sinterizado">Sinterizado</SelectItem>
+                                        </SelectContent>
+                                      </Select>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center space-x-2">
+                                    <input
+                                      type="checkbox"
+                                      id={`barLateral-${index}`}
+                                      checked={item.kitchenConfig?.bar.hasLateral || false}
+                                      onChange={(e) => updateKitchenConfig(index, "bar.hasLateral", e.target.checked)}
+                                      className="h-4 w-4"
+                                    />
+                                    <Label htmlFor={`barLateral-${index}`} className="text-sm font-normal cursor-pointer">
+                                      Incluir lateral (+0.90ml fijo)
+                                    </Label>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* 7. Luz LED */}
+                            <div>
+                              <Label>Luz LED (ml) - $180,000/ml</Label>
+                              <Input
+                                type="number"
+                                step="0.01"
+                                value={item.kitchenConfig?.ledLighting || ""}
+                                onChange={(e) => updateKitchenConfig(index, "ledLighting", parseFloat(e.target.value) || 0)}
+                                placeholder="0.00"
+                              />
+                            </div>
+
+                            {/* 8. Transporte */}
+                            <div className="flex items-center space-x-2 p-3 bg-yellow-50 rounded">
+                              <input
+                                type="checkbox"
+                                id={`fixedCosts-${index}`}
+                                checked={item.includesFixedCosts || false}
+                                onChange={(e) => {
+                                  updateItem(index, "includesFixedCosts", e.target.checked);
+                                  calculateKitchenTotal(index);
+                                }}
+                                className="h-4 w-4"
+                              />
+                              <Label htmlFor={`fixedCosts-${index}`} className="text-sm font-normal cursor-pointer">
+                                Incluye transporte e imprevistos ($600,000)
+                              </Label>
+                            </div>
+
+                            {/* Total calculado */}
+                            <div className="p-4 bg-green-50 rounded">
+                              <p className="text-lg font-bold text-green-800">
+                                Total Cocina: {formatPrice(item.totalPrice)}
+                              </p>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Campos estándar para otros tipos */}
+                        {item.itemType !== "cocina" && (
+                          <>
+                            <div>
+                              <Label>Descripción *</Label>
+                              <Textarea
+                                value={item.description}
+                                onChange={(e) =>
+                                  updateItem(index, "description", e.target.value)
+                                }
+                                placeholder="Descripción detallada del ítem..."
+                                rows={3}
+                              />
+                            </div>
+
+                            <div className="grid grid-cols-3 gap-2">
+                              <div>
+                                <Label>Cantidad *</Label>
+                                <Input
+                                  value={item.quantity}
+                                  onChange={(e) =>
+                                    updateItem(index, "quantity", e.target.value)
+                                  }
+                                  placeholder="Ej: 5ml, 2 unidades"
+                                />
+                              </div>
+
+                              <div>
+                                <Label>Precio Unitario</Label>
+                                <Input
+                                  value={item.unitPrice || ""}
+                                  onChange={(e) =>
+                                    updateItem(index, "unitPrice", e.target.value)
+                                  }
+                                  placeholder="Opcional"
+                                />
+                              </div>
+
+                              <div>
+                                <Label>Total *</Label>
+                                <Input
+                                  type="number"
+                                  value={item.totalPrice}
+                                  onChange={(e) =>
+                                    updateItem(
+                                      index,
+                                      "totalPrice",
+                                      parseFloat(e.target.value) || 0
+                                    )
+                                  }
+                                  placeholder="0"
+                                />
+                              </div>
+                            </div>
+
+                            <div className="flex items-center space-x-2 mt-2">
+                              <input
+                                type="checkbox"
+                                id={`fixedCosts-${index}`}
+                                checked={item.includesFixedCosts || false}
+                                onChange={(e) => {
+                                  const newItems = [...items];
+                                  const currentTotal = newItems[index].totalPrice;
+                                  const wasChecked = newItems[index].includesFixedCosts || false;
+                                  
+                                  if (e.target.checked && !wasChecked) {
+                                    // Agregar $600,000
+                                    newItems[index].totalPrice = currentTotal + 600000;
+                                  } else if (!e.target.checked && wasChecked) {
+                                    // Restar $600,000
+                                    newItems[index].totalPrice = Math.max(0, currentTotal - 600000);
+                                  }
+                                  
+                                  newItems[index].includesFixedCosts = e.target.checked;
+                                  setItems(newItems);
+                                }}
+                                className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                              />
+                              <Label htmlFor={`fixedCosts-${index}`} className="text-sm font-normal cursor-pointer">
+                                Incluye transporte e imprevistos ($600,000)
+                              </Label>
+                            </div>
+                          </>
+                        )}
                       </div>
                     </CardContent>
                   </Card>

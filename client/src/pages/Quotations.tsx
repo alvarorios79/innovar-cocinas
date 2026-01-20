@@ -193,7 +193,7 @@ export default function Quotations() {
     }
 
     if (!workType) {
-      toast.error("Ingresa el tipo de trabajo");
+      toast.error("Selecciona el tipo de producto");
       return;
     }
 
@@ -280,7 +280,7 @@ export default function Quotations() {
                     <span className="font-medium">Vendedor:</span> {quot.vendorName}
                   </p>
                   <p className="text-sm">
-                    <span className="font-medium">Trabajo:</span> {quot.workType}
+                    <span className="font-medium">Producto:</span> {quot.productType}
                   </p>
                   <p className="text-lg font-bold text-primary">
                     {formatPrice(quot.total)}
@@ -396,12 +396,22 @@ export default function Quotations() {
             </div>
 
             <div>
-              <Label>Tipo de Trabajo *</Label>
-              <Input
-                value={workType}
-                onChange={(e) => setWorkType(e.target.value)}
-                placeholder="Ej: Cocina Integral, Closet, Puertas..."
-              />
+              <Label>Tipo de Producto *</Label>
+              <Select value={workType} onValueChange={setWorkType}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecciona el tipo de producto" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="cocina">Cocina Integral</SelectItem>
+                  <SelectItem value="closet">Closet</SelectItem>
+                  <SelectItem value="puerta">Puerta</SelectItem>
+                  <SelectItem value="centro_tv">Centro de TV</SelectItem>
+                  <SelectItem value="meson_quarzone">Mesón Quarzone</SelectItem>
+                  <SelectItem value="meson_sinterizado">Mesón Sinterizado</SelectItem>
+                  <SelectItem value="luz_led">Luz LED</SelectItem>
+                  <SelectItem value="otro">Otro</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div>

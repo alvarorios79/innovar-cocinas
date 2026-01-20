@@ -903,3 +903,31 @@
 
 ### Base de Datos
 - [x] Ejecutar migración de base de datos (tablas recreadas exitosamente)
+
+
+## Implementación de Formulario de Cotización de Cocinas
+
+### Backend
+- [ ] Crear endpoints tRPC para cotizaciones de cocinas (create, update, get, list)
+- [ ] Implementar lógica de cálculo automático de totales
+- [ ] Validar datos de entrada con Zod
+
+### Frontend
+- [ ] Crear componente KitchenQuotationForm con todos los campos
+- [ ] Implementar cálculo automático de metros lineales (descontando muebles especiales)
+- [ ] Implementar cálculo de recargos de mesón según fondo
+- [ ] Implementar cálculo de isla con laterales
+- [ ] Implementar cálculo de barra con lateral
+- [ ] Mostrar preview de totales en tiempo real
+
+### Integración
+- [ ] Conectar formulario con backend
+- [ ] Actualizar generador de PDF para cocinas
+- [ ] Probar flujo completo de creación de cotización
+
+
+## Selector de Tipo de Producto en Cotizaciones
+
+- [x] Agregar dropdown de tipo de producto en formulario de cotizaciones (Cocina, Closet, Puerta, Centro TV, Mesón Quarzone, Mesón Sinterizado, Luz LED)
+- [ ] Mostrar campos específicos según el tipo seleccionado
+- [ ] Actualizar PDF para mostrar el tipo de producto

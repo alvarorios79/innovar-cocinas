@@ -833,3 +833,73 @@
 ## Corrección de Error de Validación en Edición de Cotizaciones
 
 - [x] Corregir schema de validación en endpoints create y update para aceptar totalPrice como string o número
+
+
+## Reestructuración Completa del Sistema de Cotizaciones
+
+- [ ] Actualizar schema: agregar itemType, itemSubtype, includeInTotal
+- [ ] Migrar base de datos con nuevos campos
+- [ ] Actualizar backend: validación de tipos y subtipos
+- [ ] Actualizar backend: cálculo de subtotal con includeInTotal
+- [ ] Actualizar frontend: dropdown de tipo de item (Cocina, Closet, Puerta, Centro TV, Mesón Quarzone, Mesón Sinterizado, Luz LED)
+- [ ] Actualizar frontend: dropdown condicional de subtipo (Closet: Estándar/Fondo más corto/Empotrado, Puerta: Batiente 50-85/Batiente 85-110/Corrediza pequeña/Corrediza grande)
+- [ ] Actualizar frontend: checkbox "Incluir en total"
+- [ ] Actualizar frontend: validación de reglas (solo un item con costos fijos, al menos un item que sume)
+- [ ] Actualizar PDF: mostrar tipo y subtipo de cada item
+- [ ] Actualizar PDF: marcar items informativos
+- [ ] Eliminar campo workType del encabezado de cotización
+- [ ] Probar todos los casos de uso
+
+
+## Implementación de Sistema de Cotizaciones - COCINAS
+
+### Base de Datos
+- [ ] Crear schema para estructura de cocinas (forma, muebles, mesón, isla, barra, etc.)
+- [ ] Migrar base de datos
+
+### Backend
+- [ ] Crear endpoints para cotizaciones de cocinas
+- [ ] Implementar lógica de cálculo automático
+- [ ] Validaciones de datos
+
+### Frontend
+- [ ] Formulario de cotización de cocinas
+- [ ] Campos: forma, muebles inferiores/superiores, muebles especiales
+- [ ] Sección de mesón con checkboxes de recargo
+- [ ] Sección de isla con checkbox de laterales
+- [ ] Sección de barra con checkbox de lateral
+- [ ] Campo de luz LED
+- [ ] Cálculo automático de totales
+- [ ] Mostrar desglose de precios
+
+### PDF
+- [ ] Actualizar generador de PDF para mostrar estructura de cocinas
+- [ ] Desglose detallado de componentes
+- [ ] Total con transporte e imprevistos
+
+### Testing
+- [ ] Probar cálculos con diferentes configuraciones
+- [ ] Verificar PDF generado
+
+
+## Reestructuración de Sistema de Cotizaciones
+
+### Preparación
+- [x] Documentar catálogo completo de precios (CATALOGO_PRECIOS.md)
+- [x] Documentar especificación de cocinas (ESPECIFICACION_COCINAS.md)
+- [x] Actualizar schema de base de datos con nuevos campos (productType, transportCost)
+- [x] Crear tabla kitchenQuotations para cotizaciones de cocinas
+- [x] Recrear tablas quotations y quotationItems con nueva estructura
+
+### Backend
+- [x] Actualizar backend (routers, db.ts) con nuevos nombres de campos
+- [x] Actualizar generadores de PDF con nuevos nombres de campos
+- [x] Corregir todas las referencias de workType a productType
+- [x] Corregir todas las referencias de fixedCosts a transportCost
+
+### Frontend
+- [x] Actualizar frontend (Quotations.tsx, Portal.tsx) con nuevos nombres
+- [x] Corregir todas las referencias de workType a productType
+
+### Base de Datos
+- [x] Ejecutar migración de base de datos (tablas recreadas exitosamente)

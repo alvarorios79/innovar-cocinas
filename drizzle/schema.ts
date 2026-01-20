@@ -104,21 +104,22 @@ export type PriorEstimate = typeof priorEstimates.$inferSelect;
 export type InsertPriorEstimate = typeof priorEstimates.$inferInsert;
 
 /**
- * Cotizaciones generadas por administradores
+ * Cotizaciones - Tabla principal
+ * Arquitectura robusta que soporta múltiples tipos de productos
  */
 export const quotations = mysqlTable("quotations", {
   id: int("id").autoincrement().primaryKey(),
-  quotationNumber: varchar("quotationNumber", { length: 50 }).notNull().unique(), // COT-2026-620
+  quotationNumber: varchar("quotationNumber", { length: 50 }).notNull().unique(), // COT-2026-001
   clientId: int("clientId").notNull().references(() => clients.id),
-  vendorName: varchar("vendorName", { length: 255 }).notNull(), // Alvaro Gutierrez / Martha Serna
-  workType: text("workType").notNull(), // Texto libre: "Cocina Integral", "Puertas", etc.
+  vendorName: varchar("vendorName", { length: 255 }).notNull(),
+  productType: mysqlEnum("productType", ["cocina", "closet", "puerta", "centro_tv", "otro"]).notNull(),
   status: mysqlEnum("status", ["draft", "sent", "approved", "rejected"]).default("draft").notNull(),
-  validUntil: timestamp("validUntil"), // Fecha + 7 días
+  validUntil: timestamp("validUntil"),
   subtotal: decimal("subtotal", { precision: 12, scale: 2 }).notNull(),
-  fixedCosts: decimal("fixedCosts", { precision: 12, scale: 2 }).default("600000").notNull(), // Transporte + imprevistos
+  transportCost: decimal("transportCost", { precision: 12, scale: 2 }).default("600000").notNull(),
   total: decimal("total", { precision: 12, scale: 2 }).notNull(),
-  pdfUrl: text("pdfUrl"), // URL del PDF generado en S3
-  sentAt: timestamp("sentAt"), // Fecha de envío
+  pdfUrl: text("pdfUrl"),
+  sentAt: timestamp("sentAt"),
   createdBy: int("createdBy").notNull().references(() => users.id),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
@@ -126,24 +127,6 @@ export const quotations = mysqlTable("quotations", {
 
 export type Quotation = typeof quotations.$inferSelect;
 export type InsertQuotation = typeof quotations.$inferInsert;
-
-/**
- * Items de cada cotización (estructura flexible)
- */
-export const quotationItems = mysqlTable("quotationItems", {
-  id: int("id").autoincrement().primaryKey(),
-  quotationId: int("quotationId").notNull().references(() => quotations.id, { onDelete: "cascade" }),
-  itemNumber: int("itemNumber").notNull(), // 1, 2, 3...
-  description: text("description").notNull(), // Descripción detallada con formato
-  quantity: varchar("quantity", { length: 50 }).notNull(), // "1", "4.5 ml", etc.
-  unitPrice: varchar("unitPrice", { length: 50 }), // "$850,000" o vacío
-  totalPrice: decimal("totalPrice", { precision: 12, scale: 2 }).notNull(),
-  includesFixedCosts: boolean("includesFixedCosts").default(false).notNull(), // Si incluye transporte e imprevistos
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
-
-export type QuotationItem = typeof quotationItems.$inferSelect;
-export type InsertQuotationItem = typeof quotationItems.$inferInsert;
 
 /**
  * Proyectos de fabricación
@@ -471,3 +454,105 @@ export const projectHardwareSelections = mysqlTable("projectHardwareSelections",
 
 export type ProjectHardwareSelection = typeof projectHardwareSelections.$inferSelect;
 export type InsertProjectHardwareSelection = typeof projectHardwareSelections.$inferInsert;
+
+
+/**
+/**
+ * Cotizaciones de Cocinas - Estructura detallada
+ * Todos los componentes de una cocina integral
+ */
+export const kitchenQuotations = mysqlTable("kitchenQuotations", {
+  id: int("id").autoincrement().primaryKey(),
+  quotationId: int("quotationId").notNull().references(() => quotations.id, { onDelete: "cascade" }),
+  
+  // Forma de la cocina
+  shape: mysqlEnum("shape", ["L", "U", "lineal"]).notNull(),
+  
+  // Metraje
+  totalMeters: decimal("totalMeters", { precision: 10, scale: 2 }).notNull(),
+  resultingMeters: decimal("resultingMeters", { precision: 10, scale: 2 }).notNull(),
+  
+  // Muebles lineales
+  lowerCabinetsMeters: decimal("lowerCabinetsMeters", { precision: 10, scale: 2 }).notNull(),
+  lowerCabinetsPrice: decimal("lowerCabinetsPrice", { precision: 12, scale: 2 }).notNull(),
+  upperCabinetsMeters: decimal("upperCabinetsMeters", { precision: 10, scale: 2 }).notNull(),
+  upperCabinetsPrice: decimal("upperCabinetsPrice", { precision: 12, scale: 2 }).notNull(),
+  
+  // Muebles especiales
+  hasNichoNevecon: boolean("hasNichoNevecon").default(false).notNull(),
+  nichoNeveconPrice: decimal("nichoNeveconPrice", { precision: 12, scale: 2 }),
+  hasNichoNeveraStandard: boolean("hasNichoNeveraStandard").default(false).notNull(),
+  nichoNeveraStandardPrice: decimal("nichoNeveraStandardPrice", { precision: 12, scale: 2 }),
+  hasAlacenaEntrepanos: boolean("hasAlacenaEntrepanos").default(false).notNull(),
+  alacenaEntrepanosPrice: decimal("alacenaEntrepanosPrice", { precision: 12, scale: 2 }),
+  hasAlacenaHerraje: boolean("hasAlacenaHerraje").default(false).notNull(),
+  alacenaHerrajePrice: decimal("alacenaHerrajePrice", { precision: 12, scale: 2 }),
+  hasHerrajeItem: boolean("hasHerrajeItem").default(false).notNull(),
+  herrajePrice: decimal("herrajePrice", { precision: 12, scale: 2 }),
+  hasTorreHornos: boolean("hasTorreHornos").default(false).notNull(),
+  torreHornosPrice: decimal("torreHornosPrice", { precision: 12, scale: 2 }),
+  
+  // Mesón principal
+  countertopType: mysqlEnum("countertopType", ["quarzone", "sinterizado"]).notNull(),
+  countertopMeters: decimal("countertopMeters", { precision: 10, scale: 2 }).notNull(),
+  countertopSurcharge30: boolean("countertopSurcharge30").default(false).notNull(),
+  countertopDouble: boolean("countertopDouble").default(false).notNull(),
+  countertopPrice: decimal("countertopPrice", { precision: 12, scale: 2 }).notNull(),
+  
+  // Isla
+  hasIsland: boolean("hasIsland").default(false).notNull(),
+  islandCabinetsMeters: decimal("islandCabinetsMeters", { precision: 10, scale: 2 }),
+  islandCabinetsPrice: decimal("islandCabinetsPrice", { precision: 12, scale: 2 }),
+  islandCountertopMeters: decimal("islandCountertopMeters", { precision: 10, scale: 2 }),
+  islandCountertopType: mysqlEnum("islandCountertopType", ["quarzone", "sinterizado"]),
+  islandCountertopPrice: decimal("islandCountertopPrice", { precision: 12, scale: 2 }),
+  islandHasLaterals: boolean("islandHasLaterals").default(false).notNull(),
+  islandLateralPrice: decimal("islandLateralPrice", { precision: 12, scale: 2 }),
+  islandRegruesoPrice: decimal("islandRegruesoPrice", { precision: 12, scale: 2 }),
+  islandTotalPrice: decimal("islandTotalPrice", { precision: 12, scale: 2 }),
+  
+  // Barra
+  hasBar: boolean("hasBar").default(false).notNull(),
+  barCabinetsMeters: decimal("barCabinetsMeters", { precision: 10, scale: 2 }),
+  barCabinetsPrice: decimal("barCabinetsPrice", { precision: 12, scale: 2 }),
+  barCountertopMeters: decimal("barCountertopMeters", { precision: 10, scale: 2 }),
+  barCountertopType: mysqlEnum("barCountertopType", ["quarzone", "sinterizado"]),
+  barCountertopPrice: decimal("barCountertopPrice", { precision: 12, scale: 2 }),
+  barHasLateral: boolean("barHasLateral").default(false).notNull(),
+  barLateralPrice: decimal("barLateralPrice", { precision: 12, scale: 2 }),
+  barTotalPrice: decimal("barTotalPrice", { precision: 12, scale: 2 }),
+  
+  // Luz LED
+  hasLed: boolean("hasLed").default(false).notNull(),
+  ledMeters: decimal("ledMeters", { precision: 10, scale: 2 }),
+  ledPrice: decimal("ledPrice", { precision: 12, scale: 2 }),
+  
+  // Costos fijos
+  transportCost: decimal("transportCost", { precision: 12, scale: 2 }).default("600000").notNull(),
+  
+  // Total
+  subtotal: decimal("subtotal", { precision: 12, scale: 2 }).notNull(),
+  total: decimal("total", { precision: 12, scale: 2 }).notNull(),
+  
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type KitchenQuotation = typeof kitchenQuotations.$inferSelect;
+export type InsertKitchenQuotation = typeof kitchenQuotations.$inferInsert;
+
+// Tabla de items de cotizaciones
+export const quotationItems = mysqlTable("quotationItems", {
+  id: int("id").primaryKey().autoincrement(),
+  quotationId: int("quotationId").notNull().references(() => quotations.id, { onDelete: "cascade" }),
+  itemNumber: int("itemNumber").notNull(),
+  description: text("description").notNull(),
+  quantity: varchar("quantity", { length: 50 }).notNull(),
+  unitPrice: varchar("unitPrice", { length: 50 }),
+  totalPrice: varchar("totalPrice", { length: 50 }).notNull(),
+  includesFixedCosts: boolean("includesFixedCosts").default(false).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type QuotationItem = typeof quotationItems.$inferSelect;
+export type InsertQuotationItem = typeof quotationItems.$inferInsert;

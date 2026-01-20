@@ -129,7 +129,7 @@ export default function Quotations() {
       setEditingQuotation(quotationId);
       setSelectedClient(quotation.clientId);
       setVendorName(quotation.vendorName);
-      setWorkType(quotation.workType);
+      setWorkType(quotation.productType);
       
       // Cargar items si existen
       if (quotationData && quotationData.items && Array.isArray(quotationData.items)) {
@@ -208,7 +208,7 @@ export default function Quotations() {
         id: editingQuotation,
         clientId: selectedClient,
         vendorName,
-        workType,
+        productType: workType as "cocina" | "closet" | "puerta" | "centro_tv" | "otro",
         items,
       });
     } else {
@@ -216,7 +216,7 @@ export default function Quotations() {
       createQuotation.mutate({
         clientId: selectedClient,
         vendorName,
-        workType,
+        productType: workType as "cocina" | "closet" | "puerta" | "centro_tv" | "otro",
         items,
       });
     }

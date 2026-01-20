@@ -272,7 +272,6 @@ export const appRouter = router({
       .input(z.object({
         name: z.string().min(1).optional(),
         email: z.string().email().optional(),
-        address: z.string().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         const client = await db.getClientByUserId(ctx.user.id);
@@ -694,7 +693,7 @@ export const appRouter = router({
       .input(z.object({
         clientId: z.number(),
         vendorName: z.string(),
-        workType: z.string(),
+        productType: z.enum(["cocina", "closet", "puerta", "centro_tv", "otro"]),
         items: z.array(z.object({
           itemNumber: z.number(),
           description: z.string(),
@@ -719,8 +718,8 @@ export const appRouter = router({
         // Calcular subtotal y total
         const subtotal = input.items.reduce((sum, item) => sum + item.totalPrice, 0);
         // Solo agregar costos fijos si NO están incluidos en ningún item
-        const fixedCosts = hasFixedCostsInItems ? 0 : 600000;
-        const total = subtotal + fixedCosts;
+        const transportCost = hasFixedCostsInItems ? 0 : 600000;
+        const total = subtotal + transportCost;
 
         // Fecha de validez: 7 días desde hoy
         const validUntil = new Date();
@@ -731,11 +730,11 @@ export const appRouter = router({
           quotationNumber,
           clientId: input.clientId,
           vendorName: input.vendorName,
-          workType: input.workType,
+          productType: input.productType,
           status: "draft",
           validUntil,
           subtotal: subtotal.toString(),
-          fixedCosts: fixedCosts.toString(),
+          transportCost: transportCost.toString(),
           total: total.toString(),
           createdBy: ctx.user.id,
         });
@@ -762,7 +761,7 @@ export const appRouter = router({
         id: z.number(),
         clientId: z.number().optional(),
         vendorName: z.string().optional(),
-        workType: z.string().optional(),
+        productType: z.enum(["cocina", "closet", "puerta", "centro_tv", "otro"]).optional(),
         items: z.array(z.object({
           itemNumber: z.number(),
           description: z.string(),
@@ -786,8 +785,8 @@ export const appRouter = router({
           
           const subtotal = items.reduce((sum, item) => sum + item.totalPrice, 0);
           // Solo agregar costos fijos si NO están incluidos en ningún item
-          const fixedCosts = hasFixedCostsInItems ? 0 : 600000;
-          const total = subtotal + fixedCosts;
+          const transportCost = hasFixedCostsInItems ? 0 : 600000;
+          const total = subtotal + transportCost;
 
           // Eliminar items antiguos
           await db.deleteQuotationItems(id);
@@ -809,7 +808,7 @@ export const appRouter = router({
           await db.updateQuotation(id, {
             ...quotationData,
             subtotal: subtotal.toString(),
-            fixedCosts: fixedCosts.toString(),
+            transportCost: transportCost.toString(),
             total: total.toString(),
           });
         } else {
@@ -934,7 +933,7 @@ export const appRouter = router({
           date: new Date().toLocaleDateString('es-CO'),
           clientName: client.name,
           vendorName: quotation.vendorName,
-          workType: quotation.workType,
+          productType: quotation.productType,
           validUntil: quotation.validUntil ? new Date(quotation.validUntil).toLocaleDateString('es-CO') : '',
           items: items.map(item => ({
             itemNumber: item.itemNumber,
@@ -944,7 +943,7 @@ export const appRouter = router({
             totalPrice: item.totalPrice,
           })),
           subtotal: quotation.subtotal,
-          fixedCosts: quotation.fixedCosts,
+          transportCost: quotation.transportCost,
           total: quotation.total,
         };
 
@@ -1005,7 +1004,7 @@ export const appRouter = router({
           date: new Date().toLocaleDateString('es-CO'),
           clientName: client.name,
           vendorName: quotation.vendorName,
-          workType: quotation.workType,
+          productType: quotation.productType,
           validUntil: quotation.validUntil ? new Date(quotation.validUntil).toLocaleDateString('es-CO') : '',
           items: items.map(item => ({
             itemNumber: item.itemNumber,
@@ -1015,7 +1014,7 @@ export const appRouter = router({
             totalPrice: item.totalPrice,
           })),
           subtotal: quotation.subtotal,
-          fixedCosts: quotation.fixedCosts,
+          transportCost: quotation.transportCost,
           total: quotation.total,
         };
 
@@ -1040,7 +1039,7 @@ export const appRouter = router({
             subject: `Cotización ${quotation.quotationNumber} - INNOVAR Cocinas`,
             html: `
               <h2>Hola ${client.name},</h2>
-              <p>Adjunto encontrarás la cotización <strong>${quotation.quotationNumber}</strong> para tu proyecto de <strong>${quotation.workType}</strong>.</p>
+              <p>Adjunto encontrarás la cotización <strong>${quotation.quotationNumber}</strong> para tu proyecto de <strong>${quotation.productType}</strong>.</p>
               <p><strong>Total:</strong> ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(Number(quotation.total))}</p>
               <p>Esta cotización tiene una validez de <strong>1 semana</strong>.</p>
               <br>

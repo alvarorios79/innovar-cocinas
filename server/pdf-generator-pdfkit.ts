@@ -20,11 +20,11 @@ interface QuotationData {
   date: string;
   clientName: string;
   vendorName: string;
-  workType: string;
+  productType: string;
   validUntil: string;
   items: QuotationItem[];
   subtotal: string;
-  fixedCosts: string;
+  transportCost: string;
   total: string;
 }
 
@@ -109,7 +109,7 @@ export async function generateQuotationPDF(
 
       doc.fontSize(9).fillColor(darkGray).font("Helvetica");
       doc.text(data.vendorName, 60, infoY + 25);
-      doc.text(data.workType, 200, infoY + 25);
+      doc.text(data.productType, 200, infoY + 25);
       doc.text("60% inicial, 40% final", 340, infoY + 25);
 
       // Tabla de items
@@ -181,12 +181,12 @@ export async function generateQuotationPDF(
       }
 
       // Mostrar línea de costos fijos solo si NO están incluidos en items
-      const fixedCostsValue = parseFloat(data.fixedCosts);
+      const fixedCostsValue = parseFloat(data.transportCost);
       if (fixedCostsValue > 0) {
         currentY += 15;
         doc.fontSize(10).fillColor(darkGray).font("Helvetica");
         doc.text("Transporte e imprevistos:", 390, currentY);
-        doc.text(formatCurrency(data.fixedCosts), 510, currentY, {
+        doc.text(formatCurrency(data.transportCost), 510, currentY, {
           align: "right",
         });
       }

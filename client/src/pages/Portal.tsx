@@ -569,7 +569,7 @@ export default function Portal() {
                         <div className="flex items-start justify-between">
                           <div className="space-y-1 flex-1">
                             <div className="flex items-center gap-2">
-                              <h3 className="font-semibold">{getWorkTypeLabel(quot.workType)}</h3>
+                              <h3 className="font-semibold">{getWorkTypeLabel(quot.productType)}</h3>
                               {getStatusBadge(quot.status)}
                             </div>
                             <p className="text-sm">
@@ -579,7 +579,7 @@ export default function Portal() {
                               <span className="font-medium">Vendedor:</span> {quot.vendorName}
                             </p>
                             <p className="text-sm">
-                              <span className="font-medium">Trabajo:</span> {quot.workType}
+                              <span className="font-medium">Trabajo:</span> {quot.productType}
                             </p>
                             <div className="mt-3">
                               <p className="text-2xl font-bold text-primary">

@@ -5,7 +5,7 @@ interface QuotationPDFData {
   date: string;
   clientName: string;
   vendorName: string;
-  workType: string;
+  productType: string;
   validUntil: string;
   items: Array<{
     itemNumber: number;
@@ -15,7 +15,7 @@ interface QuotationPDFData {
     totalPrice: string;
   }>;
   subtotal: string;
-  fixedCosts: string;
+  transportCost: string;
   total: string;
 }
 

@@ -775,3 +775,13 @@
 - [x] Verificar que los datos lleguen correctamente al endpoint
 - [x] Probar con diferentes datos de cotización
 - [x] Implementar solución definitiva
+
+
+## Migración a PDFKit
+
+- [x] Instalar pdfkit y dependencias
+- [x] Crear generador de PDF en Node.js con PDFKit
+- [x] Replicar diseño aprobado (logo, colores, tablas, términos)
+- [x] Actualizar endpoint para usar nuevo generador
+- [x] Probar generación de PDF
+- [ ] Eliminar código Python obsoleto

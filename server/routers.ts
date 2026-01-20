@@ -937,16 +937,32 @@ export const appRouter = router({
 
         // Generar PDF usando módulo separado
         try {
+          console.log('[PDF] Iniciando generación de PDF para cotización:', quotation.id);
+          
           const { generateQuotationPDF } = await import('./quotation-pdf-generator');
           const result = await generateQuotationPDF(pdfData, quotation.id);
+          console.log('[PDF] PDF generado exitosamente en:', result.pdfPath);
+          
+          // Extraer solo el nombre del archivo
+          const path = await import('path');
+          const filename = path.basename(result.pdfPath);
+          
+          // Devolver URL de descarga
+          const downloadUrl = `/api/pdf/${filename}`;
+          console.log('[PDF] URL de descarga:', downloadUrl);
           
           return {
             success: true,
-            ...result,
+            downloadUrl,
+            filename: result.filename,
           };
         } catch (error: any) {
-          console.error('Error generando PDF:', error);
-          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Error generando PDF" });
+          console.error('[PDF] Error generando PDF:', error);
+          console.error('[PDF] Stack trace:', error.stack);
+          throw new TRPCError({ 
+            code: "INTERNAL_SERVER_ERROR", 
+            message: `Error generando PDF: ${error.message}` 
+          });
         }
       }),
 

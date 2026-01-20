@@ -43,6 +43,42 @@ async function startServer() {
       createContext,
     })
   );
+  
+  // PDF download endpoint
+  app.get("/api/pdf/:filename", async (req, res) => {
+    try {
+      const { readFileSync, existsSync } = await import('fs');
+      const { join } = await import('path');
+      
+      const filename = req.params.filename;
+      const filepath = join('/tmp', filename);
+      
+      if (!existsSync(filepath)) {
+        return res.status(404).json({ error: 'PDF not found' });
+      }
+      
+      const pdfBuffer = readFileSync(filepath);
+      
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.send(pdfBuffer);
+      
+      // Limpiar archivo después de enviarlo
+      setTimeout(() => {
+        try {
+          const { unlinkSync } = require('fs');
+          if (existsSync(filepath)) {
+            unlinkSync(filepath);
+          }
+        } catch (e) {
+          console.error('Error cleaning up PDF:', e);
+        }
+      }, 5000);
+    } catch (error) {
+      console.error('Error serving PDF:', error);
+      res.status(500).json({ error: 'Error serving PDF' });
+    }
+  });
   // development mode uses Vite, production mode uses static files
   if (process.env.NODE_ENV === "development") {
     await setupVite(app, server);

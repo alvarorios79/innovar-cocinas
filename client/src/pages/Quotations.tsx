@@ -83,9 +83,9 @@ export default function Quotations() {
 
   const generatePDF = trpc.quotations.generatePDF.useMutation({
     onSuccess: (data) => {
-      // Descargar PDF
+      // Descargar PDF usando URL
       const link = document.createElement("a");
-      link.href = `data:application/pdf;base64,${data.pdfBase64}`;
+      link.href = data.downloadUrl;
       link.download = data.filename;
       link.click();
       toast.success("PDF generado exitosamente");

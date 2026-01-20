@@ -766,3 +766,12 @@
 - [x] Verificar que el script Python existe y es ejecutable
 - [x] Probar ejecución manual del script Python
 - [x] Corregir error identificado
+
+## Investigación Error Persistente PDF
+
+- [x] Crear cotización de prueba desde el frontend
+- [x] Intentar generar PDF y capturar error exacto
+- [x] Revisar logs del servidor en tiempo real
+- [x] Verificar que los datos lleguen correctamente al endpoint
+- [x] Probar con diferentes datos de cotización
+- [x] Implementar solución definitiva

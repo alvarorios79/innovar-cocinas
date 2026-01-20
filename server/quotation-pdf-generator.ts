@@ -23,22 +23,19 @@ interface QuotationPDFData {
   total: string;
 }
 
-export async function generateQuotationPDF(data: QuotationPDFData, quotationId: number): Promise<{ pdfBase64: string; filename: string }> {
+export async function generateQuotationPDF(data: QuotationPDFData, quotationId: number): Promise<{ pdfPath: string; filename: string }> {
   const outputPath = `/tmp/quotation_${quotationId}_${Date.now()}.pdf`;
-  const jsonData = JSON.stringify(data).replace(/'/g, "'\\''");
+  const jsonData = JSON.stringify(data).replace(/'/g, "'\\''" );
 
   try {
     await execAsync(`python3 /home/ubuntu/innovar_cocinas/server/generate_quotation_pdf.py '${jsonData}' ${outputPath}`);
 
-    // Leer el PDF generado
+    // Verificar que el archivo se creó
     const pdfBuffer = readFileSync(outputPath);
-    const pdfBase64 = pdfBuffer.toString('base64');
-
-    // Limpiar archivo temporal
-    unlinkSync(outputPath);
+    console.log(`[PDF] Archivo generado: ${outputPath}, tamaño: ${pdfBuffer.length} bytes`);
 
     return {
-      pdfBase64,
+      pdfPath: outputPath,
       filename: `${data.quotationNumber}.pdf`,
     };
   } catch (error: any) {

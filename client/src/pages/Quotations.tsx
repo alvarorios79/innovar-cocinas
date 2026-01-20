@@ -23,6 +23,7 @@ import { toast } from "sonner";
 
 interface QuotationItem {
   itemNumber: number;
+  itemType: string;
   description: string;
   quantity: string;
   unitPrice?: string;
@@ -38,7 +39,7 @@ export default function Quotations() {
   const [vendorName, setVendorName] = useState("Alvaro Gutierrez");
   const [workType, setWorkType] = useState("");
   const [items, setItems] = useState<QuotationItem[]>([
-    { itemNumber: 1, description: "", quantity: "", totalPrice: 0, includesFixedCosts: false },
+    { itemNumber: 1, itemType: "", description: "", quantity: "", totalPrice: 0, includesFixedCosts: false },
   ]);
 
   const { data: quotations = [], isLoading } = trpc.quotations.list.useQuery();
@@ -111,7 +112,7 @@ export default function Quotations() {
     setSelectedClient(null);
     setVendorName("Alvaro Gutierrez");
     setWorkType("");
-    setItems([{ itemNumber: 1, description: "", quantity: "", totalPrice: 0, includesFixedCosts: false }]);
+    setItems([{ itemNumber: 1, itemType: "", description: "", quantity: "", totalPrice: 0, includesFixedCosts: false }]);
   };
 
   const handleEdit = async (quotationId: number) => {
@@ -153,6 +154,7 @@ export default function Quotations() {
       ...items,
       {
         itemNumber: items.length + 1,
+        itemType: "",
         description: "",
         quantity: "",
         totalPrice: 0,
@@ -192,8 +194,8 @@ export default function Quotations() {
       return;
     }
 
-    if (!workType) {
-      toast.error("Selecciona el tipo de producto");
+    if (items.some((item) => !item.itemType)) {
+      toast.error("Selecciona el tipo de producto para todos los items");
       return;
     }
 
@@ -395,24 +397,7 @@ export default function Quotations() {
               </div>
             </div>
 
-            <div>
-              <Label>Tipo de Producto *</Label>
-              <Select value={workType} onValueChange={setWorkType}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecciona el tipo de producto" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="cocina">Cocina Integral</SelectItem>
-                  <SelectItem value="closet">Closet</SelectItem>
-                  <SelectItem value="puerta">Puerta</SelectItem>
-                  <SelectItem value="centro_tv">Centro de TV</SelectItem>
-                  <SelectItem value="meson_quarzone">Mesón Quarzone</SelectItem>
-                  <SelectItem value="meson_sinterizado">Mesón Sinterizado</SelectItem>
-                  <SelectItem value="luz_led">Luz LED</SelectItem>
-                  <SelectItem value="otro">Otro</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+
 
             <div>
               <div className="flex justify-between items-center mb-2">
@@ -442,6 +427,28 @@ export default function Quotations() {
                       </div>
 
                       <div className="grid gap-3">
+                        <div>
+                          <Label>Tipo de Producto *</Label>
+                          <Select 
+                            value={item.itemType} 
+                            onValueChange={(value) => updateItem(index, "itemType", value)}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecciona el tipo" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="cocina">Cocina Integral</SelectItem>
+                              <SelectItem value="closet">Closet</SelectItem>
+                              <SelectItem value="puerta">Puerta</SelectItem>
+                              <SelectItem value="centro_tv">Centro de TV</SelectItem>
+                              <SelectItem value="meson_quarzone">Mesón Quarzone</SelectItem>
+                              <SelectItem value="meson_sinterizado">Mesón Sinterizado</SelectItem>
+                              <SelectItem value="luz_led">Luz LED</SelectItem>
+                              <SelectItem value="otro">Otro</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
                         <div>
                           <Label>Descripción *</Label>
                           <Textarea

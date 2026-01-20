@@ -931,3 +931,13 @@
 - [x] Agregar dropdown de tipo de producto en formulario de cotizaciones (Cocina, Closet, Puerta, Centro TV, Mesón Quarzone, Mesón Sinterizado, Luz LED)
 - [ ] Mostrar campos específicos según el tipo seleccionado
 - [ ] Actualizar PDF para mostrar el tipo de producto
+
+
+## Mover Tipo de Producto a Items
+
+- [x] Eliminar campo productType del encabezado de cotización
+- [x] Agregar campo itemType a cada item individual
+- [x] Actualizar interfaz QuotationItem para incluir itemType
+- [x] Modificar formulario para mostrar selector de tipo en cada item
+- [ ] Actualizar backend para guardar itemType en quotationItems
+- [ ] Actualizar PDF para mostrar tipo de cada item

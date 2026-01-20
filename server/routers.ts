@@ -700,7 +700,7 @@ export const appRouter = router({
           description: z.string(),
           quantity: z.string(),
           unitPrice: z.string().optional(),
-          totalPrice: z.number(),
+          totalPrice: z.union([z.number(), z.string()]).transform(val => typeof val === 'string' ? parseFloat(val) : val),
           includesFixedCosts: z.boolean().optional(),
         })),
       }))
@@ -768,7 +768,7 @@ export const appRouter = router({
           description: z.string(),
           quantity: z.string(),
           unitPrice: z.string().optional(),
-          totalPrice: z.number(),
+          totalPrice: z.union([z.number(), z.string()]).transform(val => typeof val === 'string' ? parseFloat(val) : val),
           includesFixedCosts: z.boolean().optional(),
         })).optional(),
       }))

@@ -828,3 +828,8 @@
 - [x] Crear tests para ambos escenarios (con y sin checkbox)
 - [ ] Probar generación de PDF en ambos casos
 - [ ] Probar envío de email con cotizaciones de prueba
+
+
+## Corrección de Error de Validación en Edición de Cotizaciones
+
+- [x] Corregir schema de validación en endpoints create y update para aceptar totalPrice como string o número

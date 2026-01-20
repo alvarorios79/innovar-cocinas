@@ -997,3 +997,11 @@
 - [x] Causa: Desincronización entre schema de Drizzle y estructura real de la base de datos
 - [x] Problemas encontrados: columna workType extra, fixedCosts vs transportCost, createdBy nullable
 - [x] Solución: Eliminar workType, renombrar fixedCosts a transportCost, hacer createdBy NOT NULL
+
+## Bug: Cálculo de metraje resultante no funciona
+
+- [x] El metraje resultante no descuenta los anchos de muebles especiales cuando se marcan
+- [x] El mesón no usa automáticamente el metraje resultante
+- [x] Debe restar: nicho nevecon (1.0m), nicho nevera (0.75m), alacenas (0.5m), torre hornos (0.7m)
+- [x] El metraje resultante debe aplicarse a: muebles inferiores, muebles superiores, mesón principal
+- [x] Solución: La lógica de cálculo estaba correcta, se agregó debug para verificar y ahora funciona correctamente

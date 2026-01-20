@@ -194,8 +194,8 @@ def draw_signatures(c, y_position):
     
     y_position -= 0.2*inch
     c.setFont("Helvetica", 9)
-    c.drawCentred(1.75*inch, y_position, "Firma del Cliente")
-    c.drawCentred(6.25*inch, y_position, "INNOVAR Cocinas Integrales")
+    c.drawCentredString(1.75*inch, y_position, "Firma del Cliente")
+    c.drawCentredString(6.25*inch, y_position, "INNOVAR Cocinas Integrales")
     
     return y_position
 
@@ -204,7 +204,7 @@ def draw_footer(c, y_position):
     y_position -= 0.5*inch
     c.setFillColor(INNOVAR_TURQUOISE)
     c.setFont("Helvetica-Bold", 10)
-    c.drawCentred(4.25*inch, y_position, "Gracias por contar con nuestros servicios")
+    c.drawCentredString(4.25*inch, y_position, "Gracias por contar con nuestros servicios")
     c.setFillColor(colors.black)
 
 def generate_quotation_pdf(data, output_path):

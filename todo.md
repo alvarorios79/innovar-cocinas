@@ -759,3 +759,10 @@
 - [x] Corregir error "Dynamic require of child_process is not supported"
 - [x] Asegurar que generación de PDF se ejecute solo en backend
 - [x] Probar descarga de PDF desde frontend
+
+## Diagnóstico Error PDF
+
+- [x] Revisar logs del servidor para identificar error específico
+- [x] Verificar que el script Python existe y es ejecutable
+- [x] Probar ejecución manual del script Python
+- [x] Corregir error identificado

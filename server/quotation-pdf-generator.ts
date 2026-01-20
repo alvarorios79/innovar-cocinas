@@ -28,7 +28,7 @@ export async function generateQuotationPDF(data: QuotationPDFData, quotationId: 
   const jsonData = JSON.stringify(data).replace(/'/g, "'\\''" );
 
   try {
-    await execAsync(`python3 /home/ubuntu/innovar_cocinas/server/generate_quotation_pdf.py '${jsonData}' ${outputPath}`);
+    await execAsync(`/usr/bin/python3 /home/ubuntu/innovar_cocinas/server/generate_quotation_pdf.py '${jsonData}' ${outputPath}`);
 
     // Verificar que el archivo se creó
     const pdfBuffer = readFileSync(outputPath);

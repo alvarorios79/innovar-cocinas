@@ -108,18 +108,17 @@ export type InsertPriorEstimate = typeof priorEstimates.$inferInsert;
  */
 export const quotations = mysqlTable("quotations", {
   id: int("id").autoincrement().primaryKey(),
+  quotationNumber: varchar("quotationNumber", { length: 50 }).notNull().unique(), // COT-2026-620
   clientId: int("clientId").notNull().references(() => clients.id),
-  appointmentId: int("appointmentId").references(() => appointments.id),
-  workType: mysqlEnum("workType", ["cocina", "closet", "puertas", "centro_tv"]).notNull(),
-  kitchenShape: mysqlEnum("kitchenShape", ["L", "U", "lineal"]),
-  measurements: text("measurements"),
-  materialType: mysqlEnum("materialType", ["quarzone", "sinterizado"]),
-  description: text("description").notNull(),
-  materials: text("materials"),
-  totalPrice: decimal("totalPrice", { precision: 12, scale: 2 }).notNull(),
-  validUntil: timestamp("validUntil"),
-  status: mysqlEnum("status", ["borrador", "enviada", "aceptada", "rechazada"]).default("borrador").notNull(),
-  sentViaWhatsApp: boolean("sentViaWhatsApp").default(false).notNull(),
+  vendorName: varchar("vendorName", { length: 255 }).notNull(), // Alvaro Gutierrez / Martha Serna
+  workType: text("workType").notNull(), // Texto libre: "Cocina Integral", "Puertas", etc.
+  status: mysqlEnum("status", ["draft", "sent", "approved", "rejected"]).default("draft").notNull(),
+  validUntil: timestamp("validUntil"), // Fecha + 7 días
+  subtotal: decimal("subtotal", { precision: 12, scale: 2 }).notNull(),
+  fixedCosts: decimal("fixedCosts", { precision: 12, scale: 2 }).default("600000").notNull(), // Transporte + imprevistos
+  total: decimal("total", { precision: 12, scale: 2 }).notNull(),
+  pdfUrl: text("pdfUrl"), // URL del PDF generado en S3
+  sentAt: timestamp("sentAt"), // Fecha de envío
   createdBy: int("createdBy").notNull().references(() => users.id),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
@@ -127,6 +126,23 @@ export const quotations = mysqlTable("quotations", {
 
 export type Quotation = typeof quotations.$inferSelect;
 export type InsertQuotation = typeof quotations.$inferInsert;
+
+/**
+ * Items de cada cotización (estructura flexible)
+ */
+export const quotationItems = mysqlTable("quotationItems", {
+  id: int("id").autoincrement().primaryKey(),
+  quotationId: int("quotationId").notNull().references(() => quotations.id, { onDelete: "cascade" }),
+  itemNumber: int("itemNumber").notNull(), // 1, 2, 3...
+  description: text("description").notNull(), // Descripción detallada con formato
+  quantity: varchar("quantity", { length: 50 }).notNull(), // "1", "4.5 ml", etc.
+  unitPrice: varchar("unitPrice", { length: 50 }), // "$850,000" o vacío
+  totalPrice: decimal("totalPrice", { precision: 12, scale: 2 }).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type QuotationItem = typeof quotationItems.$inferSelect;
+export type InsertQuotationItem = typeof quotationItems.$inferInsert;
 
 /**
  * Proyectos de fabricación

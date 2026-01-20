@@ -675,3 +675,61 @@
 - [ ] Documentar plantillas de email disponibles
 - [ ] Documentar flujo de registro automático
 - [ ] Actualizar README con instrucciones de configuración de email
+
+## Sistema de Cotizaciones
+
+### Base de Datos
+- [x] Crear tabla quotations (id, quotationNumber, clientId, vendorName, workType, status, validUntil, createdAt, updatedAt)
+- [x] Crear tabla quotation_items (id, quotationId, itemNumber, description, quantity, unitPrice, totalPrice)
+- [x] Configurar numeración automática iniciando en COT-2026-620
+
+### Backend (tRPC)
+- [ ] Crear endpoints CRUD para cotizaciones (create, update, delete, getAll, getById)
+- [ ] Crear endpoint para generar PDF de cotización
+- [ ] Crear endpoint para enviar cotización por email con PDF adjunto
+- [ ] Crear endpoint para cambiar estado de cotización (draft, sent, approved, rejected)
+- [ ] Implementar permisos: solo super_admin y admin pueden acceder
+
+### Generación de PDF
+- [ ] Copiar logo oficial a directorio del proyecto
+- [ ] Crear módulo Python para generar PDF con diseño aprobado
+- [ ] Integrar datos dinámicos de la base de datos
+- [ ] Implementar formato de moneda colombiana ($15.435.000)
+- [ ] Incluir todos los términos y condiciones
+
+### Frontend - Panel Admin
+- [ ] Crear nueva pestaña "Cotizaciones" en Panel Admin (solo visible para super_admin y admin)
+- [ ] Crear página de lista de cotizaciones con filtros por estado
+- [ ] Crear formulario de nueva cotización con:
+  - Select de cliente
+  - Select de vendedor (Alvaro Gutierrez / Martha Serna)
+  - Input de trabajo (texto libre)
+  - Items dinámicos (agregar/eliminar)
+- [ ] Implementar botones: Guardar Borrador, Generar PDF, Enviar por Email
+- [ ] Crear vista de detalle/edición de cotización
+- [ ] Implementar cambio de estado (Aprobada/Rechazada)
+- [ ] Agregar botón de eliminar cotización con confirmación
+
+### Email
+- [ ] Crear plantilla de email para envío de cotización
+- [ ] Integrar con Resend para envío con PDF adjunto
+- [ ] Incluir enlace al portal del cliente en el email
+
+### Tests
+- [ ] Tests de creación de cotización
+- [ ] Tests de generación de PDF
+- [ ] Tests de permisos de acceso
+- [ ] Tests de envío por email
+- [ ] Verificar que todos los tests pasen
+
+### Catálogo de Precios (Configurables después)
+- [ ] Cocinas: $900,000/ml
+- [ ] Muebles altos: Nicho nevera $1,200,000, Despensa con entrepaños $1,250,000, etc.
+- [ ] Mesones: Cuarzo $850,000/ml, Sinterizado $1,200,000/ml
+- [ ] Puertas: 4 tipos con precios específicos
+- [ ] Closets: 3 tipos con precios/m²
+- [ ] Centros TV: $2,800,000
+- [ ] LED: $180,000/ml
+- [ ] Vidrio ahumado: Largo $600,000, Corto $450,000
+- [ ] Herrajes: 11 tipos a $500,000 (temporal)
+- [ ] Costos fijos: $600,000 (transporte + imprevistos)

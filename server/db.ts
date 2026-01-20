@@ -15,6 +15,8 @@ import {
   InsertPriorEstimate,
   quotations,
   InsertQuotation,
+  quotationItems,
+  InsertQuotationItem,
   colombianHolidays,
   InsertColombianHoliday,
   reminders,
@@ -413,6 +415,57 @@ export async function updateQuotation(id: number, data: Partial<InsertQuotation>
   if (!db) throw new Error("Database not available");
 
   await db.update(quotations).set(data).where(eq(quotations.id, id));
+}
+
+export async function getNextQuotationNumber(): Promise<string> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  // Obtener el último número de cotización
+  const lastQuotation = await db
+    .select({ quotationNumber: quotations.quotationNumber })
+    .from(quotations)
+    .orderBy(desc(quotations.id))
+    .limit(1);
+
+  if (lastQuotation.length === 0) {
+    // Primera cotización
+    return "COT-2026-620";
+  }
+
+  // Extraer el número de la última cotización (COT-2026-620 -> 620)
+  const lastNumber = parseInt(lastQuotation[0].quotationNumber.split("-")[2]);
+  const nextNumber = lastNumber + 1;
+  
+  return `COT-2026-${nextNumber}`;
+}
+
+// ============ QUOTATION ITEMS ============
+
+export async function createQuotationItem(item: InsertQuotationItem) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.insert(quotationItems).values(item);
+  return result[0].insertId;
+}
+
+export async function getQuotationItems(quotationId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db
+    .select()
+    .from(quotationItems)
+    .where(eq(quotationItems.quotationId, quotationId))
+    .orderBy(quotationItems.itemNumber);
+}
+
+export async function deleteQuotationItems(quotationId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.delete(quotationItems).where(eq(quotationItems.quotationId, quotationId));
 }
 
 // User management functions

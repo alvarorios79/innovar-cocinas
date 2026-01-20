@@ -27,7 +27,10 @@ export default function Portal() {
 
   const utils = trpc.useUtils();
   const { data: appointments = [], isLoading: loadingAppointments } = trpc.appointments.getMyAppointments.useQuery();
-  const { data: quotations = [], isLoading: loadingQuotations } = trpc.quotations.getMyQuotations.useQuery();
+  // NOTA: Quotations temporalmente deshabilitado durante migración
+  // const { data: quotations = [], isLoading: loadingQuotations } = trpc.quotations.getMyQuotations.useQuery();
+  const quotations: any[] = [];
+  const loadingQuotations = false;
   const { data: estimates = [], isLoading: loadingEstimates } = trpc.estimates.getMyEstimates.useQuery();
   const { data: myProjects = [], isLoading: loadingProjects } = trpc.projects.getMyProjects.useQuery();
 

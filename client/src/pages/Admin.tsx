@@ -50,7 +50,10 @@ export default function Admin() {
   const utils = trpc.useUtils();
   const { data: appointments = [], isLoading: loadingAppointments } = trpc.appointments.list.useQuery();
   const { data: advisoryRequests = [], isLoading: loadingAdvisory } = trpc.advisory.list.useQuery();
-  const { data: quotations = [], isLoading: loadingQuotations } = trpc.quotations.list.useQuery();
+  // NOTA: Quotations temporalmente deshabilitado durante migración
+  // const { data: quotations = [], isLoading: loadingQuotations } = trpc.quotations.list.useQuery();
+  const quotations: any[] = [];
+  const loadingQuotations = false;
   const { data: clients = [], isLoading: loadingClients } = trpc.clients.list.useQuery();
   const { data: allUsers = [], isLoading: loadingUsers } = trpc.userManagement.listAll.useQuery();
 
@@ -68,6 +71,7 @@ export default function Admin() {
     },
   });
 
+  /* NOTA: Mutations de quotations comentadas temporalmente
   const createQuotation = trpc.quotations.create.useMutation({
     onSuccess: () => {
       utils.quotations.list.invalidate();
@@ -166,13 +170,13 @@ export default function Admin() {
   const deleteQuotation = trpc.quotations.delete.useMutation({
     onSuccess: () => {
       utils.quotations.list.invalidate();
-      toast.success("Cotización eliminada exitosamente");
-      setDeleteConfirm(null);
-    },
-    onError: (error) => {
-      toast.error(error.message || "Error al eliminar cotización");
+      toast.success("Cotización eliminada exitosamente")      setDeleteConfirm(null);
     },
   });
+  */
+  const createQuotation = { mutate: () => {} } as any;
+  const sendQuotation = { mutate: () => {} } as any;
+  const deleteQuotation = { mutate: () => {} } as any;
 
   const deleteClient = trpc.clients.delete.useMutation({
     onSuccess: () => {

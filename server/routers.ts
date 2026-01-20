@@ -688,7 +688,12 @@ export const appRouter = router({
   }),
 
   // ============ QUOTATIONS ============
+  // NOTA: Routers antiguos comentados temporalmente durante migración a nuevo schema
+  // Se reemplazarán con nuevos routers en la siguiente fase
   quotations: router({
+    // TODO: Implementar nuevos routers con schema actualizado
+    placeholder: publicProcedure.query(() => ({ message: "En desarrollo" })),
+    /*
     create: protectedProcedure
       .input(z.object({
         clientId: z.number(),
@@ -719,7 +724,7 @@ export const appRouter = router({
           totalPrice: input.totalPrice,
           validUntil: input.validUntil ? new Date(input.validUntil) : undefined,
           createdBy: ctx.user.id,
-          status: "borrador",
+          status: "draft",
         });
 
         return { id: quotationId, success: true };
@@ -745,8 +750,8 @@ export const appRouter = router({
         }
 
         await db.updateQuotation(input.id, {
-          status: "enviada",
-          sentViaWhatsApp: true,
+          status: "sent",
+          sentAt: new Date(),
         });
 
         // Generar enlace de WhatsApp para enviar cotización
@@ -821,6 +826,7 @@ export const appRouter = router({
         await db.deleteQuotation(input.id);
         return { success: true };
       }),
+    */
   }),
 
   // ============ AVAILABILITY ============

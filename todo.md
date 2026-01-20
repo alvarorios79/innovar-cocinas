@@ -975,3 +975,11 @@
 - [x] Agregar campo visual "Muebles Superiores: X.XX ml" que muestre el mismo valor que metraje resultante
 - [x] Mostrar desglose completo: Muebles Inferiores, Muebles Superiores, Mesón Principal (todos con metraje resultante)
 - [x] 13 tests verificados y pasando
+
+## Bug: Validación de formulario de cotizaciones
+
+- [x] El formulario no permite guardar cotización y muestra error "Completa todos los items"
+- [x] No indica qué campos específicos faltan por completar
+- [x] Está exigiendo campos opcionales (isla, barra, LED) que deberían ser opcionales
+- [x] Para cocinas, solo debería exigir: forma, metraje total, tipo de mesón
+- [x] Mejorar mensaje de error para indicar exactamente qué falta (ahora muestra "Item X: campo específico")

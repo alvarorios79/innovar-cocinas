@@ -486,9 +486,35 @@ export default function Quotations() {
       return;
     }
 
-    if (items.some((item) => !item.description || !item.quantity)) {
-      toast.error("Completa todos los items");
-      return;
+    // Validar campos obligatorios según tipo de item
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      
+      if (item.itemType === "cocina") {
+        // Para cocinas: validar campos específicos
+        if (!item.kitchenConfig?.shape) {
+          toast.error(`Item ${i + 1}: Selecciona la forma de la cocina (L, U o Lineal)`);
+          return;
+        }
+        if (!item.kitchenConfig?.totalMeters || item.kitchenConfig.totalMeters <= 0) {
+          toast.error(`Item ${i + 1}: Ingresa el metraje total de la cocina`);
+          return;
+        }
+        if (!item.kitchenConfig?.countertop.type) {
+          toast.error(`Item ${i + 1}: Selecciona el tipo de mesón`);
+          return;
+        }
+      } else {
+        // Para otros tipos: validar description y quantity
+        if (!item.description) {
+          toast.error(`Item ${i + 1}: Ingresa la descripción`);
+          return;
+        }
+        if (!item.quantity || Number(item.quantity) <= 0) {
+          toast.error(`Item ${i + 1}: Ingresa la cantidad`);
+          return;
+        }
+      }
     }
 
     if (editingQuotation) {

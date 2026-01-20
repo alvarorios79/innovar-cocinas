@@ -1005,3 +1005,18 @@
 - [x] Debe restar: nicho nevecon (1.0m), nicho nevera (0.75m), alacenas (0.5m), torre hornos (0.7m)
 - [x] El metraje resultante debe aplicarse a: muebles inferiores, muebles superiores, mesón principal
 - [x] Solución: La lógica de cálculo estaba correcta, se agregó debug para verificar y ahora funciona correctamente
+
+## PDF de Cotización con Desglose Completo de Cocinas
+
+- [x] Revisar generador de PDF actual
+- [x] Implementar desglose detallado para cocinas:
+  - [x] Mostrar forma de la cocina (L, U, Lineal)
+  - [x] Mostrar muebles lineales inferiores y superiores con metraje
+  - [x] Listar muebles especiales seleccionados (sin precios individuales)
+  - [x] Mostrar mesón principal con tipo, metraje y recargos por fondo
+  - [x] Mostrar isla (si aplica) con muebles, mesón y laterales
+  - [x] Mostrar barra (si aplica) con muebles, mesón y lateral
+  - [x] Mostrar luz LED (si aplica) con metraje
+  - [x] Mostrar transporte e imprevistos
+- [x] Solo mostrar precio global en columna Total (sin precios individuales)
+- [x] Probar generación de PDF con cotización de cocina completa (listo para prueba del usuario)

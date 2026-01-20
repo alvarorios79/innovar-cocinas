@@ -816,3 +816,15 @@
 - [x] Configurar EMAIL_FROM (ventas@cocinasintegralespereira.co)
 - [x] Validar credenciales con test automatizado
 - [x] Reiniciar servidor para cargar nuevas variables
+
+
+## Corrección de Lógica de Costos Fijos en Cotizaciones
+
+- [x] Corregir cálculo de totales en endpoint quotations.create (verificar checkbox)
+- [x] Corregir cálculo de totales en endpoint quotations.update (verificar checkbox)
+- [x] Actualizar campo fixedCosts en base de datos según lógica correcta
+- [x] Modificar generador de PDF para mostrar costos fijos condicionalmente
+- [ ] Agregar validación en frontend (solo un item puede tener checkbox marcado)
+- [x] Crear tests para ambos escenarios (con y sin checkbox)
+- [ ] Probar generación de PDF en ambos casos
+- [ ] Probar envío de email con cotizaciones de prueba

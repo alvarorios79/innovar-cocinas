@@ -701,6 +701,7 @@ export const appRouter = router({
           quantity: z.string(),
           unitPrice: z.string().optional(),
           totalPrice: z.number(),
+          includesFixedCosts: z.boolean().optional(),
         })),
       }))
       .mutation(async ({ ctx, input }) => {
@@ -712,9 +713,13 @@ export const appRouter = router({
         // Obtener siguiente número de cotización
         const quotationNumber = await db.getNextQuotationNumber();
 
+        // Verificar si algún item incluye costos fijos
+        const hasFixedCostsInItems = input.items.some(item => item.includesFixedCosts === true);
+        
         // Calcular subtotal y total
         const subtotal = input.items.reduce((sum, item) => sum + item.totalPrice, 0);
-        const fixedCosts = 600000; // Transporte + imprevistos
+        // Solo agregar costos fijos si NO están incluidos en ningún item
+        const fixedCosts = hasFixedCostsInItems ? 0 : 600000;
         const total = subtotal + fixedCosts;
 
         // Fecha de validez: 7 días desde hoy
@@ -744,6 +749,7 @@ export const appRouter = router({
             quantity: item.quantity,
             unitPrice: item.unitPrice,
             totalPrice: item.totalPrice.toString(),
+            includesFixedCosts: item.includesFixedCosts || false,
           });
         }
 
@@ -763,6 +769,7 @@ export const appRouter = router({
           quantity: z.string(),
           unitPrice: z.string().optional(),
           totalPrice: z.number(),
+          includesFixedCosts: z.boolean().optional(),
         })).optional(),
       }))
       .mutation(async ({ ctx, input }) => {
@@ -774,8 +781,12 @@ export const appRouter = router({
 
         // Si se actualizan items, recalcular totales
         if (items) {
+          // Verificar si algún item incluye costos fijos
+          const hasFixedCostsInItems = items.some(item => item.includesFixedCosts === true);
+          
           const subtotal = items.reduce((sum, item) => sum + item.totalPrice, 0);
-          const fixedCosts = 600000;
+          // Solo agregar costos fijos si NO están incluidos en ningún item
+          const fixedCosts = hasFixedCostsInItems ? 0 : 600000;
           const total = subtotal + fixedCosts;
 
           // Eliminar items antiguos
@@ -790,6 +801,7 @@ export const appRouter = router({
               quantity: item.quantity,
               unitPrice: item.unitPrice,
               totalPrice: item.totalPrice.toString(),
+              includesFixedCosts: item.includesFixedCosts || false,
             });
           }
 
@@ -797,6 +809,7 @@ export const appRouter = router({
           await db.updateQuotation(id, {
             ...quotationData,
             subtotal: subtotal.toString(),
+            fixedCosts: fixedCosts.toString(),
             total: total.toString(),
           });
         } else {

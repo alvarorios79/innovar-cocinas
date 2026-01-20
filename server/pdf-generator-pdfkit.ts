@@ -6,7 +6,6 @@ import { dirname } from "path";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-
 interface QuotationItem {
   itemNumber: number;
   description: string;
@@ -179,6 +178,17 @@ export async function generateQuotationPDF(
 
         currentY += 25;
         rowBackground = !rowBackground;
+      }
+
+      // Mostrar línea de costos fijos solo si NO están incluidos en items
+      const fixedCostsValue = parseFloat(data.fixedCosts);
+      if (fixedCostsValue > 0) {
+        currentY += 15;
+        doc.fontSize(10).fillColor(darkGray).font("Helvetica");
+        doc.text("Transporte e imprevistos:", 390, currentY);
+        doc.text(formatCurrency(data.fixedCosts), 510, currentY, {
+          align: "right",
+        });
       }
 
       // Total

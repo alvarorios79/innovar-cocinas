@@ -71,6 +71,7 @@ interface QuotationItem {
   unitPrice?: string;
   totalPrice: number;
   includesFixedCosts?: boolean;
+  fixedCostsAmount?: number; // Monto de transporte e imprevistos (editable)
   kitchenConfig?: KitchenConfig;
   hardwareSelections?: HardwareSelection[];
 }
@@ -93,6 +94,7 @@ export default function Quotations() {
       quantity: "", 
       totalPrice: 0, 
       includesFixedCosts: false,
+      fixedCostsAmount: 600000, // Valor por defecto
       kitchenConfig: {
         shape: "",
         totalMeters: 0,
@@ -231,6 +233,7 @@ export default function Quotations() {
       quantity: "", 
       totalPrice: 0, 
       includesFixedCosts: false,
+      fixedCostsAmount: 600000, // Valor por defecto
       kitchenConfig: {
         shape: "",
         totalMeters: 0,
@@ -373,6 +376,7 @@ export default function Quotations() {
         quantity: "",
         totalPrice: 0,
         includesFixedCosts: false,
+        fixedCostsAmount: 600000,
         kitchenConfig: {
           shape: "",
           totalMeters: 0,
@@ -423,8 +427,10 @@ export default function Quotations() {
   };
 
   const updateItem = (index: number, field: keyof QuotationItem, value: any) => {
+    console.log('[Quotations] updateItem called:', { index, field, value, currentItem: items[index] });
     const newItems = [...items];
     newItems[index] = { ...newItems[index], [field]: value };
+    console.log('[Quotations] Updated item:', newItems[index]);
     setItems(newItems);
   };
 
@@ -588,6 +594,12 @@ export default function Quotations() {
           toast.error(`Item ${i + 1}: Selecciona el tipo de mesón`);
           return;
         }
+      } else if (item.itemType === "herrajes") {
+        // Para herrajes: validar que haya al menos un herraje seleccionado
+        if (!item.hardwareSelections || item.hardwareSelections.length === 0) {
+          toast.error(`Item ${i + 1}: Selecciona al menos un herraje`);
+          return;
+        }
       } else {
         // Para otros tipos: validar description y quantity
         if (!item.description) {
@@ -674,6 +686,23 @@ export default function Quotations() {
         }
 
         return { ...item, description, quantity, totalPrice: total, includesFixedCosts: item.includesFixedCosts };
+      }
+      // Para herrajes: generar descripción automática y cantidad basada en selecciones
+      if (item.itemType === "herrajes" && item.hardwareSelections && item.hardwareSelections.length > 0) {
+        const description = item.hardwareSelections.map(s => `${s.name} x${s.quantity}`).join(", ");
+        const totalQuantity = item.hardwareSelections.reduce((sum, s) => sum + s.quantity, 0);
+        let totalPrice = item.hardwareSelections.reduce((sum, s) => sum + s.subtotal, 0);
+        // Incluir transporte si está marcado
+        if (item.includesFixedCosts) {
+          totalPrice += 600000;
+        }
+        return { 
+          ...item, 
+          description, 
+          quantity: totalQuantity.toString(),
+          totalPrice,
+          includesFixedCosts: item.includesFixedCosts
+        };
       }
       return item;
     });
@@ -897,7 +926,10 @@ export default function Quotations() {
                           <Label>Tipo de Producto *</Label>
                           <Select 
                             value={item.itemType} 
-                            onValueChange={(value) => updateItem(index, "itemType", value)}
+                            onValueChange={(value) => {
+                              console.log('[Quotations] itemType changed to:', value);
+                              updateItem(index, "itemType", value);
+                            }}
                           >
                             <SelectTrigger>
                               <SelectValue placeholder="Selecciona el tipo" />
@@ -1269,16 +1301,76 @@ export default function Quotations() {
                         )}
 
                         {/* Campos dinámicos para HERRAJES */}
-                        {item.itemType === "herrajes" && (
+                        {item.itemType === "herrajes" && (() => {
+                          console.log('[Quotations] Rendering HardwareSelectorForQuotation for item:', item);
+                          return (
+                          <>
                           <HardwareSelectorForQuotation
                             itemIndex={index}
                             selectedHardware={item.hardwareSelections || []}
                             onHardwareChange={(selections: HardwareSelection[]) => {
-                              updateItem(index, "hardwareSelections", selections);
-                              calculateHardwareTotal(index);
+                              // Calcular el total directamente con las nuevas selecciones
+                              let total = selections.reduce((sum, s) => sum + s.subtotal, 0);
+                              // Incluir transporte si está marcado
+                              if (items[index].includesFixedCosts) {
+                                total += 600000;
+                              }
+                              // Actualizar ambos campos juntos
+                              const newItems = [...items];
+                              newItems[index] = { 
+                                ...newItems[index], 
+                                hardwareSelections: selections,
+                                totalPrice: total 
+                              };
+                              setItems(newItems);
                             }}
                           />
-                        )}
+                          
+                          {/* Checkbox de transporte para herrajes */}
+                          <div className="flex items-center space-x-2 mt-4 flex-wrap gap-2">
+                            <input
+                              type="checkbox"
+                              id={`fixedCosts-herrajes-${index}`}
+                              checked={item.includesFixedCosts || false}
+                              onChange={(e) => {
+                                const newItems = [...items];
+                                const hardwareTotal = (newItems[index].hardwareSelections || []).reduce((sum, s) => sum + s.subtotal, 0);
+                                const fixedAmount = newItems[index].fixedCostsAmount || 600000;
+                                
+                                if (e.target.checked) {
+                                  newItems[index].totalPrice = hardwareTotal + fixedAmount;
+                                } else {
+                                  newItems[index].totalPrice = hardwareTotal;
+                                }
+                                
+                                newItems[index].includesFixedCosts = e.target.checked;
+                                setItems(newItems);
+                              }}
+                              className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                            />
+                            <Label htmlFor={`fixedCosts-herrajes-${index}`} className="text-sm font-normal cursor-pointer">
+                              Incluye transporte e imprevistos
+                            </Label>
+                            {item.includesFixedCosts && (
+                              <Input
+                                type="number"
+                                value={item.fixedCostsAmount || 600000}
+                                onChange={(e) => {
+                                  const newItems = [...items];
+                                  const hardwareTotal = (newItems[index].hardwareSelections || []).reduce((sum, s) => sum + s.subtotal, 0);
+                                  const newAmount = parseFloat(e.target.value) || 0;
+                                  newItems[index].totalPrice = hardwareTotal + newAmount;
+                                  newItems[index].fixedCostsAmount = newAmount;
+                                  setItems(newItems);
+                                }}
+                                className="w-32 h-8"
+                                placeholder="Monto"
+                              />
+                            )}
+                          </div>
+                          </>
+                          );
+                        })()}
 
                         {/* Campos estándar para otros tipos */}
                         {item.itemType !== "cocina" && item.itemType !== "herrajes" && (
@@ -1344,13 +1436,12 @@ export default function Quotations() {
                                   const newItems = [...items];
                                   const currentTotal = newItems[index].totalPrice;
                                   const wasChecked = newItems[index].includesFixedCosts || false;
+                                  const fixedAmount = newItems[index].fixedCostsAmount || 600000;
                                   
                                   if (e.target.checked && !wasChecked) {
-                                    // Agregar $600,000
-                                    newItems[index].totalPrice = currentTotal + 600000;
+                                    newItems[index].totalPrice = currentTotal + fixedAmount;
                                   } else if (!e.target.checked && wasChecked) {
-                                    // Restar $600,000
-                                    newItems[index].totalPrice = Math.max(0, currentTotal - 600000);
+                                    newItems[index].totalPrice = Math.max(0, currentTotal - fixedAmount);
                                   }
                                   
                                   newItems[index].includesFixedCosts = e.target.checked;
@@ -1359,8 +1450,25 @@ export default function Quotations() {
                                 className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                               />
                               <Label htmlFor={`fixedCosts-${index}`} className="text-sm font-normal cursor-pointer">
-                                Incluye transporte e imprevistos ($600,000)
+                                Incluye transporte e imprevistos
                               </Label>
+                              {item.includesFixedCosts && (
+                                <Input
+                                  type="number"
+                                  value={item.fixedCostsAmount || 600000}
+                                  onChange={(e) => {
+                                    const newItems = [...items];
+                                    const oldAmount = newItems[index].fixedCostsAmount || 600000;
+                                    const newAmount = parseFloat(e.target.value) || 0;
+                                    // Actualizar el total: restar el monto anterior y sumar el nuevo
+                                    newItems[index].totalPrice = newItems[index].totalPrice - oldAmount + newAmount;
+                                    newItems[index].fixedCostsAmount = newAmount;
+                                    setItems(newItems);
+                                  }}
+                                  className="w-32 h-8"
+                                  placeholder="Monto"
+                                />
+                              )}
                             </div>
                           </>
                         )}

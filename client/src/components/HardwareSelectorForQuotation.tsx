@@ -20,11 +20,14 @@ interface HardwareSelectorForQuotationProps {
 }
 
 export function HardwareSelectorForQuotation({ selectedHardware, onHardwareChange }: HardwareSelectorForQuotationProps) {
+  console.log('[HardwareSelector] Component rendered with props:', { selectedHardware, onHardwareChange: typeof onHardwareChange });
   const [selectedCategory, setSelectedCategory] = useState<"cocinas" | "closets" | "puertas">("cocinas");
   
   const { data: catalog = [], isLoading } = trpc.hardwareCatalog.list.useQuery({ category: selectedCategory });
+  console.log('[HardwareSelector] Catalog loaded:', { category: selectedCategory, count: catalog.length, isLoading });
 
   const handleToggleHardware = (hardware: any, checked: boolean) => {
+    console.log('[HardwareSelector] handleToggleHardware called:', { hardwareName: hardware.name, checked, currentSelections: selectedHardware });
     if (checked) {
       // Agregar herraje con cantidad 1
       const newSelection: HardwareSelection = {

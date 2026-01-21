@@ -1382,3 +1382,19 @@
 - [x] Corregir lógica de onChange para selectedHardware
 - [x] Agregar inicialización de hardwareSelections en addItem (era undefined)
 - [ ] Probar selección y cantidad en cotización tipo "herrajes"
+- [ ] Bug persiste en cotizaciones nuevas - revisar renderizado del componente
+- [ ] Verificar que el componente HardwareSelectorForQuotation se esté renderizando
+- [ ] Agregar logs para verificar props recibidas
+
+## Bug: PDF de Cotización de Herrajes Vacío
+- [ ] Investigar por qué el PDF de cotizaciones de herrajes se genera vacío (0 bytes)
+- [ ] Verificar endpoint de generación de PDF
+- [ ] Corregir generación de PDF para items de tipo herrajes
+
+
+## Lógica de Transporte e Imprevistos (Aclaración)
+- [x] Cocina: transporte incluido automáticamente (implícito, no se puede desactivar)
+- [x] Otros productos (Closet, Puerta, Herrajes, etc.): checkbox de transporte disponible pero desactivado por defecto
+- [x] El usuario activa el checkbox manualmente si la cotización NO incluye cocina
+
+- [x] Hacer que el monto de transporte sea editable (no fijo en $600,000) cuando se activa el checkbox

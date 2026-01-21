@@ -998,13 +998,18 @@ export const appRouter = router({
           items: items.map(item => {
             let description = item.description;
             
+            // Parsear hardwareSelections si es string JSON
+            const hardwareSelections = item.hardwareSelections && typeof item.hardwareSelections === 'string'
+              ? JSON.parse(item.hardwareSelections)
+              : item.hardwareSelections;
+            
             // Si es herrajes y tiene hardwareSelections, generar descripción detallada
-            if (item.itemType === 'herrajes' && item.hardwareSelections && Array.isArray(item.hardwareSelections) && item.hardwareSelections.length > 0) {
+            if (item.itemType === 'herrajes' && hardwareSelections && Array.isArray(hardwareSelections) && hardwareSelections.length > 0) {
               const lines: string[] = [];
               lines.push('HERRAJES SELECCIONADOS');
               lines.push('');
               
-              item.hardwareSelections.forEach((hw: any) => {
+              hardwareSelections.forEach((hw: any) => {
                 const price = parseFloat(hw.price || '0');
                 const subtotal = hw.subtotal || (price * hw.quantity);
                 lines.push(`• ${hw.name}`);
@@ -1181,13 +1186,18 @@ export const appRouter = router({
           items: items.map(item => {
             let description = item.description;
             
+            // Parsear hardwareSelections si es string JSON
+            const hardwareSelections = item.hardwareSelections && typeof item.hardwareSelections === 'string'
+              ? JSON.parse(item.hardwareSelections)
+              : item.hardwareSelections;
+            
             // Si es herrajes y tiene hardwareSelections, generar descripción detallada
-            if (item.itemType === 'herrajes' && item.hardwareSelections && Array.isArray(item.hardwareSelections) && item.hardwareSelections.length > 0) {
+            if (item.itemType === 'herrajes' && hardwareSelections && Array.isArray(hardwareSelections) && hardwareSelections.length > 0) {
               const lines: string[] = [];
               lines.push('HERRAJES SELECCIONADOS');
               lines.push('');
               
-              item.hardwareSelections.forEach((hw: any) => {
+              hardwareSelections.forEach((hw: any) => {
                 const price = parseFloat(hw.price || '0');
                 const subtotal = hw.subtotal || (price * hw.quantity);
                 lines.push(`• ${hw.name}`);

@@ -2781,6 +2781,7 @@ export const appRouter = router({
         name: z.string().min(1),
         description: z.string().optional(),
         options: z.string().optional(),
+        price: z.number().optional(),
         photoUrl: z.string().optional(),
         sortOrder: z.number().optional(),
       }))
@@ -2798,6 +2799,7 @@ export const appRouter = router({
         name: z.string().optional(),
         description: z.string().optional(),
         options: z.string().optional(),
+        price: z.number().optional(),
         photoUrl: z.string().optional(),
         sortOrder: z.number().optional(),
         active: z.boolean().optional(),

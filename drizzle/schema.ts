@@ -400,6 +400,7 @@ export const hardwareCatalog = mysqlTable("hardwareCatalog", {
   description: text("description"),
   options: text("options"), // JSON con opciones disponibles
   photoUrl: text("photoUrl"),
+  price: decimal("price", { precision: 12, scale: 2 }).default("0").notNull(),
   sortOrder: int("sortOrder").default(0).notNull(),
   active: boolean("active").default(true).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),

@@ -1159,3 +1159,43 @@
 - [x] Agregar "herrajes" como nuevo tipo de producto en cotizaciones
 
 - [x] Agregar "herrajes" al selector visual de tipo de producto en formulario
+
+- [ ] Agregar campo precio a catálogo de herrajes
+- [ ] Crear selector de herrajes con checkboxes y cantidades
+- [ ] Implementar suma automática de herrajes seleccionados
+
+## Sistema de Catálogo de Herrajes con Precios
+
+### Backend - Base de Datos y API
+- [x] Agregar campo "price" (decimal) a tabla hardwareCatalog
+- [x] Actualizar funciones createHardwareItem y updateHardwareItem para soportar precio
+- [x] Actualizar endpoints tRPC create y update para aceptar campo price
+- [x] Consolidar imports duplicados en db.ts (hardwareCatalog, projectHardwareSelections)
+- [x] Crear tests para verificar funcionalidad de precios (7 tests pasando)
+
+### Frontend - Gestión de Catálogo
+- [ ] Crear página de administración de catálogo de herrajes (/admin/hardware-catalog)
+- [ ] Implementar tabla con lista de herrajes filtrable por categoría
+- [ ] Formulario para crear nuevo herraje con precio
+- [ ] Formulario para editar herraje existente con precio
+- [ ] Botón para eliminar herraje
+- [ ] Subida de foto para cada herraje
+
+### Integración en Cotizaciones
+- [ ] Mostrar selector de herrajes cuando tipo de item = "herrajes"
+- [ ] Filtrar herrajes por categoría según productType de la cotización
+  - cocina → mostrar herrajes de categoría "cocinas"
+  - closet → mostrar herrajes de categoría "closets"
+  - puerta → mostrar herrajes de categoría "puertas"
+- [ ] Checkbox list para seleccionar múltiples herrajes
+- [ ] Input de cantidad para cada herraje seleccionado
+- [ ] Cálculo automático de precio total (suma de precio × cantidad)
+- [ ] Guardar configuración de herrajes seleccionados en quotationItem
+- [ ] Mostrar herrajes seleccionados en vista de cotización
+- [ ] Incluir herrajes en PDF de cotización
+
+### Tests
+- [ ] Test de creación de herraje con precio
+- [ ] Test de actualización de precio de herraje
+- [ ] Test de obtención de herrajes por categoría
+- [ ] Test de cálculo de precio total con múltiples herrajes

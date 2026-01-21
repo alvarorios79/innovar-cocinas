@@ -20,7 +20,24 @@ import {
   colombianHolidays,
   InsertColombianHoliday,
   reminders,
-  InsertReminder
+  InsertReminder,
+  hardwareCatalog,
+  projectHardwareSelections,
+  projects,
+  InsertProject,
+  projectPhotos,
+  InsertProjectPhoto,
+  projectDetails,
+  InsertProjectDetail,
+  tasks,
+  InsertTask,
+  projectStatusHistory,
+  InsertProjectStatusHistory,
+  pushSubscriptions,
+  InsertPushSubscription,
+  notifications,
+  InsertNotification,
+  projectMaterials
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -637,19 +654,6 @@ export async function deleteClient(clientId: number): Promise<void> {
 
 // ============ PROJECTS ============
 
-import { 
-  projects, 
-  InsertProject, 
-  projectPhotos, 
-  InsertProjectPhoto,
-  projectDetails,
-  InsertProjectDetail,
-  tasks,
-  InsertTask,
-  projectStatusHistory,
-  InsertProjectStatusHistory
-} from "../drizzle/schema";
-
 export async function createProject(project: InsertProject) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
@@ -979,13 +983,6 @@ export async function clearPasswordResetToken(userId: number) {
 
 // ============ PUSH SUBSCRIPTIONS ============
 
-import { 
-  pushSubscriptions, 
-  InsertPushSubscription,
-  notifications,
-  InsertNotification
-} from "../drizzle/schema";
-
 export async function createPushSubscription(subscription: InsertPushSubscription) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
@@ -1202,12 +1199,6 @@ export async function cancelProjectReminders(projectId: number) {
 
 // ============ HARDWARE CATALOG ============
 
-import { 
-  hardwareCatalog, 
-  projectMaterials, 
-  projectHardwareSelections 
-} from "../drizzle/schema";
-
 export async function getHardwareCatalog(category?: "cocinas" | "closets" | "puertas") {
   const db = await getDb();
   if (!db) return [];
@@ -1231,6 +1222,7 @@ export async function createHardwareItem(item: {
   name: string;
   description?: string;
   options?: string;
+  price?: number;
   photoUrl?: string;
   sortOrder?: number;
 }) {
@@ -1242,6 +1234,7 @@ export async function createHardwareItem(item: {
     name: item.name,
     description: item.description,
     options: item.options,
+    price: item.price !== undefined ? item.price.toString() : "0",
     photoUrl: item.photoUrl,
     sortOrder: item.sortOrder || 0,
     active: true,
@@ -1253,6 +1246,7 @@ export async function updateHardwareItem(id: number, data: {
   name?: string;
   description?: string;
   options?: string;
+  price?: number;
   photoUrl?: string;
   sortOrder?: number;
   active?: boolean;
@@ -1260,7 +1254,12 @@ export async function updateHardwareItem(id: number, data: {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  await db.update(hardwareCatalog).set(data).where(eq(hardwareCatalog.id, id));
+  const updateData: any = { ...data };
+  if (data.price !== undefined) {
+    updateData.price = data.price.toString();
+  }
+
+  await db.update(hardwareCatalog).set(updateData).where(eq(hardwareCatalog.id, id));
 }
 
 export async function deleteHardwareItem(id: number) {
@@ -1393,4 +1392,85 @@ export async function removeProjectHardwareSelection(projectId: number, hardware
       eq(projectHardwareSelections.projectId, projectId),
       eq(projectHardwareSelections.hardwareId, hardwareId)
     ));
+}
+
+// ============ HARDWARE CATALOG ============
+
+export async function getHardwareByCategory(category: "cocinas" | "closets" | "puertas") {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  return await db.select()
+    .from(hardwareCatalog)
+    .where(and(
+      eq(hardwareCatalog.category, category),
+      eq(hardwareCatalog.active, true)
+    ))
+    .orderBy(hardwareCatalog.sortOrder, hardwareCatalog.name);
+}
+
+export async function getAllHardware() {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  return await db.select()
+    .from(hardwareCatalog)
+    .orderBy(hardwareCatalog.category, hardwareCatalog.sortOrder, hardwareCatalog.name);
+}
+
+export async function createHardware(data: {
+  category: "cocinas" | "closets" | "puertas";
+  name: string;
+  description?: string;
+  price: number;
+  photoUrl?: string;
+  sortOrder?: number;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.insert(hardwareCatalog).values({
+    category: data.category,
+    name: data.name,
+    description: data.description,
+    price: data.price.toString(),
+    photoUrl: data.photoUrl,
+    sortOrder: data.sortOrder ?? 0,
+  });
+  
+  return result[0].insertId;
+}
+
+export async function updateHardware(id: number, data: {
+  category?: "cocinas" | "closets" | "puertas";
+  name?: string;
+  description?: string;
+  price?: number;
+  photoUrl?: string;
+  sortOrder?: number;
+  active?: boolean;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const updateData: any = {};
+  if (data.category !== undefined) updateData.category = data.category;
+  if (data.name !== undefined) updateData.name = data.name;
+  if (data.description !== undefined) updateData.description = data.description;
+  if (data.price !== undefined) updateData.price = data.price.toString();
+  if (data.photoUrl !== undefined) updateData.photoUrl = data.photoUrl;
+  if (data.sortOrder !== undefined) updateData.sortOrder = data.sortOrder;
+  if (data.active !== undefined) updateData.active = data.active;
+
+  await db.update(hardwareCatalog)
+    .set(updateData)
+    .where(eq(hardwareCatalog.id, id));
+}
+
+export async function deleteHardware(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.delete(hardwareCatalog)
+    .where(eq(hardwareCatalog.id, id));
 }

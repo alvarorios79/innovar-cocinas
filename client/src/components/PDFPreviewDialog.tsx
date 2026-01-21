@@ -41,16 +41,24 @@ export function PDFPreviewDialog({
 
         <div className="flex-1 relative bg-gray-100 rounded-md overflow-hidden">
           {isLoading && (
-            <div className="absolute inset-0 flex items-center justify-center">
+            <div className="absolute inset-0 flex items-center justify-center z-10 bg-gray-100">
               <div className="text-gray-500">Cargando PDF...</div>
             </div>
           )}
-          <iframe
-            src={pdfUrl}
+          <object
+            data={pdfUrl}
+            type="application/pdf"
             className="w-full h-full"
             onLoad={() => setIsLoading(false)}
-            title="Vista previa del PDF"
-          />
+          >
+            <div className="flex flex-col items-center justify-center h-full p-4">
+              <p className="text-gray-600 mb-4">No se puede mostrar el PDF en el navegador.</p>
+              <Button onClick={handleDownload}>
+                <Download className="h-4 w-4 mr-2" />
+                Descargar PDF
+              </Button>
+            </div>
+          </object>
         </div>
 
         <DialogFooter className="flex-row justify-between gap-2">

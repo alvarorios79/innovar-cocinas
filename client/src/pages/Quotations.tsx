@@ -887,6 +887,7 @@ export default function Quotations() {
                               <SelectItem value="meson_quarzone">Mesón Quarzone</SelectItem>
                               <SelectItem value="meson_sinterizado">Mesón Sinterizado</SelectItem>
                               <SelectItem value="luz_led">Luz LED</SelectItem>
+                              <SelectItem value="herrajes">Herrajes</SelectItem>
                               <SelectItem value="otro">Otro</SelectItem>
                             </SelectContent>
                           </Select>

@@ -1157,3 +1157,5 @@
 - [x] Vista previa de PDF corregida - Content-Disposition inline
 
 - [x] Agregar "herrajes" como nuevo tipo de producto en cotizaciones
+
+- [x] Agregar "herrajes" al selector visual de tipo de producto en formulario

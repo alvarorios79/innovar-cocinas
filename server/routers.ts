@@ -1022,7 +1022,7 @@ export const appRouter = router({
                   islandLines.push(`mesón ${islandCountertopType}`);
                 }
                 
-                if (config.island.withSides) {
+                if (config.island.hasLaterals) {
                   islandLines.push('con laterales');
                 }
                 
@@ -1039,7 +1039,7 @@ export const appRouter = router({
                   barLines.push(`mesón ${barCountertopType}`);
                 }
                 
-                if (config.bar.withSide) {
+                if (config.bar.hasLateral) {
                   barLines.push('con lateral');
                 }
                 

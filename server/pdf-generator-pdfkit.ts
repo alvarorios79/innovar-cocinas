@@ -148,13 +148,19 @@ export async function generateQuotationPDF(
 
         doc.fillColor(darkGray);
         doc.text(item.itemNumber.toString(), 60, currentY + 5);
+        
+        // Calcular altura necesaria para la descripción
+        const descriptionHeight = doc.heightOfString(item.description, { width: 240 });
+        
+        // Renderizar descripción completa con saltos de línea
         doc.text(
-          item.description.substring(0, 50) +
-            (item.description.length > 50 ? "..." : ""),
+          item.description,
           110,
           currentY + 5,
-          { width: 240 }
+          { width: 240, lineGap: 2 }
         );
+        
+        // Cantidad, precio unitario y total en la misma línea inicial
         doc.text(item.quantity, 360, currentY + 5);
         if (item.unitPrice) {
           doc.text(formatCurrency(item.unitPrice), 430, currentY + 5);
@@ -163,21 +169,8 @@ export async function generateQuotationPDF(
           align: "right",
         });
 
-        // Nota si incluye costos fijos
-        if (item.includesFixedCosts) {
-          currentY += 20;
-          doc.fontSize(8).fillColor(gray).font("Helvetica-Oblique");
-          doc.text(
-            "* Incluye transporte e imprevistos ($600,000)",
-            110,
-            currentY,
-            { width: 430 }
-          );
-          doc.font("Helvetica");
-          currentY += 10;
-        }
-
-        currentY += 25;
+        // Ajustar currentY según la altura de la descripción
+        currentY += Math.max(descriptionHeight + 10, 25);
         rowBackground = !rowBackground;
       }
 

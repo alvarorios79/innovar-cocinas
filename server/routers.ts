@@ -1142,19 +1142,14 @@ export const appRouter = router({
           total: quotation.total,
         };
 
-        const { exec } = require('child_process');
-        const { promisify } = require('util');
-        const execAsync = promisify(exec);
-
-        const outputPath = `/tmp/quotation_${quotation.id}_${Date.now()}.pdf`;
-        const jsonData = JSON.stringify(pdfData).replace(/'/g, "'\\''");
-
         try {
-          await execAsync(`python3 /home/ubuntu/innovar_cocinas/server/generate_quotation_pdf.py '${jsonData}' ${outputPath}`);
-
+          // Generar PDF usando el mismo módulo que el botón PDF
+          const { generateQuotationPDF } = await import('./quotation-pdf-generator');
+          const result = await generateQuotationPDF(pdfData, quotation.id);
+          
           // Leer el PDF generado
-          const fs = require('fs');
-          const pdfBuffer = fs.readFileSync(outputPath);
+          const fs = await import('fs');
+          const pdfBuffer = fs.readFileSync(result.pdfPath);
 
           // Enviar email con Resend
           const { sendEmail } = await import('./email');
@@ -1177,8 +1172,8 @@ export const appRouter = router({
           });
 
           // Limpiar archivo temporal
-          fs.unlinkSync(outputPath);
-
+          fs.unlinkSync(result.pdfPath);
+          
           // Actualizar estado a "sent"
           await db.updateQuotation(input.id, { status: "sent", sentAt: new Date() });
 

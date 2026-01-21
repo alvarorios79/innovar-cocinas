@@ -1135,3 +1135,8 @@
 - [x] Backend TAMBIÉN suma $600,000 al total de la cotización
 - [x] Resultado: $600,000 se suma DOS VECES
 - [x] Necesita corregir para que solo se sume UNA vez
+
+## Bug: Error al enviar email con PDF
+- [x] Al hacer clic en "Enviar Email" aparece error: "Dynamic require of 'child_process' is not supported"
+- [x] El problema está en la generación del PDF adjunto
+- [x] Necesita usar librería compatible con el entorno del servidor

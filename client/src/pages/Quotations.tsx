@@ -547,7 +547,79 @@ export default function Quotations() {
       }
     }
 
+    // Recalcular totales de items de cocina antes de enviar
+    const itemsWithUpdatedPrices = items.map((item, index) => {
+      if (item.itemType === "cocina" && item.kitchenConfig) {
+        // Recalcular el total basado en la configuración actual
+        const config = item.kitchenConfig;
+        let total = 0;
 
+        // Calcular metraje resultante
+        let deductions = 0;
+        if (config.specialModules?.nichoNevecon) deductions += 1.0;
+        if (config.specialModules?.nichoNevera) deductions += 0.75;
+        if (config.specialModules?.alacenaEntrepanos) deductions += 0.5;
+        if (config.specialModules?.alacenaHerraje) deductions += 0.5;
+        if (config.specialModules?.torreHornos) deductions += 0.7;
+        const resultingMeters = Math.max(0, config.totalMeters - deductions);
+
+        // Muebles lineales
+        total += resultingMeters * 900000 * 2; // Inferiores + Superiores
+
+        // Muebles especiales
+        if (config.specialModules?.nichoNevecon) total += 1200000;
+        if (config.specialModules?.nichoNevera) total += 1200000;
+        if (config.specialModules?.alacenaEntrepanos) total += 1250000;
+        if (config.specialModules?.alacenaHerraje) total += 900000;
+        if (config.specialModules?.torreHornos) total += 1350000;
+
+        // Mesón principal
+        if (config.countertop.type) {
+          const basePrice = config.countertop.type === "quarzone" ? 850000 : 1200000;
+          let countertopPrice = basePrice;
+          if (config.countertop.depthSurcharge === "30percent") countertopPrice = basePrice * 1.3;
+          else if (config.countertop.depthSurcharge === "double") countertopPrice = basePrice * 2;
+          total += resultingMeters * countertopPrice;
+        }
+
+        // Isla
+        if (config.island.enabled && config.island.meters > 0) {
+          total += config.island.meters * 900000;
+          if (config.island.countertopType) {
+            const islandPrice = config.island.countertopType === "quarzone" ? 850000 : 1200000;
+            total += config.island.meters * islandPrice;
+            if (config.island.hasLaterals) {
+              total += 1.8 * islandPrice + 0.9 * islandPrice;
+            }
+          }
+        }
+
+        // Barra
+        if (config.bar.enabled && config.bar.meters > 0) {
+          total += config.bar.meters * 900000;
+          if (config.bar.countertopType) {
+            const barPrice = config.bar.countertopType === "quarzone" ? 850000 : 1200000;
+            total += config.bar.meters * barPrice;
+            if (config.bar.hasLateral) {
+              total += 0.9 * barPrice;
+            }
+          }
+        }
+
+        // LED
+        if (config.ledLighting > 0) {
+          total += config.ledLighting * 180000;
+        }
+
+        // Transporte
+        if (item.includesFixedCosts) {
+          total += 600000;
+        }
+
+        return { ...item, totalPrice: total };
+      }
+      return item;
+    });
 
     if (editingQuotation) {
       // Actualizar cotización existente
@@ -556,7 +628,7 @@ export default function Quotations() {
         clientId: selectedClient,
         vendorName,
         productType: (workType || items[0]?.itemType || "otro") as "cocina" | "closet" | "puerta" | "centro_tv" | "otro",
-        items,
+        items: itemsWithUpdatedPrices,
       });
     } else {
       // Crear nueva cotización
@@ -564,7 +636,7 @@ export default function Quotations() {
         clientId: selectedClient,
         vendorName,
         productType: (workType || items[0]?.itemType || "otro") as "cocina" | "closet" | "puerta" | "centro_tv" | "otro",
-        items,
+        items: itemsWithUpdatedPrices,
       });
     }
   };

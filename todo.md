@@ -1079,3 +1079,23 @@
 - [x] Debería pre-llenar todos los campos con los datos guardados (cliente, vendedor, items)
 - [x] Usuario espera poder MODIFICAR datos existentes, no empezar desde cero
 - [x] CORREGIDO: Backend parsea JSON, frontend usa ?? para preservar valores
+
+## Bug: Precio no se actualiza al editar cotización - RESUELTO
+
+- [x] Al editar cotización y cambiar valores (metraje, muebles especiales, etc.)
+- [x] Al guardar, el precio total NO se recalculaba
+- [x] La cotización conservaba el precio anterior en lugar de calcular el nuevo
+- [x] CAUSA: Frontend enviaba totalPrice anterior sin recalcular
+- [x] SOLUCIÓN: Recalcular totalPrice de todos los items de cocina en handleSubmit antes de enviar mutación
+- [ ] Al editar cotización y cambiar valores (metraje, muebles especiales, etc.)
+- [ ] Al guardar, el precio total NO se recalcula
+- [ ] La cotización conserva el precio anterior en lugar de calcular el nuevo
+- [ ] Usuario espera que el precio se actualice automáticamente según los cambios
+
+## Bug: Precio no se actualiza al editar cotización - RESUELTO
+
+- [x] Al editar cotización y cambiar valores (metraje, muebles especiales, etc.)
+- [x] Al guardar, el precio total NO se recalculaba
+- [x] La cotización conservaba el precio anterior en lugar de calcular el nuevo
+- [x] CAUSA: Frontend enviaba totalPrice anterior sin recalcular
+- [x] SOLUCIÓN: Recalcular totalPrice de todos los items de cocina en handleSubmit antes de enviar mutación

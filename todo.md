@@ -1310,3 +1310,12 @@
 - [x] Implementar botón "Eliminar seleccionados" cuando hay clientes seleccionados
 - [x] Agregar confirmación antes de eliminar múltiples clientes
 - [x] Implementar endpoint o lógica para eliminar múltiples clientes (usa mutation existente)
+
+## Eliminación en Cascada de Clientes
+
+- [x] Actualizar endpoint deleteClient para eliminar registros relacionados antes de eliminar cliente
+- [x] Eliminar citas del cliente (appointments)
+- [x] Eliminar asesorías del cliente (advisory_requests)
+- [x] Eliminar cotizaciones del cliente (quotations y quotationItems)
+- [x] Eliminar proyectos del cliente (projects y tablas relacionadas)
+- [ ] Probar eliminación de cliente con registros relacionados

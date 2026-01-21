@@ -298,6 +298,32 @@ export const appRouter = router({
           throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para eliminar clientes" });
         }
         
+        // Eliminar en cascada: primero eliminar todos los registros relacionados
+        // 1. Eliminar citas del cliente
+        const appointments = await db.getAppointmentsByClientId(input.id);
+        for (const appointment of appointments) {
+          await db.deleteAppointment(appointment.id);
+        }
+        
+        // 2. Eliminar asesorías del cliente
+        const advisoryRequests = await db.getAdvisoryRequestsByClientId(input.id);
+        for (const advisory of advisoryRequests) {
+          await db.deleteAdvisoryRequest(advisory.id);
+        }
+        
+        // 3. Eliminar cotizaciones del cliente (esto también elimina quotationItems)
+        const quotations = await db.getQuotationsByClientId(input.id);
+        for (const quotation of quotations) {
+          await db.deleteQuotation(quotation.id);
+        }
+        
+        // 4. Eliminar proyectos del cliente (esto también elimina projectPhotos, projectDetails, tasks, etc.)
+        const projects = await db.getProjectsByClientId(input.id);
+        for (const project of projects) {
+          await db.deleteProject(project.id);
+        }
+        
+        // 5. Finalmente eliminar el cliente
         await db.deleteClient(input.id);
         return { success: true };
       }),

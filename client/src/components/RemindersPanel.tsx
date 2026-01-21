@@ -108,10 +108,10 @@ export function RemindersPanel({ userId, userRole, compact = false }: RemindersP
 
   if (activeReminders.length === 0) {
     return (
-      <Card>
+      <Card className="bg-gradient-to-br from-amber-50 to-yellow-50 border-amber-200">
         <CardHeader className="pb-3">
           <CardTitle className="text-sm flex items-center gap-2">
-            <Bell className="h-4 w-4" />
+            <Bell className="h-4 w-4 text-amber-600" />
             Recordatorios
           </CardTitle>
         </CardHeader>
@@ -206,11 +206,11 @@ export function RemindersPanel({ userId, userRole, compact = false }: RemindersP
   };
 
   return (
-    <Card>
+    <Card className="bg-gradient-to-br from-amber-50 to-yellow-50 border-amber-200">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm flex items-center gap-2">
-            <Bell className="h-4 w-4" />
+            <Bell className="h-4 w-4 text-amber-600" />
             Recordatorios
             {activeReminders.length > 0 && (
               <Badge variant={urgentReminders.length > 0 ? "destructive" : "secondary"}>

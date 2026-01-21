@@ -1366,3 +1366,10 @@
 - [x] Fijar botones de acción (Guardar/Cancelar) en la parte inferior (automático con scroll)
 - [ ] Probar con contenido largo (descripción extensa)
 - [ ] Verificar que el botón Guardar sea siempre accesible
+
+## Color en Tarjeta de Recordatorios
+
+- [x] Buscar tarjeta de Recordatorios en Admin.tsx
+- [x] Agregar color de fondo amarillo/amber con gradiente
+- [x] Agregar color al ícono de Bell (amber-600)
+- [x] Mantener consistencia con estilo de otras tarjetas de estadísticas

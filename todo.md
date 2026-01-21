@@ -1127,3 +1127,11 @@
 - [ ] Al guardar, el mensaje dice "Cotización actualizada exitosamente"
 - [ ] Pero al volver a la lista, la cotización guardada conserva el precio anterior
 - [ ] El precio calculado no se está guardando en la base de datos
+
+## Bug: Duplicación de $600,000 en precio total
+
+- [x] Al guardar cotización, el precio tiene $600,000 de más
+- [x] Frontend suma $600,000 si checkbox "Incluye transporte" está marcado
+- [x] Backend TAMBIÉN suma $600,000 al total de la cotización
+- [x] Resultado: $600,000 se suma DOS VECES
+- [x] Necesita corregir para que solo se sume UNA vez

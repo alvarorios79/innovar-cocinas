@@ -619,14 +619,15 @@ export default function Quotations() {
           total += 600000;
         }
 
-        return { ...item, description, quantity, totalPrice: total };
+        return { ...item, description, quantity, totalPrice: total, includesFixedCosts: item.includesFixedCosts };
       }
       return item;
     });
 
     if (editingQuotation) {
       // Actualizar cotización existente
-      console.log("[DEBUG] Enviando items actualizados:", itemsWithUpdatedPrices);
+      console.log("[DEBUG] Enviando items actualizados:");
+      console.log(JSON.stringify(itemsWithUpdatedPrices, null, 2));
       updateQuotation.mutate({
         id: editingQuotation,
         clientId: selectedClient,

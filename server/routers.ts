@@ -789,14 +789,12 @@ export const appRouter = router({
         // Si se actualizan items, recalcular totales
         if (items) {
           console.log("[DEBUG BACKEND] Items recibidos para actualizar:", JSON.stringify(items, null, 2));
-          // Verificar si algún item incluye costos fijos
-          const hasFixedCostsInItems = items.some(item => item.includesFixedCosts === true);
           
-          const subtotal = items.reduce((sum, item) => sum + item.totalPrice, 0);
-          // Solo agregar costos fijos si NO están incluidos en ningún item
-          const transportCost = hasFixedCostsInItems ? 0 : 600000;
-          const total = subtotal + transportCost;
-          console.log("[DEBUG BACKEND] Totales calculados - Subtotal:", subtotal, "Transport:", transportCost, "Total:", total);
+          // El totalPrice de cada item YA incluye todo (cocina + extras + transporte si aplica)
+          // No necesitamos sumar nada adicional
+          const total = items.reduce((sum, item) => sum + item.totalPrice, 0);
+          const transportCost = 0; // Ya incluido en totalPrice de items
+          console.log("[DEBUG BACKEND] Total calculado:", total, "(ya incluye transporte si aplica)");
 
           // Eliminar items antiguos
           await db.deleteQuotationItems(id);
@@ -819,7 +817,7 @@ export const appRouter = router({
           // Actualizar totales
           await db.updateQuotation(id, {
             ...quotationData,
-            subtotal: subtotal.toString(),
+            subtotal: total.toString(), // El total ya incluye todo
             transportCost: transportCost.toString(),
             total: total.toString(),
           });

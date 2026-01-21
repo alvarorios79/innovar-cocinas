@@ -1033,3 +1033,8 @@
 - [x] Eliminar línea de "Transporte e imprevistos" del PDF (ya está incluido en precio total del item)
 - [x] Corregir superposición del precio total para que sea legible (ajustado rectángulo y texto)
 - [x] Probar PDF con cotización completa (listo para prueba del usuario)
+
+## Bugs Reportados
+
+- [x] Total en PDF sigue sobrepuesto - aumentado espaciado a 40px y altura de rectángulo a 32px
+- [x] Error al editar o ver cotización - agregadas validaciones para kitchenConfig undefined

@@ -182,14 +182,14 @@ export async function generateQuotationPDF(
       }
 
       // Total (transporte ya incluido en el precio total)
-      currentY += 30;
+      currentY += 40;
       doc
         .fillColor(turquoise)
-        .rect(380, currentY, 182, 30)
+        .rect(380, currentY, 182, 32)
         .fill();
-      doc.fontSize(12).fillColor("white").font("Helvetica-Bold");
-      doc.text("TOTAL:", 390, currentY + 8);
-      doc.text(formatCurrency(data.total), 510, currentY + 8, {
+      doc.fontSize(13).fillColor("white").font("Helvetica-Bold");
+      doc.text("TOTAL:", 390, currentY + 9);
+      doc.text(formatCurrency(data.total), 510, currentY + 9, {
         align: "right",
       });
 

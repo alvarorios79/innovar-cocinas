@@ -893,7 +893,7 @@ export default function Quotations() {
                               <p className="text-sm text-gray-600">
                                 • Muebles Inferiores: {(() => {
                                   const config = item.kitchenConfig;
-                                  if (!config) return "0.00";
+                                  if (!config || !config.specialModules) return "0.00";
                                   let deductions = 0;
                                   if (config.specialModules.nichoNevecon) deductions += 1.0;
                                   if (config.specialModules.nichoNevera) deductions += 0.75;
@@ -906,7 +906,7 @@ export default function Quotations() {
                               <p className="text-sm text-gray-600">
                                 • Muebles Superiores: {(() => {
                                   const config = item.kitchenConfig;
-                                  if (!config) return "0.00";
+                                  if (!config || !config.specialModules) return "0.00";
                                   let deductions = 0;
                                   if (config.specialModules.nichoNevecon) deductions += 1.0;
                                   if (config.specialModules.nichoNevera) deductions += 0.75;
@@ -915,19 +915,6 @@ export default function Quotations() {
                                   if (config.specialModules.torreHornos) deductions += 0.7;
                                   return Math.max(0, config.totalMeters - deductions).toFixed(2);
                                 })()} ml
-                              </p>
-                              <p className="text-sm text-gray-600">
-                                • Mesón Principal: {(() => {
-                                  const config = item.kitchenConfig;
-                                  if (!config) return "0.00";
-                                  let deductions = 0;
-                                  if (config.specialModules.nichoNevecon) deductions += 1.0;
-                                  if (config.specialModules.nichoNevera) deductions += 0.75;
-                                  if (config.specialModules.alacenaEntrepanos) deductions += 0.5;
-                                  if (config.specialModules.alacenaHerraje) deductions += 0.5;
-                                  if (config.specialModules.torreHornos) deductions += 0.7;
-                                  return Math.max(0, config.totalMeters - deductions).toFixed(2);
-                                })()} ml (automático)
                               </p>
                             </div>
 

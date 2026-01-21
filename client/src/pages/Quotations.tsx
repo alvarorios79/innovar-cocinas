@@ -403,7 +403,8 @@ export default function Quotations() {
             hasLateral: false,
           },
           ledLighting: 0,
-        }
+        },
+        hardwareSelections: [],
       },
     ]);
   };

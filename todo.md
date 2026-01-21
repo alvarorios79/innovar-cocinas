@@ -1373,3 +1373,12 @@
 - [x] Agregar color de fondo amarillo/amber con gradiente
 - [x] Agregar color al ícono de Bell (amber-600)
 - [x] Mantener consistencia con estilo de otras tarjetas de estadísticas
+
+## Bug: Selector de Herrajes en Cotizaciones No Funciona
+
+- [x] Revisar componente HardwareSelectorForQuotation.tsx
+- [x] Verificar que los checkboxes de selección funcionen correctamente
+- [x] Verificar que los campos de cantidad sean editables
+- [x] Corregir lógica de onChange para selectedHardware
+- [x] Agregar inicialización de hardwareSelections en addItem (era undefined)
+- [ ] Probar selección y cantidad en cotización tipo "herrajes"

@@ -1350,3 +1350,12 @@
 - [x] Agregar color de fondo cyan al contador de Cotizaciones
 - [x] Agregar color de fondo verde al contador de Clientes
 - [x] Mantener consistencia con colores de las pestañas
+
+## Colores Fijos en Tarjetas de Estadísticas Superiores
+
+- [x] Buscar tarjetas de estadísticas en la parte superior del Panel Admin
+- [x] Agregar color de fondo azul a la tarjeta de Citas
+- [x] Agregar color de fondo naranja a la tarjeta de Asesorías
+- [x] Agregar color de fondo cyan a la tarjeta de Cotizaciones
+- [x] Agregar color de fondo verde a la tarjeta de Clientes
+- [x] Revertir badges agregados en las pestañas (no eran necesarios)

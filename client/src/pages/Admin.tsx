@@ -444,47 +444,47 @@ export default function Admin() {
       <div className="container py-4 md:py-8 px-3 md:px-4">
         {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 mb-4 md:mb-8">
-          <Card>
+          <Card className="bg-blue-50 border-blue-200">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Citas Pendientes</CardTitle>
-              <Calendar className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium text-blue-900">Citas Pendientes</CardTitle>
+              <Calendar className="h-4 w-4 text-blue-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
+              <div className="text-2xl font-bold text-blue-700">
                 {appointments.filter((a) => a.status === "pendiente").length}
               </div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-orange-50 border-orange-200">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Asesoramiento</CardTitle>
-              <Phone className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium text-orange-900">Asesoramiento</CardTitle>
+              <Phone className="h-4 w-4 text-orange-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
+              <div className="text-2xl font-bold text-orange-700">
                 {advisoryRequests.filter((a) => a.status === "pendiente").length}
               </div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-cyan-50 border-cyan-200">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Cotizaciones</CardTitle>
-              <FileText className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium text-cyan-900">Cotizaciones</CardTitle>
+              <FileText className="h-4 w-4 text-cyan-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{quotations.length}</div>
+              <div className="text-2xl font-bold text-cyan-700">{quotations.length}</div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-green-50 border-green-200">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Clientes</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium text-green-900">Clientes</CardTitle>
+              <Users className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{clients.length}</div>
+              <div className="text-2xl font-bold text-green-700">{clients.length}</div>
             </CardContent>
           </Card>
         </div>
@@ -501,31 +501,27 @@ export default function Admin() {
           <TabsList className="grid w-full grid-cols-2 sm:grid-cols-6 h-auto gap-2 bg-transparent p-1">
             <TabsTrigger 
               value="appointments" 
-              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white hover:bg-blue-100 transition-colors flex items-center gap-2"
+              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white hover:bg-blue-100 transition-colors"
             >
               Citas
-              <Badge className="bg-blue-500 text-white hover:bg-blue-600">{appointments.length}</Badge>
             </TabsTrigger>
             <TabsTrigger 
               value="advisory" 
-              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-orange-500 data-[state=active]:text-white hover:bg-orange-100 transition-colors flex items-center gap-2"
+              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-orange-500 data-[state=active]:text-white hover:bg-orange-100 transition-colors"
             >
               Asesoría
-              <Badge className="bg-orange-500 text-white hover:bg-orange-600">{advisoryRequests.length}</Badge>
             </TabsTrigger>
             <TabsTrigger 
               value="quotations" 
-              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-cyan-500 data-[state=active]:text-white hover:bg-cyan-100 transition-colors flex items-center gap-2"
+              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-cyan-500 data-[state=active]:text-white hover:bg-cyan-100 transition-colors"
             >
               Cotizaciones
-              <Badge className="bg-cyan-500 text-white hover:bg-cyan-600">{quotations.length}</Badge>
             </TabsTrigger>
             <TabsTrigger 
               value="clients" 
-              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-green-500 data-[state=active]:text-white hover:bg-green-100 transition-colors flex items-center gap-2"
+              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-green-500 data-[state=active]:text-white hover:bg-green-100 transition-colors"
             >
               Clientes
-              <Badge className="bg-green-500 text-white hover:bg-green-600">{clients.length}</Badge>
             </TabsTrigger>
             <TabsTrigger 
               value="users" 

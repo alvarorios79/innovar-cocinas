@@ -1153,3 +1153,4 @@
 - [x] Eliminar línea "Transporte e imprevistos incluidos" del desglose en PDF
 - [x] Agregar NIT 10021456-1 debajo de "INNOVAR COCINAS DE DISEÑO" en PDF
 - [x] Corregir espaciado en encabezado del PDF (dirección encimada con teléfono)
+- [x] Implementar vista previa del PDF antes de enviar por email

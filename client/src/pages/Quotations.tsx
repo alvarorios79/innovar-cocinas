@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
+import { PDFPreviewDialog } from "@/components/PDFPreviewDialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -71,6 +72,9 @@ export default function Quotations() {
   const [selectedClient, setSelectedClient] = useState<number | null>(null);
   const [vendorName, setVendorName] = useState("Alvaro Gutierrez");
   const [workType, setWorkType] = useState("");
+  const [previewDialogOpen, setPreviewDialogOpen] = useState(false);
+  const [previewPdfUrl, setPreviewPdfUrl] = useState("");
+  const [selectedQuotationForEmail, setSelectedQuotationForEmail] = useState<{id: number, email: string} | null>(null);
   const [items, setItems] = useState<QuotationItem[]>([
     { 
       itemNumber: 1, 
@@ -172,11 +176,36 @@ export default function Quotations() {
     onSuccess: () => {
       utils.quotations.list.invalidate();
       toast.success("Cotización enviada por email");
+      setPreviewDialogOpen(false);
+      setSelectedQuotationForEmail(null);
     },
     onError: (error) => {
       toast.error(error.message || "Error al enviar email");
     },
   });
+
+  const handleEmailClick = async (quotationId: number, clientEmail: string) => {
+    setSelectedQuotationForEmail({ id: quotationId, email: clientEmail });
+    // Generar PDF para vista previa
+    generatePDF.mutate(
+      { id: quotationId },
+      {
+        onSuccess: (data) => {
+          setPreviewPdfUrl(data.downloadUrl);
+          setPreviewDialogOpen(true);
+        },
+        onError: (error) => {
+          toast.error(error.message || "Error al generar vista previa");
+        },
+      }
+    );
+  };
+
+  const handleConfirmSend = () => {
+    if (selectedQuotationForEmail) {
+      sendByEmail.mutate({ id: selectedQuotationForEmail.id });
+    }
+  };
 
   const resetForm = () => {
     setEditingQuotation(null);
@@ -738,12 +767,8 @@ export default function Quotations() {
                   </Button>
                   <Button
                     size="sm"
-                    onClick={() => {
-                      if (window.confirm(`¿Enviar cotización por email a ${quot.client?.email}?`)) {
-                        sendByEmail.mutate({ id: quot.id });
-                      }
-                    }}
-                    disabled={sendByEmail.isPending || !quot.client?.email}
+                    onClick={() => handleEmailClick(quot.id, quot.client?.email || "")}
+                    disabled={generatePDF.isPending || !quot.client?.email}
                   >
                     <Mail className="h-4 w-4 mr-1" />
                     Enviar Email
@@ -1339,6 +1364,15 @@ export default function Quotations() {
           </form>
         </DialogContent>
       </Dialog>
+
+      <PDFPreviewDialog
+        open={previewDialogOpen}
+        onOpenChange={setPreviewDialogOpen}
+        pdfUrl={previewPdfUrl}
+        recipientEmail={selectedQuotationForEmail?.email || ""}
+        onConfirmSend={handleConfirmSend}
+        isSending={sendByEmail.isPending}
+      />
     </div>
   );
 }

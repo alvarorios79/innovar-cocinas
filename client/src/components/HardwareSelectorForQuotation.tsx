@@ -20,11 +20,9 @@ interface HardwareSelectorForQuotationProps {
 }
 
 export function HardwareSelectorForQuotation({ selectedHardware, onHardwareChange }: HardwareSelectorForQuotationProps) {
-  const [selectedCategory, setSelectedCategory] = useState<string>("cocinas");
+  const [selectedCategory, setSelectedCategory] = useState<"cocinas" | "closets" | "puertas">("cocinas");
   
-  const { data: catalog = [], isLoading } = trpc.hardwareCatalog.list.useQuery({});
-
-  const filteredCatalog = catalog.filter((item: any) => item.category === selectedCategory);
+  const { data: catalog = [], isLoading } = trpc.hardwareCatalog.list.useQuery({ category: selectedCategory });
 
   const handleToggleHardware = (hardware: any, checked: boolean) => {
     if (checked) {
@@ -115,13 +113,13 @@ export function HardwareSelectorForQuotation({ selectedHardware, onHardwareChang
         <div className="flex items-center justify-center py-8">
           <Loader2 className="h-6 w-6 animate-spin" />
         </div>
-      ) : filteredCatalog.length === 0 ? (
+      ) : catalog.length === 0 ? (
         <div className="text-center py-8 text-muted-foreground">
           No hay herrajes disponibles en esta categoría
         </div>
       ) : (
         <div className="space-y-3">
-          {filteredCatalog.map((hardware: any) => {
+          {catalog.map((hardware: any) => {
             const selected = isSelected(hardware.id);
             const quantity = getQuantity(hardware.id);
             const price = parseFloat(hardware.price || "0");

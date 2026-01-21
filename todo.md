@@ -1240,3 +1240,11 @@
 - [x] Agregar campo hardwareSelections al schema de quotationItems
 - [x] Aplicar migración de base de datos
 - [ ] Probar generación de PDF con cotización tipo "herrajes"
+
+## Bug: Filtro de Categoría de Herrajes
+
+- [x] Diagnosticar por qué herrajes de closet aparecen en selector de cocinas
+- [x] Revisar lógica de filtrado en HardwareSelectorForQuotation
+- [x] Verificar que categorías en base de datos coincidan con las del filtro
+- [x] Corregir filtro para que solo muestre herrajes de la categoría correcta (ahora filtra en backend)
+- [ ] Probar con herrajes de cocina, closet y puerta

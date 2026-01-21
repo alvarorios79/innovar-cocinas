@@ -200,7 +200,7 @@ export function HardwareCatalogAdmin() {
                 Agregar Herraje
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>{editingItem ? "Editar Herraje" : "Agregar Nuevo Herraje"}</DialogTitle>
                 <DialogDescription>

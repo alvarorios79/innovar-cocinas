@@ -1359,3 +1359,10 @@
 - [x] Agregar color de fondo cyan a la tarjeta de Cotizaciones
 - [x] Agregar color de fondo verde a la tarjeta de Clientes
 - [x] Revertir badges agregados en las pestañas (no eran necesarios)
+
+## Bug: Modal de Herrajes sin Scroll
+
+- [x] Agregar scroll al DialogContent del modal de herrajes
+- [x] Fijar botones de acción (Guardar/Cancelar) en la parte inferior (automático con scroll)
+- [ ] Probar con contenido largo (descripción extensa)
+- [ ] Verificar que el botón Guardar sea siempre accesible

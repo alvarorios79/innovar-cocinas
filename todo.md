@@ -1140,3 +1140,8 @@
 - [x] Al hacer clic en "Enviar Email" aparece error: "Dynamic require of 'child_process' is not supported"
 - [x] El problema está en la generación del PDF adjunto
 - [x] Necesita usar librería compatible con el entorno del servidor
+
+## Mejora: Desglose detallado en PDF de cotización
+- [x] Agregar descripción detallada de componentes de cocina en el PDF
+- [x] Incluir: metraje de muebles inferiores/superiores, tipo de mesón, muebles especiales, LED, isla, barra
+- [x] Mostrar toda la información sin precios individuales, solo precio total

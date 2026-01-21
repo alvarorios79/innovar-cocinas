@@ -1130,13 +1130,118 @@ export const appRouter = router({
           vendorName: quotation.vendorName,
           productType: quotation.productType,
           validUntil: quotation.validUntil ? new Date(quotation.validUntil).toLocaleDateString('es-CO') : '',
-          items: items.map(item => ({
-            itemNumber: item.itemNumber,
-            description: item.description,
-            quantity: item.quantity,
-            unitPrice: item.unitPrice || '',
-            totalPrice: item.totalPrice,
-          })),
+          items: items.map(item => {
+            let description = item.description;
+            
+            // Si es cocina y tiene kitchenConfig, generar descripción detallada
+            if (item.itemType === 'cocina' && item.kitchenConfig) {
+              const config = typeof item.kitchenConfig === 'string' 
+                ? JSON.parse(item.kitchenConfig) 
+                : item.kitchenConfig;
+              
+              const lines: string[] = [];
+              lines.push(`COCINA INTEGRAL - Forma ${config.shape === 'L' ? 'en L' : config.shape === 'U' ? 'en U' : 'Lineal'}`);
+              lines.push(`Metraje total: ${config.totalMeters.toFixed(2)}ml`);
+              lines.push('');
+              
+              // Calcular metraje resultante
+              let deductions = 0;
+              if (config.specialModules.nichoNevecon) deductions += 1.0;
+              if (config.specialModules.nichoNevera) deductions += 0.75;
+              if (config.specialModules.alacenaEntrepanos) deductions += 0.5;
+              if (config.specialModules.alacenaHerraje) deductions += 0.5;
+              if (config.specialModules.torreHornos) deductions += 0.7;
+              const resultingMeters = Math.max(0, config.totalMeters - deductions);
+              
+              // Muebles lineales
+              lines.push(`• Muebles Inferiores: ${resultingMeters.toFixed(2)}ml`);
+              lines.push(`• Muebles Superiores: ${resultingMeters.toFixed(2)}ml`);
+              
+              // Muebles especiales
+              if (config.specialModules.nichoNevecon) {
+                lines.push(`• Nicho para nevecon 100cm`);
+              }
+              if (config.specialModules.nichoNevera) {
+                lines.push(`• Nicho nevera estándar 75cm`);
+              }
+              if (config.specialModules.alacenaEntrepanos) {
+                lines.push(`• Alacena con entrepaños 50cm`);
+              }
+              if (config.specialModules.alacenaHerraje) {
+                lines.push(`• Alacena para herraje 50cm`);
+              }
+              if (config.specialModules.torreHornos) {
+                lines.push(`• Torre de hornos 70cm`);
+              }
+              
+              // Mesón principal
+              if (config.countertop.type) {
+                const countertopType = config.countertop.type === 'quarzone' ? 'Quarzone' : 'Sinterizado';
+                let surchargeText = '';
+                
+                if (config.countertop.depthSurcharge === '30percent') {
+                  surchargeText = ' (fondo 61-90cm)';
+                } else if (config.countertop.depthSurcharge === 'double') {
+                  surchargeText = ' (fondo 91-120cm)';
+                }
+                
+                lines.push(`• Mesón ${countertopType}: ${resultingMeters.toFixed(2)}ml${surchargeText}`);
+              }
+              
+              // Isla
+              if (config.island.enabled && config.island.meters > 0) {
+                const islandLines: string[] = [];
+                islandLines.push(`${config.island.meters.toFixed(2)}ml muebles`);
+                
+                if (config.island.countertopType) {
+                  const islandCountertopType = config.island.countertopType === 'quarzone' ? 'Quarzone' : 'Sinterizado';
+                  islandLines.push(`mesón ${islandCountertopType}`);
+                }
+                
+                if (config.island.hasLaterals) {
+                  islandLines.push('con laterales');
+                }
+                
+                lines.push(`• Isla: ${islandLines.join(', ')}`);
+              }
+              
+              // Barra
+              if (config.bar.enabled && config.bar.meters > 0) {
+                const barLines: string[] = [];
+                barLines.push(`${config.bar.meters.toFixed(2)}ml muebles`);
+                
+                if (config.bar.countertopType) {
+                  const barCountertopType = config.bar.countertopType === 'quarzone' ? 'Quarzone' : 'Sinterizado';
+                  barLines.push(`mesón ${barCountertopType}`);
+                }
+                
+                if (config.bar.hasLateral) {
+                  barLines.push('con lateral');
+                }
+                
+                lines.push(`• Barra: ${barLines.join(', ')}`);
+              }
+              
+              // LED
+              if (config.ledLighting > 0) {
+                lines.push(`• Luz LED: ${config.ledLighting.toFixed(2)}ml`);
+              }
+              
+              // Transporte
+              lines.push('');
+              lines.push(`• Transporte e imprevistos incluidos`);
+              
+              description = lines.join('\n');
+            }
+            
+            return {
+              itemNumber: item.itemNumber,
+              description,
+              quantity: item.quantity,
+              unitPrice: item.unitPrice || '',
+              totalPrice: item.totalPrice,
+            };
+          }),
           subtotal: quotation.subtotal,
           transportCost: quotation.transportCost,
           total: quotation.total,

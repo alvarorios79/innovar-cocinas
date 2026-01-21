@@ -191,7 +191,9 @@ export default function Quotations() {
       { id: quotationId },
       {
         onSuccess: (data) => {
-          setPreviewPdfUrl(data.downloadUrl);
+          // Agregar parámetro preview=true para visualización inline
+          const previewUrl = `${data.downloadUrl}?preview=true`;
+          setPreviewPdfUrl(previewUrl);
           setPreviewDialogOpen(true);
         },
         onError: (error) => {

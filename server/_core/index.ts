@@ -59,8 +59,12 @@ async function startServer() {
       
       const pdfBuffer = readFileSync(filepath);
       
+      // Si tiene parámetro preview=true, mostrar inline, sino descargar
+      const isPreview = req.query.preview === 'true';
+      const disposition = isPreview ? 'inline' : 'attachment';
+      
       res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.setHeader('Content-Disposition', `${disposition}; filename="${filename}"`);
       res.send(pdfBuffer);
       
       // Limpiar archivo después de enviarlo

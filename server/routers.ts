@@ -829,13 +829,10 @@ export const appRouter = router({
 
         // Si se actualizan items, recalcular totales
         if (items) {
-          console.log("[DEBUG BACKEND] Items recibidos para actualizar:", JSON.stringify(items, null, 2));
-          
           // El totalPrice de cada item YA incluye todo (cocina + extras + transporte si aplica)
           // No necesitamos sumar nada adicional
           const total = items.reduce((sum, item) => sum + item.totalPrice, 0);
           const transportCost = 0; // Ya incluido en totalPrice de items
-          console.log("[DEBUG BACKEND] Total calculado:", total, "(ya incluye transporte si aplica)");
 
           // Eliminar items antiguos
           await db.deleteQuotationItems(id);
@@ -863,7 +860,6 @@ export const appRouter = router({
             transportCost: transportCost.toString(),
             total: total.toString(),
           });
-          console.log("[DEBUG BACKEND] Cotización actualizada en BD con ID:", id);
         } else {
           await db.updateQuotation(id, quotationData);
         }
@@ -1129,11 +1125,8 @@ export const appRouter = router({
 
         // Generar PDF usando módulo separado
         try {
-          console.log('[PDF] Iniciando generación de PDF para cotización:', quotation.id);
-          
-          const { generateQuotationPDF } = await import('./quotation-pdf-generator');
+            const { generateQuotationPDF } = await import('./quotation-pdf-generator');
           const result = await generateQuotationPDF(pdfData, quotation.id);
-          console.log('[PDF] PDF generado exitosamente en:', result.pdfPath);
           
           // Extraer solo el nombre del archivo
           const path = await import('path');
@@ -1141,7 +1134,6 @@ export const appRouter = router({
           
           // Devolver URL de descarga
           const downloadUrl = `/api/pdf/${filename}`;
-          console.log('[PDF] URL de descarga:', downloadUrl);
           
           return {
             success: true,
@@ -2864,10 +2856,7 @@ export const appRouter = router({
         if (ctx.user.role !== "super_admin" && ctx.user.role !== "admin") {
           throw new TRPCError({ code: "FORBIDDEN", message: "Solo administradores pueden gestionar el catálogo" });
         }
-        console.log('[DEBUG] Creando herraje con categoría:', input.category);
-        console.log('[DEBUG] Input completo:', JSON.stringify(input, null, 2));
         const id = await db.createHardwareItem(input);
-        console.log('[DEBUG] Herraje creado con ID:', id);
         return { success: true, id };
       }),
 

@@ -1319,3 +1319,10 @@
 - [x] Eliminar cotizaciones del cliente (quotations y quotationItems)
 - [x] Eliminar proyectos del cliente (projects y tablas relacionadas)
 - [ ] Probar eliminación de cliente con registros relacionados
+
+## Limpieza de Console.log Temporales
+
+- [x] Buscar todos los console.log en routers.ts
+- [x] Buscar todos los console.log en db.ts
+- [x] Eliminar logs temporales agregados durante desarrollo de herrajes
+- [x] Verificar que no queden logs de debug en el código

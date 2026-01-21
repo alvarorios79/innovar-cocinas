@@ -251,7 +251,16 @@ export default function Quotations() {
           unitPrice: item.unitPrice || "",
           totalPrice: item.totalPrice,
           includesFixedCosts: item.includesFixedCosts || false,
-          kitchenConfig: item.kitchenConfig || {
+          kitchenConfig: item.kitchenConfig ? {
+            ...item.kitchenConfig,
+            specialModules: item.kitchenConfig.specialModules || {
+              nichoNevecon: false,
+              nichoNevera: false,
+              alacenaEntrepanos: false,
+              alacenaHerraje: false,
+              torreHornos: false,
+            },
+          } : {
             shape: "",
             totalMeters: 0,
             lowerCabinets: 0,

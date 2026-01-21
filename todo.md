@@ -1145,3 +1145,8 @@
 - [x] Agregar descripción detallada de componentes de cocina en el PDF
 - [x] Incluir: metraje de muebles inferiores/superiores, tipo de mesón, muebles especiales, LED, isla, barra
 - [x] Mostrar toda la información sin precios individuales, solo precio total
+
+## Bug: Botones desaparecidos en panel de cotizaciones
+- [x] Los botones "Editar" y "Enviar Email" no aparecen en la lista de cotizaciones
+- [x] Verificar si es problema de cache o código
+- [x] Restaurar botones y funcionalidad

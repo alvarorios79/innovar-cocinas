@@ -18,7 +18,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Plus, Trash2, FileText, Send, Eye } from "lucide-react";
+import { Plus, Trash2, FileText, Send, Eye, Pencil, Mail } from "lucide-react";
 import { toast } from "sonner";
 
 interface KitchenConfig {
@@ -728,30 +728,26 @@ export default function Quotations() {
                     PDF
                   </Button>
 
-                  {quot.status === "draft" && (
-                    <>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleEdit(quot.id)}
-                      >
-                        <Eye className="h-4 w-4 mr-1" />
-                        Editar
-                      </Button>
-                      <Button
-                        size="sm"
-                        onClick={() => {
-                          if (window.confirm(`¿Enviar cotización por email a ${quot.client?.email}?`)) {
-                            sendByEmail.mutate({ id: quot.id });
-                          }
-                        }}
-                        disabled={sendByEmail.isPending}
-                      >
-                        <Send className="h-4 w-4 mr-1" />
-                        Enviar Email
-                      </Button>
-                    </>
-                  )}
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleEdit(quot.id)}
+                  >
+                    <Pencil className="h-4 w-4 mr-1" />
+                    Editar
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      if (window.confirm(`¿Enviar cotización por email a ${quot.client?.email}?`)) {
+                        sendByEmail.mutate({ id: quot.id });
+                      }
+                    }}
+                    disabled={sendByEmail.isPending || !quot.client?.email}
+                  >
+                    <Mail className="h-4 w-4 mr-1" />
+                    Enviar Email
+                  </Button>
 
                   <Button
                     size="sm"

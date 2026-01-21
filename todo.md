@@ -1150,3 +1150,5 @@
 - [x] Los botones "Editar" y "Enviar Email" no aparecen en la lista de cotizaciones
 - [x] Verificar si es problema de cache o código
 - [x] Restaurar botones y funcionalidad
+- [x] Eliminar línea "Transporte e imprevistos incluidos" del desglose en PDF
+- [x] Agregar NIT 10021456-1 debajo de "INNOVAR COCINAS DE DISEÑO" en PDF

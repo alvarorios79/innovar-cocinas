@@ -1051,10 +1051,6 @@ export const appRouter = router({
                 lines.push(`• Luz LED: ${config.ledLighting.toFixed(2)}ml`);
               }
               
-              // Transporte
-              lines.push('');
-              lines.push(`• Transporte e imprevistos incluidos`);
-              
               description = lines.join('\n');
             }
             
@@ -1226,10 +1222,6 @@ export const appRouter = router({
               if (config.ledLighting > 0) {
                 lines.push(`• Luz LED: ${config.ledLighting.toFixed(2)}ml`);
               }
-              
-              // Transporte
-              lines.push('');
-              lines.push(`• Transporte e imprevistos incluidos`);
               
               description = lines.join('\n');
             }

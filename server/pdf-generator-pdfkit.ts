@@ -62,7 +62,8 @@ export async function generateQuotationPDF(
       doc.fontSize(9).fillColor(darkGray);
       doc.text("INNOVAR", 400, 50, { align: "right" });
       doc.text("COCINAS DE DISEÑO", 400, 65, { align: "right" });
-      doc.text("K9 vía Cerritos a Pereira", 400, 85, { align: "right" });
+      doc.text("NIT: 10021456-1", 400, 78, { align: "right" });
+      doc.text("K9 vía Cerritos a Pereira", 400, 93, { align: "right" });
       doc.text("313 680 2025", 400, 100, { align: "right" });
       doc.text("ventas@cocinasintegralespereira.co", 400, 115, {
         align: "right",

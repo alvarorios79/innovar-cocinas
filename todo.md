@@ -1099,3 +1099,24 @@
 - [x] La cotización conservaba el precio anterior en lugar de calcular el nuevo
 - [x] CAUSA: Frontend enviaba totalPrice anterior sin recalcular
 - [x] SOLUCIÓN: Recalcular totalPrice de todos los items de cocina en handleSubmit antes de enviar mutación
+
+## Bug: Error al guardar cotización - campos vacíos - RESUELTO
+
+- [x] Error al guardar cotización: "Failed query: insert into quotationItems"
+- [x] Campos description, quantity, unitPrice llegaban vacíos para items de cocina
+- [x] BD requiere description y quantity NOT NULL
+- [x] SOLUCIÓN Frontend: Agregar valores por defecto "Cocina integral" y "1" en handleSubmit
+- [x] SOLUCIÓN Backend: Agregar fallback values en endpoints create y update
+- [ ] Error al guardar cotización: "Failed query: insert into quotationItems"
+- [ ] Campos description, quantity, unitPrice llegan vacíos para items de cocina
+- [ ] BD requiere description y quantity NOT NULL
+- [ ] Para cocinas estos campos no son necesarios (info está en kitchenConfig)
+- [ ] Necesita valores por defecto para items de cocina
+
+## Bug: Error al guardar cotización - campos vacíos - RESUELTO
+
+- [x] Error al guardar cotización: "Failed query: insert into quotationItems"
+- [x] Campos description, quantity, unitPrice llegaban vacíos para items de cocina
+- [x] BD requiere description y quantity NOT NULL
+- [x] SOLUCIÓN Frontend: Agregar valores por defecto "Cocina integral" y "1" en handleSubmit
+- [x] SOLUCIÓN Backend: Agregar fallback values en endpoints create y update

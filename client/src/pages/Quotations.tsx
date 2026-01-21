@@ -550,6 +550,9 @@ export default function Quotations() {
     // Recalcular totales de items de cocina antes de enviar
     const itemsWithUpdatedPrices = items.map((item, index) => {
       if (item.itemType === "cocina" && item.kitchenConfig) {
+        // Asegurar que campos requeridos tengan valores para items de cocina
+        const description = item.description || "Cocina integral";
+        const quantity = item.quantity || "1";
         // Recalcular el total basado en la configuración actual
         const config = item.kitchenConfig;
         let total = 0;
@@ -616,7 +619,7 @@ export default function Quotations() {
           total += 600000;
         }
 
-        return { ...item, totalPrice: total };
+        return { ...item, description, quantity, totalPrice: total };
       }
       return item;
     });

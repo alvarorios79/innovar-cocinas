@@ -181,26 +181,15 @@ export async function generateQuotationPDF(
         rowBackground = !rowBackground;
       }
 
-      // Mostrar línea de costos fijos solo si NO están incluidos en items
-      const fixedCostsValue = parseFloat(data.transportCost);
-      if (fixedCostsValue > 0) {
-        currentY += 15;
-        doc.fontSize(10).fillColor(darkGray).font("Helvetica");
-        doc.text("Transporte e imprevistos:", 390, currentY);
-        doc.text(formatCurrency(data.transportCost), 510, currentY, {
-          align: "right",
-        });
-      }
-
-      // Total
-      currentY += 20;
+      // Total (transporte ya incluido en el precio total)
+      currentY += 30;
       doc
         .fillColor(turquoise)
-        .rect(380, currentY - 5, 182, 30)
+        .rect(380, currentY, 182, 30)
         .fill();
-      doc.fontSize(12).fillColor("white");
-      doc.text("TOTAL:", 390, currentY + 5);
-      doc.text(formatCurrency(data.total), 510, currentY + 5, {
+      doc.fontSize(12).fillColor("white").font("Helvetica-Bold");
+      doc.text("TOTAL:", 390, currentY + 8);
+      doc.text(formatCurrency(data.total), 510, currentY + 8, {
         align: "right",
       });
 

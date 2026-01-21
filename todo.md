@@ -1027,3 +1027,9 @@
 - [x] Actualizar cuenta bancaria a "Cuenta de Ahorros Bancolombia # 11533034332"
 - [x] Corregir palabras superpuestas en el PDF (ajustadas posiciones Y)
 - [x] Probar PDF corregido con cotización de cocina (listo para prueba del usuario)
+
+## Correcciones Adicionales PDF
+
+- [x] Eliminar línea de "Transporte e imprevistos" del PDF (ya está incluido en precio total del item)
+- [x] Corregir superposición del precio total para que sea legible (ajustado rectángulo y texto)
+- [x] Probar PDF con cotización completa (listo para prueba del usuario)

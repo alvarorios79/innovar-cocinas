@@ -48,6 +48,7 @@ export default function Admin() {
   const [selectedClients, setSelectedClients] = useState<number[]>([]);
   const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
   const [clientSearchQuery, setClientSearchQuery] = useState("");
+  const [clientSortBy, setClientSortBy] = useState<"name-asc" | "name-desc" | "date-asc" | "date-desc">("date-desc");
 
   const utils = trpc.useUtils();
   const { data: appointments = [], isLoading: loadingAppointments } = trpc.appointments.list.useQuery();
@@ -944,18 +945,32 @@ export default function Admin() {
                   <p className="text-muted-foreground">No hay clientes registrados</p>
                 ) : (
                   <div className="space-y-4">
-                    {/* Barra de búsqueda */}
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        placeholder="Buscar por nombre, teléfono o email..."
-                        value={clientSearchQuery}
-                        onChange={(e) => setClientSearchQuery(e.target.value)}
-                        className="pl-10"
-                      />
+                    {/* Barra de búsqueda y ordenamiento */}
+                    <div className="flex gap-3">
+                      <div className="relative flex-1">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          placeholder="Buscar por nombre, teléfono o email..."
+                          value={clientSearchQuery}
+                          onChange={(e) => setClientSearchQuery(e.target.value)}
+                          className="pl-10"
+                        />
+                      </div>
+                      <Select value={clientSortBy} onValueChange={(value: any) => setClientSortBy(value)}>
+                        <SelectTrigger className="w-[200px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="date-desc">Más recientes</SelectItem>
+                          <SelectItem value="date-asc">Más antiguos</SelectItem>
+                          <SelectItem value="name-asc">Nombre (A-Z)</SelectItem>
+                          <SelectItem value="name-desc">Nombre (Z-A)</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                     
                     {(() => {
+                      // Filtrar clientes
                       const filteredClients = clients.filter(client => {
                         const query = clientSearchQuery.toLowerCase();
                         return (
@@ -965,7 +980,23 @@ export default function Admin() {
                         );
                       });
                       
-                      if (filteredClients.length === 0) {
+                      // Ordenar clientes
+                      const sortedClients = [...filteredClients].sort((a, b) => {
+                        switch (clientSortBy) {
+                          case "name-asc":
+                            return a.name.localeCompare(b.name);
+                          case "name-desc":
+                            return b.name.localeCompare(a.name);
+                          case "date-asc":
+                            return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+                          case "date-desc":
+                            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+                          default:
+                            return 0;
+                        }
+                      });
+                      
+                      if (sortedClients.length === 0) {
                         return <p className="text-muted-foreground text-center py-8">No se encontraron clientes</p>;
                       }
                       
@@ -973,16 +1004,16 @@ export default function Admin() {
                         <>
                           {clientSearchQuery && (
                             <p className="text-sm text-muted-foreground">
-                              {filteredClients.length} de {clients.length} cliente(s) encontrado(s)
+                              {sortedClients.length} de {clients.length} cliente(s) encontrado(s)
                             </p>
                           )}
                           
                           <div className="flex items-center gap-2 pb-2 border-b">
                             <Checkbox
-                              checked={selectedClients.length === filteredClients.length && filteredClients.length > 0}
+                              checked={selectedClients.length === sortedClients.length && sortedClients.length > 0}
                               onCheckedChange={(checked) => {
                                 if (checked) {
-                                  setSelectedClients(filteredClients.map(c => c.id));
+                                  setSelectedClients(sortedClients.map(c => c.id));
                                 } else {
                                   setSelectedClients([]);
                                 }
@@ -991,7 +1022,7 @@ export default function Admin() {
                             <span className="text-sm font-medium">Seleccionar todos</span>
                           </div>
                           
-                          {filteredClients.map((client) => (
+                          {sortedClients.map((client) => (
                             <div key={client.id} className="border rounded-lg p-4">
                               <div className="flex items-start gap-3">
                                 <Checkbox

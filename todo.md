@@ -1334,3 +1334,11 @@
 - [x] Implementar lógica de filtrado por nombre, teléfono o email
 - [x] Mostrar contador de resultados filtrados
 - [x] Aplicar estilos consistentes con el resto de la interfaz
+
+## Ordenamiento de Lista de Clientes
+
+- [x] Agregar estado sortBy en Admin.tsx para la sección de clientes
+- [x] Crear selector desplegable con opciones: "Nombre (A-Z)", "Nombre (Z-A)", "Más recientes", "Más antiguos"
+- [x] Implementar lógica de ordenamiento que se aplique después del filtrado
+- [x] Mantener ordenamiento al cambiar búsqueda
+- [x] Aplicar estilos consistentes al selector

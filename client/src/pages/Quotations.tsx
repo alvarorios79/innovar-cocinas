@@ -378,11 +378,11 @@ export default function Quotations() {
 
     // 1. Calcular metraje resultante después de descontar muebles especiales
     let deductions = 0;
-    if (config.specialModules.nichoNevecon) deductions += 1.0; // 100cm
-    if (config.specialModules.nichoNevera) deductions += 0.75; // 75cm
-    if (config.specialModules.alacenaEntrepanos) deductions += 0.5; // 50cm
-    if (config.specialModules.alacenaHerraje) deductions += 0.5; // 50cm
-    if (config.specialModules.torreHornos) deductions += 0.7; // 70cm
+    if (config.specialModules?.nichoNevecon) deductions += 1.0; // 100cm
+    if (config.specialModules?.nichoNevera) deductions += 0.75; // 75cm
+    if (config.specialModules?.alacenaEntrepanos) deductions += 0.5; // 50cm
+    if (config.specialModules?.alacenaHerraje) deductions += 0.5; // 50cm
+    if (config.specialModules?.torreHornos) deductions += 0.7; // 70cm
 
     const resultingMeters = Math.max(0, config.totalMeters - deductions);
     
@@ -397,11 +397,11 @@ export default function Quotations() {
     total += resultingMeters * 900000; // Superiores
 
     // 3. Muebles especiales
-    if (config.specialModules.nichoNevecon) total += 1200000;
-    if (config.specialModules.nichoNevera) total += 1200000;
-    if (config.specialModules.alacenaEntrepanos) total += 1250000;
-    if (config.specialModules.alacenaHerraje) total += 900000;
-    if (config.specialModules.torreHornos) total += 1350000;
+    if (config.specialModules?.nichoNevecon) total += 1200000;
+    if (config.specialModules?.nichoNevera) total += 1200000;
+    if (config.specialModules?.alacenaEntrepanos) total += 1250000;
+    if (config.specialModules?.alacenaHerraje) total += 900000;
+    if (config.specialModules?.torreHornos) total += 1350000;
 
     // 4. Mesón principal (usa metraje resultante automáticamente)
     if (config.countertop.type) {

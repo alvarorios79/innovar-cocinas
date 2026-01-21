@@ -1044,3 +1044,9 @@
 - [x] El valor del total se corta y los últimos 3 dígitos aparecen en segunda línea (ej: "18.600." en primera línea, "000" en segunda)
 - [x] Aumentar ancho del rectángulo del total (de 182 a 212px) y mover posición X (de 380 a 350)
 - [x] Ajustar posición y alineación del texto del total con width: 195px para que quepa completo
+
+## Bug: Error al editar/ver cotización persiste
+
+- [x] Error "Cannot read properties of undefined (reading 'nichoNevecon')" persiste
+- [x] Falta validación de specialModules en calculateKitchenTotal (líneas 381-385, 400-404)
+- [x] Agregar validación `config.specialModules?.` en todos los accesos dentro de calculateKitchenTotal

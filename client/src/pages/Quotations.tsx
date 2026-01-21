@@ -252,7 +252,10 @@ export default function Quotations() {
           totalPrice: item.totalPrice,
           includesFixedCosts: item.includesFixedCosts || false,
           kitchenConfig: item.kitchenConfig ? {
-            ...item.kitchenConfig,
+            shape: item.kitchenConfig.shape || "",
+            totalMeters: item.kitchenConfig.totalMeters || 0,
+            lowerCabinets: item.kitchenConfig.lowerCabinets || 0,
+            upperCabinets: item.kitchenConfig.upperCabinets || 0,
             specialModules: item.kitchenConfig.specialModules || {
               nichoNevecon: false,
               nichoNevera: false,
@@ -260,6 +263,24 @@ export default function Quotations() {
               alacenaHerraje: false,
               torreHornos: false,
             },
+            countertop: item.kitchenConfig.countertop || {
+              type: "",
+              meters: 0,
+              depthSurcharge: "none",
+            },
+            island: item.kitchenConfig.island || {
+              enabled: false,
+              meters: 0,
+              countertopType: "",
+              hasLaterals: false,
+            },
+            bar: item.kitchenConfig.bar || {
+              enabled: false,
+              meters: 0,
+              countertopType: "",
+              hasLateral: false,
+            },
+            ledLighting: item.kitchenConfig.ledLighting || 0,
           } : {
             shape: "",
             totalMeters: 0,

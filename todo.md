@@ -1050,3 +1050,9 @@
 - [x] Error "Cannot read properties of undefined (reading 'nichoNevecon')" persiste
 - [x] Falta validación de specialModules en calculateKitchenTotal (líneas 381-385, 400-404)
 - [x] Agregar validación `config.specialModules?.` en todos los accesos dentro de calculateKitchenTotal
+
+## Bug CRÍTICO: Estructura incompleta de kitchenConfig
+
+- [x] Error persiste: ahora "Cannot read properties of undefined (reading 'type')" - falta countertop
+- [x] Problema: Solo agregué specialModules pero faltan otros campos (countertop, island, bar, etc.)
+- [x] Solución: Asegurar que TODA la estructura de kitchenConfig tenga valores por defecto para TODOS los campos (shape, totalMeters, specialModules, countertop, island, bar, ledLighting)

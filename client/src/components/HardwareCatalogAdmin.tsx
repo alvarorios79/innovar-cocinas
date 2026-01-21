@@ -30,6 +30,7 @@ export function HardwareCatalogAdmin() {
     name: "",
     description: "",
     options: "",
+    price: "",
   });
 
   const utils = trpc.useUtils();
@@ -87,6 +88,7 @@ export function HardwareCatalogAdmin() {
       name: "",
       description: "",
       options: "",
+      price: "",
     });
   };
 
@@ -127,13 +129,24 @@ export function HardwareCatalogAdmin() {
       return;
     }
 
+    const priceValue = form.price ? parseFloat(form.price) : undefined;
+    
     if (editingItem) {
       updateHardware.mutate({
         id: editingItem.id,
-        ...form,
+        name: form.name,
+        description: form.description,
+        options: form.options,
+        price: priceValue,
       });
     } else {
-      createHardware.mutate(form);
+      createHardware.mutate({
+        category: form.category,
+        name: form.name,
+        description: form.description,
+        options: form.options,
+        price: priceValue,
+      });
     }
   };
 
@@ -144,6 +157,7 @@ export function HardwareCatalogAdmin() {
       name: item.name,
       description: item.description || "",
       options: item.options || "",
+      price: item.price || "",
     });
   };
 
@@ -231,6 +245,17 @@ export function HardwareCatalogAdmin() {
                     onChange={(e) => setForm({ ...form, options: e.target.value })}
                     placeholder="Ej: Acero / Estándar, Cromado / Negro"
                     rows={2}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Precio (incluye instalación)</Label>
+                  <Input
+                    type="number"
+                    value={form.price}
+                    onChange={(e) => setForm({ ...form, price: e.target.value })}
+                    placeholder="Ej: 150000"
+                    min="0"
+                    step="1000"
                   />
                 </div>
               </div>
@@ -325,8 +350,13 @@ export function HardwareCatalogAdmin() {
                         {item.description && (
                           <p className="text-sm text-muted-foreground line-clamp-2">{item.description}</p>
                         )}
+                        {item.price && (
+                          <p className="text-lg font-semibold text-primary mt-2">
+                            ${parseFloat(item.price).toLocaleString('es-CO')}
+                          </p>
+                        )}
                         {item.options && (
-                          <p className="text-xs text-primary mt-1">
+                          <p className="text-xs text-muted-foreground mt-1">
                             <span className="font-medium">Opciones:</span> {item.options}
                           </p>
                         )}

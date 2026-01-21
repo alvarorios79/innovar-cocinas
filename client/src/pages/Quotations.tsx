@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
+import { HardwareSelectorForQuotation } from "@/components/HardwareSelectorForQuotation";
 import { PDFPreviewDialog } from "@/components/PDFPreviewDialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -54,6 +55,14 @@ interface KitchenConfig {
   ledLighting: number;
 }
 
+interface HardwareSelection {
+  hardwareId: number;
+  name: string;
+  price: string;
+  quantity: number;
+  subtotal: number;
+}
+
 interface QuotationItem {
   itemNumber: number;
   itemType: string;
@@ -63,6 +72,7 @@ interface QuotationItem {
   totalPrice: number;
   includesFixedCosts?: boolean;
   kitchenConfig?: KitchenConfig;
+  hardwareSelections?: HardwareSelection[];
 }
 
 export default function Quotations() {
@@ -430,6 +440,17 @@ export default function Quotations() {
     
     // Recalcular automáticamente con el item actualizado
     calculateKitchenTotal(index, newItems);
+  };
+
+  const calculateHardwareTotal = (index: number) => {
+    const item = items[index];
+    if (!item.hardwareSelections || item.hardwareSelections.length === 0) {
+      updateItem(index, "totalPrice", 0);
+      return;
+    }
+
+    const total = item.hardwareSelections.reduce((sum, selection) => sum + selection.subtotal, 0);
+    updateItem(index, "totalPrice", total);
   };
 
   const calculateKitchenTotal = (index: number, itemsArray: typeof items = items) => {
@@ -1245,8 +1266,20 @@ export default function Quotations() {
                           </div>
                         )}
 
+                        {/* Campos dinámicos para HERRAJES */}
+                        {item.itemType === "herrajes" && (
+                          <HardwareSelectorForQuotation
+                            itemIndex={index}
+                            selectedHardware={item.hardwareSelections || []}
+                            onHardwareChange={(selections: HardwareSelection[]) => {
+                              updateItem(index, "hardwareSelections", selections);
+                              calculateHardwareTotal(index);
+                            }}
+                          />
+                        )}
+
                         {/* Campos estándar para otros tipos */}
-                        {item.itemType !== "cocina" && (
+                        {item.itemType !== "cocina" && item.itemType !== "herrajes" && (
                           <>
                             <div>
                               <Label>Descripción *</Label>

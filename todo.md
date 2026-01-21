@@ -1199,3 +1199,34 @@
 - [ ] Test de actualización de precio de herraje
 - [ ] Test de obtención de herrajes por categoría
 - [ ] Test de cálculo de precio total con múltiples herrajes
+
+## Implementación Completa de Sistema de Herrajes con Precios
+
+### Fase 1: Campo de Precio en Formulario de Herrajes
+- [x] Agregar campo de precio en formulario de creación/edición de herrajes (Admin.tsx)
+- [x] Mostrar precio en tarjetas del catálogo de herrajes
+- [x] Validación de precio (número positivo, formato decimal)
+
+### Fase 2: Schema y Precio Histórico
+- [x] Agregar campo priceAtQuotation a tabla projectHardwareSelections
+- [x] Actualizar funciones de db.ts para manejar precio histórico
+- [x] Migrar schema con pnpm db:push
+
+### Fase 3: Selector de Herrajes en Cotizaciones
+- [x] Crear sección condicional para itemType === "herrajes" en Quotations.tsx
+- [x] Implementar filtro por categoría (cocina/closet/puerta) según contexto
+- [x] Crear lista de herrajes con checkboxes y campos de cantidad
+- [x] Mostrar precio unitario y subtotal por herraje
+- [ ] Guardar selecciones en projectHardwareSelections con precio histórico
+
+### Fase 4: Cálculo Automático de Precios
+- [x] Función para calcular subtotal por herraje (precio × cantidad)
+- [x] Función para calcular total de herrajes seleccionados
+- [x] Integrar con cálculo total de la cotización
+- [ ] Actualizar endpoints tRPC para guardar/cargar selecciones
+
+### Fase 5: Testing y Validación
+- [ ] Crear test para selección de herrajes en cotizaciones
+- [ ] Probar flujo completo: crear herraje → agregar precio → cotizar → calcular
+- [ ] Verificar que precio histórico se guarda correctamente
+- [ ] Validar que cambios de precio no afectan cotizaciones anteriores

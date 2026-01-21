@@ -447,6 +447,8 @@ export const projectHardwareSelections = mysqlTable("projectHardwareSelections",
   id: int("id").autoincrement().primaryKey(),
   projectId: int("projectId").notNull().references(() => projects.id),
   hardwareId: int("hardwareId").notNull().references(() => hardwareCatalog.id),
+  quantity: int("quantity").default(1).notNull(), // Cantidad seleccionada
+  priceAtQuotation: decimal("priceAtQuotation", { precision: 10, scale: 2 }), // Precio histórico al momento de la cotización
   selectedOption: text("selectedOption"), // Opción específica seleccionada
   notes: text("notes"),
   createdBy: int("createdBy").notNull().references(() => users.id),

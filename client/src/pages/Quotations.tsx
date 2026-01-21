@@ -292,6 +292,7 @@ export default function Quotations() {
           unitPrice: item.unitPrice || "",
           totalPrice: item.totalPrice,
           includesFixedCosts: item.includesFixedCosts || false,
+          hardwareSelections: item.hardwareSelections || [],
           kitchenConfig: item.kitchenConfig ? {
             shape: item.kitchenConfig.shape ?? "",
             totalMeters: item.kitchenConfig.totalMeters ?? 0,

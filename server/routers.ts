@@ -703,6 +703,13 @@ export const appRouter = router({
           totalPrice: z.union([z.number(), z.string()]).transform(val => typeof val === 'string' ? parseFloat(val) : val),
           includesFixedCosts: z.boolean().optional(),
           kitchenConfig: z.any().optional(),
+          hardwareSelections: z.array(z.object({
+            hardwareId: z.number(),
+            name: z.string(),
+            price: z.string(),
+            quantity: z.number(),
+            subtotal: z.number(),
+          })).optional(),
         })),
       }))
       .mutation(async ({ ctx, input }) => {
@@ -755,6 +762,7 @@ export const appRouter = router({
             totalPrice: item.totalPrice.toString(),
             includesFixedCosts: item.includesFixedCosts || false,
             kitchenConfig: item.kitchenConfig ? JSON.stringify(item.kitchenConfig) : null,
+            hardwareSelections: item.hardwareSelections ? JSON.stringify(item.hardwareSelections) : null,
           });
         }
 
@@ -777,6 +785,13 @@ export const appRouter = router({
           totalPrice: z.union([z.number(), z.string()]).transform(val => typeof val === 'string' ? parseFloat(val) : val),
           includesFixedCosts: z.boolean().optional(),
           kitchenConfig: z.any().optional(),
+          hardwareSelections: z.array(z.object({
+            hardwareId: z.number(),
+            name: z.string(),
+            price: z.string(),
+            quantity: z.number(),
+            subtotal: z.number(),
+          })).optional(),
         })).optional(),
       }))
       .mutation(async ({ ctx, input }) => {
@@ -811,6 +826,7 @@ export const appRouter = router({
               totalPrice: item.totalPrice.toString(),
               includesFixedCosts: item.includesFixedCosts || false,
               kitchenConfig: item.kitchenConfig ? JSON.stringify(item.kitchenConfig) : null,
+              hardwareSelections: item.hardwareSelections ? JSON.stringify(item.hardwareSelections) : null,
             });
           }
 
@@ -868,12 +884,15 @@ export const appRouter = router({
         const client = await db.getClientById(quotation.clientId);
         const items = await db.getQuotationItems(input.id);
 
-        // Parsear kitchenConfig de string JSON a objeto
+        // Parsear kitchenConfig y hardwareSelections de string JSON a objeto
         const parsedItems = items.map(item => ({
           ...item,
           kitchenConfig: item.kitchenConfig && typeof item.kitchenConfig === 'string' 
             ? JSON.parse(item.kitchenConfig) 
-            : item.kitchenConfig
+            : item.kitchenConfig,
+          hardwareSelections: item.hardwareSelections && typeof item.hardwareSelections === 'string'
+            ? JSON.parse(item.hardwareSelections)
+            : item.hardwareSelections
         }));
 
         return {

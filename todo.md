@@ -1258,3 +1258,28 @@
 - [x] Agregar logs para rastrear el valor de category durante la creación
 - [x] Hacer que resetForm use la categoría seleccionada en el filtro
 - [x] Hacer selector de categoría más visible con fondo azul y mensaje de confirmación
+
+## Persistencia de Selecciones de Herrajes en Cotizaciones
+
+### Backend - Guardar Selecciones
+- [x] Actualizar endpoint createQuotation para guardar hardwareSelections en quotationItems
+- [x] Actualizar endpoint updateQuotation para actualizar hardwareSelections
+- [ ] Guardar cada herraje en projectHardwareSelections con precio histórico (opcional)
+- [x] Validar que hardwareSelections sea un array válido antes de guardar
+
+### Backend - Cargar Selecciones
+- [x] Actualizar endpoint getQuotation para incluir hardwareSelections
+- [x] Parsear JSON de hardwareSelections al cargar cotización
+- [ ] Incluir herrajes en respuesta de listado de cotizaciones (no necesario)
+
+### Frontend - Integración
+- [x] Cargar hardwareSelections al abrir cotización para editar
+- [x] Poblar estado de selectedHardware con datos guardados
+- [ ] Mantener sincronización entre formulario y datos guardados (automático)
+- [ ] Mostrar herrajes guardados en vista de detalle de cotización (opcional)
+
+### Pruebas
+- [ ] Crear cotización con herrajes y verificar que se guarden
+- [ ] Editar cotización y verificar que herrajes se mantengan
+- [ ] Generar PDF y verificar que herrajes aparezcan correctamente
+- [ ] Cambiar precio de herraje y verificar que cotizaciones viejas mantengan precio original

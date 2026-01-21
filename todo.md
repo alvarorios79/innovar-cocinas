@@ -1230,3 +1230,13 @@
 - [ ] Probar flujo completo: crear herraje → agregar precio → cotizar → calcular
 - [ ] Verificar que precio histórico se guarda correctamente
 - [ ] Validar que cambios de precio no afectan cotizaciones anteriores
+
+## Mostrar Herrajes en PDF de Cotización
+
+- [x] Buscar archivo de generación de PDF de cotizaciones
+- [x] Analizar estructura del template HTML
+- [x] Agregar sección de herrajes seleccionados con tabla (nombre, cantidad, precio unitario, subtotal)
+- [x] Incluir total de herrajes en el cálculo total de la cotización
+- [x] Agregar campo hardwareSelections al schema de quotationItems
+- [x] Aplicar migración de base de datos
+- [ ] Probar generación de PDF con cotización tipo "herrajes"

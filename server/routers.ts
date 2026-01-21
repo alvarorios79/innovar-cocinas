@@ -957,8 +957,23 @@ export const appRouter = router({
           items: items.map(item => {
             let description = item.description;
             
+            // Si es herrajes y tiene hardwareSelections, generar descripción detallada
+            if (item.itemType === 'herrajes' && item.hardwareSelections && Array.isArray(item.hardwareSelections) && item.hardwareSelections.length > 0) {
+              const lines: string[] = [];
+              lines.push('HERRAJES SELECCIONADOS');
+              lines.push('');
+              
+              item.hardwareSelections.forEach((hw: any) => {
+                const price = parseFloat(hw.price || '0');
+                const subtotal = hw.subtotal || (price * hw.quantity);
+                lines.push(`• ${hw.name}`);
+                lines.push(`  Cantidad: ${hw.quantity} | Precio unitario: ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(price)} | Subtotal: ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(subtotal)}`);
+              });
+              
+              description = lines.join('\n');
+            }
             // Si es cocina y tiene kitchenConfig, generar descripción detallada
-            if (item.itemType === 'cocina' && item.kitchenConfig) {
+            else if (item.itemType === 'cocina' && item.kitchenConfig) {
               const config = typeof item.kitchenConfig === 'string' 
                 ? JSON.parse(item.kitchenConfig) 
                 : item.kitchenConfig;
@@ -1129,8 +1144,23 @@ export const appRouter = router({
           items: items.map(item => {
             let description = item.description;
             
+            // Si es herrajes y tiene hardwareSelections, generar descripción detallada
+            if (item.itemType === 'herrajes' && item.hardwareSelections && Array.isArray(item.hardwareSelections) && item.hardwareSelections.length > 0) {
+              const lines: string[] = [];
+              lines.push('HERRAJES SELECCIONADOS');
+              lines.push('');
+              
+              item.hardwareSelections.forEach((hw: any) => {
+                const price = parseFloat(hw.price || '0');
+                const subtotal = hw.subtotal || (price * hw.quantity);
+                lines.push(`• ${hw.name}`);
+                lines.push(`  Cantidad: ${hw.quantity} | Precio unitario: ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(price)} | Subtotal: ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(subtotal)}`);
+              });
+              
+              description = lines.join('\n');
+            }
             // Si es cocina y tiene kitchenConfig, generar descripción detallada
-            if (item.itemType === 'cocina' && item.kitchenConfig) {
+            else if (item.itemType === 'cocina' && item.kitchenConfig) {
               const config = typeof item.kitchenConfig === 'string' 
                 ? JSON.parse(item.kitchenConfig) 
                 : item.kitchenConfig;

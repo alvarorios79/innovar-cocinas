@@ -556,6 +556,7 @@ export const quotationItems = mysqlTable("quotationItems", {
   totalPrice: varchar("totalPrice", { length: 50 }).notNull(),
   includesFixedCosts: boolean("includesFixedCosts").default(false).notNull(),
   kitchenConfig: json("kitchenConfig"),
+  hardwareSelections: json("hardwareSelections"), // Array de { hardwareId, name, price, quantity, subtotal }
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 

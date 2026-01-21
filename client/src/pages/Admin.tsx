@@ -495,13 +495,43 @@ export default function Admin() {
 
         {/* Main Content */}
         <Tabs defaultValue="appointments" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-6 h-auto">
-            <TabsTrigger value="appointments" className="text-xs sm:text-sm px-2 py-2">Citas</TabsTrigger>
-            <TabsTrigger value="advisory" className="text-xs sm:text-sm px-2 py-2">Asesoría</TabsTrigger>
-            <TabsTrigger value="quotations" className="text-xs sm:text-sm px-2 py-2">Cotizaciones</TabsTrigger>
-            <TabsTrigger value="clients" className="text-xs sm:text-sm px-2 py-2">Clientes</TabsTrigger>
-            <TabsTrigger value="users" className="text-xs sm:text-sm px-2 py-2">Usuarios</TabsTrigger>
-            <TabsTrigger value="hardware" className="text-xs sm:text-sm px-2 py-2">Herrajes</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-6 h-auto gap-2 bg-transparent p-1">
+            <TabsTrigger 
+              value="appointments" 
+              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white hover:bg-blue-100 transition-colors"
+            >
+              Citas
+            </TabsTrigger>
+            <TabsTrigger 
+              value="advisory" 
+              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-orange-500 data-[state=active]:text-white hover:bg-orange-100 transition-colors"
+            >
+              Asesoría
+            </TabsTrigger>
+            <TabsTrigger 
+              value="quotations" 
+              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-cyan-500 data-[state=active]:text-white hover:bg-cyan-100 transition-colors"
+            >
+              Cotizaciones
+            </TabsTrigger>
+            <TabsTrigger 
+              value="clients" 
+              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-green-500 data-[state=active]:text-white hover:bg-green-100 transition-colors"
+            >
+              Clientes
+            </TabsTrigger>
+            <TabsTrigger 
+              value="users" 
+              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-slate-500 data-[state=active]:text-white hover:bg-slate-100 transition-colors"
+            >
+              Usuarios
+            </TabsTrigger>
+            <TabsTrigger 
+              value="hardware" 
+              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-rose-500 data-[state=active]:text-white hover:bg-rose-100 transition-colors"
+            >
+              Herrajes
+            </TabsTrigger>
           </TabsList>
 
           {/* Appointments Tab */}
@@ -829,39 +859,50 @@ export default function Admin() {
           </TabsContent>
 
           {/* Quotations Tab */}
-          <TabsContent value="quotations" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Sistema de Cotizaciones Profesionales</CardTitle>
-                <CardDescription>Crea y gestiona cotizaciones con generación de PDF y envío automático por email</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="text-center py-8">
-                  <FileText className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">Gestiona tus Cotizaciones</h3>
-                  <p className="text-muted-foreground mb-6">
-                    Accede al sistema completo de cotizaciones para crear, editar y enviar cotizaciones profesionales con PDF personalizado.
-                  </p>
+          <TabsContent value="quotations" className="space-y-3">
+            <Card className="border-cyan-200 bg-gradient-to-br from-cyan-50 to-white">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-cyan-700">Sistema de Cotizaciones</CardTitle>
+                    <CardDescription>Crea y gestiona cotizaciones profesionales con PDF y envío automático</CardDescription>
+                  </div>
                   <Link href="/quotations">
-                    <Button size="lg" className="gap-2">
+                    <Button size="lg" className="gap-2 bg-cyan-500 hover:bg-cyan-600">
                       <FileText className="h-5 w-5" />
                       Ir a Cotizaciones
                     </Button>
                   </Link>
                 </div>
-                
-                <div className="grid gap-4 md:grid-cols-3 pt-4 border-t">
-                  <div className="text-center p-4">
-                    <div className="font-semibold mb-1">✅ Items Dinámicos</div>
-                    <p className="text-sm text-muted-foreground">Agrega múltiples items con descripción detallada</p>
+              </CardHeader>
+              <CardContent className="pt-3">
+                <div className="grid gap-3 md:grid-cols-3">
+                  <div className="flex items-start gap-3 p-3 rounded-lg bg-white border border-cyan-100">
+                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-cyan-100 flex items-center justify-center text-cyan-600 font-bold">
+                      1
+                    </div>
+                    <div>
+                      <div className="font-semibold text-sm mb-1">Items Dinámicos</div>
+                      <p className="text-xs text-muted-foreground">Múltiples items con descripción detallada</p>
+                    </div>
                   </div>
-                  <div className="text-center p-4">
-                    <div className="font-semibold mb-1">✅ PDF Profesional</div>
-                    <p className="text-sm text-muted-foreground">Genera PDFs con tu logo y diseño corporativo</p>
+                  <div className="flex items-start gap-3 p-3 rounded-lg bg-white border border-cyan-100">
+                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-cyan-100 flex items-center justify-center text-cyan-600 font-bold">
+                      2
+                    </div>
+                    <div>
+                      <div className="font-semibold text-sm mb-1">PDF Profesional</div>
+                      <p className="text-xs text-muted-foreground">Genera PDFs con logo y diseño corporativo</p>
+                    </div>
                   </div>
-                  <div className="text-center p-4">
-                    <div className="font-semibold mb-1">✅ Envío Automático</div>
-                    <p className="text-sm text-muted-foreground">Envía por email con un solo clic</p>
+                  <div className="flex items-start gap-3 p-3 rounded-lg bg-white border border-cyan-100">
+                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-cyan-100 flex items-center justify-center text-cyan-600 font-bold">
+                      3
+                    </div>
+                    <div>
+                      <div className="font-semibold text-sm mb-1">Envío Automático</div>
+                      <p className="text-xs text-muted-foreground">Envía por email con un solo clic</p>
+                    </div>
                   </div>
                 </div>
               </CardContent>

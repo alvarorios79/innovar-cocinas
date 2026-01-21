@@ -1283,3 +1283,21 @@
 - [ ] Editar cotización y verificar que herrajes se mantengan
 - [ ] Generar PDF y verificar que herrajes aparezcan correctamente
 - [ ] Cambiar precio de herraje y verificar que cotizaciones viejas mantengan precio original
+
+## Mejoras Visuales - Panel Admin y Cotizaciones
+
+### Vista de Cotizaciones
+- [x] Reducir espacios innecesarios en la tabla de cotizaciones
+- [x] Optimizar layout para mostrar más información en menos espacio
+- [x] Mejorar diseño de tarjetas/filas de cotizaciones (gradiente cyan, tarjetas compactas)
+- [x] Ajustar padding y márgenes para aprovechar mejor el espacio
+
+### Menú de Pestañas del Panel Admin
+- [x] Agregar colores distintivos a cada pestaña (sin morado)
+- [x] Citas: Color azul (blue-500)
+- [x] Asesorías: Color naranja (orange-500)
+- [x] Cotizaciones: Color cyan (cyan-500)
+- [x] Clientes: Color verde (green-500)
+- [x] Usuarios: Color gris (slate-500)
+- [x] Herrajes: Color rosa (rose-500)
+- [x] Aplicar colores en estado activo e hover con transiciones

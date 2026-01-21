@@ -83,8 +83,10 @@ export function HardwareCatalogAdmin() {
   });
 
   const resetForm = () => {
+    // Usar la categoría actualmente seleccionada en el filtro, o "cocinas" si es "all"
+    const defaultCategory = selectedCategory === "all" ? "cocinas" : selectedCategory as "cocinas" | "closets" | "puertas";
     setForm({
-      category: "cocinas",
+      category: defaultCategory,
       name: "",
       description: "",
       options: "",
@@ -190,7 +192,10 @@ export function HardwareCatalogAdmin() {
             }
           }}>
             <DialogTrigger asChild>
-              <Button onClick={() => setShowAddDialog(true)}>
+              <Button onClick={() => {
+                resetForm(); // Pre-seleccionar la categoría actual
+                setShowAddDialog(true);
+              }}>
                 <Plus className="mr-2 h-4 w-4" />
                 Agregar Herraje
               </Button>
@@ -203,15 +208,15 @@ export function HardwareCatalogAdmin() {
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <Label>Categoría</Label>
+                <div className="space-y-2 p-3 bg-blue-50 rounded-lg border-2 border-blue-200">
+                  <Label className="text-base font-semibold text-blue-900">Categoría *</Label>
                   <Select
                     value={form.category}
                     onValueChange={(value: "cocinas" | "closets" | "puertas") => 
                       setForm({ ...form, category: value })
                     }
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="bg-white">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -220,6 +225,7 @@ export function HardwareCatalogAdmin() {
                       <SelectItem value="puertas">Puertas</SelectItem>
                     </SelectContent>
                   </Select>
+                  <p className="text-xs text-blue-700">El herraje se agregará a la categoría: <strong>{categoryLabels[form.category]}</strong></p>
                 </div>
                 <div className="space-y-2">
                   <Label>Nombre</Label>

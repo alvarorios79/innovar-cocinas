@@ -1229,6 +1229,7 @@ export async function createHardwareItem(item: {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
+  console.log('[DEBUG DB] Insertando herraje con categoría:', item.category);
   const result = await db.insert(hardwareCatalog).values({
     category: item.category,
     name: item.name,

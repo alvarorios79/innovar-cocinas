@@ -2819,7 +2819,10 @@ export const appRouter = router({
         if (ctx.user.role !== "super_admin" && ctx.user.role !== "admin") {
           throw new TRPCError({ code: "FORBIDDEN", message: "Solo administradores pueden gestionar el catálogo" });
         }
+        console.log('[DEBUG] Creando herraje con categoría:', input.category);
+        console.log('[DEBUG] Input completo:', JSON.stringify(input, null, 2));
         const id = await db.createHardwareItem(input);
+        console.log('[DEBUG] Herraje creado con ID:', id);
         return { success: true, id };
       }),
 

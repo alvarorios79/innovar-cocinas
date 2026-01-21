@@ -1248,3 +1248,13 @@
 - [x] Verificar que categorías en base de datos coincidan con las del filtro
 - [x] Corregir filtro para que solo muestre herrajes de la categoría correcta (ahora filtra en backend)
 - [ ] Probar con herrajes de cocina, closet y puerta
+
+## Bug: Herrajes se crean con categoría incorrecta
+
+- [x] Revisar formulario de creación en HardwareCatalogAdmin.tsx
+- [x] Verificar que el valor de form.category se esté enviando correctamente
+- [x] Revisar endpoint create en routers.ts
+- [x] Verificar función createHardwareItem en db.ts
+- [x] Agregar logs para rastrear el valor de category durante la creación
+- [x] Hacer que resetForm use la categoría seleccionada en el filtro
+- [x] Hacer selector de categoría más visible con fondo azul y mensaje de confirmación

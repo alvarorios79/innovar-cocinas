@@ -1301,3 +1301,12 @@
 - [x] Usuarios: Color gris (slate-500)
 - [x] Herrajes: Color rosa (rose-500)
 - [x] Aplicar colores en estado activo e hover con transiciones
+
+## Selección Múltiple de Clientes
+
+- [x] Agregar estado selectedClients en Admin.tsx
+- [x] Agregar checkbox "Seleccionar todos" en header de tabla de clientes
+- [x] Agregar checkbox individual por cada cliente
+- [x] Implementar botón "Eliminar seleccionados" cuando hay clientes seleccionados
+- [x] Agregar confirmación antes de eliminar múltiples clientes
+- [x] Implementar endpoint o lógica para eliminar múltiples clientes (usa mutation existente)

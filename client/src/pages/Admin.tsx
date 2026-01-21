@@ -45,6 +45,7 @@ export default function Admin() {
   const [selectedAppointments, setSelectedAppointments] = useState<number[]>([]);
   const [selectedAdvisory, setSelectedAdvisory] = useState<number[]>([]);
   const [selectedQuotations, setSelectedQuotations] = useState<number[]>([]);
+  const [selectedClients, setSelectedClients] = useState<number[]>([]);
   const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
 
   const utils = trpc.useUtils();
@@ -918,6 +919,21 @@ export default function Admin() {
                     <CardTitle>Clientes</CardTitle>
                     <CardDescription>Los clientes se crean automáticamente al agendar citas o solicitar servicios</CardDescription>
                   </div>
+                  {selectedClients.length > 0 && (
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => {
+                        if (confirm(`¿Estás seguro de eliminar ${selectedClients.length} cliente(s)?`)) {
+                          selectedClients.forEach(id => deleteClient.mutate({ id }));
+                          setSelectedClients([]);
+                        }
+                      }}
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Eliminar {selectedClients.length} seleccionado(s)
+                    </Button>
+                  )}
                 </div>
               </CardHeader>
               <CardContent>
@@ -927,10 +943,34 @@ export default function Admin() {
                   <p className="text-muted-foreground">No hay clientes registrados</p>
                 ) : (
                   <div className="space-y-4">
+                    <div className="flex items-center gap-2 pb-2 border-b">
+                      <Checkbox
+                        checked={selectedClients.length === clients.length}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setSelectedClients(clients.map(c => c.id));
+                          } else {
+                            setSelectedClients([]);
+                          }
+                        }}
+                      />
+                      <span className="text-sm font-medium">Seleccionar todos</span>
+                    </div>
                     {clients.map((client) => (
                       <div key={client.id} className="border rounded-lg p-4">
-                        <div className="flex items-start justify-between">
-                          <div className="space-y-1">
+                        <div className="flex items-start gap-3">
+                          <Checkbox
+                            checked={selectedClients.includes(client.id)}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setSelectedClients([...selectedClients, client.id]);
+                              } else {
+                                setSelectedClients(selectedClients.filter(id => id !== client.id));
+                              }
+                            }}
+                            className="mt-1"
+                          />
+                          <div className="flex-1 space-y-1">
                             <h3 className="font-semibold">{client.name}</h3>
                             <p className="text-sm">
                               <span className="font-medium">WhatsApp:</span> {client.whatsappPhone}

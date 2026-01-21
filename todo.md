@@ -1342,3 +1342,11 @@
 - [x] Implementar lógica de ordenamiento que se aplique después del filtrado
 - [x] Mantener ordenamiento al cambiar búsqueda
 - [x] Aplicar estilos consistentes al selector
+
+## Colores Fijos en Contadores del Panel Admin
+
+- [x] Agregar color de fondo azul al contador de Citas
+- [x] Agregar color de fondo naranja al contador de Asesorías
+- [x] Agregar color de fondo cyan al contador de Cotizaciones
+- [x] Agregar color de fondo verde al contador de Clientes
+- [x] Mantener consistencia con colores de las pestañas

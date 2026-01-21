@@ -501,27 +501,31 @@ export default function Admin() {
           <TabsList className="grid w-full grid-cols-2 sm:grid-cols-6 h-auto gap-2 bg-transparent p-1">
             <TabsTrigger 
               value="appointments" 
-              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white hover:bg-blue-100 transition-colors"
+              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white hover:bg-blue-100 transition-colors flex items-center gap-2"
             >
               Citas
+              <Badge className="bg-blue-500 text-white hover:bg-blue-600">{appointments.length}</Badge>
             </TabsTrigger>
             <TabsTrigger 
               value="advisory" 
-              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-orange-500 data-[state=active]:text-white hover:bg-orange-100 transition-colors"
+              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-orange-500 data-[state=active]:text-white hover:bg-orange-100 transition-colors flex items-center gap-2"
             >
               Asesoría
+              <Badge className="bg-orange-500 text-white hover:bg-orange-600">{advisoryRequests.length}</Badge>
             </TabsTrigger>
             <TabsTrigger 
               value="quotations" 
-              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-cyan-500 data-[state=active]:text-white hover:bg-cyan-100 transition-colors"
+              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-cyan-500 data-[state=active]:text-white hover:bg-cyan-100 transition-colors flex items-center gap-2"
             >
               Cotizaciones
+              <Badge className="bg-cyan-500 text-white hover:bg-cyan-600">{quotations.length}</Badge>
             </TabsTrigger>
             <TabsTrigger 
               value="clients" 
-              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-green-500 data-[state=active]:text-white hover:bg-green-100 transition-colors"
+              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-green-500 data-[state=active]:text-white hover:bg-green-100 transition-colors flex items-center gap-2"
             >
               Clientes
+              <Badge className="bg-green-500 text-white hover:bg-green-600">{clients.length}</Badge>
             </TabsTrigger>
             <TabsTrigger 
               value="users" 

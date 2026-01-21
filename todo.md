@@ -1038,3 +1038,9 @@
 
 - [x] Total en PDF sigue sobrepuesto - aumentado espaciado a 40px y altura de rectángulo a 32px
 - [x] Error al editar o ver cotización - agregadas validaciones para kitchenConfig undefined
+
+## Bug: Total en PDF cortado en dos líneas
+
+- [x] El valor del total se corta y los últimos 3 dígitos aparecen en segunda línea (ej: "18.600." en primera línea, "000" en segunda)
+- [x] Aumentar ancho del rectángulo del total (de 182 a 212px) y mover posición X (de 380 a 350)
+- [x] Ajustar posición y alineación del texto del total con width: 195px para que quepa completo

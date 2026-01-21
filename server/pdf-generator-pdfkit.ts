@@ -185,11 +185,12 @@ export async function generateQuotationPDF(
       currentY += 40;
       doc
         .fillColor(turquoise)
-        .rect(380, currentY, 182, 32)
+        .rect(350, currentY, 212, 32)
         .fill();
       doc.fontSize(13).fillColor("white").font("Helvetica-Bold");
-      doc.text("TOTAL:", 390, currentY + 9);
-      doc.text(formatCurrency(data.total), 510, currentY + 9, {
+      doc.text("TOTAL:", 360, currentY + 9);
+      doc.text(formatCurrency(data.total), 360, currentY + 9, {
+        width: 195,
         align: "right",
       });
 

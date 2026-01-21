@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
-import { Calendar, Phone, FileText, Users, Trash2, Plus, Bell, Key, Wrench, CheckSquare, Square, Eye, EyeOff } from "lucide-react";
+import { Calendar, Phone, FileText, Users, Trash2, Plus, Bell, Key, Wrench, CheckSquare, Square, Eye, EyeOff, Search } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RemindersPanel } from "@/components/RemindersPanel";
 import { toast } from "sonner";
@@ -47,6 +47,7 @@ export default function Admin() {
   const [selectedQuotations, setSelectedQuotations] = useState<number[]>([]);
   const [selectedClients, setSelectedClients] = useState<number[]>([]);
   const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
+  const [clientSearchQuery, setClientSearchQuery] = useState("");
 
   const utils = trpc.useUtils();
   const { data: appointments = [], isLoading: loadingAppointments } = trpc.appointments.list.useQuery();
@@ -943,62 +944,99 @@ export default function Admin() {
                   <p className="text-muted-foreground">No hay clientes registrados</p>
                 ) : (
                   <div className="space-y-4">
-                    <div className="flex items-center gap-2 pb-2 border-b">
-                      <Checkbox
-                        checked={selectedClients.length === clients.length}
-                        onCheckedChange={(checked) => {
-                          if (checked) {
-                            setSelectedClients(clients.map(c => c.id));
-                          } else {
-                            setSelectedClients([]);
-                          }
-                        }}
+                    {/* Barra de búsqueda */}
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Buscar por nombre, teléfono o email..."
+                        value={clientSearchQuery}
+                        onChange={(e) => setClientSearchQuery(e.target.value)}
+                        className="pl-10"
                       />
-                      <span className="text-sm font-medium">Seleccionar todos</span>
                     </div>
-                    {clients.map((client) => (
-                      <div key={client.id} className="border rounded-lg p-4">
-                        <div className="flex items-start gap-3">
-                          <Checkbox
-                            checked={selectedClients.includes(client.id)}
-                            onCheckedChange={(checked) => {
-                              if (checked) {
-                                setSelectedClients([...selectedClients, client.id]);
-                              } else {
-                                setSelectedClients(selectedClients.filter(id => id !== client.id));
-                              }
-                            }}
-                            className="mt-1"
-                          />
-                          <div className="flex-1 space-y-1">
-                            <h3 className="font-semibold">{client.name}</h3>
-                            <p className="text-sm">
-                              <span className="font-medium">WhatsApp:</span> {client.whatsappPhone}
+                    
+                    {(() => {
+                      const filteredClients = clients.filter(client => {
+                        const query = clientSearchQuery.toLowerCase();
+                        return (
+                          client.name.toLowerCase().includes(query) ||
+                          client.whatsappPhone.includes(query) ||
+                          (client.email && client.email.toLowerCase().includes(query))
+                        );
+                      });
+                      
+                      if (filteredClients.length === 0) {
+                        return <p className="text-muted-foreground text-center py-8">No se encontraron clientes</p>;
+                      }
+                      
+                      return (
+                        <>
+                          {clientSearchQuery && (
+                            <p className="text-sm text-muted-foreground">
+                              {filteredClients.length} de {clients.length} cliente(s) encontrado(s)
                             </p>
-                            {client.email && (
-                              <p className="text-sm">
-                                <span className="font-medium">Email:</span> {client.email}
-                              </p>
-                            )}
-                            {client.address && (
-                              <p className="text-sm">
-                                <span className="font-medium">Dirección:</span> {client.address}
-                              </p>
-                            )}
-                            <p className="text-xs text-muted-foreground mt-2">
-                              Registrado: {formatDate(client.createdAt)}
-                            </p>
+                          )}
+                          
+                          <div className="flex items-center gap-2 pb-2 border-b">
+                            <Checkbox
+                              checked={selectedClients.length === filteredClients.length && filteredClients.length > 0}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  setSelectedClients(filteredClients.map(c => c.id));
+                                } else {
+                                  setSelectedClients([]);
+                                }
+                              }}
+                            />
+                            <span className="text-sm font-medium">Seleccionar todos</span>
                           </div>
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => setDeleteConfirm({ type: "client", id: client.id, name: client.name })}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
+                          
+                          {filteredClients.map((client) => (
+                            <div key={client.id} className="border rounded-lg p-4">
+                              <div className="flex items-start gap-3">
+                                <Checkbox
+                                  checked={selectedClients.includes(client.id)}
+                                  onCheckedChange={(checked) => {
+                                    if (checked) {
+                                      setSelectedClients([...selectedClients, client.id]);
+                                    } else {
+                                      setSelectedClients(selectedClients.filter(id => id !== client.id));
+                                    }
+                                  }}
+                                  className="mt-1"
+                                />
+                                <div className="flex-1 space-y-1">
+                                  <h3 className="font-semibold">{client.name}</h3>
+                                  <p className="text-sm">
+                                    <span className="font-medium">WhatsApp:</span> {client.whatsappPhone}
+                                  </p>
+                                  {client.email && (
+                                    <p className="text-sm">
+                                      <span className="font-medium">Email:</span> {client.email}
+                                    </p>
+                                  )}
+                                  {client.address && (
+                                    <p className="text-sm">
+                                      <span className="font-medium">Dirección:</span> {client.address}
+                                    </p>
+                                  )}
+                                  <p className="text-xs text-muted-foreground mt-2">
+                                    Registrado: {formatDate(client.createdAt)}
+                                  </p>
+                                </div>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => setDeleteConfirm({ type: "client", id: client.id, name: client.name })}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                        </>
+                      );
+                    })()}
                   </div>
                 )}
               </CardContent>

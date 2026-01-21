@@ -1326,3 +1326,11 @@
 - [x] Buscar todos los console.log en db.ts
 - [x] Eliminar logs temporales agregados durante desarrollo de herrajes
 - [x] Verificar que no queden logs de debug en el código
+
+## Barra de Búsqueda en Clientes
+
+- [x] Agregar estado searchQuery en Admin.tsx para la sección de clientes
+- [x] Agregar input de búsqueda con ícono de lupa
+- [x] Implementar lógica de filtrado por nombre, teléfono o email
+- [x] Mostrar contador de resultados filtrados
+- [x] Aplicar estilos consistentes con el resto de la interfaz

@@ -64,12 +64,12 @@ export async function generateQuotationPDF(
       doc.text("COCINAS DE DISEÑO", 400, 65, { align: "right" });
       doc.text("NIT: 10021456-1", 400, 78, { align: "right" });
       doc.text("K9 vía Cerritos a Pereira", 400, 93, { align: "right" });
-      doc.text("313 680 2025", 400, 100, { align: "right" });
-      doc.text("ventas@cocinasintegralespereira.co", 400, 115, {
+      doc.text("313 680 2025", 400, 108, { align: "right" });
+      doc.text("ventas@cocinasintegralespereira.co", 400, 123, {
         align: "right",
       });
-      doc.text("Cuenta de Ahorros Bancolombia", 400, 130, { align: "right" });
-      doc.text("# 11533034332", 400, 143, { align: "right" });
+      doc.text("Cuenta de Ahorros Bancolombia", 400, 138, { align: "right" });
+      doc.text("# 11533034332", 400, 151, { align: "right" });
 
       // Número de cotización y fecha
       doc.moveDown(3);

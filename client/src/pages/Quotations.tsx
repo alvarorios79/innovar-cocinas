@@ -626,6 +626,7 @@ export default function Quotations() {
 
     if (editingQuotation) {
       // Actualizar cotización existente
+      console.log("[DEBUG] Enviando items actualizados:", itemsWithUpdatedPrices);
       updateQuotation.mutate({
         id: editingQuotation,
         clientId: selectedClient,

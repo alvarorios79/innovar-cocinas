@@ -1120,3 +1120,10 @@
 - [x] BD requiere description y quantity NOT NULL
 - [x] SOLUCIÓN Frontend: Agregar valores por defecto "Cocina integral" y "1" en handleSubmit
 - [x] SOLUCIÓN Backend: Agregar fallback values en endpoints create y update
+
+## Bug: Precio no se guarda al editar cotización
+
+- [ ] Al editar cotización y cambiar valores, el precio se actualiza en el formulario
+- [ ] Al guardar, el mensaje dice "Cotización actualizada exitosamente"
+- [ ] Pero al volver a la lista, la cotización guardada conserva el precio anterior
+- [ ] El precio calculado no se está guardando en la base de datos

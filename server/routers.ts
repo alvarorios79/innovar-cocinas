@@ -788,6 +788,7 @@ export const appRouter = router({
 
         // Si se actualizan items, recalcular totales
         if (items) {
+          console.log("[DEBUG BACKEND] Items recibidos para actualizar:", JSON.stringify(items, null, 2));
           // Verificar si algún item incluye costos fijos
           const hasFixedCostsInItems = items.some(item => item.includesFixedCosts === true);
           
@@ -795,6 +796,7 @@ export const appRouter = router({
           // Solo agregar costos fijos si NO están incluidos en ningún item
           const transportCost = hasFixedCostsInItems ? 0 : 600000;
           const total = subtotal + transportCost;
+          console.log("[DEBUG BACKEND] Totales calculados - Subtotal:", subtotal, "Transport:", transportCost, "Total:", total);
 
           // Eliminar items antiguos
           await db.deleteQuotationItems(id);
@@ -821,6 +823,7 @@ export const appRouter = router({
             transportCost: transportCost.toString(),
             total: total.toString(),
           });
+          console.log("[DEBUG BACKEND] Cotización actualizada en BD con ID:", id);
         } else {
           await db.updateQuotation(id, quotationData);
         }

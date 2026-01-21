@@ -867,10 +867,18 @@ export const appRouter = router({
         const client = await db.getClientById(quotation.clientId);
         const items = await db.getQuotationItems(input.id);
 
+        // Parsear kitchenConfig de string JSON a objeto
+        const parsedItems = items.map(item => ({
+          ...item,
+          kitchenConfig: item.kitchenConfig && typeof item.kitchenConfig === 'string' 
+            ? JSON.parse(item.kitchenConfig) 
+            : item.kitchenConfig
+        }));
+
         return {
           ...quotation,
           client,
-          items,
+          items: parsedItems,
         };
       }),
 

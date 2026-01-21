@@ -1056,3 +1056,26 @@
 - [x] Error persiste: ahora "Cannot read properties of undefined (reading 'type')" - falta countertop
 - [x] Problema: Solo agregué specialModules pero faltan otros campos (countertop, island, bar, etc.)
 - [x] Solución: Asegurar que TODA la estructura de kitchenConfig tenga valores por defecto para TODOS los campos (shape, totalMeters, specialModules, countertop, island, bar, ledLighting)
+
+- [ ] Al abrir cotización existente para editar, todos los valores aparecen en 0 o desmarcados
+- [ ] Metraje de cocina en 0, muebles especiales desmarcados, mesón vacío
+- [ ] Los valores SÍ están guardados en la base de datos pero no se cargan correctamente al editar
+- [ ] Problema: La lógica de valores por defecto está sobrescribiendo los valores reales de la BD
+
+- [ ] Al hacer clic en "Editar" cotización, el formulario aparece vacío (como nuevo)
+- [ ] Debería pre-llenar todos los campos con los datos guardados (cliente, vendedor, items)
+- [ ] Usuario espera poder MODIFICAR datos existentes, no empezar desde cero
+## Bug: Valores de kitchenConfig en 0 al editar cotización
+
+- [x] Al abrir cotización existente para editar, todos los valores aparecen en 0 o desmarcados
+- [x] Metraje de cocina en 0, muebles especiales desmarcados, mesón vacío
+- [x] Los valores SÍ están guardados en la base de datos pero no se cargan correctamente al editar
+- [x] Problema 1: kitchenConfig viene como STRING de la BD (necesita JSON.parse) - CORREGIDO en backend
+- [x] Problema 2: Operador || sobrescribe valores 0 y false - CORREGIDO usando ?? en frontend
+
+## Bug: Formulario de edición aparece vacío
+
+- [x] Al hacer clic en "Editar" cotización, el formulario aparece vacío (como nuevo)
+- [x] Debería pre-llenar todos los campos con los datos guardados (cliente, vendedor, items)
+- [x] Usuario espera poder MODIFICAR datos existentes, no empezar desde cero
+- [x] CORREGIDO: Backend parsea JSON, frontend usa ?? para preservar valores

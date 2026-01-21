@@ -1020,3 +1020,10 @@
   - [x] Mostrar transporte e imprevistos
 - [x] Solo mostrar precio global en columna Total (sin precios individuales)
 - [x] Probar generación de PDF con cotización de cocina completa (listo para prueba del usuario)
+
+## Correcciones PDF de Cotización
+
+- [x] Cambiar correo electrónico a ventas@cocinasintegralespereira.co
+- [x] Actualizar cuenta bancaria a "Cuenta de Ahorros Bancolombia # 11533034332"
+- [x] Corregir palabras superpuestas en el PDF (ajustadas posiciones Y)
+- [x] Probar PDF corregido con cotización de cocina (listo para prueba del usuario)

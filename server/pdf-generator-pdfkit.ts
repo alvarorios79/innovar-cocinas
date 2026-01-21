@@ -64,23 +64,24 @@ export async function generateQuotationPDF(
       doc.text("COCINAS DE DISEÑO", 400, 65, { align: "right" });
       doc.text("K9 vía Cerritos a Pereira", 400, 85, { align: "right" });
       doc.text("313 680 2025", 400, 100, { align: "right" });
-      doc.text("innovarcocinasintegralespereir@gmail.com", 400, 115, {
+      doc.text("ventas@cocinasintegralespereira.co", 400, 115, {
         align: "right",
       });
-      doc.text("Cuenta Bancolombia: 60200000100", 400, 130, { align: "right" });
+      doc.text("Cuenta de Ahorros Bancolombia", 400, 130, { align: "right" });
+      doc.text("# 11533034332", 400, 143, { align: "right" });
 
       // Número de cotización y fecha
       doc.moveDown(3);
       doc.fontSize(11).fillColor(turquoise).font("Helvetica-Bold");
-      doc.text(`Cotización N° ${data.quotationNumber}`, 400, 160, {
+      doc.text(`Cotización N° ${data.quotationNumber}`, 400, 170, {
         align: "right",
       });
       doc.fontSize(9).fillColor(darkGray).font("Helvetica");
-      doc.text(`Fecha: ${data.date}`, 400, 178, { align: "right" });
+      doc.text(`Fecha: ${data.date}`, 400, 188, { align: "right" });
 
       // Cliente
       doc.moveDown(2);
-      const clientY = 200;
+      const clientY = 210;
       doc
         .fillColor(turquoise)
         .rect(50, clientY, 512, 25)

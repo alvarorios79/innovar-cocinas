@@ -112,7 +112,7 @@ export const quotations = mysqlTable("quotations", {
   quotationNumber: varchar("quotationNumber", { length: 50 }).notNull().unique(), // COT-2026-001
   clientId: int("clientId").notNull().references(() => clients.id),
   vendorName: varchar("vendorName", { length: 255 }).notNull(),
-  productType: mysqlEnum("productType", ["cocina", "closet", "puerta", "centro_tv", "otro"]).default("otro").notNull(),
+  productType: mysqlEnum("productType", ["cocina", "closet", "puerta", "centro_tv", "herrajes", "otro"]).default("otro").notNull(),
   status: mysqlEnum("status", ["draft", "sent", "approved", "rejected"]).default("draft").notNull(),
   validUntil: timestamp("validUntil"),
   subtotal: decimal("subtotal", { precision: 12, scale: 2 }).notNull(),

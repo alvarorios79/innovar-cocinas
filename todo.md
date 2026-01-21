@@ -1155,3 +1155,5 @@
 - [x] Corregir espaciado en encabezado del PDF (dirección encimada con teléfono)
 - [x] Implementar vista previa del PDF antes de enviar por email
 - [x] Vista previa de PDF corregida - Content-Disposition inline
+
+- [x] Agregar "herrajes" como nuevo tipo de producto en cotizaciones

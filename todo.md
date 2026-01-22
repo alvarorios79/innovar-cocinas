@@ -1469,4 +1469,5 @@
 - [x] Actualizar backend para guardar doorConfig en base de datos
 - [x] Actualizar parseo de doorConfig al cargar cotización para editar
 - [x] Actualizar generación de PDF con especificaciones de puertas
+- [x] Corregir carga de doorConfig en handleEdit (datos se borraban al editar)
 - [ ] Probar flujo completo de crear, editar y generar PDF de cotización de puertas

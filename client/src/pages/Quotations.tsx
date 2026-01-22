@@ -309,6 +309,18 @@ export default function Quotations() {
             squareMeters: item.closetConfig.squareMeters || 0,
             pricePerSquareMeter: item.closetConfig.pricePerSquareMeter || 750000,
             subtotal: item.closetConfig.subtotal || 0,
+            notes: item.closetConfig.notes || "",
+          } : undefined,
+          doorConfig: item.doorConfig ? {
+            type: item.doorConfig.type || "batiente",
+            width: item.doorConfig.width ?? 70,
+            widthRange: item.doorConfig.widthRange || "50-85",
+            height: item.doorConfig.height ?? 2.10,
+            quantity: item.doorConfig.quantity ?? 1,
+            hardwareColor: item.doorConfig.hardwareColor || "aluminio",
+            pricePerUnit: item.doorConfig.pricePerUnit ?? 890000,
+            subtotal: item.doorConfig.subtotal ?? 890000,
+            notes: item.doorConfig.notes || "",
           } : undefined,
           kitchenConfig: item.kitchenConfig ? {
             shape: item.kitchenConfig.shape ?? "",

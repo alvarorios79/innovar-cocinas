@@ -738,6 +738,7 @@ export const appRouter = router({
             subtotal: z.number(),
           })).optional(),
           closetConfig: z.any().optional(),
+          doorConfig: z.any().optional(),
         })),
       }))
       .mutation(async ({ ctx, input }) => {
@@ -792,6 +793,7 @@ export const appRouter = router({
             kitchenConfig: item.kitchenConfig ? JSON.stringify(item.kitchenConfig) : null,
             hardwareSelections: item.hardwareSelections ? JSON.stringify(item.hardwareSelections) : null,
             closetConfig: item.closetConfig ? JSON.stringify(item.closetConfig) : null,
+            doorConfig: item.doorConfig ? JSON.stringify(item.doorConfig) : null,
           });
         }
 
@@ -823,6 +825,7 @@ export const appRouter = router({
             subtotal: z.number(),
           })).optional(),
           closetConfig: z.any().optional(),
+          doorConfig: z.any().optional(),
         })).optional(),
       }))
       .mutation(async ({ ctx, input }) => {
@@ -857,6 +860,7 @@ export const appRouter = router({
               kitchenConfig: item.kitchenConfig ? JSON.stringify(item.kitchenConfig) : null,
               hardwareSelections: item.hardwareSelections ? JSON.stringify(item.hardwareSelections) : null,
               closetConfig: item.closetConfig ? JSON.stringify(item.closetConfig) : null,
+              doorConfig: item.doorConfig ? JSON.stringify(item.doorConfig) : null,
             });
           }
 
@@ -913,7 +917,7 @@ export const appRouter = router({
         const client = await db.getClientById(quotation.clientId);
         const items = await db.getQuotationItems(input.id);
 
-        // Parsear kitchenConfig, hardwareSelections y closetConfig de string JSON a objeto
+        // Parsear kitchenConfig, hardwareSelections, closetConfig y doorConfig de string JSON a objeto
         const parsedItems = items.map(item => ({
           ...item,
           kitchenConfig: item.kitchenConfig && typeof item.kitchenConfig === 'string' 
@@ -924,7 +928,10 @@ export const appRouter = router({
             : item.hardwareSelections,
           closetConfig: item.closetConfig && typeof item.closetConfig === 'string'
             ? JSON.parse(item.closetConfig)
-            : item.closetConfig
+            : item.closetConfig,
+          doorConfig: item.doorConfig && typeof item.doorConfig === 'string'
+            ? JSON.parse(item.doorConfig)
+            : item.doorConfig
         }));
 
         return {
@@ -1018,6 +1025,11 @@ export const appRouter = router({
               ? JSON.parse(item.closetConfig)
               : item.closetConfig;
             
+            // Parsear doorConfig si es string JSON
+            const doorConfig = item.doorConfig && typeof item.doorConfig === 'string'
+              ? JSON.parse(item.doorConfig)
+              : item.doorConfig;
+            
             // Si es closet y tiene closetConfig, generar descripción detallada
             if (item.itemType === 'closet' && closetConfig) {
               const lines: string[] = [];
@@ -1070,6 +1082,45 @@ export const appRouter = router({
                 lines.push(`• ${hw.name}`);
                 lines.push(`  Cantidad: ${hw.quantity} | Precio unitario: ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(price)} | Subtotal: ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(subtotal)}`);
               });
+              
+              description = lines.join('\n');
+            }
+            // Si es puerta y tiene doorConfig, generar descripción detallada
+            else if (item.itemType === 'puerta' && doorConfig) {
+              const lines: string[] = [];
+              const typeLabels: Record<string, string> = {
+                'batiente': 'Puerta Batiente',
+                'corrediza': 'Puerta Corrediza'
+              };
+              const colorLabels: Record<string, string> = {
+                'aluminio': 'Color Aluminio',
+                'negro': 'Color Negro'
+              };
+              
+              lines.push(`${typeLabels[doorConfig.type] || doorConfig.type.toUpperCase()} - MADERA MACIZA TIPO RH`);
+              lines.push(`Cantidad: ${doorConfig.quantity} ${doorConfig.quantity === 1 ? 'unidad' : 'unidades'}`);
+              lines.push(`Ancho: ${doorConfig.width}cm (Rango: ${doorConfig.widthRange}cm)`);
+              lines.push(`Altura: ${doorConfig.height}m (máx 2.40m)`);
+              lines.push(`Precio por unidad: ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(doorConfig.pricePerUnit)}`);
+              lines.push('');
+              lines.push('Incluye:');
+              lines.push('• Marco RH');
+              lines.push('• Chapa gama alta');
+              lines.push('• Bisagras omega');
+              lines.push('• Tope de puerta');
+              lines.push(`• Accesorios: ${colorLabels[doorConfig.hardwareColor] || doorConfig.hardwareColor}`);
+              lines.push('• Instalación completa');
+              
+              if (doorConfig.type === 'corrediza') {
+                lines.push('• Sistema de riel incluido');
+              }
+              
+              // Agregar notas si existen
+              if (doorConfig.notes && doorConfig.notes.trim()) {
+                lines.push('');
+                lines.push('Notas adicionales:');
+                lines.push(doorConfig.notes);
+              }
               
               description = lines.join('\n');
             }
@@ -1251,6 +1302,11 @@ export const appRouter = router({
               ? JSON.parse(item.closetConfig)
               : item.closetConfig;
             
+            // Parsear doorConfig si es string JSON
+            const doorConfig = item.doorConfig && typeof item.doorConfig === 'string'
+              ? JSON.parse(item.doorConfig)
+              : item.doorConfig;
+            
             // Si es closet y tiene closetConfig, generar descripción detallada
             if (item.itemType === 'closet' && closetConfig) {
               const lines: string[] = [];
@@ -1303,6 +1359,45 @@ export const appRouter = router({
                 lines.push(`• ${hw.name}`);
                 lines.push(`  Cantidad: ${hw.quantity} | Precio unitario: ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(price)} | Subtotal: ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(subtotal)}`);
               });
+              
+              description = lines.join('\n');
+            }
+            // Si es puerta y tiene doorConfig, generar descripción detallada
+            else if (item.itemType === 'puerta' && doorConfig) {
+              const lines: string[] = [];
+              const typeLabels: Record<string, string> = {
+                'batiente': 'Puerta Batiente',
+                'corrediza': 'Puerta Corrediza'
+              };
+              const colorLabels: Record<string, string> = {
+                'aluminio': 'Color Aluminio',
+                'negro': 'Color Negro'
+              };
+              
+              lines.push(`${typeLabels[doorConfig.type] || doorConfig.type.toUpperCase()} - MADERA MACIZA TIPO RH`);
+              lines.push(`Cantidad: ${doorConfig.quantity} ${doorConfig.quantity === 1 ? 'unidad' : 'unidades'}`);
+              lines.push(`Ancho: ${doorConfig.width}cm (Rango: ${doorConfig.widthRange}cm)`);
+              lines.push(`Altura: ${doorConfig.height}m (máx 2.40m)`);
+              lines.push(`Precio por unidad: ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(doorConfig.pricePerUnit)}`);
+              lines.push('');
+              lines.push('Incluye:');
+              lines.push('• Marco RH');
+              lines.push('• Chapa gama alta');
+              lines.push('• Bisagras omega');
+              lines.push('• Tope de puerta');
+              lines.push(`• Accesorios: ${colorLabels[doorConfig.hardwareColor] || doorConfig.hardwareColor}`);
+              lines.push('• Instalación completa');
+              
+              if (doorConfig.type === 'corrediza') {
+                lines.push('• Sistema de riel incluido');
+              }
+              
+              // Agregar notas si existen
+              if (doorConfig.notes && doorConfig.notes.trim()) {
+                lines.push('');
+                lines.push('Notas adicionales:');
+                lines.push(doorConfig.notes);
+              }
               
               description = lines.join('\n');
             }

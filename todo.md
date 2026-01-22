@@ -1459,3 +1459,14 @@
 - [x] Verificar si closetConfig se guarda correctamente en la base de datos
 - [x] Verificar si closetConfig se parsea correctamente al cargar para editar
 - [x] Corregir la carga de medidas (width, height) desde la base de datos - SOLUCIONADO: faltaba parsear closetConfig en getQuotationById (routers.ts línea 925-927)
+
+
+## Configurador de Puertas
+- [x] Crear componente DoorConfigurator con tipos (batientes/corredizas) y rangos de precio
+- [x] Agregar opción de color de accesorios (aluminio/negro) para chapa, bisagras y tope
+- [x] Altura máxima de 2.40m
+- [x] Integrar configurador en formulario de cotizaciones (tipo "puerta")
+- [x] Actualizar backend para guardar doorConfig en base de datos
+- [x] Actualizar parseo de doorConfig al cargar cotización para editar
+- [x] Actualizar generación de PDF con especificaciones de puertas
+- [ ] Probar flujo completo de crear, editar y generar PDF de cotización de puertas

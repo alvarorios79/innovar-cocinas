@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import { HardwareSelectorForQuotation } from "@/components/HardwareSelectorForQuotation";
 import { ClosetConfigurator, ClosetConfig } from "@/components/ClosetConfigurator";
+import { DoorConfigurator, DoorConfig } from "@/components/DoorConfigurator";
 import { PDFPreviewDialog } from "@/components/PDFPreviewDialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -76,6 +77,7 @@ interface QuotationItem {
   kitchenConfig?: KitchenConfig;
   hardwareSelections?: HardwareSelection[];
   closetConfig?: ClosetConfig;
+  doorConfig?: DoorConfig;
 }
 
 export default function Quotations() {
@@ -620,6 +622,20 @@ export default function Quotations() {
         }
         if (item.closetConfig.subtotal <= 0) {
           toast.error(`Item ${i + 1}: El subtotal del closet debe ser mayor a 0`);
+          return;
+        }
+      } else if (item.itemType === "puerta") {
+        // Para puertas: validar que tenga configuración
+        if (!item.doorConfig || !item.doorConfig.width) {
+          toast.error(`Item ${i + 1}: Configura el ancho de la puerta`);
+          return;
+        }
+        if (item.doorConfig.width < 50 || item.doorConfig.width > 110) {
+          toast.error(`Item ${i + 1}: El ancho de la puerta debe estar entre 50cm y 110cm`);
+          return;
+        }
+        if (item.doorConfig.subtotal <= 0) {
+          toast.error(`Item ${i + 1}: El subtotal de la puerta debe ser mayor a 0`);
           return;
         }
       } else {
@@ -1470,8 +1486,78 @@ export default function Quotations() {
                           </>
                         )}
 
+                        {/* Campos dinámicos para PUERTA */}
+                        {item.itemType === "puerta" && (
+                          <>
+                            <DoorConfigurator
+                              config={item.doorConfig || null}
+                              onChange={(config: DoorConfig) => {
+                                const newItems = [...items];
+                                let total = config.subtotal;
+                                // Incluir transporte si está marcado
+                                if (newItems[index].includesFixedCosts) {
+                                  total += (newItems[index].fixedCostsAmount || 600000);
+                                }
+                                newItems[index] = {
+                                  ...newItems[index],
+                                  doorConfig: config,
+                                  totalPrice: total
+                                };
+                                setItems(newItems);
+                              }}
+                            />
+
+                            {/* Checkbox de transporte para puertas */}
+                            <div className="flex items-center space-x-2 mt-4 flex-wrap gap-2">
+                              <input
+                                type="checkbox"
+                                id={`fixedCosts-puerta-${index}`}
+                                checked={item.includesFixedCosts || false}
+                                onChange={(e) => {
+                                  const newItems = [...items];
+                                  const doorTotal = newItems[index].doorConfig?.subtotal || 0;
+                                  const fixedAmount = newItems[index].fixedCostsAmount ?? 600000;
+                                  
+                                  if (e.target.checked) {
+                                    newItems[index].totalPrice = doorTotal + fixedAmount;
+                                    if (newItems[index].fixedCostsAmount === undefined) {
+                                      newItems[index].fixedCostsAmount = 600000;
+                                    }
+                                  } else {
+                                    newItems[index].totalPrice = doorTotal;
+                                  }
+                                  
+                                  newItems[index].includesFixedCosts = e.target.checked;
+                                  setItems(newItems);
+                                }}
+                                className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                              />
+                              <Label htmlFor={`fixedCosts-puerta-${index}`} className="text-sm font-normal cursor-pointer">
+                                Incluye transporte e imprevistos
+                              </Label>
+                              {item.includesFixedCosts && (
+                                <Input
+                                  type="number"
+                                  value={item.fixedCostsAmount ?? 600000}
+                                  onChange={(e) => {
+                                    const newItems = [...items];
+                                    const doorTotal = newItems[index].doorConfig?.subtotal || 0;
+                                    const newAmount = e.target.value === '' ? 0 : parseFloat(e.target.value);
+                                    newItems[index].totalPrice = doorTotal + newAmount;
+                                    newItems[index].fixedCostsAmount = newAmount;
+                                    setItems(newItems);
+                                  }}
+                                  className="w-32 h-8"
+                                  placeholder="Monto"
+                                  min="0"
+                                />
+                              )}
+                            </div>
+                          </>
+                        )}
+
                         {/* Campos estándar para otros tipos */}
-                        {item.itemType !== "cocina" && item.itemType !== "herrajes" && item.itemType !== "closet" && (
+                        {item.itemType !== "cocina" && item.itemType !== "herrajes" && item.itemType !== "closet" && item.itemType !== "puerta" && (
                           <>
                             <div>
                               <Label>Descripción *</Label>

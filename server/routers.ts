@@ -749,14 +749,13 @@ export const appRouter = router({
         // Obtener siguiente número de cotización
         const quotationNumber = await db.getNextQuotationNumber();
 
-        // Verificar si algún item incluye costos fijos
-        const hasFixedCostsInItems = input.items.some(item => item.includesFixedCosts === true);
-        
-        // Calcular subtotal y total
+        // Calcular subtotal (suma de todos los items)
         const subtotal = input.items.reduce((sum, item) => sum + item.totalPrice, 0);
-        // Solo agregar costos fijos si NO están incluidos en ningún item
-        const transportCost = hasFixedCostsInItems ? 0 : 600000;
-        const total = subtotal + transportCost;
+        
+        // El transporte ya está incluido en el totalPrice de cada item si includesFixedCosts=true
+        // Por lo tanto, el total es simplemente la suma de todos los items
+        const transportCost = 0; // No agregar transporte adicional
+        const total = subtotal;
 
         // Fecha de validez: 7 días desde hoy
         const validUntil = new Date();

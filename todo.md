@@ -1398,3 +1398,5 @@
 - [x] El usuario activa el checkbox manualmente si la cotización NO incluye cocina
 
 - [x] Hacer que el monto de transporte sea editable (no fijo en $600,000) cuando se activa el checkbox
+
+- [x] Bug: El transporte ($600,000) se suma automáticamente al total aunque no esté marcado el checkbox

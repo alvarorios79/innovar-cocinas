@@ -680,9 +680,9 @@ export default function Quotations() {
           total += config.ledLighting * 180000;
         }
 
-        // Transporte
+        // Transporte (usar el monto editable)
         if (item.includesFixedCosts) {
-          total += 600000;
+          total += (item.fixedCostsAmount || 600000);
         }
 
         return { ...item, description, quantity, totalPrice: total, includesFixedCosts: item.includesFixedCosts };
@@ -692,16 +692,17 @@ export default function Quotations() {
         const description = item.hardwareSelections.map(s => `${s.name} x${s.quantity}`).join(", ");
         const totalQuantity = item.hardwareSelections.reduce((sum, s) => sum + s.quantity, 0);
         let totalPrice = item.hardwareSelections.reduce((sum, s) => sum + s.subtotal, 0);
-        // Incluir transporte si está marcado
+        // Incluir transporte si está marcado (usar el monto editable)
         if (item.includesFixedCosts) {
-          totalPrice += 600000;
+          totalPrice += (item.fixedCostsAmount || 600000);
         }
         return { 
           ...item, 
           description, 
           quantity: totalQuantity.toString(),
           totalPrice,
-          includesFixedCosts: item.includesFixedCosts
+          includesFixedCosts: item.includesFixedCosts,
+          fixedCostsAmount: item.fixedCostsAmount
         };
       }
       return item;
@@ -1311,9 +1312,9 @@ export default function Quotations() {
                             onHardwareChange={(selections: HardwareSelection[]) => {
                               // Calcular el total directamente con las nuevas selecciones
                               let total = selections.reduce((sum, s) => sum + s.subtotal, 0);
-                              // Incluir transporte si está marcado
+                              // Incluir transporte si está marcado (usar monto editable)
                               if (items[index].includesFixedCosts) {
-                                total += 600000;
+                                total += (items[index].fixedCostsAmount || 600000);
                               }
                               // Actualizar ambos campos juntos
                               const newItems = [...items];

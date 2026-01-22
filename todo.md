@@ -1570,3 +1570,8 @@
 - [x] Crear componente KitchenConfigurator separado con estilo unificado (verde/turquesa)
 - [x] Actualizar HardwareSelectorForQuotation con estilo unificado (gris/slate)
 - [x] Mantener funcionalidad intacta
+
+
+## Mejora: Configurador de Cocinas
+- [x] Agregar campo de notas adicionales (ya existía)
+- [x] Cambiar color de turquesa a esmeralda (verde intenso)

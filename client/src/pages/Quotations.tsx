@@ -4,6 +4,7 @@ import { HardwareSelectorForQuotation } from "@/components/HardwareSelectorForQu
 import { ClosetConfigurator, ClosetConfig } from "@/components/ClosetConfigurator";
 import { DoorConfigurator, DoorConfig } from "@/components/DoorConfigurator";
 import { TVCenterConfigurator, TVCenterConfig } from "@/components/TVCenterConfigurator";
+import { KitchenConfigurator, KitchenConfig } from "@/components/KitchenConfigurator";
 import { PDFPreviewDialog } from "@/components/PDFPreviewDialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,38 +26,6 @@ import {
 } from "@/components/ui/dialog";
 import { Plus, Trash2, FileText, Send, Eye, Pencil, Mail, Search, X } from "lucide-react";
 import { toast } from "sonner";
-
-interface KitchenConfig {
-  shape: string;
-  totalMeters: number;
-  lowerCabinets: number;
-  upperCabinets: number;
-  specialModules: {
-    nichoNevecon: boolean;
-    nichoNevera: boolean;
-    alacenaEntrepanos: boolean;
-    alacenaHerraje: boolean;
-    torreHornos: boolean;
-  };
-  countertop: {
-    type: string;
-    meters: number;
-    depthSurcharge: string;
-  };
-  island: {
-    enabled: boolean;
-    meters: number;
-    countertopType: string;
-    hasLaterals: boolean;
-  };
-  bar: {
-    enabled: boolean;
-    meters: number;
-    countertopType: string;
-    hasLateral: boolean;
-  };
-  ledLighting: number;
-}
 
 interface HardwareSelection {
   hardwareId: number;
@@ -110,8 +79,7 @@ export default function Quotations() {
       kitchenConfig: {
         shape: "",
         totalMeters: 0,
-        lowerCabinets: 0,
-        upperCabinets: 0,
+
         specialModules: {
           nichoNevecon: false,
           nichoNevera: false,
@@ -119,11 +87,10 @@ export default function Quotations() {
           alacenaHerraje: false,
           torreHornos: false,
         },
-        countertop: {
-          type: "",
-          meters: 0,
-          depthSurcharge: "none",
-        },
+          countertop: {
+            type: "",
+            depthSurcharge: "none",
+          },
         island: {
           enabled: false,
           meters: 0,
@@ -284,8 +251,7 @@ export default function Quotations() {
       kitchenConfig: {
         shape: "",
         totalMeters: 0,
-        lowerCabinets: 0,
-        upperCabinets: 0,
+
         specialModules: {
           nichoNevecon: false,
           nichoNevera: false,
@@ -295,7 +261,6 @@ export default function Quotations() {
         },
         countertop: {
           type: "",
-          meters: 0,
           depthSurcharge: "none",
         },
         island: {
@@ -410,8 +375,7 @@ export default function Quotations() {
           kitchenConfig: item.kitchenConfig ? {
             shape: item.kitchenConfig.shape ?? "",
             totalMeters: item.kitchenConfig.totalMeters ?? 0,
-            lowerCabinets: item.kitchenConfig.lowerCabinets ?? 0,
-            upperCabinets: item.kitchenConfig.upperCabinets ?? 0,
+
             specialModules: {
               nichoNevecon: item.kitchenConfig.specialModules?.nichoNevecon ?? false,
               nichoNevera: item.kitchenConfig.specialModules?.nichoNevera ?? false,
@@ -491,8 +455,6 @@ export default function Quotations() {
         kitchenConfig: {
           shape: "",
           totalMeters: 0,
-          lowerCabinets: 0,
-          upperCabinets: 0,
           specialModules: {
             nichoNevecon: false,
             nichoNevera: false,
@@ -502,7 +464,6 @@ export default function Quotations() {
           },
           countertop: {
             type: "",
-            meters: 0,
             depthSurcharge: "none",
           },
           island: {
@@ -587,11 +548,7 @@ export default function Quotations() {
 
     const resultingMeters = Math.max(0, config.totalMeters - deductions);
     
-    // Actualizar muebles lineales automáticamente
-    const newItems = [...itemsArray];
-    newItems[index].kitchenConfig!.lowerCabinets = resultingMeters;
-    newItems[index].kitchenConfig!.upperCabinets = resultingMeters;
-    setItems(newItems);
+
 
     // 2. Muebles lineales (inferiores + superiores)
     total += resultingMeters * 900000; // Inferiores

@@ -1564,3 +1564,9 @@
 - [x] Actualizar DoorConfigurator con el mismo estilo (color naranja)
 - [x] Mantener funcionalidad intacta, solo cambiar aspecto visual
 - [x] Estructura unificada: header con icono, secciones con fondo coloreado, resumen de precio al final
+
+
+## Unificación visual de Cocinas y Herrajes
+- [x] Crear componente KitchenConfigurator separado con estilo unificado (verde/turquesa)
+- [x] Actualizar HardwareSelectorForQuotation con estilo unificado (gris/slate)
+- [x] Mantener funcionalidad intacta

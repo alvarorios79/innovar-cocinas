@@ -21,10 +21,12 @@ export interface DoorItem {
   widthRange: "50-85" | "85-110";
   width: number; // cm - ancho específico
   height: number; // metros - altura (máx 2.40m)
+  quantity: number; // Cantidad de puertas iguales
   hardwareColor: "aluminio" | "negro";
   hasLintel: boolean; // Dintel (parte superior del marco)
   location?: string; // Ubicación: baño, alcoba, etc.
   pricePerUnit: number;
+  lineTotal: number; // pricePerUnit × quantity
 }
 
 // Interfaz para la configuración completa de puertas
@@ -84,21 +86,29 @@ const createNewDoor = (): DoorItem => ({
   widthRange: "50-85",
   width: 80,
   height: 2.10,
+  quantity: 1,
   hardwareColor: "aluminio",
   hasLintel: true,
   location: "",
   pricePerUnit: 890000,
+  lineTotal: 890000,
 });
 
 export function DoorConfigurator({ config, onChange }: DoorConfiguratorProps) {
   const [doors, setDoors] = useState<DoorItem[]>(
-    config?.doors && config.doors.length > 0 ? config.doors : [createNewDoor()]
+    config?.doors && config.doors.length > 0 
+      ? config.doors.map(d => ({
+          ...d,
+          quantity: d.quantity || 1,
+          lineTotal: d.lineTotal || (d.pricePerUnit * (d.quantity || 1))
+        }))
+      : [createNewDoor()]
   );
   const [notes, setNotes] = useState<string>(config?.notes || "");
 
   // Calcular subtotal y notificar cambios
   useEffect(() => {
-    const subtotal = doors.reduce((sum, door) => sum + door.pricePerUnit, 0);
+    const subtotal = doors.reduce((sum, door) => sum + door.lineTotal, 0);
     
     const newConfig: DoorConfig = {
       doors,
@@ -138,14 +148,18 @@ export function DoorConfigurator({ config, onChange }: DoorConfiguratorProps) {
         }
       }
       
-      // Recalcular precio
+      // Recalcular precio unitario
       updatedDoor.pricePerUnit = DOOR_PRICES[updatedDoor.type][updatedDoor.widthRange].price;
+      
+      // Recalcular total de línea
+      updatedDoor.lineTotal = updatedDoor.pricePerUnit * updatedDoor.quantity;
       
       return updatedDoor;
     }));
   };
 
-  const totalSubtotal = doors.reduce((sum, door) => sum + door.pricePerUnit, 0);
+  const totalDoors = doors.reduce((sum, door) => sum + door.quantity, 0);
+  const totalSubtotal = doors.reduce((sum, door) => sum + door.lineTotal, 0);
 
   return (
     <Card className="mt-4">
@@ -184,7 +198,7 @@ export function DoorConfigurator({ config, onChange }: DoorConfiguratorProps) {
                   )}
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   {/* Tipo de Puerta */}
                   <div>
                     <Label className="text-xs font-medium">Tipo *</Label>
@@ -228,6 +242,20 @@ export function DoorConfigurator({ config, onChange }: DoorConfiguratorProps) {
                       value={door.height || ""}
                       onChange={(e) => updateDoor(door.id, { height: parseFloat(e.target.value) || 0 })}
                       placeholder="2.10"
+                      className="mt-1 h-9"
+                    />
+                  </div>
+
+                  {/* Cantidad */}
+                  <div>
+                    <Label className="text-xs font-medium">Cantidad *</Label>
+                    <Input
+                      type="number"
+                      step="1"
+                      min="1"
+                      value={door.quantity || 1}
+                      onChange={(e) => updateDoor(door.id, { quantity: parseInt(e.target.value) || 1 })}
+                      placeholder="1"
                       className="mt-1 h-9"
                     />
                   </div>
@@ -284,8 +312,13 @@ export function DoorConfigurator({ config, onChange }: DoorConfiguratorProps) {
                     {door.hasLintel ? " Con dintel" : " Sin dintel"}
                     {door.location && ` | ${door.location}`}
                   </div>
-                  <div className="font-semibold text-amber-700">
-                    ${door.pricePerUnit.toLocaleString()}
+                  <div className="text-right">
+                    <div className="text-xs text-muted-foreground">
+                      ${door.pricePerUnit.toLocaleString()} × {door.quantity}
+                    </div>
+                    <div className="font-semibold text-amber-700">
+                      ${door.lineTotal.toLocaleString()}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -311,7 +344,7 @@ export function DoorConfigurator({ config, onChange }: DoorConfiguratorProps) {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-medium text-amber-800">
-                    Total: {doors.length} {doors.length === 1 ? "puerta" : "puertas"}
+                    Total: {totalDoors} {totalDoors === 1 ? "puerta" : "puertas"}
                   </p>
                   <p className="text-xs text-amber-600 mt-1">
                     Incluye: Marco RH, chapa gama alta, bisagras omega, tope de puerta, instalación completa

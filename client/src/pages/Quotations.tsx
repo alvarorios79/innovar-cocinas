@@ -320,10 +320,12 @@ export default function Quotations() {
                   widthRange: door.widthRange || "50-85",
                   width: door.width ?? 80,
                   height: door.height ?? 2.10,
+                  quantity: door.quantity ?? 1,
                   hardwareColor: door.hardwareColor || "aluminio",
                   hasLintel: door.hasLintel ?? true,
                   location: door.location || "",
                   pricePerUnit: door.pricePerUnit ?? 890000,
+                  lineTotal: door.lineTotal ?? (door.pricePerUnit ?? 890000) * (door.quantity ?? 1),
                 }))
               : [{
                   // Convertir estructura antigua a nueva
@@ -332,10 +334,12 @@ export default function Quotations() {
                   widthRange: item.doorConfig.widthRange || "50-85",
                   width: item.doorConfig.width ?? 80,
                   height: item.doorConfig.height ?? 2.10,
+                  quantity: item.doorConfig.quantity ?? 1,
                   hardwareColor: item.doorConfig.hardwareColor || "aluminio",
                   hasLintel: true,
                   location: "",
                   pricePerUnit: item.doorConfig.pricePerUnit ?? 890000,
+                  lineTotal: (item.doorConfig.pricePerUnit ?? 890000) * (item.doorConfig.quantity ?? 1),
                 }],
             subtotal: item.doorConfig.subtotal ?? 890000,
             notes: item.doorConfig.notes || "",

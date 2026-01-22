@@ -1482,3 +1482,9 @@
 - [x] Actualizar backend para guardar/cargar lista de puertas
 - [x] Actualizar PDF para mostrar todas las puertas con sus especificaciones
 - [x] Actualizar handleEdit para cargar lista de puertas correctamente (con compatibilidad hacia atrás)
+
+
+## Mejora: Cantidad por puerta
+- [x] Agregar campo de cantidad a cada puerta individual
+- [x] Actualizar cálculo de subtotal (precio × cantidad)
+- [x] Actualizar PDF para mostrar cantidad por puerta

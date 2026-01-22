@@ -1100,19 +1100,26 @@ export const appRouter = router({
               // Verificar si es estructura nueva (lista de puertas) o antigua (puerta única)
               if (doorConfig.doors && Array.isArray(doorConfig.doors)) {
                 // Nueva estructura: lista de puertas
+                const totalDoors = doorConfig.doors.reduce((sum: number, d: any) => sum + (d.quantity || 1), 0);
                 lines.push('PUERTAS - MADERA MACIZA TIPO RH');
-                lines.push(`Total: ${doorConfig.doors.length} ${doorConfig.doors.length === 1 ? 'puerta' : 'puertas'}`);
+                lines.push(`Total: ${totalDoors} ${totalDoors === 1 ? 'puerta' : 'puertas'}`);
                 lines.push('');
                 
                 doorConfig.doors.forEach((door: any, idx: number) => {
+                  const qty = door.quantity || 1;
+                  const lineTotal = door.lineTotal || (door.pricePerUnit * qty);
                   lines.push(`Puerta ${idx + 1}: ${typeLabels[door.type] || door.type}`);
                   lines.push(`  • Medidas: ${door.width}cm × ${door.height}m`);
+                  lines.push(`  • Cantidad: ${qty} ${qty === 1 ? 'unidad' : 'unidades'}`);
                   lines.push(`  • Accesorios: ${colorLabels[door.hardwareColor] || door.hardwareColor}`);
                   lines.push(`  • Dintel: ${door.hasLintel ? 'Sí' : 'No'}`);
                   if (door.location) {
                     lines.push(`  • Ubicación: ${door.location}`);
                   }
-                  lines.push(`  • Precio: ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(door.pricePerUnit)}`);
+                  lines.push(`  • Precio unitario: ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(door.pricePerUnit)}`);
+                  if (qty > 1) {
+                    lines.push(`  • Subtotal: ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(lineTotal)}`);
+                  }
                   if (idx < doorConfig.doors.length - 1) lines.push('');
                 });
                 
@@ -1406,19 +1413,26 @@ export const appRouter = router({
               // Verificar si es estructura nueva (lista de puertas) o antigua (puerta única)
               if (doorConfig.doors && Array.isArray(doorConfig.doors)) {
                 // Nueva estructura: lista de puertas
+                const totalDoors = doorConfig.doors.reduce((sum: number, d: any) => sum + (d.quantity || 1), 0);
                 lines.push('PUERTAS - MADERA MACIZA TIPO RH');
-                lines.push(`Total: ${doorConfig.doors.length} ${doorConfig.doors.length === 1 ? 'puerta' : 'puertas'}`);
+                lines.push(`Total: ${totalDoors} ${totalDoors === 1 ? 'puerta' : 'puertas'}`);
                 lines.push('');
                 
                 doorConfig.doors.forEach((door: any, idx: number) => {
+                  const qty = door.quantity || 1;
+                  const lineTotal = door.lineTotal || (door.pricePerUnit * qty);
                   lines.push(`Puerta ${idx + 1}: ${typeLabels[door.type] || door.type}`);
                   lines.push(`  • Medidas: ${door.width}cm × ${door.height}m`);
+                  lines.push(`  • Cantidad: ${qty} ${qty === 1 ? 'unidad' : 'unidades'}`);
                   lines.push(`  • Accesorios: ${colorLabels[door.hardwareColor] || door.hardwareColor}`);
                   lines.push(`  • Dintel: ${door.hasLintel ? 'Sí' : 'No'}`);
                   if (door.location) {
                     lines.push(`  • Ubicación: ${door.location}`);
                   }
-                  lines.push(`  • Precio: ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(door.pricePerUnit)}`);
+                  lines.push(`  • Precio unitario: ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(door.pricePerUnit)}`);
+                  if (qty > 1) {
+                    lines.push(`  • Subtotal: ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(lineTotal)}`);
+                  }
                   if (idx < doorConfig.doors.length - 1) lines.push('');
                 });
                 

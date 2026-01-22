@@ -300,7 +300,7 @@ export default function Quotations() {
           fixedCostsAmount: item.fixedCostsAmount || 600000,
           hardwareSelections: item.hardwareSelections || [],
           closetConfig: item.closetConfig ? {
-            type: item.closetConfig.type || "standard",
+            type: item.closetConfig.type || "estandar",
             width: item.closetConfig.width || 0,
             height: item.closetConfig.height || 0,
             doorType: item.closetConfig.doorType || "sliding",

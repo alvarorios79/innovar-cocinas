@@ -1441,3 +1441,9 @@
 - [x] Identificar línea exacta donde ocurre el error (línea 81: CLOSET_TYPES[type].price)
 - [x] Agregar validaciones de seguridad (usar closetType con fallback a estandar)
 - [x] Probar con cotizaciones existentes y nuevas
+
+
+## Bug CRÍTICO: Error 'price' persiste al editar cotizaciones con closets
+- [x] Verificar cómo se parsea closetConfig desde JSON en handleEdit
+- [x] Asegurar que type tenga valor por defecto 'estandar' (no 'standard') si viene undefined
+- [x] Probar edición de cotización existente con closet

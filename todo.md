@@ -1669,3 +1669,9 @@
 ## Corrección UI Configurador de Mesones
 
 - [x] Acomodar botones de agregar mesón (Mesón, Isla, Barra) dentro del recuadro del configurador
+
+
+## Mejoras Vista Previa PDF de Cotizaciones
+
+- [x] Mostrar desglose de múltiples mesones correctamente en el PDF
+- [x] Aumentar tamaño de la vista previa del PDF al 100%

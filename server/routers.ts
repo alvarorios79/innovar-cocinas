@@ -1248,50 +1248,95 @@ export const appRouter = router({
               const lines: string[] = [];
               const formatCurrency = (value: number) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(value);
               
-              const tipoTexto = config.tipo === 'meson' ? 'MESÓN' : config.tipo === 'isla' ? 'ISLA' : 'BARRA';
-              const materialTexto = config.material === 'quarzo' ? 'QUARZO' : 'SINTERIZADO';
-              
-              lines.push(`${tipoTexto} EN ${materialTexto}`);
-              lines.push(`Metros lineales: ${config.metrosLineales}ML`);
-              lines.push(`Fondo: ${config.fondo}cm`);
-              lines.push('');
-              lines.push('Incluye:');
-              lines.push('• Regrueso en el visto');
-              lines.push('• Salpicadero de 10cm');
-              lines.push('• Pegado de lavaplatos (incluye lavaplatos 45x37cm)');
-              
-              if (config.tipo === 'isla' && config.incluyeLaterales) {
-                lines.push('• Laterales de isla (1.8ML)');
-              }
-              if (config.tipo === 'isla' && config.incluyeRegrueso) {
-                lines.push('• Regrueso de isla (0.9ML x 60cm)');
-              }
-              if (config.tipo === 'barra' && config.alturaLateral > 0) {
-                lines.push(`• Lateral de barra (${config.alturaLateral}cm)`);
-              }
-              
-              lines.push('');
-              lines.push('Desglose:');
-              lines.push(`• ${tipoTexto.toLowerCase()} ${config.metrosLineales}ML x ${config.fondo}cm: ${formatCurrency(config.subtotalMeson)}`);
-              if (config.tipo === 'isla' && config.incluyeLaterales && config.subtotalLaterales > 0) {
-                lines.push(`• Laterales: ${formatCurrency(config.subtotalLaterales)}`);
-              }
-              if (config.tipo === 'isla' && config.incluyeRegrueso && config.subtotalRegrueso > 0) {
-                lines.push(`• Regrueso: ${formatCurrency(config.subtotalRegrueso)}`);
-              }
-              if (config.tipo === 'barra' && config.alturaLateral > 0) {
-                lines.push(`• Lateral barra: ${formatCurrency(config.subtotalLaterales)}`);
-              }
-              lines.push(`• Pegado lavaplatos: ${formatCurrency(config.subtotalLavaplatos)}`);
-              
-              if (config.includeTransport && config.transportCost) {
-                lines.push(`• Transporte e imprevistos: ${formatCurrency(config.transportCost)}`);
-              }
-              
-              if (config.notes && config.notes.trim()) {
+              // Verificar si es el nuevo formato con múltiples mesones
+              if (config.mesones && Array.isArray(config.mesones)) {
+                lines.push('MESONES EN PIEDRA');
                 lines.push('');
-                lines.push('Notas adicionales:');
-                lines.push(config.notes);
+                
+                config.mesones.forEach((meson: any, index: number) => {
+                  const tipoTexto = meson.tipo === 'meson' ? 'Mesón Estándar' : meson.tipo === 'isla' ? 'Isla' : 'Barra';
+                  const materialTexto = meson.material === 'quarzo' ? 'Quarzo' : 'Sinterizado';
+                  
+                  lines.push(`${index + 1}. ${tipoTexto.toUpperCase()} EN ${materialTexto.toUpperCase()}`);
+                  lines.push(`   ${meson.metrosLineales}ML x ${meson.fondo}cm de fondo`);
+                  
+                  // Incluidos según tipo
+                  if (meson.tipo === 'meson') {
+                    lines.push('   Incluye: Regrueso en el visto' + (meson.incluyeSalpicaderoAlto ? ', Salpicadero alto' : ', Salpicadero bajo 10cm'));
+                    lines.push('   Pegado lavaplatos + Lavaplatos 45x37cm');
+                  } else if (meson.tipo === 'isla') {
+                    const extras = [];
+                    extras.push('Regrueso en el visto');
+                    if (meson.incluyeLaterales) extras.push('Laterales (1.8ML)');
+                    if (meson.incluyeRegrueso) extras.push('Regrueso adicional (0.9ML)');
+                    lines.push(`   Incluye: ${extras.join(', ')}`);
+                  } else if (meson.tipo === 'barra') {
+                    const extras = [];
+                    extras.push('Regrueso en los vistos');
+                    if (!meson.incluyeSalpicaderoAlto) extras.push('Salpicadero bajo 10cm');
+                    else extras.push('Salpicadero alto');
+                    if (meson.alturaLateral > 0) extras.push(`Lateral ${meson.alturaLateral}cm`);
+                    lines.push(`   Incluye: ${extras.join(', ')}`);
+                  }
+                  
+                  lines.push(`   Subtotal: ${formatCurrency(meson.subtotal)}`);
+                  lines.push('');
+                });
+                
+                if (config.includeTransport && config.transportCost) {
+                  lines.push(`Transporte e imprevistos: ${formatCurrency(config.transportCost)}`);
+                }
+                
+                if (config.notes && config.notes.trim()) {
+                  lines.push('');
+                  lines.push('Notas: ' + config.notes);
+                }
+              } else {
+                // Formato antiguo (un solo mesón)
+                const tipoTexto = config.tipo === 'meson' ? 'MESÓN' : config.tipo === 'isla' ? 'ISLA' : 'BARRA';
+                const materialTexto = config.material === 'quarzo' ? 'QUARZO' : 'SINTERIZADO';
+                
+                lines.push(`${tipoTexto} EN ${materialTexto}`);
+                lines.push(`Metros lineales: ${config.metrosLineales}ML`);
+                lines.push(`Fondo: ${config.fondo}cm`);
+                lines.push('');
+                lines.push('Incluye:');
+                lines.push('• Regrueso en el visto');
+                
+                if (config.tipo === 'meson') {
+                  if (!config.incluyeSalpicaderoAlto) {
+                    lines.push('• Salpicadero bajo 10cm');
+                  } else {
+                    lines.push('• Salpicadero alto (duplica metraje)');
+                  }
+                  lines.push('• Pegado de lavaplatos (incluye lavaplatos 45x37cm)');
+                } else if (config.tipo === 'barra') {
+                  if (!config.incluyeSalpicaderoAlto) {
+                    lines.push('• Salpicadero bajo 10cm');
+                  } else {
+                    lines.push('• Salpicadero alto (duplica metraje)');
+                  }
+                }
+                
+                if (config.tipo === 'isla' && config.incluyeLaterales) {
+                  lines.push('• Laterales de isla (1.8ML)');
+                }
+                if (config.tipo === 'isla' && config.incluyeRegrueso) {
+                  lines.push('• Regrueso de isla (0.9ML x 60cm)');
+                }
+                if (config.tipo === 'barra' && config.alturaLateral > 0) {
+                  lines.push(`• Lateral de barra (${config.alturaLateral}cm)`);
+                }
+                
+                if (config.includeTransport && config.transportCost) {
+                  lines.push(`• Transporte e imprevistos: ${formatCurrency(config.transportCost)}`);
+                }
+                
+                if (config.notes && config.notes.trim()) {
+                  lines.push('');
+                  lines.push('Notas adicionales:');
+                  lines.push(config.notes);
+                }
               }
               
               description = lines.join('\n');
@@ -1775,50 +1820,95 @@ export const appRouter = router({
               const lines: string[] = [];
               const formatCurrency = (value: number) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(value);
               
-              const tipoTexto = config.tipo === 'meson' ? 'MESÓN' : config.tipo === 'isla' ? 'ISLA' : 'BARRA';
-              const materialTexto = config.material === 'quarzo' ? 'QUARZO' : 'SINTERIZADO';
-              
-              lines.push(`${tipoTexto} EN ${materialTexto}`);
-              lines.push(`Metros lineales: ${config.metrosLineales}ML`);
-              lines.push(`Fondo: ${config.fondo}cm`);
-              lines.push('');
-              lines.push('Incluye:');
-              lines.push('• Regrueso en el visto');
-              lines.push('• Salpicadero de 10cm');
-              lines.push('• Pegado de lavaplatos (incluye lavaplatos 45x37cm)');
-              
-              if (config.tipo === 'isla' && config.incluyeLaterales) {
-                lines.push('• Laterales de isla (1.8ML)');
-              }
-              if (config.tipo === 'isla' && config.incluyeRegrueso) {
-                lines.push('• Regrueso de isla (0.9ML x 60cm)');
-              }
-              if (config.tipo === 'barra' && config.alturaLateral > 0) {
-                lines.push(`• Lateral de barra (${config.alturaLateral}cm)`);
-              }
-              
-              lines.push('');
-              lines.push('Desglose:');
-              lines.push(`• ${tipoTexto.toLowerCase()} ${config.metrosLineales}ML x ${config.fondo}cm: ${formatCurrency(config.subtotalMeson)}`);
-              if (config.tipo === 'isla' && config.incluyeLaterales && config.subtotalLaterales > 0) {
-                lines.push(`• Laterales: ${formatCurrency(config.subtotalLaterales)}`);
-              }
-              if (config.tipo === 'isla' && config.incluyeRegrueso && config.subtotalRegrueso > 0) {
-                lines.push(`• Regrueso: ${formatCurrency(config.subtotalRegrueso)}`);
-              }
-              if (config.tipo === 'barra' && config.alturaLateral > 0) {
-                lines.push(`• Lateral barra: ${formatCurrency(config.subtotalLaterales)}`);
-              }
-              lines.push(`• Pegado lavaplatos: ${formatCurrency(config.subtotalLavaplatos)}`);
-              
-              if (config.includeTransport && config.transportCost) {
-                lines.push(`• Transporte e imprevistos: ${formatCurrency(config.transportCost)}`);
-              }
-              
-              if (config.notes && config.notes.trim()) {
+              // Verificar si es el nuevo formato con múltiples mesones
+              if (config.mesones && Array.isArray(config.mesones)) {
+                lines.push('MESONES EN PIEDRA');
                 lines.push('');
-                lines.push('Notas adicionales:');
-                lines.push(config.notes);
+                
+                config.mesones.forEach((meson: any, index: number) => {
+                  const tipoTexto = meson.tipo === 'meson' ? 'Mesón Estándar' : meson.tipo === 'isla' ? 'Isla' : 'Barra';
+                  const materialTexto = meson.material === 'quarzo' ? 'Quarzo' : 'Sinterizado';
+                  
+                  lines.push(`${index + 1}. ${tipoTexto.toUpperCase()} EN ${materialTexto.toUpperCase()}`);
+                  lines.push(`   ${meson.metrosLineales}ML x ${meson.fondo}cm de fondo`);
+                  
+                  // Incluidos según tipo
+                  if (meson.tipo === 'meson') {
+                    lines.push('   Incluye: Regrueso en el visto' + (meson.incluyeSalpicaderoAlto ? ', Salpicadero alto' : ', Salpicadero bajo 10cm'));
+                    lines.push('   Pegado lavaplatos + Lavaplatos 45x37cm');
+                  } else if (meson.tipo === 'isla') {
+                    const extras = [];
+                    extras.push('Regrueso en el visto');
+                    if (meson.incluyeLaterales) extras.push('Laterales (1.8ML)');
+                    if (meson.incluyeRegrueso) extras.push('Regrueso adicional (0.9ML)');
+                    lines.push(`   Incluye: ${extras.join(', ')}`);
+                  } else if (meson.tipo === 'barra') {
+                    const extras = [];
+                    extras.push('Regrueso en los vistos');
+                    if (!meson.incluyeSalpicaderoAlto) extras.push('Salpicadero bajo 10cm');
+                    else extras.push('Salpicadero alto');
+                    if (meson.alturaLateral > 0) extras.push(`Lateral ${meson.alturaLateral}cm`);
+                    lines.push(`   Incluye: ${extras.join(', ')}`);
+                  }
+                  
+                  lines.push(`   Subtotal: ${formatCurrency(meson.subtotal)}`);
+                  lines.push('');
+                });
+                
+                if (config.includeTransport && config.transportCost) {
+                  lines.push(`Transporte e imprevistos: ${formatCurrency(config.transportCost)}`);
+                }
+                
+                if (config.notes && config.notes.trim()) {
+                  lines.push('');
+                  lines.push('Notas: ' + config.notes);
+                }
+              } else {
+                // Formato antiguo (un solo mesón)
+                const tipoTexto = config.tipo === 'meson' ? 'MESÓN' : config.tipo === 'isla' ? 'ISLA' : 'BARRA';
+                const materialTexto = config.material === 'quarzo' ? 'QUARZO' : 'SINTERIZADO';
+                
+                lines.push(`${tipoTexto} EN ${materialTexto}`);
+                lines.push(`Metros lineales: ${config.metrosLineales}ML`);
+                lines.push(`Fondo: ${config.fondo}cm`);
+                lines.push('');
+                lines.push('Incluye:');
+                lines.push('• Regrueso en el visto');
+                
+                if (config.tipo === 'meson') {
+                  if (!config.incluyeSalpicaderoAlto) {
+                    lines.push('• Salpicadero bajo 10cm');
+                  } else {
+                    lines.push('• Salpicadero alto (duplica metraje)');
+                  }
+                  lines.push('• Pegado de lavaplatos (incluye lavaplatos 45x37cm)');
+                } else if (config.tipo === 'barra') {
+                  if (!config.incluyeSalpicaderoAlto) {
+                    lines.push('• Salpicadero bajo 10cm');
+                  } else {
+                    lines.push('• Salpicadero alto (duplica metraje)');
+                  }
+                }
+                
+                if (config.tipo === 'isla' && config.incluyeLaterales) {
+                  lines.push('• Laterales de isla (1.8ML)');
+                }
+                if (config.tipo === 'isla' && config.incluyeRegrueso) {
+                  lines.push('• Regrueso de isla (0.9ML x 60cm)');
+                }
+                if (config.tipo === 'barra' && config.alturaLateral > 0) {
+                  lines.push(`• Lateral de barra (${config.alturaLateral}cm)`);
+                }
+                
+                if (config.includeTransport && config.transportCost) {
+                  lines.push(`• Transporte e imprevistos: ${formatCurrency(config.transportCost)}`);
+                }
+                
+                if (config.notes && config.notes.trim()) {
+                  lines.push('');
+                  lines.push('Notas adicionales:');
+                  lines.push(config.notes);
+                }
               }
               
               description = lines.join('\n');

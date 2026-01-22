@@ -24,7 +24,7 @@ export function PDFPreviewBeforeSave({
 }: PDFPreviewBeforeSaveProps) {
   const [numPages, setNumPages] = useState<number>(0);
   const [pageNumber, setPageNumber] = useState<number>(1);
-  const [scale, setScale] = useState<number>(0.8);
+  const [scale, setScale] = useState<number>(1.0);
   const [isLoading, setIsLoading] = useState(true);
   const [containerWidth, setContainerWidth] = useState<number>(0);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -45,7 +45,7 @@ export function PDFPreviewBeforeSave({
   useEffect(() => {
     if (open) {
       setPageNumber(1);
-      setScale(0.8);
+      setScale(1.0);
       setIsLoading(true);
     }
   }, [open, pdfUrl]);

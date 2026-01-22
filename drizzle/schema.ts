@@ -555,8 +555,10 @@ export const quotationItems = mysqlTable("quotationItems", {
   unitPrice: varchar("unitPrice", { length: 50 }),
   totalPrice: varchar("totalPrice", { length: 50 }).notNull(),
   includesFixedCosts: boolean("includesFixedCosts").default(false).notNull(),
+  fixedCostsAmount: int("fixedCostsAmount"),
   kitchenConfig: json("kitchenConfig"),
   hardwareSelections: json("hardwareSelections"), // Array de { hardwareId, name, price, quantity, subtotal }
+  closetConfig: json("closetConfig"), // { type, width, height, doorType, squareMeters, pricePerSquareMeter, subtotal }
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 

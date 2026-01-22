@@ -1400,3 +1400,14 @@
 - [x] Hacer que el monto de transporte sea editable (no fijo en $600,000) cuando se activa el checkbox
 
 - [x] Bug: El transporte ($600,000) se suma automáticamente al total aunque no esté marcado el checkbox
+
+
+## Configurador de Closets - Implementación Completa
+- [x] Crear componente ClosetConfigurator.tsx con 3 tipos (Estándar $750k/M², Especial $650k/M², Empotrado $900k/M²)
+- [x] Agregar campos de ancho y alto con cálculo automático de M²
+- [x] Agregar selector de tipo de puertas (Corredizas/Batientes)
+- [x] Integrar en Quotations.tsx para renderizar cuando itemType === "closet"
+- [x] Actualizar schema con campo closetConfig
+- [x] Actualizar backend para guardar y procesar closetConfig
+- [x] Generar descripción detallada en PDF con especificaciones del closet
+- [x] Probar flujo completo: crear cotización → generar PDF

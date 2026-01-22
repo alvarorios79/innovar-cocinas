@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import { HardwareSelectorForQuotation } from "@/components/HardwareSelectorForQuotation";
+import { ClosetConfigurator, ClosetConfig } from "@/components/ClosetConfigurator";
 import { PDFPreviewDialog } from "@/components/PDFPreviewDialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -74,6 +75,7 @@ interface QuotationItem {
   fixedCostsAmount?: number; // Monto de transporte e imprevistos (editable)
   kitchenConfig?: KitchenConfig;
   hardwareSelections?: HardwareSelection[];
+  closetConfig?: ClosetConfig;
 }
 
 export default function Quotations() {
@@ -1378,8 +1380,78 @@ export default function Quotations() {
                           );
                         })()}
 
+                        {/* Campos dinámicos para CLOSET */}
+                        {item.itemType === "closet" && (
+                          <>
+                            <ClosetConfigurator
+                              config={item.closetConfig || null}
+                              onChange={(config: ClosetConfig) => {
+                                const newItems = [...items];
+                                let total = config.subtotal;
+                                // Incluir transporte si está marcado
+                                if (newItems[index].includesFixedCosts) {
+                                  total += (newItems[index].fixedCostsAmount || 600000);
+                                }
+                                newItems[index] = {
+                                  ...newItems[index],
+                                  closetConfig: config,
+                                  totalPrice: total
+                                };
+                                setItems(newItems);
+                              }}
+                            />
+
+                            {/* Checkbox de transporte para closets */}
+                            <div className="flex items-center space-x-2 mt-4 flex-wrap gap-2">
+                              <input
+                                type="checkbox"
+                                id={`fixedCosts-closet-${index}`}
+                                checked={item.includesFixedCosts || false}
+                                onChange={(e) => {
+                                  const newItems = [...items];
+                                  const closetTotal = newItems[index].closetConfig?.subtotal || 0;
+                                  const fixedAmount = newItems[index].fixedCostsAmount ?? 600000;
+                                  
+                                  if (e.target.checked) {
+                                    newItems[index].totalPrice = closetTotal + fixedAmount;
+                                    if (newItems[index].fixedCostsAmount === undefined) {
+                                      newItems[index].fixedCostsAmount = 600000;
+                                    }
+                                  } else {
+                                    newItems[index].totalPrice = closetTotal;
+                                  }
+                                  
+                                  newItems[index].includesFixedCosts = e.target.checked;
+                                  setItems(newItems);
+                                }}
+                                className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                              />
+                              <Label htmlFor={`fixedCosts-closet-${index}`} className="text-sm font-normal cursor-pointer">
+                                Incluye transporte e imprevistos
+                              </Label>
+                              {item.includesFixedCosts && (
+                                <Input
+                                  type="number"
+                                  value={item.fixedCostsAmount ?? 600000}
+                                  onChange={(e) => {
+                                    const newItems = [...items];
+                                    const closetTotal = newItems[index].closetConfig?.subtotal || 0;
+                                    const newAmount = e.target.value === '' ? 0 : parseFloat(e.target.value);
+                                    newItems[index].totalPrice = closetTotal + newAmount;
+                                    newItems[index].fixedCostsAmount = newAmount;
+                                    setItems(newItems);
+                                  }}
+                                  className="w-32 h-8"
+                                  placeholder="Monto"
+                                  min="0"
+                                />
+                              )}
+                            </div>
+                          </>
+                        )}
+
                         {/* Campos estándar para otros tipos */}
-                        {item.itemType !== "cocina" && item.itemType !== "herrajes" && (
+                        {item.itemType !== "cocina" && item.itemType !== "herrajes" && item.itemType !== "closet" && (
                           <>
                             <div>
                               <Label>Descripción *</Label>

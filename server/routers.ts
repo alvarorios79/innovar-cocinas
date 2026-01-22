@@ -728,6 +728,7 @@ export const appRouter = router({
           unitPrice: z.string().optional(),
           totalPrice: z.union([z.number(), z.string()]).transform(val => typeof val === 'string' ? parseFloat(val) : val),
           includesFixedCosts: z.boolean().optional(),
+          fixedCostsAmount: z.number().optional(),
           kitchenConfig: z.any().optional(),
           hardwareSelections: z.array(z.object({
             hardwareId: z.number(),
@@ -736,6 +737,7 @@ export const appRouter = router({
             quantity: z.number(),
             subtotal: z.number(),
           })).optional(),
+          closetConfig: z.any().optional(),
         })),
       }))
       .mutation(async ({ ctx, input }) => {
@@ -786,8 +788,10 @@ export const appRouter = router({
             unitPrice: item.unitPrice || null,
             totalPrice: item.totalPrice.toString(),
             includesFixedCosts: item.includesFixedCosts || false,
+            fixedCostsAmount: item.fixedCostsAmount || null,
             kitchenConfig: item.kitchenConfig ? JSON.stringify(item.kitchenConfig) : null,
             hardwareSelections: item.hardwareSelections ? JSON.stringify(item.hardwareSelections) : null,
+            closetConfig: item.closetConfig ? JSON.stringify(item.closetConfig) : null,
           });
         }
 
@@ -809,6 +813,7 @@ export const appRouter = router({
           unitPrice: z.string().optional(),
           totalPrice: z.union([z.number(), z.string()]).transform(val => typeof val === 'string' ? parseFloat(val) : val),
           includesFixedCosts: z.boolean().optional(),
+          fixedCostsAmount: z.number().optional(),
           kitchenConfig: z.any().optional(),
           hardwareSelections: z.array(z.object({
             hardwareId: z.number(),
@@ -817,6 +822,7 @@ export const appRouter = router({
             quantity: z.number(),
             subtotal: z.number(),
           })).optional(),
+          closetConfig: z.any().optional(),
         })).optional(),
       }))
       .mutation(async ({ ctx, input }) => {
@@ -847,8 +853,10 @@ export const appRouter = router({
               unitPrice: item.unitPrice || null,
               totalPrice: item.totalPrice.toString(),
               includesFixedCosts: item.includesFixedCosts || false,
+              fixedCostsAmount: item.fixedCostsAmount || null,
               kitchenConfig: item.kitchenConfig ? JSON.stringify(item.kitchenConfig) : null,
               hardwareSelections: item.hardwareSelections ? JSON.stringify(item.hardwareSelections) : null,
+              closetConfig: item.closetConfig ? JSON.stringify(item.closetConfig) : null,
             });
           }
 
@@ -1002,8 +1010,46 @@ export const appRouter = router({
               ? JSON.parse(item.hardwareSelections)
               : item.hardwareSelections;
             
+            // Parsear closetConfig si es string JSON
+            const closetConfig = item.closetConfig && typeof item.closetConfig === 'string'
+              ? JSON.parse(item.closetConfig)
+              : item.closetConfig;
+            
+            // Si es closet y tiene closetConfig, generar descripción detallada
+            if (item.itemType === 'closet' && closetConfig) {
+              const lines: string[] = [];
+              const typeLabels: Record<string, string> = {
+                'estandar': 'Closet Estándar',
+                'especial': 'Closet Especial',
+                'empotrado': 'Closet Empotrado'
+              };
+              const doorLabels: Record<string, string> = {
+                'corredizas': 'Puertas Corredizas',
+                'batientes': 'Puertas Batientes'
+              };
+              
+              lines.push(`${typeLabels[closetConfig.type] || closetConfig.type.toUpperCase()}`);
+              lines.push(`Dimensiones: ${closetConfig.width}m (ancho) x ${closetConfig.height}m (alto)`);
+              lines.push(`Profundidad: ${closetConfig.type === 'especial' ? '0.45cm o menos' : '0.60cm'}`);
+              lines.push(`Área: ${closetConfig.squareMeters.toFixed(2)} M²`);
+              lines.push(`Precio por M²: ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(closetConfig.pricePerSquareMeter)}`);
+              lines.push(`${doorLabels[closetConfig.doorType] || closetConfig.doorType}`);
+              lines.push('');
+              lines.push('Incluye:');
+              lines.push('• Maletero');
+              lines.push('• Divisor');
+              lines.push('• Doble colgadero');
+              lines.push('• Entrepaños');
+              lines.push('• Doble cajonero');
+              lines.push('• Zapatero');
+              if (closetConfig.type === 'empotrado') {
+                lines.push('• Espaldar y laterales completos');
+              }
+              
+              description = lines.join('\n');
+            }
             // Si es herrajes y tiene hardwareSelections, generar descripción detallada
-            if (item.itemType === 'herrajes' && hardwareSelections && Array.isArray(hardwareSelections) && hardwareSelections.length > 0) {
+            else if (item.itemType === 'herrajes' && hardwareSelections && Array.isArray(hardwareSelections) && hardwareSelections.length > 0) {
               const lines: string[] = [];
               lines.push('HERRAJES SELECCIONADOS');
               lines.push('');
@@ -1190,8 +1236,46 @@ export const appRouter = router({
               ? JSON.parse(item.hardwareSelections)
               : item.hardwareSelections;
             
+            // Parsear closetConfig si es string JSON
+            const closetConfig = item.closetConfig && typeof item.closetConfig === 'string'
+              ? JSON.parse(item.closetConfig)
+              : item.closetConfig;
+            
+            // Si es closet y tiene closetConfig, generar descripción detallada
+            if (item.itemType === 'closet' && closetConfig) {
+              const lines: string[] = [];
+              const typeLabels: Record<string, string> = {
+                'estandar': 'Closet Estándar',
+                'especial': 'Closet Especial',
+                'empotrado': 'Closet Empotrado'
+              };
+              const doorLabels: Record<string, string> = {
+                'corredizas': 'Puertas Corredizas',
+                'batientes': 'Puertas Batientes'
+              };
+              
+              lines.push(`${typeLabels[closetConfig.type] || closetConfig.type.toUpperCase()}`);
+              lines.push(`Dimensiones: ${closetConfig.width}m (ancho) x ${closetConfig.height}m (alto)`);
+              lines.push(`Profundidad: ${closetConfig.type === 'especial' ? '0.45cm o menos' : '0.60cm'}`);
+              lines.push(`Área: ${closetConfig.squareMeters.toFixed(2)} M²`);
+              lines.push(`Precio por M²: ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(closetConfig.pricePerSquareMeter)}`);
+              lines.push(`${doorLabels[closetConfig.doorType] || closetConfig.doorType}`);
+              lines.push('');
+              lines.push('Incluye:');
+              lines.push('• Maletero');
+              lines.push('• Divisor');
+              lines.push('• Doble colgadero');
+              lines.push('• Entrepaños');
+              lines.push('• Doble cajonero');
+              lines.push('• Zapatero');
+              if (closetConfig.type === 'empotrado') {
+                lines.push('• Espaldar y laterales completos');
+              }
+              
+              description = lines.join('\n');
+            }
             // Si es herrajes y tiene hardwareSelections, generar descripción detallada
-            if (item.itemType === 'herrajes' && hardwareSelections && Array.isArray(hardwareSelections) && hardwareSelections.length > 0) {
+            else if (item.itemType === 'herrajes' && hardwareSelections && Array.isArray(hardwareSelections) && hardwareSelections.length > 0) {
               const lines: string[] = [];
               lines.push('HERRAJES SELECCIONADOS');
               lines.push('');

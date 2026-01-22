@@ -1447,3 +1447,15 @@
 - [x] Verificar cómo se parsea closetConfig desde JSON en handleEdit
 - [x] Asegurar que type tenga valor por defecto 'estandar' (no 'standard') si viene undefined
 - [x] Probar edición de cotización existente con closet
+
+
+## Bug: Medidas del closet aparecen en 0 al editar
+- [ ] Verificar si closetConfig se guarda correctamente en la base de datos
+- [ ] Verificar si closetConfig se parsea correctamente al cargar para editar
+- [ ] Corregir la carga de medidas (width, height) desde la base de datos
+
+
+## Bug: Medidas del closet aparecen en 0 al editar
+- [x] Verificar si closetConfig se guarda correctamente en la base de datos
+- [x] Verificar si closetConfig se parsea correctamente al cargar para editar
+- [x] Corregir la carga de medidas (width, height) desde la base de datos - SOLUCIONADO: faltaba parsear closetConfig en getQuotationById (routers.ts línea 925-927)

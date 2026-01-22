@@ -913,7 +913,7 @@ export const appRouter = router({
         const client = await db.getClientById(quotation.clientId);
         const items = await db.getQuotationItems(input.id);
 
-        // Parsear kitchenConfig y hardwareSelections de string JSON a objeto
+        // Parsear kitchenConfig, hardwareSelections y closetConfig de string JSON a objeto
         const parsedItems = items.map(item => ({
           ...item,
           kitchenConfig: item.kitchenConfig && typeof item.kitchenConfig === 'string' 
@@ -921,7 +921,10 @@ export const appRouter = router({
             : item.kitchenConfig,
           hardwareSelections: item.hardwareSelections && typeof item.hardwareSelections === 'string'
             ? JSON.parse(item.hardwareSelections)
-            : item.hardwareSelections
+            : item.hardwareSelections,
+          closetConfig: item.closetConfig && typeof item.closetConfig === 'string'
+            ? JSON.parse(item.closetConfig)
+            : item.closetConfig
         }));
 
         return {

@@ -18,7 +18,7 @@ const BASE_PRICES = {
 };
 
 // Constantes
-const LAVAPLATOS_COST = 130000;
+const LAVAPLATOS_COST = 130000; // Solo aplica para mesón estándar
 const ISLA_LATERALES_ML = 1.8;
 const ISLA_REGRUESO_ML = 0.9;
 
@@ -111,19 +111,26 @@ export function CountertopConfigurator({ config, onChange }: CountertopConfigura
       } else {
         updated.subtotalRegrueso = 0;
       }
+      // Isla NO lleva lavaplatos
+      updated.subtotalLavaplatos = 0;
+    } else if (updated.tipo === "barra") {
+      // Barra: lateral si está configurado
+      if (updated.alturaLateral > 0) {
+        const lateralML = updated.alturaLateral / 100;
+        updated.subtotalLaterales = lateralML * precioBase * multiplicador;
+      } else {
+        updated.subtotalLaterales = 0;
+      }
+      updated.subtotalRegrueso = 0;
+      // Barra NO lleva lavaplatos
+      updated.subtotalLavaplatos = 0;
     } else {
+      // Mesón estándar
       updated.subtotalLaterales = 0;
       updated.subtotalRegrueso = 0;
+      // Mesón estándar SÍ lleva lavaplatos
+      updated.subtotalLavaplatos = LAVAPLATOS_COST;
     }
-    
-    // Subtotal para barra (lateral)
-    if (updated.tipo === "barra" && updated.alturaLateral > 0) {
-      const lateralML = updated.alturaLateral / 100;
-      updated.subtotalLaterales = lateralML * precioBase * multiplicador;
-    }
-    
-    // Lavaplatos siempre incluido
-    updated.subtotalLavaplatos = LAVAPLATOS_COST;
     
     // Total
     updated.total = updated.subtotalMeson + updated.subtotalLaterales + updated.subtotalRegrueso + updated.subtotalLavaplatos;
@@ -176,6 +183,32 @@ export function CountertopConfigurator({ config, onChange }: CountertopConfigura
 
   const multiplicador = getMultiplicadorFondo(config.fondo, config.tipo);
   const multiplicadorTexto = multiplicador === 1 ? "Normal" : multiplicador === 1.3 ? "+30%" : "Doble";
+
+  // Determinar qué incluye cada tipo
+  const getIncludedItems = () => {
+    if (config.tipo === "meson") {
+      // Mesón estándar: todo incluido
+      return [
+        { text: `Pegado lavaplatos (${formatPrice(LAVAPLATOS_COST)})`, included: true },
+        { text: "Lavaplatos 45×37cm incluido", included: true },
+        { text: "Salpicadero alto 10cm", included: true },
+        { text: "Regrueso en el visto", included: true },
+      ];
+    } else if (config.tipo === "isla") {
+      // Isla: solo regrueso en el visto
+      return [
+        { text: "Regrueso en el visto", included: true },
+      ];
+    } else {
+      // Barra: salpicadero y regrueso en los vistos
+      return [
+        { text: "Salpicadero alto 10cm", included: true },
+        { text: "Regrueso en los vistos", included: true },
+      ];
+    }
+  };
+
+  const includedItems = getIncludedItems();
 
   return (
     <div className="space-y-4 border rounded-lg p-4 bg-gradient-to-br from-rose-50 to-pink-50">
@@ -338,26 +371,16 @@ export function CountertopConfigurator({ config, onChange }: CountertopConfigura
         </div>
       )}
 
-      {/* Incluido */}
+      {/* Incluido en el precio - Dinámico según tipo */}
       <div className="p-3 bg-gray-50 rounded-lg">
         <h4 className="font-medium text-gray-700 mb-2">Incluido en el precio:</h4>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm text-gray-600">
-          <div className="flex items-center gap-2">
-            <span className="text-green-600">✓</span>
-            Pegado lavaplatos ({formatPrice(LAVAPLATOS_COST)})
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-green-600">✓</span>
-            Lavaplatos 45×37cm incluido
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-green-600">✓</span>
-            Salpicadero alto 10cm
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-green-600">✓</span>
-            Regrueso en el visto
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-600">
+          {includedItems.map((item, index) => (
+            <div key={index} className="flex items-center gap-2">
+              <span className="text-green-600">✓</span>
+              {item.text}
+            </div>
+          ))}
         </div>
       </div>
 
@@ -423,10 +446,12 @@ export function CountertopConfigurator({ config, onChange }: CountertopConfigura
               <span>{formatPrice(config.subtotalLaterales)}</span>
             </div>
           )}
-          <div className="flex justify-between">
-            <span>Pegado lavaplatos:</span>
-            <span>{formatPrice(config.subtotalLavaplatos)}</span>
-          </div>
+          {config.tipo === "meson" && (
+            <div className="flex justify-between">
+              <span>Pegado lavaplatos:</span>
+              <span>{formatPrice(config.subtotalLavaplatos)}</span>
+            </div>
+          )}
           {config.includeTransport && (
             <div className="flex justify-between">
               <span>Transporte e imprevistos:</span>

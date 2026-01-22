@@ -1628,3 +1628,11 @@
 - [x] Agregar 'mesones' al enum productType en el router de tRPC (create y update)
 - [x] Verificar que el componente CountertopConfigurator muestra opciones de Isla y Barra
 - [x] Probar creación de cotización con tipo Mesones (Barra) - COT-2026-627 creada exitosamente
+
+
+## Corrección Isla y Barra en Configurador de Mesones
+
+- [x] Mesón Estándar: Mantiene pegado lavaplatos, lavaplatos, salpicadero y regrueso en el visto
+- [x] Isla: Solo regrueso en el visto (NO lleva pegado lavaplatos, lavaplatos, ni salpicadero)
+- [x] Barra: Salpicadero y regrueso en los vistos (NO lleva pegado lavaplatos ni lavaplatos)
+- [x] Actualizar cálculos de precio para no incluir lavaplatos en Isla y Barra

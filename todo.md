@@ -1502,3 +1502,11 @@
 - [x] Agregar campo de notas a cada puerta individual
 - [x] Actualizar handleEdit para cargar notas de cada puerta
 - [x] Actualizar PDF para mostrar notas de cada puerta
+
+
+## Bug: Texto superpuesto y márgenes excesivos en configurador de puertas
+- [x] Corregir superposición de texto con números
+- [x] Quitar márgenes innecesarios
+- [x] Mejorar espaciado general
+- [x] Diseño compacto con grid de 6 columnas
+- [x] Notas en línea con checkbox de dintel

@@ -1417,3 +1417,8 @@
 - [x] Identificar causa del error en ClosetConfigurator (onChange en dependencias del useEffect)
 - [x] Corregir el problema (remover onChange de dependencias)
 - [x] Probar en desarrollo y producción (corrección aplicada, requiere actualización de caché)
+
+
+## Bug: Validación de descripción para closets
+- [x] Ajustar validación para que closets no requieran descripción manual
+- [x] Probar creación de cotización con closets

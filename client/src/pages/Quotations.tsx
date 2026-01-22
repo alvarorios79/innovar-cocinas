@@ -602,6 +602,16 @@ export default function Quotations() {
           toast.error(`Item ${i + 1}: Selecciona al menos un herraje`);
           return;
         }
+      } else if (item.itemType === "closet") {
+        // Para closets: validar que tenga configuración
+        if (!item.closetConfig || !item.closetConfig.width || !item.closetConfig.height) {
+          toast.error(`Item ${i + 1}: Configura las medidas del closet`);
+          return;
+        }
+        if (item.closetConfig.subtotal <= 0) {
+          toast.error(`Item ${i + 1}: El subtotal del closet debe ser mayor a 0`);
+          return;
+        }
       } else {
         // Para otros tipos: validar description y quantity
         if (!item.description) {

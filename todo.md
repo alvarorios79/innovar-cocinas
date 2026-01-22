@@ -1550,3 +1550,9 @@
 - [x] Integrar en formulario de cotizaciones
 - [x] Actualizar backend para guardar tvCenterConfig
 - [x] Actualizar PDF con especificaciones detalladas
+
+
+## Bug: Centro de TV no genera descripción automática
+- [x] Agregar generación automática de descripción cuando se selecciona Centro de TV
+- [x] Agregar validación específica para centro_tv en handleSubmit
+- [x] Similar a como funciona con closets, puertas y cocinas

@@ -739,6 +739,16 @@ export default function Quotations() {
           toast.error(`Item ${i + 1}: El subtotal de las puertas debe ser mayor a 0`);
           return;
         }
+      } else if (item.itemType === "centro_tv") {
+        // Para centro de TV: validar que tenga configuración
+        if (!item.tvCenterConfig || !item.tvCenterConfig.width) {
+          toast.error(`Item ${i + 1}: Configura el centro de TV`);
+          return;
+        }
+        if (item.tvCenterConfig.subtotal <= 0) {
+          toast.error(`Item ${i + 1}: El subtotal del centro de TV debe ser mayor a 0`);
+          return;
+        }
       } else {
         // Para otros tipos: validar description y quantity
         if (!item.description) {
@@ -825,6 +835,22 @@ export default function Quotations() {
         }
 
         return { ...item, description, quantity, totalPrice: total, includesFixedCosts: item.includesFixedCosts };
+      }
+      // Para centro de TV: generar descripción automática
+      if (item.itemType === "centro_tv" && item.tvCenterConfig) {
+        const config = item.tvCenterConfig;
+        const parts: string[] = [`Centro de TV ${config.width}m`];
+        if (config.hasHighGloss) parts.push("alto brillo");
+        if (config.hasLedLights) parts.push("luces LED");
+        if (config.equipmentSpaces > 0) parts.push(`${config.equipmentSpaces} espacios equipos`);
+        parts.push(`${config.floatingShelves} repisas`);
+        const description = parts.join(", ");
+        return {
+          ...item,
+          description,
+          quantity: "1",
+          totalPrice: config.subtotal,
+        };
       }
       // Para herrajes: generar descripción automática y cantidad basada en selecciones
       if (item.itemType === "herrajes" && item.hardwareSelections && item.hardwareSelections.length > 0) {

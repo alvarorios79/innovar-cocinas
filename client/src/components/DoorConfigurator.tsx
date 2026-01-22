@@ -116,112 +116,169 @@ export function DoorConfigurator({ config, onChange }: DoorConfiguratorProps) {
   const grandTotal = doorsSubtotal + (includeTransport ? transportCost : 0);
 
   return (
-    <Card className="mt-3 border-amber-200">
-      <CardContent className="p-3">
+    <Card className="mt-4 border-amber-300">
+      <CardContent className="p-4">
         {/* Header */}
-        <div className="flex items-center justify-between mb-3">
-          <h4 className="font-semibold text-amber-800">Puertas</h4>
-          <Button type="button" size="sm" onClick={addDoor} className="bg-amber-600 hover:bg-amber-700 h-8 text-xs">
-            <Plus className="h-3 w-3 mr-1" /> Agregar
+        <div className="flex items-center justify-between mb-4 pb-2 border-b border-amber-200">
+          <h4 className="font-bold text-amber-800 text-lg">Configuración de Puertas</h4>
+          <Button type="button" size="sm" onClick={addDoor} className="bg-amber-600 hover:bg-amber-700">
+            <Plus className="h-4 w-4 mr-1" /> Agregar Puerta
           </Button>
         </div>
         
         {/* Lista de puertas */}
-        <div className="space-y-3">
+        <div className="space-y-6">
           {doors.map((door, index) => (
-            <div key={door.id} className="bg-amber-50 p-3 rounded border border-amber-200">
+            <div key={door.id} className="bg-amber-50 p-4 rounded-lg border border-amber-200">
               {/* Header de puerta */}
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-amber-700">
+              <div className="flex items-center justify-between mb-4">
+                <h5 className="font-semibold text-amber-700 text-base">
                   Puerta {index + 1} - {door.type === "batiente" ? "Batiente" : "Corrediza"}
-                </span>
+                </h5>
                 {doors.length > 1 && (
-                  <Button type="button" size="sm" variant="ghost" onClick={() => removeDoor(door.id)} className="text-red-500 h-6 w-6 p-0">
-                    <Trash2 className="h-3 w-3" />
+                  <Button type="button" size="sm" variant="ghost" onClick={() => removeDoor(door.id)} className="text-red-500 hover:text-red-700 hover:bg-red-50">
+                    <Trash2 className="h-4 w-4" />
                   </Button>
                 )}
               </div>
 
-              {/* Campos en grid compacto */}
-              <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 text-xs">
+              {/* Fila 1: Tipo y Medidas */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                 <div>
-                  <Label className="text-xs text-gray-500">Tipo</Label>
+                  <Label className="text-sm font-medium text-gray-700 block mb-2">Tipo de Puerta</Label>
                   <Select value={door.type} onValueChange={(v) => updateDoor(door.id, { type: v as "batiente" | "corrediza" })}>
-                    <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                    <SelectTrigger className="h-10 bg-white"><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="batiente">Batiente</SelectItem>
-                      <SelectItem value="corrediza">Corrediza</SelectItem>
+                      <SelectItem value="batiente">Batiente - $890k</SelectItem>
+                      <SelectItem value="corrediza">Corrediza - $1.25M</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div>
-                  <Label className="text-xs text-gray-500">Ancho cm</Label>
-                  <Input type="number" min="50" max="110" value={door.width || ""} onChange={(e) => updateDoor(door.id, { width: parseFloat(e.target.value) || 0 })} className="h-8 text-xs" />
+                  <Label className="text-sm font-medium text-gray-700 block mb-2">Ancho (cm)</Label>
+                  <Input 
+                    type="number" 
+                    min="50" 
+                    max="110" 
+                    value={door.width || ""} 
+                    onChange={(e) => updateDoor(door.id, { width: parseFloat(e.target.value) || 0 })} 
+                    className="h-10 bg-white"
+                    placeholder="50-110"
+                  />
                 </div>
                 <div>
-                  <Label className="text-xs text-gray-500">Alto m</Label>
-                  <Input type="number" step="0.01" min="1.80" max="2.40" value={door.height || ""} onChange={(e) => updateDoor(door.id, { height: parseFloat(e.target.value) || 0 })} className="h-8 text-xs" />
+                  <Label className="text-sm font-medium text-gray-700 block mb-2">Alto (m)</Label>
+                  <Input 
+                    type="number" 
+                    step="0.01" 
+                    min="1.80" 
+                    max="2.40" 
+                    value={door.height || ""} 
+                    onChange={(e) => updateDoor(door.id, { height: parseFloat(e.target.value) || 0 })} 
+                    className="h-10 bg-white"
+                    placeholder="máx 2.40"
+                  />
                 </div>
                 <div>
-                  <Label className="text-xs text-gray-500">Cantidad</Label>
-                  <Input type="number" min="1" value={door.quantity || 1} onChange={(e) => updateDoor(door.id, { quantity: parseInt(e.target.value) || 1 })} className="h-8 text-xs" />
+                  <Label className="text-sm font-medium text-gray-700 block mb-2">Cantidad</Label>
+                  <Input 
+                    type="number" 
+                    min="1" 
+                    value={door.quantity || 1} 
+                    onChange={(e) => updateDoor(door.id, { quantity: parseInt(e.target.value) || 1 })} 
+                    className="h-10 bg-white"
+                  />
                 </div>
+              </div>
+
+              {/* Fila 2: Accesorios y Ubicación */}
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
                 <div>
-                  <Label className="text-xs text-gray-500">Accesorios</Label>
+                  <Label className="text-sm font-medium text-gray-700 block mb-2">Color Accesorios</Label>
                   <Select value={door.hardwareColor} onValueChange={(v) => updateDoor(door.id, { hardwareColor: v as "aluminio" | "negro" })}>
-                    <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                    <SelectTrigger className="h-10 bg-white"><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="aluminio">Aluminio</SelectItem>
+                      <SelectItem value="aluminio">Aluminio (Plateado)</SelectItem>
                       <SelectItem value="negro">Negro</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div>
-                  <Label className="text-xs text-gray-500">Ubicación</Label>
-                  <Input type="text" value={door.location || ""} onChange={(e) => updateDoor(door.id, { location: e.target.value })} placeholder="Baño, Alcoba..." className="h-8 text-xs" />
+                  <Label className="text-sm font-medium text-gray-700 block mb-2">Ubicación</Label>
+                  <Input 
+                    type="text" 
+                    value={door.location || ""} 
+                    onChange={(e) => updateDoor(door.id, { location: e.target.value })} 
+                    placeholder="Ej: Baño, Alcoba principal"
+                    className="h-10 bg-white"
+                  />
+                </div>
+                <div className="flex items-end">
+                  <div className="flex items-center gap-2 h-10 px-3 bg-white rounded-md border w-full">
+                    <Checkbox 
+                      id={`lintel-${door.id}`} 
+                      checked={door.hasLintel} 
+                      onCheckedChange={(c) => updateDoor(door.id, { hasLintel: c === true })} 
+                    />
+                    <Label htmlFor={`lintel-${door.id}`} className="text-sm cursor-pointer">Con Dintel</Label>
+                  </div>
                 </div>
               </div>
 
-              {/* Dintel y Notas */}
-              <div className="flex items-start gap-4 mt-2">
-                <div className="flex items-center gap-1">
-                  <Checkbox id={`lintel-${door.id}`} checked={door.hasLintel} onCheckedChange={(c) => updateDoor(door.id, { hasLintel: c === true })} />
-                  <Label htmlFor={`lintel-${door.id}`} className="text-xs cursor-pointer">Con Dintel</Label>
-                </div>
-                <div className="flex-1">
-                  <Input type="text" value={door.notes || ""} onChange={(e) => updateDoor(door.id, { notes: e.target.value })} placeholder="Notas: color, acabado..." className="h-7 text-xs" />
-                </div>
+              {/* Fila 3: Notas */}
+              <div className="mb-4">
+                <Label className="text-sm font-medium text-gray-700 block mb-2">Notas de esta puerta</Label>
+                <Input 
+                  type="text" 
+                  value={door.notes || ""} 
+                  onChange={(e) => updateDoor(door.id, { notes: e.target.value })} 
+                  placeholder="Ej: Color específico, acabado especial, observaciones..."
+                  className="h-10 bg-white"
+                />
               </div>
 
               {/* Precio */}
-              <div className="flex justify-end items-center gap-2 mt-2 pt-2 border-t border-amber-200 text-xs">
-                <span className="text-gray-500">${door.pricePerUnit.toLocaleString()} × {door.quantity} =</span>
-                <span className="font-bold text-amber-700">${door.lineTotal.toLocaleString()}</span>
+              <div className="bg-amber-100 rounded-md p-3 flex justify-between items-center">
+                <div className="text-sm text-amber-700">
+                  <span className="font-medium">{door.width}cm × {door.height}m</span>
+                  <span className="mx-2">|</span>
+                  <span>{door.hardwareColor === "aluminio" ? "Aluminio" : "Negro"}</span>
+                  <span className="mx-2">|</span>
+                  <span>{door.hasLintel ? "Con dintel" : "Sin dintel"}</span>
+                </div>
+                <div className="text-right">
+                  <div className="text-sm text-amber-600">
+                    ${door.pricePerUnit.toLocaleString()} × {door.quantity}
+                  </div>
+                  <div className="text-xl font-bold text-amber-800">
+                    ${door.lineTotal.toLocaleString()}
+                  </div>
+                </div>
               </div>
             </div>
           ))}
 
           {/* Transporte e Imprevistos */}
-          <div className="bg-gray-50 p-3 rounded border border-gray-200">
+          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 <Checkbox 
                   id="door-transport" 
                   checked={includeTransport} 
                   onCheckedChange={(c) => setIncludeTransport(c === true)} 
                 />
-                <Label htmlFor="door-transport" className="text-xs cursor-pointer font-medium">
+                <Label htmlFor="door-transport" className="text-sm cursor-pointer font-medium">
                   Incluir Transporte e Imprevistos
                 </Label>
               </div>
               {includeTransport && (
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-500">$</span>
+                  <span className="text-sm text-gray-600">Monto: $</span>
                   <Input 
                     type="number" 
                     value={transportCost} 
                     onChange={(e) => setTransportCost(parseInt(e.target.value) || 0)} 
-                    className="h-7 w-28 text-xs text-right" 
+                    className="h-9 w-32 text-right" 
                   />
                 </div>
               )}
@@ -230,24 +287,36 @@ export function DoorConfigurator({ config, onChange }: DoorConfiguratorProps) {
 
           {/* Notas generales */}
           <div>
-            <Label className="text-xs text-gray-600">Notas Generales</Label>
-            <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Observaciones generales..." className="text-xs h-16" rows={2} />
+            <Label className="text-sm font-medium text-gray-700 block mb-2">Notas Generales</Label>
+            <Textarea 
+              value={notes} 
+              onChange={(e) => setNotes(e.target.value)} 
+              placeholder="Observaciones generales para todas las puertas..."
+              className="bg-white"
+              rows={2}
+            />
           </div>
 
           {/* Total */}
-          <div className="bg-amber-100 p-2 rounded border border-amber-300">
+          <div className="bg-amber-200 p-4 rounded-lg border border-amber-400">
             <div className="flex justify-between items-center">
-              <div className="text-xs text-amber-700">
-                <strong>{totalDoors} {totalDoors === 1 ? "puerta" : "puertas"}</strong>
-                <span className="ml-2 text-amber-600">Marco RH, chapa, bisagras, tope, instalación</span>
+              <div>
+                <div className="font-semibold text-amber-800">
+                  Total: {totalDoors} {totalDoors === 1 ? "puerta" : "puertas"}
+                </div>
+                <div className="text-sm text-amber-700">
+                  Incluye: Marco RH, chapa gama alta, bisagras omega, tope, instalación
+                </div>
               </div>
               <div className="text-right">
                 {includeTransport && (
-                  <div className="text-xs text-gray-500">
+                  <div className="text-sm text-amber-700">
                     Puertas: ${doorsSubtotal.toLocaleString()} + Transporte: ${transportCost.toLocaleString()}
                   </div>
                 )}
-                <div className="text-lg font-bold text-amber-800">${grandTotal.toLocaleString()}</div>
+                <div className="text-2xl font-bold text-amber-900">
+                  ${grandTotal.toLocaleString()}
+                </div>
               </div>
             </div>
           </div>

@@ -1518,3 +1518,11 @@
 - [x] Incluir en el cálculo del total
 - [x] Mostrar en el PDF
 - [x] Cargar correctamente al editar cotización
+
+
+## Bug: Rediseño configurador de puertas - campos superpuestos
+- [x] Aumentar espaciado entre campos (gap-4 en lugar de gap-2)
+- [x] Separar campos en 3 filas claras: medidas, accesorios, notas
+- [x] Agregar labels visibles para cada campo con texto más grande
+- [x] Mejorar legibilidad general con fondos diferenciados
+- [x] Resumen de precio más claro con desglose visible

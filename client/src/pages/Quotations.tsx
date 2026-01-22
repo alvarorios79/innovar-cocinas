@@ -22,7 +22,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Plus, Trash2, FileText, Send, Eye, Pencil, Mail } from "lucide-react";
+import { Plus, Trash2, FileText, Send, Eye, Pencil, Mail, Search, X } from "lucide-react";
 import { toast } from "sonner";
 
 interface KitchenConfig {
@@ -90,6 +90,12 @@ export default function Quotations() {
   const [previewDialogOpen, setPreviewDialogOpen] = useState(false);
   const [previewPdfUrl, setPreviewPdfUrl] = useState("");
   const [selectedQuotationForEmail, setSelectedQuotationForEmail] = useState<{id: number, email: string} | null>(null);
+  
+  // Estados para filtros
+  const [filterClient, setFilterClient] = useState<string>("");
+  const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [filterDateFrom, setFilterDateFrom] = useState<string>("");
+  const [filterDateTo, setFilterDateTo] = useState<string>("");
   const [items, setItems] = useState<QuotationItem[]>([
     { 
       itemNumber: 1, 
@@ -135,6 +141,41 @@ export default function Quotations() {
 
   const { data: quotations = [], isLoading } = trpc.quotations.list.useQuery();
   const { data: clients = [] } = trpc.clients.list.useQuery();
+
+  // Filtrar cotizaciones
+  const filteredQuotations = quotations.filter((quot: any) => {
+    // Filtro por cliente (nombre)
+    if (filterClient && !quot.client?.name?.toLowerCase().includes(filterClient.toLowerCase())) {
+      return false;
+    }
+    // Filtro por estado
+    if (filterStatus !== "all" && quot.status !== filterStatus) {
+      return false;
+    }
+    // Filtro por fecha desde
+    if (filterDateFrom) {
+      const quotDate = new Date(quot.createdAt);
+      const fromDate = new Date(filterDateFrom);
+      if (quotDate < fromDate) return false;
+    }
+    // Filtro por fecha hasta
+    if (filterDateTo) {
+      const quotDate = new Date(quot.createdAt);
+      const toDate = new Date(filterDateTo);
+      toDate.setHours(23, 59, 59, 999); // Incluir todo el día
+      if (quotDate > toDate) return false;
+    }
+    return true;
+  });
+
+  const clearFilters = () => {
+    setFilterClient("");
+    setFilterStatus("all");
+    setFilterDateFrom("");
+    setFilterDateTo("");
+  };
+
+  const hasActiveFilters = filterClient || filterStatus !== "all" || filterDateFrom || filterDateTo;
 
   const createQuotation = trpc.quotations.create.useMutation({
     onSuccess: () => {
@@ -839,17 +880,79 @@ export default function Quotations() {
         </Button>
       </div>
 
+      {/* Filtros */}
+      <Card className="mb-6">
+        <CardContent className="pt-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div>
+              <Label className="text-sm font-medium mb-2 block">Buscar Cliente</Label>
+              <Input
+                placeholder="Nombre del cliente..."
+                value={filterClient}
+                onChange={(e) => setFilterClient(e.target.value)}
+                className="h-9"
+              />
+            </div>
+            <div>
+              <Label className="text-sm font-medium mb-2 block">Estado</Label>
+              <Select value={filterStatus} onValueChange={setFilterStatus}>
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder="Todos" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="draft">Borrador</SelectItem>
+                  <SelectItem value="sent">Enviada</SelectItem>
+                  <SelectItem value="approved">Aprobada</SelectItem>
+                  <SelectItem value="rejected">Rechazada</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-sm font-medium mb-2 block">Desde</Label>
+              <Input
+                type="date"
+                value={filterDateFrom}
+                onChange={(e) => setFilterDateFrom(e.target.value)}
+                className="h-9"
+              />
+            </div>
+            <div>
+              <Label className="text-sm font-medium mb-2 block">Hasta</Label>
+              <Input
+                type="date"
+                value={filterDateTo}
+                onChange={(e) => setFilterDateTo(e.target.value)}
+                className="h-9"
+              />
+            </div>
+            <div className="flex items-end">
+              {hasActiveFilters && (
+                <Button variant="outline" onClick={clearFilters} className="h-9 w-full">
+                  Limpiar Filtros
+                </Button>
+              )}
+            </div>
+          </div>
+          {hasActiveFilters && (
+            <p className="text-sm text-muted-foreground mt-3">
+              Mostrando {filteredQuotations.length} de {quotations.length} cotizaciones
+            </p>
+          )}
+        </CardContent>
+      </Card>
+
       {isLoading ? (
         <p>Cargando...</p>
-      ) : quotations.length === 0 ? (
+      ) : filteredQuotations.length === 0 ? (
         <Card>
           <CardContent className="py-8 text-center text-muted-foreground">
-            No hay cotizaciones creadas
+            {hasActiveFilters ? "No hay cotizaciones que coincidan con los filtros" : "No hay cotizaciones creadas"}
           </CardContent>
         </Card>
       ) : (
         <div className="grid gap-4">
-          {quotations.map((quot: any) => (
+          {filteredQuotations.map((quot: any) => (
             <Card key={quot.id}>
               <CardHeader>
                 <div className="flex justify-between items-start">

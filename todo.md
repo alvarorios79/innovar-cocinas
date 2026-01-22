@@ -1526,3 +1526,12 @@
 - [x] Agregar labels visibles para cada campo con texto más grande
 - [x] Mejorar legibilidad general con fondos diferenciados
 - [x] Resumen de precio más claro con desglose visible
+
+
+## Filtros en lista de cotizaciones
+- [x] Agregar filtro por cliente (búsqueda por nombre)
+- [x] Agregar filtro por estado (borrador, enviada, aprobada, rechazada)
+- [x] Agregar filtro por rango de fechas (desde - hasta)
+- [x] Implementar lógica de filtrado en el frontend
+- [x] Botón para limpiar filtros
+- [x] Contador de resultados filtrados

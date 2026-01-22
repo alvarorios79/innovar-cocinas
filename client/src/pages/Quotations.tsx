@@ -297,7 +297,17 @@ export default function Quotations() {
           unitPrice: item.unitPrice || "",
           totalPrice: item.totalPrice,
           includesFixedCosts: item.includesFixedCosts || false,
+          fixedCostsAmount: item.fixedCostsAmount || 600000,
           hardwareSelections: item.hardwareSelections || [],
+          closetConfig: item.closetConfig ? {
+            type: item.closetConfig.type || "standard",
+            width: item.closetConfig.width || 0,
+            height: item.closetConfig.height || 0,
+            doorType: item.closetConfig.doorType || "sliding",
+            squareMeters: item.closetConfig.squareMeters || 0,
+            pricePerSquareMeter: item.closetConfig.pricePerSquareMeter || 750000,
+            subtotal: item.closetConfig.subtotal || 0,
+          } : undefined,
           kitchenConfig: item.kitchenConfig ? {
             shape: item.kitchenConfig.shape ?? "",
             totalMeters: item.kitchenConfig.totalMeters ?? 0,

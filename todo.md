@@ -1422,3 +1422,9 @@
 ## Bug: Validación de descripción para closets
 - [x] Ajustar validación para que closets no requieran descripción manual
 - [x] Probar creación de cotización con closets
+
+
+## Bug: Pérdida de datos de closetConfig al editar cotización
+- [x] Identificar por qué closetConfig no se carga al editar (faltaba en handleEdit)
+- [x] Corregir la carga de datos agregando closetConfig y fixedCostsAmount
+- [x] Probar edición de cotización con closet

@@ -1510,3 +1510,11 @@
 - [x] Mejorar espaciado general
 - [x] Diseño compacto con grid de 6 columnas
 - [x] Notas en línea con checkbox de dintel
+
+
+## Mejora: Transporte e imprevistos en configurador de puertas
+- [x] Agregar checkbox de transporte e imprevistos
+- [x] Campo de monto editable (valor por defecto $150,000)
+- [x] Incluir en el cálculo del total
+- [x] Mostrar en el PDF
+- [x] Cargar correctamente al editar cotización

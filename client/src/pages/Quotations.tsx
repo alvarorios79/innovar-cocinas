@@ -344,6 +344,8 @@ export default function Quotations() {
                   lineTotal: (item.doorConfig.pricePerUnit ?? 890000) * (item.doorConfig.quantity ?? 1),
                 }],
             subtotal: item.doorConfig.subtotal ?? 890000,
+            includeTransport: item.doorConfig.includeTransport ?? false,
+            transportCost: item.doorConfig.transportCost ?? 150000,
             notes: item.doorConfig.notes || "",
           } : undefined,
           kitchenConfig: item.kitchenConfig ? {

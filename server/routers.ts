@@ -1133,6 +1133,12 @@ export const appRouter = router({
                 lines.push('• Bisagras omega');
                 lines.push('• Tope de puerta');
                 lines.push('• Instalación completa');
+                
+                // Transporte e imprevistos
+                if (doorConfig.includeTransport && doorConfig.transportCost) {
+                  lines.push('');
+                  lines.push(`Transporte e Imprevistos: ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(doorConfig.transportCost)}`);
+                }
               } else {
                 // Estructura antigua: puerta única (compatibilidad)
                 lines.push(`${typeLabels[doorConfig.type] || doorConfig.type.toUpperCase()} - MADERA MACIZA TIPO RH`);
@@ -1449,6 +1455,12 @@ export const appRouter = router({
                 lines.push('• Bisagras omega');
                 lines.push('• Tope de puerta');
                 lines.push('• Instalación completa');
+                
+                // Transporte e imprevistos
+                if (doorConfig.includeTransport && doorConfig.transportCost) {
+                  lines.push('');
+                  lines.push(`Transporte e Imprevistos: ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(doorConfig.transportCost)}`);
+                }
               } else {
                 // Estructura antigua: puerta única (compatibilidad)
                 lines.push(`${typeLabels[doorConfig.type] || doorConfig.type.toUpperCase()} - MADERA MACIZA TIPO RH`);

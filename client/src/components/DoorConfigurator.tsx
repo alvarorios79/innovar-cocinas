@@ -32,6 +32,8 @@ export interface DoorItem {
 export interface DoorConfig {
   doors: DoorItem[];
   subtotal: number;
+  includeTransport: boolean;
+  transportCost: number;
   notes?: string;
 }
 
@@ -79,11 +81,14 @@ export function DoorConfigurator({ config, onChange }: DoorConfiguratorProps) {
       : [createNewDoor()]
   );
   const [notes, setNotes] = useState<string>(config?.notes || "");
+  const [includeTransport, setIncludeTransport] = useState<boolean>(config?.includeTransport ?? false);
+  const [transportCost, setTransportCost] = useState<number>(config?.transportCost ?? 150000);
 
   useEffect(() => {
-    const subtotal = doors.reduce((sum, door) => sum + door.lineTotal, 0);
-    onChange({ doors, subtotal, notes });
-  }, [doors, notes]);
+    const doorsSubtotal = doors.reduce((sum, door) => sum + door.lineTotal, 0);
+    const subtotal = doorsSubtotal + (includeTransport ? transportCost : 0);
+    onChange({ doors, subtotal, includeTransport, transportCost, notes });
+  }, [doors, notes, includeTransport, transportCost]);
 
   const addDoor = () => setDoors([...doors, createNewDoor()]);
 
@@ -107,7 +112,8 @@ export function DoorConfigurator({ config, onChange }: DoorConfiguratorProps) {
   };
 
   const totalDoors = doors.reduce((sum, door) => sum + door.quantity, 0);
-  const totalSubtotal = doors.reduce((sum, door) => sum + door.lineTotal, 0);
+  const doorsSubtotal = doors.reduce((sum, door) => sum + door.lineTotal, 0);
+  const grandTotal = doorsSubtotal + (includeTransport ? transportCost : 0);
 
   return (
     <Card className="mt-3 border-amber-200">
@@ -195,6 +201,33 @@ export function DoorConfigurator({ config, onChange }: DoorConfiguratorProps) {
             </div>
           ))}
 
+          {/* Transporte e Imprevistos */}
+          <div className="bg-gray-50 p-3 rounded border border-gray-200">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Checkbox 
+                  id="door-transport" 
+                  checked={includeTransport} 
+                  onCheckedChange={(c) => setIncludeTransport(c === true)} 
+                />
+                <Label htmlFor="door-transport" className="text-xs cursor-pointer font-medium">
+                  Incluir Transporte e Imprevistos
+                </Label>
+              </div>
+              {includeTransport && (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-500">$</span>
+                  <Input 
+                    type="number" 
+                    value={transportCost} 
+                    onChange={(e) => setTransportCost(parseInt(e.target.value) || 0)} 
+                    className="h-7 w-28 text-xs text-right" 
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+
           {/* Notas generales */}
           <div>
             <Label className="text-xs text-gray-600">Notas Generales</Label>
@@ -202,12 +235,21 @@ export function DoorConfigurator({ config, onChange }: DoorConfiguratorProps) {
           </div>
 
           {/* Total */}
-          <div className="bg-amber-100 p-2 rounded border border-amber-300 flex justify-between items-center">
-            <div className="text-xs text-amber-700">
-              <strong>{totalDoors} {totalDoors === 1 ? "puerta" : "puertas"}</strong>
-              <span className="ml-2 text-amber-600">Marco RH, chapa, bisagras, tope, instalación</span>
+          <div className="bg-amber-100 p-2 rounded border border-amber-300">
+            <div className="flex justify-between items-center">
+              <div className="text-xs text-amber-700">
+                <strong>{totalDoors} {totalDoors === 1 ? "puerta" : "puertas"}</strong>
+                <span className="ml-2 text-amber-600">Marco RH, chapa, bisagras, tope, instalación</span>
+              </div>
+              <div className="text-right">
+                {includeTransport && (
+                  <div className="text-xs text-gray-500">
+                    Puertas: ${doorsSubtotal.toLocaleString()} + Transporte: ${transportCost.toLocaleString()}
+                  </div>
+                )}
+                <div className="text-lg font-bold text-amber-800">${grandTotal.toLocaleString()}</div>
+              </div>
             </div>
-            <div className="text-lg font-bold text-amber-800">${totalSubtotal.toLocaleString()}</div>
           </div>
         </div>
       </CardContent>

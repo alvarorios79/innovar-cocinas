@@ -719,7 +719,7 @@ export const appRouter = router({
       .input(z.object({
         clientId: z.number(),
         vendorName: z.string(),
-        productType: z.enum(["cocina", "closet", "puerta", "centro_tv", "herrajes", "otro"]).optional(),
+        productType: z.enum(["cocina", "closet", "puerta", "centro_tv", "herrajes", "mesones", "otro"]).optional(),
         items: z.array(z.object({
           itemNumber: z.number(),
           itemType: z.string(),
@@ -810,7 +810,7 @@ export const appRouter = router({
         id: z.number(),
         clientId: z.number().optional(),
         vendorName: z.string().optional(),
-        productType: z.enum(["cocina", "closet", "puerta", "centro_tv", "herrajes", "otro"]).optional(),
+        productType: z.enum(["cocina", "closet", "puerta", "centro_tv", "herrajes", "mesones", "otro"]).optional(),
         items: z.array(z.object({
           itemNumber: z.number(),
           itemType: z.string(),

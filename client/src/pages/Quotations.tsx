@@ -906,7 +906,7 @@ export default function Quotations() {
         id: editingQuotation,
         clientId: selectedClient,
         vendorName,
-        productType: (workType || items[0]?.itemType || "otro") as "cocina" | "closet" | "puerta" | "centro_tv" | "herrajes" | "otro",
+        productType: (workType || items[0]?.itemType || "otro") as "cocina" | "closet" | "puerta" | "centro_tv" | "herrajes" | "mesones" | "otro",
         items: itemsWithUpdatedPrices,
       });
     } else {
@@ -914,7 +914,7 @@ export default function Quotations() {
       createQuotation.mutate({
         clientId: selectedClient,
         vendorName,
-        productType: (workType || items[0]?.itemType || "otro") as "cocina" | "closet" | "puerta" | "centro_tv" | "herrajes" | "otro",
+        productType: (workType || items[0]?.itemType || "otro") as "cocina" | "closet" | "puerta" | "centro_tv" | "herrajes" | "mesones" | "otro",
         items: itemsWithUpdatedPrices,
       });
     }

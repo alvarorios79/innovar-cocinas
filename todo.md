@@ -1620,3 +1620,11 @@
 - [x] Notas especiales y transporte e imprevistos
 - [x] Integrar en Quotations.tsx
 - [x] Actualizar backend y PDF
+
+
+## Corrección Configurador de Mesones
+
+- [x] Agregar 'mesones' al enum productType en el esquema de base de datos
+- [x] Agregar 'mesones' al enum productType en el router de tRPC (create y update)
+- [x] Verificar que el componente CountertopConfigurator muestra opciones de Isla y Barra
+- [x] Probar creación de cotización con tipo Mesones (Barra) - COT-2026-627 creada exitosamente

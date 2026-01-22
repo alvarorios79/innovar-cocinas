@@ -1,0 +1,1 @@
+ALTER TABLE `quotations` MODIFY COLUMN `productType` enum('cocina','closet','puerta','centro_tv','herrajes','mesones','otro') NOT NULL DEFAULT 'otro';

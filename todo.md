@@ -1488,3 +1488,11 @@
 - [x] Agregar campo de cantidad a cada puerta individual
 - [x] Actualizar cálculo de subtotal (precio × cantidad)
 - [x] Actualizar PDF para mostrar cantidad por puerta
+
+
+## Mejora visual: Configurador de puertas
+- [x] Corregir sobreposición de campos y textos
+- [x] Mejorar distribución de campos en grid responsivo (5 columnas en desktop, 2 en tablet, 1 en móvil)
+- [x] Mejorar legibilidad del resumen de cada puerta
+- [x] Agregar iconos y mejor jerarquía visual
+- [x] Mejorar separación entre secciones

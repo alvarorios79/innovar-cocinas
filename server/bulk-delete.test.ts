@@ -132,34 +132,46 @@ describe("Bulk Delete Operations", () => {
       // Crear 3 cotizaciones
       const quot1 = await caller.quotations.create({
         clientId: testClient.id,
-        workType: "cocina",
-        description: "Cotización 1 para eliminación masiva",
-        materials: "Materiales 1",
-        totalPrice: "1000000",
-        validUntil: new Date(2026, 6, 1).toISOString(),
+        vendorName: "Alvaro Gutierrez",
+        productType: "cocina",
+        items: [{
+          itemNumber: 1,
+          itemType: "cocina",
+          description: "Cotización 1 para eliminación masiva",
+          quantity: "1",
+          totalPrice: 1000000,
+        }],
       });
 
       const quot2 = await caller.quotations.create({
         clientId: testClient.id,
-        workType: "closet",
-        description: "Cotización 2 para eliminación masiva",
-        materials: "Materiales 2",
-        totalPrice: "2000000",
-        validUntil: new Date(2026, 6, 1).toISOString(),
+        vendorName: "Martha Serna",
+        productType: "closet",
+        items: [{
+          itemNumber: 1,
+          itemType: "closet",
+          description: "Cotización 2 para eliminación masiva",
+          quantity: "1",
+          totalPrice: 2000000,
+        }],
       });
 
       const quot3 = await caller.quotations.create({
         clientId: testClient.id,
-        workType: "puertas",
-        description: "Cotización 3 para eliminación masiva",
-        materials: "Materiales 3",
-        totalPrice: "3000000",
-        validUntil: new Date(2026, 6, 1).toISOString(),
+        vendorName: "Alvaro Gutierrez",
+        productType: "puerta",
+        items: [{
+          itemNumber: 1,
+          itemType: "puerta",
+          description: "Cotización 3 para eliminación masiva",
+          quantity: "1",
+          totalPrice: 3000000,
+        }],
       });
 
       // Verificar que se crearon
       const allQuotations = await caller.quotations.list();
-      const createdIds = [quot1.id, quot2.id, quot3.id];
+      const createdIds = [quot1.quotationId, quot2.quotationId, quot3.quotationId];
       const foundQuotations = allQuotations.filter(q => createdIds.includes(q.id));
       expect(foundQuotations.length).toBe(3);
 

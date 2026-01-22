@@ -1703,3 +1703,23 @@
 - [x] Eliminar archivos no utilizados
 - [x] Eliminar funciones/componentes muertos
 - [x] Optimizar imports y dependencias
+
+
+## Mejoras de Arquitectura y Calidad
+
+### Modularización de routers.ts
+- [ ] Crear carpeta server/routers/
+- [ ] Extraer router de auth a server/routers/auth.ts
+- [ ] Extraer router de clients a server/routers/clients.ts
+- [ ] Extraer router de appointments a server/routers/appointments.ts
+- [ ] Extraer router de quotations a server/routers/quotations.ts
+- [ ] Extraer router de projects a server/routers/projects.ts
+- [ ] Extraer router de tasks a server/routers/tasks.ts
+- [ ] Extraer routers restantes
+- [ ] Actualizar routers.ts principal para importar módulos
+
+### Corrección de Tests
+- [x] Corregir campo createdBy en tests de cotizaciones (299 tests pasando)
+
+### Limpieza de Dependencias
+- [x] Eliminar bcrypt y usar solo bcryptjs (bcrypt y @types/bcrypt removidos)

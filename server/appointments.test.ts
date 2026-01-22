@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, it, expect } from "vitest";
 import { appRouter } from "./routers";
 import type { TrpcContext } from "./_core/context";
 
@@ -185,9 +185,9 @@ describe("Quotations API", () => {
 
     // Crear cliente primero
     const client = await caller.clients.getOrCreateByWhatsApp({
-      name: "Test Client",
-      email: "test@example.com",
-      whatsappPhone: "3001234567",
+      name: "Test Client Quotation",
+      email: "test-quotation@example.com",
+      whatsappPhone: "3001234599",
       address: "Test Address",
     });
 
@@ -197,14 +197,19 @@ describe("Quotations API", () => {
 
     const result = await caller.quotations.create({
       clientId: client.id,
-      workType: "cocina",
-      description: "Complete kitchen renovation",
-      materials: "Premium wood, quartz countertop",
-      totalPrice: "5000000",
+      vendorName: "Alvaro Gutierrez",
+      productType: "cocina",
+      items: [{
+        itemNumber: 1,
+        itemType: "cocina",
+        description: "Complete kitchen renovation",
+        quantity: "1",
+        totalPrice: 5000000,
+      }],
     });
 
     expect(result.success).toBe(true);
-    expect(result.id).toBeDefined();
+    expect(result.quotationId).toBeDefined();
   });
 
   it("should prevent non-admin from creating quotation", async () => {
@@ -214,9 +219,14 @@ describe("Quotations API", () => {
     await expect(
       caller.quotations.create({
         clientId: 1,
-        workType: "cocina",
-        description: "Test",
-        totalPrice: "1000000",
+        vendorName: "Test Vendor",
+        items: [{
+          itemNumber: 1,
+          itemType: "cocina",
+          description: "Test",
+          quantity: "1",
+          totalPrice: 1000000,
+        }],
       })
     ).rejects.toThrow();
   });
@@ -227,9 +237,9 @@ describe("Quotations API", () => {
 
     // Crear cliente y cotización primero
     const client = await caller.clients.getOrCreateByWhatsApp({
-      name: "Test Client",
-      email: "test@example.com",
-      whatsappPhone: "3001234567",
+      name: "Test Client Send",
+      email: "test-send@example.com",
+      whatsappPhone: "3001234598",
       address: "Test Address",
     });
 
@@ -239,16 +249,22 @@ describe("Quotations API", () => {
 
     const quotation = await caller.quotations.create({
       clientId: client.id,
-      workType: "cocina",
-      description: "Test quotation",
-      totalPrice: "1000000",
+      vendorName: "Alvaro Gutierrez",
+      items: [{
+        itemNumber: 1,
+        itemType: "cocina",
+        description: "Test quotation",
+        quantity: "1",
+        totalPrice: 1000000,
+      }],
     });
 
-    const result = await caller.quotations.send({
-      id: quotation.id,
+    // Cambiar estado a sent
+    const result = await caller.quotations.updateStatus({
+      id: quotation.quotationId,
+      status: "sent",
     });
 
     expect(result.success).toBe(true);
-    expect(result.whatsappLink).toBeDefined();
   });
 });

@@ -179,7 +179,30 @@ Agregar valor por defecto al campo `createdBy` en el esquema o actualizar los te
 ### Verificación Final
 - TypeScript: Sin errores
 - Servidor: Funcionando correctamente
-- Tests: 286 pasando (9 fallando por campo createdBy - pendiente)
+- Tests: **299 pasando** (1 skipped)
+
+### Corrección de Tests (Completada)
+- Corregidos 7 archivos de tests que fallaban por campo `createdBy` faltante
+- Actualizados tests para usar el formato correcto de `quotations.create`
+- Cambiado `fixedCosts` a `transportCost` en tests (campo correcto del esquema)
+- Archivos corregidos:
+  - `quotations.test.ts`
+  - `quotations-edit.test.ts`
+  - `quotations.fixedcosts.test.ts`
+  - `appointments.test.ts`
+  - `bulk-delete.test.ts`
+  - `client-user-association.test.ts`
+  - `delete.test.ts`
+
+### Limpieza de Dependencias (Completada)
+- Cambiado import de `bcrypt` a `bcryptjs` en `password-auth.ts`
+- Eliminadas dependencias: `bcrypt` y `@types/bcrypt`
+- bcryptjs ya incluye sus propios tipos, no necesita @types
+
+### Modularización de routers.ts (Pendiente)
+- El archivo tiene 3820 líneas y 18 secciones principales
+- Se recomienda dividir en módulos separados para mejor mantenibilidad
+- Esta tarea requiere más tiempo y se puede hacer en una iteración futura
 
 ---
 

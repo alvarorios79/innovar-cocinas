@@ -14,12 +14,11 @@ describe("Quotations - Fixed Costs Logic", () => {
     });
 
     // Crear usuario admin de prueba
-    const allUsers = await db.getAllUsers();
-    const adminUser = allUsers.find(u => u.role === "super_admin" || u.role === "admin");
-    if (!adminUser) {
-      throw new Error("No hay usuario admin para pruebas");
-    }
-    testUserId = adminUser.id;
+    testUserId = await db.createUserExtended({
+      name: "Admin Test Fixed Costs",
+      email: "admin-fixedcosts-test@test.com",
+      role: "admin",
+    });
   });
 
   afterEach(async () => {
@@ -33,14 +32,17 @@ describe("Quotations - Fixed Costs Logic", () => {
 
     // Limpiar cliente de prueba
     await db.deleteClient(testClientId);
+    
+    // Limpiar usuario de prueba
+    await db.deleteUser(testUserId);
   });
 
   it("debe calcular correctamente cuando NO hay checkbox (costos fijos separados)", async () => {
     // Crear cotización sin checkbox
     const quotationNumber = await db.getNextQuotationNumber();
     const subtotal = 9000000; // $9,000,000
-    const fixedCosts = 600000; // $600,000 (separados)
-    const total = subtotal + fixedCosts; // $9,600,000
+    const transportCost = 600000; // $600,000 (separados)
+    const total = subtotal + transportCost; // $9,600,000
 
     const quotationId = await db.createQuotation({
       quotationNumber,
@@ -50,7 +52,7 @@ describe("Quotations - Fixed Costs Logic", () => {
       status: "draft",
       validUntil: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       subtotal: subtotal.toString(),
-      fixedCosts: fixedCosts.toString(),
+      transportCost: transportCost.toString(),
       total: total.toString(),
       createdBy: testUserId,
     });
@@ -69,12 +71,12 @@ describe("Quotations - Fixed Costs Logic", () => {
     const quotation = await db.getQuotationById(quotationId);
     expect(quotation).toBeDefined();
     expect(parseFloat(quotation!.subtotal)).toBe(9000000);
-    expect(parseFloat(quotation!.fixedCosts)).toBe(600000);
+    expect(parseFloat(quotation!.transportCost)).toBe(600000);
     expect(parseFloat(quotation!.total)).toBe(9600000);
 
     console.log("✅ Escenario 1: Costos fijos separados - Correcto");
     console.log(`   Subtotal: $${subtotal.toLocaleString()}`);
-    console.log(`   Costos fijos: $${fixedCosts.toLocaleString()}`);
+    console.log(`   Costos fijos: $${transportCost.toLocaleString()}`);
     console.log(`   Total: $${total.toLocaleString()}`);
   });
 
@@ -83,7 +85,7 @@ describe("Quotations - Fixed Costs Logic", () => {
     const quotationNumber = await db.getNextQuotationNumber();
     const itemPrice = 9600000; // $9,600,000 (ya incluye $600,000)
     const subtotal = itemPrice;
-    const fixedCosts = 0; // $0 (ya están incluidos en el item)
+    const transportCost = 0; // $0 (ya están incluidos en el item)
     const total = subtotal; // $9,600,000
 
     const quotationId = await db.createQuotation({
@@ -94,7 +96,7 @@ describe("Quotations - Fixed Costs Logic", () => {
       status: "draft",
       validUntil: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       subtotal: subtotal.toString(),
-      fixedCosts: fixedCosts.toString(),
+      transportCost: transportCost.toString(),
       total: total.toString(),
       createdBy: testUserId,
     });
@@ -113,12 +115,12 @@ describe("Quotations - Fixed Costs Logic", () => {
     const quotation = await db.getQuotationById(quotationId);
     expect(quotation).toBeDefined();
     expect(parseFloat(quotation!.subtotal)).toBe(9600000);
-    expect(parseFloat(quotation!.fixedCosts)).toBe(0);
+    expect(parseFloat(quotation!.transportCost)).toBe(0);
     expect(parseFloat(quotation!.total)).toBe(9600000);
 
     console.log("✅ Escenario 2: Costos fijos incluidos - Correcto");
     console.log(`   Subtotal (incluye costos): $${subtotal.toLocaleString()}`);
-    console.log(`   Costos fijos adicionales: $${fixedCosts.toLocaleString()}`);
+    console.log(`   Costos fijos adicionales: $${transportCost.toLocaleString()}`);
     console.log(`   Total: $${total.toLocaleString()}`);
   });
 
@@ -129,7 +131,7 @@ describe("Quotations - Fixed Costs Logic", () => {
     // Item con checkbox: $9,000,000 + $600,000 = $9,600,000
     const itemPrice = 9600000;
     const subtotal = itemPrice;
-    const fixedCosts = 0; // NO agregar costos adicionales
+    const transportCost = 0; // NO agregar costos adicionales
     const total = subtotal; // $9,600,000 (NO $10,200,000)
 
     const quotationId = await db.createQuotation({
@@ -140,7 +142,7 @@ describe("Quotations - Fixed Costs Logic", () => {
       status: "draft",
       validUntil: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       subtotal: subtotal.toString(),
-      fixedCosts: fixedCosts.toString(),
+      transportCost: transportCost.toString(),
       total: total.toString(),
       createdBy: testUserId,
     });

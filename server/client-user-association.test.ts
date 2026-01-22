@@ -146,9 +146,11 @@ describe("Client-User Association", () => {
     // Crear una cotización para este cliente
     const quotationId = await db.createQuotation({
       clientId: client.id,
-      workType: "cocina",
-      description: "Cotización de prueba",
-      totalPrice: "5000000",
+      vendorName: "Alvaro Gutierrez",
+      productType: "cocina",
+      status: "draft",
+      subtotal: "5000000",
+      total: "5600000",
       validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 días
       createdBy: testUserId,
     });

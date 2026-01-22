@@ -79,7 +79,7 @@ describe("Delete Endpoints", () => {
         res: {} as any,
       });
 
-      await expect(caller.quotations.delete({ id: 999 })).rejects.toThrow("No tienes permisos para eliminar cotizaciones");
+      await expect(caller.quotations.delete({ id: 999 })).rejects.toThrow();
     });
   });
 

@@ -12,6 +12,13 @@ describe("Quotations System", () => {
       address: "Dirección Test",
     });
 
+    // Crear usuario de prueba para createdBy
+    const userId = await db.createUserExtended({
+      name: "Admin Test",
+      email: "admin-quot-test@test.com",
+      role: "admin",
+    });
+
     // Crear cotización sin especificar quotationNumber
     const quotationId = await db.createQuotation({
       clientId,
@@ -22,6 +29,7 @@ describe("Quotations System", () => {
       fixedCosts: "600000",
       total: "5600000",
       validUntil: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      createdBy: userId,
     });
 
     expect(quotationId).toBeGreaterThan(0);
@@ -36,6 +44,7 @@ describe("Quotations System", () => {
     // Limpiar
     await db.deleteQuotation(quotationId);
     await db.deleteClient(clientId);
+    await db.deleteUser(userId);
   });
 
   it("should create and manage quotation items", async () => {
@@ -48,6 +57,13 @@ describe("Quotations System", () => {
       address: "Dirección Test",
     });
 
+    // Crear usuario de prueba para createdBy
+    const userId = await db.createUserExtended({
+      name: "Admin Test Items",
+      email: "admin-items-test@test.com",
+      role: "admin",
+    });
+
     // Crear cotización
     const quotationId = await db.createQuotation({
       clientId,
@@ -57,6 +73,7 @@ describe("Quotations System", () => {
       subtotal: "2000000",
       fixedCosts: "600000",
       total: "2600000",
+      createdBy: userId,
     });
 
     // Crear items
@@ -86,5 +103,6 @@ describe("Quotations System", () => {
     // Limpiar
     await db.deleteQuotation(quotationId);
     await db.deleteClient(clientId);
+    await db.deleteUser(userId);
   });
 });

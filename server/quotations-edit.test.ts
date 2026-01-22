@@ -1,17 +1,31 @@
-import { describe, it, expect, beforeAll } from "vitest";
+import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import * as db from "./db";
 
 describe("Quotations Edit Functionality", () => {
   let testQuotationId: number;
   let testClientId: number;
+  let testUserId: number;
 
   beforeAll(async () => {
+    // Crear usuario de prueba para createdBy
+    testUserId = await db.createUserExtended({
+      name: "Admin Test Edit",
+      email: "admin-edit-test@test.com",
+      role: "admin",
+    });
+
     // Crear cliente de prueba
     const clients = await db.getAllClients();
     if (clients.length > 0) {
       testClientId = clients[0].id;
     } else {
-      throw new Error("No hay clientes disponibles para testing");
+      // Crear cliente si no existe
+      testClientId = await db.createClient({
+        userId: null,
+        name: "Cliente Test Edit",
+        email: "test-edit@test.com",
+        whatsappPhone: "3001234567",
+      });
     }
 
     // Crear cotización de prueba
@@ -29,6 +43,7 @@ describe("Quotations Edit Functionality", () => {
       subtotal: "5000000",
       fixedCosts: "600000",
       total: "5600000",
+      createdBy: testUserId,
     });
 
     // Crear items de prueba
@@ -42,15 +57,25 @@ describe("Quotations Edit Functionality", () => {
     });
   });
 
+  afterAll(async () => {
+    // Limpiar datos de prueba
+    if (testQuotationId) {
+      await db.deleteQuotation(testQuotationId);
+    }
+    if (testUserId) {
+      await db.deleteUser(testUserId);
+    }
+  });
+
   it("should update quotation basic data", async () => {
     await db.updateQuotation(testQuotationId, {
       vendorName: "Martha Serna",
-      workType: "Cocina + Closet",
+      productType: "closet",
     });
 
     const updated = await db.getQuotationById(testQuotationId);
     expect(updated?.vendorName).toBe("Martha Serna");
-    expect(updated?.workType).toBe("Cocina + Closet");
+    expect(updated?.productType).toBe("closet");
   });
 
   it("should delete and recreate items when updating", async () => {

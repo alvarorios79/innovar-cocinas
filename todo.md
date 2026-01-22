@@ -1644,3 +1644,23 @@
 - [x] Agregar opción de "Salpicadero alto" que duplica el metraje del mesón (se cobra aparte)
 - [x] Actualizar cálculos de precio para incluir el costo del salpicadero alto cuando se seleccione
 - [x] Aplicar esta lógica a Mesón Estándar y Barra (Isla no lleva salpicadero)
+
+
+## Mejoras Configurador de Mesones - Múltiples Mesones
+
+- [ ] Salpicadero alto excluye salpicadero bajo de la descripción de incluidos
+- [ ] Implementar sistema de múltiples mesones (sub-ítems) dentro del configurador
+- [ ] Botón "Agregar Mesón" para añadir mesón estándar, isla o barra adicional
+- [ ] Cada sub-mesón con su propia configuración independiente
+- [ ] Total consolidado de todos los mesones
+- [ ] Botón para eliminar sub-mesones individuales
+
+
+## Mejoras Configurador de Mesones (Enero 2026)
+
+- [x] Salpicadero alto excluye salpicadero bajo de la descripción
+- [x] Botón "Agregar Mesón" para múltiples mesones en una cotización
+- [x] Soporte para Mesón Estándar + Isla + Barra en la misma cotización
+- [x] Resumen de precio con desglose por mesón y total
+- [x] Opciones de Isla (Laterales, Regrueso) funcionan correctamente
+- [x] Cada mesón tiene configuración independiente con botón de eliminar

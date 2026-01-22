@@ -397,18 +397,24 @@ export default function Quotations() {
             notes: item.doorConfig.notes || "",
           } : undefined,
           countertopConfig: item.countertopConfig ? {
-            material: item.countertopConfig.material || "quarzo",
-            tipo: item.countertopConfig.tipo || "meson",
-            metrosLineales: item.countertopConfig.metrosLineales ?? 1,
-            fondo: item.countertopConfig.fondo ?? 60,
-            precioML: item.countertopConfig.precioML ?? 850000,
-            incluyeLaterales: item.countertopConfig.incluyeLaterales ?? false,
-            incluyeRegrueso: item.countertopConfig.incluyeRegrueso ?? false,
-            alturaLateral: item.countertopConfig.alturaLateral ?? 0,
-            subtotalMeson: item.countertopConfig.subtotalMeson ?? 0,
-            subtotalLaterales: item.countertopConfig.subtotalLaterales ?? 0,
-            subtotalRegrueso: item.countertopConfig.subtotalRegrueso ?? 0,
-            subtotalLavaplatos: item.countertopConfig.subtotalLavaplatos ?? 130000,
+            mesones: item.countertopConfig.mesones || [{
+              id: `meson-legacy-${Date.now()}`,
+              material: (item.countertopConfig as any).material || "quarzo",
+              tipo: (item.countertopConfig as any).tipo || "meson",
+              metrosLineales: (item.countertopConfig as any).metrosLineales ?? 1,
+              fondo: (item.countertopConfig as any).fondo ?? 60,
+              precioML: (item.countertopConfig as any).precioML ?? 850000,
+              incluyeLaterales: (item.countertopConfig as any).incluyeLaterales ?? false,
+              incluyeRegrueso: (item.countertopConfig as any).incluyeRegrueso ?? false,
+              alturaLateral: (item.countertopConfig as any).alturaLateral ?? 0,
+              incluyeSalpicaderoAlto: (item.countertopConfig as any).incluyeSalpicaderoAlto ?? false,
+              subtotalMeson: (item.countertopConfig as any).subtotalMeson ?? 0,
+              subtotalLaterales: (item.countertopConfig as any).subtotalLaterales ?? 0,
+              subtotalRegrueso: (item.countertopConfig as any).subtotalRegrueso ?? 0,
+              subtotalLavaplatos: (item.countertopConfig as any).subtotalLavaplatos ?? 130000,
+              subtotalSalpicaderoAlto: (item.countertopConfig as any).subtotalSalpicaderoAlto ?? 0,
+              subtotal: (item.countertopConfig as any).total ?? 0,
+            }],
             total: item.countertopConfig.total ?? 0,
             notes: item.countertopConfig.notes || "",
             includeTransport: item.countertopConfig.includeTransport ?? false,
@@ -750,7 +756,7 @@ export default function Quotations() {
         }
       } else if (item.itemType === "mesones") {
         // Para mesones: validar que tenga configuración
-        if (!item.countertopConfig || !item.countertopConfig.metrosLineales) {
+        if (!item.countertopConfig || !item.countertopConfig.mesones || item.countertopConfig.mesones.length === 0) {
           toast.error(`Item ${i + 1}: Configura el mesón`);
           return;
         }
@@ -861,19 +867,25 @@ export default function Quotations() {
           totalPrice: config.subtotal,
         };
       }
-      // Para mesones: generar descripción automática
-      if (item.itemType === "mesones" && item.countertopConfig) {
+      // Para mesones: generar descripción automática basada en múltiples mesones
+      if (item.itemType === "mesones" && item.countertopConfig && item.countertopConfig.mesones) {
         const config = item.countertopConfig;
-        const tipoTexto = config.tipo === "meson" ? "Mesón" : config.tipo === "isla" ? "Isla" : "Barra";
-        const materialTexto = config.material === "quarzo" ? "Quarzo" : "Sinterizado";
-        const parts: string[] = [`${tipoTexto} en ${materialTexto} ${config.metrosLineales}ML x ${config.fondo}cm`];
-        if (config.tipo === "isla" && config.incluyeLaterales) parts.push("con laterales");
-        if (config.tipo === "barra" && config.alturaLateral > 0) parts.push(`lateral ${config.alturaLateral}cm`);
-        const description = parts.join(", ");
+        const getTipoTexto = (tipo: string) => tipo === "meson" ? "Mesón" : tipo === "isla" ? "Isla" : "Barra";
+        const getMaterialTexto = (material: string) => material === "quarzo" ? "Quarzo" : "Sinterizado";
+        
+        const descriptions = config.mesones.map((meson, idx) => {
+          const parts: string[] = [`${getTipoTexto(meson.tipo)} en ${getMaterialTexto(meson.material)} ${meson.metrosLineales}ML x ${meson.fondo}cm`];
+          if (meson.tipo === "isla" && meson.incluyeLaterales) parts.push("con laterales");
+          if (meson.tipo === "barra" && meson.alturaLateral > 0) parts.push(`lateral ${meson.alturaLateral}cm`);
+          if (meson.incluyeSalpicaderoAlto) parts.push("salpicadero alto");
+          return parts.join(", ");
+        });
+        
+        const description = descriptions.join(" + ");
         return {
           ...item,
           description,
-          quantity: "1",
+          quantity: config.mesones.length.toString(),
           totalPrice: config.total,
         };
       }

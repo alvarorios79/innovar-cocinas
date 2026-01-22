@@ -1046,6 +1046,13 @@ export const appRouter = router({
                 lines.push('• Espaldar y laterales completos');
               }
               
+              // Agregar notas si existen
+              if (closetConfig.notes && closetConfig.notes.trim()) {
+                lines.push('');
+                lines.push('Notas adicionales:');
+                lines.push(closetConfig.notes);
+              }
+              
               description = lines.join('\n');
             }
             // Si es herrajes y tiene hardwareSelections, generar descripción detallada
@@ -1270,6 +1277,13 @@ export const appRouter = router({
               lines.push('• Zapatero');
               if (closetConfig.type === 'empotrado') {
                 lines.push('• Espaldar y laterales completos');
+              }
+              
+              // Agregar notas si existen
+              if (closetConfig.notes && closetConfig.notes.trim()) {
+                lines.push('');
+                lines.push('Notas adicionales:');
+                lines.push(closetConfig.notes);
               }
               
               description = lines.join('\n');

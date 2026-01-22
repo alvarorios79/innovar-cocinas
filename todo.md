@@ -1428,3 +1428,10 @@
 - [x] Identificar por qué closetConfig no se carga al editar (faltaba en handleEdit)
 - [x] Corregir la carga de datos agregando closetConfig y fixedCostsAmount
 - [x] Probar edición de cotización con closet
+
+
+## Campo de Notas en Configurador de Closets
+- [x] Agregar campo notes a la interfaz ClosetConfig
+- [x] Actualizar componente ClosetConfigurator con textarea de notas
+- [x] Actualizar backend para guardar notas (ya se guarda en closetConfig JSON)
+- [x] Incluir notas en la descripción del PDF

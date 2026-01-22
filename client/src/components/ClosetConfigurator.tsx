@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -18,6 +19,7 @@ export interface ClosetConfig {
   squareMeters: number;
   pricePerSquareMeter: number;
   subtotal: number;
+  notes?: string; // Notas adicionales del cliente
 }
 
 interface ClosetConfiguratorProps {
@@ -51,6 +53,7 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
   const [width, setWidth] = useState<string>(config?.width?.toString() || "");
   const [height, setHeight] = useState<string>(config?.height?.toString() || "");
   const [doorType, setDoorType] = useState<ClosetConfig["doorType"]>(config?.doorType || "corredizas");
+  const [notes, setNotes] = useState<string>(config?.notes || "");
 
   useEffect(() => {
     const widthNum = parseFloat(width) || 0;
@@ -66,12 +69,13 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
       doorType,
       squareMeters,
       pricePerSquareMeter,
-      subtotal
+      subtotal,
+      notes
     };
 
     onChange(newConfig);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [type, width, height, doorType]);
+  }, [type, width, height, doorType, notes]);
 
   const squareMeters = (parseFloat(width) || 0) * (parseFloat(height) || 0);
   const subtotal = squareMeters * CLOSET_TYPES[type].price;
@@ -153,6 +157,24 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
                   <SelectItem value="batientes">Puertas Batientes</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+
+            {/* Notas Adicionales */}
+            <div>
+              <Label htmlFor="closet-notes" className="text-sm font-medium">
+                Notas Adicionales
+              </Label>
+              <Textarea
+                id="closet-notes"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Ej: Sin zapatero, con espejo en puertas, acabado especial, etc."
+                className="mt-1.5"
+                rows={3}
+              />
+              <p className="text-xs text-muted-foreground mt-1.5">
+                Especificaciones adicionales del cliente
+              </p>
             </div>
 
             {/* Resumen de Cálculo */}

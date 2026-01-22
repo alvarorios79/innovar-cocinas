@@ -1597,3 +1597,11 @@
 - [x] Configurar worker de PDF.js (usando unpkg CDN)
 - [x] Actualizar PDFPreviewBeforeSave para usar react-pdf
 - [x] Agregar controles de zoom y navegación de páginas
+
+
+## Bug: PDF se ve cortado en el visor
+- [x] Ajustar tamaño del contenedor del visor (95vw x 95vh)
+- [x] Ajustar escalado inicial para que quepa completo (80%)
+- [x] Mejorar scroll para ver todo el documento
+- [x] Agregar botón "Ajustar al ancho" para escalar automáticamente
+- [x] Desactivar capas de texto/anotaciones para mejor rendimiento

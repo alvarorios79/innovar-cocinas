@@ -1097,22 +1097,51 @@ export const appRouter = router({
                 'negro': 'Color Negro'
               };
               
-              lines.push(`${typeLabels[doorConfig.type] || doorConfig.type.toUpperCase()} - MADERA MACIZA TIPO RH`);
-              lines.push(`Cantidad: ${doorConfig.quantity} ${doorConfig.quantity === 1 ? 'unidad' : 'unidades'}`);
-              lines.push(`Ancho: ${doorConfig.width}cm (Rango: ${doorConfig.widthRange}cm)`);
-              lines.push(`Altura: ${doorConfig.height}m (máx 2.40m)`);
-              lines.push(`Precio por unidad: ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(doorConfig.pricePerUnit)}`);
-              lines.push('');
-              lines.push('Incluye:');
-              lines.push('• Marco RH');
-              lines.push('• Chapa gama alta');
-              lines.push('• Bisagras omega');
-              lines.push('• Tope de puerta');
-              lines.push(`• Accesorios: ${colorLabels[doorConfig.hardwareColor] || doorConfig.hardwareColor}`);
-              lines.push('• Instalación completa');
-              
-              if (doorConfig.type === 'corrediza') {
-                lines.push('• Sistema de riel incluido');
+              // Verificar si es estructura nueva (lista de puertas) o antigua (puerta única)
+              if (doorConfig.doors && Array.isArray(doorConfig.doors)) {
+                // Nueva estructura: lista de puertas
+                lines.push('PUERTAS - MADERA MACIZA TIPO RH');
+                lines.push(`Total: ${doorConfig.doors.length} ${doorConfig.doors.length === 1 ? 'puerta' : 'puertas'}`);
+                lines.push('');
+                
+                doorConfig.doors.forEach((door: any, idx: number) => {
+                  lines.push(`Puerta ${idx + 1}: ${typeLabels[door.type] || door.type}`);
+                  lines.push(`  • Medidas: ${door.width}cm × ${door.height}m`);
+                  lines.push(`  • Accesorios: ${colorLabels[door.hardwareColor] || door.hardwareColor}`);
+                  lines.push(`  • Dintel: ${door.hasLintel ? 'Sí' : 'No'}`);
+                  if (door.location) {
+                    lines.push(`  • Ubicación: ${door.location}`);
+                  }
+                  lines.push(`  • Precio: ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(door.pricePerUnit)}`);
+                  if (idx < doorConfig.doors.length - 1) lines.push('');
+                });
+                
+                lines.push('');
+                lines.push('Todas incluyen:');
+                lines.push('• Marco RH');
+                lines.push('• Chapa gama alta');
+                lines.push('• Bisagras omega');
+                lines.push('• Tope de puerta');
+                lines.push('• Instalación completa');
+              } else {
+                // Estructura antigua: puerta única (compatibilidad)
+                lines.push(`${typeLabels[doorConfig.type] || doorConfig.type.toUpperCase()} - MADERA MACIZA TIPO RH`);
+                lines.push(`Cantidad: ${doorConfig.quantity || 1} ${(doorConfig.quantity || 1) === 1 ? 'unidad' : 'unidades'}`);
+                lines.push(`Ancho: ${doorConfig.width}cm (Rango: ${doorConfig.widthRange}cm)`);
+                lines.push(`Altura: ${doorConfig.height}m (máx 2.40m)`);
+                lines.push(`Precio por unidad: ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(doorConfig.pricePerUnit)}`);
+                lines.push('');
+                lines.push('Incluye:');
+                lines.push('• Marco RH');
+                lines.push('• Chapa gama alta');
+                lines.push('• Bisagras omega');
+                lines.push('• Tope de puerta');
+                lines.push(`• Accesorios: ${colorLabels[doorConfig.hardwareColor] || doorConfig.hardwareColor}`);
+                lines.push('• Instalación completa');
+                
+                if (doorConfig.type === 'corrediza') {
+                  lines.push('• Sistema de riel incluido');
+                }
               }
               
               // Agregar notas si existen
@@ -1374,22 +1403,51 @@ export const appRouter = router({
                 'negro': 'Color Negro'
               };
               
-              lines.push(`${typeLabels[doorConfig.type] || doorConfig.type.toUpperCase()} - MADERA MACIZA TIPO RH`);
-              lines.push(`Cantidad: ${doorConfig.quantity} ${doorConfig.quantity === 1 ? 'unidad' : 'unidades'}`);
-              lines.push(`Ancho: ${doorConfig.width}cm (Rango: ${doorConfig.widthRange}cm)`);
-              lines.push(`Altura: ${doorConfig.height}m (máx 2.40m)`);
-              lines.push(`Precio por unidad: ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(doorConfig.pricePerUnit)}`);
-              lines.push('');
-              lines.push('Incluye:');
-              lines.push('• Marco RH');
-              lines.push('• Chapa gama alta');
-              lines.push('• Bisagras omega');
-              lines.push('• Tope de puerta');
-              lines.push(`• Accesorios: ${colorLabels[doorConfig.hardwareColor] || doorConfig.hardwareColor}`);
-              lines.push('• Instalación completa');
-              
-              if (doorConfig.type === 'corrediza') {
-                lines.push('• Sistema de riel incluido');
+              // Verificar si es estructura nueva (lista de puertas) o antigua (puerta única)
+              if (doorConfig.doors && Array.isArray(doorConfig.doors)) {
+                // Nueva estructura: lista de puertas
+                lines.push('PUERTAS - MADERA MACIZA TIPO RH');
+                lines.push(`Total: ${doorConfig.doors.length} ${doorConfig.doors.length === 1 ? 'puerta' : 'puertas'}`);
+                lines.push('');
+                
+                doorConfig.doors.forEach((door: any, idx: number) => {
+                  lines.push(`Puerta ${idx + 1}: ${typeLabels[door.type] || door.type}`);
+                  lines.push(`  • Medidas: ${door.width}cm × ${door.height}m`);
+                  lines.push(`  • Accesorios: ${colorLabels[door.hardwareColor] || door.hardwareColor}`);
+                  lines.push(`  • Dintel: ${door.hasLintel ? 'Sí' : 'No'}`);
+                  if (door.location) {
+                    lines.push(`  • Ubicación: ${door.location}`);
+                  }
+                  lines.push(`  • Precio: ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(door.pricePerUnit)}`);
+                  if (idx < doorConfig.doors.length - 1) lines.push('');
+                });
+                
+                lines.push('');
+                lines.push('Todas incluyen:');
+                lines.push('• Marco RH');
+                lines.push('• Chapa gama alta');
+                lines.push('• Bisagras omega');
+                lines.push('• Tope de puerta');
+                lines.push('• Instalación completa');
+              } else {
+                // Estructura antigua: puerta única (compatibilidad)
+                lines.push(`${typeLabels[doorConfig.type] || doorConfig.type.toUpperCase()} - MADERA MACIZA TIPO RH`);
+                lines.push(`Cantidad: ${doorConfig.quantity || 1} ${(doorConfig.quantity || 1) === 1 ? 'unidad' : 'unidades'}`);
+                lines.push(`Ancho: ${doorConfig.width}cm (Rango: ${doorConfig.widthRange}cm)`);
+                lines.push(`Altura: ${doorConfig.height}m (máx 2.40m)`);
+                lines.push(`Precio por unidad: ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(doorConfig.pricePerUnit)}`);
+                lines.push('');
+                lines.push('Incluye:');
+                lines.push('• Marco RH');
+                lines.push('• Chapa gama alta');
+                lines.push('• Bisagras omega');
+                lines.push('• Tope de puerta');
+                lines.push(`• Accesorios: ${colorLabels[doorConfig.hardwareColor] || doorConfig.hardwareColor}`);
+                lines.push('• Instalación completa');
+                
+                if (doorConfig.type === 'corrediza') {
+                  lines.push('• Sistema de riel incluido');
+                }
               }
               
               // Agregar notas si existen

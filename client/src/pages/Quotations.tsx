@@ -312,13 +312,31 @@ export default function Quotations() {
             notes: item.closetConfig.notes || "",
           } : undefined,
           doorConfig: item.doorConfig ? {
-            type: item.doorConfig.type || "batiente",
-            width: item.doorConfig.width ?? 70,
-            widthRange: item.doorConfig.widthRange || "50-85",
-            height: item.doorConfig.height ?? 2.10,
-            quantity: item.doorConfig.quantity ?? 1,
-            hardwareColor: item.doorConfig.hardwareColor || "aluminio",
-            pricePerUnit: item.doorConfig.pricePerUnit ?? 890000,
+            // Soporte para estructura antigua (puerta única) y nueva (lista de puertas)
+            doors: item.doorConfig.doors && Array.isArray(item.doorConfig.doors) 
+              ? item.doorConfig.doors.map((door: any) => ({
+                  id: door.id || Math.random().toString(36).substr(2, 9),
+                  type: door.type || "batiente",
+                  widthRange: door.widthRange || "50-85",
+                  width: door.width ?? 80,
+                  height: door.height ?? 2.10,
+                  hardwareColor: door.hardwareColor || "aluminio",
+                  hasLintel: door.hasLintel ?? true,
+                  location: door.location || "",
+                  pricePerUnit: door.pricePerUnit ?? 890000,
+                }))
+              : [{
+                  // Convertir estructura antigua a nueva
+                  id: Math.random().toString(36).substr(2, 9),
+                  type: item.doorConfig.type || "batiente",
+                  widthRange: item.doorConfig.widthRange || "50-85",
+                  width: item.doorConfig.width ?? 80,
+                  height: item.doorConfig.height ?? 2.10,
+                  hardwareColor: item.doorConfig.hardwareColor || "aluminio",
+                  hasLintel: true,
+                  location: "",
+                  pricePerUnit: item.doorConfig.pricePerUnit ?? 890000,
+                }],
             subtotal: item.doorConfig.subtotal ?? 890000,
             notes: item.doorConfig.notes || "",
           } : undefined,
@@ -637,17 +655,21 @@ export default function Quotations() {
           return;
         }
       } else if (item.itemType === "puerta") {
-        // Para puertas: validar que tenga configuración
-        if (!item.doorConfig || !item.doorConfig.width) {
-          toast.error(`Item ${i + 1}: Configura el ancho de la puerta`);
+        // Para puertas: validar que tenga al menos una puerta configurada
+        if (!item.doorConfig || !item.doorConfig.doors || item.doorConfig.doors.length === 0) {
+          toast.error(`Item ${i + 1}: Agrega al menos una puerta`);
           return;
         }
-        if (item.doorConfig.width < 50 || item.doorConfig.width > 110) {
-          toast.error(`Item ${i + 1}: El ancho de la puerta debe estar entre 50cm y 110cm`);
-          return;
+        // Validar cada puerta individual
+        for (let j = 0; j < item.doorConfig.doors.length; j++) {
+          const door = item.doorConfig.doors[j];
+          if (!door.width || door.width < 50 || door.width > 110) {
+            toast.error(`Item ${i + 1}, Puerta ${j + 1}: El ancho debe estar entre 50cm y 110cm`);
+            return;
+          }
         }
         if (item.doorConfig.subtotal <= 0) {
-          toast.error(`Item ${i + 1}: El subtotal de la puerta debe ser mayor a 0`);
+          toast.error(`Item ${i + 1}: El subtotal de las puertas debe ser mayor a 0`);
           return;
         }
       } else {

@@ -1471,3 +1471,14 @@
 - [x] Actualizar generación de PDF con especificaciones de puertas
 - [x] Corregir carga de doorConfig en handleEdit (datos se borraban al editar)
 - [ ] Probar flujo completo de crear, editar y generar PDF de cotización de puertas
+
+
+## Reestructuración Configurador de Puertas - Lista Múltiple
+- [x] Cambiar estructura de doorConfig de puerta única a lista de puertas (doors[])
+- [x] Cada puerta con: tipo (batiente/corrediza), ancho, altura, color accesorios, dintel (sí/no), ubicación
+- [x] Botón "Agregar puerta" para añadir más puertas a la lista
+- [x] Botón "Eliminar" en cada puerta individual
+- [x] Cálculo automático del subtotal por puerta y total general
+- [x] Actualizar backend para guardar/cargar lista de puertas
+- [x] Actualizar PDF para mostrar todas las puertas con sus especificaciones
+- [x] Actualizar handleEdit para cargar lista de puertas correctamente (con compatibilidad hacia atrás)

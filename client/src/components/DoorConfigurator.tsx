@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Trash2 } from "lucide-react";
+import { DoorOpen, Plus, Trash2, Truck } from "lucide-react";
 
 export interface DoorItem {
   id: string;
@@ -116,41 +116,44 @@ export function DoorConfigurator({ config, onChange }: DoorConfiguratorProps) {
   const grandTotal = doorsSubtotal + (includeTransport ? transportCost : 0);
 
   return (
-    <Card className="mt-4 border-amber-300">
+    <Card className="mt-4 border-orange-300">
       <CardContent className="p-4">
         {/* Header */}
-        <div className="flex items-center justify-between mb-4 pb-2 border-b border-amber-200">
-          <h4 className="font-bold text-amber-800 text-lg">Configuración de Puertas</h4>
-          <Button type="button" size="sm" onClick={addDoor} className="bg-amber-600 hover:bg-amber-700">
+        <div className="flex items-center justify-between mb-4 pb-2 border-b border-orange-200">
+          <div className="flex items-center gap-2">
+            <DoorOpen className="h-5 w-5 text-orange-600" />
+            <h4 className="font-bold text-orange-800 text-lg">Configuración de Puertas</h4>
+          </div>
+          <Button type="button" size="sm" onClick={addDoor} className="bg-orange-600 hover:bg-orange-700">
             <Plus className="h-4 w-4 mr-1" /> Agregar Puerta
           </Button>
         </div>
         
-        {/* Lista de puertas */}
         <div className="space-y-6">
+          {/* Lista de puertas */}
           {doors.map((door, index) => (
-            <div key={door.id} className="bg-amber-50 p-4 rounded-lg border border-amber-200">
+            <div key={door.id} className="bg-orange-50 p-4 rounded-lg border border-orange-200">
               {/* Header de puerta */}
-              <div className="flex items-center justify-between mb-4">
-                <h5 className="font-semibold text-amber-700 text-base">
+              <div className="flex items-center justify-between mb-4 pb-2 border-b border-orange-200">
+                <h5 className="font-semibold text-orange-700">
                   Puerta {index + 1} - {door.type === "batiente" ? "Batiente" : "Corrediza"}
                 </h5>
                 {doors.length > 1 && (
-                  <Button type="button" size="sm" variant="ghost" onClick={() => removeDoor(door.id)} className="text-red-500 hover:text-red-700 hover:bg-red-50">
+                  <Button type="button" size="sm" variant="ghost" onClick={() => removeDoor(door.id)} className="text-red-500 hover:text-red-700 hover:bg-red-50 h-8 w-8 p-0">
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 )}
               </div>
 
               {/* Fila 1: Tipo y Medidas */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
                 <div>
-                  <Label className="text-sm font-medium text-gray-700 block mb-2">Tipo de Puerta</Label>
+                  <Label className="text-sm font-medium text-gray-700 block mb-2">Tipo</Label>
                   <Select value={door.type} onValueChange={(v) => updateDoor(door.id, { type: v as "batiente" | "corrediza" })}>
                     <SelectTrigger className="h-10 bg-white"><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="batiente">Batiente - $890k</SelectItem>
-                      <SelectItem value="corrediza">Corrediza - $1.25M</SelectItem>
+                      <SelectItem value="batiente">Batiente</SelectItem>
+                      <SelectItem value="corrediza">Corrediza</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -189,69 +192,71 @@ export function DoorConfigurator({ config, onChange }: DoorConfiguratorProps) {
                     className="h-10 bg-white"
                   />
                 </div>
-              </div>
-
-              {/* Fila 2: Accesorios y Ubicación */}
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
-                <div>
-                  <Label className="text-sm font-medium text-gray-700 block mb-2">Color Accesorios</Label>
-                  <Select value={door.hardwareColor} onValueChange={(v) => updateDoor(door.id, { hardwareColor: v as "aluminio" | "negro" })}>
-                    <SelectTrigger className="h-10 bg-white"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="aluminio">Aluminio (Plateado)</SelectItem>
-                      <SelectItem value="negro">Negro</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
                 <div>
                   <Label className="text-sm font-medium text-gray-700 block mb-2">Ubicación</Label>
                   <Input 
                     type="text" 
                     value={door.location || ""} 
                     onChange={(e) => updateDoor(door.id, { location: e.target.value })} 
-                    placeholder="Ej: Baño, Alcoba principal"
+                    placeholder="Ej: Baño"
                     className="h-10 bg-white"
                   />
                 </div>
+              </div>
+
+              {/* Fila 2: Accesorios */}
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
+                <div>
+                  <Label className="text-sm font-medium text-gray-700 block mb-2">Color Accesorios</Label>
+                  <Select value={door.hardwareColor} onValueChange={(v) => updateDoor(door.id, { hardwareColor: v as "aluminio" | "negro" })}>
+                    <SelectTrigger className="h-10 bg-white"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="aluminio">Aluminio</SelectItem>
+                      <SelectItem value="negro">Negro</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
                 <div className="flex items-end">
-                  <div className="flex items-center gap-2 h-10 px-3 bg-white rounded-md border w-full">
+                  <div className="flex items-center gap-3 h-10 px-3 bg-white rounded-md border w-full">
                     <Checkbox 
                       id={`lintel-${door.id}`} 
                       checked={door.hasLintel} 
                       onCheckedChange={(c) => updateDoor(door.id, { hasLintel: c === true })} 
                     />
-                    <Label htmlFor={`lintel-${door.id}`} className="text-sm cursor-pointer">Con Dintel</Label>
+                    <Label htmlFor={`lintel-${door.id}`} className="text-sm cursor-pointer font-medium">Con Dintel</Label>
                   </div>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-700 block mb-2">Notas</Label>
+                  <Input 
+                    type="text" 
+                    value={door.notes || ""} 
+                    onChange={(e) => updateDoor(door.id, { notes: e.target.value })} 
+                    placeholder="Observaciones..."
+                    className="h-10 bg-white"
+                  />
                 </div>
               </div>
 
-              {/* Fila 3: Notas */}
-              <div className="mb-4">
-                <Label className="text-sm font-medium text-gray-700 block mb-2">Notas de esta puerta</Label>
-                <Input 
-                  type="text" 
-                  value={door.notes || ""} 
-                  onChange={(e) => updateDoor(door.id, { notes: e.target.value })} 
-                  placeholder="Ej: Color específico, acabado especial, observaciones..."
-                  className="h-10 bg-white"
-                />
-              </div>
-
-              {/* Precio */}
-              <div className="bg-amber-100 rounded-md p-3 flex justify-between items-center">
-                <div className="text-sm text-amber-700">
-                  <span className="font-medium">{door.width}cm × {door.height}m</span>
-                  <span className="mx-2">|</span>
-                  <span>{door.hardwareColor === "aluminio" ? "Aluminio" : "Negro"}</span>
-                  <span className="mx-2">|</span>
-                  <span>{door.hasLintel ? "Con dintel" : "Sin dintel"}</span>
-                </div>
-                <div className="text-right">
-                  <div className="text-sm text-amber-600">
-                    ${door.pricePerUnit.toLocaleString()} × {door.quantity}
+              {/* Precio de esta puerta */}
+              <div className="bg-orange-100 rounded-lg p-3">
+                <div className="flex justify-between items-center">
+                  <div className="text-sm text-orange-700">
+                    <span className="font-medium">{door.type === "batiente" ? "Batiente" : "Corrediza"}</span>
+                    <span className="mx-2">•</span>
+                    <span>{door.width}cm × {door.height}m</span>
+                    <span className="mx-2">•</span>
+                    <span>{door.hardwareColor === "aluminio" ? "Aluminio" : "Negro"}</span>
+                    <span className="mx-2">•</span>
+                    <span>{door.hasLintel ? "Con dintel" : "Sin dintel"}</span>
                   </div>
-                  <div className="text-xl font-bold text-amber-800">
-                    ${door.lineTotal.toLocaleString()}
+                  <div className="text-right">
+                    <div className="text-sm text-orange-600">
+                      ${door.pricePerUnit.toLocaleString()} × {door.quantity}
+                    </div>
+                    <div className="text-xl font-bold text-orange-800">
+                      ${door.lineTotal.toLocaleString()}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -267,9 +272,12 @@ export function DoorConfigurator({ config, onChange }: DoorConfiguratorProps) {
                   checked={includeTransport} 
                   onCheckedChange={(c) => setIncludeTransport(c === true)} 
                 />
-                <Label htmlFor="door-transport" className="text-sm cursor-pointer font-medium">
-                  Incluir Transporte e Imprevistos
-                </Label>
+                <div className="flex items-center gap-2">
+                  <Truck className="h-4 w-4 text-gray-600" />
+                  <Label htmlFor="door-transport" className="cursor-pointer font-medium">
+                    Incluir Transporte e Imprevistos
+                  </Label>
+                </div>
               </div>
               {includeTransport && (
                 <div className="flex items-center gap-2">
@@ -297,26 +305,28 @@ export function DoorConfigurator({ config, onChange }: DoorConfiguratorProps) {
             />
           </div>
 
-          {/* Total */}
-          <div className="bg-amber-200 p-4 rounded-lg border border-amber-400">
-            <div className="flex justify-between items-center">
-              <div>
-                <div className="font-semibold text-amber-800">
-                  Total: {totalDoors} {totalDoors === 1 ? "puerta" : "puertas"}
-                </div>
-                <div className="text-sm text-amber-700">
-                  Incluye: Marco RH, chapa gama alta, bisagras omega, tope, instalación
-                </div>
+          {/* Resumen Total */}
+          <div className="bg-orange-200 p-4 rounded-lg border border-orange-400">
+            <h5 className="font-semibold text-orange-800 mb-3">Resumen del Precio</h5>
+            <div className="space-y-1 text-sm">
+              <div className="flex justify-between">
+                <span>Subtotal ({totalDoors} {totalDoors === 1 ? "puerta" : "puertas"}):</span>
+                <span className="font-medium">${doorsSubtotal.toLocaleString()}</span>
               </div>
-              <div className="text-right">
-                {includeTransport && (
-                  <div className="text-sm text-amber-700">
-                    Puertas: ${doorsSubtotal.toLocaleString()} + Transporte: ${transportCost.toLocaleString()}
-                  </div>
-                )}
-                <div className="text-2xl font-bold text-amber-900">
-                  ${grandTotal.toLocaleString()}
+              {includeTransport && (
+                <div className="flex justify-between text-orange-700">
+                  <span>+ Transporte e imprevistos:</span>
+                  <span className="font-medium">${transportCost.toLocaleString()}</span>
                 </div>
+              )}
+              <div className="border-t border-orange-400 pt-2 mt-2 flex justify-between">
+                <div>
+                  <span className="font-bold text-orange-900">TOTAL:</span>
+                  <p className="text-xs text-orange-700 mt-1">
+                    Incluye: Marco RH, chapa gama alta, bisagras omega, tope, instalación
+                  </p>
+                </div>
+                <span className="text-2xl font-bold text-orange-900">${grandTotal.toLocaleString()}</span>
               </div>
             </div>
           </div>

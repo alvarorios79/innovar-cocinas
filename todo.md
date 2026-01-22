@@ -1556,3 +1556,11 @@
 - [x] Agregar generación automática de descripción cuando se selecciona Centro de TV
 - [x] Agregar validación específica para centro_tv en handleSubmit
 - [x] Similar a como funciona con closets, puertas y cocinas
+
+
+## Unificación visual de configuradores
+- [x] Revisar estilo de TVCenterConfigurator como referencia (color púrpura)
+- [x] Actualizar ClosetConfigurator con el mismo estilo (color azul)
+- [x] Actualizar DoorConfigurator con el mismo estilo (color naranja)
+- [x] Mantener funcionalidad intacta, solo cambiar aspecto visual
+- [x] Estructura unificada: header con icono, secciones con fondo coloreado, resumen de precio al final

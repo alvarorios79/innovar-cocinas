@@ -1336,10 +1336,14 @@ export default function Quotations() {
                               onChange={(e) => {
                                 const newItems = [...items];
                                 const hardwareTotal = (newItems[index].hardwareSelections || []).reduce((sum, s) => sum + s.subtotal, 0);
-                                const fixedAmount = newItems[index].fixedCostsAmount || 600000;
+                                const fixedAmount = newItems[index].fixedCostsAmount ?? 600000;
                                 
                                 if (e.target.checked) {
                                   newItems[index].totalPrice = hardwareTotal + fixedAmount;
+                                  // Inicializar fixedCostsAmount si no existe
+                                  if (newItems[index].fixedCostsAmount === undefined) {
+                                    newItems[index].fixedCostsAmount = 600000;
+                                  }
                                 } else {
                                   newItems[index].totalPrice = hardwareTotal;
                                 }

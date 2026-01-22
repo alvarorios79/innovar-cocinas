@@ -78,7 +78,8 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
   }, [type, width, height, doorType, notes]);
 
   const squareMeters = (parseFloat(width) || 0) * (parseFloat(height) || 0);
-  const subtotal = squareMeters * CLOSET_TYPES[type].price;
+  const closetType = CLOSET_TYPES[type] || CLOSET_TYPES.estandar;
+  const subtotal = squareMeters * closetType.price;
 
   return (
     <Card className="mt-4">
@@ -105,7 +106,7 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
                 </SelectContent>
               </Select>
               <p className="text-xs text-muted-foreground mt-1.5">
-                {CLOSET_TYPES[type].description}
+                {closetType.description}
               </p>
             </div>
 
@@ -181,7 +182,7 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
             {squareMeters > 0 && (
               <div className="bg-background p-3 rounded border space-y-1">
                 <p className="text-sm">
-                  <span className="font-medium">Profundidad:</span> {CLOSET_TYPES[type].depth}
+                  <span className="font-medium">Profundidad:</span> {closetType.depth}
                 </p>
                 <p className="text-sm">
                   <span className="font-medium">Incluye:</span> Maletero, divisor, doble colgadero, entrepaños, doble cajonero, zapatero y puertas ({doorType}).
@@ -191,7 +192,7 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
                     <span className="font-medium">Área:</span> {squareMeters.toFixed(2)} M²
                   </p>
                   <p className="text-sm">
-                    <span className="font-medium">Precio/M²:</span> ${CLOSET_TYPES[type].price.toLocaleString()}
+                    <span className="font-medium">Precio/M²:</span> ${closetType.price.toLocaleString()}
                   </p>
                   <p className="text-base font-semibold text-primary mt-1">
                     Subtotal: ${subtotal.toLocaleString()}

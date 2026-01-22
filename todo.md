@@ -1435,3 +1435,9 @@
 - [x] Actualizar componente ClosetConfigurator con textarea de notas
 - [x] Actualizar backend para guardar notas (ya se guarda en closetConfig JSON)
 - [x] Incluir notas en la descripción del PDF
+
+
+## Bug: Error "Cannot read properties of undefined (reading 'price')"
+- [x] Identificar línea exacta donde ocurre el error (línea 81: CLOSET_TYPES[type].price)
+- [x] Agregar validaciones de seguridad (usar closetType con fallback a estandar)
+- [x] Probar con cotizaciones existentes y nuevas

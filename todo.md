@@ -1583,3 +1583,10 @@
 - [x] Mejorar checkboxes con el componente Checkbox de shadcn/ui
 - [x] Agregar iconos a las opciones (Refrigerator, LayoutGrid, UtensilsCrossed, Lightbulb)
 - [x] Resumen de precio con desglose similar al de Centro de TV
+
+
+## Vista previa del PDF antes de guardar
+- [x] Crear endpoint previewPDF para generar PDF de vista previa
+- [x] Agregar botón "Vista Previa" en la lista de cotizaciones
+- [x] Crear componente PDFPreviewBeforeSave para mostrar el PDF
+- [x] Opciones de descargar o cerrar desde la vista previa

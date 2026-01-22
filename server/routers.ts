@@ -1369,6 +1369,98 @@ export const appRouter = router({
         }
       }),
 
+    // Vista previa del PDF (genera PDF temporal para preview)
+    previewPDF: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+          throw new TRPCError({ code: "FORBIDDEN" });
+        }
+
+        const quotation = await db.getQuotationById(input.id);
+        if (!quotation) {
+          throw new TRPCError({ code: "NOT_FOUND" });
+        }
+
+        const client = await db.getClientById(quotation.clientId);
+        if (!client) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Cliente no encontrado" });
+        }
+
+        const items = await db.getQuotationItems(input.id);
+
+        // Preparar datos para el PDF (misma lógica que generatePDF)
+        const pdfData = {
+          quotationNumber: quotation.quotationNumber,
+          date: new Date().toLocaleDateString('es-CO'),
+          clientName: client.name,
+          vendorName: quotation.vendorName,
+          productType: quotation.productType,
+          validUntil: quotation.validUntil ? new Date(quotation.validUntil).toLocaleDateString('es-CO') : '',
+          items: items.map(item => {
+            let description = item.description;
+            
+            // Parsear configs
+            const hardwareSelections = item.hardwareSelections && typeof item.hardwareSelections === 'string'
+              ? JSON.parse(item.hardwareSelections)
+              : item.hardwareSelections;
+            const closetConfig = item.closetConfig && typeof item.closetConfig === 'string'
+              ? JSON.parse(item.closetConfig)
+              : item.closetConfig;
+            const doorConfig = item.doorConfig && typeof item.doorConfig === 'string'
+              ? JSON.parse(item.doorConfig)
+              : item.doorConfig;
+            const tvCenterConfig = item.tvCenterConfig && typeof item.tvCenterConfig === 'string'
+              ? JSON.parse(item.tvCenterConfig)
+              : item.tvCenterConfig;
+            
+            // Generar descripción según tipo (simplificado para preview)
+            if (item.itemType === 'closet' && closetConfig) {
+              description = `CLOSET ${closetConfig.type?.toUpperCase() || ''} - ${closetConfig.width}m x ${closetConfig.height}m`;
+            } else if (item.itemType === 'herrajes' && hardwareSelections?.length > 0) {
+              description = `HERRAJES - ${hardwareSelections.length} items seleccionados`;
+            } else if (item.itemType === 'puerta' && doorConfig) {
+              const totalDoors = doorConfig.doors?.reduce((sum: number, d: any) => sum + (d.quantity || 1), 0) || 1;
+              description = `PUERTAS - ${totalDoors} unidad(es)`;
+            } else if (item.itemType === 'centro_tv' && tvCenterConfig) {
+              description = `CENTRO DE TV - ${tvCenterConfig.width}m`;
+            }
+            
+            return {
+              itemNumber: item.itemNumber,
+              description,
+              quantity: item.quantity,
+              unitPrice: item.unitPrice || undefined,
+              totalPrice: item.totalPrice,
+            };
+          }),
+          subtotal: quotation.subtotal,
+          transportCost: quotation.transportCost,
+          total: quotation.total,
+        };
+
+        try {
+          const { generateQuotationPDF } = await import('./quotation-pdf-generator');
+          const result = await generateQuotationPDF(pdfData, quotation.id);
+          
+          const path = await import('path');
+          const filename = path.basename(result.pdfPath);
+          const downloadUrl = `/api/pdf/${filename}`;
+          
+          return {
+            success: true,
+            downloadUrl,
+            filename: result.filename,
+          };
+        } catch (error: any) {
+          console.error('[PDF Preview] Error:', error);
+          throw new TRPCError({ 
+            code: "INTERNAL_SERVER_ERROR", 
+            message: `Error generando vista previa: ${error.message}` 
+          });
+        }
+      }),
+
     // Enviar cotización por email con PDF adjunto
     sendByEmail: protectedProcedure
       .input(z.object({ id: z.number() }))

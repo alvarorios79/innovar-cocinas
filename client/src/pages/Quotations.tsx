@@ -6,6 +6,7 @@ import { DoorConfigurator, DoorConfig } from "@/components/DoorConfigurator";
 import { TVCenterConfigurator, TVCenterConfig } from "@/components/TVCenterConfigurator";
 import { KitchenConfigurator, KitchenConfig } from "@/components/KitchenConfigurator";
 import { PDFPreviewDialog } from "@/components/PDFPreviewDialog";
+import { PDFPreviewBeforeSave } from "@/components/PDFPreviewBeforeSave";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -61,6 +62,11 @@ export default function Quotations() {
   const [previewDialogOpen, setPreviewDialogOpen] = useState(false);
   const [previewPdfUrl, setPreviewPdfUrl] = useState("");
   const [selectedQuotationForEmail, setSelectedQuotationForEmail] = useState<{id: number, email: string} | null>(null);
+  
+  // Estados para vista previa antes de guardar
+  const [previewBeforeSaveOpen, setPreviewBeforeSaveOpen] = useState(false);
+  const [previewBeforeSaveUrl, setPreviewBeforeSaveUrl] = useState("");
+  const [previewQuotationNumber, setPreviewQuotationNumber] = useState("");
   
   // Estados para filtros
   const [filterClient, setFilterClient] = useState<string>("");
@@ -209,6 +215,22 @@ export default function Quotations() {
       toast.error(error.message || "Error al enviar email");
     },
   });
+
+  const previewPDF = trpc.quotations.previewPDF.useMutation({
+    onSuccess: (data) => {
+      const previewUrl = `${data.downloadUrl}?preview=true`;
+      setPreviewBeforeSaveUrl(previewUrl);
+      setPreviewBeforeSaveOpen(true);
+    },
+    onError: (error) => {
+      toast.error(error.message || "Error al generar vista previa");
+    },
+  });
+
+  const handlePreviewClick = (quotationId: number, quotationNumber: string) => {
+    setPreviewQuotationNumber(quotationNumber);
+    previewPDF.mutate({ id: quotationId });
+  };
 
   const handleEmailClick = async (quotationId: number, clientEmail: string) => {
     setSelectedQuotationForEmail({ id: quotationId, email: clientEmail });
@@ -985,7 +1007,16 @@ export default function Quotations() {
                   )}
                 </div>
 
-                <div className="flex gap-2 mt-4">
+                <div className="flex gap-2 mt-4 flex-wrap">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handlePreviewClick(quot.id, quot.quotationNumber)}
+                    disabled={previewPDF.isPending}
+                  >
+                    <Eye className="h-4 w-4 mr-1" />
+                    Vista Previa
+                  </Button>
                   <Button
                     size="sm"
                     variant="outline"
@@ -1867,6 +1898,14 @@ export default function Quotations() {
         recipientEmail={selectedQuotationForEmail?.email || ""}
         onConfirmSend={handleConfirmSend}
         isSending={sendByEmail.isPending}
+      />
+
+      <PDFPreviewBeforeSave
+        open={previewBeforeSaveOpen}
+        onOpenChange={setPreviewBeforeSaveOpen}
+        pdfUrl={previewBeforeSaveUrl}
+        isGenerating={previewPDF.isPending}
+        quotationNumber={previewQuotationNumber}
       />
     </div>
   );

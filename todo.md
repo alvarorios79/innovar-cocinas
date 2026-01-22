@@ -1675,3 +1675,31 @@
 
 - [x] Mostrar desglose de múltiples mesones correctamente en el PDF
 - [x] Aumentar tamaño de la vista previa del PDF al 100%
+
+
+## Auditoría Completa del Proyecto
+
+### Análisis de Estructura
+- [x] Revisar estructura de archivos y carpetas
+- [x] Analizar dependencias del package.json
+- [x] Verificar imports no utilizados
+
+### Revisión de Rutas
+- [x] Auditar rutas del frontend (App.tsx)
+- [x] Auditar rutas del backend (routers.ts)
+- [x] Verificar consistencia entre rutas y componentes
+
+### Detección de Errores
+- [x] Buscar errores de TypeScript
+- [x] Identificar código muerto o no utilizado
+- [x] Verificar manejo de errores en API calls
+
+### Análisis de Mejoras
+- [x] Identificar mejoras de UX
+- [x] Identificar mejoras de rendimiento
+- [x] Identificar funcionalidades faltantes
+
+### Limpieza de Código
+- [x] Eliminar archivos no utilizados
+- [x] Eliminar funciones/componentes muertos
+- [x] Optimizar imports y dependencias

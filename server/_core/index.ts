@@ -2,6 +2,7 @@ import "dotenv/config";
 import express from "express";
 import { createServer } from "http";
 import net from "net";
+import { unlinkSync, existsSync } from "fs";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { registerOAuthRoutes } from "./oauth";
 import { appRouter } from "../routers";
@@ -70,7 +71,6 @@ async function startServer() {
       // Limpiar archivo después de enviarlo
       setTimeout(() => {
         try {
-          const { unlinkSync } = require('fs');
           if (existsSync(filepath)) {
             unlinkSync(filepath);
           }

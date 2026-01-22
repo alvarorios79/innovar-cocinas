@@ -1664,3 +1664,8 @@
 - [x] Resumen de precio con desglose por mesón y total
 - [x] Opciones de Isla (Laterales, Regrueso) funcionan correctamente
 - [x] Cada mesón tiene configuración independiente con botón de eliminar
+
+
+## Corrección UI Configurador de Mesones
+
+- [x] Acomodar botones de agregar mesón (Mesón, Isla, Barra) dentro del recuadro del configurador

@@ -304,18 +304,18 @@ export function CountertopConfigurator({ config, onChange }: CountertopConfigura
   return (
     <div className="space-y-4 border rounded-lg p-4 bg-gradient-to-br from-rose-50 to-pink-50">
       {/* Header */}
-      <div className="flex items-center justify-between pb-2 border-b border-rose-200">
+      <div className="flex flex-col gap-3 pb-3 border-b border-rose-200">
         <div className="flex items-center gap-2">
           <Layers className="h-5 w-5 text-rose-600" />
           <h3 className="font-semibold text-rose-800">Configurador de Mesones</h3>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button
             type="button"
             variant="outline"
             size="sm"
             onClick={() => handleAddMeson("meson")}
-            className="text-xs"
+            className="text-xs flex-shrink-0"
           >
             <Plus className="h-3 w-3 mr-1" />
             Mesón
@@ -325,7 +325,7 @@ export function CountertopConfigurator({ config, onChange }: CountertopConfigura
             variant="outline"
             size="sm"
             onClick={() => handleAddMeson("isla")}
-            className="text-xs"
+            className="text-xs flex-shrink-0"
           >
             <Plus className="h-3 w-3 mr-1" />
             Isla
@@ -335,7 +335,7 @@ export function CountertopConfigurator({ config, onChange }: CountertopConfigura
             variant="outline"
             size="sm"
             onClick={() => handleAddMeson("barra")}
-            className="text-xs"
+            className="text-xs flex-shrink-0"
           >
             <Plus className="h-3 w-3 mr-1" />
             Barra

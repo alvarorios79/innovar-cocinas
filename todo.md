@@ -1590,3 +1590,10 @@
 - [x] Agregar botón "Vista Previa" en la lista de cotizaciones
 - [x] Crear componente PDFPreviewBeforeSave para mostrar el PDF
 - [x] Opciones de descargar o cerrar desde la vista previa
+
+
+## Visor de PDF con react-pdf (sin descarga)
+- [x] Instalar react-pdf y dependencias
+- [x] Configurar worker de PDF.js (usando unpkg CDN)
+- [x] Actualizar PDFPreviewBeforeSave para usar react-pdf
+- [x] Agregar controles de zoom y navegación de páginas

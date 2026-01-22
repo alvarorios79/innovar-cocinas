@@ -127,6 +127,13 @@
       "when": 1769055886136,
       "tag": "0017_zippy_drax",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "5",
+      "when": 1769064068688,
+      "tag": "0018_giant_mongu",
+      "breakpoints": true
     }
   ]
 }

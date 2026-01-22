@@ -1605,3 +1605,18 @@
 - [x] Mejorar scroll para ver todo el documento
 - [x] Agregar botón "Ajustar al ancho" para escalar automáticamente
 - [x] Desactivar capas de texto/anotaciones para mejor rendimiento
+
+
+## Configurador de Mesones (unificado)
+- [x] Quitar items obsoletos: Luz LED, Mesón Quarzo, Mesón Sinterizado
+- [x] Crear componente CountertopConfigurator con estilo visual similar a Centro de TV (color cyan)
+- [x] Tipos: Mesón estándar, Isla, Barra
+- [x] Material: Quarzo (editable, base $850,000) / Sinterizado (editable, base $1,200,000)
+- [x] Fondo: 55-65cm (normal), 66-90cm (+30%), 91-120cm (doble)
+- [x] Barra fondo 35-45cm: Quarzo $600,000, Sinterizado $1,000,000
+- [x] Incluido: Pegado lavaplatos $130,000, salpicadero 10cm, regrueso visto
+- [x] Isla: laterales fijos 1.8 ML + regrueso 0.9 ML (aplica recargo por fondo)
+- [x] Barra: 1 lateral seleccionable (90cm, 100cm, 110cm)
+- [x] Notas especiales y transporte e imprevistos
+- [x] Integrar en Quotations.tsx
+- [x] Actualizar backend y PDF

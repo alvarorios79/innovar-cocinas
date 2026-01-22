@@ -740,6 +740,7 @@ export const appRouter = router({
           closetConfig: z.any().optional(),
           doorConfig: z.any().optional(),
           tvCenterConfig: z.any().optional(),
+          countertopConfig: z.any().optional(),
         })),
       }))
       .mutation(async ({ ctx, input }) => {
@@ -796,6 +797,7 @@ export const appRouter = router({
             closetConfig: item.closetConfig ? JSON.stringify(item.closetConfig) : null,
             doorConfig: item.doorConfig ? JSON.stringify(item.doorConfig) : null,
             tvCenterConfig: item.tvCenterConfig ? JSON.stringify(item.tvCenterConfig) : null,
+            countertopConfig: item.countertopConfig ? JSON.stringify(item.countertopConfig) : null,
           });
         }
 
@@ -829,6 +831,7 @@ export const appRouter = router({
           closetConfig: z.any().optional(),
           doorConfig: z.any().optional(),
           tvCenterConfig: z.any().optional(),
+          countertopConfig: z.any().optional(),
         })).optional(),
       }))
       .mutation(async ({ ctx, input }) => {
@@ -865,6 +868,7 @@ export const appRouter = router({
               closetConfig: item.closetConfig ? JSON.stringify(item.closetConfig) : null,
               doorConfig: item.doorConfig ? JSON.stringify(item.doorConfig) : null,
               tvCenterConfig: item.tvCenterConfig ? JSON.stringify(item.tvCenterConfig) : null,
+              countertopConfig: item.countertopConfig ? JSON.stringify(item.countertopConfig) : null,
             });
           }
 
@@ -938,7 +942,10 @@ export const appRouter = router({
             : item.doorConfig,
           tvCenterConfig: item.tvCenterConfig && typeof item.tvCenterConfig === 'string'
             ? JSON.parse(item.tvCenterConfig)
-            : item.tvCenterConfig
+            : item.tvCenterConfig,
+          countertopConfig: item.countertopConfig && typeof item.countertopConfig === 'string'
+            ? JSON.parse(item.countertopConfig)
+            : item.countertopConfig
         }));
 
         return {
@@ -1228,6 +1235,63 @@ export const appRouter = router({
                 lines.push('');
                 lines.push('Notas adicionales:');
                 lines.push(tvCenterConfig.notes);
+              }
+              
+              description = lines.join('\n');
+            }
+            // Si es mesones y tiene countertopConfig, generar descripción detallada
+            else if (item.itemType === 'mesones' && item.countertopConfig) {
+              const config = typeof item.countertopConfig === 'string' 
+                ? JSON.parse(item.countertopConfig) 
+                : item.countertopConfig;
+              
+              const lines: string[] = [];
+              const formatCurrency = (value: number) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(value);
+              
+              const tipoTexto = config.tipo === 'meson' ? 'MESÓN' : config.tipo === 'isla' ? 'ISLA' : 'BARRA';
+              const materialTexto = config.material === 'quarzo' ? 'QUARZO' : 'SINTERIZADO';
+              
+              lines.push(`${tipoTexto} EN ${materialTexto}`);
+              lines.push(`Metros lineales: ${config.metrosLineales}ML`);
+              lines.push(`Fondo: ${config.fondo}cm`);
+              lines.push('');
+              lines.push('Incluye:');
+              lines.push('• Regrueso en el visto');
+              lines.push('• Salpicadero de 10cm');
+              lines.push('• Pegado de lavaplatos (incluye lavaplatos 45x37cm)');
+              
+              if (config.tipo === 'isla' && config.incluyeLaterales) {
+                lines.push('• Laterales de isla (1.8ML)');
+              }
+              if (config.tipo === 'isla' && config.incluyeRegrueso) {
+                lines.push('• Regrueso de isla (0.9ML x 60cm)');
+              }
+              if (config.tipo === 'barra' && config.alturaLateral > 0) {
+                lines.push(`• Lateral de barra (${config.alturaLateral}cm)`);
+              }
+              
+              lines.push('');
+              lines.push('Desglose:');
+              lines.push(`• ${tipoTexto.toLowerCase()} ${config.metrosLineales}ML x ${config.fondo}cm: ${formatCurrency(config.subtotalMeson)}`);
+              if (config.tipo === 'isla' && config.incluyeLaterales && config.subtotalLaterales > 0) {
+                lines.push(`• Laterales: ${formatCurrency(config.subtotalLaterales)}`);
+              }
+              if (config.tipo === 'isla' && config.incluyeRegrueso && config.subtotalRegrueso > 0) {
+                lines.push(`• Regrueso: ${formatCurrency(config.subtotalRegrueso)}`);
+              }
+              if (config.tipo === 'barra' && config.alturaLateral > 0) {
+                lines.push(`• Lateral barra: ${formatCurrency(config.subtotalLaterales)}`);
+              }
+              lines.push(`• Pegado lavaplatos: ${formatCurrency(config.subtotalLavaplatos)}`);
+              
+              if (config.includeTransport && config.transportCost) {
+                lines.push(`• Transporte e imprevistos: ${formatCurrency(config.transportCost)}`);
+              }
+              
+              if (config.notes && config.notes.trim()) {
+                lines.push('');
+                lines.push('Notas adicionales:');
+                lines.push(config.notes);
               }
               
               description = lines.join('\n');
@@ -1698,6 +1762,63 @@ export const appRouter = router({
                 lines.push('');
                 lines.push('Notas adicionales:');
                 lines.push(tvCenterConfig.notes);
+              }
+              
+              description = lines.join('\n');
+            }
+            // Si es mesones y tiene countertopConfig, generar descripción detallada
+            else if (item.itemType === 'mesones' && item.countertopConfig) {
+              const config = typeof item.countertopConfig === 'string' 
+                ? JSON.parse(item.countertopConfig) 
+                : item.countertopConfig;
+              
+              const lines: string[] = [];
+              const formatCurrency = (value: number) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(value);
+              
+              const tipoTexto = config.tipo === 'meson' ? 'MESÓN' : config.tipo === 'isla' ? 'ISLA' : 'BARRA';
+              const materialTexto = config.material === 'quarzo' ? 'QUARZO' : 'SINTERIZADO';
+              
+              lines.push(`${tipoTexto} EN ${materialTexto}`);
+              lines.push(`Metros lineales: ${config.metrosLineales}ML`);
+              lines.push(`Fondo: ${config.fondo}cm`);
+              lines.push('');
+              lines.push('Incluye:');
+              lines.push('• Regrueso en el visto');
+              lines.push('• Salpicadero de 10cm');
+              lines.push('• Pegado de lavaplatos (incluye lavaplatos 45x37cm)');
+              
+              if (config.tipo === 'isla' && config.incluyeLaterales) {
+                lines.push('• Laterales de isla (1.8ML)');
+              }
+              if (config.tipo === 'isla' && config.incluyeRegrueso) {
+                lines.push('• Regrueso de isla (0.9ML x 60cm)');
+              }
+              if (config.tipo === 'barra' && config.alturaLateral > 0) {
+                lines.push(`• Lateral de barra (${config.alturaLateral}cm)`);
+              }
+              
+              lines.push('');
+              lines.push('Desglose:');
+              lines.push(`• ${tipoTexto.toLowerCase()} ${config.metrosLineales}ML x ${config.fondo}cm: ${formatCurrency(config.subtotalMeson)}`);
+              if (config.tipo === 'isla' && config.incluyeLaterales && config.subtotalLaterales > 0) {
+                lines.push(`• Laterales: ${formatCurrency(config.subtotalLaterales)}`);
+              }
+              if (config.tipo === 'isla' && config.incluyeRegrueso && config.subtotalRegrueso > 0) {
+                lines.push(`• Regrueso: ${formatCurrency(config.subtotalRegrueso)}`);
+              }
+              if (config.tipo === 'barra' && config.alturaLateral > 0) {
+                lines.push(`• Lateral barra: ${formatCurrency(config.subtotalLaterales)}`);
+              }
+              lines.push(`• Pegado lavaplatos: ${formatCurrency(config.subtotalLavaplatos)}`);
+              
+              if (config.includeTransport && config.transportCost) {
+                lines.push(`• Transporte e imprevistos: ${formatCurrency(config.transportCost)}`);
+              }
+              
+              if (config.notes && config.notes.trim()) {
+                lines.push('');
+                lines.push('Notas adicionales:');
+                lines.push(config.notes);
               }
               
               description = lines.join('\n');

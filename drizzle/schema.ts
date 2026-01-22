@@ -561,6 +561,7 @@ export const quotationItems = mysqlTable("quotationItems", {
   closetConfig: json("closetConfig"), // { type, width, height, doorType, squareMeters, pricePerSquareMeter, subtotal }
   doorConfig: json("doorConfig"), // { type, widthRange, width, height, quantity, hardwareColor, pricePerUnit, subtotal, notes }
   tvCenterConfig: json("tvCenterConfig"), // { width, basePrice, hasHighGloss, hasLedLights, floatingShelves, equipmentSpaces, includeTransport, transportCost, notes, subtotal }
+  countertopConfig: json("countertopConfig"), // { material, tipo, metrosLineales, fondo, precioML, incluyeLaterales, incluyeRegrueso, alturaLateral, subtotalMeson, subtotalLaterales, subtotalRegrueso, subtotalLavaplatos, total, notes, includeTransport, transportCost }
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 

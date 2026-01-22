@@ -5,6 +5,7 @@ import { ClosetConfigurator, ClosetConfig } from "@/components/ClosetConfigurato
 import { DoorConfigurator, DoorConfig } from "@/components/DoorConfigurator";
 import { TVCenterConfigurator, TVCenterConfig } from "@/components/TVCenterConfigurator";
 import { KitchenConfigurator, KitchenConfig } from "@/components/KitchenConfigurator";
+import { CountertopConfigurator, CountertopConfig, defaultCountertopConfig } from "@/components/CountertopConfigurator";
 import { PDFPreviewDialog } from "@/components/PDFPreviewDialog";
 import { PDFPreviewBeforeSave } from "@/components/PDFPreviewBeforeSave";
 import { Button } from "@/components/ui/button";
@@ -50,6 +51,7 @@ interface QuotationItem {
   closetConfig?: ClosetConfig;
   doorConfig?: DoorConfig;
   tvCenterConfig?: TVCenterConfig;
+  countertopConfig?: CountertopConfig;
 }
 
 export default function Quotations() {
@@ -394,6 +396,24 @@ export default function Quotations() {
             transportCost: item.doorConfig.transportCost ?? 150000,
             notes: item.doorConfig.notes || "",
           } : undefined,
+          countertopConfig: item.countertopConfig ? {
+            material: item.countertopConfig.material || "quarzo",
+            tipo: item.countertopConfig.tipo || "meson",
+            metrosLineales: item.countertopConfig.metrosLineales ?? 1,
+            fondo: item.countertopConfig.fondo ?? 60,
+            precioML: item.countertopConfig.precioML ?? 850000,
+            incluyeLaterales: item.countertopConfig.incluyeLaterales ?? false,
+            incluyeRegrueso: item.countertopConfig.incluyeRegrueso ?? false,
+            alturaLateral: item.countertopConfig.alturaLateral ?? 0,
+            subtotalMeson: item.countertopConfig.subtotalMeson ?? 0,
+            subtotalLaterales: item.countertopConfig.subtotalLaterales ?? 0,
+            subtotalRegrueso: item.countertopConfig.subtotalRegrueso ?? 0,
+            subtotalLavaplatos: item.countertopConfig.subtotalLavaplatos ?? 130000,
+            total: item.countertopConfig.total ?? 0,
+            notes: item.countertopConfig.notes || "",
+            includeTransport: item.countertopConfig.includeTransport ?? false,
+            transportCost: item.countertopConfig.transportCost ?? 150000,
+          } : undefined,
           kitchenConfig: item.kitchenConfig ? {
             shape: item.kitchenConfig.shape ?? "",
             totalMeters: item.kitchenConfig.totalMeters ?? 0,
@@ -728,6 +748,16 @@ export default function Quotations() {
           toast.error(`Item ${i + 1}: El subtotal del centro de TV debe ser mayor a 0`);
           return;
         }
+      } else if (item.itemType === "mesones") {
+        // Para mesones: validar que tenga configuración
+        if (!item.countertopConfig || !item.countertopConfig.metrosLineales) {
+          toast.error(`Item ${i + 1}: Configura el mesón`);
+          return;
+        }
+        if (item.countertopConfig.total <= 0) {
+          toast.error(`Item ${i + 1}: El total del mesón debe ser mayor a 0`);
+          return;
+        }
       } else {
         // Para otros tipos: validar description y quantity
         if (!item.description) {
@@ -829,6 +859,22 @@ export default function Quotations() {
           description,
           quantity: "1",
           totalPrice: config.subtotal,
+        };
+      }
+      // Para mesones: generar descripción automática
+      if (item.itemType === "mesones" && item.countertopConfig) {
+        const config = item.countertopConfig;
+        const tipoTexto = config.tipo === "meson" ? "Mesón" : config.tipo === "isla" ? "Isla" : "Barra";
+        const materialTexto = config.material === "quarzo" ? "Quarzo" : "Sinterizado";
+        const parts: string[] = [`${tipoTexto} en ${materialTexto} ${config.metrosLineales}ML x ${config.fondo}cm`];
+        if (config.tipo === "isla" && config.incluyeLaterales) parts.push("con laterales");
+        if (config.tipo === "barra" && config.alturaLateral > 0) parts.push(`lateral ${config.alturaLateral}cm`);
+        const description = parts.join(", ");
+        return {
+          ...item,
+          description,
+          quantity: "1",
+          totalPrice: config.total,
         };
       }
       // Para herrajes: generar descripción automática y cantidad basada en selecciones
@@ -1155,9 +1201,7 @@ export default function Quotations() {
                               <SelectItem value="closet">Closet</SelectItem>
                               <SelectItem value="puerta">Puerta</SelectItem>
                               <SelectItem value="centro_tv">Centro de TV</SelectItem>
-                              <SelectItem value="meson_quarzone">Mesón Quarzone</SelectItem>
-                              <SelectItem value="meson_sinterizado">Mesón Sinterizado</SelectItem>
-                              <SelectItem value="luz_led">Luz LED</SelectItem>
+                              <SelectItem value="mesones">Mesones</SelectItem>
                               <SelectItem value="herrajes">Herrajes</SelectItem>
                               <SelectItem value="otro">Otro</SelectItem>
                             </SelectContent>
@@ -1751,8 +1795,26 @@ export default function Quotations() {
                           </>
                         )}
 
+                        {/* Configurador de Mesones */}
+                        {item.itemType === "mesones" && (
+                          <>
+                            <CountertopConfigurator
+                              config={item.countertopConfig || defaultCountertopConfig}
+                              onChange={(config: CountertopConfig) => {
+                                const newItems = [...items];
+                                newItems[index] = {
+                                  ...newItems[index],
+                                  countertopConfig: config,
+                                  totalPrice: config.total
+                                };
+                                setItems(newItems);
+                              }}
+                            />
+                          </>
+                        )}
+
                         {/* Campos estándar para otros tipos */}
-                        {item.itemType !== "cocina" && item.itemType !== "herrajes" && item.itemType !== "closet" && item.itemType !== "puerta" && item.itemType !== "centro_tv" && (
+                        {item.itemType !== "cocina" && item.itemType !== "herrajes" && item.itemType !== "closet" && item.itemType !== "puerta" && item.itemType !== "centro_tv" && item.itemType !== "mesones" && (
                           <>
                             <div>
                               <Label>Descripción *</Label>

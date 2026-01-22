@@ -25,6 +25,7 @@ export interface DoorItem {
   hardwareColor: "aluminio" | "negro";
   hasLintel: boolean;
   location?: string;
+  notes?: string; // Notas individuales por puerta
   pricePerUnit: number;
   lineTotal: number;
 }
@@ -70,6 +71,7 @@ const createNewDoor = (): DoorItem => ({
   hardwareColor: "aluminio",
   hasLintel: true,
   location: "",
+  notes: "",
   pricePerUnit: 890000,
   lineTotal: 890000,
 });
@@ -280,6 +282,20 @@ export function DoorConfigurator({ config, onChange }: DoorConfiguratorProps) {
                       </Label>
                     </div>
                   </div>
+                </div>
+
+                {/* Notas de esta puerta */}
+                <div className="mb-4">
+                  <Label className="text-xs font-medium text-gray-600 mb-1.5 block">
+                    Notas de esta puerta
+                  </Label>
+                  <Textarea
+                    value={door.notes || ""}
+                    onChange={(e) => updateDoor(door.id, { notes: e.target.value })}
+                    placeholder="Ej: Color específico, acabado especial, observaciones..."
+                    className="bg-white text-sm"
+                    rows={2}
+                  />
                 </div>
 
                 {/* Resumen de precio */}

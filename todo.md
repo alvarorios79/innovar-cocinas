@@ -1496,3 +1496,9 @@
 - [x] Mejorar legibilidad del resumen de cada puerta
 - [x] Agregar iconos y mejor jerarquía visual
 - [x] Mejorar separación entre secciones
+
+
+## Mejora: Notas individuales por puerta
+- [x] Agregar campo de notas a cada puerta individual
+- [x] Actualizar handleEdit para cargar notas de cada puerta
+- [x] Actualizar PDF para mostrar notas de cada puerta

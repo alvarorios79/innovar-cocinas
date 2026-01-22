@@ -324,6 +324,7 @@ export default function Quotations() {
                   hardwareColor: door.hardwareColor || "aluminio",
                   hasLintel: door.hasLintel ?? true,
                   location: door.location || "",
+                  notes: door.notes || "",
                   pricePerUnit: door.pricePerUnit ?? 890000,
                   lineTotal: door.lineTotal ?? (door.pricePerUnit ?? 890000) * (door.quantity ?? 1),
                 }))
@@ -338,6 +339,7 @@ export default function Quotations() {
                   hardwareColor: item.doorConfig.hardwareColor || "aluminio",
                   hasLintel: true,
                   location: "",
+                  notes: "",
                   pricePerUnit: item.doorConfig.pricePerUnit ?? 890000,
                   lineTotal: (item.doorConfig.pricePerUnit ?? 890000) * (item.doorConfig.quantity ?? 1),
                 }],

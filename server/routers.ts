@@ -1116,6 +1116,9 @@ export const appRouter = router({
                   if (door.location) {
                     lines.push(`  • Ubicación: ${door.location}`);
                   }
+                  if (door.notes) {
+                    lines.push(`  • Notas: ${door.notes}`);
+                  }
                   lines.push(`  • Precio unitario: ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(door.pricePerUnit)}`);
                   if (qty > 1) {
                     lines.push(`  • Subtotal: ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(lineTotal)}`);
@@ -1428,6 +1431,9 @@ export const appRouter = router({
                   lines.push(`  • Dintel: ${door.hasLintel ? 'Sí' : 'No'}`);
                   if (door.location) {
                     lines.push(`  • Ubicación: ${door.location}`);
+                  }
+                  if (door.notes) {
+                    lines.push(`  • Notas: ${door.notes}`);
                   }
                   lines.push(`  • Precio unitario: ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(door.pricePerUnit)}`);
                   if (qty > 1) {

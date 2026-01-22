@@ -33,11 +33,14 @@ export interface CountertopConfig {
   incluyeRegrueso: boolean;
   // Barra
   alturaLateral: number; // 0, 90, 100, 110
+  // Salpicadero alto (duplica metraje)
+  incluyeSalpicaderoAlto: boolean;
   // Calculados
   subtotalMeson: number;
   subtotalLaterales: number;
   subtotalRegrueso: number;
   subtotalLavaplatos: number;
+  subtotalSalpicaderoAlto: number;
   total: number;
   // Extras
   notes: string;
@@ -59,10 +62,12 @@ export const defaultCountertopConfig: CountertopConfig = {
   incluyeLaterales: true,
   incluyeRegrueso: true,
   alturaLateral: 90,
+  incluyeSalpicaderoAlto: false,
   subtotalMeson: 0,
   subtotalLaterales: 0,
   subtotalRegrueso: 0,
   subtotalLavaplatos: LAVAPLATOS_COST,
+  subtotalSalpicaderoAlto: 0,
   total: 0,
   notes: "",
   includeTransport: false,
@@ -111,8 +116,9 @@ export function CountertopConfigurator({ config, onChange }: CountertopConfigura
       } else {
         updated.subtotalRegrueso = 0;
       }
-      // Isla NO lleva lavaplatos
+      // Isla NO lleva lavaplatos ni salpicadero
       updated.subtotalLavaplatos = 0;
+      updated.subtotalSalpicaderoAlto = 0;
     } else if (updated.tipo === "barra") {
       // Barra: lateral si está configurado
       if (updated.alturaLateral > 0) {
@@ -124,16 +130,30 @@ export function CountertopConfigurator({ config, onChange }: CountertopConfigura
       updated.subtotalRegrueso = 0;
       // Barra NO lleva lavaplatos
       updated.subtotalLavaplatos = 0;
+      // Barra SÍ puede llevar salpicadero alto
+      if (updated.incluyeSalpicaderoAlto) {
+        // Salpicadero alto = duplica el metraje del mesón
+        updated.subtotalSalpicaderoAlto = updated.metrosLineales * precioBase * multiplicador;
+      } else {
+        updated.subtotalSalpicaderoAlto = 0;
+      }
     } else {
       // Mesón estándar
       updated.subtotalLaterales = 0;
       updated.subtotalRegrueso = 0;
       // Mesón estándar SÍ lleva lavaplatos
       updated.subtotalLavaplatos = LAVAPLATOS_COST;
+      // Mesón estándar puede llevar salpicadero alto
+      if (updated.incluyeSalpicaderoAlto) {
+        // Salpicadero alto = duplica el metraje del mesón
+        updated.subtotalSalpicaderoAlto = updated.metrosLineales * precioBase * multiplicador;
+      } else {
+        updated.subtotalSalpicaderoAlto = 0;
+      }
     }
     
     // Total
-    updated.total = updated.subtotalMeson + updated.subtotalLaterales + updated.subtotalRegrueso + updated.subtotalLavaplatos;
+    updated.total = updated.subtotalMeson + updated.subtotalLaterales + updated.subtotalRegrueso + updated.subtotalLavaplatos + updated.subtotalSalpicaderoAlto;
     
     if (updated.includeTransport) {
       updated.total += updated.transportCost;
@@ -159,14 +179,17 @@ export function CountertopConfigurator({ config, onChange }: CountertopConfigura
         newConfig.incluyeLaterales = false;
         newConfig.incluyeRegrueso = false;
         newConfig.alturaLateral = 0;
+        newConfig.incluyeSalpicaderoAlto = false;
       } else if (value === "isla") {
         newConfig.incluyeLaterales = true;
         newConfig.incluyeRegrueso = true;
         newConfig.alturaLateral = 0;
+        newConfig.incluyeSalpicaderoAlto = false;
       } else if (value === "barra") {
         newConfig.incluyeLaterales = false;
         newConfig.incluyeRegrueso = false;
         newConfig.alturaLateral = 90;
+        newConfig.incluyeSalpicaderoAlto = false;
       }
     }
     
@@ -187,11 +210,11 @@ export function CountertopConfigurator({ config, onChange }: CountertopConfigura
   // Determinar qué incluye cada tipo
   const getIncludedItems = () => {
     if (config.tipo === "meson") {
-      // Mesón estándar: todo incluido
+      // Mesón estándar: lavaplatos, pegado, salpicadero bajo, regrueso
       return [
         { text: `Pegado lavaplatos (${formatPrice(LAVAPLATOS_COST)})`, included: true },
         { text: "Lavaplatos 45×37cm incluido", included: true },
-        { text: "Salpicadero alto 10cm", included: true },
+        { text: "Salpicadero bajo 10cm", included: true },
         { text: "Regrueso en el visto", included: true },
       ];
     } else if (config.tipo === "isla") {
@@ -200,15 +223,18 @@ export function CountertopConfigurator({ config, onChange }: CountertopConfigura
         { text: "Regrueso en el visto", included: true },
       ];
     } else {
-      // Barra: salpicadero y regrueso en los vistos
+      // Barra: salpicadero bajo y regrueso en los vistos
       return [
-        { text: "Salpicadero alto 10cm", included: true },
+        { text: "Salpicadero bajo 10cm", included: true },
         { text: "Regrueso en los vistos", included: true },
       ];
     }
   };
 
   const includedItems = getIncludedItems();
+
+  // Mostrar opción de salpicadero alto solo para mesón y barra
+  const showSalpicaderoAltoOption = config.tipo === "meson" || config.tipo === "barra";
 
   return (
     <div className="space-y-4 border rounded-lg p-4 bg-gradient-to-br from-rose-50 to-pink-50">
@@ -371,6 +397,30 @@ export function CountertopConfigurator({ config, onChange }: CountertopConfigura
         </div>
       )}
 
+      {/* Opción de Salpicadero Alto (solo para mesón y barra) */}
+      {showSalpicaderoAltoOption && (
+        <div className="p-3 bg-amber-50 rounded-lg">
+          <div className="flex items-center gap-3">
+            <Checkbox
+              id="salpicaderoAlto"
+              checked={config.incluyeSalpicaderoAlto}
+              onCheckedChange={(checked) => handleChange("incluyeSalpicaderoAlto", checked)}
+            />
+            <div className="flex-1">
+              <Label htmlFor="salpicaderoAlto" className="text-sm cursor-pointer font-medium">
+                Salpicadero Alto (pieza adicional para pared)
+              </Label>
+              <p className="text-xs text-gray-500">
+                Duplica el metraje del mesón ({config.metrosLineales} ML × {formatPrice(config.precioML)} × {multiplicador})
+              </p>
+            </div>
+            {config.incluyeSalpicaderoAlto && (
+              <span className="font-semibold text-amber-700">{formatPrice(config.subtotalSalpicaderoAlto)}</span>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Incluido en el precio - Dinámico según tipo */}
       <div className="p-3 bg-gray-50 rounded-lg">
         <h4 className="font-medium text-gray-700 mb-2">Incluido en el precio:</h4>
@@ -450,6 +500,12 @@ export function CountertopConfigurator({ config, onChange }: CountertopConfigura
             <div className="flex justify-between">
               <span>Pegado lavaplatos:</span>
               <span>{formatPrice(config.subtotalLavaplatos)}</span>
+            </div>
+          )}
+          {config.incluyeSalpicaderoAlto && (
+            <div className="flex justify-between">
+              <span>Salpicadero alto ({config.metrosLineales} ML × {multiplicador}):</span>
+              <span>{formatPrice(config.subtotalSalpicaderoAlto)}</span>
             </div>
           )}
           {config.includeTransport && (

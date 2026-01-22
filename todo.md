@@ -1636,3 +1636,11 @@
 - [x] Isla: Solo regrueso en el visto (NO lleva pegado lavaplatos, lavaplatos, ni salpicadero)
 - [x] Barra: Salpicadero y regrueso en los vistos (NO lleva pegado lavaplatos ni lavaplatos)
 - [x] Actualizar cálculos de precio para no incluir lavaplatos en Isla y Barra
+
+
+## Corrección Salpicadero Bajo vs Alto en Mesones
+
+- [x] Cambiar "Salpicadero alto 10cm" a "Salpicadero bajo 10cm" (incluido en el precio)
+- [x] Agregar opción de "Salpicadero alto" que duplica el metraje del mesón (se cobra aparte)
+- [x] Actualizar cálculos de precio para incluir el costo del salpicadero alto cuando se seleccione
+- [x] Aplicar esta lógica a Mesón Estándar y Barra (Isla no lleva salpicadero)

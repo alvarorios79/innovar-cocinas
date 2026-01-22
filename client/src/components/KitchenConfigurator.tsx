@@ -3,7 +3,8 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { ChefHat } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ChefHat, Refrigerator, UtensilsCrossed, Lightbulb, LayoutGrid } from "lucide-react";
 
 export interface KitchenConfig {
   shape: string;
@@ -43,10 +44,6 @@ interface KitchenConfiguratorProps {
   fixedCostsAmount: number;
   totalPrice: number;
 }
-
-const formatPrice = (price: number) => {
-  return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(price);
-};
 
 export function KitchenConfigurator({ 
   config, 
@@ -131,18 +128,18 @@ export function KitchenConfigurator({
           <h4 className="font-bold text-emerald-800 text-lg">Configuración de Cocina Integral</h4>
         </div>
 
-        <div className="space-y-4">
-          {/* Forma y Metraje */}
+        <div className="space-y-6">
+          {/* Dimensiones */}
           <div className="bg-emerald-50 p-4 rounded-lg border border-emerald-200">
-            <h5 className="font-semibold text-emerald-800 mb-3">Dimensiones</h5>
+            <h5 className="font-semibold text-emerald-700 mb-3">Dimensiones del Proyecto</h5>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label className="text-emerald-700">Forma de la Cocina</Label>
+                <Label className="text-sm font-medium text-gray-700 block mb-2">Forma de la Cocina</Label>
                 <Select 
                   value={currentConfig.shape} 
                   onValueChange={(value) => updateConfig("shape", value)}
                 >
-                  <SelectTrigger className="bg-white">
+                  <SelectTrigger className="h-10 bg-white">
                     <SelectValue placeholder="Selecciona la forma" />
                   </SelectTrigger>
                   <SelectContent>
@@ -153,92 +150,145 @@ export function KitchenConfigurator({
                 </Select>
               </div>
               <div>
-                <Label className="text-emerald-700">Metraje Total (ml)</Label>
+                <Label className="text-sm font-medium text-gray-700 block mb-2">Metraje Total (ml)</Label>
                 <Input
                   type="number"
                   step="0.01"
                   value={currentConfig.totalMeters || ""}
                   onChange={(e) => updateConfig("totalMeters", parseFloat(e.target.value) || 0)}
                   placeholder="Ej: 5.00"
-                  className="bg-white"
+                  className="h-10 bg-white"
                 />
               </div>
+            </div>
+            <div className="mt-3 p-3 bg-emerald-100 rounded">
+              <p className="text-sm text-emerald-700">
+                <strong>Metraje resultante:</strong> {resultingMeters.toFixed(2)} ml
+              </p>
+              <p className="text-xs text-emerald-600 mt-1">
+                Muebles Inferiores: {resultingMeters.toFixed(2)} ml | Muebles Superiores: {resultingMeters.toFixed(2)} ml
+              </p>
             </div>
           </div>
 
           {/* Muebles Especiales */}
-          <div className="bg-emerald-50 p-4 rounded-lg border border-emerald-200">
-            <h5 className="font-semibold text-emerald-800 mb-3">Muebles Especiales (se descuentan del metraje)</h5>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={currentConfig.specialModules.nichoNevecon}
-                  onChange={(e) => updateConfig("specialModules.nichoNevecon", e.target.checked)}
-                  className="h-4 w-4 rounded border-emerald-300 text-emerald-600 focus:ring-emerald-500"
-                />
-                <span className="text-sm">Nicho para nevecon (100cm) - $1,200,000</span>
-              </label>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={currentConfig.specialModules.nichoNevera}
-                  onChange={(e) => updateConfig("specialModules.nichoNevera", e.target.checked)}
-                  className="h-4 w-4 rounded border-emerald-300 text-emerald-600 focus:ring-emerald-500"
-                />
-                <span className="text-sm">Nicho para nevera estándar (75cm) - $1,200,000</span>
-              </label>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={currentConfig.specialModules.alacenaEntrepanos}
-                  onChange={(e) => updateConfig("specialModules.alacenaEntrepanos", e.target.checked)}
-                  className="h-4 w-4 rounded border-emerald-300 text-emerald-600 focus:ring-emerald-500"
-                />
-                <span className="text-sm">Alacena con entrepaños (50cm) - $1,250,000</span>
-              </label>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={currentConfig.specialModules.alacenaHerraje}
-                  onChange={(e) => updateConfig("specialModules.alacenaHerraje", e.target.checked)}
-                  className="h-4 w-4 rounded border-emerald-300 text-emerald-600 focus:ring-emerald-500"
-                />
-                <span className="text-sm">Alacena para herraje (50cm) - $900,000</span>
-              </label>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={currentConfig.specialModules.torreHornos}
-                  onChange={(e) => updateConfig("specialModules.torreHornos", e.target.checked)}
-                  className="h-4 w-4 rounded border-emerald-300 text-emerald-600 focus:ring-emerald-500"
-                />
-                <span className="text-sm">Torre de hornos (70cm) - $1,350,000</span>
-              </label>
-            </div>
+          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+            <h5 className="font-semibold text-gray-700 mb-3">Muebles Especiales (se descuentan del metraje)</h5>
             
-            {/* Metraje resultante */}
-            <div className="mt-3 p-3 bg-emerald-100 rounded-lg">
-              <p className="text-sm font-medium text-emerald-800">
-                Metraje resultante: <span className="text-lg">{resultingMeters.toFixed(2)} ml</span>
-              </p>
-              <p className="text-xs text-emerald-600 mt-1">
-                • Muebles Inferiores: {resultingMeters.toFixed(2)} ml | • Muebles Superiores: {resultingMeters.toFixed(2)} ml
-              </p>
+            <div className="space-y-3">
+              {/* Nicho Nevecon */}
+              <div className="flex items-center justify-between p-3 bg-white rounded border">
+                <div className="flex items-center gap-3">
+                  <Checkbox 
+                    id="nicho-nevecon" 
+                    checked={currentConfig.specialModules.nichoNevecon} 
+                    onCheckedChange={(c) => updateConfig("specialModules.nichoNevecon", c === true)} 
+                  />
+                  <div className="flex items-center gap-2">
+                    <Refrigerator className="h-4 w-4 text-blue-500" />
+                    <Label htmlFor="nicho-nevecon" className="cursor-pointer font-medium">
+                      Nicho para nevecon (100cm)
+                    </Label>
+                  </div>
+                </div>
+                <span className={`font-semibold ${currentConfig.specialModules.nichoNevecon ? 'text-emerald-700' : 'text-gray-400'}`}>
+                  $1,200,000
+                </span>
+              </div>
+
+              {/* Nicho Nevera */}
+              <div className="flex items-center justify-between p-3 bg-white rounded border">
+                <div className="flex items-center gap-3">
+                  <Checkbox 
+                    id="nicho-nevera" 
+                    checked={currentConfig.specialModules.nichoNevera} 
+                    onCheckedChange={(c) => updateConfig("specialModules.nichoNevera", c === true)} 
+                  />
+                  <div className="flex items-center gap-2">
+                    <Refrigerator className="h-4 w-4 text-blue-400" />
+                    <Label htmlFor="nicho-nevera" className="cursor-pointer font-medium">
+                      Nicho para nevera estándar (75cm)
+                    </Label>
+                  </div>
+                </div>
+                <span className={`font-semibold ${currentConfig.specialModules.nichoNevera ? 'text-emerald-700' : 'text-gray-400'}`}>
+                  $1,200,000
+                </span>
+              </div>
+
+              {/* Alacena Entrepaños */}
+              <div className="flex items-center justify-between p-3 bg-white rounded border">
+                <div className="flex items-center gap-3">
+                  <Checkbox 
+                    id="alacena-entrepanos" 
+                    checked={currentConfig.specialModules.alacenaEntrepanos} 
+                    onCheckedChange={(c) => updateConfig("specialModules.alacenaEntrepanos", c === true)} 
+                  />
+                  <div className="flex items-center gap-2">
+                    <LayoutGrid className="h-4 w-4 text-amber-500" />
+                    <Label htmlFor="alacena-entrepanos" className="cursor-pointer font-medium">
+                      Alacena con entrepaños (50cm)
+                    </Label>
+                  </div>
+                </div>
+                <span className={`font-semibold ${currentConfig.specialModules.alacenaEntrepanos ? 'text-emerald-700' : 'text-gray-400'}`}>
+                  $1,250,000
+                </span>
+              </div>
+
+              {/* Alacena Herraje */}
+              <div className="flex items-center justify-between p-3 bg-white rounded border">
+                <div className="flex items-center gap-3">
+                  <Checkbox 
+                    id="alacena-herraje" 
+                    checked={currentConfig.specialModules.alacenaHerraje} 
+                    onCheckedChange={(c) => updateConfig("specialModules.alacenaHerraje", c === true)} 
+                  />
+                  <div className="flex items-center gap-2">
+                    <LayoutGrid className="h-4 w-4 text-orange-500" />
+                    <Label htmlFor="alacena-herraje" className="cursor-pointer font-medium">
+                      Alacena para herraje (50cm)
+                    </Label>
+                  </div>
+                </div>
+                <span className={`font-semibold ${currentConfig.specialModules.alacenaHerraje ? 'text-emerald-700' : 'text-gray-400'}`}>
+                  $900,000
+                </span>
+              </div>
+
+              {/* Torre de Hornos */}
+              <div className="flex items-center justify-between p-3 bg-white rounded border">
+                <div className="flex items-center gap-3">
+                  <Checkbox 
+                    id="torre-hornos" 
+                    checked={currentConfig.specialModules.torreHornos} 
+                    onCheckedChange={(c) => updateConfig("specialModules.torreHornos", c === true)} 
+                  />
+                  <div className="flex items-center gap-2">
+                    <UtensilsCrossed className="h-4 w-4 text-red-500" />
+                    <Label htmlFor="torre-hornos" className="cursor-pointer font-medium">
+                      Torre de hornos (70cm)
+                    </Label>
+                  </div>
+                </div>
+                <span className={`font-semibold ${currentConfig.specialModules.torreHornos ? 'text-emerald-700' : 'text-gray-400'}`}>
+                  $1,350,000
+                </span>
+              </div>
             </div>
           </div>
 
           {/* Mesón Principal */}
           <div className="bg-emerald-50 p-4 rounded-lg border border-emerald-200">
-            <h5 className="font-semibold text-emerald-800 mb-3">Mesón Principal</h5>
+            <h5 className="font-semibold text-emerald-700 mb-3">Mesón Principal</h5>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label className="text-emerald-700">Tipo de Mesón *</Label>
+                <Label className="text-sm font-medium text-gray-700 block mb-2">Tipo de Mesón *</Label>
                 <Select 
                   value={currentConfig.countertop.type} 
                   onValueChange={(value) => updateConfig("countertop.type", value)}
                 >
-                  <SelectTrigger className="bg-white">
+                  <SelectTrigger className="h-10 bg-white">
                     <SelectValue placeholder="Selecciona tipo" />
                   </SelectTrigger>
                   <SelectContent>
@@ -248,12 +298,12 @@ export function KitchenConfigurator({
                 </Select>
               </div>
               <div>
-                <Label className="text-emerald-700">Recargo por Fondo</Label>
+                <Label className="text-sm font-medium text-gray-700 block mb-2">Recargo por Fondo</Label>
                 <Select 
                   value={currentConfig.countertop.depthSurcharge} 
                   onValueChange={(value) => updateConfig("countertop.depthSurcharge", value)}
                 >
-                  <SelectTrigger className="bg-white">
+                  <SelectTrigger className="h-10 bg-white">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -267,38 +317,41 @@ export function KitchenConfigurator({
           </div>
 
           {/* Isla */}
-          <div className="bg-emerald-50 p-4 rounded-lg border border-emerald-200">
-            <label className="flex items-center gap-2 cursor-pointer mb-3">
-              <input
-                type="checkbox"
-                checked={currentConfig.island.enabled}
-                onChange={(e) => updateConfig("island.enabled", e.target.checked)}
-                className="h-4 w-4 rounded border-emerald-300 text-emerald-600 focus:ring-emerald-500"
-              />
-              <h5 className="font-semibold text-emerald-800">Isla</h5>
-            </label>
+          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-3">
+                <Checkbox 
+                  id="isla-enabled" 
+                  checked={currentConfig.island.enabled} 
+                  onCheckedChange={(c) => updateConfig("island.enabled", c === true)} 
+                />
+                <Label htmlFor="isla-enabled" className="cursor-pointer font-semibold text-gray-700">
+                  Incluir Isla
+                </Label>
+              </div>
+            </div>
             
             {currentConfig.island.enabled && (
-              <div className="pl-6 space-y-3">
+              <div className="space-y-4 mt-3 pt-3 border-t border-gray-200">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label className="text-emerald-700">Metros de isla (ml)</Label>
+                    <Label className="text-sm font-medium text-gray-700 block mb-2">Metros lineales de isla</Label>
                     <Input
                       type="number"
                       step="0.01"
                       value={currentConfig.island.meters || ""}
                       onChange={(e) => updateConfig("island.meters", parseFloat(e.target.value) || 0)}
                       placeholder="0.00"
-                      className="bg-white"
+                      className="h-10 bg-white"
                     />
                   </div>
                   <div>
-                    <Label className="text-emerald-700">Tipo de mesón</Label>
+                    <Label className="text-sm font-medium text-gray-700 block mb-2">Tipo de mesón</Label>
                     <Select 
                       value={currentConfig.island.countertopType} 
                       onValueChange={(value) => updateConfig("island.countertopType", value)}
                     >
-                      <SelectTrigger className="bg-white">
+                      <SelectTrigger className="h-10 bg-white">
                         <SelectValue placeholder="Tipo" />
                       </SelectTrigger>
                       <SelectContent>
@@ -308,52 +361,56 @@ export function KitchenConfigurator({
                     </Select>
                   </div>
                 </div>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={currentConfig.island.hasLaterals}
-                    onChange={(e) => updateConfig("island.hasLaterals", e.target.checked)}
-                    className="h-4 w-4 rounded border-emerald-300 text-emerald-600 focus:ring-emerald-500"
+                <div className="flex items-center gap-3">
+                  <Checkbox 
+                    id="isla-laterales" 
+                    checked={currentConfig.island.hasLaterals} 
+                    onCheckedChange={(c) => updateConfig("island.hasLaterals", c === true)} 
                   />
-                  <span className="text-sm">Incluir laterales (+1.80ml lateral + 0.90ml regrueso)</span>
-                </label>
+                  <Label htmlFor="isla-laterales" className="cursor-pointer text-sm">
+                    Incluir laterales (+0.90ml × 2 lados)
+                  </Label>
+                </div>
               </div>
             )}
           </div>
 
           {/* Barra */}
-          <div className="bg-emerald-50 p-4 rounded-lg border border-emerald-200">
-            <label className="flex items-center gap-2 cursor-pointer mb-3">
-              <input
-                type="checkbox"
-                checked={currentConfig.bar.enabled}
-                onChange={(e) => updateConfig("bar.enabled", e.target.checked)}
-                className="h-4 w-4 rounded border-emerald-300 text-emerald-600 focus:ring-emerald-500"
-              />
-              <h5 className="font-semibold text-emerald-800">Barra</h5>
-            </label>
+          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-3">
+                <Checkbox 
+                  id="barra-enabled" 
+                  checked={currentConfig.bar.enabled} 
+                  onCheckedChange={(c) => updateConfig("bar.enabled", c === true)} 
+                />
+                <Label htmlFor="barra-enabled" className="cursor-pointer font-semibold text-gray-700">
+                  Incluir Barra
+                </Label>
+              </div>
+            </div>
             
             {currentConfig.bar.enabled && (
-              <div className="pl-6 space-y-3">
+              <div className="space-y-4 mt-3 pt-3 border-t border-gray-200">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label className="text-emerald-700">Metros de barra (ml)</Label>
+                    <Label className="text-sm font-medium text-gray-700 block mb-2">Metros lineales de barra</Label>
                     <Input
                       type="number"
                       step="0.01"
                       value={currentConfig.bar.meters || ""}
                       onChange={(e) => updateConfig("bar.meters", parseFloat(e.target.value) || 0)}
                       placeholder="0.00"
-                      className="bg-white"
+                      className="h-10 bg-white"
                     />
                   </div>
                   <div>
-                    <Label className="text-emerald-700">Tipo de mesón</Label>
+                    <Label className="text-sm font-medium text-gray-700 block mb-2">Tipo de mesón</Label>
                     <Select 
                       value={currentConfig.bar.countertopType} 
                       onValueChange={(value) => updateConfig("bar.countertopType", value)}
                     >
-                      <SelectTrigger className="bg-white">
+                      <SelectTrigger className="h-10 bg-white">
                         <SelectValue placeholder="Tipo" />
                       </SelectTrigger>
                       <SelectContent>
@@ -363,76 +420,149 @@ export function KitchenConfigurator({
                     </Select>
                   </div>
                 </div>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={currentConfig.bar.hasLateral}
-                    onChange={(e) => updateConfig("bar.hasLateral", e.target.checked)}
-                    className="h-4 w-4 rounded border-emerald-300 text-emerald-600 focus:ring-emerald-500"
+                <div className="flex items-center gap-3">
+                  <Checkbox 
+                    id="barra-lateral" 
+                    checked={currentConfig.bar.hasLateral} 
+                    onCheckedChange={(c) => updateConfig("bar.hasLateral", c === true)} 
                   />
-                  <span className="text-sm">Incluir lateral (+0.90ml fijo)</span>
-                </label>
+                  <Label htmlFor="barra-lateral" className="cursor-pointer text-sm">
+                    Incluir lateral (+0.90ml fijo)
+                  </Label>
+                </div>
               </div>
             )}
           </div>
 
           {/* Luz LED */}
-          <div className="bg-emerald-50 p-4 rounded-lg border border-emerald-200">
-            <h5 className="font-semibold text-emerald-800 mb-3">Luz LED (opcional)</h5>
-            <div>
-              <Label className="text-emerald-700">Metros de LED - $180,000/ml</Label>
-              <Input
-                type="number"
-                step="0.01"
-                value={currentConfig.ledLighting || ""}
-                onChange={(e) => updateConfig("ledLighting", parseFloat(e.target.value) || 0)}
-                placeholder="Dejar en 0 si no lleva LED"
-                className="bg-white"
-              />
+          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Lightbulb className="h-4 w-4 text-amber-500" />
+                <div>
+                  <Label className="font-medium">Iluminación LED</Label>
+                  <p className="text-xs text-gray-500">$180,000 por metro lineal</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={currentConfig.ledLighting || ""}
+                  onChange={(e) => updateConfig("ledLighting", parseFloat(e.target.value) || 0)}
+                  placeholder="0"
+                  className="h-9 w-24 text-right bg-white"
+                />
+                <span className="text-sm text-gray-600">ml</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Transporte e Imprevistos */}
+          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Checkbox 
+                  id="kitchen-transport" 
+                  checked={includesFixedCosts} 
+                  onCheckedChange={(c) => onFixedCostsChange(c === true)} 
+                />
+                <Label htmlFor="kitchen-transport" className="cursor-pointer font-medium">
+                  Incluir Transporte e Imprevistos
+                </Label>
+              </div>
+              {includesFixedCosts && (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-600">Monto: $</span>
+                  <Input 
+                    type="number" 
+                    value={fixedCostsAmount} 
+                    onChange={(e) => onFixedCostsChange(true, parseFloat(e.target.value) || 0)} 
+                    className="h-9 w-32 text-right bg-white" 
+                  />
+                </div>
+              )}
             </div>
           </div>
 
           {/* Notas */}
-          <div className="bg-emerald-50 p-4 rounded-lg border border-emerald-200">
-            <h5 className="font-semibold text-emerald-800 mb-3">Notas Adicionales</h5>
+          <div>
+            <Label className="text-sm font-medium text-gray-700 block mb-2">Notas Adicionales</Label>
             <Textarea
               value={currentConfig.notes || ""}
               onChange={(e) => updateConfig("notes", e.target.value)}
               placeholder="Especificaciones adicionales, colores, acabados..."
-              className="bg-white min-h-[80px]"
+              className="bg-white"
+              rows={2}
             />
-          </div>
-
-          {/* Transporte e Imprevistos */}
-          <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-300">
-            <div className="flex items-center gap-3 flex-wrap">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={includesFixedCosts}
-                  onChange={(e) => onFixedCostsChange(e.target.checked)}
-                  className="h-4 w-4 rounded border-yellow-400 text-yellow-600 focus:ring-yellow-500"
-                />
-                <span className="text-sm font-medium text-yellow-800">Incluye transporte e imprevistos</span>
-              </label>
-              {includesFixedCosts && (
-                <Input
-                  type="number"
-                  value={fixedCostsAmount}
-                  onChange={(e) => onFixedCostsChange(true, parseFloat(e.target.value) || 0)}
-                  className="w-32 h-8 bg-white"
-                  min="0"
-                />
-              )}
-            </div>
           </div>
 
           {/* Resumen Total */}
           <div className="bg-emerald-200 p-4 rounded-lg border border-emerald-400">
             <h5 className="font-semibold text-emerald-800 mb-3">Resumen del Precio</h5>
-            <div className="border-t border-emerald-400 pt-2 flex justify-between items-center">
-              <span className="font-bold text-emerald-900">TOTAL COCINA:</span>
-              <span className="text-2xl font-bold text-emerald-900">{formatPrice(totalPrice)}</span>
+            <div className="space-y-1 text-sm">
+              <div className="flex justify-between">
+                <span>Cocina {currentConfig.shape || "---"} - {resultingMeters.toFixed(2)}ml:</span>
+                <span className="font-medium">Calculado</span>
+              </div>
+              {currentConfig.specialModules.nichoNevecon && (
+                <div className="flex justify-between text-emerald-700">
+                  <span>+ Nicho nevecon:</span>
+                  <span className="font-medium">$1,200,000</span>
+                </div>
+              )}
+              {currentConfig.specialModules.nichoNevera && (
+                <div className="flex justify-between text-emerald-700">
+                  <span>+ Nicho nevera:</span>
+                  <span className="font-medium">$1,200,000</span>
+                </div>
+              )}
+              {currentConfig.specialModules.alacenaEntrepanos && (
+                <div className="flex justify-between text-emerald-700">
+                  <span>+ Alacena entrepaños:</span>
+                  <span className="font-medium">$1,250,000</span>
+                </div>
+              )}
+              {currentConfig.specialModules.alacenaHerraje && (
+                <div className="flex justify-between text-emerald-700">
+                  <span>+ Alacena herraje:</span>
+                  <span className="font-medium">$900,000</span>
+                </div>
+              )}
+              {currentConfig.specialModules.torreHornos && (
+                <div className="flex justify-between text-emerald-700">
+                  <span>+ Torre de hornos:</span>
+                  <span className="font-medium">$1,350,000</span>
+                </div>
+              )}
+              {currentConfig.island.enabled && (
+                <div className="flex justify-between text-emerald-700">
+                  <span>+ Isla ({currentConfig.island.meters}ml):</span>
+                  <span className="font-medium">Incluido</span>
+                </div>
+              )}
+              {currentConfig.bar.enabled && (
+                <div className="flex justify-between text-emerald-700">
+                  <span>+ Barra ({currentConfig.bar.meters}ml):</span>
+                  <span className="font-medium">Incluido</span>
+                </div>
+              )}
+              {currentConfig.ledLighting > 0 && (
+                <div className="flex justify-between text-emerald-700">
+                  <span>+ LED ({currentConfig.ledLighting}ml × $180,000):</span>
+                  <span className="font-medium">${(currentConfig.ledLighting * 180000).toLocaleString()}</span>
+                </div>
+              )}
+              {includesFixedCosts && (
+                <div className="flex justify-between text-emerald-700">
+                  <span>+ Transporte e imprevistos:</span>
+                  <span className="font-medium">${fixedCostsAmount.toLocaleString()}</span>
+                </div>
+              )}
+              <div className="border-t border-emerald-400 pt-2 mt-2 flex justify-between">
+                <span className="font-bold text-emerald-900">TOTAL COCINA:</span>
+                <span className="text-2xl font-bold text-emerald-900">${totalPrice.toLocaleString()}</span>
+              </div>
             </div>
           </div>
         </div>

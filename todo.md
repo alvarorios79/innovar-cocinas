@@ -1575,3 +1575,11 @@
 ## Mejora: Configurador de Cocinas
 - [x] Agregar campo de notas adicionales (ya existía)
 - [x] Cambiar color de turquesa a esmeralda (verde intenso)
+
+
+## Bug: Unificar diseño de configurador de Cocinas con Centro de TV
+- [x] Aplicar el mismo estilo visual del TVCenterConfigurator al KitchenConfigurator
+- [x] Usar secciones con fondo coloreado consistentes (emerald-50, gray-50)
+- [x] Mejorar checkboxes con el componente Checkbox de shadcn/ui
+- [x] Agregar iconos a las opciones (Refrigerator, LayoutGrid, UtensilsCrossed, Lightbulb)
+- [x] Resumen de precio con desglose similar al de Centro de TV

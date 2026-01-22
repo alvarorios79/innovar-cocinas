@@ -70,7 +70,8 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
     };
 
     onChange(newConfig);
-  }, [type, width, height, doorType, onChange]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [type, width, height, doorType]);
 
   const squareMeters = (parseFloat(width) || 0) * (parseFloat(height) || 0);
   const subtotal = squareMeters * CLOSET_TYPES[type].price;

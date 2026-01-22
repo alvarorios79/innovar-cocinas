@@ -1411,3 +1411,9 @@
 - [x] Actualizar backend para guardar y procesar closetConfig
 - [x] Generar descripción detallada en PDF con especificaciones del closet
 - [x] Probar flujo completo: crear cotización → generar PDF
+
+
+## Bug: Error React #185 en producción
+- [x] Identificar causa del error en ClosetConfigurator (onChange en dependencias del useEffect)
+- [x] Corregir el problema (remover onChange de dependencias)
+- [x] Probar en desarrollo y producción (corrección aplicada, requiere actualización de caché)

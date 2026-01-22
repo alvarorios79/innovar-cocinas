@@ -1355,17 +1355,18 @@ export default function Quotations() {
                             {item.includesFixedCosts && (
                               <Input
                                 type="number"
-                                value={item.fixedCostsAmount || 600000}
+                                value={item.fixedCostsAmount ?? 600000}
                                 onChange={(e) => {
                                   const newItems = [...items];
                                   const hardwareTotal = (newItems[index].hardwareSelections || []).reduce((sum, s) => sum + s.subtotal, 0);
-                                  const newAmount = parseFloat(e.target.value) || 0;
+                                  const newAmount = e.target.value === '' ? 0 : parseFloat(e.target.value);
                                   newItems[index].totalPrice = hardwareTotal + newAmount;
                                   newItems[index].fixedCostsAmount = newAmount;
                                   setItems(newItems);
                                 }}
                                 className="w-32 h-8"
                                 placeholder="Monto"
+                                min="0"
                               />
                             )}
                           </div>
@@ -1456,11 +1457,11 @@ export default function Quotations() {
                               {item.includesFixedCosts && (
                                 <Input
                                   type="number"
-                                  value={item.fixedCostsAmount || 600000}
+                                  value={item.fixedCostsAmount ?? 600000}
                                   onChange={(e) => {
                                     const newItems = [...items];
-                                    const oldAmount = newItems[index].fixedCostsAmount || 600000;
-                                    const newAmount = parseFloat(e.target.value) || 0;
+                                    const oldAmount = newItems[index].fixedCostsAmount ?? 600000;
+                                    const newAmount = e.target.value === '' ? 0 : parseFloat(e.target.value);
                                     // Actualizar el total: restar el monto anterior y sumar el nuevo
                                     newItems[index].totalPrice = newItems[index].totalPrice - oldAmount + newAmount;
                                     newItems[index].fixedCostsAmount = newAmount;
@@ -1468,6 +1469,7 @@ export default function Quotations() {
                                   }}
                                   className="w-32 h-8"
                                   placeholder="Monto"
+                                  min="0"
                                 />
                               )}
                             </div>

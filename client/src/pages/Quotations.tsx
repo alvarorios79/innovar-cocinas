@@ -3,6 +3,7 @@ import { trpc } from "@/lib/trpc";
 import { HardwareSelectorForQuotation } from "@/components/HardwareSelectorForQuotation";
 import { ClosetConfigurator, ClosetConfig } from "@/components/ClosetConfigurator";
 import { DoorConfigurator, DoorConfig } from "@/components/DoorConfigurator";
+import { TVCenterConfigurator, TVCenterConfig } from "@/components/TVCenterConfigurator";
 import { PDFPreviewDialog } from "@/components/PDFPreviewDialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -78,6 +79,7 @@ interface QuotationItem {
   hardwareSelections?: HardwareSelection[];
   closetConfig?: ClosetConfig;
   doorConfig?: DoorConfig;
+  tvCenterConfig?: TVCenterConfig;
 }
 
 export default function Quotations() {
@@ -351,6 +353,22 @@ export default function Quotations() {
             pricePerSquareMeter: item.closetConfig.pricePerSquareMeter || 750000,
             subtotal: item.closetConfig.subtotal || 0,
             notes: item.closetConfig.notes || "",
+          } : undefined,
+          tvCenterConfig: item.tvCenterConfig ? {
+            width: item.tvCenterConfig.width ?? 1.60,
+            basePrice: item.tvCenterConfig.basePrice ?? 2800000,
+            hasHighGloss: item.tvCenterConfig.hasHighGloss ?? false,
+            highGlossPrice: item.tvCenterConfig.highGlossPrice ?? 0,
+            hasLedLights: item.tvCenterConfig.hasLedLights ?? false,
+            ledLightsPrice: item.tvCenterConfig.ledLightsPrice ?? 0,
+            floatingShelves: item.tvCenterConfig.floatingShelves ?? 2,
+            extraShelvesPrice: item.tvCenterConfig.extraShelvesPrice ?? 0,
+            equipmentSpaces: item.tvCenterConfig.equipmentSpaces ?? 0,
+            equipmentSpacesPrice: item.tvCenterConfig.equipmentSpacesPrice ?? 0,
+            includeTransport: item.tvCenterConfig.includeTransport ?? false,
+            transportCost: item.tvCenterConfig.transportCost ?? 150000,
+            notes: item.tvCenterConfig.notes || "",
+            subtotal: item.tvCenterConfig.subtotal ?? 2800000,
           } : undefined,
           doorConfig: item.doorConfig ? {
             // Soporte para estructura antigua (puerta única) y nueva (lista de puertas)
@@ -1701,8 +1719,26 @@ export default function Quotations() {
                           </>
                         )}
 
+                        {/* Campos dinámicos para CENTRO DE TV */}
+                        {item.itemType === "centro_tv" && (
+                          <>
+                            <TVCenterConfigurator
+                              config={item.tvCenterConfig || null}
+                              onChange={(config: TVCenterConfig) => {
+                                const newItems = [...items];
+                                newItems[index] = {
+                                  ...newItems[index],
+                                  tvCenterConfig: config,
+                                  totalPrice: config.subtotal
+                                };
+                                setItems(newItems);
+                              }}
+                            />
+                          </>
+                        )}
+
                         {/* Campos estándar para otros tipos */}
-                        {item.itemType !== "cocina" && item.itemType !== "herrajes" && item.itemType !== "closet" && item.itemType !== "puerta" && (
+                        {item.itemType !== "cocina" && item.itemType !== "herrajes" && item.itemType !== "closet" && item.itemType !== "puerta" && item.itemType !== "centro_tv" && (
                           <>
                             <div>
                               <Label>Descripción *</Label>

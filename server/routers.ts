@@ -739,6 +739,7 @@ export const appRouter = router({
           })).optional(),
           closetConfig: z.any().optional(),
           doorConfig: z.any().optional(),
+          tvCenterConfig: z.any().optional(),
         })),
       }))
       .mutation(async ({ ctx, input }) => {
@@ -794,6 +795,7 @@ export const appRouter = router({
             hardwareSelections: item.hardwareSelections ? JSON.stringify(item.hardwareSelections) : null,
             closetConfig: item.closetConfig ? JSON.stringify(item.closetConfig) : null,
             doorConfig: item.doorConfig ? JSON.stringify(item.doorConfig) : null,
+            tvCenterConfig: item.tvCenterConfig ? JSON.stringify(item.tvCenterConfig) : null,
           });
         }
 
@@ -826,6 +828,7 @@ export const appRouter = router({
           })).optional(),
           closetConfig: z.any().optional(),
           doorConfig: z.any().optional(),
+          tvCenterConfig: z.any().optional(),
         })).optional(),
       }))
       .mutation(async ({ ctx, input }) => {
@@ -861,6 +864,7 @@ export const appRouter = router({
               hardwareSelections: item.hardwareSelections ? JSON.stringify(item.hardwareSelections) : null,
               closetConfig: item.closetConfig ? JSON.stringify(item.closetConfig) : null,
               doorConfig: item.doorConfig ? JSON.stringify(item.doorConfig) : null,
+              tvCenterConfig: item.tvCenterConfig ? JSON.stringify(item.tvCenterConfig) : null,
             });
           }
 
@@ -931,7 +935,10 @@ export const appRouter = router({
             : item.closetConfig,
           doorConfig: item.doorConfig && typeof item.doorConfig === 'string'
             ? JSON.parse(item.doorConfig)
-            : item.doorConfig
+            : item.doorConfig,
+          tvCenterConfig: item.tvCenterConfig && typeof item.tvCenterConfig === 'string'
+            ? JSON.parse(item.tvCenterConfig)
+            : item.tvCenterConfig
         }));
 
         return {
@@ -1029,6 +1036,11 @@ export const appRouter = router({
             const doorConfig = item.doorConfig && typeof item.doorConfig === 'string'
               ? JSON.parse(item.doorConfig)
               : item.doorConfig;
+            
+            // Parsear tvCenterConfig si es string JSON
+            const tvCenterConfig = item.tvCenterConfig && typeof item.tvCenterConfig === 'string'
+              ? JSON.parse(item.tvCenterConfig)
+              : item.tvCenterConfig;
             
             // Si es closet y tiene closetConfig, generar descripción detallada
             if (item.itemType === 'closet' && closetConfig) {
@@ -1165,6 +1177,57 @@ export const appRouter = router({
                 lines.push('');
                 lines.push('Notas adicionales:');
                 lines.push(doorConfig.notes);
+              }
+              
+              description = lines.join('\n');
+            }
+            // Si es centro_tv y tiene tvCenterConfig, generar descripción detallada
+            else if (item.itemType === 'centro_tv' && tvCenterConfig) {
+              const lines: string[] = [];
+              const formatCurrency = (value: number) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(value);
+              
+              lines.push('CENTRO DE TV - MUEBLE FLOTANTE');
+              lines.push(`Ancho: ${tvCenterConfig.width}m`);
+              lines.push(`Repisas flotantes: ${tvCenterConfig.floatingShelves}`);
+              lines.push('');
+              lines.push('Incluye:');
+              lines.push('• Mueble flotante');
+              lines.push('• Panel para TV con alistonado');
+              lines.push(`• ${tvCenterConfig.floatingShelves} repisas flotantes`);
+              
+              if (tvCenterConfig.hasHighGloss) {
+                lines.push('• Acabado alto brillo');
+              }
+              if (tvCenterConfig.hasLedLights) {
+                lines.push('• Iluminación LED');
+              }
+              if (tvCenterConfig.equipmentSpaces > 0) {
+                lines.push(`• ${tvCenterConfig.equipmentSpaces} espacios para equipos`);
+              }
+              
+              lines.push('');
+              lines.push('Desglose:');
+              lines.push(`• Mueble base ${tvCenterConfig.width}m: ${formatCurrency(tvCenterConfig.basePrice)}`);
+              if (tvCenterConfig.hasHighGloss) {
+                lines.push(`• Alto brillo: ${formatCurrency(tvCenterConfig.highGlossPrice)}`);
+              }
+              if (tvCenterConfig.hasLedLights) {
+                lines.push(`• Iluminación LED: ${formatCurrency(tvCenterConfig.ledLightsPrice)}`);
+              }
+              if (tvCenterConfig.extraShelvesPrice > 0) {
+                lines.push(`• Repisas adicionales: ${formatCurrency(tvCenterConfig.extraShelvesPrice)}`);
+              }
+              if (tvCenterConfig.equipmentSpacesPrice > 0) {
+                lines.push(`• Espacios para equipos: ${formatCurrency(tvCenterConfig.equipmentSpacesPrice)}`);
+              }
+              if (tvCenterConfig.includeTransport && tvCenterConfig.transportCost) {
+                lines.push(`• Transporte e imprevistos: ${formatCurrency(tvCenterConfig.transportCost)}`);
+              }
+              
+              if (tvCenterConfig.notes && tvCenterConfig.notes.trim()) {
+                lines.push('');
+                lines.push('Notas adicionales:');
+                lines.push(tvCenterConfig.notes);
               }
               
               description = lines.join('\n');
@@ -1352,6 +1415,11 @@ export const appRouter = router({
               ? JSON.parse(item.doorConfig)
               : item.doorConfig;
             
+            // Parsear tvCenterConfig si es string JSON
+            const tvCenterConfig = item.tvCenterConfig && typeof item.tvCenterConfig === 'string'
+              ? JSON.parse(item.tvCenterConfig)
+              : item.tvCenterConfig;
+            
             // Si es closet y tiene closetConfig, generar descripción detallada
             if (item.itemType === 'closet' && closetConfig) {
               const lines: string[] = [];
@@ -1487,6 +1555,57 @@ export const appRouter = router({
                 lines.push('');
                 lines.push('Notas adicionales:');
                 lines.push(doorConfig.notes);
+              }
+              
+              description = lines.join('\n');
+            }
+            // Si es centro_tv y tiene tvCenterConfig, generar descripción detallada
+            else if (item.itemType === 'centro_tv' && tvCenterConfig) {
+              const lines: string[] = [];
+              const formatCurrency = (value: number) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(value);
+              
+              lines.push('CENTRO DE TV - MUEBLE FLOTANTE');
+              lines.push(`Ancho: ${tvCenterConfig.width}m`);
+              lines.push(`Repisas flotantes: ${tvCenterConfig.floatingShelves}`);
+              lines.push('');
+              lines.push('Incluye:');
+              lines.push('• Mueble flotante');
+              lines.push('• Panel para TV con alistonado');
+              lines.push(`• ${tvCenterConfig.floatingShelves} repisas flotantes`);
+              
+              if (tvCenterConfig.hasHighGloss) {
+                lines.push('• Acabado alto brillo');
+              }
+              if (tvCenterConfig.hasLedLights) {
+                lines.push('• Iluminación LED');
+              }
+              if (tvCenterConfig.equipmentSpaces > 0) {
+                lines.push(`• ${tvCenterConfig.equipmentSpaces} espacios para equipos`);
+              }
+              
+              lines.push('');
+              lines.push('Desglose:');
+              lines.push(`• Mueble base ${tvCenterConfig.width}m: ${formatCurrency(tvCenterConfig.basePrice)}`);
+              if (tvCenterConfig.hasHighGloss) {
+                lines.push(`• Alto brillo: ${formatCurrency(tvCenterConfig.highGlossPrice)}`);
+              }
+              if (tvCenterConfig.hasLedLights) {
+                lines.push(`• Iluminación LED: ${formatCurrency(tvCenterConfig.ledLightsPrice)}`);
+              }
+              if (tvCenterConfig.extraShelvesPrice > 0) {
+                lines.push(`• Repisas adicionales: ${formatCurrency(tvCenterConfig.extraShelvesPrice)}`);
+              }
+              if (tvCenterConfig.equipmentSpacesPrice > 0) {
+                lines.push(`• Espacios para equipos: ${formatCurrency(tvCenterConfig.equipmentSpacesPrice)}`);
+              }
+              if (tvCenterConfig.includeTransport && tvCenterConfig.transportCost) {
+                lines.push(`• Transporte e imprevistos: ${formatCurrency(tvCenterConfig.transportCost)}`);
+              }
+              
+              if (tvCenterConfig.notes && tvCenterConfig.notes.trim()) {
+                lines.push('');
+                lines.push('Notas adicionales:');
+                lines.push(tvCenterConfig.notes);
               }
               
               description = lines.join('\n');

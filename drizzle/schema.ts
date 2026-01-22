@@ -560,6 +560,7 @@ export const quotationItems = mysqlTable("quotationItems", {
   hardwareSelections: json("hardwareSelections"), // Array de { hardwareId, name, price, quantity, subtotal }
   closetConfig: json("closetConfig"), // { type, width, height, doorType, squareMeters, pricePerSquareMeter, subtotal }
   doorConfig: json("doorConfig"), // { type, widthRange, width, height, quantity, hardwareColor, pricePerUnit, subtotal, notes }
+  tvCenterConfig: json("tvCenterConfig"), // { width, basePrice, hasHighGloss, hasLedLights, floatingShelves, equipmentSpaces, includeTransport, transportCost, notes, subtotal }
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 

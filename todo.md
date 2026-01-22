@@ -1535,3 +1535,18 @@
 - [x] Implementar lógica de filtrado en el frontend
 - [x] Botón para limpiar filtros
 - [x] Contador de resultados filtrados
+
+
+## Configurador de Centros de TV
+- [x] Crear componente TVCenterConfigurator
+- [x] Medida base 1.60m = $2,800,000
+- [x] Opción de ancho personalizado (1.20m a 2.40m con precios ajustados)
+- [x] Opción alto brillo (+$350,000)
+- [x] Opción luces LED (+$250,000)
+- [x] Espacios especiales para equipos (+$150,000 c/u)
+- [x] Cantidad de repisas flotantes (base 2, +$100,000 por adicional)
+- [x] Transporte e imprevistos (checkbox con monto editable)
+- [x] Notas adicionales
+- [x] Integrar en formulario de cotizaciones
+- [x] Actualizar backend para guardar tvCenterConfig
+- [x] Actualizar PDF con especificaciones detalladas

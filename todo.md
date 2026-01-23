@@ -1800,3 +1800,11 @@
 - [x] Mostrar comprobante en detalle del proyecto
 - [x] Mostrar comprobante en portal del cliente (Mis Proyectos)
 - [ ] Notificar al comercial con enlace al comprobante
+
+## Restricción de Información para el Diseñador
+
+- [x] Ocultar teléfono del cliente para el diseñador
+- [x] Ocultar email del cliente para el diseñador
+- [x] Ocultar comprobante de pago para el diseñador
+- [x] Ocultar cotización para el diseñador
+- [x] Verificar que el diseñador puede ver nombre, dirección y fotos de referencia

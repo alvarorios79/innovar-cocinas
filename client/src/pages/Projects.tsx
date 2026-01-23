@@ -666,8 +666,12 @@ export default function Projects() {
                     </CardHeader>
                     <CardContent className="text-sm space-y-1">
                       <p><strong>Nombre:</strong> {projectDetail.client?.name}</p>
-                      <p><strong>Teléfono:</strong> {projectDetail.client?.whatsappPhone}</p>
-                      <p><strong>Email:</strong> {projectDetail.client?.email || "N/A"}</p>
+                      {user?.role !== "disenador" && (
+                        <>
+                          <p><strong>Teléfono:</strong> {projectDetail.client?.whatsappPhone}</p>
+                          <p><strong>Email:</strong> {projectDetail.client?.email || "N/A"}</p>
+                        </>
+                      )}
                       <p><strong>Dirección:</strong> {projectDetail.client?.address || "N/A"}</p>
                     </CardContent>
                   </Card>
@@ -701,16 +705,16 @@ export default function Projects() {
                     </CardHeader>
                     <CardContent className="text-sm space-y-2">
                       <p><strong>Creado:</strong> {new Date(projectDetail.createdAt).toLocaleDateString("es-CO")}</p>
-                      {projectDetail.quotationSentAt && (
+                      {projectDetail.quotationSentAt && user?.role !== "disenador" && (
                         <p><strong>Cotización enviada:</strong> {new Date(projectDetail.quotationSentAt).toLocaleDateString("es-CO")}</p>
                       )}
-                      {projectDetail.quotationApprovedAt && (
+                      {projectDetail.quotationApprovedAt && user?.role !== "disenador" && (
                         <p><strong>Cotización aprobada:</strong> {new Date(projectDetail.quotationApprovedAt).toLocaleDateString("es-CO")}</p>
                       )}
-                      {projectDetail.advanceReceivedAt && (
+                      {projectDetail.advanceReceivedAt && user?.role !== "disenador" && (
                         <p><strong>Adelanto recibido:</strong> {new Date(projectDetail.advanceReceivedAt).toLocaleDateString("es-CO")}</p>
                       )}
-                      {projectDetail.advanceReceiptUrl && (
+                      {projectDetail.advanceReceiptUrl && user?.role !== "disenador" && (
                         <div className="mt-2 p-2 bg-green-50 rounded-lg">
                           <p className="text-sm font-medium text-green-800 mb-1">Comprobante de pago:</p>
                           <a 

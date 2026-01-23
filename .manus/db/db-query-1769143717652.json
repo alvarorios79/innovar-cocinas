@@ -1,0 +1,130 @@
+{
+  "query": "SELECT * FROM notifications ORDER BY id DESC LIMIT 10;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT * FROM notifications ORDER BY id DESC LIMIT 10;",
+  "rows": [
+    {
+      "id": "210313",
+      "userId": "1530341",
+      "title": "¡Cotización Aprobada - Proyecto Creado!",
+      "body": "El cliente Álvaro prueba  ha aprobado la cotización COT-2026-621. Se ha creado el proyecto #90003 automáticamente. Notas: Okokokprueba",
+      "type": "proyecto",
+      "referenceId": "90003",
+      "referenceType": "project",
+      "read": "0",
+      "sentPush": "0",
+      "createdAt": "2026-01-23 04:23:27"
+    },
+    {
+      "id": "210312",
+      "userId": "1530333",
+      "title": "¡Cotización Aprobada - Proyecto Creado!",
+      "body": "El cliente Álvaro prueba  ha aprobado la cotización COT-2026-621. Se ha creado el proyecto #90003 automáticamente. Notas: Okokokprueba",
+      "type": "proyecto",
+      "referenceId": "90003",
+      "referenceType": "project",
+      "read": "0",
+      "sentPush": "0",
+      "createdAt": "2026-01-23 04:23:27"
+    },
+    {
+      "id": "210311",
+      "userId": "1530322",
+      "title": "¡Cotización Aprobada - Proyecto Creado!",
+      "body": "El cliente Álvaro prueba  ha aprobado la cotización COT-2026-621. Se ha creado el proyecto #90003 automáticamente. Notas: Okokokprueba",
+      "type": "proyecto",
+      "referenceId": "90003",
+      "referenceType": "project",
+      "read": "0",
+      "sentPush": "0",
+      "createdAt": "2026-01-23 04:23:27"
+    },
+    {
+      "id": "210310",
+      "userId": "1530320",
+      "title": "¡Cotización Aprobada - Proyecto Creado!",
+      "body": "El cliente Álvaro prueba  ha aprobado la cotización COT-2026-621. Se ha creado el proyecto #90003 automáticamente. Notas: Okokokprueba",
+      "type": "proyecto",
+      "referenceId": "90003",
+      "referenceType": "project",
+      "read": "0",
+      "sentPush": "0",
+      "createdAt": "2026-01-23 04:23:27"
+    },
+    {
+      "id": "210309",
+      "userId": "1530317",
+      "title": "¡Cotización Aprobada - Proyecto Creado!",
+      "body": "El cliente Álvaro prueba  ha aprobado la cotización COT-2026-621. Se ha creado el proyecto #90003 automáticamente. Notas: Okokokprueba",
+      "type": "proyecto",
+      "referenceId": "90003",
+      "referenceType": "project",
+      "read": "0",
+      "sentPush": "0",
+      "createdAt": "2026-01-23 04:23:27"
+    },
+    {
+      "id": "210308",
+      "userId": "1530314",
+      "title": "¡Cotización Aprobada - Proyecto Creado!",
+      "body": "El cliente Álvaro prueba  ha aprobado la cotización COT-2026-621. Se ha creado el proyecto #90003 automáticamente. Notas: Okokokprueba",
+      "type": "proyecto",
+      "referenceId": "90003",
+      "referenceType": "project",
+      "read": "0",
+      "sentPush": "0",
+      "createdAt": "2026-01-23 04:23:27"
+    },
+    {
+      "id": "210307",
+      "userId": "1530313",
+      "title": "¡Cotización Aprobada - Proyecto Creado!",
+      "body": "El cliente Álvaro prueba  ha aprobado la cotización COT-2026-621. Se ha creado el proyecto #90003 automáticamente. Notas: Okokokprueba",
+      "type": "proyecto",
+      "referenceId": "90003",
+      "referenceType": "project",
+      "read": "0",
+      "sentPush": "0",
+      "createdAt": "2026-01-23 04:23:27"
+    },
+    {
+      "id": "210306",
+      "userId": "1530312",
+      "title": "¡Cotización Aprobada - Proyecto Creado!",
+      "body": "El cliente Álvaro prueba  ha aprobado la cotización COT-2026-621. Se ha creado el proyecto #90003 automáticamente. Notas: Okokokprueba",
+      "type": "proyecto",
+      "referenceId": "90003",
+      "referenceType": "project",
+      "read": "0",
+      "sentPush": "0",
+      "createdAt": "2026-01-23 04:23:27"
+    },
+    {
+      "id": "210305",
+      "userId": "1530309",
+      "title": "¡Cotización Aprobada - Proyecto Creado!",
+      "body": "El cliente Álvaro prueba  ha aprobado la cotización COT-2026-621. Se ha creado el proyecto #90003 automáticamente. Notas: Okokokprueba",
+      "type": "proyecto",
+      "referenceId": "90003",
+      "referenceType": "project",
+      "read": "0",
+      "sentPush": "0",
+      "createdAt": "2026-01-23 04:23:27"
+    },
+    {
+      "id": "210304",
+      "userId": "1530303",
+      "title": "¡Cotización Aprobada - Proyecto Creado!",
+      "body": "El cliente Álvaro prueba  ha aprobado la cotización COT-2026-621. Se ha creado el proyecto #90003 automáticamente. Notas: Okokokprueba",
+      "type": "proyecto",
+      "referenceId": "90003",
+      "referenceType": "project",
+      "read": "0",
+      "sentPush": "0",
+      "createdAt": "2026-01-23 04:23:27"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tuserId\ttitle\tbody\ttype\treferenceId\treferenceType\tread\tsentPush\tcreatedAt\n210313\t1530341\t¡Cotización Aprobada - Proyecto Creado!\tEl cliente Álvaro prueba  ha aprobado la cotización COT-2026-621. Se ha creado el proyecto #90003 automáticamente. Notas: Okokokprueba\tproyecto\t90003\tproject\t0\t0\t2026-01-23 04:23:27\n210312\t1530333\t¡Cotización Aprobada - Proyecto Creado!\tEl cliente Álvaro prueba  ha aprobado la cotización COT-2026-621. Se ha creado el proyecto #90003 automáticamente. Notas: Okokokprueba\tproyecto\t90003\tproject\t0\t0\t2026-01-23 04:23:27\n210311\t1530322\t¡Cotización Aprobada - Proyecto Creado!\tEl cliente Álvaro prueba  ha aprobado la cotización COT-2026-621. Se ha creado el proyecto #90003 automáticamente. Notas: Okokokprueba\tproyecto\t90003\tproject\t0\t0\t2026-01-23 04:23:27\n210310\t1530320\t¡Cotización Aprobada - Proyecto Creado!\tEl cliente Álvaro prueba  ha aprobado la cotización COT-2026-621. Se ha creado el proyecto #90003 automáticamente. Notas: Okokokprueba\tproyecto\t90003\tproject\t0\t0\t2026-01-23 04:23:27\n210309\t1530317\t¡Cotización Aprobada - Proyecto Creado!\tEl cliente Álvaro prueba  ha aprobado la cotización COT-2026-621. Se ha creado el proyecto #90003 automáticamente. Notas: Okokokprueba\tproyecto\t90003\tproject\t0\t0\t2026-01-23 04:23:27\n210308\t1530314\t¡Cotización Aprobada - Proyecto Creado!\tEl cliente Álvaro prueba  ha aprobado la cotización COT-2026-621. Se ha creado el proyecto #90003 automáticamente. Notas: Okokokprueba\tproyecto\t90003\tproject\t0\t0\t2026-01-23 04:23:27\n210307\t1530313\t¡Cotización Aprobada - Proyecto Creado!\tEl cliente Álvaro prueba  ha aprobado la cotización COT-2026-621. Se ha creado el proyecto #90003 automáticamente. Notas: Okokokprueba\tproyecto\t90003\tproject\t0\t0\t2026-01-23 04:23:27\n210306\t1530312\t¡Cotización Aprobada - Proyecto Creado!\tEl cliente Álvaro prueba  ha aprobado la cotización COT-2026-621. Se ha creado el proyecto #90003 automáticamente. Notas: Okokokprueba\tproyecto\t90003\tproject\t0\t0\t2026-01-23 04:23:27\n210305\t1530309\t¡Cotización Aprobada - Proyecto Creado!\tEl cliente Álvaro prueba  ha aprobado la cotización COT-2026-621. Se ha creado el proyecto #90003 automáticamente. Notas: Okokokprueba\tproyecto\t90003\tproject\t0\t0\t2026-01-23 04:23:27\n210304\t1530303\t¡Cotización Aprobada - Proyecto Creado!\tEl cliente Álvaro prueba  ha aprobado la cotización COT-2026-621. Se ha creado el proyecto #90003 automáticamente. Notas: Okokokprueba\tproyecto\t90003\tproject\t0\t0\t2026-01-23 04:23:27\n",
+  "stderr": "",
+  "execution_time_ms": 50
+}

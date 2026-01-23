@@ -1808,3 +1808,22 @@
 - [x] Ocultar comprobante de pago para el diseñador
 - [x] Ocultar cotización para el diseñador
 - [x] Verificar que el diseñador puede ver nombre, dirección y fotos de referencia
+
+## Dashboard Adaptable por Rol para Equipo de Trabajo
+
+- [ ] Crear componente TeamDashboard con diseño atractivo
+- [ ] Adaptar contenido según rol (diseñador, comercial, jefe_taller, operario, admin)
+- [ ] Mostrar tarjetas de resumen con datos específicos por rol
+- [ ] Mantener header con logo, campana, contacto y WhatsApp
+- [ ] Diseño con colores de la empresa y botones llamativos
+
+
+## Dashboard Adaptable por Rol - Completado
+
+- [x] Crear componente TeamDashboard con diseño atractivo
+- [x] Adaptar contenido según rol (diseñador, comercial, jefe_taller, operario, admin, super_admin)
+- [x] Mostrar tarjetas de resumen con datos específicos por rol
+- [x] Mantener header con logo, campana, contacto y WhatsApp
+- [x] Diseño con colores de la empresa y botones llamativos
+- [x] Color rosa para portal de comercial (Martha Serna)
+- [x] Integrar TeamDashboard en Home.tsx para roles del equipo de trabajo

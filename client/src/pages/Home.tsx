@@ -16,6 +16,7 @@ import { getLoginUrl } from "@/const";
 import { Link } from "wouter";
 import { NotificationBell } from "@/components/NotificationBell";
 import { MobileNav } from "@/components/MobileNav";
+import { TeamDashboard } from "@/components/TeamDashboard";
 
 export default function Home() {
   const { user, isAuthenticated } = useAuth();
@@ -277,6 +278,15 @@ export default function Home() {
       console.error(error);
     }
   };
+
+  // Roles del equipo de trabajo que ven el TeamDashboard
+  const teamRoles = ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"];
+  const isTeamMember = isAuthenticated && user?.role && teamRoles.includes(user.role);
+
+  // Si es miembro del equipo, mostrar el TeamDashboard
+  if (isTeamMember) {
+    return <TeamDashboard />;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">

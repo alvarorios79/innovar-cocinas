@@ -120,6 +120,8 @@ export const quotations = mysqlTable("quotations", {
   total: decimal("total", { precision: 12, scale: 2 }).notNull(),
   pdfUrl: text("pdfUrl"),
   sentAt: timestamp("sentAt"),
+  approvedAt: timestamp("approvedAt"),
+  rejectionReason: text("rejectionReason"),
   createdBy: int("createdBy").notNull().references(() => users.id),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),

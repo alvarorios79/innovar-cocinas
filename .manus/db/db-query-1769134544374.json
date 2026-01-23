@@ -1,0 +1,14 @@
+{
+  "query": "SELECT \n  (SELECT id FROM users WHERE email = 'alvarorios79@hotmail.com') as user_id,\n  (SELECT id FROM clients WHERE name LIKE '%lvaro prueba%') as client_id;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT \n  (SELECT id FROM users WHERE email = 'alvarorios79@hotmail.com') as user_id,\n  (SELECT id FROM clients WHERE name LIKE '%lvaro prueba%') as client_id;",
+  "rows": [
+    {
+      "user_id": "840718",
+      "client_id": "300053"
+    }
+  ],
+  "messages": [],
+  "stdout": "user_id\tclient_id\n840718\t300053\n",
+  "stderr": "",
+  "execution_time_ms": 59
+}

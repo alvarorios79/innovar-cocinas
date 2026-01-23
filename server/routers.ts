@@ -2065,6 +2065,116 @@ export const appRouter = router({
         }
       }),
 
+    // Aprobar cotización desde el portal del cliente
+    clientApprove: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        notes: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        // Verificar que el usuario tiene un cliente asociado
+        const client = await db.getClientByUserId(ctx.user.id);
+        
+        // Obtener la cotización
+        const quotation = await db.getQuotationById(input.id);
+        if (!quotation) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Cotización no encontrada" });
+        }
+        
+        // Verificar que la cotización pertenece al cliente (o es admin)
+        const isAdmin = ctx.user.role === "admin" || ctx.user.role === "super_admin";
+        if (!isAdmin && (!client || quotation.clientId !== client.id)) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para aprobar esta cotización" });
+        }
+        
+        // Verificar que la cotización está en estado "sent" (enviada)
+        if (quotation.status !== "sent") {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Solo se pueden aprobar cotizaciones enviadas" });
+        }
+        
+        // Actualizar estado a "approved"
+        await db.updateQuotation(input.id, {
+          status: "approved",
+          approvedAt: new Date(),
+        });
+        
+        // Obtener datos del cliente para la notificación
+        const clientData = await db.getClientById(quotation.clientId);
+        
+        // Notificar a super_admin, admin y comercial
+        const admins = await db.getAllUsers();
+        const notifyRoles = ["super_admin", "admin"];
+        const usersToNotify = admins.filter(u => notifyRoles.includes(u.role));
+        
+        for (const user of usersToNotify) {
+          await db.createNotification({
+            userId: user.id,
+            title: "Cotización Aprobada",
+            body: `El cliente ${clientData?.name || ""} ha aprobado la cotización ${quotation.quotationNumber}${input.notes ? `. Notas: ${input.notes}` : ""}`,
+            type: "cotizacion",
+            referenceId: input.id,
+            referenceType: "quotation",
+          });
+        }
+        
+        return { success: true, message: "Cotización aprobada exitosamente" };
+      }),
+
+    // Rechazar cotización desde el portal del cliente
+    clientReject: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        reason: z.string().min(1, "Debe indicar el motivo del rechazo"),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        // Verificar que el usuario tiene un cliente asociado
+        const client = await db.getClientByUserId(ctx.user.id);
+        
+        // Obtener la cotización
+        const quotation = await db.getQuotationById(input.id);
+        if (!quotation) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Cotización no encontrada" });
+        }
+        
+        // Verificar que la cotización pertenece al cliente (o es admin)
+        const isAdmin = ctx.user.role === "admin" || ctx.user.role === "super_admin";
+        if (!isAdmin && (!client || quotation.clientId !== client.id)) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para rechazar esta cotización" });
+        }
+        
+        // Verificar que la cotización está en estado "sent" (enviada)
+        if (quotation.status !== "sent") {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Solo se pueden rechazar cotizaciones enviadas" });
+        }
+        
+        // Actualizar estado a "rejected"
+        await db.updateQuotation(input.id, {
+          status: "rejected",
+          rejectionReason: input.reason,
+        });
+        
+        // Obtener datos del cliente para la notificación
+        const clientData = await db.getClientById(quotation.clientId);
+        
+        // Notificar a super_admin, admin y comercial
+        const admins = await db.getAllUsers();
+        const notifyRoles = ["super_admin", "admin"];
+        const usersToNotify = admins.filter(u => notifyRoles.includes(u.role));
+        
+        for (const user of usersToNotify) {
+          await db.createNotification({
+            userId: user.id,
+            title: "Cotización Rechazada",
+            body: `El cliente ${clientData?.name || ""} ha rechazado la cotización ${quotation.quotationNumber}. Motivo: ${input.reason}`,
+            type: "cotizacion",
+            referenceId: input.id,
+            referenceType: "quotation",
+          });
+        }
+        
+        return { success: true, message: "Cotización rechazada" };
+      }),
+
     /*
     create: protectedProcedure
       .input(z.object({

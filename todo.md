@@ -1723,3 +1723,59 @@
 
 ### Limpieza de Dependencias
 - [x] Eliminar bcrypt y usar solo bcryptjs (bcrypt y @types/bcrypt removidos)
+
+
+## Mejoras de Arquitectura - Fase 2
+
+### Modularización de routers.ts
+- [ ] Crear carpeta server/routers/
+- [ ] Extraer router de auth a server/routers/auth.ts
+- [ ] Extraer router de clients a server/routers/clients.ts
+- [ ] Extraer router de appointments a server/routers/appointments.ts
+- [ ] Extraer router de quotations a server/routers/quotations.ts
+- [ ] Extraer router de projects a server/routers/projects.ts
+- [ ] Extraer router de tasks a server/routers/tasks.ts
+- [ ] Extraer routers restantes (reminders, system, projectPhotos, etc.)
+- [ ] Actualizar routers.ts principal para importar y combinar módulos
+- [ ] Verificar que todos los tests pasen después de la modularización
+
+### Campo de Color/Referencia del Material en Mesones
+- [ ] Agregar campo de color/referencia al configurador de mesones
+- [ ] Incluir selector con colores comunes de Quarzo y Sinterizado
+- [ ] Permitir entrada de texto libre para referencias específicas
+- [ ] Mostrar color seleccionado en el resumen de precio
+- [ ] Incluir color en la descripción del PDF de cotización
+
+### Caché para Consultas Frecuentes
+- [ ] Implementar caché para lista de clientes
+- [ ] Implementar caché para lista de usuarios
+- [ ] Agregar invalidación de caché al crear/editar/eliminar
+- [ ] Verificar mejora de rendimiento
+
+
+## Mejoras Portal del Cliente - Enero 2026
+
+### Fase 1: Timeline y Aprobación de Cotizaciones
+- [ ] Actualizar esquema BD con estados faltantes (adelanto_60, pago_final_40)
+- [ ] Crear componente Timeline vertical para el portal del cliente
+- [ ] Implementar aprobar/rechazar cotización desde el portal
+- [ ] Notificar a Super Admin y Admin cuando cliente apruebe/rechace cotización
+
+### Fase 2: Sistema de Notificaciones
+- [ ] Notificaciones automáticas por cambio de estado de proyecto
+- [ ] Notificar a Jefe Taller y Operario cuando inician 25 días hábiles
+- [ ] Notificar a Cliente, Super Admin, Admin cuando diseñador entrega modelado (3 días plazo)
+
+### Fase 3: Recordatorios de Plazos
+- [ ] Recordatorio 3 días para diseñador (entregar modelado)
+- [ ] Recordatorio 2 días para diseñador (cambios de render)
+- [ ] Recordatorio 25 días hábiles para Jefe Taller y Operario
+- [ ] Recordatorio 6 meses post-entrega para revisión de cocina
+
+
+## Portal del Cliente - Aprobación de Cotizaciones
+
+- [x] Mostrar botones aprobar/rechazar en cotizaciones enviadas del portal cliente
+- [ ] Permitir ver detalles de cotización desde el portal cliente
+- [ ] Crear proyecto automáticamente al aprobar cotización
+- [ ] Verificar notificaciones al aprobar/rechazar cotización

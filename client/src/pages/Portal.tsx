@@ -6,13 +6,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
-import { Calendar, FileText, LogOut, FolderKanban, CheckCircle2, Clock, Hammer, Paintbrush, Package, Truck, AlertCircle, Image as ImageIcon, ThumbsUp, ThumbsDown, Wrench } from "lucide-react";
+import { Calendar, FileText, LogOut, FolderKanban, CheckCircle2, Clock, Hammer, Paintbrush, Package, Truck, AlertCircle, Image as ImageIcon, ThumbsUp, ThumbsDown, Wrench, Check, X } from "lucide-react";
 import { toast } from "sonner";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { PhotoUploader } from "@/components/PhotoUploader";
 import { ClientMaterialsView } from "@/components/ClientMaterialsView";
+import { ProjectTimeline } from "@/components/ProjectTimeline";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -24,6 +25,16 @@ export default function Portal() {
   const [showPhotoDialog, setShowPhotoDialog] = useState(false);
   const [selectedProjectForPhoto, setSelectedProjectForPhoto] = useState<any>(null);
   const [photoDescription, setPhotoDescription] = useState("");
+  
+  // Estados para aprobar/rechazar cotizaciones
+  const [showApproveDialog, setShowApproveDialog] = useState(false);
+  const [showRejectDialog, setShowRejectDialog] = useState(false);
+  const [selectedQuotation, setSelectedQuotation] = useState<any>(null);
+  const [approvalNotes, setApprovalNotes] = useState("");
+  const [rejectionReason, setRejectionReason] = useState("");
+  
+  // Estado para mostrar timeline expandido
+  const [expandedProjectId, setExpandedProjectId] = useState<number | null>(null);
 
   const utils = trpc.useUtils();
   const { data: appointments = [], isLoading: loadingAppointments } = trpc.appointments.getMyAppointments.useQuery();
@@ -63,6 +74,34 @@ export default function Portal() {
     },
   });
 
+  // Mutation para aprobar cotización
+  const approveQuotation = trpc.quotations.clientApprove.useMutation({
+    onSuccess: () => {
+      utils.quotations.getMyQuotations.invalidate();
+      toast.success("¡Cotización aprobada exitosamente! Nos pondremos en contacto contigo pronto.");
+      setShowApproveDialog(false);
+      setSelectedQuotation(null);
+      setApprovalNotes("");
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Error al aprobar la cotización");
+    },
+  });
+
+  // Mutation para rechazar cotización
+  const rejectQuotation = trpc.quotations.clientReject.useMutation({
+    onSuccess: () => {
+      utils.quotations.getMyQuotations.invalidate();
+      toast.success("Cotización rechazada. Gracias por tu retroalimentación.");
+      setShowRejectDialog(false);
+      setSelectedQuotation(null);
+      setRejectionReason("");
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Error al rechazar la cotización");
+    },
+  });
+
   const logoutMutation = trpc.auth.logout.useMutation({
     onSuccess: () => {
       window.location.href = "/";
@@ -78,18 +117,34 @@ export default function Portal() {
     return null;
   }
 
+  // Traducir status de cotizaciones de inglés a español
+  const translateQuotationStatus = (status: string): string => {
+    const translations: Record<string, string> = {
+      draft: "borrador",
+      sent: "enviada",
+      approved: "aprobada",
+      rejected: "rechazada",
+    };
+    return translations[status] || status;
+  };
+
   const getStatusBadge = (status: string) => {
-    const statusConfig: Record<string, { variant: "default" | "secondary" | "destructive" | "outline", className: string }> = {
-      pendiente: { variant: "destructive", className: "bg-red-500 hover:bg-red-600" },
-      confirmada: { variant: "default", className: "bg-blue-500 hover:bg-blue-600" },
-      completada: { variant: "default", className: "bg-green-500 hover:bg-green-600" },
-      cancelada: { variant: "default", className: "bg-amber-700 hover:bg-amber-800" },
-      borrador: { variant: "secondary", className: "" },
-      enviada: { variant: "default", className: "bg-blue-500 hover:bg-blue-600" },
+    // Traducir el status si viene en inglés
+    const translatedStatus = translateQuotationStatus(status);
+    
+    const statusConfig: Record<string, { variant: "default" | "secondary" | "destructive" | "outline", className: string, label: string }> = {
+      pendiente: { variant: "destructive", className: "bg-red-500 hover:bg-red-600", label: "Pendiente" },
+      confirmada: { variant: "default", className: "bg-blue-500 hover:bg-blue-600", label: "Confirmada" },
+      completada: { variant: "default", className: "bg-green-500 hover:bg-green-600", label: "Completada" },
+      cancelada: { variant: "default", className: "bg-amber-700 hover:bg-amber-800", label: "Cancelada" },
+      borrador: { variant: "secondary", className: "", label: "Borrador" },
+      enviada: { variant: "default", className: "bg-blue-500 hover:bg-blue-600", label: "Enviada" },
+      aprobada: { variant: "default", className: "bg-green-500 hover:bg-green-600", label: "Aprobada" },
+      rechazada: { variant: "destructive", className: "bg-red-500 hover:bg-red-600", label: "Rechazada" },
     };
 
-    const config = statusConfig[status] || { variant: "default", className: "" };
-    return <Badge variant={config.variant} className={config.className}>{status}</Badge>;
+    const config = statusConfig[translatedStatus] || { variant: "default", className: "", label: translatedStatus };
+    return <Badge variant={config.variant} className={config.className}>{config.label}</Badge>;
   };
 
   const getWorkTypeLabel = (workType: string | string[]) => {
@@ -453,6 +508,56 @@ export default function Portal() {
                           </div>
                         )}
 
+                        {/* Timeline del Proyecto */}
+                        <div className="space-y-3">
+                          <details className="group" open={expandedProjectId === project.id}>
+                            <summary 
+                              className="font-medium flex items-center gap-2 cursor-pointer list-none"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                setExpandedProjectId(expandedProjectId === project.id ? null : project.id);
+                              }}
+                            >
+                              <Clock className="h-4 w-4" />
+                              Ver Timeline del Proyecto
+                              <span className="text-xs text-muted-foreground ml-auto">
+                                {expandedProjectId === project.id ? "Clic para cerrar" : "Clic para expandir"}
+                              </span>
+                            </summary>
+                            {expandedProjectId === project.id && (
+                              <div className="mt-4">
+                                <ProjectTimeline 
+                                  project={project}
+                                  onApproveQuotation={() => {
+                                    // Buscar la cotización asociada al proyecto
+                                    const quot = quotations.find((q: any) => q.projectId === project.id || q.status === "sent");
+                                    if (quot) {
+                                      setSelectedQuotation(quot);
+                                      setShowApproveDialog(true);
+                                    }
+                                  }}
+                                  onRejectQuotation={() => {
+                                    const quot = quotations.find((q: any) => q.projectId === project.id || q.status === "sent");
+                                    if (quot) {
+                                      setSelectedQuotation(quot);
+                                      setShowRejectDialog(true);
+                                    }
+                                  }}
+                                  onApproveDesign={() => {
+                                    approveDesign.mutate({ projectId: project.id, approved: true });
+                                  }}
+                                  onRequestChanges={() => {
+                                    const notes = prompt("Por favor indica qué cambios necesitas:");
+                                    if (notes) {
+                                      approveDesign.mutate({ projectId: project.id, approved: false, notes });
+                                    }
+                                  }}
+                                />
+                              </div>
+                            )}
+                          </details>
+                        </div>
+
                         {/* Fecha de creación */}
                         <p className="text-xs text-muted-foreground">
                           Creado: {formatDate(project.createdAt)}
@@ -564,7 +669,13 @@ export default function Portal() {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {quotations.map((quot) => (
+                    {quotations.map((quot: any) => {
+                      // Verificar si es una cotización enviada (en inglés o español)
+                      const isSent = quot.status === "sent" || quot.status === "enviada";
+                      const isApproved = quot.status === "approved" || quot.status === "aprobada";
+                      const isRejected = quot.status === "rejected" || quot.status === "rechazada";
+                      
+                      return (
                       <div key={quot.id} className="border rounded-lg p-4 space-y-3">
                         <div className="flex items-start justify-between">
                           <div className="space-y-1 flex-1">
@@ -596,8 +707,60 @@ export default function Portal() {
                             </p>
                           </div>
                         </div>
+                        
+                        {/* Botones de aprobar/rechazar para cotizaciones enviadas */}
+                        {isSent && (
+                          <div className="flex flex-col sm:flex-row gap-2 pt-3 border-t">
+                            <Button
+                              className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                              onClick={() => {
+                                setSelectedQuotation(quot);
+                                setShowApproveDialog(true);
+                              }}
+                            >
+                              <Check className="h-4 w-4 mr-2" />
+                              Aprobar Cotización
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              className="flex-1"
+                              onClick={() => {
+                                setSelectedQuotation(quot);
+                                setShowRejectDialog(true);
+                              }}
+                            >
+                              <X className="h-4 w-4 mr-2" />
+                              Rechazar
+                            </Button>
+                          </div>
+                        )}
+                        
+                        {/* Mensaje para cotizaciones aprobadas */}
+                        {isApproved && (
+                          <div className="flex items-center gap-2 p-3 rounded-lg bg-green-50 border border-green-200">
+                            <CheckCircle2 className="h-5 w-5 text-green-600" />
+                            <div>
+                              <p className="text-sm font-medium text-green-800">¡Cotización Aprobada!</p>
+                              <p className="text-xs text-green-600">Nos pondremos en contacto contigo para los siguientes pasos.</p>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Mensaje para cotizaciones rechazadas */}
+                        {isRejected && (
+                          <div className="flex items-center gap-2 p-3 rounded-lg bg-red-50 border border-red-200">
+                            <X className="h-5 w-5 text-red-600" />
+                            <div>
+                              <p className="text-sm font-medium text-red-800">Cotización Rechazada</p>
+                              {quot.rejectionReason && (
+                                <p className="text-xs text-red-600">Motivo: {quot.rejectionReason}</p>
+                              )}
+                            </div>
+                          </div>
+                        )}
                       </div>
-                    ))}
+                    );
+                    })}
                   </div>
                 )}
               </CardContent>
@@ -710,6 +873,138 @@ export default function Portal() {
               />
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Diálogo para aprobar cotización */}
+      <Dialog open={showApproveDialog} onOpenChange={setShowApproveDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CheckCircle2 className="h-5 w-5 text-green-600" />
+              Aprobar Cotización
+            </DialogTitle>
+            <DialogDescription>
+              ¿Estás seguro de que deseas aprobar la cotización {selectedQuotation?.quotationNumber}?
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="p-4 bg-muted rounded-lg">
+              <p className="font-semibold">{selectedQuotation && getWorkTypeLabel(selectedQuotation.productType)}</p>
+              <p className="text-2xl font-bold text-primary mt-2">
+                {selectedQuotation && formatPrice(selectedQuotation.total)}
+              </p>
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Notas adicionales (opcional)</Label>
+              <Textarea
+                value={approvalNotes}
+                onChange={(e) => setApprovalNotes(e.target.value)}
+                placeholder="Agrega cualquier comentario o solicitud especial..."
+                rows={3}
+              />
+            </div>
+            
+            <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+              <p className="text-sm text-green-800">
+                Al aprobar esta cotización, nuestro equipo se pondrá en contacto contigo para coordinar 
+                el adelanto del 60% y comenzar con el proceso de diseño.
+              </p>
+            </div>
+          </div>
+          
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowApproveDialog(false);
+                setSelectedQuotation(null);
+                setApprovalNotes("");
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              className="bg-green-600 hover:bg-green-700"
+              onClick={() => {
+                if (selectedQuotation) {
+                  approveQuotation.mutate({
+                    id: selectedQuotation.id,
+                    notes: approvalNotes || undefined,
+                  });
+                }
+              }}
+              disabled={approveQuotation.isPending}
+            >
+              {approveQuotation.isPending ? "Procesando..." : "Confirmar Aprobación"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Diálogo para rechazar cotización */}
+      <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <X className="h-5 w-5 text-red-600" />
+              Rechazar Cotización
+            </DialogTitle>
+            <DialogDescription>
+              Por favor, indícanos el motivo del rechazo para poder mejorar nuestra oferta.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="p-4 bg-muted rounded-lg">
+              <p className="font-semibold">{selectedQuotation && getWorkTypeLabel(selectedQuotation.productType)}</p>
+              <p className="text-2xl font-bold text-primary mt-2">
+                {selectedQuotation && formatPrice(selectedQuotation.total)}
+              </p>
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Motivo del rechazo <span className="text-red-500">*</span></Label>
+              <Textarea
+                value={rejectionReason}
+                onChange={(e) => setRejectionReason(e.target.value)}
+                placeholder="Ej: El precio está fuera de mi presupuesto, preferí otra opción, etc."
+                rows={3}
+                required
+              />
+            </div>
+          </div>
+          
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowRejectDialog(false);
+                setSelectedQuotation(null);
+                setRejectionReason("");
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                if (selectedQuotation && rejectionReason.trim()) {
+                  rejectQuotation.mutate({
+                    id: selectedQuotation.id,
+                    reason: rejectionReason,
+                  });
+                } else {
+                  toast.error("Por favor, indica el motivo del rechazo");
+                }
+              }}
+              disabled={rejectQuotation.isPending || !rejectionReason.trim()}
+            >
+              {rejectQuotation.isPending ? "Procesando..." : "Confirmar Rechazo"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

@@ -16,6 +16,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import ProjectDetail from "./pages/ProjectDetail";
 
 function Router() {
   return (
@@ -24,6 +25,7 @@ function Router() {
       <Route path={"/admin"} component={Admin} />
       <Route path={"/portal"} component={Portal} />
       <Route path={"/projects"} component={Projects} />
+      <Route path={"/projects/:id"} component={ProjectDetail} />
       <Route path={"/tasks"} component={Tasks} />
       <Route path={"/calendar"} component={InstallationCalendar} />
       <Route path={"/quotations"} component={Quotations} />

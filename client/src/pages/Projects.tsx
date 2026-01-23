@@ -510,7 +510,7 @@ export default function Projects() {
               <div key={project.id}>
                 <Card 
                   className={`cursor-pointer hover:shadow-md transition-all ${expandedProjectId === project.id ? 'ring-2 ring-primary shadow-lg' : 'hover:ring-1 hover:ring-primary/50'}`}
-                  onClick={() => setExpandedProjectId(expandedProjectId === project.id ? null : project.id)}
+                  onClick={() => setLocation(`/projects/${project.id}`)}
                 >
                   <CardContent className="p-4">
                     <div className="flex flex-col sm:flex-row justify-between gap-3">

@@ -1913,3 +1913,13 @@
 - [x] Incluir comprobante de pago, PDF de cotización y toda la información del proyecto
 - [x] Eliminar el modal/popup - todo se ve en la misma página
 - [x] Agregar colores distintivos a cada botón/pestaña (Información=azul, Materiales=morado, Fotos=verde, Detalles=naranja, Historial=gris)
+
+
+## Página Dedicada de Proyecto - Ene 23, 2026
+
+### Crear página /proyectos/:id
+- [x] Crear página ProjectDetail.tsx con todo el contenido expandido
+- [x] Tabs con colores distintivos (Información=azul, Materiales=morado, Fotos=verde, Detalles=naranja, Historial=gris)
+- [x] Botón "Volver a la lista" para regresar
+- [x] Configurar ruta /projects/:id en App.tsx
+- [x] Modificar lista de proyectos para navegar a la página dedicada

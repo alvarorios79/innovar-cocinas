@@ -2101,23 +2101,61 @@ export const appRouter = router({
         // Obtener datos del cliente para la notificación
         const clientData = await db.getClientById(quotation.clientId);
         
+        // CREAR PROYECTO AUTOMÁTICAMENTE
+        // Determinar el tipo de trabajo basado en productType de la cotización
+        const workTypeMap: Record<string, "cocina" | "closet" | "puertas" | "centro_tv"> = {
+          cocina: "cocina",
+          closet: "closet",
+          puerta: "puertas",
+          centro_tv: "centro_tv",
+          herrajes: "cocina", // Por defecto
+          mesones: "cocina", // Por defecto
+          otro: "cocina", // Por defecto
+        };
+        
+        const workType = workTypeMap[quotation.productType] || "cocina";
+        const projectName = `${clientData?.name || "Cliente"} - ${quotation.quotationNumber}`;
+        
+        const projectId = await db.createProject({
+          quotationId: quotation.id,
+          clientId: quotation.clientId,
+          name: projectName,
+          workType: workType,
+          status: "cotizacion_aprobada",
+          quotationApprovedAt: new Date(),
+          createdBy: ctx.user.id,
+        });
+        
+        // Crear historial de estado del proyecto
+        await db.createProjectStatusHistory({
+          projectId: projectId,
+          fromStatus: "cotizacion_enviada",
+          toStatus: "cotizacion_aprobada",
+          changedBy: ctx.user.id,
+          notes: `Proyecto creado automáticamente al aprobar cotización ${quotation.quotationNumber}${input.notes ? `. Notas del cliente: ${input.notes}` : ""}`,
+        });
+        
         // Notificar a super_admin, admin y comercial
         const admins = await db.getAllUsers();
-        const notifyRoles = ["super_admin", "admin"];
+        const notifyRoles = ["super_admin", "admin", "comercial"];
         const usersToNotify = admins.filter(u => notifyRoles.includes(u.role));
         
         for (const user of usersToNotify) {
           await db.createNotification({
             userId: user.id,
-            title: "Cotización Aprobada",
-            body: `El cliente ${clientData?.name || ""} ha aprobado la cotización ${quotation.quotationNumber}${input.notes ? `. Notas: ${input.notes}` : ""}`,
-            type: "cotizacion",
-            referenceId: input.id,
-            referenceType: "quotation",
+            title: "¡Cotización Aprobada - Proyecto Creado!",
+            body: `El cliente ${clientData?.name || ""} ha aprobado la cotización ${quotation.quotationNumber}. Se ha creado el proyecto #${projectId} automáticamente.${input.notes ? ` Notas: ${input.notes}` : ""}`,
+            type: "proyecto",
+            referenceId: projectId,
+            referenceType: "project",
           });
         }
         
-        return { success: true, message: "Cotización aprobada exitosamente" };
+        return { 
+          success: true, 
+          message: "Cotización aprobada y proyecto creado exitosamente",
+          projectId: projectId,
+        };
       }),
 
     // Rechazar cotización desde el portal del cliente

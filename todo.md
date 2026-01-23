@@ -1779,3 +1779,10 @@
 - [ ] Permitir ver detalles de cotización desde el portal cliente
 - [ ] Crear proyecto automáticamente al aprobar cotización
 - [ ] Verificar notificaciones al aprobar/rechazar cotización
+
+## Creación Automática de Proyecto al Aprobar Cotización
+
+- [x] Modificar endpoint clientApprove para crear proyecto automáticamente
+- [x] Vincular proyecto con cotización aprobada
+- [x] Establecer estado inicial del proyecto como "cotizacion_aprobada"
+- [x] Notificar al comercial/admin sobre la aprobación

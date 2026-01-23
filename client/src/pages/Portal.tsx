@@ -961,28 +961,25 @@ export default function Portal() {
             </div>
             
             <div className="space-y-2">
-              <Label>Monto del adelanto (opcional)</Label>
+              <Label>Monto del adelanto (60% del total)</Label>
               <p className="text-xs text-muted-foreground mb-2">
-                Indica el monto que transferiste como adelanto
+                El adelanto corresponde al 60% del valor total de la cotización
               </p>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
-                <Input
-                  type="text"
-                  inputMode="numeric"
-                  value={advanceAmount}
-                  onChange={(e) => {
-                    // Solo permitir números y formato de moneda
-                    const value = e.target.value.replace(/[^0-9]/g, '');
-                    if (value) {
-                      setAdvanceAmount(parseInt(value).toLocaleString('es-CO'));
-                    } else {
-                      setAdvanceAmount('');
-                    }
-                  }}
-                  placeholder="Ej: 1.500.000"
-                  className="pl-7"
-                />
+              <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
+                <p className="text-lg font-bold text-emerald-700">
+                  {selectedQuotation && new Intl.NumberFormat('es-CO', { 
+                    style: 'currency', 
+                    currency: 'COP', 
+                    minimumFractionDigits: 0 
+                  }).format(Math.round(Number(selectedQuotation.total) * 0.6))}
+                </p>
+                <p className="text-xs text-emerald-600 mt-1">
+                  60% de {selectedQuotation && new Intl.NumberFormat('es-CO', { 
+                    style: 'currency', 
+                    currency: 'COP', 
+                    minimumFractionDigits: 0 
+                  }).format(Number(selectedQuotation.total))}
+                </p>
               </div>
             </div>
             
@@ -1042,10 +1039,8 @@ export default function Portal() {
               className="bg-green-600 hover:bg-green-700"
               onClick={() => {
                 if (selectedQuotation) {
-                  // Convertir el monto formateado a número
-                  const advanceAmountNum = advanceAmount 
-                    ? parseInt(advanceAmount.replace(/\./g, '').replace(/,/g, '')) 
-                    : undefined;
+                  // Calcular automáticamente el 60% del total como adelanto
+                  const advanceAmountNum = Math.round(Number(selectedQuotation.total) * 0.6);
                   approveQuotation.mutate({
                     id: selectedQuotation.id,
                     notes: approvalNotes || undefined,

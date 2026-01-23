@@ -1786,3 +1786,8 @@
 - [x] Vincular proyecto con cotización aprobada
 - [x] Establecer estado inicial del proyecto como "cotizacion_aprobada"
 - [x] Notificar al comercial/admin sobre la aprobación
+
+## Bug: Botones de avance no aparecen en proyectos
+
+- [ ] Verificar por qué no aparecen los botones de avance en la página de proyectos
+- [ ] Corregir el problema de visibilidad de botones

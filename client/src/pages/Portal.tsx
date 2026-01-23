@@ -961,29 +961,30 @@ export default function Portal() {
             </div>
             
             <div className="space-y-2">
-              <Label>Monto del adelanto (opcional)</Label>
-              <p className="text-xs text-muted-foreground mb-2">
-                Indica el monto que transferiste como adelanto
-              </p>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
-                <Input
-                  type="text"
-                  inputMode="numeric"
-                  value={advanceAmount}
-                  onChange={(e) => {
-                    // Solo permitir números y formato de moneda
-                    const value = e.target.value.replace(/[^0-9]/g, '');
-                    if (value) {
-                      setAdvanceAmount(parseInt(value).toLocaleString('es-CO'));
-                    } else {
-                      setAdvanceAmount('');
-                    }
-                  }}
-                  placeholder="Ej: 1.500.000"
-                  className="pl-7"
-                />
+              <Label>Monto del Adelanto (60% del total)</Label>
+              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-sm text-blue-700">Total de la cotización:</span>
+                  <span className="font-medium text-blue-900">
+                    ${selectedQuotation?.total?.toLocaleString('es-CO') || '0'}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center pt-2 border-t border-blue-200">
+                  <span className="text-sm font-medium text-blue-700">Adelanto requerido (60%):</span>
+                  <span className="text-lg font-bold text-blue-900">
+                    ${selectedQuotation?.total ? Math.round(selectedQuotation.total * 0.6).toLocaleString('es-CO') : '0'}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center mt-2 pt-2 border-t border-blue-200">
+                  <span className="text-sm text-blue-600">Saldo restante (40%):</span>
+                  <span className="font-medium text-blue-800">
+                    ${selectedQuotation?.total ? Math.round(selectedQuotation.total * 0.4).toLocaleString('es-CO') : '0'}
+                  </span>
+                </div>
               </div>
+              <p className="text-xs text-muted-foreground">
+                El adelanto del 60% es requerido para iniciar el proyecto. El 40% restante se paga al momento de la entrega.
+              </p>
             </div>
             
             <div className="space-y-2">
@@ -1042,9 +1043,9 @@ export default function Portal() {
               className="bg-green-600 hover:bg-green-700"
               onClick={() => {
                 if (selectedQuotation) {
-                  // Convertir el monto formateado a número
-                  const advanceAmountNum = advanceAmount 
-                    ? parseInt(advanceAmount.replace(/\./g, '').replace(/,/g, '')) 
+                  // Calcular automáticamente el 60% del total como adelanto
+                  const advanceAmountNum = selectedQuotation.total 
+                    ? Math.round(selectedQuotation.total * 0.6) 
                     : undefined;
                   approveQuotation.mutate({
                     id: selectedQuotation.id,

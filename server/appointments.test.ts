@@ -235,11 +235,12 @@ describe("Quotations API", () => {
     const ctx = createAdminContext();
     const caller = appRouter.createCaller(ctx);
 
-    // Crear cliente y cotización primero
+    // Crear cliente y cotización primero con datos únicos
+    const uniqueId = Date.now();
     const client = await caller.clients.getOrCreateByWhatsApp({
-      name: "Test Client Send",
-      email: "test-send@example.com",
-      whatsappPhone: "3001234598",
+      name: `Test Client Send ${uniqueId}`,
+      email: `test-send-${uniqueId}@example.com`,
+      whatsappPhone: `300${uniqueId.toString().slice(-7)}`,
       address: "Test Address",
     });
 

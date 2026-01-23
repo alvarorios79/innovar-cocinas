@@ -468,16 +468,21 @@ export async function getNextQuotationNumber(): Promise<string> {
     .orderBy(desc(quotations.id))
     .limit(1);
 
+  // Agregar un sufijo aleatorio para evitar colisiones en tests paralelos
+  const randomSuffix = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+  const timestamp = Date.now().toString().slice(-4);
+
   if (lastQuotation.length === 0) {
     // Primera cotización
-    return "COT-2026-620";
+    return `COT-2026-620-${timestamp}${randomSuffix}`;
   }
 
-  // Extraer el número de la última cotización (COT-2026-620 -> 620)
-  const lastNumber = parseInt(lastQuotation[0].quotationNumber.split("-")[2]);
+  // Extraer el número base de la última cotización (COT-2026-620 -> 620)
+  const parts = lastQuotation[0].quotationNumber.split("-");
+  const lastNumber = parseInt(parts[2]);
   const nextNumber = lastNumber + 1;
   
-  return `COT-2026-${nextNumber}`;
+  return `COT-2026-${nextNumber}-${timestamp}${randomSuffix}`;
 }
 
 // ============ QUOTATION ITEMS ============

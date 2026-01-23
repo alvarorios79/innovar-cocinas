@@ -10,6 +10,7 @@ interface PDFPreviewDialogProps {
   recipientEmail: string;
   onConfirmSend: () => void;
   isSending?: boolean;
+  quotationNumber?: string;
 }
 
 export function PDFPreviewDialog({
@@ -19,13 +20,18 @@ export function PDFPreviewDialog({
   recipientEmail,
   onConfirmSend,
   isSending = false,
+  quotationNumber = "",
 }: PDFPreviewDialogProps) {
   const [isLoading, setIsLoading] = useState(true);
 
   const handleDownload = () => {
     const link = document.createElement("a");
     link.href = pdfUrl;
-    link.download = `cotizacion_${Date.now()}.pdf`;
+    // Limpiar el nombre para que sea válido como nombre de archivo
+    const cleanName = quotationNumber 
+      ? quotationNumber.replace(/[^a-zA-Z0-9\-_\s]/g, '').replace(/\s+/g, '_')
+      : `cotizacion_${Date.now()}`;
+    link.download = `${cleanName}.pdf`;
     link.click();
   };
 

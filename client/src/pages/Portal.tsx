@@ -34,6 +34,7 @@ export default function Portal() {
   const [rejectionReason, setRejectionReason] = useState("");
   const [receiptUrl, setReceiptUrl] = useState<string>("");
   const [uploadingReceipt, setUploadingReceipt] = useState(false);
+  const [advanceAmount, setAdvanceAmount] = useState<string>("");
   
   // Estado para mostrar timeline expandido
   const [expandedProjectId, setExpandedProjectId] = useState<number | null>(null);
@@ -78,14 +79,26 @@ export default function Portal() {
 
   // Mutation para aprobar cotización
   const approveQuotation = trpc.quotations.clientApprove.useMutation({
-    onSuccess: () => {
+    onSuccess: (data) => {
       utils.quotations.getMyQuotations.invalidate();
       utils.projects.getMyProjects.invalidate();
       toast.success("¡Cotización aprobada y proyecto creado! Nos pondremos en contacto contigo pronto.");
+      
+      // Si hay enlace de WhatsApp, abrir en nueva pestaña para notificar al comercial
+      if (data.whatsAppLink) {
+        // Mostrar toast informativo
+        toast.info("Se está abriendo WhatsApp para notificar al equipo comercial...", { duration: 3000 });
+        // Abrir WhatsApp en nueva pestaña después de un breve delay
+        setTimeout(() => {
+          window.open(data.whatsAppLink, '_blank');
+        }, 1000);
+      }
+      
       setShowApproveDialog(false);
       setSelectedQuotation(null);
       setApprovalNotes("");
       setReceiptUrl("");
+      setAdvanceAmount("");
     },
     onError: (error: any) => {
       toast.error(error.message || "Error al aprobar la cotización");
@@ -948,6 +961,32 @@ export default function Portal() {
             </div>
             
             <div className="space-y-2">
+              <Label>Monto del adelanto (opcional)</Label>
+              <p className="text-xs text-muted-foreground mb-2">
+                Indica el monto que transferiste como adelanto
+              </p>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+                <Input
+                  type="text"
+                  inputMode="numeric"
+                  value={advanceAmount}
+                  onChange={(e) => {
+                    // Solo permitir números y formato de moneda
+                    const value = e.target.value.replace(/[^0-9]/g, '');
+                    if (value) {
+                      setAdvanceAmount(parseInt(value).toLocaleString('es-CO'));
+                    } else {
+                      setAdvanceAmount('');
+                    }
+                  }}
+                  placeholder="Ej: 1.500.000"
+                  className="pl-7"
+                />
+              </div>
+            </div>
+            
+            <div className="space-y-2">
               <Label>Comprobante de pago del adelanto (opcional)</Label>
               <p className="text-xs text-muted-foreground mb-2">
                 Si ya realizaste el adelanto, puedes adjuntar el comprobante de transferencia
@@ -994,6 +1033,7 @@ export default function Portal() {
                 setSelectedQuotation(null);
                 setApprovalNotes("");
                 setReceiptUrl("");
+                setAdvanceAmount("");
               }}
             >
               Cancelar
@@ -1002,10 +1042,15 @@ export default function Portal() {
               className="bg-green-600 hover:bg-green-700"
               onClick={() => {
                 if (selectedQuotation) {
+                  // Convertir el monto formateado a número
+                  const advanceAmountNum = advanceAmount 
+                    ? parseInt(advanceAmount.replace(/\./g, '').replace(/,/g, '')) 
+                    : undefined;
                   approveQuotation.mutate({
                     id: selectedQuotation.id,
                     notes: approvalNotes || undefined,
                     receiptUrl: receiptUrl || undefined,
+                    advanceAmount: advanceAmountNum,
                   });
                 }
               }}

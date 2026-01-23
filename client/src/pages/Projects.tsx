@@ -39,6 +39,7 @@ import { PhotoUploader } from "@/components/PhotoUploader";
 import { FileViewer, useFileViewer } from "@/components/FileViewer";
 import { MaterialsForm } from "@/components/MaterialsForm";
 import { HardwareSelector } from "@/components/HardwareSelector";
+import { ProjectCard } from "@/components/ProjectCard";
 
 // Estados del proyecto según Ruta INNOVAR
 const PROJECT_STATUSES = {
@@ -119,6 +120,9 @@ export default function Projects() {
     reason: "",
   });
   
+  // Estado para proyecto expandido inline
+  const [expandedProjectId, setExpandedProjectId] = useState<number | null>(null);
+  
   const { data: projects = [], isLoading: loadingProjects } = trpc.projects.list.useQuery(
     statusFilter !== "all" ? { status: statusFilter } : undefined
   );
@@ -126,6 +130,12 @@ export default function Projects() {
   const { data: projectDetail } = trpc.projects.getById.useQuery(
     { id: selectedProject?.id },
     { enabled: !!selectedProject?.id }
+  );
+  
+  // Consulta para proyecto expandido inline
+  const { data: expandedProjectDetail } = trpc.projects.getById.useQuery(
+    { id: expandedProjectId! },
+    { enabled: !!expandedProjectId }
   );
 
   const createProject = trpc.projects.create.useMutation({
@@ -482,7 +492,7 @@ export default function Projects() {
           </div>
         </div>
 
-        {/* Lista de proyectos */}
+        {/* Lista de proyectos con tarjetas expandibles */}
         {loadingProjects ? (
           <div className="text-center py-8">Cargando proyectos...</div>
         ) : projects.length === 0 ? (
@@ -495,72 +505,61 @@ export default function Projects() {
         ) : (
           <div className="grid gap-4">
             {projects.map((project: any) => (
-              <Card key={project.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-4">
-                  <div className="flex flex-col sm:flex-row justify-between gap-4">
-                    {/* Info del proyecto */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex flex-wrap items-center gap-2 mb-2">
-                        <h3 className="font-semibold text-base sm:text-lg truncate max-w-[200px] sm:max-w-none">{project.name}</h3>
-                        {getStatusBadge(project.status)}
-                      </div>
-                      <div className="text-sm text-muted-foreground space-y-1">
-                        <p><strong>Cliente:</strong> {project.client?.name || "N/A"}</p>
-                        <p><strong>Tipo:</strong> {WORK_TYPES[project.workType as keyof typeof WORK_TYPES]}</p>
-                        <p><strong>Creado:</strong> {new Date(project.createdAt).toLocaleDateString("es-CO")}</p>
-                        {project.estimatedInstallDate && project.status !== "entregado" && (
-                          <p className={`font-medium ${
-                            new Date(project.estimatedInstallDate) < new Date() 
-                              ? "text-red-600" 
-                              : new Date(project.estimatedInstallDate) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-                                ? "text-yellow-600"
-                                : "text-green-600"
-                          }`}>
-                            <strong>Entrega estimada:</strong> {new Date(project.estimatedInstallDate).toLocaleDateString("es-CO")}
-                            {new Date(project.estimatedInstallDate) < new Date() && " (Vencida)"}
-                          </p>
-                        )}
-                        {project.scheduledInstallDate && project.status !== "entregado" && (
-                          <p className="text-blue-600 font-medium">
-                            <strong>Instalación:</strong> {new Date(project.scheduledInstallDate).toLocaleDateString("es-CO")}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Acciones */}
-                    <div className="flex flex-col sm:flex-row gap-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => setSelectedProject(project)}
-                      >
-                        <Eye className="h-4 w-4 mr-1" />
-                        Ver Detalle
-                      </Button>
-
-                      {canAdvanceStatus(project.status) && getNextStatus(project.status) && (
-                        <Button
-                          size="sm"
-                          onClick={() => {
-                            const nextStatus = getNextStatus(project.status);
-                            if (nextStatus) {
-                              updateStatus.mutate({
-                                projectId: project.id,
-                                newStatus: nextStatus as any,
-                              });
-                            }
-                          }}
-                          disabled={updateStatus.isPending}
-                        >
-                          <ArrowRight className="h-4 w-4 mr-1" />
-                          Avanzar
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <ProjectCard
+                key={project.id}
+                project={project}
+                projectDetail={expandedProjectId === project.id ? expandedProjectDetail : undefined}
+                user={user}
+                isExpanded={expandedProjectId === project.id}
+                onToggleExpand={() => setExpandedProjectId(expandedProjectId === project.id ? null : project.id)}
+                onAdvanceStatus={(projectId, newStatus) => {
+                  updateStatus.mutate({
+                    projectId,
+                    newStatus: newStatus as any,
+                  });
+                }}
+                onApproveDesign={(projectId, approved, notes) => {
+                  approveDesign.mutate({ projectId, approved, notes });
+                }}
+                onExportPdf={handleExportPdf}
+                onWhatsApp={(proj) => {
+                  const baseUrl = window.location.origin;
+                  const portalUrl = `${baseUrl}/portal?project=${proj.id}`;
+                  const workTypeLabel = WORK_TYPES[proj.workType as keyof typeof WORK_TYPES] || proj.workType;
+                  const statusLabel = PROJECT_STATUSES[proj.status as keyof typeof PROJECT_STATUSES]?.label || proj.status;
+                  
+                  const message = `Hola ${proj.client?.name}, te escribimos de INNOVAR Cocinas Integrales.\n\nTu proyecto "${proj.name}" (${workTypeLabel}) está en estado: ${statusLabel}.\n\nPuedes ver el seguimiento en:\n${portalUrl}\n\n¿Tienes alguna pregunta?`;
+                  
+                  setWhatsAppMessage(message);
+                  setWhatsAppPhone(proj.client?.whatsappPhone || "");
+                  setShowWhatsAppDialog(true);
+                }}
+                onUploadPhoto={(proj) => {
+                  setSelectedProject(proj);
+                  setShowPhotoDialog(true);
+                }}
+                onAddDetail={(proj) => {
+                  setSelectedProject(proj);
+                  setShowDetailDialog(true);
+                }}
+                onEditDate={(proj) => {
+                  setSelectedProject(proj);
+                  setEditDateForm({
+                    estimatedInstallDate: proj.estimatedInstallDate 
+                      ? new Date(proj.estimatedInstallDate).toISOString().split('T')[0]
+                      : "",
+                    reason: "",
+                  });
+                  setShowEditDateDialog(true);
+                }}
+                onViewPhoto={(url, allPhotos) => {
+                  const files = allPhotos.map((p: any) => ({ url: p.photoUrl, description: p.description }));
+                  const index = files.findIndex((f: any) => f.url === url);
+                  fileViewer.openViewer(files, index >= 0 ? index : 0);
+                }}
+                isUpdating={updateStatus.isPending || approveDesign.isPending}
+                generatingPdf={generatingPdf}
+              />
             ))}
           </div>
         )}

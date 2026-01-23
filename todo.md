@@ -1858,3 +1858,27 @@
 - [x] Mostrar PDF de cotización en el detalle del proyecto (Projects.tsx y Portal.tsx)
 - [x] Tests para generación automática de PDF (8 tests pasando)
 - [ ] Probar flujo completo: cliente aprueba → proyecto creado → PDF guardado
+
+
+## Mejoras Solicitadas - Enero 23, 2026
+
+### Rediseño Vista de Proyectos
+- [x] Analizar estructura actual de la página de Proyectos
+- [x] Rediseñar para mostrar detalle del proyecto en un solo recuadro visible (tarjetas expandibles)
+- [x] Eliminar o reducir el menú "Ver detalle" escondido (ahora se expande inline)
+- [x] Hacer la información del proyecto más accesible y visible (tabs inline: Info, Fechas, Fotos, Historial)
+
+### Nombre de Cotización con Código
+- [x] Modificar guardado de cotización para incluir código + nombre (ej: "COT-2026-630 - Juan Pérez")
+- [x] Asegurar que el PDF descargado conserve el nombre con código (nombre limpio para archivo)
+- [x] Verificar que el nombre se muestre correctamente en la lista de cotizaciones
+
+#### Campo de Monto de Adelanto
+- [x] Agregar campo de input para monto de adelanto en diálogo de aprobación
+- [x] Guardar monto de adelanto en el proyecto creado
+- [x] Validar formato de moneda colombiana (formato automático con separador de miles)le del proyecto
+
+### Notificación WhatsApp Automática al Comercial
+- [x] Implementar envío automático de WhatsApp cuando cliente aprueba cotización
+- [x] Incluir información relevante: nombre cliente, número cotización, monto, adelanto
+- [x] Abre automáticamente WhatsApp Web con mensaje pre-llenado para el comercial

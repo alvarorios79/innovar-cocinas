@@ -2071,6 +2071,7 @@ export const appRouter = router({
         id: z.number(),
         notes: z.string().optional(),
         receiptUrl: z.string().optional(),
+        advanceAmount: z.number().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         // Verificar que el usuario tiene un cliente asociado
@@ -2174,6 +2175,7 @@ export const appRouter = router({
           quotationApprovedAt: new Date(),
           createdBy: ctx.user.id,
           advanceReceiptUrl: input.receiptUrl || null,
+          advanceAmount: input.advanceAmount ? input.advanceAmount.toString() : null,
           quotationPdfUrl: quotationPdfUrl,
         });
         
@@ -2202,10 +2204,22 @@ export const appRouter = router({
           });
         }
         
+        // Generar enlace de WhatsApp para notificar al comercial
+        const whatsAppLink = whatsapp.notifyQuotationApproved({
+          clientName: clientData?.name || "Cliente",
+          clientPhone: clientData?.whatsappPhone || "",
+          quotationNumber: quotation.quotationNumber,
+          workType: quotation.productType,
+          totalAmount: quotation.total,
+          advanceAmount: input.advanceAmount?.toString(),
+          portalUrl: `${process.env.VITE_FRONTEND_FORGE_API_URL?.replace('/api', '') || ''}/proyectos`,
+        });
+        
         return { 
           success: true, 
           message: "Cotización aprobada y proyecto creado exitosamente",
           projectId: projectId,
+          whatsAppLink: whatsAppLink,
         };
       }),
 

@@ -63,7 +63,9 @@ export function PDFPreviewBeforeSave({
   const handleDownload = () => {
     const link = document.createElement("a");
     link.href = pdfUrl.replace("?preview=true", "");
-    link.download = `cotizacion_${quotationNumber}.pdf`;
+    // Limpiar el nombre para que sea válido como nombre de archivo
+    const cleanName = quotationNumber.replace(/[^a-zA-Z0-9\-_\s]/g, '').replace(/\s+/g, '_');
+    link.download = `${cleanName}.pdf`;
     link.click();
   };
 

@@ -209,3 +209,62 @@ export function notifyNewEstimate(data: {
 
   return generateWhatsAppLink(WHATSAPP_BUSINESS, message);
 }
+
+
+/**
+ * Notifica al WhatsApp Business cuando un cliente aprueba una cotización
+ */
+export function notifyQuotationApproved(data: {
+  clientName: string;
+  clientPhone: string;
+  quotationNumber: string;
+  workType: string;
+  totalAmount: string;
+  advanceAmount?: string;
+  portalUrl?: string;
+}): string {
+  const workTypeLabels: Record<string, string> = {
+    cocina: "Cocina Integral",
+    closet: "Closet",
+    puerta: "Puertas",
+    puertas: "Puertas",
+    centro_tv: "Centro de TV",
+    herrajes: "Herrajes",
+    mesones: "Mesones",
+    otro: "Otro",
+  };
+
+  const formatCurrency = (value: string) => {
+    const num = parseFloat(value);
+    if (isNaN(num)) return value;
+    return new Intl.NumberFormat("es-CO", {
+      style: "currency",
+      currency: "COP",
+      minimumFractionDigits: 0,
+    }).format(num);
+  };
+
+  let message = `🎉 *¡COTIZACIÓN APROBADA!*\n\n`;
+  message += `✅ El cliente ha aprobado la cotización y se ha creado el proyecto automáticamente.\n\n`;
+  message += `📋 *Detalles:*\n`;
+  message += `• *Cotización:* ${data.quotationNumber}\n`;
+  message += `• *Cliente:* ${data.clientName}\n`;
+  message += `• *WhatsApp:* ${data.clientPhone}\n`;
+  message += `• *Tipo:* ${workTypeLabels[data.workType] || data.workType}\n`;
+  message += `• *Monto Total:* ${formatCurrency(data.totalAmount)}\n`;
+  
+  if (data.advanceAmount) {
+    message += `• *Adelanto informado:* ${formatCurrency(data.advanceAmount)}\n`;
+  }
+  
+  message += `\n⚡ *Acción requerida:*\n`;
+  message += `1. Verificar comprobante de pago del adelanto\n`;
+  message += `2. Confirmar recepción del adelanto en el sistema\n`;
+  message += `3. Coordinar con diseño para iniciar el proyecto\n`;
+  
+  if (data.portalUrl) {
+    message += `\n🔗 Ver proyecto: ${data.portalUrl}`;
+  }
+
+  return generateWhatsAppLink(WHATSAPP_BUSINESS, message);
+}

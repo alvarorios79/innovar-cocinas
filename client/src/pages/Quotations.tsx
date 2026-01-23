@@ -63,7 +63,7 @@ export default function Quotations() {
   const [workType, setWorkType] = useState("");
   const [previewDialogOpen, setPreviewDialogOpen] = useState(false);
   const [previewPdfUrl, setPreviewPdfUrl] = useState("");
-  const [selectedQuotationForEmail, setSelectedQuotationForEmail] = useState<{id: number, email: string} | null>(null);
+  const [selectedQuotationForEmail, setSelectedQuotationForEmail] = useState<{id: number, email: string, quotationNumber: string, clientName: string} | null>(null);
   
   // Estados para vista previa antes de guardar
   const [previewBeforeSaveOpen, setPreviewBeforeSaveOpen] = useState(false);
@@ -234,8 +234,8 @@ export default function Quotations() {
     previewPDF.mutate({ id: quotationId });
   };
 
-  const handleEmailClick = async (quotationId: number, clientEmail: string) => {
-    setSelectedQuotationForEmail({ id: quotationId, email: clientEmail });
+  const handleEmailClick = async (quotationId: number, clientEmail: string, quotationNumber: string, clientName: string) => {
+    setSelectedQuotationForEmail({ id: quotationId, email: clientEmail, quotationNumber, clientName });
     // Generar PDF para vista previa
     generatePDF.mutate(
       { id: quotationId },
@@ -1038,9 +1038,14 @@ export default function Quotations() {
               <CardHeader>
                 <div className="flex justify-between items-start">
                   <div>
-                    <CardTitle>{quot.quotationNumber}</CardTitle>
+                    <CardTitle>{quot.quotationNumber} - {quot.client?.name}</CardTitle>
                     <p className="text-sm text-muted-foreground mt-1">
-                      {quot.client?.name}
+                      {quot.productType === "cocina" ? "Cocina Integral" : 
+                       quot.productType === "closet" ? "Closet" :
+                       quot.productType === "puerta" ? "Puertas" :
+                       quot.productType === "centro_tv" ? "Centro de TV" :
+                       quot.productType === "herrajes" ? "Herrajes" :
+                       quot.productType === "mesones" ? "Mesones" : "Otro"}
                     </p>
                   </div>
                   {getStatusBadge(quot.status)}
@@ -1069,7 +1074,7 @@ export default function Quotations() {
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => handlePreviewClick(quot.id, quot.quotationNumber)}
+                    onClick={() => handlePreviewClick(quot.id, `${quot.quotationNumber} - ${quot.client?.name || 'Cliente'}`)}
                     disabled={previewPDF.isPending}
                   >
                     <Eye className="h-4 w-4 mr-1" />
@@ -1095,7 +1100,7 @@ export default function Quotations() {
                   </Button>
                   <Button
                     size="sm"
-                    onClick={() => handleEmailClick(quot.id, quot.client?.email || "")}
+                    onClick={() => handleEmailClick(quot.id, quot.client?.email || "", quot.quotationNumber, quot.client?.name || "Cliente")}
                     disabled={generatePDF.isPending || !quot.client?.email}
                   >
                     <Mail className="h-4 w-4 mr-1" />
@@ -1972,6 +1977,7 @@ export default function Quotations() {
         recipientEmail={selectedQuotationForEmail?.email || ""}
         onConfirmSend={handleConfirmSend}
         isSending={sendByEmail.isPending}
+        quotationNumber={selectedQuotationForEmail ? `${selectedQuotationForEmail.quotationNumber} - ${selectedQuotationForEmail.clientName}` : ""}
       />
 
       <PDFPreviewBeforeSave

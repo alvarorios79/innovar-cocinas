@@ -1840,3 +1840,21 @@
 - [x] Subir el tono de los colores del calendario para mejor visibilidad y diferenciación
 
 - [x] Rellenar completamente los recuadros del calendario con color en vez de solo remarcar
+
+## Generación Automática de PDF de Cotización al Aprobar
+
+- [ ] Modificar endpoint clientApprove para generar PDF de cotización
+- [ ] Guardar PDF en S3 y almacenar URL en el proyecto
+- [ ] Agregar campo quotationPdfUrl en schema de projects
+- [ ] Mostrar PDF de cotización en la sección de fotos del proyecto (categoría "Cotización")
+
+
+## Generación Automática de PDF de Cotización al Aprobar
+
+- [x] Agregar campo quotationPdfUrl al schema de projects
+- [x] Modificar endpoint clientApprove para generar PDF automáticamente
+- [x] Subir PDF generado a S3
+- [x] Guardar URL del PDF en el proyecto creado
+- [x] Mostrar PDF de cotización en el detalle del proyecto (Projects.tsx y Portal.tsx)
+- [x] Tests para generación automática de PDF (8 tests pasando)
+- [ ] Probar flujo completo: cliente aprueba → proyecto creado → PDF guardado

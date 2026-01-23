@@ -728,6 +728,20 @@ export default function Projects() {
                           </a>
                         </div>
                       )}
+                      {(projectDetail as any).quotationPdfUrl && user?.role !== "disenador" && (
+                        <div className="mt-2 p-2 bg-blue-50 rounded-lg">
+                          <p className="text-sm font-medium text-blue-800 mb-1">Cotización aprobada:</p>
+                          <a 
+                            href={(projectDetail as any).quotationPdfUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-sm text-blue-600 hover:underline flex items-center gap-1"
+                          >
+                            <FileText className="h-4 w-4" />
+                            Ver PDF de cotización
+                          </a>
+                        </div>
+                      )}
                       {projectDetail.designDeadline && (
                         <p className={new Date(projectDetail.designDeadline) < new Date() && projectDetail.status === "en_diseno" ? "text-red-600 font-medium" : ""}>
                           <strong>Límite diseño:</strong> {new Date(projectDetail.designDeadline).toLocaleDateString("es-CO")}

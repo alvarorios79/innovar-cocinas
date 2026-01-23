@@ -2102,6 +2102,54 @@ export const appRouter = router({
         // Obtener datos del cliente para la notificación
         const clientData = await db.getClientById(quotation.clientId);
         
+        // GENERAR PDF DE LA COTIZACIÓN Y SUBIRLO A S3
+        let quotationPdfUrl: string | null = null;
+        try {
+          const items = await db.getQuotationItems(input.id);
+          
+          // Preparar datos para el PDF
+          const formatCurrency = (value: number) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(value);
+          
+          const pdfData = {
+            quotationNumber: quotation.quotationNumber,
+            date: new Date().toLocaleDateString('es-CO'),
+            clientName: clientData?.name || 'Cliente',
+            vendorName: quotation.vendorName,
+            productType: quotation.productType,
+            validUntil: quotation.validUntil ? new Date(quotation.validUntil).toLocaleDateString('es-CO') : '',
+            items: items.map(item => ({
+              itemNumber: item.itemNumber,
+              description: item.description,
+              quantity: item.quantity.toString(),
+              totalPrice: formatCurrency(Number(item.totalPrice)),
+            })),
+            subtotal: formatCurrency(Number(quotation.subtotal)),
+            transportCost: formatCurrency(Number(quotation.transportCost || 0)),
+            total: formatCurrency(Number(quotation.total)),
+          };
+          
+          // Generar PDF
+          const { generateQuotationPDF } = await import('./quotation-pdf-generator');
+          const result = await generateQuotationPDF(pdfData, quotation.id);
+          
+          // Leer el PDF generado y subirlo a S3
+          const fs = await import('fs');
+          const pdfBuffer = fs.readFileSync(result.pdfPath);
+          const { storagePut } = await import('./storage');
+          
+          const pdfKey = `quotations/${quotation.quotationNumber}-${Date.now()}.pdf`;
+          const { url } = await storagePut(pdfKey, pdfBuffer, 'application/pdf');
+          quotationPdfUrl = url;
+          
+          // Limpiar archivo temporal
+          fs.unlinkSync(result.pdfPath);
+          
+          console.log(`[PDF] Cotización ${quotation.quotationNumber} guardada en S3: ${url}`);
+        } catch (pdfError: any) {
+          console.error('[PDF] Error generando PDF de cotización:', pdfError);
+          // No fallar la aprobación si el PDF falla, solo loguear el error
+        }
+        
         // CREAR PROYECTO AUTOMÁTICAMENTE
         // Determinar el tipo de trabajo basado en productType de la cotización
         const workTypeMap: Record<string, "cocina" | "closet" | "puertas" | "centro_tv"> = {
@@ -2126,6 +2174,7 @@ export const appRouter = router({
           quotationApprovedAt: new Date(),
           createdBy: ctx.user.id,
           advanceReceiptUrl: input.receiptUrl || null,
+          quotationPdfUrl: quotationPdfUrl,
         });
         
         // Crear historial de estado del proyecto

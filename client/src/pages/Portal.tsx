@@ -403,6 +403,24 @@ export default function Portal() {
                           </div>
                         )}
 
+                        {/* PDF de cotización aprobada */}
+                        {(project as any).quotationPdfUrl && (
+                          <div className="flex items-center gap-2 p-3 rounded-lg bg-blue-50 border border-blue-200">
+                            <FileText className="h-5 w-5 text-blue-600" />
+                            <div className="flex-1">
+                              <p className="text-sm font-medium text-blue-800">Cotización Aprobada</p>
+                              <a 
+                                href={(project as any).quotationPdfUrl} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="text-sm text-blue-600 hover:underline"
+                              >
+                                Ver PDF de cotización
+                              </a>
+                            </div>
+                          </div>
+                        )}
+
                         {/* Proyecto entregado */}
                         {project.status === "entregado" && project.deliveredAt && (
                           <div className="flex items-center gap-2 p-3 rounded-lg bg-green-50 border border-green-200">

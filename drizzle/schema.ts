@@ -175,6 +175,8 @@ export const projects = mysqlTable("projects", {
   advanceAmount: decimal("advanceAmount", { precision: 12, scale: 2 }),
   // URL del comprobante de pago del adelanto
   advanceReceiptUrl: text("advanceReceiptUrl"),
+  // URL del PDF de la cotización aprobada
+  quotationPdfUrl: text("quotationPdfUrl"),
   // Fecha límite para entregar diseño (3 días hábiles desde adelanto)
   designDeadline: timestamp("designDeadline"),
   // Fecha de entrega del diseño al cliente

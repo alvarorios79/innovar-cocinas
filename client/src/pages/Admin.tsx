@@ -17,6 +17,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Link } from "wouter";
 import { HardwareCatalogAdmin } from "@/components/HardwareCatalogAdmin";
+import { CreateQuickClientDialog } from "@/components/CreateQuickClientDialog";
 
 export default function Admin() {
   const { user, isAuthenticated, loading } = useAuth();
@@ -921,21 +922,26 @@ export default function Admin() {
                     <CardTitle>Clientes</CardTitle>
                     <CardDescription>Los clientes se crean automáticamente al agendar citas o solicitar servicios</CardDescription>
                   </div>
-                  {selectedClients.length > 0 && (
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => {
-                        if (confirm(`¿Estás seguro de eliminar ${selectedClients.length} cliente(s)?`)) {
-                          selectedClients.forEach(id => deleteClient.mutate({ id }));
-                          setSelectedClients([]);
-                        }
-                      }}
-                    >
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Eliminar {selectedClients.length} seleccionado(s)
-                    </Button>
-                  )}
+                  <div className="flex gap-2">
+                    <CreateQuickClientDialog 
+                      onClientCreated={() => utils.clients.list.invalidate()}
+                    />
+                    {selectedClients.length > 0 && (
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => {
+                          if (confirm(`¿Estás seguro de eliminar ${selectedClients.length} cliente(s)?`)) {
+                            selectedClients.forEach(id => deleteClient.mutate({ id }));
+                            setSelectedClients([]);
+                          }
+                        }}
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Eliminar {selectedClients.length} seleccionado(s)
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>

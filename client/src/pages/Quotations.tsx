@@ -26,8 +26,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Plus, Trash2, FileText, Send, Eye, Pencil, Mail, Search, X } from "lucide-react";
+import { Plus, Trash2, FileText, Send, Eye, Pencil, Mail, Search, X, UserPlus } from "lucide-react";
 import { toast } from "sonner";
+import { CreateQuickClientDialog } from "@/components/CreateQuickClientDialog";
 
 interface HardwareSelection {
   hardwareId: number;
@@ -955,10 +956,21 @@ export default function Quotations() {
     <div className="container mx-auto py-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Cotizaciones</h1>
-        <Button onClick={() => setShowCreateDialog(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Nueva Cotización
-        </Button>
+        <div className="flex gap-2">
+          <CreateQuickClientDialog 
+            onClientCreated={() => utils.clients.list.invalidate()}
+            trigger={
+              <Button variant="outline" className="gap-2">
+                <UserPlus className="h-4 w-4" />
+                Crear Cliente Rápido
+              </Button>
+            }
+          />
+          <Button onClick={() => setShowCreateDialog(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Nueva Cotización
+          </Button>
+        </div>
       </div>
 
       {/* Filtros */}

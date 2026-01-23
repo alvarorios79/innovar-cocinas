@@ -1994,3 +1994,22 @@
 
 - [ ] Restaurar visualización del recibo de adelanto inicial en detalle del proyecto
 - [ ] Restaurar mensajes/notificaciones a CEO y Admin al cambiar estado del proyecto
+
+
+## Crear Cliente Rápido - Enero 23
+
+- [ ] Crear endpoint clients.createQuick que cree usuario + cliente con contraseña generada
+- [ ] Crear modal con formulario de datos básicos (nombre, email, teléfono, dirección)
+- [ ] Mostrar credenciales generadas (email y contraseña) después de crear
+- [ ] Agregar botón de copiar credenciales y enviar por WhatsApp
+- [ ] Integrar botón en página de Cotizaciones
+- [ ] Integrar botón en página de Clientes
+
+
+## Crear Cliente Rápido - Completado
+
+- [x] Crear endpoint clients.createQuick en el backend (genera usuario con contraseña aleatoria)
+- [x] Crear componente CreateQuickClientDialog con formulario
+- [x] Modal de credenciales con opciones de copiar y enviar por WhatsApp
+- [x] Botón integrado en página de Cotizaciones
+- [x] Botón integrado en Panel Admin (sección Clientes)

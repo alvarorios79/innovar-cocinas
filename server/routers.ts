@@ -291,6 +291,74 @@ export const appRouter = router({
         return await db.getAllClients();
       }),
 
+    // Crear cliente rápido con usuario y contraseña generada
+    createQuick: protectedProcedure
+      .input(z.object({
+        name: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
+        email: z.string().email("Email inválido"),
+        whatsappPhone: z.string().min(10, "Número de WhatsApp inválido"),
+        address: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        // Solo admin y super_admin pueden crear clientes
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para crear clientes" });
+        }
+
+        // Verificar que el email no esté duplicado
+        const allUsers = await db.getAllUsers();
+        const emailExists = allUsers.some(u => u.email?.toLowerCase() === input.email.toLowerCase());
+        
+        if (emailExists) {
+          throw new TRPCError({ 
+            code: "BAD_REQUEST", 
+            message: "Ya existe un usuario con este email" 
+          });
+        }
+
+        // Verificar que el WhatsApp no esté duplicado
+        const existingClient = await db.getClientByWhatsApp(input.whatsappPhone);
+        if (existingClient) {
+          throw new TRPCError({ 
+            code: "BAD_REQUEST", 
+            message: "Ya existe un cliente con este número de WhatsApp" 
+          });
+        }
+
+        // Generar contraseña temporal
+        const { generateTemporaryPassword } = await import("./password-generator");
+        const temporaryPassword = generateTemporaryPassword();
+        const passwordHash = await hashPassword(temporaryPassword);
+
+        // Crear usuario con rol "user" (cliente)
+        const userId = await db.createUserExtended({
+          name: input.name,
+          email: input.email,
+          role: "user",
+          passwordHash,
+        });
+
+        // Crear cliente asociado al usuario
+        const clientId = await db.createClient({
+          userId,
+          name: input.name,
+          email: input.email,
+          whatsappPhone: input.whatsappPhone,
+          address: input.address,
+        });
+
+        const client = await db.getClientById(clientId);
+
+        return {
+          success: true,
+          client,
+          credentials: {
+            email: input.email,
+            password: temporaryPassword,
+          },
+        };
+      }),
+
     delete: protectedProcedure
       .input(z.object({ id: z.number() }))
       .mutation(async ({ ctx, input }) => {

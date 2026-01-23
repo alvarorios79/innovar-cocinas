@@ -1891,3 +1891,16 @@
 - [x] Enviar notificación al comercial con el monto a cobrar
 - [x] Enviar notificación/recordatorio al cliente del pago pendiente (WhatsApp automático)
 - [x] Tests para recordatorio de pago (4 tests pasando)
+
+
+## Rediseño Vista de Proyectos - Ene 23, 2026
+
+### Mover Contenido de Detalle al Popup Principal
+- [x] Mover tabs de Información, Materiales, Fotos, Detalles, Historial al popup principal
+- [x] Incluir comprobante de pago visible directamente (en tab Información)
+- [x] Eliminar el botón "Detalle" - ahora al hacer clic en proyecto se abre modal completo
+- [x] Eliminar la galería de fotos duplicada del popup inicial (solo queda la completa con categorías)
+
+### Botones con Colores Diferenciados
+- [x] Asignar colores distintivos a cada tab: Información (azul), Materiales (morado), Fotos (verde), Detalles (naranja), Historial (gris)
+- [x] Mantener consistencia visual con el resto de la aplicación

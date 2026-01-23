@@ -27,7 +27,8 @@ import {
   Send,
   ExternalLink,
   Calendar,
-  Pencil
+  Pencil,
+  User
 } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -39,7 +40,7 @@ import { PhotoUploader } from "@/components/PhotoUploader";
 import { FileViewer, useFileViewer } from "@/components/FileViewer";
 import { MaterialsForm } from "@/components/MaterialsForm";
 import { HardwareSelector } from "@/components/HardwareSelector";
-import { ProjectCard } from "@/components/ProjectCard";
+// ProjectCard ya no se usa - ahora se abre el modal directamente
 
 // Estados del proyecto según Ruta INNOVAR
 const PROJECT_STATUSES = {
@@ -120,9 +121,6 @@ export default function Projects() {
     reason: "",
   });
   
-  // Estado para proyecto expandido inline
-  const [expandedProjectId, setExpandedProjectId] = useState<number | null>(null);
-  
   const { data: projects = [], isLoading: loadingProjects } = trpc.projects.list.useQuery(
     statusFilter !== "all" ? { status: statusFilter } : undefined
   );
@@ -130,12 +128,6 @@ export default function Projects() {
   const { data: projectDetail } = trpc.projects.getById.useQuery(
     { id: selectedProject?.id },
     { enabled: !!selectedProject?.id }
-  );
-  
-  // Consulta para proyecto expandido inline
-  const { data: expandedProjectDetail } = trpc.projects.getById.useQuery(
-    { id: expandedProjectId! },
-    { enabled: !!expandedProjectId }
   );
 
   const createProject = trpc.projects.create.useMutation({
@@ -499,7 +491,7 @@ export default function Projects() {
           </div>
         </div>
 
-        {/* Lista de proyectos con tarjetas expandibles */}
+        {/* Lista de proyectos - clic abre modal de detalle */}
         {loadingProjects ? (
           <div className="text-center py-8">Cargando proyectos...</div>
         ) : projects.length === 0 ? (
@@ -510,63 +502,79 @@ export default function Projects() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-4">
+          <div className="grid gap-3">
             {projects.map((project: any) => (
-              <ProjectCard
-                key={project.id}
-                project={project}
-                projectDetail={expandedProjectId === project.id ? expandedProjectDetail : undefined}
-                user={user}
-                isExpanded={expandedProjectId === project.id}
-                onToggleExpand={() => setExpandedProjectId(expandedProjectId === project.id ? null : project.id)}
-                onAdvanceStatus={(projectId, newStatus) => {
-                  updateStatus.mutate({
-                    projectId,
-                    newStatus: newStatus as any,
-                  });
-                }}
-                onApproveDesign={(projectId, approved, notes) => {
-                  approveDesign.mutate({ projectId, approved, notes });
-                }}
-                onExportPdf={handleExportPdf}
-                onWhatsApp={(proj) => {
-                  const baseUrl = window.location.origin;
-                  const portalUrl = `${baseUrl}/portal?project=${proj.id}`;
-                  const workTypeLabel = WORK_TYPES[proj.workType as keyof typeof WORK_TYPES] || proj.workType;
-                  const statusLabel = PROJECT_STATUSES[proj.status as keyof typeof PROJECT_STATUSES]?.label || proj.status;
-                  
-                  const message = `Hola ${proj.client?.name}, te escribimos de INNOVAR Cocinas Integrales.\n\nTu proyecto "${proj.name}" (${workTypeLabel}) está en estado: ${statusLabel}.\n\nPuedes ver el seguimiento en:\n${portalUrl}\n\n¿Tienes alguna pregunta?`;
-                  
-                  setWhatsAppMessage(message);
-                  setWhatsAppPhone(proj.client?.whatsappPhone || "");
-                  setShowWhatsAppDialog(true);
-                }}
-                onUploadPhoto={(proj) => {
-                  setSelectedProject(proj);
-                  setShowPhotoDialog(true);
-                }}
-                onAddDetail={(proj) => {
-                  setSelectedProject(proj);
-                  setShowDetailDialog(true);
-                }}
-                onEditDate={(proj) => {
-                  setSelectedProject(proj);
-                  setEditDateForm({
-                    estimatedInstallDate: proj.estimatedInstallDate 
-                      ? new Date(proj.estimatedInstallDate).toISOString().split('T')[0]
-                      : "",
-                    reason: "",
-                  });
-                  setShowEditDateDialog(true);
-                }}
-                onViewPhoto={(url, allPhotos) => {
-                  const files = allPhotos.map((p: any) => ({ url: p.photoUrl, description: p.description }));
-                  const index = files.findIndex((f: any) => f.url === url);
-                  fileViewer.openViewer(files, index >= 0 ? index : 0);
-                }}
-                isUpdating={updateStatus.isPending || approveDesign.isPending}
-                generatingPdf={generatingPdf}
-              />
+              <Card 
+                key={project.id} 
+                className="cursor-pointer hover:shadow-md transition-shadow hover:ring-1 hover:ring-primary/50"
+                onClick={() => setSelectedProject(project)}
+              >
+                <CardContent className="p-4">
+                  <div className="flex flex-col sm:flex-row justify-between gap-3">
+                    {/* Info básica */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2 mb-2">
+                        <h3 className="font-semibold text-base sm:text-lg truncate max-w-[200px] sm:max-w-none">
+                          {project.name}
+                        </h3>
+                        {getStatusBadge(project.status)}
+                      </div>
+                      <div className="text-sm text-muted-foreground grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-1">
+                        <p className="flex items-center gap-1">
+                          <User className="h-3 w-3" />
+                          {project.client?.name || "N/A"}
+                        </p>
+                        <p className="flex items-center gap-1">
+                          <Package className="h-3 w-3" />
+                          {WORK_TYPES[project.workType as keyof typeof WORK_TYPES]}
+                        </p>
+                        <p className="flex items-center gap-1">
+                          <Calendar className="h-3 w-3" />
+                          {new Date(project.createdAt).toLocaleDateString("es-CO")}
+                        </p>
+                        {project.estimatedInstallDate && project.status !== "entregado" && (
+                          <p className={`flex items-center gap-1 font-medium ${
+                            new Date(project.estimatedInstallDate) < new Date() 
+                              ? "text-red-600" 
+                              : new Date(project.estimatedInstallDate) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+                                ? "text-yellow-600"
+                                : "text-green-600"
+                          }`}>
+                            <Truck className="h-3 w-3" />
+                            Entrega: {new Date(project.estimatedInstallDate).toLocaleDateString("es-CO")}
+                            {new Date(project.estimatedInstallDate) < new Date() && " ⚠️"}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Botón avanzar estado */}
+                    <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                      {canAdvanceStatus(project.status) && getNextStatus(project.status) && (
+                        <Button
+                          size="sm"
+                          onClick={() => {
+                            const nextStatus = getNextStatus(project.status);
+                            if (nextStatus) {
+                              updateStatus.mutate({
+                                projectId: project.id,
+                                newStatus: nextStatus as any,
+                              });
+                            }
+                          }}
+                          disabled={updateStatus.isPending}
+                        >
+                          <ArrowRight className="h-4 w-4 mr-1" />
+                          Avanzar
+                        </Button>
+                      )}
+                      <Button variant="ghost" size="sm">
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
         )}
@@ -657,12 +665,12 @@ export default function Projects() {
 
             {projectDetail && (
               <Tabs defaultValue="info" className="mt-4">
-                <TabsList className="flex flex-wrap sm:grid sm:grid-cols-5 w-full gap-1">
-                  <TabsTrigger value="info" className="text-xs sm:text-sm px-2 sm:px-3">Información</TabsTrigger>
-                  <TabsTrigger value="materials" className="text-xs sm:text-sm px-2 sm:px-3">Materiales</TabsTrigger>
-                  <TabsTrigger value="photos" className="text-xs sm:text-sm px-2 sm:px-3">Fotos</TabsTrigger>
-                  <TabsTrigger value="details" className="text-xs sm:text-sm px-2 sm:px-3">Detalles</TabsTrigger>
-                  <TabsTrigger value="history" className="text-xs sm:text-sm px-2 sm:px-3">Historial</TabsTrigger>
+                <TabsList className="flex flex-wrap sm:grid sm:grid-cols-5 w-full gap-1 h-auto p-1">
+                  <TabsTrigger value="info" className="text-xs sm:text-sm px-2 sm:px-3 data-[state=active]:bg-blue-500 data-[state=active]:text-white">Información</TabsTrigger>
+                  <TabsTrigger value="materials" className="text-xs sm:text-sm px-2 sm:px-3 data-[state=active]:bg-purple-500 data-[state=active]:text-white">Materiales</TabsTrigger>
+                  <TabsTrigger value="photos" className="text-xs sm:text-sm px-2 sm:px-3 data-[state=active]:bg-green-500 data-[state=active]:text-white">Fotos</TabsTrigger>
+                  <TabsTrigger value="details" className="text-xs sm:text-sm px-2 sm:px-3 data-[state=active]:bg-orange-500 data-[state=active]:text-white">Detalles</TabsTrigger>
+                  <TabsTrigger value="history" className="text-xs sm:text-sm px-2 sm:px-3 data-[state=active]:bg-gray-600 data-[state=active]:text-white">Historial</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="info" className="space-y-4">

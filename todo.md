@@ -1798,4 +1798,5 @@
 - [x] Modificar endpoint clientApprove para guardar URL del comprobante
 - [x] Guardar comprobante en el proyecto creado
 - [x] Mostrar comprobante en detalle del proyecto
+- [x] Mostrar comprobante en portal del cliente (Mis Proyectos)
 - [ ] Notificar al comercial con enlace al comprobante

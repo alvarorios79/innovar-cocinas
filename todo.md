@@ -1923,3 +1923,11 @@
 - [x] Botón "Volver a la lista" para regresar
 - [x] Configurar ruta /projects/:id en App.tsx
 - [x] Modificar lista de proyectos para navegar a la página dedicada
+
+
+## Subida de Fotos en Página de Proyecto - Ene 23, 2026
+
+- [x] Implementar funcionalidad de subir fotos (JPG y PDF) en ProjectDetail.tsx
+- [x] Conectar con endpoint existente de subida de fotos (projectPhotos.upload)
+- [x] Permitir seleccionar etapa, categoría y subcategoría
+- [x] Permitir subir hasta 10 archivos a la vez (accept="image/*,application/pdf")

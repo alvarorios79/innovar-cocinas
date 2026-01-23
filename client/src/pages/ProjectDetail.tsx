@@ -78,9 +78,10 @@ export default function ProjectDetail() {
   const [generatingPdf, setGeneratingPdf] = useState(false);
   
   const [photoForm, setPhotoForm] = useState({
+    stage: "inicial" as "inicial" | "diseno" | "corte" | "enchape" | "ensamble" | "final",
     category: "medidas" as "cotizacion" | "medidas" | "disenos" | "avance" | "instalacion" | "entrega",
     subcategory: "" as string,
-    photoUrl: "",
+    photoUrls: [] as string[],
     description: "",
   });
   const [detailForm, setDetailForm] = useState({
@@ -99,7 +100,17 @@ export default function ProjectDetail() {
     { enabled: projectId > 0 }
   );
 
-  // Nota: addPhoto se implementará después
+  const uploadPhoto = trpc.projectPhotos.upload.useMutation({
+    onSuccess: () => {
+      utils.projects.getById.invalidate({ id: projectId });
+      toast.success("Archivo subido exitosamente");
+      setShowPhotoDialog(false);
+      setPhotoForm({ stage: "inicial", category: "medidas", subcategory: "", photoUrls: [], description: "" });
+    },
+    onError: (error) => {
+      toast.error(error.message || "Error al subir archivo");
+    },
+  });
 
   // Nota: addDetail se maneja con una mutación genérica o se implementará después
 
@@ -705,74 +716,126 @@ export default function ProjectDetail() {
 
       {/* Diálogos */}
       <Dialog open={showPhotoDialog} onOpenChange={setShowPhotoDialog}>
-        <DialogContent>
+        <DialogContent className="w-full max-w-[95vw] sm:max-w-[85vw] md:max-w-2xl p-3 sm:p-6">
           <DialogHeader>
-            <DialogTitle>Subir Foto</DialogTitle>
-            <DialogDescription>Agrega una foto al proyecto</DialogDescription>
+            <DialogTitle>Subir Archivos (JPG / PDF)</DialogTitle>
+            <DialogDescription>Agrega fotos o documentos PDF al proyecto</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <div>
-              <Label>Categoría</Label>
-              <Select
-                value={photoForm.category}
-                onValueChange={(v) => setPhotoForm({ ...photoForm, category: v as any, subcategory: "" })}
-              >
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {Object.entries(filteredFolders).map(([cat]) => (
-                    <SelectItem key={cat} value={cat}>{categoryLabels[cat]}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Etapa *</Label>
+                <Select
+                  value={photoForm.stage}
+                  onValueChange={(v) => setPhotoForm({ ...photoForm, stage: v as any })}
+                >
+                  <SelectTrigger><SelectValue placeholder="Selecciona la etapa" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="inicial">Fotos Iniciales</SelectItem>
+                    <SelectItem value="diseno">Diseño</SelectItem>
+                    <SelectItem value="corte">Corte</SelectItem>
+                    <SelectItem value="enchape">Enchape</SelectItem>
+                    <SelectItem value="ensamble">Ensamble</SelectItem>
+                    <SelectItem value="final">Producto Final</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Categoría *</Label>
+                <Select
+                  value={photoForm.category}
+                  onValueChange={(v) => setPhotoForm({ ...photoForm, category: v as any, subcategory: "" })}
+                >
+                  <SelectTrigger><SelectValue placeholder="Selecciona la categoría" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="cotizacion">Cotización</SelectItem>
+                    <SelectItem value="medidas">Medidas</SelectItem>
+                    <SelectItem value="disenos">Diseños</SelectItem>
+                    <SelectItem value="avance">Avance</SelectItem>
+                    <SelectItem value="instalacion">Instalación</SelectItem>
+                    <SelectItem value="entrega">Entrega</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            {photoForm.category && filteredFolders[photoForm.category] && (
-              <div>
+
+            {/* Subcategoría según la categoría seleccionada */}
+            {photoForm.category && (
+              <div className="space-y-2">
                 <Label>Subcategoría</Label>
                 <Select
                   value={photoForm.subcategory}
                   onValueChange={(v) => setPhotoForm({ ...photoForm, subcategory: v })}
                 >
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder="Selecciona subcategoría" /></SelectTrigger>
                   <SelectContent>
-                    {filteredFolders[photoForm.category].map((sub) => (
-                      <SelectItem key={sub} value={sub}>{subcategoryLabels[sub]}</SelectItem>
-                    ))}
+                    {photoForm.category === "cotizacion" && (
+                      <SelectItem value="documento_cotizacion">Documento de Cotización</SelectItem>
+                    )}
+                    {photoForm.category === "medidas" && (
+                      <>
+                        <SelectItem value="fotos_iniciales">Fotos Iniciales</SelectItem>
+                        <SelectItem value="dibujo">Dibujo</SelectItem>
+                      </>
+                    )}
+                    {photoForm.category === "disenos" && (
+                      <>
+                        <SelectItem value="renders">Renders</SelectItem>
+                        <SelectItem value="despieces">Despieces</SelectItem>
+                        <SelectItem value="detalles">Detalles</SelectItem>
+                      </>
+                    )}
+                    {photoForm.category === "avance" && (
+                      <>
+                        <SelectItem value="corte">Corte</SelectItem>
+                        <SelectItem value="enchape">Enchape</SelectItem>
+                        <SelectItem value="armado">Armado</SelectItem>
+                      </>
+                    )}
+                    {photoForm.category === "instalacion" && (
+                      <SelectItem value="proceso_instalacion">Proceso de Instalación</SelectItem>
+                    )}
+                    {photoForm.category === "entrega" && (
+                      <SelectItem value="fotos_finales">Fotos Finales</SelectItem>
+                    )}
                   </SelectContent>
                 </Select>
               </div>
             )}
-            <div>
-              <Label>Foto</Label>
+
+            {photoForm.stage && (
               <PhotoUploader
-                onUploadComplete={(urls: string[]) => {
-                  if (urls.length > 0) {
-                    setPhotoForm({ ...photoForm, photoUrl: urls[0] });
-                  }
+                projectId={projectId}
+                stage={photoForm.stage}
+                maxFiles={10}
+                accept="image/*,application/pdf"
+                onUploadComplete={(urls) => {
+                  // Guardar cada archivo en la base de datos
+                  urls.forEach((url) => {
+                    uploadPhoto.mutate({
+                      projectId: projectId,
+                      stage: photoForm.stage,
+                      category: photoForm.category,
+                      subcategory: (photoForm.subcategory || undefined) as "corte" | "enchape" | "fotos_iniciales" | "dibujo" | "renders" | "despieces" | "detalles" | "armado" | "proceso_instalacion" | "fotos_finales" | "documento_cotizacion" | undefined,
+                      photoUrl: url,
+                      description: photoForm.description || undefined,
+                    });
+                  });
+                  setShowPhotoDialog(false);
+                  setPhotoForm({ stage: "inicial", category: "medidas", subcategory: "", photoUrls: [], description: "" });
                 }}
-                maxFiles={1}
               />
-              {photoForm.photoUrl && (
-                <img src={photoForm.photoUrl} alt="Preview" className="w-20 h-20 object-cover rounded mt-2" />
-              )}
-            </div>
-            <div>
+            )}
+
+            <div className="space-y-2">
               <Label>Descripción (opcional)</Label>
               <Input
                 value={photoForm.description}
                 onChange={(e) => setPhotoForm({ ...photoForm, description: e.target.value })}
-                placeholder="Descripción de la foto"
+                placeholder="Descripción de los archivos..."
               />
             </div>
-            <Button
-              className="w-full"
-              disabled={!photoForm.photoUrl || !photoForm.subcategory}
-              onClick={() => {
-                toast.info("Función de subir foto en desarrollo");
-                setShowPhotoDialog(false);
-              }}
-            >
-              Subir Foto
-            </Button>
           </div>
         </DialogContent>
       </Dialog>

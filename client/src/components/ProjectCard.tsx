@@ -26,8 +26,7 @@ import {
   Upload,
   Plus,
   ZoomIn,
-  Pencil,
-  DollarSign
+  Pencil
 } from "lucide-react";
 
 // Estados del proyecto según Ruta INNOVAR
@@ -224,42 +223,6 @@ export function ProjectCard({
           <div className="border-t px-4 pb-4">
             {/* Acciones del proyecto */}
             <div className="flex flex-wrap gap-2 py-3 border-b">
-              {/* Acción: Confirmar Adelanto - solo para cotización aprobada */}
-              {project.status === "cotizacion_aprobada" && 
-                (user?.role === "admin" || user?.role === "super_admin" || user?.role === "comercial") && (
-                <Button
-                  size="sm"
-                  className="bg-green-600 hover:bg-green-700"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    const nextStatus = "adelanto_recibido";
-                    onAdvanceStatus(project.id, nextStatus);
-                  }}
-                  disabled={isUpdating}
-                >
-                  <CheckCircle2 className="h-4 w-4 mr-1" />
-                  Confirmar Adelanto
-                </Button>
-              )}
-              
-              {/* Acción: Asignar Diseñador - solo para adelanto recibido */}
-              {project.status === "adelanto_recibido" && 
-                (user?.role === "admin" || user?.role === "super_admin") && (
-                <Button
-                  size="sm"
-                  className="bg-purple-600 hover:bg-purple-700"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    const nextStatus = "en_diseno";
-                    onAdvanceStatus(project.id, nextStatus);
-                  }}
-                  disabled={isUpdating}
-                >
-                  <Paintbrush className="h-4 w-4 mr-1" />
-                  Iniciar Diseño
-                </Button>
-              )}
-              
               {project.client?.whatsappPhone && (user?.role === "admin" || user?.role === "super_admin") && onWhatsApp && (
                 <Button
                   variant="outline"
@@ -299,17 +262,7 @@ export function ProjectCard({
                   onClick={() => onAddDetail(project)}
                 >
                   <Plus className="h-4 w-4 mr-1" />
-                  Nota
-                </Button>
-              )}
-              {onEditDate && (user?.role === "admin" || user?.role === "super_admin" || user?.role === "jefe_taller") && project.status !== "entregado" && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => onEditDate(project)}
-                >
-                  <Calendar className="h-4 w-4 mr-1" />
-                  Fechas
+                  Detalle
                 </Button>
               )}
             </div>
@@ -472,45 +425,31 @@ export function ProjectCard({
                     )}
                   </div>
 
-                  {/* Monto de adelanto, comprobante y PDF de cotización */}
-                  {user?.role !== "disenador" && (
-                    <div className="mt-3 space-y-2">
-                      {/* Monto del adelanto */}
-                      {(detail as any).advanceAmount && (
-                        <div className="flex items-center gap-2 p-2 bg-emerald-50 rounded-lg">
-                          <DollarSign className="h-4 w-4 text-emerald-600" />
-                          <span className="text-sm font-medium text-emerald-800">
-                            Adelanto: {new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(Number((detail as any).advanceAmount))}
-                          </span>
-                        </div>
-                      )}
-                      
-                      <div className="flex flex-wrap gap-2">
-                        {detail.advanceReceiptUrl && (
-                          <a 
-                            href={detail.advanceReceiptUrl} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-sm text-green-600 hover:underline bg-green-50 px-2 py-1 rounded"
-                          >
-                            <FileText className="h-4 w-4" />
-                            Ver comprobante
-                          </a>
-                        )}
-                        {(detail as any).quotationPdfUrl && (
-                          <a 
-                            href={(detail as any).quotationPdfUrl} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-sm text-blue-600 hover:underline bg-blue-50 px-2 py-1 rounded"
-                          >
-                            <FileText className="h-4 w-4" />
-                            Ver cotización PDF
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                  )}
+                  {/* Comprobante y PDF de cotización */}
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {detail.advanceReceiptUrl && user?.role !== "disenador" && (
+                      <a 
+                        href={detail.advanceReceiptUrl} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-sm text-green-600 hover:underline bg-green-50 px-2 py-1 rounded"
+                      >
+                        <FileText className="h-4 w-4" />
+                        Ver comprobante
+                      </a>
+                    )}
+                    {(detail as any).quotationPdfUrl && user?.role !== "disenador" && (
+                      <a 
+                        href={(detail as any).quotationPdfUrl} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-sm text-blue-600 hover:underline bg-blue-50 px-2 py-1 rounded"
+                      >
+                        <FileText className="h-4 w-4" />
+                        Ver cotización PDF
+                      </a>
+                    )}
+                  </div>
                 </div>
               </TabsContent>
 

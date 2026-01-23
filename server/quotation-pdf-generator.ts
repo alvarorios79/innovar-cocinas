@@ -19,14 +19,6 @@ interface QuotationPDFData {
   total: string;
 }
 
-// Función para limpiar el nombre del archivo
-function sanitizeFilename(name: string): string {
-  return name
-    .replace(/[^a-zA-Z0-9\-_\sáéíóúÁÉÍÓÚñÑ]/g, '') // Permitir letras, números, guiones, espacios y tildes
-    .replace(/\s+/g, '_') // Reemplazar espacios con guiones bajos
-    .substring(0, 100); // Limitar longitud
-}
-
 export async function generateQuotationPDF(
   data: QuotationPDFData,
   quotationId: number
@@ -38,13 +30,9 @@ export async function generateQuotationPDF(
     await generatePDF(data, outputPath);
     console.log(`[PDF] Archivo generado: ${outputPath}`);
 
-    // Generar nombre de archivo con código y nombre del cliente
-    const cleanClientName = sanitizeFilename(data.clientName);
-    const filename = `${data.quotationNumber}_${cleanClientName}.pdf`;
-
     return {
       pdfPath: outputPath,
-      filename: filename,
+      filename: `${data.quotationNumber}.pdf`,
     };
   } catch (error: any) {
     console.error("[PDF] Error al generar PDF:", error);

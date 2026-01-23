@@ -64,11 +64,7 @@ export function PDFPreviewBeforeSave({
     const link = document.createElement("a");
     link.href = pdfUrl.replace("?preview=true", "");
     // Limpiar el nombre para que sea válido como nombre de archivo
-    // Formato: COT-2026-XXX_NombreCliente.pdf
-    const cleanName = quotationNumber
-      .replace(/[^a-zA-Z0-9\-_\sáéíóúÁÉÍÓÚñÑ]/g, '')
-      .replace(/\s+/g, '_')
-      .replace(/_-_/g, '_'); // Limpiar dobles separadores
+    const cleanName = quotationNumber.replace(/[^a-zA-Z0-9\-_\s]/g, '').replace(/\s+/g, '_');
     link.download = `${cleanName}.pdf`;
     link.click();
   };

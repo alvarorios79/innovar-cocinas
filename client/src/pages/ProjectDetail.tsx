@@ -468,32 +468,59 @@ export default function ProjectDetail() {
                       Información Financiera
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="text-sm space-y-2 pt-4">
-                    <p><strong>Total:</strong> {formatCurrency((projectDetail as any).totalAmount)}</p>
-                    <p><strong>Adelanto (60%):</strong> {formatCurrency((projectDetail as any).advanceAmount)}</p>
-                    <p><strong>Saldo (40%):</strong> {formatCurrency(Number((projectDetail as any).totalAmount) - Number((projectDetail as any).advanceAmount || 0))}</p>
-                    {(projectDetail as any).advancePaymentUrl && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full mt-2"
-                        onClick={() => fileViewer.openViewer([{ url: (projectDetail as any).advancePaymentUrl!, title: "Comprobante de Pago" }], 0)}
-                      >
-                        <Receipt className="h-4 w-4 mr-1" />
-                        Ver Comprobante
-                      </Button>
-                    )}
-                    {(projectDetail as any).quotationPdfUrl && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full"
-                        onClick={() => fileViewer.openViewer([{ url: (projectDetail as any).quotationPdfUrl!, title: "PDF Cotización" }], 0)}
-                      >
-                        <FileText className="h-4 w-4 mr-1" />
-                        Ver Cotización
-                      </Button>
-                    )}
+                  <CardContent className="text-sm space-y-3 pt-4">
+                    {/* Total del proyecto */}
+                    <div className="flex justify-between items-center py-2 border-b">
+                      <span className="text-muted-foreground">Total del Proyecto</span>
+                      <span className="font-bold text-lg">{formatCurrency((projectDetail as any).totalAmount)}</span>
+                    </div>
+                    
+                    {/* Adelanto pagado */}
+                    <div className="flex justify-between items-center py-2 border-b">
+                      <span className="text-muted-foreground">Adelanto Pagado (60%)</span>
+                      <span className="font-semibold text-green-600">{formatCurrency((projectDetail as any).advanceAmount)}</span>
+                    </div>
+                    
+                    {/* Saldo pendiente - DESTACADO */}
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                      <div className="flex justify-between items-center">
+                        <span className="font-medium text-amber-800">Saldo Pendiente (40%)</span>
+                        <span className="font-bold text-xl text-amber-600">
+                          {formatCurrency(Number((projectDetail as any).totalAmount) - Number((projectDetail as any).advanceAmount || 0))}
+                        </span>
+                      </div>
+                      {projectDetail.status === "entregado" && (
+                        <p className="text-xs text-amber-700 mt-1">
+                          ⚠️ Proyecto entregado - Pendiente de cobro
+                        </p>
+                      )}
+                    </div>
+                    
+                    {/* Botones de documentos */}
+                    <div className="flex gap-2 pt-2">
+                      {(projectDetail as any).advancePaymentUrl && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1"
+                          onClick={() => fileViewer.openViewer([{ url: (projectDetail as any).advancePaymentUrl!, title: "Comprobante de Pago" }], 0)}
+                        >
+                          <Receipt className="h-4 w-4 mr-1" />
+                          Comprobante
+                        </Button>
+                      )}
+                      {(projectDetail as any).quotationPdfUrl && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1"
+                          onClick={() => fileViewer.openViewer([{ url: (projectDetail as any).quotationPdfUrl!, title: "PDF Cotización" }], 0)}
+                        >
+                          <FileText className="h-4 w-4 mr-1" />
+                          Cotización
+                        </Button>
+                      )}
+                    </div>
                   </CardContent>
                 </Card>
               )}
@@ -617,11 +644,18 @@ export default function ProjectDetail() {
                                     idx
                                   )}
                                 >
-                                  <img
-                                    src={photo.photoUrl}
-                                    alt={photo.description || "Foto"}
-                                    className="w-full h-full object-cover"
-                                  />
+                                  {photo.photoUrl?.toLowerCase().endsWith('.pdf') || photo.photoUrl?.includes('application/pdf') ? (
+                                    <div className="w-full h-full bg-red-50 flex flex-col items-center justify-center">
+                                      <FileText className="h-10 w-10 text-red-500" />
+                                      <span className="text-xs text-red-600 mt-1 font-medium">PDF</span>
+                                    </div>
+                                  ) : (
+                                    <img
+                                      src={photo.photoUrl}
+                                      alt={photo.description || "Foto"}
+                                      className="w-full h-full object-cover"
+                                    />
+                                  )}
                                   <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                     <ZoomIn className="h-6 w-6 text-white" />
                                   </div>

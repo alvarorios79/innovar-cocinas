@@ -573,3 +573,22 @@ export const quotationItems = mysqlTable("quotationItems", {
 
 export type QuotationItem = typeof quotationItems.$inferSelect;
 export type InsertQuotationItem = typeof quotationItems.$inferInsert;
+
+
+/**
+ * Historial de pagos de proyectos
+ */
+export const projectPayments = mysqlTable("projectPayments", {
+  id: int("id").autoincrement().primaryKey(),
+  projectId: int("projectId").notNull().references(() => projects.id, { onDelete: "cascade" }),
+  type: mysqlEnum("type", ["adelanto", "saldo_final", "abono", "otro"]).notNull(),
+  amount: decimal("amount", { precision: 12, scale: 2 }).notNull(),
+  paymentDate: timestamp("paymentDate").notNull(),
+  receiptUrl: text("receiptUrl"),
+  notes: text("notes"),
+  registeredBy: int("registeredBy").notNull().references(() => users.id),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type ProjectPayment = typeof projectPayments.$inferSelect;
+export type InsertProjectPayment = typeof projectPayments.$inferInsert;

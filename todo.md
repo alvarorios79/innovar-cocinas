@@ -1931,3 +1931,55 @@
 - [x] Conectar con endpoint existente de subida de fotos (projectPhotos.upload)
 - [x] Permitir seleccionar etapa, categoría y subcategoría
 - [x] Permitir subir hasta 10 archivos a la vez (accept="image/*,application/pdf")
+
+
+## Mejoras en Proyectos - Ene 23, 2026
+
+### Miniatura de PDF
+- [x] Mostrar icono de PDF en lugar de imagen vacía cuando el archivo es PDF
+- [x] Agregar indicador visual para distinguir PDFs de imágenes en la galería (fondo rojo claro con icono PDF)
+
+### Eliminar Proyecto
+- [x] Agregar botón de eliminar proyecto con confirmación (icono rojo de papelera)
+- [x] Implementar eliminación selectiva de múltiples proyectos (checkbox + botón "Eliminar (N)")
+- [x] Solo permitir a admin/super_admin eliminar proyectos
+
+### Información Financiera
+- [x] Mostrar saldo pendiente (40%) de forma destacada (caja amarilla con alerta si está entregado)
+- [ ] Implementar historial de pagos
+- [ ] Registrar cuando el cliente paga el 40% restante
+- [ ] Marcar proyecto como "pagado completamente"
+
+### Función Agregar Nota
+- [ ] Implementar funcionalidad completa de agregar nota
+- [ ] Guardar notas en la base de datos asociadas al proyecto
+- [ ] Mostrar notas en el historial del proyecto
+
+
+## Mejoras de Proyectos - Enero 2026
+
+### Visualización de PDFs
+- [x] Mostrar icono de PDF en lugar de imagen rota para archivos PDF en galería de fotos
+
+### Eliminación de Proyectos
+- [x] Botón de eliminar proyecto individual con diálogo de confirmación
+- [x] Eliminación selectiva/masiva de múltiples proyectos con checkboxes
+- [x] Diálogo de confirmación para eliminación masiva
+
+### Información Financiera
+- [x] Mostrar información financiera prominente en detalle del proyecto
+- [x] Mostrar total del proyecto, adelanto pagado (60%) y saldo pendiente (40%)
+- [x] Barra de progreso de pago visual
+- [x] Indicador de "Pendiente de cobro" cuando proyecto entregado tiene saldo
+
+### Historial de Pagos
+- [x] Crear tabla projectPayments en base de datos
+- [x] Endpoint para registrar pagos (adelanto, saldo_final, abono, otro)
+- [x] Endpoint para obtener historial de pagos por proyecto
+- [x] Endpoint para eliminar pagos
+- [x] Mostrar historial de pagos en información financiera del proyecto
+- [x] Registrar pagos en historial del proyecto
+- [x] Tests para endpoints de pagos (6 tests pasando)
+
+### Funcionalidad de Notas
+- [x] Verificar funcionalidad existente de "Agregar Detalle" (notas, medidas especiales, fotos de referencia)

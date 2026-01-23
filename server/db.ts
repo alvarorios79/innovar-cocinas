@@ -37,7 +37,9 @@ import {
   InsertPushSubscription,
   notifications,
   InsertNotification,
-  projectMaterials
+  projectMaterials,
+  projectPayments,
+  InsertProjectPayment
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -1478,4 +1480,49 @@ export async function deleteHardware(id: number) {
 
   await db.delete(hardwareCatalog)
     .where(eq(hardwareCatalog.id, id));
+}
+
+
+// ============ PROJECT PAYMENTS ============
+
+export async function createProjectPayment(payment: InsertProjectPayment) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.insert(projectPayments).values(payment);
+  return result[0].insertId;
+}
+
+export async function getProjectPaymentsByProjectId(projectId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(projectPayments)
+    .where(eq(projectPayments.projectId, projectId))
+    .orderBy(desc(projectPayments.paymentDate));
+}
+
+export async function getProjectPaymentById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db.select().from(projectPayments).where(eq(projectPayments.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function deleteProjectPayment(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.delete(projectPayments).where(eq(projectPayments.id, id));
+}
+
+export async function getTotalPaymentsByProjectId(projectId: number) {
+  const db = await getDb();
+  if (!db) return 0;
+
+  const payments = await db.select().from(projectPayments)
+    .where(eq(projectPayments.projectId, projectId));
+  
+  return payments.reduce((sum, p) => sum + Number(p.amount), 0);
 }

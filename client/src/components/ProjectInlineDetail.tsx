@@ -474,6 +474,126 @@ export function ProjectInlineDetail({
             </Card>
           </div>
 
+          {/* Información Financiera Prominente */}
+          {user?.role !== "disenador" && (projectDetail as any).financialInfo && (projectDetail as any).financialInfo.totalAmount > 0 && (
+            <Card className={`border-2 ${
+              projectDetail.status === "entregado" && (projectDetail as any).financialInfo.remainingAmount > 0
+                ? "border-red-400 bg-red-50"
+                : projectDetail.status === "entregado"
+                  ? "border-green-400 bg-green-50"
+                  : "border-blue-400 bg-blue-50"
+            }`}>
+              <CardHeader className="py-3">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <span className="text-lg">💰</span>
+                  Información Financiera del Proyecto
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  {/* Total del Proyecto */}
+                  <div className="text-center p-3 bg-white/50 rounded-lg">
+                    <p className="text-xs text-muted-foreground mb-1">Total del Proyecto</p>
+                    <p className="text-xl font-bold text-gray-800">
+                      {new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format((projectDetail as any).financialInfo.totalAmount)}
+                    </p>
+                  </div>
+                  
+                  {/* Adelanto Pagado */}
+                  <div className="text-center p-3 bg-green-100/50 rounded-lg">
+                    <p className="text-xs text-green-700 mb-1">Adelanto Pagado (60%)</p>
+                    <p className="text-xl font-bold text-green-700">
+                      {new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format((projectDetail as any).financialInfo.advanceAmount)}
+                    </p>
+                    {projectDetail.advanceReceivedAt && (
+                      <p className="text-xs text-green-600 mt-1">
+                        Recibido: {new Date(projectDetail.advanceReceivedAt).toLocaleDateString('es-CO')}
+                      </p>
+                    )}
+                  </div>
+                  
+                  {/* Saldo Pendiente */}
+                  <div className={`text-center p-3 rounded-lg ${
+                    (projectDetail as any).financialInfo.remainingAmount > 0
+                      ? "bg-red-100/50"
+                      : "bg-green-100/50"
+                  }`}>
+                    <p className={`text-xs mb-1 ${
+                      (projectDetail as any).financialInfo.remainingAmount > 0
+                        ? "text-red-700"
+                        : "text-green-700"
+                    }`}>
+                      {(projectDetail as any).financialInfo.remainingAmount > 0 ? "Saldo Pendiente (40%)" : "Pagado Completamente"}
+                    </p>
+                    <p className={`text-xl font-bold ${
+                      (projectDetail as any).financialInfo.remainingAmount > 0
+                        ? "text-red-700"
+                        : "text-green-700"
+                    }`}>
+                      {(projectDetail as any).financialInfo.remainingAmount > 0
+                        ? new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format((projectDetail as any).financialInfo.remainingAmount)
+                        : "✓ Completado"
+                      }
+                    </p>
+                    {projectDetail.status === "entregado" && (projectDetail as any).financialInfo.remainingAmount > 0 && (
+                      <p className="text-xs text-red-600 mt-1 font-medium">
+                        ⚠️ Pendiente de cobro
+                      </p>
+                    )}
+                  </div>
+                </div>
+                
+                {/* Barra de progreso de pago */}
+                <div className="mt-4">
+                  <div className="flex justify-between text-xs text-muted-foreground mb-1">
+                    <span>Progreso de pago</span>
+                    <span>{(projectDetail as any).financialInfo.paymentProgress || 0}%</span>
+                  </div>
+                  <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div 
+                      className={`h-full transition-all duration-500 ${
+                        (projectDetail as any).financialInfo.isPaid
+                          ? "bg-green-500"
+                          : "bg-blue-500"
+                      }`}
+                      style={{ width: `${(projectDetail as any).financialInfo.paymentProgress || 0}%` }}
+                    />
+                  </div>
+                </div>
+
+                {/* Historial de Pagos */}
+                {(projectDetail as any).payments && (projectDetail as any).payments.length > 0 && (
+                  <div className="mt-4 pt-4 border-t">
+                    <h4 className="text-sm font-medium mb-2">Historial de Pagos</h4>
+                    <div className="space-y-2">
+                      {(projectDetail as any).payments.map((payment: any) => (
+                        <div key={payment.id} className="flex justify-between items-center text-sm p-2 bg-white/50 rounded">
+                          <div>
+                            <span className={`font-medium ${
+                              payment.type === 'adelanto' ? 'text-blue-600' :
+                              payment.type === 'saldo_final' ? 'text-green-600' :
+                              payment.type === 'abono' ? 'text-purple-600' : 'text-gray-600'
+                            }`}>
+                              {payment.type === 'adelanto' ? 'Adelanto' :
+                               payment.type === 'saldo_final' ? 'Saldo Final' :
+                               payment.type === 'abono' ? 'Abono' : 'Otro'}
+                            </span>
+                            <span className="text-muted-foreground ml-2">
+                              {new Date(payment.paymentDate).toLocaleDateString('es-CO')}
+                            </span>
+                          </div>
+                          <span className="font-bold text-green-700">
+                            {new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(Number(payment.amount))}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
           {/* Comprobante de pago y PDF de cotización */}
           {user?.role !== "disenador" && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

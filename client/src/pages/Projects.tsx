@@ -30,7 +30,8 @@ import {
   Pencil,
   User,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Trash2
 } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -123,6 +124,12 @@ export default function Projects() {
     estimatedInstallDate: "",
     reason: "",
   });
+  
+  // Estado para eliminación de proyectos
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [projectToDelete, setProjectToDelete] = useState<any>(null);
+  const [selectedProjects, setSelectedProjects] = useState<number[]>([]);
+  const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
   
   const { data: projects = [], isLoading: loadingProjects } = trpc.projects.list.useQuery(
     statusFilter !== "all" ? { status: statusFilter } : undefined
@@ -217,6 +224,35 @@ export default function Projects() {
       toast.error(error.message || "Error al actualizar diseño");
     },
   });
+
+  const deleteProject = trpc.projects.delete.useMutation({
+    onSuccess: () => {
+      utils.projects.list.invalidate();
+      toast.success("Proyecto eliminado exitosamente");
+      setShowDeleteDialog(false);
+      setProjectToDelete(null);
+    },
+    onError: (error) => {
+      toast.error(error.message || "Error al eliminar proyecto");
+    },
+  });
+
+  const handleBulkDelete = async () => {
+    for (const projectId of selectedProjects) {
+      await deleteProject.mutateAsync({ id: projectId });
+    }
+    setSelectedProjects([]);
+    setShowBulkDeleteDialog(false);
+    toast.success(`${selectedProjects.length} proyecto(s) eliminado(s)`);
+  };
+
+  const toggleProjectSelection = (projectId: number) => {
+    setSelectedProjects(prev => 
+      prev.includes(projectId) 
+        ? prev.filter(id => id !== projectId)
+        : [...prev, projectId]
+    );
+  };
 
   const approveDesign = trpc.projects.approveDesign.useMutation({
     onSuccess: (_, variables) => {
@@ -406,6 +442,17 @@ export default function Projects() {
               </SelectContent>
             </Select>
 
+            {/* Botón eliminar seleccionados (solo admin) */}
+            {(user?.role === "admin" || user?.role === "super_admin") && selectedProjects.length > 0 && (
+              <Button
+                variant="destructive"
+                onClick={() => setShowBulkDeleteDialog(true)}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Eliminar ({selectedProjects.length})
+              </Button>
+            )}
+
             {/* Botón crear (solo admin) */}
             {(user?.role === "admin" || user?.role === "super_admin") && (
               <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
@@ -553,6 +600,15 @@ export default function Projects() {
 
                       {/* Botones de acción */}
                       <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                        {/* Checkbox para selección múltiple */}
+                        {(user?.role === "admin" || user?.role === "super_admin") && (
+                          <input
+                            type="checkbox"
+                            className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
+                            checked={selectedProjects.includes(project.id)}
+                            onChange={() => toggleProjectSelection(project.id)}
+                          />
+                        )}
                         {canAdvanceStatus(project.status) && getNextStatus(project.status) && (
                           <Button
                             size="sm"
@@ -569,6 +625,20 @@ export default function Projects() {
                           >
                             <ArrowRight className="h-4 w-4 mr-1" />
                             Avanzar
+                          </Button>
+                        )}
+                        {/* Botón eliminar individual */}
+                        {(user?.role === "admin" || user?.role === "super_admin") && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                            onClick={() => {
+                              setProjectToDelete(project);
+                              setShowDeleteDialog(true);
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
                           </Button>
                         )}
                         <Button variant="ghost" size="sm">
@@ -1677,6 +1747,67 @@ export default function Projects() {
               </Button>
             </div>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Diálogo de confirmación para eliminar proyecto individual */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="text-red-600">Eliminar Proyecto</DialogTitle>
+            <DialogDescription>
+              ¿Estás seguro de que deseas eliminar el proyecto <strong>"{projectToDelete?.name}"</strong>?
+              <br /><br />
+              Esta acción eliminará permanentemente:
+              <ul className="list-disc list-inside mt-2 text-sm">
+                <li>Todas las fotos del proyecto</li>
+                <li>Todos los detalles y notas</li>
+                <li>Todo el historial</li>
+              </ul>
+              <br />
+              <strong className="text-red-600">Esta acción no se puede deshacer.</strong>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-2 mt-4">
+            <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => projectToDelete && deleteProject.mutate({ id: projectToDelete.id })}
+              disabled={deleteProject.isPending}
+            >
+              {deleteProject.isPending ? "Eliminando..." : "Sí, Eliminar"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Diálogo de confirmación para eliminar múltiples proyectos */}
+      <Dialog open={showBulkDeleteDialog} onOpenChange={setShowBulkDeleteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="text-red-600">Eliminar {selectedProjects.length} Proyecto(s)</DialogTitle>
+            <DialogDescription>
+              ¿Estás seguro de que deseas eliminar <strong>{selectedProjects.length} proyecto(s)</strong>?
+              <br /><br />
+              Esta acción eliminará permanentemente todos los datos asociados a estos proyectos.
+              <br /><br />
+              <strong className="text-red-600">Esta acción no se puede deshacer.</strong>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-2 mt-4">
+            <Button variant="outline" onClick={() => setShowBulkDeleteDialog(false)}>
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleBulkDelete}
+              disabled={deleteProject.isPending}
+            >
+              {deleteProject.isPending ? "Eliminando..." : `Sí, Eliminar ${selectedProjects.length} Proyecto(s)`}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

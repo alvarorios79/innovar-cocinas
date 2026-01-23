@@ -1956,10 +1956,12 @@
 - [ ] Mostrar notas en el historial del proyecto
 
 
-## Bugs a corregir - Enero 23
-- [x] Restaurar enlace al recibo del adelanto (60%) en detalle de proyecto
-- [x] Corregir información financiera para mostrar montos de la cotización aprobada
-- [x] Mostrar información financiera solo en proyectos con adelanto pagado
+## Bugs corregidos - Enero 23
+- [x] Restaurar enlace al recibo del adelanto (60%) en detalle de proyecto - CORREGIDO
+- [x] Corregir información financiera para mostrar montos de la cotización aprobada - CORREGIDO
+- [x] Mostrar información financiera solo en proyectos con adelanto pagado - CORREGIDO
+- [x] Corregir nombre de campo advancePaymentUrl a advanceReceiptUrl
+- [x] Usar financialInfo del backend en lugar de campos directos del proyecto
 
 ## Mejoras de Proyectos - Enero 2026
 

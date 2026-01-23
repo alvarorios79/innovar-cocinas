@@ -324,30 +324,6 @@ export function MaterialsForm({ projectId, readOnly = false }: MaterialsFormProp
         </CardContent>
       </Card>
 
-      {/* Lavaplatos */}
-      <Card>
-        <CardHeader className="pb-2 sm:pb-3">
-          <CardTitle className="text-base sm:text-lg flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-              <span className="text-blue-700">🚰</span>
-            </div>
-            Lavaplatos
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3 sm:space-y-4">
-          <div className="space-y-2">
-            <Label>Medida</Label>
-            <Input
-              value={formData.sinkMeasure}
-              onChange={(e) => setFormData(prev => ({ ...prev, sinkMeasure: e.target.value }))}
-              placeholder="Ej: 84x50 cm, Doble poceta 100x50 cm"
-              disabled={readOnly}
-            />
-          </div>
-          {renderPhotoSection("sink", "sinkPhotoUrl", "Foto del Lavaplatos", formData.sinkPhotoUrl)}
-        </CardContent>
-      </Card>
-
       {/* Notas adicionales */}
       <Card>
         <CardHeader className="pb-3">

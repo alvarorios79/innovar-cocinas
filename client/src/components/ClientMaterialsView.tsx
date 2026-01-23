@@ -148,34 +148,6 @@ export function ClientMaterialsView({ projectId }: ClientMaterialsViewProps) {
               </div>
             )}
 
-            {/* Lavaplatos */}
-            {materials.sinkMeasure && (
-              <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4 p-3 sm:p-4 bg-muted/50 rounded-lg">
-                <div className="flex-shrink-0">
-                  {materials.sinkPhotoUrl ? (
-                    <img 
-                      src={materials.sinkPhotoUrl} 
-                      alt="Lavaplatos" 
-                      className="w-20 h-20 object-cover rounded-lg cursor-pointer hover:opacity-90"
-                      onClick={() => setPhotoPreview(materials.sinkPhotoUrl)}
-                    />
-                  ) : (
-                    <div className="w-20 h-20 bg-muted rounded-lg flex items-center justify-center">
-                      <Droplets className="h-8 w-8 text-muted-foreground" />
-                    </div>
-                  )}
-                </div>
-                <div className="flex-1">
-                  <h4 className="font-medium flex items-center gap-2">
-                    <Droplets className="h-4 w-4 text-blue-600" />
-                    Lavaplatos
-                  </h4>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    <span className="font-medium">Medida:</span> {materials.sinkMeasure}
-                  </p>
-                </div>
-              </div>
-            )}
           </CardContent>
         </Card>
       )}

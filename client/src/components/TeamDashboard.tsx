@@ -577,30 +577,45 @@ export function TeamDashboard() {
                   </Button>
                 </Link>
               </div>
-              <div className="space-y-2">
-                {myProjects.slice(0, 4).map((project) => (
-                  <Card key={project.id} className="hover:shadow-md transition-all duration-200 border border-gray-100 shadow-sm">
-                    <CardContent className="p-3 md:p-4">
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="min-w-0 flex-1">
-                          <h3 className="font-bold text-gray-800 truncate text-sm md:text-base">{project.name}</h3>
-                          <p className="text-xs md:text-sm text-muted-foreground">
-                            {project.workType === "cocina" && "🍳 Cocina Integral"}
-                            {project.workType === "closet" && "👔 Closet"}
-                            {project.workType === "puertas" && "🚪 Puertas"}
-                            {project.workType === "centro_tv" && "📺 Centro de TV"}
+<div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {myProjects.slice(0, 4).map((project, index) => {
+                  const projectColors = [
+                    "bg-gradient-to-br from-teal-500 to-emerald-600",
+                    "bg-gradient-to-br from-purple-500 to-indigo-600",
+                    "bg-gradient-to-br from-orange-500 to-amber-600",
+                    "bg-gradient-to-br from-pink-500 to-rose-600",
+                  ];
+                  return (
+                    <Link key={project.id} href="/projects">
+                      <Card className={`${projectColors[index % 4]} hover:shadow-xl transition-all duration-300 cursor-pointer border-0 shadow-md hover:scale-[1.02] overflow-hidden`}>
+                        <CardContent className="p-4 text-white">
+                          <div className="flex items-center justify-between gap-2 mb-2">
+                            <div className="bg-white/20 p-2 rounded-lg">
+                              {project.workType === "cocina" && <span className="text-xl">🍳</span>}
+                              {project.workType === "closet" && <span className="text-xl">👔</span>}
+                              {project.workType === "puertas" && <span className="text-xl">🛏</span>}
+                              {project.workType === "centro_tv" && <span className="text-xl">📺</span>}
+                              {!project.workType && <Briefcase className="h-5 w-5" />}
+                            </div>
+                            <Badge 
+                              variant="outline" 
+                              className="bg-white/20 text-white border-white/30 font-semibold text-xs"
+                            >
+                              {getStatusLabel(project.status)}
+                            </Badge>
+                          </div>
+                          <h3 className="font-bold text-white truncate text-sm md:text-base">{project.name}</h3>
+                          <p className="text-xs text-white/80 mt-1">
+                            {project.workType === "cocina" && "Cocina Integral"}
+                            {project.workType === "closet" && "Closet"}
+                            {project.workType === "puertas" && "Puertas"}
+                            {project.workType === "centro_tv" && "Centro de TV"}
                           </p>
-                        </div>
-                        <Badge 
-                          variant="outline" 
-                          className={`${getStatusColor(project.status)} font-semibold text-xs whitespace-nowrap`}
-                        >
-                          {getStatusLabel(project.status)}
-                        </Badge>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -623,34 +638,43 @@ export function TeamDashboard() {
                   </Button>
                 </Link>
               </div>
-              <div className="space-y-2">
-                {myTasks.slice(0, 4).map((task) => (
-                  <Card key={task.id} className="hover:shadow-md transition-all duration-200 border border-gray-100 shadow-sm">
-                    <CardContent className="p-3 md:p-4">
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="min-w-0 flex-1">
-                          <h3 className="font-bold text-gray-800 truncate text-sm md:text-base">{task.title}</h3>
-                          <p className="text-xs md:text-sm text-muted-foreground line-clamp-1">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {myTasks.slice(0, 4).map((task, index) => {
+                  const taskColors = [
+                    "bg-gradient-to-br from-blue-500 to-cyan-600",
+                    "bg-gradient-to-br from-violet-500 to-purple-600",
+                    "bg-gradient-to-br from-rose-500 to-pink-600",
+                    "bg-gradient-to-br from-amber-500 to-orange-600",
+                  ];
+                  const priorityIcons: Record<string, string> = {
+                    alta: "🔥",
+                    media: "⚡",
+                    baja: "✅",
+                  };
+                  return (
+                    <Link key={task.id} href="/tasks">
+                      <Card className={`${taskColors[index % 4]} hover:shadow-xl transition-all duration-300 cursor-pointer border-0 shadow-md hover:scale-[1.02] overflow-hidden`}>
+                        <CardContent className="p-4 text-white">
+                          <div className="flex items-center justify-between gap-2 mb-2">
+                            <div className="bg-white/20 p-2 rounded-lg">
+                              <ClipboardList className="h-5 w-5" />
+                            </div>
+                            <Badge 
+                              variant="outline" 
+                              className="bg-white/20 text-white border-white/30 font-semibold text-xs"
+                            >
+                              {priorityIcons[task.priority || "media"]} {task.priority === "alta" ? "Urgente" : task.priority === "media" ? "Media" : "Baja"}
+                            </Badge>
+                          </div>
+                          <h3 className="font-bold text-white truncate text-sm md:text-base">{task.title}</h3>
+                          <p className="text-xs text-white/80 mt-1 line-clamp-1">
                             {task.description || "Sin descripción"}
                           </p>
-                        </div>
-                        <Badge 
-                          variant="outline" 
-                          className={`
-                            font-semibold text-xs whitespace-nowrap
-                            ${task.priority === "alta" ? "bg-red-100 text-red-700 border-red-200" : ""}
-                            ${task.priority === "media" ? "bg-yellow-100 text-yellow-700 border-yellow-200" : ""}
-                            ${task.priority === "baja" ? "bg-green-100 text-green-700 border-green-200" : ""}
-                          `}
-                        >
-                          {task.priority === "alta" && "🔥 Urgente"}
-                          {task.priority === "media" && "⚡ Media"}
-                          {task.priority === "baja" && "✅ Baja"}
-                        </Badge>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  );
+                })}
               </div>
             </div>
           </div>

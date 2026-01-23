@@ -1833,3 +1833,8 @@
 
 - [x] Investigar por qué la página de cotizaciones muestra error 404 (enlace apuntaba a /admin/quotations en vez de /quotations)
 - [x] Corregir el problema
+
+
+## Mejora de colores en Calendario
+
+- [x] Subir el tono de los colores del calendario para mejor visibilidad y diferenciación

@@ -99,8 +99,8 @@ export function VisualCalendar({
     return cn(
       "h-10 sm:h-12 w-full rounded-md flex items-center justify-center text-sm sm:text-base cursor-pointer transition-colors touch-manipulation",
       {
-        "bg-red-100 text-red-700 cursor-not-allowed": !isAllowed,
-        "bg-green-100 text-green-800 hover:bg-green-200 active:bg-green-300": isAllowed && !isSelected,
+        "bg-red-300 text-red-900 cursor-not-allowed font-medium": !isAllowed,
+        "bg-green-300 text-green-900 hover:bg-green-400 active:bg-green-500 font-medium": isAllowed && !isSelected,
         "bg-primary text-primary-foreground": isSelected,
         "font-bold border-2 border-primary": isToday && !isSelected,
       }
@@ -215,8 +215,8 @@ export function VisualCalendar({
                   className={cn(
                     "justify-start",
                     {
-                      "bg-red-100 text-red-700 hover:bg-red-100 border-red-300": !isAvailable,
-                      "bg-green-100 text-green-700 hover:bg-green-200 border-green-300": isAvailable && !isSelected,
+                      "bg-red-300 text-red-900 hover:bg-red-300 border-red-500 font-medium": !isAvailable,
+                      "bg-green-300 text-green-900 hover:bg-green-400 border-green-500 font-medium": isAvailable && !isSelected,
                     }
                   )}
                 >
@@ -235,11 +235,11 @@ export function VisualCalendar({
 
           <div className="mt-4 flex flex-wrap gap-4 text-xs">
             <div className="flex items-center gap-1">
-              <div className="h-3 w-3 rounded bg-green-100 border border-green-300"></div>
+              <div className="h-3 w-3 rounded bg-green-300 border border-green-500"></div>
               <span>Libre</span>
             </div>
             <div className="flex items-center gap-1">
-              <div className="h-3 w-3 rounded bg-red-100 border border-red-300"></div>
+              <div className="h-3 w-3 rounded bg-red-300 border border-red-500"></div>
               <span>Ocupado</span>
             </div>
           </div>

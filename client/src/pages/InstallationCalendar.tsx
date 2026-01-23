@@ -277,7 +277,7 @@ export default function InstallationCalendar() {
                           ${!isCurrentMonth ? "bg-gray-50 text-gray-400" : "bg-white"}
                           ${isToday ? "ring-2 ring-teal-500" : ""}
                           ${isSelected ? "bg-teal-50 border-teal-300" : "border-gray-200 hover:border-teal-300"}
-                          ${availability === "none" ? "bg-red-50" : availability === "half" ? "bg-yellow-50" : ""}
+                          ${availability === "none" ? "bg-red-200" : availability === "half" ? "bg-amber-200" : ""}
                           ${isPast && !isToday ? "opacity-60" : ""}
                         `}
                       >
@@ -313,10 +313,10 @@ export default function InstallationCalendar() {
                               className={`
                                 text-[10px] px-1 py-0.5 rounded truncate cursor-pointer
                                 ${inst.status === "entregado" 
-                                  ? "bg-green-100 text-green-700" 
+                                  ? "bg-green-400 text-green-900 font-semibold" 
                                   : inst.status === "instalacion_programada"
-                                  ? "bg-blue-100 text-blue-700"
-                                  : "bg-teal-100 text-teal-700"
+                                  ? "bg-blue-400 text-blue-900 font-semibold"
+                                  : "bg-teal-400 text-teal-900 font-semibold"
                                 }
                               `}
                             >
@@ -348,19 +348,19 @@ export default function InstallationCalendar() {
                     <span>Disponible (L-V)</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-yellow-50 border rounded"></div>
+                    <div className="w-4 h-4 bg-amber-200 border border-amber-400 rounded"></div>
                     <span>Medio día (Sáb)</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-red-50 border rounded"></div>
+                    <div className="w-4 h-4 bg-red-200 border border-red-400 rounded"></div>
                     <span>No laboral</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-teal-100 rounded"></div>
+                    <div className="w-4 h-4 bg-teal-400 rounded"></div>
                     <span>Instalación pendiente</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-green-100 rounded"></div>
+                    <div className="w-4 h-4 bg-green-400 rounded"></div>
                     <span>Entregado</span>
                   </div>
                 </div>

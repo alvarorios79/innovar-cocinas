@@ -1904,3 +1904,12 @@
 ### Botones con Colores Diferenciados
 - [x] Asignar colores distintivos a cada tab: Información (azul), Materiales (morado), Fotos (verde), Detalles (naranja), Historial (gris)
 - [x] Mantener consistencia visual con el resto de la aplicación
+
+
+## Expansión Inline de Proyectos - Sin Modales
+
+- [x] Al hacer clic en un proyecto, expandir inline (en el mismo lugar) mostrando todo el contenido
+- [x] Mostrar tabs de Información, Materiales, Fotos, Detalles, Historial directamente en la expansión
+- [x] Incluir comprobante de pago, PDF de cotización y toda la información del proyecto
+- [x] Eliminar el modal/popup - todo se ve en la misma página
+- [x] Agregar colores distintivos a cada botón/pestaña (Información=azul, Materiales=morado, Fotos=verde, Detalles=naranja, Historial=gris)

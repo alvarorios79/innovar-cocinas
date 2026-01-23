@@ -28,7 +28,9 @@ import {
   ExternalLink,
   Calendar,
   Pencil,
-  User
+  User,
+  ChevronDown,
+  ChevronUp
 } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -40,7 +42,7 @@ import { PhotoUploader } from "@/components/PhotoUploader";
 import { FileViewer, useFileViewer } from "@/components/FileViewer";
 import { MaterialsForm } from "@/components/MaterialsForm";
 import { HardwareSelector } from "@/components/HardwareSelector";
-// ProjectCard ya no se usa - ahora se abre el modal directamente
+import { ProjectInlineDetail } from "@/components/ProjectInlineDetail";
 
 // Estados del proyecto según Ruta INNOVAR
 const PROJECT_STATUSES = {
@@ -82,6 +84,7 @@ export default function Projects() {
   // Estados para subida de fotos y detalles
   const [showPhotoDialog, setShowPhotoDialog] = useState(false);
   const [showDetailDialog, setShowDetailDialog] = useState(false);
+  const [expandedProjectId, setExpandedProjectId] = useState<number | null>(null);
   const [photoForm, setPhotoForm] = useState({
     stage: "" as "inicial" | "diseno" | "corte" | "enchape" | "ensamble" | "final" | "",
     category: "medidas" as "cotizacion" | "medidas" | "disenos" | "avance" | "instalacion" | "entrega",
@@ -504,77 +507,93 @@ export default function Projects() {
         ) : (
           <div className="grid gap-3">
             {projects.map((project: any) => (
-              <Card 
-                key={project.id} 
-                className="cursor-pointer hover:shadow-md transition-shadow hover:ring-1 hover:ring-primary/50"
-                onClick={() => setSelectedProject(project)}
-              >
-                <CardContent className="p-4">
-                  <div className="flex flex-col sm:flex-row justify-between gap-3">
-                    {/* Info básica */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex flex-wrap items-center gap-2 mb-2">
-                        <h3 className="font-semibold text-base sm:text-lg truncate max-w-[200px] sm:max-w-none">
-                          {project.name}
-                        </h3>
-                        {getStatusBadge(project.status)}
-                      </div>
-                      <div className="text-sm text-muted-foreground grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-1">
-                        <p className="flex items-center gap-1">
-                          <User className="h-3 w-3" />
-                          {project.client?.name || "N/A"}
-                        </p>
-                        <p className="flex items-center gap-1">
-                          <Package className="h-3 w-3" />
-                          {WORK_TYPES[project.workType as keyof typeof WORK_TYPES]}
-                        </p>
-                        <p className="flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
-                          {new Date(project.createdAt).toLocaleDateString("es-CO")}
-                        </p>
-                        {project.estimatedInstallDate && project.status !== "entregado" && (
-                          <p className={`flex items-center gap-1 font-medium ${
-                            new Date(project.estimatedInstallDate) < new Date() 
-                              ? "text-red-600" 
-                              : new Date(project.estimatedInstallDate) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-                                ? "text-yellow-600"
-                                : "text-green-600"
-                          }`}>
-                            <Truck className="h-3 w-3" />
-                            Entrega: {new Date(project.estimatedInstallDate).toLocaleDateString("es-CO")}
-                            {new Date(project.estimatedInstallDate) < new Date() && " ⚠️"}
+              <div key={project.id}>
+                <Card 
+                  className={`cursor-pointer hover:shadow-md transition-all ${expandedProjectId === project.id ? 'ring-2 ring-primary shadow-lg' : 'hover:ring-1 hover:ring-primary/50'}`}
+                  onClick={() => setExpandedProjectId(expandedProjectId === project.id ? null : project.id)}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex flex-col sm:flex-row justify-between gap-3">
+                      {/* Info básica */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-wrap items-center gap-2 mb-2">
+                          <h3 className="font-semibold text-base sm:text-lg truncate max-w-[200px] sm:max-w-none">
+                            {project.name}
+                          </h3>
+                          {getStatusBadge(project.status)}
+                        </div>
+                        <div className="text-sm text-muted-foreground grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-1">
+                          <p className="flex items-center gap-1">
+                            <User className="h-3 w-3" />
+                            {project.client?.name || "N/A"}
                           </p>
+                          <p className="flex items-center gap-1">
+                            <Package className="h-3 w-3" />
+                            {WORK_TYPES[project.workType as keyof typeof WORK_TYPES]}
+                          </p>
+                          <p className="flex items-center gap-1">
+                            <Calendar className="h-3 w-3" />
+                            {new Date(project.createdAt).toLocaleDateString("es-CO")}
+                          </p>
+                          {project.estimatedInstallDate && project.status !== "entregado" && (
+                            <p className={`flex items-center gap-1 font-medium ${
+                              new Date(project.estimatedInstallDate) < new Date() 
+                                ? "text-red-600" 
+                                : new Date(project.estimatedInstallDate) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+                                  ? "text-yellow-600"
+                                  : "text-green-600"
+                            }`}>
+                              <Truck className="h-3 w-3" />
+                              Entrega: {new Date(project.estimatedInstallDate).toLocaleDateString("es-CO")}
+                              {new Date(project.estimatedInstallDate) < new Date() && " ⚠️"}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Botones de acción */}
+                      <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                        {canAdvanceStatus(project.status) && getNextStatus(project.status) && (
+                          <Button
+                            size="sm"
+                            onClick={() => {
+                              const nextStatus = getNextStatus(project.status);
+                              if (nextStatus) {
+                                updateStatus.mutate({
+                                  projectId: project.id,
+                                  newStatus: nextStatus as any,
+                                });
+                              }
+                            }}
+                            disabled={updateStatus.isPending}
+                          >
+                            <ArrowRight className="h-4 w-4 mr-1" />
+                            Avanzar
+                          </Button>
                         )}
+                        <Button variant="ghost" size="sm">
+                          {expandedProjectId === project.id ? (
+                            <ChevronUp className="h-4 w-4" />
+                          ) : (
+                            <ChevronDown className="h-4 w-4" />
+                          )}
+                        </Button>
                       </div>
                     </div>
-
-                    {/* Botón avanzar estado */}
-                    <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                      {canAdvanceStatus(project.status) && getNextStatus(project.status) && (
-                        <Button
-                          size="sm"
-                          onClick={() => {
-                            const nextStatus = getNextStatus(project.status);
-                            if (nextStatus) {
-                              updateStatus.mutate({
-                                projectId: project.id,
-                                newStatus: nextStatus as any,
-                              });
-                            }
-                          }}
-                          disabled={updateStatus.isPending}
-                        >
-                          <ArrowRight className="h-4 w-4 mr-1" />
-                          Avanzar
-                        </Button>
-                      )}
-                      <Button variant="ghost" size="sm">
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+                
+                {/* Detalle expandido inline */}
+                {expandedProjectId === project.id && (
+                  <ProjectInlineDetail
+                    project={project}
+                    user={user}
+                    onCollapse={() => setExpandedProjectId(null)}
+                    onExportPdf={handleExportPdf}
+                    generatingPdf={generatingPdf}
+                  />
+                )}
+              </div>
             ))}
           </div>
         )}

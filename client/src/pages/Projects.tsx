@@ -710,6 +710,20 @@ export default function Projects() {
                       {projectDetail.advanceReceivedAt && (
                         <p><strong>Adelanto recibido:</strong> {new Date(projectDetail.advanceReceivedAt).toLocaleDateString("es-CO")}</p>
                       )}
+                      {projectDetail.advanceReceiptUrl && (
+                        <div className="mt-2 p-2 bg-green-50 rounded-lg">
+                          <p className="text-sm font-medium text-green-800 mb-1">Comprobante de pago:</p>
+                          <a 
+                            href={projectDetail.advanceReceiptUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-sm text-primary hover:underline flex items-center gap-1"
+                          >
+                            <FileText className="h-4 w-4" />
+                            Ver comprobante
+                          </a>
+                        </div>
+                      )}
                       {projectDetail.designDeadline && (
                         <p className={new Date(projectDetail.designDeadline) < new Date() && projectDetail.status === "en_diseno" ? "text-red-600 font-medium" : ""}>
                           <strong>Límite diseño:</strong> {new Date(projectDetail.designDeadline).toLocaleDateString("es-CO")}

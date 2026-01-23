@@ -32,6 +32,8 @@ export default function Portal() {
   const [selectedQuotation, setSelectedQuotation] = useState<any>(null);
   const [approvalNotes, setApprovalNotes] = useState("");
   const [rejectionReason, setRejectionReason] = useState("");
+  const [receiptUrl, setReceiptUrl] = useState<string>("");
+  const [uploadingReceipt, setUploadingReceipt] = useState(false);
   
   // Estado para mostrar timeline expandido
   const [expandedProjectId, setExpandedProjectId] = useState<number | null>(null);
@@ -78,10 +80,12 @@ export default function Portal() {
   const approveQuotation = trpc.quotations.clientApprove.useMutation({
     onSuccess: () => {
       utils.quotations.getMyQuotations.invalidate();
-      toast.success("¡Cotización aprobada exitosamente! Nos pondremos en contacto contigo pronto.");
+      utils.projects.getMyProjects.invalidate();
+      toast.success("¡Cotización aprobada y proyecto creado! Nos pondremos en contacto contigo pronto.");
       setShowApproveDialog(false);
       setSelectedQuotation(null);
       setApprovalNotes("");
+      setReceiptUrl("");
     },
     onError: (error: any) => {
       toast.error(error.message || "Error al aprobar la cotización");
@@ -907,10 +911,41 @@ export default function Portal() {
               />
             </div>
             
+            <div className="space-y-2">
+              <Label>Comprobante de pago del adelanto (opcional)</Label>
+              <p className="text-xs text-muted-foreground mb-2">
+                Si ya realizaste el adelanto, puedes adjuntar el comprobante de transferencia
+              </p>
+              <PhotoUploader
+                onUploadComplete={(urls: string[]) => {
+                  if (urls.length > 0) {
+                    setReceiptUrl(urls[0]);
+                    toast.success("Comprobante adjuntado");
+                  }
+                }}
+                maxFiles={1}
+                accept="image/*,application/pdf"
+              />
+              {receiptUrl && (
+                <div className="flex items-center gap-2 p-2 bg-green-50 rounded-lg">
+                  <CheckCircle2 className="h-4 w-4 text-green-600" />
+                  <span className="text-sm text-green-700">Comprobante adjuntado</span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setReceiptUrl("")}
+                    className="ml-auto h-6 px-2"
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
+              )}
+            </div>
+            
             <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
               <p className="text-sm text-green-800">
-                Al aprobar esta cotización, nuestro equipo se pondrá en contacto contigo para coordinar 
-                el adelanto del 60% y comenzar con el proceso de diseño.
+                Al aprobar esta cotización, se creará automáticamente tu proyecto y nuestro equipo 
+                se pondrá en contacto contigo para coordinar los siguientes pasos.
               </p>
             </div>
           </div>
@@ -922,6 +957,7 @@ export default function Portal() {
                 setShowApproveDialog(false);
                 setSelectedQuotation(null);
                 setApprovalNotes("");
+                setReceiptUrl("");
               }}
             >
               Cancelar
@@ -933,6 +969,7 @@ export default function Portal() {
                   approveQuotation.mutate({
                     id: selectedQuotation.id,
                     notes: approvalNotes || undefined,
+                    receiptUrl: receiptUrl || undefined,
                   });
                 }
               }}

@@ -2070,6 +2070,7 @@ export const appRouter = router({
       .input(z.object({
         id: z.number(),
         notes: z.string().optional(),
+        receiptUrl: z.string().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         // Verificar que el usuario tiene un cliente asociado
@@ -2124,6 +2125,7 @@ export const appRouter = router({
           status: "cotizacion_aprobada",
           quotationApprovedAt: new Date(),
           createdBy: ctx.user.id,
+          advanceReceiptUrl: input.receiptUrl || null,
         });
         
         // Crear historial de estado del proyecto

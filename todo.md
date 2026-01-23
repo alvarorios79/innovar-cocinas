@@ -1791,3 +1791,11 @@
 
 - [ ] Verificar por qué no aparecen los botones de avance en la página de proyectos
 - [ ] Corregir el problema de visibilidad de botones
+
+## Comprobante de Pago al Aprobar Cotización
+
+- [x] Agregar campo para adjuntar comprobante en diálogo de aprobación
+- [x] Modificar endpoint clientApprove para guardar URL del comprobante
+- [x] Guardar comprobante en el proyecto creado
+- [x] Mostrar comprobante en detalle del proyecto
+- [ ] Notificar al comercial con enlace al comprobante

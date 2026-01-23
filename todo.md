@@ -1838,3 +1838,5 @@
 ## Mejora de colores en Calendario
 
 - [x] Subir el tono de los colores del calendario para mejor visibilidad y diferenciación
+
+- [x] Rellenar completamente los recuadros del calendario con color en vez de solo remarcar

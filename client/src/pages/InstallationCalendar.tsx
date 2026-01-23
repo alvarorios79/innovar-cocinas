@@ -274,10 +274,9 @@ export default function InstallationCalendar() {
                         onClick={() => setSelectedDate(date)}
                         className={`
                           relative min-h-[80px] p-1 rounded-lg border transition-all text-left
-                          ${!isCurrentMonth ? "bg-gray-50 text-gray-400" : "bg-white"}
-                          ${isToday ? "ring-2 ring-teal-500" : ""}
-                          ${isSelected ? "bg-teal-50 border-teal-300" : "border-gray-200 hover:border-teal-300"}
-                          ${availability === "none" ? "bg-red-200" : availability === "half" ? "bg-amber-200" : ""}
+                          ${!isCurrentMonth ? "bg-gray-100 text-gray-400" : availability === "none" ? "bg-red-400 text-white" : availability === "half" ? "bg-amber-400 text-amber-900" : "bg-white"}
+                          ${isToday ? "ring-4 ring-teal-500 ring-offset-2" : ""}
+                          ${isSelected ? "bg-teal-500 text-white border-teal-600" : "border-gray-200 hover:border-teal-300"}
                           ${isPast && !isToday ? "opacity-60" : ""}
                         `}
                       >
@@ -295,10 +294,10 @@ export default function InstallationCalendar() {
 
                         {/* Indicador de disponibilidad */}
                         {availability === "half" && (
-                          <div className="text-[10px] text-orange-600 mb-1">Medio día</div>
+                          <div className="text-[10px] text-amber-900 font-bold mb-1">Medio día</div>
                         )}
                         {availability === "none" && !isHoliday(date) && (
-                          <div className="text-[10px] text-red-600 mb-1">No laboral</div>
+                          <div className="text-[10px] text-white font-bold mb-1">No laboral</div>
                         )}
 
                         {/* Instalaciones del día */}
@@ -348,11 +347,11 @@ export default function InstallationCalendar() {
                     <span>Disponible (L-V)</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-amber-200 border border-amber-400 rounded"></div>
+                    <div className="w-4 h-4 bg-amber-400 rounded"></div>
                     <span>Medio día (Sáb)</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-red-200 border border-red-400 rounded"></div>
+                    <div className="w-4 h-4 bg-red-400 rounded"></div>
                     <span>No laboral</span>
                   </div>
                   <div className="flex items-center gap-2">

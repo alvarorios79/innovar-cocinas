@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -48,6 +48,20 @@ const PROJECT_STATUSES = {
   instalacion_programada: { label: "Instalación Programada", color: "bg-teal-600", icon: AlertCircle },
   entregado: { label: "Entregado", color: "bg-green-700", icon: CheckCircle2 },
 };
+
+// Estados que ya pagaron el adelanto del 60%
+const PAID_ADVANCE_STATUSES = [
+  "adelanto_recibido",
+  "en_diseno",
+  "pendiente_cliente",
+  "aprobacion_final",
+  "corte",
+  "enchape",
+  "ensamble",
+  "listo_instalacion",
+  "instalacion_programada",
+  "entregado"
+];
 
 const WORK_TYPES = {
   cocina: "Cocina Integral",
@@ -110,6 +124,18 @@ export function ProjectInlineDetail({
     { id: project.id },
     { enabled: !!project.id }
   );
+
+  // DEBUG: Log financialInfo
+  useEffect(() => {
+    if (projectDetail) {
+      console.log('ProjectDetail loaded:', {
+        id: projectDetail.id,
+        financialInfo: (projectDetail as any).financialInfo,
+        quotation: (projectDetail as any).quotation,
+        advanceReceiptUrl: projectDetail.advanceReceiptUrl,
+      });
+    }
+  }, [projectDetail]);
 
   // Mutations
   const uploadPhoto = trpc.projectPhotos.upload.useMutation({
@@ -269,6 +295,13 @@ export function ProjectInlineDetail({
     return allowedRoles.includes(role || "");
   };
 
+  // DEBUG: Log en cada render - v2
+  const fi = (projectDetail as any).financialInfo;
+  console.log('RENDER v2 - financialInfo:', fi);
+  if (fi) {
+    console.log('Total:', fi.totalAmount, 'Advance:', fi.advanceAmount);
+  }
+  
   return (
     <div className="bg-muted/30 rounded-lg mt-2 p-3 sm:p-4 border border-border">
       {/* Header con botones de acción */}
@@ -403,7 +436,7 @@ export function ProjectInlineDetail({
 
         {/* Tab Información */}
         <TabsContent value="info" className="space-y-4 mt-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Información del Cliente */}
             <Card>
               <CardHeader className="py-3">
@@ -420,6 +453,68 @@ export function ProjectInlineDetail({
                 <p><strong>Dirección:</strong> {projectDetail.client?.address || "N/A"}</p>
               </CardContent>
             </Card>
+
+            {/* Información Financiera Simple - Solo si ya pagó el 60% */}
+            {user?.role !== "disenador" && PAID_ADVANCE_STATUSES.includes(projectDetail.status) && (() => {
+              // Calcular valores financieros directamente
+              const quotationTotal = (projectDetail as any).quotation?.total ? Number((projectDetail as any).quotation.total) : 0;
+              const projectAdvance = projectDetail.advanceAmount ? Number(projectDetail.advanceAmount) : 0;
+              const totalAmount = quotationTotal || (projectAdvance ? Math.round(projectAdvance / 0.6) : 0);
+              const advanceAmount = projectAdvance || (totalAmount ? Math.round(totalAmount * 0.6) : 0);
+              const remainingAmount = totalAmount - advanceAmount;
+              
+              return (
+                <Card className="border-blue-200 bg-blue-50">
+                  <CardHeader className="py-3">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <span className="text-lg">💰</span>
+                      Información Financiera
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="text-sm space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Total del Proyecto</span>
+                      <span className="font-medium">
+                        {totalAmount > 0 
+                          ? new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(totalAmount)
+                          : "$0"}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Adelanto Pagado (60%)</span>
+                      <span className="font-medium text-green-600">
+                        {advanceAmount > 0
+                          ? new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(advanceAmount)
+                          : "$0"}
+                      </span>
+                    </div>
+                    <div className="flex justify-between bg-yellow-100 p-2 rounded">
+                      <span className="text-yellow-700">Saldo Pendiente (40%)</span>
+                      <span className="font-medium text-yellow-700">
+                        {remainingAmount > 0
+                          ? new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(remainingAmount)
+                          : "$0"}
+                      </span>
+                    </div>
+                    
+                    {/* Enlace al recibo del adelanto */}
+                    {projectDetail.advanceReceiptUrl && (
+                      <div className="pt-2 border-t">
+                        <a 
+                          href={projectDetail.advanceReceiptUrl} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 text-blue-600 hover:text-blue-800 hover:underline"
+                        >
+                          <FileText className="h-4 w-4" />
+                          Ver Recibo del Adelanto
+                        </a>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })()}
 
             {/* Fechas del Proyecto */}
             <Card>
@@ -474,8 +569,8 @@ export function ProjectInlineDetail({
             </Card>
           </div>
 
-          {/* Información Financiera Prominente */}
-          {user?.role !== "disenador" && (projectDetail as any).financialInfo && (projectDetail as any).financialInfo.totalAmount > 0 && (
+          {/* Información Financiera Prominente - Solo si ya pagó el 60% y hay total de cotización */}
+          {user?.role !== "disenador" && PAID_ADVANCE_STATUSES.includes(projectDetail.status) && (projectDetail as any).financialInfo && (projectDetail as any).financialInfo.totalAmount > 0 && (
             <Card className={`border-2 ${
               projectDetail.status === "entregado" && (projectDetail as any).financialInfo.remainingAmount > 0
                 ? "border-red-400 bg-red-50"
@@ -594,8 +689,8 @@ export function ProjectInlineDetail({
             </Card>
           )}
 
-          {/* Comprobante de pago y PDF de cotización */}
-          {user?.role !== "disenador" && (
+          {/* Comprobante de pago y PDF de cotización - Solo si ya pagó el 60% */}
+          {user?.role !== "disenador" && PAID_ADVANCE_STATUSES.includes(projectDetail.status) && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {projectDetail.advanceReceiptUrl && (
                 <Card className="bg-green-50 border-green-200">

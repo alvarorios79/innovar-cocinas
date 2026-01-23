@@ -1956,6 +1956,11 @@
 - [ ] Mostrar notas en el historial del proyecto
 
 
+## Bugs a corregir - Enero 23
+- [x] Restaurar enlace al recibo del adelanto (60%) en detalle de proyecto
+- [x] Corregir información financiera para mostrar montos de la cotización aprobada
+- [x] Mostrar información financiera solo en proyectos con adelanto pagado
+
 ## Mejoras de Proyectos - Enero 2026
 
 ### Visualización de PDFs
@@ -1983,3 +1988,9 @@
 
 ### Funcionalidad de Notas
 - [x] Verificar funcionalidad existente de "Agregar Detalle" (notas, medidas especiales, fotos de referencia)
+
+
+## Bugs a corregir - Enero 2026
+
+- [ ] Restaurar visualización del recibo de adelanto inicial en detalle del proyecto
+- [ ] Restaurar mensajes/notificaciones a CEO y Admin al cambiar estado del proyecto

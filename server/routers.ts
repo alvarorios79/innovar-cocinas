@@ -2752,7 +2752,7 @@ export const appRouter = router({
         const actualPaid = totalPaid > 0 ? totalPaid : advanceAmount;
         const remainingAmount = totalAmount - actualPaid;
 
-        return {
+        const result = {
           ...project,
           client,
           photos,
@@ -2772,6 +2772,10 @@ export const appRouter = router({
             paymentProgress: totalAmount > 0 ? Math.round((actualPaid / totalAmount) * 100) : 0,
           },
         };
+        
+        console.log('[DEBUG] getById result financialInfo:', result.financialInfo);
+        
+        return result;
       }),
 
     // Obtener proyectos del cliente actual

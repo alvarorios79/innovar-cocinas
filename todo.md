@@ -1827,3 +1827,9 @@
 - [x] Diseño con colores de la empresa y botones llamativos
 - [x] Color rosa para portal de comercial (Martha Serna)
 - [x] Integrar TeamDashboard en Home.tsx para roles del equipo de trabajo
+
+
+## Bug URGENTE: Página de Cotizaciones muestra 404
+
+- [x] Investigar por qué la página de cotizaciones muestra error 404 (enlace apuntaba a /admin/quotations en vez de /quotations)
+- [x] Corregir el problema

@@ -180,14 +180,14 @@ export function TeamDashboard() {
             value: draftQuotations.length,
             icon: <FileText className="h-6 w-6" />,
             color: "bg-gradient-to-br from-rose-500 to-pink-500",
-            link: "/admin/quotations"
+            link: "/quotations"
           },
           { 
             label: "Esperando Respuesta", 
             value: sentQuotations.length,
             icon: <Clock className="h-6 w-6" />,
             color: "bg-gradient-to-br from-fuchsia-500 to-purple-500",
-            link: "/admin/quotations"
+            link: "/quotations"
           },
           { 
             label: "Mis Tareas", 
@@ -211,14 +211,14 @@ export function TeamDashboard() {
             value: draftQuotations.length,
             icon: <FileText className="h-6 w-6" />,
             color: "bg-gradient-to-br from-teal-500 to-cyan-500",
-            link: "/admin/quotations"
+            link: "/quotations"
           },
           { 
             label: "Esperando Respuesta", 
             value: sentQuotations.length,
             icon: <Clock className="h-6 w-6" />,
             color: "bg-gradient-to-br from-yellow-500 to-amber-500",
-            link: "/admin/quotations"
+            link: "/quotations"
           },
           { 
             label: "Mis Tareas", 
@@ -311,7 +311,7 @@ export function TeamDashboard() {
             value: quotations.length,
             icon: <DollarSign className="h-6 w-6" />,
             color: "bg-gradient-to-br from-green-500 to-emerald-500",
-            link: "/admin/quotations"
+            link: "/quotations"
           },
           { 
             label: "Tareas Equipo", 
@@ -336,7 +336,7 @@ export function TeamDashboard() {
       case "comercial":
         return [
           { label: "Calendario", href: "/calendar", icon: <Calendar className="h-6 w-6" />, color: "bg-gradient-to-br from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700" },
-          { label: "Cotizaciones", href: "/admin/quotations", icon: <FileText className="h-6 w-6" />, color: "bg-gradient-to-br from-rose-600 to-pink-600 hover:from-rose-700 hover:to-pink-700" },
+          { label: "Cotizaciones", href: "/quotations", icon: <FileText className="h-6 w-6" />, color: "bg-gradient-to-br from-rose-600 to-pink-600 hover:from-rose-700 hover:to-pink-700" },
           { label: "Clientes", href: "/admin/clients", icon: <Users className="h-6 w-6" />, color: "bg-gradient-to-br from-fuchsia-600 to-pink-600 hover:from-fuchsia-700 hover:to-pink-700" },
           { label: "Mis Tareas", href: "/tasks", icon: <ClipboardList className="h-6 w-6" />, color: "bg-gradient-to-br from-purple-600 to-fuchsia-600 hover:from-purple-700 hover:to-fuchsia-700" },
         ];
@@ -344,7 +344,7 @@ export function TeamDashboard() {
         return [
           { label: "Panel Admin", href: "/admin", icon: <LayoutDashboard className="h-6 w-6" />, color: "bg-gradient-to-br from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700" },
           { label: "Calendario", href: "/calendar", icon: <Calendar className="h-6 w-6" />, color: "bg-gradient-to-br from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700" },
-          { label: "Cotizaciones", href: "/admin/quotations", icon: <FileText className="h-6 w-6" />, color: "bg-gradient-to-br from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700" },
+          { label: "Cotizaciones", href: "/quotations", icon: <FileText className="h-6 w-6" />, color: "bg-gradient-to-br from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700" },
           { label: "Clientes", href: "/admin/clients", icon: <Users className="h-6 w-6" />, color: "bg-gradient-to-br from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700" },
         ];
       case "jefe_taller":

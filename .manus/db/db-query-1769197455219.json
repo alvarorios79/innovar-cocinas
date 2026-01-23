@@ -1,0 +1,42 @@
+{
+  "query": "SELECT * FROM projects WHERE id = 90003;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT * FROM projects WHERE id = 90003;",
+  "rows": [
+    {
+      "id": "90003",
+      "quotationId": "90007",
+      "clientId": "300053",
+      "name": "Álvaro prueba  - COT-2026-621",
+      "workType": "cocina",
+      "status": "en_diseno",
+      "initialMeasurements": "NULL",
+      "design3dFiles": "NULL",
+      "despieceFiles": "NULL",
+      "clientApprovedAt": "NULL",
+      "clientApprovalNotes": "NULL",
+      "createdBy": "840718",
+      "designerId": "NULL",
+      "createdAt": "2026-01-23 04:23:26",
+      "updatedAt": "2026-01-23 04:26:32",
+      "quotationSentAt": "NULL",
+      "quotationApprovedAt": "2026-01-23 04:23:27",
+      "advanceReceivedAt": "2026-01-23 04:26:22",
+      "advanceAmount": "NULL",
+      "designDeadline": "NULL",
+      "designDeliveredAt": "NULL",
+      "selectedColors": "NULL",
+      "selectedMaterials": "NULL",
+      "estimatedInstallDate": "NULL",
+      "scheduledInstallDate": "NULL",
+      "installDurationDays": "1",
+      "deliveredAt": "NULL",
+      "advanceReceiptUrl": "https://d2xsxph8kpxj0f.cloudfront.net/310519663292328262/XhEkCr8yXcaeDFyuQebdJQ/uploads/840718/1769142202549-1dla8f.pdf",
+      "advance_receipt_url": "NULL",
+      "quotationPdfUrl": "NULL"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tquotationId\tclientId\tname\tworkType\tstatus\tinitialMeasurements\tdesign3dFiles\tdespieceFiles\tclientApprovedAt\tclientApprovalNotes\tcreatedBy\tdesignerId\tcreatedAt\tupdatedAt\tquotationSentAt\tquotationApprovedAt\tadvanceReceivedAt\tadvanceAmount\tdesignDeadline\tdesignDeliveredAt\tselectedColors\tselectedMaterials\testimatedInstallDate\tscheduledInstallDate\tinstallDurationDays\tdeliveredAt\tadvanceReceiptUrl\tadvance_receipt_url\tquotationPdfUrl\n90003\t90007\t300053\tÁlvaro prueba  - COT-2026-621\tcocina\ten_diseno\tNULL\tNULL\tNULL\tNULL\tNULL\t840718\tNULL\t2026-01-23 04:23:26\t2026-01-23 04:26:32\tNULL\t2026-01-23 04:23:27\t2026-01-23 04:26:22\tNULL\tNULL\tNULL\tNULL\tNULL\tNULL\tNULL\t1\tNULL\thttps://d2xsxph8kpxj0f.cloudfront.net/310519663292328262/XhEkCr8yXcaeDFyuQebdJQ/uploads/840718/1769142202549-1dla8f.pdf\tNULL\tNULL\n",
+  "stderr": "",
+  "execution_time_ms": 114
+}

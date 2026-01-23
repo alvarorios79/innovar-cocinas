@@ -1882,3 +1882,12 @@
 - [x] Implementar envío automático de WhatsApp cuando cliente aprueba cotización
 - [x] Incluir información relevante: nombre cliente, número cotización, monto, adelanto
 - [x] Abre automáticamente WhatsApp Web con mensaje pre-llenado para el comercial
+
+## Recordatorio Automático del 40% - Ene 23, 2026
+
+### Notificación al Entregar Proyecto
+- [x] Detectar cuando el proyecto cambia a estado "entregado"
+- [x] Calcular el saldo pendiente (40% del total)
+- [x] Enviar notificación al comercial con el monto a cobrar
+- [x] Enviar notificación/recordatorio al cliente del pago pendiente (WhatsApp automático)
+- [x] Tests para recordatorio de pago (4 tests pasando)

@@ -156,8 +156,15 @@ export default function Projects() {
       utils.projects.getById.invalidate();
       toast.success("Estado actualizado");
       
+      // Si hay recordatorio de pago del 40%, abrir WhatsApp automáticamente
+      if (data.paymentReminderWhatsApp) {
+        toast.success("💰 Proyecto entregado. Se abrirá WhatsApp para recordar el pago del 40%", { duration: 5000 });
+        setTimeout(() => {
+          window.open(data.paymentReminderWhatsApp as string, '_blank');
+        }, 1500);
+      }
       // Mostrar diálogo de WhatsApp si hay notificación disponible
-      if (data.whatsappNotification) {
+      else if (data.whatsappNotification) {
         setWhatsAppMessage(data.whatsappNotification.message);
         setWhatsAppLink(data.whatsappNotification.whatsappLink);
         setWhatsAppPhone(data.whatsappNotification.phone);

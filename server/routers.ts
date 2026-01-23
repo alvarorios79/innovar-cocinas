@@ -2849,12 +2849,16 @@ export const appRouter = router({
         if (newStatus === "instalacion_programada" && input.scheduledInstallDate) {
           updateData.scheduledInstallDate = input.scheduledInstallDate;
         }
+        if (newStatus === "entregado" && !project.deliveredAt) {
+          updateData.deliveredAt = new Date();
+        }
 
         await db.updateProject(input.projectId, updateData);
 
         // Obtener datos del cliente para notificación WhatsApp
         const client = await db.getClientById(project.clientId);
         let whatsappNotification = null;
+        let paymentReminderWhatsApp = null;
         
         if (client) {
           const baseUrl = ctx.req.headers.origin || `https://${ctx.req.headers.host}`;
@@ -2869,11 +2873,59 @@ export const appRouter = router({
             },
           };
           whatsappNotification = prepareWhatsAppNotification(projectWithClient, baseUrl);
+          
+          // Si el proyecto pasa a "entregado", enviar recordatorio del 40% pendiente
+          if (newStatus === "entregado") {
+            // Obtener la cotización asociada para calcular el saldo
+            const quotation = project.quotationId ? await db.getQuotationById(project.quotationId) : null;
+            const quotationTotal = quotation?.total ? Number(quotation.total) : 0;
+            const projectAdvance = project.advanceAmount ? Number(project.advanceAmount) : 0;
+            const totalAmount = quotationTotal || (projectAdvance ? Math.round(projectAdvance / 0.6) : 0);
+            const advanceAmount = projectAdvance || (totalAmount ? Math.round(totalAmount * 0.6) : 0);
+            const remainingAmount = totalAmount - advanceAmount;
+            
+            const formatCurrency = (value: number) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(value);
+            
+            // Crear notificaciones para admin/comercial sobre el pago pendiente
+            const admins = await db.getAllUsers();
+            const notifyRoles = ["super_admin", "admin", "comercial"];
+            const usersToNotify = admins.filter(u => notifyRoles.includes(u.role));
+            
+            for (const user of usersToNotify) {
+              await db.createNotification({
+                userId: user.id,
+                title: "💰 Recordatorio: Pago del 40% Pendiente",
+                body: `El proyecto "${project.name}" ha sido entregado. Saldo pendiente por cobrar: ${formatCurrency(remainingAmount)}. Cliente: ${client.name}`,
+                type: "proyecto",
+                referenceId: project.id,
+                referenceType: "project",
+              });
+            }
+            
+            // Generar enlace de WhatsApp para recordar al cliente el pago
+            const paymentMessage = `🎉 ¡Hola ${client.name}!
+
+Nos complace informarte que tu proyecto "${project.name}" ha sido *entregado exitosamente*.
+
+💳 *Recordatorio de Pago Final*
+• Total del proyecto: ${formatCurrency(totalAmount)}
+• Adelanto pagado (60%): ${formatCurrency(advanceAmount)}
+• *Saldo pendiente (40%): ${formatCurrency(remainingAmount)}*
+
+Por favor, realiza el pago del saldo restante para completar tu proyecto.
+
+¡Gracias por confiar en INNOVAR Cocinas Integrales! 🙏`;
+            
+            const cleanPhone = client.whatsappPhone?.replace(/\D/g, '') || '';
+            const phoneWithCountry = cleanPhone.startsWith('57') ? cleanPhone : `57${cleanPhone}`;
+            paymentReminderWhatsApp = `https://wa.me/${phoneWithCountry}?text=${encodeURIComponent(paymentMessage)}`;
+          }
         }
 
         return { 
           success: true,
           whatsappNotification,
+          paymentReminderWhatsApp,
         };
       }),
 

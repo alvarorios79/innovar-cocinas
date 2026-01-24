@@ -2031,3 +2031,9 @@
 - [x] Eliminar console.logs de debug en client/src/pages/Admin.tsx (2 eliminados)
 - [x] Eliminar console.logs de debug en client/src/pages/Quotations.tsx (6 eliminados)
 - [x] Eliminar console.logs de debug en client/src/components/NotificationBell.tsx (2 eliminados)
+
+
+## Mejoras de Código - Enero 24 - COMPLETADO
+- [x] Crear archivo lib/formatters.ts con función formatPrice centralizada
+- [x] Actualizar archivos que usan formatPrice para importar desde lib/formatters (4 archivos)
+- [x] Agregar filtro de saldo pendiente en la lista de proyectos

@@ -74,6 +74,7 @@ export default function Projects() {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [selectedProject, setSelectedProject] = useState<any>(null);
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [showPendingPaymentOnly, setShowPendingPaymentOnly] = useState(false);
   
   const [createForm, setCreateForm] = useState({
     clientId: "",
@@ -441,6 +442,18 @@ export default function Projects() {
                 ))}
               </SelectContent>
             </Select>
+            
+            {/* Filtro de saldo pendiente */}
+            {(user?.role === "admin" || user?.role === "super_admin") && (
+              <Button
+                variant={showPendingPaymentOnly ? "default" : "outline"}
+                onClick={() => setShowPendingPaymentOnly(!showPendingPaymentOnly)}
+                className={showPendingPaymentOnly ? "bg-amber-500 hover:bg-amber-600" : ""}
+              >
+                <AlertCircle className="h-4 w-4 mr-2" />
+                Saldo Pendiente
+              </Button>
+            )}
 
             {/* Botón eliminar seleccionados (solo admin) */}
             {(user?.role === "admin" || user?.role === "super_admin") && selectedProjects.length > 0 && (
@@ -553,7 +566,18 @@ export default function Projects() {
           </Card>
         ) : (
           <div className="grid gap-3">
-            {projects.map((project: any) => (
+            {projects
+              .filter((project: any) => {
+                // Filtro de saldo pendiente: proyectos entregados con saldo > 0
+                if (showPendingPaymentOnly) {
+                  const isDelivered = project.status === "entregado";
+                  const hasPendingPayment = project.quotation?.total && 
+                    (project.actualPaid || 0) < project.quotation.total;
+                  return isDelivered && hasPendingPayment;
+                }
+                return true;
+              })
+              .map((project: any) => (
               <div key={project.id}>
                 <Card 
                   className={`cursor-pointer hover:shadow-md transition-all ${expandedProjectId === project.id ? 'ring-2 ring-primary shadow-lg' : 'hover:ring-1 hover:ring-primary/50'}`}

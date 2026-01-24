@@ -16,6 +16,7 @@ import { ClientMaterialsView } from "@/components/ClientMaterialsView";
 import { ProjectTimeline } from "@/components/ProjectTimeline";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { formatPrice } from "@/lib/formatters";
 
 export default function Portal() {
   const { user, isAuthenticated, loading } = useAuth();
@@ -190,13 +191,7 @@ export default function Portal() {
     });
   };
 
-  const formatPrice = (price: string | number) => {
-    return new Intl.NumberFormat("es-CO", {
-      style: "currency",
-      currency: "COP",
-      minimumFractionDigits: 0,
-    }).format(Number(price));
-  };
+
 
   // Configuración de estados de proyecto
   const PROJECT_STATUSES: Record<string, { label: string; color: string; icon: any }> = {

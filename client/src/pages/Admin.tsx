@@ -18,6 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Link } from "wouter";
 import { HardwareCatalogAdmin } from "@/components/HardwareCatalogAdmin";
 import { CreateQuickClientDialog } from "@/components/CreateQuickClientDialog";
+import { formatPrice } from "@/lib/formatters";
 
 export default function Admin() {
   const { user, isAuthenticated, loading } = useAuth();
@@ -389,13 +390,7 @@ export default function Admin() {
     });
   };
 
-  const formatPrice = (price: string | number) => {
-    return new Intl.NumberFormat("es-CO", {
-      style: "currency",
-      currency: "COP",
-      minimumFractionDigits: 0,
-    }).format(Number(price));
-  };
+
 
   const handleCreateQuotation = async (e: React.FormEvent) => {
     e.preventDefault();

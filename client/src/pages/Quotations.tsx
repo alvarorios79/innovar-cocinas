@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/dialog";
 import { Plus, Trash2, FileText, Send, Eye, Pencil, Mail, Search, X, UserPlus } from "lucide-react";
 import { toast } from "sonner";
+import { formatPrice } from "@/lib/formatters";
 import { CreateQuickClientDialog } from "@/components/CreateQuickClientDialog";
 
 interface HardwareSelection {
@@ -929,14 +930,7 @@ export default function Quotations() {
     }
   };
 
-  const formatPrice = (price: string | number) => {
-    const num = typeof price === "string" ? parseFloat(price) : price;
-    return new Intl.NumberFormat("es-CO", {
-      style: "currency",
-      currency: "COP",
-      minimumFractionDigits: 0,
-    }).format(num);
-  };
+
 
   const getStatusBadge = (status: string) => {
     const badges = {

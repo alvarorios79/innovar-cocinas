@@ -2060,3 +2060,7 @@
 - [x] Diseñador solo ve herrajes seleccionados para el proyecto, no todo el catálogo
 - [x] Agregar banner "Modo solo lectura" en pestaña Materiales para diseñador
 - [ ] Implementar mejoras adicionales según requisitos del usuario
+
+- [x] Diseñador no debe ver pestaña/sección de Cotización en Fotos del proyecto
+
+- [x] Reorganizar categorías de fotos: 1.Cotización (solo PDF), 2.Medidas (Fotos Iniciales, Dibujo), 3.Diseños (Renders, Despieces, Detalles), 4.Avance (Corte, Enchape, Armado), 5.Instalación (Proceso), 6.Entrega (Fotos Finales)

@@ -181,8 +181,8 @@ export default function ProjectDetail() {
   const getFilteredFolders = () => {
     const role = user?.role;
     const allFolders = {
-      cotizacion: ["documento_cotizacion", "fotos_iniciales"],
-      medidas: ["dibujo"],
+      cotizacion: ["documento_cotizacion"],
+      medidas: ["fotos_iniciales", "dibujo"],
       disenos: ["renders", "despieces", "detalles"],
       avance: ["corte", "enchape", "armado"],
       instalacion: ["proceso_instalacion"],

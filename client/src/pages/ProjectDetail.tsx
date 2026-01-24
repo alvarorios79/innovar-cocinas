@@ -165,6 +165,7 @@ export default function ProjectDetail() {
     renders: "Renders",
     despieces: "Despieces",
     detalles: "Detalles",
+    modelado: "Modelado",
     corte: "Corte",
     enchape: "Enchape",
     armado: "Armado",
@@ -619,8 +620,10 @@ export default function ProjectDetail() {
           <TabsContent value="photos" className="space-y-4">
             {Object.entries(filteredFolders).map(([category, subcategories]) => (
               <Card key={category}>
-                <CardHeader className="py-3 bg-green-50">
-                  <CardTitle className="text-sm">{categoryLabels[category] || category}</CardTitle>
+                <CardHeader className="py-3 bg-gradient-to-r from-emerald-500 to-teal-500">
+                  <CardTitle className="text-base font-bold text-white tracking-wide">
+                    {categoryLabels[category] || category}
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="pt-4">
                   <div className="space-y-4">
@@ -631,7 +634,10 @@ export default function ProjectDetail() {
                       return (
                         <div key={subcategory} className="border rounded-lg p-3">
                           <div className="flex items-center justify-between mb-2">
-                            <h5 className="font-medium text-sm">{subcategoryLabels[subcategory] || subcategory}</h5>
+                            <h5 className="font-semibold text-base text-emerald-700 flex items-center gap-2">
+                              <span className="w-2 h-2 bg-emerald-500 rounded-full"></span>
+                              {subcategoryLabels[subcategory] || subcategory}
+                            </h5>
                             {canUploadToFolder(subcategory) && (
                               <Button
                                 variant="ghost"

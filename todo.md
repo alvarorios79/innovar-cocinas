@@ -2073,3 +2073,5 @@
 
 - [x] Simplificar modal "Subir Foto": eliminar Etapa, dejar Categoría + Subcategoría
 - [x] Agregar subcategoría "Modelado" en Diseños
+
+- [x] Mejorar títulos de fotos: más visibles, bonitos y con mayúscula inicial

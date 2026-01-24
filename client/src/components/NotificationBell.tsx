@@ -15,14 +15,14 @@ import { cn } from "@/lib/utils";
 // Función para solicitar permiso de notificaciones y suscribirse
 async function subscribeToPush(vapidPublicKey: string): Promise<PushSubscription | null> {
   if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
-    console.log("Push notifications not supported");
+
     return null;
   }
 
   try {
     const permission = await Notification.requestPermission();
     if (permission !== "granted") {
-      console.log("Notification permission denied");
+
       return null;
     }
 

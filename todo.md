@@ -2023,3 +2023,11 @@
 - [ ] Analizar componentes del frontend
 - [ ] Verificar esquema de base de datos
 - [ ] Limpiar código basura y corregir errores
+
+
+## Limpieza de Console.logs - Enero 24 - COMPLETADO
+- [x] Eliminar console.logs de debug en server/routers.ts (5 eliminados)
+- [x] Eliminar console.logs de debug en client/src/components/ProjectInlineDetail.tsx (3 eliminados)
+- [x] Eliminar console.logs de debug en client/src/pages/Admin.tsx (2 eliminados)
+- [x] Eliminar console.logs de debug en client/src/pages/Quotations.tsx (6 eliminados)
+- [x] Eliminar console.logs de debug en client/src/components/NotificationBell.tsx (2 eliminados)

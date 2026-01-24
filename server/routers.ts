@@ -498,7 +498,7 @@ export const appRouter = router({
                     subject: emailData.subject,
                     html: emailData.html,
                   });
-                  console.log(`[Auto-registro] Usuario creado y email enviado a ${client.email}`);
+
                 } catch (emailError) {
                   console.error("[Auto-registro] Error al enviar email de bienvenida:", emailError);
                   // No bloquear el proceso si falla el email
@@ -2213,7 +2213,7 @@ export const appRouter = router({
           // Limpiar archivo temporal
           fs.unlinkSync(result.pdfPath);
           
-          console.log(`[PDF] Cotización ${quotation.quotationNumber} guardada en S3: ${url}`);
+
         } catch (pdfError: any) {
           console.error('[PDF] Error generando PDF de cotización:', pdfError);
           // No fallar la aprobación si el PDF falla, solo loguear el error
@@ -2841,7 +2841,7 @@ export const appRouter = router({
           },
         };
         
-        console.log('[DEBUG] getById result financialInfo:', result.financialInfo);
+
         
         return result;
       }),
@@ -3487,7 +3487,7 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
           });
         } catch (e) {
           // Silenciar error de push - la notificación en app ya se creó
-          console.log("Push notification failed (non-blocking):", e);
+
         }
 
         // Enviar email de notificación de tarea (no bloquea si falla)
@@ -3513,7 +3513,7 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
           }
         } catch (e) {
           // Silenciar error de email - la notificación en app ya se creó
-          console.log("Email notification failed (non-blocking):", e);
+
         }
 
         return { success: true, taskId };

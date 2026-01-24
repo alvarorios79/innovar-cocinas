@@ -125,17 +125,6 @@ export function ProjectInlineDetail({
     { enabled: !!project.id }
   );
 
-  // DEBUG: Log financialInfo
-  useEffect(() => {
-    if (projectDetail) {
-      console.log('ProjectDetail loaded:', {
-        id: projectDetail.id,
-        financialInfo: (projectDetail as any).financialInfo,
-        quotation: (projectDetail as any).quotation,
-        advanceReceiptUrl: projectDetail.advanceReceiptUrl,
-      });
-    }
-  }, [projectDetail]);
 
   // Mutations
   const uploadPhoto = trpc.projectPhotos.upload.useMutation({
@@ -295,12 +284,6 @@ export function ProjectInlineDetail({
     return allowedRoles.includes(role || "");
   };
 
-  // DEBUG: Log en cada render - v2
-  const fi = (projectDetail as any).financialInfo;
-  console.log('RENDER v2 - financialInfo:', fi);
-  if (fi) {
-    console.log('Total:', fi.totalAmount, 'Advance:', fi.advanceAmount);
-  }
   
   return (
     <div className="bg-muted/30 rounded-lg mt-2 p-3 sm:p-4 border border-border">

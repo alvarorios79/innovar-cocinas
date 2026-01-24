@@ -548,10 +548,8 @@ export default function Quotations() {
   };
 
   const updateItem = (index: number, field: keyof QuotationItem, value: any) => {
-    console.log('[Quotations] updateItem called:', { index, field, value, currentItem: items[index] });
     const newItems = [...items];
     newItems[index] = { ...newItems[index], [field]: value };
-    console.log('[Quotations] Updated item:', newItems[index]);
     setItems(newItems);
   };
 
@@ -913,8 +911,6 @@ export default function Quotations() {
 
     if (editingQuotation) {
       // Actualizar cotización existente
-      console.log("[DEBUG] Enviando items actualizados:");
-      console.log(JSON.stringify(itemsWithUpdatedPrices, null, 2));
       updateQuotation.mutate({
         id: editingQuotation,
         clientId: selectedClient,
@@ -1218,7 +1214,6 @@ export default function Quotations() {
                           <Select 
                             value={item.itemType} 
                             onValueChange={(value) => {
-                              console.log('[Quotations] itemType changed to:', value);
                               updateItem(index, "itemType", value);
                             }}
                           >
@@ -1591,7 +1586,6 @@ export default function Quotations() {
 
                         {/* Campos dinámicos para HERRAJES */}
                         {item.itemType === "herrajes" && (() => {
-                          console.log('[Quotations] Rendering HardwareSelectorForQuotation for item:', item);
                           return (
                           <>
                           <HardwareSelectorForQuotation

@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 interface HardwareSelectorProps {
   projectId: number;
   readOnly?: boolean;
+  showOnlySelected?: boolean;
 }
 
 interface HardwareItem {
@@ -24,7 +25,7 @@ interface HardwareItem {
   photoUrl: string | null;
 }
 
-export function HardwareSelector({ projectId, readOnly = false }: HardwareSelectorProps) {
+export function HardwareSelector({ projectId, readOnly = false, showOnlySelected = false }: HardwareSelectorProps) {
   const [activeTab, setActiveTab] = useState<"cocinas" | "closets" | "puertas">("cocinas");
   const [selectedOption, setSelectedOption] = useState<{ hardwareId: number; option: string } | null>(null);
   const [showOptionsDialog, setShowOptionsDialog] = useState(false);
@@ -154,10 +155,21 @@ export function HardwareSelector({ projectId, readOnly = false }: HardwareSelect
           </TabsTrigger>
         </TabsList>
 
-        {["cocinas", "closets", "puertas"].map((category) => (
+        {["cocinas", "closets", "puertas"].map((category) => {
+          // Si showOnlySelected, filtrar solo los herrajes seleccionados
+          const itemsToShow = showOnlySelected 
+            ? catalog?.filter(item => item.category === category && isSelected(item.id))
+            : catalog?.filter(item => item.category === category);
+          
+          return (
           <TabsContent key={category} value={category} className="mt-4">
+            {showOnlySelected && (!itemsToShow || itemsToShow.length === 0) ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <p>No hay herrajes seleccionados en esta categoría</p>
+              </div>
+            ) : (
             <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4">
-              {catalog?.filter(item => item.category === category).map((hardware) => {
+              {itemsToShow?.map((hardware) => {
                 const selected = isSelected(hardware.id);
                 const selection = getSelection(hardware.id);
 
@@ -230,14 +242,10 @@ export function HardwareSelector({ projectId, readOnly = false }: HardwareSelect
                 );
               })}
             </div>
-
-            {filteredCatalog.length === 0 && (
-              <div className="text-center py-8 text-muted-foreground">
-                No hay herrajes en esta categoría
-              </div>
             )}
           </TabsContent>
-        ))}
+        );
+        })}
       </Tabs>
 
       {/* Options Dialog */}

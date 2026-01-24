@@ -582,7 +582,7 @@ export default function ProjectDetail() {
               <CardContent className="pt-4">
                 <MaterialsForm
                   projectId={projectDetail.id}
-                  readOnly={user?.role !== "disenador" && user?.role !== "admin" && user?.role !== "super_admin"}
+                  readOnly={user?.role === "disenador" || (user?.role !== "admin" && user?.role !== "super_admin")}
                 />
               </CardContent>
             </Card>
@@ -593,7 +593,8 @@ export default function ProjectDetail() {
               <CardContent className="pt-4">
                 <HardwareSelector
                   projectId={projectDetail.id}
-                  readOnly={user?.role !== "disenador" && user?.role !== "admin" && user?.role !== "super_admin"}
+                  readOnly={user?.role === "disenador" || (user?.role !== "admin" && user?.role !== "super_admin")}
+                  showOnlySelected={user?.role === "disenador"}
                 />
               </CardContent>
             </Card>

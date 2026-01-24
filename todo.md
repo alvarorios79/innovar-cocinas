@@ -2055,5 +2055,8 @@
 ## Panel del Diseñador - Enero 24
 - [x] BUG: Los proyectos no abren desde el panel del diseñador (corregido filtro de estados)
 - [x] Agregar botón "Cerrar Sesión" visible en paneles de usuarios
-- [ ] Revisar estado actual del panel del diseñador
-- [ ] Implementar mejoras según requisitos del usuario
+- [x] Revisar estado actual del panel del diseñador
+- [x] Restringir pestaña Materiales para diseñador: solo lectura, sin edición
+- [x] Diseñador solo ve herrajes seleccionados para el proyecto, no todo el catálogo
+- [x] Agregar banner "Modo solo lectura" en pestaña Materiales para diseñador
+- [ ] Implementar mejoras adicionales según requisitos del usuario

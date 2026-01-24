@@ -783,24 +783,29 @@ export default function ProjectDetail() {
                     <div className="space-y-4">
                       {projectDetail.history.map((entry: any, index: number) => {
                         // Determinar icono y color según tipo de acción
-                        const getActionStyle = (action: string | undefined | null) => {
-                          if (!action) return { bg: 'bg-slate-500', icon: <Clock className="h-3 w-3 text-white" /> };
-                          const actionLower = action.toLowerCase();
-                          if (actionLower.includes('creó') || actionLower.includes('nuevo')) 
+                        // Construir texto de acción a partir de fromStatus y toStatus
+                        const actionText = entry.toStatus 
+                          ? `Cambio de estado: ${entry.fromStatus || 'Nuevo'} → ${entry.toStatus}`
+                          : 'Evento registrado';
+                        
+                        const getActionStyle = (toStatus: string | undefined | null) => {
+                          if (!toStatus) return { bg: 'bg-slate-500', icon: <Clock className="h-3 w-3 text-white" /> };
+                          const statusLower = toStatus.toLowerCase();
+                          if (statusLower.includes('cotizacion_enviada') || statusLower.includes('nuevo')) 
                             return { bg: 'bg-emerald-500', icon: <Plus className="h-3 w-3 text-white" /> };
-                          if (actionLower.includes('aprob') || actionLower.includes('confirm')) 
+                          if (statusLower.includes('aprobad') || statusLower.includes('confirm')) 
                             return { bg: 'bg-green-500', icon: <CheckCircle2 className="h-3 w-3 text-white" /> };
-                          if (actionLower.includes('pago') || actionLower.includes('adelanto')) 
+                          if (statusLower.includes('adelanto') || statusLower.includes('pagado')) 
                             return { bg: 'bg-yellow-500', icon: <DollarSign className="h-3 w-3 text-white" /> };
-                          if (actionLower.includes('foto') || actionLower.includes('imagen')) 
+                          if (statusLower.includes('foto') || statusLower.includes('imagen')) 
                             return { bg: 'bg-blue-500', icon: <Camera className="h-3 w-3 text-white" /> };
-                          if (actionLower.includes('diseño') || actionLower.includes('render')) 
+                          if (statusLower.includes('diseno') || statusLower.includes('diseño')) 
                             return { bg: 'bg-purple-500', icon: <Palette className="h-3 w-3 text-white" /> };
-                          if (actionLower.includes('estado') || actionLower.includes('cambio')) 
+                          if (statusLower.includes('instalacion') || statusLower.includes('entregado')) 
                             return { bg: 'bg-orange-500', icon: <RefreshCw className="h-3 w-3 text-white" /> };
                           return { bg: 'bg-slate-500', icon: <Clock className="h-3 w-3 text-white" /> };
                         };
-                        const style = getActionStyle(entry.action);
+                        const style = getActionStyle(entry.toStatus);
                         return (
                           <div key={entry.id} className="relative flex items-start gap-4 pl-8">
                             {/* Punto del timeline */}
@@ -810,7 +815,7 @@ export default function ProjectDetail() {
                             {/* Contenido */}
                             <div className="flex-1 bg-white border rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow">
                               <div className="flex items-start justify-between gap-2">
-                                <p className="text-sm font-semibold text-gray-800">{entry.action}</p>
+                                <p className="text-sm font-semibold text-gray-800">{actionText}</p>
                                 <span className="text-xs text-gray-400 whitespace-nowrap">
                                   {new Date(entry.createdAt).toLocaleDateString("es-CO", { day: '2-digit', month: 'short' })}
                                 </span>

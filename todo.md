@@ -2083,3 +2083,7 @@
 - [x] Indicador "Sin fotos" más visual cuando subcategoría está vacía
 
 - [x] BUG: TypeError en historial cuando entry.action es undefined (corregido)
+
+## Mejoras Historial - Enero 24
+- [x] Corregir historial para usar campos correctos (fromStatus, toStatus en lugar de action)
+- [ ] Implementar paginación en el historial para proyectos con muchos eventos

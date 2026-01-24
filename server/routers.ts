@@ -2765,10 +2765,10 @@ export const appRouter = router({
           projectsList = await db.getAllProjects();
         }
 
-        // Diseñador solo ve proyectos aprobados para diseño o en diseño
+        // Diseñador solo ve proyectos desde adelanto recibido hasta aprobación final
         if (role === "disenador") {
           projectsList = projectsList.filter(p => 
-            ["aprobado_diseno", "en_diseno", "pendiente_cliente"].includes(p.status)
+            ["adelanto_recibido", "en_diseno", "pendiente_cliente", "aprobacion_final"].includes(p.status)
           );
         }
 

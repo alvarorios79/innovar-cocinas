@@ -28,8 +28,37 @@ import {
   Settings,
   LayoutDashboard,
   DollarSign,
-  UserCheck
+  UserCheck,
+  LogOut
 } from "lucide-react";
+import { toast } from "sonner";
+
+// Componente de botón de cerrar sesión
+function LogoutButton() {
+  const logout = trpc.auth.logout.useMutation({
+    onSuccess: () => {
+      toast.success("Sesión cerrada correctamente");
+      window.location.href = "/login";
+    },
+    onError: () => {
+      toast.error("Error al cerrar sesión");
+    },
+  });
+
+  return (
+    <Button
+      variant="ghost"
+      size="sm"
+      onClick={() => logout.mutate()}
+      disabled={logout.isPending}
+      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+      title="Cerrar sesión"
+    >
+      <LogOut className="h-4 w-4" />
+      <span className="ml-1 hidden xl:inline">Salir</span>
+    </Button>
+  );
+}
 
 // Configuración por rol
 const roleConfig: Record<string, {
@@ -436,6 +465,18 @@ export function TeamDashboard() {
               ))}
               <div className="ml-2">
                 <NotificationBell />
+              </div>
+              <div className="flex items-center gap-2 ml-2 pl-2 border-l">
+                <span className="text-xs text-muted-foreground hidden lg:block">
+                  {user?.role === "super_admin" ? "Super Admin" : 
+                   user?.role === "admin" ? "Admin" :
+                   user?.role === "disenador" ? "Diseñador" :
+                   user?.role === "jefe_taller" ? "Jefe Taller" :
+                   user?.role === "operario" ? "Operario" :
+                   user?.role === "comercial" ? "Comercial" : "Usuario"}
+                </span>
+                <span className="text-sm font-medium hidden lg:block">{user?.name}</span>
+                <LogoutButton />
               </div>
             </nav>
 

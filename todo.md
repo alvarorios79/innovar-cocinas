@@ -2050,3 +2050,10 @@
   - [ ] server/routers/hardware.ts
   - [ ] server/routers/index.ts (combinar todos)
 - Nota: Esta refactorización se pospuso para evitar riesgos de estabilidad. El sistema funciona correctamente.
+
+
+## Panel del Diseñador - Enero 24
+- [x] BUG: Los proyectos no abren desde el panel del diseñador (corregido filtro de estados)
+- [x] Agregar botón "Cerrar Sesión" visible en paneles de usuarios
+- [ ] Revisar estado actual del panel del diseñador
+- [ ] Implementar mejoras según requisitos del usuario

@@ -783,18 +783,20 @@ export default function ProjectDetail() {
                     <div className="space-y-4">
                       {projectDetail.history.map((entry: any, index: number) => {
                         // Determinar icono y color según tipo de acción
-                        const getActionStyle = (action: string) => {
-                          if (action.toLowerCase().includes('creó') || action.toLowerCase().includes('nuevo')) 
+                        const getActionStyle = (action: string | undefined | null) => {
+                          if (!action) return { bg: 'bg-slate-500', icon: <Clock className="h-3 w-3 text-white" /> };
+                          const actionLower = action.toLowerCase();
+                          if (actionLower.includes('creó') || actionLower.includes('nuevo')) 
                             return { bg: 'bg-emerald-500', icon: <Plus className="h-3 w-3 text-white" /> };
-                          if (action.toLowerCase().includes('aprob') || action.toLowerCase().includes('confirm')) 
+                          if (actionLower.includes('aprob') || actionLower.includes('confirm')) 
                             return { bg: 'bg-green-500', icon: <CheckCircle2 className="h-3 w-3 text-white" /> };
-                          if (action.toLowerCase().includes('pago') || action.toLowerCase().includes('adelanto')) 
+                          if (actionLower.includes('pago') || actionLower.includes('adelanto')) 
                             return { bg: 'bg-yellow-500', icon: <DollarSign className="h-3 w-3 text-white" /> };
-                          if (action.toLowerCase().includes('foto') || action.toLowerCase().includes('imagen')) 
+                          if (actionLower.includes('foto') || actionLower.includes('imagen')) 
                             return { bg: 'bg-blue-500', icon: <Camera className="h-3 w-3 text-white" /> };
-                          if (action.toLowerCase().includes('diseño') || action.toLowerCase().includes('render')) 
+                          if (actionLower.includes('diseño') || actionLower.includes('render')) 
                             return { bg: 'bg-purple-500', icon: <Palette className="h-3 w-3 text-white" /> };
-                          if (action.toLowerCase().includes('estado') || action.toLowerCase().includes('cambio')) 
+                          if (actionLower.includes('estado') || actionLower.includes('cambio')) 
                             return { bg: 'bg-orange-500', icon: <RefreshCw className="h-3 w-3 text-white" /> };
                           return { bg: 'bg-slate-500', icon: <Clock className="h-3 w-3 text-white" /> };
                         };

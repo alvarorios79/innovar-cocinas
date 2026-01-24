@@ -2081,3 +2081,5 @@
 - [x] Contador de fotos junto a cada subcategoría
 - [x] Vista previa ampliada (lightbox) al hacer clic en fotos (ya existía)
 - [x] Indicador "Sin fotos" más visual cuando subcategoría está vacía
+
+- [x] BUG: TypeError en historial cuando entry.action es undefined (corregido)

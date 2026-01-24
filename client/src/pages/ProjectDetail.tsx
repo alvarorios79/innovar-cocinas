@@ -28,12 +28,14 @@ import {
   Mail,
   MapPin,
   DollarSign,
-  Receipt
+  Receipt,
+  Trash2
 } from "lucide-react";
 import { useFileViewer, FileViewer } from "@/components/FileViewer";
 import { MaterialsForm } from "@/components/MaterialsForm";
 import { HardwareSelector } from "@/components/HardwareSelector";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -94,6 +96,7 @@ export default function ProjectDetail() {
     estimatedInstallDate: "",
     reason: "",
   });
+  const [photoToDelete, setPhotoToDelete] = useState<{ id: number; description?: string } | null>(null);
 
   const { data: projectDetail, isLoading } = trpc.projects.getById.useQuery(
     { id: projectId },
@@ -109,6 +112,17 @@ export default function ProjectDetail() {
     },
     onError: (error) => {
       toast.error(error.message || "Error al subir archivo");
+    },
+  });
+
+  const deletePhoto = trpc.projectPhotos.delete.useMutation({
+    onSuccess: () => {
+      utils.projects.getById.invalidate({ id: projectId });
+      toast.success("Foto eliminada correctamente");
+      setPhotoToDelete(null);
+    },
+    onError: (error) => {
+      toast.error(error.message || "Error al eliminar foto");
     },
   });
 
@@ -660,6 +674,18 @@ export default function ProjectDetail() {
                                   <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                     <ZoomIn className="h-6 w-6 text-white" />
                                   </div>
+                                  {/* Botón eliminar solo para super_admin y admin */}
+                                  {(user?.role === "super_admin" || user?.role === "admin") && (
+                                    <button
+                                      className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setPhotoToDelete({ id: photo.id, description: photo.description });
+                                      }}
+                                    >
+                                      <Trash2 className="h-3 w-3" />
+                                    </button>
+                                  )}
                                 </div>
                               ))}
                             </div>
@@ -980,6 +1006,31 @@ export default function ProjectDetail() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Diálogo de confirmación para eliminar foto */}
+      <AlertDialog open={!!photoToDelete} onOpenChange={(open) => !open && setPhotoToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Estás seguro de eliminar esta foto?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción no se puede deshacer. La foto {photoToDelete?.description ? `"${photoToDelete.description}"` : ''} será eliminada permanentemente del proyecto.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-500 hover:bg-red-600"
+              onClick={() => {
+                if (photoToDelete) {
+                  deletePhoto.mutate({ id: photoToDelete.id });
+                }
+              }}
+            >
+              {deletePhoto.isPending ? "Eliminando..." : "Sí, eliminar"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -237,6 +237,7 @@ export const projectPhotos = mysqlTable("projectPhotos", {
     "renders",
     "despieces",
     "detalles",
+    "modelado",
     // Avance
     "corte",
     "enchape",

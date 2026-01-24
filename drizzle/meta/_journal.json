@@ -169,6 +169,13 @@
       "when": 1769196257165,
       "tag": "0023_redundant_cobalt_man",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "5",
+      "when": 1769281497525,
+      "tag": "0024_round_arachne",
+      "breakpoints": true
     }
   ]
 }

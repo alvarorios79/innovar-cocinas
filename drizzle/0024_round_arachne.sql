@@ -1,0 +1,1 @@
+ALTER TABLE `projectPhotos` MODIFY COLUMN `subcategory` enum('fotos_iniciales','dibujo','renders','despieces','detalles','modelado','corte','enchape','armado','proceso_instalacion','fotos_finales','documento_cotizacion');

@@ -2070,3 +2070,6 @@
 - [ ] Diseñador puede ver fotos de Avance, Instalación y Entrega (proceso completo)
 
 - [x] Diseñador puede VER fotos de Avance, Instalación y Entrega (pero NO subir)
+
+- [x] Simplificar modal "Subir Foto": eliminar Etapa, dejar Categoría + Subcategoría
+- [x] Agregar subcategoría "Modelado" en Diseños

@@ -80,7 +80,6 @@ export default function ProjectDetail() {
   const [generatingPdf, setGeneratingPdf] = useState(false);
   
   const [photoForm, setPhotoForm] = useState({
-    stage: "inicial" as "inicial" | "diseno" | "corte" | "enchape" | "ensamble" | "final",
     category: "medidas" as "cotizacion" | "medidas" | "disenos" | "avance" | "instalacion" | "entrega",
     subcategory: "" as string,
     photoUrls: [] as string[],
@@ -108,7 +107,7 @@ export default function ProjectDetail() {
       utils.projects.getById.invalidate({ id: projectId });
       toast.success("Archivo subido exitosamente");
       setShowPhotoDialog(false);
-      setPhotoForm({ stage: "inicial", category: "medidas", subcategory: "", photoUrls: [], description: "" });
+      setPhotoForm({ category: "medidas", subcategory: "", photoUrls: [], description: "" });
     },
     onError: (error) => {
       toast.error(error.message || "Error al subir archivo");
@@ -182,6 +181,7 @@ export default function ProjectDetail() {
       renders: ["disenador"],
       despieces: ["disenador"],
       detalles: ["disenador"],
+      modelado: ["disenador"],
       corte: ["jefe_taller", "operario"],
       enchape: ["jefe_taller", "operario"],
       armado: ["jefe_taller", "operario"],
@@ -197,7 +197,7 @@ export default function ProjectDetail() {
     const allFolders = {
       cotizacion: ["documento_cotizacion"],
       medidas: ["fotos_iniciales", "dibujo"],
-      disenos: ["renders", "despieces", "detalles"],
+      disenos: ["renders", "despieces", "detalles", "modelado"],
       avance: ["corte", "enchape", "armado"],
       instalacion: ["proceso_instalacion"],
       entrega: ["fotos_finales"],
@@ -217,6 +217,7 @@ export default function ProjectDetail() {
           renders: ["super_admin", "admin", "disenador", "jefe_taller"],
           despieces: ["super_admin", "admin", "disenador", "jefe_taller", "operario"],
           detalles: ["super_admin", "admin", "disenador", "jefe_taller", "operario"],
+          modelado: ["super_admin", "admin", "disenador", "jefe_taller", "operario"],
           corte: ["super_admin", "admin", "disenador", "jefe_taller", "operario"],
           enchape: ["super_admin", "admin", "disenador", "jefe_taller", "operario"],
           armado: ["super_admin", "admin", "disenador", "jefe_taller", "operario"],
@@ -783,57 +784,34 @@ export default function ProjectDetail() {
             <DialogDescription>Agrega fotos o documentos PDF al proyecto</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Etapa *</Label>
-                <Select
-                  value={photoForm.stage}
-                  onValueChange={(v) => setPhotoForm({ ...photoForm, stage: v as any })}
-                >
-                  <SelectTrigger><SelectValue placeholder="Selecciona la etapa" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="inicial">Fotos Iniciales</SelectItem>
-                    <SelectItem value="diseno">Diseño</SelectItem>
-                    <SelectItem value="corte">Corte</SelectItem>
-                    <SelectItem value="enchape">Enchape</SelectItem>
-                    <SelectItem value="ensamble">Ensamble</SelectItem>
-                    <SelectItem value="final">Producto Final</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Categoría *</Label>
-                <Select
-                  value={photoForm.category}
-                  onValueChange={(v) => setPhotoForm({ ...photoForm, category: v as any, subcategory: "" })}
-                >
-                  <SelectTrigger><SelectValue placeholder="Selecciona la categoría" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="cotizacion">Cotización</SelectItem>
-                    <SelectItem value="medidas">Medidas</SelectItem>
-                    <SelectItem value="disenos">Diseños</SelectItem>
-                    <SelectItem value="avance">Avance</SelectItem>
-                    <SelectItem value="instalacion">Instalación</SelectItem>
-                    <SelectItem value="entrega">Entrega</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="space-y-2">
+              <Label>Categoría *</Label>
+              <Select
+                value={photoForm.category}
+                onValueChange={(v) => setPhotoForm({ ...photoForm, category: v as any, subcategory: "" })}
+              >
+                <SelectTrigger><SelectValue placeholder="Selecciona la categoría" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="cotizacion">Cotización</SelectItem>
+                  <SelectItem value="medidas">Medidas</SelectItem>
+                  <SelectItem value="disenos">Diseños</SelectItem>
+                  <SelectItem value="avance">Avance</SelectItem>
+                  <SelectItem value="instalacion">Instalación</SelectItem>
+                  <SelectItem value="entrega">Entrega</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Subcategoría según la categoría seleccionada */}
-            {photoForm.category && (
+            {photoForm.category && photoForm.category !== "cotizacion" && (
               <div className="space-y-2">
-                <Label>Subcategoría</Label>
+                <Label>Subcategoría *</Label>
                 <Select
                   value={photoForm.subcategory}
                   onValueChange={(v) => setPhotoForm({ ...photoForm, subcategory: v })}
                 >
                   <SelectTrigger><SelectValue placeholder="Selecciona subcategoría" /></SelectTrigger>
                   <SelectContent>
-                    {photoForm.category === "cotizacion" && (
-                      <SelectItem value="documento_cotizacion">Documento de Cotización</SelectItem>
-                    )}
                     {photoForm.category === "medidas" && (
                       <>
                         <SelectItem value="fotos_iniciales">Fotos Iniciales</SelectItem>
@@ -845,6 +823,7 @@ export default function ProjectDetail() {
                         <SelectItem value="renders">Renders</SelectItem>
                         <SelectItem value="despieces">Despieces</SelectItem>
                         <SelectItem value="detalles">Detalles</SelectItem>
+                        <SelectItem value="modelado">Modelado</SelectItem>
                       </>
                     )}
                     {photoForm.category === "avance" && (
@@ -865,26 +844,35 @@ export default function ProjectDetail() {
               </div>
             )}
 
-            {photoForm.stage && (
+            {(photoForm.category === "cotizacion" || photoForm.subcategory) && (
               <PhotoUploader
                 projectId={projectId}
-                stage={photoForm.stage}
+                stage={photoForm.category === "cotizacion" ? "inicial" : 
+                       photoForm.category === "medidas" ? "inicial" :
+                       photoForm.category === "disenos" ? "diseno" :
+                       photoForm.category === "avance" ? "corte" :
+                       photoForm.category === "instalacion" ? "final" : "final"}
                 maxFiles={10}
                 accept="image/*,application/pdf"
                 onUploadComplete={(urls) => {
                   // Guardar cada archivo en la base de datos
+                  const stage = photoForm.category === "cotizacion" ? "inicial" : 
+                               photoForm.category === "medidas" ? "inicial" :
+                               photoForm.category === "disenos" ? "diseno" :
+                               photoForm.category === "avance" ? "corte" :
+                               photoForm.category === "instalacion" ? "final" : "final";
                   urls.forEach((url) => {
                     uploadPhoto.mutate({
                       projectId: projectId,
-                      stage: photoForm.stage,
+                      stage: stage,
                       category: photoForm.category,
-                      subcategory: (photoForm.subcategory || undefined) as "corte" | "enchape" | "fotos_iniciales" | "dibujo" | "renders" | "despieces" | "detalles" | "armado" | "proceso_instalacion" | "fotos_finales" | "documento_cotizacion" | undefined,
+                      subcategory: (photoForm.category === "cotizacion" ? "documento_cotizacion" : photoForm.subcategory || undefined) as "corte" | "enchape" | "fotos_iniciales" | "dibujo" | "renders" | "despieces" | "detalles" | "modelado" | "armado" | "proceso_instalacion" | "fotos_finales" | "documento_cotizacion" | undefined,
                       photoUrl: url,
                       description: photoForm.description || undefined,
                     });
                   });
                   setShowPhotoDialog(false);
-                  setPhotoForm({ stage: "inicial", category: "medidas", subcategory: "", photoUrls: [], description: "" });
+                  setPhotoForm({ category: "medidas", subcategory: "", photoUrls: [], description: "" });
                 }}
               />
             )}

@@ -29,7 +29,8 @@ import {
   MapPin,
   DollarSign,
   Receipt,
-  Trash2
+  Trash2,
+  RefreshCw
 } from "lucide-react";
 import { useFileViewer, FileViewer } from "@/components/FileViewer";
 import { MaterialsForm } from "@/components/MaterialsForm";
@@ -637,6 +638,9 @@ export default function ProjectDetail() {
                             <h5 className="font-semibold text-base text-emerald-700 flex items-center gap-2">
                               <span className="w-2 h-2 bg-emerald-500 rounded-full"></span>
                               {subcategoryLabels[subcategory] || subcategory}
+                              <span className={`ml-2 px-2 py-0.5 rounded-full text-xs font-medium ${photos.length > 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-500'}`}>
+                                {photos.length} {photos.length === 1 ? 'foto' : 'fotos'}
+                              </span>
                             </h5>
                             {canUploadToFolder(subcategory) && (
                               <Button
@@ -697,7 +701,13 @@ export default function ProjectDetail() {
                               ))}
                             </div>
                           ) : (
-                            <p className="text-sm text-muted-foreground">Sin fotos</p>
+                            <div className="flex flex-col items-center justify-center py-8 text-center bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
+                              <Camera className="h-10 w-10 text-gray-300 mb-2" />
+                              <p className="text-sm text-gray-400 font-medium">Sin fotos aún</p>
+                              {canUploadToFolder(subcategory) && (
+                                <p className="text-xs text-gray-400 mt-1">Haz clic en el botón de subir para agregar</p>
+                              )}
+                            </div>
                           )}
                         </div>
                       );
@@ -754,27 +764,83 @@ export default function ProjectDetail() {
           {/* Tab Historial */}
           <TabsContent value="history" className="space-y-4">
             <Card>
-              <CardHeader className="py-3 bg-gray-100">
-                <CardTitle className="text-sm">Historial del Proyecto</CardTitle>
+              <CardHeader className="py-3 bg-gradient-to-r from-slate-600 to-slate-700">
+                <CardTitle className="text-base font-bold text-white flex items-center gap-2">
+                  <History className="h-5 w-5" />
+                  Historial del Proyecto
+                  {projectDetail.history && projectDetail.history.length > 0 && (
+                    <span className="ml-2 px-2 py-0.5 bg-white/20 rounded-full text-xs">
+                      {projectDetail.history.length} eventos
+                    </span>
+                  )}
+                </CardTitle>
               </CardHeader>
               <CardContent className="pt-4">
                 {projectDetail.history && projectDetail.history.length > 0 ? (
-                  <div className="space-y-3">
-                    {projectDetail.history.map((entry: any) => (
-                      <div key={entry.id} className="flex items-start gap-3 border-l-2 border-primary pl-3 py-1">
-                        <div className="flex-1">
-                          <p className="text-sm font-medium">{entry.action}</p>
-                          {entry.notes && <p className="text-sm text-muted-foreground">{entry.notes}</p>}
-                          <p className="text-xs text-muted-foreground">
-                            {new Date(entry.createdAt).toLocaleString("es-CO")}
-                            {entry.user && ` - ${entry.user.name}`}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
+                  <div className="relative">
+                    {/* Línea vertical de timeline */}
+                    <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gradient-to-b from-emerald-500 via-blue-500 to-purple-500"></div>
+                    <div className="space-y-4">
+                      {projectDetail.history.map((entry: any, index: number) => {
+                        // Determinar icono y color según tipo de acción
+                        const getActionStyle = (action: string) => {
+                          if (action.toLowerCase().includes('creó') || action.toLowerCase().includes('nuevo')) 
+                            return { bg: 'bg-emerald-500', icon: <Plus className="h-3 w-3 text-white" /> };
+                          if (action.toLowerCase().includes('aprob') || action.toLowerCase().includes('confirm')) 
+                            return { bg: 'bg-green-500', icon: <CheckCircle2 className="h-3 w-3 text-white" /> };
+                          if (action.toLowerCase().includes('pago') || action.toLowerCase().includes('adelanto')) 
+                            return { bg: 'bg-yellow-500', icon: <DollarSign className="h-3 w-3 text-white" /> };
+                          if (action.toLowerCase().includes('foto') || action.toLowerCase().includes('imagen')) 
+                            return { bg: 'bg-blue-500', icon: <Camera className="h-3 w-3 text-white" /> };
+                          if (action.toLowerCase().includes('diseño') || action.toLowerCase().includes('render')) 
+                            return { bg: 'bg-purple-500', icon: <Palette className="h-3 w-3 text-white" /> };
+                          if (action.toLowerCase().includes('estado') || action.toLowerCase().includes('cambio')) 
+                            return { bg: 'bg-orange-500', icon: <RefreshCw className="h-3 w-3 text-white" /> };
+                          return { bg: 'bg-slate-500', icon: <Clock className="h-3 w-3 text-white" /> };
+                        };
+                        const style = getActionStyle(entry.action);
+                        return (
+                          <div key={entry.id} className="relative flex items-start gap-4 pl-8">
+                            {/* Punto del timeline */}
+                            <div className={`absolute left-2 w-5 h-5 rounded-full ${style.bg} flex items-center justify-center shadow-md`}>
+                              {style.icon}
+                            </div>
+                            {/* Contenido */}
+                            <div className="flex-1 bg-white border rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow">
+                              <div className="flex items-start justify-between gap-2">
+                                <p className="text-sm font-semibold text-gray-800">{entry.action}</p>
+                                <span className="text-xs text-gray-400 whitespace-nowrap">
+                                  {new Date(entry.createdAt).toLocaleDateString("es-CO", { day: '2-digit', month: 'short' })}
+                                </span>
+                              </div>
+                              {entry.notes && (
+                                <p className="text-sm text-gray-600 mt-1 bg-gray-50 rounded p-2 italic">
+                                  "{entry.notes}"
+                                </p>
+                              )}
+                              <div className="flex items-center gap-2 mt-2 text-xs text-gray-400">
+                                <Clock className="h-3 w-3" />
+                                {new Date(entry.createdAt).toLocaleTimeString("es-CO", { hour: '2-digit', minute: '2-digit' })}
+                                {entry.user && (
+                                  <>
+                                    <span>•</span>
+                                    <User className="h-3 w-3" />
+                                    {entry.user.name}
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 ) : (
-                  <p className="text-sm text-muted-foreground">Sin historial</p>
+                  <div className="flex flex-col items-center justify-center py-12 text-center">
+                    <History className="h-16 w-16 text-gray-200 mb-4" />
+                    <p className="text-gray-400 font-medium">Sin historial aún</p>
+                    <p className="text-xs text-gray-300 mt-1">Los eventos del proyecto aparecerán aquí</p>
+                  </div>
                 )}
               </CardContent>
             </Card>

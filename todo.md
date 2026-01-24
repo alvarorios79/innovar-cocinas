@@ -2075,3 +2075,9 @@
 - [x] Agregar subcategoría "Modelado" en Diseños
 
 - [x] Mejorar títulos de fotos: más visibles, bonitos y con mayúscula inicial
+
+## Mejoras Visuales - Enero 24
+- [x] Historial del proyecto más gráfico y visual (timeline con iconos y colores)
+- [x] Contador de fotos junto a cada subcategoría
+- [x] Vista previa ampliada (lightbox) al hacer clic en fotos (ya existía)
+- [x] Indicador "Sin fotos" más visual cuando subcategoría está vacía

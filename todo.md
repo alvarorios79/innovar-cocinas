@@ -2066,3 +2066,7 @@
 - [x] Reorganizar categorías de fotos: 1.Cotización (solo PDF), 2.Medidas (Fotos Iniciales, Dibujo), 3.Diseños (Renders, Despieces, Detalles), 4.Avance (Corte, Enchape, Armado), 5.Instalación (Proceso), 6.Entrega (Fotos Finales)
 
 - [x] Super Admin puede eliminar fotos del proyecto con confirmación "¿Estás seguro?"
+
+- [ ] Diseñador puede ver fotos de Avance, Instalación y Entrega (proceso completo)
+
+- [x] Diseñador puede VER fotos de Avance, Instalación y Entrega (pero NO subir)

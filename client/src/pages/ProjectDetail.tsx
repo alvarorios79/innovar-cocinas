@@ -217,11 +217,11 @@ export default function ProjectDetail() {
           renders: ["super_admin", "admin", "disenador", "jefe_taller"],
           despieces: ["super_admin", "admin", "disenador", "jefe_taller", "operario"],
           detalles: ["super_admin", "admin", "disenador", "jefe_taller", "operario"],
-          corte: ["super_admin", "admin", "jefe_taller", "operario"],
-          enchape: ["super_admin", "admin", "jefe_taller", "operario"],
-          armado: ["super_admin", "admin", "jefe_taller", "operario"],
-          proceso_instalacion: ["super_admin", "admin", "jefe_taller", "operario"],
-          fotos_finales: ["super_admin", "admin", "jefe_taller", "operario"],
+          corte: ["super_admin", "admin", "disenador", "jefe_taller", "operario"],
+          enchape: ["super_admin", "admin", "disenador", "jefe_taller", "operario"],
+          armado: ["super_admin", "admin", "disenador", "jefe_taller", "operario"],
+          proceso_instalacion: ["super_admin", "admin", "disenador", "jefe_taller", "operario"],
+          fotos_finales: ["super_admin", "admin", "disenador", "jefe_taller", "operario"],
         };
         return viewPermissions[sub]?.includes(role || "") ?? false;
       });

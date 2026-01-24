@@ -865,6 +865,21 @@ export async function deleteTask(id: number) {
   await db.delete(tasks).where(eq(tasks.id, id));
 }
 
+export async function updateTaskReminderHistory(taskId: number, sentByUserId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  // Obtener el conteo actual de recordatorios
+  const task = await getTaskById(taskId);
+  const currentCount = task?.reminderCount || 0;
+
+  await db.update(tasks).set({
+    lastReminderSentAt: new Date(),
+    lastReminderSentBy: sentByUserId,
+    reminderCount: currentCount + 1,
+  }).where(eq(tasks.id, taskId));
+}
+
 // ============ PROJECT STATUS HISTORY ============
 
 export async function createProjectStatusHistory(history: InsertProjectStatusHistory) {

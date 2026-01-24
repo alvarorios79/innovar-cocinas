@@ -298,6 +298,10 @@ export const tasks = mysqlTable("tasks", {
   assignedTo: int("assignedTo").notNull().references(() => users.id),
   assignedBy: int("assignedBy").notNull().references(() => users.id),
   completedAt: timestamp("completedAt"),
+  // Historial de recordatorios
+  lastReminderSentAt: timestamp("lastReminderSentAt"),
+  lastReminderSentBy: int("lastReminderSentBy").references(() => users.id),
+  reminderCount: int("reminderCount").default(0).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

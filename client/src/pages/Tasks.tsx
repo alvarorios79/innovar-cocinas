@@ -27,6 +27,7 @@ import { RemindersPanel } from "@/components/RemindersPanel";
 import { NotificationBell } from "@/components/NotificationBell";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -65,6 +66,14 @@ export default function Tasks() {
   
   // Estados para selección múltiple
   const [selectedTasks, setSelectedTasks] = useState<number[]>([]);
+  
+  // Estado para confirmación de recordatorio
+  const [reminderConfirm, setReminderConfirm] = useState<{ open: boolean; taskId: number | null; taskTitle: string; assigneeName: string }>({
+    open: false,
+    taskId: null,
+    taskTitle: "",
+    assigneeName: ""
+  });
 
   const utils = trpc.useUtils();
   
@@ -349,6 +358,24 @@ export default function Tasks() {
                   <strong>Fecha límite:</strong> {new Date(task.dueDate).toLocaleDateString("es-CO")}
                 </p>
               )}
+              {/* Historial de recordatorios */}
+              {task.reminderCount > 0 && (
+                <div className="mt-2 pt-2 border-t border-dashed border-amber-200">
+                  <p className="flex items-center gap-1 text-amber-600">
+                    <Bell className="h-3 w-3" />
+                    <strong>Recordatorios enviados:</strong> {task.reminderCount}
+                  </p>
+                  {task.lastReminderSentAt && (
+                    <p className="text-amber-500">
+                      <strong>Último:</strong> {new Date(task.lastReminderSentAt).toLocaleString("es-CO", { 
+                        dateStyle: "short", 
+                        timeStyle: "short" 
+                      })}
+                      {task.lastReminderSentByUser && ` por ${task.lastReminderSentByUser.name}`}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
@@ -387,7 +414,12 @@ export default function Tasks() {
                 size="sm"
                 variant="ghost"
                 className="text-amber-600 hover:text-amber-700 hover:bg-amber-50"
-                onClick={() => sendReminder.mutate({ taskId: task.id })}
+                onClick={() => setReminderConfirm({
+                  open: true,
+                  taskId: task.id,
+                  taskTitle: task.title,
+                  assigneeName: task.assignedToUser?.name || "el usuario asignado"
+                })}
                 disabled={sendReminder.isPending}
               >
                 <Bell className="h-4 w-4 mr-1" />
@@ -641,6 +673,38 @@ export default function Tasks() {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* AlertDialog de confirmación para enviar recordatorio */}
+      <AlertDialog open={reminderConfirm.open} onOpenChange={(open) => setReminderConfirm({ ...reminderConfirm, open })}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Bell className="h-5 w-5 text-amber-500" />
+              Enviar Recordatorio
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              ¿Deseas enviar un recordatorio a <strong>{reminderConfirm.assigneeName}</strong> sobre la tarea:
+              <br />
+              <span className="font-medium text-foreground">"{reminderConfirm.taskTitle}"</span>?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-amber-600 hover:bg-amber-700"
+              onClick={() => {
+                if (reminderConfirm.taskId) {
+                  sendReminder.mutate({ taskId: reminderConfirm.taskId });
+                }
+                setReminderConfirm({ open: false, taskId: null, taskTitle: "", assigneeName: "" });
+              }}
+            >
+              <Bell className="h-4 w-4 mr-2" />
+              Sí, enviar recordatorio
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {/* Header */}
       <header className="border-b">
         <div className="container flex h-14 md:h-16 items-center justify-between px-3 md:px-4">

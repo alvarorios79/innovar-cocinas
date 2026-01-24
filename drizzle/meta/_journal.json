@@ -176,6 +176,13 @@
       "when": 1769281497525,
       "tag": "0024_round_arachne",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "5",
+      "when": 1769288078034,
+      "tag": "0025_unknown_jubilee",
+      "breakpoints": true
     }
   ]
 }

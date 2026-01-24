@@ -599,8 +599,11 @@ export const appRouter = router({
           throw new TRPCError({ code: "FORBIDDEN" });
         }
         
-        const appointments = await db.getAllAppointments();
-        const clients = await db.getAllClients();
+        // Optimización: ejecutar consultas en paralelo
+        const [appointments, clients] = await Promise.all([
+          db.getAllAppointments(),
+          db.getAllClients(),
+        ]);
         
         // Combinar datos de citas con clientes
         return appointments.map(apt => {
@@ -704,8 +707,11 @@ export const appRouter = router({
           throw new TRPCError({ code: "FORBIDDEN" });
         }
         
-        const requests = await db.getAllAdvisoryRequests();
-        const clients = await db.getAllClients();
+        // Optimización: ejecutar consultas en paralelo
+        const [requests, clients] = await Promise.all([
+          db.getAllAdvisoryRequests(),
+          db.getAllClients(),
+        ]);
         
         return requests.map(req => {
           const client = clients.find(c => c.id === req.clientId);
@@ -961,8 +967,11 @@ export const appRouter = router({
           throw new TRPCError({ code: "FORBIDDEN" });
         }
 
-        const quotations = await db.getAllQuotations();
-        const clients = await db.getAllClients();
+        // Optimización: ejecutar consultas en paralelo
+        const [quotations, clients] = await Promise.all([
+          db.getAllQuotations(),
+          db.getAllClients(),
+        ]);
 
         return quotations.map(quot => {
           const client = clients.find(c => c.id === quot.clientId);
@@ -2434,8 +2443,11 @@ export const appRouter = router({
           throw new TRPCError({ code: "FORBIDDEN" });
         }
         
-        const quotations = await db.getAllQuotations();
-        const clients = await db.getAllClients();
+        // Optimización: ejecutar consultas en paralelo
+        const [quotations, clients] = await Promise.all([
+          db.getAllQuotations(),
+          db.getAllClients(),
+        ]);
         
         return quotations.map(quot => {
           const client = clients.find(c => c.id === quot.clientId);
@@ -2798,17 +2810,16 @@ export const appRouter = router({
           throw new TRPCError({ code: "NOT_FOUND", message: "Proyecto no encontrado" });
         }
 
-        const client = await db.getClientById(project.clientId);
-        const photos = await db.getProjectPhotosByProjectId(input.id);
-        const details = await db.getProjectDetailsByProjectId(input.id);
-        const history = await db.getProjectStatusHistoryByProjectId(input.id);
-        const projectTasks = await db.getTasksByProjectId(input.id);
-        
-        // Obtener cotización asociada para información financiera
-        const quotation = project.quotationId ? await db.getQuotationById(project.quotationId) : null;
-        
-        // Obtener historial de pagos
-        const payments = await db.getProjectPaymentsByProjectId(input.id);
+        // Optimización: ejecutar consultas en paralelo
+        const [client, photos, details, history, projectTasks, quotation, payments] = await Promise.all([
+          db.getClientById(project.clientId),
+          db.getProjectPhotosByProjectId(input.id),
+          db.getProjectDetailsByProjectId(input.id),
+          db.getProjectStatusHistoryByProjectId(input.id),
+          db.getTasksByProjectId(input.id),
+          project.quotationId ? db.getQuotationById(project.quotationId) : Promise.resolve(null),
+          db.getProjectPaymentsByProjectId(input.id),
+        ]);
         const totalPaid = payments.reduce((sum, p) => sum + Number(p.amount), 0);
         
         // Calcular información financiera
@@ -3531,7 +3542,7 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
         );
         const projectMap = new Map(projectsInfo.filter(Boolean).map(p => [p!.id, p]));
 
-        // Obtener info de quién asignó
+        // Obtener info de quién asignó y quién envió el último recordatorio
         const allUsers = await db.getAllUsers();
         const userMap = new Map(allUsers.map(u => [u.id, u]));
 
@@ -3539,6 +3550,7 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
           ...t,
           project: t.projectId ? projectMap.get(t.projectId) : null,
           assignedByUser: userMap.get(t.assignedBy),
+          lastReminderSentByUser: t.lastReminderSentBy ? userMap.get(t.lastReminderSentBy) : null,
         }));
       }),
 
@@ -3550,8 +3562,11 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
           throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para ver todas las tareas" });
         }
 
-        const tasksList = await db.getAllTasks();
-        const allUsers = await db.getAllUsers();
+        // Optimización: ejecutar consultas en paralelo
+        const [tasksList, allUsers] = await Promise.all([
+          db.getAllTasks(),
+          db.getAllUsers(),
+        ]);
         const userMap = new Map(allUsers.map(u => [u.id, u]));
         
         // Obtener info de proyectos asociados
@@ -3566,6 +3581,7 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
           assignedToUser: userMap.get(t.assignedTo),
           assignedByUser: userMap.get(t.assignedBy),
           project: t.projectId ? projectMap.get(t.projectId) : null,
+          lastReminderSentByUser: t.lastReminderSentBy ? userMap.get(t.lastReminderSentBy) : null,
         }));
       }),
 
@@ -3674,6 +3690,9 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
         } catch (e) {
           // Silenciar error de push
         }
+
+        // Actualizar historial de recordatorios en la tarea
+        await db.updateTaskReminderHistory(input.taskId, ctx.user.id);
 
         return { success: true };
       }),

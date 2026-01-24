@@ -2094,3 +2094,33 @@
 - [x] Agregar botón "Enviar Recordatorio" para notificar a la persona asignada
 
 - [x] Agregar botón "Enviar Recordatorio" para notificar a la persona asignada
+
+
+## Mejoras de Tareas y Recordatorios - Enero 24, 2026
+
+### Confirmación de Recordatorios
+- [x] Implementar AlertDialog de confirmación antes de enviar recordatorio de tarea
+- [x] Mostrar nombre del asignado y título de la tarea en el diálogo
+- [x] Botones "Cancelar" y "Sí, enviar recordatorio" con estilo visual apropiado
+
+### Historial de Recordatorios
+- [x] Agregar campos lastReminderSentAt, lastReminderSentBy, reminderCount a tabla tasks
+- [x] Crear función updateTaskReminderHistory en db.ts
+- [x] Mostrar historial de recordatorios en cada tarjeta de tarea
+- [x] Mostrar contador de recordatorios enviados
+- [x] Mostrar fecha/hora y nombre de quien envió el último recordatorio
+
+### Sistema de Recordatorios Automáticos
+- [x] Crear archivo task-auto-reminders.ts con lógica de recordatorios automáticos
+- [x] Verificar tareas próximas a vencer (1 día antes, hoy, o vencidas hasta 3 días)
+- [x] Enviar notificaciones automáticas a usuarios asignados
+- [x] Evitar enviar múltiples recordatorios el mismo día
+- [x] Iniciar sistema automático al arrancar el servidor
+- [x] Verificación periódica cada hora
+
+### Optimización de Consultas
+- [x] Optimizar endpoint projects.getById con Promise.all (7 consultas en paralelo)
+- [x] Optimizar endpoint quotations.list con Promise.all
+- [x] Optimizar endpoint appointments.list con Promise.all
+- [x] Optimizar endpoint advisoryRequests.list con Promise.all
+- [x] Optimizar endpoint tasks.list con Promise.all

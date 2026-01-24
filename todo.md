@@ -2037,3 +2037,16 @@
 - [x] Crear archivo lib/formatters.ts con función formatPrice centralizada
 - [x] Actualizar archivos que usan formatPrice para importar desde lib/formatters (4 archivos)
 - [x] Agregar filtro de saldo pendiente en la lista de proyectos
+
+
+## Refactorización Pendiente (Para futuro)
+- [ ] Dividir server/routers.ts (4,281 líneas) en módulos separados:
+  - [ ] server/routers/auth.ts (ya existe parcialmente)
+  - [ ] server/routers/clients.ts (ya existe parcialmente)
+  - [ ] server/routers/appointments.ts (ya existe parcialmente)
+  - [ ] server/routers/quotations.ts
+  - [ ] server/routers/projects.ts
+  - [ ] server/routers/tasks.ts
+  - [ ] server/routers/hardware.ts
+  - [ ] server/routers/index.ts (combinar todos)
+- Nota: Esta refactorización se pospuso para evitar riesgos de estabilidad. El sistema funciona correctamente.

@@ -16,7 +16,11 @@ import {
   Bell,
   Users,
   Eye,
-  Trash2
+  Trash2,
+  ArrowUpDown,
+  Calendar,
+  ArrowUp,
+  ArrowDown
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RemindersPanel } from "@/components/RemindersPanel";
@@ -47,6 +51,7 @@ export default function Tasks() {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [userFilter, setUserFilter] = useState<string>("all");
+  const [sortOrder, setSortOrder] = useState<string>("fecha_limite");
   const [activeTab, setActiveTab] = useState<string>("mis-tareas");
   
   const [createForm, setCreateForm] = useState({
@@ -98,6 +103,15 @@ export default function Tasks() {
     },
     onError: (error) => {
       toast.error(error.message || "Error al actualizar estado");
+    },
+  });
+
+  const sendReminder = trpc.tasks.sendReminder.useMutation({
+    onSuccess: () => {
+      toast.success("Recordatorio enviado correctamente");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Error al enviar recordatorio");
     },
   });
 
@@ -172,7 +186,7 @@ export default function Tasks() {
     });
   };
 
-  // Filtrar tareas según el tab activo
+  // Filtrar y ordenar tareas
   const getFilteredTasks = (tasks: any[]) => {
     let filtered = tasks;
     
@@ -182,6 +196,36 @@ export default function Tasks() {
     
     if (userFilter !== "all") {
       filtered = filtered.filter((t: any) => t.assignedTo === parseInt(userFilter));
+    }
+    
+    // Ordenar según la opción seleccionada
+    const priorityOrder = { alta: 1, media: 2, baja: 3 };
+    
+    switch (sortOrder) {
+      case "fecha_limite":
+        filtered = [...filtered].sort((a, b) => {
+          if (!a.dueDate && !b.dueDate) return 0;
+          if (!a.dueDate) return 1;
+          if (!b.dueDate) return -1;
+          return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+        });
+        break;
+      case "prioridad":
+        filtered = [...filtered].sort((a, b) => {
+          return (priorityOrder[a.priority as keyof typeof priorityOrder] || 4) - 
+                 (priorityOrder[b.priority as keyof typeof priorityOrder] || 4);
+        });
+        break;
+      case "recientes":
+        filtered = [...filtered].sort((a, b) => {
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        });
+        break;
+      case "antiguas":
+        filtered = [...filtered].sort((a, b) => {
+          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+        });
+        break;
     }
     
     return filtered;
@@ -337,6 +381,19 @@ export default function Tasks() {
                 Completada
               </Badge>
             )}
+            {/* Botón de recordatorio - solo para tareas no completadas y si el usuario puede enviar */}
+            {task.status !== "completada" && (task.assignedBy === user?.id || user?.role === "admin" || user?.role === "super_admin") && (
+              <Button
+                size="sm"
+                variant="ghost"
+                className="text-amber-600 hover:text-amber-700 hover:bg-amber-50"
+                onClick={() => sendReminder.mutate({ taskId: task.id })}
+                disabled={sendReminder.isPending}
+              >
+                <Bell className="h-4 w-4 mr-1" />
+                Recordar
+              </Button>
+            )}
           </div>
           </div>
         </div>
@@ -408,6 +465,40 @@ export default function Tasks() {
           <SelectItem value="pendiente">Pendientes</SelectItem>
           <SelectItem value="en_progreso">En Progreso</SelectItem>
           <SelectItem value="completada">Completadas</SelectItem>
+        </SelectContent>
+      </Select>
+
+      {/* Selector de ordenamiento */}
+      <Select value={sortOrder} onValueChange={setSortOrder}>
+        <SelectTrigger className="w-[160px]">
+          <ArrowUpDown className="h-4 w-4 mr-2" />
+          <SelectValue placeholder="Ordenar por" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="fecha_limite">
+            <span className="flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              Fecha límite
+            </span>
+          </SelectItem>
+          <SelectItem value="prioridad">
+            <span className="flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4" />
+              Prioridad
+            </span>
+          </SelectItem>
+          <SelectItem value="recientes">
+            <span className="flex items-center gap-2">
+              <ArrowDown className="h-4 w-4" />
+              Más recientes
+            </span>
+          </SelectItem>
+          <SelectItem value="antiguas">
+            <span className="flex items-center gap-2">
+              <ArrowUp className="h-4 w-4" />
+              Más antiguas
+            </span>
+          </SelectItem>
         </SelectContent>
       </Select>
 

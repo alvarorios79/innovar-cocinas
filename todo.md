@@ -2087,3 +2087,10 @@
 ## Mejoras Historial - Enero 24
 - [x] Corregir historial para usar campos correctos (fromStatus, toStatus en lugar de action)
 - [ ] Implementar paginación en el historial para proyectos con muchos eventos
+
+## Panel de Tareas - Enero 24
+- [x] Mejorar visualización: mostrar título de tarea prominente, prioridad y estado como botones (ya estaba correcto)
+- [x] Agregar selector de ordenamiento: fecha límite, prioridad, más recientes, más antiguas
+- [x] Agregar botón "Enviar Recordatorio" para notificar a la persona asignada
+
+- [x] Agregar botón "Enviar Recordatorio" para notificar a la persona asignada

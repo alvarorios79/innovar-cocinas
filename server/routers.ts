@@ -3620,6 +3620,64 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
         return { success: true };
       }),
 
+    // Enviar recordatorio de tarea
+    sendReminder: protectedProcedure
+      .input(z.object({ taskId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const task = await db.getTaskById(input.taskId);
+        if (!task) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Tarea no encontrada" });
+        }
+
+        // Solo quien creó la tarea, admin o super_admin puede enviar recordatorio
+        if (task.assignedBy !== ctx.user.id && ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para enviar recordatorio de esta tarea" });
+        }
+
+        // No enviar recordatorio si la tarea ya está completada
+        if (task.status === "completada") {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "No se puede enviar recordatorio de una tarea completada" });
+        }
+
+        // Crear notificación de recordatorio
+        const priorityLabels: Record<string, string> = {
+          alta: "🔴 Alta",
+          media: "🟡 Media",
+          baja: "🟢 Baja",
+        };
+
+        let notificationBody = `${ctx.user.name || "Un administrador"} te envía un recordatorio sobre la tarea: "${task.title}"`;
+        notificationBody += `\nPrioridad: ${priorityLabels[task.priority] || task.priority}`;
+        notificationBody += `\nEstado actual: ${task.status === "pendiente" ? "Pendiente" : "En Progreso"}`;
+        if (task.dueDate) {
+          notificationBody += `\nFecha límite: ${new Date(task.dueDate).toLocaleDateString("es-CO")}`;
+        }
+
+        await db.createNotification({
+          userId: task.assignedTo,
+          title: "⏰ Recordatorio de tarea",
+          body: notificationBody,
+          type: "tarea",
+          referenceId: task.id,
+          referenceType: "task",
+        });
+
+        // Intentar enviar notificación push
+        try {
+          const { createAndSendNotification } = await import("./push-notifications");
+          await createAndSendNotification(task.assignedTo, {
+            title: "⏰ Recordatorio de tarea",
+            body: `${ctx.user.name || "Alguien"} te recuerda: ${task.title}`,
+            type: "tarea",
+            url: "/tasks",
+          });
+        } catch (e) {
+          // Silenciar error de push
+        }
+
+        return { success: true };
+      }),
+
     // Obtener usuarios a los que puedo asignar tareas (solo equipo de trabajo)
     getAssignableUsers: protectedProcedure
       .query(async ({ ctx }) => {

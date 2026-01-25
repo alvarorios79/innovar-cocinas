@@ -2149,3 +2149,12 @@
 - [x] Jefe de taller solo puede eliminar tareas que estén completadas
 - [x] Actualizar la UI para reflejar estos permisos
 - [x] Tests unitarios para permisos del jefe de taller
+
+
+## Ocultar Información Financiera - Enero 24, 2026
+
+- [x] Ocultar precios, costos y abonos en proyectos para jefe_taller y disenador
+- [x] Ocultar información de cotización para estos roles
+- [x] Mantener visible solo información operativa (cliente, fechas, estado, fotos)
+- [x] Ocultar comprobante de pago y PDF de cotización
+- [x] Ocultar historial de pagos y progreso de pago

@@ -438,7 +438,7 @@ export function ProjectInlineDetail({
             </Card>
 
             {/* Información Financiera Simple - Solo si ya pagó el 60% */}
-            {user?.role !== "disenador" && PAID_ADVANCE_STATUSES.includes(projectDetail.status) && (() => {
+            {user?.role !== "disenador" && user?.role !== "jefe_taller" && PAID_ADVANCE_STATUSES.includes(projectDetail.status) && (() => {
               // Calcular valores financieros directamente
               const quotationTotal = (projectDetail as any).quotation?.total ? Number((projectDetail as any).quotation.total) : 0;
               const projectAdvance = projectDetail.advanceAmount ? Number(projectDetail.advanceAmount) : 0;
@@ -528,10 +528,10 @@ export function ProjectInlineDetail({
               </CardHeader>
               <CardContent className="text-sm space-y-1">
                 <p><strong>Creado:</strong> {new Date(projectDetail.createdAt).toLocaleDateString("es-CO")}</p>
-                {projectDetail.quotationApprovedAt && user?.role !== "disenador" && (
+                {projectDetail.quotationApprovedAt && user?.role !== "disenador" && user?.role !== "jefe_taller" && (
                   <p><strong>Cotización aprobada:</strong> {new Date(projectDetail.quotationApprovedAt).toLocaleDateString("es-CO")}</p>
                 )}
-                {projectDetail.advanceReceivedAt && user?.role !== "disenador" && (
+                {projectDetail.advanceReceivedAt && user?.role !== "disenador" && user?.role !== "jefe_taller" && (
                   <p><strong>Adelanto recibido:</strong> {new Date(projectDetail.advanceReceivedAt).toLocaleDateString("es-CO")}</p>
                 )}
                 {projectDetail.estimatedInstallDate && projectDetail.status !== "entregado" && (
@@ -553,7 +553,7 @@ export function ProjectInlineDetail({
           </div>
 
           {/* Información Financiera Prominente - Solo si ya pagó el 60% y hay total de cotización */}
-          {user?.role !== "disenador" && PAID_ADVANCE_STATUSES.includes(projectDetail.status) && (projectDetail as any).financialInfo && (projectDetail as any).financialInfo.totalAmount > 0 && (
+          {user?.role !== "disenador" && user?.role !== "jefe_taller" && PAID_ADVANCE_STATUSES.includes(projectDetail.status) && (projectDetail as any).financialInfo && (projectDetail as any).financialInfo.totalAmount > 0 && (
             <Card className={`border-2 ${
               projectDetail.status === "entregado" && (projectDetail as any).financialInfo.remainingAmount > 0
                 ? "border-red-400 bg-red-50"
@@ -673,7 +673,7 @@ export function ProjectInlineDetail({
           )}
 
           {/* Comprobante de pago y PDF de cotización - Solo si ya pagó el 60% */}
-          {user?.role !== "disenador" && PAID_ADVANCE_STATUSES.includes(projectDetail.status) && (
+          {user?.role !== "disenador" && user?.role !== "jefe_taller" && PAID_ADVANCE_STATUSES.includes(projectDetail.status) && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {projectDetail.advanceReceiptUrl && (
                 <Card className="bg-green-50 border-green-200">

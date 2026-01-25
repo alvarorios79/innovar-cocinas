@@ -384,10 +384,10 @@ export function ProjectCard({
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
                     <p><strong>Creado:</strong> {new Date(detail.createdAt).toLocaleDateString("es-CO")}</p>
-                    {detail.quotationApprovedAt && user?.role !== "disenador" && (
+                    {detail.quotationApprovedAt && user?.role !== "disenador" && user?.role !== "jefe_taller" && (
                       <p><strong>Cotización aprobada:</strong> {new Date(detail.quotationApprovedAt).toLocaleDateString("es-CO")}</p>
                     )}
-                    {detail.advanceReceivedAt && user?.role !== "disenador" && (
+                    {detail.advanceReceivedAt && user?.role !== "disenador" && user?.role !== "jefe_taller" && (
                       <p><strong>Adelanto recibido:</strong> {new Date(detail.advanceReceivedAt).toLocaleDateString("es-CO")}</p>
                     )}
                     {detail.designDeadline && (
@@ -427,7 +427,7 @@ export function ProjectCard({
 
                   {/* Comprobante y PDF de cotización */}
                   <div className="mt-3 flex flex-wrap gap-2">
-                    {detail.advanceReceiptUrl && user?.role !== "disenador" && (
+                    {detail.advanceReceiptUrl && user?.role !== "disenador" && user?.role !== "jefe_taller" && (
                       <a 
                         href={detail.advanceReceiptUrl} 
                         target="_blank" 
@@ -438,7 +438,7 @@ export function ProjectCard({
                         Ver comprobante
                       </a>
                     )}
-                    {(detail as any).quotationPdfUrl && user?.role !== "disenador" && (
+                    {(detail as any).quotationPdfUrl && user?.role !== "disenador" && user?.role !== "jefe_taller" && (
                       <a 
                         href={(detail as any).quotationPdfUrl} 
                         target="_blank" 

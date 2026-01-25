@@ -832,16 +832,16 @@ export default function Projects() {
                     </CardHeader>
                     <CardContent className="text-sm space-y-2">
                       <p><strong>Creado:</strong> {new Date(projectDetail.createdAt).toLocaleDateString("es-CO")}</p>
-                      {projectDetail.quotationSentAt && user?.role !== "disenador" && (
+                      {projectDetail.quotationSentAt && user?.role !== "disenador" && user?.role !== "jefe_taller" && (
                         <p><strong>Cotización enviada:</strong> {new Date(projectDetail.quotationSentAt).toLocaleDateString("es-CO")}</p>
                       )}
-                      {projectDetail.quotationApprovedAt && user?.role !== "disenador" && (
+                      {projectDetail.quotationApprovedAt && user?.role !== "disenador" && user?.role !== "jefe_taller" && (
                         <p><strong>Cotización aprobada:</strong> {new Date(projectDetail.quotationApprovedAt).toLocaleDateString("es-CO")}</p>
                       )}
-                      {projectDetail.advanceReceivedAt && user?.role !== "disenador" && (
+                      {projectDetail.advanceReceivedAt && user?.role !== "disenador" && user?.role !== "jefe_taller" && (
                         <p><strong>Adelanto recibido:</strong> {new Date(projectDetail.advanceReceivedAt).toLocaleDateString("es-CO")}</p>
                       )}
-                      {projectDetail.advanceReceiptUrl && user?.role !== "disenador" && (
+                      {projectDetail.advanceReceiptUrl && user?.role !== "disenador" && user?.role !== "jefe_taller" && (
                         <div className="mt-2 p-2 bg-green-50 rounded-lg">
                           <p className="text-sm font-medium text-green-800 mb-1">Comprobante de pago:</p>
                           <a 
@@ -855,7 +855,7 @@ export default function Projects() {
                           </a>
                         </div>
                       )}
-                      {(projectDetail as any).quotationPdfUrl && user?.role !== "disenador" && (
+                      {(projectDetail as any).quotationPdfUrl && user?.role !== "disenador" && user?.role !== "jefe_taller" && (
                         <div className="mt-2 p-2 bg-blue-50 rounded-lg">
                           <p className="text-sm font-medium text-blue-800 mb-1">Cotización aprobada:</p>
                           <a 

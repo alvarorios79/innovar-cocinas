@@ -2229,3 +2229,11 @@
 - [x] Agregar "despiece" a la lista de estados visibles para jefe de taller
 - [x] Agregar "instalacion_programada" para que vea proyectos hasta la entrega
 - [x] Separar filtros de jefe_taller y operario para mayor claridad
+
+
+## Ajuste Filtro Jefe de Taller - Enero 24, 2026
+
+- [x] Agregar estado "pendiente_cliente" (Diseño Listo) para que vea proyectos terminados por diseñador
+- [x] Agregar estado "aprobacion_final" para proyectos aprobados por cliente
+- [x] Agregar estado "entregado" para ver historial de proyectos completados
+- [x] Jefe de taller ahora ve: pendiente_cliente → aprobacion_final → despiece → corte → enchape → ensamble → listo_instalacion → instalacion_programada → entregado

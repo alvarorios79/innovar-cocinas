@@ -2784,10 +2784,10 @@ export const appRouter = router({
           );
         }
 
-        // Jefe de taller ve proyectos desde despiece hasta instalación programada
+        // Jefe de taller ve proyectos desde diseño listo hasta entregado
         if (role === "jefe_taller") {
           projectsList = projectsList.filter(p => 
-            ["despiece", "corte", "enchape", "ensamble", "listo_instalacion", "instalacion_programada"].includes(p.status)
+            ["pendiente_cliente", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "instalacion_programada", "entregado"].includes(p.status)
           );
         }
         

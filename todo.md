@@ -2131,3 +2131,13 @@
 - [x] Agregar filtro en lista de tareas para mostrar solo vencidas o próximas a vencer
 - [x] Opciones de filtro: Todas las fechas, Urgentes (vencidas/hoy), Vencidas, Vencen hoy, Próximas (3 días)
 - [x] Indicador visual del filtro activo (borde y fondo ámbar cuando hay filtro aplicado)
+
+
+## Reasignación Masiva de Tareas - Enero 24, 2026
+
+- [x] Crear endpoint tRPC tasks.bulkReassign para reasignar múltiples tareas
+- [x] Validar permisos de reasignación según rol del usuario (super_admin, admin, comercial, jefe_taller)
+- [x] Agregar botón de reasignación masiva en la UI cuando hay tareas seleccionadas
+- [x] Crear diálogo para seleccionar el nuevo usuario asignado
+- [x] Mostrar confirmación y notificar al nuevo asignado
+- [x] Tests unitarios para el endpoint bulkReassign

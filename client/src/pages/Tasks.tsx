@@ -76,6 +76,10 @@ export default function Tasks() {
     assigneeName: ""
   });
 
+  // Estado para reasignación masiva
+  const [showReassignDialog, setShowReassignDialog] = useState(false);
+  const [reassignTo, setReassignTo] = useState<string>("");
+
   const utils = trpc.useUtils();
   
   // Verificar si el usuario puede ver todas las tareas
@@ -138,6 +142,29 @@ export default function Tasks() {
     },
   });
 
+  const bulkReassign = trpc.tasks.bulkReassign.useMutation({
+    onSuccess: (result) => {
+      utils.tasks.getMyTasks.invalidate();
+      if (canViewAllTasks) {
+        utils.tasks.list.invalidate();
+      }
+      if (result.reassignedCount === result.totalRequested) {
+        toast.success(`${result.reassignedCount} ${result.reassignedCount === 1 ? 'tarea reasignada' : 'tareas reasignadas'} a ${result.newAssigneeName}`);
+      } else {
+        toast.warning(`${result.reassignedCount} de ${result.totalRequested} tareas reasignadas a ${result.newAssigneeName}`);
+        if (result.errors) {
+          result.errors.forEach(err => toast.error(err));
+        }
+      }
+      setSelectedTasks([]);
+      setShowReassignDialog(false);
+      setReassignTo("");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Error al reasignar tareas");
+    },
+  });
+
   // Funciones para selección múltiple
   const toggleSelectTask = (id: number) => {
     setSelectedTasks(prev => 
@@ -167,6 +194,18 @@ export default function Tasks() {
       setSelectedTasks([]);
     }
   };
+
+  const handleBulkReassign = () => {
+    if (selectedTasks.length === 0 || !reassignTo) return;
+    
+    bulkReassign.mutate({
+      taskIds: selectedTasks,
+      newAssignedTo: parseInt(reassignTo),
+    });
+  };
+
+  // Verificar si el usuario puede reasignar tareas
+  const canReassignTasks = ["super_admin", "admin", "comercial", "jefe_taller"].includes(user?.role || "");
 
   if (loading) {
     return <div className="flex items-center justify-center min-h-screen">Cargando...</div>;
@@ -503,14 +542,27 @@ export default function Tasks() {
             </span>
           </div>
           {selectedTasks.length > 0 && (
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={() => handleBulkDelete(tasks)}
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              Eliminar ({selectedTasks.length})
-            </Button>
+            <div className="flex items-center gap-2">
+              {canReassignTasks && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowReassignDialog(true)}
+                  className="border-blue-500 text-blue-600 hover:bg-blue-50"
+                >
+                  <Users className="mr-2 h-4 w-4" />
+                  Reasignar ({selectedTasks.length})
+                </Button>
+              )}
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => handleBulkDelete(tasks)}
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Eliminar ({selectedTasks.length})
+              </Button>
+            </div>
           )}
         </div>
         
@@ -772,6 +824,78 @@ export default function Tasks() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Diálogo de reasignación masiva */}
+      <Dialog open={showReassignDialog} onOpenChange={setShowReassignDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5 text-blue-500" />
+              Reasignar Tareas
+            </DialogTitle>
+            <DialogDescription>
+              Selecciona el usuario al que deseas reasignar las {selectedTasks.length} {selectedTasks.length === 1 ? 'tarea seleccionada' : 'tareas seleccionadas'}.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="reassign-user">Asignar a</Label>
+              <Select value={reassignTo} onValueChange={setReassignTo}>
+                <SelectTrigger id="reassign-user">
+                  <SelectValue placeholder="Selecciona un usuario" />
+                </SelectTrigger>
+                <SelectContent>
+                  {assignableUsers.map((u: any) => (
+                    <SelectItem key={u.id} value={u.id.toString()}>
+                      <div className="flex items-center gap-2">
+                        <User className="h-4 w-4" />
+                        <span>{u.name}</span>
+                        <Badge variant="outline" className="text-xs ml-2">
+                          {getRoleLabel(u.role)}
+                        </Badge>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="bg-muted p-3 rounded-lg">
+              <p className="text-sm text-muted-foreground">
+                <strong>Nota:</strong> Las tareas completadas no serán reasignadas. El nuevo asignado recibirá una notificación por cada tarea.
+              </p>
+            </div>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowReassignDialog(false);
+                setReassignTo("");
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleBulkReassign}
+              disabled={!reassignTo || bulkReassign.isPending}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              {bulkReassign.isPending ? (
+                <>
+                  <Clock className="h-4 w-4 mr-2 animate-spin" />
+                  Reasignando...
+                </>
+              ) : (
+                <>
+                  <Users className="h-4 w-4 mr-2" />
+                  Reasignar {selectedTasks.length} {selectedTasks.length === 1 ? 'tarea' : 'tareas'}
+                </>
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Header */}
       <header className="border-b">

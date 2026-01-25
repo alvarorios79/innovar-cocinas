@@ -3697,6 +3697,92 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
         return { success: true };
       }),
 
+    // Reasignar múltiples tareas a otro usuario
+    bulkReassign: protectedProcedure
+      .input(z.object({
+        taskIds: z.array(z.number()).min(1, "Debes seleccionar al menos una tarea"),
+        newAssignedTo: z.number(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        // Verificar que el usuario puede reasignar tareas
+        const canReassignRoles = ["super_admin", "admin", "comercial", "jefe_taller"];
+        if (!canReassignRoles.includes(ctx.user.role)) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para reasignar tareas" });
+        }
+
+        // Verificar que el nuevo asignado es válido
+        const newAssignee = await db.getUserById(input.newAssignedTo);
+        if (!newAssignee) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Usuario no encontrado" });
+        }
+
+        // Verificar que el nuevo asignado es del equipo de trabajo
+        const workTeamRoles = ["super_admin", "comercial", "disenador", "jefe_taller", "operario"];
+        if (!workTeamRoles.includes(newAssignee.role)) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Solo puedes reasignar tareas a miembros del equipo de trabajo" });
+        }
+
+        // Reasignar cada tarea
+        let reassignedCount = 0;
+        const errors: string[] = [];
+
+        for (const taskId of input.taskIds) {
+          try {
+            const task = await db.getTaskById(taskId);
+            if (!task) {
+              errors.push(`Tarea ${taskId} no encontrada`);
+              continue;
+            }
+
+            // No reasignar tareas completadas
+            if (task.status === "completada") {
+              errors.push(`Tarea "${task.title}" ya está completada`);
+              continue;
+            }
+
+            // Actualizar la tarea
+            await db.updateTask(taskId, {
+              assignedTo: input.newAssignedTo,
+            });
+
+            reassignedCount++;
+
+            // Crear notificación para el nuevo asignado
+            await db.createNotification({
+              userId: input.newAssignedTo,
+              title: "📝 Nueva tarea asignada",
+              body: `${ctx.user.name || "Un administrador"} te ha reasignado la tarea: "${task.title}"`,
+              type: "tarea",
+              referenceId: taskId,
+              referenceType: "task",
+            });
+
+            // Intentar enviar notificación push
+            try {
+              const { createAndSendNotification } = await import("./push-notifications");
+              await createAndSendNotification(input.newAssignedTo, {
+                title: "📝 Nueva tarea asignada",
+                body: `${ctx.user.name || "Alguien"} te ha reasignado: ${task.title}`,
+                type: "tarea",
+                url: "/tasks",
+              });
+            } catch (e) {
+              // Silenciar error de push
+            }
+          } catch (e) {
+            errors.push(`Error al reasignar tarea ${taskId}`);
+          }
+        }
+
+        return {
+          success: reassignedCount > 0,
+          reassignedCount,
+          totalRequested: input.taskIds.length,
+          errors: errors.length > 0 ? errors : undefined,
+          newAssigneeName: newAssignee.name,
+        };
+      }),
+
     // Obtener usuarios a los que puedo asignar tareas (solo equipo de trabajo)
     getAssignableUsers: protectedProcedure
       .query(async ({ ctx }) => {

@@ -387,10 +387,16 @@ export function DailyMotivation({ userName, className = "", userBirthDate }: Dai
   const today = new Date();
   
   // Verificar si hoy es el cumpleaños del usuario
+  // Usamos UTC para evitar problemas de zona horaria ya que birthDate viene como UTC
   const isBirthday = useMemo(() => {
     if (!userBirthDate) return false;
     const birthDate = new Date(userBirthDate);
-    return birthDate.getMonth() === today.getMonth() && birthDate.getDate() === today.getDate();
+    // Comparar usando UTC para evitar problemas de zona horaria
+    const birthMonth = birthDate.getUTCMonth();
+    const birthDay = birthDate.getUTCDate();
+    const todayMonth = today.getMonth();
+    const todayDay = today.getDate();
+    return birthMonth === todayMonth && birthDay === todayDay;
   }, [userBirthDate, today.toDateString()]);
   
   const { phrase, title, isSpecial, icon, isBirthdayMessage } = useMemo(() => {

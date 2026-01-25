@@ -2412,3 +2412,10 @@
   - Notificación en la app con título "✨ Cliente Confirmado - Iniciar Diseño"
   - Notificación push con título "✨ Nuevo Proyecto para Diseñar"
   - Incluye enlace directo al proyecto
+
+
+## Bug: Campanillas Duplicadas en Móvil (Enero 2026)
+
+- [x] Corregir las 2 campanillas (iconos de notificación) duplicadas en el panel del diseñador en vista móvil (iPhone)
+  - Eliminado NotificationBell duplicado del componente MobileNav
+  - El NotificationBell ahora solo se muestra una vez en el header del TeamDashboard

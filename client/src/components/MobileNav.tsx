@@ -92,7 +92,7 @@ export function MobileNav() {
 
   return (
     <div className="flex items-center gap-2 md:hidden">
-      {isAuthenticated && <NotificationBell />}
+      {/* NotificationBell removido aquí - ya se muestra en el componente padre */}
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetTrigger asChild>
           <Button variant="ghost" size="icon" className="md:hidden">

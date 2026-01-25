@@ -1,5 +1,6 @@
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 import { Sparkles, Heart, Star, Sun, Gift, PartyPopper } from "lucide-react";
+import confetti from "canvas-confetti";
 
 // Celebraciones especiales por fecha (mes-día)
 const SPECIAL_DATES: Record<string, { title: string; phrases: string[]; icon: "heart" | "gift" | "party" | "star" }> = {
@@ -449,6 +450,73 @@ export function DailyMotivation({ userName, className = "", userBirthDate }: Dai
       default: return isSpecial ? Sparkles : Sun;
     }
   }, [icon, isSpecial]);
+
+  // Efecto de lluvia de confeti para cumpleaños
+  useEffect(() => {
+    if (isBirthday && userName) {
+      // Función para lanzar confeti desde los lados
+      const launchConfetti = () => {
+        // Confeti desde la izquierda
+        confetti({
+          particleCount: 100,
+          spread: 70,
+          origin: { x: 0, y: 0.6 },
+          colors: ['#ff69b4', '#ffd700', '#ff6347', '#00ced1', '#9370db', '#ff1493'],
+          shapes: ['square', 'circle'],
+          scalar: 1.2,
+        });
+        
+        // Confeti desde la derecha
+        confetti({
+          particleCount: 100,
+          spread: 70,
+          origin: { x: 1, y: 0.6 },
+          colors: ['#ff69b4', '#ffd700', '#ff6347', '#00ced1', '#9370db', '#ff1493'],
+          shapes: ['square', 'circle'],
+          scalar: 1.2,
+        });
+      };
+
+      // Lanzar confeti inmediatamente
+      launchConfetti();
+      
+      // Lanzar más confeti después de un momento para efecto más dramático
+      const timer1 = setTimeout(() => {
+        confetti({
+          particleCount: 50,
+          spread: 100,
+          origin: { x: 0.5, y: 0.3 },
+          colors: ['#ff69b4', '#ffd700', '#ff6347', '#00ced1', '#9370db'],
+          shapes: ['square', 'circle'],
+          scalar: 1.5,
+        });
+      }, 300);
+      
+      const timer2 = setTimeout(() => {
+        confetti({
+          particleCount: 75,
+          spread: 120,
+          origin: { x: 0.3, y: 0.5 },
+          colors: ['#ff69b4', '#ffd700', '#ff1493', '#00ff7f'],
+          shapes: ['square'],
+          scalar: 1.3,
+        });
+        confetti({
+          particleCount: 75,
+          spread: 120,
+          origin: { x: 0.7, y: 0.5 },
+          colors: ['#ff69b4', '#ffd700', '#ff1493', '#00ff7f'],
+          shapes: ['square'],
+          scalar: 1.3,
+        });
+      }, 600);
+
+      return () => {
+        clearTimeout(timer1);
+        clearTimeout(timer2);
+      };
+    }
+  }, [isBirthday, userName]);
 
   return (
     <div className={`relative overflow-hidden rounded-xl ${className}`}>

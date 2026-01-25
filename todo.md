@@ -2552,3 +2552,10 @@
   - Servicio birthday-service.ts creado
   - Se ejecuta automáticamente a las 8am
   - Envía notificación en la app y push
+
+## Lluvia de Confeti para Cumpleaños
+
+- [ ] Instalar librería canvas-confetti
+- [ ] Implementar efecto de lluvia de confeti/serpentinas al abrir la app el día del cumpleaños
+- [ ] El confeti debe aparecer cada vez que se abre la app (no solo una vez)
+

@@ -1353,7 +1353,7 @@ export default function Projects() {
                           {folderPhotos.length === 0 ? (
                             <p className="text-sm text-muted-foreground">Sin fotos en esta carpeta</p>
                           ) : (
-                            <div className="grid grid-cols-3 gap-2">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                               {folderPhotos.map((photo: any, photoIndex: number) => {
                                 const isPdf = photo.photoUrl.toLowerCase().endsWith('.pdf');
                                 return (

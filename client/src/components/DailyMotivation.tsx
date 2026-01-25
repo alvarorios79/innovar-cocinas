@@ -371,12 +371,42 @@ function formatDateKey(date: Date): string {
 interface DailyMotivationProps {
   userName?: string;
   className?: string;
+  userBirthDate?: Date | null;
 }
 
-export function DailyMotivation({ userName, className = "" }: DailyMotivationProps) {
+// Frases de cumpleaños personalizadas
+const BIRTHDAY_PHRASES = [
+  "¡Feliz cumpleaños, {name}! 🎂 Que este día esté lleno de alegría y bendiciones",
+  "¡Hoy es tu día especial, {name}! 🎉 Celebramos contigo otro año de vida",
+  "¡Felicidades {name}! 🎁 Que todos tus sueños se hagan realidad",
+  "¡Feliz cumpleaños! 🎈 Gracias por ser parte de la familia INNOVAR, {name}",
+  "¡Que este nuevo año de vida te traiga mucha felicidad, {name}! 🌟",
+];
+
+export function DailyMotivation({ userName, className = "", userBirthDate }: DailyMotivationProps) {
   const today = new Date();
   
-  const { phrase, title, isSpecial, icon } = useMemo(() => {
+  // Verificar si hoy es el cumpleaños del usuario
+  const isBirthday = useMemo(() => {
+    if (!userBirthDate) return false;
+    const birthDate = new Date(userBirthDate);
+    return birthDate.getMonth() === today.getMonth() && birthDate.getDate() === today.getDate();
+  }, [userBirthDate, today.toDateString()]);
+  
+  const { phrase, title, isSpecial, icon, isBirthdayMessage } = useMemo(() => {
+    // Prioridad 1: Cumpleaños del usuario
+    if (isBirthday && userName) {
+      const randomIndex = getDayOfYear(today) % BIRTHDAY_PHRASES.length;
+      const birthdayPhrase = BIRTHDAY_PHRASES[randomIndex].replace(/{name}/g, userName.split(' ')[0]);
+      return {
+        phrase: birthdayPhrase,
+        title: `¡Feliz Cumpleaños, ${userName.split(' ')[0]}! 🎂`,
+        isSpecial: true,
+        icon: "gift" as const,
+        isBirthdayMessage: true
+      };
+    }
+    
     const dateKey = formatDateKey(today);
     const specialDate = SPECIAL_DATES[dateKey];
     
@@ -387,7 +417,8 @@ export function DailyMotivation({ userName, className = "" }: DailyMotivationPro
         phrase: specialDate.phrases[randomIndex],
         title: specialDate.title,
         isSpecial: true,
-        icon: specialDate.icon
+        icon: specialDate.icon,
+        isBirthdayMessage: false
       };
     } else {
       // Día normal - seleccionar frase basada en el día del año
@@ -397,10 +428,11 @@ export function DailyMotivation({ userName, className = "" }: DailyMotivationPro
         phrase: DAILY_PHRASES[phraseIndex],
         title: null,
         isSpecial: false,
-        icon: null
+        icon: null,
+        isBirthdayMessage: false
       };
     }
-  }, [today.toDateString()]);
+  }, [today.toDateString(), isBirthday, userName]);
 
   const IconComponent = useMemo(() => {
     switch (icon) {
@@ -416,10 +448,23 @@ export function DailyMotivation({ userName, className = "" }: DailyMotivationPro
     <div className={`relative overflow-hidden rounded-xl ${className}`}>
       {/* Fondo con gradiente */}
       <div className={`absolute inset-0 ${
-        isSpecial 
-          ? "bg-gradient-to-r from-amber-400 via-orange-500 to-pink-500" 
-          : "bg-gradient-to-r from-teal-500 via-cyan-500 to-blue-500"
+        isBirthdayMessage
+          ? "bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500"
+          : isSpecial 
+            ? "bg-gradient-to-r from-amber-400 via-orange-500 to-pink-500" 
+            : "bg-gradient-to-r from-teal-500 via-cyan-500 to-blue-500"
       }`} />
+      
+      {/* Efecto de confeti para cumpleaños */}
+      {isBirthdayMessage && (
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-2 left-[10%] text-2xl animate-bounce" style={{animationDelay: '0s'}}>🎈</div>
+          <div className="absolute top-4 left-[30%] text-xl animate-bounce" style={{animationDelay: '0.2s'}}>🎉</div>
+          <div className="absolute top-2 left-[50%] text-2xl animate-bounce" style={{animationDelay: '0.4s'}}>🎂</div>
+          <div className="absolute top-4 left-[70%] text-xl animate-bounce" style={{animationDelay: '0.6s'}}>🎁</div>
+          <div className="absolute top-2 left-[90%] text-2xl animate-bounce" style={{animationDelay: '0.8s'}}>🎈</div>
+        </div>
+      )}
       
       {/* Patrón decorativo */}
       <div className="absolute inset-0 opacity-10">

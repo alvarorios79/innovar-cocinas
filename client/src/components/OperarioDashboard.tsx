@@ -303,7 +303,7 @@ export function OperarioDashboard() {
             </div>
 
             {/* Frase Motivacional Diaria */}
-            <DailyMotivation userName={user?.name || undefined} />
+            <DailyMotivation userName={user?.name || undefined} userBirthDate={user?.birthDate ? new Date(user.birthDate) : undefined} />
           </div>
         </div>
       </section>
@@ -312,7 +312,7 @@ export function OperarioDashboard() {
       <section className="py-2 md:py-3">
         <div className="container">
           <div className="max-w-4xl mx-auto">
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <Card className="border-0 shadow-md bg-gradient-to-br from-blue-500 to-cyan-500 text-white">
                 <CardContent className="p-4 text-center">
                   <ClipboardList className="h-6 w-6 mx-auto mb-1" />
@@ -814,7 +814,7 @@ function ProjectPhotoCard({
                         <Camera className="h-4 w-4" />
                         {stageLabels[stage]} ({(stagePhotoList as any[]).length})
                       </h4>
-                      <div className="grid grid-cols-4 gap-2">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                         {(stagePhotoList as any[]).slice(0, 8).map((photo: any) => (
                           <div 
                             key={photo.id}

@@ -2478,3 +2478,43 @@
   - Día del Amor y la Amistad Colombia (14 Sep)
   - Día de Todos los Santos (1 Nov)
   - Día de la Independencia de Cartagena (11 Nov)
+
+
+## Frases de Cumpleaños y Diseño Responsive (Enero 2026)
+
+### Frases de Cumpleaños Personalizadas
+- [ ] Agregar campo birthDate al schema de usuarios
+- [ ] Ejecutar migración de base de datos
+- [ ] Agregar campo de fecha de nacimiento en el formulario de edición de perfil
+- [ ] Modificar DailyMotivation para detectar cumpleaños del usuario actual
+- [ ] Mostrar mensaje especial de cumpleaños con el nombre del usuario
+
+### Optimización Responsive Completa
+- [ ] Revisar y optimizar Panel CEO/Super Admin para móvil y tablet
+- [ ] Revisar y optimizar Panel Admin Comercial para móvil y tablet
+- [ ] Revisar y optimizar Panel Diseñador para móvil y tablet
+- [ ] Revisar y optimizar Panel Jefe de Taller para móvil y tablet
+- [ ] Revisar y optimizar Panel Operario para móvil y tablet
+- [ ] Revisar y optimizar página de Proyectos para móvil y tablet
+- [ ] Revisar y optimizar página de Calendario para móvil y tablet
+- [ ] Revisar y optimizar página de Tareas para móvil y tablet
+- [ ] Revisar y optimizar Portal del Cliente para móvil y tablet
+
+
+## Frases de Cumpleaños y Diseño Responsive (Enero 2026)
+
+- [x] Agregar campo de fecha de nacimiento al perfil de usuario (birthDate en tabla users)
+- [x] Implementar frases de cumpleaños personalizadas en DailyMotivation
+  - Detecta si es el cumpleaños del usuario
+  - Muestra mensaje especial con gradiente dorado y confeti animado
+  - Frases personalizadas de felicitación
+- [x] Optimizar paneles principales para móvil, tablet y desktop
+  - OperarioDashboard: grid de estadísticas y fotos adaptativo
+  - TeamDashboard: acciones rápidas y proyectos adaptativos
+- [x] Optimizar páginas secundarias (proyectos, calendario, tareas)
+  - ProjectDetail: grid de fotos adaptativo
+  - Projects: grid de fotos adaptativo
+- [x] Agregar utilidades CSS responsive adicionales
+  - Touch targets de 44px mínimo
+  - Prevención de zoom en inputs iOS
+  - Clases hide-mobile/hide-desktop

@@ -14,6 +14,7 @@ export const users = mysqlTable("users", {
   passwordResetToken: varchar("passwordResetToken", { length: 100 }),
   passwordResetExpires: timestamp("passwordResetExpires"),
   role: mysqlEnum("role", ["user", "admin", "super_admin", "comercial", "disenador", "jefe_taller", "operario"]).default("user").notNull(),
+  birthDate: timestamp("birthDate"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),

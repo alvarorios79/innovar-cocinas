@@ -397,6 +397,40 @@
 }
 
 @layer utilities {
+  /* Touch-friendly targets para móvil */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Ocultar en móvil/desktop */
+  .hide-mobile {
+    @apply hidden sm:block;
+  }
+  
+  .hide-desktop {
+    @apply block sm:hidden;
+  }
+  
+  /* Scroll suave para contenedores */
+  .scroll-smooth {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Prevenir zoom en inputs en iOS */
+  @media (max-width: 640px) {
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"],
+    input[type="number"],
+    input[type="password"],
+    select,
+    textarea {
+      font-size: 16px !important;
+    }
+  }
+  
   /* Espaciado responsivo */
   .p-responsive {
     @apply p-3 sm:p-4 md:p-6;

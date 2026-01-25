@@ -1142,21 +1142,34 @@ export default function Quotations() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Cliente *</Label>
-                <Select
-                  value={selectedClient?.toString() || ""}
-                  onValueChange={(value) => setSelectedClient(parseInt(value))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar cliente" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {clients.map((client: any) => (
-                      <SelectItem key={client.id} value={client.id.toString()}>
-                        {client.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex gap-2">
+                  <Select
+                    value={selectedClient?.toString() || ""}
+                    onValueChange={(value) => setSelectedClient(parseInt(value))}
+                  >
+                    <SelectTrigger className="flex-1">
+                      <SelectValue placeholder="Seleccionar cliente" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {clients.map((client: any) => (
+                        <SelectItem key={client.id} value={client.id.toString()}>
+                          {client.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <CreateQuickClientDialog
+                    trigger={
+                      <Button type="button" variant="outline" size="icon" title="Crear nuevo cliente">
+                        <UserPlus className="h-4 w-4" />
+                      </Button>
+                    }
+                    onClientCreated={(client) => {
+                      utils.clients.list.invalidate();
+                      setSelectedClient(client.id);
+                    }}
+                  />
+                </div>
               </div>
 
               <div>

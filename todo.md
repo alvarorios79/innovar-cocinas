@@ -2559,3 +2559,7 @@
 - [ ] Implementar efecto de lluvia de confeti/serpentinas al abrir la app el día del cumpleaños
 - [ ] El confeti debe aparecer cada vez que se abre la app (no solo una vez)
 
+
+
+## Mejora Flujo Cotizaciones
+- [x] Agregar opción de crear cliente nuevo desde el selector de cliente en cotizaciones

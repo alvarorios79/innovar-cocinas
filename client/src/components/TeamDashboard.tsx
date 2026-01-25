@@ -188,11 +188,12 @@ export function TeamDashboard() {
             link: "/tasks"
           },
           { 
-            label: "Por Iniciar", 
+            label: "✨ Nuevos para Diseñar", 
             value: myProjects.filter(p => p.status === "adelanto_recibido").length,
             icon: <Target className="h-6 w-6" />,
             color: "bg-gradient-to-br from-green-500 to-emerald-500",
-            link: "/projects"
+            link: "/projects",
+            highlight: myProjects.filter(p => p.status === "adelanto_recibido").length > 0
           },
         ];
       case "comercial":
@@ -556,7 +557,7 @@ export function TeamDashboard() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {stats.map((stat, index) => (
                 <Link key={index} href={stat.link}>
-                  <Card className="hover:shadow-xl transition-all duration-300 cursor-pointer border-0 shadow-md hover:scale-[1.02] overflow-hidden">
+                  <Card className={`hover:shadow-xl transition-all duration-300 cursor-pointer border-0 shadow-md hover:scale-[1.02] overflow-hidden ${(stat as any).highlight ? 'ring-2 ring-green-400 ring-offset-2 animate-pulse' : ''}`}>
                     <CardContent className="p-0">
                       <div className={`${stat.color} p-4 text-white`}>
                         <div className="flex items-center justify-between">

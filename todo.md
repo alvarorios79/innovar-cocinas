@@ -2184,3 +2184,13 @@
   - Botón "Pasar a Producción (Despiece)" (aprobacion_final -> despiece)
 - [x] Notificar al jefe de taller cuando un proyecto pasa a producción (notificación en app + push)
 - [x] Mostrar señal clara de proyectos listos para producción (cards con colores distintivos)
+
+
+## Visualización Proyectos Diseñador - Enero 24, 2026
+
+- [x] Diseñador solo ve proyectos desde "adelanto_recibido" en adelante
+- [x] Señal visual clara para proyectos listos para diseñar:
+  - Badge púrpura animado "✨ Nuevo para Diseñar" en cada proyecto
+  - Borde púrpura y fondo destacado en la tarjeta del proyecto
+  - Stat animado en el dashboard "✨ Nuevos para Diseñar"
+- [x] Diferenciar visualmente proyectos "nuevos para diseñar" vs "en progreso"

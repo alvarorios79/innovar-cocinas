@@ -136,8 +136,13 @@ export function ProjectCard({
 
   const detail = projectDetail || project;
 
+  // Verificar si es un proyecto nuevo para el diseñador (listo para comenzar a diseñar)
+  const isNewForDesigner = user?.role === "disenador" && project.status === "adelanto_recibido";
+  // Verificar si es un proyecto en progreso del diseñador
+  const isInProgressForDesigner = user?.role === "disenador" && ["en_diseno", "pendiente_cliente", "aprobacion_final"].includes(project.status);
+
   return (
-    <Card className={`transition-all duration-300 ${isExpanded ? 'ring-2 ring-primary shadow-lg' : 'hover:shadow-md'}`}>
+    <Card className={`transition-all duration-300 ${isExpanded ? 'ring-2 ring-primary shadow-lg' : 'hover:shadow-md'} ${isNewForDesigner ? 'ring-2 ring-purple-500 bg-purple-50/50' : ''}`}>
       <CardContent className="p-0">
         {/* Header del proyecto - siempre visible */}
         <div 
@@ -152,6 +157,11 @@ export function ProjectCard({
                   {project.name}
                 </h3>
                 {getStatusBadge(project.status)}
+                {isNewForDesigner && (
+                  <Badge className="bg-purple-600 text-white animate-pulse">
+                    ✨ Nuevo para Diseñar
+                  </Badge>
+                )}
               </div>
               <div className="text-sm text-muted-foreground grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-1">
                 <p className="flex items-center gap-1">

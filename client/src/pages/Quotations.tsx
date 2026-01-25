@@ -1188,6 +1188,63 @@ export default function Quotations() {
               </div>
             </div>
 
+            {/* Fechas automáticas */}
+            <div className="grid grid-cols-3 gap-4 p-4 bg-muted/50 rounded-lg">
+              <div>
+                <Label className="text-sm text-muted-foreground">Fecha de creación</Label>
+                <div className="mt-1 p-2 bg-background rounded border text-sm font-medium">
+                  {new Date().toLocaleDateString('es-CO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                </div>
+              </div>
+              <div>
+                <Label className="text-sm text-muted-foreground">Válida hasta</Label>
+                <div className="mt-1 p-2 bg-background rounded border text-sm font-medium">
+                  {(() => {
+                    const validUntil = new Date();
+                    validUntil.setDate(validUntil.getDate() + 7);
+                    return validUntil.toLocaleDateString('es-CO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                  })()}
+                  <span className="block text-xs mt-1 text-muted-foreground">7 días de validez</span>
+                </div>
+              </div>
+              <div>
+                <Label className="text-sm text-muted-foreground">Entrega estimada</Label>
+                <div className="mt-1 p-2 bg-red-50 dark:bg-red-950/30 rounded border border-red-200 dark:border-red-900 text-sm font-medium text-red-700 dark:text-red-400">
+                  {(() => {
+                    // Calcular 25 días hábiles desde hoy
+                    const COLOMBIA_HOLIDAYS_2025 = [
+                      '2025-01-01', '2025-01-06', '2025-03-24', '2025-04-17', '2025-04-18',
+                      '2025-05-01', '2025-06-02', '2025-06-23', '2025-06-30', '2025-07-20',
+                      '2025-08-07', '2025-08-18', '2025-10-13', '2025-11-03', '2025-11-17',
+                      '2025-12-08', '2025-12-25'
+                    ];
+                    const COLOMBIA_HOLIDAYS_2026 = [
+                      '2026-01-01', '2026-01-12', '2026-03-23', '2026-04-02', '2026-04-03',
+                      '2026-05-01', '2026-05-18', '2026-06-08', '2026-06-15', '2026-06-29',
+                      '2026-07-20', '2026-08-07', '2026-08-17', '2026-10-12', '2026-11-02',
+                      '2026-11-16', '2026-12-08', '2026-12-25'
+                    ];
+                    const holidays = [...COLOMBIA_HOLIDAYS_2025, ...COLOMBIA_HOLIDAYS_2026];
+                    
+                    let date = new Date();
+                    let businessDays = 0;
+                    while (businessDays < 25) {
+                      date.setDate(date.getDate() + 1);
+                      const dayOfWeek = date.getDay();
+                      const dateStr = date.toISOString().split('T')[0];
+                      if (dayOfWeek !== 0 && dayOfWeek !== 6 && !holidays.includes(dateStr)) {
+                        businessDays++;
+                      }
+                    }
+                    return date.toLocaleDateString('es-CO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                  })()}
+                  <span className="block text-xs mt-1 text-red-600 dark:text-red-500">
+                    * Tentativa (25 días hábiles)
+                  </span>
+                </div>
+              </div>
+            </div>
+
             <div>
               <div className="flex justify-between items-center mb-2">
                 <Label>Items</Label>

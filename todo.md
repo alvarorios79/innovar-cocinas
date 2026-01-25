@@ -2425,3 +2425,29 @@
 
 - [x] Corregir el logo pequeño que no se ve en la primera línea del panel del operario (muestra cuadro con signo de interrogación)
   - Cambiada la URL externa a la ruta local /logo-light.png
+
+
+## Optimización de Imágenes para Móviles (Enero 2026)
+
+- [ ] Implementar compresión automática de imágenes al subir fotos
+- [ ] Generar thumbnails para vistas previas y listas
+- [ ] Implementar lazy loading en las galerías de fotos
+
+
+## Optimización Responsive Completa (Enero 2026)
+
+- [ ] Optimizar paneles de admin/CEO para móvil, tablet y desktop
+- [ ] Optimizar paneles de diseñador, jefe de taller y operario
+- [ ] Optimizar páginas de proyectos, calendario y tareas
+- [ ] Implementar lazy loading en galerías de fotos
+- [ ] Mejorar navegación móvil y touch gestures
+
+## Revisión de Estabilidad del Proyecto (25 Enero 2026)
+
+- [x] TypeScript: Sin errores de compilación
+- [x] Tests: 347 tests pasados, 1 omitido, 0 fallidos (38 archivos de test)
+- [x] Servidor: Funcionando correctamente en puerto 3000
+- [x] Base de datos: Conexión estable, 24 tablas activas
+- [x] Dependencias: OK
+- [x] LSP: Sin errores
+- [x] Utilidad de compresión de imágenes creada (server/image-utils.ts)

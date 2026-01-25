@@ -1292,50 +1292,47 @@ export default function Admin() {
                                         {usr.id === user?.id && (
                                           <Badge variant="outline" className="text-xs self-end">Tú</Badge>
                                         )}
-                                        {usr.id !== user?.id && (
+                                        {/* Botón de cumpleaños siempre visible para super_admin (incluso para sí mismo) */}
+                                        {user?.role === "super_admin" && (
+                                          <Button
+                                            size="sm"
+                                            variant="outline"
+                                            onClick={() => setEditBirthdayUser({ 
+                                              id: usr.id, 
+                                              name: usr.name || "Usuario", 
+                                              birthDate: (usr as any).birthDate || null 
+                                            })}
+                                          >
+                                            <Cake className="h-4 w-4 mr-1" />
+                                            Cumpleaños
+                                          </Button>
+                                        )}
+                                        {usr.id !== user?.id && user?.role === "super_admin" && (
                                           <div className="flex gap-2">
-                                            {user?.role === "super_admin" && (
-                                              <Button
-                                                size="sm"
-                                                variant="outline"
-                                                onClick={() => setEditBirthdayUser({ 
-                                                  id: usr.id, 
-                                                  name: usr.name || "Usuario", 
-                                                  birthDate: (usr as any).birthDate || null 
-                                                })}
-                                              >
-                                                <Cake className="h-4 w-4 mr-1" />
-                                                Cumpleaños
-                                              </Button>
-                                            )}
-                                            {user?.role === "super_admin" && (
-                                              <Button
-                                                size="sm"
-                                                variant="secondary"
-                                                onClick={() => {
-                                                  if (window.confirm(
-                                                    `¿Resetear contraseña de ${usr.name}? Se generará una contraseña temporal.`
-                                                  )) {
-                                                    resetPassword.mutate({ userId: usr.id });
-                                                  }
-                                                }}
-                                                disabled={resetPassword.isPending}
-                                              >
-                                                Resetear Contraseña
-                                              </Button>
-                                            )}
-                                            {user?.role === "super_admin" && (
-                                              <Button
-                                                size="sm"
-                                                variant="destructive"
-                                                onClick={() => {
-                                                  setDeleteConfirm({ type: "user", id: usr.id, name: usr.name || "Usuario" });
-                                                }}
-                                                disabled={deleteUser.isPending}
-                                              >
-                                                Eliminar
-                                              </Button>
-                                            )}
+                                            <Button
+                                              size="sm"
+                                              variant="secondary"
+                                              onClick={() => {
+                                                if (window.confirm(
+                                                  `¿Resetear contraseña de ${usr.name}? Se generará una contraseña temporal.`
+                                                )) {
+                                                  resetPassword.mutate({ userId: usr.id });
+                                                }
+                                              }}
+                                              disabled={resetPassword.isPending}
+                                            >
+                                              Resetear Contraseña
+                                            </Button>
+                                            <Button
+                                              size="sm"
+                                              variant="destructive"
+                                              onClick={() => {
+                                                setDeleteConfirm({ type: "user", id: usr.id, name: usr.name || "Usuario" });
+                                              }}
+                                              disabled={deleteUser.isPending}
+                                            >
+                                              Eliminar
+                                            </Button>
                                           </div>
                                         )}
                                       </div>

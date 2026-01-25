@@ -578,7 +578,7 @@ export default function ProjectDetail() {
                 </CardContent>
               </Card>
 
-              {user?.role !== "disenador" && user?.role !== "jefe_taller" && (
+              {user?.role !== "disenador" && user?.role !== "jefe_taller" && user?.role !== "operario" && (
                 <Card>
                   <CardHeader className="py-3 bg-green-50">
                     <CardTitle className="text-sm flex items-center gap-2">

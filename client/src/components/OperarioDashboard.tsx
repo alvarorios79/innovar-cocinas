@@ -321,6 +321,17 @@ export function OperarioDashboard() {
                 </CardContent>
               </Card>
             </div>
+            
+            {/* Botón Ver Todos los Proyectos */}
+            <div className="mt-4">
+              <Link href="/projects">
+                <Button className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white shadow-md">
+                  <Package className="h-4 w-4 mr-2" />
+                  Ver Todos los Proyectos
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </section>
@@ -674,16 +685,31 @@ function ProjectPhotoCard({
   );
 
   const photos = projectDetail?.photos || [];
+  
+  // Filtrar fotos de diseño (renders, despieces, modelado)
+  const designPhotos = photos.filter((p: any) => 
+    p.subcategory === "renders" || 
+    p.subcategory === "despieces" || 
+    p.subcategory === "modelado" ||
+    p.subcategory === "detalles" ||
+    p.stage === "diseno"
+  );
+  
   const stagePhotos = {
-    corte: photos.filter((p: any) => p.stage === "corte"),
-    enchape: photos.filter((p: any) => p.stage === "enchape"),
-    armado: photos.filter((p: any) => p.stage === "armado"),
-    instalacion: photos.filter((p: any) => p.stage === "instalacion"),
-    fotos_finales: photos.filter((p: any) => p.stage === "fotos_finales"),
-    otros: photos.filter((p: any) => !["corte", "enchape", "armado", "instalacion", "fotos_finales"].includes(p.stage)),
+    disenos: designPhotos,
+    corte: photos.filter((p: any) => p.stage === "corte" || p.subcategory === "corte"),
+    enchape: photos.filter((p: any) => p.stage === "enchape" || p.subcategory === "enchape"),
+    armado: photos.filter((p: any) => p.stage === "armado" || p.subcategory === "armado"),
+    instalacion: photos.filter((p: any) => p.stage === "instalacion" || p.subcategory === "proceso_instalacion"),
+    fotos_finales: photos.filter((p: any) => p.stage === "fotos_finales" || p.subcategory === "fotos_finales"),
+    otros: photos.filter((p: any) => 
+      !["corte", "enchape", "armado", "instalacion", "fotos_finales", "diseno"].includes(p.stage) &&
+      !["renders", "despieces", "modelado", "detalles", "corte", "enchape", "armado", "proceso_instalacion", "fotos_finales"].includes(p.subcategory)
+    ),
   };
 
   const stageLabels: Record<string, string> = {
+    disenos: "🎨 Renders y Diseños",
     corte: "Corte",
     enchape: "Enchape",
     armado: "Armado",

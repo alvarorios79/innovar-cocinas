@@ -2353,3 +2353,10 @@
 - [x] Mostrar botón de avanzar etapa incluso sin fotos (con diálogo de confirmación)
 - [x] Bloquear subida de fotos si la etapa anterior no tiene al menos 1 foto y no se ha avanzado
 - [x] Diálogo de confirmación antes de avanzar sin fotos
+
+
+## Correcciones Panel Operario (Enero 2026)
+
+- [x] Ocultar información financiera del operario (cotización, adelanto, saldos)
+- [x] Agregar botón para acceder a todos los proyectos desde el dashboard del operario
+- [x] Agregar apartado de renders/diseños en la vista de proyectos del operario

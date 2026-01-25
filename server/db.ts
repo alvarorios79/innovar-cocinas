@@ -1,4 +1,4 @@
-import { eq, desc, and, gte, lte, gt, between, sql } from "drizzle-orm";
+import { eq, desc, and, gte, lte, gt, between, sql, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { 
   InsertUser, 
@@ -894,9 +894,22 @@ export async function getProjectStatusHistoryByProjectId(projectId: number) {
   const db = await getDb();
   if (!db) return [];
 
-  return await db.select().from(projectStatusHistory)
+  // Obtener historial con información del usuario que hizo el cambio
+  const history = await db.select().from(projectStatusHistory)
     .where(eq(projectStatusHistory.projectId, projectId))
     .orderBy(desc(projectStatusHistory.createdAt));
+  
+  // Obtener información de los usuarios que hicieron los cambios
+  const userIds = Array.from(new Set(history.filter(h => h.changedBy).map(h => h.changedBy!)));
+  const usersData = userIds.length > 0 
+    ? await db.select().from(users).where(inArray(users.id, userIds))
+    : [];
+  const userMap = new Map(usersData.map(u => [u.id, u]));
+  
+  return history.map(h => ({
+    ...h,
+    changedByUser: h.changedBy ? userMap.get(h.changedBy) : null,
+  }));
 }
 
 // ============ HELPER: Update user role with new roles ============

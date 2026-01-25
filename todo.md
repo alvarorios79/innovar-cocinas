@@ -2194,3 +2194,24 @@
   - Borde púrpura y fondo destacado en la tarjeta del proyecto
   - Stat animado en el dashboard "✨ Nuevos para Diseñar"
 - [x] Diferenciar visualmente proyectos "nuevos para diseñar" vs "en progreso"
+
+
+## Permisos Admin para Aprobaciones de Cliente - Enero 24, 2026
+
+- [x] Verificar que admin/super_admin pueden aprobar cotización en nombre del cliente (quotations.approveByClient)
+- [x] Verificar que admin/super_admin pueden aprobar diseño en nombre del cliente (projects.approveDesign)
+- [x] Verificar que admin/super_admin pueden confirmar cualquier acción del cliente (projects.updateStatus)
+- [x] Asegurar que el flujo de trabajo no se detenga si el cliente no usa la app
+
+**NOTA:** Todos los permisos ya estaban correctamente implementados.
+
+
+## Botones Jefe de Taller y Historial de Aprobaciones - Enero 24, 2026
+
+- [x] Agregar botones de avance para jefe de taller: despiece → corte → enchape → ensamble → listo instalación → instalación programada → entregado
+- [x] Mostrar cards de acción similares a las del diseñador (colores naranja/teal según etapa)
+- [x] Mostrar en el historial quién aprobó cada etapa:
+  - Badge azul con 👤 para aprobaciones del cliente
+  - Badge ámbar con 👑 para aprobaciones del admin
+- [x] Incluir nombre del usuario y rol que realizó cada cambio de estado
+- [x] Estados mostrados con etiquetas legibles en lugar de códigos internos

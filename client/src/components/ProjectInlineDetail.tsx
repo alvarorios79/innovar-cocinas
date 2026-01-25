@@ -422,6 +422,146 @@ export function ProjectInlineDetail({
         </div>
       )}
 
+      {/* Acciones para Jefe de Taller: Avanzar por etapas de producción */}
+      
+      {/* Despiece -> Corte */}
+      {projectDetail.status === "despiece" && 
+        (user?.role === "jefe_taller" || user?.role === "admin" || user?.role === "super_admin") && (
+        <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4">
+          <h4 className="font-medium text-orange-800 mb-2 flex items-center gap-2">
+            <AlertCircle className="h-4 w-4" />
+            Proyecto en Despiece
+          </h4>
+          <p className="text-sm text-orange-700 mb-4">
+            Revisa el despiece del diseñador. Cuando esté listo, pasa el proyecto a corte.
+          </p>
+          <Button
+            size="sm"
+            className="bg-orange-600 hover:bg-orange-700"
+            onClick={() => updateStatus.mutate({ projectId: projectDetail.id, newStatus: "corte" })}
+            disabled={updateStatus.isPending}
+          >
+            <CheckCircle2 className="h-4 w-4 mr-1" />
+            Iniciar Corte
+          </Button>
+        </div>
+      )}
+
+      {/* Corte -> Enchape */}
+      {projectDetail.status === "corte" && 
+        (user?.role === "jefe_taller" || user?.role === "operario" || user?.role === "admin" || user?.role === "super_admin") && (
+        <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4">
+          <h4 className="font-medium text-orange-800 mb-2 flex items-center gap-2">
+            <AlertCircle className="h-4 w-4" />
+            Proyecto en Corte
+          </h4>
+          <p className="text-sm text-orange-700 mb-4">
+            Cuando termines el corte de todas las piezas, avanza a la etapa de enchape.
+          </p>
+          <Button
+            size="sm"
+            className="bg-orange-600 hover:bg-orange-700"
+            onClick={() => updateStatus.mutate({ projectId: projectDetail.id, newStatus: "enchape" })}
+            disabled={updateStatus.isPending}
+          >
+            <CheckCircle2 className="h-4 w-4 mr-1" />
+            Pasar a Enchape
+          </Button>
+        </div>
+      )}
+
+      {/* Enchape -> Ensamble */}
+      {projectDetail.status === "enchape" && 
+        (user?.role === "jefe_taller" || user?.role === "operario" || user?.role === "admin" || user?.role === "super_admin") && (
+        <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4">
+          <h4 className="font-medium text-orange-800 mb-2 flex items-center gap-2">
+            <AlertCircle className="h-4 w-4" />
+            Proyecto en Enchape
+          </h4>
+          <p className="text-sm text-orange-700 mb-4">
+            Cuando termines el enchape de todas las piezas, avanza a la etapa de ensamble.
+          </p>
+          <Button
+            size="sm"
+            className="bg-orange-600 hover:bg-orange-700"
+            onClick={() => updateStatus.mutate({ projectId: projectDetail.id, newStatus: "ensamble" })}
+            disabled={updateStatus.isPending}
+          >
+            <CheckCircle2 className="h-4 w-4 mr-1" />
+            Pasar a Ensamble
+          </Button>
+        </div>
+      )}
+
+      {/* Ensamble -> Listo Instalación */}
+      {projectDetail.status === "ensamble" && 
+        (user?.role === "jefe_taller" || user?.role === "operario" || user?.role === "admin" || user?.role === "super_admin") && (
+        <div className="bg-teal-50 border border-teal-200 rounded-lg p-4 mb-4">
+          <h4 className="font-medium text-teal-800 mb-2 flex items-center gap-2">
+            <AlertCircle className="h-4 w-4" />
+            Proyecto en Ensamble
+          </h4>
+          <p className="text-sm text-teal-700 mb-4">
+            Cuando termines el ensamble, marca el proyecto como listo para instalación.
+          </p>
+          <Button
+            size="sm"
+            className="bg-teal-600 hover:bg-teal-700"
+            onClick={() => updateStatus.mutate({ projectId: projectDetail.id, newStatus: "listo_instalacion" })}
+            disabled={updateStatus.isPending}
+          >
+            <CheckCircle2 className="h-4 w-4 mr-1" />
+            Marcar Listo para Instalación
+          </Button>
+        </div>
+      )}
+
+      {/* Listo Instalación -> Instalación Programada */}
+      {projectDetail.status === "listo_instalacion" && 
+        (user?.role === "jefe_taller" || user?.role === "admin" || user?.role === "super_admin") && (
+        <div className="bg-teal-50 border border-teal-200 rounded-lg p-4 mb-4">
+          <h4 className="font-medium text-teal-800 mb-2 flex items-center gap-2">
+            <CheckCircle2 className="h-4 w-4" />
+            Proyecto Listo para Instalación
+          </h4>
+          <p className="text-sm text-teal-700 mb-4">
+            Coordina con el cliente la fecha de instalación y programa la entrega.
+          </p>
+          <Button
+            size="sm"
+            className="bg-teal-600 hover:bg-teal-700"
+            onClick={() => updateStatus.mutate({ projectId: projectDetail.id, newStatus: "instalacion_programada" })}
+            disabled={updateStatus.isPending}
+          >
+            <CheckCircle2 className="h-4 w-4 mr-1" />
+            Programar Instalación
+          </Button>
+        </div>
+      )}
+
+      {/* Instalación Programada -> Entregado */}
+      {projectDetail.status === "instalacion_programada" && 
+        (user?.role === "jefe_taller" || user?.role === "admin" || user?.role === "super_admin") && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+          <h4 className="font-medium text-green-800 mb-2 flex items-center gap-2">
+            <CheckCircle2 className="h-4 w-4" />
+            Instalación Programada
+          </h4>
+          <p className="text-sm text-green-700 mb-4">
+            Cuando completes la instalación, marca el proyecto como entregado.
+          </p>
+          <Button
+            size="sm"
+            className="bg-green-600 hover:bg-green-700"
+            onClick={() => updateStatus.mutate({ projectId: projectDetail.id, newStatus: "entregado" })}
+            disabled={updateStatus.isPending}
+          >
+            <CheckCircle2 className="h-4 w-4 mr-1" />
+            Marcar como Entregado
+          </Button>
+        </div>
+      )}
+
       {/* Acción para Admin: Aprobar diseño en nombre del cliente */}
       {projectDetail.status === "pendiente_cliente" && 
         (user?.role === "admin" || user?.role === "super_admin") && (
@@ -1002,24 +1142,64 @@ export function ProjectInlineDetail({
               </CardContent>
             </Card>
           ) : (
-            projectDetail.history?.map((entry: any) => (
-              <div key={entry.id} className="flex items-start gap-3 p-3 bg-background rounded border">
-                <div className="h-2 w-2 mt-2 rounded-full bg-primary" />
-                <div className="flex-1">
-                  <p className="text-sm">
-                    <strong>{entry.fromStatus || "Inicio"}</strong>
-                    {" → "}
-                    <strong>{entry.toStatus}</strong>
-                  </p>
-                  {entry.notes && (
-                    <p className="text-sm text-muted-foreground">{entry.notes}</p>
-                  )}
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {new Date(entry.createdAt).toLocaleString("es-CO")}
-                  </p>
+            projectDetail.history?.map((entry: any) => {
+              // Determinar el rol del usuario que hizo el cambio
+              const changedByUser = entry.changedByUser;
+              const roleLabels: Record<string, string> = {
+                super_admin: "Super Admin",
+                admin: "Administrador",
+                comercial: "Comercial",
+                disenador: "Diseñador",
+                jefe_taller: "Jefe de Taller",
+                operario: "Operario",
+                user: "Cliente",
+              };
+              const roleLabel = changedByUser ? roleLabels[changedByUser.role] || changedByUser.role : null;
+              const userName = changedByUser?.name || "Sistema";
+              
+              // Determinar si fue una aprobación del cliente o admin
+              const isApproval = entry.toStatus === "aprobacion_final" || 
+                                 entry.toStatus === "cotizacion_aprobada" ||
+                                 entry.notes?.toLowerCase().includes("aprobó");
+              const isClientApproval = isApproval && changedByUser?.role === "user";
+              const isAdminApproval = isApproval && (changedByUser?.role === "admin" || changedByUser?.role === "super_admin");
+              
+              return (
+                <div key={entry.id} className={`flex items-start gap-3 p-3 bg-background rounded border ${
+                  isApproval ? "border-green-300 bg-green-50" : ""
+                }`}>
+                  <div className={`h-2 w-2 mt-2 rounded-full ${
+                    isApproval ? "bg-green-500" : "bg-primary"
+                  }`} />
+                  <div className="flex-1">
+                    <p className="text-sm">
+                      <strong>{PROJECT_STATUSES[entry.fromStatus as keyof typeof PROJECT_STATUSES]?.label || entry.fromStatus || "Inicio"}</strong>
+                      {" → "}
+                      <strong>{PROJECT_STATUSES[entry.toStatus as keyof typeof PROJECT_STATUSES]?.label || entry.toStatus}</strong>
+                    </p>
+                    {entry.notes && (
+                      <p className="text-sm text-muted-foreground">{entry.notes}</p>
+                    )}
+                    <div className="flex flex-wrap items-center gap-2 mt-1">
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(entry.createdAt).toLocaleString("es-CO")}
+                      </p>
+                      {changedByUser && (
+                        <Badge variant="outline" className={`text-xs ${
+                          isClientApproval ? "bg-blue-100 text-blue-700 border-blue-300" :
+                          isAdminApproval ? "bg-amber-100 text-amber-700 border-amber-300" :
+                          "bg-gray-100"
+                        }`}>
+                          {isClientApproval && "👤 "}
+                          {isAdminApproval && "👑 "}
+                          {userName} ({roleLabel})
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
         </TabsContent>
       </Tabs>

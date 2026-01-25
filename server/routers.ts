@@ -2966,6 +2966,41 @@ export const appRouter = router({
 
         await db.updateProject(input.projectId, updateData);
 
+        // Notificar al jefe de taller cuando el proyecto pasa a despiece (producción)
+        if (newStatus === "despiece") {
+          try {
+            const allUsers = await db.getAllUsers();
+            const jefesTaller = allUsers.filter(u => u.role === "jefe_taller");
+            
+            for (const jefe of jefesTaller) {
+              // Crear notificación en la base de datos
+              await db.createNotification({
+                userId: jefe.id,
+                title: "🏭 Nuevo Proyecto en Producción",
+                body: `El proyecto "${project.name}" está listo para producción. El diseñador ha completado el despiece.`,
+                type: "proyecto",
+                referenceId: project.id,
+                referenceType: "project",
+              });
+              
+              // Intentar enviar notificación push
+              try {
+                const { createAndSendNotification } = await import("./push-notifications");
+                await createAndSendNotification(jefe.id, {
+                  title: "🏭 Nuevo Proyecto en Producción",
+                  body: `"${project.name}" listo para producción`,
+                  type: "proyecto",
+                  url: "/projects",
+                });
+              } catch (e) {
+                // Silenciar error de push
+              }
+            }
+          } catch (e) {
+            // Silenciar error de notificación
+          }
+        }
+
         // Obtener datos del cliente para notificación WhatsApp
         const client = await db.getClientById(project.clientId);
         let whatsappNotification = null;

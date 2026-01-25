@@ -175,6 +175,17 @@ export function ProjectInlineDetail({
     },
   });
 
+  const updateStatus = trpc.projects.updateStatus.useMutation({
+    onSuccess: () => {
+      utils.projects.list.invalidate();
+      utils.projects.getById.invalidate();
+      toast.success("Proyecto avanzado exitosamente");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Error al avanzar el proyecto");
+    },
+  });
+
   if (isLoading || !projectDetail) {
     return (
       <div className="p-4 bg-muted/30 rounded-lg mt-2">
@@ -341,6 +352,77 @@ export function ProjectInlineDetail({
       </div>
 
       {/* Acciones según estado y rol */}
+      
+      {/* Acción para Diseñador: Iniciar Diseño (adelanto_recibido -> en_diseno) */}
+      {projectDetail.status === "adelanto_recibido" && 
+        (user?.role === "disenador" || user?.role === "admin" || user?.role === "super_admin") && (
+        <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-4">
+          <h4 className="font-medium text-purple-800 mb-2 flex items-center gap-2">
+            <AlertCircle className="h-4 w-4" />
+            Proyecto Listo para Diseño
+          </h4>
+          <p className="text-sm text-purple-700 mb-4">
+            El cliente ya pagó el adelanto. Puedes comenzar a trabajar en el diseño.
+          </p>
+          <Button
+            size="sm"
+            className="bg-purple-600 hover:bg-purple-700"
+            onClick={() => updateStatus.mutate({ projectId: projectDetail.id, newStatus: "en_diseno" })}
+            disabled={updateStatus.isPending}
+          >
+            <CheckCircle2 className="h-4 w-4 mr-1" />
+            Iniciar Diseño
+          </Button>
+        </div>
+      )}
+
+      {/* Acción para Diseñador: Entregar Diseño (en_diseno -> pendiente_cliente) */}
+      {projectDetail.status === "en_diseno" && 
+        (user?.role === "disenador" || user?.role === "admin" || user?.role === "super_admin") && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+          <h4 className="font-medium text-blue-800 mb-2 flex items-center gap-2">
+            <AlertCircle className="h-4 w-4" />
+            Proyecto en Diseño
+          </h4>
+          <p className="text-sm text-blue-700 mb-4">
+            Cuando termines los renders, modelado y despieces, envía el diseño al cliente para su aprobación.
+          </p>
+          <Button
+            size="sm"
+            className="bg-blue-600 hover:bg-blue-700"
+            onClick={() => updateStatus.mutate({ projectId: projectDetail.id, newStatus: "pendiente_cliente" })}
+            disabled={updateStatus.isPending}
+          >
+            <CheckCircle2 className="h-4 w-4 mr-1" />
+            Entregar Diseño al Cliente
+          </Button>
+        </div>
+      )}
+
+      {/* Acción para Diseñador: Pasar a Producción (aprobacion_final -> despiece) */}
+      {projectDetail.status === "aprobacion_final" && 
+        (user?.role === "disenador" || user?.role === "admin" || user?.role === "super_admin") && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+          <h4 className="font-medium text-green-800 mb-2 flex items-center gap-2">
+            <CheckCircle2 className="h-4 w-4" />
+            Diseño Aprobado por el Cliente
+          </h4>
+          <p className="text-sm text-green-700 mb-4">
+            El cliente aprobó el diseño. Cuando tengas listo el despiece, pasa el proyecto a producción para que el jefe de taller pueda comenzar.
+          </p>
+          <Button
+            size="sm"
+            className="bg-green-600 hover:bg-green-700"
+            onClick={() => updateStatus.mutate({ projectId: projectDetail.id, newStatus: "despiece" })}
+            disabled={updateStatus.isPending}
+          >
+            <CheckCircle2 className="h-4 w-4 mr-1" />
+            Pasar a Producción (Despiece)
+          </Button>
+        </div>
+      )}
+
+      {/* Acción para Admin: Aprobar diseño en nombre del cliente */}
       {projectDetail.status === "pendiente_cliente" && 
         (user?.role === "admin" || user?.role === "super_admin") && (
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">

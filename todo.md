@@ -2174,3 +2174,13 @@
 - [x] Agregar botón para subir fotos a etapas de producción desde el panel del operario
 - [x] Implementar notificación push cuando se asigna nueva tarea al operario (ya existía)
 - [x] Agregar sección de historial de tareas completadas recientemente (últimas 10)
+
+
+## Flujo Diseñador a Producción - Enero 24, 2026
+
+- [x] Agregar botón para que el diseñador avance el proyecto a producción cuando termine
+  - Botón "Iniciar Diseño" (adelanto_recibido -> en_diseno)
+  - Botón "Entregar Diseño al Cliente" (en_diseno -> pendiente_cliente)
+  - Botón "Pasar a Producción (Despiece)" (aprobacion_final -> despiece)
+- [x] Notificar al jefe de taller cuando un proyecto pasa a producción (notificación en app + push)
+- [x] Mostrar señal clara de proyectos listos para producción (cards con colores distintivos)

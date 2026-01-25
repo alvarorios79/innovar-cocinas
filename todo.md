@@ -2244,3 +2244,13 @@
 - [x] Verificar que jefe_taller esté en la lista de roles restringidos
 - [x] Ocultar precios, cotizaciones, pagos y comprobantes para jefe_taller
 - [x] Corregido en ProjectDetail.tsx - el apartado "Información Financiera" ahora está oculto para jefe_taller
+
+
+## Mejoras Dashboard Jefe de Taller - Enero 24, 2026
+
+- [x] Contador de proyectos por etapa de producción en el dashboard:
+  - Diseño Listo, Despiece, Corte, Enchape, Ensamble, Listos Instalar, Instalaciones
+- [x] Filtro por etapa específica en la lista de proyectos (usando el selector de estado)
+- [x] Alerta visual de proyectos atrasados (más de 5 días en una etapa):
+  - Stat rojo "⚠️ Atrasados (+5 días)" en el dashboard
+  - Botón de filtro rojo en la lista de proyectos

@@ -259,12 +259,48 @@ export function TeamDashboard() {
           },
         ];
       case "jefe_taller":
+        // Contar proyectos atrasados (más de 5 días en la misma etapa de producción)
+        const overdueProjects = myProjects.filter(p => {
+          if (!["despiece", "corte", "enchape", "ensamble"].includes(p.status)) return false;
+          const projectAny = p as any;
+          const lastChange = projectAny.statusChangedAt ? new Date(projectAny.statusChangedAt) : new Date(p.createdAt);
+          const daysSinceChange = Math.floor((Date.now() - lastChange.getTime()) / (1000 * 60 * 60 * 24));
+          return daysSinceChange > 5;
+        });
         return [
           { 
-            label: "En Producción", 
-            value: myProjects.filter(p => ["despiece", "corte", "enchape", "ensamble"].includes(p.status)).length,
+            label: "Diseño Listo", 
+            value: myProjects.filter(p => ["pendiente_cliente", "aprobacion_final"].includes(p.status)).length,
+            icon: <Palette className="h-6 w-6" />,
+            color: "bg-gradient-to-br from-purple-500 to-indigo-500",
+            link: "/projects"
+          },
+          { 
+            label: "Despiece", 
+            value: myProjects.filter(p => p.status === "despiece").length,
+            icon: <FileText className="h-6 w-6" />,
+            color: "bg-gradient-to-br from-orange-400 to-orange-500",
+            link: "/projects"
+          },
+          { 
+            label: "Corte", 
+            value: myProjects.filter(p => p.status === "corte").length,
             icon: <Wrench className="h-6 w-6" />,
             color: "bg-gradient-to-br from-orange-500 to-amber-500",
+            link: "/projects"
+          },
+          { 
+            label: "Enchape", 
+            value: myProjects.filter(p => p.status === "enchape").length,
+            icon: <Package className="h-6 w-6" />,
+            color: "bg-gradient-to-br from-amber-500 to-yellow-500",
+            link: "/projects"
+          },
+          { 
+            label: "Ensamble", 
+            value: myProjects.filter(p => p.status === "ensamble").length,
+            icon: <Wrench className="h-6 w-6" />,
+            color: "bg-gradient-to-br from-teal-500 to-cyan-500",
             link: "/projects"
           },
           { 
@@ -281,11 +317,19 @@ export function TeamDashboard() {
             color: "bg-gradient-to-br from-blue-500 to-cyan-500",
             link: "/calendar"
           },
+          ...(overdueProjects.length > 0 ? [{ 
+            label: "⚠️ Atrasados (+5 días)", 
+            value: overdueProjects.length,
+            icon: <AlertTriangle className="h-6 w-6" />,
+            color: "bg-gradient-to-br from-red-500 to-rose-600",
+            link: "/projects",
+            highlight: true
+          }] : []),
           { 
             label: "Mis Tareas", 
             value: myTasks.length,
             icon: <ClipboardList className="h-6 w-6" />,
-            color: "bg-gradient-to-br from-amber-500 to-yellow-500",
+            color: "bg-gradient-to-br from-purple-500 to-fuchsia-500",
             link: "/tasks"
           },
         ];

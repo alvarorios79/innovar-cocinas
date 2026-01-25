@@ -75,6 +75,7 @@ export default function Projects() {
   const [selectedProject, setSelectedProject] = useState<any>(null);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [showPendingPaymentOnly, setShowPendingPaymentOnly] = useState(false);
+  const [showOverdueOnly, setShowOverdueOnly] = useState(false);
   
   const [createForm, setCreateForm] = useState({
     clientId: "",
@@ -447,11 +448,29 @@ export default function Projects() {
             {(user?.role === "admin" || user?.role === "super_admin") && (
               <Button
                 variant={showPendingPaymentOnly ? "default" : "outline"}
-                onClick={() => setShowPendingPaymentOnly(!showPendingPaymentOnly)}
+                onClick={() => {
+                  setShowPendingPaymentOnly(!showPendingPaymentOnly);
+                  if (!showPendingPaymentOnly) setShowOverdueOnly(false);
+                }}
                 className={showPendingPaymentOnly ? "bg-amber-500 hover:bg-amber-600" : ""}
               >
                 <AlertCircle className="h-4 w-4 mr-2" />
                 Saldo Pendiente
+              </Button>
+            )}
+
+            {/* Filtro de proyectos atrasados (jefe de taller, operario, admin) */}
+            {(user?.role === "jefe_taller" || user?.role === "operario" || user?.role === "admin" || user?.role === "super_admin") && (
+              <Button
+                variant={showOverdueOnly ? "default" : "outline"}
+                onClick={() => {
+                  setShowOverdueOnly(!showOverdueOnly);
+                  if (!showOverdueOnly) setShowPendingPaymentOnly(false);
+                }}
+                className={showOverdueOnly ? "bg-red-500 hover:bg-red-600 text-white" : "border-red-300 text-red-600 hover:bg-red-50"}
+              >
+                <AlertCircle className="h-4 w-4 mr-2" />
+                ⚠️ Atrasados (+5 días)
               </Button>
             )}
 
@@ -574,6 +593,14 @@ export default function Projects() {
                   const hasPendingPayment = project.quotation?.total && 
                     (project.actualPaid || 0) < project.quotation.total;
                   return isDelivered && hasPendingPayment;
+                }
+                // Filtro de proyectos atrasados (más de 5 días en etapa de producción)
+                if (showOverdueOnly) {
+                  const productionStatuses = ["despiece", "corte", "enchape", "ensamble"];
+                  if (!productionStatuses.includes(project.status)) return false;
+                  const lastChange = project.statusChangedAt ? new Date(project.statusChangedAt) : new Date(project.createdAt);
+                  const daysSinceChange = Math.floor((Date.now() - lastChange.getTime()) / (1000 * 60 * 60 * 24));
+                  return daysSinceChange > 5;
                 }
                 return true;
               })

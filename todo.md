@@ -2419,3 +2419,9 @@
 - [x] Corregir las 2 campanillas (iconos de notificación) duplicadas en el panel del diseñador en vista móvil (iPhone)
   - Eliminado NotificationBell duplicado del componente MobileNav
   - El NotificationBell ahora solo se muestra una vez en el header del TeamDashboard
+
+
+## Bug: Logo No Visible en Panel Operario (Enero 2026)
+
+- [x] Corregir el logo pequeño que no se ve en la primera línea del panel del operario (muestra cuadro con signo de interrogación)
+  - Cambiada la URL externa a la ruta local /logo-light.png

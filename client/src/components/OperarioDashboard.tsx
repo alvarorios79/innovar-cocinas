@@ -255,7 +255,7 @@ export function OperarioDashboard() {
           <div className="flex h-14 md:h-16 items-center justify-between">
             <Link href="/">
               <img 
-                src="https://cocinasintegralespereira.co/wp-content/uploads/2024/12/cropped-innovar-logo.png" 
+                src="/logo-light.png" 
                 alt="INNOVAR" 
                 className="h-8 md:h-10 object-contain"
               />

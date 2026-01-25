@@ -454,7 +454,7 @@ export function TeamDashboard() {
     const statusLabels: Record<string, string> = {
       cotizacion_enviada: "Cotización Enviada",
       cotizacion_aprobada: "Cotización Aprobada",
-      adelanto_recibido: "Adelanto Recibido",
+      adelanto_recibido: "Cliente Confirmado - Iniciar Diseño",
       en_diseno: "En Diseño",
       pendiente_cliente: "Pendiente Cliente",
       aprobacion_final: "Aprobación Final",

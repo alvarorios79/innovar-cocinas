@@ -2395,3 +2395,12 @@
   - Frases de motivación, superación y alegría para días normales
   - Frases especiales para: Día de la Madre, Día del Padre, Día de la Secretaria, Navidad, Año Nuevo, etc.
   - Una frase diferente cada día del año
+
+
+## Cambio: Notificación de Adelanto al Diseñador (Enero 2026)
+
+- [x] Cambiar título de notificación para el diseñador de "Adelanto Recibido" a "Cliente Confirmado - Iniciar Diseño"
+  - Actualizado en ProjectCard.tsx
+  - Actualizado en ProjectInlineDetail.tsx
+  - Actualizado en TeamDashboard.tsx
+  - Actualizado en deadline-reminders.ts

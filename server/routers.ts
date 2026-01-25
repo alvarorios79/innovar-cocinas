@@ -2243,6 +2243,9 @@ export const appRouter = router({
         const workType = workTypeMap[quotation.productType] || "cocina";
         const projectName = `${clientData?.name || "Cliente"} - ${quotation.quotationNumber}`;
         
+        // Calcular fecha TENTATIVA de instalación: 25 días hábiles desde hoy
+        const tentativeDate = await addBusinessDays(new Date(), 25);
+        
         const projectId = await db.createProject({
           quotationId: quotation.id,
           clientId: quotation.clientId,
@@ -2254,6 +2257,8 @@ export const appRouter = router({
           advanceReceiptUrl: input.receiptUrl || null,
           advanceAmount: input.advanceAmount ? input.advanceAmount.toString() : null,
           quotationPdfUrl: quotationPdfUrl,
+          tentativeInstallDate: tentativeDate,
+          isInstallDateOfficial: false,
         });
         
         // Crear historial de estado del proyecto
@@ -2770,11 +2775,16 @@ export const appRouter = router({
           throw new TRPCError({ code: "FORBIDDEN", message: "Solo administradores pueden crear proyectos" });
         }
 
+        // Calcular fecha TENTATIVA de instalación: 25 días hábiles desde hoy
+        const tentativeDate = await addBusinessDays(new Date(), 25);
+        
         const projectId = await db.createProject({
           ...input,
           status: "cotizacion_enviada",
           quotationSentAt: new Date(),
           createdBy: ctx.user.id,
+          tentativeInstallDate: tentativeDate,
+          isInstallDateOfficial: false,
         });
 
         // Registrar en historial

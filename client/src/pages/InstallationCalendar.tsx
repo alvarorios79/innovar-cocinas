@@ -76,6 +76,7 @@ interface Installation {
   scheduledDate: Date;
   status: string;
   workType: string;
+  isOfficial: boolean; // true = verde (fecha oficial), false = rojo (fecha tentativa)
 }
 
 export default function InstallationCalendar() {
@@ -87,22 +88,41 @@ export default function InstallationCalendar() {
   // Obtener proyectos con instalación programada
   const { data: projects = [], isLoading } = trpc.projects.list.useQuery({});
 
-  // Filtrar proyectos con instalación programada
+  // Filtrar proyectos con instalación programada o fecha tentativa
   const installations = useMemo(() => {
     return projects
-      .filter(p => p.scheduledInstallDate || p.status === "listo_instalacion" || p.status === "instalacion_programada")
-      .map(p => ({
-        id: p.id,
-        projectId: p.id,
-        projectName: p.name,
-        clientName: p.client?.name || "Cliente",
-        clientPhone: p.client?.whatsappPhone,
-        address: p.client?.address,
-        scheduledDate: p.scheduledInstallDate ? new Date(p.scheduledInstallDate) : 
-                       p.estimatedInstallDate ? new Date(p.estimatedInstallDate) : new Date(),
-        status: p.status,
-        workType: p.workType,
-      }));
+      .filter(p => p.scheduledInstallDate || p.estimatedInstallDate || (p as any).tentativeInstallDate || p.status === "listo_instalacion" || p.status === "instalacion_programada")
+      .map(p => {
+        // Determinar si es fecha oficial o tentativa
+        const isOfficial = (p as any).isInstallDateOfficial === true || p.status === "instalacion_programada" || p.status === "listo_instalacion" || p.status === "entregado";
+        
+        // Prioridad: scheduledInstallDate > estimatedInstallDate > tentativeInstallDate
+        let scheduledDate: Date;
+        if (p.scheduledInstallDate) {
+          scheduledDate = new Date(p.scheduledInstallDate);
+        } else if (isOfficial && p.estimatedInstallDate) {
+          scheduledDate = new Date(p.estimatedInstallDate);
+        } else if ((p as any).tentativeInstallDate) {
+          scheduledDate = new Date((p as any).tentativeInstallDate);
+        } else if (p.estimatedInstallDate) {
+          scheduledDate = new Date(p.estimatedInstallDate);
+        } else {
+          scheduledDate = new Date();
+        }
+        
+        return {
+          id: p.id,
+          projectId: p.id,
+          projectName: p.name,
+          clientName: p.client?.name || "Cliente",
+          clientPhone: p.client?.whatsappPhone,
+          address: p.client?.address,
+          scheduledDate,
+          status: p.status,
+          workType: p.workType,
+          isOfficial,
+        };
+      });
   }, [projects]);
 
   // Obtener instalaciones para una fecha específica
@@ -310,12 +330,12 @@ export default function InstallationCalendar() {
                                 setSelectedInstallation(inst);
                               }}
                               className={`
-                                text-[10px] px-1 py-0.5 rounded truncate cursor-pointer
+                                text-[10px] px-1 py-0.5 rounded truncate cursor-pointer font-semibold
                                 ${inst.status === "entregado" 
-                                  ? "bg-green-400 text-green-900 font-semibold" 
-                                  : inst.status === "instalacion_programada"
-                                  ? "bg-blue-400 text-blue-900 font-semibold"
-                                  : "bg-teal-400 text-teal-900 font-semibold"
+                                  ? "bg-green-500 text-white" 
+                                  : inst.isOfficial
+                                  ? "bg-green-500 text-white" 
+                                  : "bg-red-500 text-white"
                                 }
                               `}
                             >
@@ -355,12 +375,12 @@ export default function InstallationCalendar() {
                     <span>No laboral</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-teal-400 rounded"></div>
-                    <span>Instalación pendiente</span>
+                    <div className="w-4 h-4 bg-red-500 rounded"></div>
+                    <span>Fecha tentativa</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-green-400 rounded"></div>
-                    <span>Entregado</span>
+                    <div className="w-4 h-4 bg-green-500 rounded"></div>
+                    <span>Fecha oficial</span>
                   </div>
                 </div>
               </CardContent>

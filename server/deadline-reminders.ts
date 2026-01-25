@@ -318,13 +318,15 @@ export async function setProjectDeadlines(projectId: number, newStatus: string) 
       break;
       
     case "aprobacion_final":
-      // Establecer fecha estimada de instalación: 25 días hábiles
+      // Establecer fecha OFICIAL de instalación: 25 días hábiles desde aprobación
       const estimatedInstall = addBusinessDays(now, 25);
       await db
         .update(projects)
         .set({
           clientApprovedAt: now,
           estimatedInstallDate: estimatedInstall,
+          isInstallDateOfficial: true, // Marcar como fecha oficial
+          tentativeInstallDate: null, // Eliminar fecha tentativa
         })
         .where(eq(projects.id, projectId));
       break;

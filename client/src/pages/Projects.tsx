@@ -665,13 +665,31 @@ export default function Projects() {
                             <Calendar className="h-3 w-3" />
                             {new Date(project.createdAt).toLocaleDateString("es-CO")}
                           </p>
-                          {project.estimatedInstallDate && project.status !== "entregado" && (
+                          {/* Fecha tentativa (rojo) */}
+                          {(project as any).tentativeInstallDate && !(project as any).isInstallDateOfficial && project.status !== "entregado" && (
+                            <p className="flex items-center gap-1 font-medium text-red-600">
+                              <Truck className="h-3 w-3" />
+                              🟥 Tentativa: {new Date((project as any).tentativeInstallDate).toLocaleDateString("es-CO")}
+                            </p>
+                          )}
+                          {/* Fecha oficial (verde) */}
+                          {project.estimatedInstallDate && (project as any).isInstallDateOfficial && project.status !== "entregado" && (
                             <p className={`flex items-center gap-1 font-medium ${
                               new Date(project.estimatedInstallDate) < new Date() 
                                 ? "text-red-600" 
-                                : new Date(project.estimatedInstallDate) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-                                  ? "text-yellow-600"
-                                  : "text-green-600"
+                                : "text-green-600"
+                            }`}>
+                              <Truck className="h-3 w-3" />
+                              🟩 Oficial: {new Date(project.estimatedInstallDate).toLocaleDateString("es-CO")}
+                              {new Date(project.estimatedInstallDate) < new Date() && " ⚠️"}
+                            </p>
+                          )}
+                          {/* Fallback para proyectos antiguos */}
+                          {project.estimatedInstallDate && (project as any).isInstallDateOfficial === undefined && project.status !== "entregado" && (
+                            <p className={`flex items-center gap-1 font-medium ${
+                              new Date(project.estimatedInstallDate) < new Date() 
+                                ? "text-red-600" 
+                                : "text-green-600"
                             }`}>
                               <Truck className="h-3 w-3" />
                               Entrega: {new Date(project.estimatedInstallDate).toLocaleDateString("es-CO")}
@@ -940,7 +958,28 @@ export default function Projects() {
                       {projectDetail.clientApprovedAt && (
                         <p><strong>Aprobación cliente:</strong> {new Date(projectDetail.clientApprovedAt).toLocaleDateString("es-CO")}</p>
                       )}
-                      {projectDetail.estimatedInstallDate && projectDetail.status !== "entregado" && (
+                      {/* Fecha TENTATIVA (rojo) - solo si no hay fecha oficial */}
+                      {(projectDetail as any).tentativeInstallDate && !(projectDetail as any).isInstallDateOfficial && projectDetail.status !== "entregado" && (
+                        <p className="font-medium text-red-600">
+                          <strong>🟥 Fecha tentativa:</strong> {new Date((projectDetail as any).tentativeInstallDate).toLocaleDateString("es-CO")}
+                          <span className="text-xs ml-1">(pendiente aprobación diseños)</span>
+                        </p>
+                      )}
+                      {/* Fecha OFICIAL (verde) - cuando el cliente aprobó diseños */}
+                      {projectDetail.estimatedInstallDate && (projectDetail as any).isInstallDateOfficial && projectDetail.status !== "entregado" && (
+                        <p className={`font-medium ${
+                          new Date(projectDetail.estimatedInstallDate) < new Date() 
+                            ? "text-red-600" 
+                            : new Date(projectDetail.estimatedInstallDate) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+                              ? "text-yellow-600"
+                              : "text-green-600"
+                        }`}>
+                          <strong>🟩 Fecha oficial:</strong> {new Date(projectDetail.estimatedInstallDate).toLocaleDateString("es-CO")}
+                          {new Date(projectDetail.estimatedInstallDate) < new Date() && " (Vencida)"}
+                        </p>
+                      )}
+                      {/* Fallback para proyectos antiguos sin el nuevo sistema */}
+                      {projectDetail.estimatedInstallDate && (projectDetail as any).isInstallDateOfficial === undefined && projectDetail.status !== "entregado" && (
                         <p className={`font-medium ${
                           new Date(projectDetail.estimatedInstallDate) < new Date() 
                             ? "text-red-600" 

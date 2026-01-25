@@ -188,7 +188,11 @@ export const projects = mysqlTable("projects", {
   // Selección de colores y materiales
   selectedColors: text("selectedColors"),
   selectedMaterials: text("selectedMaterials"),
-  // Fecha estimada de instalación (25 días hábiles desde aprobación final)
+  // Fecha TENTATIVA de instalación (25 días hábiles desde creación de cotización)
+  tentativeInstallDate: timestamp("tentativeInstallDate"),
+  // Indica si la fecha de instalación ya es oficial (cliente aprobó diseños)
+  isInstallDateOfficial: boolean("isInstallDateOfficial").default(false),
+  // Fecha OFICIAL de instalación (25 días hábiles desde aprobación de diseños)
   estimatedInstallDate: timestamp("estimatedInstallDate"),
   // Fecha real programada de instalación
   scheduledInstallDate: timestamp("scheduledInstallDate"),

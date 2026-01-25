@@ -2563,3 +2563,24 @@
 
 ## Mejora Flujo Cotizaciones
 - [x] Agregar opción de crear cliente nuevo desde el selector de cliente en cotizaciones
+
+
+## Sistema de Fechas Tentativas y Oficiales
+- [ ] Agregar campo tentativeInstallDate al schema de proyectos
+- [ ] Calcular fecha tentativa desde creación de cotización + 25 días hábiles
+- [ ] Recalcular fecha oficial cuando cliente/admin apruebe diseños
+- [ ] Mostrar fecha tentativa en ROJO en calendario y proyecto
+- [ ] Mostrar fecha oficial en VERDE en calendario y proyecto
+- [ ] Actualizar automáticamente el calendario al cambiar de tentativa a oficial
+
+
+## Sistema de Fechas Tentativas y Oficiales
+
+- [x] Agregar campos tentativeInstallDate y isInstallDateOfficial al schema
+- [x] Calcular fecha tentativa al crear proyecto (25 días hábiles desde creación)
+- [x] Recalcular fecha oficial al aprobar diseños (25 días hábiles desde aprobación)
+- [x] Eliminar fecha tentativa cuando se establece la oficial
+- [x] Mostrar fecha tentativa en rojo en el calendario
+- [x] Mostrar fecha oficial en verde en el calendario
+- [x] Actualizar vista de proyecto con indicadores de color (🟥 tentativa, 🟩 oficial)
+- [x] Actualizar leyenda del calendario con nuevos colores

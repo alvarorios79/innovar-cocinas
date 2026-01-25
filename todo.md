@@ -2313,3 +2313,43 @@
 - [ ] Diálogo de confirmación antes de avanzar etapa
 - [ ] Bloquear subida de fotos si la etapa anterior no tiene al menos 1 foto
 - [ ] Mensaje claro indicando que debe completar la etapa anterior primero
+
+## Nuevas Funcionalidades por Rol - Enero 25, 2026
+
+### Para el Diseñador
+- [ ] Checklist de entregables: Lista de verificación antes de entregar el diseño (renders, despieces, modelado 3D)
+- [ ] Temporizador de 3 días: Indicador visual del tiempo restante para entregar el diseño
+- [ ] Notificación automática al cliente: Cuando el diseñador marca como "Diseño Listo"
+
+### Para el Jefe de Taller
+- [ ] Vista de calendario de producción: Ver todos los proyectos en un calendario con fechas de entrega
+- [ ] Tiempo estimado por etapa: Mostrar cuántos días debería durar cada etapa vs cuántos lleva
+
+### Para el Operario
+- [ ] Lista de proyectos del día: Vista simplificada de qué proyectos debe trabajar hoy
+- [ ] Checklist de tareas por etapa: Lista de verificación de lo que debe hacer en cada etapa
+- [ ] Botón de "Solicitar materiales": Para avisar al jefe de taller/super admin/admin cuando necesita materiales
+
+
+## Nuevas Funcionalidades por Rol (Enero 2026)
+
+### Diseñador
+- [x] Checklist de entregables antes de entregar el diseño (renders, despieces, modelado 3D)
+- [x] Temporizador de 3 días: Indicador visual del tiempo restante para entregar el diseño
+- [x] Notificación automática al cliente cuando el diseñador marca como "Diseño Listo"
+
+### Jefe de Taller
+- [x] Vista de calendario de producción: Ver todos los proyectos en un calendario con fechas de entrega
+- [x] Tiempo estimado por etapa: Mostrar cuántos días debería durar cada etapa vs cuántos lleva
+
+### Operario
+- [x] Lista de proyectos del día: Vista simplificada de qué proyectos debe trabajar hoy
+- [x] Checklist de tareas por etapa: Lista de verificación de lo que debe hacer en cada etapa
+- [x] Botón de "Solicitar materiales": Para avisar al jefe de taller/admin cuando necesita materiales
+
+## Mejoras de Avance de Producción
+
+### Botón de Avance Siempre Visible
+- [x] Mostrar botón de avanzar etapa incluso sin fotos (con diálogo de confirmación)
+- [x] Bloquear subida de fotos si la etapa anterior no tiene al menos 1 foto y no se ha avanzado
+- [x] Diálogo de confirmación antes de avanzar sin fotos

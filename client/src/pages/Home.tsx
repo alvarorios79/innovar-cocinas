@@ -18,6 +18,9 @@ import { NotificationBell } from "@/components/NotificationBell";
 import { MobileNav } from "@/components/MobileNav";
 import { TeamDashboard } from "@/components/TeamDashboard";
 import { OperarioDashboard } from "@/components/OperarioDashboard";
+import { DesignerChecklist } from "@/components/DesignerChecklist";
+import { ProductionCalendar } from "@/components/ProductionCalendar";
+import { OperatorDailyProjects } from "@/components/OperatorDailyProjects";
 
 export default function Home() {
   const { user, isAuthenticated } = useAuth();

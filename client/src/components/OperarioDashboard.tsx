@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useState, useRef } from "react";
+import { OperatorDailyProjects } from "@/components/OperatorDailyProjects";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
@@ -445,6 +446,15 @@ export function OperarioDashboard() {
                 )}
               </div>
             )}
+          </div>
+        </div>
+      </section>
+
+      {/* Proyectos del Día con Checklist */}
+      <section className="py-3 md:py-4">
+        <div className="container">
+          <div className="max-w-4xl mx-auto">
+            <OperatorDailyProjects />
           </div>
         </div>
       </section>

@@ -32,6 +32,9 @@ import {
   LogOut
 } from "lucide-react";
 import { toast } from "sonner";
+import { DesignerChecklist } from "@/components/DesignerChecklist";
+import { ProductionCalendar } from "@/components/ProductionCalendar";
+import { OperatorDailyProjects } from "@/components/OperatorDailyProjects";
 
 // Componente de botón de cerrar sesión
 function LogoutButton() {
@@ -762,6 +765,54 @@ export function TeamDashboard() {
                   );
                 })}
               </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Sección especial para Diseñador: Checklist de Entregables */}
+      {role === "disenador" && myProjects.filter(p => ["adelanto_recibido", "en_diseno"].includes(p.status)).length > 0 && (
+        <section className="py-3 md:py-4">
+          <div className="container">
+            <div className="max-w-4xl mx-auto">
+              <h2 className="text-base md:text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">
+                <Palette className="h-5 w-5 text-purple-600" />
+                Proyectos en Diseño - Checklist de Entregables
+              </h2>
+              <div className="space-y-4">
+                {myProjects.filter(p => ["adelanto_recibido", "en_diseno"].includes(p.status)).slice(0, 3).map((project: any) => (
+                  <DesignerChecklist
+                    key={project.id}
+                    projectId={project.id}
+                    projectName={project.name}
+                    advanceReceivedAt={project.advanceReceivedAt || project.createdAt}
+                    designDeadline={project.designDeadline}
+                    status={project.status}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Sección especial para Jefe de Taller: Calendario de Producción */}
+      {role === "jefe_taller" && (
+        <section className="py-3 md:py-4">
+          <div className="container">
+            <div className="max-w-4xl mx-auto">
+              <ProductionCalendar />
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Sección especial para Operario: Proyectos del Día con Checklist */}
+      {role === "operario" && (
+        <section className="py-3 md:py-4">
+          <div className="container">
+            <div className="max-w-4xl mx-auto">
+              <OperatorDailyProjects />
             </div>
           </div>
         </section>

@@ -3015,6 +3015,105 @@ export const appRouter = router({
           }
         }
 
+        // Notificar al cliente cuando el diseño está listo (pendiente_cliente)
+        if (newStatus === "pendiente_cliente") {
+          try {
+            const clientData = await db.getClientById(project.clientId);
+            
+            if (clientData) {
+              // Si el cliente tiene userId, crear notificación en la base de datos
+              if (clientData.userId) {
+                await db.createNotification({
+                  userId: clientData.userId,
+                  title: "🎨 ¡Tu Diseño está Listo!",
+                  body: `El diseño de tu proyecto "${project.name}" está listo para tu revisión. Ingresa al portal para verlo y aprobarlo.`,
+                  type: "proyecto",
+                  referenceId: project.id,
+                  referenceType: "project",
+                });
+                
+                // Intentar enviar notificación push al cliente
+                try {
+                  const { createAndSendNotification } = await import("./push-notifications");
+                  await createAndSendNotification(clientData.userId, {
+                    title: "🎨 ¡Tu Diseño está Listo!",
+                    body: `El diseño de "${project.name}" está listo para tu aprobación`,
+                    type: "proyecto",
+                    url: "/portal",
+                  });
+                } catch (e) {
+                  // Silenciar error de push
+                }
+              }
+              
+              // Enviar email al cliente si tiene email
+              if (clientData.email) {
+                try {
+                  const { sendEmail } = await import("./email");
+                  const baseUrl = ctx.req.headers.origin || `https://${ctx.req.headers.host}`;
+                  const portalUrl = `${baseUrl}/portal`;
+                  
+                  await sendEmail({
+                    to: clientData.email,
+                    subject: `🎨 ¡Tu Diseño está Listo! - ${project.name}`,
+                    html: `
+                      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                        <div style="background: linear-gradient(135deg, #8B5CF6, #6366F1); padding: 30px; text-align: center;">
+                          <h1 style="color: white; margin: 0;">🎨 ¡Tu Diseño está Listo!</h1>
+                        </div>
+                        <div style="padding: 30px; background: #f9fafb;">
+                          <p style="font-size: 16px; color: #374151;">Hola <strong>${clientData.name}</strong>,</p>
+                          <p style="font-size: 16px; color: #374151;">
+                            Nos complace informarte que el diseño de tu proyecto <strong>"${project.name}"</strong> está listo para tu revisión.
+                          </p>
+                          <p style="font-size: 16px; color: #374151;">
+                            Por favor ingresa a tu portal para ver los renders, despieces y detalles del diseño. Una vez que lo revises, podrás aprobarlo o solicitar cambios.
+                          </p>
+                          <div style="text-align: center; margin: 30px 0;">
+                            <a href="${portalUrl}" style="background: linear-gradient(135deg, #8B5CF6, #6366F1); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
+                              Ver Mi Diseño
+                            </a>
+                          </div>
+                          <p style="font-size: 14px; color: #6B7280;">
+                            Tienes 2 días para revisar y aprobar el diseño. Si tienes alguna pregunta, no dudes en contactarnos.
+                          </p>
+                        </div>
+                        <div style="background: #1F2937; padding: 20px; text-align: center;">
+                          <p style="color: #9CA3AF; margin: 0; font-size: 12px;">
+                            INNOVAR Cocinas Integrales | K9 vía Cerritos a Pereira | Tel: 313 680 2025
+                          </p>
+                        </div>
+                      </div>
+                    `,
+                  });
+                } catch (e) {
+                  // Silenciar error de email
+                  console.error("Error enviando email al cliente:", e);
+                }
+              }
+              
+              // Notificar a super_admin, admin y comercial
+              const allUsers = await db.getAllUsers();
+              const notifyRoles = ["super_admin", "admin", "comercial"];
+              const usersToNotify = allUsers.filter(u => notifyRoles.includes(u.role));
+              
+              for (const user of usersToNotify) {
+                await db.createNotification({
+                  userId: user.id,
+                  title: "🎨 Diseño Entregado al Cliente",
+                  body: `El diseñador ${ctx.user.name} ha entregado el diseño del proyecto "${project.name}" al cliente ${clientData.name}.`,
+                  type: "proyecto",
+                  referenceId: project.id,
+                  referenceType: "project",
+                });
+              }
+            }
+          } catch (e) {
+            // Silenciar error de notificación
+            console.error("Error notificando al cliente:", e);
+          }
+        }
+
         // Notificar al jefe de taller cuando el proyecto pasa a despiece (producción)
         if (newStatus === "despiece") {
           try {

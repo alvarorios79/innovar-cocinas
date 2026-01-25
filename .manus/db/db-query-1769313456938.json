@@ -1,0 +1,26 @@
+{
+  "query": "SELECT id, status FROM projects ORDER BY id DESC LIMIT 10;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT id, status FROM projects ORDER BY id DESC LIMIT 10;",
+  "rows": [
+    {
+      "id": "90003",
+      "status": "enchape"
+    },
+    {
+      "id": "90002",
+      "status": "corte"
+    },
+    {
+      "id": "90001",
+      "status": "adelanto_recibido"
+    },
+    {
+      "id": "1",
+      "status": "entregado"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tstatus\n90003\tenchape\n90002\tcorte\n90001\tadelanto_recibido\n1\tentregado\n",
+  "stderr": "",
+  "execution_time_ms": 57
+}

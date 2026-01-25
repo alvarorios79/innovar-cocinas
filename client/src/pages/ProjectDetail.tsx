@@ -98,6 +98,7 @@ export default function ProjectDetail() {
     reason: "",
   });
   const [photoToDelete, setPhotoToDelete] = useState<{ id: number; description?: string } | null>(null);
+  const [advanceConfirmDialog, setAdvanceConfirmDialog] = useState<{ open: boolean; subcategory: string; nextStatus: string; hasPhotos: boolean }>({ open: false, subcategory: "", nextStatus: "", hasPhotos: false });
 
   const { data: projectDetail, isLoading } = trpc.projects.getById.useQuery(
     { id: projectId },
@@ -157,6 +158,7 @@ export default function ProjectDetail() {
 
   // Mapeo de subcategoría de foto a siguiente estado del proyecto
   const photoToNextStatus: Record<string, string> = {
+    despiece: "corte",
     corte: "enchape",
     enchape: "ensamble",
     armado: "listo_instalacion",
@@ -164,33 +166,83 @@ export default function ProjectDetail() {
   };
 
   // Mapeo de subcategoría a estado requerido para mostrar botón de avanzar
+  // El botón aparece cuando el proyecto está en la etapa correspondiente o en etapas anteriores de producción
   const photoToCurrentStatus: Record<string, string[]> = {
-    corte: ["corte"],
-    enchape: ["enchape"],
-    armado: ["ensamble"],
-    proceso_instalacion: ["instalacion_programada"],
+    despiece: ["despiece", "pendiente_cliente", "aprobacion_final"],
+    corte: ["corte", "despiece"],
+    enchape: ["enchape", "corte"],
+    armado: ["ensamble", "enchape"],
+    proceso_instalacion: ["instalacion_programada", "listo_instalacion"],
   };
 
-  // Verificar si el usuario puede avanzar el proyecto desde la sección de fotos
-  const canAdvanceFromPhoto = (subcategory: string) => {
+  // Verificar si el usuario tiene rol permitido para avanzar
+  const canShowAdvanceButton = (subcategory: string) => {
     const role = user?.role;
     const allowedRoles = ["super_admin", "admin", "jefe_taller", "operario"];
     if (!role || !allowedRoles.includes(role)) return false;
-    
-    const requiredStatuses = photoToCurrentStatus[subcategory];
-    if (!requiredStatuses) return false;
-    
-    return requiredStatuses.includes(projectDetail?.status || "");
+    return !!photoToNextStatus[subcategory];
   };
 
-  const handleAdvanceFromPhoto = (subcategory: string) => {
+  // Mapeo de subcategoría a la etapa anterior requerida
+  const previousStageMap: Record<string, string> = {
+    corte: "despiece",
+    enchape: "corte",
+    armado: "enchape",
+    proceso_instalacion: "armado",
+  };
+
+  // Verificar si la etapa anterior tiene al menos una foto
+  const hasPreviousStagePhotos = (subcategory: string): boolean => {
+    const previousStage = previousStageMap[subcategory];
+    if (!previousStage) return true; // despiece no tiene etapa anterior
+    
+    const photos = projectDetail?.photos || [];
+    return photos.some(p => p.subcategory === previousStage);
+  };
+
+  // Verificar si se puede subir fotos a esta etapa
+  const canUploadToStage = (subcategory: string): { allowed: boolean; message?: string } => {
+    // Siempre permitir para admin y super_admin
+    if (user?.role === "super_admin" || user?.role === "admin") {
+      return { allowed: true };
+    }
+    
+    // Verificar si la etapa anterior tiene fotos
+    if (!hasPreviousStagePhotos(subcategory)) {
+      const previousStage = previousStageMap[subcategory];
+      const previousLabel = subcategoryLabels[previousStage] || previousStage;
+      return { 
+        allowed: false, 
+        message: `Debe completar la etapa de ${previousLabel} primero (subir al menos 1 foto)` 
+      };
+    }
+    
+    return { allowed: true };
+  };
+
+  // Abrir diálogo de confirmación para avanzar
+  const openAdvanceConfirmDialog = (subcategory: string) => {
     const nextStatus = photoToNextStatus[subcategory];
+    const photos = projectDetail?.photos || [];
+    const hasPhotos = photos.some(p => p.subcategory === subcategory);
+    
+    setAdvanceConfirmDialog({
+      open: true,
+      subcategory,
+      nextStatus: nextStatus || "",
+      hasPhotos
+    });
+  };
+
+  const handleAdvanceFromPhoto = () => {
+    const { subcategory, nextStatus } = advanceConfirmDialog;
     if (!nextStatus || !projectDetail?.id) return;
     
     updateStatus.mutate({
       projectId: projectDetail.id,
       newStatus: nextStatus as any,
     });
+    setAdvanceConfirmDialog({ open: false, subcategory: "", nextStatus: "", hasPhotos: false });
   };
 
   // Nota: exportPdf se implementará después
@@ -691,22 +743,31 @@ export default function ProjectDetail() {
                                 {photos.length} {photos.length === 1 ? 'foto' : 'fotos'}
                               </span>
                             </h5>
-                            {canUploadToFolder(subcategory) && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => {
-                                  setPhotoForm({
-                                    ...photoForm,
-                                    category: category as any,
-                                    subcategory,
-                                  });
-                                  setShowPhotoDialog(true);
-                                }}
-                              >
-                                <Upload className="h-4 w-4" />
-                              </Button>
-                            )}
+                            {canUploadToFolder(subcategory) && (() => {
+                              const uploadCheck = canUploadToStage(subcategory);
+                              return (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  disabled={!uploadCheck.allowed}
+                                  title={uploadCheck.message || "Subir foto"}
+                                  onClick={() => {
+                                    if (!uploadCheck.allowed) {
+                                      toast.error(uploadCheck.message);
+                                      return;
+                                    }
+                                    setPhotoForm({
+                                      ...photoForm,
+                                      category: category as any,
+                                      subcategory,
+                                    });
+                                    setShowPhotoDialog(true);
+                                  }}
+                                >
+                                  <Upload className={`h-4 w-4 ${!uploadCheck.allowed ? 'text-gray-300' : ''}`} />
+                                </Button>
+                              );
+                            })()}
                           </div>
                           {photos.length > 0 ? (
                             <>
@@ -750,11 +811,11 @@ export default function ProjectDetail() {
                                   </div>
                                 ))}
                               </div>
-                              {/* Botón de avanzar etapa */}
-                              {canAdvanceFromPhoto(subcategory) && photos.length > 0 && (
+                              {/* Botón de avanzar etapa - siempre visible para roles permitidos */}
+                              {canShowAdvanceButton(subcategory) && (
                                 <div className="mt-3 pt-3 border-t border-dashed border-emerald-200">
                                   <Button
-                                    onClick={() => handleAdvanceFromPhoto(subcategory)}
+                                    onClick={() => openAdvanceConfirmDialog(subcategory)}
                                     disabled={updateStatus.isPending}
                                     className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-semibold"
                                   >
@@ -763,7 +824,8 @@ export default function ProjectDetail() {
                                     ) : (
                                       <ArrowRight className="h-4 w-4 mr-2" />
                                     )}
-                                    Avanzar a {photoToNextStatus[subcategory] === "enchape" ? "Enchape" :
+                                    Avanzar a {photoToNextStatus[subcategory] === "corte" ? "Corte" :
+                                               photoToNextStatus[subcategory] === "enchape" ? "Enchape" :
                                                photoToNextStatus[subcategory] === "ensamble" ? "Ensamble" :
                                                photoToNextStatus[subcategory] === "listo_instalacion" ? "Listo para Instalación" :
                                                photoToNextStatus[subcategory] === "entregado" ? "Entregado" : "Siguiente Etapa"}
@@ -772,13 +834,36 @@ export default function ProjectDetail() {
                               )}
                             </>
                           ) : (
-                            <div className="flex flex-col items-center justify-center py-8 text-center bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
-                              <Camera className="h-10 w-10 text-gray-300 mb-2" />
-                              <p className="text-sm text-gray-400 font-medium">Sin fotos aún</p>
-                              {canUploadToFolder(subcategory) && (
-                                <p className="text-xs text-gray-400 mt-1">Haz clic en el botón de subir para agregar</p>
+                            <>
+                              <div className="flex flex-col items-center justify-center py-8 text-center bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
+                                <Camera className="h-10 w-10 text-gray-300 mb-2" />
+                                <p className="text-sm text-gray-400 font-medium">Sin fotos aún</p>
+                                {canUploadToFolder(subcategory) && (
+                                  <p className="text-xs text-gray-400 mt-1">Haz clic en el botón de subir para agregar</p>
+                                )}
+                              </div>
+                              {/* Botón de avanzar etapa - siempre visible para roles permitidos */}
+                              {canShowAdvanceButton(subcategory) && (
+                                <div className="mt-3 pt-3 border-t border-dashed border-amber-200">
+                                  <Button
+                                    onClick={() => openAdvanceConfirmDialog(subcategory)}
+                                    disabled={updateStatus.isPending}
+                                    className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold"
+                                  >
+                                    {updateStatus.isPending ? (
+                                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                                    ) : (
+                                      <ArrowRight className="h-4 w-4 mr-2" />
+                                    )}
+                                    Avanzar a {photoToNextStatus[subcategory] === "corte" ? "Corte" :
+                                               photoToNextStatus[subcategory] === "enchape" ? "Enchape" :
+                                               photoToNextStatus[subcategory] === "ensamble" ? "Ensamble" :
+                                               photoToNextStatus[subcategory] === "listo_instalacion" ? "Listo para Instalación" :
+                                               photoToNextStatus[subcategory] === "entregado" ? "Entregado" : "Siguiente Etapa"}
+                                  </Button>
+                                </div>
                               )}
-                            </div>
+                            </>
                           )}
                         </div>
                       );
@@ -1165,6 +1250,55 @@ export default function ProjectDetail() {
               }}
             >
               {deletePhoto.isPending ? "Eliminando..." : "Sí, eliminar"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Diálogo de confirmación para avanzar etapa */}
+      <AlertDialog open={advanceConfirmDialog.open} onOpenChange={(open) => !open && setAdvanceConfirmDialog({ open: false, subcategory: "", nextStatus: "", hasPhotos: false })}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {advanceConfirmDialog.hasPhotos 
+                ? "¿Avanzar a la siguiente etapa?" 
+                : "⚠️ Sin fotos en esta etapa"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {advanceConfirmDialog.hasPhotos ? (
+                <>
+                  El proyecto pasará de <strong>{subcategoryLabels[advanceConfirmDialog.subcategory] || advanceConfirmDialog.subcategory}</strong> a{" "}
+                  <strong>
+                    {advanceConfirmDialog.nextStatus === "corte" ? "Corte" :
+                     advanceConfirmDialog.nextStatus === "enchape" ? "Enchape" :
+                     advanceConfirmDialog.nextStatus === "ensamble" ? "Ensamble" :
+                     advanceConfirmDialog.nextStatus === "listo_instalacion" ? "Listo para Instalación" :
+                     advanceConfirmDialog.nextStatus === "entregado" ? "Entregado" : "Siguiente Etapa"}
+                  </strong>.
+                  <br /><br />
+                  ¿Está seguro de continuar?
+                </>
+              ) : (
+                <>
+                  No hay fotos subidas en la etapa de <strong>{subcategoryLabels[advanceConfirmDialog.subcategory] || advanceConfirmDialog.subcategory}</strong>.
+                  <br /><br />
+                  Se recomienda subir al menos una foto antes de avanzar para documentar el progreso del proyecto.
+                  <br /><br />
+                  ¿Desea avanzar de todas formas?
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className={advanceConfirmDialog.hasPhotos 
+                ? "bg-emerald-500 hover:bg-emerald-600" 
+                : "bg-amber-500 hover:bg-amber-600"}
+              onClick={handleAdvanceFromPhoto}
+              disabled={updateStatus.isPending}
+            >
+              {updateStatus.isPending ? "Avanzando..." : (advanceConfirmDialog.hasPhotos ? "Sí, avanzar" : "Avanzar sin fotos")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

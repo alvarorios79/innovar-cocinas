@@ -2293,3 +2293,23 @@
   - Armado → Listo para Instalación
   - Proceso Instalación → Entregado
 - [x] Solo visible para jefe_taller, operario, admin y super_admin
+
+
+## Bug: Botón de Avance en Fotos No Aparece - Enero 25, 2026
+
+- [x] Corregir lógica del botón de avance para incluir todas las etapas de producción
+- [x] Agregar botón de avance en despiece para pasar a corte
+- [x] El botón ahora aparece cuando el proyecto está en la etapa correspondiente o etapas cercanas:
+  - Despiece: aparece en pendiente_cliente, aprobacion_final, despiece
+  - Corte: aparece en despiece, corte
+  - Enchape: aparece en corte, enchape
+  - Armado: aparece en enchape, ensamble
+  - Proceso Instalación: aparece en listo_instalacion, instalacion_programada
+
+
+## Mejora Flujo de Fotos - Enero 25, 2026
+
+- [ ] Botón de avance siempre visible en cada sección de fotos
+- [ ] Diálogo de confirmación antes de avanzar etapa
+- [ ] Bloquear subida de fotos si la etapa anterior no tiene al menos 1 foto
+- [ ] Mensaje claro indicando que debe completar la etapa anterior primero

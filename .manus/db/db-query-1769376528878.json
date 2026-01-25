@@ -1,0 +1,106 @@
+{
+  "query": "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'projects';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'projects';",
+  "rows": [
+    {
+      "COLUMN_NAME": "id"
+    },
+    {
+      "COLUMN_NAME": "quotationId"
+    },
+    {
+      "COLUMN_NAME": "clientId"
+    },
+    {
+      "COLUMN_NAME": "name"
+    },
+    {
+      "COLUMN_NAME": "workType"
+    },
+    {
+      "COLUMN_NAME": "status"
+    },
+    {
+      "COLUMN_NAME": "initialMeasurements"
+    },
+    {
+      "COLUMN_NAME": "design3dFiles"
+    },
+    {
+      "COLUMN_NAME": "despieceFiles"
+    },
+    {
+      "COLUMN_NAME": "clientApprovedAt"
+    },
+    {
+      "COLUMN_NAME": "clientApprovalNotes"
+    },
+    {
+      "COLUMN_NAME": "createdBy"
+    },
+    {
+      "COLUMN_NAME": "designerId"
+    },
+    {
+      "COLUMN_NAME": "createdAt"
+    },
+    {
+      "COLUMN_NAME": "updatedAt"
+    },
+    {
+      "COLUMN_NAME": "quotationSentAt"
+    },
+    {
+      "COLUMN_NAME": "quotationApprovedAt"
+    },
+    {
+      "COLUMN_NAME": "advanceReceivedAt"
+    },
+    {
+      "COLUMN_NAME": "advanceAmount"
+    },
+    {
+      "COLUMN_NAME": "designDeadline"
+    },
+    {
+      "COLUMN_NAME": "designDeliveredAt"
+    },
+    {
+      "COLUMN_NAME": "selectedColors"
+    },
+    {
+      "COLUMN_NAME": "selectedMaterials"
+    },
+    {
+      "COLUMN_NAME": "estimatedInstallDate"
+    },
+    {
+      "COLUMN_NAME": "scheduledInstallDate"
+    },
+    {
+      "COLUMN_NAME": "installDurationDays"
+    },
+    {
+      "COLUMN_NAME": "deliveredAt"
+    },
+    {
+      "COLUMN_NAME": "advanceReceiptUrl"
+    },
+    {
+      "COLUMN_NAME": "advance_receipt_url"
+    },
+    {
+      "COLUMN_NAME": "quotationPdfUrl"
+    },
+    {
+      "COLUMN_NAME": "tentativeInstallDate"
+    },
+    {
+      "COLUMN_NAME": "isInstallDateOfficial"
+    }
+  ],
+  "messages": [],
+  "stdout": "COLUMN_NAME\nid\nquotationId\nclientId\nname\nworkType\nstatus\ninitialMeasurements\ndesign3dFiles\ndespieceFiles\nclientApprovedAt\nclientApprovalNotes\ncreatedBy\ndesignerId\ncreatedAt\nupdatedAt\nquotationSentAt\nquotationApprovedAt\nadvanceReceivedAt\nadvanceAmount\ndesignDeadline\ndesignDeliveredAt\nselectedColors\nselectedMaterials\nestimatedInstallDate\nscheduledInstallDate\ninstallDurationDays\ndeliveredAt\nadvanceReceiptUrl\nadvance_receipt_url\nquotationPdfUrl\ntentativeInstallDate\nisInstallDateOfficial\n",
+  "stderr": "",
+  "execution_time_ms": 61
+}

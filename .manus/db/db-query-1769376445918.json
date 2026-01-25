@@ -1,0 +1,320 @@
+{
+  "query": "SELECT * FROM clients ORDER BY id DESC;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT * FROM clients ORDER BY id DESC;",
+  "rows": [
+    {
+      "id": "660162",
+      "userId": "NULL",
+      "name": "Cliente Timezone Test",
+      "email": "timezone@test.com",
+      "whatsappPhone": "+573001234567",
+      "address": "NULL",
+      "createdAt": "2026-01-25 21:03:33",
+      "updatedAt": "2026-01-25 21:03:33"
+    },
+    {
+      "id": "660160",
+      "userId": "NULL",
+      "name": "Cliente Timezone Test",
+      "email": "timezone@test.com",
+      "whatsappPhone": "+573001234567",
+      "address": "NULL",
+      "createdAt": "2026-01-25 21:03:33",
+      "updatedAt": "2026-01-25 21:03:33"
+    },
+    {
+      "id": "660158",
+      "userId": "NULL",
+      "name": "Cliente Test Auto-registro",
+      "email": "test-1769375012303@example.com",
+      "whatsappPhone": "3005525198",
+      "address": "Dirección de prueba",
+      "createdAt": "2026-01-25 21:03:32",
+      "updatedAt": "2026-01-25 21:03:32"
+    },
+    {
+      "id": "660157",
+      "userId": "2160939",
+      "name": "Cliente Test Auto-registro",
+      "email": "test-1769375011738@example.com",
+      "whatsappPhone": "3002965282",
+      "address": "Dirección de prueba",
+      "createdAt": "2026-01-25 21:03:31",
+      "updatedAt": "2026-01-25 21:03:32"
+    },
+    {
+      "id": "660156",
+      "userId": "NULL",
+      "name": "Cliente Test Auto-registro",
+      "email": "test-1769375011591@example.com",
+      "whatsappPhone": "3004226475",
+      "address": "Dirección de prueba",
+      "createdAt": "2026-01-25 21:03:31",
+      "updatedAt": "2026-01-25 21:03:31"
+    },
+    {
+      "id": "660155",
+      "userId": "2160932",
+      "name": "Test User",
+      "email": "test-1769375009284@example.com",
+      "whatsappPhone": "3001234567",
+      "address": "NULL",
+      "createdAt": "2026-01-25 21:03:29",
+      "updatedAt": "2026-01-25 21:03:29"
+    },
+    {
+      "id": "660154",
+      "userId": "NULL",
+      "name": "Cliente Test Horario",
+      "email": "NULL",
+      "whatsappPhone": "3001112222",
+      "address": "NULL",
+      "createdAt": "2026-01-25 21:03:29",
+      "updatedAt": "2026-01-25 21:03:29"
+    },
+    {
+      "id": "660153",
+      "userId": "NULL",
+      "name": "Cliente Test Horario",
+      "email": "NULL",
+      "whatsappPhone": "3001112222",
+      "address": "NULL",
+      "createdAt": "2026-01-25 21:03:29",
+      "updatedAt": "2026-01-25 21:03:29"
+    },
+    {
+      "id": "660152",
+      "userId": "NULL",
+      "name": "Cliente Test Horario",
+      "email": "NULL",
+      "whatsappPhone": "3001112222",
+      "address": "NULL",
+      "createdAt": "2026-01-25 21:03:29",
+      "updatedAt": "2026-01-25 21:03:29"
+    },
+    {
+      "id": "660151",
+      "userId": "NULL",
+      "name": "Cliente Test Horario",
+      "email": "NULL",
+      "whatsappPhone": "3001112222",
+      "address": "NULL",
+      "createdAt": "2026-01-25 21:03:29",
+      "updatedAt": "2026-01-25 21:03:29"
+    },
+    {
+      "id": "660150",
+      "userId": "NULL",
+      "name": "Cliente Test Horario",
+      "email": "NULL",
+      "whatsappPhone": "3001112222",
+      "address": "NULL",
+      "createdAt": "2026-01-25 21:03:29",
+      "updatedAt": "2026-01-25 21:03:29"
+    },
+    {
+      "id": "660143",
+      "userId": "1",
+      "name": "Test Client Send 1769375007749",
+      "email": "test-send-1769375007749@example.com",
+      "whatsappPhone": "3005007749",
+      "address": "Test Address",
+      "createdAt": "2026-01-25 21:03:27",
+      "updatedAt": "2026-01-25 21:03:27"
+    },
+    {
+      "id": "660142",
+      "userId": "NULL",
+      "name": "Cliente Test Bulk",
+      "email": "cliente-bulk@test.com",
+      "whatsappPhone": "+573001234567",
+      "address": "NULL",
+      "createdAt": "2026-01-25 21:03:27",
+      "updatedAt": "2026-01-25 21:03:27"
+    },
+    {
+      "id": "660141",
+      "userId": "1",
+      "name": "Cliente Duplicado",
+      "email": "duplicado@test.com",
+      "whatsappPhone": "3007776666",
+      "address": "Dirección Original",
+      "createdAt": "2026-01-25 20:46:49",
+      "updatedAt": "2026-01-25 20:46:49"
+    },
+    {
+      "id": "660138",
+      "userId": "NULL",
+      "name": "Cliente Timezone Test",
+      "email": "timezone@test.com",
+      "whatsappPhone": "+573001234567",
+      "address": "NULL",
+      "createdAt": "2026-01-25 20:46:48",
+      "updatedAt": "2026-01-25 20:46:48"
+    },
+    {
+      "id": "660136",
+      "userId": "NULL",
+      "name": "Cliente Timezone Test",
+      "email": "timezone@test.com",
+      "whatsappPhone": "+573001234567",
+      "address": "NULL",
+      "createdAt": "2026-01-25 20:46:48",
+      "updatedAt": "2026-01-25 20:46:48"
+    },
+    {
+      "id": "660134",
+      "userId": "NULL",
+      "name": "Cliente Test Auto-registro",
+      "email": "test-1769374008023@example.com",
+      "whatsappPhone": "3004211662",
+      "address": "Dirección de prueba",
+      "createdAt": "2026-01-25 20:46:48",
+      "updatedAt": "2026-01-25 20:46:48"
+    },
+    {
+      "id": "660133",
+      "userId": "2160850",
+      "name": "Cliente Test Auto-registro",
+      "email": "test-1769374007585@example.com",
+      "whatsappPhone": "3009781445",
+      "address": "Dirección de prueba",
+      "createdAt": "2026-01-25 20:46:47",
+      "updatedAt": "2026-01-25 20:46:47"
+    },
+    {
+      "id": "660132",
+      "userId": "NULL",
+      "name": "Cliente Test Auto-registro",
+      "email": "test-1769374007454@example.com",
+      "whatsappPhone": "3008653629",
+      "address": "Dirección de prueba",
+      "createdAt": "2026-01-25 20:46:47",
+      "updatedAt": "2026-01-25 20:46:47"
+    },
+    {
+      "id": "660131",
+      "userId": "2160843",
+      "name": "Test User",
+      "email": "test-1769374005271@example.com",
+      "whatsappPhone": "3001234567",
+      "address": "NULL",
+      "createdAt": "2026-01-25 20:46:45",
+      "updatedAt": "2026-01-25 20:46:45"
+    },
+    {
+      "id": "660130",
+      "userId": "NULL",
+      "name": "Cliente Test Horario",
+      "email": "NULL",
+      "whatsappPhone": "3001112222",
+      "address": "NULL",
+      "createdAt": "2026-01-25 20:46:45",
+      "updatedAt": "2026-01-25 20:46:45"
+    },
+    {
+      "id": "660129",
+      "userId": "NULL",
+      "name": "Cliente Test Horario",
+      "email": "NULL",
+      "whatsappPhone": "3001112222",
+      "address": "NULL",
+      "createdAt": "2026-01-25 20:46:45",
+      "updatedAt": "2026-01-25 20:46:45"
+    },
+    {
+      "id": "660128",
+      "userId": "NULL",
+      "name": "Cliente Test Horario",
+      "email": "NULL",
+      "whatsappPhone": "3001112222",
+      "address": "NULL",
+      "createdAt": "2026-01-25 20:46:45",
+      "updatedAt": "2026-01-25 20:46:45"
+    },
+    {
+      "id": "660127",
+      "userId": "NULL",
+      "name": "Cliente Test Horario",
+      "email": "NULL",
+      "whatsappPhone": "3001112222",
+      "address": "NULL",
+      "createdAt": "2026-01-25 20:46:45",
+      "updatedAt": "2026-01-25 20:46:45"
+    },
+    {
+      "id": "660126",
+      "userId": "NULL",
+      "name": "Cliente Test Horario",
+      "email": "NULL",
+      "whatsappPhone": "3001112222",
+      "address": "NULL",
+      "createdAt": "2026-01-25 20:46:45",
+      "updatedAt": "2026-01-25 20:46:45"
+    },
+    {
+      "id": "660125",
+      "userId": "1",
+      "name": "Test Client Send 1769374004965",
+      "email": "test-send-1769374004965@example.com",
+      "whatsappPhone": "3004004965",
+      "address": "Test Address",
+      "createdAt": "2026-01-25 20:46:44",
+      "updatedAt": "2026-01-25 20:46:44"
+    },
+    {
+      "id": "660124",
+      "userId": "1",
+      "name": "Test Client Quotation",
+      "email": "test-quotation@example.com",
+      "whatsappPhone": "3001234599",
+      "address": "Test Address",
+      "createdAt": "2026-01-25 20:46:44",
+      "updatedAt": "2026-01-25 20:46:44"
+    },
+    {
+      "id": "660117",
+      "userId": "2160837",
+      "name": "Test Client",
+      "email": "test@example.com",
+      "whatsappPhone": "3001234567",
+      "address": "Test Address",
+      "createdAt": "2026-01-25 20:46:43",
+      "updatedAt": "2026-01-25 20:46:44"
+    },
+    {
+      "id": "660116",
+      "userId": "2160834",
+      "name": "Cliente Test Bulk",
+      "email": "cliente-bulk@test.com",
+      "whatsappPhone": "+573001234567",
+      "address": "NULL",
+      "createdAt": "2026-01-25 20:46:42",
+      "updatedAt": "2026-01-25 20:46:43"
+    },
+    {
+      "id": "300053",
+      "userId": "840718",
+      "name": "Álvaro prueba ",
+      "email": "alvarorios79@hotmail.com",
+      "whatsappPhone": "3002826317",
+      "address": "Av 30 de agosto 73-51",
+      "createdAt": "2026-01-19 01:12:10",
+      "updatedAt": "2026-01-19 01:59:18"
+    },
+    {
+      "id": "90091",
+      "userId": "271067",
+      "name": "Carlos Albeiro Betancurt ",
+      "email": "albetan1530@gmail.com",
+      "whatsappPhone": "3208515567",
+      "address": "NULL",
+      "createdAt": "2026-01-14 03:30:14",
+      "updatedAt": "2026-01-14 03:30:14"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tuserId\tname\temail\twhatsappPhone\taddress\tcreatedAt\tupdatedAt\n660162\tNULL\tCliente Timezone Test\ttimezone@test.com\t+573001234567\tNULL\t2026-01-25 21:03:33\t2026-01-25 21:03:33\n660160\tNULL\tCliente Timezone Test\ttimezone@test.com\t+573001234567\tNULL\t2026-01-25 21:03:33\t2026-01-25 21:03:33\n660158\tNULL\tCliente Test Auto-registro\ttest-1769375012303@example.com\t3005525198\tDirección de prueba\t2026-01-25 21:03:32\t2026-01-25 21:03:32\n660157\t2160939\tCliente Test Auto-registro\ttest-1769375011738@example.com\t3002965282\tDirección de prueba\t2026-01-25 21:03:31\t2026-01-25 21:03:32\n660156\tNULL\tCliente Test Auto-registro\ttest-1769375011591@example.com\t3004226475\tDirección de prueba\t2026-01-25 21:03:31\t2026-01-25 21:03:31\n660155\t2160932\tTest User\ttest-1769375009284@example.com\t3001234567\tNULL\t2026-01-25 21:03:29\t2026-01-25 21:03:29\n660154\tNULL\tCliente Test Horario\tNULL\t3001112222\tNULL\t2026-01-25 21:03:29\t2026-01-25 21:03:29\n660153\tNULL\tCliente Test Horario\tNULL\t3001112222\tNULL\t2026-01-25 21:03:29\t2026-01-25 21:03:29\n660152\tNULL\tCliente Test Horario\tNULL\t3001112222\tNULL\t2026-01-25 21:03:29\t2026-01-25 21:03:29\n660151\tNULL\tCliente Test Horario\tNULL\t3001112222\tNULL\t2026-01-25 21:03:29\t2026-01-25 21:03:29\n660150\tNULL\tCliente Test Horario\tNULL\t3001112222\tNULL\t2026-01-25 21:03:29\t2026-01-25 21:03:29\n660143\t1\tTest Client Send 1769375007749\ttest-send-1769375007749@example.com\t3005007749\tTest Address\t2026-01-25 21:03:27\t2026-01-25 21:03:27\n660142\tNULL\tCliente Test Bulk\tcliente-bulk@test.com\t+573001234567\tNULL\t2026-01-25 21:03:27\t2026-01-25 21:03:27\n660141\t1\tCliente Duplicado\tduplicado@test.com\t3007776666\tDirección Original\t2026-01-25 20:46:49\t2026-01-25 20:46:49\n660138\tNULL\tCliente Timezone Test\ttimezone@test.com\t+573001234567\tNULL\t2026-01-25 20:46:48\t2026-01-25 20:46:48\n660136\tNULL\tCliente Timezone Test\ttimezone@test.com\t+573001234567\tNULL\t2026-01-25 20:46:48\t2026-01-25 20:46:48\n660134\tNULL\tCliente Test Auto-registro\ttest-1769374008023@example.com\t3004211662\tDirección de prueba\t2026-01-25 20:46:48\t2026-01-25 20:46:48\n660133\t2160850\tCliente Test Auto-registro\ttest-1769374007585@example.com\t3009781445\tDirección de prueba\t2026-01-25 20:46:47\t2026-01-25 20:46:47\n660132\tNULL\tCliente Test Auto-registro\ttest-1769374007454@example.com\t3008653629\tDirección de prueba\t2026-01-25 20:46:47\t2026-01-25 20:46:47\n660131\t2160843\tTest User\ttest-1769374005271@example.com\t3001234567\tNULL\t2026-01-25 20:46:45\t2026-01-25 20:46:45\n660130\tNULL\tCliente Test Horario\tNULL\t3001112222\tNULL\t2026-01-25 20:46:45\t2026-01-25 20:46:45\n660129\tNULL\tCliente Test Horario\tNULL\t3001112222\tNULL\t2026-01-25 20:46:45\t2026-01-25 20:46:45\n660128\tNULL\tCliente Test Horario\tNULL\t3001112222\tNULL\t2026-01-25 20:46:45\t2026-01-25 20:46:45\n660127\tNULL\tCliente Test Horario\tNULL\t3001112222\tNULL\t2026-01-25 20:46:45\t2026-01-25 20:46:45\n660126\tNULL\tCliente Test Horario\tNULL\t3001112222\tNULL\t2026-01-25 20:46:45\t2026-01-25 20:46:45\n660125\t1\tTest Client Send 1769374004965\ttest-send-1769374004965@example.com\t3004004965\tTest Address\t2026-01-25 20:46:44\t2026-01-25 20:46:44\n660124\t1\tTest Client Quotation\ttest-quotation@example.com\t3001234599\tTest Address\t2026-01-25 20:46:44\t2026-01-25 20:46:44\n660117\t2160837\tTest Client\ttest@example.com\t3001234567\tTest Address\t2026-01-25 20:46:43\t2026-01-25 20:46:44\n660116\t2160834\tCliente Test Bulk\tcliente-bulk@test.com\t+573001234567\tNULL\t2026-01-25 20:46:42\t2026-01-25 20:46:43\n300053\t840718\tÁlvaro prueba \talvarorios79@hotmail.com\t3002826317\tAv 30 de agosto 73-51\t2026-01-19 01:12:10\t2026-01-19 01:59:18\n90091\t271067\tCarlos Albeiro Betancurt \talbetan1530@gmail.com\t3208515567\tNULL\t2026-01-14 03:30:14\t2026-01-14 03:30:14\n",
+  "stderr": "",
+  "execution_time_ms": 58
+}

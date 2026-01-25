@@ -695,27 +695,32 @@ function ProjectPhotoCard({
     p.stage === "diseno"
   );
   
+  // Filtrar fotos de medidas (fotos iniciales, dibujo)
+  const medidasPhotos = photos.filter((p: any) => 
+    p.subcategory === "fotos_iniciales" || 
+    p.subcategory === "dibujo" ||
+    p.category === "medidas" ||
+    p.stage === "inicial"
+  );
+  
   const stagePhotos = {
+    medidas: medidasPhotos,
     disenos: designPhotos,
     corte: photos.filter((p: any) => p.stage === "corte" || p.subcategory === "corte"),
     enchape: photos.filter((p: any) => p.stage === "enchape" || p.subcategory === "enchape"),
     armado: photos.filter((p: any) => p.stage === "armado" || p.subcategory === "armado"),
     instalacion: photos.filter((p: any) => p.stage === "instalacion" || p.subcategory === "proceso_instalacion"),
     fotos_finales: photos.filter((p: any) => p.stage === "fotos_finales" || p.subcategory === "fotos_finales"),
-    otros: photos.filter((p: any) => 
-      !["corte", "enchape", "armado", "instalacion", "fotos_finales", "diseno"].includes(p.stage) &&
-      !["renders", "despieces", "modelado", "detalles", "corte", "enchape", "armado", "proceso_instalacion", "fotos_finales"].includes(p.subcategory)
-    ),
   };
 
   const stageLabels: Record<string, string> = {
+    medidas: "📏 Medidas y Fotos Iniciales",
     disenos: "🎨 Renders y Diseños",
     corte: "Corte",
     enchape: "Enchape",
     armado: "Armado",
     instalacion: "Instalación",
     fotos_finales: "Fotos Finales",
-    otros: "Otras Fotos",
   };
 
   const workTypeEmoji: Record<string, string> = {

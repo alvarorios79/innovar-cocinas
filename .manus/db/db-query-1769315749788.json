@@ -1,0 +1,28 @@
+{
+  "query": "SELECT projectId, COUNT(*) as total, GROUP_CONCAT(DISTINCT stage) as stages, GROUP_CONCAT(DISTINCT subcategory) as subcategories FROM projectPhotos GROUP BY projectId ORDER BY total DESC LIMIT 10;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT projectId, COUNT(*) as total, GROUP_CONCAT(DISTINCT stage) as stages, GROUP_CONCAT(DISTINCT subcategory) as subcategories FROM projectPhotos GROUP BY projectId ORDER BY total DESC LIMIT 10;",
+  "rows": [
+    {
+      "projectId": "90003",
+      "total": "12",
+      "stages": "diseno,inicial,corte",
+      "subcategories": "fotos_iniciales,documento_cotizacion,renders,despieces,detalles,modelado,corte"
+    },
+    {
+      "projectId": "1",
+      "total": "8",
+      "stages": "inicial,diseno",
+      "subcategories": "NULL"
+    },
+    {
+      "projectId": "90002",
+      "total": "1",
+      "stages": "corte",
+      "subcategories": "corte"
+    }
+  ],
+  "messages": [],
+  "stdout": "projectId\ttotal\tstages\tsubcategories\n90003\t12\tdiseno,inicial,corte\tfotos_iniciales,documento_cotizacion,renders,despieces,detalles,modelado,corte\n1\t8\tinicial,diseno\tNULL\n90002\t1\tcorte\tcorte\n",
+  "stderr": "",
+  "execution_time_ms": 56
+}

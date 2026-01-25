@@ -2360,3 +2360,11 @@
 - [x] Ocultar información financiera del operario (cotización, adelanto, saldos)
 - [x] Agregar botón para acceder a todos los proyectos desde el dashboard del operario
 - [x] Agregar apartado de renders/diseños en la vista de proyectos del operario
+
+
+## Mejora Categorización de Fotos (Enero 2026)
+
+- [x] Mejorar la categorización de "Otras Fotos" para mostrar subcategorías específicas (fotos iniciales, dibujo, etc.)
+  - Eliminada la categoría genérica "Otras Fotos"
+  - Agregada sección "📏 Medidas y Fotos Iniciales" para fotos de medidas, fotos iniciales y dibujos
+  - Mantenida sección "🎨 Renders y Diseños" para renders, despieces, detalles y modelado

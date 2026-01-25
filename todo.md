@@ -2215,3 +2215,10 @@
   - Badge ámbar con 👑 para aprobaciones del admin
 - [x] Incluir nombre del usuario y rol que realizó cada cambio de estado
 - [x] Estados mostrados con etiquetas legibles en lugar de códigos internos
+
+
+## Botones de Avance para Operario - Enero 24, 2026
+
+- [x] Agregar permisos de avance de etapas de producción para el operario
+- [x] El operario puede avanzar: corte → enchape → ensamble → listo instalación
+- [x] Notificar al jefe de taller cuando el operario avance una etapa (notificación en app + push)

@@ -2966,6 +2966,48 @@ export const appRouter = router({
 
         await db.updateProject(input.projectId, updateData);
 
+        // Notificar al jefe de taller cuando el operario avanza una etapa de producción
+        const productionStages = ["enchape", "ensamble", "listo_instalacion"];
+        if (role === "operario" && productionStages.includes(newStatus)) {
+          try {
+            const allUsers = await db.getAllUsers();
+            const jefesTaller = allUsers.filter(u => u.role === "jefe_taller");
+            
+            const stageLabels: Record<string, string> = {
+              enchape: "Enchape",
+              ensamble: "Ensamble",
+              listo_instalacion: "Listo para Instalación",
+            };
+            
+            for (const jefe of jefesTaller) {
+              // Crear notificación en la base de datos
+              await db.createNotification({
+                userId: jefe.id,
+                title: `🛠️ Avance de Producción por Operario`,
+                body: `El operario ${ctx.user.name} avanzó el proyecto "${project.name}" a ${stageLabels[newStatus]}.`,
+                type: "proyecto",
+                referenceId: project.id,
+                referenceType: "project",
+              });
+              
+              // Intentar enviar notificación push
+              try {
+                const { createAndSendNotification } = await import("./push-notifications");
+                await createAndSendNotification(jefe.id, {
+                  title: `🛠️ Avance: ${project.name}`,
+                  body: `Operario avanzó a ${stageLabels[newStatus]}`,
+                  type: "proyecto",
+                  url: "/projects",
+                });
+              } catch (e) {
+                // Silenciar error de push
+              }
+            }
+          } catch (e) {
+            // Silenciar error de notificación
+          }
+        }
+
         // Notificar al jefe de taller cuando el proyecto pasa a despiece (producción)
         if (newStatus === "despiece") {
           try {
@@ -4460,9 +4502,10 @@ function validateStatusChange(role: string, currentStatus: string, newStatus: st
     return false;
   }
 
-  // Operario puede: corte -> enchape -> ensamble (no puede marcar como listo)
+  // Operario puede: corte -> enchape -> ensamble -> listo_instalacion
+  // Ayuda al jefe de taller con el avance de producción
   if (role === "operario") {
-    const operarioFlow = ["corte", "enchape", "ensamble"];
+    const operarioFlow = ["corte", "enchape", "ensamble", "listo_instalacion"];
     const currentIndex = operarioFlow.indexOf(currentStatus);
     const newIndex = operarioFlow.indexOf(newStatus);
     if (currentIndex >= 0 && newIndex === currentIndex + 1) return true;

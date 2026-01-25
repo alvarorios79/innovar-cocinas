@@ -2379,3 +2379,10 @@
 ## Mejora Visual Panel Operario (Enero 2026)
 
 - [x] Rediseñar botón "Ver Todos los Proyectos" a un rectángulo más vistoso y llamativo (estilo tarjeta de acción rápida)
+
+
+## Restricción de Información del Cliente para Operario (Enero 2026)
+
+- [x] El operario solo puede ver nombre y dirección del cliente (ocultar teléfono, email y otros datos)
+  - Oculto teléfono y email en la tarjeta de información del cliente
+  - Oculto botón de WhatsApp en las acciones rápidas

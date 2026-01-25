@@ -3554,11 +3554,13 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
         }));
       }),
 
-    // Obtener todas las tareas (admin, super_admin, comercial)
+    // Obtener todas las tareas (admin, super_admin, comercial) o filtradas para jefe_taller
     list: protectedProcedure
       .query(async ({ ctx }) => {
-        const canViewAll = ["admin", "super_admin", "comercial", "jefe_taller"];
-        if (!canViewAll.includes(ctx.user.role)) {
+        const canViewAll = ["admin", "super_admin", "comercial"];
+        const canViewFiltered = ["jefe_taller"];
+        
+        if (!canViewAll.includes(ctx.user.role) && !canViewFiltered.includes(ctx.user.role)) {
           throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para ver todas las tareas" });
         }
 
@@ -3569,14 +3571,22 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
         ]);
         const userMap = new Map(allUsers.map(u => [u.id, u]));
         
+        // Jefe de taller solo ve tareas asignadas a él o que él asignó
+        let filteredTasks = tasksList;
+        if (ctx.user.role === "jefe_taller") {
+          filteredTasks = tasksList.filter(t => 
+            t.assignedTo === ctx.user.id || t.assignedBy === ctx.user.id
+          );
+        }
+        
         // Obtener info de proyectos asociados
-        const projectIds = Array.from(new Set(tasksList.filter(t => t.projectId).map(t => t.projectId!)));
+        const projectIds = Array.from(new Set(filteredTasks.filter(t => t.projectId).map(t => t.projectId!)));
         const projectsInfo = await Promise.all(
           projectIds.map(id => db.getProjectById(id))
         );
         const projectMap = new Map(projectsInfo.filter(Boolean).map(p => [p!.id, p]));
 
-        return tasksList.map(t => ({
+        return filteredTasks.map(t => ({
           ...t,
           assignedToUser: userMap.get(t.assignedTo),
           assignedByUser: userMap.get(t.assignedBy),
@@ -3627,9 +3637,23 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
           throw new TRPCError({ code: "NOT_FOUND", message: "Tarea no encontrada" });
         }
 
-        // Solo quien creó la tarea o admin puede eliminarla
-        if (task.assignedBy !== ctx.user.id && ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+        // Verificar permisos de eliminación
+        const isAdmin = ctx.user.role === "admin" || ctx.user.role === "super_admin";
+        const isCreator = task.assignedBy === ctx.user.id;
+        const isJefeTaller = ctx.user.role === "jefe_taller";
+        
+        // Admin y super_admin pueden eliminar cualquier tarea
+        // Otros usuarios solo pueden eliminar tareas que crearon
+        if (!isAdmin && !isCreator) {
           throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para eliminar esta tarea" });
+        }
+        
+        // Jefe de taller solo puede eliminar tareas completadas
+        if (isJefeTaller && !isAdmin && task.status !== "completada") {
+          throw new TRPCError({ 
+            code: "FORBIDDEN", 
+            message: "Solo puedes eliminar tareas que estén completadas" 
+          });
         }
 
         await db.deleteTask(input.id);

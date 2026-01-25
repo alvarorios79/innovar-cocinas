@@ -2141,3 +2141,11 @@
 - [x] Crear diálogo para seleccionar el nuevo usuario asignado
 - [x] Mostrar confirmación y notificar al nuevo asignado
 - [x] Tests unitarios para el endpoint bulkReassign
+
+
+## Corrección de Permisos Jefe de Taller - Enero 24, 2026
+
+- [x] Jefe de taller solo puede ver tareas asignadas a él o que él asignó (no todas las tareas)
+- [x] Jefe de taller solo puede eliminar tareas que estén completadas
+- [x] Actualizar la UI para reflejar estos permisos
+- [x] Tests unitarios para permisos del jefe de taller

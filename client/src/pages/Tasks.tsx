@@ -184,9 +184,26 @@ export default function Tasks() {
     const count = selectedTasks.length;
     if (count === 0) return;
 
-    if (confirm(`¿Estás seguro de eliminar ${count} ${count === 1 ? 'tarea' : 'tareas'}?`)) {
+    // Filtrar solo las tareas que el usuario puede eliminar
+    const deletableTasks = selectedTasks.filter(id => {
+      const task = tasks.find(t => t.id === id);
+      return task && canDeleteTask(task);
+    });
+
+    if (deletableTasks.length === 0) {
+      toast.error("No tienes permisos para eliminar las tareas seleccionadas");
+      return;
+    }
+
+    const skippedCount = count - deletableTasks.length;
+    let confirmMessage = `¿Estás seguro de eliminar ${deletableTasks.length} ${deletableTasks.length === 1 ? 'tarea' : 'tareas'}?`;
+    if (skippedCount > 0) {
+      confirmMessage += `\n\n(${skippedCount} ${skippedCount === 1 ? 'tarea no puede ser eliminada' : 'tareas no pueden ser eliminadas'} por falta de permisos)`;
+    }
+
+    if (confirm(confirmMessage)) {
       // Eliminar cada tarea individualmente
-      selectedTasks.forEach(id => {
+      deletableTasks.forEach(id => {
         deleteTask.mutate({ id });
       });
       
@@ -206,6 +223,24 @@ export default function Tasks() {
 
   // Verificar si el usuario puede reasignar tareas
   const canReassignTasks = ["super_admin", "admin", "comercial", "jefe_taller"].includes(user?.role || "");
+
+  // Verificar si el usuario puede eliminar una tarea específica
+  const canDeleteTask = (task: any) => {
+    const isAdmin = user?.role === "admin" || user?.role === "super_admin";
+    const isCreator = task.assignedBy === user?.id;
+    const isJefeTaller = user?.role === "jefe_taller";
+    
+    // Admin y super_admin pueden eliminar cualquier tarea
+    if (isAdmin) return true;
+    
+    // Solo el creador puede eliminar
+    if (!isCreator) return false;
+    
+    // Jefe de taller solo puede eliminar tareas completadas
+    if (isJefeTaller && task.status !== "completada") return false;
+    
+    return true;
+  };
 
   if (loading) {
     return <div className="flex items-center justify-center min-h-screen">Cargando...</div>;

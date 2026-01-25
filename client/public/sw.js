@@ -1,4 +1,4 @@
-const CACHE_NAME = 'innovar-cocinas-v6';
+const CACHE_NAME = 'innovar-cocinas-v7';
 const urlsToCache = [
   '/',
   '/manifest.json',

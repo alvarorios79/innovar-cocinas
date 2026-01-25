@@ -992,22 +992,32 @@ export default function Quotations() {
               </Select>
             </div>
             <div>
-              <Label className="text-sm font-medium mb-2 block">Desde</Label>
-              <Input
-                type="date"
-                value={filterDateFrom}
-                onChange={(e) => setFilterDateFrom(e.target.value)}
-                className="h-9"
-              />
+              <Label className="text-sm font-medium mb-2 block">Fecha Creación</Label>
+              <div className="h-9 px-3 py-2 bg-muted/50 rounded border text-sm font-medium flex items-center">
+                {new Date().toLocaleDateString('es-CO')}
+              </div>
             </div>
             <div>
-              <Label className="text-sm font-medium mb-2 block">Hasta</Label>
-              <Input
-                type="date"
-                value={filterDateTo}
-                onChange={(e) => setFilterDateTo(e.target.value)}
-                className="h-9"
-              />
+              <Label className="text-sm font-medium mb-2 block">Válida hasta</Label>
+              <div className="h-9 px-3 py-2 bg-muted/50 rounded border text-sm font-medium flex items-center">
+                {(() => {
+                  const d = new Date();
+                  d.setDate(d.getDate() + 7);
+                  return d.toLocaleDateString('es-CO');
+                })()}
+                <span className="text-xs text-muted-foreground ml-1">(7 días)</span>
+              </div>
+            </div>
+            <div>
+              <Label className="text-sm font-medium mb-2 block">Entrega estimada</Label>
+              <div className="h-9 px-3 py-2 bg-red-50 dark:bg-red-950/30 rounded border border-red-200 dark:border-red-900 text-sm font-medium text-red-600 flex items-center">
+                {(() => {
+                  const d = new Date();
+                  d.setDate(d.getDate() + 35);
+                  return d.toLocaleDateString('es-CO');
+                })()}
+                <span className="text-xs text-red-500 ml-1">* Tentativa</span>
+              </div>
             </div>
             <div className="flex items-end">
               {hasActiveFilters && (
@@ -1064,12 +1074,28 @@ export default function Quotations() {
                   <p className="text-lg font-bold text-primary">
                     {formatPrice(quot.total)}
                   </p>
-                  {quot.validUntil && (
-                    <p className="text-xs text-muted-foreground">
-                      Válida hasta:{" "}
-                      {new Date(quot.validUntil).toLocaleDateString("es-CO")}
-                    </p>
-                  )}
+                  {/* Fechas de la cotización */}
+                  <div className="grid grid-cols-3 gap-2 mt-3 p-2 bg-muted/50 rounded text-xs">
+                    <div>
+                      <span className="text-muted-foreground block">Creación</span>
+                      <span className="font-medium">
+                        {new Date(quot.createdAt).toLocaleDateString("es-CO")}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground block">Válida hasta</span>
+                      <span className="font-medium">
+                        {quot.validUntil ? new Date(quot.validUntil).toLocaleDateString("es-CO") : "-"}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground block">Entrega est.</span>
+                      <span className="font-medium text-red-600">
+                        {new Date(new Date(quot.createdAt).getTime() + 35 * 24 * 60 * 60 * 1000).toLocaleDateString("es-CO")}
+                      </span>
+                      <span className="block text-red-500 text-[10px]">* Tentativa</span>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="flex gap-2 mt-4 flex-wrap">

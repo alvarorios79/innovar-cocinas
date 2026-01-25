@@ -451,6 +451,15 @@ export function DailyMotivation({ userName, className = "", userBirthDate }: Dai
     }
   }, [icon, isSpecial]);
 
+  // Saludo según la hora del día (hora local del usuario)
+  // Se calcula en cada render para asegurar que siempre use la hora actual
+  const currentHour = new Date().getHours();
+  const greeting = currentHour >= 5 && currentHour < 12 
+    ? "Buenos días" 
+    : currentHour >= 12 && currentHour < 19 
+      ? "Buenas tardes" 
+      : "Buenas noches";
+
   // Efecto de lluvia de confeti para cumpleaños
   useEffect(() => {
     if (isBirthday && userName) {
@@ -558,9 +567,9 @@ export function DailyMotivation({ userName, className = "", userBirthDate }: Dai
                 {title}
               </h3>
             )}
-            {userName && !title && (
+            {userName && (
               <p className="text-xs md:text-sm text-white/80 mb-1">
-                ¡Buenos días, {userName}!
+                ¡{greeting}, {userName}!
               </p>
             )}
             <p className="text-sm md:text-lg font-medium leading-relaxed">

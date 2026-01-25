@@ -17,6 +17,7 @@ import { Link } from "wouter";
 import { NotificationBell } from "@/components/NotificationBell";
 import { MobileNav } from "@/components/MobileNav";
 import { TeamDashboard } from "@/components/TeamDashboard";
+import { OperarioDashboard } from "@/components/OperarioDashboard";
 
 export default function Home() {
   const { user, isAuthenticated } = useAuth();
@@ -282,6 +283,11 @@ export default function Home() {
   // Roles del equipo de trabajo que ven el TeamDashboard
   const teamRoles = ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"];
   const isTeamMember = isAuthenticated && user?.role && teamRoles.includes(user.role);
+
+  // Si es operario, mostrar el OperarioDashboard simplificado
+  if (isAuthenticated && user?.role === "operario") {
+    return <OperarioDashboard />;
+  }
 
   // Si es miembro del equipo, mostrar el TeamDashboard
   if (isTeamMember) {

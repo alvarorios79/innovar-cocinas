@@ -2158,3 +2158,12 @@
 - [x] Mantener visible solo información operativa (cliente, fechas, estado, fotos)
 - [x] Ocultar comprobante de pago y PDF de cotización
 - [x] Ocultar historial de pagos y progreso de pago
+
+
+## Panel Simplificado Operario - Enero 24, 2026
+
+- [x] Crear componente OperarioDashboard con vista simplificada
+- [x] Mostrar solo tareas asignadas al operario con botones de Iniciar/Completar
+- [x] Mostrar galería de fotos de proyectos en producción organizadas por etapa
+- [x] Visor de fotos con navegación entre imágenes
+- [x] Integrar en el sistema de dashboards por rol (Home.tsx)

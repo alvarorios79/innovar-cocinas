@@ -46,6 +46,38 @@ const SPECIAL_DATES: Record<string, { title: string; phrases: string[]; icon: "h
     ],
     icon: "party"
   },
+  "03-24": { 
+    title: "Domingo de Ramos", 
+    phrases: [
+      "¡Iniciamos la Semana Santa con fe y esperanza! 🌿",
+      "Que esta semana de reflexión nos llene de paz 🙏"
+    ],
+    icon: "star"
+  },
+  "03-28": { 
+    title: "Jueves Santo", 
+    phrases: [
+      "Día de reflexión y gratitud 🙏",
+      "Que la paz y el amor guíen nuestros pasos ✨"
+    ],
+    icon: "star"
+  },
+  "03-29": { 
+    title: "Viernes Santo", 
+    phrases: [
+      "Día de recogimiento y fe 🙏",
+      "Que esta jornada nos llene de esperanza ✨"
+    ],
+    icon: "star"
+  },
+  "03-31": { 
+    title: "Domingo de Resurrección", 
+    phrases: [
+      "¡Felices Pascuas! Que la alegría de la resurrección llene tu corazón 🌟",
+      "Un nuevo comienzo lleno de esperanza y bendiciones ✨"
+    ],
+    icon: "party"
+  },
   "04-26": { 
     title: "Día de la Secretaria", 
     phrases: [
@@ -84,6 +116,75 @@ const SPECIAL_DATES: Record<string, { title: string; phrases: string[]; icon: "h
     ],
     icon: "heart"
   },
+  "06-29": { 
+    title: "Día de San Pedro y San Pablo", 
+    phrases: [
+      "¡Feliz día a todos los Pedro y Pablo! 🎉",
+      "Celebramos con alegría este día especial ⭐"
+    ],
+    icon: "party"
+  },
+  "05-15": { 
+    title: "Día del Maestro", 
+    phrases: [
+      "¡Gracias a quienes enseñan con pasión! 📚",
+      "Los maestros forman el futuro de Colombia 🌟",
+      "Honramos a quienes comparten su conocimiento 🙏"
+    ],
+    icon: "star"
+  },
+  "07-04": { 
+    title: "Día del Carpintero", 
+    phrases: [
+      "¡Feliz día a todos los carpinteros de INNOVAR! 🪵",
+      "Manos que transforman la madera en arte 🛠️",
+      "Gracias por dar vida a cada proyecto con tu talento 🏆"
+    ],
+    icon: "star"
+  },
+  "07-16": { 
+    title: "Día de la Virgen del Carmen", 
+    phrases: [
+      "¡Feliz día de la Virgen del Carmen! 🙏",
+      "Que la Virgen del Carmen bendiga tu camino ✨",
+      "Fe y trabajo, la combinación perfecta 🌟"
+    ],
+    icon: "star"
+  },
+  "08-17": { 
+    title: "Día del Ingeniero", 
+    phrases: [
+      "¡Feliz día a todos los ingenieros! 👷",
+      "Mentes brillantes que construyen el futuro 💡",
+      "Gracias por hacer posible lo imposible 🏆"
+    ],
+    icon: "star"
+  },
+  "09-14": { 
+    title: "Día del Amor y la Amistad (Colombia)", 
+    phrases: [
+      "¡Feliz día del Amor y la Amistad! 💕",
+      "El compañerismo hace más fácil el trabajo ❤️",
+      "Celebramos la amistad que nos une en INNOVAR 🤝"
+    ],
+    icon: "heart"
+  },
+  "11-01": { 
+    title: "Día de Todos los Santos", 
+    phrases: [
+      "Día para recordar a quienes ya no están 🙏",
+      "Honramos la memoria de nuestros seres queridos ✨"
+    ],
+    icon: "star"
+  },
+  "11-11": { 
+    title: "Día de la Independencia de Cartagena", 
+    phrases: [
+      "¡Celebramos la independencia de Cartagena! 🇨🇴",
+      "Historia y orgullo colombiano 🌟"
+    ],
+    icon: "party"
+  },
   "07-20": { 
     title: "Día de la Independencia de Colombia", 
     phrases: [
@@ -100,6 +201,15 @@ const SPECIAL_DATES: Record<string, { title: string; phrases: string[]; icon: "h
       "El esfuerzo de hoy construye el mañana de Colombia 💪"
     ],
     icon: "star"
+  },
+  "10-12": { 
+    title: "Día de la Raza / Día de la Diversidad", 
+    phrases: [
+      "¡Celebramos la diversidad que nos hace únicos! 🌍",
+      "La riqueza de Colombia está en su gente 🇨🇴",
+      "Unidos en la diversidad, fuertes en el trabajo 🤝"
+    ],
+    icon: "party"
   },
   "10-31": { 
     title: "Día de los Niños", 

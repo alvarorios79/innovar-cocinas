@@ -32,6 +32,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PhotoUploader } from "@/components/PhotoUploader";
+import { LazyImage } from "@/components/LazyImage";
 import { toast } from "sonner";
 
 const PROJECT_STATUSES = {
@@ -1063,10 +1064,10 @@ export function ProjectInlineDetail({
                                 <span className="text-xs text-muted-foreground mt-1">PDF</span>
                               </div>
                             ) : (
-                              <img
+                              <LazyImage
                                 src={photo.photoUrl}
                                 alt={photo.description || "Foto del proyecto"}
-                                className="w-full h-20 object-cover rounded hover:opacity-80 transition-opacity"
+                                className="w-full h-20 rounded"
                               />
                             )}
                             <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">

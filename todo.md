@@ -2427,11 +2427,12 @@
   - Cambiada la URL externa a la ruta local /logo-light.png
 
 
-## Optimización de Imágenes para Móviles (Enero 2026)
+## ## Optimización de Imágenes para Móvil (Enero 2026)
 
-- [ ] Implementar compresión automática de imágenes al subir fotos
-- [ ] Generar thumbnails para vistas previas y listas
-- [ ] Implementar lazy loading en las galerías de fotos
+- [ ] Compresión automática de imágenes al subir fotos (EN PROGRESO)
+- [ ] Generar thumbnails para vistas previas y listas (EN PROGRESO)
+- [ ] Implementar lazy loading en las galerías de fotos (EN PROGRESO)
+- [ ] Agregar más celebraciones colombianas (Semana Santa, Día de la Raza, etc.)as de fotos
 
 
 ## Optimización Responsive Completa (Enero 2026)
@@ -2451,3 +2452,29 @@
 - [x] Dependencias: OK
 - [x] LSP: Sin errores
 - [x] Utilidad de compresión de imágenes creada (server/image-utils.ts)
+
+
+## Optimización de Imágenes y Celebraciones Colombianas (Enero 2026)
+
+- [x] Compresión automática de imágenes al subir fotos
+  - Creada utilidad server/image-utils.ts con sharp
+  - Integrada en procedimientos de subida individual y múltiple
+  - Genera thumbnails automáticamente
+- [x] Generar thumbnails para vistas previas y listas
+  - Thumbnails de 200x200px con calidad 60%
+  - Imágenes optimizadas de 1920px máximo con calidad 80%
+- [x] Implementar lazy loading en las galerías de fotos
+  - Creado componente LazyImage con IntersectionObserver
+  - Integrado en OperarioDashboard y ProjectInlineDetail
+  - Efecto blur-up con placeholder mientras carga
+- [x] Agregar más celebraciones colombianas
+  - Semana Santa (Domingo de Ramos, Jueves Santo, Viernes Santo, Domingo de Resurrección)
+  - Día de la Raza / Día de la Diversidad (12 Oct)
+  - Día del Maestro (15 May)
+  - Día del Carpintero (4 Jul)
+  - Día de la Virgen del Carmen (16 Jul)
+  - Día de San Pedro y San Pablo (29 Jun)
+  - Día del Ingeniero (17 Ago)
+  - Día del Amor y la Amistad Colombia (14 Sep)
+  - Día de Todos los Santos (1 Nov)
+  - Día de la Independencia de Cartagena (11 Nov)

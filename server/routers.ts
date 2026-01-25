@@ -4093,7 +4093,7 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
 
         // Decodificar base64 y subir
         const base64Data = input.fileData.replace(/^data:[^;]+;base64,/, "");
-        const buffer = Buffer.from(base64Data, "base64");
+        let buffer = Buffer.from(base64Data, "base64");
 
         // Validar tamaño máximo (10MB)
         const maxSize = 10 * 1024 * 1024;
@@ -4104,8 +4104,32 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
           });
         }
 
+        // Comprimir imagen si es una imagen
+        let finalContentType = input.contentType;
+        if (input.contentType.startsWith('image/')) {
+          try {
+            const { compressImage, generateThumbnail } = await import('./image-utils');
+            const compressed = await compressImage(buffer, {
+              maxWidth: 1920,
+              maxHeight: 1080,
+              quality: 80,
+              format: 'jpeg'
+            });
+            buffer = Buffer.from(compressed.buffer);
+            finalContentType = compressed.mimeType;
+            
+            // Generar thumbnail para vistas previas
+            const thumbnail = await generateThumbnail(buffer, 300);
+            const thumbKey = fileKey.replace(/\.[^.]+$/, '-thumb.jpg');
+            await storagePut(thumbKey, thumbnail.buffer, thumbnail.mimeType);
+          } catch (compressionError) {
+            // Si falla la compresión, continuar con la imagen original
+            console.warn('Error comprimiendo imagen, usando original:', compressionError);
+          }
+        }
+
         try {
-          const { url } = await storagePut(fileKey, buffer, input.contentType);
+          const { url } = await storagePut(fileKey, buffer, finalContentType);
           return { success: true, url, key: fileKey };
         } catch (error) {
           console.error("Error uploading file:", error);
@@ -4166,7 +4190,7 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
             const fileKey = `${filePath}/${safeFileName}`;
 
             const base64Data = file.fileData.replace(/^data:image\/\w+;base64,/, "");
-            const buffer = Buffer.from(base64Data, "base64");
+            let buffer = Buffer.from(base64Data, "base64");
 
             // Validar tamaño
             const maxSize = 10 * 1024 * 1024;
@@ -4175,7 +4199,28 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
               continue;
             }
 
-            const { url } = await storagePut(fileKey, buffer, file.contentType);
+            // Comprimir imagen
+            let finalContentType = file.contentType;
+            try {
+              const { compressImage, generateThumbnail } = await import('./image-utils');
+              const compressed = await compressImage(buffer, {
+                maxWidth: 1920,
+                maxHeight: 1080,
+                quality: 80,
+                format: 'jpeg'
+              });
+              buffer = Buffer.from(compressed.buffer);
+              finalContentType = compressed.mimeType;
+              
+              // Generar thumbnail
+              const thumbnail = await generateThumbnail(buffer, 300);
+              const thumbKey = fileKey.replace(/\.[^.]+$/, '-thumb.jpg');
+              await storagePut(thumbKey, thumbnail.buffer, thumbnail.mimeType);
+            } catch (compressionError) {
+              console.warn('Error comprimiendo imagen, usando original:', compressionError);
+            }
+
+            const { url } = await storagePut(fileKey, buffer, finalContentType);
             results.push({ url, key: fileKey, fileName: file.fileName });
           } catch (error) {
             errors.push({ fileName: file.fileName, error: "Error al subir" });

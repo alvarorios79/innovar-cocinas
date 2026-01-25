@@ -34,6 +34,7 @@ import { toast } from "sonner";
 import { useState, useRef } from "react";
 import { OperatorDailyProjects } from "@/components/OperatorDailyProjects";
 import { DailyMotivation } from "@/components/DailyMotivation";
+import { LazyImage } from "@/components/LazyImage";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
@@ -817,15 +818,16 @@ function ProjectPhotoCard({
                         {(stagePhotoList as any[]).slice(0, 8).map((photo: any) => (
                           <div 
                             key={photo.id}
-                            className="aspect-square rounded-lg overflow-hidden cursor-pointer relative group"
+                            className="relative group"
                             onClick={() => onViewPhoto(photo.photoUrl, photos)}
                           >
-                            <img 
-                              src={photo.photoUrl} 
+                            <LazyImage
+                              src={photo.photoUrl}
                               alt={`Foto ${stage}`}
-                              className="w-full h-full object-cover"
+                              aspectRatio="square"
+                              className="rounded-lg"
                             />
-                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center rounded-lg">
                               <ZoomIn className="h-6 w-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
                             </div>
                           </div>

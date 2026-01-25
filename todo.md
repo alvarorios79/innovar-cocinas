@@ -2237,3 +2237,10 @@
 - [x] Agregar estado "aprobacion_final" para proyectos aprobados por cliente
 - [x] Agregar estado "entregado" para ver historial de proyectos completados
 - [x] Jefe de taller ahora ve: pendiente_cliente → aprobacion_final → despiece → corte → enchape → ensamble → listo_instalacion → instalacion_programada → entregado
+
+
+## Bug: Jefe de Taller ve Información Financiera - Enero 24, 2026
+
+- [x] Verificar que jefe_taller esté en la lista de roles restringidos
+- [x] Ocultar precios, cotizaciones, pagos y comprobantes para jefe_taller
+- [x] Corregido en ProjectDetail.tsx - el apartado "Información Financiera" ahora está oculto para jefe_taller

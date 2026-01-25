@@ -9,6 +9,7 @@ import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { startAutoReminderSystem } from "../task-auto-reminders";
+import { scheduleBirthdayNotifications } from "../birthday-service";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -103,6 +104,9 @@ async function startServer() {
     
     // Iniciar sistema de recordatorios automáticos de tareas
     startAutoReminderSystem();
+    
+    // Iniciar servicio de notificaciones de cumpleaños
+    scheduleBirthdayNotifications();
   });
 }
 

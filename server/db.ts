@@ -1015,6 +1015,14 @@ export async function clearPasswordResetToken(userId: number) {
     .where(eq(users.id, userId));
 }
 
+export async function updateUserBirthDate(userId: number, birthDate: string | null) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(users)
+    .set({ birthDate: birthDate ? new Date(birthDate) : null })
+    .where(eq(users.id, userId));
+}
 
 // ============ PUSH SUBSCRIPTIONS ============
 

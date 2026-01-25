@@ -2518,3 +2518,37 @@
   - Touch targets de 44px mínimo
   - Prevención de zoom en inputs iOS
   - Clases hide-mobile/hide-desktop
+
+
+## Gestión de Cumpleaños Oculta (Enero 2026)
+
+- [ ] Solo Super Admin puede ver y editar fechas de cumpleaños de colaboradores
+- [ ] Agregar campo de cumpleaños en el formulario de edición de usuarios (solo visible para Super Admin)
+- [ ] Los colaboradores no ven el campo de cumpleaños en su perfil
+- [ ] El día del cumpleaños se muestra automáticamente el mensaje especial
+
+
+## Gestión de Cumpleaños Oculta (Enero 2026)
+
+- [ ] Solo Super Admin puede ver y editar fechas de cumpleaños de colaboradores
+- [ ] Agregar campo de cumpleaños en el formulario de edición de usuarios (solo visible para Super Admin)
+- [ ] Los colaboradores no ven el campo de cumpleaños en su perfil
+- [ ] El día del cumpleaños se muestra automáticamente el mensaje especial
+- [ ] Enviar notificación push de cumpleaños a las 8am del día del cumpleaños
+
+
+## Gestión de Cumpleaños Oculta (Enero 2026)
+
+- [x] Solo Super Admin puede ver/editar fechas de cumpleaños de colaboradores
+  - Botón "Cumpleaños" en la lista de usuarios del equipo (solo visible para super_admin)
+  - Diálogo para configurar/quitar fecha de cumpleaños
+  - Campo birthDate en el formulario de crear usuario (solo super_admin)
+- [x] Colaboradores no ven el campo de cumpleaños en su perfil
+- [x] Mensaje especial con confeti el día del cumpleaños (cada vez que abren la app)
+  - Gradiente dorado especial
+  - Emojis animados de cumpleaños (🎈🎉🎂🎁)
+  - Frase personalizada con el nombre del colaborador
+- [x] Notificación push a las 8am del día del cumpleaños
+  - Servicio birthday-service.ts creado
+  - Se ejecuta automáticamente a las 8am
+  - Envía notificación en la app y push

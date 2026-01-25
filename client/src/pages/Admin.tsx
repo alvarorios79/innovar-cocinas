@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
-import { Calendar, Phone, FileText, Users, Trash2, Plus, Bell, Key, Wrench, CheckSquare, Square, Eye, EyeOff, Search } from "lucide-react";
+import { Calendar, Phone, FileText, Users, Trash2, Plus, Bell, Key, Wrench, CheckSquare, Square, Eye, EyeOff, Search, Cake } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RemindersPanel } from "@/components/RemindersPanel";
 import { toast } from "sonner";
@@ -36,12 +36,14 @@ export default function Admin() {
     email: "",
     role: "user" as "user" | "admin" | "super_admin",
     password: "" as string | undefined,
+    birthDate: "" as string | undefined,
   });
 
   const [showCreateUserDialog, setShowCreateUserDialog] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<{ type: string; id: number; name: string } | null>(null);
   const [resetPasswordResult, setResetPasswordResult] = useState<{ userName: string; userEmail: string; tempPassword: string } | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [editBirthdayUser, setEditBirthdayUser] = useState<{ id: number; name: string; birthDate: string | null } | null>(null);
   
   // Estados para selección múltiple
   const [selectedAppointments, setSelectedAppointments] = useState<number[]>([]);
@@ -109,7 +111,7 @@ export default function Admin() {
       utils.userManagement.listAll.invalidate();
       toast.success("Usuario creado exitosamente");
       setShowCreateUserDialog(false);
-      setCreateUserForm({ name: "", email: "", role: "user", password: "" });
+      setCreateUserForm({ name: "", email: "", role: "user", password: "", birthDate: "" });
     },
     onError: (error) => {
       toast.error(error.message || "Error al crear usuario");
@@ -124,6 +126,17 @@ export default function Admin() {
     },
     onError: (error) => {
       toast.error(error.message || "Error al eliminar usuario");
+    },
+  });
+
+  const updateBirthDate = trpc.userManagement.updateBirthDate.useMutation({
+    onSuccess: () => {
+      utils.userManagement.listAll.invalidate();
+      toast.success("🎂 Fecha de cumpleaños actualizada");
+      setEditBirthdayUser(null);
+    },
+    onError: (error) => {
+      toast.error(error.message || "Error al actualizar cumpleaños");
     },
   });
 
@@ -1166,6 +1179,23 @@ export default function Admin() {
                             </p>
                           </div>
                         )}
+                        {/* Campo de cumpleaños - Solo visible para Super Admin */}
+                        {user?.role === "super_admin" && createUserForm.role !== "user" && (
+                          <div className="space-y-2">
+                            <Label htmlFor="create-birthdate">
+                              🎂 Fecha de Cumpleaños (opcional)
+                            </Label>
+                            <Input
+                              id="create-birthdate"
+                              type="date"
+                              value={createUserForm.birthDate || ""}
+                              onChange={(e) => setCreateUserForm({ ...createUserForm, birthDate: e.target.value })}
+                            />
+                            <p className="text-xs text-muted-foreground">
+                              El colaborador recibirá un mensaje especial el día de su cumpleaños
+                            </p>
+                          </div>
+                        )}
                         <Button
                           className="w-full"
                           onClick={() => {
@@ -1264,6 +1294,20 @@ export default function Admin() {
                                         )}
                                         {usr.id !== user?.id && (
                                           <div className="flex gap-2">
+                                            {user?.role === "super_admin" && (
+                                              <Button
+                                                size="sm"
+                                                variant="outline"
+                                                onClick={() => setEditBirthdayUser({ 
+                                                  id: usr.id, 
+                                                  name: usr.name || "Usuario", 
+                                                  birthDate: (usr as any).birthDate || null 
+                                                })}
+                                              >
+                                                <Cake className="h-4 w-4 mr-1" />
+                                                Cumpleaños
+                                              </Button>
+                                            )}
                                             {user?.role === "super_admin" && (
                                               <Button
                                                 size="sm"
@@ -1523,6 +1567,62 @@ export default function Admin() {
             <Button onClick={() => setResetPasswordResult(null)}>
               Cerrar
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Diálogo para editar cumpleaños */}
+      <Dialog open={!!editBirthdayUser} onOpenChange={() => setEditBirthdayUser(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Cake className="h-5 w-5 text-pink-500" />
+              Fecha de Cumpleaños
+            </DialogTitle>
+            <DialogDescription>
+              Configura la fecha de cumpleaños de {editBirthdayUser?.name}. El colaborador recibirá un mensaje especial ese día.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-birthdate">Fecha de Cumpleaños</Label>
+              <Input
+                id="edit-birthdate"
+                type="date"
+                value={editBirthdayUser?.birthDate || ""}
+                onChange={(e) => setEditBirthdayUser(prev => prev ? { ...prev, birthDate: e.target.value } : null)}
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button
+                className="flex-1"
+                onClick={() => {
+                  if (editBirthdayUser) {
+                    updateBirthDate.mutate({
+                      userId: editBirthdayUser.id,
+                      birthDate: editBirthdayUser.birthDate || null,
+                    });
+                  }
+                }}
+                disabled={updateBirthDate.isPending}
+              >
+                {updateBirthDate.isPending ? "Guardando..." : "Guardar"}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  if (editBirthdayUser) {
+                    updateBirthDate.mutate({
+                      userId: editBirthdayUser.id,
+                      birthDate: null,
+                    });
+                  }
+                }}
+                disabled={updateBirthDate.isPending}
+              >
+                Quitar Fecha
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

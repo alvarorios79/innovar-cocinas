@@ -2723,6 +2723,34 @@ export const appRouter = router({
           userEmail: targetUser.email
         };
       }),
+
+    updateBirthDate: protectedProcedure
+      .input(z.object({
+        userId: z.number(),
+        birthDate: z.string().nullable(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        // Solo super_admin puede actualizar fechas de cumpleaños
+        if (ctx.user.role !== "super_admin") {
+          throw new TRPCError({ 
+            code: "FORBIDDEN", 
+            message: "Solo super administradores pueden gestionar fechas de cumpleaños" 
+          });
+        }
+
+        // Obtener el usuario objetivo
+        const allUsers = await db.getAllUsers();
+        const targetUser = allUsers.find(u => u.id === input.userId);
+        
+        if (!targetUser) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Usuario no encontrado" });
+        }
+
+        // Actualizar fecha de cumpleaños
+        await db.updateUserBirthDate(input.userId, input.birthDate);
+
+        return { success: true };
+      }),
   }),
 
   // ============ PROJECTS ============

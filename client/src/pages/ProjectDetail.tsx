@@ -30,7 +30,8 @@ import {
   DollarSign,
   Receipt,
   Trash2,
-  RefreshCw
+  RefreshCw,
+  ArrowRight
 } from "lucide-react";
 import { useFileViewer, FileViewer } from "@/components/FileViewer";
 import { MaterialsForm } from "@/components/MaterialsForm";
@@ -143,6 +144,54 @@ export default function ProjectDetail() {
       toast.success("Diseño procesado correctamente");
     },
   });
+
+  const updateStatus = trpc.projects.updateStatus.useMutation({
+    onSuccess: () => {
+      utils.projects.getById.invalidate({ id: projectId });
+      toast.success("Proyecto avanzado a la siguiente etapa");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Error al avanzar el proyecto");
+    },
+  });
+
+  // Mapeo de subcategoría de foto a siguiente estado del proyecto
+  const photoToNextStatus: Record<string, string> = {
+    corte: "enchape",
+    enchape: "ensamble",
+    armado: "listo_instalacion",
+    proceso_instalacion: "entregado",
+  };
+
+  // Mapeo de subcategoría a estado requerido para mostrar botón de avanzar
+  const photoToCurrentStatus: Record<string, string[]> = {
+    corte: ["corte"],
+    enchape: ["enchape"],
+    armado: ["ensamble"],
+    proceso_instalacion: ["instalacion_programada"],
+  };
+
+  // Verificar si el usuario puede avanzar el proyecto desde la sección de fotos
+  const canAdvanceFromPhoto = (subcategory: string) => {
+    const role = user?.role;
+    const allowedRoles = ["super_admin", "admin", "jefe_taller", "operario"];
+    if (!role || !allowedRoles.includes(role)) return false;
+    
+    const requiredStatuses = photoToCurrentStatus[subcategory];
+    if (!requiredStatuses) return false;
+    
+    return requiredStatuses.includes(projectDetail?.status || "");
+  };
+
+  const handleAdvanceFromPhoto = (subcategory: string) => {
+    const nextStatus = photoToNextStatus[subcategory];
+    if (!nextStatus || !projectDetail?.id) return;
+    
+    updateStatus.mutate({
+      projectId: projectDetail.id,
+      newStatus: nextStatus as any,
+    });
+  };
 
   // Nota: exportPdf se implementará después
 
@@ -660,46 +709,68 @@ export default function ProjectDetail() {
                             )}
                           </div>
                           {photos.length > 0 ? (
-                            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
-                              {photos.map((photo: any, idx: number) => (
-                                <div
-                                  key={photo.id}
-                                  className="aspect-square rounded-md overflow-hidden cursor-pointer hover:opacity-80 transition-opacity relative group"
-                                  onClick={() => fileViewer.openViewer(
-                                    photos.map((p: any) => ({ url: p.photoUrl, title: p.description || "Foto" })),
-                                    idx
-                                  )}
-                                >
-                                  {photo.photoUrl?.toLowerCase().endsWith('.pdf') || photo.photoUrl?.includes('application/pdf') ? (
-                                    <div className="w-full h-full bg-red-50 flex flex-col items-center justify-center">
-                                      <FileText className="h-10 w-10 text-red-500" />
-                                      <span className="text-xs text-red-600 mt-1 font-medium">PDF</span>
+                            <>
+                              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
+                                {photos.map((photo: any, idx: number) => (
+                                  <div
+                                    key={photo.id}
+                                    className="aspect-square rounded-md overflow-hidden cursor-pointer hover:opacity-80 transition-opacity relative group"
+                                    onClick={() => fileViewer.openViewer(
+                                      photos.map((p: any) => ({ url: p.photoUrl, title: p.description || "Foto" })),
+                                      idx
+                                    )}
+                                  >
+                                    {photo.photoUrl?.toLowerCase().endsWith('.pdf') || photo.photoUrl?.includes('application/pdf') ? (
+                                      <div className="w-full h-full bg-red-50 flex flex-col items-center justify-center">
+                                        <FileText className="h-10 w-10 text-red-500" />
+                                        <span className="text-xs text-red-600 mt-1 font-medium">PDF</span>
+                                      </div>
+                                    ) : (
+                                      <img
+                                        src={photo.photoUrl}
+                                        alt={photo.description || "Foto"}
+                                        className="w-full h-full object-cover"
+                                      />
+                                    )}
+                                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                      <ZoomIn className="h-6 w-6 text-white" />
                                     </div>
-                                  ) : (
-                                    <img
-                                      src={photo.photoUrl}
-                                      alt={photo.description || "Foto"}
-                                      className="w-full h-full object-cover"
-                                    />
-                                  )}
-                                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                    <ZoomIn className="h-6 w-6 text-white" />
+                                    {/* Botón eliminar solo para super_admin y admin */}
+                                    {(user?.role === "super_admin" || user?.role === "admin") && (
+                                      <button
+                                        className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setPhotoToDelete({ id: photo.id, description: photo.description });
+                                        }}
+                                      >
+                                        <Trash2 className="h-3 w-3" />
+                                      </button>
+                                    )}
                                   </div>
-                                  {/* Botón eliminar solo para super_admin y admin */}
-                                  {(user?.role === "super_admin" || user?.role === "admin") && (
-                                    <button
-                                      className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        setPhotoToDelete({ id: photo.id, description: photo.description });
-                                      }}
-                                    >
-                                      <Trash2 className="h-3 w-3" />
-                                    </button>
-                                  )}
+                                ))}
+                              </div>
+                              {/* Botón de avanzar etapa */}
+                              {canAdvanceFromPhoto(subcategory) && photos.length > 0 && (
+                                <div className="mt-3 pt-3 border-t border-dashed border-emerald-200">
+                                  <Button
+                                    onClick={() => handleAdvanceFromPhoto(subcategory)}
+                                    disabled={updateStatus.isPending}
+                                    className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-semibold"
+                                  >
+                                    {updateStatus.isPending ? (
+                                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                                    ) : (
+                                      <ArrowRight className="h-4 w-4 mr-2" />
+                                    )}
+                                    Avanzar a {photoToNextStatus[subcategory] === "enchape" ? "Enchape" :
+                                               photoToNextStatus[subcategory] === "ensamble" ? "Ensamble" :
+                                               photoToNextStatus[subcategory] === "listo_instalacion" ? "Listo para Instalación" :
+                                               photoToNextStatus[subcategory] === "entregado" ? "Entregado" : "Siguiente Etapa"}
+                                  </Button>
                                 </div>
-                              ))}
-                            </div>
+                              )}
+                            </>
                           ) : (
                             <div className="flex flex-col items-center justify-center py-8 text-center bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
                               <Camera className="h-10 w-10 text-gray-300 mb-2" />

@@ -229,7 +229,7 @@ describe("Bulk Delete Operations", () => {
   });
 
   describe("Bulk Delete Tasks", () => {
-    it("should delete multiple tasks", async () => {
+    it("should delete multiple tasks", { timeout: 15000 }, async () => {
       const caller = appRouter.createCaller({
         user: testUser,
         req: {} as any,

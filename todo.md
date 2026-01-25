@@ -2281,3 +2281,15 @@
   - Jefe de taller: proyectos en despiece
   - Operario: proyectos en corte/enchape/ensamble
   - Badge rojo animado en menú móvil y escritorio
+
+
+## Botón Avanzar en Sección Fotos - Enero 24, 2026
+
+- [x] Agregar botón "Avanzar a siguiente etapa" en cada sección de fotos de producción
+- [x] El botón aparece cuando hay al menos una foto subida y el proyecto está en la etapa correcta
+- [x] Al hacer clic, avanza el proyecto a la siguiente etapa:
+  - Corte → Enchape
+  - Enchape → Ensamble
+  - Armado → Listo para Instalación
+  - Proceso Instalación → Entregado
+- [x] Solo visible para jefe_taller, operario, admin y super_admin

@@ -2167,3 +2167,10 @@
 - [x] Mostrar galería de fotos de proyectos en producción organizadas por etapa
 - [x] Visor de fotos con navegación entre imágenes
 - [x] Integrar en el sistema de dashboards por rol (Home.tsx)
+
+
+## Mejoras Panel Operario - Enero 24, 2026
+
+- [x] Agregar botón para subir fotos a etapas de producción desde el panel del operario
+- [x] Implementar notificación push cuando se asigna nueva tarea al operario (ya existía)
+- [x] Agregar sección de historial de tareas completadas recientemente (últimas 10)

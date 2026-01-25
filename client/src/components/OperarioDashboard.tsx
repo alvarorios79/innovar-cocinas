@@ -23,11 +23,19 @@ import {
   LogOut,
   ZoomIn,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Upload,
+  History,
+  Plus,
+  Loader2,
+  X
 } from "lucide-react";
 import { toast } from "sonner";
-import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useState, useRef } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 
 // Componente de botón de cerrar sesión
 function LogoutButton() {
@@ -76,6 +84,14 @@ export function OperarioDashboard() {
   const [viewingPhoto, setViewingPhoto] = useState<string | null>(null);
   const [allPhotos, setAllPhotos] = useState<any[]>([]);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
+  const [showCompletedTasks, setShowCompletedTasks] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [showUploadDialog, setShowUploadDialog] = useState(false);
+  const [uploadProjectId, setUploadProjectId] = useState<number | null>(null);
+  const [uploadStage, setUploadStage] = useState<string>("");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Queries
   const { data: myTasks = [], isLoading: loadingTasks } = trpc.tasks.getMyTasks.useQuery();
@@ -92,6 +108,24 @@ export function OperarioDashboard() {
     },
   });
 
+  // Mutation para subir imagen
+  const uploadImage = trpc.upload.image.useMutation({
+    onSuccess: () => {
+      toast.success("Foto subida exitosamente");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Error al subir la foto");
+    },
+  });
+
+  // Mutation para registrar foto en proyecto
+  const uploadProjectPhoto = trpc.projectPhotos.upload.useMutation({
+    onSuccess: () => {
+      utils.projects.getById.invalidate();
+      utils.projects.list.invalidate();
+    },
+  });
+
   // Filtrar proyectos en producción (donde el operario trabaja)
   const productionProjects = projects.filter(p => 
     ["aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "instalacion_programada"].includes(p.status)
@@ -101,6 +135,16 @@ export function OperarioDashboard() {
   const pendingTasks = myTasks.filter(t => t.status !== "completada");
   const urgentTasks = pendingTasks.filter(t => t.priority === "alta");
   const inProgressTasks = pendingTasks.filter(t => t.status === "en_progreso");
+  
+  // Tareas completadas (ordenadas por fecha de completado, más recientes primero)
+  const completedTasks = myTasks
+    .filter(t => t.status === "completada")
+    .sort((a, b) => {
+      const dateA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
+      const dateB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
+      return dateB - dateA;
+    })
+    .slice(0, 10); // Solo las últimas 10
 
   const getStatusLabel = (status: string) => {
     const statusLabels: Record<string, string> = {
@@ -128,6 +172,76 @@ export function OperarioDashboard() {
     } else if (direction === 'next' && currentPhotoIndex < allPhotos.length - 1) {
       setCurrentPhotoIndex(currentPhotoIndex + 1);
       setViewingPhoto(allPhotos[currentPhotoIndex + 1].photoUrl);
+    }
+  };
+
+  // Función para abrir el diálogo de subida de fotos
+  const openUploadDialog = (projectId: number) => {
+    setUploadProjectId(projectId);
+    setUploadStage("");
+    setSelectedFile(null);
+    setPreviewUrl(null);
+    setShowUploadDialog(true);
+  };
+
+  // Función para manejar selección de archivo
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith("image/")) {
+        toast.error("Solo se permiten archivos de imagen");
+        return;
+      }
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error("El archivo es muy grande. Máximo 10MB");
+        return;
+      }
+      setSelectedFile(file);
+      setPreviewUrl(URL.createObjectURL(file));
+    }
+  };
+
+  // Función para subir la foto
+  const handleUploadPhoto = async () => {
+    if (!selectedFile || !uploadProjectId || !uploadStage) {
+      toast.error("Selecciona una etapa y una foto");
+      return;
+    }
+
+    setUploadingPhoto(true);
+    try {
+      // Convertir archivo a base64
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const base64 = reader.result as string;
+        
+        // Subir imagen a S3
+        const uploadResult = await uploadImage.mutateAsync({
+          fileName: selectedFile.name,
+          fileData: base64,
+          contentType: selectedFile.type,
+          projectId: uploadProjectId,
+          stage: uploadStage as any,
+        });
+
+        // Registrar foto en el proyecto
+        await uploadProjectPhoto.mutateAsync({
+          projectId: uploadProjectId,
+          stage: uploadStage as any,
+          photoUrl: uploadResult.url,
+          description: `Foto subida por operario - ${new Date().toLocaleDateString("es-CO")}`,
+        });
+
+        setShowUploadDialog(false);
+        setSelectedFile(null);
+        setPreviewUrl(null);
+        setUploadingPhoto(false);
+        toast.success("¡Foto subida exitosamente!");
+      };
+      reader.readAsDataURL(selectedFile);
+    } catch (error) {
+      setUploadingPhoto(false);
+      toast.error("Error al subir la foto");
     }
   };
 
@@ -293,6 +407,44 @@ export function OperarioDashboard() {
                 })}
               </div>
             )}
+
+            {/* Historial de Tareas Completadas */}
+            {completedTasks.length > 0 && (
+              <div className="mt-4">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowCompletedTasks(!showCompletedTasks)}
+                  className="w-full justify-between text-muted-foreground hover:text-gray-800"
+                >
+                  <span className="flex items-center gap-2">
+                    <History className="h-4 w-4" />
+                    Historial de Completadas ({completedTasks.length})
+                  </span>
+                  {showCompletedTasks ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                </Button>
+                
+                {showCompletedTasks && (
+                  <div className="mt-3 space-y-2">
+                    {completedTasks.map((task) => (
+                      <Card key={task.id} className="border-0 shadow-sm bg-gray-50">
+                        <CardContent className="p-3">
+                          <div className="flex items-center gap-2">
+                            <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
+                            <div className="flex-1">
+                              <p className="text-sm font-medium text-gray-700 line-clamp-1">{task.title}</p>
+                              <p className="text-xs text-muted-foreground">
+                                Completada el {task.updatedAt ? new Date(task.updatedAt).toLocaleDateString("es-CO") : "N/A"}
+                              </p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -326,6 +478,7 @@ export function OperarioDashboard() {
                     onToggle={() => setExpandedProject(expandedProject === project.id ? null : project.id)}
                     onViewPhoto={handleViewPhoto}
                     getStatusLabel={getStatusLabel}
+                    onUploadPhoto={openUploadDialog}
                   />
                 ))}
               </div>
@@ -372,6 +525,109 @@ export function OperarioDashboard() {
         </DialogContent>
       </Dialog>
 
+      {/* Dialog de Subida de Fotos */}
+      <Dialog open={showUploadDialog} onOpenChange={setShowUploadDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Upload className="h-5 w-5 text-blue-600" />
+              Subir Foto al Proyecto
+            </DialogTitle>
+            <DialogDescription>
+              Selecciona la etapa de producción y la foto que deseas subir.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            {/* Selector de etapa */}
+            <div className="space-y-2">
+              <Label>Etapa de Producción</Label>
+              <Select value={uploadStage} onValueChange={setUploadStage}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecciona una etapa" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="corte">Corte</SelectItem>
+                  <SelectItem value="enchape">Enchape</SelectItem>
+                  <SelectItem value="ensamble">Ensamble / Armado</SelectItem>
+                  <SelectItem value="final">Fotos Finales</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Selector de archivo */}
+            <div className="space-y-2">
+              <Label>Foto</Label>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileSelect}
+                className="hidden"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <Camera className="h-4 w-4 mr-2" />
+                {selectedFile ? selectedFile.name : "Seleccionar foto"}
+              </Button>
+            </div>
+
+            {/* Preview de la imagen */}
+            {previewUrl && (
+              <div className="relative">
+                <img 
+                  src={previewUrl} 
+                  alt="Preview" 
+                  className="w-full h-48 object-cover rounded-lg"
+                />
+                <Button
+                  variant="destructive"
+                  size="icon"
+                  className="absolute top-2 right-2 h-6 w-6"
+                  onClick={() => {
+                    setSelectedFile(null);
+                    setPreviewUrl(null);
+                  }}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowUploadDialog(false)}
+              disabled={uploadingPhoto}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleUploadPhoto}
+              disabled={!selectedFile || !uploadStage || uploadingPhoto}
+              className="bg-blue-500 hover:bg-blue-600"
+            >
+              {uploadingPhoto ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Subiendo...
+                </>
+              ) : (
+                <>
+                  <Upload className="h-4 w-4 mr-2" />
+                  Subir Foto
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* WhatsApp Flotante */}
       <a
         href="https://wa.me/573136802025"
@@ -392,13 +648,15 @@ function ProjectPhotoCard({
   isExpanded, 
   onToggle, 
   onViewPhoto,
-  getStatusLabel 
+  getStatusLabel,
+  onUploadPhoto
 }: { 
   project: any; 
   isExpanded: boolean;
   onToggle: () => void;
   onViewPhoto: (url: string, photos: any[]) => void;
   getStatusLabel: (status: string) => string;
+  onUploadPhoto: (projectId: number) => void;
 }) {
   const { data: projectDetail } = trpc.projects.getById.useQuery(
     { id: project.id },
@@ -513,8 +771,19 @@ function ProjectPhotoCard({
               </div>
             )}
 
-            {/* Botón para ver proyecto completo */}
-            <div className="mt-4 pt-4 border-t">
+            {/* Botones de acción */}
+            <div className="mt-4 pt-4 border-t flex flex-col gap-2">
+              <Button 
+                size="sm" 
+                className="w-full bg-blue-500 hover:bg-blue-600"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onUploadPhoto(project.id);
+                }}
+              >
+                <Upload className="h-4 w-4 mr-2" />
+                Subir Foto
+              </Button>
               <Link href="/projects">
                 <Button variant="outline" size="sm" className="w-full">
                   Ver proyecto completo <ArrowRight className="h-4 w-4 ml-2" />

@@ -2263,3 +2263,21 @@
   - Diseñador: Adelanto Recibido, En Diseño, Pendiente Cliente, Aprobación Final, Despiece
   - Operario: Despiece, Corte, Enchape, Ensamble, Listo Instalación
   - Admin/Super Admin: Todos los estados
+
+
+## Mejoras UX Dashboard y Menú - Enero 24, 2026
+
+- [ ] Ocultar botón de filtro de atrasados para roles que no lo necesitan (solo jefe_taller, operario, admin, super_admin)
+- [ ] Agregar acceso directo desde dashboard: clic en stat filtra automáticamente por ese estado
+- [ ] Badge de proyectos nuevos en el menú "Proyectos" cuando hay proyectos nuevos asignados al rol
+
+
+## Mejoras UX Dashboard y Menú - Enero 24, 2026
+
+- [x] Ocultar botón de atrasados para roles que no lo necesitan (solo jefe_taller, operario, admin, super_admin)
+- [x] Agregar acceso directo desde dashboard con filtro por estado (click en stat filtra lista via URL params)
+- [x] Agregar badge de proyectos nuevos en el menú según rol:
+  - Diseñador: proyectos en adelanto_recibido
+  - Jefe de taller: proyectos en despiece
+  - Operario: proyectos en corte/enchape/ensamble
+  - Badge rojo animado en menú móvil y escritorio

@@ -273,42 +273,42 @@ export function TeamDashboard() {
             value: myProjects.filter(p => ["pendiente_cliente", "aprobacion_final"].includes(p.status)).length,
             icon: <Palette className="h-6 w-6" />,
             color: "bg-gradient-to-br from-purple-500 to-indigo-500",
-            link: "/projects"
+            link: "/projects?status=pendiente_cliente"
           },
           { 
             label: "Despiece", 
             value: myProjects.filter(p => p.status === "despiece").length,
             icon: <FileText className="h-6 w-6" />,
             color: "bg-gradient-to-br from-orange-400 to-orange-500",
-            link: "/projects"
+            link: "/projects?status=despiece"
           },
           { 
             label: "Corte", 
             value: myProjects.filter(p => p.status === "corte").length,
             icon: <Wrench className="h-6 w-6" />,
             color: "bg-gradient-to-br from-orange-500 to-amber-500",
-            link: "/projects"
+            link: "/projects?status=corte"
           },
           { 
             label: "Enchape", 
             value: myProjects.filter(p => p.status === "enchape").length,
             icon: <Package className="h-6 w-6" />,
             color: "bg-gradient-to-br from-amber-500 to-yellow-500",
-            link: "/projects"
+            link: "/projects?status=enchape"
           },
           { 
             label: "Ensamble", 
             value: myProjects.filter(p => p.status === "ensamble").length,
             icon: <Wrench className="h-6 w-6" />,
             color: "bg-gradient-to-br from-teal-500 to-cyan-500",
-            link: "/projects"
+            link: "/projects?status=ensamble"
           },
           { 
             label: "Listos Instalar", 
             value: myProjects.filter(p => p.status === "listo_instalacion").length,
             icon: <Truck className="h-6 w-6" />,
             color: "bg-gradient-to-br from-green-500 to-emerald-500",
-            link: "/projects"
+            link: "/projects?status=listo_instalacion"
           },
           { 
             label: "Instalaciones", 
@@ -322,7 +322,7 @@ export function TeamDashboard() {
             value: overdueProjects.length,
             icon: <AlertTriangle className="h-6 w-6" />,
             color: "bg-gradient-to-br from-red-500 to-rose-600",
-            link: "/projects",
+            link: "/projects?overdue=true",
             highlight: true
           }] : []),
           { 

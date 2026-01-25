@@ -18,6 +18,32 @@ export function MobileNav() {
   const [open, setOpen] = useState(false);
   const [location] = useLocation();
   const { user, isAuthenticated } = useAuth();
+  
+  // Query para contar proyectos nuevos según el rol
+  const { data: projects = [] } = trpc.projects.list.useQuery(undefined, {
+    enabled: isAuthenticated && ["disenador", "jefe_taller", "operario"].includes(user?.role || ""),
+  });
+  
+  // Calcular proyectos "nuevos" según el rol
+  const getNewProjectsCount = () => {
+    if (!user?.role) return 0;
+    if (user.role === "disenador") {
+      // Proyectos en adelanto_recibido (nuevos para diseñar)
+      return projects.filter((p: any) => p.status === "adelanto_recibido").length;
+    }
+    if (user.role === "jefe_taller") {
+      // Proyectos en despiece (nuevos para producción)
+      return projects.filter((p: any) => p.status === "despiece").length;
+    }
+    if (user.role === "operario") {
+      // Proyectos en etapas de producción activa
+      return projects.filter((p: any) => ["corte", "enchape", "ensamble"].includes(p.status)).length;
+    }
+    return 0;
+  };
+  
+  const newProjectsCount = getNewProjectsCount();
+  
   const logoutMutation = trpc.auth.logout.useMutation({
     onSuccess: () => {
       window.location.href = "/";
@@ -112,7 +138,12 @@ export function MobileNav() {
                       }`}
                     >
                       {item.icon}
-                      <span className="font-medium">{item.label}</span>
+                      <span className="font-medium flex-1">{item.label}</span>
+                      {item.href === "/projects" && newProjectsCount > 0 && (
+                        <span className="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full animate-pulse">
+                          {newProjectsCount}
+                        </span>
+                      )}
                     </button>
                   </Link>
                 ))}

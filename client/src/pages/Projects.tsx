@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useLocation, Link } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -70,12 +70,27 @@ const WORK_TYPES = {
 
 export default function Projects() {
   const { user, isAuthenticated, loading } = useAuth();
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [selectedProject, setSelectedProject] = useState<any>(null);
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  
+  // Leer parámetros de URL para filtros
+  const urlParams = new URLSearchParams(location.split('?')[1] || '');
+  const urlStatus = urlParams.get('status');
+  const urlOverdue = urlParams.get('overdue');
+  
+  const [statusFilter, setStatusFilter] = useState<string>(urlStatus || "all");
   const [showPendingPaymentOnly, setShowPendingPaymentOnly] = useState(false);
-  const [showOverdueOnly, setShowOverdueOnly] = useState(false);
+  const [showOverdueOnly, setShowOverdueOnly] = useState(urlOverdue === 'true');
+  
+  // Actualizar filtros cuando cambia la URL
+  useEffect(() => {
+    const params = new URLSearchParams(location.split('?')[1] || '');
+    const status = params.get('status');
+    const overdue = params.get('overdue');
+    if (status) setStatusFilter(status);
+    if (overdue === 'true') setShowOverdueOnly(true);
+  }, [location]);
   
   const [createForm, setCreateForm] = useState({
     clientId: "",

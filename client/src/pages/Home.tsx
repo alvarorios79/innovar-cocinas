@@ -22,6 +22,28 @@ import { OperarioDashboard } from "@/components/OperarioDashboard";
 export default function Home() {
   const { user, isAuthenticated } = useAuth();
   const [activeTab, setActiveTab] = useState<"appointment" | "advisory" | "estimate">("appointment");
+  
+  // Query para contar proyectos nuevos según el rol
+  const { data: projects = [] } = trpc.projects.list.useQuery(undefined, {
+    enabled: isAuthenticated && ["disenador", "jefe_taller", "operario"].includes(user?.role || ""),
+  });
+  
+  // Calcular proyectos "nuevos" según el rol
+  const getNewProjectsCount = () => {
+    if (!user?.role) return 0;
+    if (user.role === "disenador") {
+      return (projects as any[]).filter((p: any) => p.status === "adelanto_recibido").length;
+    }
+    if (user.role === "jefe_taller") {
+      return (projects as any[]).filter((p: any) => p.status === "despiece").length;
+    }
+    if (user.role === "operario") {
+      return (projects as any[]).filter((p: any) => ["corte", "enchape", "ensamble"].includes(p.status)).length;
+    }
+    return 0;
+  };
+  
+  const newProjectsCount = getNewProjectsCount();
 
   // Estado para formulario de cita
   const [appointmentForm, setAppointmentForm] = useState({
@@ -320,7 +342,14 @@ export default function Home() {
                   {["disenador", "jefe_taller", "operario"].includes(user?.role || "") && (
                     <>
                       <Link href="/projects">
-                        <Button variant="ghost" size="sm" className="text-sm">Proyectos</Button>
+                        <Button variant="ghost" size="sm" className="text-sm relative">
+                          Proyectos
+                          {newProjectsCount > 0 && (
+                            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full animate-pulse">
+                              {newProjectsCount}
+                            </span>
+                          )}
+                        </Button>
                       </Link>
                       <Link href="/tasks">
                         <Button variant="ghost" size="sm" className="text-sm">Tareas</Button>

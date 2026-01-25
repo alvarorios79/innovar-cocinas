@@ -2222,3 +2222,10 @@
 - [x] Agregar permisos de avance de etapas de producción para el operario
 - [x] El operario puede avanzar: corte → enchape → ensamble → listo instalación
 - [x] Notificar al jefe de taller cuando el operario avance una etapa (notificación en app + push)
+
+
+## Bug: Jefe de Taller no ve Proyectos - Enero 24, 2026
+
+- [x] Agregar "despiece" a la lista de estados visibles para jefe de taller
+- [x] Agregar "instalacion_programada" para que vea proyectos hasta la entrega
+- [x] Separar filtros de jefe_taller y operario para mayor claridad

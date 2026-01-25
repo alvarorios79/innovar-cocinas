@@ -2784,8 +2784,15 @@ export const appRouter = router({
           );
         }
 
-        // Jefe de taller y operario ven proyectos en producción
-        if (role === "jefe_taller" || role === "operario") {
+        // Jefe de taller ve proyectos desde despiece hasta instalación programada
+        if (role === "jefe_taller") {
+          projectsList = projectsList.filter(p => 
+            ["despiece", "corte", "enchape", "ensamble", "listo_instalacion", "instalacion_programada"].includes(p.status)
+          );
+        }
+        
+        // Operario ve proyectos en producción activa (corte a listo_instalacion)
+        if (role === "operario") {
           projectsList = projectsList.filter(p => 
             ["corte", "enchape", "ensamble", "listo_instalacion"].includes(p.status)
           );

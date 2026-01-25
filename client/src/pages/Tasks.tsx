@@ -52,6 +52,7 @@ export default function Tasks() {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [userFilter, setUserFilter] = useState<string>("all");
+  const [dueDateFilter, setDueDateFilter] = useState<string>("all");
   const [sortOrder, setSortOrder] = useState<string>("fecha_limite");
   const [activeTab, setActiveTab] = useState<string>("mis-tareas");
   
@@ -205,6 +206,41 @@ export default function Tasks() {
     
     if (userFilter !== "all") {
       filtered = filtered.filter((t: any) => t.assignedTo === parseInt(userFilter));
+    }
+    
+    // Filtro por fecha de vencimiento
+    if (dueDateFilter !== "all") {
+      const now = new Date();
+      now.setHours(0, 0, 0, 0);
+      
+      const tomorrow = new Date(now);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      
+      const in3Days = new Date(now);
+      in3Days.setDate(in3Days.getDate() + 3);
+      
+      filtered = filtered.filter((t: any) => {
+        if (!t.dueDate) return false; // Sin fecha límite no aplica
+        const dueDate = new Date(t.dueDate);
+        dueDate.setHours(0, 0, 0, 0);
+        
+        switch (dueDateFilter) {
+          case "vencidas":
+            // Tareas vencidas (fecha límite ya pasó)
+            return dueDate < now && t.status !== "completada";
+          case "hoy":
+            // Vencen hoy
+            return dueDate.getTime() === now.getTime() && t.status !== "completada";
+          case "proximas":
+            // Vencen en los próximos 3 días (incluyendo hoy)
+            return dueDate >= now && dueDate <= in3Days && t.status !== "completada";
+          case "urgentes":
+            // Vencidas o vencen hoy
+            return dueDate <= now && t.status !== "completada";
+          default:
+            return true;
+        }
+      });
     }
     
     // Ordenar según la opción seleccionada
@@ -497,6 +533,38 @@ export default function Tasks() {
           <SelectItem value="pendiente">Pendientes</SelectItem>
           <SelectItem value="en_progreso">En Progreso</SelectItem>
           <SelectItem value="completada">Completadas</SelectItem>
+        </SelectContent>
+      </Select>
+
+      {/* Filtro por vencimiento */}
+      <Select value={dueDateFilter} onValueChange={setDueDateFilter}>
+        <SelectTrigger className={`w-[160px] ${dueDateFilter !== 'all' ? 'border-amber-500 bg-amber-50 dark:bg-amber-950' : ''}`}>
+          <Clock className="h-4 w-4 mr-2" />
+          <SelectValue placeholder="Vencimiento" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">Todas las fechas</SelectItem>
+          <SelectItem value="urgentes">
+            <span className="flex items-center gap-2 text-red-600">
+              <AlertTriangle className="h-4 w-4" />
+              Urgentes (vencidas/hoy)
+            </span>
+          </SelectItem>
+          <SelectItem value="vencidas">
+            <span className="flex items-center gap-2 text-red-500">
+              Vencidas
+            </span>
+          </SelectItem>
+          <SelectItem value="hoy">
+            <span className="flex items-center gap-2 text-amber-600">
+              Vencen hoy
+            </span>
+          </SelectItem>
+          <SelectItem value="proximas">
+            <span className="flex items-center gap-2 text-yellow-600">
+              Próximas (3 días)
+            </span>
+          </SelectItem>
         </SelectContent>
       </Select>
 

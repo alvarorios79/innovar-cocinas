@@ -2124,3 +2124,10 @@
 - [x] Optimizar endpoint appointments.list con Promise.all
 - [x] Optimizar endpoint advisoryRequests.list con Promise.all
 - [x] Optimizar endpoint tasks.list con Promise.all
+
+
+## Filtro de Tareas Vencidas - Enero 24, 2026
+
+- [x] Agregar filtro en lista de tareas para mostrar solo vencidas o próximas a vencer
+- [x] Opciones de filtro: Todas las fechas, Urgentes (vencidas/hoy), Vencidas, Vencen hoy, Próximas (3 días)
+- [x] Indicador visual del filtro activo (borde y fondo ámbar cuando hay filtro aplicado)

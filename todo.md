@@ -2254,3 +2254,12 @@
 - [x] Alerta visual de proyectos atrasados (más de 5 días en una etapa):
   - Stat rojo "⚠️ Atrasados (+5 días)" en el dashboard
   - Botón de filtro rojo en la lista de proyectos
+
+
+## Filtrar Estados por Rol - Enero 24, 2026
+
+- [x] Filtrar selector de estados según rol del usuario:
+  - Jefe de taller: Diseño Listo, Aprobación Final, Despiece, Corte, Enchape, Ensamble, Listo Instalación, Instalación Programada, Entregado
+  - Diseñador: Adelanto Recibido, En Diseño, Pendiente Cliente, Aprobación Final, Despiece
+  - Operario: Despiece, Corte, Enchape, Ensamble, Listo Instalación
+  - Admin/Super Admin: Todos los estados

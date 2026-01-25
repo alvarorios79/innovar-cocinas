@@ -431,14 +431,31 @@ export default function Projects() {
             </div>
 
             <div className="flex flex-wrap gap-2">
-              {/* Filtro por estado */}
+              {/* Filtro por estado - filtrado según rol */}
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="w-full sm:w-[180px]">
                   <SelectValue placeholder="Filtrar" />
                 </SelectTrigger>
                 <SelectContent>
                 <SelectItem value="all">Todos los estados</SelectItem>
-                {Object.entries(PROJECT_STATUSES).map(([key, config]) => (
+                {Object.entries(PROJECT_STATUSES)
+                  .filter(([key]) => {
+                    // Jefe de taller: solo etapas desde diseño listo hasta entregado
+                    if (user?.role === "jefe_taller") {
+                      return ["pendiente_cliente", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "instalacion_programada", "entregado"].includes(key);
+                    }
+                    // Diseñador: solo etapas de diseño
+                    if (user?.role === "disenador") {
+                      return ["adelanto_recibido", "en_diseno", "pendiente_cliente", "aprobacion_final", "despiece"].includes(key);
+                    }
+                    // Operario: solo etapas de producción
+                    if (user?.role === "operario") {
+                      return ["despiece", "corte", "enchape", "ensamble", "listo_instalacion"].includes(key);
+                    }
+                    // Admin y super_admin ven todos
+                    return true;
+                  })
+                  .map(([key, config]) => (
                   <SelectItem key={key} value={key}>{config.label}</SelectItem>
                 ))}
               </SelectContent>

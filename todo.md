@@ -2368,3 +2368,14 @@
   - Eliminada la categoría genérica "Otras Fotos"
   - Agregada sección "📏 Medidas y Fotos Iniciales" para fotos de medidas, fotos iniciales y dibujos
   - Mantenida sección "🎨 Renders y Diseños" para renders, despieces, detalles y modelado
+
+
+## Filtros Rápidos en Proyectos (Enero 2026)
+
+- [ ] Agregar botón de filtro "Tareas Urgentes" en la página de Proyectos
+- [ ] Agregar botón de filtro "En Proceso" en la página de Proyectos
+
+
+## Mejora Visual Panel Operario (Enero 2026)
+
+- [x] Rediseñar botón "Ver Todos los Proyectos" a un rectángulo más vistoso y llamativo (estilo tarjeta de acción rápida)

@@ -322,14 +322,26 @@ export function OperarioDashboard() {
               </Card>
             </div>
             
-            {/* Botón Ver Todos los Proyectos */}
+            {/* Botón Ver Todos los Proyectos - Tarjeta Grande */}
             <div className="mt-4">
               <Link href="/projects">
-                <Button className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white shadow-md">
-                  <Package className="h-4 w-4 mr-2" />
-                  Ver Todos los Proyectos
-                  <ArrowRight className="h-4 w-4 ml-2" />
-                </Button>
+                <Card className="border-0 shadow-lg bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 text-white cursor-pointer hover:shadow-xl hover:scale-[1.02] transition-all duration-300 overflow-hidden relative">
+                  <div className="absolute inset-0 bg-white/10 opacity-0 hover:opacity-100 transition-opacity" />
+                  <CardContent className="p-6 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="p-3 bg-white/20 rounded-xl">
+                        <Package className="h-8 w-8" />
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-bold">Ver Todos los Proyectos</h3>
+                        <p className="text-sm text-white/80">Accede a la lista completa de proyectos</p>
+                      </div>
+                    </div>
+                    <div className="p-2 bg-white/20 rounded-full">
+                      <ArrowRight className="h-6 w-6" />
+                    </div>
+                  </CardContent>
+                </Card>
               </Link>
             </div>
           </div>

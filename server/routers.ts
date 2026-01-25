@@ -2973,6 +2973,37 @@ export const appRouter = router({
 
         await db.updateProject(input.projectId, updateData);
 
+        // Notificar al diseñador cuando el proyecto pasa a "Cliente Confirmado - Iniciar Diseño"
+        if (newStatus === "adelanto_recibido" && project.designerId) {
+          try {
+            // Crear notificación en la base de datos
+            await db.createNotification({
+              userId: project.designerId,
+              title: "✨ Cliente Confirmado - Iniciar Diseño",
+              body: `¡Nuevo proyecto listo para diseñar! El proyecto "${project.name}" está confirmado. Tienes 3 días hábiles para entregar el modelado.`,
+              type: "proyecto",
+              referenceId: project.id,
+              referenceType: "project",
+            });
+            
+            // Intentar enviar notificación push
+            try {
+              const { createAndSendNotification } = await import("./push-notifications");
+              await createAndSendNotification(project.designerId, {
+                title: "✨ Nuevo Proyecto para Diseñar",
+                body: `"${project.name}" está listo. ¡A diseñar!`,
+                type: "proyecto",
+                url: `/projects/${project.id}`,
+              });
+            } catch (e) {
+              // Silenciar error de push
+            }
+          } catch (e) {
+            // Silenciar error de notificación
+            console.error("Error notificando al diseñador:", e);
+          }
+        }
+
         // Notificar al jefe de taller cuando el operario avanza una etapa de producción
         const productionStages = ["enchape", "ensamble", "listo_instalacion"];
         if (role === "operario" && productionStages.includes(newStatus)) {

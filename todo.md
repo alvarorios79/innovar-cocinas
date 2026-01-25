@@ -2404,3 +2404,11 @@
   - Actualizado en ProjectInlineDetail.tsx
   - Actualizado en TeamDashboard.tsx
   - Actualizado en deadline-reminders.ts
+
+
+## Notificación Push al Diseñador (Enero 2026)
+
+- [x] Enviar notificación push al diseñador cuando un proyecto pasa a "Cliente Confirmado - Iniciar Diseño"
+  - Notificación en la app con título "✨ Cliente Confirmado - Iniciar Diseño"
+  - Notificación push con título "✨ Nuevo Proyecto para Diseñar"
+  - Incluye enlace directo al proyecto

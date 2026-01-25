@@ -33,6 +33,7 @@ import {
 import { toast } from "sonner";
 import { useState, useRef } from "react";
 import { OperatorDailyProjects } from "@/components/OperatorDailyProjects";
+import { DailyMotivation } from "@/components/DailyMotivation";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
@@ -278,7 +279,16 @@ export function OperarioDashboard() {
       {/* Hero Simplificado */}
       <section className="py-4 md:py-6">
         <div className="container">
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-4xl mx-auto space-y-4">
+            {/* Logo y Saludo */}
+            <div className="flex justify-center mb-2">
+              <img 
+                src="/logo-light.png" 
+                alt="INNOVAR Cocinas Integrales" 
+                className="h-14 sm:h-16 md:h-20 w-auto"
+              />
+            </div>
+            
             <div className="bg-gradient-to-r from-blue-600 to-cyan-600 rounded-2xl p-4 md:p-6 text-white shadow-xl">
               <div className="flex items-center gap-3">
                 <div className="bg-white/20 p-3 rounded-xl">
@@ -290,6 +300,9 @@ export function OperarioDashboard() {
                 </div>
               </div>
             </div>
+
+            {/* Frase Motivacional Diaria */}
+            <DailyMotivation userName={user?.name || undefined} />
           </div>
         </div>
       </section>

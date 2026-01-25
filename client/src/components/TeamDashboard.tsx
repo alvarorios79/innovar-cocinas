@@ -35,6 +35,7 @@ import { toast } from "sonner";
 import { DesignerChecklist } from "@/components/DesignerChecklist";
 import { ProductionCalendar } from "@/components/ProductionCalendar";
 import { OperatorDailyProjects } from "@/components/OperatorDailyProjects";
+import { DailyMotivation } from "@/components/DailyMotivation";
 
 // Componente de botón de cerrar sesión
 function LogoutButton() {
@@ -588,6 +589,11 @@ export function TeamDashboard() {
               <p className="mt-2 text-white/80 text-sm">
                 ¡Hola, <span className="font-bold text-white">{user?.name || "Usuario"}</span>! 👋
               </p>
+            </div>
+
+            {/* Frase Motivacional Diaria */}
+            <div className="mt-4">
+              <DailyMotivation userName={user?.name || undefined} />
             </div>
           </div>
         </div>

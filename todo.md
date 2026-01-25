@@ -2386,3 +2386,12 @@
 - [x] El operario solo puede ver nombre y dirección del cliente (ocultar teléfono, email y otros datos)
   - Oculto teléfono y email en la tarjeta de información del cliente
   - Oculto botón de WhatsApp en las acciones rápidas
+
+
+## Logo y Frases Motivacionales Diarias (Enero 2026)
+
+- [x] Agregar logo de INNOVAR en todos los paneles (Super Admin, Admin Comercial, Diseñador, Jefe de Taller, Operario)
+- [x] Crear sistema de frases motivacionales diarias con celebraciones especiales
+  - Frases de motivación, superación y alegría para días normales
+  - Frases especiales para: Día de la Madre, Día del Padre, Día de la Secretaria, Navidad, Año Nuevo, etc.
+  - Una frase diferente cada día del año

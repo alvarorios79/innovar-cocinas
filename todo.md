@@ -2614,3 +2614,10 @@
 - [x] Agregar credenciales de acceso en el mensaje de WhatsApp de diseño listo
 - [x] Incluir email y contraseña temporal en el mensaje
 - [x] Verificar que el mensaje se genera correctamente (7 tests pasando)
+
+## Permisos de Comercial para Crear/Eliminar Usuarios (Enero 2026)
+
+- [x] Agregar permiso de crear clientes al rol comercial
+- [x] Agregar permiso de eliminar clientes al rol comercial
+- [x] Agregar permiso de listar clientes al rol comercial
+- [x] Verificar permisos con tests (16 tests pasando)

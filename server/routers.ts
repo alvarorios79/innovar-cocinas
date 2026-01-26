@@ -285,7 +285,7 @@ export const appRouter = router({
 
     list: protectedProcedure
       .query(async ({ ctx }) => {
-        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "comercial") {
           throw new TRPCError({ code: "FORBIDDEN" });
         }
         return await db.getAllClients();
@@ -300,8 +300,8 @@ export const appRouter = router({
         address: z.string().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
-        // Solo admin y super_admin pueden crear clientes
-        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+        // Solo admin, super_admin y comercial pueden crear clientes
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "comercial") {
           throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para crear clientes" });
         }
 
@@ -362,7 +362,7 @@ export const appRouter = router({
     delete: protectedProcedure
       .input(z.object({ id: z.number() }))
       .mutation(async ({ ctx, input }) => {
-        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "comercial") {
           throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para eliminar clientes" });
         }
         

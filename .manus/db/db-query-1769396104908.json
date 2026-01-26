@@ -1,0 +1,40 @@
+{
+  "query": "SELECT * FROM users WHERE email LIKE '%martha%' OR email LIKE '%79s%';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT * FROM users WHERE email LIKE '%martha%' OR email LIKE '%79s%';",
+  "rows": [
+    {
+      "id": "30390",
+      "openId": "manual-1768272609701-ucv8jq",
+      "name": "Martha Serna",
+      "email": "martha79s@hotmail.com",
+      "loginMethod": "password",
+      "role": "comercial",
+      "createdAt": "2026-01-13 02:50:09",
+      "updatedAt": "2026-01-26 02:54:36",
+      "lastSignedIn": "2026-01-26 02:54:36",
+      "passwordHash": "$2b$12$WJeW2k8c/G/cV.pmRPOI5emzJKaCB88Z/7CdQDf0i0Wp9FXy6UL4C",
+      "passwordResetToken": "NULL",
+      "passwordResetExpires": "NULL",
+      "birthDate": "1976-11-18 00:00:00"
+    },
+    {
+      "id": "2250885",
+      "openId": "T97h7oUcUb6KpgqqP4fMH7",
+      "name": "martha79s",
+      "email": "martha79s@hotmail.com",
+      "loginMethod": "email",
+      "role": "user",
+      "createdAt": "2026-01-26 02:44:19",
+      "updatedAt": "2026-01-26 02:45:41",
+      "lastSignedIn": "2026-01-26 02:45:42",
+      "passwordHash": "NULL",
+      "passwordResetToken": "NULL",
+      "passwordResetExpires": "NULL",
+      "birthDate": "NULL"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\topenId\tname\temail\tloginMethod\trole\tcreatedAt\tupdatedAt\tlastSignedIn\tpasswordHash\tpasswordResetToken\tpasswordResetExpires\tbirthDate\n30390\tmanual-1768272609701-ucv8jq\tMartha Serna\tmartha79s@hotmail.com\tpassword\tcomercial\t2026-01-13 02:50:09\t2026-01-26 02:54:36\t2026-01-26 02:54:36\t$2b$12$WJeW2k8c/G/cV.pmRPOI5emzJKaCB88Z/7CdQDf0i0Wp9FXy6UL4C\tNULL\tNULL\t1976-11-18 00:00:00\n2250885\tT97h7oUcUb6KpgqqP4fMH7\tmartha79s\tmartha79s@hotmail.com\temail\tuser\t2026-01-26 02:44:19\t2026-01-26 02:45:41\t2026-01-26 02:45:42\tNULL\tNULL\tNULL\tNULL\n",
+  "stderr": "",
+  "execution_time_ms": 58
+}

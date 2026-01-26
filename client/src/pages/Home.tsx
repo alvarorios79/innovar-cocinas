@@ -318,6 +318,12 @@ export default function Home() {
     return <OperarioDashboard />;
   }
 
+  // Si es comercial, redirigir automáticamente al Panel Comercial
+  if (isAuthenticated && user?.role === "comercial") {
+    window.location.href = "/comercial";
+    return null;
+  }
+
   // Si es miembro del equipo, mostrar el TeamDashboard
   if (isTeamMember) {
     return <TeamDashboard />;

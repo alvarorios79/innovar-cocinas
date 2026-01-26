@@ -488,7 +488,7 @@ export default function ProjectDetail() {
                   size="sm"
                   className="bg-purple-500 hover:bg-purple-600 text-white"
                   onClick={() => {
-                    const clientPhone = projectDetail.client?.phone?.replace(/\D/g, "");
+                    const clientPhone = projectDetail.client?.whatsappPhone?.replace(/\D/g, "");
                     const clientName = projectDetail.client?.name || "Cliente";
                     const projectName = projectDetail.name;
                     
@@ -518,7 +518,7 @@ export default function ProjectDetail() {
                   size="sm"
                   className="bg-green-500 hover:bg-green-600 text-white"
                   onClick={() => {
-                    const clientPhone = projectDetail.client?.phone?.replace(/\D/g, "");
+                    const clientPhone = projectDetail.client?.whatsappPhone?.replace(/\D/g, "");
                     const clientName = projectDetail.client?.name || "Cliente";
                     const projectName = projectDetail.name;
                     

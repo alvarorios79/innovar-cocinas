@@ -2717,3 +2717,7 @@
 - [x] Implementar botón "Enviar Renders por WhatsApp" para aprobación final
 - [x] Separar el flujo: Modelado para cambios, Renders para aprobación
 - [x] Solo permitir aprobar diseño después de enviar renders
+
+
+## Bug - Teléfono undefined en WhatsApp Modelado
+- [ ] Corregir el error donde el teléfono aparece como undefined al enviar modelado por WhatsApp

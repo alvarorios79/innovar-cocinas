@@ -3187,10 +3187,81 @@ export const appRouter = router({
             const clientData = await db.getClientById(project.clientId);
             
             if (clientData) {
+              // Variables para credenciales
+              let clientCredentials: { email: string; password: string } | null = null;
+              let clientUserId = clientData.userId;
+              
+              // Si el cliente tiene email pero no tiene usuario, crear uno con contraseña temporal
+              if (clientData.email && !clientData.userId) {
+                try {
+                  // Verificar si ya existe un usuario con ese email
+                  const existingUsers = await db.getAllUsers();
+                  const existingUser = existingUsers.find(u => u.email?.toLowerCase() === clientData.email?.toLowerCase());
+                  
+                  if (existingUser) {
+                    // Asociar cliente con usuario existente
+                    await db.updateClient(clientData.id, { userId: existingUser.id });
+                    clientUserId = existingUser.id;
+                    
+                    // Generar nueva contraseña temporal para el usuario existente
+                    const { generateTemporaryPassword } = await import("./password-generator");
+                    const { hashPassword } = await import("./password-auth");
+                    const temporaryPassword = generateTemporaryPassword();
+                    const hashedPassword = await hashPassword(temporaryPassword);
+                    await db.updateUserPassword(existingUser.id, hashedPassword);
+                    
+                    clientCredentials = {
+                      email: clientData.email,
+                      password: temporaryPassword
+                    };
+                  } else {
+                    // Crear nuevo usuario con contraseña temporal
+                    const { generateTemporaryPassword } = await import("./password-generator");
+                    const { hashPassword } = await import("./password-auth");
+                    const temporaryPassword = generateTemporaryPassword();
+                    const hashedPassword = await hashPassword(temporaryPassword);
+                    
+                    const newUserId = await db.createUserExtended({
+                      name: clientData.name,
+                      email: clientData.email,
+                      role: "user",
+                      passwordHash: hashedPassword,
+                    });
+                    
+                    // Asociar cliente con nuevo usuario
+                    await db.updateClient(clientData.id, { userId: newUserId });
+                    clientUserId = newUserId;
+                    
+                    clientCredentials = {
+                      email: clientData.email,
+                      password: temporaryPassword
+                    };
+                  }
+                } catch (e) {
+                  console.error("Error creando usuario para cliente:", e);
+                }
+              } else if (clientData.email && clientData.userId) {
+                // El cliente ya tiene usuario, generar nueva contraseña temporal
+                try {
+                  const { generateTemporaryPassword } = await import("./password-generator");
+                  const { hashPassword } = await import("./password-auth");
+                  const temporaryPassword = generateTemporaryPassword();
+                  const hashedPassword = await hashPassword(temporaryPassword);
+                  await db.updateUserPassword(clientData.userId, hashedPassword);
+                  
+                  clientCredentials = {
+                    email: clientData.email,
+                    password: temporaryPassword
+                  };
+                } catch (e) {
+                  console.error("Error actualizando contraseña del cliente:", e);
+                }
+              }
+              
               // Si el cliente tiene userId, crear notificación en la base de datos
-              if (clientData.userId) {
+              if (clientUserId) {
                 await db.createNotification({
-                  userId: clientData.userId,
+                  userId: clientUserId,
                   title: "🎨 ¡Tu Diseño está Listo!",
                   body: `El diseño de tu proyecto "${project.name}" está listo para tu revisión. Ingresa al portal para verlo y aprobarlo.`,
                   type: "proyecto",
@@ -3201,7 +3272,7 @@ export const appRouter = router({
                 // Intentar enviar notificación push al cliente
                 try {
                   const { createAndSendNotification } = await import("./push-notifications");
-                  await createAndSendNotification(clientData.userId, {
+                  await createAndSendNotification(clientUserId, {
                     title: "🎨 ¡Tu Diseño está Listo!",
                     body: `El diseño de "${project.name}" está listo para tu aprobación`,
                     type: "proyecto",
@@ -3217,7 +3288,24 @@ export const appRouter = router({
                 try {
                   const { sendEmail } = await import("./email");
                   const baseUrl = ctx.req.headers.origin || `https://${ctx.req.headers.host}`;
-                  const portalUrl = `${baseUrl}/portal`;
+                  const portalUrl = `${baseUrl}/login`;
+                  
+                  // Construir sección de credenciales si existen
+                  const credentialsSection = clientCredentials ? `
+                          <div style="background: #ecfdf5; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #10b981;">
+                            <h3 style="margin-top: 0; color: #065f46;">🔐 Tus Credenciales de Acceso</h3>
+                            <p style="color: #047857; margin-bottom: 10px;">Usa estos datos para ingresar al portal:</p>
+                            <p style="font-family: monospace; background: white; padding: 10px; border-radius: 4px; margin: 5px 0;">
+                              <strong>Correo:</strong> ${clientCredentials.email}
+                            </p>
+                            <p style="font-family: monospace; background: white; padding: 10px; border-radius: 4px; margin: 5px 0;">
+                              <strong>Contraseña:</strong> ${clientCredentials.password}
+                            </p>
+                            <p style="font-size: 12px; color: #6b7280; margin-top: 10px;">
+                              ⚠️ Por seguridad, te recomendamos guardar esta contraseña en un lugar seguro.
+                            </p>
+                          </div>
+                  ` : '';
                   
                   await sendEmail({
                     to: clientData.email,
@@ -3235,9 +3323,10 @@ export const appRouter = router({
                           <p style="font-size: 16px; color: #374151;">
                             Por favor ingresa a tu portal para ver los renders, despieces y detalles del diseño. Una vez que lo revises, podrás aprobarlo o solicitar cambios.
                           </p>
+                          ${credentialsSection}
                           <div style="text-align: center; margin: 30px 0;">
                             <a href="${portalUrl}" style="background: linear-gradient(135deg, #8B5CF6, #6366F1); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
-                              Ver Mi Diseño
+                              Ingresar al Portal
                             </a>
                           </div>
                           <p style="font-size: 14px; color: #6B7280;">

@@ -2600,3 +2600,11 @@
 - [x] Mostrar fecha oficial de instalación con emoji 🟢 en verde (cuando se aprueba diseño)
 - [x] Actualizar ProjectDetail.tsx con las nuevas fechas
 - [x] Actualizar ProjectInlineDetail.tsx con las nuevas fechas
+
+## Credenciales en Correo de Aprobación de Diseño (Enero 2026)
+
+- [x] Modificar correo de aprobación de diseño para incluir credenciales del cliente
+- [x] Generar contraseña temporal si el cliente no tiene cuenta
+- [x] Crear usuario automáticamente si no existe al enviar correo de aprobación
+- [x] Incluir email y contraseña en el cuerpo del correo
+- [x] Probar flujo completo de envío de correo con credenciales (5 tests pasando)

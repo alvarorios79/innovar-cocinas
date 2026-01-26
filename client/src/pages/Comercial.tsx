@@ -24,7 +24,14 @@ import {
   Cake,
   Heart,
   LogOut,
-  Sparkles
+  Sparkles,
+  TrendingUp,
+  DollarSign,
+  ClipboardList,
+  Target,
+  Palette,
+  Package,
+  Truck
 } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
@@ -70,11 +77,12 @@ export default function Comercial() {
 
   const utils = trpc.useUtils();
   
-  // Queries
+  // Queries - TODAS las queries igual que CEO
   const { data: appointments = [], isLoading: loadingAppointments } = trpc.appointments.list.useQuery();
   const { data: quotations = [], isLoading: loadingQuotations } = trpc.quotations.list.useQuery();
   const { data: projects = [], isLoading: loadingProjects } = trpc.projects.list.useQuery();
   const { data: clients = [] } = trpc.clients.list.useQuery();
+  const { data: tasks = [] } = trpc.tasks.list.useQuery();
 
   // Mutation para programar instalación
   const updateInstallDate = trpc.projects.updateEstimatedDate.useMutation({
@@ -131,10 +139,16 @@ export default function Comercial() {
     return aptDate.getTime() === today.getTime() && apt.status === "pending";
   });
 
+  // Citas pendientes (todas)
+  const pendingAppointments = appointments.filter((a: any) => a.status === "pendiente" || a.status === "confirmada" || a.status === "pending");
+
+  // TODOS los proyectos activos (no entregados ni cancelados) - IGUAL QUE CEO
+  const activeProjects = projects.filter((p: any) => !["entregado", "cancelado"].includes(p.status));
+
   // Proyectos en ensamble (para programar instalación)
   const projectsInEnsamble = projects.filter((p: any) => p.status === "ensamble");
 
-  // Proyectos con instalación programada (tienen fecha de instalación y están en producción)
+  // Proyectos con instalación programada
   const projectsWithInstallDate = projects.filter((p: any) => 
     p.estimatedInstallDate && 
     ["corte", "enchape", "ensamble", "instalacion"].includes(p.status)
@@ -142,7 +156,8 @@ export default function Comercial() {
     new Date(a.estimatedInstallDate).getTime() - new Date(b.estimatedInstallDate).getTime()
   );
 
-  // Cotizaciones activas (enviadas, pendientes de aprobación)
+  // Cotizaciones
+  const draftQuotations = quotations.filter((q: any) => q.status === "draft");
   const activeQuotations = quotations.filter((q: any) => q.status === "sent");
 
   // Cotizaciones por vencer (vencen en 3 días o menos)
@@ -153,6 +168,9 @@ export default function Comercial() {
     const validUntil = new Date(q.validUntil);
     return validUntil <= threeDaysFromNow && validUntil >= today;
   });
+
+  // Tareas del usuario
+  const myTasks = tasks.filter((t: any) => t.assignedTo === user?.id && t.status !== "completada");
 
   // Formatear fecha
   const formatDate = (date: Date | string) => {
@@ -179,6 +197,46 @@ export default function Comercial() {
   const formatPrice = (price: number | string) => {
     const num = typeof price === 'string' ? parseFloat(price) : price;
     return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(num);
+  };
+
+  // Obtener etiqueta del estado
+  const getStatusLabel = (status: string) => {
+    const statusLabels: Record<string, string> = {
+      cotizacion_enviada: "Cotización Enviada",
+      cotizacion_aprobada: "Cotización Aprobada",
+      adelanto_recibido: "Adelanto Recibido",
+      en_diseno: "En Diseño",
+      pendiente_cliente: "Pendiente Cliente",
+      aprobacion_final: "Aprobación Final",
+      despiece: "En Despiece",
+      corte: "En Corte",
+      enchape: "En Enchape",
+      ensamble: "En Ensamble",
+      listo_instalacion: "Listo Instalación",
+      instalacion_programada: "Instalación Programada",
+      entregado: "Entregado",
+    };
+    return statusLabels[status] || status;
+  };
+
+  // Obtener color del estado
+  const getStatusColor = (status: string) => {
+    const statusColors: Record<string, string> = {
+      cotizacion_enviada: "bg-blue-100 text-blue-700",
+      cotizacion_aprobada: "bg-emerald-100 text-emerald-700",
+      adelanto_recibido: "bg-green-100 text-green-700",
+      en_diseno: "bg-purple-100 text-purple-700",
+      pendiente_cliente: "bg-yellow-100 text-yellow-700",
+      aprobacion_final: "bg-indigo-100 text-indigo-700",
+      despiece: "bg-orange-100 text-orange-700",
+      corte: "bg-amber-100 text-amber-700",
+      enchape: "bg-rose-100 text-rose-700",
+      ensamble: "bg-pink-100 text-pink-700",
+      listo_instalacion: "bg-cyan-100 text-cyan-700",
+      instalacion_programada: "bg-teal-100 text-teal-700",
+      entregado: "bg-gray-100 text-gray-700",
+    };
+    return statusColors[status] || "bg-gray-100 text-gray-700";
   };
 
   // Manejar programación de instalación
@@ -250,6 +308,9 @@ export default function Comercial() {
               </Link>
               <Link href="/clients">
                 <Button variant="ghost" size="sm" className="text-sm font-medium">Clientes</Button>
+              </Link>
+              <Link href="/projects">
+                <Button variant="ghost" size="sm" className="text-sm font-medium">Proyectos</Button>
               </Link>
               <Link href="/tasks">
                 <Button variant="ghost" size="sm" className="text-sm font-medium">Mis Tareas</Button>
@@ -392,64 +453,72 @@ export default function Comercial() {
           </section>
         )}
 
-        {/* Resumen del Día */}
+        {/* Resumen del Día - IGUAL QUE CEO */}
         <section>
           <h2 className="text-lg font-semibold text-slate-700 mb-3 flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-pink-500" />
+            <TrendingUp className="h-5 w-5 text-pink-500" />
             Resumen del Día
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <Card className="bg-gradient-to-br from-pink-500 to-rose-600 text-white shadow-lg hover:shadow-xl transition-shadow">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div className="bg-white/20 p-2 rounded-lg">
-                    <Calendar className="h-5 w-5" />
+            <Link href="/projects">
+              <Card className="bg-gradient-to-br from-pink-500 to-rose-600 text-white shadow-lg hover:shadow-xl transition-all hover:scale-[1.02] cursor-pointer">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="bg-white/20 p-2 rounded-lg">
+                      <Briefcase className="h-5 w-5" />
+                    </div>
+                    <span className="text-3xl font-bold">{activeProjects.length}</span>
                   </div>
-                  <span className="text-3xl font-bold">{todayAppointments.length}</span>
-                </div>
-                <p className="mt-2 text-sm text-white/90">Citas Pendientes</p>
-              </CardContent>
-            </Card>
-            <Card className="bg-gradient-to-br from-rose-400 to-pink-500 text-white shadow-lg hover:shadow-xl transition-shadow">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div className="bg-white/20 p-2 rounded-lg">
-                    <FileText className="h-5 w-5" />
+                  <p className="mt-2 text-sm text-white/90">Proyectos Activos</p>
+                </CardContent>
+              </Card>
+            </Link>
+            <Link href="/calendar">
+              <Card className="bg-gradient-to-br from-rose-400 to-pink-500 text-white shadow-lg hover:shadow-xl transition-all hover:scale-[1.02] cursor-pointer">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="bg-white/20 p-2 rounded-lg">
+                      <Calendar className="h-5 w-5" />
+                    </div>
+                    <span className="text-3xl font-bold">{pendingAppointments.length}</span>
                   </div>
-                  <span className="text-3xl font-bold">{activeQuotations.length}</span>
-                </div>
-                <p className="mt-2 text-sm text-white/90">Cotizaciones Borrador</p>
-              </CardContent>
-            </Card>
-            <Card className="bg-gradient-to-br from-fuchsia-500 to-pink-600 text-white shadow-lg hover:shadow-xl transition-shadow">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div className="bg-white/20 p-2 rounded-lg">
-                    <Clock className="h-5 w-5" />
+                  <p className="mt-2 text-sm text-white/90">Citas Pendientes</p>
+                </CardContent>
+              </Card>
+            </Link>
+            <Link href="/quotations">
+              <Card className="bg-gradient-to-br from-fuchsia-500 to-pink-600 text-white shadow-lg hover:shadow-xl transition-all hover:scale-[1.02] cursor-pointer">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="bg-white/20 p-2 rounded-lg">
+                      <DollarSign className="h-5 w-5" />
+                    </div>
+                    <span className="text-3xl font-bold">{quotations.length}</span>
                   </div>
-                  <span className="text-3xl font-bold">{expiringQuotations.length}</span>
-                </div>
-                <p className="mt-2 text-sm text-white/90">Esperando Respuesta</p>
-              </CardContent>
-            </Card>
-            <Card className="bg-gradient-to-br from-violet-500 to-purple-600 text-white shadow-lg hover:shadow-xl transition-shadow">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div className="bg-white/20 p-2 rounded-lg">
-                    <Users className="h-5 w-5" />
+                  <p className="mt-2 text-sm text-white/90">Cotizaciones</p>
+                </CardContent>
+              </Card>
+            </Link>
+            <Link href="/tasks">
+              <Card className="bg-gradient-to-br from-violet-500 to-purple-600 text-white shadow-lg hover:shadow-xl transition-all hover:scale-[1.02] cursor-pointer">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="bg-white/20 p-2 rounded-lg">
+                      <ClipboardList className="h-5 w-5" />
+                    </div>
+                    <span className="text-3xl font-bold">{myTasks.length}</span>
                   </div>
-                  <span className="text-3xl font-bold">{projectsInEnsamble.length}</span>
-                </div>
-                <p className="mt-2 text-sm text-white/90">Mis Tareas</p>
-              </CardContent>
-            </Card>
+                  <p className="mt-2 text-sm text-white/90">Mis Tareas</p>
+                </CardContent>
+              </Card>
+            </Link>
           </div>
         </section>
 
         {/* Acciones Rápidas */}
         <section>
           <h2 className="text-lg font-semibold text-slate-700 mb-3 flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-pink-500" />
+            <Target className="h-5 w-5 text-pink-500" />
             Acciones Rápidas
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -482,6 +551,67 @@ export default function Comercial() {
           </div>
         </section>
 
+        {/* PROYECTOS ACTIVOS - IGUAL QUE CEO */}
+        {activeProjects.length > 0 && (
+          <section>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-lg font-semibold text-slate-700 flex items-center gap-2">
+                <Briefcase className="h-5 w-5 text-pink-500" />
+                Proyectos Activos
+              </h2>
+              <Link href="/projects">
+                <Button variant="ghost" size="sm" className="text-pink-600 font-semibold">
+                  Ver todos <ArrowRight className="h-4 w-4 ml-1" />
+                </Button>
+              </Link>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {activeProjects.slice(0, 6).map((project: any, index: number) => {
+                const projectColors = [
+                  "bg-gradient-to-br from-pink-500 to-rose-600",
+                  "bg-gradient-to-br from-purple-500 to-indigo-600",
+                  "bg-gradient-to-br from-orange-500 to-amber-600",
+                  "bg-gradient-to-br from-fuchsia-500 to-pink-600",
+                  "bg-gradient-to-br from-teal-500 to-emerald-600",
+                  "bg-gradient-to-br from-blue-500 to-cyan-600",
+                ];
+                return (
+                  <Link key={project.id} href={`/projects/${project.id}`}>
+                    <Card className={`${projectColors[index % 6]} hover:shadow-xl transition-all duration-300 cursor-pointer border-0 shadow-md hover:scale-[1.02] overflow-hidden`}>
+                      <CardContent className="p-4 text-white">
+                        <div className="flex items-center justify-between gap-2 mb-2">
+                          <div className="bg-white/20 p-2 rounded-lg">
+                            {project.workType === "cocina" && <span className="text-xl">🍳</span>}
+                            {project.workType === "closet" && <span className="text-xl">👔</span>}
+                            {project.workType === "puertas" && <span className="text-xl">🛏</span>}
+                            {project.workType === "centro_tv" && <span className="text-xl">📺</span>}
+                            {!project.workType && <Briefcase className="h-5 w-5" />}
+                          </div>
+                          <Badge 
+                            variant="outline" 
+                            className="bg-white/20 text-white border-white/30 font-semibold text-xs"
+                          >
+                            {getStatusLabel(project.status)}
+                          </Badge>
+                        </div>
+                        <h3 className="font-bold text-white truncate text-sm md:text-base">{project.name}</h3>
+                        <p className="text-xs text-white/80 mt-1">
+                          {project.client?.name || "Sin cliente asignado"}
+                        </p>
+                        {project.estimatedInstallDate && (
+                          <p className="text-xs text-white/70 mt-1">
+                            📅 Entrega: {formatDate(project.estimatedInstallDate)}
+                          </p>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </Link>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
         {/* Programar Instalación - Proyectos en Ensamble */}
         {projectsInEnsamble.length > 0 && (
           <section>
@@ -506,10 +636,10 @@ export default function Comercial() {
                       <div className="flex-1">
                         <h3 className="font-semibold text-slate-800">{project.name}</h3>
                         <div className="flex flex-wrap items-center gap-3 mt-1 text-sm text-slate-600">
-                          {project.client?.phone && (
-                            <a href={`tel:${project.client.phone}`} className="flex items-center gap-1 hover:text-pink-600">
+                          {project.client?.whatsappPhone && (
+                            <a href={`tel:${project.client.whatsappPhone}`} className="flex items-center gap-1 hover:text-pink-600">
                               <Phone className="h-4 w-4" />
-                              {project.client.phone}
+                              {project.client.whatsappPhone}
                             </a>
                           )}
                           {project.tentativeInstallDate && (
@@ -549,7 +679,7 @@ export default function Comercial() {
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2">
                   <div className="bg-emerald-100 p-2 rounded-full">
-                    <CheckCircle className="h-5 w-5 text-emerald-600" />
+                    <Truck className="h-5 w-5 text-emerald-600" />
                   </div>
                   <div>
                     <CardTitle className="text-emerald-800">🗓️ Instalaciones Programadas</CardTitle>
@@ -571,7 +701,7 @@ export default function Comercial() {
                             <div>
                               <h3 className="font-medium text-slate-800">{project.name}</h3>
                               <p className="text-sm text-slate-500">
-                                {formatDate(project.estimatedInstallDate)} • Estado: {project.status}
+                                {formatDate(project.estimatedInstallDate)} • {getStatusLabel(project.status)}
                               </p>
                             </div>
                             <Badge className={isUrgent ? 'bg-yellow-500' : 'bg-emerald-500'}>
@@ -621,8 +751,8 @@ export default function Comercial() {
                               {new Date(apt.scheduledDate).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })}
                             </p>
                           </div>
-                          {apt.client?.phone && (
-                            <a href={`tel:${apt.client.phone}`}>
+                          {apt.client?.whatsappPhone && (
+                            <a href={`tel:${apt.client.whatsappPhone}`}>
                               <Button size="sm" variant="outline" className="border-pink-300 text-pink-600 hover:bg-pink-100">
                                 <Phone className="h-4 w-4" />
                               </Button>
@@ -633,7 +763,7 @@ export default function Comercial() {
                     ))}
                   </div>
                 )}
-                <Link href="/admin?tab=appointments">
+                <Link href="/calendar">
                   <Button variant="ghost" className="w-full mt-3 text-pink-600 hover:text-pink-700 hover:bg-pink-50">
                     Ver todas las citas <ArrowRight className="h-4 w-4 ml-1" />
                   </Button>
@@ -708,7 +838,7 @@ export default function Comercial() {
                     ))}
                   </div>
                 )}
-                <Link href="/admin?tab=quotations">
+                <Link href="/quotations">
                   <Button variant="ghost" className="w-full mt-3 text-rose-600 hover:text-rose-700 hover:bg-rose-50">
                     Ver todas las cotizaciones <ArrowRight className="h-4 w-4 ml-1" />
                   </Button>
@@ -748,7 +878,7 @@ export default function Comercial() {
                         </div>
                         <div className="flex gap-2">
                           {quot.client?.whatsappPhone && (
-                            <a href={`tel:${quot.client.phone}`}>
+                            <a href={`tel:${quot.client.whatsappPhone}`}>
                               <Button size="sm" variant="outline" className="border-red-300 text-red-600 hover:bg-red-100">
                                 <Phone className="h-4 w-4 mr-1" />
                                 Llamar
@@ -767,6 +897,61 @@ export default function Comercial() {
                 </div>
               </CardContent>
             </Card>
+          </section>
+        )}
+
+        {/* Tareas Pendientes */}
+        {myTasks.length > 0 && (
+          <section>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-lg font-semibold text-slate-700 flex items-center gap-2">
+                <ClipboardList className="h-5 w-5 text-pink-500" />
+                Mis Tareas Pendientes
+              </h2>
+              <Link href="/tasks">
+                <Button variant="ghost" size="sm" className="text-pink-600 font-semibold">
+                  Ver todas <ArrowRight className="h-4 w-4 ml-1" />
+                </Button>
+              </Link>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {myTasks.slice(0, 4).map((task: any, index: number) => {
+                const taskColors = [
+                  "bg-gradient-to-br from-pink-500 to-rose-600",
+                  "bg-gradient-to-br from-violet-500 to-purple-600",
+                  "bg-gradient-to-br from-fuchsia-500 to-pink-600",
+                  "bg-gradient-to-br from-rose-500 to-pink-600",
+                ];
+                const priorityIcons: Record<string, string> = {
+                  alta: "🔥",
+                  media: "⚡",
+                  baja: "✅",
+                };
+                return (
+                  <Link key={task.id} href="/tasks">
+                    <Card className={`${taskColors[index % 4]} hover:shadow-xl transition-all duration-300 cursor-pointer border-0 shadow-md hover:scale-[1.02] overflow-hidden`}>
+                      <CardContent className="p-4 text-white">
+                        <div className="flex items-center justify-between gap-2 mb-2">
+                          <div className="bg-white/20 p-2 rounded-lg">
+                            <ClipboardList className="h-5 w-5" />
+                          </div>
+                          <Badge 
+                            variant="outline" 
+                            className="bg-white/20 text-white border-white/30 font-semibold text-xs"
+                          >
+                            {priorityIcons[task.priority || "media"]} {task.priority === "alta" ? "Urgente" : task.priority === "media" ? "Media" : "Baja"}
+                          </Badge>
+                        </div>
+                        <h3 className="font-bold text-white truncate text-sm md:text-base">{task.title}</h3>
+                        <p className="text-xs text-white/80 mt-1 line-clamp-1">
+                          {task.description || "Sin descripción"}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                );
+              })}
+            </div>
           </section>
         )}
       </main>

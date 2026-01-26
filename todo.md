@@ -2679,3 +2679,9 @@
 - [x] Enviar alerta a Martha (comercial) para coordinar instalación
 - [x] Agregar botón de WhatsApp directo en cotizaciones activas del Panel Comercial
 - [x] Mensaje predefinido con nombre del cliente y monto de la cotización
+
+
+## Panel Comercial - Actualización Completa
+- [x] Mostrar TODOS los proyectos activos (no solo los de ensamble)
+- [x] Agregar sección de Proyectos Activos igual que CEO
+- [x] Mantener estilo rosa elegante

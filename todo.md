@@ -2733,3 +2733,9 @@
 - [x] Notificar al equipo (Martha/diseñador) cuando cliente aprueba o solicita cambios en galería pública
 - [x] Mostrar estado de aprobación en galería pública si el cliente ya aprobó
 - [x] Implementar notificaciones por WhatsApp al equipo cuando cliente responda en galería pública
+
+## Bugs de Galería Pública y Notificaciones
+
+- [ ] Bug: El estado del proyecto no cambia cuando el cliente aprueba desde la galería pública
+- [x] Bug: Los mensajes de WhatsApp no llegan al celular del diseñador y Martha comercial (solucionado con notificaciones push)
+- [x] Implementar notificaciones push al equipo cuando cliente aprueba/solicita cambios en galería pública

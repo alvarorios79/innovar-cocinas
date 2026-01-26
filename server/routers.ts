@@ -5105,6 +5105,46 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
           designType: input.type,
         });
 
+        // Enviar notificaciones push al equipo (diseñador, admin, comercial)
+        try {
+          const { createAndSendNotification, sendPushToRole } = await import("./push-notifications");
+          const tipoTexto = input.type === "modelado" ? "Modelado 3D" : "Renders";
+          
+          // Notificar al diseñador asignado
+          if (project.designerId) {
+            await createAndSendNotification(project.designerId, {
+              title: `✅ Cliente aprobó ${tipoTexto}`,
+              body: `${input.clientName} aprobó el ${tipoTexto.toLowerCase()} de "${project.name}"`,
+              type: "proyecto",
+              referenceId: input.projectId,
+              referenceType: "project",
+              url: `/projects/${input.projectId}`,
+            });
+          }
+          
+          // Notificar a todos los admins y comerciales
+          const admins = await db.getUsersByRole('admin');
+          const superAdmins = await db.getUsersByRole('super_admin');
+          const comerciales = await db.getUsersByRole('comercial');
+          const allTeam = [...admins, ...superAdmins, ...comerciales];
+          
+          for (const user of allTeam) {
+            // Evitar duplicar notificación al diseñador si también es admin
+            if (user.id !== project.designerId) {
+              await createAndSendNotification(user.id, {
+                title: `✅ Cliente aprobó ${tipoTexto}`,
+                body: `${input.clientName} aprobó el ${tipoTexto.toLowerCase()} de "${project.name}"`,
+                type: "proyecto",
+                referenceId: input.projectId,
+                referenceType: "project",
+                url: `/projects/${input.projectId}`,
+              });
+            }
+          }
+        } catch (pushError) {
+          console.error("Error enviando notificaciones push:", pushError);
+        }
+
         return { 
           success: true, 
           message: input.type === "modelado" 
@@ -5164,6 +5204,47 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
           designType: input.type,
           changes: input.changes,
         });
+
+        // Enviar notificaciones push al equipo (diseñador, admin, comercial)
+        try {
+          const { createAndSendNotification } = await import("./push-notifications");
+          const tipoTexto = input.type === "modelado" ? "Modelado 3D" : "Renders";
+          const cambiosCortos = input.changes.length > 50 ? input.changes.substring(0, 50) + "..." : input.changes;
+          
+          // Notificar al diseñador asignado
+          if (project.designerId) {
+            await createAndSendNotification(project.designerId, {
+              title: `📝 Cambios solicitados en ${tipoTexto}`,
+              body: `${input.clientName} solicitó cambios: "${cambiosCortos}"`,
+              type: "proyecto",
+              referenceId: input.projectId,
+              referenceType: "project",
+              url: `/projects/${input.projectId}`,
+            });
+          }
+          
+          // Notificar a todos los admins y comerciales
+          const admins = await db.getUsersByRole('admin');
+          const superAdmins = await db.getUsersByRole('super_admin');
+          const comerciales = await db.getUsersByRole('comercial');
+          const allTeam = [...admins, ...superAdmins, ...comerciales];
+          
+          for (const user of allTeam) {
+            // Evitar duplicar notificación al diseñador si también es admin
+            if (user.id !== project.designerId) {
+              await createAndSendNotification(user.id, {
+                title: `📝 Cambios solicitados en ${tipoTexto}`,
+                body: `${input.clientName} solicitó cambios en "${project.name}"`,
+                type: "proyecto",
+                referenceId: input.projectId,
+                referenceType: "project",
+                url: `/projects/${input.projectId}`,
+              });
+            }
+          }
+        } catch (pushError) {
+          console.error("Error enviando notificaciones push:", pushError);
+        }
 
         return { 
           success: true, 

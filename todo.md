@@ -2642,3 +2642,19 @@
 - [x] Modificar el botón "Eliminar todos" a "🧹 Limpieza del Sistema"
 - [x] Mostrar resumen de lo que se eliminará antes de confirmar
 - [x] Funcionalidad lista para prueba del usuario
+
+
+## Bug: Usuarios Admin de Prueba No Se Eliminan (Enero 2026)
+
+- [ ] Identificar por qué usuarios con roles admin/super_admin de prueba no se eliminan
+- [ ] Modificar endpoint deleteTestUsers para permitir eliminar usuarios admin de prueba
+- [ ] Verificar que el equipo de trabajo real (5 miembros) esté protegido
+- [ ] Probar eliminación completa de usuarios de prueba
+
+
+## Bug: Panel Comercial Muestra 0 Proyectos (Enero 2026)
+
+- [x] Diagnosticar por qué el panel del comercial muestra 0 proyectos (faltaba rol comercial en queries)
+- [x] Corregir el código para mostrar los proyectos correctamente
+- [x] Agregar navegación completa para rol comercial (Proyectos, Tareas, Calendario, Panel Comercial)
+- [x] Actualizar MobileNav para incluir rol comercial

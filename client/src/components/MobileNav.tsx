@@ -21,12 +21,16 @@ export function MobileNav() {
   
   // Query para contar proyectos nuevos según el rol
   const { data: projects = [] } = trpc.projects.list.useQuery(undefined, {
-    enabled: isAuthenticated && ["disenador", "jefe_taller", "operario"].includes(user?.role || ""),
+    enabled: isAuthenticated && ["comercial", "disenador", "jefe_taller", "operario"].includes(user?.role || ""),
   });
   
   // Calcular proyectos "nuevos" según el rol
   const getNewProjectsCount = () => {
     if (!user?.role) return 0;
+    if (user.role === "comercial") {
+      // Para comercial: proyectos activos (no entregados ni cancelados)
+      return projects.filter((p: any) => !['entregado', 'cancelado'].includes(p.status)).length;
+    }
     if (user.role === "disenador") {
       // Proyectos en adelanto_recibido (nuevos para diseñar)
       return projects.filter((p: any) => p.status === "adelanto_recibido").length;
@@ -57,25 +61,25 @@ export function MobileNav() {
       href: "/projects", 
       label: "Proyectos", 
       icon: <FolderKanban className="h-5 w-5" />,
-      roles: ["admin", "super_admin", "disenador", "jefe_taller", "operario"]
+      roles: ["admin", "super_admin", "comercial", "disenador", "jefe_taller", "operario"]
     },
     { 
       href: "/tasks", 
       label: "Tareas", 
       icon: <ListTodo className="h-5 w-5" />,
-      roles: ["admin", "super_admin", "disenador", "jefe_taller", "operario"]
+      roles: ["admin", "super_admin", "comercial", "disenador", "jefe_taller", "operario"]
     },
     { 
       href: "/calendar", 
       label: "Calendario", 
       icon: <Calendar className="h-5 w-5" />,
-      roles: ["admin", "super_admin", "jefe_taller"]
+      roles: ["admin", "super_admin", "comercial", "jefe_taller"]
     },
     { 
       href: "/admin", 
-      label: "Panel Admin", 
+      label: user?.role === "comercial" ? "Panel Comercial" : "Panel Admin", 
       icon: <Settings className="h-5 w-5" />,
-      roles: ["admin", "super_admin"]
+      roles: ["admin", "super_admin", "comercial"]
     },
   ];
 

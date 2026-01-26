@@ -28,12 +28,16 @@ export default function Home() {
   
   // Query para contar proyectos nuevos según el rol
   const { data: projects = [] } = trpc.projects.list.useQuery(undefined, {
-    enabled: isAuthenticated && ["disenador", "jefe_taller", "operario"].includes(user?.role || ""),
+    enabled: isAuthenticated && ["comercial", "disenador", "jefe_taller", "operario"].includes(user?.role || ""),
   });
   
   // Calcular proyectos "nuevos" según el rol
   const getNewProjectsCount = () => {
     if (!user?.role) return 0;
+    if (user.role === "comercial") {
+      // Para comercial: proyectos activos (no entregados ni cancelados)
+      return (projects as any[]).filter((p: any) => !['entregado', 'cancelado'].includes(p.status)).length;
+    }
     if (user.role === "disenador") {
       return (projects as any[]).filter((p: any) => p.status === "adelanto_recibido").length;
     }
@@ -362,6 +366,30 @@ export default function Home() {
                           <Button variant="ghost" size="sm" className="text-sm">Calendario</Button>
                         </Link>
                       )}
+                    </>
+                  )}
+                  {/* Enlaces para comercial */}
+                  {user?.role === "comercial" && (
+                    <>
+                      <Link href="/projects">
+                        <Button variant="ghost" size="sm" className="text-sm relative">
+                          Proyectos
+                          {newProjectsCount > 0 && (
+                            <span className="absolute -top-1 -right-1 bg-emerald-500 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">
+                              {newProjectsCount}
+                            </span>
+                          )}
+                        </Button>
+                      </Link>
+                      <Link href="/tasks">
+                        <Button variant="ghost" size="sm" className="text-sm">Tareas</Button>
+                      </Link>
+                      <Link href="/calendar">
+                        <Button variant="ghost" size="sm" className="text-sm">Calendario</Button>
+                      </Link>
+                      <Link href="/admin">
+                        <Button variant="ghost" size="sm" className="text-sm">Panel Comercial</Button>
+                      </Link>
                     </>
                   )}
                   {(user?.role === "admin" || user?.role === "super_admin") && (

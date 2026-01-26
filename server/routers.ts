@@ -2908,14 +2908,29 @@ export const appRouter = router({
           }
         }
 
-        // 5. Eliminar usuarios de prueba
+        // 5. Eliminar usuarios de prueba (sin afectar datos reales)
         for (const userId of testUserIds) {
           try {
-            // Eliminar suscripciones push
+            // Verificar si el usuario tiene dependencias en datos reales
+            const userDependencies = await db.checkUserDependencies(userId);
+            
+            if (userDependencies.hasRealDependencies) {
+              console.log(`[Limpieza] Usuario ${userId} tiene dependencias reales, saltando...`);
+              skipped++;
+              continue;
+            }
+            
+            // Eliminar solo dependencias de prueba
+            // 5.1 Eliminar suscripciones push
             await db.deletePushSubscriptionsByUserId(userId);
-            // Eliminar usuario
+            
+            // 5.2 Eliminar notificaciones del usuario (son de prueba)
+            await db.deleteNotificationsByUserId(userId);
+            
+            // Finalmente eliminar el usuario
             await db.deleteUser(userId);
             deletedUsers++;
+            console.log(`[Limpieza] Usuario ${userId} eliminado exitosamente`);
           } catch (error) {
             console.error(`Error eliminando usuario ${userId}:`, error);
             skipped++;

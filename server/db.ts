@@ -1627,3 +1627,57 @@ export async function deleteRemindersByProjectId(projectId: number) {
   if (!db) return;
   await db.delete(reminders).where(eq(reminders.projectId, projectId));
 }
+
+
+// ============ FUNCIONES PARA LIMPIEZA DE USUARIOS ============
+
+export async function checkUserDependencies(userId: number): Promise<{ hasRealDependencies: boolean; details: string[] }> {
+  const db = await getDb();
+  if (!db) return { hasRealDependencies: false, details: [] };
+  
+  const details: string[] = [];
+  
+  // Verificar si tiene tareas asignadas
+  const userTasks = await db.select().from(tasks).where(eq(tasks.assignedTo, userId));
+  if (userTasks.length > 0) {
+    details.push(`${userTasks.length} tareas asignadas`);
+  }
+  
+  // Verificar si creó proyectos
+  const userProjects = await db.select().from(projects).where(eq(projects.createdBy, userId));
+  if (userProjects.length > 0) {
+    details.push(`${userProjects.length} proyectos creados`);
+  }
+  
+  // Verificar si creó cotizaciones
+  const userQuotations = await db.select().from(quotations).where(eq(quotations.createdBy, userId));
+  if (userQuotations.length > 0) {
+    details.push(`${userQuotations.length} cotizaciones creadas`);
+  }
+  
+  // Verificar si subió fotos
+  const userPhotos = await db.select().from(projectPhotos).where(eq(projectPhotos.uploadedBy, userId));
+  if (userPhotos.length > 0) {
+    details.push(`${userPhotos.length} fotos subidas`);
+  }
+  
+  // Verificar si tiene clientes vinculados
+  const userClients = await db.select().from(clients).where(eq(clients.userId, userId));
+  if (userClients.length > 0) {
+    details.push(`${userClients.length} clientes vinculados`);
+  }
+  
+  return {
+    hasRealDependencies: details.length > 0,
+    details
+  };
+}
+
+export async function deleteNotificationsByUserId(userId: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(notifications).where(eq(notifications.userId, userId));
+}
+
+// La tabla birthdayNotifications no existe en el schema actual
+// Si se necesita en el futuro, agregar al schema primero

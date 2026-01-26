@@ -237,6 +237,69 @@ export function getWorkTypeLabel(workType: string): string {
   return WORK_TYPE_LABELS[workType] || workType;
 }
 
+// Número de WhatsApp del equipo INNOVAR (Martha/Admin)
+const TEAM_WHATSAPP_NUMBER = "3136802025";
+
+/**
+ * Genera mensaje de notificación para el equipo cuando el cliente responde
+ */
+export function generateTeamNotificationMessage(
+  type: "approval" | "changes",
+  data: {
+    clientName: string;
+    projectName: string;
+    projectId: number;
+    designType: "modelado" | "renders";
+    changes?: string;
+  }
+): string {
+  const designTypeLabel = data.designType === "modelado" ? "Modelado 3D" : "Renders";
+  
+  if (type === "approval") {
+    return `✅ *CLIENTE APROBÓ ${designTypeLabel.toUpperCase()}*
+
+📋 *Proyecto:* ${data.projectName}
+👤 *Cliente:* ${data.clientName}
+📅 *Fecha:* ${new Date().toLocaleString('es-CO')}
+
+${data.designType === "modelado" 
+  ? "➡️ *Siguiente paso:* Preparar y enviar los renders finales."
+  : "➡️ *Siguiente paso:* Iniciar producción del proyecto."}
+
+_Notificación automática de InnovarCitas_`;
+  } else {
+    return `📝 *CLIENTE SOLICITÓ CAMBIOS EN ${designTypeLabel.toUpperCase()}*
+
+📋 *Proyecto:* ${data.projectName}
+👤 *Cliente:* ${data.clientName}
+📅 *Fecha:* ${new Date().toLocaleString('es-CO')}
+
+📌 *Cambios solicitados:*
+${data.changes || "No especificados"}
+
+➡️ *Acción requerida:* Revisar y aplicar los cambios solicitados.
+
+_Notificación automática de InnovarCitas_`;
+  }
+}
+
+/**
+ * Genera el enlace de WhatsApp para notificar al equipo
+ */
+export function generateTeamWhatsAppLink(
+  type: "approval" | "changes",
+  data: {
+    clientName: string;
+    projectName: string;
+    projectId: number;
+    designType: "modelado" | "renders";
+    changes?: string;
+  }
+): string {
+  const message = generateTeamNotificationMessage(type, data);
+  return generateWhatsAppLink(TEAM_WHATSAPP_NUMBER, message);
+}
+
 /**
  * Genera todos los datos necesarios para enviar una notificación de WhatsApp
  */

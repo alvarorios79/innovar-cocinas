@@ -2732,3 +2732,4 @@
 
 - [x] Notificar al equipo (Martha/diseñador) cuando cliente aprueba o solicita cambios en galería pública
 - [x] Mostrar estado de aprobación en galería pública si el cliente ya aprobó
+- [x] Implementar notificaciones por WhatsApp al equipo cuando cliente responda en galería pública

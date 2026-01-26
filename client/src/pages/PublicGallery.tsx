@@ -85,6 +85,14 @@ export default function PublicGallery() {
       setShowApproveDialog(false);
       setActionCompleted("approved");
       setClientName("");
+      
+      // Abrir WhatsApp automáticamente para notificar al equipo
+      if (result.teamWhatsAppLink) {
+        // Pequeño delay para que el usuario vea el mensaje de éxito
+        setTimeout(() => {
+          window.open(result.teamWhatsAppLink, "_blank");
+        }, 1500);
+      }
     },
     onError: (error) => {
       toast.error(error.message || "Error al procesar la aprobación");
@@ -98,6 +106,14 @@ export default function PublicGallery() {
       setActionCompleted("changes");
       setClientName("");
       setChangesText("");
+      
+      // Abrir WhatsApp automáticamente para notificar al equipo
+      if (result.teamWhatsAppLink) {
+        // Pequeño delay para que el usuario vea el mensaje de éxito
+        setTimeout(() => {
+          window.open(result.teamWhatsAppLink, "_blank");
+        }, 1500);
+      }
     },
     onError: (error) => {
       toast.error(error.message || "Error al enviar la solicitud");

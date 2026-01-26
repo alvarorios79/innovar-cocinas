@@ -8,7 +8,7 @@ import * as whatsapp from "./whatsapp";
 import { TRPCError } from "@trpc/server";
 import { getAvailableTimeSlots, isTimeSlotAvailable, APPOINTMENT_CONFIG } from "./availability";
 import { hashPassword, validatePasswordStrength, authenticateWithPassword } from "./password-auth";
-import { prepareWhatsAppNotification } from "./whatsapp-notifications";
+import { prepareWhatsAppNotification, generateTeamWhatsAppLink } from "./whatsapp-notifications";
 import { createRemindersForStatusChange } from "./reminders-service";
 import { addBusinessDays, calculateEstimatedDeliveryDate } from "./business-days";
 
@@ -5097,11 +5097,20 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
           });
         }
 
+        // Generar enlace de WhatsApp para notificar al equipo
+        const teamWhatsAppLink = generateTeamWhatsAppLink("approval", {
+          clientName: input.clientName,
+          projectName: project.name,
+          projectId: input.projectId,
+          designType: input.type,
+        });
+
         return { 
           success: true, 
           message: input.type === "modelado" 
             ? "¡Gracias! Hemos registrado su aprobación del modelado. Pronto le enviaremos los renders finales."
-            : "¡Gracias! Su proyecto ha sido aprobado. Pronto nos pondremos en contacto para coordinar los siguientes pasos."
+            : "¡Gracias! Su proyecto ha sido aprobado. Pronto nos pondremos en contacto para coordinar los siguientes pasos.",
+          teamWhatsAppLink, // Enlace para notificar al equipo por WhatsApp
         };
       }),
 
@@ -5147,9 +5156,19 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
           });
         }
 
+        // Generar enlace de WhatsApp para notificar al equipo
+        const teamWhatsAppLink = generateTeamWhatsAppLink("changes", {
+          clientName: input.clientName,
+          projectName: project.name,
+          projectId: input.projectId,
+          designType: input.type,
+          changes: input.changes,
+        });
+
         return { 
           success: true, 
-          message: "¡Gracias! Hemos registrado sus comentarios. Nuestro equipo de diseño revisará los cambios solicitados y se pondrá en contacto pronto."
+          message: "¡Gracias! Hemos registrado sus comentarios. Nuestro equipo de diseño revisará los cambios solicitados y se pondrá en contacto pronto.",
+          teamWhatsAppLink, // Enlace para notificar al equipo por WhatsApp
         };
       }),
 

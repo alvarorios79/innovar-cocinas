@@ -5,7 +5,19 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { WatermarkedImage, WatermarkedFullscreenImage } from "@/components/WatermarkedImage";
+import { toast } from "sonner";
 import { 
   Image as ImageIcon, 
   ZoomIn, 
@@ -14,7 +26,10 @@ import {
   X,
   Download,
   Palette,
-  Box
+  Box,
+  CheckCircle,
+  MessageSquare,
+  Loader2
 } from "lucide-react";
 
 const WORK_TYPES: Record<string, string> = {
@@ -32,11 +47,43 @@ export default function PublicGallery() {
 
   const [selectedPhoto, setSelectedPhoto] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState<string>(photoType || "all");
+  
+  // Estados para diálogos de aprobación/cambios
+  const [showApproveDialog, setShowApproveDialog] = useState(false);
+  const [showChangesDialog, setShowChangesDialog] = useState(false);
+  const [clientName, setClientName] = useState("");
+  const [changesText, setChangesText] = useState("");
+  const [actionCompleted, setActionCompleted] = useState<"approved" | "changes" | null>(null);
 
   const { data, isLoading, error } = trpc.publicGallery.getProjectPhotos.useQuery(
     { projectId, type: photoType },
     { enabled: projectId > 0 }
   );
+
+  const approveMutation = trpc.publicGallery.approveDesign.useMutation({
+    onSuccess: (result) => {
+      toast.success(result.message);
+      setShowApproveDialog(false);
+      setActionCompleted("approved");
+      setClientName("");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Error al procesar la aprobación");
+    },
+  });
+
+  const changesMutation = trpc.publicGallery.requestChanges.useMutation({
+    onSuccess: (result) => {
+      toast.success(result.message);
+      setShowChangesDialog(false);
+      setActionCompleted("changes");
+      setClientName("");
+      setChangesText("");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Error al enviar la solicitud");
+    },
+  });
 
   if (projectId === 0) {
     return (
@@ -101,6 +148,38 @@ export default function PublicGallery() {
     ? filteredPhotos.find(p => p.id === selectedPhoto) 
     : null;
 
+  const handleApprove = () => {
+    if (!clientName.trim()) {
+      toast.error("Por favor ingresa tu nombre");
+      return;
+    }
+    approveMutation.mutate({
+      projectId,
+      clientName: clientName.trim(),
+      type: photoType || "modelado",
+    });
+  };
+
+  const handleRequestChanges = () => {
+    if (!clientName.trim()) {
+      toast.error("Por favor ingresa tu nombre");
+      return;
+    }
+    if (changesText.trim().length < 10) {
+      toast.error("Por favor describe los cambios que necesitas (mínimo 10 caracteres)");
+      return;
+    }
+    changesMutation.mutate({
+      projectId,
+      clientName: clientName.trim(),
+      type: photoType || "modelado",
+      changes: changesText.trim(),
+    });
+  };
+
+  const designType = photoType === "renders" ? "renders" : "modelado";
+  const designTypeLabel = photoType === "renders" ? "Renders" : "Modelado 3D";
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       {/* Header con logo */}
@@ -132,6 +211,35 @@ export default function PublicGallery() {
             </p>
           )}
         </div>
+
+        {/* Mensaje de acción completada */}
+        {actionCompleted && (
+          <Card className={`mb-6 p-6 ${actionCompleted === "approved" ? "bg-green-50 border-green-200" : "bg-blue-50 border-blue-200"}`}>
+            <div className="flex items-center gap-3">
+              {actionCompleted === "approved" ? (
+                <>
+                  <CheckCircle className="h-8 w-8 text-green-600" />
+                  <div>
+                    <h3 className="font-semibold text-green-800">¡Diseño Aprobado!</h3>
+                    <p className="text-green-700 text-sm">
+                      Gracias por aprobar el {designTypeLabel}. Nuestro equipo continuará con los siguientes pasos.
+                    </p>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <MessageSquare className="h-8 w-8 text-blue-600" />
+                  <div>
+                    <h3 className="font-semibold text-blue-800">Cambios Solicitados</h3>
+                    <p className="text-blue-700 text-sm">
+                      Hemos recibido tu solicitud. Nuestro equipo de diseño revisará los cambios y te contactará pronto.
+                    </p>
+                  </div>
+                </>
+              )}
+            </div>
+          </Card>
+        )}
 
         {/* Pestañas de filtro */}
         {!photoType && (totalModelado > 0 || totalRenders > 0) && (
@@ -199,11 +307,44 @@ export default function PublicGallery() {
           </div>
         )}
 
+        {/* Sección de aprobación - Solo mostrar si hay fotos y no se ha completado una acción */}
+        {filteredPhotos.length > 0 && !actionCompleted && (
+          <Card className="mt-8 p-6 bg-gradient-to-r from-amber-50 to-orange-50 border-amber-200">
+            <div className="text-center">
+              <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                ¿Qué te parece el {designTypeLabel}?
+              </h3>
+              <p className="text-gray-600 mb-6">
+                Revisa las imágenes y dinos si estás conforme o si necesitas algún cambio.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Button
+                  size="lg"
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                  onClick={() => setShowApproveDialog(true)}
+                >
+                  <CheckCircle className="h-5 w-5 mr-2" />
+                  Aprobar {designTypeLabel}
+                </Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="border-amber-500 text-amber-700 hover:bg-amber-100"
+                  onClick={() => setShowChangesDialog(true)}
+                >
+                  <MessageSquare className="h-5 w-5 mr-2" />
+                  Solicitar Cambios
+                </Button>
+              </div>
+            </div>
+          </Card>
+        )}
+
         {/* Mensaje de contacto */}
         <div className="mt-12 text-center">
           <Card className="inline-block p-6 bg-gradient-to-r from-teal-50 to-emerald-50 border-teal-200">
             <p className="text-gray-700 mb-2">
-              ¿Tienes alguna pregunta o necesitas cambios?
+              ¿Tienes alguna pregunta?
             </p>
             <p className="text-teal-700 font-medium">
               Contáctanos por WhatsApp: <a href="https://wa.me/573136802025" className="underline">313 680 2025</a>
@@ -223,6 +364,128 @@ export default function PublicGallery() {
           </p>
         </div>
       </footer>
+
+      {/* Diálogo de Aprobación */}
+      <Dialog open={showApproveDialog} onOpenChange={setShowApproveDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CheckCircle className="h-5 w-5 text-green-600" />
+              Aprobar {designTypeLabel}
+            </DialogTitle>
+            <DialogDescription>
+              ¿Estás seguro de que deseas aprobar el {designTypeLabel.toLowerCase()} de tu proyecto? 
+              {photoType === "modelado" 
+                ? " Una vez aprobado, continuaremos con los renders finales."
+                : " Una vez aprobado, procederemos con la producción de tu proyecto."
+              }
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="clientName">Tu nombre completo</Label>
+              <Input
+                id="clientName"
+                placeholder="Ej: María García"
+                value={clientName}
+                onChange={(e) => setClientName(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowApproveDialog(false)}
+              disabled={approveMutation.isPending}
+            >
+              Cancelar
+            </Button>
+            <Button
+              className="bg-green-600 hover:bg-green-700"
+              onClick={handleApprove}
+              disabled={approveMutation.isPending || !clientName.trim()}
+            >
+              {approveMutation.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Procesando...
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                  Sí, Aprobar
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Diálogo de Solicitar Cambios */}
+      <Dialog open={showChangesDialog} onOpenChange={setShowChangesDialog}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <MessageSquare className="h-5 w-5 text-amber-600" />
+              Solicitar Cambios
+            </DialogTitle>
+            <DialogDescription>
+              Describe los cambios que necesitas en el {designTypeLabel.toLowerCase()}. 
+              Nuestro equipo de diseño revisará tu solicitud y te contactará.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="clientNameChanges">Tu nombre completo</Label>
+              <Input
+                id="clientNameChanges"
+                placeholder="Ej: María García"
+                value={clientName}
+                onChange={(e) => setClientName(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="changes">¿Qué cambios necesitas?</Label>
+              <Textarea
+                id="changes"
+                placeholder="Describe los cambios que te gustaría ver en el diseño..."
+                value={changesText}
+                onChange={(e) => setChangesText(e.target.value)}
+                rows={4}
+              />
+              <p className="text-xs text-gray-500">
+                Mínimo 10 caracteres. Sé lo más específico posible.
+              </p>
+            </div>
+          </div>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowChangesDialog(false)}
+              disabled={changesMutation.isPending}
+            >
+              Cancelar
+            </Button>
+            <Button
+              className="bg-amber-600 hover:bg-amber-700"
+              onClick={handleRequestChanges}
+              disabled={changesMutation.isPending || !clientName.trim() || changesText.trim().length < 10}
+            >
+              {changesMutation.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Enviando...
+                </>
+              ) : (
+                <>
+                  <MessageSquare className="h-4 w-4 mr-2" />
+                  Enviar Solicitud
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Visor de imagen a pantalla completa con marca de agua */}
       {selectedPhotoData && (

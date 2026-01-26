@@ -2726,3 +2726,4 @@
 - [ ] Bug: Galería pública completa (sin type) no funciona
 - [x] Actualizar galería pública con logo original de INNOVAR
 - [x] Implementar marca de agua con logo INNOVAR en fotos de galería pública
+- [x] Agregar botón de aprobación con confirmación en galería pública

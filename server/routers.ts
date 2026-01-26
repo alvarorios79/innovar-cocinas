@@ -5042,6 +5042,78 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
           totalRenders: allPhotos.filter(p => p.subcategory === "renders").length,
         };
       }),
+
+    // Aprobar diseño desde la galería pública (sin autenticación)
+    approveDesign: publicProcedure
+      .input(z.object({
+        projectId: z.number(),
+        clientName: z.string().min(1, "El nombre es requerido"),
+        type: z.enum(["modelado", "renders"]),
+      }))
+      .mutation(async ({ input }) => {
+        // Obtener proyecto
+        const project = await db.getProjectById(input.projectId);
+        if (!project) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Proyecto no encontrado" });
+        }
+
+        // Registrar la aprobación en el historial
+        await db.addProjectHistory(
+          input.projectId,
+          `✅ ${input.type === "modelado" ? "Modelado" : "Renders"} aprobado por el cliente (${input.clientName}) desde la galería pública`,
+          null // Sin usuario autenticado
+        );
+
+        // Si es aprobación de renders, actualizar estado del proyecto
+        if (input.type === "renders") {
+          await db.updateProject(input.projectId, {
+            status: "approved",
+            designApprovedAt: new Date(),
+          });
+        }
+
+        return { 
+          success: true, 
+          message: input.type === "modelado" 
+            ? "¡Gracias! Hemos registrado su aprobación del modelado. Pronto le enviaremos los renders finales."
+            : "¡Gracias! Su proyecto ha sido aprobado. Pronto nos pondremos en contacto para coordinar los siguientes pasos."
+        };
+      }),
+
+    // Solicitar cambios desde la galería pública (sin autenticación)
+    requestChanges: publicProcedure
+      .input(z.object({
+        projectId: z.number(),
+        clientName: z.string().min(1, "El nombre es requerido"),
+        type: z.enum(["modelado", "renders"]),
+        changes: z.string().min(10, "Por favor describe los cambios que necesitas (mínimo 10 caracteres)"),
+      }))
+      .mutation(async ({ input }) => {
+        // Obtener proyecto
+        const project = await db.getProjectById(input.projectId);
+        if (!project) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Proyecto no encontrado" });
+        }
+
+        // Registrar la solicitud de cambios en el historial
+        await db.addProjectHistory(
+          input.projectId,
+          `📝 Cambios solicitados por el cliente (${input.clientName}) en ${input.type === "modelado" ? "modelado" : "renders"}: ${input.changes}`,
+          null // Sin usuario autenticado
+        );
+
+        // Actualizar estado del proyecto si es necesario
+        if (project.status === "design_ready" || project.status === "pending_approval") {
+          await db.updateProject(input.projectId, {
+            status: "in_design",
+          });
+        }
+
+        return { 
+          success: true, 
+          message: "¡Gracias! Hemos registrado sus comentarios. Nuestro equipo de diseño revisará los cambios solicitados y se pondrá en contacto pronto."
+        };
+      }),
   }),
 
   // ============ MATERIALES DE PROYECTO ============

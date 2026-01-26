@@ -4993,6 +4993,57 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
       }),
   }),
 
+  // ============ GALERÍA PÚBLICA PARA CLIENTES ============
+  publicGallery: router({
+    // Obtener fotos del proyecto para compartir con clientes (sin autenticación)
+    getProjectPhotos: publicProcedure
+      .input(z.object({
+        projectId: z.number(),
+        type: z.enum(["modelado", "renders"]).optional(),
+      }))
+      .query(async ({ input }) => {
+        // Obtener proyecto
+        const project = await db.getProjectById(input.projectId);
+        if (!project) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Proyecto no encontrado" });
+        }
+
+        // Obtener cliente
+        const client = project.clientId ? await db.getClientById(project.clientId) : null;
+
+        // Obtener fotos según el tipo solicitado
+        const allPhotos = await db.getProjectPhotosByProjectId(input.projectId);
+        let photos = allPhotos;
+        
+        if (input.type) {
+          photos = allPhotos.filter(p => p.subcategory === input.type);
+        } else {
+          // Por defecto, mostrar modelado y renders
+          photos = allPhotos.filter(p => p.subcategory === "modelado" || p.subcategory === "renders");
+        }
+
+        return {
+          project: {
+            id: project.id,
+            name: project.name,
+            workType: project.workType,
+          },
+          client: client ? {
+            name: client.name,
+          } : null,
+          photos: photos.map(p => ({
+            id: p.id,
+            photoUrl: p.photoUrl,
+            subcategory: p.subcategory,
+            description: p.description,
+            createdAt: p.createdAt,
+          })),
+          totalModelado: allPhotos.filter(p => p.subcategory === "modelado").length,
+          totalRenders: allPhotos.filter(p => p.subcategory === "renders").length,
+        };
+      }),
+  }),
+
   // ============ MATERIALES DE PROYECTO ============
   projectMaterials: router({
     get: protectedProcedure

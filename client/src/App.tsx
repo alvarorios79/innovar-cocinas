@@ -18,6 +18,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import ProjectDetail from "./pages/ProjectDetail";
 import Comercial from "./pages/Comercial";
+import PublicGallery from "./pages/PublicGallery";
 
 function Router() {
   return (
@@ -35,6 +36,7 @@ function Router() {
       <Route path={"/register"} component={Register} />
       <Route path={"/forgot-password"} component={ForgotPassword} />
       <Route path={"/reset-password"} component={ResetPassword} />
+      <Route path={"/gallery"} component={PublicGallery} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>

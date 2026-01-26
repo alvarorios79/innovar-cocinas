@@ -2722,3 +2722,4 @@
 ## Bug - Teléfono undefined en WhatsApp Modelado
 - [ ] Corregir el error donde el teléfono aparece como undefined al enviar modelado por WhatsApp
 - [x] Bug: Botón 'Enviar Modelado por WhatsApp' solo envía 1 foto de 4 subidas - corregido usando enlace al portal
+- [x] Crear página pública para compartir fotos del proyecto con clientes (logo INNOVAR, sin login, solo fotos)

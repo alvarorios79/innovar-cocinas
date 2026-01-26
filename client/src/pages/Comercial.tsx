@@ -1,3 +1,4 @@
+// Panel Comercial de Martha - Versión corregida
 import { useState } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useLocation, Link } from "wouter";

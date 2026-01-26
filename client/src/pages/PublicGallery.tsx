@@ -4,7 +4,8 @@ import { useSearch } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { WatermarkedImage, WatermarkedFullscreenImage } from "@/components/WatermarkedImage";
 import { 
   Image as ImageIcon, 
   ZoomIn, 
@@ -152,7 +153,7 @@ export default function PublicGallery() {
           </Tabs>
         )}
 
-        {/* Galería de fotos */}
+        {/* Galería de fotos con marca de agua */}
         {filteredPhotos.length === 0 ? (
           <Card className="text-center p-12">
             <ImageIcon className="h-16 w-16 mx-auto text-gray-300 mb-4" />
@@ -167,12 +168,15 @@ export default function PublicGallery() {
                 onClick={() => setSelectedPhoto(photo.id)}
               >
                 <div className="relative aspect-[4/3] bg-gray-100">
-                  <img
+                  <WatermarkedImage
                     src={photo.photoUrl}
                     alt={photo.description || `Imagen ${index + 1}`}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full"
+                    watermarkOpacity={0.35}
+                    watermarkSize={30}
+                    watermarkPosition="bottom-right"
                   />
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center pointer-events-none">
                     <ZoomIn className="h-8 w-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
                   <Badge 
@@ -220,7 +224,7 @@ export default function PublicGallery() {
         </div>
       </footer>
 
-      {/* Visor de imagen a pantalla completa */}
+      {/* Visor de imagen a pantalla completa con marca de agua */}
       {selectedPhotoData && (
         <div 
           className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center"
@@ -244,12 +248,14 @@ export default function PublicGallery() {
             </button>
           )}
 
-          {/* Imagen */}
+          {/* Imagen con marca de agua */}
           <div className="max-w-[90vw] max-h-[85vh] relative" onClick={(e) => e.stopPropagation()}>
-            <img
+            <WatermarkedFullscreenImage
               src={selectedPhotoData.photoUrl}
               alt={selectedPhotoData.description || "Imagen del proyecto"}
-              className="max-w-full max-h-[85vh] object-contain"
+              watermarkOpacity={0.3}
+              watermarkSize={20}
+              watermarkPosition="bottom-right"
             />
             
             {/* Info de la imagen */}

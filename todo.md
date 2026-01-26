@@ -2725,3 +2725,4 @@
 - [x] Crear página pública para compartir fotos del proyecto con clientes (logo INNOVAR, sin login, solo fotos)
 - [ ] Bug: Galería pública completa (sin type) no funciona
 - [x] Actualizar galería pública con logo original de INNOVAR
+- [x] Implementar marca de agua con logo INNOVAR en fotos de galería pública

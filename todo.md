@@ -2685,3 +2685,8 @@
 - [x] Mostrar TODOS los proyectos activos (no solo los de ensamble)
 - [x] Agregar sección de Proyectos Activos igual que CEO
 - [x] Mantener estilo rosa elegante
+
+## Bug - Fotos no visibles en detalle de proyecto
+- [ ] La pestaña Fotos en el detalle del proyecto aparece vacía
+- [ ] Hay 5 fotos en la base de datos pero no se muestran
+- [ ] Revisar el código de ProjectDetail.tsx sección Fotos

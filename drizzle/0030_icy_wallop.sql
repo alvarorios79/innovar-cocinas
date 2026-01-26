@@ -1,0 +1,1 @@
+ALTER TABLE `clients` ADD `internalManagement` boolean DEFAULT false NOT NULL;

@@ -33,6 +33,7 @@ export const clients = mysqlTable("clients", {
   email: varchar("email", { length: 320 }),
   whatsappPhone: varchar("whatsappPhone", { length: 20 }).notNull(),
   address: text("address"),
+  internalManagement: boolean("internalManagement").default(false).notNull(), // Gestión interna: el equipo gestiona las comunicaciones
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

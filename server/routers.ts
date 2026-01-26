@@ -295,25 +295,15 @@ export const appRouter = router({
     createQuick: protectedProcedure
       .input(z.object({
         name: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
-        email: z.string().email("Email inválido"),
+        email: z.string().email("Email inválido").optional().or(z.literal("")),
         whatsappPhone: z.string().min(10, "Número de WhatsApp inválido"),
         address: z.string().optional(),
+        internalManagement: z.boolean().optional().default(false),
       }))
       .mutation(async ({ ctx, input }) => {
         // Solo admin, super_admin y comercial pueden crear clientes
         if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "comercial") {
           throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para crear clientes" });
-        }
-
-        // Verificar que el email no esté duplicado
-        const allUsers = await db.getAllUsers();
-        const emailExists = allUsers.some(u => u.email?.toLowerCase() === input.email.toLowerCase());
-        
-        if (emailExists) {
-          throw new TRPCError({ 
-            code: "BAD_REQUEST", 
-            message: "Ya existe un usuario con este email" 
-          });
         }
 
         // Verificar que el WhatsApp no esté duplicado
@@ -325,26 +315,46 @@ export const appRouter = router({
           });
         }
 
-        // Generar contraseña temporal
-        const { generateTemporaryPassword } = await import("./password-generator");
-        const temporaryPassword = generateTemporaryPassword();
-        const passwordHash = await hashPassword(temporaryPassword);
+        let userId: number | undefined = undefined;
+        let temporaryPassword: string | undefined = undefined;
+        let userEmail: string | undefined = undefined;
 
-        // Crear usuario con rol "user" (cliente)
-        const userId = await db.createUserExtended({
-          name: input.name,
-          email: input.email,
-          role: "user",
-          passwordHash,
-        });
+        // Si tiene email y NO es gestión interna, crear usuario con credenciales
+        if (input.email && input.email.trim() !== "" && !input.internalManagement) {
+          // Verificar que el email no esté duplicado
+          const allUsers = await db.getAllUsers();
+          const emailExists = allUsers.some(u => u.email?.toLowerCase() === input.email!.toLowerCase());
+          
+          if (emailExists) {
+            throw new TRPCError({ 
+              code: "BAD_REQUEST", 
+              message: "Ya existe un usuario con este email" 
+            });
+          }
 
-        // Crear cliente asociado al usuario
+          // Generar contraseña temporal
+          const { generateTemporaryPassword } = await import("./password-generator");
+          temporaryPassword = generateTemporaryPassword();
+          const passwordHash = await hashPassword(temporaryPassword);
+
+          // Crear usuario con rol "user" (cliente)
+          userId = await db.createUserExtended({
+            name: input.name,
+            email: input.email,
+            role: "user",
+            passwordHash,
+          });
+          userEmail = input.email;
+        }
+
+        // Crear cliente (con o sin usuario asociado)
         const clientId = await db.createClient({
           userId,
           name: input.name,
-          email: input.email,
+          email: input.email || undefined,
           whatsappPhone: input.whatsappPhone,
           address: input.address,
+          internalManagement: input.internalManagement,
         });
 
         const client = await db.getClientById(clientId);
@@ -352,10 +362,11 @@ export const appRouter = router({
         return {
           success: true,
           client,
-          credentials: {
-            email: input.email,
+          credentials: temporaryPassword && userEmail ? {
+            email: userEmail,
             password: temporaryPassword,
-          },
+          } : null,
+          isInternalManagement: input.internalManagement,
         };
       }),
 
@@ -3395,7 +3406,11 @@ export const appRouter = router({
           try {
             const clientData = await db.getClientById(project.clientId);
             
-            if (clientData) {
+            // Si es gestión interna, no enviar notificaciones al cliente
+            if (clientData && clientData.internalManagement) {
+              console.log(`[Gestión Interna] Cliente ${clientData.name} - No se envían notificaciones automáticas`);
+              // No hacer nada más para clientes con gestión interna
+            } else if (clientData) {
               // Variables para credenciales
               let clientCredentials: { email: string; password: string } | null = null;
               let clientUserId = clientData.userId;

@@ -211,6 +211,13 @@
       "when": 1769456410463,
       "tag": "0029_milky_overlord",
       "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "5",
+      "when": 1769467812297,
+      "tag": "0030_icy_wallop",
+      "breakpoints": true
     }
   ]
 }

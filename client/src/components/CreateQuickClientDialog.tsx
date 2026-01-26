@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
-import { UserPlus, Copy, MessageCircle, Check, Loader2 } from "lucide-react";
+import { UserPlus, Copy, MessageCircle, Check, Loader2, Building2 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface CreateQuickClientDialogProps {
   trigger?: React.ReactNode;
@@ -23,15 +24,26 @@ export function CreateQuickClientDialog({ trigger, onClientCreated }: CreateQuic
     email: "",
     whatsappPhone: "",
     address: "",
+    internalManagement: false,
   });
 
   const createQuickMutation = trpc.clients.createQuick.useMutation({
     onSuccess: (data) => {
-      setCredentials(data.credentials);
-      setShowCredentials(true);
-      toast.success("Cliente creado exitosamente");
-      if (onClientCreated && data.client) {
-        onClientCreated(data.client);
+      if (data.isInternalManagement || !data.credentials) {
+        // Cliente con gestión interna: no mostrar credenciales
+        toast.success("¡Cliente creado! (Gestión interna - sin acceso al portal)");
+        if (onClientCreated && data.client) {
+          onClientCreated(data.client);
+        }
+        handleClose();
+      } else {
+        // Cliente normal: mostrar credenciales
+        setCredentials(data.credentials);
+        setShowCredentials(true);
+        toast.success("Cliente creado exitosamente");
+        if (onClientCreated && data.client) {
+          onClientCreated(data.client);
+        }
       }
     },
     onError: (error) => {
@@ -74,7 +86,7 @@ Te hemos creado una cuenta en INNOVAR Cocinas para que puedas seguir el estado d
     setOpen(false);
     setShowCredentials(false);
     setCredentials(null);
-    setFormData({ name: "", email: "", whatsappPhone: "", address: "" });
+    setFormData({ name: "", email: "", whatsappPhone: "", address: "", internalManagement: false });
   };
 
   const handleCopyAll = async () => {
@@ -150,6 +162,25 @@ Te hemos creado una cuenta en INNOVAR Cocinas para que puedas seguir el estado d
                   placeholder="Calle 123 #45-67"
                 />
               </div>
+              
+              {/* Checkbox Gestión Interna */}
+              <div className="flex items-start space-x-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                <Checkbox
+                  id="internalManagement"
+                  checked={formData.internalManagement}
+                  onCheckedChange={(checked) => setFormData({ ...formData, internalManagement: checked === true })}
+                />
+                <div className="space-y-1">
+                  <Label htmlFor="internalManagement" className="flex items-center gap-2 font-medium text-amber-800 cursor-pointer">
+                    <Building2 className="h-4 w-4" />
+                    Gestión interna
+                  </Label>
+                  <p className="text-xs text-amber-700">
+                    El cliente no maneja tecnología. Las aprobaciones y seguimiento serán gestionados por el equipo comercial.
+                  </p>
+                </div>
+              </div>
+              
               <div className="flex justify-end gap-2 pt-4">
                 <Button type="button" variant="outline" onClick={handleClose}>
                   Cancelar

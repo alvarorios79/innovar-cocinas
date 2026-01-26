@@ -2739,3 +2739,10 @@
 - [ ] Bug: El estado del proyecto no cambia cuando el cliente aprueba desde la galería pública
 - [x] Bug: Los mensajes de WhatsApp no llegan al celular del diseñador y Martha comercial (solucionado con notificaciones push)
 - [x] Implementar notificaciones push al equipo cuando cliente aprueba/solicita cambios en galería pública
+
+## Gestión Interna de Clientes
+
+- [x] Agregar campo "Gestión interna" (internalManagement) al schema de clientes
+- [x] Agregar checkbox en formulario de crear/editar cliente
+- [x] Modificar lógica de notificaciones para no enviar al cliente cuando está marcado
+- [ ] Habilitar botón "Aprobar en nombre del cliente" para admin/comercial (pendiente)

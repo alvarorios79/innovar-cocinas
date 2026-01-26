@@ -908,7 +908,14 @@ export default function Projects() {
                       </div>
                     </CardHeader>
                     <CardContent className="text-sm space-y-2">
-                      <p><strong>Creado:</strong> {new Date(projectDetail.createdAt).toLocaleDateString("es-CO")}</p>
+                      {/* Fechas de la cotización */}
+                      {(projectDetail as any).quotation?.createdAt && (
+                        <p><strong>Cotización creada:</strong> {new Date((projectDetail as any).quotation.createdAt).toLocaleDateString("es-CO")}</p>
+                      )}
+                      {(projectDetail as any).quotation?.validUntil && (
+                        <p><strong>Validez cotización:</strong> {new Date((projectDetail as any).quotation.validUntil).toLocaleDateString("es-CO")}</p>
+                      )}
+                      <p><strong>Proyecto creado:</strong> {new Date(projectDetail.createdAt).toLocaleDateString("es-CO")}</p>
                       {projectDetail.quotationSentAt && user?.role !== "disenador" && user?.role !== "jefe_taller" && (
                         <p><strong>Cotización enviada:</strong> {new Date(projectDetail.quotationSentAt).toLocaleDateString("es-CO")}</p>
                       )}

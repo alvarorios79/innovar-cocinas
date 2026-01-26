@@ -2779,6 +2779,61 @@ export const appRouter = router({
         return { success: true };
       }),
 
+    // Eliminar todos los usuarios de prueba
+    deleteTestUsers: protectedProcedure
+      .input(z.object({
+        userIds: z.array(z.number()),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        // Solo super_admin puede eliminar usuarios masivamente
+        if (ctx.user.role !== "super_admin") {
+          throw new TRPCError({ 
+            code: "FORBIDDEN", 
+            message: "Solo super administradores pueden eliminar usuarios masivamente" 
+          });
+        }
+
+        // Equipo de trabajo real - no se pueden eliminar
+        const realTeamEmails = [
+          'mcfy8jgnym@privaterelay.appleid.com',
+          'alejoile300@gmail.com',
+          'martha79s@hotmail.com',
+          'jefe.taller@innovar.temp',
+          'operario@innovar.temp'
+        ];
+
+        const allUsers = await db.getAllUsers();
+        let deleted = 0;
+        let skipped = 0;
+
+        for (const userId of input.userIds) {
+          const user = allUsers.find(u => u.id === userId);
+          if (!user) continue;
+
+          // No eliminar al equipo de trabajo real
+          if (realTeamEmails.includes(user.email?.toLowerCase() || '')) {
+            skipped++;
+            continue;
+          }
+
+          // No eliminar al usuario actual
+          if (user.id === ctx.user.id) {
+            skipped++;
+            continue;
+          }
+
+          try {
+            await db.deleteUser(userId);
+            deleted++;
+          } catch (error) {
+            console.error(`Error eliminando usuario ${userId}:`, error);
+            skipped++;
+          }
+        }
+
+        return { success: true, deleted, skipped };
+      }),
+
     resetPassword: protectedProcedure
       .input(z.object({
         userId: z.number(),

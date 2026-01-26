@@ -122,6 +122,12 @@ export default function Admin() {
     onSuccess: () => {
       utils.userManagement.listAll.invalidate();
       toast.success("Usuario eliminado exitosamente");
+    },
+  });
+
+  const deleteTestUsers = trpc.userManagement.deleteTestUsers.useMutation({
+    onSuccess: () => {
+      utils.userManagement.listAll.invalidate();
       setDeleteConfirm(null);
     },
     onError: (error) => {
@@ -1221,11 +1227,61 @@ export default function Admin() {
                   <p className="text-muted-foreground">No hay usuarios registrados</p>
                 ) : (
                   <div className="space-y-6">
-                    {/* Equipo de Trabajo */}
+                    {/* Equipo de Trabajo, Clientes Reales y Usuarios de Prueba */}
                     {(() => {
-                      const teamRoles = ['super_admin', 'admin', 'comercial', 'disenador', 'jefe_taller', 'operario'];
-                      const teamUsers = allUsers.filter(u => teamRoles.includes(u.role));
-                      const regularUsers = allUsers.filter(u => !teamRoles.includes(u.role));
+                      // Equipo de trabajo REAL - definido por emails específicos
+                      const realTeamEmails = [
+                        'mcfy8jgnym@privaterelay.appleid.com', // Alvaro Rios - Super Admin
+                        'alejoile300@gmail.com',                // Alejo Gutiérrez - Diseñador
+                        'martha79s@hotmail.com',                // Martha Serna - Comercial
+                        'jefe.taller@innovar.temp',             // Luis Cardoso - Jefe de Taller
+                        'operario@innovar.temp'                 // Daniel Beltran - Operario
+                      ];
+                      
+                      // Función para verificar si es del equipo de trabajo real
+                      const isRealTeamMember = (u: typeof allUsers[0]) => {
+                        const email = (u.email || '').toLowerCase();
+                        return realTeamEmails.includes(email);
+                      };
+                      
+                      // Función para detectar usuarios de prueba
+                      const isTestUser = (u: typeof allUsers[0]) => {
+                        // Si es del equipo real, NO es usuario de prueba
+                        if (isRealTeamMember(u)) return false;
+                        
+                        const email = (u.email || '').toLowerCase();
+                        const name = (u.name || '').toLowerCase();
+                        
+                        // Lista de usuarios excluidos adicionales (clientes reales que podrían parecer de prueba)
+                        const excludedNames = ['alvaro pruebas'];
+                        if (excludedNames.some(n => name === n)) return false;
+                        
+                        // Cualquier usuario con rol del equipo que NO esté en la lista real es de prueba
+                        const teamRoles = ['super_admin', 'admin', 'comercial', 'disenador', 'jefe_taller', 'operario'];
+                        if (teamRoles.includes(u.role)) return true;
+                        
+                        // Patrones específicos en email
+                        const testEmailPatterns = ['test@', 'test.', 'prueba@', 'ejemplo@', 'example@', 'demo@', 'fake@', 'dummy@', 'admin-bulk', 'newadmin', 'newsuperadmin'];
+                        const hasTestEmailPattern = testEmailPatterns.some(p => email.includes(p));
+                        
+                        // Dominios de prueba (excluye @innovar.temp porque el equipo real lo usa)
+                        const testDomains = ['@test.com', '@example.com', '@prueba.com', '@demo.com', '@fake.com', '@testing.com'];
+                        const hasTestDomain = testDomains.some(d => email.endsWith(d));
+                        
+                        // Nombres que claramente son de prueba
+                        const testNamePatterns = ['cliente test', 'test client', 'usuario test', 'test user', 'cliente prueba', 'usuario prueba', 'cliente de prueba', 'test timezone', 'admin test', 'new admin', 'new super admin'];
+                        const hasTestNamePattern = testNamePatterns.some(p => name.includes(p));
+                        
+                        // Email genérico de prueba
+                        const isGenericTestEmail = (email.startsWith('test') || email.startsWith('prueba') || email.startsWith('cliente-test') || email.startsWith('admin-bulk') || email.startsWith('newadmin') || email.startsWith('newsuperadmin'));
+                        
+                        return hasTestEmailPattern || hasTestDomain || hasTestNamePattern || isGenericTestEmail;
+                      };
+                      
+                      // Separar en 3 categorías
+                      const teamUsers = allUsers.filter(isRealTeamMember);
+                      const testUsers = allUsers.filter(u => !isRealTeamMember(u) && isTestUser(u));
+                      const regularUsers = allUsers.filter(u => !isRealTeamMember(u) && !isTestUser(u));
                       
                       return (
                         <>
@@ -1471,6 +1527,117 @@ export default function Admin() {
                           </div>
                           </div>
                         </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Usuarios de Prueba */}
+                          {testUsers.length > 0 && (
+                            <div className="space-y-3">
+                              <div className="flex items-center justify-between pt-4 border-t border-dashed border-orange-300">
+                                <div className="flex items-center gap-2">
+                                  <Checkbox
+                                    checked={testUsers.every(u => selectedUsers.includes(u.id))}
+                                    onCheckedChange={() => toggleSelectAllUsers(testUsers)}
+                                  />
+                                  <h3 className="font-semibold text-lg text-orange-600">⚠️ Usuarios de Prueba</h3>
+                                  <Badge variant="outline" className="border-orange-400 text-orange-600">{testUsers.length}</Badge>
+                                </div>
+                                <div className="flex gap-2 flex-wrap">
+                                  <Button
+                                    size="sm"
+                                    variant="destructive"
+                                    className="bg-red-600 hover:bg-red-700"
+                                    onClick={() => {
+                                      if (confirm(`¿Estás seguro de eliminar TODOS los ${testUsers.length} usuarios de prueba?\n\nEsta acción no se puede deshacer.`)) {
+                                        const testUserIds = testUsers.map(u => u.id);
+                                        deleteTestUsers.mutate({ userIds: testUserIds }, {
+                                          onSuccess: (result) => {
+                                            toast.success(`${result.deleted} usuarios eliminados${result.skipped > 0 ? ` (${result.skipped} omitidos)` : ''}`);
+                                            utils.userManagement.listAll.invalidate();
+                                            setSelectedUsers([]);
+                                          },
+                                          onError: (error) => {
+                                            toast.error(`Error: ${error.message}`);
+                                          }
+                                        });
+                                      }
+                                    }}
+                                    disabled={deleteTestUsers.isPending}
+                                  >
+                                    <Trash2 className="h-4 w-4 mr-2" />
+                                    {deleteTestUsers.isPending ? 'Eliminando...' : `Eliminar todos (${testUsers.length})`}
+                                  </Button>
+                                  {selectedUsers.some(id => testUsers.map(u => u.id).includes(id)) && (
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="border-red-400 text-red-600 hover:bg-red-50"
+                                      onClick={() => handleBulkDelete('users')}
+                                    >
+                                      <Trash2 className="h-4 w-4 mr-2" />
+                                      Eliminar seleccionados ({selectedUsers.filter(id => testUsers.map(u => u.id).includes(id)).length})
+                                    </Button>
+                                  )}
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="border-orange-400 text-orange-600 hover:bg-orange-50"
+                                    onClick={() => {
+                                      const testUserIds = testUsers.map(u => u.id);
+                                      setSelectedUsers(prev => {
+                                        const allSelected = testUserIds.every(id => prev.includes(id));
+                                        if (allSelected) return prev.filter(id => !testUserIds.includes(id));
+                                        return Array.from(new Set([...prev, ...testUserIds]));
+                                      });
+                                    }}
+                                  >
+                                    Seleccionar todos
+                                  </Button>
+                                </div>
+                              </div>
+                              <p className="text-sm text-muted-foreground bg-orange-50 p-2 rounded">
+                                Estos usuarios fueron detectados como cuentas de prueba basado en patrones en su email o nombre. 
+                                Puedes seleccionarlos y eliminarlos para limpiar la base de datos.
+                              </p>
+                              <div className="space-y-3">
+                                {testUsers.map((usr) => (
+                                  <div key={usr.id} className="border border-orange-200 rounded-lg p-3 sm:p-4 space-y-2 bg-orange-50/50">
+                                    <div className="flex items-start gap-3">
+                                      <Checkbox
+                                        checked={selectedUsers.includes(usr.id)}
+                                        onCheckedChange={() => toggleSelectUser(usr.id)}
+                                        className="mt-1"
+                                      />
+                                      <div className="flex items-start justify-between gap-4 flex-1">
+                                        <div className="space-y-1 flex-1">
+                                          <div className="flex items-center gap-2 flex-wrap">
+                                            <h3 className="font-semibold">{usr.name || "Sin nombre"}</h3>
+                                            <Badge variant="outline" className="border-orange-400 text-orange-600">
+                                              Prueba
+                                            </Badge>
+                                          </div>
+                                          <p className="text-sm text-muted-foreground">{usr.email || "Sin email"}</p>
+                                          <p className="text-xs text-muted-foreground">
+                                            Registrado: {new Date(usr.createdAt).toLocaleDateString('es-ES')}
+                                          </p>
+                                        </div>
+                                        <div className="flex flex-col gap-2">
+                                          {(user?.role === "super_admin" || user?.role === "admin") && (
+                                            <Button
+                                              size="sm"
+                                              variant="destructive"
+                                              onClick={() => setDeleteConfirm({ type: "user", id: usr.id, name: usr.name || "Usuario" })}
+                                            >
+                                              <Trash2 className="h-4 w-4 mr-2" />
+                                              Eliminar
+                                            </Button>
+                                          )}
+                                        </div>
+                                      </div>
+                                    </div>
                                   </div>
                                 ))}
                               </div>

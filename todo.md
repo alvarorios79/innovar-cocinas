@@ -2621,3 +2621,17 @@
 - [x] Agregar permiso de eliminar clientes al rol comercial
 - [x] Agregar permiso de listar clientes al rol comercial
 - [x] Verificar permisos con tests (16 tests pasando)
+
+## Separación y Limpieza de Usuarios (Enero 2026)
+
+- [ ] Separar usuarios en 3 categorías: Equipo de Trabajo, Clientes Reales, Usuarios de Prueba
+- [ ] Agregar filtros para mostrar solo una categoría
+- [ ] Agregar opción de eliminación masiva para usuarios de prueba
+- [ ] Identificar usuarios de prueba por patrones (emails test@, nombres "Test", etc.)
+
+## Botón Eliminar Todos los Usuarios de Prueba (Enero 2026)
+
+- [x] Crear endpoint en backend para eliminar usuarios de prueba masivamente
+- [x] Agregar botón "Eliminar todos" en la sección de usuarios de prueba
+- [x] Agregar diálogo de confirmación antes de eliminar
+- [x] Funcionalidad lista para prueba del usuario

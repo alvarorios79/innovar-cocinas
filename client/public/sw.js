@@ -1,31 +1,22 @@
-const CACHE_NAME = 'innovar-cocinas-v9';
-const urlsToCache = [
-  '/',
-  '/manifest.json',
-];
+// Service Worker - Solo para notificaciones push
+// NO cachea archivos para evitar problemas de actualización
 
-// Instalación del service worker
+const CACHE_NAME = 'innovar-cocinas-v10';
+
+// Instalación del service worker - NO cachear nada
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => {
-        console.log('Cache abierto');
-        return cache.addAll(urlsToCache);
-      })
-  );
+  console.log('[Service Worker] Instalado - Sin caché de archivos');
   self.skipWaiting();
 });
 
-// Activación del service worker
+// Activación - Limpiar TODOS los caches anteriores
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            console.log('Eliminando cache antiguo:', cacheName);
-            return caches.delete(cacheName);
-          }
+          console.log('Eliminando cache:', cacheName);
+          return caches.delete(cacheName);
         })
       );
     })
@@ -33,46 +24,10 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Estrategia de cache: Network First, fallback to cache
+// Fetch - NO interceptar, dejar que el navegador maneje todo normalmente
 self.addEventListener('fetch', (event) => {
-  // Ignorar requests que no sean GET
-  if (event.request.method !== 'GET') {
-    return;
-  }
-
-  // Ignorar requests a la API
-  if (event.request.url.includes('/api/')) {
-    return;
-  }
-
-  event.respondWith(
-    fetch(event.request)
-      .then((response) => {
-        if (response && response.status === 200 && response.type === 'basic') {
-          const responseToCache = response.clone();
-          caches.open(CACHE_NAME)
-            .then((cache) => {
-              cache.put(event.request, responseToCache);
-            });
-        }
-        return response;
-      })
-      .catch(() => {
-        return caches.match(event.request)
-          .then((response) => {
-            if (response) {
-              return response;
-            }
-            return new Response('Sin conexión - No se pudo cargar el recurso', {
-              status: 503,
-              statusText: 'Service Unavailable',
-              headers: new Headers({
-                'Content-Type': 'text/plain; charset=utf-8'
-              })
-            });
-          });
-      })
-  );
+  // No hacer nada - dejar que el navegador maneje las requests normalmente
+  return;
 });
 
 // ============ NOTIFICACIONES PUSH ============
@@ -150,6 +105,5 @@ self.addEventListener('notificationclose', (event) => {
 self.addEventListener('sync', (event) => {
   if (event.tag === 'sync-notifications') {
     console.log('[Service Worker] Sincronizando notificaciones');
-    // Aquí se pueden sincronizar notificaciones pendientes
   }
 });

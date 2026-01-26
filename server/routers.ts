@@ -5057,18 +5057,10 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
           throw new TRPCError({ code: "NOT_FOUND", message: "Proyecto no encontrado" });
         }
 
-        // Registrar la aprobación en el historial
-        await db.addProjectHistory(
-          input.projectId,
-          `✅ ${input.type === "modelado" ? "Modelado" : "Renders"} aprobado por el cliente (${input.clientName}) desde la galería pública`,
-          null // Sin usuario autenticado
-        );
-
         // Si es aprobación de renders, actualizar estado del proyecto
         if (input.type === "renders") {
           await db.updateProject(input.projectId, {
-            status: "approved",
-            designApprovedAt: new Date(),
+            status: "aprobacion_final",
           });
         }
 
@@ -5095,17 +5087,10 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
           throw new TRPCError({ code: "NOT_FOUND", message: "Proyecto no encontrado" });
         }
 
-        // Registrar la solicitud de cambios en el historial
-        await db.addProjectHistory(
-          input.projectId,
-          `📝 Cambios solicitados por el cliente (${input.clientName}) en ${input.type === "modelado" ? "modelado" : "renders"}: ${input.changes}`,
-          null // Sin usuario autenticado
-        );
-
-        // Actualizar estado del proyecto si es necesario
-        if (project.status === "design_ready" || project.status === "pending_approval") {
+        // Actualizar estado del proyecto si está pendiente de cliente
+        if (project.status === "pendiente_cliente") {
           await db.updateProject(input.projectId, {
-            status: "in_design",
+            status: "en_diseno",
           });
         }
 

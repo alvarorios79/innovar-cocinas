@@ -1228,7 +1228,7 @@ export default function Projects() {
                     const categoryToFolders: Record<string, string[]> = {
                       cotizacion: ["documento_cotizacion"], // Documento
                       medidas: ["fotos_iniciales", "dibujo"], // Fotos Iniciales + Dibujo
-                      disenos: ["renders", "despieces", "detalles"], // Renders, Despieces, Detalles
+                      disenos: ["modelado", "renders", "detalles", "despieces"], // Modelado, Renders, Detalles, Despieces
                       avance: ["corte", "enchape", "armado"], // Corte, Enchape, Armado
                       instalacion: ["proceso_instalacion"], // Proceso
                       entrega: ["fotos_finales"], // Fotos Finales

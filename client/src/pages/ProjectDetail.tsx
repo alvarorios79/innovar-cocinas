@@ -300,7 +300,7 @@ export default function ProjectDetail() {
     const allFolders = {
       cotizacion: ["documento_cotizacion"],
       medidas: ["fotos_iniciales", "dibujo"],
-      disenos: ["renders", "despieces", "detalles", "modelado"],
+      disenos: ["modelado", "renders", "detalles", "despieces"],
       avance: ["corte", "enchape", "armado"],
       instalacion: ["proceso_instalacion"],
       entrega: ["fotos_finales"],
@@ -1115,10 +1115,10 @@ export default function ProjectDetail() {
                     )}
                     {photoForm.category === "disenos" && (
                       <>
-                        <SelectItem value="renders">Renders</SelectItem>
-                        <SelectItem value="despieces">Despieces</SelectItem>
-                        <SelectItem value="detalles">Detalles</SelectItem>
                         <SelectItem value="modelado">Modelado</SelectItem>
+                        <SelectItem value="renders">Renders</SelectItem>
+                        <SelectItem value="detalles">Detalles</SelectItem>
+                        <SelectItem value="despieces">Despieces</SelectItem>
                       </>
                     )}
                     {photoForm.category === "avance" && (

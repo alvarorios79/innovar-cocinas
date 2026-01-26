@@ -2706,3 +2706,7 @@
 - [x] Agregar botón de WhatsApp para enviar renders/modelado a clientes
 - [x] Permitir a Martha (comercial) aprobar diseño en nombre del cliente
 - [x] Asegurar que el proceso continúe después de la aprobación
+
+
+## Reorganizar Orden de Carpetas de Fotos - Diseños
+- [ ] Cambiar orden a: 1. Modelado, 2. Renders, 3. Detalles, 4. Despiece

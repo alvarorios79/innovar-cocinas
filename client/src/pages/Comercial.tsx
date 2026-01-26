@@ -16,13 +16,51 @@ import {
   Clock,
   MapPin,
   CheckCircle,
-  ArrowRight
+  ArrowRight,
+  Globe,
+  MessageCircle,
+  Briefcase,
+  Gift,
+  Cake,
+  Heart,
+  LogOut,
+  Sparkles
 } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { CreateQuickClientDialog } from "@/components/CreateQuickClientDialog";
+import { NotificationBell } from "@/components/NotificationBell";
+import { MobileNav } from "@/components/MobileNav";
+import { DailyMotivation } from "@/components/DailyMotivation";
+
+// Componente de botón de cerrar sesión
+function LogoutButton() {
+  const logout = trpc.auth.logout.useMutation({
+    onSuccess: () => {
+      toast.success("Sesión cerrada correctamente");
+      window.location.href = "/login";
+    },
+    onError: () => {
+      toast.error("Error al cerrar sesión");
+    },
+  });
+
+  return (
+    <Button
+      variant="ghost"
+      size="sm"
+      onClick={() => logout.mutate()}
+      disabled={logout.isPending}
+      className="text-pink-600 hover:text-pink-700 hover:bg-pink-50"
+      title="Cerrar sesión"
+    >
+      <LogOut className="h-4 w-4" />
+      <span className="ml-1 hidden xl:inline">Salir</span>
+    </Button>
+  );
+}
 
 export default function Comercial() {
   const { user, isAuthenticated, loading } = useAuth();
@@ -36,6 +74,7 @@ export default function Comercial() {
   const { data: appointments = [], isLoading: loadingAppointments } = trpc.appointments.list.useQuery();
   const { data: quotations = [], isLoading: loadingQuotations } = trpc.quotations.list.useQuery();
   const { data: projects = [], isLoading: loadingProjects } = trpc.projects.list.useQuery();
+  const { data: clients = [] } = trpc.clients.list.useQuery();
 
   // Mutation para programar instalación
   const updateInstallDate = trpc.projects.updateEstimatedDate.useMutation({
@@ -55,6 +94,35 @@ export default function Comercial() {
   today.setHours(0, 0, 0, 0);
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
+
+  // Cumpleaños de clientes hoy o próximos 7 días
+  const getUpcomingBirthdays = () => {
+    const sevenDaysFromNow = new Date(today);
+    sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
+    
+    return clients.filter((client: any) => {
+      if (!client.birthDate) return false;
+      const birthDate = new Date(client.birthDate);
+      const thisYearBirthday = new Date(today.getFullYear(), birthDate.getMonth(), birthDate.getDate());
+      
+      // Si ya pasó este año, verificar el próximo año
+      if (thisYearBirthday < today) {
+        thisYearBirthday.setFullYear(today.getFullYear() + 1);
+      }
+      
+      return thisYearBirthday >= today && thisYearBirthday <= sevenDaysFromNow;
+    }).map((client: any) => {
+      const birthDate = new Date(client.birthDate);
+      const thisYearBirthday = new Date(today.getFullYear(), birthDate.getMonth(), birthDate.getDate());
+      if (thisYearBirthday < today) {
+        thisYearBirthday.setFullYear(today.getFullYear() + 1);
+      }
+      const daysUntil = Math.ceil((thisYearBirthday.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+      return { ...client, daysUntil, birthdayDate: thisYearBirthday };
+    }).sort((a: any, b: any) => a.daysUntil - b.daysUntil);
+  };
+
+  const upcomingBirthdays = getUpcomingBirthdays();
 
   // Citas del día
   const todayAppointments = appointments.filter((apt: any) => {
@@ -123,10 +191,26 @@ export default function Comercial() {
     });
   };
 
+  // Enviar mensaje de cumpleaños por WhatsApp
+  const sendBirthdayWhatsApp = (client: any) => {
+    const phone = (client.whatsappPhone || client.phone || "").replace(/\D/g, '');
+    if (!phone) {
+      toast.error("El cliente no tiene número de WhatsApp registrado");
+      return;
+    }
+    const message = encodeURIComponent(
+      `🎂 ¡Feliz cumpleaños, ${client.name}! 🎉\n\n` +
+      `De parte de todo el equipo de INNOVAR Cocinas Integrales, te deseamos un día lleno de alegría y bendiciones.\n\n` +
+      `¡Que todos tus sueños se hagan realidad! 💕\n\n` +
+      `Un abrazo,\n${user?.name || 'INNOVAR Cocinas'}`
+    );
+    window.open(`https://wa.me/57${phone}?text=${message}`, '_blank');
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 via-white to-rose-50">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-500"></div>
       </div>
     );
   }
@@ -143,50 +227,256 @@ export default function Comercial() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-rose-50">
       {/* Header */}
-      <header className="bg-white border-b shadow-sm sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Link href="/">
-                <img src="/logo-light.png" alt="INNOVAR" className="h-10 cursor-pointer" />
-              </Link>
-              <div>
-                <h1 className="text-xl font-bold text-slate-800">Panel Comercial</h1>
-                <p className="text-sm text-slate-500">Hola, {user.name} 👋</p>
-              </div>
-            </div>
+      <header className="border-b bg-white/95 backdrop-blur-md sticky top-0 z-50 shadow-sm">
+        <div className="container">
+          <div className="flex h-14 md:h-16 items-center justify-between">
             <Link href="/">
-              <Button variant="outline" size="sm">Volver al Inicio</Button>
+              <img 
+                src="/logo-light.png" 
+                alt="INNOVAR Cocinas Integrales" 
+                className="h-10 sm:h-12 md:h-14 w-auto cursor-pointer object-contain"
+              />
             </Link>
+            
+            {/* Desktop Navigation */}
+            <nav className="hidden md:flex items-center gap-1 lg:gap-2">
+              <Link href="/calendar">
+                <Button variant="ghost" size="sm" className="text-sm font-medium">Calendario</Button>
+              </Link>
+              <Link href="/quotations">
+                <Button variant="ghost" size="sm" className="text-sm font-medium">Cotizaciones</Button>
+              </Link>
+              <Link href="/clients">
+                <Button variant="ghost" size="sm" className="text-sm font-medium">Clientes</Button>
+              </Link>
+              <Link href="/tasks">
+                <Button variant="ghost" size="sm" className="text-sm font-medium">Mis Tareas</Button>
+              </Link>
+              <div className="ml-2">
+                <NotificationBell />
+              </div>
+              <div className="flex items-center gap-2 ml-2 pl-2 border-l">
+                <span className="text-xs text-pink-600 hidden lg:block">Comercial</span>
+                <span className="text-sm font-medium hidden lg:block">{user?.name}</span>
+                <LogoutButton />
+              </div>
+            </nav>
+
+            {/* Mobile Navigation */}
+            <div className="flex items-center gap-3 md:hidden">
+              <NotificationBell />
+              <MobileNav />
+            </div>
           </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-6 space-y-6">
+      {/* Hero Section con Logo y Contacto */}
+      <section className="py-5 md:py-6">
+        <div className="container">
+          <div className="max-w-4xl mx-auto text-center space-y-3">
+            {/* Logo grande */}
+            <div className="flex justify-center">
+              <img 
+                src="/logo-light.png" 
+                alt="INNOVAR Cocinas Integrales" 
+                className="h-16 sm:h-20 md:h-24 w-auto"
+              />
+            </div>
+            
+            {/* Información de contacto */}
+            <div className="flex flex-wrap items-center justify-center gap-2 md:gap-4 text-xs md:text-sm text-muted-foreground">
+              <a href="tel:3136802025" className="flex items-center gap-1 hover:text-pink-600 transition-colors">
+                <Phone className="h-3.5 w-3.5" />
+                <span>313 680 2025</span>
+              </a>
+              <span className="flex items-center gap-1">
+                <MapPin className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">K9 vía Cerritos a Pereira</span>
+                <span className="sm:hidden">Cerritos, Pereira</span>
+              </span>
+              <a href="https://innovarcocinasintegrales.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 hover:text-pink-600 transition-colors">
+                <Globe className="h-3.5 w-3.5" />
+                <span>Sitio Web</span>
+              </a>
+              <a 
+                href="https://wa.me/573136802025" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 bg-[#25D366] text-white px-2.5 py-1 rounded-full hover:bg-[#128C7E] transition-colors font-medium text-xs"
+              >
+                <MessageCircle className="h-3.5 w-3.5" />
+                <span>WhatsApp</span>
+              </a>
+            </div>
+
+            {/* Título del Portal - Banner Rosa Elegante */}
+            <div className="mt-4 p-5 md:p-6 rounded-2xl bg-gradient-to-r from-pink-500 to-rose-600 text-white shadow-xl">
+              <div className="flex items-center justify-center gap-3 mb-1">
+                <div className="bg-white/20 p-2 rounded-xl">
+                  <Briefcase className="h-8 w-8" />
+                </div>
+                <h1 className="text-xl md:text-2xl lg:text-3xl font-bold">Portal Comercial</h1>
+              </div>
+              <p className="text-white/90 text-sm md:text-base">Conecta clientes con sus sueños</p>
+              <p className="mt-2 text-white/80 text-sm">
+                ¡Hola, <span className="font-bold text-white">{user?.name || "Usuario"}</span>! 👋
+              </p>
+            </div>
+
+            {/* Frase Motivacional Diaria */}
+            <div className="mt-4">
+              <DailyMotivation userName={user?.name || undefined} userBirthDate={user?.birthDate ? new Date(user.birthDate) : undefined} />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <main className="container mx-auto px-4 pb-8 space-y-6">
+        {/* Cumpleaños de Clientes */}
+        {upcomingBirthdays.length > 0 && (
+          <section>
+            <Card className="border-pink-200 bg-gradient-to-r from-pink-50 to-rose-50 shadow-md">
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-2">
+                  <div className="bg-pink-100 p-2 rounded-full">
+                    <Cake className="h-5 w-5 text-pink-600" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-pink-800 flex items-center gap-2">
+                      🎂 Cumpleaños de Clientes
+                      <Heart className="h-4 w-4 text-pink-500 animate-pulse" />
+                    </CardTitle>
+                    <CardDescription className="text-pink-600">
+                      ¡No olvides felicitarlos! Un detalle marca la diferencia 💕
+                    </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {upcomingBirthdays.slice(0, 5).map((client: any) => (
+                  <div key={client.id} className="bg-white rounded-lg p-3 border border-pink-200 shadow-sm hover:shadow-md transition-shadow">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <div className="flex items-center gap-3">
+                        <div className={`p-2 rounded-full ${client.daysUntil === 0 ? 'bg-pink-500 text-white animate-bounce' : 'bg-pink-100 text-pink-600'}`}>
+                          <Gift className="h-4 w-4" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-slate-800">{client.name}</h3>
+                          <p className="text-sm text-pink-600">
+                            {client.daysUntil === 0 ? (
+                              <span className="font-bold">🎉 ¡Hoy es su cumpleaños!</span>
+                            ) : client.daysUntil === 1 ? (
+                              <span>Mañana - {formatDate(client.birthdayDate)}</span>
+                            ) : (
+                              <span>En {client.daysUntil} días - {formatDate(client.birthdayDate)}</span>
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                      <Button 
+                        onClick={() => sendBirthdayWhatsApp(client)}
+                        className="bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white shadow-md"
+                        size="sm"
+                      >
+                        <MessageCircle className="h-4 w-4 mr-1" />
+                        Felicitar por WhatsApp
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          </section>
+        )}
+
+        {/* Resumen del Día */}
+        <section>
+          <h2 className="text-lg font-semibold text-slate-700 mb-3 flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-pink-500" />
+            Resumen del Día
+          </h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <Card className="bg-gradient-to-br from-pink-500 to-rose-600 text-white shadow-lg hover:shadow-xl transition-shadow">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="bg-white/20 p-2 rounded-lg">
+                    <Calendar className="h-5 w-5" />
+                  </div>
+                  <span className="text-3xl font-bold">{todayAppointments.length}</span>
+                </div>
+                <p className="mt-2 text-sm text-white/90">Citas Pendientes</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-gradient-to-br from-rose-400 to-pink-500 text-white shadow-lg hover:shadow-xl transition-shadow">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="bg-white/20 p-2 rounded-lg">
+                    <FileText className="h-5 w-5" />
+                  </div>
+                  <span className="text-3xl font-bold">{activeQuotations.length}</span>
+                </div>
+                <p className="mt-2 text-sm text-white/90">Cotizaciones Borrador</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-gradient-to-br from-fuchsia-500 to-pink-600 text-white shadow-lg hover:shadow-xl transition-shadow">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="bg-white/20 p-2 rounded-lg">
+                    <Clock className="h-5 w-5" />
+                  </div>
+                  <span className="text-3xl font-bold">{expiringQuotations.length}</span>
+                </div>
+                <p className="mt-2 text-sm text-white/90">Esperando Respuesta</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-gradient-to-br from-violet-500 to-purple-600 text-white shadow-lg hover:shadow-xl transition-shadow">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="bg-white/20 p-2 rounded-lg">
+                    <Users className="h-5 w-5" />
+                  </div>
+                  <span className="text-3xl font-bold">{projectsInEnsamble.length}</span>
+                </div>
+                <p className="mt-2 text-sm text-white/90">Mis Tareas</p>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
+
         {/* Acciones Rápidas */}
         <section>
-          <h2 className="text-lg font-semibold text-slate-700 mb-3">Acciones Rápidas</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <h2 className="text-lg font-semibold text-slate-700 mb-3 flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-pink-500" />
+            Acciones Rápidas
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             <CreateQuickClientDialog 
               trigger={
-                <Button className="h-16 text-lg gap-2 bg-emerald-500 hover:bg-emerald-600">
+                <Button className="h-16 text-lg gap-2 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 shadow-lg hover:shadow-xl transition-all w-full">
                   <Users className="h-5 w-5" />
                   + Nuevo Cliente
                 </Button>
               }
             />
             <Link href="/admin?tab=appointments">
-              <Button className="w-full h-16 text-lg gap-2 bg-blue-500 hover:bg-blue-600">
+              <Button className="w-full h-16 text-lg gap-2 bg-gradient-to-r from-rose-400 to-pink-500 hover:from-rose-500 hover:to-pink-600 shadow-lg hover:shadow-xl transition-all">
                 <Calendar className="h-5 w-5" />
                 + Nueva Cita
               </Button>
             </Link>
             <Link href="/quotation/new">
-              <Button className="w-full h-16 text-lg gap-2 bg-cyan-500 hover:bg-cyan-600">
+              <Button className="w-full h-16 text-lg gap-2 bg-gradient-to-r from-fuchsia-500 to-pink-600 hover:from-fuchsia-600 hover:to-pink-700 shadow-lg hover:shadow-xl transition-all">
                 <FileText className="h-5 w-5" />
                 + Nueva Cotización
+              </Button>
+            </Link>
+            <Link href="/tasks">
+              <Button className="w-full h-16 text-lg gap-2 bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all">
+                <CheckCircle className="h-5 w-5" />
+                Mis Tareas
               </Button>
             </Link>
           </div>
@@ -195,15 +485,19 @@ export default function Comercial() {
         {/* Programar Instalación - Proyectos en Ensamble */}
         {projectsInEnsamble.length > 0 && (
           <section>
-            <Card className="border-orange-200 bg-orange-50">
+            <Card className="border-orange-200 bg-gradient-to-r from-orange-50 to-amber-50 shadow-md">
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2">
-                  <Wrench className="h-5 w-5 text-orange-600" />
-                  <CardTitle className="text-orange-800">🔔 Programar Instalación</CardTitle>
+                  <div className="bg-orange-100 p-2 rounded-full">
+                    <Wrench className="h-5 w-5 text-orange-600" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-orange-800">🔔 Programar Instalación</CardTitle>
+                    <CardDescription className="text-orange-700">
+                      Proyectos en ensamble - Coordinar fecha con cliente y taller
+                    </CardDescription>
+                  </div>
                 </div>
-                <CardDescription className="text-orange-700">
-                  Proyectos en ensamble - Coordinar fecha con cliente y taller
-                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
                 {projectsInEnsamble.map((project: any) => (
@@ -213,7 +507,7 @@ export default function Comercial() {
                         <h3 className="font-semibold text-slate-800">{project.name}</h3>
                         <div className="flex flex-wrap items-center gap-3 mt-1 text-sm text-slate-600">
                           {project.client?.phone && (
-                            <a href={`tel:${project.client.phone}`} className="flex items-center gap-1 hover:text-blue-600">
+                            <a href={`tel:${project.client.phone}`} className="flex items-center gap-1 hover:text-pink-600">
                               <Phone className="h-4 w-4" />
                               {project.client.phone}
                             </a>
@@ -235,7 +529,7 @@ export default function Comercial() {
                           projectName: project.name,
                           tentativeDate: project.tentativeInstallDate ? new Date(project.tentativeInstallDate) : null
                         })}
-                        className="bg-orange-500 hover:bg-orange-600"
+                        className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600"
                       >
                         <Calendar className="h-4 w-4 mr-2" />
                         Programar Instalación
@@ -251,15 +545,19 @@ export default function Comercial() {
         {/* Instalaciones Programadas */}
         {projectsWithInstallDate.length > 0 && (
           <section>
-            <Card className="border-green-200 bg-green-50">
+            <Card className="border-emerald-200 bg-gradient-to-r from-emerald-50 to-green-50 shadow-md">
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2">
-                  <CheckCircle className="h-5 w-5 text-green-600" />
-                  <CardTitle className="text-green-800">🗓️ Instalaciones Programadas</CardTitle>
+                  <div className="bg-emerald-100 p-2 rounded-full">
+                    <CheckCircle className="h-5 w-5 text-emerald-600" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-emerald-800">🗓️ Instalaciones Programadas</CardTitle>
+                    <CardDescription className="text-emerald-700">
+                      Próximas instalaciones confirmadas
+                    </CardDescription>
+                  </div>
                 </div>
-                <CardDescription className="text-green-700">
-                  Próximas instalaciones confirmadas
-                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
@@ -268,7 +566,7 @@ export default function Comercial() {
                     const isUrgent = new Date(project.estimatedInstallDate) <= threeDaysFromNow;
                     return (
                       <Link key={project.id} href={`/projects/${project.id}`}>
-                        <div className={`bg-white rounded-lg p-3 border shadow-sm hover:shadow-md transition-shadow cursor-pointer ${isUrgent ? 'border-yellow-300' : 'border-green-200'}`}>
+                        <div className={`bg-white rounded-lg p-3 border shadow-sm hover:shadow-md transition-shadow cursor-pointer ${isUrgent ? 'border-yellow-300' : 'border-emerald-200'}`}>
                           <div className="flex items-center justify-between">
                             <div>
                               <h3 className="font-medium text-slate-800">{project.name}</h3>
@@ -276,7 +574,7 @@ export default function Comercial() {
                                 {formatDate(project.estimatedInstallDate)} • Estado: {project.status}
                               </p>
                             </div>
-                            <Badge className={isUrgent ? 'bg-yellow-500' : 'bg-green-500'}>
+                            <Badge className={isUrgent ? 'bg-yellow-500' : 'bg-emerald-500'}>
                               {daysRemaining}
                             </Badge>
                           </div>
@@ -293,17 +591,21 @@ export default function Comercial() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Citas del Día */}
           <section>
-            <Card>
+            <Card className="shadow-md border-pink-100">
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5 text-blue-600" />
-                  <CardTitle>📅 Citas del Día</CardTitle>
+                  <div className="bg-pink-100 p-2 rounded-full">
+                    <Calendar className="h-5 w-5 text-pink-600" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-pink-800">📅 Citas del Día</CardTitle>
+                    <CardDescription>
+                      {todayAppointments.length === 0 
+                        ? "No hay citas programadas para hoy" 
+                        : `${todayAppointments.length} cita(s) pendiente(s)`}
+                    </CardDescription>
+                  </div>
                 </div>
-                <CardDescription>
-                  {todayAppointments.length === 0 
-                    ? "No hay citas programadas para hoy" 
-                    : `${todayAppointments.length} cita(s) pendiente(s)`}
-                </CardDescription>
               </CardHeader>
               <CardContent>
                 {todayAppointments.length === 0 ? (
@@ -311,7 +613,7 @@ export default function Comercial() {
                 ) : (
                   <div className="space-y-2">
                     {todayAppointments.map((apt: any) => (
-                      <div key={apt.id} className="bg-slate-50 rounded-lg p-3 border">
+                      <div key={apt.id} className="bg-pink-50 rounded-lg p-3 border border-pink-200">
                         <div className="flex items-center justify-between">
                           <div>
                             <h3 className="font-medium">{apt.client?.name || "Cliente"}</h3>
@@ -321,7 +623,7 @@ export default function Comercial() {
                           </div>
                           {apt.client?.phone && (
                             <a href={`tel:${apt.client.phone}`}>
-                              <Button size="sm" variant="outline">
+                              <Button size="sm" variant="outline" className="border-pink-300 text-pink-600 hover:bg-pink-100">
                                 <Phone className="h-4 w-4" />
                               </Button>
                             </a>
@@ -332,7 +634,7 @@ export default function Comercial() {
                   </div>
                 )}
                 <Link href="/admin?tab=appointments">
-                  <Button variant="ghost" className="w-full mt-3 text-blue-600">
+                  <Button variant="ghost" className="w-full mt-3 text-pink-600 hover:text-pink-700 hover:bg-pink-50">
                     Ver todas las citas <ArrowRight className="h-4 w-4 ml-1" />
                   </Button>
                 </Link>
@@ -342,17 +644,21 @@ export default function Comercial() {
 
           {/* Cotizaciones Activas */}
           <section>
-            <Card>
+            <Card className="shadow-md border-pink-100">
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2">
-                  <FileText className="h-5 w-5 text-cyan-600" />
-                  <CardTitle>📋 Cotizaciones Activas</CardTitle>
+                  <div className="bg-rose-100 p-2 rounded-full">
+                    <FileText className="h-5 w-5 text-rose-600" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-rose-800">📋 Cotizaciones Activas</CardTitle>
+                    <CardDescription>
+                      {activeQuotations.length === 0 
+                        ? "No hay cotizaciones pendientes" 
+                        : `${activeQuotations.length} cotización(es) esperando aprobación`}
+                    </CardDescription>
+                  </div>
                 </div>
-                <CardDescription>
-                  {activeQuotations.length === 0 
-                    ? "No hay cotizaciones pendientes" 
-                    : `${activeQuotations.length} cotización(es) esperando aprobación`}
-                </CardDescription>
               </CardHeader>
               <CardContent>
                 {activeQuotations.length === 0 ? (
@@ -360,7 +666,7 @@ export default function Comercial() {
                 ) : (
                   <div className="space-y-2">
                     {activeQuotations.slice(0, 5).map((quot: any) => (
-                      <div key={quot.id} className="bg-slate-50 rounded-lg p-3 border hover:shadow-sm transition-shadow">
+                      <div key={quot.id} className="bg-rose-50 rounded-lg p-3 border border-rose-200 hover:shadow-sm transition-shadow">
                         <div className="flex items-center justify-between">
                           <Link href={`/quotation/${quot.id}`} className="flex-1 cursor-pointer">
                             <div>
@@ -371,7 +677,7 @@ export default function Comercial() {
                             </div>
                           </Link>
                           <div className="flex items-center gap-2">
-                            <Badge variant="outline" className="text-cyan-600">
+                            <Badge variant="outline" className="text-rose-600 border-rose-300">
                               {getDaysRemaining(quot.validUntil)}
                             </Badge>
                             {quot.client?.whatsappPhone && (
@@ -403,7 +709,7 @@ export default function Comercial() {
                   </div>
                 )}
                 <Link href="/admin?tab=quotations">
-                  <Button variant="ghost" className="w-full mt-3 text-cyan-600">
+                  <Button variant="ghost" className="w-full mt-3 text-rose-600 hover:text-rose-700 hover:bg-rose-50">
                     Ver todas las cotizaciones <ArrowRight className="h-4 w-4 ml-1" />
                   </Button>
                 </Link>
@@ -415,15 +721,19 @@ export default function Comercial() {
         {/* Cotizaciones Por Vencer */}
         {expiringQuotations.length > 0 && (
           <section>
-            <Card className="border-red-200 bg-red-50">
+            <Card className="border-red-200 bg-gradient-to-r from-red-50 to-rose-50 shadow-md">
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2">
-                  <AlertTriangle className="h-5 w-5 text-red-600" />
-                  <CardTitle className="text-red-800">⚠️ Por Vencer</CardTitle>
+                  <div className="bg-red-100 p-2 rounded-full animate-pulse">
+                    <AlertTriangle className="h-5 w-5 text-red-600" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-red-800">⚠️ Por Vencer</CardTitle>
+                    <CardDescription className="text-red-700">
+                      Cotizaciones que vencen en los próximos 3 días - ¡Contactar al cliente!
+                    </CardDescription>
+                  </div>
                 </div>
-                <CardDescription className="text-red-700">
-                  Cotizaciones que vencen en los próximos 3 días - ¡Contactar al cliente!
-                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
@@ -446,7 +756,7 @@ export default function Comercial() {
                             </a>
                           )}
                           <Link href={`/quotation/${quot.id}`}>
-                            <Button size="sm" className="bg-red-500 hover:bg-red-600">
+                            <Button size="sm" className="bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600">
                               Ver Cotización
                             </Button>
                           </Link>
@@ -460,6 +770,17 @@ export default function Comercial() {
           </section>
         )}
       </main>
+
+      {/* Botón flotante de WhatsApp */}
+      <a 
+        href="https://wa.me/573136802025" 
+        target="_blank" 
+        rel="noopener noreferrer"
+        className="fixed bottom-6 right-6 bg-[#25D366] text-white p-4 rounded-full shadow-lg hover:bg-[#128C7E] transition-colors z-50"
+        title="Contactar por WhatsApp"
+      >
+        <MessageCircle className="h-6 w-6" />
+      </a>
 
       {/* Dialog para programar instalación */}
       <Dialog open={!!scheduleDialog} onOpenChange={(open) => !open && setScheduleDialog(null)}>
@@ -497,7 +818,7 @@ export default function Comercial() {
             <Button 
               onClick={handleScheduleInstall}
               disabled={!installDate || updateInstallDate.isPending}
-              className="bg-orange-500 hover:bg-orange-600"
+              className="bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600"
             >
               {updateInstallDate.isPending ? "Guardando..." : "Confirmar Fecha"}
             </Button>

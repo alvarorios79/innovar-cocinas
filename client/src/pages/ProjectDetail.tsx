@@ -492,11 +492,16 @@ export default function ProjectDetail() {
                     const clientName = projectDetail.client?.name || "Cliente";
                     const projectName = projectDetail.name;
                     
-                    // Obtener URLs del modelado
+                    // Obtener URLs del modelado (todas las fotos)
                     const modeladoPhotos = projectDetail.photos?.filter((p: any) => p.subcategory === "modelado") || [];
-                    const modeladoUrls = modeladoPhotos.map((p: any) => p.photoUrl).join("\n");
+                    const numPhotos = modeladoPhotos.length;
                     
-                    const message = `¡Hola ${clientName}! 👋\n\nLe escribo de *INNOVAR Cocinas Integrales*.\n\nYa tenemos listo el *modelado 3D* de su proyecto *"${projectName}"*. 📐\n\nPor favor revise las imágenes y díganos si necesita algún cambio o ajuste antes de continuar con los renders finales.\n\n*Imágenes del modelado:*\n${modeladoUrls}\n\n¿Está conforme con el modelado o necesita algún cambio? 🤔`;
+                    // Crear enlace al portal del cliente para ver todas las fotos
+                    const baseUrl = window.location.origin;
+                    const portalUrl = `${baseUrl}/portal?project=${projectDetail.id}`;
+                    
+                    // Mensaje con enlace al portal (evita límite de caracteres de WhatsApp)
+                    const message = `¡Hola ${clientName}! 👋\n\nLe escribo de *INNOVAR Cocinas Integrales*.\n\nYa tenemos listo el *modelado 3D* de su proyecto *"${projectName}"*. 📐\n\n✨ Hemos preparado *${numPhotos} imágenes* del modelado para que las revise.\n\n👉 *Ver todas las imágenes aquí:*\n${portalUrl}\n\nPor favor revise las imágenes en el enlace y díganos si necesita algún cambio o ajuste antes de continuar con los renders finales.\n\n¿Está conforme con el modelado o necesita algún cambio? 🤔`;
                     
                     const whatsappUrl = `https://wa.me/57${clientPhone}?text=${encodeURIComponent(message)}`;
                     window.open(whatsappUrl, "_blank");
@@ -505,7 +510,7 @@ export default function ProjectDetail() {
                   <MessageCircle className="h-4 w-4 mr-1" />
                   Enviar Modelado por WhatsApp
                 </Button>
-                <p className="text-xs text-purple-500 mt-2">Se enviarán {projectDetail.photos?.filter((p: any) => p.subcategory === "modelado").length} imagen(es) de modelado al cliente</p>
+                <p className="text-xs text-purple-500 mt-2">Se enviarán {projectDetail.photos?.filter((p: any) => p.subcategory === "modelado").length} imagen(es) de modelado al cliente (vía enlace al portal)</p>
               </div>
             )}
             
@@ -522,11 +527,16 @@ export default function ProjectDetail() {
                     const clientName = projectDetail.client?.name || "Cliente";
                     const projectName = projectDetail.name;
                     
-                    // Obtener URLs de los renders
+                    // Obtener cantidad de renders
                     const renderPhotos = projectDetail.photos?.filter((p: any) => p.subcategory === "renders") || [];
-                    const renderUrls = renderPhotos.map((p: any) => p.photoUrl).join("\n");
+                    const numRenders = renderPhotos.length;
                     
-                    const message = `¡Hola ${clientName}! 👋\n\nLe escribo de *INNOVAR Cocinas Integrales*.\n\nYa tenemos listos los *renders finales* de su proyecto *"${projectName}"*. 🎨\n\nEstos son los diseños definitivos. Por favor revíselos y confirme si está de acuerdo para iniciar la producción.\n\n*Renders del diseño:*\n${renderUrls}\n\n¿Aprueba el diseño para iniciar producción? ✅`;
+                    // Crear enlace al portal del cliente para ver todas las fotos
+                    const baseUrl = window.location.origin;
+                    const portalUrl = `${baseUrl}/portal?project=${projectDetail.id}`;
+                    
+                    // Mensaje con enlace al portal (evita límite de caracteres de WhatsApp)
+                    const message = `¡Hola ${clientName}! 👋\n\nLe escribo de *INNOVAR Cocinas Integrales*.\n\nYa tenemos listos los *renders finales* de su proyecto *"${projectName}"*. 🎨\n\n✨ Hemos preparado *${numRenders} imágenes* de los renders para que las revise.\n\n👉 *Ver todas las imágenes aquí:*\n${portalUrl}\n\nEstos son los diseños definitivos. Por favor revíselos en el enlace y confirme si está de acuerdo para iniciar la producción.\n\n¿Aprueba el diseño para iniciar producción? ✅`;
                     
                     const whatsappUrl = `https://wa.me/57${clientPhone}?text=${encodeURIComponent(message)}`;
                     window.open(whatsappUrl, "_blank");
@@ -535,7 +545,7 @@ export default function ProjectDetail() {
                   <MessageCircle className="h-4 w-4 mr-1" />
                   Enviar Renders por WhatsApp
                 </Button>
-                <p className="text-xs text-green-500 mt-2">Se enviarán {projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length} imagen(es) de renders al cliente</p>
+                <p className="text-xs text-green-500 mt-2">Se enviarán {projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length} imagen(es) de renders al cliente (vía enlace al portal)</p>
               </div>
             )}
             

@@ -469,16 +469,46 @@ export default function ProjectDetail() {
 
         {/* Alerta de aprobación */}
         {projectDetail.status === "pendiente_cliente" && 
-          (user?.role === "admin" || user?.role === "super_admin") && (
+          (user?.role === "admin" || user?.role === "super_admin" || user?.role === "comercial") && (
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
             <h4 className="font-medium text-yellow-800 mb-2 flex items-center gap-2">
               <AlertCircle className="h-4 w-4" />
               Pendiente de Aprobación del Cliente
             </h4>
             <p className="text-sm text-yellow-700 mb-4">
-              Puedes aprobar el diseño en nombre del cliente si este no usa la aplicación.
+              Puedes enviar los diseños por WhatsApp al cliente y aprobar en su nombre cuando confirme.
             </p>
-            <div className="flex gap-2">
+            
+            {/* Botón de WhatsApp para enviar renders */}
+            {projectDetail.photos && projectDetail.photos.filter((p: any) => p.subcategory === "renders").length > 0 && (
+              <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                <p className="text-sm text-green-700 mb-2 font-medium">📸 Enviar Diseños por WhatsApp:</p>
+                <Button
+                  size="sm"
+                  className="bg-green-500 hover:bg-green-600 text-white"
+                  onClick={() => {
+                    const clientPhone = projectDetail.client?.phone?.replace(/\D/g, "");
+                    const clientName = projectDetail.client?.name || "Cliente";
+                    const projectName = projectDetail.name;
+                    
+                    // Obtener URLs de los renders
+                    const renderPhotos = projectDetail.photos?.filter((p: any) => p.subcategory === "renders") || [];
+                    const renderUrls = renderPhotos.map((p: any) => p.photoUrl).join("\n");
+                    
+                    const message = `¡Hola ${clientName}! 👋\n\nLe escribo de *INNOVAR Cocinas Integrales*.\n\nYa tenemos listos los diseños 3D de su proyecto *"${projectName}"*. 🎨\n\nPor favor revise las imágenes que le envío a continuación y confirme si está de acuerdo con el diseño para continuar con la producción.\n\nSi necesita algún cambio, con gusto lo ajustamos.\n\n*Imágenes del diseño:*\n${renderUrls}\n\n¿Aprueba el diseño? ✅`;
+                    
+                    const whatsappUrl = `https://wa.me/57${clientPhone}?text=${encodeURIComponent(message)}`;
+                    window.open(whatsappUrl, "_blank");
+                  }}
+                >
+                  <MessageCircle className="h-4 w-4 mr-1" />
+                  Enviar Diseños por WhatsApp
+                </Button>
+                <p className="text-xs text-green-600 mt-2">Se enviarán {projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length} imagen(es) de diseño al cliente</p>
+              </div>
+            )}
+            
+            <div className="flex flex-wrap gap-2">
               <Button
                 size="sm"
                 onClick={() => approveDesign.mutate({ projectId: projectDetail.id, approved: true })}

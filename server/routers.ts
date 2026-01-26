@@ -3710,8 +3710,8 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
           throw new TRPCError({ code: "NOT_FOUND", message: "Proyecto no encontrado" });
         }
 
-        // Verificar permisos: Admin, Super Admin, o el cliente dueño del proyecto
-        const isAdmin = ctx.user.role === "admin" || ctx.user.role === "super_admin";
+        // Verificar permisos: Admin, Super Admin, Comercial, o el cliente dueño del proyecto
+        const isAdmin = ctx.user.role === "admin" || ctx.user.role === "super_admin" || ctx.user.role === "comercial";
         let isOwner = false;
         
         if (!isAdmin) {

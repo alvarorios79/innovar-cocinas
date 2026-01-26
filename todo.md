@@ -2700,3 +2700,9 @@
 ## Permisos de Fotos para Comercial
 - [ ] Dar acceso al rol comercial para ver fotos de proyecto
 - [ ] Permitir subir fotos desde el panel comercial
+
+
+## Envío de Renders por WhatsApp y Aprobación de Diseño
+- [x] Agregar botón de WhatsApp para enviar renders/modelado a clientes
+- [x] Permitir a Martha (comercial) aprobar diseño en nombre del cliente
+- [x] Asegurar que el proceso continúe después de la aprobación

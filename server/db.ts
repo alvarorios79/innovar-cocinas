@@ -1570,3 +1570,60 @@ export async function getTotalPaymentsByProjectId(projectId: number) {
   
   return payments.reduce((sum, p) => sum + Number(p.amount), 0);
 }
+
+
+// ============ FUNCIONES DE LIMPIEZA EN CASCADA ============
+
+export async function deleteProjectPhotos(projectId: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(projectPhotos).where(eq(projectPhotos.projectId, projectId));
+}
+
+export async function deleteProjectTasks(projectId: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(tasks).where(eq(tasks.projectId, projectId));
+}
+
+export async function deleteProjectStatusHistory(projectId: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(projectStatusHistory).where(eq(projectStatusHistory.projectId, projectId));
+}
+
+export async function deleteProjectMaterials(projectId: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(projectMaterials).where(eq(projectMaterials.projectId, projectId));
+}
+
+export async function deletePriorEstimatesByClientId(clientId: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(priorEstimates).where(eq(priorEstimates.clientId, clientId));
+}
+
+export async function deleteAdvisoryRequestsByClientId(clientId: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(advisoryRequests).where(eq(advisoryRequests.clientId, clientId));
+}
+
+export async function deletePushSubscriptionsByUserId(userId: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(pushSubscriptions).where(eq(pushSubscriptions.userId, userId));
+}
+
+export async function deleteProjectPaymentsByProjectId(projectId: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(projectPayments).where(eq(projectPayments.projectId, projectId));
+}
+
+export async function deleteRemindersByProjectId(projectId: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(reminders).where(eq(reminders.projectId, projectId));
+}

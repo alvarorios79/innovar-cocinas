@@ -1551,11 +1551,12 @@ export default function Admin() {
                                     variant="destructive"
                                     className="bg-red-600 hover:bg-red-700"
                                     onClick={() => {
-                                      if (confirm(`¿Estás seguro de eliminar TODOS los ${testUsers.length} usuarios de prueba?\n\nEsta acción no se puede deshacer.`)) {
+                                      if (confirm(`🧹 LIMPIEZA DEL SISTEMA\n\nSe eliminarán en cascada:\n• ${testUsers.length} usuarios de prueba\n• Todos los clientes de prueba asociados\n• Todas las citas de clientes de prueba\n• Todas las cotizaciones de clientes de prueba\n• Todos los proyectos de clientes de prueba\n\n⚠️ Esta acción NO se puede deshacer.\n\n¿Continuar?`)) {
                                         const testUserIds = testUsers.map(u => u.id);
                                         deleteTestUsers.mutate({ userIds: testUserIds }, {
-                                          onSuccess: (result) => {
-                                            toast.success(`${result.deleted} usuarios eliminados${result.skipped > 0 ? ` (${result.skipped} omitidos)` : ''}`);
+                                          onSuccess: (result: any) => {
+                                            const msg = `🧹 Limpieza completada:\n• ${result.deletedUsers || result.deleted} usuarios\n• ${result.deletedClients || 0} clientes\n• ${result.deletedAppointments || 0} citas\n• ${result.deletedQuotations || 0} cotizaciones\n• ${result.deletedProjects || 0} proyectos`;
+                                            toast.success(msg, { duration: 8000 });
                                             utils.userManagement.listAll.invalidate();
                                             setSelectedUsers([]);
                                           },
@@ -1568,7 +1569,7 @@ export default function Admin() {
                                     disabled={deleteTestUsers.isPending}
                                   >
                                     <Trash2 className="h-4 w-4 mr-2" />
-                                    {deleteTestUsers.isPending ? 'Eliminando...' : `Eliminar todos (${testUsers.length})`}
+                                    {deleteTestUsers.isPending ? 'Limpiando...' : `🧹 Limpieza del Sistema`}
                                   </Button>
                                   {selectedUsers.some(id => testUsers.map(u => u.id).includes(id)) && (
                                     <Button

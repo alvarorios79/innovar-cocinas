@@ -1,0 +1,8 @@
+{
+  "query": "SELECT u.id, u.name, u.email, u.role,\n  (SELECT COUNT(*) FROM appointments WHERE client_id = u.id) as citas,\n  (SELECT COUNT(*) FROM quotations WHERE client_id = u.id) as cotizaciones,\n  (SELECT COUNT(*) FROM projects WHERE client_id = u.id) as proyectos,\n  (SELECT COUNT(*) FROM clients WHERE user_id = u.id) as clientes\nFROM users u\nWHERE u.email LIKE '%test%' OR u.email LIKE '%prueba%' OR u.name LIKE '%test%' OR u.name LIKE '%prueba%'\nORDER BY u.id\nLIMIT 50;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT u.id, u.name, u.email, u.role,\n  (SELECT COUNT(*) FROM appointments WHERE client_id = u.id) as citas,\n  (SELECT COUNT(*) FROM quotations WHERE client_id = u.id) as cotizaciones,\n  (SELECT COUNT(*) FROM projects WHERE client_id = u.id) as proyectos,\n  (SELECT COUNT(*) FROM clients WHERE user_id = u.id) as clientes\nFROM users u\nWHERE u.email LIKE '%test%' OR u.email LIKE '%prueba%' OR u.name LIKE '%test%' OR u.name LIKE '%prueba%'\nORDER BY u.id\nLIMIT 50;",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1054 (42S22) at line 1: Unknown column 'client_id' in 'where clause'"
+  ]
+}

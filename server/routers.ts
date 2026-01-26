@@ -2779,17 +2779,17 @@ export const appRouter = router({
         return { success: true };
       }),
 
-    // Eliminar todos los usuarios de prueba
+    // Limpieza del sistema - eliminar todos los datos de prueba en cascada
     deleteTestUsers: protectedProcedure
       .input(z.object({
         userIds: z.array(z.number()),
       }))
       .mutation(async ({ ctx, input }) => {
-        // Solo super_admin puede eliminar usuarios masivamente
+        // Solo super_admin puede eliminar datos masivamente
         if (ctx.user.role !== "super_admin") {
           throw new TRPCError({ 
             code: "FORBIDDEN", 
-            message: "Solo super administradores pueden eliminar usuarios masivamente" 
+            message: "Solo super administradores pueden realizar limpieza del sistema" 
           });
         }
 
@@ -2802,36 +2802,136 @@ export const appRouter = router({
           'operario@innovar.temp'
         ];
 
+        // Clientes reales - no se pueden eliminar
+        const realClientEmails = [
+          'albetan1530@gmail.com',
+          'alvarorios79@hotmail.com',
+          'ruth@email.com' // Ruth Naranjo
+        ];
+
         const allUsers = await db.getAllUsers();
-        let deleted = 0;
+        const allClients = await db.getAllClients();
+        
+        let deletedUsers = 0;
+        let deletedClients = 0;
+        let deletedAppointments = 0;
+        let deletedQuotations = 0;
+        let deletedProjects = 0;
         let skipped = 0;
 
-        for (const userId of input.userIds) {
+        // Identificar usuarios de prueba
+        const testUserIds = input.userIds.filter(userId => {
           const user = allUsers.find(u => u.id === userId);
-          if (!user) continue;
+          if (!user) return false;
+          if (realTeamEmails.includes(user.email?.toLowerCase() || '')) return false;
+          if (user.id === ctx.user.id) return false;
+          return true;
+        });
 
-          // No eliminar al equipo de trabajo real
-          if (realTeamEmails.includes(user.email?.toLowerCase() || '')) {
-            skipped++;
-            continue;
-          }
+        // Identificar clientes de prueba (por email o por userId)
+        const testClientIds = allClients
+          .filter(c => {
+            const email = (c.email || '').toLowerCase();
+            const name = (c.name || '').toLowerCase();
+            // No eliminar clientes reales
+            if (realClientEmails.includes(email)) return false;
+            // Detectar clientes de prueba
+            const isTest = email.includes('test') || email.includes('example') ||
+                          name.includes('test') || name.includes('cliente timezone') ||
+                          name.includes('prueba cliente') || name.includes('new client');
+            // O si su usuario es de prueba
+            const userIsTest = c.userId && testUserIds.includes(c.userId);
+            return isTest || userIsTest;
+          })
+          .map(c => c.id);
 
-          // No eliminar al usuario actual
-          if (user.id === ctx.user.id) {
-            skipped++;
-            continue;
-          }
+        console.log(`[Limpieza] Usuarios de prueba: ${testUserIds.length}, Clientes de prueba: ${testClientIds.length}`);
 
+        // 1. Eliminar citas de clientes de prueba
+        for (const clientId of testClientIds) {
           try {
+            const appointments = await db.getAppointmentsByClientId(clientId);
+            for (const apt of appointments) {
+              await db.deleteAppointment(apt.id);
+              deletedAppointments++;
+            }
+          } catch (error) {
+            console.error(`Error eliminando citas del cliente ${clientId}:`, error);
+          }
+        }
+
+        // 2. Eliminar cotizaciones de clientes de prueba
+        for (const clientId of testClientIds) {
+          try {
+            const quotations = await db.getQuotationsByClientId(clientId);
+            for (const quot of quotations) {
+              // Primero eliminar items de la cotización
+              await db.deleteQuotationItems(quot.id);
+              await db.deleteQuotation(quot.id);
+              deletedQuotations++;
+            }
+          } catch (error) {
+            console.error(`Error eliminando cotizaciones del cliente ${clientId}:`, error);
+          }
+        }
+
+        // 3. Eliminar proyectos de clientes de prueba
+        for (const clientId of testClientIds) {
+          try {
+            const projects = await db.getProjectsByClientId(clientId);
+            for (const proj of projects) {
+              // Eliminar fotos, tareas, historial, etc.
+              await db.deleteProjectPhotos(proj.id);
+              await db.deleteProjectTasks(proj.id);
+              await db.deleteProjectStatusHistory(proj.id);
+              await db.deleteProjectMaterials(proj.id);
+              await db.deleteProject(proj.id);
+              deletedProjects++;
+            }
+          } catch (error) {
+            console.error(`Error eliminando proyectos del cliente ${clientId}:`, error);
+          }
+        }
+
+        // 4. Eliminar clientes de prueba
+        for (const clientId of testClientIds) {
+          try {
+            // Eliminar estimados previos
+            await db.deletePriorEstimatesByClientId(clientId);
+            // Eliminar solicitudes de asesoría
+            await db.deleteAdvisoryRequestsByClientId(clientId);
+            // Eliminar cliente
+            await db.deleteClient(clientId);
+            deletedClients++;
+          } catch (error) {
+            console.error(`Error eliminando cliente ${clientId}:`, error);
+          }
+        }
+
+        // 5. Eliminar usuarios de prueba
+        for (const userId of testUserIds) {
+          try {
+            // Eliminar suscripciones push
+            await db.deletePushSubscriptionsByUserId(userId);
+            // Eliminar usuario
             await db.deleteUser(userId);
-            deleted++;
+            deletedUsers++;
           } catch (error) {
             console.error(`Error eliminando usuario ${userId}:`, error);
             skipped++;
           }
         }
 
-        return { success: true, deleted, skipped };
+        return { 
+          success: true, 
+          deleted: deletedUsers,
+          deletedUsers,
+          deletedClients,
+          deletedAppointments,
+          deletedQuotations,
+          deletedProjects,
+          skipped 
+        };
       }),
 
     resetPassword: protectedProcedure

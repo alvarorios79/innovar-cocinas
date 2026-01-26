@@ -2624,14 +2624,21 @@
 
 ## Separación y Limpieza de Usuarios (Enero 2026)
 
-- [ ] Separar usuarios en 3 categorías: Equipo de Trabajo, Clientes Reales, Usuarios de Prueba
-- [ ] Agregar filtros para mostrar solo una categoría
-- [ ] Agregar opción de eliminación masiva para usuarios de prueba
-- [ ] Identificar usuarios de prueba por patrones (emails test@, nombres "Test", etc.)
+- [x] Separar usuarios en 3 categorías: Equipo de Trabajo (5), Clientes Reales (3), Usuarios de Prueba (30)
+- [x] Definir equipo de trabajo real por emails específicos (Alvaro, Alejo, Martha, Luis, Daniel)
+- [x] Identificar usuarios de prueba por patrones (emails test@, nombres "Test", etc.)
+- [x] Agregar botón "🧹 Limpieza del Sistema" para eliminación en cascada
 
 ## Botón Eliminar Todos los Usuarios de Prueba (Enero 2026)
 
 - [x] Crear endpoint en backend para eliminar usuarios de prueba masivamente
 - [x] Agregar botón "Eliminar todos" en la sección de usuarios de prueba
 - [x] Agregar diálogo de confirmación antes de eliminar
+- [x] Funcionalidad lista para prueba del usuario
+
+## Eliminación en Cascada de Datos de Prueba (Enero 2026)
+
+- [x] Crear función que elimine en cascada: citas → cotizaciones → proyectos → clientes → usuarios de prueba
+- [x] Modificar el botón "Eliminar todos" a "🧹 Limpieza del Sistema"
+- [x] Mostrar resumen de lo que se eliminará antes de confirmar
 - [x] Funcionalidad lista para prueba del usuario

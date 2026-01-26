@@ -47,19 +47,29 @@ ${data.portalUrl}
 *INNOVAR Cocinas Integrales*`,
 
   // Pendiente aprobación del cliente
-  pendiente_cliente: (data) => `📐 *¡${data.clientName}, tu diseño está listo!*
+  pendiente_cliente: (data) => {
+    const credentialsSection = data.credentials ? `
+
+🔐 *Tus datos de acceso al portal:*
+📧 Correo: ${data.credentials.email}
+🔑 Contraseña: ${data.credentials.password}
+
+⚠️ _Guarda estos datos en un lugar seguro_` : '';
+    
+    return `📐 *¡${data.clientName}, tu diseño está listo!*
 
 Los diseños 3D de tu proyecto *"${data.projectName}"* están listos para tu revisión y aprobación.
 
-🔍 Por favor revisa los diseños y danos tu aprobación para comenzar la producción.
+🔍 Por favor revisa los diseños y danos tu aprobación para comenzar la producción.${credentialsSection}
 
-👉 Revisa y aprueba aquí:
+👉 Ingresa al portal aquí:
 ${data.portalUrl}
 
 Si tienes alguna pregunta o necesitas cambios, no dudes en contactarnos.
 
 *INNOVAR Cocinas Integrales*
-📞 313 680 2025`,
+📞 313 680 2025`;
+  },
 
   // En corte
   corte: (data) => `🔨 *¡${data.clientName}, comenzamos la producción!*
@@ -159,6 +169,11 @@ export interface ProjectMessageData {
   workType: string;
   status: string;
   portalUrl: string;
+  // Credenciales opcionales para el mensaje de diseño listo
+  credentials?: {
+    email: string;
+    password: string;
+  };
 }
 
 /**
@@ -236,7 +251,8 @@ export function prepareWhatsAppNotification(
       whatsappPhone: string;
     };
   },
-  baseUrl: string
+  baseUrl: string,
+  credentials?: { email: string; password: string }
 ): {
   message: string;
   whatsappLink: string;
@@ -253,6 +269,7 @@ export function prepareWhatsAppNotification(
     workType: project.workType,
     status: project.status,
     portalUrl,
+    credentials,
   };
 
   const message = generateProjectMessage(messageData);

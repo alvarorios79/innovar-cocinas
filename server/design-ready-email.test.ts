@@ -113,4 +113,55 @@ describe("Design Ready Email with Credentials", () => {
       // Ignorar error si no se puede eliminar
     }
   });
+
+  it("debe incluir credenciales en mensaje de WhatsApp para pendiente_cliente", async () => {
+    const { prepareWhatsAppNotification } = await import("./whatsapp-notifications");
+    
+    const project = {
+      id: 1,
+      name: "Cocina Test",
+      status: "pendiente_cliente",
+      workType: "cocina",
+      client: {
+        name: "Juan Pérez",
+        whatsappPhone: "3136802025",
+      },
+    };
+    
+    const credentials = {
+      email: "juan@test.com",
+      password: "Innovar-1234!",
+    };
+    
+    const result = prepareWhatsAppNotification(project, "https://test.com", credentials);
+    
+    // Verificar que el mensaje incluye las credenciales
+    expect(result.message).toContain("juan@test.com");
+    expect(result.message).toContain("Innovar-1234!");
+    expect(result.message).toContain("Tus datos de acceso al portal");
+    expect(result.message).toContain("Correo:");
+    expect(result.message).toContain("Contraseña:");
+  });
+
+  it("no debe incluir credenciales en mensaje de WhatsApp si no se proporcionan", async () => {
+    const { prepareWhatsAppNotification } = await import("./whatsapp-notifications");
+    
+    const project = {
+      id: 1,
+      name: "Cocina Test",
+      status: "pendiente_cliente",
+      workType: "cocina",
+      client: {
+        name: "Juan Pérez",
+        whatsappPhone: "3136802025",
+      },
+    };
+    
+    const result = prepareWhatsAppNotification(project, "https://test.com");
+    
+    // Verificar que el mensaje NO incluye la sección de credenciales
+    expect(result.message).not.toContain("Tus datos de acceso al portal");
+    expect(result.message).not.toContain("Correo:");
+    expect(result.message).not.toContain("Contraseña:");
+  });
 });

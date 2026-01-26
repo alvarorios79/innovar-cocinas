@@ -2608,3 +2608,9 @@
 - [x] Crear usuario automáticamente si no existe al enviar correo de aprobación
 - [x] Incluir email y contraseña en el cuerpo del correo
 - [x] Probar flujo completo de envío de correo con credenciales (5 tests pasando)
+
+## Credenciales en WhatsApp de Diseño Listo (Enero 2026)
+
+- [x] Agregar credenciales de acceso en el mensaje de WhatsApp de diseño listo
+- [x] Incluir email y contraseña temporal en el mensaje
+- [x] Verificar que el mensaje se genera correctamente (7 tests pasando)

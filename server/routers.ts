@@ -3181,6 +3181,9 @@ export const appRouter = router({
           }
         }
 
+        // Variable para guardar credenciales del cliente (para WhatsApp)
+        let savedClientCredentials: { email: string; password: string } | null = null;
+        
         // Notificar al cliente cuando el diseño está listo (pendiente_cliente)
         if (newStatus === "pendiente_cliente") {
           try {
@@ -3347,6 +3350,11 @@ export const appRouter = router({
                 }
               }
               
+              // Guardar credenciales para WhatsApp
+              if (clientCredentials) {
+                savedClientCredentials = clientCredentials;
+              }
+              
               // Notificar a super_admin, admin y comercial
               const allUsers = await db.getAllUsers();
               const notifyRoles = ["super_admin", "admin", "comercial"];
@@ -3421,7 +3429,12 @@ export const appRouter = router({
               whatsappPhone: client.whatsappPhone,
             },
           };
-          whatsappNotification = prepareWhatsAppNotification(projectWithClient, baseUrl);
+          // Pasar credenciales si es estado pendiente_cliente
+          whatsappNotification = prepareWhatsAppNotification(
+            projectWithClient, 
+            baseUrl,
+            newStatus === "pendiente_cliente" ? savedClientCredentials || undefined : undefined
+          );
           
           // Si el proyecto pasa a "entregado", enviar recordatorio del 40% pendiente
           if (newStatus === "entregado") {

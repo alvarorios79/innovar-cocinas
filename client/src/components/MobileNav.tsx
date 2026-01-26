@@ -76,7 +76,7 @@ export function MobileNav() {
       roles: ["admin", "super_admin", "comercial", "jefe_taller"]
     },
     { 
-      href: "/admin", 
+      href: user?.role === "comercial" ? "/comercial" : "/admin", 
       label: user?.role === "comercial" ? "Panel Comercial" : "Panel Admin", 
       icon: <Settings className="h-5 w-5" />,
       roles: ["admin", "super_admin", "comercial"]

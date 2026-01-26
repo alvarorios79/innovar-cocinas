@@ -2658,3 +2658,16 @@
 - [x] Corregir el código para mostrar los proyectos correctamente
 - [x] Agregar navegación completa para rol comercial (Proyectos, Tareas, Calendario, Panel Comercial)
 - [x] Actualizar MobileNav para incluir rol comercial
+
+
+## Panel Comercial Simplificado (Enero 2026)
+
+- [x] Crear página /comercial con diseño simplificado
+- [x] Sección: Acciones Rápidas (+ Nuevo Cliente, + Nueva Cita, + Nueva Cotización)
+- [x] Sección: Programar Instalación (proyectos en "ensamble")
+- [x] Sección: Instalaciones Programadas
+- [x] Sección: Citas del Día
+- [x] Sección: Cotizaciones Activas (pendientes de aprobación)
+- [x] Sección: Por Vencer (cotizaciones que vencen en 3 días)
+- [x] Funcionalidad: Programar fecha de instalación desde el panel
+- [x] Agregar ruta y navegación para rol comercial

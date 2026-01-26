@@ -387,7 +387,7 @@ export default function Home() {
                       <Link href="/calendar">
                         <Button variant="ghost" size="sm" className="text-sm">Calendario</Button>
                       </Link>
-                      <Link href="/admin">
+                      <Link href="/comercial">
                         <Button variant="ghost" size="sm" className="text-sm">Panel Comercial</Button>
                       </Link>
                     </>

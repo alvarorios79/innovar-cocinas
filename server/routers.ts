@@ -3351,6 +3351,42 @@ export const appRouter = router({
           }
         }
 
+        // Notificar al comercial cuando el proyecto entra a ensamble (para coordinar instalación)
+        if (newStatus === "ensamble") {
+          try {
+            const allUsers = await db.getAllUsers();
+            const comerciales = allUsers.filter(u => u.role === "comercial");
+            const clientData = await db.getClientById(project.clientId);
+            
+            for (const comercial of comerciales) {
+              // Crear notificación en la base de datos
+              await db.createNotification({
+                userId: comercial.id,
+                title: `🔔 Coordinar Instalación`,
+                body: `El proyecto "${project.name}" de ${clientData?.name || 'Cliente'} entró a ENSAMBLE. Coordina la fecha de instalación.`,
+                type: "proyecto",
+                referenceId: project.id,
+                referenceType: "project",
+              });
+              
+              // Intentar enviar notificación push
+              try {
+                const { createAndSendNotification } = await import("./push-notifications");
+                await createAndSendNotification(comercial.id, {
+                  title: `🔔 Coordinar Instalación`,
+                  body: `${project.name} en ENSAMBLE - Programa instalación`,
+                  type: "proyecto",
+                  url: "/comercial",
+                });
+              } catch (e) {
+                // Silenciar error de push
+              }
+            }
+          } catch (e) {
+            console.error("Error notificando al comercial:", e);
+          }
+        }
+
         // Variable para guardar credenciales del cliente (para WhatsApp)
         let savedClientCredentials: { email: string; password: string } | null = null;
         

@@ -2671,3 +2671,11 @@
 - [x] Sección: Por Vencer (cotizaciones que vencen en 3 días)
 - [x] Funcionalidad: Programar fecha de instalación desde el panel
 - [x] Agregar ruta y navegación para rol comercial
+
+
+## Notificación Push y WhatsApp para Comercial (Enero 2026)
+
+- [x] Notificación push automática cuando proyecto entra a ensamble
+- [x] Enviar alerta a Martha (comercial) para coordinar instalación
+- [x] Agregar botón de WhatsApp directo en cotizaciones activas del Panel Comercial
+- [x] Mensaje predefinido con nombre del cliente y monto de la cotización

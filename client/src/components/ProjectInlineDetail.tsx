@@ -750,6 +750,20 @@ export function ProjectInlineDetail({
                 </div>
               </CardHeader>
               <CardContent className="text-sm space-y-1">
+                {/* Fechas de la cotización */}
+                {(projectDetail as any).quotation?.createdAt && user?.role !== "disenador" && user?.role !== "jefe_taller" && (
+                  <p className="text-blue-600">
+                    <strong>📋 Cotización creada:</strong> {new Date((projectDetail as any).quotation.createdAt).toLocaleDateString("es-CO")}
+                  </p>
+                )}
+                {(projectDetail as any).quotation?.validUntil && user?.role !== "disenador" && user?.role !== "jefe_taller" && (
+                  <p className={new Date((projectDetail as any).quotation.validUntil) < new Date() ? "text-red-500" : "text-blue-600"}>
+                    <strong>📅 Válida hasta:</strong> {new Date((projectDetail as any).quotation.validUntil).toLocaleDateString("es-CO")}
+                    {new Date((projectDetail as any).quotation.validUntil) < new Date() && " (Vencida)"}
+                  </p>
+                )}
+                
+                {/* Fechas del proyecto */}
                 <p><strong>Creado:</strong> {new Date(projectDetail.createdAt).toLocaleDateString("es-CO")}</p>
                 {projectDetail.quotationApprovedAt && user?.role !== "disenador" && user?.role !== "jefe_taller" && (
                   <p><strong>Cotización aprobada:</strong> {new Date(projectDetail.quotationApprovedAt).toLocaleDateString("es-CO")}</p>
@@ -757,7 +771,19 @@ export function ProjectInlineDetail({
                 {projectDetail.advanceReceivedAt && user?.role !== "disenador" && user?.role !== "jefe_taller" && (
                   <p><strong>Adelanto recibido:</strong> {new Date(projectDetail.advanceReceivedAt).toLocaleDateString("es-CO")}</p>
                 )}
-                {projectDetail.estimatedInstallDate && projectDetail.status !== "entregado" && (
+                
+                {/* Fechas de instalación - Tentativa (roja) u Oficial (verde) */}
+                {projectDetail.tentativeInstallDate && !projectDetail.isInstallDateOfficial && projectDetail.status !== "entregado" && (
+                  <p className="text-red-600 font-medium">
+                    <strong>🔴 Instalación tentativa:</strong> {new Date(projectDetail.tentativeInstallDate).toLocaleDateString("es-CO")}
+                  </p>
+                )}
+                {projectDetail.estimatedInstallDate && projectDetail.isInstallDateOfficial && projectDetail.status !== "entregado" && (
+                  <p className="text-green-600 font-medium">
+                    <strong>🟢 Instalación oficial:</strong> {new Date(projectDetail.estimatedInstallDate).toLocaleDateString("es-CO")}
+                  </p>
+                )}
+                {projectDetail.estimatedInstallDate && !projectDetail.isInstallDateOfficial && !projectDetail.tentativeInstallDate && projectDetail.status !== "entregado" && (
                   <p className={`font-medium ${
                     new Date(projectDetail.estimatedInstallDate) < new Date() 
                       ? "text-red-600" 

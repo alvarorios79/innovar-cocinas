@@ -2945,6 +2945,7 @@ export const appRouter = router({
       .input(z.object({ id: z.number() }))
       .query(async ({ ctx, input }) => {
         const project = await db.getProjectById(input.id);
+        console.log('[DEBUG] Project quotationId:', project?.quotationId);
         if (!project) {
           throw new TRPCError({ code: "NOT_FOUND", message: "Proyecto no encontrado" });
         }
@@ -2970,8 +2971,10 @@ export const appRouter = router({
         const actualPaid = totalPaid > 0 ? totalPaid : advanceAmount;
         const remainingAmount = totalAmount - actualPaid;
 
+        console.log('[DEBUG] Building result with quotationId:', project.quotationId, 'quotation:', quotation?.id);
         const result = {
           ...project,
+          quotationId: project.quotationId,
           client,
           photos,
           details,
@@ -2992,7 +2995,7 @@ export const appRouter = router({
         };
         
 
-        
+        console.log('[DEBUG] Final result quotationId:', result.quotationId, 'quotation:', JSON.stringify(result.quotation));
         return result;
       }),
 

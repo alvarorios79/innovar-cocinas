@@ -2590,3 +2590,13 @@
 - [ ] Agregar botón "Crear Proyecto" en la vista de cotización
 - [ ] Transferir datos financieros (total, items) al proyecto
 - [ ] Transferir fechas (tentativa de entrega) al proyecto
+
+## Fechas de Cotización en Proyectos (Enero 2026)
+
+- [x] Agregar fechas de cotización (creación y validez) a la vista de detalle del proyecto
+- [x] Mostrar fecha de cotización creada con emoji 📋 en azul
+- [x] Mostrar fecha de validez de cotización con emoji 📅 en azul (rojo si vencida)
+- [x] Mostrar fecha tentativa de instalación con emoji 🔴 en rojo
+- [x] Mostrar fecha oficial de instalación con emoji 🟢 en verde (cuando se aprueba diseño)
+- [x] Actualizar ProjectDetail.tsx con las nuevas fechas
+- [x] Actualizar ProjectInlineDetail.tsx con las nuevas fechas

@@ -651,10 +651,40 @@ export default function ProjectDetail() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="text-sm space-y-2 pt-4">
+                  {/* Fechas de la cotización */}
+                  {(projectDetail as any).quotation?.createdAt && (
+                    <p className="text-blue-600">
+                      <strong>📋 Cotización creada:</strong> {formatDate((projectDetail as any).quotation.createdAt)}
+                    </p>
+                  )}
+                  {(projectDetail as any).quotation?.validUntil && (
+                    <p className={new Date((projectDetail as any).quotation.validUntil) < new Date() ? "text-red-500" : "text-blue-600"}>
+                      <strong>📅 Válida hasta:</strong> {formatDate((projectDetail as any).quotation.validUntil)}
+                      {new Date((projectDetail as any).quotation.validUntil) < new Date() && " (Vencida)"}
+                    </p>
+                  )}
+                  
+                  {/* Fecha de creación del proyecto */}
                   <p><strong>Creado:</strong> {formatDate(projectDetail.createdAt)}</p>
-                  <p><strong>Instalación Est.:</strong> {formatDate(projectDetail.estimatedInstallDate)}</p>
+                  
+                  {/* Fechas de instalación - Tentativa (roja) u Oficial (verde) */}
+                  {projectDetail.tentativeInstallDate && !projectDetail.isInstallDateOfficial && projectDetail.status !== "entregado" && (
+                    <p className="text-red-600 font-medium">
+                      <strong>🔴 Instalación tentativa:</strong> {formatDate(projectDetail.tentativeInstallDate)}
+                    </p>
+                  )}
+                  {projectDetail.estimatedInstallDate && projectDetail.isInstallDateOfficial && projectDetail.status !== "entregado" && (
+                    <p className="text-green-600 font-medium">
+                      <strong>🟢 Instalación oficial:</strong> {formatDate(projectDetail.estimatedInstallDate)}
+                    </p>
+                  )}
+                  {projectDetail.estimatedInstallDate && !projectDetail.isInstallDateOfficial && !projectDetail.tentativeInstallDate && projectDetail.status !== "entregado" && (
+                    <p><strong>Instalación Est.:</strong> {formatDate(projectDetail.estimatedInstallDate)}</p>
+                  )}
                   {projectDetail.deliveredAt && (
-                    <p><strong>Entregado:</strong> {formatDate(projectDetail.deliveredAt)}</p>
+                    <p className="text-green-600 font-medium">
+                      <strong>Entregado:</strong> {formatDate(projectDetail.deliveredAt)}
+                    </p>
                   )}
                 </CardContent>
               </Card>

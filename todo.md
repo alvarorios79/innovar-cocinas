@@ -2695,3 +2695,8 @@
 ## Bug Crítico - Pestaña Fotos no funciona en versión publicada
 - [ ] Investigar por qué las fotos no aparecen en la versión publicada
 - [ ] Corregir el problema de visualización de fotos
+
+
+## Permisos de Fotos para Comercial
+- [ ] Dar acceso al rol comercial para ver fotos de proyecto
+- [ ] Permitir subir fotos desde el panel comercial

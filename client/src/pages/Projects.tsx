@@ -1244,17 +1244,17 @@ export default function Projects() {
                     
                     // Permisos de visualización por carpeta según rol
                     const viewPermissions: Record<string, string[]> = {
-                      // Cotización/Documento: solo Cliente/Usuario
-                      documento_cotizacion: ["user", "super_admin", "admin"],
-                      // Medidas: Diseñador, Jefe Taller, Super Admin, Admin
-                      fotos_iniciales: ["disenador", "jefe_taller", "super_admin", "admin"],
-                      dibujo: ["disenador", "jefe_taller", "super_admin", "admin"],
-                      // Diseños: Super Admin, Admin, Jefe Taller, Operario
-                      renders: ["super_admin", "admin", "jefe_taller", "operario"],
-                      despieces: ["super_admin", "admin", "jefe_taller", "operario"],
-                      detalles: ["super_admin", "admin", "jefe_taller", "operario"],
+                      // Cotización/Documento: Super Admin, Admin y Comercial
+                      documento_cotizacion: ["super_admin", "admin", "comercial"],
+                      // Medidas: Super Admin, Admin, Comercial, Diseñador, Jefe Taller
+                      fotos_iniciales: ["super_admin", "admin", "comercial", "disenador", "jefe_taller"],
+                      dibujo: ["disenador", "jefe_taller", "super_admin", "admin", "comercial"],
+                      // Diseños: Super Admin, Admin, Comercial, Jefe Taller, Operario
+                      renders: ["super_admin", "admin", "comercial", "jefe_taller", "operario"],
+                      despieces: ["super_admin", "admin", "comercial", "jefe_taller", "operario"],
+                      detalles: ["super_admin", "admin", "comercial", "jefe_taller", "operario"],
                       // Avance: Todos (incluido Cliente)
-                      corte: ["super_admin", "admin", "disenador", "jefe_taller", "operario", "user", "comercial"],
+                      corte: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario", "user"],
                       enchape: ["super_admin", "admin", "disenador", "jefe_taller", "operario", "user", "comercial"],
                       armado: ["super_admin", "admin", "disenador", "jefe_taller", "operario", "user", "comercial"],
                       // Instalación: Todos (incluido Cliente)

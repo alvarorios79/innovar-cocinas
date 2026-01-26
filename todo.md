@@ -2746,3 +2746,4 @@
 - [x] Agregar checkbox en formulario de crear/editar cliente
 - [x] Modificar lógica de notificaciones para no enviar al cliente cuando está marcado
 - [ ] Habilitar botón "Aprobar en nombre del cliente" para admin/comercial (pendiente)
+- [x] Agregar etiqueta/ícono visual en lista de clientes para identificar gestión interna

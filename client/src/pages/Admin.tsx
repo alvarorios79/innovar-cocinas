@@ -1054,7 +1054,17 @@ export default function Admin() {
                                   className="mt-1"
                                 />
                                 <div className="flex-1 space-y-1">
-                                  <h3 className="font-semibold">{client.name}</h3>
+                                  <div className="flex items-center gap-2">
+                                    <h3 className="font-semibold">{client.name}</h3>
+                                    {client.internalManagement && (
+                                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 border border-amber-200">
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                                          <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                                        </svg>
+                                        Gestión interna
+                                      </span>
+                                    )}
+                                  </div>
                                   <p className="text-sm">
                                     <span className="font-medium">WhatsApp:</span> {client.whatsappPhone}
                                   </p>

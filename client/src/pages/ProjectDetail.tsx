@@ -467,7 +467,7 @@ export default function ProjectDetail() {
           )}
         </div>
 
-        {/* Alerta de aprobación */}
+        {/* Alerta de aprobación - Flujo en dos pasos: Modelado → Renders */}
         {projectDetail.status === "pendiente_cliente" && 
           (user?.role === "admin" || user?.role === "super_admin" || user?.role === "comercial") && (
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
@@ -476,13 +476,44 @@ export default function ProjectDetail() {
               Pendiente de Aprobación del Cliente
             </h4>
             <p className="text-sm text-yellow-700 mb-4">
-              Puedes enviar los diseños por WhatsApp al cliente y aprobar en su nombre cuando confirme.
+              Flujo de aprobación: <strong>1) Enviar Modelado</strong> para que el cliente revise y solicite cambios → <strong>2) Enviar Renders</strong> para aprobación final.
             </p>
             
-            {/* Botón de WhatsApp para enviar renders */}
+            {/* PASO 1: Botón de WhatsApp para enviar MODELADO (revisión) */}
+            {projectDetail.photos && projectDetail.photos.filter((p: any) => p.subcategory === "modelado").length > 0 && (
+              <div className="mb-4 p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                <p className="text-sm text-purple-700 mb-2 font-medium">📐 Paso 1: Enviar Modelado para Revisión</p>
+                <p className="text-xs text-purple-600 mb-2">El cliente revisará el modelado y podrá solicitar cambios antes de continuar.</p>
+                <Button
+                  size="sm"
+                  className="bg-purple-500 hover:bg-purple-600 text-white"
+                  onClick={() => {
+                    const clientPhone = projectDetail.client?.phone?.replace(/\D/g, "");
+                    const clientName = projectDetail.client?.name || "Cliente";
+                    const projectName = projectDetail.name;
+                    
+                    // Obtener URLs del modelado
+                    const modeladoPhotos = projectDetail.photos?.filter((p: any) => p.subcategory === "modelado") || [];
+                    const modeladoUrls = modeladoPhotos.map((p: any) => p.photoUrl).join("\n");
+                    
+                    const message = `¡Hola ${clientName}! 👋\n\nLe escribo de *INNOVAR Cocinas Integrales*.\n\nYa tenemos listo el *modelado 3D* de su proyecto *"${projectName}"*. 📐\n\nPor favor revise las imágenes y díganos si necesita algún cambio o ajuste antes de continuar con los renders finales.\n\n*Imágenes del modelado:*\n${modeladoUrls}\n\n¿Está conforme con el modelado o necesita algún cambio? 🤔`;
+                    
+                    const whatsappUrl = `https://wa.me/57${clientPhone}?text=${encodeURIComponent(message)}`;
+                    window.open(whatsappUrl, "_blank");
+                  }}
+                >
+                  <MessageCircle className="h-4 w-4 mr-1" />
+                  Enviar Modelado por WhatsApp
+                </Button>
+                <p className="text-xs text-purple-500 mt-2">Se enviarán {projectDetail.photos?.filter((p: any) => p.subcategory === "modelado").length} imagen(es) de modelado al cliente</p>
+              </div>
+            )}
+            
+            {/* PASO 2: Botón de WhatsApp para enviar RENDERS (aprobación final) */}
             {projectDetail.photos && projectDetail.photos.filter((p: any) => p.subcategory === "renders").length > 0 && (
               <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-                <p className="text-sm text-green-700 mb-2 font-medium">📸 Enviar Diseños por WhatsApp:</p>
+                <p className="text-sm text-green-700 mb-2 font-medium">🎨 Paso 2: Enviar Renders para Aprobación Final</p>
+                <p className="text-xs text-green-600 mb-2">Envía los renders finales para que el cliente apruebe y continúe la producción.</p>
                 <Button
                   size="sm"
                   className="bg-green-500 hover:bg-green-600 text-white"
@@ -495,41 +526,45 @@ export default function ProjectDetail() {
                     const renderPhotos = projectDetail.photos?.filter((p: any) => p.subcategory === "renders") || [];
                     const renderUrls = renderPhotos.map((p: any) => p.photoUrl).join("\n");
                     
-                    const message = `¡Hola ${clientName}! 👋\n\nLe escribo de *INNOVAR Cocinas Integrales*.\n\nYa tenemos listos los diseños 3D de su proyecto *"${projectName}"*. 🎨\n\nPor favor revise las imágenes que le envío a continuación y confirme si está de acuerdo con el diseño para continuar con la producción.\n\nSi necesita algún cambio, con gusto lo ajustamos.\n\n*Imágenes del diseño:*\n${renderUrls}\n\n¿Aprueba el diseño? ✅`;
+                    const message = `¡Hola ${clientName}! 👋\n\nLe escribo de *INNOVAR Cocinas Integrales*.\n\nYa tenemos listos los *renders finales* de su proyecto *"${projectName}"*. 🎨\n\nEstos son los diseños definitivos. Por favor revíselos y confirme si está de acuerdo para iniciar la producción.\n\n*Renders del diseño:*\n${renderUrls}\n\n¿Aprueba el diseño para iniciar producción? ✅`;
                     
                     const whatsappUrl = `https://wa.me/57${clientPhone}?text=${encodeURIComponent(message)}`;
                     window.open(whatsappUrl, "_blank");
                   }}
                 >
                   <MessageCircle className="h-4 w-4 mr-1" />
-                  Enviar Diseños por WhatsApp
+                  Enviar Renders por WhatsApp
                 </Button>
-                <p className="text-xs text-green-600 mt-2">Se enviarán {projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length} imagen(es) de diseño al cliente</p>
+                <p className="text-xs text-green-500 mt-2">Se enviarán {projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length} imagen(es) de renders al cliente</p>
               </div>
             )}
             
-            <div className="flex flex-wrap gap-2">
-              <Button
-                size="sm"
-                onClick={() => approveDesign.mutate({ projectId: projectDetail.id, approved: true })}
-                disabled={approveDesign.isPending}
-              >
-                <CheckCircle2 className="h-4 w-4 mr-1" />
-                Aprobar Diseño
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => {
-                  const notes = prompt("Indica qué cambios se necesitan:");
-                  if (notes) {
-                    approveDesign.mutate({ projectId: projectDetail.id, approved: false, notes });
-                  }
-                }}
-                disabled={approveDesign.isPending}
-              >
-                Solicitar Cambios
-              </Button>
+            {/* Botones de aprobación */}
+            <div className="mt-4 pt-4 border-t border-yellow-200">
+              <p className="text-sm text-yellow-700 mb-3 font-medium">✅ Cuando el cliente confirme por WhatsApp:</p>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  size="sm"
+                  onClick={() => approveDesign.mutate({ projectId: projectDetail.id, approved: true })}
+                  disabled={approveDesign.isPending}
+                >
+                  <CheckCircle2 className="h-4 w-4 mr-1" />
+                  Aprobar Diseño
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    const notes = prompt("Indica qué cambios se necesitan:");
+                    if (notes) {
+                      approveDesign.mutate({ projectId: projectDetail.id, approved: false, notes });
+                    }
+                  }}
+                  disabled={approveDesign.isPending}
+                >
+                  Solicitar Cambios
+                </Button>
+              </div>
             </div>
           </div>
         )}

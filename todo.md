@@ -2710,3 +2710,10 @@
 
 ## Reorganizar Orden de Carpetas de Fotos - Diseños
 - [ ] Cambiar orden a: 1. Modelado, 2. Renders, 3. Detalles, 4. Despiece
+
+
+## Flujo de Aprobación en Dos Pasos (Modelado → Renders)
+- [x] Implementar botón "Enviar Modelado por WhatsApp" para revisión del cliente
+- [x] Implementar botón "Enviar Renders por WhatsApp" para aprobación final
+- [x] Separar el flujo: Modelado para cambios, Renders para aprobación
+- [x] Solo permitir aprobar diseño después de enviar renders

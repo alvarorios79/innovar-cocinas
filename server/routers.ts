@@ -5051,16 +5051,49 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
         type: z.enum(["modelado", "renders"]),
       }))
       .mutation(async ({ input }) => {
-        // Obtener proyecto
+        // Obtener proyecto con cliente
         const project = await db.getProjectById(input.projectId);
         if (!project) {
           throw new TRPCError({ code: "NOT_FOUND", message: "Proyecto no encontrado" });
         }
 
-        // Si es aprobación de renders, actualizar estado del proyecto
-        if (input.type === "renders") {
+        const now = new Date();
+        
+        // Guardar la aprobación según el tipo
+        if (input.type === "modelado") {
           await db.updateProject(input.projectId, {
+            modeladoApprovedAt: now,
+            modeladoApprovedBy: input.clientName,
+          });
+        } else {
+          // Aprobación de renders = aprobación final
+          await db.updateProject(input.projectId, {
+            rendersApprovedAt: now,
+            rendersApprovedBy: input.clientName,
             status: "aprobacion_final",
+          });
+        }
+
+        // Obtener datos del cliente para el mensaje
+        const client = await db.getClientById(project.clientId);
+        
+        // Crear tarea de notificación para el equipo
+        const tipoTexto = input.type === "modelado" ? "Modelado 3D" : "Renders";
+        const taskTitle = `✅ Cliente aprobó ${tipoTexto}: ${project.name}`;
+        const taskDescription = `El cliente ${input.clientName} ha aprobado el ${tipoTexto.toLowerCase()} del proyecto "${project.name}" desde la galería pública.\n\nFecha: ${now.toLocaleString('es-CO')}\n\n${input.type === "modelado" ? "Siguiente paso: Preparar y enviar los renders finales." : "Siguiente paso: Iniciar producción del proyecto."}`;
+        
+        // Notificar al diseñador asignado o al admin
+        const assignTo = project.designerId || (await db.getUsersByRole('admin'))[0]?.id || (await db.getUsersByRole('super_admin'))[0]?.id;
+        
+        if (assignTo) {
+          await db.createTask({
+            projectId: input.projectId,
+            title: taskTitle,
+            description: taskDescription,
+            priority: "alta",
+            assignedTo: assignTo,
+            assignedBy: assignTo, // Auto-asignada por el sistema
+            dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000), // Mañana
           });
         }
 
@@ -5094,9 +5127,50 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
           });
         }
 
+        // Crear tarea de notificación para el equipo
+        const tipoTexto = input.type === "modelado" ? "Modelado 3D" : "Renders";
+        const taskTitle = `📝 Cliente solicitó cambios en ${tipoTexto}: ${project.name}`;
+        const taskDescription = `El cliente ${input.clientName} ha solicitado cambios en el ${tipoTexto.toLowerCase()} del proyecto "${project.name}".\n\n**Cambios solicitados:**\n${input.changes}\n\nFecha: ${new Date().toLocaleString('es-CO')}`;
+        
+        // Notificar al diseñador asignado o al admin
+        const assignTo = project.designerId || (await db.getUsersByRole('admin'))[0]?.id || (await db.getUsersByRole('super_admin'))[0]?.id;
+        
+        if (assignTo) {
+          await db.createTask({
+            projectId: input.projectId,
+            title: taskTitle,
+            description: taskDescription,
+            priority: "alta",
+            assignedTo: assignTo,
+            assignedBy: assignTo, // Auto-asignada por el sistema
+            dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000), // Mañana
+          });
+        }
+
         return { 
           success: true, 
           message: "¡Gracias! Hemos registrado sus comentarios. Nuestro equipo de diseño revisará los cambios solicitados y se pondrá en contacto pronto."
+        };
+      }),
+
+    // Obtener estado de aprobación del proyecto
+    getApprovalStatus: publicProcedure
+      .input(z.object({
+        projectId: z.number(),
+      }))
+      .query(async ({ input }) => {
+        const project = await db.getProjectById(input.projectId);
+        if (!project) {
+          return { modeladoApproved: false, rendersApproved: false };
+        }
+        
+        return {
+          modeladoApproved: !!project.modeladoApprovedAt,
+          modeladoApprovedAt: project.modeladoApprovedAt,
+          modeladoApprovedBy: project.modeladoApprovedBy,
+          rendersApproved: !!project.rendersApprovedAt,
+          rendersApprovedAt: project.rendersApprovedAt,
+          rendersApprovedBy: project.rendersApprovedBy,
         };
       }),
   }),

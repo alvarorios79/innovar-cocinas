@@ -187,6 +187,12 @@ export const projects = mysqlTable("projects", {
   // Fecha de aprobación final del cliente (inicia 25 días hábiles)
   clientApprovedAt: timestamp("clientApprovedAt"),
   clientApprovalNotes: text("clientApprovalNotes"),
+  // Aprobación del modelado 3D por el cliente (desde galería pública)
+  modeladoApprovedAt: timestamp("modeladoApprovedAt"),
+  modeladoApprovedBy: varchar("modeladoApprovedBy", { length: 255 }), // Nombre del cliente que aprobó
+  // Aprobación de renders por el cliente (desde galería pública)
+  rendersApprovedAt: timestamp("rendersApprovedAt"),
+  rendersApprovedBy: varchar("rendersApprovedBy", { length: 255 }), // Nombre del cliente que aprobó
   // Selección de colores y materiales
   selectedColors: text("selectedColors"),
   selectedMaterials: text("selectedMaterials"),

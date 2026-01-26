@@ -60,6 +60,25 @@ export default function PublicGallery() {
     { enabled: projectId > 0 }
   );
 
+  // Consultar estado de aprobación
+  const { data: approvalStatus } = trpc.publicGallery.getApprovalStatus.useQuery(
+    { projectId },
+    { enabled: projectId > 0 }
+  );
+
+  // Determinar si ya está aprobado según el tipo
+  const isAlreadyApproved = photoType === "renders" 
+    ? approvalStatus?.rendersApproved 
+    : approvalStatus?.modeladoApproved;
+  
+  const approvedBy = photoType === "renders"
+    ? approvalStatus?.rendersApprovedBy
+    : approvalStatus?.modeladoApprovedBy;
+    
+  const approvedAt = photoType === "renders"
+    ? approvalStatus?.rendersApprovedAt
+    : approvalStatus?.modeladoApprovedAt;
+
   const approveMutation = trpc.publicGallery.approveDesign.useMutation({
     onSuccess: (result) => {
       toast.success(result.message);
@@ -212,6 +231,27 @@ export default function PublicGallery() {
           )}
         </div>
 
+        {/* Mensaje de ya aprobado (desde la base de datos) */}
+        {isAlreadyApproved && !actionCompleted && (
+          <Card className="mb-6 p-6 bg-green-50 border-green-200">
+            <div className="flex items-center gap-3">
+              <CheckCircle className="h-8 w-8 text-green-600" />
+              <div>
+                <h3 className="font-semibold text-green-800">¡{designTypeLabel} Aprobado!</h3>
+                <p className="text-green-700 text-sm">
+                  {approvedBy && `Aprobado por ${approvedBy}`}
+                  {approvedAt && ` el ${new Date(approvedAt).toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' })}`}
+                </p>
+                <p className="text-green-600 text-sm mt-1">
+                  {photoType === "modelado" 
+                    ? "Nuestro equipo está preparando los renders finales."
+                    : "Tu proyecto está en producción. Pronto te contactaremos."}
+                </p>
+              </div>
+            </div>
+          </Card>
+        )}
+
         {/* Mensaje de acción completada */}
         {actionCompleted && (
           <Card className={`mb-6 p-6 ${actionCompleted === "approved" ? "bg-green-50 border-green-200" : "bg-blue-50 border-blue-200"}`}>
@@ -307,8 +347,8 @@ export default function PublicGallery() {
           </div>
         )}
 
-        {/* Sección de aprobación - Solo mostrar si hay fotos y no se ha completado una acción */}
-        {filteredPhotos.length > 0 && !actionCompleted && (
+        {/* Sección de aprobación - Solo mostrar si hay fotos, no se ha completado una acción y no está ya aprobado */}
+        {filteredPhotos.length > 0 && !actionCompleted && !isAlreadyApproved && (
           <Card className="mt-8 p-6 bg-gradient-to-r from-amber-50 to-orange-50 border-amber-200">
             <div className="text-center">
               <h3 className="text-lg font-semibold text-gray-800 mb-2">

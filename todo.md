@@ -2727,3 +2727,8 @@
 - [x] Actualizar galería pública con logo original de INNOVAR
 - [x] Implementar marca de agua con logo INNOVAR en fotos de galería pública
 - [x] Agregar botón de aprobación con confirmación en galería pública
+
+## Notificaciones y Estado de Aprobación en Galería Pública
+
+- [x] Notificar al equipo (Martha/diseñador) cuando cliente aprueba o solicita cambios en galería pública
+- [x] Mostrar estado de aprobación en galería pública si el cliente ya aprobó

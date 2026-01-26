@@ -26,7 +26,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Plus, Trash2, FileText, Send, Eye, Pencil, Mail, Search, X, UserPlus } from "lucide-react";
+import { Plus, Trash2, FileText, Send, Eye, Pencil, Mail, Search, X, UserPlus, FolderPlus } from "lucide-react";
 import { toast } from "sonner";
 import { formatPrice } from "@/lib/formatters";
 import { CreateQuickClientDialog } from "@/components/CreateQuickClientDialog";
@@ -228,6 +228,16 @@ export default function Quotations() {
     },
     onError: (error) => {
       toast.error(error.message || "Error al generar vista previa");
+    },
+  });
+
+  const createProjectFromQuotation = trpc.quotations.createProject.useMutation({
+    onSuccess: (data) => {
+      toast.success(`Proyecto #${data.projectId} creado exitosamente`);
+      utils.quotations.list.invalidate();
+    },
+    onError: (error) => {
+      toast.error(error.message || "Error al crear el proyecto");
     },
   });
 
@@ -1135,6 +1145,26 @@ export default function Quotations() {
                     Enviar Email
                   </Button>
 
+                  {!quot.projectId && (
+                    <Button
+                      size="sm"
+                      variant="default"
+                      className="bg-green-600 hover:bg-green-700"
+                      onClick={() => {
+                        if (
+                          window.confirm(
+                            `¿Crear proyecto para la cotización ${quot.quotationNumber}?\n\nEsto creará un proyecto con los datos financieros y fechas de la cotización.`
+                          )
+                        ) {
+                          createProjectFromQuotation.mutate({ quotationId: quot.id });
+                        }
+                      }}
+                      disabled={createProjectFromQuotation.isPending}
+                    >
+                      <FolderPlus className="h-4 w-4 mr-1" />
+                      Crear Proyecto
+                    </Button>
+                  )}
                   <Button
                     size="sm"
                     variant="destructive"

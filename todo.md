@@ -2584,3 +2584,9 @@
 - [x] Mostrar fecha oficial en verde en el calendario
 - [x] Actualizar vista de proyecto con indicadores de color (🟥 tentativa, 🟩 oficial)
 - [x] Actualizar leyenda del calendario con nuevos colores
+
+
+## Botón Crear Proyecto desde Cotización
+- [ ] Agregar botón "Crear Proyecto" en la vista de cotización
+- [ ] Transferir datos financieros (total, items) al proyecto
+- [ ] Transferir fechas (tentativa de entrega) al proyecto

@@ -2497,6 +2497,100 @@ export const appRouter = router({
         return { success: true };
       }),
     */
+
+    // Crear proyecto manualmente desde cotización
+    createProject: protectedProcedure
+      .input(z.object({
+        quotationId: z.number(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        // Solo admin y super_admin pueden crear proyectos
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "comercial") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para crear proyectos" });
+        }
+
+        // Obtener la cotización
+        const quotation = await db.getQuotationById(input.quotationId);
+        if (!quotation) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Cotización no encontrada" });
+        }
+
+        // Verificar que no exista ya un proyecto para esta cotización
+        const existingProject = await db.getProjectByQuotationId(input.quotationId);
+        if (existingProject) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Ya existe un proyecto para esta cotización" });
+        }
+
+        // Obtener datos del cliente
+        const clientData = await db.getClientById(quotation.clientId);
+
+        // Mapear tipo de producto a tipo de trabajo
+        const workTypeMap: Record<string, "cocina" | "closet" | "puertas" | "centro_tv"> = {
+          cocina: "cocina",
+          closet: "closet",
+          puertas: "puertas",
+          centro_tv: "centro_tv",
+          meson: "cocina",
+          herrajes: "cocina",
+          otro: "cocina",
+        };
+        
+        const workType = workTypeMap[quotation.productType] || "cocina";
+        const projectName = `${clientData?.name || "Cliente"} - ${quotation.quotationNumber}`;
+        
+        // Calcular fecha TENTATIVA de instalación: 25 días hábiles desde hoy
+        const tentativeDate = await addBusinessDays(new Date(), 25);
+        
+        // Crear el proyecto con datos financieros de la cotización
+        const projectId = await db.createProject({
+          quotationId: quotation.id,
+          clientId: quotation.clientId,
+          name: projectName,
+          workType: workType,
+          status: "cotizacion_aprobada",
+          quotationApprovedAt: new Date(),
+          createdBy: ctx.user.id,
+          tentativeInstallDate: tentativeDate,
+          isInstallDateOfficial: false,
+          totalAmount: quotation.total, // Precio total de la cotización
+        });
+        
+        // Crear historial de estado del proyecto
+        await db.createProjectStatusHistory({
+          projectId: projectId,
+          fromStatus: "cotizacion_enviada",
+          toStatus: "cotizacion_aprobada",
+          changedBy: ctx.user.id,
+          notes: `Proyecto creado manualmente desde cotización ${quotation.quotationNumber}`,
+        });
+
+        // Actualizar el estado de la cotización a aprobada
+        await db.updateQuotation(input.quotationId, {
+          status: "approved",
+        });
+        
+        // Notificar a super_admin, admin y comercial
+        const admins = await db.getAllUsers();
+        const notifyRoles = ["super_admin", "admin", "comercial"];
+        const usersToNotify = admins.filter(u => notifyRoles.includes(u.role));
+        
+        for (const user of usersToNotify) {
+          await db.createNotification({
+            userId: user.id,
+            title: "¡Proyecto Creado!",
+            body: `Se ha creado el proyecto #${projectId} para ${clientData?.name || "Cliente"} desde la cotización ${quotation.quotationNumber}.`,
+            type: "proyecto",
+            referenceId: projectId,
+            referenceType: "project",
+          });
+        }
+        
+        return { 
+          success: true, 
+          projectId,
+          message: `Proyecto #${projectId} creado exitosamente`
+        };
+      }),
   }),
 
   // ============ AVAILABILITY ============

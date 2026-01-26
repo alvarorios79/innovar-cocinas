@@ -172,6 +172,8 @@ export const projects = mysqlTable("projects", {
   quotationApprovedAt: timestamp("quotationApprovedAt"),
   // Fecha de recepción del adelanto (inicia contador de 3 días para diseño)
   advanceReceivedAt: timestamp("advanceReceivedAt"),
+  // Monto total del proyecto (de la cotización)
+  totalAmount: decimal("totalAmount", { precision: 12, scale: 2 }),
   // Monto del adelanto
   advanceAmount: decimal("advanceAmount", { precision: 12, scale: 2 }),
   // URL del comprobante de pago del adelanto

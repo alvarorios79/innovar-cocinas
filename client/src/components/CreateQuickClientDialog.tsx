@@ -122,14 +122,13 @@ Te hemos creado una cuenta en INNOVAR Cocinas para que puedas seguir el estado d
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="email">Email *</Label>
+                <Label htmlFor="email">Email (opcional)</Label>
                 <Input
                   id="email"
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   placeholder="cliente@email.com"
-                  required
                 />
               </div>
               <div className="space-y-2">

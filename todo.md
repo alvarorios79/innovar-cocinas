@@ -2690,3 +2690,8 @@
 - [ ] La pestaña Fotos en el detalle del proyecto aparece vacía
 - [ ] Hay 5 fotos en la base de datos pero no se muestran
 - [ ] Revisar el código de ProjectDetail.tsx sección Fotos
+
+
+## Bug Crítico - Pestaña Fotos no funciona en versión publicada
+- [ ] Investigar por qué las fotos no aparecen en la versión publicada
+- [ ] Corregir el problema de visualización de fotos

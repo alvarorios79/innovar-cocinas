@@ -107,25 +107,10 @@ export default function PublicGallery() {
         <div className="max-w-6xl mx-auto px-4 py-4">
           <div className="flex items-center justify-center">
             <img 
-              src="/innovar-logo.png" 
+              src="/logo-light.png" 
               alt="INNOVAR Cocinas Integrales" 
-              className="h-12 object-contain"
-              onError={(e) => {
-                // Si no carga el logo, mostrar texto
-                e.currentTarget.style.display = 'none';
-                const textLogo = document.getElementById('text-logo');
-                if (textLogo) textLogo.style.display = 'flex';
-              }}
+              className="h-14 md:h-16 object-contain"
             />
-            <div id="text-logo" className="hidden items-center gap-2">
-              <div className="w-10 h-10 bg-gradient-to-br from-teal-500 to-teal-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-xl">N</span>
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-gray-800">INNOVAR</h1>
-                <p className="text-xs text-gray-500 -mt-1">Cocinas de Diseño</p>
-              </div>
-            </div>
           </div>
         </div>
       </header>

@@ -26,7 +26,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Plus, Trash2, FileText, Send, Eye, Pencil, Mail, Search, X, UserPlus, FolderPlus } from "lucide-react";
+import { Plus, Trash2, FileText, Send, Eye, Pencil, Mail, Search, X, UserPlus, FolderPlus, ChefHat, Ruler, Package, Sofa, DoorOpen, Tv, Wrench, LayoutGrid, Calendar, User, Building2, Truck, Sparkles, CircleDollarSign, Lightbulb, Palette } from "lucide-react";
 import { toast } from "sonner";
 import { formatPrice } from "@/lib/formatters";
 import { CreateQuickClientDialog } from "@/components/CreateQuickClientDialog";
@@ -1284,182 +1284,268 @@ export default function Quotations() {
 
       {/* Dialog para crear cotización */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{editingQuotation ? "Editar Cotización" : "Nueva Cotización"}</DialogTitle>
-          </DialogHeader>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0">
+          {/* Header con gradiente */}
+          <div className="bg-gradient-to-r from-[oklch(0.72_0.14_180)] to-[oklch(0.60_0.14_180)] p-6 rounded-t-lg">
+            <DialogHeader>
+              <DialogTitle className="text-white text-xl flex items-center gap-3">
+                <FileText className="h-6 w-6" />
+                {editingQuotation ? "Editar Cotización" : "Nueva Cotización"}
+              </DialogTitle>
+              <p className="text-white/80 text-sm mt-1">Complete los datos para generar la cotización</p>
+            </DialogHeader>
+          </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Cliente *</Label>
-                <div className="flex gap-2">
-                  <Select
-                    value={selectedClient?.toString() || ""}
-                    onValueChange={(value) => setSelectedClient(parseInt(value))}
-                  >
-                    <SelectTrigger className="flex-1">
-                      <SelectValue placeholder="Seleccionar cliente" />
+          <form onSubmit={handleSubmit} className="p-6 space-y-6">
+            {/* Sección: Información General */}
+            <div className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 rounded-xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm">
+              <h3 className="text-base font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2 mb-4">
+                <User className="h-5 w-5 text-[oklch(0.72_0.14_180)]" />
+                Información General
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-slate-600 dark:text-slate-300 flex items-center gap-2">
+                    <Building2 className="h-4 w-4" />
+                    Cliente
+                  </Label>
+                  <div className="flex gap-2">
+                    <Select
+                      value={selectedClient?.toString() || ""}
+                      onValueChange={(value) => setSelectedClient(parseInt(value))}
+                    >
+                      <SelectTrigger className="flex-1 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 hover:border-[oklch(0.72_0.14_180)] transition-colors">
+                        <SelectValue placeholder="Seleccionar cliente" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {clients.map((client: any) => (
+                          <SelectItem key={client.id} value={client.id.toString()}>
+                            {client.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <CreateQuickClientDialog
+                      trigger={
+                        <Button type="button" variant="outline" size="icon" title="Crear nuevo cliente" className="border-[oklch(0.72_0.14_180)] text-[oklch(0.72_0.14_180)] hover:bg-[oklch(0.72_0.14_180)] hover:text-white transition-colors">
+                          <UserPlus className="h-4 w-4" />
+                        </Button>
+                      }
+                      onClientCreated={(client) => {
+                        utils.clients.list.invalidate();
+                        setSelectedClient(client.id);
+                      }}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-slate-600 dark:text-slate-300 flex items-center gap-2">
+                    <User className="h-4 w-4" />
+                    Vendedor
+                  </Label>
+                  <Select value={vendorName} onValueChange={setVendorName}>
+                    <SelectTrigger className="bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 hover:border-[oklch(0.72_0.14_180)] transition-colors">
+                      <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {clients.map((client: any) => (
-                        <SelectItem key={client.id} value={client.id.toString()}>
-                          {client.name}
-                        </SelectItem>
-                      ))}
+                      <SelectItem value="Alvaro Gutierrez">
+                        Alvaro Gutierrez
+                      </SelectItem>
+                      <SelectItem value="Martha Serna">Martha Serna</SelectItem>
                     </SelectContent>
                   </Select>
-                  <CreateQuickClientDialog
-                    trigger={
-                      <Button type="button" variant="outline" size="icon" title="Crear nuevo cliente">
-                        <UserPlus className="h-4 w-4" />
-                      </Button>
-                    }
-                    onClientCreated={(client) => {
-                      utils.clients.list.invalidate();
-                      setSelectedClient(client.id);
-                    }}
-                  />
                 </div>
-              </div>
-
-              <div>
-                <Label>Vendedor *</Label>
-                <Select value={vendorName} onValueChange={setVendorName}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Alvaro Gutierrez">
-                      Alvaro Gutierrez
-                    </SelectItem>
-                    <SelectItem value="Martha Serna">Martha Serna</SelectItem>
-                  </SelectContent>
-                </Select>
               </div>
             </div>
 
-            {/* Fechas automáticas */}
-            <div className="grid grid-cols-3 gap-4 p-4 bg-muted/50 rounded-lg">
-              <div>
-                <Label className="text-sm text-muted-foreground">Fecha de creación</Label>
-                <div className="mt-1 p-2 bg-background rounded border text-sm font-medium">
-                  {new Date().toLocaleDateString('es-CO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+            {/* Sección: Fechas */}
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 rounded-xl p-5 border border-blue-200 dark:border-blue-800 shadow-sm">
+              <h3 className="text-base font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2 mb-4">
+                <Calendar className="h-5 w-5 text-blue-600" />
+                Fechas de la Cotización
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-blue-100 dark:border-blue-900">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                      <Calendar className="h-4 w-4 text-blue-600" />
+                    </div>
+                    <Label className="text-xs font-medium text-blue-600 dark:text-blue-400 uppercase tracking-wide">Creación</Label>
+                  </div>
+                  <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                    {new Date().toLocaleDateString('es-CO', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
+                  </p>
                 </div>
-              </div>
-              <div>
-                <Label className="text-sm text-muted-foreground">Válida hasta</Label>
-                <div className="mt-1 p-2 bg-background rounded border text-sm font-medium">
-                  {(() => {
-                    const validUntil = new Date();
-                    validUntil.setDate(validUntil.getDate() + 7);
-                    return validUntil.toLocaleDateString('es-CO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-                  })()}
-                  <span className="block text-xs mt-1 text-muted-foreground">7 días de validez</span>
+                <div className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-amber-100 dark:border-amber-900">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-900 flex items-center justify-center">
+                      <Calendar className="h-4 w-4 text-amber-600" />
+                    </div>
+                    <Label className="text-xs font-medium text-amber-600 dark:text-amber-400 uppercase tracking-wide">Validez</Label>
+                  </div>
+                  <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                    {(() => {
+                      const validUntil = new Date();
+                      validUntil.setDate(validUntil.getDate() + 7);
+                      return validUntil.toLocaleDateString('es-CO', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+                    })()}
+                  </p>
+                  <span className="text-xs text-amber-600 dark:text-amber-400">7 días</span>
                 </div>
-              </div>
-              <div>
-                <Label className="text-sm text-muted-foreground">Entrega estimada</Label>
-                <div className="mt-1 p-2 bg-red-50 dark:bg-red-950/30 rounded border border-red-200 dark:border-red-900 text-sm font-medium text-red-700 dark:text-red-400">
-                  {(() => {
-                    // Calcular 25 días hábiles desde hoy
-                    const COLOMBIA_HOLIDAYS_2025 = [
-                      '2025-01-01', '2025-01-06', '2025-03-24', '2025-04-17', '2025-04-18',
-                      '2025-05-01', '2025-06-02', '2025-06-23', '2025-06-30', '2025-07-20',
-                      '2025-08-07', '2025-08-18', '2025-10-13', '2025-11-03', '2025-11-17',
-                      '2025-12-08', '2025-12-25'
-                    ];
-                    const COLOMBIA_HOLIDAYS_2026 = [
-                      '2026-01-01', '2026-01-12', '2026-03-23', '2026-04-02', '2026-04-03',
-                      '2026-05-01', '2026-05-18', '2026-06-08', '2026-06-15', '2026-06-29',
-                      '2026-07-20', '2026-08-07', '2026-08-17', '2026-10-12', '2026-11-02',
-                      '2026-11-16', '2026-12-08', '2026-12-25'
-                    ];
-                    const holidays = [...COLOMBIA_HOLIDAYS_2025, ...COLOMBIA_HOLIDAYS_2026];
-                    
-                    let date = new Date();
-                    let businessDays = 0;
-                    while (businessDays < 25) {
-                      date.setDate(date.getDate() + 1);
-                      const dayOfWeek = date.getDay();
-                      const dateStr = date.toISOString().split('T')[0];
-                      if (dayOfWeek !== 0 && dayOfWeek !== 6 && !holidays.includes(dateStr)) {
-                        businessDays++;
+                <div className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-red-100 dark:border-red-900">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-8 h-8 rounded-full bg-red-100 dark:bg-red-900 flex items-center justify-center">
+                      <Truck className="h-4 w-4 text-red-600" />
+                    </div>
+                    <Label className="text-xs font-medium text-red-600 dark:text-red-400 uppercase tracking-wide">Entrega Est.</Label>
+                  </div>
+                  <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                    {(() => {
+                      const COLOMBIA_HOLIDAYS_2025 = [
+                        '2025-01-01', '2025-01-06', '2025-03-24', '2025-04-17', '2025-04-18',
+                        '2025-05-01', '2025-06-02', '2025-06-23', '2025-06-30', '2025-07-20',
+                        '2025-08-07', '2025-08-18', '2025-10-13', '2025-11-03', '2025-11-17',
+                        '2025-12-08', '2025-12-25'
+                      ];
+                      const COLOMBIA_HOLIDAYS_2026 = [
+                        '2026-01-01', '2026-01-12', '2026-03-23', '2026-04-02', '2026-04-03',
+                        '2026-05-01', '2026-05-18', '2026-06-08', '2026-06-15', '2026-06-29',
+                        '2026-07-20', '2026-08-07', '2026-08-17', '2026-10-12', '2026-11-02',
+                        '2026-11-16', '2026-12-08', '2026-12-25'
+                      ];
+                      const holidays = [...COLOMBIA_HOLIDAYS_2025, ...COLOMBIA_HOLIDAYS_2026];
+                      let date = new Date();
+                      let businessDays = 0;
+                      while (businessDays < 25) {
+                        date.setDate(date.getDate() + 1);
+                        const dayOfWeek = date.getDay();
+                        const dateStr = date.toISOString().split('T')[0];
+                        if (dayOfWeek !== 0 && dayOfWeek !== 6 && !holidays.includes(dateStr)) {
+                          businessDays++;
+                        }
                       }
-                    }
-                    return date.toLocaleDateString('es-CO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-                  })()}
-                  <span className="block text-xs mt-1 text-red-600 dark:text-red-500">
-                    * Tentativa (25 días hábiles)
-                  </span>
+                      return date.toLocaleDateString('es-CO', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+                    })()}
+                  </p>
+                  <span className="text-xs text-red-500">* Tentativa (25 días hábiles)</span>
                 </div>
               </div>
             </div>
 
-            <div>
-              <div className="flex justify-between items-center mb-2">
-                <Label>Items</Label>
-                <Button type="button" size="sm" onClick={addItem}>
+            {/* Sección: Productos */}
+            <div className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 rounded-xl p-5 border border-emerald-200 dark:border-emerald-800 shadow-sm">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-base font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2">
+                  <Package className="h-5 w-5 text-emerald-600" />
+                  Productos a Cotizar
+                </h3>
+                <Button 
+                  type="button" 
+                  size="sm" 
+                  onClick={addItem}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm"
+                >
                   <Plus className="h-4 w-4 mr-1" />
-                  Agregar Ítem
+                  Agregar Producto
                 </Button>
               </div>
 
               <div className="space-y-4">
                 {items.map((item, index) => (
-                  <Card key={index}>
-                    <CardContent className="pt-4">
-                      <div className="flex gap-2 mb-2">
-                        <span className="font-bold">Ítem {item.itemNumber}</span>
-                        {items.length > 1 && (
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => removeItem(index)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                  <div key={index} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+                    {/* Header del Item */}
+                    <div className="bg-gradient-to-r from-slate-100 to-slate-50 dark:from-slate-700 dark:to-slate-800 px-4 py-3 flex justify-between items-center border-b border-slate-200 dark:border-slate-600">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900 flex items-center justify-center text-emerald-700 dark:text-emerald-300 font-bold text-sm">
+                          {item.itemNumber}
+                        </div>
+                        <span className="font-semibold text-slate-700 dark:text-slate-200">
+                          {item.itemType === 'cocina' ? 'Cocina Integral' : 
+                           item.itemType === 'closet' ? 'Closet' :
+                           item.itemType === 'puerta' ? 'Puerta' :
+                           item.itemType === 'centro_tv' ? 'Centro de TV' :
+                           item.itemType === 'mesones' ? 'Mesones' :
+                           item.itemType === 'herrajes' ? 'Herrajes' :
+                           item.itemType === 'otro' ? 'Otro' : 'Nuevo Producto'}
+                        </span>
+                        {item.totalPrice > 0 && (
+                          <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/50 px-2 py-1 rounded">
+                            {formatPrice(item.totalPrice)}
+                          </span>
                         )}
                       </div>
+                      {items.length > 1 && (
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => removeItem(index)}
+                          className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/30"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
 
-                      <div className="grid gap-3">
+                    <div className="p-4">
+                      <div className="grid gap-4">
                         <div>
-                          <Label>Tipo de Producto *</Label>
+                          <Label className="text-sm font-medium text-slate-600 dark:text-slate-300 flex items-center gap-2 mb-2">
+                            <LayoutGrid className="h-4 w-4" />
+                            Tipo de Producto
+                          </Label>
                           <Select 
                             value={item.itemType} 
                             onValueChange={(value) => {
                               updateItem(index, "itemType", value);
                             }}
                           >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecciona el tipo" />
+                            <SelectTrigger className="bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 hover:border-emerald-500 transition-colors">
+                              <SelectValue placeholder="Selecciona el tipo de producto" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="cocina">Cocina Integral</SelectItem>
-                              <SelectItem value="closet">Closet</SelectItem>
-                              <SelectItem value="puerta">Puerta</SelectItem>
-                              <SelectItem value="centro_tv">Centro de TV</SelectItem>
-                              <SelectItem value="mesones">Mesones</SelectItem>
-                              <SelectItem value="herrajes">Herrajes</SelectItem>
-                              <SelectItem value="otro">Otro</SelectItem>
+                              <SelectItem value="cocina">
+                                <span className="flex items-center gap-2"><ChefHat className="h-4 w-4 text-orange-500" /> Cocina Integral</span>
+                              </SelectItem>
+                              <SelectItem value="closet">
+                                <span className="flex items-center gap-2"><Sofa className="h-4 w-4 text-purple-500" /> Closet</span>
+                              </SelectItem>
+                              <SelectItem value="puerta">
+                                <span className="flex items-center gap-2"><DoorOpen className="h-4 w-4 text-amber-500" /> Puerta</span>
+                              </SelectItem>
+                              <SelectItem value="centro_tv">
+                                <span className="flex items-center gap-2"><Tv className="h-4 w-4 text-blue-500" /> Centro de TV</span>
+                              </SelectItem>
+                              <SelectItem value="mesones">
+                                <span className="flex items-center gap-2"><Ruler className="h-4 w-4 text-slate-500" /> Mesones</span>
+                              </SelectItem>
+                              <SelectItem value="herrajes">
+                                <span className="flex items-center gap-2"><Wrench className="h-4 w-4 text-gray-500" /> Herrajes</span>
+                              </SelectItem>
+                              <SelectItem value="otro">
+                                <span className="flex items-center gap-2"><Package className="h-4 w-4 text-teal-500" /> Otro</span>
+                              </SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
 
                         {/* Campos dinámicos para COCINA */}
                         {item.itemType === "cocina" && (
-                          <div className="space-y-4 p-4 bg-muted rounded-lg">
-                            <h3 className="font-semibold text-lg">Configuración de Cocina Integral</h3>
+                          <div className="space-y-4 p-5 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/30 rounded-xl border border-orange-200 dark:border-orange-800">
+                            <h3 className="font-semibold text-base text-slate-700 dark:text-slate-200 flex items-center gap-2">
+                              <ChefHat className="h-5 w-5 text-orange-500" />
+                              Configuración de Cocina Integral
+                            </h3>
                             
                             {/* 1. Forma */}
-                            <div>
-                              <Label>Forma de la Cocina</Label>
+                            <div className="space-y-2">
+                              <Label className="text-sm font-medium text-slate-600 dark:text-slate-300">Forma de la Cocina</Label>
                               <Select 
                                 value={item.kitchenConfig?.shape || ""} 
                                 onValueChange={(value) => updateKitchenConfig(index, "shape", value)}
                               >
-                                <SelectTrigger>
+                                <SelectTrigger className="bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 hover:border-orange-400 transition-colors">
                                   <SelectValue placeholder="Selecciona la forma" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -1476,14 +1562,18 @@ export default function Quotations() {
 
                             {/* 2. Metraje total - No aplica para puertas_tapas */}
                             {item.kitchenConfig?.shape !== 'puertas_tapas' && (
-                            <div>
-                              <Label>Metraje Total {item.kitchenConfig?.shape === 'frente_pll' ? 'del Frente PLL' : item.kitchenConfig?.shape === 'solo_superiores' ? 'Muebles Superiores' : item.kitchenConfig?.shape === 'solo_inferiores' ? 'Muebles Inferiores' : 'de la Cocina'} (ml)</Label>
+                            <div className="space-y-2">
+                              <Label className="text-sm font-medium text-slate-600 dark:text-slate-300 flex items-center gap-2">
+                                <Ruler className="h-4 w-4" />
+                                Metraje Total {item.kitchenConfig?.shape === 'frente_pll' ? 'del Frente PLL' : item.kitchenConfig?.shape === 'solo_superiores' ? 'Muebles Superiores' : item.kitchenConfig?.shape === 'solo_inferiores' ? 'Muebles Inferiores' : 'de la Cocina'} (ml)
+                              </Label>
                               <Input
                                 type="number"
                                 step="0.01"
                                 value={item.kitchenConfig?.totalMeters || ""}
                                 onChange={(e) => updateKitchenConfig(index, "totalMeters", parseFloat(e.target.value) || 0)}
                                 placeholder="Ej: 5.00"
+                                className="bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 hover:border-orange-400 transition-colors"
                               />
                             </div>
                             )}
@@ -1663,9 +1753,12 @@ export default function Quotations() {
 
                             {/* 3. Muebles especiales - Para cocinas completas y puertas_tapas */}
                             {!['frente_pll', 'solo_superiores', 'solo_inferiores'].includes(item.kitchenConfig?.shape || '') && (
-                            <div>
-                              <Label className="mb-2 block">Muebles Especiales (se descuentan del metraje)</Label>
-                              <div className="space-y-2">
+                            <div className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-orange-100 dark:border-orange-900">
+                              <Label className="mb-3 block text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2">
+                                <Package className="h-4 w-4 text-orange-500" />
+                                Muebles Especiales (se descuentan del metraje)
+                              </Label>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <div className="flex items-center space-x-2">
                                   <input
                                     type="checkbox"
@@ -1788,9 +1881,12 @@ export default function Quotations() {
 
                             {/* 4. Mesón principal - Solo para cocinas completas y solo_inferiores */}
                             {!['solo_superiores', 'puertas_tapas'].includes(item.kitchenConfig?.shape || '') && (
-                            <div className="space-y-2">
-                              <Label className="text-base font-semibold">Mesón Principal</Label>
-                              <div className="grid grid-cols-2 gap-3">
+                            <div className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-orange-100 dark:border-orange-900 space-y-3">
+                              <Label className="text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2">
+                                <Ruler className="h-4 w-4 text-orange-500" />
+                                Mesón Principal
+                              </Label>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <div>
                                   <Label>Tipo de Mesón *</Label>
                                   <Select 
@@ -1828,16 +1924,17 @@ export default function Quotations() {
 
                             {/* 5. Isla - Para cocinas completas y puertas_tapas */}
                             {!['frente_pll', 'solo_superiores', 'solo_inferiores'].includes(item.kitchenConfig?.shape || '') && (
-                            <div className="space-y-2">
+                            <div className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-blue-100 dark:border-blue-900 space-y-3">
                               <div className="flex items-center space-x-2">
                                 <input
                                   type="checkbox"
                                   id={`islandEnabled-${index}`}
                                   checked={item.kitchenConfig?.island.enabled || false}
                                   onChange={(e) => updateKitchenConfig(index, "island.enabled", e.target.checked)}
-                                  className="h-4 w-4"
+                                  className="h-4 w-4 accent-blue-500"
                                 />
-                                <Label htmlFor={`islandEnabled-${index}`} className="text-base font-semibold cursor-pointer">
+                                <Label htmlFor={`islandEnabled-${index}`} className="text-sm font-semibold text-slate-700 dark:text-slate-200 cursor-pointer flex items-center gap-2">
+                                  <LayoutGrid className="h-4 w-4 text-blue-500" />
                                   Isla
                                 </Label>
                               </div>
@@ -1890,16 +1987,17 @@ export default function Quotations() {
 
                             {/* 6. Barra - Para cocinas completas y puertas_tapas */}
                             {!['frente_pll', 'solo_superiores', 'solo_inferiores'].includes(item.kitchenConfig?.shape || '') && (
-                            <div className="space-y-2">
+                            <div className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-purple-100 dark:border-purple-900 space-y-3">
                               <div className="flex items-center space-x-2">
                                 <input
                                   type="checkbox"
                                   id={`barEnabled-${index}`}
                                   checked={item.kitchenConfig?.bar.enabled || false}
                                   onChange={(e) => updateKitchenConfig(index, "bar.enabled", e.target.checked)}
-                                  className="h-4 w-4"
+                                  className="h-4 w-4 accent-purple-500"
                                 />
-                                <Label htmlFor={`barEnabled-${index}`} className="text-base font-semibold cursor-pointer">
+                                <Label htmlFor={`barEnabled-${index}`} className="text-sm font-semibold text-slate-700 dark:text-slate-200 cursor-pointer flex items-center gap-2">
+                                  <Ruler className="h-4 w-4 text-purple-500" />
                                   Barra
                                 </Label>
                               </div>
@@ -1952,21 +2050,25 @@ export default function Quotations() {
 
                             {/* 7. Luz LED (opcional) - Solo para cocinas completas, frente_pll y solo_superiores */}
                             {!['solo_inferiores', 'puertas_tapas'].includes(item.kitchenConfig?.shape || '') && (
-                            <div>
-                              <Label>Luz LED (opcional) - $180,000/ml</Label>
+                            <div className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-yellow-100 dark:border-yellow-900 space-y-2">
+                              <Label className="text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2">
+                                <Lightbulb className="h-4 w-4 text-yellow-500" />
+                                Luz LED (opcional) - $180,000/ml
+                              </Label>
                               <Input
                                 type="number"
                                 step="0.01"
                                 value={item.kitchenConfig?.ledLighting || ""}
                                 onChange={(e) => updateKitchenConfig(index, "ledLighting", parseFloat(e.target.value) || 0)}
                                 placeholder="Dejar en 0 si no lleva LED"
+                                className="bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600"
                               />
                             </div>
                             )}
 
                             {/* 8. Pintado Puertas Alto Brillo */}
-                            <div className="p-4 bg-pink-50 rounded-lg border border-pink-200">
-                              <div className="flex items-center space-x-2 mb-3">
+                            <div className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-pink-200 dark:border-pink-900 space-y-3">
+                              <div className="flex items-center space-x-2">
                                 <input
                                   type="checkbox"
                                   id={`paintedDoors-${index}`}
@@ -1975,10 +2077,11 @@ export default function Quotations() {
                                     updateKitchenConfig(index, "paintedDoors.enabled", e.target.checked);
                                     calculateKitchenTotal(index);
                                   }}
-                                  className="h-4 w-4"
+                                  className="h-4 w-4 accent-pink-500"
                                 />
-                                <Label htmlFor={`paintedDoors-${index}`} className="text-sm font-semibold text-pink-800 cursor-pointer">
-                                  🎨 Pintado Puertas Alto Brillo
+                                <Label htmlFor={`paintedDoors-${index}`} className="text-sm font-semibold text-slate-700 dark:text-slate-200 cursor-pointer flex items-center gap-2">
+                                  <Palette className="h-4 w-4 text-pink-500" />
+                                  Pintado Puertas Alto Brillo
                                 </Label>
                               </div>
                               {item.kitchenConfig?.paintedDoors?.enabled && (
@@ -2451,34 +2554,44 @@ export default function Quotations() {
                           </>
                         )}
                       </div>
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </div>
                 ))}
               </div>
             </div>
 
-            <Card className="bg-muted">
-              <CardContent className="pt-4">
-                <div className="space-y-2">
-                  <div className="flex justify-between text-lg">
-                    <span className="font-bold">TOTAL:</span>
-                    <span className="font-bold text-primary">
+            {/* Sección: Resumen Total */}
+            <div className="bg-gradient-to-r from-[oklch(0.72_0.14_180)] to-[oklch(0.60_0.14_180)] rounded-xl p-5 shadow-lg">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
+                    <CircleDollarSign className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-white/80 text-sm font-medium">Total de la Cotización</p>
+                    <p className="text-white text-2xl font-bold">
                       {formatPrice(calculateTotal())}
-                    </span>
+                    </p>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
 
-            <div className="flex justify-end gap-2">
+            {/* Botones de acción */}
+            <div className="flex justify-end gap-3 pt-2">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => setShowCreateDialog(false)}
+                className="px-6 border-slate-300 hover:bg-slate-100 dark:border-slate-600 dark:hover:bg-slate-800"
               >
                 Cancelar
               </Button>
-              <Button type="submit" disabled={createQuotation.isPending || updateQuotation.isPending}>
+              <Button 
+                type="submit" 
+                disabled={createQuotation.isPending || updateQuotation.isPending}
+                className="px-6 bg-[oklch(0.72_0.14_180)] hover:bg-[oklch(0.60_0.14_180)] text-white shadow-md"
+              >
                 {editingQuotation 
                   ? (updateQuotation.isPending ? "Guardando..." : "Guardar Cambios")
                   : (createQuotation.isPending ? "Creando..." : "Crear Cotización")

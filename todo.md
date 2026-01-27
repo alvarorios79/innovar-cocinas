@@ -2789,3 +2789,9 @@
   - Pequeñas y demás: $45,000
 - [ ] Implementar cálculo de precios para Puertas y Tapas
 - [x] Ajustar campos visibles para forma "Puertas y Tapas": ocultar Metraje Total, Mesón Principal y Luz LED; mantener visibles Muebles Especiales, Isla, Barra, Pintado Puertas
+- [x] Rediseñar página de Nueva Cotización con colores unificados y formato bonito
+  - [x] Unificar paleta de colores con tema INNOVAR (verde esmeralda)
+  - [x] Mejorar organización visual con secciones claras
+  - [x] Agregar iconos y etiquetas intuitivas
+  - [x] Mejorar interacciones (botones, checkboxes, selects)
+  - [ ] Hacer diseño responsive y fácil de usar

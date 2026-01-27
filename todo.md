@@ -2776,3 +2776,16 @@
 ## Corrección Frente PLL - Metraje Separado para Módulo Superior
 - [ ] Agregar campo de metraje separado para módulo superior en Frente PLL
 - [ ] Actualizar cálculo de precios para usar el metraje separado del módulo superior
+
+
+## Nueva Forma de Cocina: Puertas y Tapas
+- [ ] Agregar "Puertas y Tapas" al dropdown de forma de cocina
+- [ ] Crear campos de cantidad para cada tipo de puerta/tapa con sus precios:
+  - Puertas Superiores hasta 70cm: $120,000
+  - Puertas Superiores hasta 90cm: $150,000
+  - Puertas Superiores más de 100cm: $180,000
+  - Puertas Inferiores: $150,000
+  - Tapas de cajón: $90,000
+  - Pequeñas y demás: $45,000
+- [ ] Implementar cálculo de precios para Puertas y Tapas
+- [x] Ajustar campos visibles para forma "Puertas y Tapas": ocultar Metraje Total, Mesón Principal y Luz LED; mantener visibles Muebles Especiales, Isla, Barra, Pintado Puertas

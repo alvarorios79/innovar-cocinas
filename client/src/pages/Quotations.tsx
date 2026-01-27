@@ -635,7 +635,7 @@ export default function Quotations() {
     // 1. Calcular metraje resultante después de descontar muebles especiales
     // Solo aplica para cocinas completas (no para frente_pll, solo_superiores, solo_inferiores)
     let deductions = 0;
-    const isSpecialShape = ['frente_pll', 'solo_superiores', 'solo_inferiores'].includes(config.shape);
+    const isSpecialShape = ['frente_pll', 'solo_superiores', 'solo_inferiores', 'puertas_tapas'].includes(config.shape);
     
     if (!isSpecialShape) {
       if (config.specialModules?.nichoNevecon) deductions += 1.0; // 100cm
@@ -661,14 +661,24 @@ export default function Quotations() {
     } else if (config.shape === 'solo_inferiores') {
       // Solo muebles inferiores: $900,000/ml
       total += config.totalMeters * 900000;
+    } else if (config.shape === 'puertas_tapas') {
+      // Puertas y Tapas (solo cambio)
+      const dc = config.doorsAndCovers || {};
+      total += (dc.upperDoors70 || 0) * 120000;  // Puertas superiores hasta 70cm
+      total += (dc.upperDoors90 || 0) * 150000;  // Puertas superiores hasta 90cm
+      total += (dc.upperDoors100 || 0) * 180000; // Puertas superiores más de 100cm
+      total += (dc.lowerDoors || 0) * 150000;    // Puertas inferiores
+      total += (dc.pantryDoors || 0) * 180000;   // Puertas de alacena
+      total += (dc.drawerCovers || 0) * 90000;   // Tapas de cajón
+      total += (dc.smallCovers || 0) * 45000;    // Pequeñas y demás
     } else {
       // Cocinas completas (Lineal, L, U, etc.): inferiores + superiores
       total += resultingMeters * 900000; // Inferiores
       total += resultingMeters * 900000; // Superiores
     }
 
-    // 3. Muebles especiales (solo para cocinas completas)
-    if (!isSpecialShape) {
+    // 3. Muebles especiales (para cocinas completas y puertas_tapas)
+    if (!isSpecialShape || config.shape === 'puertas_tapas') {
       if (config.specialModules?.nichoNevecon) total += 1200000;
       if (config.specialModules?.nichoNevera) total += 1200000;
       if (config.specialModules?.alacenaEntrepanos) total += 1250000;
@@ -677,8 +687,8 @@ export default function Quotations() {
     }
 
     // 4. Mesón principal (usa metraje resultante automáticamente)
-    // No aplica para solo_superiores
-    if (config.shape !== 'solo_superiores' && config.countertop.type) {
+    // No aplica para solo_superiores ni puertas_tapas
+    if (config.shape !== 'solo_superiores' && config.shape !== 'puertas_tapas' && config.countertop.type) {
       const basePrice = config.countertop.type === "quarzone" ? 850000 : 1200000;
       let countertopPrice = basePrice;
       
@@ -693,8 +703,8 @@ export default function Quotations() {
       total += metersForCountertop * countertopPrice;
     }
 
-    // 5. Isla (solo para cocinas completas)
-    if (!isSpecialShape && config.island.enabled && config.island.meters > 0) {
+    // 5. Isla (para cocinas completas y puertas_tapas)
+    if ((!isSpecialShape || config.shape === 'puertas_tapas') && config.island.enabled && config.island.meters > 0) {
       // Muebles de isla
       total += config.island.meters * 900000;
       
@@ -711,8 +721,8 @@ export default function Quotations() {
       }
     }
 
-    // 6. Barra (solo para cocinas completas)
-    if (!isSpecialShape && config.bar.enabled && config.bar.meters > 0) {
+    // 6. Barra (para cocinas completas y puertas_tapas)
+    if ((!isSpecialShape || config.shape === 'puertas_tapas') && config.bar.enabled && config.bar.meters > 0) {
       // Muebles de barra
       total += config.bar.meters * 900000;
       
@@ -728,8 +738,8 @@ export default function Quotations() {
       }
     }
 
-    // 7. Luz LED (no aplica para solo_inferiores)
-    if (config.shape !== 'solo_inferiores' && config.ledLighting > 0) {
+    // 7. Luz LED (no aplica para solo_inferiores ni puertas_tapas)
+    if (config.shape !== 'solo_inferiores' && config.shape !== 'puertas_tapas' && config.ledLighting > 0) {
       total += config.ledLighting * 180000;
     }
 
@@ -778,16 +788,22 @@ export default function Quotations() {
       if (item.itemType === "cocina") {
         // Para cocinas: validar campos específicos
         if (!item.kitchenConfig?.shape) {
-          toast.error(`Item ${i + 1}: Selecciona la forma de la cocina (L, U o Lineal)`);
+          toast.error(`Item ${i + 1}: Selecciona la forma de la cocina`);
           return;
         }
-        if (!item.kitchenConfig?.totalMeters || item.kitchenConfig.totalMeters <= 0) {
-          toast.error(`Item ${i + 1}: Ingresa el metraje total de la cocina`);
-          return;
+        // Metraje solo requerido para formas que no sean puertas_tapas
+        if (item.kitchenConfig?.shape !== 'puertas_tapas') {
+          if (!item.kitchenConfig?.totalMeters || item.kitchenConfig.totalMeters <= 0) {
+            toast.error(`Item ${i + 1}: Ingresa el metraje total de la cocina`);
+            return;
+          }
         }
-        if (!item.kitchenConfig?.countertop.type) {
-          toast.error(`Item ${i + 1}: Selecciona el tipo de mesón`);
-          return;
+        // Mesón solo requerido para formas que no sean solo_superiores ni puertas_tapas
+        if (item.kitchenConfig?.shape !== 'solo_superiores' && item.kitchenConfig?.shape !== 'puertas_tapas') {
+          if (!item.kitchenConfig?.countertop.type) {
+            toast.error(`Item ${i + 1}: Selecciona el tipo de mesón`);
+            return;
+          }
         }
       } else if (item.itemType === "herrajes") {
         // Para herrajes: validar que haya al menos un herraje seleccionado
@@ -1453,11 +1469,13 @@ export default function Quotations() {
                                   <SelectItem value="frente_pll">Frente PLL ($650,000/ml)</SelectItem>
                                   <SelectItem value="solo_superiores">Solo Muebles Superiores ($900,000/ml)</SelectItem>
                                   <SelectItem value="solo_inferiores">Solo Muebles Inferiores ($900,000/ml)</SelectItem>
+                                  <SelectItem value="puertas_tapas">Puertas y Tapas (solo cambio)</SelectItem>
                                 </SelectContent>
                               </Select>
                             </div>
 
-                            {/* 2. Metraje total */}
+                            {/* 2. Metraje total - No aplica para puertas_tapas */}
+                            {item.kitchenConfig?.shape !== 'puertas_tapas' && (
                             <div>
                               <Label>Metraje Total {item.kitchenConfig?.shape === 'frente_pll' ? 'del Frente PLL' : item.kitchenConfig?.shape === 'solo_superiores' ? 'Muebles Superiores' : item.kitchenConfig?.shape === 'solo_inferiores' ? 'Muebles Inferiores' : 'de la Cocina'} (ml)</Label>
                               <Input
@@ -1468,6 +1486,7 @@ export default function Quotations() {
                                 placeholder="Ej: 5.00"
                               />
                             </div>
+                            )}
 
                             {/* Checkbox módulo superior para Frente PLL */}
                             {item.kitchenConfig?.shape === 'frente_pll' && (
@@ -1502,7 +1521,147 @@ export default function Quotations() {
                               </div>
                             )}
 
-                            {/* 3. Muebles especiales - Solo para cocinas completas */}
+                            {/* Sección Puertas y Tapas */}
+                            {item.kitchenConfig?.shape === 'puertas_tapas' && (
+                              <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 space-y-4">
+                                <h4 className="font-semibold text-purple-800 flex items-center gap-2">
+                                  <span>🚪</span> Puertas y Tapas (Solo Cambio)
+                                </h4>
+                                
+                                {/* Puertas Superiores */}
+                                <div className="space-y-2">
+                                  <Label className="text-sm font-medium text-purple-700">Puertas Superiores</Label>
+                                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                    <div>
+                                      <Label className="text-xs">Hasta 70cm ($120,000)</Label>
+                                      <Input
+                                        type="number"
+                                        min="0"
+                                        placeholder="Cantidad"
+                                        value={item.kitchenConfig?.doorsAndCovers?.upperDoors70 || ''}
+                                        onChange={(e) => {
+                                          const current = item.kitchenConfig?.doorsAndCovers || {};
+                                          updateKitchenConfig(index, "doorsAndCovers", { ...current, upperDoors70: parseInt(e.target.value) || 0 });
+                                        }}
+                                      />
+                                    </div>
+                                    <div>
+                                      <Label className="text-xs">Hasta 90cm ($150,000)</Label>
+                                      <Input
+                                        type="number"
+                                        min="0"
+                                        placeholder="Cantidad"
+                                        value={item.kitchenConfig?.doorsAndCovers?.upperDoors90 || ''}
+                                        onChange={(e) => {
+                                          const current = item.kitchenConfig?.doorsAndCovers || {};
+                                          updateKitchenConfig(index, "doorsAndCovers", { ...current, upperDoors90: parseInt(e.target.value) || 0 });
+                                        }}
+                                      />
+                                    </div>
+                                    <div>
+                                      <Label className="text-xs">Más de 100cm ($180,000)</Label>
+                                      <Input
+                                        type="number"
+                                        min="0"
+                                        placeholder="Cantidad"
+                                        value={item.kitchenConfig?.doorsAndCovers?.upperDoors100 || ''}
+                                        onChange={(e) => {
+                                          const current = item.kitchenConfig?.doorsAndCovers || {};
+                                          updateKitchenConfig(index, "doorsAndCovers", { ...current, upperDoors100: parseInt(e.target.value) || 0 });
+                                        }}
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Puertas Inferiores y de Alacena */}
+                                <div className="space-y-2">
+                                  <Label className="text-sm font-medium text-purple-700">Puertas Inferiores y Alacena</Label>
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    <div>
+                                      <Label className="text-xs">Puertas Inferiores ($150,000)</Label>
+                                      <Input
+                                        type="number"
+                                        min="0"
+                                        placeholder="Cantidad"
+                                        value={item.kitchenConfig?.doorsAndCovers?.lowerDoors || ''}
+                                        onChange={(e) => {
+                                          const current = item.kitchenConfig?.doorsAndCovers || {};
+                                          updateKitchenConfig(index, "doorsAndCovers", { ...current, lowerDoors: parseInt(e.target.value) || 0 });
+                                        }}
+                                      />
+                                    </div>
+                                    <div>
+                                      <Label className="text-xs">Puertas de Alacena ($180,000)</Label>
+                                      <Input
+                                        type="number"
+                                        min="0"
+                                        placeholder="Cantidad"
+                                        value={item.kitchenConfig?.doorsAndCovers?.pantryDoors || ''}
+                                        onChange={(e) => {
+                                          const current = item.kitchenConfig?.doorsAndCovers || {};
+                                          updateKitchenConfig(index, "doorsAndCovers", { ...current, pantryDoors: parseInt(e.target.value) || 0 });
+                                        }}
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Tapas */}
+                                <div className="space-y-2">
+                                  <Label className="text-sm font-medium text-purple-700">Tapas</Label>
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    <div>
+                                      <Label className="text-xs">Tapas de Cajón ($90,000)</Label>
+                                      <Input
+                                        type="number"
+                                        min="0"
+                                        placeholder="Cantidad"
+                                        value={item.kitchenConfig?.doorsAndCovers?.drawerCovers || ''}
+                                        onChange={(e) => {
+                                          const current = item.kitchenConfig?.doorsAndCovers || {};
+                                          updateKitchenConfig(index, "doorsAndCovers", { ...current, drawerCovers: parseInt(e.target.value) || 0 });
+                                        }}
+                                      />
+                                    </div>
+                                    <div>
+                                      <Label className="text-xs">Pequeñas y demás ($45,000)</Label>
+                                      <Input
+                                        type="number"
+                                        min="0"
+                                        placeholder="Cantidad"
+                                        value={item.kitchenConfig?.doorsAndCovers?.smallCovers || ''}
+                                        onChange={(e) => {
+                                          const current = item.kitchenConfig?.doorsAndCovers || {};
+                                          updateKitchenConfig(index, "doorsAndCovers", { ...current, smallCovers: parseInt(e.target.value) || 0 });
+                                        }}
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Resumen de Puertas y Tapas */}
+                                {(() => {
+                                  const dc = item.kitchenConfig?.doorsAndCovers || {};
+                                  const total = 
+                                    (dc.upperDoors70 || 0) * 120000 +
+                                    (dc.upperDoors90 || 0) * 150000 +
+                                    (dc.upperDoors100 || 0) * 180000 +
+                                    (dc.lowerDoors || 0) * 150000 +
+                                    (dc.pantryDoors || 0) * 180000 +
+                                    (dc.drawerCovers || 0) * 90000 +
+                                    (dc.smallCovers || 0) * 45000;
+                                  const hasItems = total > 0;
+                                  return hasItems ? (
+                                    <div className="bg-purple-100 rounded p-3 mt-2">
+                                      <p className="text-sm font-semibold text-purple-800">Total Puertas y Tapas: ${total.toLocaleString('es-CO')}</p>
+                                    </div>
+                                  ) : null;
+                                })()}
+                              </div>
+                            )}
+
+                            {/* 3. Muebles especiales - Para cocinas completas y puertas_tapas */}
                             {!['frente_pll', 'solo_superiores', 'solo_inferiores'].includes(item.kitchenConfig?.shape || '') && (
                             <div>
                               <Label className="mb-2 block">Muebles Especiales (se descuentan del metraje)</Label>
@@ -1582,7 +1741,7 @@ export default function Quotations() {
                             )}
 
                             {/* Mostrar metraje resultante y muebles - Solo para cocinas completas */}
-                            {!['frente_pll', 'solo_superiores', 'solo_inferiores'].includes(item.kitchenConfig?.shape || '') && (
+                            {!['frente_pll', 'solo_superiores', 'solo_inferiores', 'puertas_tapas'].includes(item.kitchenConfig?.shape || '') && (
                             <div className="p-3 bg-blue-50 rounded space-y-1">
                               <p className="text-sm">
                                 <span className="font-medium">Metraje resultante:</span>{" "}
@@ -1628,7 +1787,7 @@ export default function Quotations() {
                             )}
 
                             {/* 4. Mesón principal - Solo para cocinas completas y solo_inferiores */}
-                            {!['solo_superiores'].includes(item.kitchenConfig?.shape || '') && (
+                            {!['solo_superiores', 'puertas_tapas'].includes(item.kitchenConfig?.shape || '') && (
                             <div className="space-y-2">
                               <Label className="text-base font-semibold">Mesón Principal</Label>
                               <div className="grid grid-cols-2 gap-3">
@@ -1667,7 +1826,7 @@ export default function Quotations() {
                             </div>
                             )}
 
-                            {/* 5. Isla - Solo para cocinas completas */}
+                            {/* 5. Isla - Para cocinas completas y puertas_tapas */}
                             {!['frente_pll', 'solo_superiores', 'solo_inferiores'].includes(item.kitchenConfig?.shape || '') && (
                             <div className="space-y-2">
                               <div className="flex items-center space-x-2">
@@ -1729,7 +1888,7 @@ export default function Quotations() {
                             </div>
                             )}
 
-                            {/* 6. Barra - Solo para cocinas completas */}
+                            {/* 6. Barra - Para cocinas completas y puertas_tapas */}
                             {!['frente_pll', 'solo_superiores', 'solo_inferiores'].includes(item.kitchenConfig?.shape || '') && (
                             <div className="space-y-2">
                               <div className="flex items-center space-x-2">
@@ -1792,7 +1951,7 @@ export default function Quotations() {
                             )}
 
                             {/* 7. Luz LED (opcional) - Solo para cocinas completas, frente_pll y solo_superiores */}
-                            {!['solo_inferiores'].includes(item.kitchenConfig?.shape || '') && (
+                            {!['solo_inferiores', 'puertas_tapas'].includes(item.kitchenConfig?.shape || '') && (
                             <div>
                               <Label>Luz LED (opcional) - $180,000/ml</Label>
                               <Input

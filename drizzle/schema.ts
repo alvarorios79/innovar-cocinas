@@ -121,6 +121,9 @@ export const quotations = mysqlTable("quotations", {
   transportCost: decimal("transportCost", { precision: 12, scale: 2 }).default("600000").notNull(),
   total: decimal("total", { precision: 12, scale: 2 }).notNull(),
   pdfUrl: text("pdfUrl"),
+  // Campos para descripciones personalizadas del PDF
+  customDescriptions: json("customDescriptions").$type<Record<number, string>>(), // Descripciones por índice de producto
+  generalNotes: text("generalNotes"), // Notas generales al final del PDF
   sentAt: timestamp("sentAt"),
   approvedAt: timestamp("approvedAt"),
   rejectionReason: text("rejectionReason"),

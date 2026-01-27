@@ -8,6 +8,7 @@ import { KitchenConfigurator, KitchenConfig } from "@/components/KitchenConfigur
 import { CountertopConfigurator, CountertopConfig, defaultCountertopConfig } from "@/components/CountertopConfigurator";
 import { PDFPreviewDialog } from "@/components/PDFPreviewDialog";
 import { PDFPreviewBeforeSave } from "@/components/PDFPreviewBeforeSave";
+import { PDFContentEditor } from "@/components/PDFContentEditor";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -26,7 +27,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Plus, Trash2, FileText, Send, Eye, Pencil, Mail, Search, X, UserPlus, FolderPlus, ChefHat, Ruler, Package, Sofa, DoorOpen, Tv, Wrench, LayoutGrid, Calendar, User, Building2, Truck, Sparkles, CircleDollarSign, Lightbulb, Palette } from "lucide-react";
+import { Plus, Trash2, FileText, Send, Eye, Pencil, Mail, Search, X, UserPlus, FolderPlus, ChefHat, Ruler, Package, Sofa, DoorOpen, Tv, Wrench, LayoutGrid, Calendar, User, Building2, Truck, Sparkles, CircleDollarSign, Lightbulb, Palette, Edit3 } from "lucide-react";
 import { toast } from "sonner";
 import { formatPrice } from "@/lib/formatters";
 import { CreateQuickClientDialog } from "@/components/CreateQuickClientDialog";
@@ -77,6 +78,15 @@ export default function Quotations() {
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterDateFrom, setFilterDateFrom] = useState<string>("");
   const [filterDateTo, setFilterDateTo] = useState<string>("");
+  
+  // Estados para editor de contenido PDF
+  const [pdfEditorOpen, setPdfEditorOpen] = useState(false);
+  const [pdfEditorQuotationId, setPdfEditorQuotationId] = useState<number | null>(null);
+  const [pdfEditorItems, setPdfEditorItems] = useState<any[]>([]);
+  const [pdfEditorDescriptions, setPdfEditorDescriptions] = useState<Record<number, string>>({});
+  const [pdfEditorNotes, setPdfEditorNotes] = useState("");
+  const [pdfEditorClientName, setPdfEditorClientName] = useState("");
+  const [pdfEditorQuotationNumber, setPdfEditorQuotationNumber] = useState("");
   const [items, setItems] = useState<QuotationItem[]>([
     { 
       itemNumber: 1, 
@@ -277,6 +287,42 @@ export default function Quotations() {
   const handleConfirmSend = () => {
     if (selectedQuotationForEmail) {
       sendByEmail.mutate({ id: selectedQuotationForEmail.id });
+    }
+  };
+
+  // Función para abrir el editor de contenido PDF
+  const handleOpenPdfEditor = async (quotationId: number) => {
+    try {
+      const quotationData: any = await utils.client.quotations.getById.query({ id: quotationId });
+      if (quotationData) {
+        const client = clients?.find(c => c.id === quotationData.clientId);
+        setPdfEditorQuotationId(quotationId);
+        setPdfEditorItems(quotationData.items || []);
+        setPdfEditorDescriptions(quotationData.customDescriptions || {});
+        setPdfEditorNotes(quotationData.generalNotes || "");
+        setPdfEditorClientName(client?.name || "");
+        setPdfEditorQuotationNumber(quotationData.quotationNumber || "");
+        setPdfEditorOpen(true);
+      }
+    } catch (error) {
+      toast.error("Error al cargar la cotización");
+    }
+  };
+
+  // Función para guardar las descripciones del PDF
+  const handleSavePdfDescriptions = async (descriptions: Record<number, string>, notes: string) => {
+    if (!pdfEditorQuotationId) return;
+    
+    try {
+      await updateQuotation.mutateAsync({
+        id: pdfEditorQuotationId,
+        customDescriptions: descriptions,
+        generalNotes: notes,
+      });
+      toast.success("Descripciones guardadas exitosamente");
+      setPdfEditorOpen(false);
+    } catch (error) {
+      toast.error("Error al guardar las descripciones");
     }
   };
 
@@ -663,7 +709,7 @@ export default function Quotations() {
       total += config.totalMeters * 900000;
     } else if (config.shape === 'puertas_tapas') {
       // Puertas y Tapas (solo cambio)
-      const dc = config.doorsAndCovers || {};
+      const dc = (config.doorsAndCovers || {}) as any;
       total += (dc.upperDoors70 || 0) * 120000;  // Puertas superiores hasta 70cm
       total += (dc.upperDoors90 || 0) * 150000;  // Puertas superiores hasta 90cm
       total += (dc.upperDoors100 || 0) * 180000; // Puertas superiores más de 100cm
@@ -1233,6 +1279,15 @@ export default function Quotations() {
                   </Button>
                   <Button
                     size="sm"
+                    variant="outline"
+                    className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                    onClick={() => handleOpenPdfEditor(quot.id)}
+                  >
+                    <Edit3 className="h-4 w-4 mr-1" />
+                    Contenido PDF
+                  </Button>
+                  <Button
+                    size="sm"
                     onClick={() => handleEmailClick(quot.id, quot.client?.email || "", quot.quotationNumber, quot.client?.name || "Cliente")}
                     disabled={generatePDF.isPending || !quot.client?.email}
                   >
@@ -1732,7 +1787,7 @@ export default function Quotations() {
 
                                 {/* Resumen de Puertas y Tapas */}
                                 {(() => {
-                                  const dc = item.kitchenConfig?.doorsAndCovers || {};
+                                  const dc = item.kitchenConfig?.doorsAndCovers || {} as any;
                                   const total = 
                                     (dc.upperDoors70 || 0) * 120000 +
                                     (dc.upperDoors90 || 0) * 150000 +
@@ -2618,6 +2673,23 @@ export default function Quotations() {
         pdfUrl={previewBeforeSaveUrl}
         isGenerating={previewPDF.isPending}
         quotationNumber={previewQuotationNumber}
+      />
+
+      <PDFContentEditor
+        open={pdfEditorOpen}
+        onOpenChange={setPdfEditorOpen}
+        items={pdfEditorItems}
+        customDescriptions={pdfEditorDescriptions}
+        generalNotes={pdfEditorNotes}
+        onSave={handleSavePdfDescriptions}
+        onGeneratePDF={() => {
+          if (pdfEditorQuotationId) {
+            generatePDF.mutate({ id: pdfEditorQuotationId });
+          }
+        }}
+        isSaving={updateQuotation.isPending}
+        clientName={pdfEditorClientName}
+        quotationNumber={pdfEditorQuotationNumber}
       />
     </div>
   );

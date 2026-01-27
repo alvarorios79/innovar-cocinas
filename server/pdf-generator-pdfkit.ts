@@ -26,6 +26,7 @@ interface QuotationData {
   subtotal: string;
   transportCost: string;
   total: string;
+  generalNotes?: string; // Notas generales personalizadas
 }
 
 export async function generateQuotationPDF(
@@ -188,8 +189,37 @@ export async function generateQuotationPDF(
         align: "right",
       });
 
+      // Observaciones Generales (si existen)
+      if (data.generalNotes && data.generalNotes.trim()) {
+        currentY += 40;
+        if (currentY > 650) {
+          doc.addPage();
+          currentY = 50;
+        }
+
+        doc.fontSize(11).fillColor(turquoise).font("Helvetica-Bold");
+        doc.text("OBSERVACIONES", 50, currentY);
+
+        currentY += 20;
+        doc.fontSize(9).fillColor(darkGray).font("Helvetica");
+        
+        // Dividir las notas en líneas
+        const noteLines = data.generalNotes.split('\n');
+        for (const line of noteLines) {
+          if (line.trim()) {
+            doc.text(line.trim(), 50, currentY, { width: 512 });
+            currentY += 14;
+            
+            if (currentY > 700) {
+              doc.addPage();
+              currentY = 50;
+            }
+          }
+        }
+      }
+
       // Términos y condiciones
-      currentY += 50;
+      currentY += 30;
       if (currentY > 650) {
         doc.addPage();
         currentY = 50;

@@ -896,6 +896,8 @@ export const appRouter = router({
         clientId: z.number().optional(),
         vendorName: z.string().optional(),
         productType: z.enum(["cocina", "closet", "puerta", "centro_tv", "herrajes", "mesones", "otro"]).optional(),
+        customDescriptions: z.record(z.string(), z.string()).optional(),
+        generalNotes: z.string().optional(),
         items: z.array(z.object({
           itemNumber: z.number(),
           itemType: z.string(),
@@ -1526,6 +1528,13 @@ export const appRouter = router({
               description = lines.join('\n');
             }
             
+            // Usar descripción personalizada si existe
+            const customDescriptions = quotation.customDescriptions as Record<number, string> | null;
+            const itemIndex = item.itemNumber - 1; // itemNumber es 1-based
+            if (customDescriptions && customDescriptions[itemIndex]) {
+              description = customDescriptions[itemIndex];
+            }
+            
             return {
               itemNumber: item.itemNumber,
               description,
@@ -1537,6 +1546,7 @@ export const appRouter = router({
           subtotal: quotation.subtotal,
           transportCost: quotation.transportCost,
           total: quotation.total,
+          generalNotes: quotation.generalNotes || '',
         };
 
         // Generar PDF usando módulo separado
@@ -1623,6 +1633,13 @@ export const appRouter = router({
               description = `CENTRO DE TV - ${tvCenterConfig.width}m`;
             }
             
+            // Usar descripción personalizada si existe
+            const customDescriptions = quotation.customDescriptions as Record<number, string> | null;
+            const itemIndex = item.itemNumber - 1;
+            if (customDescriptions && customDescriptions[itemIndex]) {
+              description = customDescriptions[itemIndex];
+            }
+            
             return {
               itemNumber: item.itemNumber,
               description,
@@ -1634,6 +1651,7 @@ export const appRouter = router({
           subtotal: quotation.subtotal,
           transportCost: quotation.transportCost,
           total: quotation.total,
+          generalNotes: quotation.generalNotes || '',
         };
 
         try {

@@ -2804,3 +2804,12 @@
 - [x] Mejorar tamaño de botones y campos para touch
 - [x] Optimizar espaciado para pantallas pequeñas
 - [x] Asegurar que el modal sea scrolleable en dispositivos pequeños
+
+
+## Editor Visual del PDF de Cotización
+
+- [x] Agregar campos customDescriptions y generalNotes al schema de quotations
+- [x] Crear componente PDFContentEditor para editar descripciones
+- [x] Integrar editor en el flujo de cotizaciones (botón "Contenido PDF")
+- [x] Actualizar generador de PDF para usar descripciones personalizadas
+- [x] Agregar sección de Observaciones Generales en el PDF

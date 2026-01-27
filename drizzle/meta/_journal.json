@@ -225,6 +225,13 @@
       "when": 1769474288481,
       "tag": "0031_lean_gwen_stacy",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "5",
+      "when": 1769484338510,
+      "tag": "0032_quiet_hairball",
+      "breakpoints": true
     }
   ]
 }

@@ -44,6 +44,16 @@ export interface KitchenConfig {
     spiceQty: number; // Tapa de especiero - $100,000
     golaQty: number; // Tapas pequeña/gola - $45,000
   };
+  // Para forma "Puertas y Tapas (solo cambio)"
+  doorsAndCovers?: {
+    upperDoors70: number;   // Puertas superiores hasta 70cm - $120,000
+    upperDoors90: number;   // Puertas superiores hasta 90cm - $150,000
+    upperDoors100: number;  // Puertas superiores más de 100cm - $180,000
+    lowerDoors: number;     // Puertas inferiores - $150,000
+    pantryDoors: number;    // Puertas de alacena - $180,000
+    drawerCovers: number;   // Tapas de cajón - $90,000
+    smallCovers: number;    // Tapas pequeñas - $45,000
+  };
   notes?: string;
 }
 

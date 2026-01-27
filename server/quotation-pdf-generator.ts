@@ -17,6 +17,7 @@ interface QuotationPDFData {
   subtotal: string;
   transportCost: string;
   total: string;
+  generalNotes?: string; // Notas generales personalizadas
 }
 
 export async function generateQuotationPDF(

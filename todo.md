@@ -2860,3 +2860,9 @@
 - [x] Implementar filtrado por nombre y código
 - [x] Mostrar resultados de búsqueda en todas las categorías
 - [x] Resaltar término de búsqueda en los resultados
+
+
+## Componentes de Cocina Opcionales
+- [x] Hacer que el campo Tipo de Mesón sea opcional
+- [x] Permitir guardar cotización de cocina sin seleccionar mesón
+- [x] Verificar que el cálculo funcione correctamente sin mesón

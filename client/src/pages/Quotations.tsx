@@ -849,13 +849,8 @@ export default function Quotations() {
             return;
           }
         }
-        // Mesón solo requerido para formas que no sean solo_superiores ni puertas_tapas
-        if (item.kitchenConfig?.shape !== 'solo_superiores' && item.kitchenConfig?.shape !== 'puertas_tapas') {
-          if (!item.kitchenConfig?.countertop.type) {
-            toast.error(`Item ${i + 1}: Selecciona el tipo de mesón`);
-            return;
-          }
-        }
+        // Mesón es opcional - el cliente puede no necesitar mesón
+        // (ya tiene uno o solo quiere la madera)
       } else if (item.itemType === "herrajes") {
         // Para herrajes: validar que haya al menos un herraje seleccionado
         if (!item.hardwareSelections || item.hardwareSelections.length === 0) {

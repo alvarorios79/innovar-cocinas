@@ -66,8 +66,11 @@ async function startServer() {
       const isPreview = req.query.preview === 'true';
       const disposition = isPreview ? 'inline' : 'attachment';
       
+      // Usar el nombre real del archivo si se pasa como query param, sino usar el nombre del archivo temporal
+      const downloadFilename = req.query.name ? String(req.query.name) : filename;
+      
       res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `${disposition}; filename="${filename}"`);
+      res.setHeader('Content-Disposition', `${disposition}; filename="${downloadFilename}"`);
       res.send(pdfBuffer);
       
       // Limpiar archivo después de enviarlo

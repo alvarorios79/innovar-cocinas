@@ -1629,8 +1629,8 @@ export const appRouter = router({
           const path = await import('path');
           const filename = path.basename(result.pdfPath);
           
-          // Devolver URL de descarga
-          const downloadUrl = `/api/pdf/${filename}`;
+          // Devolver URL de descarga con nombre real como query param
+          const downloadUrl = `/api/pdf/${filename}?name=${encodeURIComponent(result.filename)}`;
           
           return {
             success: true,
@@ -1733,7 +1733,7 @@ export const appRouter = router({
           
           const path = await import('path');
           const filename = path.basename(result.pdfPath);
-          const downloadUrl = `/api/pdf/${filename}`;
+          const downloadUrl = `/api/pdf/${filename}?name=${encodeURIComponent(result.filename)}`;
           
           return {
             success: true,

@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
-import { Calendar, Phone, FileText, Users, Trash2, Plus, Bell, Key, Wrench, CheckSquare, Square, Eye, EyeOff, Search, Cake } from "lucide-react";
+import { Calendar, Phone, FileText, Users, Trash2, Plus, Bell, Key, Wrench, CheckSquare, Square, Eye, EyeOff, Search, Cake, DollarSign } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RemindersPanel } from "@/components/RemindersPanel";
 import { toast } from "sonner";
@@ -547,6 +547,15 @@ export default function Admin() {
             >
               Herrajes
             </TabsTrigger>
+            {user?.role === "super_admin" && (
+              <TabsTrigger 
+                value="pricing" 
+                className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-emerald-600 data-[state=active]:text-white hover:bg-emerald-100 transition-colors"
+              >
+                <DollarSign className="h-4 w-4 mr-1" />
+                Precios
+              </TabsTrigger>
+            )}
           </TabsList>
 
           {/* Appointments Tab */}
@@ -1667,6 +1676,31 @@ export default function Admin() {
           <TabsContent value="hardware" className="space-y-4">
             <HardwareCatalogAdmin />
           </TabsContent>
+
+          {/* Pricing Config Tab - Solo Super Admin */}
+          {user?.role === "super_admin" && (
+            <TabsContent value="pricing" className="space-y-4">
+              <Card className="border-emerald-200 bg-emerald-50/50">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <DollarSign className="h-5 w-5 text-emerald-600" />
+                    Configuración de Precios
+                  </CardTitle>
+                  <CardDescription>
+                    Administra todos los precios del sistema de cotizaciones desde un panel dedicado.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Link href="/pricing-config">
+                    <Button className="bg-emerald-600 hover:bg-emerald-700">
+                      <DollarSign className="h-4 w-4 mr-2" />
+                      Abrir Panel de Precios
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          )}
         </Tabs>
       </div>
 

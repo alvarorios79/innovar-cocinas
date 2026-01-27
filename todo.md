@@ -2754,11 +2754,11 @@
 - [x] Actualizar cálculo de totales y vista de cotización
 
 ## Panel de Configuración de Precios (Cocinas, Closets, Puertas, Mesones)
-- [ ] Crear tabla de configuración de precios en la base de datos
-- [ ] Crear endpoints para obtener y actualizar precios
-- [ ] Crear página de configuración de precios en panel admin
-- [ ] Actualizar formularios de cotización para usar precios dinámicos
-- [ ] Excluir herrajes (ya tienen sistema separado)
+- [x] Crear tabla de configuración de precios en la base de datos
+- [x] Crear endpoints para obtener y actualizar precios
+- [x] Crear página de configuración de precios en panel admin
+- [x] Actualizar formularios de cotización para usar precios dinámicos
+- [x] Excluir herrajes (ya tienen sistema separado)
 
 ## Nuevas Formas de Cocina (Frente PLL, Solo Superiores, Solo Inferiores)
 - [ ] Agregar nuevas formas al dropdown: Frente PLL ($650,000/ml), Solo Superiores ($900,000/ml), Solo Inferiores ($900,000/ml)
@@ -2813,3 +2813,28 @@
 - [x] Integrar editor en el flujo de cotizaciones (botón "Contenido PDF")
 - [x] Actualizar generador de PDF para usar descripciones personalizadas
 - [x] Agregar sección de Observaciones Generales en el PDF
+
+
+## Panel de Configuración de Precios
+
+### Base de datos
+- [x] Crear tabla pricing_config para almacenar precios configurables
+- [x] Definir categorías: cocina_base, mesones, muebles_especiales, extras, puertas_tapas, herrajes, otros
+- [x] Migrar precios actuales hardcodeados a la base de datos
+
+### Backend (tRPC)
+- [x] Crear endpoint pricing.getAll para obtener todos los precios
+- [x] Crear endpoint pricing.update para actualizar precios (solo super_admin)
+- [x] Crear endpoint pricing.getByCategory para filtrar por categoría
+
+### Frontend
+- [x] Crear página PricingConfig.tsx en Panel Admin
+- [x] Diseñar interfaz con secciones por categoría (tabs)
+- [x] Implementar edición de precios con modal
+- [x] Agregar validación de valores numéricos
+- [x] Mostrar historial de cambios de precios
+
+### Integración
+- [x] Actualizar cálculos de cotización para usar precios de la BD
+- [x] Cachear precios con hook usePricing (5 min stale time)
+- [x] Restringir acceso solo a super_admin

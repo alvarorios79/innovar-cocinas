@@ -19,6 +19,7 @@ import ResetPassword from "./pages/ResetPassword";
 import ProjectDetail from "./pages/ProjectDetail";
 import Comercial from "./pages/Comercial";
 import PublicGallery from "./pages/PublicGallery";
+import PricingConfig from "./pages/PricingConfig";
 
 function Router() {
   return (
@@ -37,6 +38,7 @@ function Router() {
       <Route path={"/forgot-password"} component={ForgotPassword} />
       <Route path={"/reset-password"} component={ResetPassword} />
       <Route path={"/gallery"} component={PublicGallery} />
+      <Route path={"/pricing-config"} component={PricingConfig} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>

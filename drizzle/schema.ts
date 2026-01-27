@@ -630,3 +630,53 @@ export const projectPayments = mysqlTable("projectPayments", {
 
 export type ProjectPayment = typeof projectPayments.$inferSelect;
 export type InsertProjectPayment = typeof projectPayments.$inferInsert;
+
+
+/**
+ * Configuración de precios del sistema de cotizaciones
+ * Permite actualizar precios sin modificar código
+ */
+export const pricingConfig = mysqlTable("pricingConfig", {
+  id: int("id").autoincrement().primaryKey(),
+  category: mysqlEnum("category", [
+    "cocina_base",        // Precios base por metro lineal según forma
+    "mesones",            // Precios de mesones por tipo
+    "muebles_especiales", // Nicho nevera, alacena, torre hornos
+    "extras",             // Isla, barra, luz LED, pintado
+    "puertas_tapas",      // Precios de puertas y tapas (solo cambio)
+    "herrajes",           // Bisagras, plateros, etc.
+    "closets",            // Precios de closets por tipo
+    "puertas_producto",   // Precios de puertas como producto
+    "centros_tv",         // Precios de centros de TV
+    "otros"               // Otros precios configurables
+  ]).notNull(),
+  code: varchar("code", { length: 100 }).notNull().unique(), // Código único para identificar el precio
+  name: varchar("name", { length: 255 }).notNull(),          // Nombre descriptivo
+  description: text("description"),                           // Descripción detallada
+  value: decimal("value", { precision: 12, scale: 2 }).notNull(), // Valor del precio
+  unit: varchar("unit", { length: 50 }),                      // Unidad (ml, m2, unidad, %)
+  sortOrder: int("sortOrder").default(0).notNull(),           // Orden de visualización
+  active: boolean("active").default(true).notNull(),          // Si está activo
+  updatedBy: int("updatedBy").references(() => users.id),     // Quién lo actualizó
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type PricingConfig = typeof pricingConfig.$inferSelect;
+export type InsertPricingConfig = typeof pricingConfig.$inferInsert;
+
+/**
+ * Historial de cambios de precios
+ */
+export const pricingHistory = mysqlTable("pricingHistory", {
+  id: int("id").autoincrement().primaryKey(),
+  pricingConfigId: int("pricingConfigId").notNull().references(() => pricingConfig.id),
+  previousValue: decimal("previousValue", { precision: 12, scale: 2 }).notNull(),
+  newValue: decimal("newValue", { precision: 12, scale: 2 }).notNull(),
+  changedBy: int("changedBy").notNull().references(() => users.id),
+  reason: text("reason"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type PricingHistory = typeof pricingHistory.$inferSelect;
+export type InsertPricingHistory = typeof pricingHistory.$inferInsert;

@@ -39,7 +39,11 @@ import {
   InsertNotification,
   projectMaterials,
   projectPayments,
-  InsertProjectPayment
+  InsertProjectPayment,
+  pricingConfig,
+  InsertPricingConfig,
+  pricingHistory,
+  InsertPricingHistory
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -1681,3 +1685,169 @@ export async function deleteNotificationsByUserId(userId: number) {
 
 // La tabla birthdayNotifications no existe en el schema actual
 // Si se necesita en el futuro, agregar al schema primero
+
+
+// ============ PRICING CONFIG ============
+
+export async function getAllPricingConfig() {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(pricingConfig)
+    .where(eq(pricingConfig.active, true))
+    .orderBy(pricingConfig.category, pricingConfig.sortOrder);
+}
+
+export async function getPricingByCategory(category: string) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(pricingConfig)
+    .where(and(
+      eq(pricingConfig.category, category as any),
+      eq(pricingConfig.active, true)
+    ))
+    .orderBy(pricingConfig.sortOrder);
+}
+
+export async function getPricingByCode(code: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db.select().from(pricingConfig)
+    .where(eq(pricingConfig.code, code))
+    .limit(1);
+  
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function updatePricingConfig(
+  id: number, 
+  newValue: number, 
+  updatedBy: number,
+  reason?: string
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  // Get current value for history
+  const current = await db.select().from(pricingConfig)
+    .where(eq(pricingConfig.id, id))
+    .limit(1);
+  
+  if (current.length === 0) {
+    throw new Error("Pricing config not found");
+  }
+
+  const previousValue = Number(current[0].value);
+
+  // Update the price
+  await db.update(pricingConfig)
+    .set({ 
+      value: newValue.toString(),
+      updatedBy 
+    })
+    .where(eq(pricingConfig.id, id));
+
+  // Record in history
+  await db.insert(pricingHistory).values({
+    pricingConfigId: id,
+    previousValue: previousValue.toString(),
+    newValue: newValue.toString(),
+    changedBy: updatedBy,
+    reason,
+  });
+
+  return true;
+}
+
+export async function createPricingConfig(data: {
+  category: string;
+  code: string;
+  name: string;
+  description?: string;
+  value: number;
+  unit?: string;
+  sortOrder?: number;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.insert(pricingConfig).values({
+    category: data.category as any,
+    code: data.code,
+    name: data.name,
+    description: data.description,
+    value: data.value.toString(),
+    unit: data.unit,
+    sortOrder: data.sortOrder ?? 0,
+    active: true,
+  });
+
+  return result[0].insertId;
+}
+
+export async function getPricingHistory(pricingConfigId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  const history = await db.select().from(pricingHistory)
+    .where(eq(pricingHistory.pricingConfigId, pricingConfigId))
+    .orderBy(desc(pricingHistory.createdAt));
+
+  // Get user info for each history entry
+  const userIds = Array.from(new Set(history.map(h => h.changedBy)));
+  const usersData = userIds.length > 0 
+    ? await db.select().from(users).where(inArray(users.id, userIds))
+    : [];
+  const userMap = new Map(usersData.map(u => [u.id, u]));
+
+  return history.map(h => ({
+    ...h,
+    changedByUser: userMap.get(h.changedBy),
+  }));
+}
+
+export async function getAllPricingHistory(limit = 50) {
+  const db = await getDb();
+  if (!db) return [];
+
+  const history = await db.select({
+    id: pricingHistory.id,
+    pricingConfigId: pricingHistory.pricingConfigId,
+    previousValue: pricingHistory.previousValue,
+    newValue: pricingHistory.newValue,
+    changedBy: pricingHistory.changedBy,
+    reason: pricingHistory.reason,
+    createdAt: pricingHistory.createdAt,
+    pricingName: pricingConfig.name,
+    pricingCode: pricingConfig.code,
+    pricingCategory: pricingConfig.category,
+  })
+    .from(pricingHistory)
+    .innerJoin(pricingConfig, eq(pricingHistory.pricingConfigId, pricingConfig.id))
+    .orderBy(desc(pricingHistory.createdAt))
+    .limit(limit);
+
+  // Get user info
+  const userIds = Array.from(new Set(history.map(h => h.changedBy)));
+  const usersData = userIds.length > 0 
+    ? await db.select().from(users).where(inArray(users.id, userIds))
+    : [];
+  const userMap = new Map(usersData.map(u => [u.id, u]));
+
+  return history.map(h => ({
+    ...h,
+    changedByUser: userMap.get(h.changedBy),
+  }));
+}
+
+export async function deletePricingConfig(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  // Soft delete
+  await db.update(pricingConfig)
+    .set({ active: false })
+    .where(eq(pricingConfig.id, id));
+}

@@ -2847,3 +2847,16 @@
 - [x] Aplicar colores distintivos por categoría
 - [x] Mejorar organización y espaciado
 - [x] Hacer botones y acciones más claros e intuitivos
+
+
+## Búsqueda de Precios
+- [ ] Agregar campo de búsqueda en el header del Panel de Precios
+- [ ] Implementar filtrado por nombre y código
+- [ ] Mostrar resultados de búsqueda en todas las categorías
+
+
+## Búsqueda de Precios (Completado)
+- [x] Agregar campo de búsqueda en el header del Panel de Precios
+- [x] Implementar filtrado por nombre y código
+- [x] Mostrar resultados de búsqueda en todas las categorías
+- [x] Resaltar término de búsqueda en los resultados

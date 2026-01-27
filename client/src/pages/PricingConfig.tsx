@@ -27,7 +27,9 @@ import {
   Clock,
   Tag,
   Percent,
-  ArrowRight
+  ArrowRight,
+  Search,
+  X
 } from "lucide-react";
 
 // Configuración de categorías con colores e iconos
@@ -154,6 +156,8 @@ export default function PricingConfig() {
   const [newValue, setNewValue] = useState("");
   const [reason, setReason] = useState("");
   const [showHistory, setShowHistory] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
 
   // Queries
   const { data: allPricing, isLoading, refetch } = trpc.pricing.getAll.useQuery();
@@ -230,6 +234,32 @@ export default function PricingConfig() {
   const activeConfig = categoryConfig[activeCategory];
   const activePricing = pricingByCategory[activeCategory] || [];
 
+  // Filtrar precios por búsqueda
+  const searchResults = searchQuery.trim() 
+    ? allPricing?.filter(item => {
+        const query = searchQuery.toLowerCase();
+        return (
+          item.name.toLowerCase().includes(query) ||
+          item.code.toLowerCase().includes(query) ||
+          (item.description && item.description.toLowerCase().includes(query))
+        );
+      }) || []
+    : [];
+
+  // Agrupar resultados de búsqueda por categoría
+  const searchResultsByCategory = searchResults.reduce((acc, item) => {
+    if (!acc[item.category]) {
+      acc[item.category] = [];
+    }
+    acc[item.category].push(item);
+    return acc;
+  }, {} as Record<string, PricingItem[]>);
+
+  const handleClearSearch = () => {
+    setSearchQuery("");
+    setIsSearching(false);
+  };
+
   if (isLoading) {
     return (
       <DashboardLayout>
@@ -287,6 +317,41 @@ export default function PricingConfig() {
               <p className="text-xs text-emerald-100">En Categoría Actual</p>
             </div>
           </div>
+
+          {/* Campo de búsqueda */}
+          <div className="relative mt-6">
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-emerald-200" />
+              <Input
+                type="text"
+                placeholder="Buscar por nombre o código (ej: mesón, COCINA_ML_L, pintado...)"
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setIsSearching(e.target.value.trim().length > 0);
+                }}
+                className="w-full pl-12 pr-12 py-3 bg-white/20 border-white/30 text-white placeholder:text-emerald-200 rounded-xl focus:bg-white/30 focus:border-white/50 transition-all"
+              />
+              {searchQuery && (
+                <button
+                  onClick={handleClearSearch}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-emerald-200 hover:text-white transition-colors"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              )}
+            </div>
+            {isSearching && searchResults.length > 0 && (
+              <p className="mt-2 text-sm text-emerald-100">
+                Se encontraron <span className="font-bold">{searchResults.length}</span> resultados en <span className="font-bold">{Object.keys(searchResultsByCategory).length}</span> categorías
+              </p>
+            )}
+            {isSearching && searchResults.length === 0 && searchQuery.trim() && (
+              <p className="mt-2 text-sm text-emerald-100">
+                No se encontraron resultados para "{searchQuery}"
+              </p>
+            )}
+          </div>
         </div>
 
         {/* Grid de categorías y contenido */}
@@ -341,9 +406,108 @@ export default function PricingConfig() {
             </Card>
           </div>
 
-          {/* Contenido principal - Lista de precios */}
+          {/* Contenido principal - Lista de precios o Resultados de búsqueda */}
           <div className="lg:col-span-3">
-            <Card className={`overflow-hidden border-2 ${activeConfig.borderColor} shadow-lg`}>
+            {/* Resultados de búsqueda */}
+            {isSearching && searchQuery.trim() ? (
+              <div className="space-y-6">
+                {searchResults.length > 0 ? (
+                  Object.entries(searchResultsByCategory).map(([category, items]) => {
+                    const catConfig = categoryConfig[category];
+                    return (
+                      <Card key={category} className={`overflow-hidden border-2 ${catConfig.borderColor} shadow-lg`}>
+                        <div className={`bg-gradient-to-r ${catConfig.gradient} p-4 text-white`}>
+                          <div className="flex items-center gap-3">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/20 backdrop-blur-sm">
+                              {catConfig.icon}
+                            </div>
+                            <div>
+                              <h3 className="font-bold">{catConfig.name}</h3>
+                              <p className="text-white/80 text-xs">
+                                {items.length} {items.length === 1 ? 'resultado' : 'resultados'}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                        <CardContent className={`p-4 ${catConfig.bgLight}`}>
+                          <div className="grid gap-3 sm:grid-cols-2">
+                            {items.map((item) => (
+                              <div
+                                key={item.id}
+                                className={`group relative bg-white rounded-xl border-2 ${catConfig.borderColor} p-4 shadow-sm hover:shadow-md transition-all duration-200`}
+                              >
+                                {item.unit && (
+                                  <div className={`absolute -top-2 -right-2 ${catConfig.iconBg} text-xs font-medium px-2 py-0.5 rounded-full flex items-center gap-1`}>
+                                    {item.unit === "%" ? <Percent className="h-3 w-3" /> : null}
+                                    {item.unit}
+                                  </div>
+                                )}
+                                <div className="flex items-start justify-between gap-3">
+                                  <div className="flex-1 min-w-0">
+                                    <h3 className="font-semibold text-gray-900 truncate pr-8">
+                                      {item.name.split(new RegExp(`(${searchQuery})`, 'gi')).map((part, i) => 
+                                        part.toLowerCase() === searchQuery.toLowerCase() 
+                                          ? <mark key={i} className="bg-yellow-200 px-0.5 rounded">{part}</mark>
+                                          : part
+                                      )}
+                                    </h3>
+                                    {item.description && (
+                                      <p className="text-xs text-gray-500 mt-1 line-clamp-2">{item.description}</p>
+                                    )}
+                                    <p className="text-xs text-gray-400 mt-2 font-mono">
+                                      {item.code.split(new RegExp(`(${searchQuery})`, 'gi')).map((part, i) => 
+                                        part.toLowerCase() === searchQuery.toLowerCase() 
+                                          ? <mark key={i} className="bg-yellow-200 px-0.5 rounded">{part}</mark>
+                                          : part
+                                      )}
+                                    </p>
+                                  </div>
+                                </div>
+                                <div className="mt-4 flex items-center justify-between">
+                                  <span className={`text-xl font-bold bg-gradient-to-r ${catConfig.gradient} bg-clip-text text-transparent`}>
+                                    {formatValue(item)}
+                                  </span>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => handleEdit(item)}
+                                    className={`opacity-0 group-hover:opacity-100 transition-opacity ${catConfig.borderColor}`}
+                                  >
+                                    <Edit2 className="h-4 w-4 mr-1" />
+                                    Editar
+                                  </Button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })
+                ) : (
+                  <Card className="overflow-hidden border-2 border-gray-200 shadow-lg">
+                    <CardContent className="p-12 text-center">
+                      <div className="mx-auto h-16 w-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+                        <Search className="h-8 w-8 text-gray-400" />
+                      </div>
+                      <h3 className="font-semibold text-gray-700 mb-2">Sin resultados</h3>
+                      <p className="text-gray-500 text-sm">
+                        No se encontraron precios que coincidan con "{searchQuery}"
+                      </p>
+                      <Button
+                        variant="outline"
+                        onClick={handleClearSearch}
+                        className="mt-4"
+                      >
+                        Limpiar búsqueda
+                      </Button>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            ) : (
+              /* Vista normal por categoría */
+              <Card className={`overflow-hidden border-2 ${activeConfig.borderColor} shadow-lg`}>
               {/* Header de la categoría */}
               <div className={`bg-gradient-to-r ${activeConfig.gradient} p-5 text-white`}>
                 <div className="flex items-center gap-3">
@@ -415,6 +579,7 @@ export default function PricingConfig() {
                 )}
               </CardContent>
             </Card>
+            )}
           </div>
         </div>
 

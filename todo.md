@@ -2794,4 +2794,13 @@
   - [x] Mejorar organización visual con secciones claras
   - [x] Agregar iconos y etiquetas intuitivas
   - [x] Mejorar interacciones (botones, checkboxes, selects)
-  - [ ] Hacer diseño responsive y fácil de usar
+  - [x] Hacer diseño responsive y fácil de usar
+
+## Diseño Responsive del Formulario de Cotizaciones
+
+- [x] Hacer el modal de cotización responsive para móviles (320px-767px)
+- [x] Hacer el modal de cotización responsive para tablets (768px-1024px)
+- [x] Ajustar grids de 2 columnas a 1 columna en móviles
+- [x] Mejorar tamaño de botones y campos para touch
+- [x] Optimizar espaciado para pantallas pequeñas
+- [x] Asegurar que el modal sea scrolleable en dispositivos pequeños

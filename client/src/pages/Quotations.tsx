@@ -1284,26 +1284,26 @@ export default function Quotations() {
 
       {/* Dialog para crear cotización */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0">
+        <DialogContent className="w-[95vw] sm:w-[90vw] md:max-w-3xl lg:max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto p-0">
           {/* Header con gradiente */}
-          <div className="bg-gradient-to-r from-[oklch(0.72_0.14_180)] to-[oklch(0.60_0.14_180)] p-6 rounded-t-lg">
+          <div className="bg-gradient-to-r from-[oklch(0.72_0.14_180)] to-[oklch(0.60_0.14_180)] p-4 sm:p-6 rounded-t-lg">
             <DialogHeader>
-              <DialogTitle className="text-white text-xl flex items-center gap-3">
-                <FileText className="h-6 w-6" />
+              <DialogTitle className="text-white text-lg sm:text-xl flex items-center gap-2 sm:gap-3">
+                <FileText className="h-5 w-5 sm:h-6 sm:w-6" />
                 {editingQuotation ? "Editar Cotización" : "Nueva Cotización"}
               </DialogTitle>
-              <p className="text-white/80 text-sm mt-1">Complete los datos para generar la cotización</p>
+              <p className="text-white/80 text-xs sm:text-sm mt-1">Complete los datos para generar la cotización</p>
             </DialogHeader>
           </div>
 
-          <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          <form onSubmit={handleSubmit} className="p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6">
             {/* Sección: Información General */}
-            <div className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 rounded-xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm">
-              <h3 className="text-base font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2 mb-4">
-                <User className="h-5 w-5 text-[oklch(0.72_0.14_180)]" />
+            <div className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-5 border border-slate-200 dark:border-slate-700 shadow-sm">
+              <h3 className="text-sm sm:text-base font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2 mb-3 sm:mb-4">
+                <User className="h-4 w-4 sm:h-5 sm:w-5 text-[oklch(0.72_0.14_180)]" />
                 Información General
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-3 sm:gap-4">
                 <div className="space-y-2">
                   <Label className="text-sm font-medium text-slate-600 dark:text-slate-300 flex items-center gap-2">
                     <Building2 className="h-4 w-4" />
@@ -1360,31 +1360,31 @@ export default function Quotations() {
             </div>
 
             {/* Sección: Fechas */}
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 rounded-xl p-5 border border-blue-200 dark:border-blue-800 shadow-sm">
-              <h3 className="text-base font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2 mb-4">
-                <Calendar className="h-5 w-5 text-blue-600" />
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-5 border border-blue-200 dark:border-blue-800 shadow-sm">
+              <h3 className="text-sm sm:text-base font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2 mb-3 sm:mb-4">
+                <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
                 Fechas de la Cotización
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-blue-100 dark:border-blue-900">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
-                      <Calendar className="h-4 w-4 text-blue-600" />
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3 md:gap-4">
+                <div className="bg-white dark:bg-slate-800 rounded-lg p-3 sm:p-4 border border-blue-100 dark:border-blue-900">
+                  <div className="flex items-center gap-2 mb-1 sm:mb-2">
+                    <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                      <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600" />
                     </div>
-                    <Label className="text-xs font-medium text-blue-600 dark:text-blue-400 uppercase tracking-wide">Creación</Label>
+                    <Label className="text-[10px] sm:text-xs font-medium text-blue-600 dark:text-blue-400 uppercase tracking-wide">Creación</Label>
                   </div>
-                  <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                  <p className="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200">
                     {new Date().toLocaleDateString('es-CO', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
                   </p>
                 </div>
-                <div className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-amber-100 dark:border-amber-900">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-900 flex items-center justify-center">
-                      <Calendar className="h-4 w-4 text-amber-600" />
+                <div className="bg-white dark:bg-slate-800 rounded-lg p-3 sm:p-4 border border-amber-100 dark:border-amber-900">
+                  <div className="flex items-center gap-2 mb-1 sm:mb-2">
+                    <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-amber-100 dark:bg-amber-900 flex items-center justify-center">
+                      <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-amber-600" />
                     </div>
-                    <Label className="text-xs font-medium text-amber-600 dark:text-amber-400 uppercase tracking-wide">Validez</Label>
+                    <Label className="text-[10px] sm:text-xs font-medium text-amber-600 dark:text-amber-400 uppercase tracking-wide">Validez</Label>
                   </div>
-                  <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                  <p className="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200">
                     {(() => {
                       const validUntil = new Date();
                       validUntil.setDate(validUntil.getDate() + 7);
@@ -1393,14 +1393,14 @@ export default function Quotations() {
                   </p>
                   <span className="text-xs text-amber-600 dark:text-amber-400">7 días</span>
                 </div>
-                <div className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-red-100 dark:border-red-900">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="w-8 h-8 rounded-full bg-red-100 dark:bg-red-900 flex items-center justify-center">
-                      <Truck className="h-4 w-4 text-red-600" />
+                <div className="bg-white dark:bg-slate-800 rounded-lg p-3 sm:p-4 border border-red-100 dark:border-red-900">
+                  <div className="flex items-center gap-2 mb-1 sm:mb-2">
+                    <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-red-100 dark:bg-red-900 flex items-center justify-center">
+                      <Truck className="h-3 w-3 sm:h-4 sm:w-4 text-red-600" />
                     </div>
-                    <Label className="text-xs font-medium text-red-600 dark:text-red-400 uppercase tracking-wide">Entrega Est.</Label>
+                    <Label className="text-[10px] sm:text-xs font-medium text-red-600 dark:text-red-400 uppercase tracking-wide">Entrega Est.</Label>
                   </div>
-                  <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                  <p className="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200">
                     {(() => {
                       const COLOMBIA_HOLIDAYS_2025 = [
                         '2025-01-01', '2025-01-06', '2025-03-24', '2025-04-17', '2025-04-18',
@@ -1434,33 +1434,33 @@ export default function Quotations() {
             </div>
 
             {/* Sección: Productos */}
-            <div className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 rounded-xl p-5 border border-emerald-200 dark:border-emerald-800 shadow-sm">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-base font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2">
-                  <Package className="h-5 w-5 text-emerald-600" />
+            <div className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-5 border border-emerald-200 dark:border-emerald-800 shadow-sm">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0 mb-3 sm:mb-4">
+                <h3 className="text-sm sm:text-base font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2">
+                  <Package className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-600" />
                   Productos a Cotizar
                 </h3>
                 <Button 
                   type="button" 
                   size="sm" 
                   onClick={addItem}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm"
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm text-xs sm:text-sm w-full sm:w-auto"
                 >
-                  <Plus className="h-4 w-4 mr-1" />
+                  <Plus className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                   Agregar Producto
                 </Button>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 {items.map((item, index) => (
-                  <div key={index} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+                  <div key={index} className="bg-white dark:bg-slate-800 rounded-lg sm:rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
                     {/* Header del Item */}
-                    <div className="bg-gradient-to-r from-slate-100 to-slate-50 dark:from-slate-700 dark:to-slate-800 px-4 py-3 flex justify-between items-center border-b border-slate-200 dark:border-slate-600">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900 flex items-center justify-center text-emerald-700 dark:text-emerald-300 font-bold text-sm">
+                    <div className="bg-gradient-to-r from-slate-100 to-slate-50 dark:from-slate-700 dark:to-slate-800 px-3 sm:px-4 py-2 sm:py-3 flex justify-between items-center border-b border-slate-200 dark:border-slate-600">
+                      <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                        <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-emerald-100 dark:bg-emerald-900 flex items-center justify-center text-emerald-700 dark:text-emerald-300 font-bold text-xs sm:text-sm">
                           {item.itemNumber}
                         </div>
-                        <span className="font-semibold text-slate-700 dark:text-slate-200">
+                        <span className="font-semibold text-slate-700 dark:text-slate-200 text-sm sm:text-base">
                           {item.itemType === 'cocina' ? 'Cocina Integral' : 
                            item.itemType === 'closet' ? 'Closet' :
                            item.itemType === 'puerta' ? 'Puerta' :
@@ -1488,11 +1488,11 @@ export default function Quotations() {
                       )}
                     </div>
 
-                    <div className="p-4">
-                      <div className="grid gap-4">
+                    <div className="p-3 sm:p-4">
+                      <div className="grid gap-3 sm:gap-4">
                         <div>
-                          <Label className="text-sm font-medium text-slate-600 dark:text-slate-300 flex items-center gap-2 mb-2">
-                            <LayoutGrid className="h-4 w-4" />
+                          <Label className="text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-300 flex items-center gap-2 mb-1 sm:mb-2">
+                            <LayoutGrid className="h-3 w-3 sm:h-4 sm:w-4" />
                             Tipo de Producto
                           </Label>
                           <Select 
@@ -1532,9 +1532,9 @@ export default function Quotations() {
 
                         {/* Campos dinámicos para COCINA */}
                         {item.itemType === "cocina" && (
-                          <div className="space-y-4 p-5 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/30 rounded-xl border border-orange-200 dark:border-orange-800">
-                            <h3 className="font-semibold text-base text-slate-700 dark:text-slate-200 flex items-center gap-2">
-                              <ChefHat className="h-5 w-5 text-orange-500" />
+                          <div className="space-y-3 sm:space-y-4 p-3 sm:p-4 md:p-5 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/30 rounded-lg sm:rounded-xl border border-orange-200 dark:border-orange-800">
+                            <h3 className="font-semibold text-sm sm:text-base text-slate-700 dark:text-slate-200 flex items-center gap-2">
+                              <ChefHat className="h-4 w-4 sm:h-5 sm:w-5 text-orange-500" />
                               Configuración de Cocina Integral
                             </h3>
                             
@@ -1753,13 +1753,13 @@ export default function Quotations() {
 
                             {/* 3. Muebles especiales - Para cocinas completas y puertas_tapas */}
                             {!['frente_pll', 'solo_superiores', 'solo_inferiores'].includes(item.kitchenConfig?.shape || '') && (
-                            <div className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-orange-100 dark:border-orange-900">
-                              <Label className="mb-3 block text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2">
-                                <Package className="h-4 w-4 text-orange-500" />
+                            <div className="bg-white dark:bg-slate-800 rounded-lg p-3 sm:p-4 border border-orange-100 dark:border-orange-900">
+                              <Label className="mb-2 sm:mb-3 block text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2">
+                                <Package className="h-3 w-3 sm:h-4 sm:w-4 text-orange-500" />
                                 Muebles Especiales (se descuentan del metraje)
                               </Label>
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                <div className="flex items-center space-x-2">
+                              <div className="grid grid-cols-1 gap-2">
+                                <div className="flex items-start space-x-2">
                                   <input
                                     type="checkbox"
                                     id={`nichoNevecon-${index}`}
@@ -1767,13 +1767,13 @@ export default function Quotations() {
                                     onChange={(e) => {
                                       updateKitchenConfig(index, "specialModules.nichoNevecon", e.target.checked);
                                     }}
-                                    className="h-4 w-4"
+                                    className="h-4 w-4 mt-0.5"
                                   />
-                                  <Label htmlFor={`nichoNevecon-${index}`} className="text-sm font-normal cursor-pointer">
-                                    Nicho para nevecon (100cm) - $1,200,000
+                                  <Label htmlFor={`nichoNevecon-${index}`} className="text-xs sm:text-sm font-normal cursor-pointer leading-tight">
+                                    Nicho nevecon (100cm) - $1,200,000
                                   </Label>
                                 </div>
-                                <div className="flex items-center space-x-2">
+                                <div className="flex items-start space-x-2">
                                   <input
                                     type="checkbox"
                                     id={`nichoNevera-${index}`}
@@ -1781,13 +1781,13 @@ export default function Quotations() {
                                     onChange={(e) => {
                                       updateKitchenConfig(index, "specialModules.nichoNevera", e.target.checked);
                                     }}
-                                    className="h-4 w-4"
+                                    className="h-4 w-4 mt-0.5"
                                   />
-                                  <Label htmlFor={`nichoNevera-${index}`} className="text-sm font-normal cursor-pointer">
-                                    Nicho para nevera estándar (75cm) - $1,200,000
+                                  <Label htmlFor={`nichoNevera-${index}`} className="text-xs sm:text-sm font-normal cursor-pointer leading-tight">
+                                    Nicho nevera estándar (75cm) - $1,200,000
                                   </Label>
                                 </div>
-                                <div className="flex items-center space-x-2">
+                                <div className="flex items-start space-x-2">
                                   <input
                                     type="checkbox"
                                     id={`alacenaEntrepanos-${index}`}
@@ -1795,13 +1795,13 @@ export default function Quotations() {
                                     onChange={(e) => {
                                       updateKitchenConfig(index, "specialModules.alacenaEntrepanos", e.target.checked);
                                     }}
-                                    className="h-4 w-4"
+                                    className="h-4 w-4 mt-0.5"
                                   />
-                                  <Label htmlFor={`alacenaEntrepanos-${index}`} className="text-sm font-normal cursor-pointer">
-                                    Alacena con entrepaños (50cm) - $1,250,000
+                                  <Label htmlFor={`alacenaEntrepanos-${index}`} className="text-xs sm:text-sm font-normal cursor-pointer leading-tight">
+                                    Alacena entrepaños (50cm) - $1,250,000
                                   </Label>
                                 </div>
-                                <div className="flex items-center space-x-2">
+                                <div className="flex items-start space-x-2">
                                   <input
                                     type="checkbox"
                                     id={`alacenaHerraje-${index}`}
@@ -1809,13 +1809,13 @@ export default function Quotations() {
                                     onChange={(e) => {
                                       updateKitchenConfig(index, "specialModules.alacenaHerraje", e.target.checked);
                                     }}
-                                    className="h-4 w-4"
+                                    className="h-4 w-4 mt-0.5"
                                   />
-                                  <Label htmlFor={`alacenaHerraje-${index}`} className="text-sm font-normal cursor-pointer">
-                                    Alacena para herraje (50cm) - $900,000
+                                  <Label htmlFor={`alacenaHerraje-${index}`} className="text-xs sm:text-sm font-normal cursor-pointer leading-tight">
+                                    Alacena herraje (50cm) - $900,000
                                   </Label>
                                 </div>
-                                <div className="flex items-center space-x-2">
+                                <div className="flex items-start space-x-2">
                                   <input
                                     type="checkbox"
                                     id={`torreHornos-${index}`}
@@ -1823,10 +1823,10 @@ export default function Quotations() {
                                     onChange={(e) => {
                                       updateKitchenConfig(index, "specialModules.torreHornos", e.target.checked);
                                     }}
-                                    className="h-4 w-4"
+                                    className="h-4 w-4 mt-0.5"
                                   />
-                                  <Label htmlFor={`torreHornos-${index}`} className="text-sm font-normal cursor-pointer">
-                                    Torre de hornos (70cm) - $1,350,000
+                                  <Label htmlFor={`torreHornos-${index}`} className="text-xs sm:text-sm font-normal cursor-pointer leading-tight">
+                                    Torre hornos (70cm) - $1,350,000
                                   </Label>
                                 </div>
                               </div>
@@ -1881,12 +1881,12 @@ export default function Quotations() {
 
                             {/* 4. Mesón principal - Solo para cocinas completas y solo_inferiores */}
                             {!['solo_superiores', 'puertas_tapas'].includes(item.kitchenConfig?.shape || '') && (
-                            <div className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-orange-100 dark:border-orange-900 space-y-3">
-                              <Label className="text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2">
-                                <Ruler className="h-4 w-4 text-orange-500" />
+                            <div className="bg-white dark:bg-slate-800 rounded-lg p-3 sm:p-4 border border-orange-100 dark:border-orange-900 space-y-2 sm:space-y-3">
+                              <Label className="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2">
+                                <Ruler className="h-3 w-3 sm:h-4 sm:w-4 text-orange-500" />
                                 Mesón Principal
                               </Label>
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                              <div className="grid grid-cols-1 gap-2 sm:gap-3">
                                 <div>
                                   <Label>Tipo de Mesón *</Label>
                                   <Select 
@@ -1924,7 +1924,7 @@ export default function Quotations() {
 
                             {/* 5. Isla - Para cocinas completas y puertas_tapas */}
                             {!['frente_pll', 'solo_superiores', 'solo_inferiores'].includes(item.kitchenConfig?.shape || '') && (
-                            <div className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-blue-100 dark:border-blue-900 space-y-3">
+                            <div className="bg-white dark:bg-slate-800 rounded-lg p-3 sm:p-4 border border-blue-100 dark:border-blue-900 space-y-2 sm:space-y-3">
                               <div className="flex items-center space-x-2">
                                 <input
                                   type="checkbox"
@@ -1933,15 +1933,15 @@ export default function Quotations() {
                                   onChange={(e) => updateKitchenConfig(index, "island.enabled", e.target.checked)}
                                   className="h-4 w-4 accent-blue-500"
                                 />
-                                <Label htmlFor={`islandEnabled-${index}`} className="text-sm font-semibold text-slate-700 dark:text-slate-200 cursor-pointer flex items-center gap-2">
-                                  <LayoutGrid className="h-4 w-4 text-blue-500" />
+                                <Label htmlFor={`islandEnabled-${index}`} className="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 cursor-pointer flex items-center gap-2">
+                                  <LayoutGrid className="h-3 w-3 sm:h-4 sm:w-4 text-blue-500" />
                                   Isla
                                 </Label>
                               </div>
                               
                               {item.kitchenConfig?.island.enabled && (
-                                <div className="pl-6 space-y-2">
-                                  <div className="grid grid-cols-2 gap-2">
+                                <div className="pl-4 sm:pl-6 space-y-2">
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                     <div>
                                       <Label>Metros de isla (ml)</Label>
                                       <Input
@@ -1987,7 +1987,7 @@ export default function Quotations() {
 
                             {/* 6. Barra - Para cocinas completas y puertas_tapas */}
                             {!['frente_pll', 'solo_superiores', 'solo_inferiores'].includes(item.kitchenConfig?.shape || '') && (
-                            <div className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-purple-100 dark:border-purple-900 space-y-3">
+                            <div className="bg-white dark:bg-slate-800 rounded-lg p-3 sm:p-4 border border-purple-100 dark:border-purple-900 space-y-2 sm:space-y-3">
                               <div className="flex items-center space-x-2">
                                 <input
                                   type="checkbox"
@@ -1996,15 +1996,15 @@ export default function Quotations() {
                                   onChange={(e) => updateKitchenConfig(index, "bar.enabled", e.target.checked)}
                                   className="h-4 w-4 accent-purple-500"
                                 />
-                                <Label htmlFor={`barEnabled-${index}`} className="text-sm font-semibold text-slate-700 dark:text-slate-200 cursor-pointer flex items-center gap-2">
-                                  <Ruler className="h-4 w-4 text-purple-500" />
+                                <Label htmlFor={`barEnabled-${index}`} className="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 cursor-pointer flex items-center gap-2">
+                                  <Ruler className="h-3 w-3 sm:h-4 sm:w-4 text-purple-500" />
                                   Barra
                                 </Label>
                               </div>
                               
                               {item.kitchenConfig?.bar.enabled && (
-                                <div className="pl-6 space-y-2">
-                                  <div className="grid grid-cols-2 gap-2">
+                                <div className="pl-4 sm:pl-6 space-y-2">
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                     <div>
                                       <Label>Metros de barra (ml)</Label>
                                       <Input
@@ -2050,10 +2050,10 @@ export default function Quotations() {
 
                             {/* 7. Luz LED (opcional) - Solo para cocinas completas, frente_pll y solo_superiores */}
                             {!['solo_inferiores', 'puertas_tapas'].includes(item.kitchenConfig?.shape || '') && (
-                            <div className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-yellow-100 dark:border-yellow-900 space-y-2">
-                              <Label className="text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2">
-                                <Lightbulb className="h-4 w-4 text-yellow-500" />
-                                Luz LED (opcional) - $180,000/ml
+                            <div className="bg-white dark:bg-slate-800 rounded-lg p-3 sm:p-4 border border-yellow-100 dark:border-yellow-900 space-y-2">
+                              <Label className="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2">
+                                <Lightbulb className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-500" />
+                                Luz LED - $180,000/ml
                               </Label>
                               <Input
                                 type="number"
@@ -2067,7 +2067,7 @@ export default function Quotations() {
                             )}
 
                             {/* 8. Pintado Puertas Alto Brillo */}
-                            <div className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-pink-200 dark:border-pink-900 space-y-3">
+                            <div className="bg-white dark:bg-slate-800 rounded-lg p-3 sm:p-4 border border-pink-200 dark:border-pink-900 space-y-2 sm:space-y-3">
                               <div className="flex items-center space-x-2">
                                 <input
                                   type="checkbox"
@@ -2079,13 +2079,13 @@ export default function Quotations() {
                                   }}
                                   className="h-4 w-4 accent-pink-500"
                                 />
-                                <Label htmlFor={`paintedDoors-${index}`} className="text-sm font-semibold text-slate-700 dark:text-slate-200 cursor-pointer flex items-center gap-2">
-                                  <Palette className="h-4 w-4 text-pink-500" />
+                                <Label htmlFor={`paintedDoors-${index}`} className="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 cursor-pointer flex items-center gap-2">
+                                  <Palette className="h-3 w-3 sm:h-4 sm:w-4 text-pink-500" />
                                   Pintado Puertas Alto Brillo
                                 </Label>
                               </div>
                               {item.kitchenConfig?.paintedDoors?.enabled && (
-                                <div className="grid grid-cols-2 gap-3 text-sm">
+                                <div className="grid grid-cols-2 gap-2 sm:gap-3 text-xs sm:text-sm">
                                   <div>
                                     <Label className="text-xs text-pink-700">Puertas Superiores ($120,000)</Label>
                                     <Input
@@ -2192,8 +2192,8 @@ export default function Quotations() {
                             </div>
 
                             {/* Total calculado */}
-                            <div className="p-4 bg-green-50 rounded">
-                              <p className="text-lg font-bold text-green-800">
+                            <div className="p-3 sm:p-4 bg-green-50 rounded">
+                              <p className="text-sm sm:text-lg font-bold text-green-800">
                                 Total Cocina: {formatPrice(item.totalPrice)}
                               </p>
                             </div>
@@ -2561,15 +2561,15 @@ export default function Quotations() {
             </div>
 
             {/* Sección: Resumen Total */}
-            <div className="bg-gradient-to-r from-[oklch(0.72_0.14_180)] to-[oklch(0.60_0.14_180)] rounded-xl p-5 shadow-lg">
+            <div className="bg-gradient-to-r from-[oklch(0.72_0.14_180)] to-[oklch(0.60_0.14_180)] rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-5 shadow-lg">
               <div className="flex justify-between items-center">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
-                    <CircleDollarSign className="h-6 w-6 text-white" />
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/20 flex items-center justify-center">
+                    <CircleDollarSign className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                   </div>
                   <div>
-                    <p className="text-white/80 text-sm font-medium">Total de la Cotización</p>
-                    <p className="text-white text-2xl font-bold">
+                    <p className="text-white/80 text-xs sm:text-sm font-medium">Total de la Cotización</p>
+                    <p className="text-white text-lg sm:text-xl md:text-2xl font-bold">
                       {formatPrice(calculateTotal())}
                     </p>
                   </div>
@@ -2578,19 +2578,19 @@ export default function Quotations() {
             </div>
 
             {/* Botones de acción */}
-            <div className="flex justify-end gap-3 pt-2">
+            <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 pt-2">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => setShowCreateDialog(false)}
-                className="px-6 border-slate-300 hover:bg-slate-100 dark:border-slate-600 dark:hover:bg-slate-800"
+                className="px-4 sm:px-6 text-sm sm:text-base border-slate-300 hover:bg-slate-100 dark:border-slate-600 dark:hover:bg-slate-800 order-2 sm:order-1"
               >
                 Cancelar
               </Button>
               <Button 
                 type="submit" 
                 disabled={createQuotation.isPending || updateQuotation.isPending}
-                className="px-6 bg-[oklch(0.72_0.14_180)] hover:bg-[oklch(0.60_0.14_180)] text-white shadow-md"
+                className="px-4 sm:px-6 text-sm sm:text-base bg-[oklch(0.72_0.14_180)] hover:bg-[oklch(0.60_0.14_180)] text-white shadow-md order-1 sm:order-2"
               >
                 {editingQuotation 
                   ? (updateQuotation.isPending ? "Guardando..." : "Guardar Cambios")

@@ -1576,11 +1576,11 @@ export const appRouter = router({
               totalPrice: item.totalPrice,
             };
           }),
-          subtotal: quotation.subtotal,
-          transportCost: quotation.transportCost,
-          discountPercent: quotation.discountPercent || '0',
-          discountAmount: quotation.discountAmount || '0',
-          total: quotation.total,
+          subtotal: String(parseFloat(String(quotation.subtotal)) || 0),
+          transportCost: String(parseFloat(String(quotation.transportCost)) || 0),
+          discountPercent: String(parseFloat(String(quotation.discountPercent)) || 0),
+          discountAmount: String(parseFloat(String(quotation.discountAmount)) || 0),
+          total: String(parseFloat(String(quotation.total)) || 0),
           generalNotes: quotation.generalNotes || '',
         };
 
@@ -1683,11 +1683,11 @@ export const appRouter = router({
               totalPrice: item.totalPrice,
             };
           }),
-          subtotal: quotation.subtotal,
-          transportCost: quotation.transportCost,
-          discountPercent: quotation.discountPercent || '0',
-          discountAmount: quotation.discountAmount || '0',
-          total: quotation.total,
+          subtotal: String(parseFloat(String(quotation.subtotal)) || 0),
+          transportCost: String(parseFloat(String(quotation.transportCost)) || 0),
+          discountPercent: String(parseFloat(String(quotation.discountPercent)) || 0),
+          discountAmount: String(parseFloat(String(quotation.discountAmount)) || 0),
+          total: String(parseFloat(String(quotation.total)) || 0),
           generalNotes: quotation.generalNotes || '',
         };
 

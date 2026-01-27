@@ -52,39 +52,40 @@ export async function generateQuotationPDF(
       const gray = "#6B7280";
       const darkGray = "#374151";
 
-      // Logo
+      // Logo (izquierda)
       const logoPath = path.join(__dirname, "../innovar_logo.png");
       console.log(`[PDF] Intentando cargar logo desde: ${logoPath}`);
       try {
-        doc.image(logoPath, 50, 40, { width: 80, height: 102 });
+        doc.image(logoPath, 50, 35, { width: 70, height: 90 });
       } catch (e) {
         console.log("[PDF] Logo no encontrado, continuando sin logo");
       }
 
-      // Información de contacto (derecha)
-      doc.fontSize(9).fillColor(darkGray);
-      doc.text("INNOVAR", 400, 50, { align: "right" });
-      doc.text("COCINAS DE DISEÑO", 400, 65, { align: "right" });
-      doc.text("NIT: 10021456-1", 400, 78, { align: "right" });
-      doc.text("K9 vía Cerritos a Pereira", 400, 93, { align: "right" });
-      doc.text("313 680 2025", 400, 108, { align: "right" });
-      doc.text("ventas@cocinasintegralespereira.co", 400, 123, {
-        align: "right",
-      });
-      doc.text("Cuenta de Ahorros Bancolombia", 400, 138, { align: "right" });
-      doc.text("# 11533034332", 400, 151, { align: "right" });
+      // Información de contacto (centro-izquierda, al lado del logo)
+      doc.fontSize(8).fillColor(darkGray).font("Helvetica");
+      doc.text("K9 vía Cerritos a Pereira", 130, 45);
+      doc.text("313 680 2025", 130, 57);
+      doc.text("ventas@cocinasintegralespereira.co", 130, 69);
+      doc.text("Bancolombia Ahorros: 11533034332", 130, 81);
 
-      // Número de cotización y fecha (posicionados debajo de la info de contacto)
-      doc.fontSize(11).fillColor(turquoise).font("Helvetica-Bold");
-      doc.text(`Cotización N° ${data.quotationNumber}`, 400, 168, {
+      // Número de cotización (derecha, destacado)
+      doc.fontSize(12).fillColor(turquoise).font("Helvetica-Bold");
+      doc.text(`Cotización N° ${data.quotationNumber}`, 350, 45, {
         align: "right",
+        width: 200,
       });
+      
+      // Fecha y validez (derecha, debajo del número)
       doc.fontSize(9).fillColor(darkGray).font("Helvetica");
-      doc.text(`Fecha: ${data.date} | Válida hasta: ${data.validUntil}`, 400, 185, { align: "right" });
+      doc.text(`Fecha: ${data.date}`, 350, 65, { align: "right", width: 200 });
+      doc.text(`Válida hasta: ${data.validUntil}`, 350, 78, { align: "right", width: 200 });
+
+      // Línea separadora
+      doc.strokeColor(turquoise).lineWidth(1);
+      doc.moveTo(50, 130).lineTo(562, 130).stroke();
 
       // Cliente
-      doc.moveDown(2);
-      const clientY = 210;
+      const clientY = 140;
       doc
         .fillColor(turquoise)
         .rect(50, clientY, 512, 25)

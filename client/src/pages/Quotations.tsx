@@ -819,14 +819,22 @@ export default function Quotations() {
       total += (config.paintedDoors.golaQty || 0) * getPrice('PINTADO_GOLA');
     }
 
-    // 9. Transporte e imprevistos (si está marcado el checkbox) - precio dinámico
-    if (item.includesFixedCosts) {
+    // 9. Transporte e imprevistos - AUTOMÁTICO para el primer item de cocina
+    // Verificar si este es el primer item de cocina en la cotización
+    const isFirstKitchenItem = itemsArray.findIndex(i => i.itemType === 'cocina') === index;
+    
+    // Incluir transporte automáticamente si es el primer item de cocina
+    // O si el checkbox está marcado manualmente
+    if (isFirstKitchenItem || item.includesFixedCosts) {
       total += getPrice('TRANSPORTE_IMPREVISTOS');
     }
 
-    // Actualizar total del item
+    // Actualizar total del item y marcar includesFixedCosts si es primer item de cocina
     const finalItems = [...items];
     finalItems[index].totalPrice = total;
+    if (isFirstKitchenItem) {
+      finalItems[index].includesFixedCosts = true;
+    }
     setItems(finalItems);
   };
 
@@ -1065,12 +1073,17 @@ export default function Quotations() {
           total += (config.paintedDoors.golaQty || 0) * getPrice('PINTADO_GOLA');
         }
 
-        // Transporte e imprevistos (si está marcado el checkbox) - precio dinámico
-        if (item.includesFixedCosts) {
+        // Transporte e imprevistos - AUTOMÁTICO para el primer item de cocina
+        // Verificar si este es el primer item de cocina en la cotización
+        const isFirstKitchenItem = items.findIndex(i => i.itemType === 'cocina') === index;
+        
+        // Incluir transporte automáticamente si es el primer item de cocina
+        // O si el checkbox está marcado manualmente
+        if (isFirstKitchenItem || item.includesFixedCosts) {
           total += getPrice('TRANSPORTE_IMPREVISTOS');
         }
 
-        return { ...item, description, quantity, totalPrice: total, includesFixedCosts: item.includesFixedCosts };
+        return { ...item, description, quantity, totalPrice: total, includesFixedCosts: isFirstKitchenItem || item.includesFixedCosts };
       }
       // Para centro de TV: generar descripción automática
       if (item.itemType === "centro_tv" && item.tvCenterConfig) {
@@ -2301,22 +2314,33 @@ export default function Quotations() {
                               )}
                             </div>
 
-                            {/* 9. Transporte */}
-                            <div className="flex items-center space-x-2 p-3 bg-yellow-50 rounded">
-                              <input
-                                type="checkbox"
-                                id={`fixedCosts-${index}`}
-                                checked={item.includesFixedCosts || false}
-                                onChange={(e) => {
-                                  updateItem(index, "includesFixedCosts", e.target.checked);
-                                  calculateKitchenTotal(index);
-                                }}
-                                className="h-4 w-4"
-                              />
-                              <Label htmlFor={`fixedCosts-${index}`} className="text-sm font-normal cursor-pointer">
-                                Incluye transporte e imprevistos ($600,000)
-                              </Label>
-                            </div>
+                            {/* 9. Transporte - Automático para primer item de cocina */}
+                            {(() => {
+                              const isFirstKitchenItem = items.findIndex(i => i.itemType === 'cocina') === index;
+                              return (
+                                <div className={`flex items-center space-x-2 p-3 rounded ${isFirstKitchenItem ? 'bg-green-100 border border-green-300' : 'bg-yellow-50'}`}>
+                                  <input
+                                    type="checkbox"
+                                    id={`fixedCosts-${index}`}
+                                    checked={isFirstKitchenItem || item.includesFixedCosts || false}
+                                    onChange={(e) => {
+                                      if (!isFirstKitchenItem) {
+                                        updateItem(index, "includesFixedCosts", e.target.checked);
+                                        calculateKitchenTotal(index);
+                                      }
+                                    }}
+                                    disabled={isFirstKitchenItem}
+                                    className="h-4 w-4"
+                                  />
+                                  <Label htmlFor={`fixedCosts-${index}`} className="text-sm font-normal cursor-pointer">
+                                    {isFirstKitchenItem 
+                                      ? '✅ Transporte e imprevistos incluido automáticamente ($600,000)'
+                                      : 'Incluye transporte e imprevistos ($600,000)'
+                                    }
+                                  </Label>
+                                </div>
+                              );
+                            })()}
 
                             {/* Total calculado */}
                             <div className="p-3 sm:p-4 bg-green-50 rounded">

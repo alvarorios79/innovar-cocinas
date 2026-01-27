@@ -317,6 +317,17 @@ export async function generateQuotationPDF(
 }
 
 function formatCurrency(value: string | number): string {
-  const num = typeof value === "string" ? parseFloat(value) : value;
+  let num: number;
+  if (typeof value === "string") {
+    // Limpiar el string de caracteres no numéricos excepto punto y guión
+    const cleanValue = value.replace(/[^0-9.-]/g, '');
+    num = parseFloat(cleanValue) || 0;
+  } else {
+    num = value || 0;
+  }
+  // Manejar NaN
+  if (isNaN(num)) {
+    num = 0;
+  }
   return `$${num.toLocaleString("es-CO", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
 }

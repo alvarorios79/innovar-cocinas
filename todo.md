@@ -2889,3 +2889,8 @@
 - [x] Mostrar subtotal, descuento y total final en la cotización
 - [x] Guardar descuento en la base de datos
 - [x] Reflejar descuento en el PDF generado
+
+
+## Bug: Transporte e imprevistos no se incluye en cocinas (27 Ene 2026)
+- [x] Incluir transporte e imprevistos automáticamente en el primer item de cocina de la cotización
+- [x] Mantener checkbox opcional para otros tipos de items (herrajes, closets, puertas)

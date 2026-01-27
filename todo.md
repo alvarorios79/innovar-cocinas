@@ -2870,5 +2870,6 @@
 
 ## Bug: Muebles superiores no se guardan en Frente PLL
 - [x] Investigar cómo se guardan los muebles superiores en cotizaciones Frente PLL
-- [x] Corregir el bug de guardado (agregar includeUpperModule y upperModuleMeters al mapeo)
+- [x] Corregir el bug de guardado en frontend (agregar includeUpperModule y upperModuleMeters al mapeo)
+- [x] Corregir el bug de guardado en frontend (agregar campos a todas las estructuras iniciales)
 - [x] Verificar que se guarden y calculen correctamente

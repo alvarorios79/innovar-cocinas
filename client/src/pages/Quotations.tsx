@@ -103,7 +103,8 @@ export default function Quotations() {
       kitchenConfig: {
         shape: "",
         totalMeters: 0,
-
+        includeUpperModule: false,
+        upperModuleMeters: 0,
         specialModules: {
           nichoNevecon: false,
           nichoNevera: false,
@@ -346,7 +347,8 @@ export default function Quotations() {
       kitchenConfig: {
         shape: "",
         totalMeters: 0,
-
+        includeUpperModule: false,
+        upperModuleMeters: 0,
         specialModules: {
           nichoNevecon: false,
           nichoNevera: false,
@@ -595,6 +597,8 @@ export default function Quotations() {
         kitchenConfig: {
           shape: "",
           totalMeters: 0,
+          includeUpperModule: false,
+          upperModuleMeters: 0,
           specialModules: {
             nichoNevecon: false,
             nichoNevera: false,

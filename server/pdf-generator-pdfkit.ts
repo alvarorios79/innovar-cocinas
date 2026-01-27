@@ -69,16 +69,16 @@ export async function generateQuotationPDF(
       doc.text("Bancolombia Ahorros: 11533034332", 130, 81);
 
       // Número de cotización (derecha, destacado)
-      doc.fontSize(12).fillColor(turquoise).font("Helvetica-Bold");
-      doc.text(`Cotización N° ${data.quotationNumber}`, 350, 45, {
+      doc.fontSize(14).fillColor(turquoise).font("Helvetica-Bold");
+      doc.text(`Cotización N° ${data.quotationNumber}`, 350, 40, {
         align: "right",
         width: 200,
       });
       
-      // Fecha y validez (derecha, debajo del número)
-      doc.fontSize(9).fillColor(darkGray).font("Helvetica");
-      doc.text(`Fecha: ${data.date}`, 350, 65, { align: "right", width: 200 });
-      doc.text(`Válida hasta: ${data.validUntil}`, 350, 78, { align: "right", width: 200 });
+      // Fecha y validez (derecha, más abajo y más grande)
+      doc.fontSize(10).fillColor(darkGray).font("Helvetica");
+      doc.text(`Fecha: ${data.date}`, 350, 70, { align: "right", width: 200 });
+      doc.text(`Válida hasta: ${data.validUntil}`, 350, 88, { align: "right", width: 200 });
 
       // Línea separadora
       doc.strokeColor(turquoise).lineWidth(1);

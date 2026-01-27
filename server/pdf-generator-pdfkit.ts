@@ -80,8 +80,7 @@ export async function generateQuotationPDF(
         align: "right",
       });
       doc.fontSize(9).fillColor(darkGray).font("Helvetica");
-      doc.text(`Fecha: ${data.date}`, 400, 185, { align: "right" });
-      doc.text(`Válida hasta: ${data.validUntil}`, 400, 198, { align: "right" });
+      doc.text(`Fecha: ${data.date} | Válida hasta: ${data.validUntil}`, 400, 185, { align: "right" });
 
       // Cliente
       doc.moveDown(2);

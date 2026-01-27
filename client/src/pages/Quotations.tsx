@@ -633,30 +633,52 @@ export default function Quotations() {
     let total = 0;
 
     // 1. Calcular metraje resultante después de descontar muebles especiales
+    // Solo aplica para cocinas completas (no para frente_pll, solo_superiores, solo_inferiores)
     let deductions = 0;
-    if (config.specialModules?.nichoNevecon) deductions += 1.0; // 100cm
-    if (config.specialModules?.nichoNevera) deductions += 0.75; // 75cm
-    if (config.specialModules?.alacenaEntrepanos) deductions += 0.5; // 50cm
-    if (config.specialModules?.alacenaHerraje) deductions += 0.5; // 50cm
-    if (config.specialModules?.torreHornos) deductions += 0.7; // 70cm
+    const isSpecialShape = ['frente_pll', 'solo_superiores', 'solo_inferiores'].includes(config.shape);
+    
+    if (!isSpecialShape) {
+      if (config.specialModules?.nichoNevecon) deductions += 1.0; // 100cm
+      if (config.specialModules?.nichoNevera) deductions += 0.75; // 75cm
+      if (config.specialModules?.alacenaEntrepanos) deductions += 0.5; // 50cm
+      if (config.specialModules?.alacenaHerraje) deductions += 0.5; // 50cm
+      if (config.specialModules?.torreHornos) deductions += 0.7; // 70cm
+    }
 
     const resultingMeters = Math.max(0, config.totalMeters - deductions);
     
+    // 2. Muebles lineales según la forma
+    if (config.shape === 'frente_pll') {
+      // Frente PLL: $650,000/ml
+      total += config.totalMeters * 650000;
+      // Módulo superior opcional: +$750,000/ml
+      if (config.includeUpperModule) {
+        total += config.totalMeters * 750000;
+      }
+    } else if (config.shape === 'solo_superiores') {
+      // Solo muebles superiores: $900,000/ml
+      total += config.totalMeters * 900000;
+    } else if (config.shape === 'solo_inferiores') {
+      // Solo muebles inferiores: $900,000/ml
+      total += config.totalMeters * 900000;
+    } else {
+      // Cocinas completas (Lineal, L, U, etc.): inferiores + superiores
+      total += resultingMeters * 900000; // Inferiores
+      total += resultingMeters * 900000; // Superiores
+    }
 
-
-    // 2. Muebles lineales (inferiores + superiores)
-    total += resultingMeters * 900000; // Inferiores
-    total += resultingMeters * 900000; // Superiores
-
-    // 3. Muebles especiales
-    if (config.specialModules?.nichoNevecon) total += 1200000;
-    if (config.specialModules?.nichoNevera) total += 1200000;
-    if (config.specialModules?.alacenaEntrepanos) total += 1250000;
-    if (config.specialModules?.alacenaHerraje) total += 900000;
-    if (config.specialModules?.torreHornos) total += 1350000;
+    // 3. Muebles especiales (solo para cocinas completas)
+    if (!isSpecialShape) {
+      if (config.specialModules?.nichoNevecon) total += 1200000;
+      if (config.specialModules?.nichoNevera) total += 1200000;
+      if (config.specialModules?.alacenaEntrepanos) total += 1250000;
+      if (config.specialModules?.alacenaHerraje) total += 900000;
+      if (config.specialModules?.torreHornos) total += 1350000;
+    }
 
     // 4. Mesón principal (usa metraje resultante automáticamente)
-    if (config.countertop.type) {
+    // No aplica para solo_superiores
+    if (config.shape !== 'solo_superiores' && config.countertop.type) {
       const basePrice = config.countertop.type === "quarzone" ? 850000 : 1200000;
       let countertopPrice = basePrice;
       
@@ -666,12 +688,13 @@ export default function Quotations() {
         countertopPrice = basePrice * 2;
       }
       
-      // Usar metraje resultante automáticamente
-      total += resultingMeters * countertopPrice;
+      // Usar metraje resultante automáticamente (o totalMeters para formas especiales)
+      const metersForCountertop = isSpecialShape ? config.totalMeters : resultingMeters;
+      total += metersForCountertop * countertopPrice;
     }
 
-    // 5. Isla
-    if (config.island.enabled && config.island.meters > 0) {
+    // 5. Isla (solo para cocinas completas)
+    if (!isSpecialShape && config.island.enabled && config.island.meters > 0) {
       // Muebles de isla
       total += config.island.meters * 900000;
       
@@ -688,8 +711,8 @@ export default function Quotations() {
       }
     }
 
-    // 6. Barra
-    if (config.bar.enabled && config.bar.meters > 0) {
+    // 6. Barra (solo para cocinas completas)
+    if (!isSpecialShape && config.bar.enabled && config.bar.meters > 0) {
       // Muebles de barra
       total += config.bar.meters * 900000;
       
@@ -705,8 +728,8 @@ export default function Quotations() {
       }
     }
 
-    // 7. Luz LED
-    if (config.ledLighting > 0) {
+    // 7. Luz LED (no aplica para solo_inferiores)
+    if (config.shape !== 'solo_inferiores' && config.ledLighting > 0) {
       total += config.ledLighting * 180000;
     }
 
@@ -1427,13 +1450,16 @@ export default function Quotations() {
                                   <SelectItem value="L">En L</SelectItem>
                                   <SelectItem value="U">En U</SelectItem>
                                   <SelectItem value="lineal">Lineal</SelectItem>
+                                  <SelectItem value="frente_pll">Frente PLL ($650,000/ml)</SelectItem>
+                                  <SelectItem value="solo_superiores">Solo Muebles Superiores ($900,000/ml)</SelectItem>
+                                  <SelectItem value="solo_inferiores">Solo Muebles Inferiores ($900,000/ml)</SelectItem>
                                 </SelectContent>
                               </Select>
                             </div>
 
                             {/* 2. Metraje total */}
                             <div>
-                              <Label>Metraje Total de la Cocina (ml)</Label>
+                              <Label>Metraje Total {item.kitchenConfig?.shape === 'frente_pll' ? 'del Frente PLL' : item.kitchenConfig?.shape === 'solo_superiores' ? 'Muebles Superiores' : item.kitchenConfig?.shape === 'solo_inferiores' ? 'Muebles Inferiores' : 'de la Cocina'} (ml)</Label>
                               <Input
                                 type="number"
                                 step="0.01"
@@ -1443,7 +1469,27 @@ export default function Quotations() {
                               />
                             </div>
 
-                            {/* 3. Muebles especiales */}
+                            {/* Checkbox módulo superior para Frente PLL */}
+                            {item.kitchenConfig?.shape === 'frente_pll' && (
+                              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                                <div className="flex items-center space-x-2">
+                                  <input
+                                    type="checkbox"
+                                    id={`includeUpperModule-${index}`}
+                                    checked={item.kitchenConfig?.includeUpperModule || false}
+                                    onChange={(e) => updateKitchenConfig(index, "includeUpperModule", e.target.checked)}
+                                    className="h-4 w-4"
+                                  />
+                                  <Label htmlFor={`includeUpperModule-${index}`} className="text-sm font-medium cursor-pointer">
+                                    Incluir Módulo Superior (+$750,000/ml)
+                                  </Label>
+                                </div>
+                                <p className="text-xs text-amber-700 mt-1">Se calculará sobre el mismo metraje del Frente PLL</p>
+                              </div>
+                            )}
+
+                            {/* 3. Muebles especiales - Solo para cocinas completas */}
+                            {!['frente_pll', 'solo_superiores', 'solo_inferiores'].includes(item.kitchenConfig?.shape || '') && (
                             <div>
                               <Label className="mb-2 block">Muebles Especiales (se descuentan del metraje)</Label>
                               <div className="space-y-2">
@@ -1519,8 +1565,10 @@ export default function Quotations() {
                                 </div>
                               </div>
                             </div>
+                            )}
 
-                            {/* Mostrar metraje resultante y muebles */}
+                            {/* Mostrar metraje resultante y muebles - Solo para cocinas completas */}
+                            {!['frente_pll', 'solo_superiores', 'solo_inferiores'].includes(item.kitchenConfig?.shape || '') && (
                             <div className="p-3 bg-blue-50 rounded space-y-1">
                               <p className="text-sm">
                                 <span className="font-medium">Metraje resultante:</span>{" "}
@@ -1563,8 +1611,10 @@ export default function Quotations() {
                                 })()} ml
                               </p>
                             </div>
+                            )}
 
-                            {/* 4. Mesón principal */}
+                            {/* 4. Mesón principal - Solo para cocinas completas y solo_inferiores */}
+                            {!['solo_superiores'].includes(item.kitchenConfig?.shape || '') && (
                             <div className="space-y-2">
                               <Label className="text-base font-semibold">Mesón Principal</Label>
                               <div className="grid grid-cols-2 gap-3">
@@ -1601,8 +1651,10 @@ export default function Quotations() {
                                 </div>
                               </div>
                             </div>
+                            )}
 
-                            {/* 5. Isla */}
+                            {/* 5. Isla - Solo para cocinas completas */}
+                            {!['frente_pll', 'solo_superiores', 'solo_inferiores'].includes(item.kitchenConfig?.shape || '') && (
                             <div className="space-y-2">
                               <div className="flex items-center space-x-2">
                                 <input
@@ -1661,8 +1713,10 @@ export default function Quotations() {
                                 </div>
                               )}
                             </div>
+                            )}
 
-                            {/* 6. Barra */}
+                            {/* 6. Barra - Solo para cocinas completas */}
+                            {!['frente_pll', 'solo_superiores', 'solo_inferiores'].includes(item.kitchenConfig?.shape || '') && (
                             <div className="space-y-2">
                               <div className="flex items-center space-x-2">
                                 <input
@@ -1721,8 +1775,10 @@ export default function Quotations() {
                                 </div>
                               )}
                             </div>
+                            )}
 
-                            {/* 7. Luz LED (opcional) */}
+                            {/* 7. Luz LED (opcional) - Solo para cocinas completas, frente_pll y solo_superiores */}
+                            {!['solo_inferiores'].includes(item.kitchenConfig?.shape || '') && (
                             <div>
                               <Label>Luz LED (opcional) - $180,000/ml</Label>
                               <Input
@@ -1733,6 +1789,7 @@ export default function Quotations() {
                                 placeholder="Dejar en 0 si no lleva LED"
                               />
                             </div>
+                            )}
 
                             {/* 8. Pintado Puertas Alto Brillo */}
                             <div className="p-4 bg-pink-50 rounded-lg border border-pink-200">

@@ -2752,3 +2752,23 @@
 - [x] Agregar campos de pintado alto brillo al schema de cotizaciones
 - [x] Actualizar formulario de cotización con el nuevo servicio (6 tipos de puertas con cantidad y precio)
 - [x] Actualizar cálculo de totales y vista de cotización
+
+## Panel de Configuración de Precios (Cocinas, Closets, Puertas, Mesones)
+- [ ] Crear tabla de configuración de precios en la base de datos
+- [ ] Crear endpoints para obtener y actualizar precios
+- [ ] Crear página de configuración de precios en panel admin
+- [ ] Actualizar formularios de cotización para usar precios dinámicos
+- [ ] Excluir herrajes (ya tienen sistema separado)
+
+## Nuevas Formas de Cocina (Frente PLL, Solo Superiores, Solo Inferiores)
+- [ ] Agregar nuevas formas al dropdown: Frente PLL ($650,000/ml), Solo Superiores ($900,000/ml), Solo Inferiores ($900,000/ml)
+- [ ] Agregar checkbox "Incluir módulo superior" para Frente PLL (+$750,000/ml)
+- [ ] Implementar lógica de mostrar/ocultar campos según forma seleccionada
+- [ ] Actualizar cálculo de precios para las nuevas formas
+
+
+## Nuevas Formas de Cocina (Frente PLL, Solo Superiores, Solo Inferiores)
+- [x] Agregar nuevas formas al dropdown de forma de cocina
+- [x] Agregar checkbox de módulo superior para Frente PLL (+$750,000/ml)
+- [x] Implementar lógica de mostrar/ocultar campos según la forma
+- [x] Actualizar cálculo de precios para las nuevas formas

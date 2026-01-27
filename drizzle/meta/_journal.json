@@ -239,6 +239,13 @@
       "when": 1769487036037,
       "tag": "0033_swift_molecule_man",
       "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "5",
+      "when": 1769550653410,
+      "tag": "0034_cooing_mantis",
+      "breakpoints": true
     }
   ]
 }

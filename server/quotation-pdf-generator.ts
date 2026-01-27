@@ -16,6 +16,8 @@ interface QuotationPDFData {
   }>;
   subtotal: string;
   transportCost: string;
+  discountPercent?: string; // Porcentaje de descuento
+  discountAmount?: string; // Monto del descuento
   total: string;
   generalNotes?: string; // Notas generales personalizadas
 }

@@ -2881,3 +2881,11 @@
 - [x] Incluir soporte para todas las formas especiales (frente_pll, solo_superiores, solo_inferiores, puertas_tapas)
 - [x] Usar precios dinámicos desde la base de datos en lugar de valores hardcodeados
 - [x] Probar creación y edición de cotización Frente PLL con muebles superiores (14 tests pasando)
+
+
+## Mejoras al Editor de PDF y Descuento en Cotizaciones
+- [x] Incluir información de muebles superiores de Frente PLL en descripciones del PDF
+- [x] Agregar campo de porcentaje de descuento a las cotizaciones
+- [x] Mostrar subtotal, descuento y total final en la cotización
+- [x] Guardar descuento en la base de datos
+- [x] Reflejar descuento en el PDF generado

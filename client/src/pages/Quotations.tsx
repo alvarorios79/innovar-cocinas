@@ -91,6 +91,9 @@ export default function Quotations() {
   const [pdfEditorNotes, setPdfEditorNotes] = useState("");
   const [pdfEditorClientName, setPdfEditorClientName] = useState("");
   const [pdfEditorQuotationNumber, setPdfEditorQuotationNumber] = useState("");
+  
+  // Estado para descuento
+  const [discountPercent, setDiscountPercent] = useState<number>(0);
   const [items, setItems] = useState<QuotationItem[]>([
     { 
       itemNumber: 1, 
@@ -336,6 +339,7 @@ export default function Quotations() {
     setSelectedClient(null);
     setVendorName("Alvaro Gutierrez");
     setWorkType("");
+    setDiscountPercent(0);
     setItems([{ 
       itemNumber: 1, 
       itemType: "", 
@@ -402,6 +406,10 @@ export default function Quotations() {
       setSelectedClient(quotation.clientId);
       setVendorName(quotation.vendorName);
       setWorkType(quotation.productType);
+      
+      // Cargar descuento si existe
+      const quotationDiscount = (quotationData as any)?.discountPercent;
+      setDiscountPercent(quotationDiscount ? parseFloat(quotationDiscount) : 0);
       
       // Cargar items si existen
       if (quotationData && quotationData.items && Array.isArray(quotationData.items)) {
@@ -1130,6 +1138,7 @@ export default function Quotations() {
         clientId: selectedClient,
         vendorName,
         productType: (workType || items[0]?.itemType || "otro") as "cocina" | "closet" | "puerta" | "centro_tv" | "herrajes" | "mesones" | "otro",
+        discountPercent,
         items: itemsWithUpdatedPrices,
       });
     } else {
@@ -1138,6 +1147,7 @@ export default function Quotations() {
         clientId: selectedClient,
         vendorName,
         productType: (workType || items[0]?.itemType || "otro") as "cocina" | "closet" | "puerta" | "centro_tv" | "herrajes" | "mesones" | "otro",
+        discountPercent,
         items: itemsWithUpdatedPrices,
       });
     }
@@ -2677,18 +2687,52 @@ export default function Quotations() {
               </div>
             </div>
 
-            {/* Sección: Resumen Total */}
+            {/* Sección: Resumen con Descuento */}
             <div className="bg-gradient-to-r from-[oklch(0.72_0.14_180)] to-[oklch(0.60_0.14_180)] rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-5 shadow-lg">
-              <div className="flex justify-between items-center">
-                <div className="flex items-center gap-2 sm:gap-3">
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/20 flex items-center justify-center">
-                    <CircleDollarSign className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+              <div className="space-y-3">
+                {/* Subtotal */}
+                <div className="flex justify-between items-center text-white/90">
+                  <span className="text-sm sm:text-base">Subtotal:</span>
+                  <span className="text-base sm:text-lg font-semibold">{formatPrice(calculateTotal())}</span>
+                </div>
+                
+                {/* Descuento */}
+                <div className="flex justify-between items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-white/90 text-sm sm:text-base">Descuento:</span>
+                    <div className="flex items-center gap-1">
+                      <Input
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="0.5"
+                        value={discountPercent}
+                        onChange={(e) => setDiscountPercent(Math.min(100, Math.max(0, parseFloat(e.target.value) || 0)))}
+                        className="w-16 sm:w-20 h-8 text-center bg-white/20 border-white/30 text-white placeholder:text-white/50 text-sm"
+                      />
+                      <span className="text-white/90 text-sm">%</span>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-white/80 text-xs sm:text-sm font-medium">Total de la Cotización</p>
-                    <p className="text-white text-lg sm:text-xl md:text-2xl font-bold">
-                      {formatPrice(calculateTotal())}
-                    </p>
+                  <span className="text-base sm:text-lg font-semibold text-white/90">
+                    -{formatPrice(calculateTotal() * (discountPercent / 100))}
+                  </span>
+                </div>
+                
+                {/* Separador */}
+                <div className="border-t border-white/30"></div>
+                
+                {/* Total Final */}
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/20 flex items-center justify-center">
+                      <CircleDollarSign className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-white/80 text-xs sm:text-sm font-medium">Total Final</p>
+                      <p className="text-white text-lg sm:text-xl md:text-2xl font-bold">
+                        {formatPrice(calculateTotal() * (1 - discountPercent / 100))}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>

@@ -805,6 +805,7 @@ export const appRouter = router({
         clientId: z.number(),
         vendorName: z.string(),
         productType: z.enum(["cocina", "closet", "puerta", "centro_tv", "herrajes", "mesones", "otro"]).optional(),
+        discountPercent: z.number().min(0).max(100).optional().default(0),
         items: z.array(z.object({
           itemNumber: z.number(),
           itemType: z.string(),
@@ -842,10 +843,14 @@ export const appRouter = router({
         // Calcular subtotal (suma de todos los items)
         const subtotal = input.items.reduce((sum, item) => sum + item.totalPrice, 0);
         
+        // Calcular descuento
+        const discountPercent = input.discountPercent || 0;
+        const discountAmount = subtotal * (discountPercent / 100);
+        
         // El transporte ya está incluido en el totalPrice de cada item si includesFixedCosts=true
-        // Por lo tanto, el total es simplemente la suma de todos los items
+        // Por lo tanto, el total es simplemente la suma de todos los items menos el descuento
         const transportCost = 0; // No agregar transporte adicional
-        const total = subtotal;
+        const total = subtotal - discountAmount;
 
         // Fecha de validez: 7 días desde hoy
         const validUntil = new Date();
@@ -861,6 +866,8 @@ export const appRouter = router({
           validUntil,
           subtotal: subtotal.toString(),
           transportCost: transportCost.toString(),
+          discountPercent: discountPercent.toString(),
+          discountAmount: discountAmount.toString(),
           total: total.toString(),
           createdBy: ctx.user.id,
         });
@@ -896,6 +903,7 @@ export const appRouter = router({
         clientId: z.number().optional(),
         vendorName: z.string().optional(),
         productType: z.enum(["cocina", "closet", "puerta", "centro_tv", "herrajes", "mesones", "otro"]).optional(),
+        discountPercent: z.number().min(0).max(100).optional(),
         customDescriptions: z.record(z.string(), z.string()).optional(),
         generalNotes: z.string().optional(),
         items: z.array(z.object({
@@ -932,8 +940,13 @@ export const appRouter = router({
         if (items) {
           // El totalPrice de cada item YA incluye todo (cocina + extras + transporte si aplica)
           // No necesitamos sumar nada adicional
-          const total = items.reduce((sum, item) => sum + item.totalPrice, 0);
+          const subtotal = items.reduce((sum, item) => sum + item.totalPrice, 0);
           const transportCost = 0; // Ya incluido en totalPrice de items
+          
+          // Calcular descuento
+          const discountPercent = input.discountPercent ?? 0;
+          const discountAmount = subtotal * (discountPercent / 100);
+          const total = subtotal - discountAmount;
 
           // Eliminar items antiguos
           await db.deleteQuotationItems(id);
@@ -962,12 +975,32 @@ export const appRouter = router({
           // Actualizar totales
           await db.updateQuotation(id, {
             ...quotationData,
-            subtotal: total.toString(), // El total ya incluye todo
+            subtotal: subtotal.toString(),
             transportCost: transportCost.toString(),
+            discountPercent: discountPercent.toString(),
+            discountAmount: discountAmount.toString(),
             total: total.toString(),
           });
+        } else if (input.discountPercent !== undefined) {
+          // Si solo se actualiza el descuento sin cambiar items
+          const existingQuotation = await db.getQuotationById(id);
+          if (existingQuotation) {
+            const subtotal = parseFloat(existingQuotation.subtotal);
+            const discountPercent = input.discountPercent;
+            const discountAmount = subtotal * (discountPercent / 100);
+            const total = subtotal - discountAmount;
+            
+            await db.updateQuotation(id, {
+              ...quotationData,
+              discountPercent: discountPercent.toString(),
+              discountAmount: discountAmount.toString(),
+              total: total.toString(),
+            });
+          }
         } else {
-          await db.updateQuotation(id, quotationData);
+          // Remover discountPercent del quotationData ya que es un número y la BD espera string
+          const { discountPercent: _, ...safeQuotationData } = quotationData;
+          await db.updateQuotation(id, safeQuotationData);
         }
 
         return { success: true };
@@ -1545,6 +1578,8 @@ export const appRouter = router({
           }),
           subtotal: quotation.subtotal,
           transportCost: quotation.transportCost,
+          discountPercent: quotation.discountPercent || '0',
+          discountAmount: quotation.discountAmount || '0',
           total: quotation.total,
           generalNotes: quotation.generalNotes || '',
         };
@@ -1650,6 +1685,8 @@ export const appRouter = router({
           }),
           subtotal: quotation.subtotal,
           transportCost: quotation.transportCost,
+          discountPercent: quotation.discountPercent || '0',
+          discountAmount: quotation.discountAmount || '0',
           total: quotation.total,
           generalNotes: quotation.generalNotes || '',
         };

@@ -25,6 +25,8 @@ interface QuotationData {
   items: QuotationItem[];
   subtotal: string;
   transportCost: string;
+  discountPercent?: string; // Porcentaje de descuento
+  discountAmount?: string; // Monto del descuento
   total: string;
   generalNotes?: string; // Notas generales personalizadas
 }
@@ -176,8 +178,33 @@ export async function generateQuotationPDF(
         rowBackground = !rowBackground;
       }
 
-      // Total (transporte ya incluido en el precio total)
-      currentY += 40;
+      // Sección de totales (subtotal, descuento, total)
+      currentY += 30;
+      
+      // Subtotal
+      doc.fontSize(10).fillColor(darkGray).font("Helvetica");
+      doc.text("Subtotal:", 360, currentY);
+      doc.text(formatCurrency(data.subtotal), 360, currentY, {
+        width: 195,
+        align: "right",
+      });
+      currentY += 18;
+      
+      // Descuento (solo si hay descuento)
+      const discountPercent = parseFloat(data.discountPercent || '0');
+      const discountAmount = parseFloat(data.discountAmount || '0');
+      if (discountPercent > 0 && discountAmount > 0) {
+        doc.fillColor("#DC2626"); // Rojo para el descuento
+        doc.text(`Descuento (${discountPercent}%):`, 360, currentY);
+        doc.text(`-${formatCurrency(discountAmount.toString())}`, 360, currentY, {
+          width: 195,
+          align: "right",
+        });
+        currentY += 18;
+      }
+      
+      // Total final
+      currentY += 5;
       doc
         .fillColor(turquoise)
         .rect(350, currentY, 212, 32)

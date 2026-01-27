@@ -119,6 +119,8 @@ export const quotations = mysqlTable("quotations", {
   validUntil: timestamp("validUntil"),
   subtotal: decimal("subtotal", { precision: 12, scale: 2 }).notNull(),
   transportCost: decimal("transportCost", { precision: 12, scale: 2 }).default("600000").notNull(),
+  discountPercent: decimal("discountPercent", { precision: 5, scale: 2 }).default("0"), // Porcentaje de descuento (0-100)
+  discountAmount: decimal("discountAmount", { precision: 12, scale: 2 }).default("0"), // Monto del descuento calculado
   total: decimal("total", { precision: 12, scale: 2 }).notNull(),
   pdfUrl: text("pdfUrl"),
   // Campos para descripciones personalizadas del PDF

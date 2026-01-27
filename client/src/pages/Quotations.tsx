@@ -651,9 +651,9 @@ export default function Quotations() {
     if (config.shape === 'frente_pll') {
       // Frente PLL: $650,000/ml
       total += config.totalMeters * 650000;
-      // Módulo superior opcional: +$750,000/ml
-      if (config.includeUpperModule) {
-        total += config.totalMeters * 750000;
+      // Módulo superior opcional: +$750,000/ml (metraje separado)
+      if (config.includeUpperModule && config.upperModuleMeters) {
+        total += config.upperModuleMeters * 750000;
       }
     } else if (config.shape === 'solo_superiores') {
       // Solo muebles superiores: $900,000/ml
@@ -1471,7 +1471,7 @@ export default function Quotations() {
 
                             {/* Checkbox módulo superior para Frente PLL */}
                             {item.kitchenConfig?.shape === 'frente_pll' && (
-                              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 space-y-3">
                                 <div className="flex items-center space-x-2">
                                   <input
                                     type="checkbox"
@@ -1484,7 +1484,21 @@ export default function Quotations() {
                                     Incluir Módulo Superior (+$750,000/ml)
                                   </Label>
                                 </div>
-                                <p className="text-xs text-amber-700 mt-1">Se calculará sobre el mismo metraje del Frente PLL</p>
+                                {item.kitchenConfig?.includeUpperModule && (
+                                  <div className="mt-2">
+                                    <Label className="text-sm">Metraje Módulo Superior (ml)</Label>
+                                    <Input
+                                      type="number"
+                                      step="0.01"
+                                      min="0"
+                                      placeholder="Ej: 3.50"
+                                      value={item.kitchenConfig?.upperModuleMeters || ''}
+                                      onChange={(e) => updateKitchenConfig(index, "upperModuleMeters", parseFloat(e.target.value) || 0)}
+                                      className="mt-1"
+                                    />
+                                    <p className="text-xs text-amber-700 mt-1">Ingrese los metros lineales del módulo superior (puede ser diferente al frente)</p>
+                                  </div>
+                                )}
                               </div>
                             )}
 

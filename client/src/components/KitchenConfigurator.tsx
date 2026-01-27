@@ -34,6 +34,7 @@ export interface KitchenConfig {
   };
   ledLighting: number;
   includeUpperModule?: boolean; // Solo para Frente PLL - Módulo superior +$750,000/ml
+  upperModuleMeters?: number; // Metraje separado para módulo superior en Frente PLL
   paintedDoors: {
     enabled: boolean;
     upperQty: number; // Puertas superiores - $120,000

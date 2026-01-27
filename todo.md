@@ -2772,3 +2772,7 @@
 - [x] Agregar checkbox de módulo superior para Frente PLL (+$750,000/ml)
 - [x] Implementar lógica de mostrar/ocultar campos según la forma
 - [x] Actualizar cálculo de precios para las nuevas formas
+
+## Corrección Frente PLL - Metraje Separado para Módulo Superior
+- [ ] Agregar campo de metraje separado para módulo superior en Frente PLL
+- [ ] Actualizar cálculo de precios para usar el metraje separado del módulo superior

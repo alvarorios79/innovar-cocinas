@@ -2900,3 +2900,10 @@
 - [x] Corregir fecha sobrepuesta en el encabezado
 - [x] Corregir metraje de muebles superiores de Frente PLL en la descripción
 - [x] Mover texto de agradecimiento debajo de las firmas
+
+
+## Transporte e Imprevistos Configurable (27 Ene 2026)
+- [x] Hacer el transporte e imprevistos opcional (checkbox) a nivel de cotización
+- [x] Permitir editar el monto del transporte (no fijo en $600,000)
+- [x] Eliminar la lógica de transporte automático por item
+- [x] Mostrar el transporte como línea separada en el resumen de la cotización

@@ -819,22 +819,15 @@ export default function Quotations() {
       total += (config.paintedDoors.golaQty || 0) * getPrice('PINTADO_GOLA');
     }
 
-    // 9. Transporte e imprevistos - AUTOMÁTICO para el primer item de cocina
-    // Verificar si este es el primer item de cocina en la cotización
-    const isFirstKitchenItem = itemsArray.findIndex(i => i.itemType === 'cocina') === index;
-    
-    // Incluir transporte automáticamente si es el primer item de cocina
-    // O si el checkbox está marcado manualmente
-    if (isFirstKitchenItem || item.includesFixedCosts) {
-      total += getPrice('TRANSPORTE_IMPREVISTOS');
+    // 9. Transporte e imprevistos - OPCIONAL (se maneja con checkbox)
+    // Solo incluir si el checkbox está marcado
+    if (item.includesFixedCosts) {
+      total += (item.fixedCostsAmount ?? 600000);
     }
 
-    // Actualizar total del item y marcar includesFixedCosts si es primer item de cocina
+    // Actualizar total del item
     const finalItems = [...items];
     finalItems[index].totalPrice = total;
-    if (isFirstKitchenItem) {
-      finalItems[index].includesFixedCosts = true;
-    }
     setItems(finalItems);
   };
 
@@ -1073,17 +1066,13 @@ export default function Quotations() {
           total += (config.paintedDoors.golaQty || 0) * getPrice('PINTADO_GOLA');
         }
 
-        // Transporte e imprevistos - AUTOMÁTICO para el primer item de cocina
-        // Verificar si este es el primer item de cocina en la cotización
-        const isFirstKitchenItem = items.findIndex(i => i.itemType === 'cocina') === index;
-        
-        // Incluir transporte automáticamente si es el primer item de cocina
-        // O si el checkbox está marcado manualmente
-        if (isFirstKitchenItem || item.includesFixedCosts) {
-          total += getPrice('TRANSPORTE_IMPREVISTOS');
+        // Transporte e imprevistos - OPCIONAL (se maneja con checkbox)
+        // Solo incluir si el checkbox está marcado
+        if (item.includesFixedCosts) {
+          total += (item.fixedCostsAmount ?? 600000);
         }
 
-        return { ...item, description, quantity, totalPrice: total, includesFixedCosts: isFirstKitchenItem || item.includesFixedCosts };
+        return { ...item, description, quantity, totalPrice: total, includesFixedCosts: item.includesFixedCosts };
       }
       // Para centro de TV: generar descripción automática
       if (item.itemType === "centro_tv" && item.tvCenterConfig) {
@@ -2314,33 +2303,61 @@ export default function Quotations() {
                               )}
                             </div>
 
-                            {/* 9. Transporte - Automático para primer item de cocina */}
-                            {(() => {
-                              const isFirstKitchenItem = items.findIndex(i => i.itemType === 'cocina') === index;
-                              return (
-                                <div className={`flex items-center space-x-2 p-3 rounded ${isFirstKitchenItem ? 'bg-green-100 border border-green-300' : 'bg-yellow-50'}`}>
-                                  <input
-                                    type="checkbox"
-                                    id={`fixedCosts-${index}`}
-                                    checked={isFirstKitchenItem || item.includesFixedCosts || false}
-                                    onChange={(e) => {
-                                      if (!isFirstKitchenItem) {
-                                        updateItem(index, "includesFixedCosts", e.target.checked);
-                                        calculateKitchenTotal(index);
+                            {/* 9. Transporte e imprevistos - Opcional y editable */}
+                            <div className={`flex flex-col gap-2 p-3 rounded ${item.includesFixedCosts ? 'bg-green-100 border border-green-300' : 'bg-yellow-50'}`}>
+                              <div className="flex items-center space-x-2">
+                                <input
+                                  type="checkbox"
+                                  id={`fixedCosts-${index}`}
+                                  checked={item.includesFixedCosts || false}
+                                  onChange={(e) => {
+                                    const newItems = [...items];
+                                    const fixedAmount = newItems[index].fixedCostsAmount ?? 600000;
+                                    
+                                    if (e.target.checked) {
+                                      // Sumar el transporte al total
+                                      newItems[index].totalPrice = newItems[index].totalPrice + fixedAmount;
+                                      if (newItems[index].fixedCostsAmount === undefined) {
+                                        newItems[index].fixedCostsAmount = 600000;
                                       }
-                                    }}
-                                    disabled={isFirstKitchenItem}
-                                    className="h-4 w-4"
-                                  />
-                                  <Label htmlFor={`fixedCosts-${index}`} className="text-sm font-normal cursor-pointer">
-                                    {isFirstKitchenItem 
-                                      ? '✅ Transporte e imprevistos incluido automáticamente ($600,000)'
-                                      : 'Incluye transporte e imprevistos ($600,000)'
+                                    } else {
+                                      // Restar el transporte del total
+                                      newItems[index].totalPrice = Math.max(0, newItems[index].totalPrice - fixedAmount);
                                     }
-                                  </Label>
+                                    
+                                    newItems[index].includesFixedCosts = e.target.checked;
+                                    setItems(newItems);
+                                  }}
+                                  className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                />
+                                <Label htmlFor={`fixedCosts-${index}`} className="text-sm font-normal cursor-pointer">
+                                  <Truck className="inline h-4 w-4 mr-1" />
+                                  Incluye transporte e imprevistos
+                                </Label>
+                              </div>
+                              {item.includesFixedCosts && (
+                                <div className="flex items-center gap-2 ml-6">
+                                  <Label className="text-sm text-gray-600">Monto:</Label>
+                                  <Input
+                                    type="number"
+                                    value={item.fixedCostsAmount ?? 600000}
+                                    onChange={(e) => {
+                                      const newItems = [...items];
+                                      const oldAmount = newItems[index].fixedCostsAmount ?? 600000;
+                                      const newAmount = e.target.value === '' ? 0 : parseFloat(e.target.value);
+                                      // Actualizar el total: restar el monto anterior y sumar el nuevo
+                                      newItems[index].totalPrice = newItems[index].totalPrice - oldAmount + newAmount;
+                                      newItems[index].fixedCostsAmount = newAmount;
+                                      setItems(newItems);
+                                    }}
+                                    className="w-32 h-8"
+                                    min="0"
+                                    step="10000"
+                                  />
+                                  <span className="text-sm text-gray-500">({formatPrice(item.fixedCostsAmount ?? 600000)})</span>
                                 </div>
-                              );
-                            })()}
+                              )}
+                            </div>
 
                             {/* Total calculado */}
                             <div className="p-3 sm:p-4 bg-green-50 rounded">

@@ -74,14 +74,14 @@ export async function generateQuotationPDF(
       doc.text("Cuenta de Ahorros Bancolombia", 400, 138, { align: "right" });
       doc.text("# 11533034332", 400, 151, { align: "right" });
 
-      // Número de cotización y fecha
-      doc.moveDown(3);
+      // Número de cotización y fecha (posicionados debajo de la info de contacto)
       doc.fontSize(11).fillColor(turquoise).font("Helvetica-Bold");
-      doc.text(`Cotización N° ${data.quotationNumber}`, 400, 170, {
+      doc.text(`Cotización N° ${data.quotationNumber}`, 400, 168, {
         align: "right",
       });
       doc.fontSize(9).fillColor(darkGray).font("Helvetica");
-      doc.text(`Fecha: ${data.date}`, 400, 188, { align: "right" });
+      doc.text(`Fecha: ${data.date}`, 400, 185, { align: "right" });
+      doc.text(`Válida hasta: ${data.validUntil}`, 400, 198, { align: "right" });
 
       // Cliente
       doc.moveDown(2);
@@ -287,13 +287,13 @@ export async function generateQuotationPDF(
       doc.text("Firma del Cliente", 80, currentY);
       doc.text("INNOVAR Cocinas de Diseño", 350, currentY);
 
-      // Footer
-      const footerY = 750;
+      // Mensaje de agradecimiento (debajo de las firmas)
+      currentY += 40;
       doc.fontSize(10).fillColor(turquoise).font("Helvetica-Bold");
       doc.text(
         "Gracias por contar con nuestros servicios",
         0,
-        footerY,
+        currentY,
         { align: "center", width: 612 }
       );
 

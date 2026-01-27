@@ -2894,3 +2894,9 @@
 ## Bug: Transporte e imprevistos no se incluye en cocinas (27 Ene 2026)
 - [x] Incluir transporte e imprevistos automáticamente en el primer item de cocina de la cotización
 - [x] Mantener checkbox opcional para otros tipos de items (herrajes, closets, puertas)
+
+
+## Correcciones del PDF (27 Ene 2026)
+- [x] Corregir fecha sobrepuesta en el encabezado
+- [x] Corregir metraje de muebles superiores de Frente PLL en la descripción
+- [x] Mover texto de agradecimiento debajo de las firmas

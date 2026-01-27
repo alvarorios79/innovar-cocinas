@@ -1471,22 +1471,58 @@ export const appRouter = router({
                 : item.kitchenConfig;
               
               const lines: string[] = [];
-              lines.push(`COCINA INTEGRAL - Forma ${config.shape === 'L' ? 'en L' : config.shape === 'U' ? 'en U' : 'Lineal'}`);
+              const isSpecialShape = ['frente_pll', 'solo_superiores', 'solo_inferiores', 'puertas_tapas'].includes(config.shape);
+              
+              // Título según la forma
+              const shapeLabels: Record<string, string> = {
+                'L': 'en L',
+                'U': 'en U',
+                'lineal': 'Lineal',
+                'frente_pll': 'Frente PLL (Solo Inferiores)',
+                'solo_superiores': 'Solo Muebles Superiores',
+                'solo_inferiores': 'Solo Muebles Inferiores',
+                'puertas_tapas': 'Puertas y Tapas'
+              };
+              const shapeLabel = shapeLabels[config.shape] || config.shape;
+              lines.push(`COCINA INTEGRAL - ${shapeLabel}`);
               lines.push(`Metraje total: ${config.totalMeters.toFixed(2)}ml`);
               lines.push('');
               
-              // Calcular metraje resultante
+              // Calcular metraje resultante (solo para cocinas completas)
               let deductions = 0;
-              if (config.specialModules.nichoNevecon) deductions += 1.0;
-              if (config.specialModules.nichoNevera) deductions += 0.75;
-              if (config.specialModules.alacenaEntrepanos) deductions += 0.5;
-              if (config.specialModules.alacenaHerraje) deductions += 0.5;
-              if (config.specialModules.torreHornos) deductions += 0.7;
+              if (!isSpecialShape) {
+                if (config.specialModules?.nichoNevecon) deductions += 1.0;
+                if (config.specialModules?.nichoNevera) deductions += 0.75;
+                if (config.specialModules?.alacenaEntrepanos) deductions += 0.5;
+                if (config.specialModules?.alacenaHerraje) deductions += 0.5;
+                if (config.specialModules?.torreHornos) deductions += 0.7;
+              }
               const resultingMeters = Math.max(0, config.totalMeters - deductions);
               
-              // Muebles lineales
-              lines.push(`• Muebles Inferiores: ${resultingMeters.toFixed(2)}ml`);
-              lines.push(`• Muebles Superiores: ${resultingMeters.toFixed(2)}ml`);
+              // Muebles lineales según la forma
+              if (config.shape === 'frente_pll') {
+                lines.push(`• Muebles Inferiores (Frente PLL): ${config.totalMeters.toFixed(2)}ml`);
+                if (config.includeUpperModule && config.upperModuleMeters > 0) {
+                  lines.push(`• Muebles Superiores: ${config.upperModuleMeters.toFixed(2)}ml`);
+                }
+              } else if (config.shape === 'solo_superiores') {
+                lines.push(`• Muebles Superiores: ${config.totalMeters.toFixed(2)}ml`);
+              } else if (config.shape === 'solo_inferiores') {
+                lines.push(`• Muebles Inferiores: ${config.totalMeters.toFixed(2)}ml`);
+              } else if (config.shape === 'puertas_tapas') {
+                const dc = config.doorsAndCovers || {};
+                if (dc.upperDoors70 > 0) lines.push(`• Puertas superiores 70cm: ${dc.upperDoors70} und`);
+                if (dc.upperDoors90 > 0) lines.push(`• Puertas superiores 90cm: ${dc.upperDoors90} und`);
+                if (dc.upperDoors100 > 0) lines.push(`• Puertas superiores 100cm: ${dc.upperDoors100} und`);
+                if (dc.lowerDoors > 0) lines.push(`• Puertas inferiores: ${dc.lowerDoors} und`);
+                if (dc.pantryDoors > 0) lines.push(`• Puertas alacena: ${dc.pantryDoors} und`);
+                if (dc.drawerCovers > 0) lines.push(`• Tapas cajón: ${dc.drawerCovers} und`);
+                if (dc.smallCovers > 0) lines.push(`• Tapas pequeñas: ${dc.smallCovers} und`);
+              } else {
+                // Cocinas completas (L, U, Lineal)
+                lines.push(`• Muebles Inferiores: ${resultingMeters.toFixed(2)}ml`);
+                lines.push(`• Muebles Superiores: ${resultingMeters.toFixed(2)}ml`);
+              }
               
               // Muebles especiales
               if (config.specialModules.nichoNevecon) {
@@ -2063,22 +2099,58 @@ export const appRouter = router({
                 : item.kitchenConfig;
               
               const lines: string[] = [];
-              lines.push(`COCINA INTEGRAL - Forma ${config.shape === 'L' ? 'en L' : config.shape === 'U' ? 'en U' : 'Lineal'}`);
+              const isSpecialShape = ['frente_pll', 'solo_superiores', 'solo_inferiores', 'puertas_tapas'].includes(config.shape);
+              
+              // Título según la forma
+              const shapeLabels: Record<string, string> = {
+                'L': 'en L',
+                'U': 'en U',
+                'lineal': 'Lineal',
+                'frente_pll': 'Frente PLL (Solo Inferiores)',
+                'solo_superiores': 'Solo Muebles Superiores',
+                'solo_inferiores': 'Solo Muebles Inferiores',
+                'puertas_tapas': 'Puertas y Tapas'
+              };
+              const shapeLabel = shapeLabels[config.shape] || config.shape;
+              lines.push(`COCINA INTEGRAL - ${shapeLabel}`);
               lines.push(`Metraje total: ${config.totalMeters.toFixed(2)}ml`);
               lines.push('');
               
-              // Calcular metraje resultante
+              // Calcular metraje resultante (solo para cocinas completas)
               let deductions = 0;
-              if (config.specialModules.nichoNevecon) deductions += 1.0;
-              if (config.specialModules.nichoNevera) deductions += 0.75;
-              if (config.specialModules.alacenaEntrepanos) deductions += 0.5;
-              if (config.specialModules.alacenaHerraje) deductions += 0.5;
-              if (config.specialModules.torreHornos) deductions += 0.7;
+              if (!isSpecialShape) {
+                if (config.specialModules?.nichoNevecon) deductions += 1.0;
+                if (config.specialModules?.nichoNevera) deductions += 0.75;
+                if (config.specialModules?.alacenaEntrepanos) deductions += 0.5;
+                if (config.specialModules?.alacenaHerraje) deductions += 0.5;
+                if (config.specialModules?.torreHornos) deductions += 0.7;
+              }
               const resultingMeters = Math.max(0, config.totalMeters - deductions);
               
-              // Muebles lineales
-              lines.push(`• Muebles Inferiores: ${resultingMeters.toFixed(2)}ml`);
-              lines.push(`• Muebles Superiores: ${resultingMeters.toFixed(2)}ml`);
+              // Muebles lineales según la forma
+              if (config.shape === 'frente_pll') {
+                lines.push(`• Muebles Inferiores (Frente PLL): ${config.totalMeters.toFixed(2)}ml`);
+                if (config.includeUpperModule && config.upperModuleMeters > 0) {
+                  lines.push(`• Muebles Superiores: ${config.upperModuleMeters.toFixed(2)}ml`);
+                }
+              } else if (config.shape === 'solo_superiores') {
+                lines.push(`• Muebles Superiores: ${config.totalMeters.toFixed(2)}ml`);
+              } else if (config.shape === 'solo_inferiores') {
+                lines.push(`• Muebles Inferiores: ${config.totalMeters.toFixed(2)}ml`);
+              } else if (config.shape === 'puertas_tapas') {
+                const dc = config.doorsAndCovers || {};
+                if (dc.upperDoors70 > 0) lines.push(`• Puertas superiores 70cm: ${dc.upperDoors70} und`);
+                if (dc.upperDoors90 > 0) lines.push(`• Puertas superiores 90cm: ${dc.upperDoors90} und`);
+                if (dc.upperDoors100 > 0) lines.push(`• Puertas superiores 100cm: ${dc.upperDoors100} und`);
+                if (dc.lowerDoors > 0) lines.push(`• Puertas inferiores: ${dc.lowerDoors} und`);
+                if (dc.pantryDoors > 0) lines.push(`• Puertas alacena: ${dc.pantryDoors} und`);
+                if (dc.drawerCovers > 0) lines.push(`• Tapas cajón: ${dc.drawerCovers} und`);
+                if (dc.smallCovers > 0) lines.push(`• Tapas pequeñas: ${dc.smallCovers} und`);
+              } else {
+                // Cocinas completas (L, U, Lineal)
+                lines.push(`• Muebles Inferiores: ${resultingMeters.toFixed(2)}ml`);
+                lines.push(`• Muebles Superiores: ${resultingMeters.toFixed(2)}ml`);
+              }
               
               // Muebles especiales
               if (config.specialModules.nichoNevecon) {

@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ChefHat, Refrigerator, UtensilsCrossed, Lightbulb, LayoutGrid } from "lucide-react";
+import { ChefHat, Refrigerator, UtensilsCrossed, Lightbulb, LayoutGrid, Paintbrush } from "lucide-react";
 
 export interface KitchenConfig {
   shape: string;
@@ -33,6 +33,15 @@ export interface KitchenConfig {
     hasLateral: boolean;
   };
   ledLighting: number;
+  paintedDoors: {
+    enabled: boolean;
+    upperQty: number; // Puertas superiores - $120,000
+    lowerQty: number; // Puertas inferiores - $150,000
+    pantryQty: number; // Puertas de alacena - $250,000
+    drawerQty: number; // Tapas de cajón - $80,000
+    spiceQty: number; // Tapa de especiero - $100,000
+    golaQty: number; // Tapas pequeña/gola - $45,000
+  };
   notes?: string;
 }
 
@@ -81,6 +90,15 @@ export function KitchenConfigurator({
       hasLateral: false,
     },
     ledLighting: 0,
+    paintedDoors: {
+      enabled: false,
+      upperQty: 0,
+      lowerQty: 0,
+      pantryQty: 0,
+      drawerQty: 0,
+      spiceQty: 0,
+      golaQty: 0,
+    },
     notes: "",
   };
 
@@ -458,6 +476,172 @@ export function KitchenConfigurator({
             </div>
           </div>
 
+          {/* Pintado Puertas Alto Brillo */}
+          <div className="bg-pink-50 p-4 rounded-lg border border-pink-200">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-3">
+                <Checkbox 
+                  id="painted-doors-enabled" 
+                  checked={currentConfig.paintedDoors?.enabled || false} 
+                  onCheckedChange={(c) => updateConfig("paintedDoors.enabled", c === true)} 
+                />
+                <div className="flex items-center gap-2">
+                  <Paintbrush className="h-4 w-4 text-pink-600" />
+                  <Label htmlFor="painted-doors-enabled" className="cursor-pointer font-semibold text-pink-700">
+                    Pintado Puertas Alto Brillo
+                  </Label>
+                </div>
+              </div>
+            </div>
+            
+            {currentConfig.paintedDoors?.enabled && (
+              <div className="space-y-3 mt-3 pt-3 border-t border-pink-200">
+                <p className="text-xs text-pink-600 mb-2">Ingrese la cantidad de cada tipo de puerta</p>
+                
+                {/* Puertas Superiores */}
+                <div className="flex items-center justify-between p-2 bg-white rounded border">
+                  <div>
+                    <Label className="text-sm font-medium">Puertas Superiores</Label>
+                    <p className="text-xs text-gray-500">$120,000 c/u</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="number"
+                      min="0"
+                      value={currentConfig.paintedDoors?.upperQty || ""}
+                      onChange={(e) => updateConfig("paintedDoors.upperQty", parseInt(e.target.value) || 0)}
+                      placeholder="0"
+                      className="h-8 w-20 text-right bg-white"
+                    />
+                    <span className="text-sm text-pink-700 font-medium w-28 text-right">
+                      ${((currentConfig.paintedDoors?.upperQty || 0) * 120000).toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Puertas Inferiores */}
+                <div className="flex items-center justify-between p-2 bg-white rounded border">
+                  <div>
+                    <Label className="text-sm font-medium">Puertas Inferiores</Label>
+                    <p className="text-xs text-gray-500">$150,000 c/u</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="number"
+                      min="0"
+                      value={currentConfig.paintedDoors?.lowerQty || ""}
+                      onChange={(e) => updateConfig("paintedDoors.lowerQty", parseInt(e.target.value) || 0)}
+                      placeholder="0"
+                      className="h-8 w-20 text-right bg-white"
+                    />
+                    <span className="text-sm text-pink-700 font-medium w-28 text-right">
+                      ${((currentConfig.paintedDoors?.lowerQty || 0) * 150000).toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Puertas de Alacena */}
+                <div className="flex items-center justify-between p-2 bg-white rounded border">
+                  <div>
+                    <Label className="text-sm font-medium">Puertas de Alacena</Label>
+                    <p className="text-xs text-gray-500">$250,000 c/u</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="number"
+                      min="0"
+                      value={currentConfig.paintedDoors?.pantryQty || ""}
+                      onChange={(e) => updateConfig("paintedDoors.pantryQty", parseInt(e.target.value) || 0)}
+                      placeholder="0"
+                      className="h-8 w-20 text-right bg-white"
+                    />
+                    <span className="text-sm text-pink-700 font-medium w-28 text-right">
+                      ${((currentConfig.paintedDoors?.pantryQty || 0) * 250000).toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Tapas de Cajón */}
+                <div className="flex items-center justify-between p-2 bg-white rounded border">
+                  <div>
+                    <Label className="text-sm font-medium">Tapas de Cajón</Label>
+                    <p className="text-xs text-gray-500">$80,000 c/u</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="number"
+                      min="0"
+                      value={currentConfig.paintedDoors?.drawerQty || ""}
+                      onChange={(e) => updateConfig("paintedDoors.drawerQty", parseInt(e.target.value) || 0)}
+                      placeholder="0"
+                      className="h-8 w-20 text-right bg-white"
+                    />
+                    <span className="text-sm text-pink-700 font-medium w-28 text-right">
+                      ${((currentConfig.paintedDoors?.drawerQty || 0) * 80000).toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Tapa de Especiero */}
+                <div className="flex items-center justify-between p-2 bg-white rounded border">
+                  <div>
+                    <Label className="text-sm font-medium">Tapa de Especiero</Label>
+                    <p className="text-xs text-gray-500">$100,000 c/u</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="number"
+                      min="0"
+                      value={currentConfig.paintedDoors?.spiceQty || ""}
+                      onChange={(e) => updateConfig("paintedDoors.spiceQty", parseInt(e.target.value) || 0)}
+                      placeholder="0"
+                      className="h-8 w-20 text-right bg-white"
+                    />
+                    <span className="text-sm text-pink-700 font-medium w-28 text-right">
+                      ${((currentConfig.paintedDoors?.spiceQty || 0) * 100000).toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Tapas Pequeña/Gola */}
+                <div className="flex items-center justify-between p-2 bg-white rounded border">
+                  <div>
+                    <Label className="text-sm font-medium">Tapas Pequeña/Gola</Label>
+                    <p className="text-xs text-gray-500">$45,000 c/u</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="number"
+                      min="0"
+                      value={currentConfig.paintedDoors?.golaQty || ""}
+                      onChange={(e) => updateConfig("paintedDoors.golaQty", parseInt(e.target.value) || 0)}
+                      placeholder="0"
+                      className="h-8 w-20 text-right bg-white"
+                    />
+                    <span className="text-sm text-pink-700 font-medium w-28 text-right">
+                      ${((currentConfig.paintedDoors?.golaQty || 0) * 45000).toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Total Pintado */}
+                <div className="flex items-center justify-between p-2 bg-pink-100 rounded border border-pink-300 mt-2">
+                  <Label className="text-sm font-bold text-pink-800">Total Pintado Alto Brillo:</Label>
+                  <span className="text-lg font-bold text-pink-800">
+                    ${((
+                      (currentConfig.paintedDoors?.upperQty || 0) * 120000 +
+                      (currentConfig.paintedDoors?.lowerQty || 0) * 150000 +
+                      (currentConfig.paintedDoors?.pantryQty || 0) * 250000 +
+                      (currentConfig.paintedDoors?.drawerQty || 0) * 80000 +
+                      (currentConfig.paintedDoors?.spiceQty || 0) * 100000 +
+                      (currentConfig.paintedDoors?.golaQty || 0) * 45000
+                    )).toLocaleString()}
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* Transporte e Imprevistos */}
           <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
             <div className="flex items-center justify-between">
@@ -551,6 +735,21 @@ export function KitchenConfigurator({
                 <div className="flex justify-between text-emerald-700">
                   <span>+ LED ({currentConfig.ledLighting}ml × $180,000):</span>
                   <span className="font-medium">${(currentConfig.ledLighting * 180000).toLocaleString()}</span>
+                </div>
+              )}
+              {currentConfig.paintedDoors?.enabled && (
+                <div className="flex justify-between text-pink-700">
+                  <span>+ Pintado Alto Brillo:</span>
+                  <span className="font-medium">
+                    ${((
+                      (currentConfig.paintedDoors?.upperQty || 0) * 120000 +
+                      (currentConfig.paintedDoors?.lowerQty || 0) * 150000 +
+                      (currentConfig.paintedDoors?.pantryQty || 0) * 250000 +
+                      (currentConfig.paintedDoors?.drawerQty || 0) * 80000 +
+                      (currentConfig.paintedDoors?.spiceQty || 0) * 100000 +
+                      (currentConfig.paintedDoors?.golaQty || 0) * 45000
+                    )).toLocaleString()}
+                  </span>
                 </div>
               )}
               {includesFixedCosts && (

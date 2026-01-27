@@ -2747,3 +2747,8 @@
 - [x] Modificar lógica de notificaciones para no enviar al cliente cuando está marcado
 - [ ] Habilitar botón "Aprobar en nombre del cliente" para admin/comercial (pendiente)
 - [x] Agregar etiqueta/ícono visual en lista de clientes para identificar gestión interna
+
+## Servicio Pintado Puertas Alto Brillo
+- [x] Agregar campos de pintado alto brillo al schema de cotizaciones
+- [x] Actualizar formulario de cotización con el nuevo servicio (6 tipos de puertas con cantidad y precio)
+- [x] Actualizar cálculo de totales y vista de cotización

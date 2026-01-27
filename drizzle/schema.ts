@@ -555,6 +555,22 @@ export const kitchenQuotations = mysqlTable("kitchenQuotations", {
   ledMeters: decimal("ledMeters", { precision: 10, scale: 2 }),
   ledPrice: decimal("ledPrice", { precision: 12, scale: 2 }),
   
+  // Pintado Puertas Alto Brillo
+  hasPaintedDoors: boolean("hasPaintedDoors").default(false).notNull(),
+  paintedDoorsUpperQty: int("paintedDoorsUpperQty").default(0),
+  paintedDoorsUpperPrice: decimal("paintedDoorsUpperPrice", { precision: 12, scale: 2 }),
+  paintedDoorsLowerQty: int("paintedDoorsLowerQty").default(0),
+  paintedDoorsLowerPrice: decimal("paintedDoorsLowerPrice", { precision: 12, scale: 2 }),
+  paintedDoorsPantryQty: int("paintedDoorsPantryQty").default(0),
+  paintedDoorsPantryPrice: decimal("paintedDoorsPantryPrice", { precision: 12, scale: 2 }),
+  paintedDoorsDrawerQty: int("paintedDoorsDrawerQty").default(0),
+  paintedDoorsDrawerPrice: decimal("paintedDoorsDrawerPrice", { precision: 12, scale: 2 }),
+  paintedDoorsSpiceQty: int("paintedDoorsSpiceQty").default(0),
+  paintedDoorsSpicePrice: decimal("paintedDoorsSpicePrice", { precision: 12, scale: 2 }),
+  paintedDoorsGolaQty: int("paintedDoorsGolaQty").default(0),
+  paintedDoorsGolaPrice: decimal("paintedDoorsGolaPrice", { precision: 12, scale: 2 }),
+  paintedDoorsTotalPrice: decimal("paintedDoorsTotalPrice", { precision: 12, scale: 2 }),
+  
   // Costos fijos
   transportCost: decimal("transportCost", { precision: 12, scale: 2 }).default("600000").notNull(),
   

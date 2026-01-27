@@ -114,6 +114,15 @@ export default function Quotations() {
           hasLateral: false,
         },
         ledLighting: 0,
+        paintedDoors: {
+          enabled: false,
+          upperQty: 0,
+          lowerQty: 0,
+          pantryQty: 0,
+          drawerQty: 0,
+          spiceQty: 0,
+          golaQty: 0,
+        },
       }
     },
   ]);
@@ -312,6 +321,15 @@ export default function Quotations() {
           hasLateral: false,
         },
         ledLighting: 0,
+        paintedDoors: {
+          enabled: false,
+          upperQty: 0,
+          lowerQty: 0,
+          pantryQty: 0,
+          drawerQty: 0,
+          spiceQty: 0,
+          golaQty: 0,
+        },
       }
     }]);
   };
@@ -491,6 +509,15 @@ export default function Quotations() {
               hasLateral: false,
             },
             ledLighting: 0,
+            paintedDoors: {
+              enabled: false,
+              upperQty: 0,
+              lowerQty: 0,
+              pantryQty: 0,
+              drawerQty: 0,
+              spiceQty: 0,
+              golaQty: 0,
+            },
           }
         })));
       }
@@ -539,6 +566,15 @@ export default function Quotations() {
             hasLateral: false,
           },
           ledLighting: 0,
+          paintedDoors: {
+            enabled: false,
+            upperQty: 0,
+            lowerQty: 0,
+            pantryQty: 0,
+            drawerQty: 0,
+            spiceQty: 0,
+            golaQty: 0,
+          },
         },
         hardwareSelections: [],
       },
@@ -674,7 +710,17 @@ export default function Quotations() {
       total += config.ledLighting * 180000;
     }
 
-    // 8. Transporte e imprevistos (si está marcado el checkbox)
+    // 8. Pintado Puertas Alto Brillo
+    if (config.paintedDoors?.enabled) {
+      total += (config.paintedDoors.upperQty || 0) * 120000; // Puertas superiores
+      total += (config.paintedDoors.lowerQty || 0) * 150000; // Puertas inferiores
+      total += (config.paintedDoors.pantryQty || 0) * 250000; // Puertas de alacena
+      total += (config.paintedDoors.drawerQty || 0) * 80000; // Tapas de cajón
+      total += (config.paintedDoors.spiceQty || 0) * 100000; // Tapa de especiero
+      total += (config.paintedDoors.golaQty || 0) * 45000; // Tapas pequeña/gola
+    }
+
+    // 9. Transporte e imprevistos (si está marcado el checkbox)
     if (item.includesFixedCosts) {
       total += 600000;
     }
@@ -852,6 +898,16 @@ export default function Quotations() {
         // LED
         if (config.ledLighting > 0) {
           total += config.ledLighting * 180000;
+        }
+
+        // Pintado Puertas Alto Brillo
+        if (config.paintedDoors?.enabled) {
+          total += (config.paintedDoors.upperQty || 0) * 120000;
+          total += (config.paintedDoors.lowerQty || 0) * 150000;
+          total += (config.paintedDoors.pantryQty || 0) * 250000;
+          total += (config.paintedDoors.drawerQty || 0) * 80000;
+          total += (config.paintedDoors.spiceQty || 0) * 100000;
+          total += (config.paintedDoors.golaQty || 0) * 45000;
         }
 
         // Transporte (usar el monto editable)
@@ -1678,7 +1734,114 @@ export default function Quotations() {
                               />
                             </div>
 
-                            {/* 8. Transporte */}
+                            {/* 8. Pintado Puertas Alto Brillo */}
+                            <div className="p-4 bg-pink-50 rounded-lg border border-pink-200">
+                              <div className="flex items-center space-x-2 mb-3">
+                                <input
+                                  type="checkbox"
+                                  id={`paintedDoors-${index}`}
+                                  checked={item.kitchenConfig?.paintedDoors?.enabled || false}
+                                  onChange={(e) => {
+                                    updateKitchenConfig(index, "paintedDoors.enabled", e.target.checked);
+                                    calculateKitchenTotal(index);
+                                  }}
+                                  className="h-4 w-4"
+                                />
+                                <Label htmlFor={`paintedDoors-${index}`} className="text-sm font-semibold text-pink-800 cursor-pointer">
+                                  🎨 Pintado Puertas Alto Brillo
+                                </Label>
+                              </div>
+                              {item.kitchenConfig?.paintedDoors?.enabled && (
+                                <div className="grid grid-cols-2 gap-3 text-sm">
+                                  <div>
+                                    <Label className="text-xs text-pink-700">Puertas Superiores ($120,000)</Label>
+                                    <Input
+                                      type="number"
+                                      min="0"
+                                      value={item.kitchenConfig?.paintedDoors?.upperQty || ""}
+                                      onChange={(e) => {
+                                        updateKitchenConfig(index, "paintedDoors.upperQty", parseInt(e.target.value) || 0);
+                                        calculateKitchenTotal(index);
+                                      }}
+                                      placeholder="0"
+                                      className="h-8"
+                                    />
+                                  </div>
+                                  <div>
+                                    <Label className="text-xs text-pink-700">Puertas Inferiores ($150,000)</Label>
+                                    <Input
+                                      type="number"
+                                      min="0"
+                                      value={item.kitchenConfig?.paintedDoors?.lowerQty || ""}
+                                      onChange={(e) => {
+                                        updateKitchenConfig(index, "paintedDoors.lowerQty", parseInt(e.target.value) || 0);
+                                        calculateKitchenTotal(index);
+                                      }}
+                                      placeholder="0"
+                                      className="h-8"
+                                    />
+                                  </div>
+                                  <div>
+                                    <Label className="text-xs text-pink-700">Puertas Alacena ($250,000)</Label>
+                                    <Input
+                                      type="number"
+                                      min="0"
+                                      value={item.kitchenConfig?.paintedDoors?.pantryQty || ""}
+                                      onChange={(e) => {
+                                        updateKitchenConfig(index, "paintedDoors.pantryQty", parseInt(e.target.value) || 0);
+                                        calculateKitchenTotal(index);
+                                      }}
+                                      placeholder="0"
+                                      className="h-8"
+                                    />
+                                  </div>
+                                  <div>
+                                    <Label className="text-xs text-pink-700">Tapas Cajón ($80,000)</Label>
+                                    <Input
+                                      type="number"
+                                      min="0"
+                                      value={item.kitchenConfig?.paintedDoors?.drawerQty || ""}
+                                      onChange={(e) => {
+                                        updateKitchenConfig(index, "paintedDoors.drawerQty", parseInt(e.target.value) || 0);
+                                        calculateKitchenTotal(index);
+                                      }}
+                                      placeholder="0"
+                                      className="h-8"
+                                    />
+                                  </div>
+                                  <div>
+                                    <Label className="text-xs text-pink-700">Tapa Especiero ($100,000)</Label>
+                                    <Input
+                                      type="number"
+                                      min="0"
+                                      value={item.kitchenConfig?.paintedDoors?.spiceQty || ""}
+                                      onChange={(e) => {
+                                        updateKitchenConfig(index, "paintedDoors.spiceQty", parseInt(e.target.value) || 0);
+                                        calculateKitchenTotal(index);
+                                      }}
+                                      placeholder="0"
+                                      className="h-8"
+                                    />
+                                  </div>
+                                  <div>
+                                    <Label className="text-xs text-pink-700">Tapas Pequeña/Gola ($45,000)</Label>
+                                    <Input
+                                      type="number"
+                                      min="0"
+                                      value={item.kitchenConfig?.paintedDoors?.golaQty || ""}
+                                      onChange={(e) => {
+                                        updateKitchenConfig(index, "paintedDoors.golaQty", parseInt(e.target.value) || 0);
+                                        calculateKitchenTotal(index);
+                                      }}
+                                      placeholder="0"
+                                      className="h-8"
+                                    />
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* 9. Transporte */}
                             <div className="flex items-center space-x-2 p-3 bg-yellow-50 rounded">
                               <input
                                 type="checkbox"

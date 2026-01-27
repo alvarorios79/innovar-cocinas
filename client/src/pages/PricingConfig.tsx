@@ -3,8 +3,7 @@ import { trpc } from "@/lib/trpc";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -25,49 +24,101 @@ import {
   Settings,
   TrendingUp,
   TrendingDown,
-  Clock
+  Clock,
+  Tag,
+  Percent,
+  ArrowRight
 } from "lucide-react";
 
-// Mapeo de categorías a nombres legibles
-const categoryNames: Record<string, string> = {
-  cocina_base: "Cocina Base",
-  mesones: "Mesones",
-  muebles_especiales: "Muebles Especiales",
-  extras: "Extras",
-  puertas_tapas: "Puertas y Tapas",
-  herrajes: "Herrajes",
-  closets: "Closets",
-  puertas_producto: "Puertas (Producto)",
-  centros_tv: "Centros de TV",
-  otros: "Otros / Descuentos",
-};
-
-// Iconos por categoría
-const categoryIcons: Record<string, React.ReactNode> = {
-  cocina_base: <ChefHat className="h-5 w-5" />,
-  mesones: <Layers className="h-5 w-5" />,
-  muebles_especiales: <Box className="h-5 w-5" />,
-  extras: <Sparkles className="h-5 w-5" />,
-  puertas_tapas: <DoorOpen className="h-5 w-5" />,
-  herrajes: <Wrench className="h-5 w-5" />,
-  closets: <LayoutGrid className="h-5 w-5" />,
-  puertas_producto: <DoorOpen className="h-5 w-5" />,
-  centros_tv: <Tv className="h-5 w-5" />,
-  otros: <Settings className="h-5 w-5" />,
-};
-
-// Colores por categoría
-const categoryColors: Record<string, string> = {
-  cocina_base: "bg-emerald-50 border-emerald-200",
-  mesones: "bg-blue-50 border-blue-200",
-  muebles_especiales: "bg-amber-50 border-amber-200",
-  extras: "bg-purple-50 border-purple-200",
-  puertas_tapas: "bg-rose-50 border-rose-200",
-  herrajes: "bg-slate-50 border-slate-200",
-  closets: "bg-cyan-50 border-cyan-200",
-  puertas_producto: "bg-orange-50 border-orange-200",
-  centros_tv: "bg-indigo-50 border-indigo-200",
-  otros: "bg-gray-50 border-gray-200",
+// Configuración de categorías con colores e iconos
+const categoryConfig: Record<string, { 
+  name: string; 
+  icon: React.ReactNode; 
+  gradient: string;
+  bgLight: string;
+  borderColor: string;
+  iconBg: string;
+}> = {
+  cocina_base: {
+    name: "Cocina Base",
+    icon: <ChefHat className="h-5 w-5" />,
+    gradient: "from-emerald-500 to-emerald-600",
+    bgLight: "bg-emerald-50",
+    borderColor: "border-emerald-200",
+    iconBg: "bg-emerald-100 text-emerald-600"
+  },
+  mesones: {
+    name: "Mesones",
+    icon: <Layers className="h-5 w-5" />,
+    gradient: "from-blue-500 to-blue-600",
+    bgLight: "bg-blue-50",
+    borderColor: "border-blue-200",
+    iconBg: "bg-blue-100 text-blue-600"
+  },
+  muebles_especiales: {
+    name: "Muebles Especiales",
+    icon: <Box className="h-5 w-5" />,
+    gradient: "from-amber-500 to-amber-600",
+    bgLight: "bg-amber-50",
+    borderColor: "border-amber-200",
+    iconBg: "bg-amber-100 text-amber-600"
+  },
+  extras: {
+    name: "Extras",
+    icon: <Sparkles className="h-5 w-5" />,
+    gradient: "from-purple-500 to-purple-600",
+    bgLight: "bg-purple-50",
+    borderColor: "border-purple-200",
+    iconBg: "bg-purple-100 text-purple-600"
+  },
+  puertas_tapas: {
+    name: "Puertas y Tapas",
+    icon: <DoorOpen className="h-5 w-5" />,
+    gradient: "from-rose-500 to-rose-600",
+    bgLight: "bg-rose-50",
+    borderColor: "border-rose-200",
+    iconBg: "bg-rose-100 text-rose-600"
+  },
+  herrajes: {
+    name: "Herrajes",
+    icon: <Wrench className="h-5 w-5" />,
+    gradient: "from-slate-500 to-slate-600",
+    bgLight: "bg-slate-50",
+    borderColor: "border-slate-200",
+    iconBg: "bg-slate-100 text-slate-600"
+  },
+  closets: {
+    name: "Closets",
+    icon: <LayoutGrid className="h-5 w-5" />,
+    gradient: "from-cyan-500 to-cyan-600",
+    bgLight: "bg-cyan-50",
+    borderColor: "border-cyan-200",
+    iconBg: "bg-cyan-100 text-cyan-600"
+  },
+  puertas_producto: {
+    name: "Puertas (Producto)",
+    icon: <DoorOpen className="h-5 w-5" />,
+    gradient: "from-orange-500 to-orange-600",
+    bgLight: "bg-orange-50",
+    borderColor: "border-orange-200",
+    iconBg: "bg-orange-100 text-orange-600"
+  },
+  centros_tv: {
+    name: "Centros de TV",
+    icon: <Tv className="h-5 w-5" />,
+    gradient: "from-indigo-500 to-indigo-600",
+    bgLight: "bg-indigo-50",
+    borderColor: "border-indigo-200",
+    iconBg: "bg-indigo-100 text-indigo-600"
+  },
+  otros: {
+    name: "Otros / Descuentos",
+    icon: <Settings className="h-5 w-5" />,
+    gradient: "from-gray-500 to-gray-600",
+    bgLight: "bg-gray-50",
+    borderColor: "border-gray-200",
+    iconBg: "bg-gray-100 text-gray-600"
+  },
 };
 
 interface PricingItem {
@@ -98,7 +149,7 @@ interface HistoryItem {
 }
 
 export default function PricingConfig() {
-  const [activeTab, setActiveTab] = useState("cocina_base");
+  const [activeCategory, setActiveCategory] = useState("cocina_base");
   const [editingItem, setEditingItem] = useState<PricingItem | null>(null);
   const [newValue, setNewValue] = useState("");
   const [reason, setReason] = useState("");
@@ -132,7 +183,7 @@ export default function PricingConfig() {
   }, {} as Record<string, PricingItem[]>) || {};
 
   // Categorías disponibles
-  const categories = Object.keys(categoryNames);
+  const categories = Object.keys(categoryConfig);
 
   const formatCurrency = (value: string | number) => {
     const num = typeof value === "string" ? parseFloat(value) : value;
@@ -176,11 +227,14 @@ export default function PricingConfig() {
     });
   };
 
+  const activeConfig = categoryConfig[activeCategory];
+  const activePricing = pricingByCategory[activeCategory] || [];
+
   if (isLoading) {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-emerald-200 border-t-emerald-600"></div>
         </div>
       </DashboardLayout>
     );
@@ -189,117 +243,219 @@ export default function PricingConfig() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-              <DollarSign className="h-7 w-7 text-emerald-600" />
-              Configuración de Precios
-            </h1>
-            <p className="text-gray-500 mt-1">
-              Administra los precios del sistema de cotizaciones
-            </p>
+        {/* Header con gradiente */}
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 p-6 sm:p-8 text-white shadow-lg">
+          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48cGF0aCBkPSJNMzYgMzRjMC0yIDItNCAyLTRzLTItMi00LTItNC0yLTItNCAyLTQgMi00IDQtMiA0LTIgMi00IDItNHoiLz48L2c+PC9nPjwvc3ZnPg==')] opacity-30"></div>
+          <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm">
+                <DollarSign className="h-8 w-8" />
+              </div>
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-bold">Configuración de Precios</h1>
+                <p className="text-emerald-100 mt-1">
+                  Administra todos los precios del sistema de cotizaciones
+                </p>
+              </div>
+            </div>
+            <Button
+              variant="secondary"
+              onClick={() => setShowHistory(true)}
+              className="flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white border-0 backdrop-blur-sm"
+            >
+              <History className="h-4 w-4" />
+              Ver Historial
+            </Button>
           </div>
-          <Button
-            variant="outline"
-            onClick={() => setShowHistory(true)}
-            className="flex items-center gap-2"
-          >
-            <History className="h-4 w-4" />
-            Ver Historial
-          </Button>
+          
+          {/* Stats rápidos */}
+          <div className="relative mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 text-center">
+              <p className="text-2xl font-bold">{allPricing?.length || 0}</p>
+              <p className="text-xs text-emerald-100">Precios Configurados</p>
+            </div>
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 text-center">
+              <p className="text-2xl font-bold">{categories.length}</p>
+              <p className="text-xs text-emerald-100">Categorías</p>
+            </div>
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 text-center">
+              <p className="text-2xl font-bold">{historyData?.length || 0}</p>
+              <p className="text-xs text-emerald-100">Cambios Registrados</p>
+            </div>
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 text-center">
+              <p className="text-2xl font-bold">{activePricing.length}</p>
+              <p className="text-xs text-emerald-100">En Categoría Actual</p>
+            </div>
+          </div>
         </div>
 
-        {/* Tabs por categoría */}
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="flex flex-wrap h-auto gap-1 bg-gray-100 p-1">
-            {categories.map((cat) => (
-              <TabsTrigger
-                key={cat}
-                value={cat}
-                className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3 py-1.5 data-[state=active]:bg-white"
-              >
-                {categoryIcons[cat]}
-                <span className="hidden sm:inline">{categoryNames[cat]}</span>
-              </TabsTrigger>
-            ))}
-          </TabsList>
-
-          {categories.map((cat) => (
-            <TabsContent key={cat} value={cat} className="mt-4">
-              <Card className={`border-2 ${categoryColors[cat]}`}>
-                <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    {categoryIcons[cat]}
-                    {categoryNames[cat]}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid gap-3">
-                    {pricingByCategory[cat]?.map((item) => (
-                      <div
-                        key={item.id}
-                        className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-white rounded-lg border shadow-sm gap-3"
+        {/* Grid de categorías y contenido */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {/* Sidebar de categorías */}
+          <div className="lg:col-span-1">
+            <Card className="sticky top-4 overflow-hidden border-0 shadow-lg">
+              <div className="bg-gradient-to-r from-gray-800 to-gray-900 p-4">
+                <h2 className="text-white font-semibold flex items-center gap-2">
+                  <Tag className="h-4 w-4" />
+                  Categorías
+                </h2>
+              </div>
+              <CardContent className="p-2">
+                <div className="space-y-1">
+                  {categories.map((cat) => {
+                    const config = categoryConfig[cat];
+                    const isActive = activeCategory === cat;
+                    const itemCount = pricingByCategory[cat]?.length || 0;
+                    
+                    return (
+                      <button
+                        key={cat}
+                        onClick={() => setActiveCategory(cat)}
+                        className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all duration-200 text-left ${
+                          isActive 
+                            ? `bg-gradient-to-r ${config.gradient} text-white shadow-md` 
+                            : `hover:${config.bgLight} text-gray-700 hover:text-gray-900`
+                        }`}
                       >
-                        <div className="flex-1">
-                          <h3 className="font-medium text-gray-900">{item.name}</h3>
-                          {item.description && (
-                            <p className="text-sm text-gray-500 mt-0.5">{item.description}</p>
-                          )}
-                          <p className="text-xs text-gray-400 mt-1">
-                            Código: {item.code} | Unidad: {item.unit || "N/A"}
+                        <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${
+                          isActive ? 'bg-white/20' : config.iconBg
+                        }`}>
+                          {config.icon}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className={`font-medium text-sm truncate ${isActive ? 'text-white' : ''}`}>
+                            {config.name}
+                          </p>
+                          <p className={`text-xs ${isActive ? 'text-white/70' : 'text-gray-500'}`}>
+                            {itemCount} {itemCount === 1 ? 'precio' : 'precios'}
                           </p>
                         </div>
-                        <div className="flex items-center gap-3">
-                          <span className="text-lg font-bold text-emerald-600">
+                        {isActive && (
+                          <ArrowRight className="h-4 w-4 text-white/70" />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Contenido principal - Lista de precios */}
+          <div className="lg:col-span-3">
+            <Card className={`overflow-hidden border-2 ${activeConfig.borderColor} shadow-lg`}>
+              {/* Header de la categoría */}
+              <div className={`bg-gradient-to-r ${activeConfig.gradient} p-5 text-white`}>
+                <div className="flex items-center gap-3">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm">
+                    {activeConfig.icon}
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold">{activeConfig.name}</h2>
+                    <p className="text-white/80 text-sm">
+                      {activePricing.length} {activePricing.length === 1 ? 'precio configurado' : 'precios configurados'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Lista de precios */}
+              <CardContent className={`p-4 ${activeConfig.bgLight}`}>
+                {activePricing.length > 0 ? (
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {activePricing.map((item) => (
+                      <div
+                        key={item.id}
+                        className={`group relative bg-white rounded-xl border-2 ${activeConfig.borderColor} p-4 shadow-sm hover:shadow-md transition-all duration-200`}
+                      >
+                        {/* Badge de unidad */}
+                        {item.unit && (
+                          <div className={`absolute -top-2 -right-2 ${activeConfig.iconBg} text-xs font-medium px-2 py-0.5 rounded-full flex items-center gap-1`}>
+                            {item.unit === "%" ? <Percent className="h-3 w-3" /> : null}
+                            {item.unit}
+                          </div>
+                        )}
+                        
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-semibold text-gray-900 truncate pr-8">{item.name}</h3>
+                            {item.description && (
+                              <p className="text-xs text-gray-500 mt-1 line-clamp-2">{item.description}</p>
+                            )}
+                            <p className="text-xs text-gray-400 mt-2 font-mono">
+                              {item.code}
+                            </p>
+                          </div>
+                        </div>
+                        
+                        <div className="mt-4 flex items-center justify-between">
+                          <span className={`text-xl font-bold bg-gradient-to-r ${activeConfig.gradient} bg-clip-text text-transparent`}>
                             {formatValue(item)}
                           </span>
                           <Button
                             size="sm"
                             variant="outline"
                             onClick={() => handleEdit(item)}
-                            className="flex items-center gap-1"
+                            className={`opacity-0 group-hover:opacity-100 transition-opacity ${activeConfig.borderColor} hover:${activeConfig.bgLight}`}
                           >
-                            <Edit2 className="h-4 w-4" />
+                            <Edit2 className="h-4 w-4 mr-1" />
                             Editar
                           </Button>
                         </div>
                       </div>
-                    )) || (
-                      <p className="text-gray-500 text-center py-4">
-                        No hay precios configurados en esta categoría
-                      </p>
-                    )}
+                    ))}
                   </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          ))}
-        </Tabs>
+                ) : (
+                  <div className="text-center py-12">
+                    <div className={`mx-auto h-16 w-16 rounded-full ${activeConfig.iconBg} flex items-center justify-center mb-4`}>
+                      {activeConfig.icon}
+                    </div>
+                    <p className="text-gray-500">No hay precios configurados en esta categoría</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </div>
 
-        {/* Modal de edición */}
+        {/* Modal de edición mejorado */}
         <Dialog open={!!editingItem} onOpenChange={() => setEditingItem(null)}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <Edit2 className="h-5 w-5 text-emerald-600" />
-                Editar Precio
-              </DialogTitle>
+              <div className={`-mx-6 -mt-6 mb-4 p-4 bg-gradient-to-r ${editingItem ? categoryConfig[editingItem.category]?.gradient || 'from-emerald-500 to-emerald-600' : 'from-emerald-500 to-emerald-600'} text-white rounded-t-lg`}>
+                <DialogTitle className="flex items-center gap-2 text-white">
+                  <Edit2 className="h-5 w-5" />
+                  Editar Precio
+                </DialogTitle>
+              </div>
             </DialogHeader>
             {editingItem && (
-              <div className="space-y-4">
-                <div>
-                  <Label className="text-gray-700">Nombre</Label>
-                  <p className="font-medium">{editingItem.name}</p>
+              <div className="space-y-5">
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <Label className="text-xs text-gray-500 uppercase tracking-wider">Nombre del Precio</Label>
+                  <p className="font-semibold text-gray-900 mt-1">{editingItem.name}</p>
+                  <p className="text-xs text-gray-500 mt-1 font-mono">{editingItem.code}</p>
                 </div>
-                <div>
-                  <Label className="text-gray-700">Valor Actual</Label>
-                  <p className="text-lg font-bold text-gray-500 line-through">
-                    {formatValue(editingItem)}
-                  </p>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-red-50 rounded-lg p-4 border border-red-100">
+                    <Label className="text-xs text-red-600 uppercase tracking-wider">Valor Actual</Label>
+                    <p className="text-lg font-bold text-red-600 mt-1 line-through">
+                      {formatValue(editingItem)}
+                    </p>
+                  </div>
+                  <div className="bg-emerald-50 rounded-lg p-4 border border-emerald-100">
+                    <Label className="text-xs text-emerald-600 uppercase tracking-wider">Nuevo Valor</Label>
+                    <p className="text-lg font-bold text-emerald-600 mt-1">
+                      {newValue ? (editingItem.unit === "%" ? `${newValue}%` : formatCurrency(newValue)) : "-"}
+                    </p>
+                  </div>
                 </div>
+
                 <div>
-                  <Label htmlFor="newValue">Nuevo Valor {editingItem.unit === "%" ? "(%)" : "(COP)"}</Label>
+                  <Label htmlFor="newValue" className="text-sm font-medium">
+                    Ingresa el nuevo valor {editingItem.unit === "%" ? "(porcentaje)" : "(COP)"}
+                  </Label>
                   <Input
                     id="newValue"
                     type="number"
@@ -307,93 +463,123 @@ export default function PricingConfig() {
                     step={editingItem.unit === "%" ? "0.1" : "1000"}
                     value={newValue}
                     onChange={(e) => setNewValue(e.target.value)}
-                    className="mt-1"
+                    className="mt-2 text-lg font-semibold"
+                    placeholder={editingItem.unit === "%" ? "Ej: 30" : "Ej: 2500000"}
                   />
                 </div>
+                
                 <div>
-                  <Label htmlFor="reason">Razón del cambio (opcional)</Label>
+                  <Label htmlFor="reason" className="text-sm font-medium">
+                    Razón del cambio <span className="text-gray-400">(opcional)</span>
+                  </Label>
                   <Textarea
                     id="reason"
                     value={reason}
                     onChange={(e) => setReason(e.target.value)}
-                    placeholder="Ej: Ajuste por inflación, Promoción temporal..."
-                    className="mt-1"
+                    placeholder="Ej: Ajuste por inflación, Promoción temporal, Actualización de costos..."
+                    className="mt-2"
+                    rows={2}
                   />
                 </div>
               </div>
             )}
-            <DialogFooter>
+            <DialogFooter className="gap-2 sm:gap-0">
               <Button variant="outline" onClick={() => setEditingItem(null)}>
                 Cancelar
               </Button>
               <Button 
                 onClick={handleSave} 
-                disabled={updatePricing.isPending}
+                disabled={updatePricing.isPending || !newValue}
                 className="bg-emerald-600 hover:bg-emerald-700"
               >
                 <Save className="h-4 w-4 mr-2" />
-                {updatePricing.isPending ? "Guardando..." : "Guardar"}
+                {updatePricing.isPending ? "Guardando..." : "Guardar Cambio"}
               </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
 
-        {/* Modal de historial */}
+        {/* Modal de historial mejorado */}
         <Dialog open={showHistory} onOpenChange={setShowHistory}>
-          <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogContent className="sm:max-w-2xl max-h-[85vh]">
             <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <History className="h-5 w-5 text-emerald-600" />
-                Historial de Cambios de Precios
-              </DialogTitle>
+              <div className="-mx-6 -mt-6 mb-4 p-4 bg-gradient-to-r from-gray-800 to-gray-900 text-white rounded-t-lg">
+                <DialogTitle className="flex items-center gap-2 text-white">
+                  <History className="h-5 w-5" />
+                  Historial de Cambios de Precios
+                </DialogTitle>
+              </div>
             </DialogHeader>
-            <div className="space-y-3">
+            <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
               {historyData && historyData.length > 0 ? (
                 historyData.map((item: HistoryItem) => {
                   const prevValue = parseFloat(item.previousValue);
                   const newVal = parseFloat(item.newValue);
                   const isIncrease = newVal > prevValue;
                   const percentChange = ((newVal - prevValue) / prevValue * 100).toFixed(1);
+                  const config = categoryConfig[item.pricingCategory];
                   
                   return (
                     <div
                       key={item.id}
-                      className="p-3 bg-gray-50 rounded-lg border"
+                      className={`p-4 rounded-xl border-2 ${config?.borderColor || 'border-gray-200'} ${config?.bgLight || 'bg-gray-50'}`}
                     >
-                      <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <p className="font-medium text-gray-900">{item.pricingName}</p>
-                          <p className="text-xs text-gray-500">
-                            {categoryNames[item.pricingCategory]} • {item.pricingCode}
-                          </p>
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-start gap-3">
+                          <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${config?.iconBg || 'bg-gray-100'}`}>
+                            {config?.icon || <Settings className="h-5 w-5" />}
+                          </div>
+                          <div>
+                            <p className="font-semibold text-gray-900">{item.pricingName}</p>
+                            <p className="text-xs text-gray-500">
+                              {config?.name || item.pricingCategory} • <span className="font-mono">{item.pricingCode}</span>
+                            </p>
+                          </div>
                         </div>
-                        <div className={`flex items-center gap-1 text-sm font-medium ${isIncrease ? "text-red-600" : "text-green-600"}`}>
+                        <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-bold ${
+                          isIncrease 
+                            ? "bg-red-100 text-red-700" 
+                            : "bg-green-100 text-green-700"
+                        }`}>
                           {isIncrease ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
                           {isIncrease ? "+" : ""}{percentChange}%
                         </div>
                       </div>
-                      <div className="mt-2 flex items-center gap-2 text-sm">
+                      
+                      <div className="mt-3 flex items-center gap-3 text-sm">
                         <span className="text-gray-500 line-through">{formatCurrency(prevValue)}</span>
-                        <span className="text-gray-400">→</span>
-                        <span className="font-medium text-emerald-600">{formatCurrency(newVal)}</span>
+                        <ArrowRight className="h-4 w-4 text-gray-400" />
+                        <span className="font-bold text-emerald-600">{formatCurrency(newVal)}</span>
                       </div>
+                      
                       {item.reason && (
-                        <p className="mt-1 text-xs text-gray-600 italic">"{item.reason}"</p>
+                        <p className="mt-2 text-sm text-gray-600 bg-white/50 rounded-lg p-2 italic">
+                          "{item.reason}"
+                        </p>
                       )}
-                      <div className="mt-2 flex items-center gap-2 text-xs text-gray-400">
-                        <Clock className="h-3 w-3" />
-                        {new Date(item.createdAt).toLocaleString("es-CO")}
+                      
+                      <div className="mt-3 flex items-center gap-3 text-xs text-gray-400">
+                        <span className="flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {new Date(item.createdAt).toLocaleString("es-CO")}
+                        </span>
                         {item.changedByUser?.name && (
-                          <span>• Por: {item.changedByUser.name}</span>
+                          <span className="flex items-center gap-1">
+                            • Modificado por: <span className="font-medium text-gray-600">{item.changedByUser.name}</span>
+                          </span>
                         )}
                       </div>
                     </div>
                   );
                 })
               ) : (
-                <p className="text-center text-gray-500 py-8">
-                  No hay cambios de precios registrados
-                </p>
+                <div className="text-center py-12">
+                  <div className="mx-auto h-16 w-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+                    <History className="h-8 w-8 text-gray-400" />
+                  </div>
+                  <p className="text-gray-500 font-medium">No hay cambios de precios registrados</p>
+                  <p className="text-gray-400 text-sm mt-1">Los cambios aparecerán aquí cuando edites un precio</p>
+                </div>
               )}
             </div>
           </DialogContent>

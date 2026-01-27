@@ -2838,3 +2838,12 @@
 - [x] Actualizar cálculos de cotización para usar precios de la BD
 - [x] Cachear precios con hook usePricing (5 min stale time)
 - [x] Restringir acceso solo a super_admin
+
+
+## Rediseño del Panel de Configuración de Precios
+- [x] Agregar header atractivo con gradiente y título destacado
+- [x] Agregar iconos a cada tab de categoría
+- [x] Mejorar diseño visual de las cards de precios
+- [x] Aplicar colores distintivos por categoría
+- [x] Mejorar organización y espaciado
+- [x] Hacer botones y acciones más claros e intuitivos

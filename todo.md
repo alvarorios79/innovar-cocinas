@@ -2866,3 +2866,9 @@
 - [x] Hacer que el campo Tipo de Mesón sea opcional
 - [x] Permitir guardar cotización de cocina sin seleccionar mesón
 - [x] Verificar que el cálculo funcione correctamente sin mesón
+
+
+## Bug: Muebles superiores no se guardan en Frente PLL
+- [x] Investigar cómo se guardan los muebles superiores en cotizaciones Frente PLL
+- [x] Corregir el bug de guardado (agregar includeUpperModule y upperModuleMeters al mapeo)
+- [x] Verificar que se guarden y calculen correctamente

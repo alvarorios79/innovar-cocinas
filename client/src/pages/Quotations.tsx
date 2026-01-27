@@ -503,7 +503,8 @@ export default function Quotations() {
           kitchenConfig: item.kitchenConfig ? {
             shape: item.kitchenConfig.shape ?? "",
             totalMeters: item.kitchenConfig.totalMeters ?? 0,
-
+            includeUpperModule: item.kitchenConfig.includeUpperModule ?? false,
+            upperModuleMeters: item.kitchenConfig.upperModuleMeters ?? 0,
             specialModules: {
               nichoNevecon: item.kitchenConfig.specialModules?.nichoNevecon ?? false,
               nichoNevera: item.kitchenConfig.specialModules?.nichoNevera ?? false,
@@ -534,6 +535,8 @@ export default function Quotations() {
             totalMeters: 0,
             lowerCabinets: 0,
             upperCabinets: 0,
+            includeUpperModule: false,
+            upperModuleMeters: 0,
             specialModules: {
               nichoNevecon: false,
               nichoNevera: false,

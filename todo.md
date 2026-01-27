@@ -2873,3 +2873,11 @@
 - [x] Corregir el bug de guardado en frontend (agregar includeUpperModule y upperModuleMeters al mapeo)
 - [x] Corregir el bug de guardado en frontend (agregar campos a todas las estructuras iniciales)
 - [x] Verificar que se guarden y calculen correctamente
+
+
+## Bug: Muebles superiores de Frente PLL no se suman al total al guardar
+- [x] Identificar que el recálculo en handleSubmit usaba valores hardcodeados antiguos
+- [x] Reemplazar lógica de cálculo en handleSubmit con la misma lógica de calculateKitchenTotal
+- [x] Incluir soporte para todas las formas especiales (frente_pll, solo_superiores, solo_inferiores, puertas_tapas)
+- [x] Usar precios dinámicos desde la base de datos en lugar de valores hardcodeados
+- [x] Probar creación y edición de cotización Frente PLL con muebles superiores (14 tests pasando)

@@ -935,76 +935,131 @@ export default function Quotations() {
         const config = item.kitchenConfig;
         let total = 0;
 
-        // Calcular metraje resultante
+        // Calcular metraje resultante después de descontar muebles especiales
+        // Solo aplica para cocinas completas (no para frente_pll, solo_superiores, solo_inferiores)
         let deductions = 0;
-        if (config.specialModules?.nichoNevecon) deductions += 1.0;
-        if (config.specialModules?.nichoNevera) deductions += 0.75;
-        if (config.specialModules?.alacenaEntrepanos) deductions += 0.5;
-        if (config.specialModules?.alacenaHerraje) deductions += 0.5;
-        if (config.specialModules?.torreHornos) deductions += 0.7;
+        const isSpecialShape = ['frente_pll', 'solo_superiores', 'solo_inferiores', 'puertas_tapas'].includes(config.shape);
+        
+        if (!isSpecialShape) {
+          if (config.specialModules?.nichoNevecon) deductions += 1.0; // 100cm
+          if (config.specialModules?.nichoNevera) deductions += 0.75; // 75cm
+          if (config.specialModules?.alacenaEntrepanos) deductions += 0.5; // 50cm
+          if (config.specialModules?.alacenaHerraje) deductions += 0.5; // 50cm
+          if (config.specialModules?.torreHornos) deductions += 0.7; // 70cm
+        }
+
         const resultingMeters = Math.max(0, config.totalMeters - deductions);
+        
+        // Muebles lineales según la forma (precios dinámicos)
+        if (config.shape === 'frente_pll') {
+          // Frente PLL
+          total += config.totalMeters * getPrice('COCINA_ML_FRENTE_PLL');
+          // Módulo superior opcional
+          if (config.includeUpperModule && config.upperModuleMeters) {
+            total += config.upperModuleMeters * getPrice('MUEBLE_SUPERIOR_ML');
+          }
+        } else if (config.shape === 'solo_superiores') {
+          // Solo muebles superiores
+          total += config.totalMeters * getPrice('MUEBLE_SUPERIOR_ML');
+        } else if (config.shape === 'solo_inferiores') {
+          // Solo muebles inferiores
+          total += config.totalMeters * getPrice('MUEBLE_INFERIOR_ML');
+        } else if (config.shape === 'puertas_tapas') {
+          // Puertas y Tapas (solo cambio) - precios dinámicos
+          const dc = (config.doorsAndCovers || {}) as any;
+          total += (dc.upperDoors70 || 0) * getPrice('PUERTA_SUP_70');
+          total += (dc.upperDoors90 || 0) * getPrice('PUERTA_SUP_90');
+          total += (dc.upperDoors100 || 0) * getPrice('PUERTA_SUP_100');
+          total += (dc.lowerDoors || 0) * getPrice('PUERTA_INF');
+          total += (dc.pantryDoors || 0) * getPrice('PUERTA_ALACENA');
+          total += (dc.drawerCovers || 0) * getPrice('TAPA_CAJON');
+          total += (dc.smallCovers || 0) * getPrice('TAPA_PEQUENA');
+        } else {
+          // Cocinas completas (Lineal, L, U, etc.): inferiores + superiores
+          total += resultingMeters * getPrice('MUEBLE_INFERIOR_ML');
+          total += resultingMeters * getPrice('MUEBLE_SUPERIOR_ML');
+        }
 
-        // Muebles lineales
-        total += resultingMeters * 900000 * 2; // Inferiores + Superiores
+        // Muebles especiales (para cocinas completas y puertas_tapas) - precios dinámicos
+        if (!isSpecialShape || config.shape === 'puertas_tapas') {
+          if (config.specialModules?.nichoNevecon) total += getPrice('NICHO_NEVECON');
+          if (config.specialModules?.nichoNevera) total += getPrice('NICHO_NEVERA');
+          if (config.specialModules?.alacenaEntrepanos) total += getPrice('ALACENA_ENTREPANOS');
+          if (config.specialModules?.alacenaHerraje) total += getPrice('ALACENA_HERRAJE');
+          if (config.specialModules?.torreHornos) total += getPrice('TORRE_HORNOS');
+        }
 
-        // Muebles especiales
-        if (config.specialModules?.nichoNevecon) total += 1200000;
-        if (config.specialModules?.nichoNevera) total += 1200000;
-        if (config.specialModules?.alacenaEntrepanos) total += 1250000;
-        if (config.specialModules?.alacenaHerraje) total += 900000;
-        if (config.specialModules?.torreHornos) total += 1350000;
-
-        // Mesón principal
-        if (config.countertop.type) {
-          const basePrice = config.countertop.type === "quarzone" ? 850000 : 1200000;
+        // Mesón principal (usa metraje resultante automáticamente) - precios dinámicos
+        // No aplica para solo_superiores ni puertas_tapas
+        if (config.shape !== 'solo_superiores' && config.shape !== 'puertas_tapas' && config.countertop.type) {
+          const basePrice = config.countertop.type === "quarzone" ? getPrice('MESON_CUARZO') : getPrice('MESON_SINTERIZADO');
           let countertopPrice = basePrice;
-          if (config.countertop.depthSurcharge === "30percent") countertopPrice = basePrice * 1.3;
-          else if (config.countertop.depthSurcharge === "double") countertopPrice = basePrice * 2;
-          total += resultingMeters * countertopPrice;
+          
+          const surchargePercent = getPrice('MESON_RECARGO_FONDO') / 100;
+          if (config.countertop.depthSurcharge === "30percent") {
+            countertopPrice = basePrice * (1 + surchargePercent);
+          } else if (config.countertop.depthSurcharge === "double") {
+            countertopPrice = basePrice * 2;
+          }
+          
+          // Usar metraje resultante automáticamente (o totalMeters para formas especiales)
+          const metersForCountertop = isSpecialShape ? config.totalMeters : resultingMeters;
+          total += metersForCountertop * countertopPrice;
         }
 
-        // Isla
-        if (config.island.enabled && config.island.meters > 0) {
-          total += config.island.meters * 900000;
+        // Isla (para cocinas completas y puertas_tapas) - precios dinámicos
+        if ((!isSpecialShape || config.shape === 'puertas_tapas') && config.island.enabled && config.island.meters > 0) {
+          // Muebles de isla
+          total += config.island.meters * getPrice('ISLA_ML');
+          
+          // Mesón superior de isla
           if (config.island.countertopType) {
-            const islandPrice = config.island.countertopType === "quarzone" ? 850000 : 1200000;
-            total += config.island.meters * islandPrice;
+            const islandCountertopPrice = config.island.countertopType === "quarzone" ? getPrice('MESON_CUARZO') : getPrice('MESON_SINTERIZADO');
+            total += config.island.meters * islandCountertopPrice;
+            
+            // Laterales de isla
             if (config.island.hasLaterals) {
-              total += 1.8 * islandPrice + 0.9 * islandPrice;
+              total += 1.8 * islandCountertopPrice; // Lateral
+              total += 0.9 * islandCountertopPrice; // Regrueso
             }
           }
         }
 
-        // Barra
-        if (config.bar.enabled && config.bar.meters > 0) {
-          total += config.bar.meters * 900000;
+        // Barra (para cocinas completas y puertas_tapas) - precios dinámicos
+        if ((!isSpecialShape || config.shape === 'puertas_tapas') && config.bar.enabled && config.bar.meters > 0) {
+          // Muebles de barra
+          total += config.bar.meters * getPrice('BARRA_ML');
+          
+          // Mesón superior de barra
           if (config.bar.countertopType) {
-            const barPrice = config.bar.countertopType === "quarzone" ? 850000 : 1200000;
-            total += config.bar.meters * barPrice;
+            const barCountertopPrice = config.bar.countertopType === "quarzone" ? getPrice('MESON_CUARZO') : getPrice('MESON_SINTERIZADO');
+            total += config.bar.meters * barCountertopPrice;
+            
+            // Lateral de barra
             if (config.bar.hasLateral) {
-              total += 0.9 * barPrice;
+              total += 0.9 * barCountertopPrice;
             }
           }
         }
 
-        // LED
-        if (config.ledLighting > 0) {
-          total += config.ledLighting * 180000;
+        // Luz LED (no aplica para solo_inferiores ni puertas_tapas) - precio dinámico
+        if (config.shape !== 'solo_inferiores' && config.shape !== 'puertas_tapas' && config.ledLighting > 0) {
+          total += config.ledLighting * getPrice('LED_ML');
         }
 
-        // Pintado Puertas Alto Brillo
+        // Pintado Puertas Alto Brillo - precios dinámicos
         if (config.paintedDoors?.enabled) {
-          total += (config.paintedDoors.upperQty || 0) * 120000;
-          total += (config.paintedDoors.lowerQty || 0) * 150000;
-          total += (config.paintedDoors.pantryQty || 0) * 250000;
-          total += (config.paintedDoors.drawerQty || 0) * 80000;
-          total += (config.paintedDoors.spiceQty || 0) * 100000;
-          total += (config.paintedDoors.golaQty || 0) * 45000;
+          total += (config.paintedDoors.upperQty || 0) * getPrice('PINTADO_SUP');
+          total += (config.paintedDoors.lowerQty || 0) * getPrice('PINTADO_INF');
+          total += (config.paintedDoors.pantryQty || 0) * getPrice('PINTADO_ALACENA');
+          total += (config.paintedDoors.drawerQty || 0) * getPrice('PINTADO_CAJON');
+          total += (config.paintedDoors.spiceQty || 0) * getPrice('PINTADO_ESPECIERO');
+          total += (config.paintedDoors.golaQty || 0) * getPrice('PINTADO_GOLA');
         }
 
-        // Transporte (usar el monto editable)
+        // Transporte e imprevistos (si está marcado el checkbox) - precio dinámico
         if (item.includesFixedCosts) {
-          total += (item.fixedCostsAmount || 600000);
+          total += getPrice('TRANSPORTE_IMPREVISTOS');
         }
 
         return { ...item, description, quantity, totalPrice: total, includesFixedCosts: item.includesFixedCosts };

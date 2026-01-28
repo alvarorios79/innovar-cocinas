@@ -2974,3 +2974,17 @@
 - [x] Mostrar detalle de cada puerta con medidas y bisagras
 - [x] Mostrar metros lineales de LED
 
+
+## Cotización de Solo Acabados Especiales
+- [ ] Agregar opción "Solo Acabados Especiales" en selector de forma de cocina
+- [ ] Modificar validación para no requerir metraje cuando es solo acabados especiales
+- [ ] Ajustar cálculos para solo acabados especiales (sin muebles)
+- [ ] Probar cotización de solo puertas de aluminio con vidrio
+
+
+## Acabados Especiales como Tipo de Producto Independiente
+- [x] Agregar "acabados_especiales" como nuevo tipo de item en el selector de productos
+- [x] Crear formulario específico para acabados especiales (puertas aluminio/vidrio, LED)
+- [x] Implementar cálculos para el nuevo tipo de item
+- [x] Probar cotización de solo acabados especiales sin cocina
+

@@ -41,6 +41,14 @@ interface HardwareSelection {
   subtotal: number;
 }
 
+interface AcabadosConfig {
+  aluminumGlassDoors?: Array<{ height: number; width: number }>;
+  ledLighting?: {
+    enabled: boolean;
+    meters: number;
+  };
+}
+
 interface QuotationItem {
   itemNumber: number;
   itemType: string;
@@ -56,6 +64,7 @@ interface QuotationItem {
   doorConfig?: DoorConfig;
   tvCenterConfig?: TVCenterConfig;
   countertopConfig?: CountertopConfig;
+  acabadosConfig?: AcabadosConfig;
 }
 
 export default function Quotations() {
@@ -716,6 +725,38 @@ export default function Quotations() {
     updateItem(index, "totalPrice", total);
   };
 
+  // Función para calcular el total de acabados especiales
+  const calculateAcabadosTotal = (item: QuotationItem): number => {
+    let total = 0;
+    const config = item.acabadosConfig;
+    
+    if (config) {
+      // Puertas de aluminio con vidrio
+      if (config.aluminumGlassDoors && config.aluminumGlassDoors.length > 0) {
+        for (const door of config.aluminumGlassDoors) {
+          const sqm = (door.height || 0) * (door.width || 0);
+          total += sqm * getPrice('ACABADO_ALUMINIO_VIDRIO_M2');
+          
+          // Bisagras adicionales
+          const extraHinges = door.height > 1.4 ? 2 : (door.height > 0.8 ? 1 : 0);
+          total += extraHinges * getPrice('ACABADO_BISAGRA_PAR');
+        }
+      }
+      
+      // LED para alacenas
+      if (config.ledLighting?.enabled && config.ledLighting.meters > 0) {
+        total += config.ledLighting.meters * getPrice('ACABADO_LED_ML');
+      }
+    }
+    
+    // Transporte e imprevistos
+    if (item.includesFixedCosts) {
+      total += (item.fixedCostsAmount || 600000);
+    }
+    
+    return total;
+  };
+
   const calculateKitchenTotal = (index: number, itemsArray: typeof items = items) => {
     const item = itemsArray[index];
     const config = item.kitchenConfig!;
@@ -724,7 +765,7 @@ export default function Quotations() {
     // 1. Calcular metraje resultante después de descontar muebles especiales
     // Solo aplica para cocinas completas (no para frente_pll, solo_superiores, solo_inferiores)
     let deductions = 0;
-    const isSpecialShape = ['frente_pll', 'solo_superiores', 'solo_inferiores', 'puertas_tapas'].includes(config.shape);
+    const isSpecialShape = ['frente_pll', 'solo_superiores', 'solo_inferiores', 'puertas_tapas', 'solo_acabados'].includes(config.shape);
     
     if (!isSpecialShape) {
       if (config.specialModules?.nichoNevecon) deductions += 1.0; // 100cm
@@ -900,10 +941,20 @@ export default function Quotations() {
           toast.error(`Item ${i + 1}: Selecciona la forma de la cocina`);
           return;
         }
-        // Metraje solo requerido para formas que no sean puertas_tapas
-        if (item.kitchenConfig?.shape !== 'puertas_tapas') {
+        // Metraje solo requerido para formas que no sean puertas_tapas ni solo_acabados
+        if (!['puertas_tapas', 'solo_acabados'].includes(item.kitchenConfig?.shape || '')) {
           if (!item.kitchenConfig?.totalMeters || item.kitchenConfig.totalMeters <= 0) {
             toast.error(`Item ${i + 1}: Ingresa el metraje total de la cocina`);
+            return;
+          }
+        }
+        // Para solo_acabados, validar que tenga al menos un acabado especial
+        if (item.kitchenConfig?.shape === 'solo_acabados') {
+          const sf = item.kitchenConfig?.specialFinishes;
+          const hasDoors = sf?.aluminumGlassDoors && sf.aluminumGlassDoors.length > 0;
+          const hasLed = sf?.ledLighting?.enabled && sf.ledLighting.meters > 0;
+          if (!sf?.enabled || (!hasDoors && !hasLed)) {
+            toast.error(`Item ${i + 1}: Agrega al menos una puerta de aluminio o metros de LED`);
             return;
           }
         }
@@ -963,6 +1014,19 @@ export default function Quotations() {
           toast.error(`Item ${i + 1}: El total del mesón debe ser mayor a 0`);
           return;
         }
+      } else if (item.itemType === "acabados_especiales") {
+        // Para acabados especiales: validar que tenga al menos un acabado
+        const config = item.acabadosConfig;
+        const hasDoors = config?.aluminumGlassDoors && config.aluminumGlassDoors.length > 0;
+        const hasLed = config?.ledLighting?.enabled && config.ledLighting.meters > 0;
+        if (!hasDoors && !hasLed) {
+          toast.error(`Item ${i + 1}: Agrega al menos una puerta de aluminio o metros de LED`);
+          return;
+        }
+        if (item.totalPrice <= 0) {
+          toast.error(`Item ${i + 1}: El total de acabados especiales debe ser mayor a 0`);
+          return;
+        }
       } else {
         // Para otros tipos: validar description y quantity
         if (!item.description) {
@@ -989,7 +1053,7 @@ export default function Quotations() {
         // Calcular metraje resultante después de descontar muebles especiales
         // Solo aplica para cocinas completas (no para frente_pll, solo_superiores, solo_inferiores)
         let deductions = 0;
-        const isSpecialShape = ['frente_pll', 'solo_superiores', 'solo_inferiores', 'puertas_tapas'].includes(config.shape);
+        const isSpecialShape = ['frente_pll', 'solo_superiores', 'solo_inferiores', 'puertas_tapas', 'solo_acabados'].includes(config.shape);
         
         if (!isSpecialShape) {
           if (config.specialModules?.nichoNevecon) deductions += 1.0; // 100cm
@@ -1168,6 +1232,32 @@ export default function Quotations() {
           description, 
           quantity: totalQuantity.toString(),
           totalPrice,
+          includesFixedCosts: item.includesFixedCosts,
+          fixedCostsAmount: item.fixedCostsAmount
+        };
+      }
+      // Para acabados especiales: generar descripción automática
+      if (item.itemType === "acabados_especiales" && item.acabadosConfig) {
+        const parts: string[] = [];
+        const config = item.acabadosConfig;
+        
+        // Puertas de aluminio
+        if (config.aluminumGlassDoors && config.aluminumGlassDoors.length > 0) {
+          const totalSqm = config.aluminumGlassDoors.reduce((sum, d) => sum + (d.height * d.width), 0);
+          parts.push(`Puertas aluminio+vidrio: ${config.aluminumGlassDoors.length} puerta(s) (${totalSqm.toFixed(2)} m²)`);
+        }
+        
+        // LED
+        if (config.ledLighting?.enabled && config.ledLighting.meters > 0) {
+          parts.push(`LED alacenas: ${config.ledLighting.meters.toFixed(2)} ml`);
+        }
+        
+        const description = parts.length > 0 ? parts.join(" + ") : "Acabados especiales";
+        return {
+          ...item,
+          description,
+          quantity: "1",
+          totalPrice: item.totalPrice,
           includesFixedCosts: item.includesFixedCosts,
           fixedCostsAmount: item.fixedCostsAmount
         };
@@ -1730,6 +1820,9 @@ export default function Quotations() {
                               <SelectItem value="herrajes">
                                 <span className="flex items-center gap-2"><Wrench className="h-4 w-4 text-gray-500" /> Herrajes</span>
                               </SelectItem>
+                              <SelectItem value="acabados_especiales">
+                                <span className="flex items-center gap-2"><Sparkles className="h-4 w-4 text-cyan-500" /> Acabados Especiales</span>
+                              </SelectItem>
                               <SelectItem value="otro">
                                 <span className="flex items-center gap-2"><Package className="h-4 w-4 text-teal-500" /> Otro</span>
                               </SelectItem>
@@ -1763,12 +1856,13 @@ export default function Quotations() {
                                   <SelectItem value="solo_superiores">Solo Muebles Superiores ($900,000/ml)</SelectItem>
                                   <SelectItem value="solo_inferiores">Solo Muebles Inferiores ($900,000/ml)</SelectItem>
                                   <SelectItem value="puertas_tapas">Puertas y Tapas (solo cambio)</SelectItem>
+                                  <SelectItem value="solo_acabados">Solo Acabados Especiales (Aluminio/Vidrio/LED)</SelectItem>
                                 </SelectContent>
                               </Select>
                             </div>
 
-                            {/* 2. Metraje total - No aplica para puertas_tapas */}
-                            {item.kitchenConfig?.shape !== 'puertas_tapas' && (
+                            {/* 2. Metraje total - No aplica para puertas_tapas ni solo_acabados */}
+                            {!['puertas_tapas', 'solo_acabados'].includes(item.kitchenConfig?.shape || '') && (
                             <div className="space-y-2">
                               <Label className="text-sm font-medium text-slate-600 dark:text-slate-300 flex items-center gap-2">
                                 <Ruler className="h-4 w-4" />
@@ -2690,6 +2784,208 @@ export default function Quotations() {
                           </>
                           );
                         })()}
+
+                        {/* Campos dinámicos para ACABADOS ESPECIALES */}
+                        {item.itemType === "acabados_especiales" && (
+                          <div className="space-y-4 p-4 bg-gradient-to-br from-cyan-50 to-sky-50 dark:from-cyan-950/30 dark:to-sky-950/30 rounded-xl border border-cyan-200 dark:border-cyan-800">
+                            <h3 className="font-semibold text-base text-slate-700 dark:text-slate-200 flex items-center gap-2">
+                              <Sparkles className="h-5 w-5 text-cyan-500" />
+                              Configuración de Acabados Especiales
+                            </h3>
+                            
+                            {/* Puertas de Aluminio con Vidrio Ahumado */}
+                            <div className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-cyan-100 dark:border-cyan-900 space-y-3">
+                              <Label className="text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2">
+                                <DoorOpen className="h-4 w-4 text-cyan-500" />
+                                Puertas de Aluminio con Vidrio Ahumado - {formatPrice(getPrice('ACABADO_ALUMINIO_VIDRIO_M2'))}/m²
+                              </Label>
+                              <p className="text-xs text-slate-500">
+                                Bisagras adicionales: +1 par (alto mayor a 80cm) o +2 pares (alto mayor a 140cm) a {formatPrice(getPrice('ACABADO_BISAGRA_PAR'))}/par
+                              </p>
+                              
+                              {/* Lista de puertas */}
+                              {(item.acabadosConfig?.aluminumGlassDoors || []).map((door: any, doorIdx: number) => {
+                                const sqm = (door.height || 0) * (door.width || 0);
+                                const extraHinges = door.height > 1.4 ? 2 : (door.height > 0.8 ? 1 : 0);
+                                return (
+                                  <div key={doorIdx} className="flex flex-wrap items-center gap-2 p-3 bg-cyan-50 dark:bg-cyan-900/20 rounded-lg">
+                                    <span className="text-sm font-medium text-cyan-700 dark:text-cyan-300">Puerta #{doorIdx + 1}</span>
+                                    <div className="flex items-center gap-1">
+                                      <Input
+                                        type="number"
+                                        step="0.01"
+                                        placeholder="Alto (m)"
+                                        value={door.height || ''}
+                                        onChange={(e) => {
+                                          const newItems = [...items];
+                                          const doors = [...(newItems[index].acabadosConfig?.aluminumGlassDoors || [])];
+                                          doors[doorIdx] = { ...doors[doorIdx], height: parseFloat(e.target.value) || 0 };
+                                          newItems[index].acabadosConfig = { ...newItems[index].acabadosConfig, aluminumGlassDoors: doors };
+                                          // Recalcular total
+                                          newItems[index].totalPrice = calculateAcabadosTotal(newItems[index]);
+                                          setItems(newItems);
+                                        }}
+                                        className="w-20 h-8 text-sm"
+                                      />
+                                      <span className="text-slate-400">×</span>
+                                      <Input
+                                        type="number"
+                                        step="0.01"
+                                        placeholder="Ancho (m)"
+                                        value={door.width || ''}
+                                        onChange={(e) => {
+                                          const newItems = [...items];
+                                          const doors = [...(newItems[index].acabadosConfig?.aluminumGlassDoors || [])];
+                                          doors[doorIdx] = { ...doors[doorIdx], width: parseFloat(e.target.value) || 0 };
+                                          newItems[index].acabadosConfig = { ...newItems[index].acabadosConfig, aluminumGlassDoors: doors };
+                                          // Recalcular total
+                                          newItems[index].totalPrice = calculateAcabadosTotal(newItems[index]);
+                                          setItems(newItems);
+                                        }}
+                                        className="w-20 h-8 text-sm"
+                                      />
+                                    </div>
+                                    <span className="text-sm text-slate-600 dark:text-slate-400">
+                                      = {sqm.toFixed(2)} m²
+                                      {extraHinges > 0 && <span className="text-cyan-600"> + {extraHinges} par{extraHinges > 1 ? 'es' : ''} bisagras</span>}
+                                    </span>
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="sm"
+                                      className="text-red-500 hover:text-red-700 h-8 w-8 p-0"
+                                      onClick={() => {
+                                        const newItems = [...items];
+                                        const doors = [...(newItems[index].acabadosConfig?.aluminumGlassDoors || [])];
+                                        doors.splice(doorIdx, 1);
+                                        newItems[index].acabadosConfig = { ...newItems[index].acabadosConfig, aluminumGlassDoors: doors };
+                                        newItems[index].totalPrice = calculateAcabadosTotal(newItems[index]);
+                                        setItems(newItems);
+                                      }}
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                );
+                              })}
+                              
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                className="text-cyan-600 border-cyan-300 hover:bg-cyan-50"
+                                onClick={() => {
+                                  const newItems = [...items];
+                                  const doors = [...(newItems[index].acabadosConfig?.aluminumGlassDoors || []), { height: 0, width: 0 }];
+                                  newItems[index].acabadosConfig = { ...newItems[index].acabadosConfig, aluminumGlassDoors: doors };
+                                  setItems(newItems);
+                                }}
+                              >
+                                <Plus className="h-4 w-4 mr-1" /> Agregar Puerta
+                              </Button>
+                            </div>
+                            
+                            {/* Luz LED para Alacenas */}
+                            <div className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-yellow-100 dark:border-yellow-900 space-y-3">
+                              <div className="flex items-center space-x-2">
+                                <input
+                                  type="checkbox"
+                                  id={`acabados-led-${index}`}
+                                  checked={item.acabadosConfig?.ledLighting?.enabled || false}
+                                  onChange={(e) => {
+                                    const newItems = [...items];
+                                    newItems[index].acabadosConfig = {
+                                      ...newItems[index].acabadosConfig,
+                                      ledLighting: {
+                                        ...newItems[index].acabadosConfig?.ledLighting,
+                                        enabled: e.target.checked,
+                                        meters: e.target.checked ? (newItems[index].acabadosConfig?.ledLighting?.meters || 0) : 0
+                                      }
+                                    };
+                                    newItems[index].totalPrice = calculateAcabadosTotal(newItems[index]);
+                                    setItems(newItems);
+                                  }}
+                                  className="h-4 w-4 accent-yellow-500"
+                                />
+                                <Label htmlFor={`acabados-led-${index}`} className="text-sm font-semibold text-slate-700 dark:text-slate-200 cursor-pointer flex items-center gap-2">
+                                  <Lightbulb className="h-4 w-4 text-yellow-500" />
+                                  Luz LED para Alacenas - {formatPrice(getPrice('ACABADO_LED_ML'))}/ml
+                                </Label>
+                              </div>
+                              
+                              {item.acabadosConfig?.ledLighting?.enabled && (
+                                <div className="flex items-center gap-2 pl-6">
+                                  <Label className="text-sm">Metros lineales:</Label>
+                                  <Input
+                                    type="number"
+                                    step="0.01"
+                                    value={item.acabadosConfig?.ledLighting?.meters || ''}
+                                    onChange={(e) => {
+                                      const newItems = [...items];
+                                      newItems[index].acabadosConfig = {
+                                        ...newItems[index].acabadosConfig,
+                                        ledLighting: {
+                                          ...newItems[index].acabadosConfig?.ledLighting,
+                                          enabled: true,
+                                          meters: parseFloat(e.target.value) || 0
+                                        }
+                                      };
+                                      newItems[index].totalPrice = calculateAcabadosTotal(newItems[index]);
+                                      setItems(newItems);
+                                    }}
+                                    className="w-24 h-8"
+                                    placeholder="0.00"
+                                  />
+                                </div>
+                              )}
+                            </div>
+                            
+                            {/* Transporte e imprevistos */}
+                            <div className="flex items-center space-x-2 flex-wrap gap-2">
+                              <input
+                                type="checkbox"
+                                id={`fixedCosts-acabados-${index}`}
+                                checked={item.includesFixedCosts || false}
+                                onChange={(e) => {
+                                  const newItems = [...items];
+                                  newItems[index].includesFixedCosts = e.target.checked;
+                                  if (e.target.checked && newItems[index].fixedCostsAmount === undefined) {
+                                    newItems[index].fixedCostsAmount = 600000;
+                                  }
+                                  newItems[index].totalPrice = calculateAcabadosTotal(newItems[index]);
+                                  setItems(newItems);
+                                }}
+                                className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                              />
+                              <Label htmlFor={`fixedCosts-acabados-${index}`} className="text-sm font-normal cursor-pointer flex items-center gap-2">
+                                <Truck className="h-4 w-4" />
+                                Incluye transporte e imprevistos
+                              </Label>
+                              {item.includesFixedCosts && (
+                                <Input
+                                  type="number"
+                                  value={item.fixedCostsAmount ?? 600000}
+                                  onChange={(e) => {
+                                    const newItems = [...items];
+                                    newItems[index].fixedCostsAmount = e.target.value === '' ? 0 : parseFloat(e.target.value);
+                                    newItems[index].totalPrice = calculateAcabadosTotal(newItems[index]);
+                                    setItems(newItems);
+                                  }}
+                                  className="w-32 h-8"
+                                  placeholder="Monto"
+                                  min="0"
+                                />
+                              )}
+                            </div>
+                            
+                            {/* Total */}
+                            <div className="p-3 bg-cyan-100 dark:bg-cyan-900/30 rounded-lg">
+                              <p className="text-lg font-bold text-cyan-700 dark:text-cyan-300">
+                                Total Acabados: {formatPrice(item.totalPrice || 0)}
+                              </p>
+                            </div>
+                          </div>
+                        )}
 
                         {/* Campos dinámicos para CLOSET */}
                         {item.itemType === "closet" && (

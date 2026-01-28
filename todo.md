@@ -2907,3 +2907,16 @@
 - [x] Permitir editar el monto del transporte (no fijo en $600,000)
 - [x] Eliminar la lógica de transporte automático por item
 - [x] Mostrar el transporte como línea separada en el resumen de la cotización
+
+
+## Bug: Herrajes rieles de cajón (27 Ene 2026)
+- [ ] Corregir cálculo de herrajes para que muestre subtotal (cantidad × precio) en lugar de solo la cantidad
+
+
+## Bug: Creación de clientes sin email (27 Ene 2026)
+- [ ] Permitir crear múltiples clientes sin correo electrónico (cliente rápido)
+
+
+## Mejora Vista Previa PDF (28 Ene 2026)
+- [x] Corregir vista previa del PDF para que muestre la cotización correctamente (misma lógica que PDF final)
+- [x] Ventana de vista previa ya es grande (95vw x 95vh)

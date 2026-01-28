@@ -804,7 +804,7 @@ export const appRouter = router({
       .input(z.object({
         clientId: z.number(),
         vendorName: z.string(),
-        productType: z.enum(["cocina", "closet", "puerta", "centro_tv", "herrajes", "mesones", "otro"]).optional(),
+        productType: z.enum(["cocina", "closet", "puerta", "centro_tv", "herrajes", "mesones", "acabados_especiales", "otro"]).optional(),
         discountPercent: z.number().min(0).max(100).optional().default(0),
         items: z.array(z.object({
           itemNumber: z.number(),
@@ -902,7 +902,7 @@ export const appRouter = router({
         id: z.number(),
         clientId: z.number().optional(),
         vendorName: z.string().optional(),
-        productType: z.enum(["cocina", "closet", "puerta", "centro_tv", "herrajes", "mesones", "otro"]).optional(),
+        productType: z.enum(["cocina", "closet", "puerta", "centro_tv", "herrajes", "mesones", "acabados_especiales", "otro"]).optional(),
         discountPercent: z.number().min(0).max(100).optional(),
         customDescriptions: z.record(z.string(), z.string()).optional(),
         generalNotes: z.string().optional(),

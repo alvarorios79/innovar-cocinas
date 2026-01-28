@@ -2987,4 +2987,5 @@
 - [x] Crear formulario específico para acabados especiales (puertas aluminio/vidrio, LED)
 - [x] Implementar cálculos para el nuevo tipo de item
 - [x] Probar cotización de solo acabados especiales sin cocina
+- [x] Agregar acabados_especiales al schema de validación del backend (routers.ts)
 

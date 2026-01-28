@@ -934,6 +934,12 @@ export const appRouter = router({
           throw new TRPCError({ code: "FORBIDDEN" });
         }
 
+        // Verificar si la cotización está bloqueada
+        const existingQuotation = await db.getQuotationById(input.id);
+        if (existingQuotation?.isLocked) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "No se puede editar una cotización bloqueada. Desblóqueala primero." });
+        }
+
         const { id, items, ...quotationData } = input;
 
         // Si se actualizan items, recalcular totales
@@ -1109,12 +1115,45 @@ export const appRouter = router({
         return { success: true };
       }),
 
+    // Bloquear/Desbloquear cotización
+    toggleLock: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Solo admin y super_admin pueden bloquear/desbloquear cotizaciones" });
+        }
+
+        const quotation = await db.getQuotationById(input.id);
+        if (!quotation) {
+          throw new TRPCError({ code: "NOT_FOUND" });
+        }
+
+        const isCurrentlyLocked = quotation.isLocked;
+        await db.updateQuotation(input.id, {
+          isLocked: !isCurrentlyLocked,
+          lockedAt: !isCurrentlyLocked ? new Date() : null,
+          lockedBy: !isCurrentlyLocked ? ctx.user.id : null,
+        });
+
+        return { 
+          success: true, 
+          isLocked: !isCurrentlyLocked,
+          message: !isCurrentlyLocked ? "Cotización bloqueada" : "Cotización desbloqueada"
+        };
+      }),
+
     // Eliminar cotización
     delete: protectedProcedure
       .input(z.object({ id: z.number() }))
       .mutation(async ({ ctx, input }) => {
         if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
           throw new TRPCError({ code: "FORBIDDEN" });
+        }
+
+        // Verificar si la cotización está bloqueada
+        const quotation = await db.getQuotationById(input.id);
+        if (quotation?.isLocked) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "No se puede eliminar una cotización bloqueada. Desblóqueala primero." });
         }
 
         await db.deleteQuotation(input.id);

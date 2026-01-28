@@ -27,7 +27,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Plus, Trash2, FileText, Send, Eye, Pencil, Mail, Search, X, UserPlus, FolderPlus, ChefHat, Ruler, Package, Sofa, DoorOpen, Tv, Wrench, LayoutGrid, Calendar, User, Building2, Truck, Sparkles, CircleDollarSign, Lightbulb, Palette, Edit3 } from "lucide-react";
+import { Plus, Trash2, FileText, Send, Eye, Pencil, Mail, Search, X, UserPlus, FolderPlus, ChefHat, Ruler, Package, Sofa, DoorOpen, Tv, Wrench, LayoutGrid, Calendar, User, Building2, Truck, Sparkles, CircleDollarSign, Lightbulb, Palette, Edit3, Lock, Unlock } from "lucide-react";
 import { toast } from "sonner";
 import { formatPrice } from "@/lib/formatters";
 import { CreateQuickClientDialog } from "@/components/CreateQuickClientDialog";
@@ -221,6 +221,16 @@ export default function Quotations() {
     },
   });
 
+  const toggleLock = trpc.quotations.toggleLock.useMutation({
+    onSuccess: (data) => {
+      utils.quotations.list.invalidate();
+      toast.success(data.message);
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
+
   const generatePDF = trpc.quotations.generatePDF.useMutation({
     onSuccess: (data) => {
       // Descargar PDF usando URL
@@ -393,6 +403,12 @@ export default function Quotations() {
   const handleEdit = async (quotationId: number) => {
     const quotation = quotations.find(q => q.id === quotationId);
     if (!quotation) return;
+
+    // Verificar si la cotización está bloqueada
+    if (quotation.isLocked) {
+      toast.error("No se puede editar una cotización bloqueada. Desblóqueala primero.");
+      return;
+    }
 
     try {
       // Cargar items de la cotización usando el endpoint getById
@@ -1389,10 +1405,34 @@ export default function Quotations() {
                       Crear Proyecto
                     </Button>
                   )}
+                  {/* Botón de Bloqueo/Desbloqueo */}
+                  <Button
+                    size="sm"
+                    variant={quot.isLocked ? "default" : "outline"}
+                    className={quot.isLocked ? "bg-amber-500 hover:bg-amber-600 text-white" : "border-amber-300 text-amber-700 hover:bg-amber-50"}
+                    onClick={() => {
+                      const action = quot.isLocked ? "desbloquear" : "bloquear";
+                      if (window.confirm(`¿Estás seguro de ${action} esta cotización?`)) {
+                        toggleLock.mutate({ id: quot.id });
+                      }
+                    }}
+                    disabled={toggleLock.isPending}
+                    title={quot.isLocked ? "Desbloquear cotización" : "Bloquear cotización"}
+                  >
+                    {quot.isLocked ? (
+                      <><Lock className="h-4 w-4 mr-1" /> Bloqueada</>
+                    ) : (
+                      <><Unlock className="h-4 w-4 mr-1" /> Bloquear</>
+                    )}
+                  </Button>
                   <Button
                     size="sm"
                     variant="destructive"
                     onClick={() => {
+                      if (quot.isLocked) {
+                        toast.error("No se puede eliminar una cotización bloqueada. Desblóqueala primero.");
+                        return;
+                      }
                       if (
                         window.confirm(
                           "¿Estás seguro de eliminar esta cotización?"
@@ -1401,6 +1441,8 @@ export default function Quotations() {
                         deleteQuotation.mutate({ id: quot.id });
                       }
                     }}
+                    disabled={quot.isLocked}
+                    title={quot.isLocked ? "Cotización bloqueada - no se puede eliminar" : "Eliminar cotización"}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>

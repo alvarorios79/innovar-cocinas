@@ -2920,3 +2920,11 @@
 ## Mejora Vista Previa PDF (28 Ene 2026)
 - [x] Corregir vista previa del PDF para que muestre la cotización correctamente (misma lógica que PDF final)
 - [x] Ventana de vista previa ya es grande (95vw x 95vh)
+
+
+## Sistema de Bloqueo de Cotizaciones (28 Ene 2026)
+- [x] Agregar campo isLocked a la tabla quotations
+- [x] Crear procedimiento para bloquear/desbloquear cotizaciones
+- [x] Agregar botón de candado en la lista de cotizaciones
+- [x] Bloquear edición y eliminación de cotizaciones bloqueadas
+- [x] Permitir bloqueo/desbloqueo solo a admin y super_admin

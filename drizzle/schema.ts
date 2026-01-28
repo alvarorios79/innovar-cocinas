@@ -129,6 +129,9 @@ export const quotations = mysqlTable("quotations", {
   sentAt: timestamp("sentAt"),
   approvedAt: timestamp("approvedAt"),
   rejectionReason: text("rejectionReason"),
+  isLocked: boolean("isLocked").default(false).notNull(), // Bloquear cotización para evitar edición/eliminación
+  lockedAt: timestamp("lockedAt"), // Fecha de bloqueo
+  lockedBy: int("lockedBy").references(() => users.id), // Usuario que bloqueó
   createdBy: int("createdBy").notNull().references(() => users.id),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),

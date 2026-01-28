@@ -121,6 +121,14 @@ const categoryConfig: Record<string, {
     borderColor: "border-gray-200",
     iconBg: "bg-gray-100 text-gray-600"
   },
+  acabados_especiales: {
+    name: "Acabados Especiales",
+    icon: <Sparkles className="h-5 w-5" />,
+    gradient: "from-teal-500 to-teal-600",
+    bgLight: "bg-teal-50",
+    borderColor: "border-teal-200",
+    iconBg: "bg-teal-100 text-teal-600"
+  },
 };
 
 interface PricingItem {

@@ -2989,3 +2989,8 @@
 - [x] Probar cotización de solo acabados especiales sin cocina
 - [x] Agregar acabados_especiales al schema de validación del backend (routers.ts)
 
+
+## Precios de Acabados Especiales en Panel de Configuración
+- [x] Agregar campos de precios de acabados especiales al schema de pricingConfig (ya existían en BD)
+- [x] Agregar sección de Acabados Especiales en PricingConfig.tsx (categoryConfig actualizado)
+- [x] Conectar los precios del panel con Quotations.tsx (ya usa getPrice con códigos ACABADO_*)

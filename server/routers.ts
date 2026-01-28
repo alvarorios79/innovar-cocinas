@@ -10,6 +10,7 @@ import { getAvailableTimeSlots, isTimeSlotAvailable, APPOINTMENT_CONFIG } from "
 import { hashPassword, validatePasswordStrength, authenticateWithPassword } from "./password-auth";
 import { prepareWhatsAppNotification, generateTeamWhatsAppLink } from "./whatsapp-notifications";
 import { createRemindersForStatusChange } from "./reminders-service";
+import * as whatsappCloud from "./whatsapp-cloud";
 import { addBusinessDays, calculateEstimatedDeliveryDate } from "./business-days";
 
 export const appRouter = router({
@@ -552,8 +553,27 @@ export const appRouter = router({
             scheduledDate,
             notes: input.notes,
           });
+
+          // Enviar WhatsApp automático al cliente si está configurado
+          let whatsappAutoSent = false;
+          if (whatsappCloud.isWhatsAppCloudConfigured() && client.whatsappPhone && scheduledDate) {
+            try {
+              const result = await whatsappCloud.sendAppointmentConfirmation(
+                client.whatsappPhone,
+                client.name,
+                scheduledDate,
+                input.workTypes[0] || "cocina"
+              );
+              whatsappAutoSent = result.success;
+              if (!result.success) {
+                console.error("[WhatsApp Cloud] Error enviando confirmación:", result.error);
+              }
+            } catch (error) {
+              console.error("[WhatsApp Cloud] Error:", error);
+            }
+          }
           
-          return { id: appointmentId, success: true, whatsappLink };
+          return { id: appointmentId, success: true, whatsappLink, whatsappAutoSent };
         }
         
         return { id: appointmentId, success: true };
@@ -4192,10 +4212,33 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
           }
         }
 
+        // Enviar WhatsApp automático al cliente si está configurado
+        let whatsappAutoSent = false;
+        if (whatsappCloud.isWhatsAppCloudConfigured() && client?.whatsappPhone) {
+          try {
+            const baseUrl = ctx.req.headers.origin || `https://${ctx.req.headers.host}`;
+            const portalUrl = `${baseUrl}/portal?project=${project.id}`;
+            const result = await whatsappCloud.sendProjectStatusUpdate(
+              client.whatsappPhone,
+              client.name,
+              project.name,
+              newStatus,
+              portalUrl
+            );
+            whatsappAutoSent = result.success;
+            if (!result.success) {
+              console.error("[WhatsApp Cloud] Error enviando actualización de estado:", result.error);
+            }
+          } catch (error) {
+            console.error("[WhatsApp Cloud] Error:", error);
+          }
+        }
+
         return { 
           success: true,
           whatsappNotification,
           paymentReminderWhatsApp,
+          whatsappAutoSent,
         };
       }),
 
@@ -5982,6 +6025,57 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
         }
         await db.deletePricingConfig(input.id);
         return { success: true };
+      }),
+  }),
+
+  // ============ WHATSAPP CLOUD CONFIG ============
+  whatsappCloud: router({
+    // Verificar estado de conexión
+    getStatus: protectedProcedure
+      .query(async ({ ctx }) => {
+        if (ctx.user.role !== "super_admin" && ctx.user.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para ver la configuración de WhatsApp" });
+        }
+        
+        const isConfigured = whatsappCloud.isWhatsAppCloudConfigured();
+        
+        if (!isConfigured) {
+          return {
+            configured: false,
+            connected: false,
+            message: "WhatsApp Cloud API no está configurado. Configure WHATSAPP_ACCESS_TOKEN y WHATSAPP_PHONE_NUMBER_ID.",
+          };
+        }
+        
+        const connectionStatus = await whatsappCloud.verifyConnection();
+        
+        return {
+          configured: true,
+          connected: connectionStatus.connected,
+          phoneNumber: connectionStatus.phoneNumber,
+          displayName: connectionStatus.displayName,
+          error: connectionStatus.error,
+        };
+      }),
+
+    // Enviar mensaje de prueba
+    sendTestMessage: protectedProcedure
+      .input(z.object({
+        phone: z.string().min(10, "Número de teléfono inválido"),
+        message: z.string().min(1, "El mensaje no puede estar vacío"),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "super_admin" && ctx.user.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para enviar mensajes de prueba" });
+        }
+        
+        const result = await whatsappCloud.sendTextMessage(input.phone, input.message);
+        
+        return {
+          success: result.success,
+          messageId: result.messageId,
+          error: result.error,
+        };
       }),
   }),
 });

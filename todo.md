@@ -2994,3 +2994,17 @@
 - [x] Agregar campos de precios de acabados especiales al schema de pricingConfig (ya existían en BD)
 - [x] Agregar sección de Acabados Especiales en PricingConfig.tsx (categoryConfig actualizado)
 - [x] Conectar los precios del panel con Quotations.tsx (ya usa getPrice con códigos ACABADO_*)
+
+## Verificación Resend y WhatsApp Automáticos
+- [x] Verificar configuración de Resend (API key, dominio, DNS) - OK
+- [x] Ejecutar test de envío de correo real - Test pasando
+- [x] Revisar estado actual de implementación de WhatsApp automáticos - Solo genera enlaces
+- [ ] Implementar WhatsApp Cloud API para envío automático
+
+## Integración WhatsApp Cloud API
+- [x] Crear servicio whatsapp-cloud.ts con funciones de envío
+- [x] Implementar envío de mensajes de texto
+- [x] Implementar envío de plantillas (templates)
+- [x] Crear endpoints de configuración (getStatus, sendTestMessage)
+- [x] Integrar envío automático en: citas, cambios de estado de proyecto
+- [x] Crear tests para el servicio de WhatsApp (22 tests pasando)

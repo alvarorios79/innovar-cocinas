@@ -653,7 +653,8 @@ export const pricingConfig = mysqlTable("pricingConfig", {
     "closets",            // Precios de closets por tipo
     "puertas_producto",   // Precios de puertas como producto
     "centros_tv",         // Precios de centros de TV
-    "otros"               // Otros precios configurables
+    "otros",              // Otros precios configurables
+    "acabados_especiales" // Puertas aluminio+vidrio, bisagras, LED
   ]).notNull(),
   code: varchar("code", { length: 100 }).notNull().unique(), // Código único para identificar el precio
   name: varchar("name", { length: 255 }).notNull(),          // Nombre descriptivo

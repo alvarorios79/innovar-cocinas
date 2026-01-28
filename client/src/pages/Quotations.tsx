@@ -837,19 +837,19 @@ export default function Quotations() {
 
     // 9. Acabados Especiales - Puertas Aluminio + Vidrio y LED Alacenas
     if (config.specialFinishes?.enabled) {
-      // Puertas de aluminio + vidrio ahumado ($1,200,000/m²)
+      // Puertas de aluminio + vidrio ahumado (precio desde configuración)
       if (config.specialFinishes.aluminumGlassDoors && config.specialFinishes.aluminumGlassDoors.length > 0) {
         config.specialFinishes.aluminumGlassDoors.forEach(door => {
           const sqm = door.height * door.width;
-          // Bisagras adicionales: >0.8m = 1 par ($15,000), >1.4m = 2 pares ($30,000)
+          // Bisagras adicionales: >0.8m = 1 par, >1.4m = 2 pares
           const extraHinges = door.height > 1.4 ? 2 : (door.height > 0.8 ? 1 : 0);
-          total += sqm * 1200000; // Precio por m²
-          total += extraHinges * 15000; // Bisagras adicionales
+          total += sqm * getPrice('ACABADO_ALUMINIO_VIDRIO_M2');
+          total += extraHinges * getPrice('ACABADO_BISAGRA_PAR');
         });
       }
-      // LED para alacenas ($180,000/ml)
+      // LED para alacenas (precio desde configuración)
       if (config.specialFinishes.ledLighting?.enabled && config.specialFinishes.ledLighting.meters > 0) {
-        total += config.specialFinishes.ledLighting.meters * 180000;
+        total += config.specialFinishes.ledLighting.meters * getPrice('ACABADO_LED_ML');
       }
     }
 

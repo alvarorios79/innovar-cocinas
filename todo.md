@@ -2938,3 +2938,10 @@
 - [ ] Agregar campo de luz LED con metros lineales ($180,000/ml)
 - [ ] Integrar acabados especiales en el cálculo total de la cocina
 - [ ] Mostrar acabados especiales en la descripción del PDF
+
+
+## Precios de Acabados Especiales en Configuración (28 Ene 2026)
+- [ ] Agregar ACABADO_ALUMINIO_VIDRIO_M2 a la tabla de configuración ($1,200,000)
+- [ ] Agregar ACABADO_BISAGRA_PAR a la tabla de configuración ($15,000)
+- [ ] Agregar ACABADO_LED_ML a la tabla de configuración ($180,000)
+- [ ] Modificar el frontend para usar precios dinámicos desde configuración

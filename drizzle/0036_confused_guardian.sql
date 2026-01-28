@@ -1,0 +1,1 @@
+ALTER TABLE `pricingConfig` MODIFY COLUMN `category` enum('cocina_base','mesones','muebles_especiales','extras','puertas_tapas','herrajes','closets','puertas_producto','centros_tv','otros','acabados_especiales') NOT NULL;

@@ -80,6 +80,10 @@ interface KitchenConfiguratorProps {
   onFixedCostsChange: (includes: boolean, amount?: number) => void;
   fixedCostsAmount: number;
   totalPrice: number;
+  // Precios de acabados especiales (desde configuración)
+  precioAluminioVidrioM2?: number;
+  precioBisagraPar?: number;
+  precioLedMl?: number;
 }
 
 export function KitchenConfigurator({ 
@@ -88,7 +92,10 @@ export function KitchenConfigurator({
   includesFixedCosts, 
   onFixedCostsChange, 
   fixedCostsAmount,
-  totalPrice 
+  totalPrice,
+  precioAluminioVidrioM2 = 1200000,
+  precioBisagraPar = 15000,
+  precioLedMl = 180000
 }: KitchenConfiguratorProps) {
   
   const defaultConfig: KitchenConfig = {
@@ -764,8 +771,8 @@ export function KitchenConfigurator({
                       {(currentConfig.specialFinishes?.aluminumGlassDoors || []).map((door, index) => {
                         const sqm = door.height * door.width;
                         const extraHinges = door.height > 1.4 ? 2 : (door.height > 0.8 ? 1 : 0);
-                        const doorPrice = sqm * 1200000;
-                        const hingePrice = extraHinges * 15000;
+                        const doorPrice = sqm * precioAluminioVidrioM2;
+                        const hingePrice = extraHinges * precioBisagraPar;
                         const totalDoorPrice = doorPrice + hingePrice;
                         
                         return (
@@ -856,7 +863,7 @@ export function KitchenConfigurator({
                             ${(currentConfig.specialFinishes?.aluminumGlassDoors || []).reduce((sum, door) => {
                               const sqm = door.height * door.width;
                               const extraHinges = door.height > 1.4 ? 2 : (door.height > 0.8 ? 1 : 0);
-                              return sum + (sqm * 1200000) + (extraHinges * 15000);
+                              return sum + (sqm * precioAluminioVidrioM2) + (extraHinges * precioBisagraPar);
                             }, 0).toLocaleString()}
                           </span>
                         </div>
@@ -909,7 +916,7 @@ export function KitchenConfigurator({
                       />
                       <span className="text-sm">ml</span>
                       <span className="font-semibold text-amber-900">
-                        = ${((currentConfig.specialFinishes?.ledLighting?.meters || 0) * 180000).toLocaleString()}
+                        = ${((currentConfig.specialFinishes?.ledLighting?.meters || 0) * precioLedMl).toLocaleString()}
                       </span>
                     </div>
                   )}
@@ -924,9 +931,9 @@ export function KitchenConfigurator({
                         (currentConfig.specialFinishes?.aluminumGlassDoors || []).reduce((sum, door) => {
                           const sqm = door.height * door.width;
                           const extraHinges = door.height > 1.4 ? 2 : (door.height > 0.8 ? 1 : 0);
-                          return sum + (sqm * 1200000) + (extraHinges * 15000);
+                          return sum + (sqm * precioAluminioVidrioM2) + (extraHinges * precioBisagraPar);
                         }, 0) +
-                        (currentConfig.specialFinishes?.ledLighting?.enabled ? (currentConfig.specialFinishes?.ledLighting?.meters || 0) * 180000 : 0)
+                        (currentConfig.specialFinishes?.ledLighting?.enabled ? (currentConfig.specialFinishes?.ledLighting?.meters || 0) * precioLedMl : 0)
                       ).toLocaleString()}
                     </span>
                   </div>
@@ -1000,7 +1007,7 @@ export function KitchenConfigurator({
               {currentConfig.ledLighting > 0 && (
                 <div className="flex justify-between text-emerald-700">
                   <span>+ LED ({currentConfig.ledLighting}ml × $180,000):</span>
-                  <span className="font-medium">${(currentConfig.ledLighting * 180000).toLocaleString()}</span>
+                  <span className="font-medium">${(currentConfig.ledLighting * precioLedMl).toLocaleString()}</span>
                 </div>
               )}
               {currentConfig.paintedDoors?.enabled && (
@@ -1025,7 +1032,7 @@ export function KitchenConfigurator({
                     ${(currentConfig.specialFinishes?.aluminumGlassDoors || []).reduce((sum, door) => {
                       const sqm = door.height * door.width;
                       const extraHinges = door.height > 1.4 ? 2 : (door.height > 0.8 ? 1 : 0);
-                      return sum + (sqm * 1200000) + (extraHinges * 15000);
+                      return sum + (sqm * precioAluminioVidrioM2) + (extraHinges * precioBisagraPar);
                     }, 0).toLocaleString()}
                   </span>
                 </div>
@@ -1034,7 +1041,7 @@ export function KitchenConfigurator({
                 <div className="flex justify-between text-amber-700">
                   <span>+ LED Alacenas ({currentConfig.specialFinishes?.ledLighting?.meters}ml):</span>
                   <span className="font-medium">
-                    ${((currentConfig.specialFinishes?.ledLighting?.meters || 0) * 180000).toLocaleString()}
+                    ${((currentConfig.specialFinishes?.ledLighting?.meters || 0) * precioLedMl).toLocaleString()}
                   </span>
                 </div>
               )}

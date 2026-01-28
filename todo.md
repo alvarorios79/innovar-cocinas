@@ -3008,3 +3008,7 @@
 - [x] Crear endpoints de configuración (getStatus, sendTestMessage)
 - [x] Integrar envío automático en: citas, cambios de estado de proyecto
 - [x] Crear tests para el servicio de WhatsApp (22 tests pasando)
+
+## Correcciones Realizadas - 28 Enero 2026
+- [x] Rol comercial (Martha Serna) ahora puede ver, crear, editar y eliminar cotizaciones
+- [x] Agregado botón de "Volver" en la página de cotizaciones

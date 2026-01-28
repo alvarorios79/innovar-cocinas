@@ -852,8 +852,8 @@ export const appRouter = router({
       .mutation(async ({ ctx, input }) => {
         // Si no se especifica productType, usar el itemType del primer item
         const productType = input.productType || (input.items[0]?.itemType as any) || "otro";
-        // Solo admin y super_admin pueden crear cotizaciones
-        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+        // Solo admin, super_admin y comercial pueden crear cotizaciones
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "comercial") {
           throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para crear cotizaciones" });
         }
 
@@ -950,7 +950,7 @@ export const appRouter = router({
         })).optional(),
       }))
       .mutation(async ({ ctx, input }) => {
-        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "comercial") {
           throw new TRPCError({ code: "FORBIDDEN" });
         }
 
@@ -1035,7 +1035,7 @@ export const appRouter = router({
     // Listar todas las cotizaciones (Admin)
     list: protectedProcedure
       .query(async ({ ctx }) => {
-        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "comercial") {
           throw new TRPCError({ code: "FORBIDDEN" });
         }
 
@@ -1139,8 +1139,8 @@ export const appRouter = router({
     toggleLock: protectedProcedure
       .input(z.object({ id: z.number() }))
       .mutation(async ({ ctx, input }) => {
-        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
-          throw new TRPCError({ code: "FORBIDDEN", message: "Solo admin y super_admin pueden bloquear/desbloquear cotizaciones" });
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "comercial") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Solo admin, super_admin y comercial pueden bloquear/desbloquear cotizaciones" });
         }
 
         const quotation = await db.getQuotationById(input.id);
@@ -1166,7 +1166,7 @@ export const appRouter = router({
     delete: protectedProcedure
       .input(z.object({ id: z.number() }))
       .mutation(async ({ ctx, input }) => {
-        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "comercial") {
           throw new TRPCError({ code: "FORBIDDEN" });
         }
 
@@ -1184,7 +1184,7 @@ export const appRouter = router({
     generatePDF: protectedProcedure
       .input(z.object({ id: z.number() }))
       .mutation(async ({ ctx, input }) => {
-        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "comercial") {
           throw new TRPCError({ code: "FORBIDDEN" });
         }
 

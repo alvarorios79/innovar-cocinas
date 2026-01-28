@@ -27,7 +27,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Plus, Trash2, FileText, Send, Eye, Pencil, Mail, Search, X, UserPlus, FolderPlus, ChefHat, Ruler, Package, Sofa, DoorOpen, Tv, Wrench, LayoutGrid, Calendar, User, Building2, Truck, Sparkles, CircleDollarSign, Lightbulb, Palette, Edit3, Lock, Unlock } from "lucide-react";
+import { Plus, Trash2, FileText, Send, Eye, Pencil, Mail, Search, X, UserPlus, FolderPlus, ChefHat, Ruler, Package, Sofa, DoorOpen, Tv, Wrench, LayoutGrid, Calendar, User, Building2, Truck, Sparkles, CircleDollarSign, Lightbulb, Palette, Edit3, Lock, Unlock, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { formatPrice } from "@/lib/formatters";
 import { CreateQuickClientDialog } from "@/components/CreateQuickClientDialog";
@@ -1301,6 +1301,16 @@ export default function Quotations() {
 
   return (
     <div className="container mx-auto py-8">
+      {/* Botón de volver atrás */}
+      <Button 
+        variant="ghost" 
+        className="mb-4 gap-2" 
+        onClick={() => window.history.back()}
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Volver
+      </Button>
+      
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Cotizaciones</h1>
         <div className="flex gap-2">

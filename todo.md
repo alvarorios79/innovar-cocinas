@@ -2945,3 +2945,32 @@
 - [ ] Agregar ACABADO_BISAGRA_PAR a la tabla de configuración ($15,000)
 - [ ] Agregar ACABADO_LED_ML a la tabla de configuración ($180,000)
 - [ ] Modificar el frontend para usar precios dinámicos desde configuración
+
+## Acabados Especiales para Cotizaciones de Cocina
+
+### UI en Formulario de Cotizaciones
+- [x] Agregar sección de Acabados Especiales en Quotations.tsx
+- [x] Checkbox principal para habilitar/deshabilitar acabados especiales
+- [x] Subsección de Puertas de Aluminio con Vidrio Ahumado
+  - [x] Botón "Agregar Puerta" para añadir múltiples puertas
+  - [x] Campos de alto (m) y ancho (m) para cada puerta
+  - [x] Cálculo automático de m² por puerta
+  - [x] Cálculo automático de bisagras adicionales (>80cm = +1 par, >140cm = +2 pares)
+  - [x] Botón eliminar para cada puerta
+- [x] Subsección de Luz LED para Alacenas
+  - [x] Checkbox para habilitar LED
+  - [x] Campo de metros lineales
+  - [x] Cálculo automático del costo
+
+### Cálculos y Precios
+- [x] Integrar cálculos de acabados especiales en calculateKitchenTotal
+- [x] Precios configurables desde Panel de Configuración:
+  - [x] ACABADO_ALUMINIO_VIDRIO_M2 ($1,200,000/m²)
+  - [x] ACABADO_BISAGRA_PAR ($15,000/par)
+  - [x] ACABADO_LED_ML ($180,000/ml)
+
+### Generación de PDF
+- [x] Incluir acabados especiales en descripción del PDF
+- [x] Mostrar detalle de cada puerta con medidas y bisagras
+- [x] Mostrar metros lineales de LED
+

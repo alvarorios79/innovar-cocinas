@@ -141,6 +141,14 @@ export default function Quotations() {
           spiceQty: 0,
           golaQty: 0,
         },
+        specialFinishes: {
+          enabled: false,
+          aluminumGlassDoors: [] as { id: string; height: number; width: number; squareMeters: number; extraHinges: number }[],
+          ledLighting: {
+            enabled: false,
+            meters: 0,
+          },
+        },
       }
     },
   ]);
@@ -2373,7 +2381,176 @@ export default function Quotations() {
                               )}
                             </div>
 
-                            {/* 9. Transporte e imprevistos - Opcional y editable */}
+                            {/* 9. Acabados Especiales - Puertas Aluminio + Vidrio y LED Alacenas */}
+                            <div className="bg-white dark:bg-slate-800 rounded-lg p-3 sm:p-4 border border-purple-200 dark:border-purple-900 space-y-3">
+                              <div className="flex items-center space-x-2">
+                                <input
+                                  type="checkbox"
+                                  id={`specialFinishes-${index}`}
+                                  checked={item.kitchenConfig?.specialFinishes?.enabled || false}
+                                  onChange={(e) => {
+                                    updateKitchenConfig(index, "specialFinishes.enabled", e.target.checked);
+                                    calculateKitchenTotal(index);
+                                  }}
+                                  className="h-4 w-4 accent-purple-500"
+                                />
+                                <Label htmlFor={`specialFinishes-${index}`} className="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 cursor-pointer flex items-center gap-2">
+                                  <Sparkles className="h-3 w-3 sm:h-4 sm:w-4 text-purple-500" />
+                                  Acabados Especiales (Aluminio + Vidrio / LED Alacenas)
+                                </Label>
+                              </div>
+                              
+                              {item.kitchenConfig?.specialFinishes?.enabled && (
+                                <div className="space-y-4 mt-3">
+                                  {/* Puertas de Aluminio con Vidrio Ahumado */}
+                                  <div className="bg-purple-50 dark:bg-purple-900/20 p-3 rounded-lg space-y-2">
+                                    <Label className="text-xs font-semibold text-purple-700 dark:text-purple-300">
+                                      Puertas de Aluminio con Vidrio Ahumado - {formatPrice(getPrice('ACABADO_ALUMINIO_VIDRIO_M2'))}/m²
+                                    </Label>
+                                    <p className="text-xs text-purple-600 dark:text-purple-400">
+                                      Bisagras adicionales: +1 par (alto mayor a 80cm) o +2 pares (alto mayor a 140cm) a {formatPrice(getPrice('ACABADO_BISAGRA_PAR'))}/par
+                                    </p>
+                                    
+                                    {/* Lista de puertas */}
+                                    {(item.kitchenConfig?.specialFinishes?.aluminumGlassDoors || []).map((door, doorIdx) => (
+                                      <div key={door.id} className="flex items-center gap-2 bg-white dark:bg-slate-700 p-2 rounded border">
+                                        <span className="text-xs font-medium text-purple-600">#{doorIdx + 1}</span>
+                                        <div className="flex-1 grid grid-cols-2 gap-2">
+                                          <div>
+                                            <Label className="text-xs">Alto (m)</Label>
+                                            <Input
+                                              type="number"
+                                              step="0.01"
+                                              min="0"
+                                              value={door.height || ""}
+                                              onChange={(e) => {
+                                                const newDoors = [...(item.kitchenConfig?.specialFinishes?.aluminumGlassDoors || [])];
+                                                const height = parseFloat(e.target.value) || 0;
+                                                const width = newDoors[doorIdx].width;
+                                                newDoors[doorIdx] = {
+                                                  ...newDoors[doorIdx],
+                                                  height,
+                                                  squareMeters: height * width,
+                                                  extraHinges: height > 1.4 ? 2 : (height > 0.8 ? 1 : 0)
+                                                };
+                                                updateKitchenConfig(index, "specialFinishes.aluminumGlassDoors", newDoors);
+                                                calculateKitchenTotal(index);
+                                              }}
+                                              className="h-8"
+                                              placeholder="0.70"
+                                            />
+                                          </div>
+                                          <div>
+                                            <Label className="text-xs">Ancho (m)</Label>
+                                            <Input
+                                              type="number"
+                                              step="0.01"
+                                              min="0"
+                                              value={door.width || ""}
+                                              onChange={(e) => {
+                                                const newDoors = [...(item.kitchenConfig?.specialFinishes?.aluminumGlassDoors || [])];
+                                                const width = parseFloat(e.target.value) || 0;
+                                                const height = newDoors[doorIdx].height;
+                                                newDoors[doorIdx] = {
+                                                  ...newDoors[doorIdx],
+                                                  width,
+                                                  squareMeters: height * width,
+                                                };
+                                                updateKitchenConfig(index, "specialFinishes.aluminumGlassDoors", newDoors);
+                                                calculateKitchenTotal(index);
+                                              }}
+                                              className="h-8"
+                                              placeholder="0.40"
+                                            />
+                                          </div>
+                                        </div>
+                                        <div className="text-xs text-right min-w-[80px]">
+                                          <div className="text-purple-600 font-medium">{door.squareMeters?.toFixed(2) || '0.00'} m²</div>
+                                          {door.extraHinges > 0 && (
+                                            <div className="text-orange-500">+{door.extraHinges} par{door.extraHinges > 1 ? 'es' : ''}</div>
+                                          )}
+                                        </div>
+                                        <Button
+                                          type="button"
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => {
+                                            const newDoors = (item.kitchenConfig?.specialFinishes?.aluminumGlassDoors || []).filter((_, i) => i !== doorIdx);
+                                            updateKitchenConfig(index, "specialFinishes.aluminumGlassDoors", newDoors);
+                                            calculateKitchenTotal(index);
+                                          }}
+                                          className="text-red-500 hover:text-red-700 h-8 w-8 p-0"
+                                        >
+                                          <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                      </div>
+                                    ))}
+                                    
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => {
+                                        const newDoor = {
+                                          id: `door-${Date.now()}`,
+                                          height: 0,
+                                          width: 0,
+                                          squareMeters: 0,
+                                          extraHinges: 0
+                                        };
+                                        const newDoors = [...(item.kitchenConfig?.specialFinishes?.aluminumGlassDoors || []), newDoor];
+                                        updateKitchenConfig(index, "specialFinishes.aluminumGlassDoors", newDoors);
+                                      }}
+                                      className="w-full border-purple-300 text-purple-600 hover:bg-purple-50"
+                                    >
+                                      <Plus className="h-4 w-4 mr-1" /> Agregar Puerta
+                                    </Button>
+                                  </div>
+                                  
+                                  {/* LED para Alacenas */}
+                                  <div className="bg-yellow-50 dark:bg-yellow-900/20 p-3 rounded-lg space-y-2">
+                                    <div className="flex items-center space-x-2">
+                                      <input
+                                        type="checkbox"
+                                        id={`specialLed-${index}`}
+                                        checked={item.kitchenConfig?.specialFinishes?.ledLighting?.enabled || false}
+                                        onChange={(e) => {
+                                          updateKitchenConfig(index, "specialFinishes.ledLighting.enabled", e.target.checked);
+                                          calculateKitchenTotal(index);
+                                        }}
+                                        className="h-4 w-4 accent-yellow-500"
+                                      />
+                                      <Label htmlFor={`specialLed-${index}`} className="text-xs font-semibold text-yellow-700 dark:text-yellow-300 cursor-pointer">
+                                        <Lightbulb className="inline h-3 w-3 mr-1" />
+                                        Luz LED para Alacenas - {formatPrice(getPrice('ACABADO_LED_ML'))}/ml
+                                      </Label>
+                                    </div>
+                                    {item.kitchenConfig?.specialFinishes?.ledLighting?.enabled && (
+                                      <div className="flex items-center gap-2 ml-6">
+                                        <Label className="text-xs">Metros lineales:</Label>
+                                        <Input
+                                          type="number"
+                                          step="0.01"
+                                          min="0"
+                                          value={item.kitchenConfig?.specialFinishes?.ledLighting?.meters || ""}
+                                          onChange={(e) => {
+                                            updateKitchenConfig(index, "specialFinishes.ledLighting.meters", parseFloat(e.target.value) || 0);
+                                            calculateKitchenTotal(index);
+                                          }}
+                                          className="w-24 h-8"
+                                          placeholder="0"
+                                        />
+                                        <span className="text-xs text-yellow-600">
+                                          = {formatPrice((item.kitchenConfig?.specialFinishes?.ledLighting?.meters || 0) * getPrice('ACABADO_LED_ML'))}
+                                        </span>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* 10. Transporte e imprevistos - Opcional y editable */}
                             <div className={`flex flex-col gap-2 p-3 rounded ${item.includesFixedCosts ? 'bg-green-100 border border-green-300' : 'bg-yellow-50'}`}>
                               <div className="flex items-center space-x-2">
                                 <input

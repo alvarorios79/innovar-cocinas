@@ -1363,6 +1363,8 @@ export default function Quotations() {
                     size="sm"
                     variant="outline"
                     onClick={() => handleEdit(quot.id)}
+                    disabled={quot.isLocked}
+                    title={quot.isLocked ? "Cotización bloqueada - no se puede editar" : "Editar cotización"}
                   >
                     <Pencil className="h-4 w-4 mr-1" />
                     Editar
@@ -1371,7 +1373,15 @@ export default function Quotations() {
                     size="sm"
                     variant="outline"
                     className="border-purple-300 text-purple-700 hover:bg-purple-50"
-                    onClick={() => handleOpenPdfEditor(quot.id)}
+                    onClick={() => {
+                      if (quot.isLocked) {
+                        toast.error("No se puede editar el contenido PDF de una cotización bloqueada. Desblóqueala primero.");
+                        return;
+                      }
+                      handleOpenPdfEditor(quot.id);
+                    }}
+                    disabled={quot.isLocked}
+                    title={quot.isLocked ? "Cotización bloqueada - no se puede editar contenido" : "Editar contenido del PDF"}
                   >
                     <Edit3 className="h-4 w-4 mr-1" />
                     Contenido PDF

@@ -2928,3 +2928,13 @@
 - [x] Agregar botón de candado en la lista de cotizaciones
 - [x] Bloquear edición y eliminación de cotizaciones bloqueadas
 - [x] Permitir bloqueo/desbloqueo solo a admin y super_admin
+
+
+## Acabados Especiales en Cocinas (28 Ene 2026)
+- [ ] Agregar sección "Acabados Especiales" en formulario de cocina
+- [ ] Implementar lista de puertas aluminio+vidrio con alto/ancho individual
+- [ ] Calcular M² por puerta ($1,200,000/m²)
+- [ ] Calcular bisagras adicionales automáticamente según altura (>80cm: +1 par, >140cm: +2 pares a $15,000/par)
+- [ ] Agregar campo de luz LED con metros lineales ($180,000/ml)
+- [ ] Integrar acabados especiales en el cálculo total de la cocina
+- [ ] Mostrar acabados especiales en la descripción del PDF

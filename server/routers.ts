@@ -1633,6 +1633,47 @@ export const appRouter = router({
                 lines.push(`• Luz LED: ${config.ledLighting.toFixed(2)}ml`);
               }
               
+              // Acabados Especiales
+              if (config.specialFinishes?.enabled) {
+                lines.push('');
+                lines.push('ACABADOS ESPECIALES:');
+                
+                // Puertas de aluminio + vidrio ahumado
+                if (config.specialFinishes.aluminumGlassDoors && config.specialFinishes.aluminumGlassDoors.length > 0) {
+                  const totalDoors = config.specialFinishes.aluminumGlassDoors.length;
+                  const totalSqm = config.specialFinishes.aluminumGlassDoors.reduce((sum: number, d: any) => sum + (d.height * d.width), 0);
+                  lines.push(`• Puertas aluminio + vidrio ahumado: ${totalDoors} ${totalDoors === 1 ? 'puerta' : 'puertas'} (${totalSqm.toFixed(2)} m²)`);
+                  config.specialFinishes.aluminumGlassDoors.forEach((door: any, idx: number) => {
+                    const sqm = door.height * door.width;
+                    const extraHinges = door.height > 1.4 ? 2 : (door.height > 0.8 ? 1 : 0);
+                    let hingeText = '';
+                    if (extraHinges > 0) hingeText = ` (+${extraHinges} par${extraHinges > 1 ? 'es' : ''} bisagras)`;
+                    lines.push(`  - Puerta ${idx + 1}: ${door.height.toFixed(2)}m x ${door.width.toFixed(2)}m = ${sqm.toFixed(2)} m²${hingeText}`);
+                  });
+                }
+                
+                // LED para alacenas
+                if (config.specialFinishes.ledLighting?.enabled && config.specialFinishes.ledLighting.meters > 0) {
+                  lines.push(`• LED para alacenas: ${config.specialFinishes.ledLighting.meters.toFixed(2)}ml`);
+                }
+              }
+              
+              // Pintado de puertas
+              if (config.paintedDoors?.enabled) {
+                const pd = config.paintedDoors;
+                const totalPainted = (pd.upperQty || 0) + (pd.lowerQty || 0) + (pd.pantryQty || 0) + (pd.drawerQty || 0) + (pd.spiceQty || 0) + (pd.golaQty || 0);
+                if (totalPainted > 0) {
+                  lines.push('');
+                  lines.push('PINTADO ALTO BRILLO:');
+                  if (pd.upperQty > 0) lines.push(`• Puertas superiores: ${pd.upperQty}`);
+                  if (pd.lowerQty > 0) lines.push(`• Puertas inferiores: ${pd.lowerQty}`);
+                  if (pd.pantryQty > 0) lines.push(`• Puertas alacena: ${pd.pantryQty}`);
+                  if (pd.drawerQty > 0) lines.push(`• Tapas cajón: ${pd.drawerQty}`);
+                  if (pd.spiceQty > 0) lines.push(`• Especieros: ${pd.spiceQty}`);
+                  if (pd.golaQty > 0) lines.push(`• Gola: ${pd.golaQty}`);
+                }
+              }
+              
               description = lines.join('\n');
             }
             
@@ -1966,6 +2007,47 @@ export const appRouter = router({
             
             if (config.ledLighting > 0) {
               lines.push(`• Luz LED: ${config.ledLighting.toFixed(2)}ml`);
+            }
+            
+            // Acabados Especiales
+            if (config.specialFinishes?.enabled) {
+              lines.push('');
+              lines.push('ACABADOS ESPECIALES:');
+              
+              // Puertas de aluminio + vidrio ahumado
+              if (config.specialFinishes.aluminumGlassDoors && config.specialFinishes.aluminumGlassDoors.length > 0) {
+                const totalDoors = config.specialFinishes.aluminumGlassDoors.length;
+                const totalSqm = config.specialFinishes.aluminumGlassDoors.reduce((sum: number, d: any) => sum + (d.height * d.width), 0);
+                lines.push(`• Puertas aluminio + vidrio ahumado: ${totalDoors} ${totalDoors === 1 ? 'puerta' : 'puertas'} (${totalSqm.toFixed(2)} m²)`);
+                config.specialFinishes.aluminumGlassDoors.forEach((door: any, idx: number) => {
+                  const sqm = door.height * door.width;
+                  const extraHinges = door.height > 1.4 ? 2 : (door.height > 0.8 ? 1 : 0);
+                  let hingeText = '';
+                  if (extraHinges > 0) hingeText = ` (+${extraHinges} par${extraHinges > 1 ? 'es' : ''} bisagras)`;
+                  lines.push(`  - Puerta ${idx + 1}: ${door.height.toFixed(2)}m x ${door.width.toFixed(2)}m = ${sqm.toFixed(2)} m²${hingeText}`);
+                });
+              }
+              
+              // LED para alacenas
+              if (config.specialFinishes.ledLighting?.enabled && config.specialFinishes.ledLighting.meters > 0) {
+                lines.push(`• LED para alacenas: ${config.specialFinishes.ledLighting.meters.toFixed(2)}ml`);
+              }
+            }
+            
+            // Pintado de puertas
+            if (config.paintedDoors?.enabled) {
+              const pd = config.paintedDoors;
+              const totalPainted = (pd.upperQty || 0) + (pd.lowerQty || 0) + (pd.pantryQty || 0) + (pd.drawerQty || 0) + (pd.spiceQty || 0) + (pd.golaQty || 0);
+              if (totalPainted > 0) {
+                lines.push('');
+                lines.push('PINTADO ALTO BRILLO:');
+                if (pd.upperQty > 0) lines.push(`• Puertas superiores: ${pd.upperQty}`);
+                if (pd.lowerQty > 0) lines.push(`• Puertas inferiores: ${pd.lowerQty}`);
+                if (pd.pantryQty > 0) lines.push(`• Puertas alacena: ${pd.pantryQty}`);
+                if (pd.drawerQty > 0) lines.push(`• Tapas cajón: ${pd.drawerQty}`);
+                if (pd.spiceQty > 0) lines.push(`• Especieros: ${pd.spiceQty}`);
+                if (pd.golaQty > 0) lines.push(`• Gola: ${pd.golaQty}`);
+              }
             }
             
             description = lines.join('\n');

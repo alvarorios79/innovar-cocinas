@@ -4,7 +4,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ChefHat, Refrigerator, UtensilsCrossed, Lightbulb, LayoutGrid, Paintbrush } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ChefHat, Refrigerator, UtensilsCrossed, Lightbulb, LayoutGrid, Paintbrush, Plus, Trash2, Sparkles } from "lucide-react";
 
 export interface KitchenConfig {
   shape: string;
@@ -53,6 +54,21 @@ export interface KitchenConfig {
     pantryDoors: number;    // Puertas de alacena - $180,000
     drawerCovers: number;   // Tapas de cajón - $90,000
     smallCovers: number;    // Tapas pequeñas - $45,000
+  };
+  // Acabados Especiales
+  specialFinishes?: {
+    enabled: boolean;
+    aluminumGlassDoors: Array<{
+      id: string;
+      height: number; // metros
+      width: number;  // metros
+      squareMeters: number; // calculado: height * width
+      extraHinges: number; // calculado según altura: >0.8m = 1 par, >1.4m = 2 pares
+    }>;
+    ledLighting: {
+      enabled: boolean;
+      meters: number; // metros lineales del lado largo del mueble
+    };
   };
   notes?: string;
 }
@@ -110,6 +126,14 @@ export function KitchenConfigurator({
       drawerQty: 0,
       spiceQty: 0,
       golaQty: 0,
+    },
+    specialFinishes: {
+      enabled: false,
+      aluminumGlassDoors: [],
+      ledLighting: {
+        enabled: false,
+        meters: 0,
+      },
     },
     notes: "",
   };
@@ -681,6 +705,236 @@ export function KitchenConfigurator({
             </div>
           </div>
 
+          {/* Acabados Especiales */}
+          <div className="bg-amber-50 p-4 rounded-lg border border-amber-300">
+            <div className="flex items-center gap-3 mb-4">
+              <Checkbox 
+                id="special-finishes" 
+                checked={currentConfig.specialFinishes?.enabled || false} 
+                onCheckedChange={(c) => {
+                  const newSpecialFinishes = {
+                    ...currentConfig.specialFinishes,
+                    enabled: c === true,
+                    aluminumGlassDoors: currentConfig.specialFinishes?.aluminumGlassDoors || [],
+                    ledLighting: currentConfig.specialFinishes?.ledLighting || { enabled: false, meters: 0 },
+                  };
+                  updateConfig("specialFinishes", newSpecialFinishes);
+                }} 
+              />
+              <Label htmlFor="special-finishes" className="cursor-pointer font-semibold text-amber-800 flex items-center gap-2">
+                <Sparkles className="h-5 w-5" />
+                Acabados Especiales (Puertas Aluminio + Vidrio)
+              </Label>
+            </div>
+            
+            {currentConfig.specialFinishes?.enabled && (
+              <div className="space-y-4 pl-6">
+                {/* Lista de Puertas de Aluminio + Vidrio */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <Label className="text-sm font-medium text-amber-700">Puertas en Marco de Aluminio + Vidrio Ahumado</Label>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      className="border-amber-400 text-amber-700 hover:bg-amber-100"
+                      onClick={() => {
+                        const newDoor = {
+                          id: `door-${Date.now()}`,
+                          height: 0,
+                          width: 0,
+                          squareMeters: 0,
+                          extraHinges: 0,
+                        };
+                        const newDoors = [...(currentConfig.specialFinishes?.aluminumGlassDoors || []), newDoor];
+                        updateConfig("specialFinishes", {
+                          ...currentConfig.specialFinishes,
+                          aluminumGlassDoors: newDoors,
+                        });
+                      }}
+                    >
+                      <Plus className="h-4 w-4 mr-1" /> Agregar Puerta
+                    </Button>
+                  </div>
+                  
+                  {(currentConfig.specialFinishes?.aluminumGlassDoors || []).length === 0 ? (
+                    <p className="text-sm text-amber-600 italic">No hay puertas agregadas. Haz clic en "Agregar Puerta" para comenzar.</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {(currentConfig.specialFinishes?.aluminumGlassDoors || []).map((door, index) => {
+                        const sqm = door.height * door.width;
+                        const extraHinges = door.height > 1.4 ? 2 : (door.height > 0.8 ? 1 : 0);
+                        const doorPrice = sqm * 1200000;
+                        const hingePrice = extraHinges * 15000;
+                        const totalDoorPrice = doorPrice + hingePrice;
+                        
+                        return (
+                          <div key={door.id} className="flex items-center gap-2 bg-white p-2 rounded border border-amber-200">
+                            <span className="text-sm font-medium text-amber-700 w-16">Puerta {index + 1}:</span>
+                            <div className="flex items-center gap-1">
+                              <Label className="text-xs text-gray-500">Alto:</Label>
+                              <Input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                value={door.height || ""}
+                                onChange={(e) => {
+                                  const newDoors = [...(currentConfig.specialFinishes?.aluminumGlassDoors || [])];
+                                  const newHeight = parseFloat(e.target.value) || 0;
+                                  newDoors[index] = {
+                                    ...newDoors[index],
+                                    height: newHeight,
+                                    squareMeters: newHeight * newDoors[index].width,
+                                    extraHinges: newHeight > 1.4 ? 2 : (newHeight > 0.8 ? 1 : 0),
+                                  };
+                                  updateConfig("specialFinishes", {
+                                    ...currentConfig.specialFinishes,
+                                    aluminumGlassDoors: newDoors,
+                                  });
+                                }}
+                                className="h-8 w-20 text-center"
+                                placeholder="0.70"
+                              />
+                              <span className="text-xs">m</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Label className="text-xs text-gray-500">Ancho:</Label>
+                              <Input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                value={door.width || ""}
+                                onChange={(e) => {
+                                  const newDoors = [...(currentConfig.specialFinishes?.aluminumGlassDoors || [])];
+                                  const newWidth = parseFloat(e.target.value) || 0;
+                                  newDoors[index] = {
+                                    ...newDoors[index],
+                                    width: newWidth,
+                                    squareMeters: newDoors[index].height * newWidth,
+                                  };
+                                  updateConfig("specialFinishes", {
+                                    ...currentConfig.specialFinishes,
+                                    aluminumGlassDoors: newDoors,
+                                  });
+                                }}
+                                className="h-8 w-20 text-center"
+                                placeholder="0.40"
+                              />
+                              <span className="text-xs">m</span>
+                            </div>
+                            <div className="flex-1 text-right text-sm">
+                              <span className="text-amber-700">{sqm.toFixed(2)} m²</span>
+                              {extraHinges > 0 && (
+                                <span className="text-orange-600 ml-2">+{extraHinges} par bisagras</span>
+                              )}
+                              <span className="font-semibold text-amber-900 ml-2">${totalDoorPrice.toLocaleString()}</span>
+                            </div>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="ghost"
+                              className="text-red-500 hover:text-red-700 hover:bg-red-50 h-8 w-8 p-0"
+                              onClick={() => {
+                                const newDoors = (currentConfig.specialFinishes?.aluminumGlassDoors || []).filter((_, i) => i !== index);
+                                updateConfig("specialFinishes", {
+                                  ...currentConfig.specialFinishes,
+                                  aluminumGlassDoors: newDoors,
+                                });
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        );
+                      })}
+                      
+                      {/* Subtotal Puertas */}
+                      {(currentConfig.specialFinishes?.aluminumGlassDoors || []).length > 0 && (
+                        <div className="flex justify-between items-center pt-2 border-t border-amber-200">
+                          <span className="text-sm text-amber-700">Subtotal Puertas Aluminio + Vidrio:</span>
+                          <span className="font-semibold text-amber-900">
+                            ${(currentConfig.specialFinishes?.aluminumGlassDoors || []).reduce((sum, door) => {
+                              const sqm = door.height * door.width;
+                              const extraHinges = door.height > 1.4 ? 2 : (door.height > 0.8 ? 1 : 0);
+                              return sum + (sqm * 1200000) + (extraHinges * 15000);
+                            }, 0).toLocaleString()}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+                
+                {/* Luz LED para Alacenas */}
+                <div className="border-t border-amber-200 pt-4">
+                  <div className="flex items-center gap-3 mb-2">
+                    <Checkbox 
+                      id="led-alacenas" 
+                      checked={currentConfig.specialFinishes?.ledLighting?.enabled || false} 
+                      onCheckedChange={(c) => {
+                        updateConfig("specialFinishes", {
+                          ...currentConfig.specialFinishes,
+                          ledLighting: {
+                            ...currentConfig.specialFinishes?.ledLighting,
+                            enabled: c === true,
+                          },
+                        });
+                      }} 
+                    />
+                    <Label htmlFor="led-alacenas" className="cursor-pointer text-sm font-medium text-amber-700 flex items-center gap-2">
+                      <Lightbulb className="h-4 w-4" />
+                      Luz LED para Alacenas ($180,000/ml)
+                    </Label>
+                  </div>
+                  
+                  {currentConfig.specialFinishes?.ledLighting?.enabled && (
+                    <div className="flex items-center gap-3 pl-6">
+                      <Label className="text-sm text-gray-600">Metros lineales (lado largo del mueble):</Label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={currentConfig.specialFinishes?.ledLighting?.meters || ""}
+                        onChange={(e) => {
+                          updateConfig("specialFinishes", {
+                            ...currentConfig.specialFinishes,
+                            ledLighting: {
+                              ...currentConfig.specialFinishes?.ledLighting,
+                              meters: parseFloat(e.target.value) || 0,
+                            },
+                          });
+                        }}
+                        className="h-8 w-24 text-center"
+                        placeholder="0.00"
+                      />
+                      <span className="text-sm">ml</span>
+                      <span className="font-semibold text-amber-900">
+                        = ${((currentConfig.specialFinishes?.ledLighting?.meters || 0) * 180000).toLocaleString()}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                
+                {/* Total Acabados Especiales */}
+                <div className="bg-amber-100 p-3 rounded-lg mt-4">
+                  <div className="flex justify-between items-center">
+                    <span className="font-semibold text-amber-800">Total Acabados Especiales:</span>
+                    <span className="text-xl font-bold text-amber-900">
+                      ${(
+                        (currentConfig.specialFinishes?.aluminumGlassDoors || []).reduce((sum, door) => {
+                          const sqm = door.height * door.width;
+                          const extraHinges = door.height > 1.4 ? 2 : (door.height > 0.8 ? 1 : 0);
+                          return sum + (sqm * 1200000) + (extraHinges * 15000);
+                        }, 0) +
+                        (currentConfig.specialFinishes?.ledLighting?.enabled ? (currentConfig.specialFinishes?.ledLighting?.meters || 0) * 180000 : 0)
+                      ).toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* Notas */}
           <div>
             <Label className="text-sm font-medium text-gray-700 block mb-2">Notas Adicionales</Label>
@@ -761,6 +1015,26 @@ export function KitchenConfigurator({
                       (currentConfig.paintedDoors?.spiceQty || 0) * 100000 +
                       (currentConfig.paintedDoors?.golaQty || 0) * 45000
                     )).toLocaleString()}
+                  </span>
+                </div>
+              )}
+              {currentConfig.specialFinishes?.enabled && (currentConfig.specialFinishes?.aluminumGlassDoors || []).length > 0 && (
+                <div className="flex justify-between text-amber-700">
+                  <span>+ Puertas Aluminio+Vidrio ({(currentConfig.specialFinishes?.aluminumGlassDoors || []).length}):</span>
+                  <span className="font-medium">
+                    ${(currentConfig.specialFinishes?.aluminumGlassDoors || []).reduce((sum, door) => {
+                      const sqm = door.height * door.width;
+                      const extraHinges = door.height > 1.4 ? 2 : (door.height > 0.8 ? 1 : 0);
+                      return sum + (sqm * 1200000) + (extraHinges * 15000);
+                    }, 0).toLocaleString()}
+                  </span>
+                </div>
+              )}
+              {currentConfig.specialFinishes?.enabled && currentConfig.specialFinishes?.ledLighting?.enabled && (currentConfig.specialFinishes?.ledLighting?.meters || 0) > 0 && (
+                <div className="flex justify-between text-amber-700">
+                  <span>+ LED Alacenas ({currentConfig.specialFinishes?.ledLighting?.meters}ml):</span>
+                  <span className="font-medium">
+                    ${((currentConfig.specialFinishes?.ledLighting?.meters || 0) * 180000).toLocaleString()}
                   </span>
                 </div>
               )}

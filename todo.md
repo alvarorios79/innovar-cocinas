@@ -3083,3 +3083,14 @@
 - [x] Agregada mutación createDetail usando trpc.projectDetails.create
 - [x] Actualizado botón para llamar a la mutación con los datos del formulario
 - [x] Agregado estado de carga "Guardando..." mientras se procesa
+
+
+## Bug: Permisos de Detalles para Rol Comercial (28 Enero 2026)
+
+### Problema
+- [x] Martha Serna (rol comercial) no podía agregar detalles de proyecto
+
+### Corrección
+- [x] Agregado rol "comercial" a los permisos de crear detalles (projectDetails.create)
+- [x] Agregado rol "comercial" a los permisos de editar detalles (projectDetails.update)
+- [x] Agregado rol "comercial" a los permisos de eliminar detalles (projectDetails.delete)

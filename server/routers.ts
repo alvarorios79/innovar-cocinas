@@ -4585,8 +4585,8 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
         photoUrl: z.string().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
-        // Solo diseñador, jefe_taller, operario, admin, super_admin pueden crear detalles
-        const allowedRoles = ["disenador", "jefe_taller", "operario", "admin", "super_admin"];
+        // Diseñador, jefe_taller, operario, comercial, admin, super_admin pueden crear detalles
+        const allowedRoles = ["disenador", "jefe_taller", "operario", "comercial", "admin", "super_admin"];
         if (!allowedRoles.includes(ctx.user.role)) {
           throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para agregar detalles" });
         }
@@ -4615,7 +4615,7 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
         photoUrl: z.string().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
-        const allowedRoles = ["disenador", "jefe_taller", "operario", "admin", "super_admin"];
+        const allowedRoles = ["disenador", "jefe_taller", "operario", "comercial", "admin", "super_admin"];
         if (!allowedRoles.includes(ctx.user.role)) {
           throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para editar detalles" });
         }
@@ -4629,7 +4629,7 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
     delete: protectedProcedure
       .input(z.object({ id: z.number() }))
       .mutation(async ({ ctx, input }) => {
-        const allowedRoles = ["disenador", "jefe_taller", "admin", "super_admin"];
+        const allowedRoles = ["disenador", "jefe_taller", "operario", "comercial", "admin", "super_admin"];
         if (!allowedRoles.includes(ctx.user.role)) {
           throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para eliminar detalles" });
         }

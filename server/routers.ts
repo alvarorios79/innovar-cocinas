@@ -4511,11 +4511,12 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
       .mutation(async ({ ctx, input }) => {
         const role = ctx.user.role;
         const stage = input.stage;
+        const category = input.category;
 
-        // Validar permisos por etapa
-        const canUpload = validatePhotoUploadPermission(role, stage);
+        // Validar permisos por etapa y categoría
+        const canUpload = validatePhotoUploadPermission(role, stage, category);
         if (!canUpload) {
-          throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para subir fotos en esta etapa" });
+          throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para subir fotos en esta categoría" });
         }
 
         const photoId = await db.createProjectPhoto({
@@ -5049,16 +5050,17 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
         ),
         projectId: z.number().optional(),
         stage: z.enum(["inicial", "diseno", "corte", "enchape", "ensamble", "final"]).optional(),
+        category: z.enum(["cotizacion", "medidas", "disenos", "avance", "instalacion", "entrega"]).optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         const { storagePut } = await import("./storage");
         
         // Validar permisos si es para un proyecto
         if (input.stage) {
-          if (!validatePhotoUploadPermission(ctx.user.role, input.stage)) {
+          if (!validatePhotoUploadPermission(ctx.user.role, input.stage, input.category)) {
             throw new TRPCError({ 
               code: "FORBIDDEN", 
-              message: "No tienes permisos para subir fotos en esta etapa" 
+              message: "No tienes permisos para subir fotos en esta categoría" 
             });
           }
         }
@@ -5138,16 +5140,17 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
         })).max(10, "Máximo 10 archivos a la vez"),
         projectId: z.number().optional(),
         stage: z.enum(["inicial", "diseno", "corte", "enchape", "ensamble", "final"]).optional(),
+        category: z.enum(["cotizacion", "medidas", "disenos", "avance", "instalacion", "entrega"]).optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         const { storagePut } = await import("./storage");
         
         // Validar permisos
         if (input.stage) {
-          if (!validatePhotoUploadPermission(ctx.user.role, input.stage)) {
+          if (!validatePhotoUploadPermission(ctx.user.role, input.stage, input.category)) {
             throw new TRPCError({ 
               code: "FORBIDDEN", 
-              message: "No tienes permisos para subir fotos en esta etapa" 
+              message: "No tienes permisos para subir fotos en esta categoría" 
             });
           }
         }
@@ -6125,8 +6128,16 @@ function validateStatusChange(role: string, currentStatus: string, newStatus: st
 }
 
 // Validar permisos de subida de fotos
-function validatePhotoUploadPermission(role: string, stage: string): boolean {
+function validatePhotoUploadPermission(role: string, stage: string, category?: string): boolean {
   if (role === "super_admin" || role === "admin") return true;
+
+  if (role === "comercial") {
+    // Comercial solo puede subir fotos de cotización y medidas
+    if (category && ["cotizacion", "medidas"].includes(category)) {
+      return stage === "inicial";
+    }
+    return false;
+  }
 
   if (role === "disenador") {
     return ["inicial", "diseno"].includes(stage);

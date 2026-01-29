@@ -3012,3 +3012,8 @@
 ## Correcciones Realizadas - 28 Enero 2026
 - [x] Rol comercial (Martha Serna) ahora puede ver, crear, editar y eliminar cotizaciones
 - [x] Agregado botón de "Volver" en la página de cotizaciones
+
+## Permisos de Fotos para Rol Comercial
+- [x] Comercial solo puede subir: fotos de cotización y fotos de medidas (en etapa inicial)
+- [x] Comercial solo puede ver (no subir): diseños, avances de obra, instalación, entrega
+- [x] Test de permisos creado y pasando (14 tests)

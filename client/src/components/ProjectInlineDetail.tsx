@@ -1300,6 +1300,7 @@ export function ProjectInlineDetail({
             <PhotoUploader
               projectId={project.id}
               stage={photoForm.stage || undefined}
+              category={photoForm.category || undefined}
               onUploadComplete={(urls) => {
                 if (photoForm.stage && urls.length > 0) {
                   urls.forEach(url => {

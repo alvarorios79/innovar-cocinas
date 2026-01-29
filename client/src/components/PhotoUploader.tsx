@@ -28,6 +28,7 @@ interface PhotoFile {
 interface PhotoUploaderProps {
   projectId?: number;
   stage?: "inicial" | "diseno" | "corte" | "enchape" | "ensamble" | "final";
+  category?: "cotizacion" | "medidas" | "disenos" | "avance" | "instalacion" | "entrega";
   onUploadComplete?: (urls: string[]) => void;
   maxFiles?: number;
   accept?: string;
@@ -76,6 +77,7 @@ async function compressImage(file: File, maxWidth = 1920, quality = 0.8): Promis
 export function PhotoUploader({
   projectId,
   stage,
+  category,
   onUploadComplete,
   maxFiles = 10,
   accept = "image/*",
@@ -215,6 +217,7 @@ export function PhotoUploader({
           contentType: photoFile.file.type,
           projectId,
           stage,
+          category,
         });
 
         setFiles((prev) =>

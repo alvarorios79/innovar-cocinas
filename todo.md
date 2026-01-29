@@ -3023,3 +3023,6 @@
 
 ## Bug: Comercial no puede subir archivos
 - [x] Comercial puede subir archivos de medidas y cotización en cualquier etapa - Corregido
+
+## Bug persistente: Comercial no puede subir fotos
+- [x] Investigar por qué Martha Serna aún no puede subir fotos - CORREGIDO: Faltaba pasar category al PhotoUploader

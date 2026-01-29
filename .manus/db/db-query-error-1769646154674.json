@@ -1,0 +1,8 @@
+{
+  "query": "SELECT 'project_photos' as tabla, COUNT(*) as cantidad FROM project_photos WHERE project_id = 540003\nUNION ALL\nSELECT 'project_status_history', COUNT(*) FROM project_status_history WHERE project_id = 540003\nUNION ALL\nSELECT 'project_payments', COUNT(*) FROM project_payments WHERE project_id = 540003\nUNION ALL\nSELECT 'project_details', COUNT(*) FROM project_details WHERE project_id = 540003\nUNION ALL\nSELECT 'tasks', COUNT(*) FROM tasks WHERE project_id = 540003\nUNION ALL\nSELECT 'notifications', COUNT(*) FROM notifications WHERE reference_id = 540003 AND reference_type = 'project';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT 'project_photos' as tabla, COUNT(*) as cantidad FROM project_photos WHERE project_id = 540003\nUNION ALL\nSELECT 'project_status_history', COUNT(*) FROM project_status_history WHERE project_id = 540003\nUNION ALL\nSELECT 'project_payments', COUNT(*) FROM project_payments WHERE project_id = 540003\nUNION ALL\nSELECT 'project_details', COUNT(*) FROM project_details WHERE project_id = 540003\nUNION ALL\nSELECT 'tasks', COUNT(*) FROM tasks WHERE project_id = 540003\nUNION ALL\nSELECT 'notifications', COUNT(*) FROM notifications WHERE reference_id = 540003 AND reference_type = 'project';",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1146 (42S02) at line 1: Table 'xhekcr8yxcaedfyuqebdjq.project_photos' doesn't exist"
+  ]
+}

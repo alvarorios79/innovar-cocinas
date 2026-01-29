@@ -734,6 +734,17 @@ export async function deleteProject(id: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
+  // Eliminar todas las dependencias en cascada antes de eliminar el proyecto
+  await deleteProjectPhotos(id);
+  await deleteProjectTasks(id);
+  await deleteProjectStatusHistory(id);
+  await deleteProjectMaterials(id);
+  await deleteProjectPaymentsByProjectId(id);
+  await deleteRemindersByProjectId(id);
+  await deleteProjectDetails(id);
+  await deleteProjectNotifications(id);
+  
+  // Finalmente eliminar el proyecto
   await db.delete(projects).where(eq(projects.id, id));
 }
 
@@ -1850,4 +1861,23 @@ export async function deletePricingConfig(id: number) {
   await db.update(pricingConfig)
     .set({ active: false })
     .where(eq(pricingConfig.id, id));
+}
+
+// ============ FUNCIONES ADICIONALES DE LIMPIEZA EN CASCADA ============
+
+export async function deleteProjectDetails(projectId: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(projectDetails).where(eq(projectDetails.projectId, projectId));
+}
+
+export async function deleteProjectNotifications(projectId: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(notifications).where(
+    and(
+      eq(notifications.referenceId, projectId),
+      eq(notifications.referenceType, "project")
+    )
+  );
 }

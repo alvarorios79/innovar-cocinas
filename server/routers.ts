@@ -2759,7 +2759,7 @@ export const appRouter = router({
         };
         
         const workType = workTypeMap[quotation.productType] || "cocina";
-        const projectName = `${clientData?.name || "Cliente"} - ${quotation.quotationNumber}`;
+        const projectName = `${quotation.quotationNumber} - ${clientData?.name || "Cliente"}`;
         
         // Calcular fecha TENTATIVA de instalación: 25 días hábiles desde hoy
         const tentativeDate = await addBusinessDays(new Date(), 25);
@@ -3054,7 +3054,7 @@ export const appRouter = router({
         };
         
         const workType = workTypeMap[quotation.productType] || "cocina";
-        const projectName = `${clientData?.name || "Cliente"} - ${quotation.quotationNumber}`;
+        const projectName = `${quotation.quotationNumber} - ${clientData?.name || "Cliente"}`;
         
         // Calcular fecha TENTATIVA de instalación: 25 días hábiles desde hoy
         const tentativeDate = await addBusinessDays(new Date(), 25);

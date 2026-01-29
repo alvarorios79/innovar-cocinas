@@ -3017,3 +3017,6 @@
 - [x] Comercial solo puede subir: fotos de cotización y fotos de medidas (en etapa inicial)
 - [x] Comercial solo puede ver (no subir): diseños, avances de obra, instalación, entrega
 - [x] Test de permisos creado y pasando (14 tests)
+
+## Formato de Nombres de Proyectos
+- [x] Cambiar formato de nombre de proyectos a "COT #[número] - [nombre cliente]" (ej: COT-2025-001 - Juan Pérez)

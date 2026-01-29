@@ -593,7 +593,7 @@ export const appRouter = router({
         status: z.enum(["pendiente", "confirmada", "completada", "cancelada"]),
       }))
       .mutation(async ({ ctx, input }) => {
-        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "comercial") {
           throw new TRPCError({ code: "FORBIDDEN" });
         }
         
@@ -626,7 +626,7 @@ export const appRouter = router({
 
     list: protectedProcedure
       .query(async ({ ctx }) => {
-        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "comercial") {
           throw new TRPCError({ code: "FORBIDDEN" });
         }
         
@@ -649,7 +649,7 @@ export const appRouter = router({
     delete: protectedProcedure
       .input(z.object({ id: z.number() }))
       .mutation(async ({ ctx, input }) => {
-        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "comercial") {
           throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para eliminar citas" });
         }
         
@@ -724,7 +724,7 @@ export const appRouter = router({
         status: z.enum(["pendiente", "contactado", "completado"]),
       }))
       .mutation(async ({ ctx, input }) => {
-        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "comercial") {
           throw new TRPCError({ code: "FORBIDDEN" });
         }
         
@@ -734,7 +734,7 @@ export const appRouter = router({
 
     list: protectedProcedure
       .query(async ({ ctx }) => {
-        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "comercial") {
           throw new TRPCError({ code: "FORBIDDEN" });
         }
         
@@ -756,7 +756,7 @@ export const appRouter = router({
     delete: protectedProcedure
       .input(z.object({ id: z.number() }))
       .mutation(async ({ ctx, input }) => {
-        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "comercial") {
           throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para eliminar asesoramientos" });
         }
         
@@ -1064,7 +1064,7 @@ export const appRouter = router({
         }
 
         // Verificar permisos
-        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "comercial") {
           const client = await db.getClientByUserId(ctx.user.id);
           if (!client || quotation.clientId !== client.id) {
             throw new TRPCError({ code: "FORBIDDEN" });
@@ -1120,7 +1120,7 @@ export const appRouter = router({
         status: z.enum(["draft", "sent", "approved", "rejected"]),
       }))
       .mutation(async ({ ctx, input }) => {
-        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "comercial") {
           throw new TRPCError({ code: "FORBIDDEN" });
         }
 
@@ -1751,7 +1751,7 @@ export const appRouter = router({
     previewPDF: protectedProcedure
       .input(z.object({ id: z.number() }))
       .mutation(async ({ ctx, input }) => {
-        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "comercial") {
           throw new TRPCError({ code: "FORBIDDEN" });
         }
 
@@ -2133,7 +2133,7 @@ export const appRouter = router({
     sendByEmail: protectedProcedure
       .input(z.object({ id: z.number() }))
       .mutation(async ({ ctx, input }) => {
-        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "comercial") {
           throw new TRPCError({ code: "FORBIDDEN" });
         }
 
@@ -2678,8 +2678,8 @@ export const appRouter = router({
           throw new TRPCError({ code: "NOT_FOUND", message: "Cotización no encontrada" });
         }
         
-        // Verificar que la cotización pertenece al cliente (o es admin)
-        const isAdmin = ctx.user.role === "admin" || ctx.user.role === "super_admin";
+        // Verificar que la cotización pertenece al cliente (o es admin/comercial)
+        const isAdmin = ctx.user.role === "admin" || ctx.user.role === "super_admin" || ctx.user.role === "comercial";
         if (!isAdmin && (!client || quotation.clientId !== client.id)) {
           throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para aprobar esta cotización" });
         }
@@ -2839,8 +2839,8 @@ export const appRouter = router({
           throw new TRPCError({ code: "NOT_FOUND", message: "Cotización no encontrada" });
         }
         
-        // Verificar que la cotización pertenece al cliente (o es admin)
-        const isAdmin = ctx.user.role === "admin" || ctx.user.role === "super_admin";
+        // Verificar que la cotización pertenece al cliente (o es admin/comercial)
+        const isAdmin = ctx.user.role === "admin" || ctx.user.role === "super_admin" || ctx.user.role === "comercial";
         if (!isAdmin && (!client || quotation.clientId !== client.id)) {
           throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para rechazar esta cotización" });
         }
@@ -2962,7 +2962,7 @@ export const appRouter = router({
 
     list: protectedProcedure
       .query(async ({ ctx }) => {
-        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "comercial") {
           throw new TRPCError({ code: "FORBIDDEN" });
         }
         
@@ -2989,8 +2989,8 @@ export const appRouter = router({
           throw new TRPCError({ code: "NOT_FOUND" });
         }
 
-        // Si no es admin, verificar que sea su cotización
-        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+        // Si no es admin/comercial, verificar que sea su cotización
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "comercial") {
           const client = await db.getClientByUserId(ctx.user.id);
           if (!client || quotation.clientId !== client.id) {
             throw new TRPCError({ code: "FORBIDDEN" });
@@ -3007,7 +3007,7 @@ export const appRouter = router({
     delete: protectedProcedure
       .input(z.object({ id: z.number() }))
       .mutation(async ({ ctx, input }) => {
-        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "comercial") {
           throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para eliminar cotizaciones" });
         }
         
@@ -3134,7 +3134,7 @@ export const appRouter = router({
   userManagement: router({
     listAll: protectedProcedure
       .query(async ({ ctx }) => {
-        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "comercial") {
           throw new TRPCError({ code: "FORBIDDEN", message: "Solo administradores pueden ver usuarios" });
         }
         return await db.getAllUsers();
@@ -3148,8 +3148,8 @@ export const appRouter = router({
         password: z.string().min(8, "La contraseña debe tener al menos 8 caracteres").optional(),
       }))
       .mutation(async ({ ctx, input }) => {
-        // Solo super_admin y admin pueden crear usuarios
-        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+        // Solo super_admin, admin y comercial pueden crear usuarios
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "comercial") {
           throw new TRPCError({ code: "FORBIDDEN", message: "Solo administradores pueden crear usuarios" });
         }
 
@@ -3161,8 +3161,8 @@ export const appRouter = router({
           });
         }
 
-        // Solo super_admin y admin pueden crear usuarios con contraseña
-        if (input.password && ctx.user.role !== "super_admin" && ctx.user.role !== "admin") {
+        // Solo super_admin, admin y comercial pueden crear usuarios con contraseña
+        if (input.password && ctx.user.role !== "super_admin" && ctx.user.role !== "admin" && ctx.user.role !== "comercial") {
           throw new TRPCError({ 
             code: "FORBIDDEN", 
             message: "Solo administradores pueden crear usuarios con contraseña" 
@@ -3213,7 +3213,7 @@ export const appRouter = router({
         newRole: z.enum(["user", "admin", "super_admin"]),
       }))
       .mutation(async ({ ctx, input }) => {
-        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "comercial") {
           throw new TRPCError({ code: "FORBIDDEN", message: "Solo administradores pueden cambiar roles" });
         }
 
@@ -3265,7 +3265,7 @@ export const appRouter = router({
         userId: z.number(),
       }))
       .mutation(async ({ ctx, input }) => {
-        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "comercial") {
           throw new TRPCError({ code: "FORBIDDEN", message: "Solo administradores pueden eliminar usuarios" });
         }
 
@@ -3552,8 +3552,8 @@ export const appRouter = router({
         initialMeasurements: z.string().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
-        // Solo admin, super_admin pueden crear proyectos
-        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+        // Solo admin, super_admin y comercial pueden crear proyectos
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "comercial") {
           throw new TRPCError({ code: "FORBIDDEN", message: "Solo administradores pueden crear proyectos" });
         }
 
@@ -4343,7 +4343,7 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
         scheduledInstallDate: z.date().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
-        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "jefe_taller") {
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "jefe_taller" && ctx.user.role !== "comercial") {
           throw new TRPCError({ code: "FORBIDDEN", message: "Solo administradores o jefe de taller pueden editar proyectos" });
         }
 
@@ -4360,7 +4360,7 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
         reason: z.string().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
-        const allowedRoles = ["admin", "super_admin", "jefe_taller"];
+        const allowedRoles = ["admin", "super_admin", "jefe_taller", "comercial"];
         if (!allowedRoles.includes(ctx.user.role)) {
           throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para modificar la fecha estimada" });
         }
@@ -4391,7 +4391,7 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
     delete: protectedProcedure
       .input(z.object({ id: z.number() }))
       .mutation(async ({ ctx, input }) => {
-        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "comercial") {
           throw new TRPCError({ code: "FORBIDDEN", message: "Solo administradores pueden eliminar proyectos" });
         }
 
@@ -4413,8 +4413,8 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
         notes: z.string().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
-        // Solo admin y super_admin pueden registrar pagos
-        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+        // Solo admin, super_admin y comercial pueden registrar pagos
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "comercial") {
           throw new TRPCError({ code: "FORBIDDEN", message: "Solo administradores pueden registrar pagos" });
         }
 
@@ -4469,7 +4469,7 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
     delete: protectedProcedure
       .input(z.object({ id: z.number() }))
       .mutation(async ({ ctx, input }) => {
-        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "comercial") {
           throw new TRPCError({ code: "FORBIDDEN", message: "Solo administradores pueden eliminar pagos" });
         }
 
@@ -4564,7 +4564,7 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
     delete: protectedProcedure
       .input(z.object({ id: z.number() }))
       .mutation(async ({ ctx, input }) => {
-        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "comercial") {
           throw new TRPCError({ code: "FORBIDDEN", message: "Solo administradores pueden eliminar fotos" });
         }
 
@@ -4817,8 +4817,8 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
           throw new TRPCError({ code: "NOT_FOUND", message: "Tarea no encontrada" });
         }
 
-        // Solo el asignado o admin puede cambiar el estado
-        if (task.assignedTo !== ctx.user.id && ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+        // Solo el asignado, admin o comercial puede cambiar el estado
+        if (task.assignedTo !== ctx.user.id && ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "comercial") {
           throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para modificar esta tarea" });
         }
 
@@ -4841,7 +4841,7 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
         }
 
         // Verificar permisos de eliminación
-        const isAdmin = ctx.user.role === "admin" || ctx.user.role === "super_admin";
+        const isAdmin = ctx.user.role === "admin" || ctx.user.role === "super_admin" || ctx.user.role === "comercial";
         const isCreator = task.assignedBy === ctx.user.id;
         const isJefeTaller = ctx.user.role === "jefe_taller";
         
@@ -4872,8 +4872,8 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
           throw new TRPCError({ code: "NOT_FOUND", message: "Tarea no encontrada" });
         }
 
-        // Solo quien creó la tarea, admin o super_admin puede enviar recordatorio
-        if (task.assignedBy !== ctx.user.id && ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+        // Solo quien creó la tarea, admin, super_admin o comercial puede enviar recordatorio
+        if (task.assignedBy !== ctx.user.id && ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "comercial") {
           throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para enviar recordatorio de esta tarea" });
         }
 
@@ -5298,7 +5298,7 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
     // Enviar notificación de prueba (solo admin)
     sendTest: protectedProcedure
       .mutation(async ({ ctx }) => {
-        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "comercial") {
           throw new TRPCError({ code: "FORBIDDEN", message: "Solo administradores pueden enviar notificaciones de prueba" });
         }
 
@@ -5326,8 +5326,8 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
           throw new TRPCError({ code: "NOT_FOUND", message: "Proyecto no encontrado" });
         }
 
-        // Verificar permisos: admin, super_admin, o cliente dueño del proyecto
-        const isAdmin = ctx.user.role === "admin" || ctx.user.role === "super_admin";
+        // Verificar permisos: admin, super_admin, comercial, o cliente dueño del proyecto
+        const isAdmin = ctx.user.role === "admin" || ctx.user.role === "super_admin" || ctx.user.role === "comercial";
         const isWorker = ["disenador", "jefe_taller", "operario"].includes(ctx.user.role);
         let isOwner = false;
         
@@ -5396,7 +5396,7 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
         const reminders = await db.getRemindersByUserId(ctx.user.id);
         const reminder = reminders.find(r => r.id === input.reminderId);
         
-        if (!reminder && ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+        if (!reminder && ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "comercial") {
           throw new TRPCError({ 
             code: "FORBIDDEN", 
             message: "No tienes permisos para completar este recordatorio" 
@@ -5411,7 +5411,7 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
     cancel: protectedProcedure
       .input(z.object({ reminderId: z.number() }))
       .mutation(async ({ ctx, input }) => {
-        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "comercial") {
           throw new TRPCError({ 
             code: "FORBIDDEN", 
             message: "Solo administradores pueden cancelar recordatorios" 
@@ -5468,7 +5468,7 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
         sortOrder: z.number().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
-        if (ctx.user.role !== "super_admin" && ctx.user.role !== "admin") {
+        if (ctx.user.role !== "super_admin" && ctx.user.role !== "admin" && ctx.user.role !== "comercial") {
           throw new TRPCError({ code: "FORBIDDEN", message: "Solo administradores pueden gestionar el catálogo" });
         }
         const id = await db.createHardwareItem(input);
@@ -5487,7 +5487,7 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
         active: z.boolean().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
-        if (ctx.user.role !== "super_admin" && ctx.user.role !== "admin") {
+        if (ctx.user.role !== "super_admin" && ctx.user.role !== "admin" && ctx.user.role !== "comercial") {
           throw new TRPCError({ code: "FORBIDDEN", message: "Solo administradores pueden gestionar el catálogo" });
         }
         const { id, ...data } = input;
@@ -5498,7 +5498,7 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
     delete: protectedProcedure
       .input(z.object({ id: z.number() }))
       .mutation(async ({ ctx, input }) => {
-        if (ctx.user.role !== "super_admin" && ctx.user.role !== "admin") {
+        if (ctx.user.role !== "super_admin" && ctx.user.role !== "admin" && ctx.user.role !== "comercial") {
           throw new TRPCError({ code: "FORBIDDEN", message: "Solo administradores pueden gestionar el catálogo" });
         }
         await db.deleteHardwareItem(input.id);
@@ -5512,7 +5512,7 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
         fileName: z.string(),
       }))
       .mutation(async ({ ctx, input }) => {
-        if (ctx.user.role !== "super_admin" && ctx.user.role !== "admin") {
+        if (ctx.user.role !== "super_admin" && ctx.user.role !== "admin" && ctx.user.role !== "comercial") {
           throw new TRPCError({ code: "FORBIDDEN", message: "Solo administradores pueden subir fotos" });
         }
         

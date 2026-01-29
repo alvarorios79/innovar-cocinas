@@ -3094,3 +3094,26 @@
 - [x] Agregado rol "comercial" a los permisos de crear detalles (projectDetails.create)
 - [x] Agregado rol "comercial" a los permisos de editar detalles (projectDetails.update)
 - [x] Agregado rol "comercial" a los permisos de eliminar detalles (projectDetails.delete)
+
+
+## Bug: Permisos Completos para Rol Comercial (28 Enero 2026)
+
+### Problema
+- [x] El rol comercial (Martha Serna) no tenía permisos equivalentes a admin en varias funcionalidades
+- [x] No podía editar materiales, crear detalles, gestionar proyectos, etc.
+
+### Corrección Aplicada
+Se agregó el rol "comercial" a los siguientes endpoints:
+- [x] Citas: crear, listar, actualizar, eliminar
+- [x] Asesorías: crear, listar, actualizar estado, eliminar
+- [x] Cotizaciones: listar, ver detalle, previewPDF, sendByEmail, aprobar, rechazar, crear proyecto
+- [x] Gestión de usuarios: listar, crear, cambiar rol, eliminar
+- [x] Proyectos: crear, editar, eliminar, actualizar fecha estimada
+- [x] Pagos: crear, eliminar
+- [x] Fotos: eliminar
+- [x] Detalles de proyecto: crear, editar, eliminar
+- [x] Tareas: cambiar estado, eliminar, enviar recordatorio
+- [x] Notificaciones: enviar test
+- [x] Recordatorios: completar, cancelar
+- [x] Catálogo de herrajes: crear, editar, eliminar, subir fotos
+- [x] PDF: generar reportes de proyecto

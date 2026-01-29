@@ -3117,3 +3117,18 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Recordatorios: completar, cancelar
 - [x] Catálogo de herrajes: crear, editar, eliminar, subir fotos
 - [x] PDF: generar reportes de proyecto
+
+
+## Bug: Botón Eliminar Fotos No Aparece en Móviles (29 Enero 2026)
+
+### Problema
+- [x] El botón de eliminar fotos (basurero) no aparece en iPad y teléfono para el perfil CEO en proyectos/fotos
+
+### Diagnóstico
+- [x] El botón usaba `opacity-0 group-hover:opacity-100` que no funciona en dispositivos táctiles
+- [x] Solo estaba disponible para super_admin y admin, no para comercial
+
+### Corrección
+- [x] Cambiado a `opacity-100 sm:opacity-0 sm:group-hover:opacity-100` para que sea visible en móviles
+- [x] Agregado rol comercial a los permisos del botón
+- [x] Aumentado tamaño del botón en móviles (p-1.5, h-4 w-4) para mejor usabilidad táctil

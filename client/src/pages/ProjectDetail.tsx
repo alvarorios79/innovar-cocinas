@@ -912,16 +912,16 @@ export default function ProjectDetail() {
                                     <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                       <ZoomIn className="h-6 w-6 text-white" />
                                     </div>
-                                    {/* Botón eliminar solo para super_admin y admin */}
-                                    {(user?.role === "super_admin" || user?.role === "admin") && (
+                                    {/* Botón eliminar para super_admin, admin y comercial - visible en móviles */}
+                                    {(user?.role === "super_admin" || user?.role === "admin" || user?.role === "comercial") && (
                                       <button
-                                        className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                                        className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-full p-1.5 sm:p-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity z-10 shadow-md"
                                         onClick={(e) => {
                                           e.stopPropagation();
                                           setPhotoToDelete({ id: photo.id, description: photo.description });
                                         }}
                                       >
-                                        <Trash2 className="h-3 w-3" />
+                                        <Trash2 className="h-4 w-4 sm:h-3 sm:w-3" />
                                       </button>
                                     )}
                                   </div>

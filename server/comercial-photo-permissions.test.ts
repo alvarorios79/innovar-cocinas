@@ -5,9 +5,9 @@ function validatePhotoUploadPermission(role: string, stage: string, category?: s
   if (role === "super_admin" || role === "admin") return true;
 
   if (role === "comercial") {
-    // Comercial solo puede subir fotos de cotización y medidas
+    // Comercial puede subir fotos de cotización y medidas en cualquier etapa
     if (category && ["cotizacion", "medidas"].includes(category)) {
-      return stage === "inicial";
+      return true; // Permitir en cualquier etapa
     }
     return false;
   }
@@ -25,12 +25,18 @@ function validatePhotoUploadPermission(role: string, stage: string, category?: s
 
 describe("Comercial Photo Upload Permissions", () => {
   describe("Rol comercial", () => {
-    it("puede subir fotos de cotización en etapa inicial", () => {
+    it("puede subir fotos de cotización en cualquier etapa", () => {
       expect(validatePhotoUploadPermission("comercial", "inicial", "cotizacion")).toBe(true);
+      expect(validatePhotoUploadPermission("comercial", "diseno", "cotizacion")).toBe(true);
+      expect(validatePhotoUploadPermission("comercial", "corte", "cotizacion")).toBe(true);
+      expect(validatePhotoUploadPermission("comercial", "final", "cotizacion")).toBe(true);
     });
 
-    it("puede subir fotos de medidas en etapa inicial", () => {
+    it("puede subir fotos de medidas en cualquier etapa", () => {
       expect(validatePhotoUploadPermission("comercial", "inicial", "medidas")).toBe(true);
+      expect(validatePhotoUploadPermission("comercial", "diseno", "medidas")).toBe(true);
+      expect(validatePhotoUploadPermission("comercial", "corte", "medidas")).toBe(true);
+      expect(validatePhotoUploadPermission("comercial", "final", "medidas")).toBe(true);
     });
 
     it("NO puede subir fotos de diseños", () => {
@@ -53,11 +59,6 @@ describe("Comercial Photo Upload Permissions", () => {
 
     it("NO puede subir fotos sin categoría especificada", () => {
       expect(validatePhotoUploadPermission("comercial", "inicial")).toBe(false);
-    });
-
-    it("NO puede subir fotos de cotización en otras etapas", () => {
-      expect(validatePhotoUploadPermission("comercial", "diseno", "cotizacion")).toBe(false);
-      expect(validatePhotoUploadPermission("comercial", "corte", "cotizacion")).toBe(false);
     });
   });
 

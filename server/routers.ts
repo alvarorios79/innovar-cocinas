@@ -6132,9 +6132,9 @@ function validatePhotoUploadPermission(role: string, stage: string, category?: s
   if (role === "super_admin" || role === "admin") return true;
 
   if (role === "comercial") {
-    // Comercial solo puede subir fotos de cotización y medidas
+    // Comercial puede subir fotos de cotización y medidas en cualquier etapa
     if (category && ["cotizacion", "medidas"].includes(category)) {
-      return stage === "inicial";
+      return true; // Permitir en cualquier etapa
     }
     return false;
   }

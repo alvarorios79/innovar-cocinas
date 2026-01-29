@@ -3020,3 +3020,6 @@
 
 ## Formato de Nombres de Proyectos
 - [x] Cambiar formato de nombre de proyectos a "COT #[número] - [nombre cliente]" (ej: COT-2025-001 - Juan Pérez)
+
+## Bug: Comercial no puede subir archivos
+- [x] Comercial puede subir archivos de medidas y cotización en cualquier etapa - Corregido

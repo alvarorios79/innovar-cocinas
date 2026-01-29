@@ -1089,7 +1089,7 @@ export default function Projects() {
                         </Button>
                       ))}
                     </div>
-                    {(user?.role === "admin" || user?.role === "super_admin" || 
+                    {(user?.role === "admin" || user?.role === "super_admin" || user?.role === "comercial" ||
                       user?.role === "disenador" || user?.role === "jefe_taller" || user?.role === "operario") && (
                       <Button
                         size="sm"
@@ -1335,10 +1335,10 @@ export default function Projects() {
                       
                       // Definir qué roles pueden subir a cada carpeta
                       const uploadPermissions: Record<string, string[]> = {
-                        // Cotización/Documento: solo Super Admin y Admin
-                        documento_cotizacion: ["super_admin", "admin"],
-                        // Medidas: solo Super Admin y Admin
-                        fotos_iniciales: ["super_admin", "admin"],
+                        // Cotización/Documento: Super Admin, Admin y Comercial
+                        documento_cotizacion: ["super_admin", "admin", "comercial"],
+                        // Medidas: Super Admin, Admin y Comercial
+                        fotos_iniciales: ["super_admin", "admin", "comercial"],
                         dibujo: ["super_admin", "admin"],
                         // Diseños: solo Diseñador
                         renders: ["disenador"],

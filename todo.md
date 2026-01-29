@@ -3030,3 +3030,6 @@
 ## Bug: Botón de subir fotos no aparece para comercial
 - [x] El botón de subir fotos ahora se muestra para el rol comercial
 - [x] Comercial puede subir a: documento_cotizacion y fotos_iniciales
+
+## Bug: Comercial no puede subir fotos en Cotizaciones
+- [ ] El botón de subir fotos no aparece para comercial en la página de Cotizaciones (diferente a Proyectos)

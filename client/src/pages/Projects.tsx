@@ -1386,7 +1386,21 @@ export default function Projects() {
                                     proceso_instalacion: "final",
                                     fotos_finales: "final",
                                   };
-                                  setPhotoForm({ ...photoForm, stage: folderToStageMap[folder] as any, subcategory: folder as any });
+                                  // Mapear folder a category para permisos
+                                  const folderToCategoryMap: Record<string, string> = {
+                                    documento_cotizacion: "cotizacion",
+                                    fotos_iniciales: "medidas",
+                                    dibujo: "medidas",
+                                    renders: "disenos",
+                                    despieces: "disenos",
+                                    detalles: "disenos",
+                                    corte: "avance",
+                                    enchape: "avance",
+                                    armado: "avance",
+                                    proceso_instalacion: "instalacion",
+                                    fotos_finales: "entrega",
+                                  };
+                                  setPhotoForm({ ...photoForm, stage: folderToStageMap[folder] as any, category: folderToCategoryMap[folder] as any, subcategory: folder as any });
                                   setShowPhotoDialog(true);
                                 }}
                               >
@@ -1535,7 +1549,7 @@ export default function Projects() {
 
         {/* Diálogo para subir foto */}
         <Dialog open={showPhotoDialog} onOpenChange={setShowPhotoDialog}>
-          <DialogContent className="w-full max-w-[95vw] sm:max-w-[85vw] md:max-w-2xl p-3 sm:p-6">
+          <DialogContent className="w-full max-w-[95vw] sm:max-w-[85vw] md:max-w-2xl p-3 sm:p-6 max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Subir Fotos</DialogTitle>
               <DialogDescription>
@@ -1636,6 +1650,7 @@ export default function Projects() {
                 <PhotoUploader
                   projectId={selectedProject.id}
                   stage={photoForm.stage as any}
+                  category={photoForm.category as any}
                   maxFiles={10}
                   accept="image/*,application/pdf"
                   onUploadComplete={(urls) => {

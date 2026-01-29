@@ -1057,7 +1057,26 @@ export function ProjectInlineDetail({
                             proceso_instalacion: "final",
                             fotos_finales: "final",
                           };
-                          setPhotoForm({ ...photoForm, stage: folderToStageMap[folder] as any, subcategory: folder });
+                          // Mapear folder a category para permisos
+                          const folderToCategoryMap: Record<string, string> = {
+                            documento_cotizacion: "cotizacion",
+                            fotos_iniciales: "medidas",
+                            dibujo: "medidas",
+                            renders: "disenos",
+                            despieces: "disenos",
+                            detalles: "disenos",
+                            corte: "avance",
+                            enchape: "avance",
+                            armado: "avance",
+                            proceso_instalacion: "instalacion",
+                            fotos_finales: "entrega",
+                          };
+                          setPhotoForm({ 
+                            ...photoForm, 
+                            stage: folderToStageMap[folder] as any, 
+                            category: folderToCategoryMap[folder] as any,
+                            subcategory: folder 
+                          });
                           setShowPhotoDialog(true);
                         }}
                       >

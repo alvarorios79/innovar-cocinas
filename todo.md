@@ -3033,3 +3033,24 @@
 
 ## Bug: Comercial no puede subir fotos en Cotizaciones
 - [ ] El botón de subir fotos no aparece para comercial en la página de Cotizaciones (diferente a Proyectos)
+
+
+## Bug Fix: Permisos de Subida de Fotos para Rol Comercial (28 Enero 2026)
+
+### Problema
+- [x] Martha Serna (rol comercial) no podía subir fotos a carpetas documento_cotizacion y fotos_iniciales
+- [x] Error: "No tienes permisos para subir fotos en esta categoría"
+
+### Diagnóstico
+- [x] Identificar que el problema estaba en ProjectDetail.tsx
+- [x] El PhotoUploader no recibía la prop `category` al abrir desde carpetas
+- [x] Sin `category`, la validación en el backend fallaba para rol comercial
+
+### Corrección
+- [x] Agregar prop `category={photoForm.category}` al PhotoUploader en ProjectDetail.tsx (línea 1195)
+- [x] Verificar que la lógica de validación en routers.ts es correcta para rol comercial
+
+### Tests
+- [x] Crear test photo-upload-permissions.test.ts con 10 casos de prueba
+- [x] Verificar permisos para roles: comercial, admin, super_admin, diseñador, jefe_taller, operario, user
+- [x] Todos los tests pasaron (10/10)

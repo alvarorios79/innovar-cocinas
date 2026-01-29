@@ -6129,13 +6129,21 @@ function validateStatusChange(role: string, currentStatus: string, newStatus: st
 
 // Validar permisos de subida de fotos
 function validatePhotoUploadPermission(role: string, stage: string, category?: string): boolean {
-  if (role === "super_admin" || role === "admin") return true;
+  console.log("[validatePhotoUploadPermission] Validando:", { role, stage, category });
+  
+  if (role === "super_admin" || role === "admin") {
+    console.log("[validatePhotoUploadPermission] Admin/SuperAdmin -> permitido");
+    return true;
+  }
 
   if (role === "comercial") {
     // Comercial puede subir fotos de cotización y medidas en cualquier etapa
+    console.log("[validatePhotoUploadPermission] Rol comercial, verificando category:", category);
     if (category && ["cotizacion", "medidas"].includes(category)) {
+      console.log("[validatePhotoUploadPermission] Comercial -> permitido para", category);
       return true; // Permitir en cualquier etapa
     }
+    console.log("[validatePhotoUploadPermission] Comercial -> DENEGADO, category no válida:", category);
     return false;
   }
 

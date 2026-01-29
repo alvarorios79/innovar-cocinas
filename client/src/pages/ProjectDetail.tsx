@@ -1192,6 +1192,7 @@ export default function ProjectDetail() {
                        photoForm.category === "disenos" ? "diseno" :
                        photoForm.category === "avance" ? "corte" :
                        photoForm.category === "instalacion" ? "final" : "final"}
+                category={photoForm.category as "cotizacion" | "medidas" | "disenos" | "avance" | "instalacion" | "entrega"}
                 maxFiles={10}
                 accept="image/*,application/pdf"
                 onUploadComplete={(urls) => {

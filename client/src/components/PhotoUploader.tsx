@@ -211,6 +211,7 @@ export function PhotoUploader({
         );
 
         // Subir a S3
+        console.log("[PhotoUploader] Enviando al backend:", { projectId, stage, category });
         const result = await uploadMutation.mutateAsync({
           fileName: photoFile.file.name,
           fileData,

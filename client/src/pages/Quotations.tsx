@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { HardwareSelectorForQuotation } from "@/components/HardwareSelectorForQuotation";
 import { ClosetConfigurator, ClosetConfig } from "@/components/ClosetConfigurator";
@@ -69,10 +70,18 @@ interface QuotationItem {
 
 export default function Quotations() {
   const utils = trpc.useUtils();
+  const [location] = useLocation();
   
   // Hook para precios dinámicos desde la base de datos
   const { prices, isLoading: isPricingLoading, getPrice } = usePricing();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  
+  // Abrir diálogo automáticamente si viene con ?new en la URL
+  useEffect(() => {
+    if (location.includes("?new") || location.includes("&new")) {
+      setShowCreateDialog(true);
+    }
+  }, [location]);
   const [editingQuotation, setEditingQuotation] = useState<number | null>(null);
   const [selectedClient, setSelectedClient] = useState<number | null>(null);
   const [vendorName, setVendorName] = useState("Alvaro Gutierrez");

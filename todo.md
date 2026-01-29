@@ -3054,3 +3054,17 @@
 - [x] Crear test photo-upload-permissions.test.ts con 10 casos de prueba
 - [x] Verificar permisos para roles: comercial, admin, super_admin, diseñador, jefe_taller, operario, user
 - [x] Todos los tests pasaron (10/10)
+
+
+## Bug: Botón Nueva Cotización para Rol Comercial (28 Enero 2026)
+
+### Problema
+- [x] Martha Serna (rol comercial) recibe error 404 al hacer clic en botón "Nueva Cotización" en panel personal
+
+### Diagnóstico
+- [x] El enlace en Comercial.tsx apuntaba a /quotation/new que no existe
+- [x] La ruta correcta es /quotations con el diálogo de nueva cotización
+
+### Corrección
+- [x] Cambiado enlace de /quotation/new a /quotations?new en Comercial.tsx
+- [x] Agregado useEffect en Quotations.tsx para abrir diálogo automáticamente con parámetro ?new

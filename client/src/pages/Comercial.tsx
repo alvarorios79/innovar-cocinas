@@ -537,7 +537,7 @@ export default function Comercial() {
                 + Nueva Cita
               </Button>
             </Link>
-            <Link href="/quotation/new">
+            <Link href="/quotations?new">
               <Button className="w-full h-16 text-lg gap-2 bg-gradient-to-r from-fuchsia-500 to-pink-600 hover:from-fuchsia-600 hover:to-pink-700 shadow-lg hover:shadow-xl transition-all">
                 <FileText className="h-5 w-5" />
                 + Nueva Cotización

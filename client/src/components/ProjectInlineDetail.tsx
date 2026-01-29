@@ -282,8 +282,8 @@ export function ProjectInlineDetail({
   const canUploadToFolder = (folder: string) => {
     const role = user?.role;
     const uploadPermissions: Record<string, string[]> = {
-      documento_cotizacion: ["super_admin", "admin"],
-      fotos_iniciales: ["super_admin", "admin"],
+      documento_cotizacion: ["super_admin", "admin", "comercial"],
+      fotos_iniciales: ["super_admin", "admin", "comercial"],
       dibujo: ["super_admin", "admin"],
       modelado: ["disenador"],
       renders: ["disenador"],
@@ -1014,7 +1014,7 @@ export function ProjectInlineDetail({
                 </Button>
               ))}
             </div>
-            {(user?.role === "admin" || user?.role === "super_admin" || 
+            {(user?.role === "admin" || user?.role === "super_admin" || user?.role === "comercial" ||
               user?.role === "disenador" || user?.role === "jefe_taller" || user?.role === "operario") && (
               <Button
                 size="sm"
@@ -1116,7 +1116,7 @@ export function ProjectInlineDetail({
         {/* Tab Detalles */}
         <TabsContent value="details" className="space-y-4 mt-4">
           {/* Botón para agregar detalle */}
-          {(user?.role === "admin" || user?.role === "super_admin" || 
+          {(user?.role === "admin" || user?.role === "super_admin" || user?.role === "comercial" ||
             user?.role === "disenador" || user?.role === "jefe_taller" || user?.role === "operario") && (
             <div className="flex justify-end">
               <Button

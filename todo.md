@@ -3026,3 +3026,7 @@
 
 ## Bug persistente: Comercial no puede subir fotos
 - [x] Investigar por qué Martha Serna aún no puede subir fotos - CORREGIDO: Faltaba pasar category al PhotoUploader
+
+## Bug: Botón de subir fotos no aparece para comercial
+- [x] El botón de subir fotos ahora se muestra para el rol comercial
+- [x] Comercial puede subir a: documento_cotizacion y fotos_iniciales

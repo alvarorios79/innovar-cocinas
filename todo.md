@@ -3068,3 +3068,18 @@
 ### Corrección
 - [x] Cambiado enlace de /quotation/new a /quotations?new en Comercial.tsx
 - [x] Agregado useEffect en Quotations.tsx para abrir diálogo automáticamente con parámetro ?new
+
+
+## Bug: Pestaña Detalles de Proyecto No Guarda (28 Enero 2026)
+
+### Problema
+- [x] La pestaña "Detalles" del proyecto no guarda los cambios
+
+### Diagnóstico
+- [x] El botón "Guardar Detalle" solo mostraba un toast "Función en desarrollo" y no llamaba al endpoint
+- [x] El endpoint projectDetails.create ya existía en el backend pero no estaba conectado
+
+### Corrección
+- [x] Agregada mutación createDetail usando trpc.projectDetails.create
+- [x] Actualizado botón para llamar a la mutación con los datos del formulario
+- [x] Agregado estado de carga "Guardando..." mientras se procesa

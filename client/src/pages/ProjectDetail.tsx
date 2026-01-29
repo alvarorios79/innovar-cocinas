@@ -128,7 +128,18 @@ export default function ProjectDetail() {
     },
   });
 
-  // Nota: addDetail se maneja con una mutación genérica o se implementará después
+  // Mutación para agregar detalles del proyecto
+  const createDetail = trpc.projectDetails.create.useMutation({
+    onSuccess: () => {
+      utils.projects.getById.invalidate({ id: projectId });
+      toast.success("Detalle agregado correctamente");
+      setShowDetailDialog(false);
+      setDetailForm({ type: "nota_importante", title: "", content: "", photoUrl: "" });
+    },
+    onError: (error) => {
+      toast.error(error.message || "Error al agregar detalle");
+    },
+  });
 
   const updateDate = trpc.projects.updateEstimatedDate.useMutation({
     onSuccess: () => {
@@ -1285,13 +1296,18 @@ export default function ProjectDetail() {
             )}
             <Button
               className="w-full"
-              disabled={!detailForm.title}
+              disabled={!detailForm.title || !detailForm.content || createDetail.isPending}
               onClick={() => {
-                toast.info("Función de agregar detalle en desarrollo");
-                setShowDetailDialog(false);
+                createDetail.mutate({
+                  projectId: projectId,
+                  type: detailForm.type,
+                  title: detailForm.title,
+                  content: detailForm.content,
+                  photoUrl: detailForm.photoUrl || undefined,
+                });
               }}
             >
-              Guardar Detalle
+              {createDetail.isPending ? "Guardando..." : "Guardar Detalle"}
             </Button>
           </div>
         </DialogContent>

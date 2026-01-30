@@ -5841,10 +5841,25 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
           throw new TRPCError({ code: "NOT_FOUND", message: "Proyecto no encontrado" });
         }
 
-        // Reiniciar campos de aprobación de renders
+        // Incrementar contador de revisiones de renders
+        const currentRevision = (project as any).renderRevisionNumber || 0;
+        const newRevision = currentRevision + 1;
+        
+        // Reiniciar campos de aprobación de renders y actualizar contador
         await db.updateProject(input.projectId, {
           rendersApprovedAt: null,
           rendersApprovedBy: null,
+          renderRevisionNumber: newRevision,
+          status: "pendiente_render", // Cambiar estado a pendiente de aprobación de render
+        });
+        
+        // Registrar cambio de estado en historial
+        await db.createProjectStatusHistory({
+          projectId: input.projectId,
+          fromStatus: project.status,
+          toStatus: "pendiente_render",
+          changedBy: ctx.user.id,
+          notes: `Nueva aprobación de renders solicitada (Revisión #${newRevision})`,
         });
 
         // Obtener cliente para notificación
@@ -5870,10 +5885,11 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
 
         return {
           success: true,
-          message: "Aprobación de renders reiniciada. El cliente puede aprobar la nueva versión.",
+          message: `Aprobación de renders reiniciada (Revisión #${newRevision}). El cliente puede aprobar la nueva versión.`,
           galleryLink,
           whatsAppLink,
           clientName: client?.name,
+          revisionNumber: newRevision,
         };
       }),
 
@@ -5927,6 +5943,83 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
           galleryLink,
           whatsAppLink,
           clientName: client?.name,
+        };
+      }),
+
+    // Enviar renders al cliente (cambia estado a pendiente_render)
+    sendRendersToClient: protectedProcedure
+      .input(z.object({
+        projectId: z.number(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        // Solo admin, super_admin, comercial y diseñador pueden enviar renders
+        const allowedRoles = ["super_admin", "admin", "comercial", "disenador"];
+        if (!allowedRoles.includes(ctx.user.role)) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para enviar renders" });
+        }
+
+        const project = await db.getProjectById(input.projectId);
+        if (!project) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Proyecto no encontrado" });
+        }
+
+        // Verificar que hay renders para enviar
+        const photos = await db.getProjectPhotosByProjectId(input.projectId);
+        const renderPhotos = photos.filter((p: any) => p.subcategory === "renders");
+        if (renderPhotos.length === 0) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "No hay renders para enviar" });
+        }
+
+        // Determinar el número de revisión
+        const currentRevision = (project as any).renderRevisionNumber || 0;
+        const newRevision = currentRevision === 0 ? 1 : currentRevision;
+        
+        // Solo cambiar estado si no está ya en pendiente_render
+        if (project.status !== "pendiente_render") {
+          // Actualizar estado y contador de revisiones
+          await db.updateProject(input.projectId, {
+            status: "pendiente_render",
+            renderRevisionNumber: newRevision,
+          });
+          
+          // Registrar cambio de estado en historial
+          await db.createProjectStatusHistory({
+            projectId: input.projectId,
+            fromStatus: project.status,
+            toStatus: "pendiente_render",
+            changedBy: ctx.user.id,
+            notes: `Renders enviados al cliente (Revisión #${newRevision})`,
+          });
+        }
+
+        // Obtener cliente para generar enlace
+        const client = project.clientId ? await db.getClientById(project.clientId) : null;
+        const baseUrl = process.env.VITE_APP_URL || "https://innovarcocinas.manus.space";
+        const galleryLink = `${baseUrl}/gallery?project=${input.projectId}&type=renders`;
+
+        // Generar mensaje de WhatsApp
+        let whatsAppLink = null;
+        if (client?.whatsappPhone) {
+          const phone = client.whatsappPhone.replace(/\D/g, '');
+          const message = encodeURIComponent(
+            `¡Hola ${client.name}! 👋\n\n` +
+            `Le escribimos de *INNOVAR Cocinas Integrales*.\n\n` +
+            `Ya tenemos listos los *renders finales* de su proyecto *"${project.name}"*. 🎨\n\n` +
+            `✨ Hemos preparado *${renderPhotos.length} imágenes* de los renders para que las revise.\n\n` +
+            `👉 *Ver todas las imágenes aquí:*\n${galleryLink}\n\n` +
+            `Estos son los diseños definitivos. Por favor revíselos y confírmenos si está de acuerdo para iniciar la producción.\n\n` +
+            `¿Aprueba el diseño para iniciar producción? ✅`
+          );
+          whatsAppLink = `https://wa.me/${phone}?text=${message}`;
+        }
+
+        return {
+          success: true,
+          message: `Renders enviados al cliente (Revisión #${newRevision})`,
+          galleryLink,
+          whatsAppLink,
+          clientName: client?.name,
+          revisionNumber: newRevision,
         };
       }),
   }),

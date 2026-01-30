@@ -3242,3 +3242,29 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Mantener activo solo "Nueva Aprobación de Renders" cuando hay renders
 - [x] Mostrar estado "Pendiente aprobación del cliente" cuando hay renders sin aprobar
 - [x] Flujo correcto: Modelado enviado → Cliente aprueba/pide cambios → (si cambios: nueva aprobación modelado) → Renders enviados → Cliente aprueba/pide cambios → (si cambios: nueva aprobación renders)
+
+
+## Revisión de Estados del Proyecto y Flujo de Aprobación
+
+- [x] Analizar estados actuales del proyecto
+- [x] Agregar campo renderRevisionNumber en la base de datos para contar revisiones de renders
+- [x] Agregar nuevo estado "pendiente_render" para cuando se envían renders
+- [x] Actualizar etiquetas: en_diseno="En Diseño", pendiente_cliente="Diseño Listo", pendiente_render="Pendiente Aprobación Render X"
+- [x] Incrementar contador de revisiones al usar "Nueva Aprobación de Renders"
+- [x] Crear procedimiento sendRendersToClient que cambia estado y abre WhatsApp
+- [x] Flujo: En Diseño → (envía modelado) → Diseño Listo (modelado aprobado) → Pendiente Render 1 → Pendiente Render 2... → Aprobación Final
+
+
+## Flujo de Estados con Contador de Revisiones de Renders (Completado)
+
+- [x] Agregar campo renderRevisionNumber en la base de datos
+- [x] Agregar nuevo estado "pendiente_render" al enum de status
+- [x] Crear procedimiento sendRendersToClient que cambia estado a pendiente_render y abre WhatsApp
+- [x] Incrementar contador de revisiones al usar "Nueva Aprobación de Renders"
+- [x] Actualizar PROJECT_STATUSES en ProjectDetail.tsx con pendiente_render
+- [x] Agregar función getStatusLabel para mostrar "Pendiente Aprobación Render X"
+- [x] Actualizar PROJECT_STATUSES en Projects.tsx con pendiente_render
+- [x] Actualizar getStatusBadge para usar getStatusLabel con renderRevisionNumber
+- [x] Actualizar historial de proyecto para mostrar "Renders enviados al cliente (Revisión #X)"
+- [x] Flujo implementado: En Diseño → Diseño Listo (modelado aprobado) → Pendiente Render 1 → Pendiente Render 2... → Aprobación Final
+

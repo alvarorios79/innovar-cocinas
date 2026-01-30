@@ -46,12 +46,13 @@ import { HardwareSelector } from "@/components/HardwareSelector";
 import { ProjectInlineDetail } from "@/components/ProjectInlineDetail";
 
 // Estados del proyecto según Ruta INNOVAR
-const PROJECT_STATUSES = {
+const PROJECT_STATUSES: Record<string, { label: string; color: string; icon: any }> = {
   cotizacion_enviada: { label: "Cotización Enviada", color: "bg-gray-500", icon: Clock },
   cotizacion_aprobada: { label: "Cotización Aprobada", color: "bg-blue-400", icon: CheckCircle2 },
   adelanto_recibido: { label: "Adelanto Recibido", color: "bg-blue-500", icon: CheckCircle2 },
   en_diseno: { label: "En Diseño", color: "bg-purple-500", icon: Paintbrush },
   pendiente_cliente: { label: "Diseño Listo", color: "bg-yellow-500", icon: AlertCircle },
+  pendiente_render: { label: "Pendiente Aprobación Render", color: "bg-amber-500", icon: AlertCircle },
   aprobacion_final: { label: "Aprobación Final", color: "bg-green-400", icon: CheckCircle2 },
   corte: { label: "En Corte", color: "bg-orange-500", icon: Hammer },
   enchape: { label: "En Enchape", color: "bg-orange-600", icon: Paintbrush },
@@ -59,6 +60,14 @@ const PROJECT_STATUSES = {
   listo_instalacion: { label: "Listo para Instalación", color: "bg-teal-500", icon: Truck },
   instalacion_programada: { label: "Instalación Programada", color: "bg-teal-600", icon: Truck },
   entregado: { label: "Entregado", color: "bg-green-700", icon: CheckCircle2 },
+};
+
+// Función para obtener la etiqueta dinámica del estado
+const getStatusLabel = (status: string, renderRevisionNumber?: number | null): string => {
+  if (status === "pendiente_render" && renderRevisionNumber && renderRevisionNumber > 0) {
+    return `Pendiente Aprobación Render ${renderRevisionNumber}`;
+  }
+  return PROJECT_STATUSES[status]?.label || status;
 };
 
 const WORK_TYPES = {
@@ -372,15 +381,15 @@ export default function Projects() {
     return false;
   };
 
-  const getStatusBadge = (status: string) => {
-    const config = PROJECT_STATUSES[status as keyof typeof PROJECT_STATUSES];
+  const getStatusBadge = (status: string, renderRevisionNumber?: number | null) => {
+    const config = PROJECT_STATUSES[status];
     if (!config) return <Badge>{status}</Badge>;
     
     const Icon = config.icon;
     return (
       <Badge className={`${config.color} text-white`}>
         <Icon className="h-3 w-3 mr-1" />
-        {config.label}
+        {getStatusLabel(status, renderRevisionNumber)}
       </Badge>
     );
   };
@@ -650,7 +659,7 @@ export default function Projects() {
                           <h3 className="font-semibold text-base sm:text-lg truncate max-w-[200px] sm:max-w-none">
                             {project.name}
                           </h3>
-                          {getStatusBadge(project.status)}
+                          {getStatusBadge(project.status, (project as any).renderRevisionNumber)}
                         </div>
                         <div className="text-sm text-muted-foreground grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-1">
                           <p className="flex items-center gap-1">
@@ -775,7 +784,7 @@ export default function Projects() {
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 {selectedProject?.name}
-                {selectedProject && getStatusBadge(selectedProject.status)}
+                {selectedProject && getStatusBadge(selectedProject.status, (selectedProject as any).renderRevisionNumber)}
               </DialogTitle>
               <DialogDescription className="flex items-center justify-between">
                 <span>{WORK_TYPES[selectedProject?.workType as keyof typeof WORK_TYPES]} - {selectedProject?.client?.name}</span>

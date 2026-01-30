@@ -39,12 +39,13 @@ import { PhotoUploader } from "@/components/PhotoUploader";
 import { LazyImage } from "@/components/LazyImage";
 import { toast } from "sonner";
 
-const PROJECT_STATUSES = {
+const PROJECT_STATUSES: Record<string, { label: string; color: string; icon: any }> = {
   cotizacion_enviada: { label: "Cotización Enviada", color: "bg-gray-500", icon: Clock },
   cotizacion_aprobada: { label: "Cotización Aprobada", color: "bg-blue-400", icon: CheckCircle2 },
   adelanto_recibido: { label: "Cliente Confirmado - Iniciar Diseño", color: "bg-blue-500", icon: CheckCircle2 },
   en_diseno: { label: "En Diseño", color: "bg-purple-500", icon: AlertCircle },
   pendiente_cliente: { label: "Diseño Listo", color: "bg-yellow-500", icon: AlertCircle },
+  pendiente_render: { label: "Pendiente Aprobación Render", color: "bg-amber-500", icon: AlertCircle },
   aprobacion_final: { label: "Aprobación Final", color: "bg-green-400", icon: CheckCircle2 },
   corte: { label: "En Corte", color: "bg-orange-500", icon: AlertCircle },
   enchape: { label: "En Enchape", color: "bg-orange-600", icon: AlertCircle },
@@ -54,11 +55,20 @@ const PROJECT_STATUSES = {
   entregado: { label: "Entregado", color: "bg-green-700", icon: CheckCircle2 },
 };
 
+// Función para obtener la etiqueta dinámica del estado
+const getStatusLabel = (status: string, renderRevisionNumber?: number | null): string => {
+  if (status === "pendiente_render" && renderRevisionNumber && renderRevisionNumber > 0) {
+    return `Pendiente Aprobación Render ${renderRevisionNumber}`;
+  }
+  return PROJECT_STATUSES[status]?.label || status;
+};
+
 // Estados que ya pagaron el adelanto del 60%
 const PAID_ADVANCE_STATUSES = [
   "adelanto_recibido",
   "en_diseno",
   "pendiente_cliente",
+  "pendiente_render",
   "aprobacion_final",
   "corte",
   "enchape",
@@ -223,6 +233,23 @@ export function ProjectInlineDetail({
     },
   });
 
+  const sendRendersToClient = trpc.publicGallery.sendRendersToClient.useMutation({
+    onSuccess: (result) => {
+      utils.projects.getById.invalidate();
+      utils.projects.list.invalidate();
+      toast.success(result.message);
+      // Abrir WhatsApp si hay enlace
+      if (result.whatsAppLink) {
+        setTimeout(() => {
+          window.open(result.whatsAppLink as string, "_blank");
+        }, 500);
+      }
+    },
+    onError: (error) => {
+      toast.error(error.message || "Error al enviar renders");
+    },
+  });
+
   if (isLoading || !projectDetail) {
     return (
       <div className="p-4 bg-muted/30 rounded-lg mt-2">
@@ -343,7 +370,7 @@ export function ProjectInlineDetail({
         <div className="flex items-center gap-2">
           <h3 className="font-semibold text-lg">{project.name}</h3>
           <Badge className={`${PROJECT_STATUSES[project.status as keyof typeof PROJECT_STATUSES]?.color || "bg-gray-500"} text-white`}>
-            {PROJECT_STATUSES[project.status as keyof typeof PROJECT_STATUSES]?.label || project.status}
+            {getStatusLabel(project.status, (project as any).renderRevisionNumber)}
           </Badge>
         </div>
         <div className="flex items-center gap-2">
@@ -357,7 +384,7 @@ export function ProjectInlineDetail({
                 const baseUrl = window.location.origin;
                 const portalUrl = `${baseUrl}/portal?project=${project.id}`;
                 const workTypeLabel = WORK_TYPES[project.workType as keyof typeof WORK_TYPES] || project.workType;
-                const statusLabel = PROJECT_STATUSES[project.status as keyof typeof PROJECT_STATUSES]?.label || project.status;
+                const statusLabel = getStatusLabel(project.status, (project as any).renderRevisionNumber);
                 
                 const message = `Hola ${projectDetail.client?.name}, te escribimos de INNOVAR Cocinas Integrales.\n\nTu proyecto "${project.name}" (${workTypeLabel}) está en estado: ${statusLabel}.\n\nPuedes ver el seguimiento en:\n${portalUrl}\n\n¿Tienes alguna pregunta?`;
                 
@@ -687,28 +714,18 @@ export function ProjectInlineDetail({
                   <Button
                     size="sm"
                     className="w-full mt-3 bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm text-xs"
-                    onClick={() => {
-                      const clientPhone = projectDetail.client?.whatsappPhone?.replace(/\D/g, "");
-                      const clientName = projectDetail.client?.name || "Cliente";
-                      const projectName = projectDetail.name;
-                      const renderPhotos = projectDetail.photos?.filter((p: any) => p.subcategory === "renders") || [];
-                      const numRenders = renderPhotos.length;
-                      const baseUrl = window.location.origin;
-                      const galleryUrl = `${baseUrl}/gallery?project=${projectDetail.id}&type=renders`;
-                      const message = `¡Hola ${clientName}! 👋\n\nLe escribo de *INNOVAR Cocinas Integrales*.\n\nYa tenemos listos los *renders finales* de su proyecto *"${projectName}"*. 🎨\n\n✨ Hemos preparado *${numRenders} imágenes* de los renders para que las revise.\n\n👉 *Ver todas las imágenes aquí:*\n${galleryUrl}\n\nEstos son los diseños definitivos. Por favor revíselos en el enlace y confirme si está de acuerdo para iniciar la producción.\n\n¿Aprueba el diseño para iniciar producción? ✅`;
-                      const whatsappUrl = `https://wa.me/57${clientPhone}?text=${encodeURIComponent(message)}`;
-                      window.open(whatsappUrl, "_blank");
-                    }}
+                    onClick={() => sendRendersToClient.mutate({ projectId: projectDetail.id })}
+                    disabled={sendRendersToClient.isPending}
                   >
-                    <Send className="h-3 w-3 mr-1" />
-                    Enviar Renders
+                    <Send className={`h-3 w-3 mr-1 ${sendRendersToClient.isPending ? 'animate-spin' : ''}`} />
+                    {sendRendersToClient.isPending ? 'Enviando...' : 'Enviar Renders'}
                   </Button>
                 )}
               </div>
             </div>
             
             {/* Sección de Aprobación */}
-            {projectDetail.status === "pendiente_cliente" && (
+            {(projectDetail.status === "pendiente_cliente" || projectDetail.status === "pendiente_render") && (
               <div className="bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20 rounded-lg p-4 border border-amber-200 dark:border-amber-700 mb-3">
                 <div className="flex items-center gap-2 mb-3">
                   <div className="p-1.5 bg-amber-500 rounded-lg text-white">
@@ -1481,7 +1498,7 @@ export function ProjectInlineDetail({
                   }`} />
                   <div className="flex-1">
                     <p className="text-sm">
-                      <strong>{PROJECT_STATUSES[entry.fromStatus as keyof typeof PROJECT_STATUSES]?.label || entry.fromStatus || "Inicio"}</strong>
+                      <strong>{entry.fromStatus ? (PROJECT_STATUSES[entry.fromStatus as keyof typeof PROJECT_STATUSES]?.label || entry.fromStatus) : "Inicio"}</strong>
                       {" → "}
                       <strong>{PROJECT_STATUSES[entry.toStatus as keyof typeof PROJECT_STATUSES]?.label || entry.toStatus}</strong>
                     </p>

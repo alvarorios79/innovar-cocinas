@@ -267,6 +267,13 @@
       "when": 1769573027134,
       "tag": "0037_previous_reavers",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "5",
+      "when": 1769743960676,
+      "tag": "0038_tan_millenium_guard",
+      "breakpoints": true
     }
   ]
 }

@@ -155,9 +155,10 @@ export const projects = mysqlTable("projects", {
     "cotizacion_enviada",  // Cotización enviada, esperando respuesta
     "cotizacion_aprobada", // Cliente aprobó cotización, esperando adelanto
     "adelanto_recibido",   // Adelanto recibido, inicia diseño (3 días hábiles)
-    "en_diseno",           // Diseñador trabajando
-    "pendiente_cliente",   // Esperando aprobación del cliente (5 días máx)
-    "aprobacion_final",    // Cliente aprobó diseño, inician 25 días hábiles
+    "en_diseno",           // Diseñador trabajando en modelado
+    "pendiente_cliente",   // Modelado aprobado, preparando renders ("Diseño Listo")
+    "pendiente_render",    // Renders enviados, esperando aprobación del cliente
+    "aprobacion_final",    // Cliente aprobó renders, inician 25 días hábiles
     "despiece",            // Realizando despiece
     "corte",               // En producción - etapa corte
     "enchape",             // En producción - etapa enchape
@@ -202,6 +203,8 @@ export const projects = mysqlTable("projects", {
   // Aprobación de renders por el cliente (desde galería pública)
   rendersApprovedAt: timestamp("rendersApprovedAt"),
   rendersApprovedBy: varchar("rendersApprovedBy", { length: 255 }), // Nombre del cliente que aprobó
+  // Contador de revisiones de renders (1 = primera versión, 2 = segunda versión después de cambios, etc.)
+  renderRevisionNumber: int("renderRevisionNumber").default(0),
   // Selección de colores y materiales
   selectedColors: text("selectedColors"),
   selectedMaterials: text("selectedMaterials"),

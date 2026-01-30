@@ -3176,3 +3176,20 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Agregar botones de Solicitar Nueva Aprobación para Modelado y Renders
 - [x] Mostrar solo cuando ya hay aprobación previa
 - [x] Sección azul con información de quién y cuándo aprobó
+
+
+## Bug: Botones Solicitar Nueva Aprobación no aparecen (29 Enero 2026)
+
+### Problema
+- [x] Los botones de "Solicitar Nueva Aprobación" no aparecían en la página del proyecto
+- [x] Los botones estaban implementados solo en ProjectInlineDetail.tsx pero no en ProjectDetail.tsx
+
+### Diagnóstico
+- [x] La ruta /projects/:id usa ProjectDetail.tsx, no ProjectInlineDetail.tsx
+- [x] Los campos modeladoApprovedAt y rendersApprovedAt existen en la base de datos y se retornan correctamente
+
+### Corrección
+- [x] Agregadas mutaciones resetRendersApproval y resetModeladoApproval en ProjectDetail.tsx
+- [x] Agregada sección "Solicitar Nueva Aprobación" con botones para Modelado y Renders
+- [x] La sección aparece cuando hay aprobaciones previas y el usuario es super_admin o admin
+- [x] Cada botón muestra quién aprobó y cuándo, y abre WhatsApp con el enlace de la galería

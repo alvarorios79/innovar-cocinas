@@ -3634,6 +3634,8 @@ export const appRouter = router({
       .query(async ({ ctx, input }) => {
         const project = await db.getProjectById(input.id);
         console.log('[DEBUG] Project quotationId:', project?.quotationId);
+        console.log('[DEBUG] Project modeladoApprovedAt:', project?.modeladoApprovedAt);
+        console.log('[DEBUG] Project rendersApprovedAt:', project?.rendersApprovedAt);
         if (!project) {
           throw new TRPCError({ code: "NOT_FOUND", message: "Proyecto no encontrado" });
         }

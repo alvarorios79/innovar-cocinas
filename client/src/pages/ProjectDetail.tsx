@@ -167,6 +167,35 @@ export default function ProjectDetail() {
     },
   });
 
+  // Mutaciones para solicitar nueva aprobación
+  const resetRendersApproval = trpc.publicGallery.resetRendersApproval.useMutation({
+    onSuccess: (data) => {
+      utils.projects.getById.invalidate({ id: projectId });
+      toast.success("Aprobación de renders reiniciada");
+      // Abrir WhatsApp con el enlace
+      if (data.whatsAppLink) {
+        window.open(data.whatsAppLink, "_blank");
+      }
+    },
+    onError: (error) => {
+      toast.error(error.message || "Error al reiniciar aprobación");
+    },
+  });
+
+  const resetModeladoApproval = trpc.publicGallery.resetModeladoApproval.useMutation({
+    onSuccess: (data) => {
+      utils.projects.getById.invalidate({ id: projectId });
+      toast.success("Aprobación de modelado reiniciada");
+      // Abrir WhatsApp con el enlace
+      if (data.whatsAppLink) {
+        window.open(data.whatsAppLink, "_blank");
+      }
+    },
+    onError: (error) => {
+      toast.error(error.message || "Error al reiniciar aprobación");
+    },
+  });
+
   // Mapeo de subcategoría de foto a siguiente estado del proyecto
   const photoToNextStatus: Record<string, string> = {
     despiece: "corte",
@@ -586,6 +615,61 @@ export default function ProjectDetail() {
                   Solicitar Cambios
                 </Button>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Sección de Solicitar Nueva Aprobación - visible cuando hay aprobaciones previas */}
+        {(user?.role === "super_admin" || user?.role === "admin") && (projectDetail.modeladoApprovedAt || projectDetail.rendersApprovedAt) && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+            <h4 className="font-medium text-blue-800 mb-3 flex items-center gap-2">
+              <RefreshCw className="h-4 w-4" />
+              Solicitar Nueva Aprobación
+            </h4>
+            <p className="text-sm text-blue-700 mb-4">
+              Si el cliente solicitó cambios después de aprobar, sube las nuevas fotos y solicita una nueva aprobación.
+            </p>
+            <div className="space-y-3">
+              {projectDetail.modeladoApprovedAt && (
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 bg-blue-100 rounded-lg">
+                  <div>
+                    <p className="text-sm font-medium text-blue-800">Modelado 3D</p>
+                    <p className="text-xs text-blue-600">
+                      Aprobado por {projectDetail.modeladoApprovedBy} el {new Date(projectDetail.modeladoApprovedAt).toLocaleDateString('es-CO')}
+                    </p>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="border-blue-400 text-blue-700 hover:bg-blue-200"
+                    onClick={() => resetModeladoApproval.mutate({ projectId: projectDetail.id })}
+                    disabled={resetModeladoApproval.isPending}
+                  >
+                    <RefreshCw className={`h-4 w-4 mr-1 ${resetModeladoApproval.isPending ? 'animate-spin' : ''}`} />
+                    Nueva Aprobación Modelado
+                  </Button>
+                </div>
+              )}
+              {projectDetail.rendersApprovedAt && (
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 bg-amber-100 rounded-lg">
+                  <div>
+                    <p className="text-sm font-medium text-amber-800">Renders</p>
+                    <p className="text-xs text-amber-600">
+                      Aprobado por {projectDetail.rendersApprovedBy} el {new Date(projectDetail.rendersApprovedAt).toLocaleDateString('es-CO')}
+                    </p>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="border-amber-400 text-amber-700 hover:bg-amber-200"
+                    onClick={() => resetRendersApproval.mutate({ projectId: projectDetail.id })}
+                    disabled={resetRendersApproval.isPending}
+                  >
+                    <RefreshCw className={`h-4 w-4 mr-1 ${resetRendersApproval.isPending ? 'animate-spin' : ''}`} />
+                    Nueva Aprobación Renders
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         )}

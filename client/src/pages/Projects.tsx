@@ -47,10 +47,13 @@ import { ProjectInlineDetail } from "@/components/ProjectInlineDetail";
 
 // Estados del proyecto según Ruta INNOVAR
 const PROJECT_STATUSES: Record<string, { label: string; color: string; icon: any }> = {
+  contacto_inicial: { label: "Contacto Inicial", color: "bg-slate-400", icon: Clock },
+  visita_medidas: { label: "Visita Medidas", color: "bg-slate-500", icon: Clock },
   cotizacion_enviada: { label: "Cotización Enviada", color: "bg-gray-500", icon: Clock },
   cotizacion_aprobada: { label: "Cotización Aprobada", color: "bg-blue-400", icon: CheckCircle2 },
   adelanto_recibido: { label: "Adelanto Recibido", color: "bg-blue-500", icon: CheckCircle2 },
   en_diseno: { label: "En Diseño", color: "bg-purple-500", icon: Paintbrush },
+  pendiente_modelado: { label: "Pendiente Aprobación Modelado", color: "bg-violet-500", icon: AlertCircle },
   pendiente_cliente: { label: "Diseño Listo", color: "bg-yellow-500", icon: AlertCircle },
   pendiente_render: { label: "Pendiente Aprobación Render", color: "bg-amber-500", icon: AlertCircle },
   aprobacion_final: { label: "Aprobación Final", color: "bg-green-400", icon: CheckCircle2 },
@@ -63,7 +66,10 @@ const PROJECT_STATUSES: Record<string, { label: string; color: string; icon: any
 };
 
 // Función para obtener la etiqueta dinámica del estado
-const getStatusLabel = (status: string, renderRevisionNumber?: number | null): string => {
+const getStatusLabel = (status: string, modeladoRevisionNumber?: number | null, renderRevisionNumber?: number | null): string => {
+  if (status === "pendiente_modelado" && modeladoRevisionNumber && modeladoRevisionNumber > 0) {
+    return `Pendiente Aprobación Modelado ${modeladoRevisionNumber}`;
+  }
   if (status === "pendiente_render" && renderRevisionNumber && renderRevisionNumber > 0) {
     return `Pendiente Aprobación Render ${renderRevisionNumber}`;
   }
@@ -381,7 +387,7 @@ export default function Projects() {
     return false;
   };
 
-  const getStatusBadge = (status: string, renderRevisionNumber?: number | null) => {
+  const getStatusBadge = (status: string, modeladoRevisionNumber?: number | null, renderRevisionNumber?: number | null) => {
     const config = PROJECT_STATUSES[status];
     if (!config) return <Badge>{status}</Badge>;
     
@@ -389,7 +395,7 @@ export default function Projects() {
     return (
       <Badge className={`${config.color} text-white`}>
         <Icon className="h-3 w-3 mr-1" />
-        {getStatusLabel(status, renderRevisionNumber)}
+        {getStatusLabel(status, modeladoRevisionNumber, renderRevisionNumber)}
       </Badge>
     );
   };
@@ -659,7 +665,7 @@ export default function Projects() {
                           <h3 className="font-semibold text-base sm:text-lg truncate max-w-[200px] sm:max-w-none">
                             {project.name}
                           </h3>
-                          {getStatusBadge(project.status, (project as any).renderRevisionNumber)}
+                          {getStatusBadge(project.status, (project as any).modeladoRevisionNumber, (project as any).renderRevisionNumber)}
                         </div>
                         <div className="text-sm text-muted-foreground grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-1">
                           <p className="flex items-center gap-1">
@@ -784,7 +790,7 @@ export default function Projects() {
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 {selectedProject?.name}
-                {selectedProject && getStatusBadge(selectedProject.status, (selectedProject as any).renderRevisionNumber)}
+                {selectedProject && getStatusBadge(selectedProject.status, (selectedProject as any).modeladoRevisionNumber, (selectedProject as any).renderRevisionNumber)}
               </DialogTitle>
               <DialogDescription className="flex items-center justify-between">
                 <span>{WORK_TYPES[selectedProject?.workType as keyof typeof WORK_TYPES]} - {selectedProject?.client?.name}</span>

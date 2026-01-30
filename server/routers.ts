@@ -5900,8 +5900,9 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
         notifyClient: z.boolean().default(true),
       }))
       .mutation(async ({ ctx, input }) => {
-        // Solo super_admin y admin pueden reiniciar aprobación
-        if (ctx.user.role !== "super_admin" && ctx.user.role !== "admin") {
+        // Solo super_admin, admin y comercial pueden reiniciar aprobación
+        const allowedRoles = ["super_admin", "admin", "comercial"];
+        if (!allowedRoles.includes(ctx.user.role)) {
           throw new TRPCError({ code: "FORBIDDEN", message: "Solo administradores pueden solicitar nueva aprobación" });
         }
 
@@ -5910,10 +5911,25 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
           throw new TRPCError({ code: "NOT_FOUND", message: "Proyecto no encontrado" });
         }
 
-        // Reiniciar campos de aprobación de modelado
+        // Incrementar el contador de revisiones de modelado
+        const currentRevision = (project as any).modeladoRevisionNumber || 0;
+        const newRevision = currentRevision + 1;
+
+        // Reiniciar campos de aprobación de modelado y actualizar contador
         await db.updateProject(input.projectId, {
           modeladoApprovedAt: null,
           modeladoApprovedBy: null,
+          status: "pendiente_modelado",
+          modeladoRevisionNumber: newRevision,
+        });
+
+        // Registrar cambio de estado en historial
+        await db.createProjectStatusHistory({
+          projectId: input.projectId,
+          fromStatus: project.status,
+          toStatus: "pendiente_modelado",
+          changedBy: ctx.user.id,
+          notes: `Nueva aprobación de modelado solicitada (Revisión #${newRevision})`,
         });
 
         // Obtener cliente para notificación
@@ -5939,10 +5955,88 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
 
         return {
           success: true,
-          message: "Aprobación de modelado 3D reiniciada. El cliente puede aprobar la nueva versión.",
+          message: `Nueva aprobación de modelado solicitada (Revisión #${newRevision})`,
           galleryLink,
           whatsAppLink,
           clientName: client?.name,
+          revisionNumber: newRevision,
+        };
+      }),
+
+    // Enviar modelado al cliente (cambia estado a pendiente_modelado)
+    sendModeladoToClient: protectedProcedure
+      .input(z.object({
+        projectId: z.number(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        // Solo admin, super_admin, comercial y diseñador pueden enviar modelado
+        const allowedRoles = ["super_admin", "admin", "comercial", "disenador"];
+        if (!allowedRoles.includes(ctx.user.role)) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para enviar modelado" });
+        }
+
+        const project = await db.getProjectById(input.projectId);
+        if (!project) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Proyecto no encontrado" });
+        }
+
+        // Verificar que hay modelado para enviar
+        const photos = await db.getProjectPhotosByProjectId(input.projectId);
+        const modeladoPhotos = photos.filter((p: any) => p.subcategory === "modelado");
+        if (modeladoPhotos.length === 0) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "No hay modelado para enviar" });
+        }
+
+        // Determinar el número de revisión
+        const currentRevision = (project as any).modeladoRevisionNumber || 0;
+        const newRevision = currentRevision === 0 ? 1 : currentRevision;
+        
+        // Solo cambiar estado si no está ya en pendiente_modelado
+        if (project.status !== "pendiente_modelado") {
+          // Actualizar estado y contador de revisiones
+          await db.updateProject(input.projectId, {
+            status: "pendiente_modelado",
+            modeladoRevisionNumber: newRevision,
+          });
+          
+          // Registrar cambio de estado en historial
+          await db.createProjectStatusHistory({
+            projectId: input.projectId,
+            fromStatus: project.status,
+            toStatus: "pendiente_modelado",
+            changedBy: ctx.user.id,
+            notes: `Modelado 3D enviado al cliente (Revisión #${newRevision})`,
+          });
+        }
+
+        // Obtener cliente para generar enlace
+        const client = project.clientId ? await db.getClientById(project.clientId) : null;
+        const baseUrl = process.env.VITE_APP_URL || "https://innovarcocinas.manus.space";
+        const galleryLink = `${baseUrl}/gallery?project=${input.projectId}&type=modelado`;
+
+        // Generar mensaje de WhatsApp
+        let whatsAppLink = null;
+        if (client?.whatsappPhone) {
+          const phone = client.whatsappPhone.replace(/\D/g, '');
+          const message = encodeURIComponent(
+            `¡Hola ${client.name}! 👋\n\n` +
+            `Le escribimos de *INNOVAR Cocinas Integrales*.\n\n` +
+            `Ya tenemos listo el *modelado 3D* de su proyecto *"${project.name}"*. 🏠\n\n` +
+            `✨ Hemos preparado *${modeladoPhotos.length} imágenes* del modelado para que las revise.\n\n` +
+            `👉 *Ver todas las imágenes aquí:*\n${galleryLink}\n\n` +
+            `Por favor revíselas y confírmenos si está de acuerdo con el diseño para continuar con los renders finales.\n\n` +
+            `¿Aprueba el modelado para continuar? ✅`
+          );
+          whatsAppLink = `https://wa.me/${phone}?text=${message}`;
+        }
+
+        return {
+          success: true,
+          message: `Modelado 3D enviado al cliente (Revisión #${newRevision})`,
+          galleryLink,
+          whatsAppLink,
+          clientName: client?.name,
+          revisionNumber: newRevision,
         };
       }),
 

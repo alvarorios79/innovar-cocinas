@@ -152,10 +152,13 @@ export const projects = mysqlTable("projects", {
   name: varchar("name", { length: 255 }).notNull(),
   workType: mysqlEnum("workType", ["cocina", "closet", "puertas", "centro_tv"]).notNull(),
   status: mysqlEnum("status", [
-    "cotizacion_enviada",  // Cotización enviada, esperando respuesta
+    "contacto_inicial",    // Se crea cliente y cita (referido, llamada, web, etc.)
+    "visita_medidas",      // Visita realizada, datos para cotización
+    "cotizacion_enviada",  // Cotización creada y enviada al cliente
     "cotizacion_aprobada", // Cliente aprobó cotización, esperando adelanto
     "adelanto_recibido",   // Adelanto recibido, inicia diseño (3 días hábiles)
     "en_diseno",           // Diseñador trabajando en modelado
+    "pendiente_modelado",  // Modelado enviado, esperando aprobación del cliente
     "pendiente_cliente",   // Modelado aprobado, preparando renders ("Diseño Listo")
     "pendiente_render",    // Renders enviados, esperando aprobación del cliente
     "aprobacion_final",    // Cliente aprobó renders, inician 25 días hábiles
@@ -166,7 +169,7 @@ export const projects = mysqlTable("projects", {
     "listo_instalacion",   // Listo para instalar
     "instalacion_programada", // Instalación programada en calendario
     "entregado"            // Proyecto completado
-  ]).default("cotizacion_enviada").notNull(),
+  ]).default("contacto_inicial").notNull(),
   
   // Medidas iniciales
   initialMeasurements: text("initialMeasurements"),
@@ -203,6 +206,8 @@ export const projects = mysqlTable("projects", {
   // Aprobación de renders por el cliente (desde galería pública)
   rendersApprovedAt: timestamp("rendersApprovedAt"),
   rendersApprovedBy: varchar("rendersApprovedBy", { length: 255 }), // Nombre del cliente que aprobó
+  // Contador de revisiones de modelado (1 = primera versión, 2 = segunda versión después de cambios, etc.)
+  modeladoRevisionNumber: int("modeladoRevisionNumber").default(0),
   // Contador de revisiones de renders (1 = primera versión, 2 = segunda versión después de cambios, etc.)
   renderRevisionNumber: int("renderRevisionNumber").default(0),
   // Selección de colores y materiales

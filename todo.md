@@ -3268,3 +3268,52 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Actualizar historial de proyecto para mostrar "Renders enviados al cliente (Revisión #X)"
 - [x] Flujo implementado: En Diseño → Diseño Listo (modelado aprobado) → Pendiente Render 1 → Pendiente Render 2... → Aprobación Final
 
+
+
+## Estado pendiente_modelado con contador de revisiones
+
+- [ ] Agregar campo modeladoRevisionNumber en la base de datos
+- [ ] Agregar nuevo estado "pendiente_modelado" al enum de status
+- [ ] Crear procedimiento sendModeladoToClient que cambia estado y abre WhatsApp
+- [ ] Actualizar PROJECT_STATUSES en todos los componentes con pendiente_modelado
+- [ ] Agregar función getStatusLabel para mostrar "Pendiente Aprobación Modelado X"
+- [ ] Actualizar botón "Enviar Modelado" para usar la nueva mutación
+- [ ] Actualizar botón "Nueva Aprobación de Modelado" para incrementar contador
+- [ ] Actualizar historial del proyecto Ruth con el flujo correcto de modelado
+- [ ] Flujo completo: En Diseño → Pendiente Modelado 1 → (cambios) → Pendiente Modelado 2 → Diseño Listo → Pendiente Render 1 → etc.
+
+
+
+## Flujo Completo de Estados del Proyecto (Implementado)
+
+### Estados agregados
+- [x] contacto_inicial - Se crea cliente y cita (referido, llamada, web, etc.)
+- [x] visita_medidas - Visita realizada, datos para cotización
+- [x] pendiente_modelado - Modelado enviado, esperando aprobación del cliente (con contador de revisiones)
+- [x] pendiente_render - Renders enviados, esperando aprobación del cliente (con contador de revisiones)
+
+### Funcionalidades implementadas
+- [x] Campo modeladoRevisionNumber para contar revisiones de modelado
+- [x] Campo renderRevisionNumber para contar revisiones de renders
+- [x] Procedimiento sendModeladoToClient - Cambia estado y abre WhatsApp
+- [x] Procedimiento sendRendersToClient - Cambia estado y abre WhatsApp
+- [x] Procedimiento resetModeladoApproval - Incrementa contador y cambia estado
+- [x] Procedimiento resetRendersApproval - Incrementa contador y cambia estado
+- [x] Etiquetas dinámicas: "Pendiente Aprobación Modelado 1/2/3..." y "Pendiente Aprobación Render 1/2/3..."
+- [x] Bloqueo de "Nueva Aprobación de Modelado" cuando hay renders
+- [x] Historial completo del proyecto Ruth con flujo correcto
+
+### Flujo completo implementado
+1. contacto_inicial → Cliente creado y cita programada
+2. visita_medidas → Visita realizada, datos para cotización
+3. cotizacion_enviada → Cotización creada y enviada
+4. cotizacion_aprobada → Cliente aprobó cotización
+5. adelanto_recibido → Adelanto 60% recibido
+6. en_diseno → Diseñador trabajando
+7. pendiente_modelado → Modelado enviado (Revisión #1, #2...)
+8. pendiente_cliente → Modelado aprobado ("Diseño Listo")
+9. pendiente_render → Renders enviados (Revisión #1, #2...)
+10. aprobacion_final → Renders aprobados
+11. despiece, corte, enchape, ensamble → Producción
+12. listo_instalacion, instalacion_programada → Instalación
+13. entregado → Proyecto completado

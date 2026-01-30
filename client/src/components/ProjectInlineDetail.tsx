@@ -40,10 +40,13 @@ import { LazyImage } from "@/components/LazyImage";
 import { toast } from "sonner";
 
 const PROJECT_STATUSES: Record<string, { label: string; color: string; icon: any }> = {
+  contacto_inicial: { label: "Contacto Inicial", color: "bg-slate-400", icon: Clock },
+  visita_medidas: { label: "Visita Medidas", color: "bg-slate-500", icon: Clock },
   cotizacion_enviada: { label: "Cotización Enviada", color: "bg-gray-500", icon: Clock },
   cotizacion_aprobada: { label: "Cotización Aprobada", color: "bg-blue-400", icon: CheckCircle2 },
   adelanto_recibido: { label: "Cliente Confirmado - Iniciar Diseño", color: "bg-blue-500", icon: CheckCircle2 },
   en_diseno: { label: "En Diseño", color: "bg-purple-500", icon: AlertCircle },
+  pendiente_modelado: { label: "Pendiente Aprobación Modelado", color: "bg-violet-500", icon: AlertCircle },
   pendiente_cliente: { label: "Diseño Listo", color: "bg-yellow-500", icon: AlertCircle },
   pendiente_render: { label: "Pendiente Aprobación Render", color: "bg-amber-500", icon: AlertCircle },
   aprobacion_final: { label: "Aprobación Final", color: "bg-green-400", icon: CheckCircle2 },
@@ -56,7 +59,10 @@ const PROJECT_STATUSES: Record<string, { label: string; color: string; icon: any
 };
 
 // Función para obtener la etiqueta dinámica del estado
-const getStatusLabel = (status: string, renderRevisionNumber?: number | null): string => {
+const getStatusLabel = (status: string, modeladoRevisionNumber?: number | null, renderRevisionNumber?: number | null): string => {
+  if (status === "pendiente_modelado" && modeladoRevisionNumber && modeladoRevisionNumber > 0) {
+    return `Pendiente Aprobación Modelado ${modeladoRevisionNumber}`;
+  }
   if (status === "pendiente_render" && renderRevisionNumber && renderRevisionNumber > 0) {
     return `Pendiente Aprobación Render ${renderRevisionNumber}`;
   }
@@ -67,6 +73,7 @@ const getStatusLabel = (status: string, renderRevisionNumber?: number | null): s
 const PAID_ADVANCE_STATUSES = [
   "adelanto_recibido",
   "en_diseno",
+  "pendiente_modelado",
   "pendiente_cliente",
   "pendiente_render",
   "aprobacion_final",
@@ -233,6 +240,23 @@ export function ProjectInlineDetail({
     },
   });
 
+  const sendModeladoToClient = trpc.publicGallery.sendModeladoToClient.useMutation({
+    onSuccess: (result) => {
+      utils.projects.getById.invalidate();
+      utils.projects.list.invalidate();
+      toast.success(result.message);
+      // Abrir WhatsApp si hay enlace
+      if (result.whatsAppLink) {
+        setTimeout(() => {
+          window.open(result.whatsAppLink as string, "_blank");
+        }, 500);
+      }
+    },
+    onError: (error) => {
+      toast.error(error.message || "Error al enviar modelado");
+    },
+  });
+
   const sendRendersToClient = trpc.publicGallery.sendRendersToClient.useMutation({
     onSuccess: (result) => {
       utils.projects.getById.invalidate();
@@ -370,7 +394,7 @@ export function ProjectInlineDetail({
         <div className="flex items-center gap-2">
           <h3 className="font-semibold text-lg">{project.name}</h3>
           <Badge className={`${PROJECT_STATUSES[project.status as keyof typeof PROJECT_STATUSES]?.color || "bg-gray-500"} text-white`}>
-            {getStatusLabel(project.status, (project as any).renderRevisionNumber)}
+            {getStatusLabel(project.status, (project as any).modeladoRevisionNumber, (project as any).renderRevisionNumber)}
           </Badge>
         </div>
         <div className="flex items-center gap-2">
@@ -384,7 +408,7 @@ export function ProjectInlineDetail({
                 const baseUrl = window.location.origin;
                 const portalUrl = `${baseUrl}/portal?project=${project.id}`;
                 const workTypeLabel = WORK_TYPES[project.workType as keyof typeof WORK_TYPES] || project.workType;
-                const statusLabel = getStatusLabel(project.status, (project as any).renderRevisionNumber);
+                const statusLabel = getStatusLabel(project.status, (project as any).modeladoRevisionNumber, (project as any).renderRevisionNumber);
                 
                 const message = `Hola ${projectDetail.client?.name}, te escribimos de INNOVAR Cocinas Integrales.\n\nTu proyecto "${project.name}" (${workTypeLabel}) está en estado: ${statusLabel}.\n\nPuedes ver el seguimiento en:\n${portalUrl}\n\n¿Tienes alguna pregunta?`;
                 
@@ -670,21 +694,11 @@ export function ProjectInlineDetail({
                   <Button
                     size="sm"
                     className="w-full mt-3 bg-purple-600 hover:bg-purple-700 text-white shadow-sm text-xs"
-                    onClick={() => {
-                      const clientPhone = projectDetail.client?.whatsappPhone?.replace(/\D/g, "");
-                      const clientName = projectDetail.client?.name || "Cliente";
-                      const projectName = projectDetail.name;
-                      const modeladoPhotos = projectDetail.photos?.filter((p: any) => p.subcategory === "modelado") || [];
-                      const numPhotos = modeladoPhotos.length;
-                      const baseUrl = window.location.origin;
-                      const galleryUrl = `${baseUrl}/gallery?project=${projectDetail.id}&type=modelado`;
-                      const message = `¡Hola ${clientName}! 👋\n\nLe escribo de *INNOVAR Cocinas Integrales*.\n\nYa tenemos listo el *modelado 3D* de su proyecto *"${projectName}"*. 📐\n\n✨ Hemos preparado *${numPhotos} imágenes* del modelado para que las revise.\n\n👉 *Ver todas las imágenes aquí:*\n${galleryUrl}\n\nPor favor revise las imágenes en el enlace y díganos si necesita algún cambio o ajuste antes de continuar con los renders finales.\n\n¿Está conforme con el modelado o necesita algún cambio? 🤔`;
-                      const whatsappUrl = `https://wa.me/57${clientPhone}?text=${encodeURIComponent(message)}`;
-                      window.open(whatsappUrl, "_blank");
-                    }}
+                    onClick={() => sendModeladoToClient.mutate({ projectId: projectDetail.id })}
+                    disabled={sendModeladoToClient.isPending}
                   >
-                    <Send className="h-3 w-3 mr-1" />
-                    Enviar Modelado
+                    <Send className={`h-3 w-3 mr-1 ${sendModeladoToClient.isPending ? 'animate-spin' : ''}`} />
+                    {sendModeladoToClient.isPending ? 'Enviando...' : 'Enviar Modelado'}
                   </Button>
                 )}
               </div>
@@ -725,7 +739,7 @@ export function ProjectInlineDetail({
             </div>
             
             {/* Sección de Aprobación */}
-            {(projectDetail.status === "pendiente_cliente" || projectDetail.status === "pendiente_render") && (
+            {(projectDetail.status === "pendiente_modelado" || projectDetail.status === "pendiente_cliente" || projectDetail.status === "pendiente_render") && (
               <div className="bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20 rounded-lg p-4 border border-amber-200 dark:border-amber-700 mb-3">
                 <div className="flex items-center gap-2 mb-3">
                   <div className="p-1.5 bg-amber-500 rounded-lg text-white">

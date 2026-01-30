@@ -5874,6 +5874,59 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
           clientName: client?.name,
         };
       }),
+
+    // Reiniciar aprobación de modelado 3D para solicitar nueva aprobación
+    resetModeladoApproval: protectedProcedure
+      .input(z.object({
+        projectId: z.number(),
+        notifyClient: z.boolean().default(true),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        // Solo super_admin y admin pueden reiniciar aprobación
+        if (ctx.user.role !== "super_admin" && ctx.user.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Solo administradores pueden solicitar nueva aprobación" });
+        }
+
+        const project = await db.getProjectById(input.projectId);
+        if (!project) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Proyecto no encontrado" });
+        }
+
+        // Reiniciar campos de aprobación de modelado
+        await db.updateProject(input.projectId, {
+          modeladoApprovedAt: null,
+          modeladoApprovedBy: null,
+        });
+
+        // Obtener cliente para notificación
+        const client = project.clientId ? await db.getClientById(project.clientId) : null;
+        
+        // Generar enlace de galería
+        const baseUrl = process.env.VITE_APP_URL || "https://innovarcocinas.manus.space";
+        const galleryLink = `${baseUrl}/gallery?project=${input.projectId}&type=modelado`;
+
+        // Generar enlace de WhatsApp si se debe notificar
+        let whatsAppLink = null;
+        if (input.notifyClient && client?.whatsappPhone) {
+          const phone = client.whatsappPhone.replace(/\D/g, '');
+          const message = encodeURIComponent(
+            `¡Hola ${client.name}! 👋\n\n` +
+            `Hemos actualizado el modelado 3D de tu proyecto "${project.name}" con los cambios que solicitaste.\n\n` +
+            `Por favor revisa el nuevo diseño y apruébalo cuando estés satisfecho:\n` +
+            `${galleryLink}\n\n` +
+            `¡Gracias por tu confianza en INNOVAR Cocinas! 🏠`
+          );
+          whatsAppLink = `https://wa.me/${phone}?text=${message}`;
+        }
+
+        return {
+          success: true,
+          message: "Aprobación de modelado 3D reiniciada. El cliente puede aprobar la nueva versión.",
+          galleryLink,
+          whatsAppLink,
+          clientName: client?.name,
+        };
+      }),
   }),
 
   // ============ MATERIALES DE PROYECTO ============

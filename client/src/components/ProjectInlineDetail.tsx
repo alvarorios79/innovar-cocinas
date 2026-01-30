@@ -203,6 +203,22 @@ export function ProjectInlineDetail({
     },
   });
 
+  const resetModeladoApproval = trpc.publicGallery.resetModeladoApproval.useMutation({
+    onSuccess: (result) => {
+      utils.projects.getById.invalidate();
+      toast.success(result.message);
+      // Abrir WhatsApp si hay enlace
+      if (result.whatsAppLink) {
+        setTimeout(() => {
+          window.open(result.whatsAppLink as string, "_blank");
+        }, 1000);
+      }
+    },
+    onError: (error) => {
+      toast.error(error.message || "Error al solicitar nueva aprobación");
+    },
+  });
+
   if (isLoading || !projectDetail) {
     return (
       <div className="p-4 bg-muted/30 rounded-lg mt-2">
@@ -1100,6 +1116,26 @@ export function ProjectInlineDetail({
                       </Button>
                     )}
                   </CardTitle>
+                  {/* Botón de Solicitar Nueva Aprobación para modelado */}
+                  {folder === "modelado" && projectDetail.modeladoApprovedAt && (user?.role === "super_admin" || user?.role === "admin") && (
+                    <div className="mt-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded-md border border-blue-200 dark:border-blue-800">
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
+                        <div className="text-xs text-blue-700 dark:text-blue-300">
+                          <CheckCircle2 className="h-3 w-3 inline mr-1" />
+                          Aprobado por {projectDetail.modeladoApprovedBy} el {new Date(projectDetail.modeladoApprovedAt).toLocaleDateString('es-CO')}
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-7 text-xs border-blue-500 text-blue-700 hover:bg-blue-100"
+                          onClick={() => resetModeladoApproval.mutate({ projectId: projectDetail.id, notifyClient: true })}
+                          disabled={resetModeladoApproval.isPending}
+                        >
+                          {resetModeladoApproval.isPending ? "Enviando..." : "Solicitar Nueva Aprobación"}
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                   {/* Botón de Solicitar Nueva Aprobación para renders */}
                   {folder === "renders" && projectDetail.rendersApprovedAt && (user?.role === "super_admin" || user?.role === "admin") && (
                     <div className="mt-2 p-2 bg-amber-50 dark:bg-amber-900/20 rounded-md border border-amber-200 dark:border-amber-800">

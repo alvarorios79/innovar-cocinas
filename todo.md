@@ -3150,3 +3150,16 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Endpoint `publicGallery.resetRendersApproval` en routers.ts
 - [x] Botón en carpeta Renders de ProjectInlineDetail.tsx
 - [x] Visible solo cuando hay renders aprobados y para super_admin/admin
+
+
+## Feature: Solicitar Nueva Aprobación para Modelado 3D (29 Enero 2026)
+
+### Objetivo
+- [x] Implementar botón "Solicitar Nueva Aprobación" para la carpeta de Modelado 3D
+- [x] Funcionalidad idéntica a la de Renders
+
+### Implementación
+- [x] Agregar endpoint `publicGallery.resetModeladoApproval` en routers.ts
+- [x] Agregar botón en carpeta Modelado de ProjectInlineDetail.tsx
+- [x] Visible solo cuando hay modelado aprobado y para super_admin/admin
+- [x] Botón con estilo azul para diferenciar de renders (amber)

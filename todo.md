@@ -3233,3 +3233,12 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Sección Nueva Aprobación (índigo) con tarjetas de estado para Modelado y Renders
 - [x] Aplicar diseño en ProjectDetail.tsx (página individual)
 - [x] Aplicar diseño en ProjectInlineDetail.tsx (vista expandible en lista)
+
+
+## Bug: Lógica incorrecta en Centro de Control de Diseño
+
+- [x] Bloquear botón "Nueva Aprobación de Modelado" cuando hay renders subidos
+- [x] Mostrar mensaje explicativo cuando el botón está bloqueado ("Bloqueado - Ya hay renders")
+- [x] Mantener activo solo "Nueva Aprobación de Renders" cuando hay renders
+- [x] Mostrar estado "Pendiente aprobación del cliente" cuando hay renders sin aprobar
+- [x] Flujo correcto: Modelado enviado → Cliente aprueba/pide cambios → (si cambios: nueva aprobación modelado) → Renders enviados → Cliente aprueba/pide cambios → (si cambios: nueva aprobación renders)

@@ -3132,3 +3132,21 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Cambiado a `opacity-100 sm:opacity-0 sm:group-hover:opacity-100` para que sea visible en móviles
 - [x] Agregado rol comercial a los permisos del botón
 - [x] Aumentado tamaño del botón en móviles (p-1.5, h-4 w-4) para mejor usabilidad táctil
+
+
+## Feature: Galería Dinámica de Renders con Nueva Aprobación (29 Enero 2026)
+
+### Objetivo
+- [x] Hacer que la galería de renders sea dinámica (muestre siempre todas las fotos actuales)
+- [x] Implementar botón "Solicitar Nueva Aprobación" para super_admin y admin
+- [x] No existía botón "Reenviar enlace" - no fue necesario eliminar nada
+
+### Funcionalidad del botón "Solicitar Nueva Aprobación"
+- [x] Reiniciar el estado de aprobación del diseño (limpia rendersApprovedAt y rendersApprovedBy)
+- [x] Enviar notificación al cliente por WhatsApp con el enlace de la galería
+- [x] El cliente puede aprobar la nueva versión con el mismo enlace
+
+### Implementación
+- [x] Endpoint `publicGallery.resetRendersApproval` en routers.ts
+- [x] Botón en carpeta Renders de ProjectInlineDetail.tsx
+- [x] Visible solo cuando hay renders aprobados y para super_admin/admin

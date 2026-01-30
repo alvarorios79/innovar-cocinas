@@ -354,14 +354,19 @@ export default function Projects() {
   };
 
   const getNextStatus = (currentStatus: string): string | null => {
-    // Flujo según Ruta INNOVAR
+    // Flujo completo según Ruta INNOVAR
     const flow: Record<string, string> = {
+      contacto_inicial: "visita_medidas",
+      visita_medidas: "cotizacion_enviada",
       cotizacion_enviada: "cotizacion_aprobada",
       cotizacion_aprobada: "adelanto_recibido",
       adelanto_recibido: "en_diseno",
-      en_diseno: "pendiente_cliente",
-      // pendiente_cliente -> aprobacion_final (se hace con approveDesign)
-      aprobacion_final: "corte",
+      en_diseno: "pendiente_modelado",
+      pendiente_modelado: "pendiente_cliente",
+      pendiente_cliente: "pendiente_render",
+      pendiente_render: "aprobacion_final",
+      aprobacion_final: "despiece",
+      despiece: "corte",
       corte: "enchape",
       enchape: "ensamble",
       ensamble: "listo_instalacion",

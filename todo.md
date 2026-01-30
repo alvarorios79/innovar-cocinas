@@ -3354,3 +3354,10 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Etiquetas dinámicas: "Pendiente Aprobación Modelado 1", "Pendiente Aprobación Render 2", etc.
 - [x] Botón verde "Avanzar" funciona para todos los estados incluyendo pendiente_modelado y pendiente_render
 
+
+
+## Bug: Botón Avanzar no aparece en proyecto Ruth (30 ene 2026)
+
+- [x] Revisar lógica de canAdvanceStatus y getNextStatus en Projects.tsx
+- [x] Verificar que pendiente_render está incluido en los estados que pueden avanzar
+- [x] Corregir getNextStatus para incluir flujo completo: contacto_inicial → visita_medidas → ... → pendiente_modelado → pendiente_cliente → pendiente_render → aprobacion_final → despiece → ...

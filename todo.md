@@ -3207,3 +3207,29 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Modificar sección en ProjectInlineDetail.tsx
 - [x] Botones deshabilitados en gris con texto "Aún no ha sido aprobado por el cliente"
 - [x] Botones activos con colores distintivos (azul para Modelado, ámbar para Renders)
+
+
+## Mejora: Rediseño de sección de control de diseño (29 Enero 2026)
+
+### Objetivo
+- [ ] Rediseñar la sección de botones de aprobación, nueva aprobación y envío de renders/modelado
+- [ ] Crear un diseño más atractivo y profesional
+- [ ] Unificar todos los controles de diseño en una sola sección bien organizada
+
+### Implementación
+- [ ] Crear diseño con tarjetas visuales para cada acción
+- [ ] Usar iconos y colores distintivos
+- [ ] Implementar en ProjectDetail.tsx
+- [ ] Implementar en ProjectInlineDetail.tsx
+
+
+## Rediseño Centro de Control de Diseño
+
+- [x] Rediseñar sección de botones de aprobación, nueva aprobación y enviar render/modelado
+- [x] Implementar nuevo diseño con tarjetas visuales y colores distintivos
+- [x] Tarjeta Modelado 3D (púrpura) con botón Enviar Modelado
+- [x] Tarjeta Renders Finales (esmeralda) con botón Enviar Renders
+- [x] Sección de Aprobación (ámbar) con botones Aprobar Diseño y Solicitar Cambios
+- [x] Sección Nueva Aprobación (índigo) con tarjetas de estado para Modelado y Renders
+- [x] Aplicar diseño en ProjectDetail.tsx (página individual)
+- [x] Aplicar diseño en ProjectInlineDetail.tsx (vista expandible en lista)

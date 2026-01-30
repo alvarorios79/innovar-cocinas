@@ -31,7 +31,10 @@ import {
   Receipt,
   Trash2,
   RefreshCw,
-  ArrowRight
+  ArrowRight,
+  XCircle,
+  Box,
+  ImageIcon
 } from "lucide-react";
 import { useFileViewer, FileViewer } from "@/components/FileViewer";
 import { MaterialsForm } from "@/components/MaterialsForm";
@@ -507,176 +510,210 @@ export default function ProjectDetail() {
           )}
         </div>
 
-        {/* Alerta de aprobación - Flujo en dos pasos: Modelado → Renders */}
-        {projectDetail.status === "pendiente_cliente" && 
-          (user?.role === "admin" || user?.role === "super_admin" || user?.role === "comercial") && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-            <h4 className="font-medium text-yellow-800 mb-2 flex items-center gap-2">
-              <AlertCircle className="h-4 w-4" />
-              Pendiente de Aprobación del Cliente
-            </h4>
-            <p className="text-sm text-yellow-700 mb-4">
-              Flujo de aprobación: <strong>1) Enviar Modelado</strong> para que el cliente revise y solicite cambios → <strong>2) Enviar Renders</strong> para aprobación final.
-            </p>
-            
-            {/* PASO 1: Botón de WhatsApp para enviar MODELADO (revisión) */}
-            {projectDetail.photos && projectDetail.photos.filter((p: any) => p.subcategory === "modelado").length > 0 && (
-              <div className="mb-4 p-3 bg-purple-50 border border-purple-200 rounded-lg">
-                <p className="text-sm text-purple-700 mb-2 font-medium">📐 Paso 1: Enviar Modelado para Revisión</p>
-                <p className="text-xs text-purple-600 mb-2">El cliente revisará el modelado y podrá solicitar cambios antes de continuar.</p>
-                <Button
-                  size="sm"
-                  className="bg-purple-500 hover:bg-purple-600 text-white"
-                  onClick={() => {
-                    const clientPhone = projectDetail.client?.whatsappPhone?.replace(/\D/g, "");
-                    const clientName = projectDetail.client?.name || "Cliente";
-                    const projectName = projectDetail.name;
-                    
-                    // Obtener cantidad de fotos de modelado
-                    const modeladoPhotos = projectDetail.photos?.filter((p: any) => p.subcategory === "modelado") || [];
-                    const numPhotos = modeladoPhotos.length;
-                    
-                    // Crear enlace a la galería pública (sin login, solo fotos con logo INNOVAR)
-                    const baseUrl = window.location.origin;
-                    const galleryUrl = `${baseUrl}/gallery?project=${projectDetail.id}&type=modelado`;
-                    
-                    // Mensaje con enlace a la galería pública
-                    const message = `¡Hola ${clientName}! 👋\n\nLe escribo de *INNOVAR Cocinas Integrales*.\n\nYa tenemos listo el *modelado 3D* de su proyecto *"${projectName}"*. 📐\n\n✨ Hemos preparado *${numPhotos} imágenes* del modelado para que las revise.\n\n👉 *Ver todas las imágenes aquí:*\n${galleryUrl}\n\nPor favor revise las imágenes en el enlace y díganos si necesita algún cambio o ajuste antes de continuar con los renders finales.\n\n¿Está conforme con el modelado o necesita algún cambio? 🤔`;
-                    
-                    const whatsappUrl = `https://wa.me/57${clientPhone}?text=${encodeURIComponent(message)}`;
-                    window.open(whatsappUrl, "_blank");
-                  }}
-                >
-                  <MessageCircle className="h-4 w-4 mr-1" />
-                  Enviar Modelado por WhatsApp
-                </Button>
-                <p className="text-xs text-purple-500 mt-2">Se enviarán {projectDetail.photos?.filter((p: any) => p.subcategory === "modelado").length} imagen(es) de modelado al cliente (galería con logo INNOVAR)</p>
-              </div>
-            )}
-            
-            {/* PASO 2: Botón de WhatsApp para enviar RENDERS (aprobación final) */}
-            {projectDetail.photos && projectDetail.photos.filter((p: any) => p.subcategory === "renders").length > 0 && (
-              <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-                <p className="text-sm text-green-700 mb-2 font-medium">🎨 Paso 2: Enviar Renders para Aprobación Final</p>
-                <p className="text-xs text-green-600 mb-2">Envía los renders finales para que el cliente apruebe y continúe la producción.</p>
-                <Button
-                  size="sm"
-                  className="bg-green-500 hover:bg-green-600 text-white"
-                  onClick={() => {
-                    const clientPhone = projectDetail.client?.whatsappPhone?.replace(/\D/g, "");
-                    const clientName = projectDetail.client?.name || "Cliente";
-                    const projectName = projectDetail.name;
-                    
-                    // Obtener cantidad de renders
-                    const renderPhotos = projectDetail.photos?.filter((p: any) => p.subcategory === "renders") || [];
-                    const numRenders = renderPhotos.length;
-                    
-                    // Crear enlace a la galería pública (sin login, solo fotos con logo INNOVAR)
-                    const baseUrl = window.location.origin;
-                    const galleryUrl = `${baseUrl}/gallery?project=${projectDetail.id}&type=renders`;
-                    
-                    // Mensaje con enlace a la galería pública
-                    const message = `¡Hola ${clientName}! 👋\n\nLe escribo de *INNOVAR Cocinas Integrales*.\n\nYa tenemos listos los *renders finales* de su proyecto *"${projectName}"*. 🎨\n\n✨ Hemos preparado *${numRenders} imágenes* de los renders para que las revise.\n\n👉 *Ver todas las imágenes aquí:*\n${galleryUrl}\n\nEstos son los diseños definitivos. Por favor revíselos en el enlace y confirme si está de acuerdo para iniciar la producción.\n\n¿Aprueba el diseño para iniciar producción? ✅`;
-                    
-                    const whatsappUrl = `https://wa.me/57${clientPhone}?text=${encodeURIComponent(message)}`;
-                    window.open(whatsappUrl, "_blank");
-                  }}
-                >
-                  <MessageCircle className="h-4 w-4 mr-1" />
-                  Enviar Renders por WhatsApp
-                </Button>
-                <p className="text-xs text-green-500 mt-2">Se enviarán {projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length} imagen(es) de renders al cliente (galería con logo INNOVAR)</p>
-              </div>
-            )}
-            
-            {/* Botones de aprobación */}
-            <div className="mt-4 pt-4 border-t border-yellow-200">
-              <p className="text-sm text-yellow-700 mb-3 font-medium">✅ Cuando el cliente confirme por WhatsApp:</p>
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  size="sm"
-                  onClick={() => approveDesign.mutate({ projectId: projectDetail.id, approved: true })}
-                  disabled={approveDesign.isPending}
-                >
-                  <CheckCircle2 className="h-4 w-4 mr-1" />
-                  Aprobar Diseño
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => {
-                    const notes = prompt("Indica qué cambios se necesitan:");
-                    if (notes) {
-                      approveDesign.mutate({ projectId: projectDetail.id, approved: false, notes });
-                    }
-                  }}
-                  disabled={approveDesign.isPending}
-                >
-                  Solicitar Cambios
-                </Button>
-              </div>
+        {/* Panel de Control de Diseño - Diseño Moderno */}
+        {(user?.role === "admin" || user?.role === "super_admin" || user?.role === "comercial") && (
+          <div className="mb-6 rounded-xl overflow-hidden shadow-lg border border-gray-200 dark:border-gray-700">
+            {/* Header del Panel */}
+            <div className="bg-gradient-to-r from-teal-600 to-teal-500 px-6 py-4">
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                <Palette className="h-5 w-5" />
+                Centro de Control de Diseño
+              </h3>
+              <p className="text-teal-100 text-sm mt-1">Gestiona el envío y aprobación de diseños del cliente</p>
             </div>
-          </div>
-        )}
-
-        {/* Sección de Solicitar Nueva Aprobación - siempre visible para admin/super_admin */}
-        {(user?.role === "super_admin" || user?.role === "admin") && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-            <h4 className="font-medium text-blue-800 mb-3 flex items-center gap-2">
-              <RefreshCw className="h-4 w-4" />
-              Solicitar Nueva Aprobación
-            </h4>
-            <p className="text-sm text-blue-700 mb-4">
-              Si el cliente solicitó cambios después de aprobar, sube las nuevas fotos y solicita una nueva aprobación.
-            </p>
-            <div className="space-y-3">
-              {/* Modelado 3D */}
-              <div className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 rounded-lg ${projectDetail.modeladoApprovedAt ? 'bg-blue-100' : 'bg-gray-100'}`}>
-                <div>
-                  <p className={`text-sm font-medium ${projectDetail.modeladoApprovedAt ? 'text-blue-800' : 'text-gray-500'}`}>Modelado 3D</p>
-                  <p className={`text-xs ${projectDetail.modeladoApprovedAt ? 'text-blue-600' : 'text-gray-400'}`}>
-                    {projectDetail.modeladoApprovedAt 
-                      ? `Aprobado por ${projectDetail.modeladoApprovedBy} el ${new Date(projectDetail.modeladoApprovedAt).toLocaleDateString('es-CO')}`
-                      : 'Aún no ha sido aprobado por el cliente'}
-                  </p>
+            
+            <div className="bg-white dark:bg-gray-900 p-6">
+              {/* Grid de Tarjetas de Acción */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                
+                {/* Tarjeta Modelado 3D */}
+                <div className={`relative rounded-xl p-5 transition-all duration-300 ${projectDetail.photos?.filter((p: any) => p.subcategory === "modelado").length > 0 ? 'bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/30 border-2 border-purple-200 dark:border-purple-700 hover:shadow-md' : 'bg-gray-50 dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-600'}`}>
+                  <div className="flex items-start gap-4">
+                    <div className={`p-3 rounded-xl ${projectDetail.photos?.filter((p: any) => p.subcategory === "modelado").length > 0 ? 'bg-purple-500 text-white' : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400'}`}>
+                      <Box className="h-6 w-6" />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-gray-800 dark:text-gray-200">Modelado 3D</h4>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                        {projectDetail.photos?.filter((p: any) => p.subcategory === "modelado").length > 0 
+                          ? `${projectDetail.photos?.filter((p: any) => p.subcategory === "modelado").length} imagen(es) listas`
+                          : 'Sin imágenes aún'}
+                      </p>
+                      {projectDetail.modeladoApprovedAt && (
+                        <div className="mt-2 flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
+                          <CheckCircle2 className="h-3 w-3" />
+                          Aprobado por {projectDetail.modeladoApprovedBy}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  {projectDetail.photos?.filter((p: any) => p.subcategory === "modelado").length > 0 && (
+                    <Button
+                      size="sm"
+                      className="w-full mt-4 bg-purple-600 hover:bg-purple-700 text-white shadow-sm"
+                      onClick={() => {
+                        const clientPhone = projectDetail.client?.whatsappPhone?.replace(/\D/g, "");
+                        const clientName = projectDetail.client?.name || "Cliente";
+                        const projectName = projectDetail.name;
+                        const modeladoPhotos = projectDetail.photos?.filter((p: any) => p.subcategory === "modelado") || [];
+                        const numPhotos = modeladoPhotos.length;
+                        const baseUrl = window.location.origin;
+                        const galleryUrl = `${baseUrl}/gallery?project=${projectDetail.id}&type=modelado`;
+                        const message = `¡Hola ${clientName}! 👋\n\nLe escribo de *INNOVAR Cocinas Integrales*.\n\nYa tenemos listo el *modelado 3D* de su proyecto *"${projectName}"*. 📐\n\n✨ Hemos preparado *${numPhotos} imágenes* del modelado para que las revise.\n\n👉 *Ver todas las imágenes aquí:*\n${galleryUrl}\n\nPor favor revise las imágenes en el enlace y díganos si necesita algún cambio o ajuste antes de continuar con los renders finales.\n\n¿Está conforme con el modelado o necesita algún cambio? 🤔`;
+                        const whatsappUrl = `https://wa.me/57${clientPhone}?text=${encodeURIComponent(message)}`;
+                        window.open(whatsappUrl, "_blank");
+                      }}
+                    >
+                      <MessageCircle className="h-4 w-4 mr-2" />
+                      Enviar Modelado
+                    </Button>
+                  )}
                 </div>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className={projectDetail.modeladoApprovedAt 
-                    ? "border-blue-400 text-blue-700 hover:bg-blue-200" 
-                    : "border-gray-300 text-gray-400 cursor-not-allowed"}
-                  onClick={() => projectDetail.modeladoApprovedAt && resetModeladoApproval.mutate({ projectId: projectDetail.id })}
-                  disabled={!projectDetail.modeladoApprovedAt || resetModeladoApproval.isPending}
-                >
-                  <RefreshCw className={`h-4 w-4 mr-1 ${resetModeladoApproval.isPending ? 'animate-spin' : ''}`} />
-                  Nueva Aprobación Modelado
-                </Button>
+                
+                {/* Tarjeta Renders */}
+                <div className={`relative rounded-xl p-5 transition-all duration-300 ${projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length > 0 ? 'bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/30 dark:to-emerald-800/30 border-2 border-emerald-200 dark:border-emerald-700 hover:shadow-md' : 'bg-gray-50 dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-600'}`}>
+                  <div className="flex items-start gap-4">
+                    <div className={`p-3 rounded-xl ${projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length > 0 ? 'bg-emerald-500 text-white' : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400'}`}>
+                      <ImageIcon className="h-6 w-6" />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-gray-800 dark:text-gray-200">Renders Finales</h4>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                        {projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length > 0 
+                          ? `${projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length} imagen(es) listas`
+                          : 'Sin imágenes aún'}
+                      </p>
+                      {projectDetail.rendersApprovedAt && (
+                        <div className="mt-2 flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
+                          <CheckCircle2 className="h-3 w-3" />
+                          Aprobado por {projectDetail.rendersApprovedBy}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  {projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length > 0 && (
+                    <Button
+                      size="sm"
+                      className="w-full mt-4 bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm"
+                      onClick={() => {
+                        const clientPhone = projectDetail.client?.whatsappPhone?.replace(/\D/g, "");
+                        const clientName = projectDetail.client?.name || "Cliente";
+                        const projectName = projectDetail.name;
+                        const renderPhotos = projectDetail.photos?.filter((p: any) => p.subcategory === "renders") || [];
+                        const numRenders = renderPhotos.length;
+                        const baseUrl = window.location.origin;
+                        const galleryUrl = `${baseUrl}/gallery?project=${projectDetail.id}&type=renders`;
+                        const message = `¡Hola ${clientName}! 👋\n\nLe escribo de *INNOVAR Cocinas Integrales*.\n\nYa tenemos listos los *renders finales* de su proyecto *"${projectName}"*. 🎨\n\n✨ Hemos preparado *${numRenders} imágenes* de los renders para que las revise.\n\n👉 *Ver todas las imágenes aquí:*\n${galleryUrl}\n\nEstos son los diseños definitivos. Por favor revíselos en el enlace y confirme si está de acuerdo para iniciar la producción.\n\n¿Aprueba el diseño para iniciar producción? ✅`;
+                        const whatsappUrl = `https://wa.me/57${clientPhone}?text=${encodeURIComponent(message)}`;
+                        window.open(whatsappUrl, "_blank");
+                      }}
+                    >
+                      <MessageCircle className="h-4 w-4 mr-2" />
+                      Enviar Renders
+                    </Button>
+                  )}
+                </div>
               </div>
               
-              {/* Renders */}
-              <div className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 rounded-lg ${projectDetail.rendersApprovedAt ? 'bg-amber-100' : 'bg-gray-100'}`}>
-                <div>
-                  <p className={`text-sm font-medium ${projectDetail.rendersApprovedAt ? 'text-amber-800' : 'text-gray-500'}`}>Renders</p>
-                  <p className={`text-xs ${projectDetail.rendersApprovedAt ? 'text-amber-600' : 'text-gray-400'}`}>
-                    {projectDetail.rendersApprovedAt 
-                      ? `Aprobado por ${projectDetail.rendersApprovedBy} el ${new Date(projectDetail.rendersApprovedAt).toLocaleDateString('es-CO')}`
-                      : 'Aún no ha sido aprobado por el cliente'}
-                  </p>
+              {/* Sección de Aprobación */}
+              {projectDetail.status === "pendiente_cliente" && (
+                <div className="bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20 rounded-xl p-5 border border-amber-200 dark:border-amber-700 mb-4">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="p-2 bg-amber-500 rounded-lg text-white">
+                      <AlertCircle className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-amber-800 dark:text-amber-200">Pendiente de Aprobación</h4>
+                      <p className="text-sm text-amber-600 dark:text-amber-400">Cuando el cliente confirme por WhatsApp</p>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-3">
+                    <Button
+                      onClick={() => approveDesign.mutate({ projectId: projectDetail.id, approved: true })}
+                      disabled={approveDesign.isPending}
+                      className="bg-green-600 hover:bg-green-700 text-white shadow-sm"
+                    >
+                      <CheckCircle2 className="h-4 w-4 mr-2" />
+                      Aprobar Diseño
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="border-orange-400 text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20"
+                      onClick={() => {
+                        const notes = prompt("Indica qué cambios se necesitan:");
+                        if (notes) {
+                          approveDesign.mutate({ projectId: projectDetail.id, approved: false, notes });
+                        }
+                      }}
+                      disabled={approveDesign.isPending}
+                    >
+                      <XCircle className="h-4 w-4 mr-2" />
+                      Solicitar Cambios
+                    </Button>
+                  </div>
                 </div>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className={projectDetail.rendersApprovedAt 
-                    ? "border-amber-400 text-amber-700 hover:bg-amber-200" 
-                    : "border-gray-300 text-gray-400 cursor-not-allowed"}
-                  onClick={() => projectDetail.rendersApprovedAt && resetRendersApproval.mutate({ projectId: projectDetail.id })}
-                  disabled={!projectDetail.rendersApprovedAt || resetRendersApproval.isPending}
-                >
-                  <RefreshCw className={`h-4 w-4 mr-1 ${resetRendersApproval.isPending ? 'animate-spin' : ''}`} />
-                  Nueva Aprobación Renders
-                </Button>
-              </div>
+              )}
+              
+              {/* Sección Nueva Aprobación */}
+              {(user?.role === "super_admin" || user?.role === "admin") && (
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-5 border border-blue-200 dark:border-blue-700">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="p-2 bg-blue-500 rounded-lg text-white">
+                      <RefreshCw className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-blue-800 dark:text-blue-200">Solicitar Nueva Aprobación</h4>
+                      <p className="text-sm text-blue-600 dark:text-blue-400">Si el cliente solicitó cambios después de aprobar</p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {/* Modelado */}
+                    <div className={`p-4 rounded-lg ${projectDetail.modeladoApprovedAt ? 'bg-purple-100 dark:bg-purple-900/30' : 'bg-gray-100 dark:bg-gray-800'}`}>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className={`text-sm font-medium ${projectDetail.modeladoApprovedAt ? 'text-purple-800 dark:text-purple-200' : 'text-gray-500'}`}>Modelado 3D</span>
+                        {projectDetail.modeladoApprovedAt && <CheckCircle2 className="h-4 w-4 text-green-500" />}
+                      </div>
+                      <p className={`text-xs mb-3 ${projectDetail.modeladoApprovedAt ? 'text-purple-600 dark:text-purple-400' : 'text-gray-400'}`}>
+                        {projectDetail.modeladoApprovedAt 
+                          ? `Aprobado el ${new Date(projectDetail.modeladoApprovedAt).toLocaleDateString('es-CO')}`
+                          : 'Sin aprobar'}
+                      </p>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className={`w-full ${projectDetail.modeladoApprovedAt ? 'border-purple-400 text-purple-700 hover:bg-purple-200' : 'border-gray-300 text-gray-400'}`}
+                        onClick={() => projectDetail.modeladoApprovedAt && resetModeladoApproval.mutate({ projectId: projectDetail.id })}
+                        disabled={!projectDetail.modeladoApprovedAt || resetModeladoApproval.isPending}
+                      >
+                        <RefreshCw className={`h-3 w-3 mr-1 ${resetModeladoApproval.isPending ? 'animate-spin' : ''}`} />
+                        Nueva Aprobación
+                      </Button>
+                    </div>
+                    {/* Renders */}
+                    <div className={`p-4 rounded-lg ${projectDetail.rendersApprovedAt ? 'bg-emerald-100 dark:bg-emerald-900/30' : 'bg-gray-100 dark:bg-gray-800'}`}>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className={`text-sm font-medium ${projectDetail.rendersApprovedAt ? 'text-emerald-800 dark:text-emerald-200' : 'text-gray-500'}`}>Renders</span>
+                        {projectDetail.rendersApprovedAt && <CheckCircle2 className="h-4 w-4 text-green-500" />}
+                      </div>
+                      <p className={`text-xs mb-3 ${projectDetail.rendersApprovedAt ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-400'}`}>
+                        {projectDetail.rendersApprovedAt 
+                          ? `Aprobado el ${new Date(projectDetail.rendersApprovedAt).toLocaleDateString('es-CO')}`
+                          : 'Sin aprobar'}
+                      </p>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className={`w-full ${projectDetail.rendersApprovedAt ? 'border-emerald-400 text-emerald-700 hover:bg-emerald-200' : 'border-gray-300 text-gray-400'}`}
+                        onClick={() => projectDetail.rendersApprovedAt && resetRendersApproval.mutate({ projectId: projectDetail.id })}
+                        disabled={!projectDetail.rendersApprovedAt || resetRendersApproval.isPending}
+                      >
+                        <RefreshCw className={`h-3 w-3 mr-1 ${resetRendersApproval.isPending ? 'animate-spin' : ''}`} />
+                        Nueva Aprobación
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}

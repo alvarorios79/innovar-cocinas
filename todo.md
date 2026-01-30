@@ -3317,3 +3317,40 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 11. despiece, corte, enchape, ensamble → Producción
 12. listo_instalacion, instalacion_programada → Instalación
 13. entregado → Proyecto completado
+
+
+## Historial Unificado del Proyecto
+
+- [ ] Revisar estructura de tablas clients, appointments, quotations y projects
+- [ ] Crear endpoint getUnifiedHistory que combine eventos de cliente, citas, cotización y proyecto
+- [ ] Mostrar en el historial del proyecto:
+  - Fecha de creación del cliente (contacto_inicial)
+  - Fecha de la cita/visita realizada (visita_medidas)
+  - Fecha de envío de cotización (cotizacion_enviada)
+  - Fecha de aprobación de cotización (cotizacion_aprobada)
+  - Historial normal del proyecto (desde projectStatusHistory)
+- [ ] Actualizar frontend para mostrar historial unificado en ProjectDetail.tsx y ProjectInlineDetail.tsx
+
+
+## Historial Unificado del Proyecto (30 ene 2026)
+
+- [x] Revisar estructura de tablas clients, appointments, quotations y projects
+- [x] Crear endpoint para obtener historial unificado del proyecto
+- [x] Combinar eventos de cliente (contacto_inicial), citas (visita_medidas), cotización y proyecto
+- [x] Actualizar frontend con iconos y colores distintivos por tipo de evento
+- [x] Iconos: Cliente (cyan), Cita (indigo), Cotización (amber), Proyecto (varios colores según estado)
+- [x] Historial ordenado cronológicamente desde el primer contacto
+- [x] Proyecto Ruth muestra 14 eventos desde contacto_inicial hasta pendiente_render
+
+## Flujo Completo de Estados del Proyecto
+
+- [x] Agregar estados contacto_inicial y visita_medidas al inicio del flujo
+- [x] Agregar estado pendiente_modelado con contador de revisiones
+- [x] Agregar estado pendiente_render con contador de revisiones
+- [x] Botón "Enviar Modelado" cambia estado a pendiente_modelado y abre WhatsApp
+- [x] Botón "Enviar Renders" cambia estado a pendiente_render y abre WhatsApp
+- [x] Botón "Nueva Aprobación Modelado" bloqueado cuando hay renders
+- [x] Botón "Nueva Aprobación Renders" incrementa contador de revisiones
+- [x] Etiquetas dinámicas: "Pendiente Aprobación Modelado 1", "Pendiente Aprobación Render 2", etc.
+- [x] Botón verde "Avanzar" funciona para todos los estados incluyendo pendiente_modelado y pendiente_render
+

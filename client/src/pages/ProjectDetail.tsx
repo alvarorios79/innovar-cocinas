@@ -34,7 +34,9 @@ import {
   ArrowRight,
   XCircle,
   Box,
-  ImageIcon
+  ImageIcon,
+  Truck,
+  Hammer
 } from "lucide-react";
 import { useFileViewer, FileViewer } from "@/components/FileViewer";
 import { MaterialsForm } from "@/components/MaterialsForm";
@@ -1219,30 +1221,53 @@ export default function ProjectDetail() {
                     <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gradient-to-b from-emerald-500 via-blue-500 to-purple-500"></div>
                     <div className="space-y-4">
                       {projectDetail.history.map((entry: any, index: number) => {
-                        // Determinar icono y color según tipo de acción
-                        // Construir texto de acción a partir de fromStatus y toStatus
-                        const actionText = entry.toStatus 
-                          ? `Cambio de estado: ${entry.fromStatus || 'Nuevo'} → ${entry.toStatus}`
-                          : 'Evento registrado';
-                        
-                        const getActionStyle = (toStatus: string | undefined | null) => {
-                          if (!toStatus) return { bg: 'bg-slate-500', icon: <Clock className="h-3 w-3 text-white" /> };
-                          const statusLower = toStatus.toLowerCase();
+                        // Determinar icono y color según tipo de evento (unificado)
+                        const getEventStyle = (eventType: string, newStatus: string | null) => {
+                          // Estilos por tipo de evento
+                          if (eventType === 'client') {
+                            return { bg: 'bg-cyan-500', icon: <User className="h-3 w-3 text-white" />, label: 'Cliente' };
+                          }
+                          if (eventType === 'appointment') {
+                            return { bg: 'bg-indigo-500', icon: <Calendar className="h-3 w-3 text-white" />, label: 'Cita' };
+                          }
+                          if (eventType === 'quotation') {
+                            return { bg: 'bg-amber-500', icon: <FileText className="h-3 w-3 text-white" />, label: 'Cotización' };
+                          }
+                          // Tipo 'project' - usar colores según estado
+                          if (!newStatus) return { bg: 'bg-slate-500', icon: <Clock className="h-3 w-3 text-white" />, label: 'Proyecto' };
+                          const statusLower = newStatus.toLowerCase();
                           if (statusLower.includes('cotizacion_enviada') || statusLower.includes('nuevo')) 
-                            return { bg: 'bg-emerald-500', icon: <Plus className="h-3 w-3 text-white" /> };
-                          if (statusLower.includes('aprobad') || statusLower.includes('confirm')) 
-                            return { bg: 'bg-green-500', icon: <CheckCircle2 className="h-3 w-3 text-white" /> };
+                            return { bg: 'bg-emerald-500', icon: <Plus className="h-3 w-3 text-white" />, label: 'Proyecto' };
+                          if (statusLower.includes('aprobad') || statusLower.includes('confirm') || statusLower.includes('aprobacion')) 
+                            return { bg: 'bg-green-500', icon: <CheckCircle2 className="h-3 w-3 text-white" />, label: 'Proyecto' };
                           if (statusLower.includes('adelanto') || statusLower.includes('pagado')) 
-                            return { bg: 'bg-yellow-500', icon: <DollarSign className="h-3 w-3 text-white" /> };
-                          if (statusLower.includes('foto') || statusLower.includes('imagen')) 
-                            return { bg: 'bg-blue-500', icon: <Camera className="h-3 w-3 text-white" /> };
-                          if (statusLower.includes('diseno') || statusLower.includes('diseño')) 
-                            return { bg: 'bg-purple-500', icon: <Palette className="h-3 w-3 text-white" /> };
+                            return { bg: 'bg-yellow-500', icon: <DollarSign className="h-3 w-3 text-white" />, label: 'Proyecto' };
+                          if (statusLower.includes('pendiente_modelado') || statusLower.includes('pendiente_render')) 
+                            return { bg: 'bg-violet-500', icon: <AlertCircle className="h-3 w-3 text-white" />, label: 'Proyecto' };
+                          if (statusLower.includes('diseno') || statusLower.includes('diseño') || statusLower.includes('pendiente_cliente')) 
+                            return { bg: 'bg-purple-500', icon: <Palette className="h-3 w-3 text-white" />, label: 'Proyecto' };
+                          if (statusLower.includes('corte') || statusLower.includes('enchape') || statusLower.includes('ensamble') || statusLower.includes('despiece')) 
+                            return { bg: 'bg-orange-500', icon: <Hammer className="h-3 w-3 text-white" />, label: 'Proyecto' };
                           if (statusLower.includes('instalacion') || statusLower.includes('entregado')) 
-                            return { bg: 'bg-orange-500', icon: <RefreshCw className="h-3 w-3 text-white" /> };
-                          return { bg: 'bg-slate-500', icon: <Clock className="h-3 w-3 text-white" /> };
+                            return { bg: 'bg-teal-500', icon: <Truck className="h-3 w-3 text-white" />, label: 'Proyecto' };
+                          return { bg: 'bg-slate-500', icon: <Clock className="h-3 w-3 text-white" />, label: 'Proyecto' };
                         };
-                        const style = getActionStyle(entry.toStatus);
+                        
+                        const style = getEventStyle(entry.type || 'project', entry.newStatus);
+                        
+                        // Construir texto de acción según tipo de evento
+                        let actionText = '';
+                        if (entry.type === 'client') {
+                          actionText = 'Contacto Inicial';
+                        } else if (entry.type === 'appointment') {
+                          actionText = 'Visita / Cita';
+                        } else if (entry.type === 'quotation') {
+                          actionText = 'Cotización';
+                        } else {
+                          actionText = entry.newStatus 
+                            ? `Cambio de estado: ${entry.previousStatus || 'Nuevo'} → ${entry.newStatus}`
+                            : 'Evento registrado';
+                        }
                         return (
                           <div key={entry.id} className="relative flex items-start gap-4 pl-8">
                             {/* Punto del timeline */}

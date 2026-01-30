@@ -3641,7 +3641,7 @@ export const appRouter = router({
         }
 
         // Optimización: ejecutar consultas en paralelo
-        const [client, photos, details, history, projectTasks, quotation, payments] = await Promise.all([
+        const [client, photos, details, history, projectTasks, quotation, payments, clientAppointments] = await Promise.all([
           db.getClientById(project.clientId),
           db.getProjectPhotosByProjectId(input.id),
           db.getProjectDetailsByProjectId(input.id),
@@ -3649,6 +3649,7 @@ export const appRouter = router({
           db.getTasksByProjectId(input.id),
           project.quotationId ? db.getQuotationById(project.quotationId) : Promise.resolve(null),
           db.getProjectPaymentsByProjectId(input.id),
+          db.getAppointmentsByClientId(project.clientId),
         ]);
         const totalPaid = payments.reduce((sum, p) => sum + Number(p.amount), 0);
         
@@ -3661,6 +3662,137 @@ export const appRouter = router({
         const actualPaid = totalPaid > 0 ? totalPaid : advanceAmount;
         const remainingAmount = totalAmount - actualPaid;
 
+        // === HISTORIAL UNIFICADO ===
+        // Combinar eventos de cliente, citas, cotización y proyecto en orden cronológico
+        type UnifiedHistoryEvent = {
+          id: number;
+          type: 'client' | 'appointment' | 'quotation' | 'project';
+          previousStatus: string | null;
+          newStatus: string;
+          notes: string | null;
+          changedBy: string | null;
+          createdAt: Date;
+        };
+        
+        const unifiedHistory: UnifiedHistoryEvent[] = [];
+        let eventId = 1;
+        
+        // 1. Evento de creación del cliente (contacto_inicial)
+        if (client) {
+          unifiedHistory.push({
+            id: eventId++,
+            type: 'client',
+            previousStatus: null,
+            newStatus: 'contacto_inicial',
+            notes: `Cliente "${client.name}" creado en el sistema`,
+            changedBy: null,
+            createdAt: client.createdAt,
+          });
+        }
+        
+        // 2. Eventos de citas (visita_medidas)
+        if (clientAppointments && clientAppointments.length > 0) {
+          // Ordenar citas por fecha de creación
+          const sortedAppointments = [...clientAppointments].sort((a, b) => 
+            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+          );
+          
+          for (const appointment of sortedAppointments) {
+            // Evento de cita programada
+            unifiedHistory.push({
+              id: eventId++,
+              type: 'appointment',
+              previousStatus: 'contacto_inicial',
+              newStatus: 'visita_medidas',
+              notes: `Cita programada para ${appointment.scheduledDate ? new Date(appointment.scheduledDate).toLocaleDateString('es-CO') : 'fecha pendiente'}${appointment.notes ? ` - ${appointment.notes}` : ''}`,
+              changedBy: null,
+              createdAt: appointment.createdAt,
+            });
+            
+            // Si la cita fue completada, agregar evento
+            if (appointment.status === 'completada' && appointment.updatedAt) {
+              unifiedHistory.push({
+                id: eventId++,
+                type: 'appointment',
+                previousStatus: 'visita_medidas',
+                newStatus: 'visita_medidas',
+                notes: `Visita realizada - Cita completada`,
+                changedBy: null,
+                createdAt: appointment.updatedAt,
+              });
+            }
+          }
+        }
+        
+        // 3. Eventos de cotización
+        if (quotation) {
+          // Cotización creada
+          unifiedHistory.push({
+            id: eventId++,
+            type: 'quotation',
+            previousStatus: 'visita_medidas',
+            newStatus: 'cotizacion_enviada',
+            notes: `Cotización ${quotation.quotationNumber} creada`,
+            changedBy: null,
+            createdAt: quotation.createdAt,
+          });
+          
+          // Cotización enviada
+          if (quotation.sentAt) {
+            unifiedHistory.push({
+              id: eventId++,
+              type: 'quotation',
+              previousStatus: 'cotizacion_enviada',
+              newStatus: 'cotizacion_enviada',
+              notes: `Cotización ${quotation.quotationNumber} enviada al cliente`,
+              changedBy: null,
+              createdAt: quotation.sentAt,
+            });
+          }
+          
+          // Cotización aprobada
+          if (quotation.approvedAt) {
+            unifiedHistory.push({
+              id: eventId++,
+              type: 'quotation',
+              previousStatus: 'cotizacion_enviada',
+              newStatus: 'cotizacion_aprobada',
+              notes: `Cotización ${quotation.quotationNumber} aprobada por el cliente`,
+              changedBy: null,
+              createdAt: quotation.approvedAt,
+            });
+          }
+          
+          // Cotización rechazada
+          if (quotation.status === 'rejected' && quotation.rejectionReason) {
+            unifiedHistory.push({
+              id: eventId++,
+              type: 'quotation',
+              previousStatus: 'cotizacion_enviada',
+              newStatus: 'cotizacion_enviada',
+              notes: `Cotización ${quotation.quotationNumber} rechazada: ${quotation.rejectionReason}`,
+              changedBy: null,
+              createdAt: quotation.updatedAt,
+            });
+          }
+        }
+        
+        // 4. Historial del proyecto (ya existente)
+        for (const h of history) {
+          unifiedHistory.push({
+            id: eventId++,
+            type: 'project',
+            previousStatus: h.fromStatus,
+            newStatus: h.toStatus,
+            notes: h.notes,
+            changedBy: h.changedByUser?.name || null,
+            createdAt: h.createdAt,
+          });
+        }
+        
+        // Ordenar todo por fecha
+        unifiedHistory.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+
         console.log('[DEBUG] Building result with quotationId:', project.quotationId, 'quotation:', quotation?.id);
         const result = {
           ...project,
@@ -3668,7 +3800,7 @@ export const appRouter = router({
           client,
           photos,
           details,
-          history,
+          history: unifiedHistory,
           tasks: projectTasks,
           quotation,
           payments,

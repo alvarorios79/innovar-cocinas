@@ -31,7 +31,8 @@ import {
   User,
   ChevronDown,
   ChevronUp,
-  Trash2
+  Trash2,
+  AlertTriangle
 } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -162,6 +163,10 @@ export default function Projects() {
   const [projectToDelete, setProjectToDelete] = useState<any>(null);
   const [selectedProjects, setSelectedProjects] = useState<number[]>([]);
   const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
+  
+  // Estado para confirmación de avance a aprobacion_final
+  const [showAdvanceConfirmDialog, setShowAdvanceConfirmDialog] = useState(false);
+  const [projectToAdvance, setProjectToAdvance] = useState<any>(null);
   
   const { data: projects = [], isLoading: loadingProjects } = trpc.projects.list.useQuery(
     statusFilter !== "all" ? { status: statusFilter } : undefined
@@ -671,6 +676,21 @@ export default function Projects() {
                             {project.name}
                           </h3>
                           {getStatusBadge(project.status, (project as any).modeladoRevisionNumber, (project as any).renderRevisionNumber)}
+                          {/* Indicador de revisiones de renders */}
+                          {(project as any).renderRevisionNumber > 0 && (
+                            <Badge 
+                              variant="outline" 
+                              className={`text-xs ${
+                                (project as any).renderRevisionNumber >= 3 
+                                  ? "border-red-500 text-red-600 bg-red-50" 
+                                  : (project as any).renderRevisionNumber >= 2 
+                                    ? "border-amber-500 text-amber-600 bg-amber-50" 
+                                    : "border-blue-500 text-blue-600 bg-blue-50"
+                              }`}
+                            >
+                              🎨 {(project as any).renderRevisionNumber} Rev{(project as any).renderRevisionNumber > 1 ? "s" : ""}
+                            </Badge>
+                          )}
                         </div>
                         <div className="text-sm text-muted-foreground grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-1">
                           <p className="flex items-center gap-1">
@@ -736,10 +756,16 @@ export default function Projects() {
                             onClick={() => {
                               const nextStatus = getNextStatus(project.status);
                               if (nextStatus) {
-                                updateStatus.mutate({
-                                  projectId: project.id,
-                                  newStatus: nextStatus as any,
-                                });
+                                // Si es pendiente_render, mostrar confirmación antes de avanzar
+                                if (project.status === "pendiente_render") {
+                                  setProjectToAdvance(project);
+                                  setShowAdvanceConfirmDialog(true);
+                                } else {
+                                  updateStatus.mutate({
+                                    projectId: project.id,
+                                    newStatus: nextStatus as any,
+                                  });
+                                }
                               }
                             }}
                             disabled={updateStatus.isPending}
@@ -1970,6 +1996,58 @@ export default function Projects() {
               disabled={deleteProject.isPending}
             >
               {deleteProject.isPending ? "Eliminando..." : `Sí, Eliminar ${selectedProjects.length} Proyecto(s)`}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Diálogo de confirmación para avanzar a Aprobación Final */}
+      <Dialog open={showAdvanceConfirmDialog} onOpenChange={setShowAdvanceConfirmDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="text-amber-600 flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5" />
+              Confirmar Aprobación Final
+            </DialogTitle>
+            <DialogDescription className="space-y-3">
+              <p>
+                Estás a punto de marcar el proyecto <strong>"{projectToAdvance?.clientName}"</strong> como <strong>Aprobación Final</strong>.
+              </p>
+              {projectToAdvance?.renderRevisionNumber && projectToAdvance.renderRevisionNumber > 1 && (
+                <p className="text-amber-600 font-medium">
+                  ⚠️ Este proyecto ha tenido {projectToAdvance.renderRevisionNumber} revisiones de renders.
+                </p>
+              )}
+              <p>
+                Esto significa que el cliente ha aprobado los renders y el proyecto pasará a la etapa de <strong>producción</strong>.
+              </p>
+              <p className="text-muted-foreground text-sm">
+                ¿Confirmas que el cliente aprobó los renders?
+              </p>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-2 mt-4">
+            <Button variant="outline" onClick={() => {
+              setShowAdvanceConfirmDialog(false);
+              setProjectToAdvance(null);
+            }}>
+              Cancelar
+            </Button>
+            <Button
+              className="bg-green-600 hover:bg-green-700"
+              onClick={() => {
+                if (projectToAdvance) {
+                  updateStatus.mutate({
+                    projectId: projectToAdvance.id,
+                    newStatus: "aprobacion_final" as any,
+                  });
+                  setShowAdvanceConfirmDialog(false);
+                  setProjectToAdvance(null);
+                }
+              }}
+              disabled={updateStatus.isPending}
+            >
+              {updateStatus.isPending ? "Avanzando..." : "Sí, Cliente Aprobó"}
             </Button>
           </div>
         </DialogContent>

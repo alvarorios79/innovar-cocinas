@@ -3361,3 +3361,11 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Revisar lógica de canAdvanceStatus y getNextStatus en Projects.tsx
 - [x] Verificar que pendiente_render está incluido en los estados que pueden avanzar
 - [x] Corregir getNextStatus para incluir flujo completo: contacto_inicial → visita_medidas → ... → pendiente_modelado → pendiente_cliente → pendiente_render → aprobacion_final → despiece → ...
+
+
+## Mejoras UX Lista de Proyectos (30 ene 2026)
+
+- [x] Agregar diálogo de confirmación antes de avanzar de pendiente_render a aprobacion_final
+- [x] Mostrar indicador visual del número de revisiones de renders en la lista de proyectos
+- [x] Indicador con colores: azul (1 rev), ámbar (2 revs), rojo (3+ revs)
+- [x] Diálogo muestra advertencia con número de revisiones si es > 1

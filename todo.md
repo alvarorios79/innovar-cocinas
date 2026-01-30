@@ -3193,3 +3193,17 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Agregada sección "Solicitar Nueva Aprobación" con botones para Modelado y Renders
 - [x] La sección aparece cuando hay aprobaciones previas y el usuario es super_admin o admin
 - [x] Cada botón muestra quién aprobó y cuándo, y abre WhatsApp con el enlace de la galería
+
+
+## Mejora: Botones Nueva Aprobación siempre visibles (29 Enero 2026)
+
+### Objetivo
+- [x] Mostrar siempre los botones de Nueva Aprobación (Modelado y Renders)
+- [x] Deshabilitar los botones cuando no hay aprobación previa
+- [x] Mostrar mensaje explicativo cuando están deshabilitados
+
+### Implementación
+- [x] Modificar sección en ProjectDetail.tsx
+- [x] Modificar sección en ProjectInlineDetail.tsx
+- [x] Botones deshabilitados en gris con texto "Aún no ha sido aprobado por el cliente"
+- [x] Botones activos con colores distintivos (azul para Modelado, ámbar para Renders)

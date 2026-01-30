@@ -3163,3 +3163,16 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Agregar botón en carpeta Modelado de ProjectInlineDetail.tsx
 - [x] Visible solo cuando hay modelado aprobado y para super_admin/admin
 - [x] Botón con estilo azul para diferenciar de renders (amber)
+
+
+## Mejora: Mover botón Solicitar Nueva Aprobación (29 Enero 2026)
+
+### Objetivo
+- [x] Mover el botón "Solicitar Nueva Aprobación" a la sección de control de diseño
+- [x] Colocarlo junto a: Enviar Modelado/Render, Aprobar Diseño, Solicitar Cambios
+
+### Implementación
+- [x] Identificar la sección de botones de control de diseño en ProjectInlineDetail
+- [x] Agregar botones de Solicitar Nueva Aprobación para Modelado y Renders
+- [x] Mostrar solo cuando ya hay aprobación previa
+- [x] Sección azul con información de quién y cuándo aprobó

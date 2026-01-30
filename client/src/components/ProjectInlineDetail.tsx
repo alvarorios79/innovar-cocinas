@@ -635,6 +635,52 @@ export function ProjectInlineDetail({
         </div>
       )}
 
+      {/* Acción para Admin: Solicitar Nueva Aprobación cuando ya hay aprobación previa */}
+      {(projectDetail.modeladoApprovedAt || projectDetail.rendersApprovedAt) && 
+        (user?.role === "admin" || user?.role === "super_admin") && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+          <h4 className="font-medium text-blue-800 mb-2 flex items-center gap-2">
+            <CheckCircle2 className="h-4 w-4" />
+            Solicitar Nueva Aprobación de Diseño
+          </h4>
+          <p className="text-sm text-blue-700 mb-4">
+            Si el cliente solicitó cambios después de aprobar, puedes reiniciar la aprobación y notificarle.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {projectDetail.modeladoApprovedAt && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="border-blue-500 text-blue-700 hover:bg-blue-100"
+                onClick={() => resetModeladoApproval.mutate({ projectId: projectDetail.id, notifyClient: true })}
+                disabled={resetModeladoApproval.isPending}
+              >
+                {resetModeladoApproval.isPending ? "Enviando..." : "Nueva Aprobación Modelado 3D"}
+              </Button>
+            )}
+            {projectDetail.rendersApprovedAt && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="border-amber-500 text-amber-700 hover:bg-amber-100"
+                onClick={() => resetRendersApproval.mutate({ projectId: projectDetail.id, notifyClient: true })}
+                disabled={resetRendersApproval.isPending}
+              >
+                {resetRendersApproval.isPending ? "Enviando..." : "Nueva Aprobación Renders"}
+              </Button>
+            )}
+          </div>
+          <div className="mt-3 text-xs text-blue-600 space-y-1">
+            {projectDetail.modeladoApprovedAt && (
+              <p>Modelado aprobado por {projectDetail.modeladoApprovedBy} el {new Date(projectDetail.modeladoApprovedAt).toLocaleDateString('es-CO')}</p>
+            )}
+            {projectDetail.rendersApprovedAt && (
+              <p>Renders aprobados por {projectDetail.rendersApprovedBy} el {new Date(projectDetail.rendersApprovedAt).toLocaleDateString('es-CO')}</p>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Tabs con colores distintivos */}
       <Tabs defaultValue="info" className="w-full">
         <TabsList className="flex flex-wrap w-full gap-1 h-auto p-1 bg-muted/50">

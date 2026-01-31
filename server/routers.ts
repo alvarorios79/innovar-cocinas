@@ -5198,7 +5198,32 @@ ${input.notes || "No se especificaron detalles"}
         // Actualizar historial de recordatorios en la tarea
         await db.updateTaskReminderHistory(input.taskId, ctx.user.id);
 
-        return { success: true };
+        // Generar enlace de WhatsApp para el usuario asignado
+        let whatsAppLink = null;
+        const assignedUser = await db.getUserById(task.assignedTo);
+        if (assignedUser) {
+          const companyPhone = "3136802025"; // Número de INNOVAR (fallback)
+          const userPhone = assignedUser.phone?.replace(/\D/g, '') || companyPhone;
+          const phoneWithCountry = userPhone.startsWith('57') ? userPhone : `57${userPhone}`;
+          
+          const whatsAppMessage = encodeURIComponent(
+            `⏰ *RECORDATORIO DE TAREA*\n\n` +
+            `Hola ${assignedUser.name || ""}, te recuerdo que tienes una tarea pendiente:\n\n` +
+            `*Título:* ${task.title}\n` +
+            `*Prioridad:* ${priorityLabels[task.priority] || task.priority}\n` +
+            `*Estado:* ${task.status === "pendiente" ? "Pendiente" : "En Progreso"}\n` +
+            (task.dueDate ? `*Fecha límite:* ${new Date(task.dueDate).toLocaleDateString("es-CO")}\n` : "") +
+            (task.description ? `\n📝 *Descripción:*\n${task.description.substring(0, 200)}${task.description.length > 200 ? "..." : ""}\n` : "") +
+            `\nPor favor revisa tus tareas pendientes. 🙏`
+          );
+          whatsAppLink = `https://wa.me/${phoneWithCountry}?text=${whatsAppMessage}`;
+        }
+
+        return { 
+          success: true,
+          whatsAppLink,
+          assignedUserName: assignedUser?.name || null
+        };
       }),
 
     // Reasignar múltiples tareas a otro usuario

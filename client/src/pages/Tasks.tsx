@@ -81,10 +81,11 @@ export default function Tasks() {
   const [showReassignDialog, setShowReassignDialog] = useState(false);
   const [reassignTo, setReassignTo] = useState<string>("");
   
-  // Estado para diálogo de WhatsApp después de crear tarea
+  // Estado para diálogo de WhatsApp después de crear tarea o enviar recordatorio
   const [showWhatsAppDialog, setShowWhatsAppDialog] = useState(false);
   const [whatsAppLink, setWhatsAppLink] = useState<string | null>(null);
   const [assignedUserName, setAssignedUserName] = useState<string | null>(null);
+  const [whatsAppDialogType, setWhatsAppDialogType] = useState<"tarea" | "recordatorio">("tarea");
 
   const utils = trpc.useUtils();
   
@@ -112,6 +113,7 @@ export default function Tasks() {
       if (result.whatsAppLink) {
         setWhatsAppLink(result.whatsAppLink);
         setAssignedUserName(result.assignedUserName);
+        setWhatsAppDialogType("tarea");
         setShowWhatsAppDialog(true);
       }
     },
@@ -134,8 +136,17 @@ export default function Tasks() {
   });
 
   const sendReminder = trpc.tasks.sendReminder.useMutation({
-    onSuccess: () => {
+    onSuccess: (result) => {
       toast.success("Recordatorio enviado correctamente");
+      setReminderConfirm({ open: false, taskId: null, taskTitle: "", assigneeName: "" });
+      
+      // Mostrar diálogo de WhatsApp si hay enlace disponible
+      if (result.whatsAppLink) {
+        setWhatsAppLink(result.whatsAppLink);
+        setAssignedUserName(result.assignedUserName);
+        setWhatsAppDialogType("recordatorio");
+        setShowWhatsAppDialog(true);
+      }
     },
     onError: (error) => {
       toast.error(error.message || "Error al enviar recordatorio");
@@ -1211,11 +1222,13 @@ export default function Tasks() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <MessageCircle className="h-5 w-5 text-green-600" />
-              Notificar por WhatsApp
+              {whatsAppDialogType === "recordatorio" ? "Enviar Recordatorio por WhatsApp" : "Notificar por WhatsApp"}
             </DialogTitle>
             <DialogDescription>
-              La tarea fue creada exitosamente y se envió una notificación interna{assignedUserName ? ` a ${assignedUserName}` : ''}. 
-              ¿Deseas enviarle también un mensaje por WhatsApp?
+              {whatsAppDialogType === "recordatorio" 
+                ? `El recordatorio fue enviado exitosamente${assignedUserName ? ` a ${assignedUserName}` : ''}. ¿Deseas enviarle también un mensaje por WhatsApp?`
+                : `La tarea fue creada exitosamente y se envió una notificación interna${assignedUserName ? ` a ${assignedUserName}` : ''}. ¿Deseas enviarle también un mensaje por WhatsApp?`
+              }
             </DialogDescription>
           </DialogHeader>
           

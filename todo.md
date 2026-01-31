@@ -3498,3 +3498,10 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Modificar createTask para devolver enlace de WhatsApp del asignado
 - [x] Actualizar frontend para mostrar diálogo de WhatsApp al crear cualquier tarea
 - [x] Funciona para todos los roles: super_admin, admin, jefe_taller, operario, diseñador
+
+
+## Mejora: WhatsApp para recordatorios de tareas (31 ene 2026)
+
+- [x] Modificar sendReminder para devolver enlace de WhatsApp
+- [x] Actualizar frontend para mostrar diálogo de WhatsApp al enviar recordatorio
+- [x] Incluir detalles de la tarea en el mensaje de WhatsApp (título, prioridad, estado, fecha límite, descripción)

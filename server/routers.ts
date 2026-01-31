@@ -4486,6 +4486,9 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
             }
           }
           
+          // Siempre generar enlace de WhatsApp (con o sin diseñador)
+          const companyPhone = "3136802025"; // Número de INNOVAR (fallback)
+          
           if (designer) {
             // 1. Crear tarea automática para el diseñador
             const taskTitle = `🔄 Cambios solicitados: ${project.name}`;
@@ -4520,9 +4523,7 @@ ${input.notes || "No se especificaron detalles"}
             
             designerNotified = true;
             
-            // 3. Generar enlace de WhatsApp para el diseñador
-            // Usar el teléfono del diseñador si está configurado, sino usar el número de la empresa
-            const companyPhone = "3136802025"; // Número de INNOVAR (fallback)
+            // Usar el teléfono del diseñador si está configurado
             const designerPhone = (designer as any).phone?.replace(/\D/g, '') || companyPhone;
             const phoneWithCountry = designerPhone.startsWith('57') ? designerPhone : `57${designerPhone}`;
             
@@ -4532,6 +4533,17 @@ ${input.notes || "No se especificaron detalles"}
               `*Diseñador:* ${designer.name || "Sin asignar"}\n\n` +
               `📝 *Cambios solicitados:*\n${input.notes || "No se especificaron detalles"}\n\n` +
               `Por favor revisa el proyecto y actualiza el diseño.`
+            );
+            designerWhatsAppLink = `https://wa.me/${phoneWithCountry}?text=${whatsAppMessage}`;
+          } else {
+            // Sin diseñador asignado, usar número de la empresa
+            const phoneWithCountry = `57${companyPhone}`;
+            const whatsAppMessage = encodeURIComponent(
+              `🔄 *CAMBIOS SOLICITADOS*\n\n` +
+              `*Proyecto:* ${project.name}\n` +
+              `*Diseñador:* Sin asignar\n\n` +
+              `📝 *Cambios solicitados:*\n${input.notes || "No se especificaron detalles"}\n\n` +
+              `Por favor asigna un diseñador y revisa los cambios.`
             );
             designerWhatsAppLink = `https://wa.me/${phoneWithCountry}?text=${whatsAppMessage}`;
           }
@@ -4945,8 +4957,9 @@ ${input.notes || "No se especificaron detalles"}
         }
 
         // Enviar email de notificación de tarea (no bloquea si falla)
+        let assignedUser: any = null;
         try {
-          const assignedUser = await db.getUserById(input.assignedTo);
+          assignedUser = await db.getUserById(input.assignedTo);
           if (assignedUser?.email) {
             const { sendEmail } = await import("./email");
             const { taskAssignedEmailTemplate } = await import("./email-templates");
@@ -4967,10 +4980,34 @@ ${input.notes || "No se especificaron detalles"}
           }
         } catch (e) {
           // Silenciar error de email - la notificación en app ya se creó
-
         }
 
-        return { success: true, taskId };
+        // Generar enlace de WhatsApp para el usuario asignado
+        let whatsAppLink = null;
+        if (assignedUser) {
+          const companyPhone = "3136802025"; // Número de INNOVAR (fallback)
+          const userPhone = assignedUser.phone?.replace(/\D/g, '') || companyPhone;
+          const phoneWithCountry = userPhone.startsWith('57') ? userPhone : `57${userPhone}`;
+          
+          const whatsAppMessage = encodeURIComponent(
+            `📝 *NUEVA TAREA ASIGNADA*\n\n` +
+            `*Título:* ${input.title}\n` +
+            `*Prioridad:* ${priorityLabels[input.priority] || input.priority}\n` +
+            `*Asignado a:* ${assignedUser.name || "Usuario"}\n` +
+            (input.dueDate ? `*Fecha límite:* ${new Date(input.dueDate).toLocaleDateString("es-CO")}\n` : "") +
+            (input.description ? `\n📝 *Descripción:*\n${input.description.substring(0, 200)}${input.description.length > 200 ? "..." : ""}\n` : "") +
+            `\nPor favor revisa tus tareas pendientes.`
+          );
+          whatsAppLink = `https://wa.me/${phoneWithCountry}?text=${whatsAppMessage}`;
+        }
+
+        return { 
+          success: true, 
+          taskId,
+          whatsAppLink,
+          assignedUserName: assignedUser?.name || null,
+          assignedUserPhone: assignedUser?.phone || null
+        };
       }),
 
     // Obtener mis tareas

@@ -3484,3 +3484,17 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Verificar que el enlace de WhatsApp se genera correctamente (sí se genera)
 - [x] Corregir el flujo: ahora muestra diálogo con botón para abrir WhatsApp manualmente
 - [x] El navegador bloqueaba el popup automático, ahora el usuario hace clic para abrir
+
+
+## Bug: Diálogo de WhatsApp no aparece al solicitar cambios (31 ene 2026)
+
+- [ ] El diálogo de WhatsApp no se muestra después de solicitar cambios
+- [ ] Verificar que el código del checkpoint se publicó correctamente
+- [ ] Revisar si hay errores en la consola del navegador
+
+
+## Mejora: WhatsApp para todas las asignaciones de tareas (31 ene 2026)
+
+- [x] Modificar createTask para devolver enlace de WhatsApp del asignado
+- [x] Actualizar frontend para mostrar diálogo de WhatsApp al crear cualquier tarea
+- [x] Funciona para todos los roles: super_admin, admin, jefe_taller, operario, diseñador

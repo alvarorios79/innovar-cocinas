@@ -20,7 +20,8 @@ import {
   ArrowUpDown,
   Calendar,
   ArrowUp,
-  ArrowDown
+  ArrowDown,
+  MessageCircle
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RemindersPanel } from "@/components/RemindersPanel";
@@ -79,6 +80,11 @@ export default function Tasks() {
   // Estado para reasignación masiva
   const [showReassignDialog, setShowReassignDialog] = useState(false);
   const [reassignTo, setReassignTo] = useState<string>("");
+  
+  // Estado para diálogo de WhatsApp después de crear tarea
+  const [showWhatsAppDialog, setShowWhatsAppDialog] = useState(false);
+  const [whatsAppLink, setWhatsAppLink] = useState<string | null>(null);
+  const [assignedUserName, setAssignedUserName] = useState<string | null>(null);
 
   const utils = trpc.useUtils();
   
@@ -93,7 +99,7 @@ export default function Tasks() {
   const { data: projects = [] } = trpc.projects.list.useQuery();
 
   const createTask = trpc.tasks.create.useMutation({
-    onSuccess: () => {
+    onSuccess: (result) => {
       utils.tasks.getMyTasks.invalidate();
       if (canViewAllTasks) {
         utils.tasks.list.invalidate();
@@ -101,6 +107,13 @@ export default function Tasks() {
       toast.success("Tarea creada exitosamente");
       setShowCreateDialog(false);
       setCreateForm({ title: "", description: "", priority: "media", assignedTo: "", projectId: "", dueDate: "" });
+      
+      // Mostrar diálogo de WhatsApp si hay enlace disponible
+      if (result.whatsAppLink) {
+        setWhatsAppLink(result.whatsAppLink);
+        setAssignedUserName(result.assignedUserName);
+        setShowWhatsAppDialog(true);
+      }
     },
     onError: (error) => {
       toast.error(error.message || "Error al crear tarea");
@@ -1191,6 +1204,49 @@ export default function Tasks() {
           </>
         )}
       </div>
+
+      {/* Diálogo WhatsApp para notificar al usuario asignado */}
+      <Dialog open={showWhatsAppDialog} onOpenChange={setShowWhatsAppDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <MessageCircle className="h-5 w-5 text-green-600" />
+              Notificar por WhatsApp
+            </DialogTitle>
+            <DialogDescription>
+              La tarea fue creada exitosamente y se envió una notificación interna{assignedUserName ? ` a ${assignedUserName}` : ''}. 
+              ¿Deseas enviarle también un mensaje por WhatsApp?
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="flex justify-end gap-2 mt-4">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setShowWhatsAppDialog(false);
+                setWhatsAppLink(null);
+                setAssignedUserName(null);
+              }}
+            >
+              No, solo notificación
+            </Button>
+            <Button
+              className="bg-green-600 hover:bg-green-700 text-white"
+              onClick={() => {
+                if (whatsAppLink) {
+                  window.open(whatsAppLink, "_blank");
+                }
+                setShowWhatsAppDialog(false);
+                setWhatsAppLink(null);
+                setAssignedUserName(null);
+              }}
+            >
+              <MessageCircle className="h-4 w-4 mr-1" />
+              Sí, abrir WhatsApp
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

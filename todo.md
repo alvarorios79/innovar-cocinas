@@ -3395,3 +3395,10 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Mantener activo botón "Enviar Revisión" para envíos posteriores
 - [x] Botón "Enviar Renders" muestra "Enviado (Rev. X)" cuando está bloqueado
 - [x] Aplicado en ProjectDetail.tsx y ProjectInlineDetail.tsx
+
+
+## Bug: Número de WhatsApp sin código de país (30 ene 2026)
+
+- [x] El número se envía como +3214479321 en lugar de +573214479321
+- [x] Agregar código de país 57 (Colombia) al formatear el número de WhatsApp
+- [x] Corregido en 4 procedimientos: resetRendersApproval, resetModeladoApproval, sendModeladoToClient, sendRendersToClient

@@ -6005,6 +6005,7 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
         let whatsAppLink = null;
         if (input.notifyClient && client?.whatsappPhone) {
           const phone = client.whatsappPhone.replace(/\D/g, '');
+          const phoneWithCountry = phone.startsWith('57') ? phone : `57${phone}`;
           const message = encodeURIComponent(
             `¡Hola ${client.name}! 👋\n\n` +
             `Hemos actualizado los renders de tu proyecto "${project.name}" con los cambios que solicitaste.\n\n` +
@@ -6012,7 +6013,7 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
             `${galleryLink}\n\n` +
             `¡Gracias por tu confianza en INNOVAR Cocinas! 🏠`
           );
-          whatsAppLink = `https://wa.me/${phone}?text=${message}`;
+          whatsAppLink = `https://wa.me/${phoneWithCountry}?text=${message}`;
         }
 
         return {
@@ -6075,6 +6076,7 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
         let whatsAppLink = null;
         if (input.notifyClient && client?.whatsappPhone) {
           const phone = client.whatsappPhone.replace(/\D/g, '');
+          const phoneWithCountry = phone.startsWith('57') ? phone : `57${phone}`;
           const message = encodeURIComponent(
             `¡Hola ${client.name}! 👋\n\n` +
             `Hemos actualizado el modelado 3D de tu proyecto "${project.name}" con los cambios que solicitaste.\n\n` +
@@ -6082,7 +6084,7 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
             `${galleryLink}\n\n` +
             `¡Gracias por tu confianza en INNOVAR Cocinas! 🏠`
           );
-          whatsAppLink = `https://wa.me/${phone}?text=${message}`;
+          whatsAppLink = `https://wa.me/${phoneWithCountry}?text=${message}`;
         }
 
         return {
@@ -6150,6 +6152,7 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
         let whatsAppLink = null;
         if (client?.whatsappPhone) {
           const phone = client.whatsappPhone.replace(/\D/g, '');
+          const phoneWithCountry = phone.startsWith('57') ? phone : `57${phone}`;
           const message = encodeURIComponent(
             `¡Hola ${client.name}! 👋\n\n` +
             `Le escribimos de *INNOVAR Cocinas Integrales*.\n\n` +
@@ -6159,7 +6162,7 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
             `Por favor revíselas y confírmenos si está de acuerdo con el diseño para continuar con los renders finales.\n\n` +
             `¿Aprueba el modelado para continuar? ✅`
           );
-          whatsAppLink = `https://wa.me/${phone}?text=${message}`;
+          whatsAppLink = `https://wa.me/${phoneWithCountry}?text=${message}`;
         }
 
         return {
@@ -6227,6 +6230,7 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
         let whatsAppLink = null;
         if (client?.whatsappPhone) {
           const phone = client.whatsappPhone.replace(/\D/g, '');
+          const phoneWithCountry = phone.startsWith('57') ? phone : `57${phone}`;
           const message = encodeURIComponent(
             `¡Hola ${client.name}! 👋\n\n` +
             `Le escribimos de *INNOVAR Cocinas Integrales*.\n\n` +
@@ -6236,7 +6240,7 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
             `Estos son los diseños definitivos. Por favor revíselos y confírmenos si está de acuerdo para iniciar la producción.\n\n` +
             `¿Aprueba el diseño para iniciar producción? ✅`
           );
-          whatsAppLink = `https://wa.me/${phone}?text=${message}`;
+          whatsAppLink = `https://wa.me/${phoneWithCountry}?text=${message}`;
         }
 
         return {

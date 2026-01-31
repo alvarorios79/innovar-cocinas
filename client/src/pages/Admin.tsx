@@ -44,6 +44,7 @@ export default function Admin() {
   const [resetPasswordResult, setResetPasswordResult] = useState<{ userName: string; userEmail: string; tempPassword: string } | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [editBirthdayUser, setEditBirthdayUser] = useState<{ id: number; name: string; birthDate: string | null } | null>(null);
+  const [editPhoneUser, setEditPhoneUser] = useState<{ id: number; name: string; phone: string } | null>(null);
   
   // Estados para selección múltiple
   const [selectedAppointments, setSelectedAppointments] = useState<number[]>([]);
@@ -143,6 +144,17 @@ export default function Admin() {
     },
     onError: (error) => {
       toast.error(error.message || "Error al actualizar cumpleaños");
+    },
+  });
+
+  const updateUserPhone = trpc.userManagement.updatePhone.useMutation({
+    onSuccess: () => {
+      utils.userManagement.listAll.invalidate();
+      toast.success("📱 Teléfono actualizado");
+      setEditPhoneUser(null);
+    },
+    onError: (error) => {
+      toast.error(error.message || "Error al actualizar teléfono");
     },
   });
 
@@ -1369,18 +1381,32 @@ export default function Admin() {
                                         )}
                                         {/* Botón de cumpleaños siempre visible para super_admin (incluso para sí mismo) */}
                                         {user?.role === "super_admin" && (
-                                          <Button
-                                            size="sm"
-                                            variant="outline"
-                                            onClick={() => setEditBirthdayUser({ 
-                                              id: usr.id, 
-                                              name: usr.name || "Usuario", 
-                                              birthDate: (usr as any).birthDate || null 
-                                            })}
-                                          >
-                                            <Cake className="h-4 w-4 mr-1" />
-                                            Cumpleaños
-                                          </Button>
+                                          <div className="flex gap-2">
+                                            <Button
+                                              size="sm"
+                                              variant="outline"
+                                              onClick={() => setEditBirthdayUser({ 
+                                                id: usr.id, 
+                                                name: usr.name || "Usuario", 
+                                                birthDate: (usr as any).birthDate || null 
+                                              })}
+                                            >
+                                              <Cake className="h-4 w-4 mr-1" />
+                                              Cumpleaños
+                                            </Button>
+                                            <Button
+                                              size="sm"
+                                              variant="outline"
+                                              onClick={() => setEditPhoneUser({ 
+                                                id: usr.id, 
+                                                name: usr.name || "Usuario", 
+                                                phone: (usr as any).phone || "" 
+                                              })}
+                                            >
+                                              <Phone className="h-4 w-4 mr-1" />
+                                              Teléfono
+                                            </Button>
+                                          </div>
                                         )}
                                         {usr.id !== user?.id && user?.role === "super_admin" && (
                                           <div className="flex gap-2">
@@ -1830,6 +1856,64 @@ export default function Admin() {
                 disabled={updateBirthDate.isPending}
               >
                 Quitar Fecha
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Diálogo para editar teléfono */}
+      <Dialog open={!!editPhoneUser} onOpenChange={() => setEditPhoneUser(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Phone className="h-5 w-5 text-green-500" />
+              Teléfono de WhatsApp
+            </DialogTitle>
+            <DialogDescription>
+              Configura el teléfono de {editPhoneUser?.name} para recibir notificaciones por WhatsApp cuando se soliciten cambios en proyectos.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-phone">Número de Teléfono</Label>
+              <Input
+                id="edit-phone"
+                type="tel"
+                placeholder="3001234567"
+                value={editPhoneUser?.phone || ""}
+                onChange={(e) => setEditPhoneUser(prev => prev ? { ...prev, phone: e.target.value } : null)}
+              />
+              <p className="text-xs text-muted-foreground">Ingresa solo los 10 dígitos sin espacios ni guiones</p>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                className="flex-1"
+                onClick={() => {
+                  if (editPhoneUser) {
+                    updateUserPhone.mutate({
+                      userId: editPhoneUser.id,
+                      phone: editPhoneUser.phone || null,
+                    });
+                  }
+                }}
+                disabled={updateUserPhone.isPending}
+              >
+                {updateUserPhone.isPending ? "Guardando..." : "Guardar"}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  if (editPhoneUser) {
+                    updateUserPhone.mutate({
+                      userId: editPhoneUser.id,
+                      phone: null,
+                    });
+                  }
+                }}
+                disabled={updateUserPhone.isPending}
+              >
+                Quitar Teléfono
               </Button>
             </div>
           </div>

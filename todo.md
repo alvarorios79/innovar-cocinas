@@ -3458,3 +3458,11 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Limpiar changesRequestedAt en resetModeladoApproval
 - [x] Limpiar clientApprovalNotes para reiniciar el estado
 - [x] Limpiar proyecto del registro de notificados en el servicio
+
+
+## Mejora: Campo de teléfono para usuarios del equipo (30 ene 2026)
+
+- [x] Agregar campo phone en el schema de usuarios
+- [x] Crear interfaz para editar teléfono en gestión de equipo
+- [x] Actualizar enlaces de WhatsApp para usar teléfono del diseñador
+- [x] Fallback al número de empresa si el diseñador no tiene teléfono

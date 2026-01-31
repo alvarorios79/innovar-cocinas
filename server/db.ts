@@ -1047,6 +1047,15 @@ export async function updateUserBirthDate(userId: number, birthDate: string | nu
     .where(eq(users.id, userId));
 }
 
+export async function updateUserPhone(userId: number, phone: string | null) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(users)
+    .set({ phone: phone || null })
+    .where(eq(users.id, userId));
+}
+
 // ============ PUSH SUBSCRIPTIONS ============
 
 export async function createPushSubscription(subscription: InsertPushSubscription) {

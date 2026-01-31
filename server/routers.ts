@@ -3538,6 +3538,34 @@ export const appRouter = router({
 
         return { success: true };
       }),
+
+    updatePhone: protectedProcedure
+      .input(z.object({
+        userId: z.number(),
+        phone: z.string().nullable(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        // Solo super_admin puede actualizar teléfonos del equipo
+        if (ctx.user.role !== "super_admin") {
+          throw new TRPCError({ 
+            code: "FORBIDDEN", 
+            message: "Solo super administradores pueden gestionar teléfonos del equipo" 
+          });
+        }
+
+        // Obtener el usuario objetivo
+        const allUsers = await db.getAllUsers();
+        const targetUser = allUsers.find(u => u.id === input.userId);
+        
+        if (!targetUser) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Usuario no encontrado" });
+        }
+
+        // Actualizar teléfono
+        await db.updateUserPhone(input.userId, input.phone);
+
+        return { success: true };
+      }),
   }),
 
   // ============ PROJECTS ============
@@ -4493,9 +4521,11 @@ ${input.notes || "No se especificaron detalles"}
             designerNotified = true;
             
             // 3. Generar enlace de WhatsApp para el diseñador
-            // Usar el email del diseñador para buscar su teléfono en clientes (si está registrado)
-            // O generar un enlace genérico para el número de la empresa
-            const companyPhone = "3136802025"; // Número de INNOVAR
+            // Usar el teléfono del diseñador si está configurado, sino usar el número de la empresa
+            const companyPhone = "3136802025"; // Número de INNOVAR (fallback)
+            const designerPhone = (designer as any).phone?.replace(/\D/g, '') || companyPhone;
+            const phoneWithCountry = designerPhone.startsWith('57') ? designerPhone : `57${designerPhone}`;
+            
             const whatsAppMessage = encodeURIComponent(
               `🔄 *CAMBIOS SOLICITADOS*\n\n` +
               `*Proyecto:* ${project.name}\n` +
@@ -4503,7 +4533,7 @@ ${input.notes || "No se especificaron detalles"}
               `📝 *Cambios solicitados:*\n${input.notes || "No se especificaron detalles"}\n\n` +
               `Por favor revisa el proyecto y actualiza el diseño.`
             );
-            designerWhatsAppLink = `https://wa.me/57${companyPhone}?text=${whatsAppMessage}`;
+            designerWhatsAppLink = `https://wa.me/${phoneWithCountry}?text=${whatsAppMessage}`;
           }
           
           return { 

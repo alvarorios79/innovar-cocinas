@@ -727,12 +727,13 @@ export function ProjectInlineDetail({
                 {projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length > 0 && (
                   <Button
                     size="sm"
-                    className="w-full mt-3 bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm text-xs"
+                    className={`w-full mt-3 shadow-sm text-xs ${(projectDetail.renderRevisionNumber || 0) >= 1 ? 'bg-gray-400 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-700'} text-white`}
                     onClick={() => sendRendersToClient.mutate({ projectId: projectDetail.id })}
-                    disabled={sendRendersToClient.isPending}
+                    disabled={sendRendersToClient.isPending || (projectDetail.renderRevisionNumber || 0) >= 1}
+                    title={(projectDetail.renderRevisionNumber || 0) >= 1 ? 'Ya se envió la primera revisión. Use "Enviar Revisión" para nuevos envíos.' : ''}
                   >
                     <Send className={`h-3 w-3 mr-1 ${sendRendersToClient.isPending ? 'animate-spin' : ''}`} />
-                    {sendRendersToClient.isPending ? 'Enviando...' : 'Enviar Renders'}
+                    {(projectDetail.renderRevisionNumber || 0) >= 1 ? `Enviado (Rev. ${projectDetail.renderRevisionNumber})` : sendRendersToClient.isPending ? 'Enviando...' : 'Enviar Renders'}
                   </Button>
                 )}
               </div>

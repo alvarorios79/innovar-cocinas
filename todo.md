@@ -3387,3 +3387,11 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Permitir enviar recordatorios y nuevas revisiones sin esperar respuesta del cliente
 - [x] Botón ahora muestra "Enviar Revisión" cuando hay renders pendientes de aprobar
 - [x] Botón muestra "Nueva Revisión" cuando los renders ya fueron aprobados
+
+
+## Lógica de botones Enviar Renders vs Enviar Revisión (30 ene 2026)
+
+- [x] Bloquear botón "Enviar Renders" cuando renderRevisionNumber >= 1
+- [x] Mantener activo botón "Enviar Revisión" para envíos posteriores
+- [x] Botón "Enviar Renders" muestra "Enviado (Rev. X)" cuando está bloqueado
+- [x] Aplicado en ProjectDetail.tsx y ProjectInlineDetail.tsx

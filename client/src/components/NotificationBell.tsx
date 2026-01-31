@@ -147,6 +147,29 @@ export function NotificationBell() {
     }
   }, [user, vapidData?.publicKey, isSubscribed]);
 
+  // Mantener el Service Worker activo con keep-alive periódico
+  useEffect(() => {
+    if (!user || !("serviceWorker" in navigator)) return;
+
+    const keepAlive = async () => {
+      try {
+        const registration = await navigator.serviceWorker.ready;
+        if (registration.active) {
+          const messageChannel = new MessageChannel();
+          registration.active.postMessage({ type: "KEEP_ALIVE" }, [messageChannel.port2]);
+        }
+      } catch (e) {
+        console.log("[KeepAlive] Error:", e);
+      }
+    };
+
+    // Ejecutar inmediatamente y luego cada 5 minutos
+    keepAlive();
+    const interval = setInterval(keepAlive, 5 * 60 * 1000);
+
+    return () => clearInterval(interval);
+  }, [user]);
+
   const unreadCount = unreadData?.count || 0;
 
   if (!user) return null;

@@ -3466,3 +3466,13 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Crear interfaz para editar teléfono en gestión de equipo
 - [x] Actualizar enlaces de WhatsApp para usar teléfono del diseñador
 - [x] Fallback al número de empresa si el diseñador no tiene teléfono
+
+
+## Mejora: Sesión persistente y notificaciones confiables (30 ene 2026)
+
+- [x] Verificar duración de la cookie de sesión (ya está configurada para 1 año)
+- [x] Mejorar Service Worker para notificaciones persistentes (v11-persistent)
+- [x] Agregar requireInteraction para mantener notificaciones visibles
+- [x] Agregar keep-alive periódico para mantener el SW activo
+- [x] Mejorar vibración y acciones en notificaciones
+- [ ] Probar en dispositivo móvil del diseñador

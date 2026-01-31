@@ -10,6 +10,7 @@ import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { startAutoReminderSystem } from "../task-auto-reminders";
 import { scheduleBirthdayNotifications } from "../birthday-service";
+import { startOverdueChangesService } from "../overdue-changes-service";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -110,6 +111,9 @@ async function startServer() {
     
     // Iniciar servicio de notificaciones de cumpleaños
     scheduleBirthdayNotifications();
+    
+    // Iniciar servicio de verificación de cambios pendientes vencidos (>48h)
+    startOverdueChangesService();
   });
 }
 

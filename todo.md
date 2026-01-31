@@ -3442,3 +3442,11 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Guardar la fecha cuando se solicitan cambios en approveDesign y requestChanges
 - [x] Mostrar fecha y tiempo transcurrido en el panel del diseñador
 - [x] Resaltar como URGENTE cuando lleva 2+ días pendiente
+
+
+## Mejora: Notificación automática de cambios vencidos (30 ene 2026)
+
+- [x] Crear servicio que verifique proyectos con cambios pendientes > 48 horas
+- [x] Enviar notificación al administrador cuando se detecten cambios vencidos
+- [x] Evitar notificaciones duplicadas (solo notificar una vez por proyecto)
+- [x] Crear tarea urgente automática para el admin

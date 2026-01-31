@@ -3402,3 +3402,10 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] El número se envía como +3214479321 en lugar de +573214479321
 - [x] Agregar código de país 57 (Colombia) al formatear el número de WhatsApp
 - [x] Corregido en 4 procedimientos: resetRendersApproval, resetModeladoApproval, sendModeladoToClient, sendRendersToClient
+
+
+## Bug: Enlace de galería no existe (30 ene 2026)
+
+- [x] El enlace de la galería enviado por WhatsApp muestra "página no existe"
+- [x] Verificar que la ruta /gallery existe en el frontend
+- [x] Corregir la URL base de innovarcocinas.manus.space a innovarcitas.manus.space

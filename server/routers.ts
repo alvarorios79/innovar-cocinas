@@ -5998,7 +5998,7 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
         const client = project.clientId ? await db.getClientById(project.clientId) : null;
         
         // Generar enlace de galería
-        const baseUrl = process.env.VITE_APP_URL || "https://innovarcocinas.manus.space";
+        const baseUrl = process.env.VITE_APP_URL || "https://innovarcitas.manus.space";
         const galleryLink = `${baseUrl}/gallery?project=${input.projectId}&type=renders`;
 
         // Generar enlace de WhatsApp si se debe notificar
@@ -6069,7 +6069,7 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
         const client = project.clientId ? await db.getClientById(project.clientId) : null;
         
         // Generar enlace de galería
-        const baseUrl = process.env.VITE_APP_URL || "https://innovarcocinas.manus.space";
+        const baseUrl = process.env.VITE_APP_URL || "https://innovarcitas.manus.space";
         const galleryLink = `${baseUrl}/gallery?project=${input.projectId}&type=modelado`;
 
         // Generar enlace de WhatsApp si se debe notificar
@@ -6145,7 +6145,7 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
 
         // Obtener cliente para generar enlace
         const client = project.clientId ? await db.getClientById(project.clientId) : null;
-        const baseUrl = process.env.VITE_APP_URL || "https://innovarcocinas.manus.space";
+        const baseUrl = process.env.VITE_APP_URL || "https://innovarcitas.manus.space";
         const galleryLink = `${baseUrl}/gallery?project=${input.projectId}&type=modelado`;
 
         // Generar mensaje de WhatsApp
@@ -6223,7 +6223,7 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
 
         // Obtener cliente para generar enlace
         const client = project.clientId ? await db.getClientById(project.clientId) : null;
-        const baseUrl = process.env.VITE_APP_URL || "https://innovarcocinas.manus.space";
+        const baseUrl = process.env.VITE_APP_URL || "https://innovarcitas.manus.space";
         const galleryLink = `${baseUrl}/gallery?project=${input.projectId}&type=renders`;
 
         // Generar mensaje de WhatsApp

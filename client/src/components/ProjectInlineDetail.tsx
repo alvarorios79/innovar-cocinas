@@ -136,6 +136,9 @@ export function ProjectInlineDetail({
   });
   const [whatsAppMessage, setWhatsAppMessage] = useState("");
   const [whatsAppPhone, setWhatsAppPhone] = useState("");
+  const [designerWhatsAppLink, setDesignerWhatsAppLink] = useState<string | null>(null);
+  const [showDesignerWhatsAppDialog, setShowDesignerWhatsAppDialog] = useState(false);
+  const [designerName, setDesignerName] = useState<string | null>(null);
   
   // Filtros para fotos
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
@@ -201,11 +204,11 @@ export function ProjectInlineDetail({
           toast.success("Cambios registrados. El proyecto volvió a diseño.");
         }
         
-        // Abrir WhatsApp si hay enlace disponible
+        // Mostrar diálogo con botón de WhatsApp si hay enlace disponible
         if (result.designerWhatsAppLink) {
-          setTimeout(() => {
-            window.open(result.designerWhatsAppLink as string, "_blank");
-          }, 500);
+          setDesignerWhatsAppLink(result.designerWhatsAppLink as string);
+          setDesignerName(result.designerName || null);
+          setShowDesignerWhatsAppDialog(true);
         }
       }
     },
@@ -1818,6 +1821,47 @@ export function ProjectInlineDetail({
                 Enviar
               </Button>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Diálogo WhatsApp para notificar al diseñador */}
+      <Dialog open={showDesignerWhatsAppDialog} onOpenChange={setShowDesignerWhatsAppDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <MessageCircle className="h-5 w-5 text-green-600" />
+              Notificar al Diseñador
+            </DialogTitle>
+            <DialogDescription>
+              Se ha creado una tarea y notificación para el diseñador{designerName ? ` (${designerName})` : ''}. 
+              ¿Deseas enviarle también un mensaje por WhatsApp?
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="flex justify-end gap-2 mt-4">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setShowDesignerWhatsAppDialog(false);
+                setDesignerWhatsAppLink(null);
+              }}
+            >
+              No, solo notificación
+            </Button>
+            <Button
+              className="bg-green-600 hover:bg-green-700 text-white"
+              onClick={() => {
+                if (designerWhatsAppLink) {
+                  window.open(designerWhatsAppLink, "_blank");
+                }
+                setShowDesignerWhatsAppDialog(false);
+                setDesignerWhatsAppLink(null);
+              }}
+            >
+              <MessageCircle className="h-4 w-4 mr-1" />
+              Sí, abrir WhatsApp
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

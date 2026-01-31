@@ -3476,3 +3476,11 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Agregar keep-alive periódico para mantener el SW activo
 - [x] Mejorar vibración y acciones en notificaciones
 - [ ] Probar en dispositivo móvil del diseñador
+
+
+## Bug: WhatsApp no se abre al solicitar cambios (31 ene 2026)
+
+- [x] Revisar por qué la notificación interna llega pero WhatsApp no se abre
+- [x] Verificar que el enlace de WhatsApp se genera correctamente (sí se genera)
+- [x] Corregir el flujo: ahora muestra diálogo con botón para abrir WhatsApp manualmente
+- [x] El navegador bloqueaba el popup automático, ahora el usuario hace clic para abrir

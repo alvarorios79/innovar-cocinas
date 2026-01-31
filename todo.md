@@ -3369,3 +3369,21 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Mostrar indicador visual del número de revisiones de renders en la lista de proyectos
 - [x] Indicador con colores: azul (1 rev), ámbar (2 revs), rojo (3+ revs)
 - [x] Diálogo muestra advertencia con número de revisiones si es > 1
+
+
+## Análisis de Paneles de Colaboradores (30 ene 2026)
+
+- [ ] Revisar schema de base de datos para entender roles disponibles
+- [ ] Revisar componentes de paneles de cada rol (super_admin, admin, comercial, diseñador, jefe_taller, operario)
+- [ ] Revisar sistema de notificaciones y cuándo se envían
+- [ ] Preparar documento con análisis completo y mejoras propuestas
+
+
+## Bug: Botón Nueva Aprobación de Renders bloqueado incorrectamente (30 ene 2026)
+
+- [x] Revisar lógica actual del botón Nueva Aprobación de Renders
+- [x] Verificar si el sistema detecta cuando se suben nuevos archivos a renders
+- [x] Corregir para que el botón esté siempre activo cuando hay fotos de renders
+- [x] Permitir enviar recordatorios y nuevas revisiones sin esperar respuesta del cliente
+- [x] Botón ahora muestra "Enviar Revisión" cuando hay renders pendientes de aprobar
+- [x] Botón muestra "Nueva Revisión" cuando los renders ya fueron aprobados

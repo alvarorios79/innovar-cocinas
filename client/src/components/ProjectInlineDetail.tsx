@@ -837,12 +837,12 @@ export function ProjectInlineDetail({
                       <Button
                         size="sm"
                         variant="outline"
-                        className={`w-full text-xs ${projectDetail.rendersApprovedAt ? 'border-emerald-400 text-emerald-700 hover:bg-emerald-200' : 'border-gray-300 text-gray-400'}`}
-                        onClick={() => projectDetail.rendersApprovedAt && resetRendersApproval.mutate({ projectId: projectDetail.id })}
-                        disabled={!projectDetail.rendersApprovedAt || resetRendersApproval.isPending}
+                        className={`w-full text-xs ${hasRenders ? 'border-amber-400 text-amber-700 hover:bg-amber-200' : 'border-gray-300 text-gray-400'}`}
+                        onClick={() => hasRenders && resetRendersApproval.mutate({ projectId: projectDetail.id })}
+                        disabled={!hasRenders || resetRendersApproval.isPending}
                       >
                         <RefreshCw className={`h-3 w-3 mr-1 ${resetRendersApproval.isPending ? 'animate-spin' : ''}`} />
-                        Nueva Aprobación
+                        {projectDetail.rendersApprovedAt ? 'Nueva Revisión' : 'Enviar Revisión'}
                       </Button>
                     </div>
                   </div>

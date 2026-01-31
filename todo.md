@@ -3417,3 +3417,11 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Bloquear cuando modeladoRevisionNumber >= 1
 - [x] Mostrar "Enviado (Rev. X)" cuando está bloqueado
 - [x] Aplicar en ProjectDetail.tsx y ProjectInlineDetail.tsx
+
+
+## Mejora: Notificar al diseñador cuando se solicitan cambios (30 ene 2026)
+
+- [x] Crear tarea automática para el diseñador con los cambios solicitados
+- [x] Enviar notificación interna al diseñador
+- [x] Generar enlace de WhatsApp para notificar al diseñador
+- [x] Actualizar frontend para mostrar el enlace de WhatsApp

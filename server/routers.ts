@@ -4436,9 +4436,84 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
             changedBy: ctx.user.id,
             notes: `${approverLabel} rechazó el diseño: ${input.notes || ""}`,
           });
+
+          // === NOTIFICACIONES AL DISEÑADOR ===
+          let designerWhatsAppLink = null;
+          let designerNotified = false;
+          
+          // Obtener el diseñador asignado al proyecto
+          const designerId = project.designerId;
+          let designer = null;
+          
+          if (designerId) {
+            designer = await db.getUserById(designerId);
+          }
+          
+          // Si no hay diseñador asignado, buscar uno disponible
+          if (!designer) {
+            const designers = await db.getUsersByRole('diseñador');
+            if (designers.length > 0) {
+              designer = designers[0];
+            }
+          }
+          
+          if (designer) {
+            // 1. Crear tarea automática para el diseñador
+            const taskTitle = `🔄 Cambios solicitados: ${project.name}`;
+            const taskDescription = `El cliente ha solicitado cambios en el diseño del proyecto "${project.name}".
+
+📝 **Cambios solicitados:**
+${input.notes || "No se especificaron detalles"}
+
+📅 Fecha de solicitud: ${new Date().toLocaleString('es-CO')}
+
+⚠️ Por favor revisa los cambios y actualiza el diseño lo antes posible.`;
+            
+            await db.createTask({
+              projectId: input.projectId,
+              title: taskTitle,
+              description: taskDescription,
+              priority: "alta",
+              assignedTo: designer.id,
+              assignedBy: ctx.user.id,
+              dueDate: new Date(Date.now() + 48 * 60 * 60 * 1000), // 48 horas
+            });
+            
+            // 2. Crear notificación interna para el diseñador
+            await db.createNotification({
+              userId: designer.id,
+              type: "proyecto",
+              title: `🔄 Cambios solicitados en ${project.name}`,
+              body: `El cliente ha solicitado cambios: ${input.notes || "Ver detalles en el proyecto"}`,
+              referenceId: input.projectId,
+              referenceType: "project",
+            });
+            
+            designerNotified = true;
+            
+            // 3. Generar enlace de WhatsApp para el diseñador
+            // Usar el email del diseñador para buscar su teléfono en clientes (si está registrado)
+            // O generar un enlace genérico para el número de la empresa
+            const companyPhone = "3136802025"; // Número de INNOVAR
+            const whatsAppMessage = encodeURIComponent(
+              `🔄 *CAMBIOS SOLICITADOS*\n\n` +
+              `*Proyecto:* ${project.name}\n` +
+              `*Diseñador:* ${designer.name || "Sin asignar"}\n\n` +
+              `📝 *Cambios solicitados:*\n${input.notes || "No se especificaron detalles"}\n\n` +
+              `Por favor revisa el proyecto y actualiza el diseño.`
+            );
+            designerWhatsAppLink = `https://wa.me/57${companyPhone}?text=${whatsAppMessage}`;
+          }
+          
+          return { 
+            success: true, 
+            designerWhatsAppLink,
+            designerNotified,
+            designerName: designer?.name || null
+          };
         }
 
-        return { success: true };
+        return { success: true, designerWhatsAppLink: null, designerNotified: false, designerName: null };
       }),
 
     // Subir diseño 3D (Diseñador)

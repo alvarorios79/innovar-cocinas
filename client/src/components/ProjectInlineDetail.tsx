@@ -187,10 +187,27 @@ export function ProjectInlineDetail({
   });
 
   const approveDesign = trpc.projects.approveDesign.useMutation({
-    onSuccess: (_, variables) => {
+    onSuccess: (result, variables) => {
       utils.projects.list.invalidate();
       utils.projects.getById.invalidate();
-      toast.success(variables.approved ? "Diseño aprobado exitosamente" : "Diseño rechazado, vuelve a diseño");
+      
+      if (variables.approved) {
+        toast.success("Diseño aprobado exitosamente");
+      } else {
+        // Mostrar mensaje con información del diseñador notificado
+        if (result.designerNotified) {
+          toast.success(`Cambios registrados. Se notificó al diseñador${result.designerName ? ` (${result.designerName})` : ''} y se creó una tarea.`);
+        } else {
+          toast.success("Cambios registrados. El proyecto volvió a diseño.");
+        }
+        
+        // Abrir WhatsApp si hay enlace disponible
+        if (result.designerWhatsAppLink) {
+          setTimeout(() => {
+            window.open(result.designerWhatsAppLink as string, "_blank");
+          }, 500);
+        }
+      }
     },
     onError: (error) => {
       toast.error(error.message || "Error al procesar la aprobación");

@@ -3409,3 +3409,11 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] El enlace de la galería enviado por WhatsApp muestra "página no existe"
 - [x] Verificar que la ruta /gallery existe en el frontend
 - [x] Corregir la URL base de innovarcocinas.manus.space a innovarcitas.manus.space
+
+
+## Mejora: Bloquear botón Enviar Modelado después del primer envío (30 ene 2026)
+
+- [x] Aplicar la misma lógica de bloqueo que tiene "Enviar Renders"
+- [x] Bloquear cuando modeladoRevisionNumber >= 1
+- [x] Mostrar "Enviado (Rev. X)" cuando está bloqueado
+- [x] Aplicar en ProjectDetail.tsx y ProjectInlineDetail.tsx

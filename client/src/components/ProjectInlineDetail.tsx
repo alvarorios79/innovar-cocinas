@@ -693,12 +693,13 @@ export function ProjectInlineDetail({
                 {projectDetail.photos?.filter((p: any) => p.subcategory === "modelado").length > 0 && (
                   <Button
                     size="sm"
-                    className="w-full mt-3 bg-purple-600 hover:bg-purple-700 text-white shadow-sm text-xs"
+                    className={`w-full mt-3 shadow-sm text-xs ${(projectDetail.modeladoRevisionNumber || 0) >= 1 ? 'bg-gray-400 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700'} text-white`}
                     onClick={() => sendModeladoToClient.mutate({ projectId: projectDetail.id })}
-                    disabled={sendModeladoToClient.isPending}
+                    disabled={sendModeladoToClient.isPending || (projectDetail.modeladoRevisionNumber || 0) >= 1}
+                    title={(projectDetail.modeladoRevisionNumber || 0) >= 1 ? 'Ya se envió la primera revisión. Use "Enviar Revisión" para nuevos envíos.' : ''}
                   >
                     <Send className={`h-3 w-3 mr-1 ${sendModeladoToClient.isPending ? 'animate-spin' : ''}`} />
-                    {sendModeladoToClient.isPending ? 'Enviando...' : 'Enviar Modelado'}
+                    {(projectDetail.modeladoRevisionNumber || 0) >= 1 ? `Enviado (Rev. ${projectDetail.modeladoRevisionNumber})` : sendModeladoToClient.isPending ? 'Enviando...' : 'Enviar Modelado'}
                   </Button>
                 )}
               </div>

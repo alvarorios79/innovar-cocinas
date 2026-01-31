@@ -169,6 +169,7 @@ export function TeamDashboard() {
   const getStats = () => {
     switch (role) {
       case "disenador":
+        const cambiosPendientes = myProjects.filter(p => p.status === "en_diseno" && (p as any).clientApprovalNotes).length;
         return [
           { 
             label: "En Diseño", 
@@ -178,11 +179,12 @@ export function TeamDashboard() {
             link: "/projects"
           },
           { 
-            label: "Esperando Cliente", 
-            value: myProjects.filter(p => p.status === "pendiente_cliente").length,
-            icon: <Clock className="h-6 w-6" />,
-            color: "bg-gradient-to-br from-yellow-500 to-amber-500",
-            link: "/projects"
+            label: "🔄 Cambios Pendientes", 
+            value: cambiosPendientes,
+            icon: <AlertTriangle className="h-6 w-6" />,
+            color: "bg-gradient-to-br from-orange-500 to-red-500",
+            link: "/projects",
+            highlight: cambiosPendientes > 0
           },
           { 
             label: "Mis Tareas", 
@@ -770,6 +772,51 @@ export function TeamDashboard() {
                     </Link>
                   );
                 })}
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Sección especial para Diseñador: Cambios Pendientes */}
+      {role === "disenador" && myProjects.filter(p => p.status === "en_diseno" && (p as any).clientApprovalNotes).length > 0 && (
+        <section className="py-3 md:py-4">
+          <div className="container">
+            <div className="max-w-4xl mx-auto">
+              <h2 className="text-base md:text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5 text-orange-600" />
+                🔄 Cambios Solicitados por Clientes
+              </h2>
+              <div className="space-y-3">
+                {myProjects.filter(p => p.status === "en_diseno" && (p as any).clientApprovalNotes).map((project: any) => (
+                  <Card key={project.id} className="border-l-4 border-l-orange-500 bg-gradient-to-r from-orange-50 to-amber-50 hover:shadow-lg transition-all">
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Badge className="bg-orange-500 text-white">
+                              🔄 Cambios Pendientes
+                            </Badge>
+                            <span className="text-xs text-muted-foreground">
+                              Rev. {project.renderRevisionNumber || 1}
+                            </span>
+                          </div>
+                          <h3 className="font-bold text-gray-800">{project.name}</h3>
+                          <div className="mt-2 p-3 bg-white rounded-lg border border-orange-200">
+                            <p className="text-sm text-gray-700 font-medium mb-1">📝 Cambios solicitados:</p>
+                            <p className="text-sm text-gray-600">{project.clientApprovalNotes || "Sin detalles especificados"}</p>
+                          </div>
+                        </div>
+                        <Link href={`/projects/${project.id}`}>
+                          <Button size="sm" className="bg-orange-600 hover:bg-orange-700 text-white">
+                            Ver Proyecto
+                            <ArrowRight className="h-4 w-4 ml-1" />
+                          </Button>
+                        </Link>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
             </div>
           </div>

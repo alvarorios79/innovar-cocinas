@@ -3425,3 +3425,12 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Enviar notificación interna al diseñador
 - [x] Generar enlace de WhatsApp para notificar al diseñador
 - [x] Actualizar frontend para mostrar el enlace de WhatsApp
+
+
+## Mejora: Panel de Cambios Pendientes para diseñadores (30 ene 2026)
+
+- [x] Crear procedimiento backend para obtener proyectos en estado "en_diseno" con cambios solicitados
+- [x] Crear sección/panel en el portal del diseñador para mostrar cambios pendientes
+- [x] Mostrar nombre del proyecto, fecha de solicitud y notas de cambios
+- [x] Solo visible para el rol diseñador
+- [x] Agregar estadística de "Cambios Pendientes" en el resumen del día

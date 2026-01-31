@@ -788,35 +788,69 @@ export function TeamDashboard() {
                 🔄 Cambios Solicitados por Clientes
               </h2>
               <div className="space-y-3">
-                {myProjects.filter(p => p.status === "en_diseno" && (p as any).clientApprovalNotes).map((project: any) => (
-                  <Card key={project.id} className="border-l-4 border-l-orange-500 bg-gradient-to-r from-orange-50 to-amber-50 hover:shadow-lg transition-all">
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <Badge className="bg-orange-500 text-white">
-                              🔄 Cambios Pendientes
-                            </Badge>
-                            <span className="text-xs text-muted-foreground">
-                              Rev. {project.renderRevisionNumber || 1}
-                            </span>
+                {myProjects.filter(p => p.status === "en_diseno" && (p as any).clientApprovalNotes).map((project: any) => {
+                  // Calcular tiempo transcurrido desde la solicitud de cambios
+                  const changesDate = project.changesRequestedAt ? new Date(project.changesRequestedAt) : null;
+                  const now = new Date();
+                  let tiempoTranscurrido = "";
+                  let esUrgente = false;
+                  
+                  if (changesDate) {
+                    const diffMs = now.getTime() - changesDate.getTime();
+                    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+                    const diffDays = Math.floor(diffHours / 24);
+                    
+                    if (diffDays > 0) {
+                      tiempoTranscurrido = `Hace ${diffDays} día${diffDays > 1 ? 's' : ''}`;
+                      esUrgente = diffDays >= 2; // Urgente si lleva 2+ días
+                    } else if (diffHours > 0) {
+                      tiempoTranscurrido = `Hace ${diffHours} hora${diffHours > 1 ? 's' : ''}`;
+                      esUrgente = diffHours >= 24;
+                    } else {
+                      tiempoTranscurrido = "Hace menos de 1 hora";
+                    }
+                  }
+                  
+                  return (
+                    <Card key={project.id} className={`border-l-4 ${esUrgente ? 'border-l-red-500 bg-gradient-to-r from-red-50 to-orange-50' : 'border-l-orange-500 bg-gradient-to-r from-orange-50 to-amber-50'} hover:shadow-lg transition-all`}>
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1">
+                            <div className="flex flex-wrap items-center gap-2 mb-2">
+                              <Badge className={esUrgente ? "bg-red-500 text-white" : "bg-orange-500 text-white"}>
+                                {esUrgente ? "🔥 URGENTE" : "🔄 Cambios Pendientes"}
+                              </Badge>
+                              <span className="text-xs text-muted-foreground">
+                                Rev. {project.renderRevisionNumber || 1}
+                              </span>
+                              {tiempoTranscurrido && (
+                                <Badge variant="outline" className={`text-xs ${esUrgente ? 'border-red-300 text-red-700 bg-red-50' : 'border-orange-300 text-orange-700 bg-orange-50'}`}>
+                                  ⏰ {tiempoTranscurrido}
+                                </Badge>
+                              )}
+                            </div>
+                            <h3 className="font-bold text-gray-800">{project.name}</h3>
+                            {changesDate && (
+                              <p className="text-xs text-muted-foreground mt-1">
+                                📅 Solicitado: {changesDate.toLocaleDateString('es-CO', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                              </p>
+                            )}
+                            <div className="mt-2 p-3 bg-white rounded-lg border border-orange-200">
+                              <p className="text-sm text-gray-700 font-medium mb-1">📝 Cambios solicitados:</p>
+                              <p className="text-sm text-gray-600">{project.clientApprovalNotes || "Sin detalles especificados"}</p>
+                            </div>
                           </div>
-                          <h3 className="font-bold text-gray-800">{project.name}</h3>
-                          <div className="mt-2 p-3 bg-white rounded-lg border border-orange-200">
-                            <p className="text-sm text-gray-700 font-medium mb-1">📝 Cambios solicitados:</p>
-                            <p className="text-sm text-gray-600">{project.clientApprovalNotes || "Sin detalles especificados"}</p>
-                          </div>
+                          <Link href={`/projects/${project.id}`}>
+                            <Button size="sm" className={esUrgente ? "bg-red-600 hover:bg-red-700 text-white" : "bg-orange-600 hover:bg-orange-700 text-white"}>
+                              Ver Proyecto
+                              <ArrowRight className="h-4 w-4 ml-1" />
+                            </Button>
+                          </Link>
                         </div>
-                        <Link href={`/projects/${project.id}`}>
-                          <Button size="sm" className="bg-orange-600 hover:bg-orange-700 text-white">
-                            Ver Proyecto
-                            <ArrowRight className="h-4 w-4 ml-1" />
-                          </Button>
-                        </Link>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
             </div>
           </div>

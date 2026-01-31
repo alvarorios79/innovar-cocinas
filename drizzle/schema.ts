@@ -210,6 +210,8 @@ export const projects = mysqlTable("projects", {
   modeladoRevisionNumber: int("modeladoRevisionNumber").default(0),
   // Contador de revisiones de renders (1 = primera versión, 2 = segunda versión después de cambios, etc.)
   renderRevisionNumber: int("renderRevisionNumber").default(0),
+  // Fecha en que el cliente solicitó cambios (para calcular tiempo pendiente)
+  changesRequestedAt: timestamp("changesRequestedAt"),
   // Selección de colores y materiales
   selectedColors: text("selectedColors"),
   selectedMaterials: text("selectedMaterials"),

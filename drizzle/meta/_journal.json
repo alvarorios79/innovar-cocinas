@@ -281,6 +281,13 @@
       "when": 1769748043225,
       "tag": "0039_ordinary_swarm",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "5",
+      "when": 1769824929099,
+      "tag": "0040_fixed_zuras",
+      "breakpoints": true
     }
   ]
 }

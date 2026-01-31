@@ -4427,6 +4427,7 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
           await db.updateProject(input.projectId, {
             status: "en_diseno",
             clientApprovalNotes: input.notes,
+            changesRequestedAt: new Date(), // Guardar fecha de solicitud de cambios
           });
 
           await db.createProjectStatusHistory({
@@ -5927,9 +5928,11 @@ ${input.notes || "No se especificaron detalles"}
         }
 
         // Actualizar estado del proyecto si está pendiente de cliente
-        if (project.status === "pendiente_cliente") {
+        if (project.status === "pendiente_cliente" || project.status === "pendiente_modelado" || project.status === "pendiente_render") {
           await db.updateProject(input.projectId, {
             status: "en_diseno",
+            clientApprovalNotes: input.changes,
+            changesRequestedAt: new Date(), // Guardar fecha de solicitud de cambios
           });
         }
 

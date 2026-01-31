@@ -3434,3 +3434,11 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Mostrar nombre del proyecto, fecha de solicitud y notas de cambios
 - [x] Solo visible para el rol diseñador
 - [x] Agregar estadística de "Cambios Pendientes" en el resumen del día
+
+
+## Mejora: Fecha de solicitud de cambios (30 ene 2026)
+
+- [x] Agregar campo changesRequestedAt en el schema de proyectos
+- [x] Guardar la fecha cuando se solicitan cambios en approveDesign y requestChanges
+- [x] Mostrar fecha y tiempo transcurrido en el panel del diseñador
+- [x] Resaltar como URGENTE cuando lleva 2+ días pendiente

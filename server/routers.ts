@@ -6056,12 +6056,23 @@ ${input.notes || "No se especificaron detalles"}
         const newRevision = currentRevision + 1;
         
         // Reiniciar campos de aprobación de renders y actualizar contador
+        // También limpiar fecha de cambios solicitados y notas para reiniciar el contador
         await db.updateProject(input.projectId, {
           rendersApprovedAt: null,
           rendersApprovedBy: null,
           renderRevisionNumber: newRevision,
           status: "pendiente_render", // Cambiar estado a pendiente de aprobación de render
+          changesRequestedAt: null, // Limpiar fecha de cambios para reiniciar contador
+          clientApprovalNotes: null, // Limpiar notas de cambios anteriores
         });
+        
+        // Limpiar proyecto del registro de notificados de cambios vencidos
+        try {
+          const { clearProjectFromNotified } = await import("./overdue-changes-service");
+          clearProjectFromNotified(input.projectId);
+        } catch (e) {
+          // Ignorar si el servicio no está disponible
+        }
         
         // Registrar cambio de estado en historial
         await db.createProjectStatusHistory({
@@ -6127,12 +6138,23 @@ ${input.notes || "No se especificaron detalles"}
         const newRevision = currentRevision + 1;
 
         // Reiniciar campos de aprobación de modelado y actualizar contador
+        // También limpiar fecha de cambios solicitados y notas para reiniciar el contador
         await db.updateProject(input.projectId, {
           modeladoApprovedAt: null,
           modeladoApprovedBy: null,
           status: "pendiente_modelado",
           modeladoRevisionNumber: newRevision,
+          changesRequestedAt: null, // Limpiar fecha de cambios para reiniciar contador
+          clientApprovalNotes: null, // Limpiar notas de cambios anteriores
         });
+        
+        // Limpiar proyecto del registro de notificados de cambios vencidos
+        try {
+          const { clearProjectFromNotified } = await import("./overdue-changes-service");
+          clearProjectFromNotified(input.projectId);
+        } catch (e) {
+          // Ignorar si el servicio no está disponible
+        }
 
         // Registrar cambio de estado en historial
         await db.createProjectStatusHistory({

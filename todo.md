@@ -3450,3 +3450,11 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Enviar notificación al administrador cuando se detecten cambios vencidos
 - [x] Evitar notificaciones duplicadas (solo notificar una vez por proyecto)
 - [x] Crear tarea urgente automática para el admin
+
+
+## Mejora: Limpiar fecha de cambios al enviar revisión (30 ene 2026)
+
+- [x] Limpiar changesRequestedAt en resetRendersApproval
+- [x] Limpiar changesRequestedAt en resetModeladoApproval
+- [x] Limpiar clientApprovalNotes para reiniciar el estado
+- [x] Limpiar proyecto del registro de notificados en el servicio

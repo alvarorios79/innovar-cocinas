@@ -513,7 +513,7 @@ export default function ProjectDetail() {
 
         {/* Acciones rápidas */}
         <div className="flex flex-wrap gap-2 mb-6">
-          {projectDetail.client?.whatsappPhone && user?.role !== "disenador" && user?.role !== "operario" && (
+          {projectDetail.client?.whatsappPhone && user?.role !== "disenador" && user?.role !== "jefe_taller" && user?.role !== "operario" && (
             <Button
               variant="outline"
               size="sm"
@@ -881,7 +881,7 @@ export default function ProjectDetail() {
                     <User className="h-4 w-4 text-muted-foreground" />
                     <strong>Nombre:</strong> {projectDetail.client?.name}
                   </p>
-                  {user?.role !== "disenador" && user?.role !== "operario" && (
+                  {user?.role !== "disenador" && user?.role !== "jefe_taller" && user?.role !== "operario" && (
                     <>
                       <p className="flex items-center gap-2">
                         <Phone className="h-4 w-4 text-muted-foreground" />

@@ -3530,3 +3530,12 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Crear tarea automática para el jefe de taller con los detalles del proyecto
 - [x] Agregar enlace de WhatsApp para notificar al jefe de taller
 - [x] La notificación incluye: push, tarea automática con próximos pasos, y enlace WhatsApp
+
+
+## Verificación: Información de cliente para jefe_taller y operario (31 ene 2026)
+
+- [x] Verificar que jefe_taller y operario solo vean nombre y dirección del cliente
+- [x] Ocultar teléfono del cliente para estos roles
+- [x] Ocultar email y otros datos personales del cliente
+- [x] Corregido en: ProjectInlineDetail.tsx, ProjectDetail.tsx, ProjectCard.tsx
+- [x] También se ocultó el botón de WhatsApp para estos roles

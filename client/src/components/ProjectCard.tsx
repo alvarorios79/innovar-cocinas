@@ -333,7 +333,7 @@ export function ProjectCard({
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
                     <p><strong>Nombre:</strong> {detail.client?.name}</p>
-                    {user?.role !== "disenador" && (
+                    {user?.role !== "disenador" && user?.role !== "jefe_taller" && user?.role !== "operario" && (
                       <>
                         <p className="flex items-center gap-1">
                           <Phone className="h-3 w-3" />

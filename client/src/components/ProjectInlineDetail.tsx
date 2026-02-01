@@ -992,7 +992,7 @@ export function ProjectInlineDetail({
               </CardHeader>
               <CardContent className="text-sm space-y-1">
                 <p><strong>Nombre:</strong> {projectDetail.client?.name}</p>
-                {user?.role !== "disenador" && (
+                {user?.role !== "disenador" && user?.role !== "jefe_taller" && user?.role !== "operario" && (
                   <>
                     <p><strong>Teléfono:</strong> {projectDetail.client?.whatsappPhone}</p>
                     <p><strong>Email:</strong> {projectDetail.client?.email || "N/A"}</p>

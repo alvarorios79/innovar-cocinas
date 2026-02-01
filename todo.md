@@ -3522,3 +3522,11 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Agregar jefe_taller y operario a la lista de roles que ven el Centro de Control de Diseño
 - [x] Corregido en ProjectInlineDetail.tsx y ProjectDetail.tsx
 - [x] El botón de subir fotos ya existía, pero solo para carpetas de producción (corte, enchape, etc.)
+
+
+## Mejora: Notificación al jefe de taller cuando diseño aprobado (31 ene 2026)
+
+- [x] Notificar al jefe de taller cuando el cliente aprueba el diseño (renders)
+- [x] Crear tarea automática para el jefe de taller con los detalles del proyecto
+- [x] Agregar enlace de WhatsApp para notificar al jefe de taller
+- [x] La notificación incluye: push, tarea automática con próximos pasos, y enlace WhatsApp

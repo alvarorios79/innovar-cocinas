@@ -5991,8 +5991,47 @@ ${input.notes || "No se especificaron detalles"}
               });
             }
           }
+          
+          // Si es aprobación de renders (diseño final), notificar al jefe de taller para iniciar producción
+          if (input.type === "renders") {
+            const jefesTaller = await db.getUsersByRole('jefe_taller');
+            for (const jefe of jefesTaller) {
+              // Crear notificación push
+              await createAndSendNotification(jefe.id, {
+                title: `🏭 Nuevo proyecto listo para producción`,
+                body: `"${project.name}" fue aprobado por el cliente. ¡Listo para iniciar producción!`,
+                type: "proyecto",
+                referenceId: input.projectId,
+                referenceType: "project",
+                url: `/projects/${input.projectId}`,
+              });
+              
+              // Crear tarea para el jefe de taller
+              await db.createTask({
+                projectId: input.projectId,
+                title: `🏭 Iniciar producción: ${project.name}`,
+                description: `El cliente ${input.clientName} ha aprobado el diseño final del proyecto "${project.name}".\n\n¡El proyecto está listo para iniciar producción!\n\nPróximos pasos:\n1. Revisar despieces y materiales\n2. Programar corte\n3. Coordinar con operarios`,
+                priority: "alta",
+                assignedTo: jefe.id,
+                assignedBy: jefe.id, // Auto-asignada por el sistema
+                dueDate: new Date(Date.now() + 48 * 60 * 60 * 1000), // 48 horas
+              });
+            }
+          }
         } catch (pushError) {
           console.error("Error enviando notificaciones push:", pushError);
+        }
+        
+        // Generar enlace de WhatsApp para notificar al jefe de taller (solo si es aprobación de renders)
+        let jefeTallerWhatsAppLink = null;
+        if (input.type === "renders") {
+          const jefesTaller = await db.getUsersByRole('jefe_taller');
+          if (jefesTaller.length > 0) {
+            const jefePhone = (jefesTaller[0] as any).phone;
+            const phoneToUse = jefePhone ? (jefePhone.startsWith('57') ? jefePhone : `57${jefePhone}`) : '573136802025';
+            const message = encodeURIComponent(`🏭 *NUEVO PROYECTO LISTO PARA PRODUCCIÓN*\n\nHola, te informo que el proyecto "${project.name}" ha sido aprobado por el cliente ${input.clientName}.\n\n✅ El diseño fue aprobado y está listo para iniciar producción.\n\nPor favor revisa los despieces y materiales para programar el corte.\n\nVer proyecto: https://innovarcitas.manus.space/projects/${input.projectId}`);
+            jefeTallerWhatsAppLink = `https://wa.me/${phoneToUse}?text=${message}`;
+          }
         }
 
         return { 
@@ -6001,6 +6040,7 @@ ${input.notes || "No se especificaron detalles"}
             ? "¡Gracias! Hemos registrado su aprobación del modelado. Pronto le enviaremos los renders finales."
             : "¡Gracias! Su proyecto ha sido aprobado. Pronto nos pondremos en contacto para coordinar los siguientes pasos.",
           teamWhatsAppLink, // Enlace para notificar al equipo por WhatsApp
+          jefeTallerWhatsAppLink, // Enlace para notificar al jefe de taller (solo renders)
         };
       }),
 

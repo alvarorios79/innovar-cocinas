@@ -412,6 +412,9 @@ export default function Home() {
                       <Link href="/admin">
                         <Button variant="ghost" size="sm" className="text-sm">Panel Admin</Button>
                       </Link>
+                      <Link href="/accounting">
+                        <Button variant="ghost" size="sm" className="text-sm">Contabilidad</Button>
+                      </Link>
                     </>
                   )}
                   <NotificationBell />

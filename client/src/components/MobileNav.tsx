@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, X, Home, FolderKanban, ListTodo, Calendar, Settings, User, LogOut } from "lucide-react";
+import { Menu, X, Home, FolderKanban, ListTodo, Calendar, Settings, User, LogOut, Calculator } from "lucide-react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { NotificationBell } from "@/components/NotificationBell";
@@ -79,6 +79,12 @@ export function MobileNav() {
       href: user?.role === "comercial" ? "/comercial" : "/admin", 
       label: user?.role === "comercial" ? "Panel Comercial" : "Panel Admin", 
       icon: <Settings className="h-5 w-5" />,
+      roles: ["admin", "super_admin", "comercial"]
+    },
+    { 
+      href: "/accounting", 
+      label: "Contabilidad", 
+      icon: <Calculator className="h-5 w-5" />,
       roles: ["admin", "super_admin", "comercial"]
     },
   ];

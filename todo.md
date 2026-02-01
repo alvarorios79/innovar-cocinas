@@ -3598,3 +3598,39 @@ Se agregó el rol "comercial" a los siguientes endpoints:
   - FUNCIONALIDADES_BLINDADAS.md
   - DEPENDENCIAS_SISTEMA.md
   - REPORTE_BUG_CLOUDFRONT.md
+
+
+## Sistema Contable Interno (1 feb 2026) - COMPLETADO
+
+### Base de Datos
+- [x] Crear tabla expenses para gastos
+- [x] Definir tipos de gasto (materiales_proyecto, gasto_operativo)
+- [x] Definir categorías operativas (arriendo, energía, agua, internet, etc.)
+
+### Backend
+- [x] Crear procedimientos tRPC para CRUD de gastos
+- [x] Implementar subida de soportes (fotos de recibos/facturas)
+- [x] Crear consultas de gastos por proyecto y por categoría
+- [x] Endpoint uploadSupport para subir fotos de soportes
+
+### Frontend
+- [x] Crear página del Sistema Contable con menú inicial
+- [x] Implementar formulario guiado para Gastos de Materiales (5 pasos)
+- [x] Implementar formulario guiado para Gastos Operativos (5 pasos)
+- [x] Crear vista de confirmación y resumen
+- [x] Agregar enlace en el menú de navegación (Home y MobileNav)
+
+### Reportes
+- [x] Vista de gastos por proyecto (pestaña Resumen)
+- [x] Vista de gastos operativos por categoría (pestaña Resumen)
+- [x] Totales y filtros por fecha (pestaña Historial)
+
+### Funcionalidades implementadas:
+- Flujo guiado de 5 pasos para registrar gastos
+- Selección de proyecto existente o ingreso manual de cliente
+- Categorías predefinidas para gastos operativos
+- Subida opcional de foto de soporte (recibo/factura)
+- Diálogo de confirmación antes de guardar
+- Historial con filtro por tipo de gasto
+- Resumen con totales por tipo y desglose por proyecto
+- Acceso solo para admin y super_admin

@@ -697,3 +697,53 @@ export const pricingHistory = mysqlTable("pricingHistory", {
 
 export type PricingHistory = typeof pricingHistory.$inferSelect;
 export type InsertPricingHistory = typeof pricingHistory.$inferInsert;
+
+
+/**
+ * Sistema Contable Interno - Gastos
+ * Tipos: materiales_proyecto (gastos de materiales para proyectos específicos)
+ *        gasto_operativo (gastos generales del negocio)
+ */
+export const expenses = mysqlTable("expenses", {
+  id: int("id").autoincrement().primaryKey(),
+  
+  // Tipo de gasto
+  expenseType: mysqlEnum("expenseType", ["materiales_proyecto", "gasto_operativo"]).notNull(),
+  
+  // Para gastos de materiales - referencia al proyecto/cliente
+  projectId: int("projectId").references(() => projects.id),
+  projectClientName: varchar("projectClientName", { length: 255 }), // Nombre del cliente/proyecto para referencia rápida
+  
+  // Para gastos operativos - categoría
+  operativeCategory: mysqlEnum("operativeCategory", [
+    "arriendo",
+    "energia",
+    "agua",
+    "internet",
+    "mantenimiento",
+    "herramientas",
+    "jardineria",
+    "reparaciones",
+    "transporte",
+    "papeleria",
+    "aseo",
+    "otro"
+  ]),
+  
+  // Datos comunes
+  description: text("description").notNull(),
+  amount: decimal("amount", { precision: 12, scale: 2 }).notNull(),
+  expenseDate: timestamp("expenseDate").notNull(),
+  
+  // Soporte (foto de recibo/factura)
+  supportUrl: text("supportUrl"),
+  supportFileName: varchar("supportFileName", { length: 255 }),
+  
+  // Auditoría
+  createdBy: int("createdBy").notNull().references(() => users.id),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Expense = typeof expenses.$inferSelect;
+export type InsertExpense = typeof expenses.$inferInsert;

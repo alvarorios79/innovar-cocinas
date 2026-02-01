@@ -43,7 +43,9 @@ import {
   pricingConfig,
   InsertPricingConfig,
   pricingHistory,
-  InsertPricingHistory
+  InsertPricingHistory,
+  expenses,
+  InsertExpense
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -1889,4 +1891,148 @@ export async function deleteProjectNotifications(projectId: number) {
       eq(notifications.referenceType, "project")
     )
   );
+}
+
+
+// ============ SISTEMA CONTABLE - GASTOS ============
+
+export async function createExpense(expense: InsertExpense) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.insert(expenses).values(expense);
+  return result[0].insertId;
+}
+
+export async function getExpenseById(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+
+  const result = await db.select().from(expenses).where(eq(expenses.id, id)).limit(1);
+  return result[0] || null;
+}
+
+export async function getAllExpenses() {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(expenses).orderBy(desc(expenses.expenseDate));
+}
+
+export async function getExpensesByType(expenseType: "materiales_proyecto" | "gasto_operativo") {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(expenses)
+    .where(eq(expenses.expenseType, expenseType))
+    .orderBy(desc(expenses.expenseDate));
+}
+
+export async function getExpensesByProjectId(projectId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(expenses)
+    .where(eq(expenses.projectId, projectId))
+    .orderBy(desc(expenses.expenseDate));
+}
+
+export async function getExpensesByCategory(category: string) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(expenses)
+    .where(eq(expenses.operativeCategory, category as any))
+    .orderBy(desc(expenses.expenseDate));
+}
+
+export async function getExpensesByDateRange(startDate: Date, endDate: Date) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(expenses)
+    .where(between(expenses.expenseDate, startDate, endDate))
+    .orderBy(desc(expenses.expenseDate));
+}
+
+export async function updateExpense(id: number, data: Partial<InsertExpense>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(expenses).set(data).where(eq(expenses.id, id));
+}
+
+export async function deleteExpense(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.delete(expenses).where(eq(expenses.id, id));
+}
+
+export async function getExpensesTotalByProject(projectId: number) {
+  const db = await getDb();
+  if (!db) return 0;
+
+  const result = await db.select({ 
+    total: sql<string>`COALESCE(SUM(amount), 0)` 
+  })
+    .from(expenses)
+    .where(eq(expenses.projectId, projectId));
+
+  return parseFloat(result[0]?.total || "0");
+}
+
+export async function getExpensesTotalByCategory(category: string) {
+  const db = await getDb();
+  if (!db) return 0;
+
+  const result = await db.select({ 
+    total: sql<string>`COALESCE(SUM(amount), 0)` 
+  })
+    .from(expenses)
+    .where(eq(expenses.operativeCategory, category as any));
+
+  return parseFloat(result[0]?.total || "0");
+}
+
+export async function getExpensesSummaryByType() {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select({
+    expenseType: expenses.expenseType,
+    total: sql<string>`COALESCE(SUM(amount), 0)`,
+    count: sql<number>`COUNT(*)`
+  })
+    .from(expenses)
+    .groupBy(expenses.expenseType);
+}
+
+export async function getOperativeExpensesSummaryByCategory() {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select({
+    category: expenses.operativeCategory,
+    total: sql<string>`COALESCE(SUM(amount), 0)`,
+    count: sql<number>`COUNT(*)`
+  })
+    .from(expenses)
+    .where(eq(expenses.expenseType, "gasto_operativo"))
+    .groupBy(expenses.operativeCategory);
+}
+
+export async function getProjectExpensesSummary() {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select({
+    projectId: expenses.projectId,
+    projectClientName: expenses.projectClientName,
+    total: sql<string>`COALESCE(SUM(amount), 0)`,
+    count: sql<number>`COUNT(*)`
+  })
+    .from(expenses)
+    .where(eq(expenses.expenseType, "materiales_proyecto"))
+    .groupBy(expenses.projectId, expenses.projectClientName);
 }

@@ -3539,3 +3539,9 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Ocultar email y otros datos personales del cliente
 - [x] Corregido en: ProjectInlineDetail.tsx, ProjectDetail.tsx, ProjectCard.tsx
 - [x] También se ocultó el botón de WhatsApp para estos roles
+
+
+## Corrección: Quitar Centro de Control de Diseño para jefe_taller y operario (31 ene 2026)
+
+- [x] Remover jefe_taller y operario del Centro de Control de Diseño en ProjectInlineDetail.tsx
+- [x] Remover jefe_taller y operario del Centro de Control de Diseño en ProjectDetail.tsx

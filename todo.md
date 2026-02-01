@@ -3634,3 +3634,13 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - Historial con filtro por tipo de gasto
 - Resumen con totales por tipo y desglose por proyecto
 - Acceso solo para admin y super_admin
+
+
+## Corrección Sistema Contable (1 feb 2026)
+
+- [x] Eliminar campo "nombre del cliente" cuando ya se seleccionó un proyecto existente
+
+### Cambios realizados:
+- El campo "Escribir nombre del cliente/proyecto" ahora solo se muestra si NO hay proyecto seleccionado
+- Cuando se selecciona un proyecto, se muestra un recuadro verde con el proyecto seleccionado
+- Se agregó botón "Cambiar proyecto" para deseleccionar y elegir otro

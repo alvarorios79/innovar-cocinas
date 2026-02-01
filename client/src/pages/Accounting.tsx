@@ -348,19 +348,39 @@ export default function Accounting() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="text-center text-gray-500">o</div>
-                <div>
-                  <Label>Escribir nombre del cliente/proyecto</Label>
-                  <Input 
-                    placeholder="Ej: Sra. María García - Cocina"
-                    value={formData.projectClientName || ""}
-                    onChange={(e) => setFormData(prev => ({ 
-                      ...prev, 
-                      projectClientName: e.target.value,
-                      projectId: undefined 
-                    }))}
-                  />
-                </div>
+                {/* Solo mostrar campo manual si NO hay proyecto seleccionado */}
+                {!formData.projectId && (
+                  <>
+                    <div className="text-center text-gray-500">o</div>
+                    <div>
+                      <Label>Escribir nombre del cliente/proyecto</Label>
+                      <Input 
+                        placeholder="Ej: Sra. María García - Cocina"
+                        value={formData.projectClientName || ""}
+                        onChange={(e) => setFormData(prev => ({ 
+                          ...prev, 
+                          projectClientName: e.target.value,
+                          projectId: undefined 
+                        }))}
+                      />
+                    </div>
+                  </>
+                )}
+                {/* Mostrar proyecto seleccionado */}
+                {formData.projectId && (
+                  <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
+                    <p className="text-sm text-emerald-600 font-medium">Proyecto seleccionado:</p>
+                    <p className="text-emerald-800 font-semibold">{formData.projectClientName}</p>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="mt-2 text-gray-500"
+                      onClick={() => setFormData(prev => ({ ...prev, projectId: undefined, projectClientName: "" }))}
+                    >
+                      Cambiar proyecto
+                    </Button>
+                  </div>
+                )}
                 <Button 
                   className="w-full" 
                   onClick={() => setCurrentStep(2)}

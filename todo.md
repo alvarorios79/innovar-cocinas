@@ -3573,3 +3573,28 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - El endpoint de descarga directa no acepta ningún formato válido
 - Es un problema de infraestructura de Manus, no del código de la aplicación
 - Se creó reporte detallado en REPORTE_BUG_CLOUDFRONT.md para enviar a soporte
+
+
+## Blindaje del Proyecto (1 feb 2026)
+
+### Análisis y Tests
+- [x] Analizar tests existentes e identificar funcionalidades críticas sin cobertura
+- [x] Fortalecer tests para funcionalidades críticas (21 tests nuevos)
+- [x] Ejecutar suite completa de tests y verificar cobertura (474 tests pasando)
+
+### Documentación de Protección
+- [x] Crear documento FUNCIONALIDADES_BLINDADAS.md con reglas de protección
+- [x] Documentar dependencias entre componentes del sistema (DEPENDENCIAS_SISTEMA.md)
+- [x] Crear guía de desarrollo seguro para futuras modificaciones
+
+### Resultados:
+- Total de archivos de test: 49 (antes: 46)
+- Total de tests: 474 pasando (antes: 453)
+- Tests nuevos agregados:
+  - publicGallery.test.ts (4 tests)
+  - pricing.test.ts (9 tests)
+  - projectDetails.test.ts (8 tests)
+- Documentos creados:
+  - FUNCIONALIDADES_BLINDADAS.md
+  - DEPENDENCIAS_SISTEMA.md
+  - REPORTE_BUG_CLOUDFRONT.md

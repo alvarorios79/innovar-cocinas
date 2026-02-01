@@ -25,7 +25,9 @@ import {
   Box,
   RefreshCw,
   XCircle,
-  Send
+  Send,
+  Sparkles,
+  Eye
 } from "lucide-react";
 import { useFileViewer } from "@/components/FileViewer";
 import { MaterialsForm } from "@/components/MaterialsForm";
@@ -335,8 +337,36 @@ export function ProjectInlineDetail({
   const photosByFolder = organizePhotosByFolder();
 
   // Filtrar fotos según categoría y subcategoría seleccionadas
+  // Permisos de visualización por carpeta según rol
+  const canViewFolder = (folder: string) => {
+    const role = user?.role;
+    const viewPermissions: Record<string, string[]> = {
+      documento_cotizacion: ["super_admin", "admin", "comercial"],
+      fotos_iniciales: ["super_admin", "admin", "comercial", "disenador"],
+      dibujo: ["super_admin", "admin", "comercial", "disenador"],
+      modelado: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"],
+      renders: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"],
+      detalles: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"],
+      despieces: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"],
+      corte: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"],
+      enchape: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"],
+      armado: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"],
+      proceso_instalacion: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"],
+      fotos_finales: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"],
+    };
+    return viewPermissions[folder]?.includes(role || "") ?? false;
+  };
+
   const getFilteredFolders = () => {
-    if (categoryFilter === "all") return photosByFolder;
+    // Primero filtrar por permisos de visualización según rol
+    const roleFilteredFolders: Record<string, any[]> = {};
+    Object.entries(photosByFolder).forEach(([folder, photos]) => {
+      if (canViewFolder(folder)) {
+        roleFilteredFolders[folder] = photos;
+      }
+    });
+
+    if (categoryFilter === "all") return roleFilteredFolders;
     
     const categoryToFolders: Record<string, string[]> = {
       cotizacion: ["documento_cotizacion"],
@@ -351,8 +381,8 @@ export function ProjectInlineDetail({
     const filtered: Record<string, any[]> = {};
     
     allowedFolders.forEach(folder => {
-      if (subcategoryFilter === "all" || subcategoryFilter === folder) {
-        filtered[folder] = photosByFolder[folder] || [];
+      if ((subcategoryFilter === "all" || subcategoryFilter === folder) && canViewFolder(folder)) {
+        filtered[folder] = roleFilteredFolders[folder] || [];
       }
     });
     
@@ -938,6 +968,151 @@ export function ProjectInlineDetail({
                 </div>
               );
             })()}
+          </div>
+        </div>
+      )}
+
+      {/* Panel de Fotos de Referencia para Jefe de Taller y Operario */}
+      {(user?.role === "jefe_taller" || user?.role === "operario") && (
+        <div className="mb-4 rounded-xl overflow-hidden shadow-lg border border-gray-200 dark:border-gray-700">
+          {/* Header del Panel */}
+          <div className="bg-gradient-to-r from-purple-600 to-indigo-600 px-4 py-3">
+            <h3 className="text-base font-bold text-white flex items-center gap-2">
+              <Eye className="h-4 w-4" />
+              Fotos de Referencia del Diseño
+            </h3>
+            <p className="text-purple-100 text-xs mt-1">Modelado 3D y Renders aprobados por el cliente</p>
+          </div>
+          
+          <div className="bg-white dark:bg-gray-900 p-4">
+            {/* Grid de Fotos de Modelado y Renders */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Sección Modelado */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Box className="h-4 w-4 text-purple-600" />
+                  <span className="font-semibold text-sm text-gray-800 dark:text-gray-200">Modelado 3D</span>
+                  <Badge variant="outline" className="text-xs">
+                    {projectDetail.photos?.filter((p: any) => p.subcategory === "modelado").length || 0} fotos
+                  </Badge>
+                  {projectDetail.modeladoApprovedAt && (
+                    <Badge className="bg-green-100 text-green-700 text-xs">
+                      <CheckCircle2 className="h-3 w-3 mr-1" />
+                      Aprobado
+                    </Badge>
+                  )}
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  {projectDetail.photos?.filter((p: any) => p.subcategory === "modelado").slice(0, 6).map((photo: any, idx: number) => (
+                    <div
+                      key={photo.id || idx}
+                      className="aspect-square rounded-lg overflow-hidden border-2 border-purple-200 cursor-pointer hover:border-purple-400 transition-all hover:scale-105"
+                      onClick={() => fileViewer.openViewer(
+                        (projectDetail.photos?.filter((p: any) => p.subcategory === "modelado") || []).map((p: any, i: number) => ({
+                          url: p.photoUrl,
+                          title: `Modelado 3D - Imagen ${i + 1}`,
+                          description: p.description,
+                          type: p.photoUrl.toLowerCase().endsWith('.pdf') ? 'pdf' as const : 'image' as const,
+                        })),
+                        idx
+                      )}
+                    >
+                      <LazyImage
+                        src={photo.photoUrl}
+                        alt={`Modelado ${idx + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  ))}
+                  {(projectDetail.photos?.filter((p: any) => p.subcategory === "modelado").length || 0) === 0 && (
+                    <div className="col-span-3 text-center py-4 text-gray-400 text-sm">
+                      Sin fotos de modelado
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Sección Renders */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Palette className="h-4 w-4 text-amber-600" />
+                  <span className="font-semibold text-sm text-gray-800 dark:text-gray-200">Renders Finales</span>
+                  <Badge variant="outline" className="text-xs">
+                    {projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length || 0} fotos
+                  </Badge>
+                  {projectDetail.rendersApprovedAt && (
+                    <Badge className="bg-green-100 text-green-700 text-xs">
+                      <CheckCircle2 className="h-3 w-3 mr-1" />
+                      Aprobado
+                    </Badge>
+                  )}
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  {projectDetail.photos?.filter((p: any) => p.subcategory === "renders").slice(0, 6).map((photo: any, idx: number) => (
+                    <div
+                      key={photo.id || idx}
+                      className="aspect-square rounded-lg overflow-hidden border-2 border-amber-200 cursor-pointer hover:border-amber-400 transition-all hover:scale-105"
+                      onClick={() => fileViewer.openViewer(
+                        (projectDetail.photos?.filter((p: any) => p.subcategory === "renders") || []).map((p: any, i: number) => ({
+                          url: p.photoUrl,
+                          title: `Render Final - Imagen ${i + 1}`,
+                          description: p.description,
+                          type: p.photoUrl.toLowerCase().endsWith('.pdf') ? 'pdf' as const : 'image' as const,
+                        })),
+                        idx
+                      )}
+                    >
+                      <LazyImage
+                        src={photo.photoUrl}
+                        alt={`Render ${idx + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  ))}
+                  {(projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length || 0) === 0 && (
+                    <div className="col-span-3 text-center py-4 text-gray-400 text-sm">
+                      Sin renders
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Sección Despieces si existen */}
+            {(projectDetail.photos?.filter((p: any) => p.subcategory === "despieces").length || 0) > 0 && (
+              <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <div className="flex items-center gap-2 mb-2">
+                  <FileText className="h-4 w-4 text-blue-600" />
+                  <span className="font-semibold text-sm text-gray-800 dark:text-gray-200">Despieces</span>
+                  <Badge variant="outline" className="text-xs">
+                    {projectDetail.photos?.filter((p: any) => p.subcategory === "despieces").length} archivos
+                  </Badge>
+                </div>
+                <div className="grid grid-cols-4 gap-2">
+                  {projectDetail.photos?.filter((p: any) => p.subcategory === "despieces").slice(0, 8).map((photo: any, idx: number) => (
+                    <div
+                      key={photo.id || idx}
+                      className="aspect-square rounded-lg overflow-hidden border-2 border-blue-200 cursor-pointer hover:border-blue-400 transition-all hover:scale-105"
+                      onClick={() => fileViewer.openViewer(
+                        (projectDetail.photos?.filter((p: any) => p.subcategory === "despieces") || []).map((p: any, i: number) => ({
+                          url: p.photoUrl,
+                          title: `Despiece - Archivo ${i + 1}`,
+                          description: p.description,
+                          type: p.photoUrl.toLowerCase().endsWith('.pdf') ? 'pdf' as const : 'image' as const,
+                        })),
+                        idx
+                      )}
+                    >
+                      <LazyImage
+                        src={photo.photoUrl}
+                        alt={`Despiece ${idx + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

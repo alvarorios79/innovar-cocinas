@@ -29,7 +29,8 @@ import {
   LayoutDashboard,
   DollarSign,
   UserCheck,
-  LogOut
+  LogOut,
+  Sparkles
 } from "lucide-react";
 import { toast } from "sonner";
 import { DesignerChecklist } from "@/components/DesignerChecklist";
@@ -273,7 +274,24 @@ export function TeamDashboard() {
           const daysSinceChange = Math.floor((Date.now() - lastChange.getTime()) / (1000 * 60 * 60 * 24));
           return daysSinceChange > 5;
         });
+        // Contar proyectos nuevos para producción (aprobados en las últimas 48 horas)
+        const newForProduction = myProjects.filter(p => {
+          if (!["aprobacion_final", "despiece"].includes(p.status)) return false;
+          const projectAny = p as any;
+          const approvedAt = projectAny.rendersApprovedAt ? new Date(projectAny.rendersApprovedAt) : null;
+          if (!approvedAt) return false;
+          const hoursSinceApproval = (Date.now() - approvedAt.getTime()) / (1000 * 60 * 60);
+          return hoursSinceApproval <= 48;
+        });
         return [
+          ...(newForProduction.length > 0 ? [{ 
+            label: "✨ Nuevos para Producción", 
+            value: newForProduction.length,
+            icon: <Sparkles className="h-6 w-6" />,
+            color: "bg-gradient-to-br from-green-500 to-emerald-600",
+            link: "/projects?new_production=true",
+            highlight: true
+          }] : []),
           { 
             label: "Diseño Listo", 
             value: myProjects.filter(p => ["pendiente_cliente", "aprobacion_final"].includes(p.status)).length,

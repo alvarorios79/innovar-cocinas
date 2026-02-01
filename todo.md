@@ -3545,3 +3545,16 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 
 - [x] Remover jefe_taller y operario del Centro de Control de Diseño en ProjectInlineDetail.tsx
 - [x] Remover jefe_taller y operario del Centro de Control de Diseño en ProjectDetail.tsx
+
+
+## Mejoras: Panel de producción para jefe de taller (31 ene 2026)
+
+- [x] Corregir visibilidad de fotos de diseño (modelado, renders) para jefe de taller
+- [x] Crear panel específico de producción con proyectos aprobados listos para fabricación
+- [x] Agregar indicador de "Nuevo" en proyectos recién aprobados para producción
+
+### Detalles de implementación:
+- Panel "Fotos de Referencia del Diseño" visible solo para jefe_taller y operario en ProjectInlineDetail
+- Muestra fotos de modelado, renders y despieces directamente sin necesidad de navegar a la pestaña Fotos
+- Estadística "✨ Nuevos para Producción" en el dashboard del jefe de taller (proyectos aprobados en últimas 48h)
+- Badge "Nuevo" con animación pulse en la lista de proyectos para proyectos recién aprobados

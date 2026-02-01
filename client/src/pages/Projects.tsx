@@ -32,7 +32,8 @@ import {
   ChevronDown,
   ChevronUp,
   Trash2,
-  AlertTriangle
+  AlertTriangle,
+  Sparkles
 } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -676,6 +677,17 @@ export default function Projects() {
                             {project.name}
                           </h3>
                           {getStatusBadge(project.status, (project as any).modeladoRevisionNumber, (project as any).renderRevisionNumber)}
+                          {/* Indicador de Nuevo para Producción (aprobado en las últimas 48 horas) */}
+                          {["aprobacion_final", "despiece"].includes(project.status) && 
+                           (project as any).rendersApprovedAt && 
+                           ((Date.now() - new Date((project as any).rendersApprovedAt).getTime()) / (1000 * 60 * 60)) <= 48 && (
+                            <Badge 
+                              className="bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs animate-pulse"
+                            >
+                              <Sparkles className="h-3 w-3 mr-1" />
+                              Nuevo
+                            </Badge>
+                          )}
                           {/* Indicador de revisiones de renders */}
                           {(project as any).renderRevisionNumber > 0 && (
                             <Badge 

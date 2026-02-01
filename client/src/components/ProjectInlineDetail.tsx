@@ -760,46 +760,113 @@ export function ProjectInlineDetail({
               </div>
             </div>
             
-            {/* Sección de Aprobación */}
-            {(projectDetail.status === "pendiente_modelado" || projectDetail.status === "pendiente_cliente" || projectDetail.status === "pendiente_render") && (
-              <div className="bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20 rounded-lg p-4 border border-amber-200 dark:border-amber-700 mb-3">
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="p-1.5 bg-amber-500 rounded-lg text-white">
-                    <AlertCircle className="h-4 w-4" />
+            {/* Sección de Aprobación - Siempre visible */}
+            {(() => {
+              const isPendingApproval = projectDetail.status === "pendiente_modelado" || projectDetail.status === "pendiente_cliente" || projectDetail.status === "pendiente_render";
+              const isApproved = projectDetail.rendersApprovedAt || projectDetail.modeladoApprovedAt;
+              const hasDesignContent = (projectDetail.photos?.filter((p: any) => p.subcategory === "modelado" || p.subcategory === "renders").length || 0) > 0;
+              
+              let statusMessage = "";
+              let statusColor = "gray";
+              
+              if (isPendingApproval) {
+                statusMessage = "Esperando confirmación del cliente por WhatsApp";
+                statusColor = "amber";
+              } else if (projectDetail.rendersApprovedAt) {
+                statusMessage = `Renders aprobados el ${new Date(projectDetail.rendersApprovedAt).toLocaleDateString('es-CO')}`;
+                statusColor = "green";
+              } else if (projectDetail.modeladoApprovedAt) {
+                statusMessage = `Modelado aprobado el ${new Date(projectDetail.modeladoApprovedAt).toLocaleDateString('es-CO')}`;
+                statusColor = "green";
+              } else if (!hasDesignContent) {
+                statusMessage = "Sube imágenes de modelado o renders primero";
+                statusColor = "gray";
+              } else {
+                statusMessage = "Envía el diseño al cliente para solicitar aprobación";
+                statusColor = "blue";
+              }
+              
+              return (
+                <div className={`rounded-lg p-4 border mb-3 ${
+                  statusColor === "amber" ? "bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20 border-amber-200 dark:border-amber-700" :
+                  statusColor === "green" ? "bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-green-200 dark:border-green-700" :
+                  statusColor === "blue" ? "bg-gradient-to-r from-blue-50 to-sky-50 dark:from-blue-900/20 dark:to-sky-900/20 border-blue-200 dark:border-blue-700" :
+                  "bg-gradient-to-r from-gray-50 to-slate-50 dark:from-gray-900/20 dark:to-slate-900/20 border-gray-200 dark:border-gray-700"
+                }`}>
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className={`p-1.5 rounded-lg text-white ${
+                      statusColor === "amber" ? "bg-amber-500" :
+                      statusColor === "green" ? "bg-green-500" :
+                      statusColor === "blue" ? "bg-blue-500" :
+                      "bg-gray-400"
+                    }`}>
+                      {statusColor === "green" ? <CheckCircle2 className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
+                    </div>
+                    <div>
+                      <h4 className={`font-semibold text-sm ${
+                        statusColor === "amber" ? "text-amber-800 dark:text-amber-200" :
+                        statusColor === "green" ? "text-green-800 dark:text-green-200" :
+                        statusColor === "blue" ? "text-blue-800 dark:text-blue-200" :
+                        "text-gray-600 dark:text-gray-400"
+                      }`}>
+                        {isPendingApproval ? "Pendiente de Aprobación" : isApproved ? "Diseño Aprobado" : "Aprobación del Cliente"}
+                      </h4>
+                      <p className={`text-xs ${
+                        statusColor === "amber" ? "text-amber-600 dark:text-amber-400" :
+                        statusColor === "green" ? "text-green-600 dark:text-green-400" :
+                        statusColor === "blue" ? "text-blue-600 dark:text-blue-400" :
+                        "text-gray-500 dark:text-gray-500"
+                      }`}>{statusMessage}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="font-semibold text-amber-800 dark:text-amber-200 text-sm">Pendiente de Aprobación</h4>
-                    <p className="text-xs text-amber-600 dark:text-amber-400">Cuando el cliente confirme por WhatsApp</p>
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      size="sm"
+                      onClick={() => approveDesign.mutate({ projectId: projectDetail.id, approved: true })}
+                      disabled={approveDesign.isPending || !isPendingApproval}
+                      className={`shadow-sm text-xs ${
+                        isPendingApproval 
+                          ? "bg-green-600 hover:bg-green-700 text-white" 
+                          : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                      }`}
+                      title={!isPendingApproval ? "Solo disponible cuando hay diseño pendiente de aprobación" : ""}
+                    >
+                      <CheckCircle2 className="h-3 w-3 mr-1" />
+                      Aprobar Diseño
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className={`text-xs ${
+                        isPendingApproval 
+                          ? "border-orange-400 text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20" 
+                          : "border-gray-300 text-gray-400 cursor-not-allowed"
+                      }`}
+                      onClick={() => {
+                        if (isPendingApproval) {
+                          const notes = prompt("Indica qué cambios se necesitan:");
+                          if (notes) {
+                            approveDesign.mutate({ projectId: projectDetail.id, approved: false, notes });
+                          }
+                        }
+                      }}
+                      disabled={approveDesign.isPending || !isPendingApproval}
+                      title={!isPendingApproval ? "Solo disponible cuando hay diseño pendiente de aprobación" : ""}
+                    >
+                      <XCircle className="h-3 w-3 mr-1" />
+                      Solicitar Cambios
+                    </Button>
                   </div>
+                  {projectDetail.clientApprovalNotes && (
+                    <div className="mt-3 p-2 bg-orange-100 dark:bg-orange-900/30 rounded border border-orange-200 dark:border-orange-700">
+                      <p className="text-xs text-orange-800 dark:text-orange-200">
+                        <strong>📝 Últimos cambios solicitados:</strong> {projectDetail.clientApprovalNotes}
+                      </p>
+                    </div>
+                  )}
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  <Button
-                    size="sm"
-                    onClick={() => approveDesign.mutate({ projectId: projectDetail.id, approved: true })}
-                    disabled={approveDesign.isPending}
-                    className="bg-green-600 hover:bg-green-700 text-white shadow-sm text-xs"
-                  >
-                    <CheckCircle2 className="h-3 w-3 mr-1" />
-                    Aprobar Diseño
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="border-orange-400 text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20 text-xs"
-                    onClick={() => {
-                      const notes = prompt("Indica qué cambios se necesitan:");
-                      if (notes) {
-                        approveDesign.mutate({ projectId: projectDetail.id, approved: false, notes });
-                      }
-                    }}
-                    disabled={approveDesign.isPending}
-                  >
-                    <XCircle className="h-3 w-3 mr-1" />
-                    Solicitar Cambios
-                  </Button>
-                </div>
-              </div>
-            )}
+              );
+            })()}
             
             {/* Sección Nueva Aprobación */}
             {(() => {

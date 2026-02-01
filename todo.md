@@ -3505,3 +3505,12 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Modificar sendReminder para devolver enlace de WhatsApp
 - [x] Actualizar frontend para mostrar diálogo de WhatsApp al enviar recordatorio
 - [x] Incluir detalles de la tarea en el mensaje de WhatsApp (título, prioridad, estado, fecha límite, descripción)
+
+
+## Mejora: Mostrar todos los botones del Centro de Control siempre visibles (31 ene 2026)
+
+- [x] Mostrar siempre los botones de Aprobar Diseño y Solicitar Cambios
+- [x] Deshabilitar botones cuando no sea pertinente usarlos
+- [x] Agregar indicadores visuales de por qué está deshabilitado cada botón
+- [x] Colores dinámicos según estado: ámbar (pendiente), verde (aprobado), azul (listo para enviar), gris (sin contenido)
+- [x] Mostrar últimos cambios solicitados si existen

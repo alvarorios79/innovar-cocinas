@@ -3514,3 +3514,11 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Agregar indicadores visuales de por qué está deshabilitado cada botón
 - [x] Colores dinámicos según estado: ámbar (pendiente), verde (aprobado), azul (listo para enviar), gris (sin contenido)
 - [x] Mostrar últimos cambios solicitados si existen
+
+
+## Bug: Panel Jefe de Taller - fotos y subida (31 ene 2026)
+
+- [x] El jefe de taller no puede ver las fotos de modelado y render
+- [x] Agregar jefe_taller y operario a la lista de roles que ven el Centro de Control de Diseño
+- [x] Corregido en ProjectInlineDetail.tsx y ProjectDetail.tsx
+- [x] El botón de subir fotos ya existía, pero solo para carpetas de producción (corte, enchape, etc.)

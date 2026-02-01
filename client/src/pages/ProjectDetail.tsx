@@ -560,7 +560,7 @@ export default function ProjectDetail() {
         </div>
 
         {/* Panel de Control de Diseño - Diseño Moderno */}
-        {(user?.role === "admin" || user?.role === "super_admin" || user?.role === "comercial") && (
+        {(user?.role === "admin" || user?.role === "super_admin" || user?.role === "comercial" || user?.role === "jefe_taller" || user?.role === "operario") && (
           <div className="mb-6 rounded-xl overflow-hidden shadow-lg border border-gray-200 dark:border-gray-700">
             {/* Header del Panel */}
             <div className="bg-gradient-to-r from-teal-600 to-teal-500 px-6 py-4">

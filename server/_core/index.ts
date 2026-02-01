@@ -48,6 +48,39 @@ async function startServer() {
     })
   );
   
+  // Image proxy endpoint - sirve imágenes desde S3 usando credenciales del servidor
+  app.get("/api/image-proxy", async (req, res) => {
+    try {
+      const { storageDownloadDirect, extractKeyFromUrl } = await import('../storage');
+      
+      const url = req.query.url as string;
+      console.log('[ImageProxy] Request for URL:', url);
+      if (!url) {
+        return res.status(400).json({ error: 'URL parameter required' });
+      }
+      
+      // Extraer la key de la URL de CloudFront
+      const key = extractKeyFromUrl(url);
+      console.log('[ImageProxy] Extracted key:', key);
+      if (!key) {
+        return res.status(400).json({ error: 'Invalid URL format' });
+      }
+      
+      // Descargar directamente usando la API de storage con autenticación
+      console.log('[ImageProxy] Downloading directly for key:', key);
+      const { buffer, contentType } = await storageDownloadDirect(key);
+      console.log('[ImageProxy] Downloaded successfully, size:', buffer.length, 'type:', contentType);
+      
+      // Configurar headers de caché
+      res.setHeader('Content-Type', contentType);
+      res.setHeader('Cache-Control', 'public, max-age=86400'); // Cache por 1 día
+      res.send(buffer);
+    } catch (error) {
+      console.error('[ImageProxy] Error proxying image:', error);
+      res.status(500).json({ error: 'Error proxying image', message: String(error) });
+    }
+  });
+
   // PDF download endpoint
   app.get("/api/pdf/:filename", async (req, res) => {
     try {

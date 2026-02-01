@@ -11,6 +11,19 @@ interface LazyImageProps {
 }
 
 /**
+ * Convierte una URL de CloudFront a una URL del proxy local
+ * Esto permite acceder a imágenes que requieren autenticación
+ */
+function getProxiedUrl(url: string): string {
+  if (!url) return url;
+  // Si la URL es de CloudFront, usar el proxy
+  if (url.includes('cloudfront.net')) {
+    return `/api/image-proxy?url=${encodeURIComponent(url)}`;
+  }
+  return url;
+}
+
+/**
  * Componente de imagen con lazy loading
  * Carga imágenes solo cuando son visibles en el viewport
  * Muestra un placeholder o thumbnail mientras carga
@@ -28,8 +41,12 @@ export function LazyImage({
   const [hasError, setHasError] = useState(false);
   const imgRef = useRef<HTMLDivElement>(null);
 
+  // Usar proxy para URLs de CloudFront
+  const proxiedSrc = getProxiedUrl(src);
+  const proxiedThumbnailSrc = thumbnailSrc ? getProxiedUrl(thumbnailSrc) : proxiedSrc.replace(/\.([^.]+)$/, '-thumb.jpg');
+
   // Generar URL de thumbnail automáticamente si no se proporciona
-  const autoThumbnailSrc = thumbnailSrc || src.replace(/\.([^.]+)$/, '-thumb.jpg');
+  const autoThumbnailSrc = proxiedThumbnailSrc;
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -97,7 +114,7 @@ export function LazyImage({
       {/* Imagen principal */}
       {isInView && !hasError && (
         <img
-          src={src}
+          src={proxiedSrc}
           alt={alt}
           className={cn(
             'w-full h-full object-cover transition-opacity duration-300',

@@ -3669,7 +3669,7 @@ export const appRouter = router({
         }
 
         // Optimización: ejecutar consultas en paralelo
-        const [client, photos, details, history, projectTasks, quotation, payments, clientAppointments] = await Promise.all([
+        const [client, photosRaw, details, history, projectTasks, quotation, payments, clientAppointments] = await Promise.all([
           db.getClientById(project.clientId),
           db.getProjectPhotosByProjectId(input.id),
           db.getProjectDetailsByProjectId(input.id),
@@ -3680,6 +3680,9 @@ export const appRouter = router({
           db.getAppointmentsByClientId(project.clientId),
         ]);
         const totalPaid = payments.reduce((sum, p) => sum + Number(p.amount), 0);
+        
+        // Usar las fotos con sus URLs originales
+        const photos = photosRaw;
         
         // Calcular información financiera
         const quotationTotal = quotation?.total ? Number(quotation.total) : 0;

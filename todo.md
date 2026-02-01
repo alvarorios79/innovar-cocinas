@@ -3558,3 +3558,18 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - Muestra fotos de modelado, renders y despieces directamente sin necesidad de navegar a la pestaña Fotos
 - Estadística "✨ Nuevos para Producción" en el dashboard del jefe de taller (proyectos aprobados en últimas 48h)
 - Badge "Nuevo" con animación pulse en la lista de proyectos para proyectos recién aprobados
+
+## Bug: Fotos no se cargan - Problema de CloudFront/S3 (31 ene 2026)
+
+- [x] Diagnosticar por qué las fotos aparecen como iconos rotos en el panel de Diseños
+- [x] Investigar API de storage de Manus
+- [x] Probar diferentes endpoints y formatos
+- [x] Crear reporte de bug para soporte de Manus (ver REPORTE_BUG_CLOUDFRONT.md)
+- [ ] Pendiente: Resolución por parte de Manus
+
+### Diagnóstico:
+- Las URLs de CloudFront devuelven "Access Denied" (403)
+- Afecta tanto fotos antiguas como recién subidas
+- El endpoint de descarga directa no acepta ningún formato válido
+- Es un problema de infraestructura de Manus, no del código de la aplicación
+- Se creó reporte detallado en REPORTE_BUG_CLOUDFRONT.md para enviar a soporte

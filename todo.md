@@ -3762,3 +3762,10 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Agregado "modelado" a folderToStageMap en Projects.tsx
 - [x] Agregado "modelado" a folderToCategoryMap en Projects.tsx
 - [x] Verificado que 474 tests siguen pasando
+
+
+### Correcciones de Visibilidad para Operario (2 Feb 2026)
+- [x] Agregado botón de filtro "Modelado" en subcategorías de Diseños (Projects.tsx)
+- [x] Botón de eliminar foto ahora visible en móvil (sin necesidad de hover)
+- [x] Aumentado tamaño del icono de eliminar para mejor visibilidad táctil
+- [x] 474 tests pasando

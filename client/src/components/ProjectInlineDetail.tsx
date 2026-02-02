@@ -1684,14 +1684,14 @@ export function ProjectInlineDetail({
                                 className="w-full h-20 rounded"
                               />
                             )}
-                            <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 sm:group-hover:opacity-100 transition-opacity">
                               <ZoomIn className="h-4 w-4 text-white drop-shadow-lg" />
                             </div>
                             {/* Botón eliminar - visible para admin/super_admin/comercial/diseñador o para jefe_taller/operario si subieron la foto */}
                             {(user?.role === "admin" || user?.role === "super_admin" || user?.role === "comercial" || user?.role === "disenador" || 
                               ((user?.role === "jefe_taller" || user?.role === "operario") && photo.uploadedBy === user?.id)) && (
                               <button
-                                className="absolute bottom-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity bg-red-500 hover:bg-red-600 text-white rounded-full p-1 shadow-lg"
+                                className="absolute bottom-1 right-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity bg-red-500 hover:bg-red-600 text-white rounded-full p-1.5 shadow-lg z-10"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   if (confirm("¿Estás seguro de eliminar esta foto?")) {
@@ -1700,7 +1700,7 @@ export function ProjectInlineDetail({
                                 }}
                                 disabled={deletePhoto.isPending}
                               >
-                                <Trash2 className="h-3 w-3" />
+                                <Trash2 className="h-4 w-4" />
                               </button>
                             )}
                           </div>

@@ -1214,6 +1214,14 @@ export default function Projects() {
                         <>
                           <Button
                             size="sm"
+                            variant={subcategoryFilter === "modelado" ? "secondary" : "ghost"}
+                            onClick={() => setSubcategoryFilter("modelado")}
+                            className="h-7 text-xs"
+                          >
+                            Modelado
+                          </Button>
+                          <Button
+                            size="sm"
                             variant={subcategoryFilter === "renders" ? "secondary" : "ghost"}
                             onClick={() => setSubcategoryFilter("renders")}
                             className="h-7 text-xs"
@@ -1530,8 +1538,8 @@ export default function Projects() {
                                         </span>
                                       )}
                                     </div>
-                                    <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
-                                      <ZoomIn className="h-4 w-4 text-white drop-shadow-lg" />
+                                    <div className="absolute top-1 right-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity flex gap-1">
+                                      <ZoomIn className="h-4 w-4 text-white drop-shadow-lg hidden sm:block" />
                                       {/* Botón eliminar: admin/comercial/diseñador pueden eliminar cualquiera, jefe_taller/operario solo sus propias fotos */}
                                       {(["admin", "super_admin", "comercial", "disenador"].includes(user?.role || "") || 
                                         (["jefe_taller", "operario"].includes(user?.role || "") && photo.uploadedBy === user?.id)) && (
@@ -1542,10 +1550,10 @@ export default function Projects() {
                                               deletePhoto.mutate({ id: photo.id });
                                             }
                                           }}
-                                          className="p-1 bg-red-500/80 rounded hover:bg-red-600 transition-colors"
+                                          className="p-1.5 bg-red-500 rounded hover:bg-red-600 transition-colors shadow-lg"
                                           title="Eliminar foto"
                                         >
-                                          <Trash2 className="h-3 w-3 text-white" />
+                                          <Trash2 className="h-4 w-4 text-white" />
                                         </button>
                                       )}
                                     </div>

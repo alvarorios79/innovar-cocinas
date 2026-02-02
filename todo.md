@@ -3752,3 +3752,13 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Eliminar console.log de NotificationBell.tsx (KeepAlive)
 - [x] Mantener console.error para errores críticos y console.log de servicios de background (Birthday, Reminders)
 - [x] Verificar que todos los 474 tests siguen pasando después de la limpieza
+
+
+### Corrección de Visibilidad de Carpeta Modelado/Renders
+- [x] Identificado problema: faltaba "modelado" en múltiples mapeos de Projects.tsx
+- [x] Agregado "modelado" a folderLabels en Projects.tsx
+- [x] Agregado "modelado" a subcategoryLabels en Projects.tsx
+- [x] Agregado "modelado" a uploadPermissions en Projects.tsx
+- [x] Agregado "modelado" a folderToStageMap en Projects.tsx
+- [x] Agregado "modelado" a folderToCategoryMap en Projects.tsx
+- [x] Verificado que 474 tests siguen pasando

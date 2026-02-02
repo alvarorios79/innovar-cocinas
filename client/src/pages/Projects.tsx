@@ -1295,7 +1295,7 @@ export default function Projects() {
                     // Todas las subcarpetas disponibles
                     const allFolders = [
                       "documento_cotizacion", "fotos_iniciales", "dibujo",
-                      "renders", "despieces", "detalles",
+                      "modelado", "renders", "despieces", "detalles",
                       "corte", "enchape", "armado",
                       "proceso_instalacion", "fotos_finales"
                     ];
@@ -1307,10 +1307,11 @@ export default function Projects() {
                       // Medidas: Super Admin, Admin, Comercial, Diseñador, Jefe Taller
                       fotos_iniciales: ["super_admin", "admin", "comercial", "disenador", "jefe_taller"],
                       dibujo: ["disenador", "jefe_taller", "super_admin", "admin", "comercial"],
-                      // Diseños: Super Admin, Admin, Comercial, Jefe Taller, Operario
-                      renders: ["super_admin", "admin", "comercial", "jefe_taller", "operario"],
-                      despieces: ["super_admin", "admin", "comercial", "jefe_taller", "operario"],
-                      detalles: ["super_admin", "admin", "comercial", "jefe_taller", "operario"],
+                      // Diseños: Super Admin, Admin, Comercial, Diseñador, Jefe Taller, Operario
+                      modelado: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"],
+                      renders: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"],
+                      despieces: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"],
+                      detalles: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"],
                       // Avance: Todos (incluido Cliente)
                       corte: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario", "user"],
                       enchape: ["super_admin", "admin", "disenador", "jefe_taller", "operario", "user", "comercial"],

@@ -3703,3 +3703,22 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - Estadísticas: "📦 En Producción" y "🚚 Listos/Instalación"
 - Botón "Subir Fotos" verde en cada proyecto para ir directamente a la pestaña de fotos
 - Checklists específicos para cada etapa de instalación
+
+
+## Fotos de Diseño para Operario (1 feb 2026)
+
+- [ ] Verificar que el operario pueda ver fotos de renders y modelado 3D
+- [ ] Asegurar acceso a fotos de despiece para referencia de armado
+
+
+## Bug: Operario no ve Renders (1 feb 2026)
+
+- [ ] Corregir: Operario solo ve Modelado pero NO ve Renders en panel de referencia
+
+
+## Bug: Operario no ve Renders en Projects.tsx (1 feb 2026)
+
+- [x] Corregir: Operario solo ve Modelado pero NO ve Renders en pestaña Fotos
+  - Causa: Faltaba "modelado" en allFolders y viewPermissions en Projects.tsx
+  - También faltaba "disenador" en los permisos de renders/despieces/detalles
+  - Corregido agregando modelado y disenador a las listas de permisos

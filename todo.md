@@ -3724,3 +3724,4 @@ Se agregó el rol "comercial" a los siguientes endpoints:
   - Corregido agregando modelado y disenador a las listas de permisos
 
 - [x] Restringir categorías de subida de fotos para jefe_taller y operario: solo Avance, Instalación y Entrega (no Cotización, Medidas ni Diseños)
+- [ ] Hacer visible el icono de subida de fotos para operario en subcategorías donde tiene permiso (Avance, Instalación, Entrega)

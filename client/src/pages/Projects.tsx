@@ -1429,7 +1429,8 @@ export default function Projects() {
                             {canUploadToFolder() && (
                               <Button
                                 size="sm"
-                                variant="ghost"
+                                variant="outline"
+                                className="text-emerald-600 border-emerald-600 hover:bg-emerald-50"
                                 onClick={() => {
                                   // Mapear folder a stage para el formulario
                                   const folderToStageMap: Record<string, string> = {

@@ -1337,10 +1337,10 @@ export default function Projects() {
                     return foldersToShow;
                   })().map((folder) => {
                     // Filtrar fotos por subcategoría (carpeta)
+                    // Las fotos ya están filtradas por subcategoría (folder), no necesitamos filtrar por category
+                    // porque la subcategoría ya determina a qué categoría pertenece
                     const allFolderPhotos = projectDetail.photos?.filter((p: any) => p.subcategory === folder) || [];
-                    let folderPhotos = categoryFilter === "all" 
-                      ? allFolderPhotos 
-                      : allFolderPhotos.filter((p: any) => p.category === categoryFilter);
+                    let folderPhotos = allFolderPhotos;
                     
                     // Aplicar filtro de subcategoría si está activo
                     if (subcategoryFilter !== "all") {

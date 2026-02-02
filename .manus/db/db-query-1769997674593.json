@@ -1,0 +1,108 @@
+{
+  "query": "SELECT id, projectId, subcategory, category, stage FROM projectPhotos LIMIT 20;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT id, projectId, subcategory, category, stage FROM projectPhotos LIMIT 20;",
+  "rows": [
+    {
+      "id": "180001",
+      "projectId": "390001",
+      "subcategory": "fotos_iniciales",
+      "category": "medidas",
+      "stage": "inicial"
+    },
+    {
+      "id": "180002",
+      "projectId": "390001",
+      "subcategory": "modelado",
+      "category": "disenos",
+      "stage": "diseno"
+    },
+    {
+      "id": "180003",
+      "projectId": "390001",
+      "subcategory": "modelado",
+      "category": "disenos",
+      "stage": "diseno"
+    },
+    {
+      "id": "180004",
+      "projectId": "390001",
+      "subcategory": "modelado",
+      "category": "disenos",
+      "stage": "diseno"
+    },
+    {
+      "id": "180005",
+      "projectId": "390001",
+      "subcategory": "modelado",
+      "category": "disenos",
+      "stage": "diseno"
+    },
+    {
+      "id": "210001",
+      "projectId": "540001",
+      "subcategory": "documento_cotizacion",
+      "category": "cotizacion",
+      "stage": "inicial"
+    },
+    {
+      "id": "210003",
+      "projectId": "540001",
+      "subcategory": "fotos_iniciales",
+      "category": "medidas",
+      "stage": "inicial"
+    },
+    {
+      "id": "240001",
+      "projectId": "390001",
+      "subcategory": "renders",
+      "category": "disenos",
+      "stage": "diseno"
+    },
+    {
+      "id": "240002",
+      "projectId": "390001",
+      "subcategory": "renders",
+      "category": "disenos",
+      "stage": "diseno"
+    },
+    {
+      "id": "270001",
+      "projectId": "390001",
+      "subcategory": "renders",
+      "category": "disenos",
+      "stage": "diseno"
+    },
+    {
+      "id": "270002",
+      "projectId": "390001",
+      "subcategory": "renders",
+      "category": "disenos",
+      "stage": "diseno"
+    },
+    {
+      "id": "270003",
+      "projectId": "390001",
+      "subcategory": "renders",
+      "category": "disenos",
+      "stage": "diseno"
+    },
+    {
+      "id": "270004",
+      "projectId": "390001",
+      "subcategory": "renders",
+      "category": "disenos",
+      "stage": "diseno"
+    },
+    {
+      "id": "300001",
+      "projectId": "390001",
+      "subcategory": "renders",
+      "category": "disenos",
+      "stage": "diseno"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tprojectId\tsubcategory\tcategory\tstage\n180001\t390001\tfotos_iniciales\tmedidas\tinicial\n180002\t390001\tmodelado\tdisenos\tdiseno\n180003\t390001\tmodelado\tdisenos\tdiseno\n180004\t390001\tmodelado\tdisenos\tdiseno\n180005\t390001\tmodelado\tdisenos\tdiseno\n210001\t540001\tdocumento_cotizacion\tcotizacion\tinicial\n210003\t540001\tfotos_iniciales\tmedidas\tinicial\n240001\t390001\trenders\tdisenos\tdiseno\n240002\t390001\trenders\tdisenos\tdiseno\n270001\t390001\trenders\tdisenos\tdiseno\n270002\t390001\trenders\tdisenos\tdiseno\n270003\t390001\trenders\tdisenos\tdiseno\n270004\t390001\trenders\tdisenos\tdiseno\n300001\t390001\trenders\tdisenos\tdiseno\n",
+  "stderr": "",
+  "execution_time_ms": 54
+}

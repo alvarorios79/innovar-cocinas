@@ -1,0 +1,18 @@
+{
+  "query": "SELECT id, name FROM projects LIMIT 10;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT id, name FROM projects LIMIT 10;",
+  "rows": [
+    {
+      "id": "390001",
+      "name": "Sra Ruth Naranjo Viterbo"
+    },
+    {
+      "id": "540001",
+      "name": "Orlando Primacho - COT-2026-621-6366536"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\n390001\tSra Ruth Naranjo Viterbo\n540001\tOrlando Primacho - COT-2026-621-6366536\n",
+  "stderr": "",
+  "execution_time_ms": 63
+}

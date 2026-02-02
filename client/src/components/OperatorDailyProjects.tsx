@@ -21,17 +21,21 @@ import {
   AlertTriangle,
   Wrench,
   Send,
-  MessageCircle
+  MessageCircle,
+  Camera
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { Link } from "wouter";
 
-// Estados de producción para operario
+// Estados de producción para operario (incluyendo instalación y entrega)
 const OPERATOR_STATUSES = {
+  despiece: { label: "Despiece", color: "bg-amber-500", icon: Wrench },
   corte: { label: "Corte", color: "bg-orange-500", icon: Hammer },
   enchape: { label: "Enchape", color: "bg-orange-600", icon: Paintbrush },
   ensamble: { label: "Ensamble", color: "bg-orange-700", icon: Package },
+  listo_instalacion: { label: "Listo Instalación", color: "bg-cyan-500", icon: Package },
+  instalacion_programada: { label: "En Instalación", color: "bg-teal-500", icon: Hammer },
 };
 
 // Checklist por etapa
@@ -59,6 +63,22 @@ const STAGE_CHECKLISTS: Record<string, Array<{ id: string; label: string; descri
     { id: "instalar_herrajes", label: "Instalar herrajes", description: "Colocar bisagras, correderas, etc." },
     { id: "verificar_funcionamiento", label: "Verificar funcionamiento", description: "Probar puertas y cajones" },
     { id: "limpieza_final", label: "Limpieza final", description: "Limpiar y preparar para instalación" },
+  ],
+  listo_instalacion: [
+    { id: "verificar_modulos", label: "Verificar módulos", description: "Confirmar que todos los módulos estén listos" },
+    { id: "preparar_herramientas", label: "Preparar herramientas", description: "Alistar herramientas para instalación" },
+    { id: "cargar_vehiculo", label: "Cargar vehículo", description: "Cargar módulos en el vehículo de transporte" },
+  ],
+  instalacion_programada: [
+    { id: "llegada_obra", label: "Llegada a obra", description: "Confirmar llegada al sitio de instalación" },
+    { id: "descargar_modulos", label: "Descargar módulos", description: "Descargar y ubicar módulos en el sitio" },
+    { id: "instalar_bases", label: "Instalar bases", description: "Nivelar y fijar bases de los muebles" },
+    { id: "instalar_modulos", label: "Instalar módulos", description: "Colocar y fijar todos los módulos" },
+    { id: "instalar_meson", label: "Instalar mesón", description: "Colocar y sellar el mesón" },
+    { id: "instalar_accesorios", label: "Instalar accesorios", description: "Colocar tiradores, organizadores, etc." },
+    { id: "ajustes_finales", label: "Ajustes finales", description: "Ajustar puertas, cajones y herrajes" },
+    { id: "limpieza_entrega", label: "Limpieza y entrega", description: "Limpiar y entregar al cliente" },
+    { id: "subir_fotos_entrega", label: "📸 Subir fotos de entrega", description: "Tomar y subir fotos del proyecto terminado" },
   ],
 };
 
@@ -92,9 +112,9 @@ export function OperatorDailyProjects({ className }: OperatorDailyProjectsProps)
     },
   });
   
-  // Filtrar proyectos en etapas de producción para operario
+  // Filtrar proyectos en etapas de producción para operario (incluyendo instalación)
   const operatorProjects = (projects || []).filter(p => 
-    ["corte", "enchape", "ensamble"].includes(p.status)
+    ["despiece", "corte", "enchape", "ensamble", "listo_instalacion", "instalacion_programada"].includes(p.status)
   );
   
   const handleRequestMaterials = () => {
@@ -269,6 +289,16 @@ export function OperatorDailyProjects({ className }: OperatorDailyProjectsProps)
                           <Link href={`/projects/${project.id}`}>
                             <Button variant="outline" size="sm">
                               Ver Detalles
+                            </Button>
+                          </Link>
+                          <Link href={`/projects/${project.id}?tab=photos`}>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              className="text-green-600 border-green-300 hover:bg-green-50"
+                            >
+                              <Camera className="h-4 w-4 mr-1" />
+                              Subir Fotos
                             </Button>
                           </Link>
                           <Button 

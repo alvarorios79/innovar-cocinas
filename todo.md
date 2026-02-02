@@ -3679,3 +3679,25 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - Contador de gastos filtrados con totales en tiempo real
 - Menú desplegable de exportación con 3 formatos
 - Reportes incluyen encabezado con período y fecha de generación
+
+
+## Corrección Panel Operario (1 feb 2026)
+
+- [ ] El operario no ve los proyectos activos en producción
+- [ ] Agregar vista de proyectos en producción para el operario
+- [ ] Permitir al operario subir fotos de avance, instalación y entrega
+
+
+## Corrección Panel Operario (1 feb 2026) - COMPLETADO
+
+- [x] Agregar estadísticas de proyectos en producción e instalación
+- [x] Incluir etapas de despiece, instalación y entrega en el panel
+- [x] Agregar botón "Subir Fotos" en cada proyecto
+- [x] Agregar checklists para etapas de instalación
+- [x] Mejorar acciones rápidas (Producción, Mis Tareas, Calendario)
+
+### Cambios realizados:
+- Panel del operario ahora muestra proyectos en: despiece, corte, enchape, ensamble, listo_instalacion, instalacion_programada
+- Estadísticas: "📦 En Producción" y "🚚 Listos/Instalación"
+- Botón "Subir Fotos" verde en cada proyecto para ir directamente a la pestaña de fotos
+- Checklists específicos para cada etapa de instalación

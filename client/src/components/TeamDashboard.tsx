@@ -358,12 +358,26 @@ export function TeamDashboard() {
           },
         ];
       case "operario":
+        // Proyectos en producción por etapa para el operario
+        const enProduccion = myProjects.filter(p => 
+          ["despiece", "corte", "enchape", "ensamble"].includes(p.status)
+        );
+        const listosInstalar = myProjects.filter(p => 
+          ["listo_instalacion", "instalacion_programada"].includes(p.status)
+        );
         return [
           { 
-            label: "Proyectos", 
-            value: myProjects.length,
-            icon: <Package className="h-6 w-6" />,
-            color: "bg-gradient-to-br from-blue-500 to-cyan-500",
+            label: "📦 En Producción", 
+            value: enProduccion.length,
+            icon: <Wrench className="h-6 w-6" />,
+            color: "bg-gradient-to-br from-orange-500 to-amber-500",
+            link: "/projects"
+          },
+          { 
+            label: "🚚 Listos/Instalación", 
+            value: listosInstalar.length,
+            icon: <Truck className="h-6 w-6" />,
+            color: "bg-gradient-to-br from-green-500 to-emerald-500",
             link: "/projects"
           },
           { 
@@ -374,18 +388,12 @@ export function TeamDashboard() {
             link: "/tasks"
           },
           { 
-            label: "Urgentes", 
+            label: "⚠️ Urgentes", 
             value: myTasks.filter(t => t.priority === "alta").length,
             icon: <AlertTriangle className="h-6 w-6" />,
             color: "bg-gradient-to-br from-red-500 to-rose-500",
-            link: "/tasks"
-          },
-          { 
-            label: "En Proceso", 
-            value: myTasks.filter(t => t.status === "en_progreso").length,
-            icon: <TrendingUp className="h-6 w-6" />,
-            color: "bg-gradient-to-br from-green-500 to-emerald-500",
-            link: "/tasks"
+            link: "/tasks",
+            highlight: myTasks.filter(t => t.priority === "alta").length > 0
           },
         ];
       default: // super_admin
@@ -454,8 +462,9 @@ export function TeamDashboard() {
         ];
       case "operario":
         return [
-          { label: "Proyectos", href: "/projects", icon: <Package className="h-6 w-6" />, color: "bg-gradient-to-br from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700" },
+          { label: "Producción", href: "/projects", icon: <Wrench className="h-6 w-6" />, color: "bg-gradient-to-br from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700" },
           { label: "Mis Tareas", href: "/tasks", icon: <ClipboardList className="h-6 w-6" />, color: "bg-gradient-to-br from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700" },
+          { label: "Calendario", href: "/calendar", icon: <Calendar className="h-6 w-6" />, color: "bg-gradient-to-br from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700" },
         ];
       default: // super_admin
         return [

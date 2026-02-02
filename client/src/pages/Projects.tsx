@@ -221,7 +221,7 @@ export default function Projects() {
       utils.projects.getById.invalidate();
       toast.success("Foto subida exitosamente");
       setShowPhotoDialog(false);
-      setPhotoForm({ stage: "", category: "medidas", subcategory: "", photoUrl: "", description: "" });
+      setPhotoForm({ stage: "", category: ["jefe_taller", "operario"].includes(user?.role || "") ? "avance" : "medidas", subcategory: "", photoUrl: "", description: "" });
     },
     onError: (error) => {
       toast.error(error.message || "Error al subir foto");
@@ -1648,9 +1648,14 @@ export default function Projects() {
                       <SelectValue placeholder="Selecciona la categoría" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="cotizacion">Cotización</SelectItem>
-                      <SelectItem value="medidas">Medidas</SelectItem>
-                      <SelectItem value="disenos">Diseños</SelectItem>
+                      {/* Jefe de taller y operario solo pueden subir en Avance, Instalación y Entrega */}
+                      {!["jefe_taller", "operario"].includes(user?.role || "") && (
+                        <>
+                          <SelectItem value="cotizacion">Cotización</SelectItem>
+                          <SelectItem value="medidas">Medidas</SelectItem>
+                          <SelectItem value="disenos">Diseños</SelectItem>
+                        </>
+                      )}
                       <SelectItem value="avance">Avance</SelectItem>
                       <SelectItem value="instalacion">Instalación</SelectItem>
                       <SelectItem value="entrega">Entrega</SelectItem>
@@ -1725,7 +1730,7 @@ export default function Projects() {
                       });
                     });
                     setShowPhotoDialog(false);
-                    setPhotoForm({ stage: "", category: "medidas", subcategory: "", photoUrl: "", description: "" });
+                    setPhotoForm({ stage: "", category: ["jefe_taller", "operario"].includes(user?.role || "") ? "avance" : "medidas", subcategory: "", photoUrl: "", description: "" });
                   }}
                 />
               )}

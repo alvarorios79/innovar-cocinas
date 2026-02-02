@@ -3722,3 +3722,5 @@ Se agregó el rol "comercial" a los siguientes endpoints:
   - Causa: Faltaba "modelado" en allFolders y viewPermissions en Projects.tsx
   - También faltaba "disenador" en los permisos de renders/despieces/detalles
   - Corregido agregando modelado y disenador a las listas de permisos
+
+- [x] Restringir categorías de subida de fotos para jefe_taller y operario: solo Avance, Instalación y Entrega (no Cotización, Medidas ni Diseños)

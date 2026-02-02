@@ -3639,10 +3639,10 @@ export const appRouter = router({
           );
         }
         
-        // Operario ve proyectos en producción activa (corte a listo_instalacion)
+        // Operario ve proyectos en producción activa (desde despiece hasta instalación)
         if (role === "operario") {
           projectsList = projectsList.filter(p => 
-            ["corte", "enchape", "ensamble", "listo_instalacion"].includes(p.status)
+            ["despiece", "corte", "enchape", "ensamble", "listo_instalacion", "instalacion_programada"].includes(p.status)
           );
         }
 

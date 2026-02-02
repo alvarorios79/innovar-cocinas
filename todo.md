@@ -3695,9 +3695,11 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Agregar botón "Subir Fotos" en cada proyecto
 - [x] Agregar checklists para etapas de instalación
 - [x] Mejorar acciones rápidas (Producción, Mis Tareas, Calendario)
+- [x] Corregir filtro de proyectos en backend para incluir despiece e instalacion_programada
 
 ### Cambios realizados:
-- Panel del operario ahora muestra proyectos en: despiece, corte, enchape, ensamble, listo_instalacion, instalacion_programada
+- Backend: Operario ahora puede ver proyectos en: despiece, corte, enchape, ensamble, listo_instalacion, instalacion_programada
+- Frontend: Panel del operario muestra proyectos en todas las etapas de producción
 - Estadísticas: "📦 En Producción" y "🚚 Listos/Instalación"
 - Botón "Subir Fotos" verde en cada proyecto para ir directamente a la pestaña de fotos
 - Checklists específicos para cada etapa de instalación

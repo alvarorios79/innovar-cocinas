@@ -25,7 +25,11 @@ import {
   Trash2,
   Eye,
   Plus,
-  Filter
+  Filter,
+  Download,
+  FileSpreadsheet,
+  FileType,
+  CalendarRange
 } from "lucide-react";
 // Storage upload will be handled via tRPC
 
@@ -74,6 +78,12 @@ export default function Accounting() {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [filterType, setFilterType] = useState<"all" | "materiales_proyecto" | "gasto_operativo">("all");
   const [viewExpense, setViewExpense] = useState<any>(null);
+  
+  // Estados para filtro de fechas
+  const [dateFilterPeriod, setDateFilterPeriod] = useState<"all" | "this_month" | "last_month" | "last_quarter" | "this_year" | "custom">("all");
+  const [customDateFrom, setCustomDateFrom] = useState<string>("");
+  const [customDateTo, setCustomDateTo] = useState<string>("");
+  const [showExportMenu, setShowExportMenu] = useState(false);
 
   // Queries
   const { data: projects } = trpc.expenses.getProjectsForSelect.useQuery();
@@ -195,6 +205,72 @@ export default function Accounting() {
       day: "numeric",
     });
   };
+
+  // Calcular rango de fechas según el período seleccionado
+  const getDateRange = () => {
+    const now = new Date();
+    let fromDate: Date | null = null;
+    let toDate: Date | null = null;
+    
+    switch (dateFilterPeriod) {
+      case "this_month":
+        fromDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        toDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        break;
+      case "last_month":
+        fromDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        toDate = new Date(now.getFullYear(), now.getMonth(), 0);
+        break;
+      case "last_quarter":
+        fromDate = new Date(now.getFullYear(), now.getMonth() - 3, 1);
+        toDate = now;
+        break;
+      case "this_year":
+        fromDate = new Date(now.getFullYear(), 0, 1);
+        toDate = now;
+        break;
+      case "custom":
+        if (customDateFrom) fromDate = new Date(customDateFrom);
+        if (customDateTo) toDate = new Date(customDateTo);
+        break;
+      default:
+        return null;
+    }
+    
+    return { from: fromDate, to: toDate };
+  };
+
+  // Filtrar gastos por fecha
+  const filteredExpenses = useMemo(() => {
+    if (!expenses) return [];
+    
+    const dateRange = getDateRange();
+    if (!dateRange) return expenses;
+    
+    return expenses.filter(expense => {
+      const expenseDate = new Date(expense.expenseDate);
+      if (dateRange.from && expenseDate < dateRange.from) return false;
+      if (dateRange.to && expenseDate > dateRange.to) return false;
+      return true;
+    });
+  }, [expenses, dateFilterPeriod, customDateFrom, customDateTo]);
+
+  // Calcular totales de gastos filtrados
+  const filteredTotals = useMemo(() => {
+    const materiales = filteredExpenses
+      .filter(e => e.expenseType === "materiales_proyecto")
+      .reduce((sum, e) => sum + e.amount, 0);
+    const operativos = filteredExpenses
+      .filter(e => e.expenseType === "gasto_operativo")
+      .reduce((sum, e) => sum + e.amount, 0);
+    
+    return {
+      materiales,
+      operativos,
+      total: materiales + operativos,
+      count: filteredExpenses.length,
+    };
+  }, [filteredExpenses]);
 
   // Calcular totales
   const totals = useMemo(() => {
@@ -685,25 +761,314 @@ export default function Accounting() {
     );
   };
 
+  // Función para exportar a Excel
+  const exportToExcel = () => {
+    if (filteredExpenses.length === 0) {
+      toast.error("No hay gastos para exportar");
+      return;
+    }
+    
+    // Crear contenido CSV (compatible con Excel)
+    const headers = ["Fecha", "Tipo", "Proyecto/Categoría", "Descripción", "Valor", "Registrado por"];
+    const rows = filteredExpenses.map(e => [
+      formatDate(e.expenseDate),
+      e.expenseType === "materiales_proyecto" ? "Materiales" : "Operativo",
+      e.expenseType === "materiales_proyecto" 
+        ? (e.projectClientName || "Proyecto")
+        : (OPERATIVE_CATEGORIES.find(c => c.value === e.operativeCategory)?.label || e.operativeCategory),
+      e.description,
+      e.amount.toString(),
+      e.createdByUser?.name || "Usuario"
+    ]);
+    
+    // Agregar resumen al final
+    rows.push([]);
+    rows.push(["RESUMEN", "", "", "", "", ""]);
+    rows.push(["Total Materiales", "", "", "", filteredTotals.materiales.toString(), ""]);
+    rows.push(["Total Operativos", "", "", "", filteredTotals.operativos.toString(), ""]);
+    rows.push(["TOTAL GENERAL", "", "", "", filteredTotals.total.toString(), ""]);
+    
+    const csvContent = [headers, ...rows].map(row => row.map(cell => `"${cell}"`).join(",")).join("\n");
+    const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `gastos_${new Date().toISOString().split("T")[0]}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+    toast.success("Archivo Excel exportado correctamente");
+  };
+
+  // Función para exportar a PDF
+  const exportToPDF = () => {
+    if (filteredExpenses.length === 0) {
+      toast.error("No hay gastos para exportar");
+      return;
+    }
+    
+    // Crear contenido HTML para imprimir como PDF
+    const dateRange = getDateRange();
+    const periodText = dateFilterPeriod === "all" ? "Todos los períodos" 
+      : dateFilterPeriod === "this_month" ? "Este mes"
+      : dateFilterPeriod === "last_month" ? "Último mes"
+      : dateFilterPeriod === "last_quarter" ? "Último trimestre"
+      : dateFilterPeriod === "this_year" ? "Este año"
+      : `${customDateFrom} - ${customDateTo}`;
+    
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <title>Reporte de Gastos - INNOVAR Cocinas</title>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 20px; }
+          h1 { color: #059669; text-align: center; }
+          h2 { color: #374151; margin-top: 30px; }
+          table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+          th, td { border: 1px solid #d1d5db; padding: 10px; text-align: left; }
+          th { background-color: #f3f4f6; font-weight: bold; }
+          .summary { margin-top: 30px; background: #f9fafb; padding: 20px; border-radius: 8px; }
+          .summary-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e5e7eb; }
+          .summary-total { font-weight: bold; font-size: 1.2em; color: #059669; }
+          .header-info { text-align: center; color: #6b7280; margin-bottom: 20px; }
+          @media print { body { print-color-adjust: exact; -webkit-print-color-adjust: exact; } }
+        </style>
+      </head>
+      <body>
+        <h1>INNOVAR Cocinas de Diseño</h1>
+        <p class="header-info">Reporte de Gastos - ${periodText}</p>
+        <p class="header-info">Generado el ${formatDate(new Date())}</p>
+        
+        <h2>Detalle de Gastos (${filteredExpenses.length} registros)</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Tipo</th>
+              <th>Proyecto/Categoría</th>
+              <th>Descripción</th>
+              <th>Valor</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${filteredExpenses.map(e => `
+              <tr>
+                <td>${formatDate(e.expenseDate)}</td>
+                <td>${e.expenseType === "materiales_proyecto" ? "Materiales" : "Operativo"}</td>
+                <td>${e.expenseType === "materiales_proyecto" 
+                  ? (e.projectClientName || "Proyecto")
+                  : (OPERATIVE_CATEGORIES.find(c => c.value === e.operativeCategory)?.label || e.operativeCategory)}</td>
+                <td>${e.description}</td>
+                <td>${formatCurrency(e.amount)}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+        
+        <div class="summary">
+          <h2>Resumen</h2>
+          <div class="summary-row"><span>Total Materiales:</span><span>${formatCurrency(filteredTotals.materiales)}</span></div>
+          <div class="summary-row"><span>Total Operativos:</span><span>${formatCurrency(filteredTotals.operativos)}</span></div>
+          <div class="summary-row summary-total"><span>TOTAL GENERAL:</span><span>${formatCurrency(filteredTotals.total)}</span></div>
+        </div>
+      </body>
+      </html>
+    `;
+    
+    const printWindow = window.open("", "_blank");
+    if (printWindow) {
+      printWindow.document.write(htmlContent);
+      printWindow.document.close();
+      printWindow.print();
+    }
+    toast.success("PDF generado - usa Ctrl+P para guardar como PDF");
+  };
+
+  // Función para exportar a Word
+  const exportToWord = () => {
+    if (filteredExpenses.length === 0) {
+      toast.error("No hay gastos para exportar");
+      return;
+    }
+    
+    const periodText = dateFilterPeriod === "all" ? "Todos los períodos" 
+      : dateFilterPeriod === "this_month" ? "Este mes"
+      : dateFilterPeriod === "last_month" ? "Último mes"
+      : dateFilterPeriod === "last_quarter" ? "Último trimestre"
+      : dateFilterPeriod === "this_year" ? "Este año"
+      : `${customDateFrom} - ${customDateTo}`;
+    
+    const htmlContent = `
+      <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+      <head><meta charset="utf-8"><title>Reporte de Gastos</title></head>
+      <body>
+        <h1 style="color: #059669; text-align: center;">INNOVAR Cocinas de Diseño</h1>
+        <p style="text-align: center; color: #6b7280;">Reporte de Gastos - ${periodText}</p>
+        <p style="text-align: center; color: #6b7280;">Generado el ${formatDate(new Date())}</p>
+        
+        <h2>Detalle de Gastos (${filteredExpenses.length} registros)</h2>
+        <table border="1" cellpadding="8" cellspacing="0" style="width: 100%; border-collapse: collapse;">
+          <tr style="background-color: #f3f4f6;">
+            <th>Fecha</th>
+            <th>Tipo</th>
+            <th>Proyecto/Categoría</th>
+            <th>Descripción</th>
+            <th>Valor</th>
+          </tr>
+          ${filteredExpenses.map(e => `
+            <tr>
+              <td>${formatDate(e.expenseDate)}</td>
+              <td>${e.expenseType === "materiales_proyecto" ? "Materiales" : "Operativo"}</td>
+              <td>${e.expenseType === "materiales_proyecto" 
+                ? (e.projectClientName || "Proyecto")
+                : (OPERATIVE_CATEGORIES.find(c => c.value === e.operativeCategory)?.label || e.operativeCategory)}</td>
+              <td>${e.description}</td>
+              <td>${formatCurrency(e.amount)}</td>
+            </tr>
+          `).join("")}
+        </table>
+        
+        <h2>Resumen</h2>
+        <table border="1" cellpadding="8" cellspacing="0" style="width: 50%;">
+          <tr><td>Total Materiales:</td><td><strong>${formatCurrency(filteredTotals.materiales)}</strong></td></tr>
+          <tr><td>Total Operativos:</td><td><strong>${formatCurrency(filteredTotals.operativos)}</strong></td></tr>
+          <tr style="background-color: #d1fae5;"><td><strong>TOTAL GENERAL:</strong></td><td><strong>${formatCurrency(filteredTotals.total)}</strong></td></tr>
+        </table>
+      </body>
+      </html>
+    `;
+    
+    const blob = new Blob(["\ufeff", htmlContent], { type: "application/msword" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `gastos_${new Date().toISOString().split("T")[0]}.doc`;
+    link.click();
+    URL.revokeObjectURL(url);
+    toast.success("Archivo Word exportado correctamente");
+  };
+
   // Renderizar historial de gastos
   const renderHistory = () => (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      {/* Encabezado con título y botón de exportar */}
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <h2 className="text-xl font-bold">Historial de Gastos</h2>
-        <Select value={filterType} onValueChange={(v: any) => setFilterType(v)}>
-          <SelectTrigger className="w-48">
-            <Filter className="w-4 h-4 mr-2" />
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos los gastos</SelectItem>
-            <SelectItem value="materiales_proyecto">Materiales</SelectItem>
-            <SelectItem value="gasto_operativo">Operativos</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="relative">
+          <Button 
+            variant="outline" 
+            onClick={() => setShowExportMenu(!showExportMenu)}
+            className="gap-2"
+          >
+            <Download className="w-4 h-4" />
+            Exportar
+          </Button>
+          {showExportMenu && (
+            <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border z-50">
+              <button
+                className="w-full px-4 py-3 text-left hover:bg-gray-50 flex items-center gap-3 border-b"
+                onClick={() => { exportToExcel(); setShowExportMenu(false); }}
+              >
+                <FileSpreadsheet className="w-5 h-5 text-green-600" />
+                <span>Excel (.csv)</span>
+              </button>
+              <button
+                className="w-full px-4 py-3 text-left hover:bg-gray-50 flex items-center gap-3 border-b"
+                onClick={() => { exportToWord(); setShowExportMenu(false); }}
+              >
+                <FileType className="w-5 h-5 text-blue-600" />
+                <span>Word (.doc)</span>
+              </button>
+              <button
+                className="w-full px-4 py-3 text-left hover:bg-gray-50 flex items-center gap-3"
+                onClick={() => { exportToPDF(); setShowExportMenu(false); }}
+              >
+                <FileText className="w-5 h-5 text-red-600" />
+                <span>PDF</span>
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
-      {expenses?.length === 0 ? (
+      {/* Filtros */}
+      <Card className="bg-gray-50">
+        <CardContent className="p-4">
+          <div className="flex flex-wrap gap-4 items-end">
+            {/* Filtro por tipo */}
+            <div className="flex-1 min-w-[150px]">
+              <Label className="text-sm text-gray-600 mb-1 block">Tipo de gasto</Label>
+              <Select value={filterType} onValueChange={(v: any) => setFilterType(v)}>
+                <SelectTrigger>
+                  <Filter className="w-4 h-4 mr-2" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="materiales_proyecto">Materiales</SelectItem>
+                  <SelectItem value="gasto_operativo">Operativos</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {/* Filtro por período */}
+            <div className="flex-1 min-w-[150px]">
+              <Label className="text-sm text-gray-600 mb-1 block">Período</Label>
+              <Select value={dateFilterPeriod} onValueChange={(v: any) => setDateFilterPeriod(v)}>
+                <SelectTrigger>
+                  <CalendarRange className="w-4 h-4 mr-2" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos los períodos</SelectItem>
+                  <SelectItem value="this_month">Este mes</SelectItem>
+                  <SelectItem value="last_month">Último mes</SelectItem>
+                  <SelectItem value="last_quarter">Último trimestre</SelectItem>
+                  <SelectItem value="this_year">Este año</SelectItem>
+                  <SelectItem value="custom">Personalizado</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {/* Fechas personalizadas */}
+            {dateFilterPeriod === "custom" && (
+              <>
+                <div className="flex-1 min-w-[140px]">
+                  <Label className="text-sm text-gray-600 mb-1 block">Desde</Label>
+                  <Input 
+                    type="date" 
+                    value={customDateFrom} 
+                    onChange={(e) => setCustomDateFrom(e.target.value)}
+                  />
+                </div>
+                <div className="flex-1 min-w-[140px]">
+                  <Label className="text-sm text-gray-600 mb-1 block">Hasta</Label>
+                  <Input 
+                    type="date" 
+                    value={customDateTo} 
+                    onChange={(e) => setCustomDateTo(e.target.value)}
+                  />
+                </div>
+              </>
+            )}
+          </div>
+          
+          {/* Resumen de filtro */}
+          <div className="mt-4 pt-4 border-t flex flex-wrap gap-4 items-center justify-between">
+            <div className="text-sm text-gray-600">
+              <span className="font-medium">{filteredTotals.count}</span> gastos encontrados
+            </div>
+            <div className="flex gap-4 text-sm">
+              <span className="text-blue-600">Materiales: <strong>{formatCurrency(filteredTotals.materiales)}</strong></span>
+              <span className="text-purple-600">Operativos: <strong>{formatCurrency(filteredTotals.operativos)}</strong></span>
+              <span className="text-emerald-600">Total: <strong>{formatCurrency(filteredTotals.total)}</strong></span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {filteredExpenses.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center">
             <Receipt className="w-12 h-12 text-gray-300 mx-auto mb-4" />
@@ -712,7 +1077,7 @@ export default function Accounting() {
         </Card>
       ) : (
         <div className="space-y-3">
-          {expenses?.map(expense => (
+          {filteredExpenses.map(expense => (
             <Card key={expense.id} className="hover:shadow-md transition-shadow">
               <CardContent className="p-4">
                 <div className="flex items-start justify-between">

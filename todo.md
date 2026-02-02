@@ -3644,3 +3644,38 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - El campo "Escribir nombre del cliente/proyecto" ahora solo se muestra si NO hay proyecto seleccionado
 - Cuando se selecciona un proyecto, se muestra un recuadro verde con el proyecto seleccionado
 - Se agregó botón "Cambiar proyecto" para deseleccionar y elegir otro
+
+
+## Mejoras Sistema Contable - Filtros y Exportación (1 feb 2026)
+
+### Filtro por rango de fechas
+- [ ] Agregar selector de período predefinido (este mes, último mes, último trimestre, este año)
+- [ ] Agregar selector de fechas personalizado (desde - hasta)
+- [ ] Filtrar gastos según el rango seleccionado
+
+### Exportación de reportes
+- [ ] Implementar exportación a Excel (.xlsx)
+- [ ] Implementar exportación a Word (.docx)
+- [ ] Implementar exportación a PDF
+- [ ] Incluir resumen y detalle de gastos en los reportes
+
+
+## Mejoras Sistema Contable - Filtros y Exportación (1 feb 2026) - COMPLETADO
+
+### Filtro por rango de fechas
+- [x] Agregar selector de período (Este mes, Último mes, Último trimestre, Este año, Personalizado)
+- [x] Implementar filtro personalizado con fechas desde/hasta
+- [x] Mostrar resumen de gastos filtrados en tiempo real
+
+### Exportación de reportes
+- [x] Exportar a Excel (.csv) con formato compatible
+- [x] Exportar a Word (.doc) con tabla formateada
+- [x] Exportar a PDF con diseño profesional
+- [x] Incluir resumen de totales en todas las exportaciones
+
+### Funcionalidades implementadas:
+- Filtro por tipo de gasto (Todos, Materiales, Operativos)
+- Filtro por período predefinido o personalizado
+- Contador de gastos filtrados con totales en tiempo real
+- Menú desplegable de exportación con 3 formatos
+- Reportes incluyen encabezado con período y fecha de generación

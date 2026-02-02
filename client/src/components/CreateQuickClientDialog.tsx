@@ -110,7 +110,7 @@ Te hemos creado una cuenta en INNOVAR Cocinas para que puedas seguir el estado d
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[85vh] overflow-y-auto">
         {!showCredentials ? (
           <>
             <DialogHeader>

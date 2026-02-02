@@ -3769,3 +3769,8 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Botón de eliminar foto ahora visible en móvil (sin necesidad de hover)
 - [x] Aumentado tamaño del icono de eliminar para mejor visibilidad táctil
 - [x] 474 tests pasando
+
+
+### Bug iPad - Formulario Crear Cliente
+- [x] Formulario de crear cliente no hace scroll en iPad - Agregado max-h-[85vh] overflow-y-auto
+- [x] Botón de enviar no accesible en iPad - Corregido con scroll

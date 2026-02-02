@@ -3725,3 +3725,30 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 
 - [x] Restringir categorías de subida de fotos para jefe_taller y operario: solo Avance, Instalación y Entrega (no Cotización, Medidas ni Diseños)
 - [ ] Hacer visible el icono de subida de fotos para operario en subcategorías donde tiene permiso (Avance, Instalación, Entrega)
+
+
+## Limpieza de Código y Mejoras de Permisos de Fotos (Febrero 2026)
+
+### Permisos de Fotos para Operario y Jefe de Taller
+- [x] Restringir categorías de subida de fotos para jefe_taller y operario (solo Avance, Instalación, Entrega)
+- [x] Ocultar categorías Cotización, Medidas y Diseños para estos roles
+- [x] Mantener permisos de visualización de diseños (modelado, renders, despieces, detalles)
+- [x] Cambiar botones de subida de fotos a color verde esmeralda para mejor visibilidad
+
+### Funcionalidad de Eliminar Fotos
+- [x] Agregar botón de eliminar fotos para jefe_taller y operario (solo fotos que ellos subieron)
+- [x] Mantener permisos de admin/super_admin/comercial/diseñador para eliminar cualquier foto
+- [x] Botón de eliminar con estilo consistente (rojo, icono de papelera)
+
+### Limpieza de Código
+- [x] Eliminar console.logs de debug en routers.ts (validatePhotoUploadPermission, limpieza de datos)
+- [x] Eliminar console.logs de debug en storage.ts
+- [x] Eliminar console.logs de debug en _core/index.ts (ImageProxy)
+- [x] Eliminar console.logs de debug en _core/sdk.ts (OAuth)
+- [x] Eliminar console.logs de debug en email.ts
+- [x] Eliminar console.logs de debug en pdf-generator-pdfkit.ts
+- [x] Eliminar console.logs de debug en quotation-pdf-generator.ts
+- [x] Eliminar console.logs de debug en routers/appointments.ts
+- [x] Eliminar console.log de NotificationBell.tsx (KeepAlive)
+- [x] Mantener console.error para errores críticos y console.log de servicios de background (Birthday, Reminders)
+- [x] Verificar que todos los 474 tests siguen pasando después de la limpieza

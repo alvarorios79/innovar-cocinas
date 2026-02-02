@@ -3363,8 +3363,6 @@ export const appRouter = router({
           })
           .map(c => c.id);
 
-        console.log(`[Limpieza] Usuarios de prueba: ${testUserIds.length}, Clientes de prueba: ${testClientIds.length}`);
-
         // 1. Eliminar citas de clientes de prueba
         for (const clientId of testClientIds) {
           try {
@@ -3433,7 +3431,6 @@ export const appRouter = router({
             const userDependencies = await db.checkUserDependencies(userId);
             
             if (userDependencies.hasRealDependencies) {
-              console.log(`[Limpieza] Usuario ${userId} tiene dependencias reales, saltando...`);
               skipped++;
               continue;
             }
@@ -3448,7 +3445,6 @@ export const appRouter = router({
             // Finalmente eliminar el usuario
             await db.deleteUser(userId);
             deletedUsers++;
-            console.log(`[Limpieza] Usuario ${userId} eliminado exitosamente`);
           } catch (error) {
             console.error(`Error eliminando usuario ${userId}:`, error);
             skipped++;
@@ -3661,9 +3657,6 @@ export const appRouter = router({
       .input(z.object({ id: z.number() }))
       .query(async ({ ctx, input }) => {
         const project = await db.getProjectById(input.id);
-        console.log('[DEBUG] Project quotationId:', project?.quotationId);
-        console.log('[DEBUG] Project modeladoApprovedAt:', project?.modeladoApprovedAt);
-        console.log('[DEBUG] Project rendersApprovedAt:', project?.rendersApprovedAt);
         if (!project) {
           throw new TRPCError({ code: "NOT_FOUND", message: "Proyecto no encontrado" });
         }
@@ -3824,7 +3817,6 @@ export const appRouter = router({
         // Ordenar todo por fecha
         unifiedHistory.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
 
-        console.log('[DEBUG] Building result with quotationId:', project.quotationId, 'quotation:', quotation?.id);
         const result = {
           ...project,
           quotationId: project.quotationId,
@@ -3848,7 +3840,6 @@ export const appRouter = router({
         };
         
 
-        console.log('[DEBUG] Final result quotationId:', result.quotationId, 'quotation:', JSON.stringify(result.quotation));
         return result;
       }),
 
@@ -4080,7 +4071,6 @@ export const appRouter = router({
             
             // Si es gestión interna, no enviar notificaciones al cliente
             if (clientData && clientData.internalManagement) {
-              console.log(`[Gestión Interna] Cliente ${clientData.name} - No se envían notificaciones automáticas`);
               // No hacer nada más para clientes con gestión interna
             } else if (clientData) {
               // Variables para credenciales
@@ -4819,8 +4809,21 @@ ${input.notes || "No se especificaron detalles"}
     delete: protectedProcedure
       .input(z.object({ id: z.number() }))
       .mutation(async ({ ctx, input }) => {
-        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "comercial") {
-          throw new TRPCError({ code: "FORBIDDEN", message: "Solo administradores pueden eliminar fotos" });
+        // Admins, comercial y diseñador pueden eliminar cualquier foto
+        const canDeleteAny = ["admin", "super_admin", "comercial", "disenador"].includes(ctx.user.role);
+        
+        if (!canDeleteAny) {
+          // Jefe de taller y operario solo pueden eliminar fotos que ellos subieron
+          const photo = await db.getProjectPhotoById(input.id);
+          if (!photo) {
+            throw new TRPCError({ code: "NOT_FOUND", message: "Foto no encontrada" });
+          }
+          
+          const canDeleteOwn = ["jefe_taller", "operario"].includes(ctx.user.role) && photo.uploadedBy === ctx.user.id;
+          
+          if (!canDeleteOwn) {
+            throw new TRPCError({ code: "FORBIDDEN", message: "Solo puedes eliminar fotos que tú subiste" });
+          }
         }
 
         await db.deleteProjectPhoto(input.id);
@@ -7085,21 +7088,15 @@ function validateStatusChange(role: string, currentStatus: string, newStatus: st
 
 // Validar permisos de subida de fotos
 function validatePhotoUploadPermission(role: string, stage: string, category?: string): boolean {
-  console.log("[validatePhotoUploadPermission] Validando:", { role, stage, category });
-  
   if (role === "super_admin" || role === "admin") {
-    console.log("[validatePhotoUploadPermission] Admin/SuperAdmin -> permitido");
     return true;
   }
 
   if (role === "comercial") {
     // Comercial puede subir fotos de cotización y medidas en cualquier etapa
-    console.log("[validatePhotoUploadPermission] Rol comercial, verificando category:", category);
     if (category && ["cotizacion", "medidas"].includes(category)) {
-      console.log("[validatePhotoUploadPermission] Comercial -> permitido para", category);
-      return true; // Permitir en cualquier etapa
+      return true;
     }
-    console.log("[validatePhotoUploadPermission] Comercial -> DENEGADO, category no válida:", category);
     return false;
   }
 

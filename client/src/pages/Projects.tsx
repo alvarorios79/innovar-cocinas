@@ -228,6 +228,16 @@ export default function Projects() {
     },
   });
 
+  const deletePhoto = trpc.projectPhotos.delete.useMutation({
+    onSuccess: () => {
+      utils.projects.getById.invalidate();
+      toast.success("Foto eliminada exitosamente");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Error al eliminar foto");
+    },
+  });
+
   const updateEstimatedDate = trpc.projects.updateEstimatedDate.useMutation({
     onSuccess: () => {
       utils.projects.getById.invalidate();
@@ -1515,8 +1525,24 @@ export default function Projects() {
                                         </span>
                                       )}
                                     </div>
-                                    <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
                                       <ZoomIn className="h-4 w-4 text-white drop-shadow-lg" />
+                                      {/* Botón eliminar: admin/comercial/diseñador pueden eliminar cualquiera, jefe_taller/operario solo sus propias fotos */}
+                                      {(["admin", "super_admin", "comercial", "disenador"].includes(user?.role || "") || 
+                                        (["jefe_taller", "operario"].includes(user?.role || "") && photo.uploadedBy === user?.id)) && (
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            if (confirm("¿Estás seguro de eliminar esta foto?")) {
+                                              deletePhoto.mutate({ id: photo.id });
+                                            }
+                                          }}
+                                          className="p-1 bg-red-500/80 rounded hover:bg-red-600 transition-colors"
+                                          title="Eliminar foto"
+                                        >
+                                          <Trash2 className="h-3 w-3 text-white" />
+                                        </button>
+                                      )}
                                     </div>
                                     {photo.description && (
                                       <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-xs p-1 truncate opacity-0 group-hover:opacity-100 transition-opacity">

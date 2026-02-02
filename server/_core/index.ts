@@ -54,22 +54,18 @@ async function startServer() {
       const { storageDownloadDirect, extractKeyFromUrl } = await import('../storage');
       
       const url = req.query.url as string;
-      console.log('[ImageProxy] Request for URL:', url);
       if (!url) {
         return res.status(400).json({ error: 'URL parameter required' });
       }
       
       // Extraer la key de la URL de CloudFront
       const key = extractKeyFromUrl(url);
-      console.log('[ImageProxy] Extracted key:', key);
       if (!key) {
         return res.status(400).json({ error: 'Invalid URL format' });
       }
       
       // Descargar directamente usando la API de storage con autenticación
-      console.log('[ImageProxy] Downloading directly for key:', key);
       const { buffer, contentType } = await storageDownloadDirect(key);
-      console.log('[ImageProxy] Downloaded successfully, size:', buffer.length, 'type:', contentType);
       
       // Configurar headers de caché
       res.setHeader('Content-Type', contentType);

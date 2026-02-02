@@ -105,7 +105,6 @@ export const appointmentsRouter = router({
                   subject: emailData.subject,
                   html: emailData.html,
                 });
-                console.log(`[Auto-registro] Usuario creado y email enviado a ${client.email}`);
               } catch (emailError) {
                 console.error("[Auto-registro] Error al enviar email de bienvenida:", emailError);
                 // No bloquear el proceso si falla el email

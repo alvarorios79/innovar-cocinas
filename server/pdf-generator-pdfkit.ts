@@ -54,11 +54,10 @@ export async function generateQuotationPDF(
 
       // Logo (izquierda)
       const logoPath = path.join(__dirname, "../innovar_logo.png");
-      console.log(`[PDF] Intentando cargar logo desde: ${logoPath}`);
       try {
         doc.image(logoPath, 50, 35, { width: 70, height: 90 });
       } catch (e) {
-        console.log("[PDF] Logo no encontrado, continuando sin logo");
+        // Logo no encontrado, continuar sin logo
       }
 
       // Información de contacto (centro-izquierda, al lado del logo)
@@ -301,7 +300,6 @@ export async function generateQuotationPDF(
       doc.end();
 
       stream.on("finish", () => {
-        console.log(`[PDF] Generado exitosamente: ${outputPath}`);
         resolve();
       });
 

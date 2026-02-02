@@ -800,6 +800,14 @@ export async function deleteProjectPhoto(id: number) {
   await db.delete(projectPhotos).where(eq(projectPhotos.id, id));
 }
 
+export async function getProjectPhotoById(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+
+  const result = await db.select().from(projectPhotos).where(eq(projectPhotos.id, id));
+  return result[0] || null;
+}
+
 // ============ PROJECT DETAILS ============
 
 export async function createProjectDetail(detail: InsertProjectDetail) {

@@ -53,7 +53,6 @@ export async function sendEmail(options: SendEmailOptions): Promise<{ success: b
       return { success: false, error: result.error.message };
     }
 
-    console.log(`[Email] Enviado exitosamente a ${options.to}. ID: ${result.data?.id}`);
     return { success: true, id: result.data?.id };
   } catch (error: any) {
     console.error("[Email] Excepción al enviar:", error);

@@ -159,7 +159,7 @@ export function NotificationBell() {
           registration.active.postMessage({ type: "KEEP_ALIVE" }, [messageChannel.port2]);
         }
       } catch (e) {
-        console.log("[KeepAlive] Error:", e);
+        // Error silencioso - keep alive no es crítico
       }
     };
 

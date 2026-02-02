@@ -31,7 +31,6 @@ export async function generateQuotationPDF(
   try {
     // Generar PDF usando PDFKit
     await generatePDF(data, outputPath);
-    console.log(`[PDF] Archivo generado: ${outputPath}`);
 
     // Limpiar nombre del cliente para usar en nombre de archivo
     // Permite tildes y caracteres especiales del español, pero elimina caracteres problemáticos

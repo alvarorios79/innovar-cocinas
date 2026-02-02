@@ -35,14 +35,11 @@ async function buildDownloadUrl(
   );
   const normalizedKey = normalizeKey(relKey);
   downloadApiUrl.searchParams.set("path", normalizedKey);
-  console.log('[Storage] Requesting download URL for key:', normalizedKey);
-  console.log('[Storage] API URL:', downloadApiUrl.toString());
   const response = await fetch(downloadApiUrl, {
     method: "GET",
     headers: buildAuthHeaders(apiKey),
   });
   const data = await response.json();
-  console.log('[Storage] API Response:', JSON.stringify(data));
   return data.url;
 }
 
@@ -117,8 +114,6 @@ export async function storageDownloadDirect(relKey: string): Promise<{ buffer: B
   // Usar el endpoint de download directo
   const downloadUrl = new URL('v1/storage/download', ensureTrailingSlash(baseUrl));
   downloadUrl.searchParams.set('path', key);
-  
-  console.log('[Storage] Direct download URL:', downloadUrl.toString());
   
   const response = await fetch(downloadUrl.toString(), {
     method: 'GET',

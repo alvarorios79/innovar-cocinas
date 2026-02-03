@@ -725,6 +725,51 @@ export async function getProjectsByDesignerId(designerId: number) {
     .orderBy(desc(projects.createdAt));
 }
 
+/**
+ * Obtener el diseñador con menos proyectos activos para asignación automática
+ * Proyectos activos = estados desde adelanto_recibido hasta pendiente_cliente (fase de diseño)
+ */
+export async function getDesignerWithLeastActiveProjects(): Promise<number | null> {
+  const db = await getDb();
+  if (!db) return null;
+
+  // Obtener todos los diseñadores activos
+  const designers = await db.select().from(users).where(eq(users.role, "disenador"));
+  
+  if (designers.length === 0) return null;
+  if (designers.length === 1) return designers[0].id;
+
+  // Estados en los que el diseñador está activamente trabajando
+  const activeDesignStatuses = [
+    "adelanto_recibido",
+    "en_diseno",
+    "pendiente_modelado",
+    "pendiente_cliente",
+    "pendiente_render"
+  ];
+
+  // Contar proyectos activos por diseñador
+  let minProjects = Infinity;
+  let selectedDesignerId: number | null = null;
+
+  for (const designer of designers) {
+    const activeProjects = await db.select().from(projects)
+      .where(
+        and(
+          eq(projects.designerId, designer.id),
+          inArray(projects.status, activeDesignStatuses as any)
+        )
+      );
+    
+    if (activeProjects.length < minProjects) {
+      minProjects = activeProjects.length;
+      selectedDesignerId = designer.id;
+    }
+  }
+
+  return selectedDesignerId;
+}
+
 export async function updateProject(id: number, data: Partial<InsertProject>) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");

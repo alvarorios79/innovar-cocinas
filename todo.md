@@ -3778,3 +3778,11 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 
 ### Bug Notificación Diseño Entregado
 - [x] Notificación muestra nombre incorrecto del diseñador - Corregido para usar el diseñador asignado al proyecto (designerId) en lugar de ctx.user
+
+
+### Sistema de Asignación Automática de Diseñadores
+- [x] Investigar cómo se crean proyectos actualmente
+- [x] Implementar lógica de asignación automática (por carga de trabajo - diseñador con menos proyectos activos)
+- [x] Asignar diseñador automáticamente al crear nuevo proyecto
+- [x] Notificar al diseñador cuando se le asigna un proyecto
+- [x] Incluir nombre del diseñador en notificaciones de proyecto creado

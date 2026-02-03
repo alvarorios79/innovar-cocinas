@@ -2764,6 +2764,9 @@ export const appRouter = router({
         // Calcular fecha TENTATIVA de instalación: 25 días hábiles desde hoy
         const tentativeDate = await addBusinessDays(new Date(), 25);
         
+        // Asignar automáticamente el diseñador con menos proyectos activos
+        const autoAssignedDesignerId = await db.getDesignerWithLeastActiveProjects();
+        
         const projectId = await db.createProject({
           quotationId: quotation.id,
           clientId: quotation.clientId,
@@ -2777,6 +2780,7 @@ export const appRouter = router({
           quotationPdfUrl: quotationPdfUrl,
           tentativeInstallDate: tentativeDate,
           isInstallDateOfficial: false,
+          designerId: autoAssignedDesignerId,
         });
         
         // Crear historial de estado del proyecto
@@ -2793,11 +2797,31 @@ export const appRouter = router({
         const notifyRoles = ["super_admin", "admin", "comercial"];
         const usersToNotify = admins.filter(u => notifyRoles.includes(u.role));
         
+        // Obtener nombre del diseñador asignado para la notificación
+        const assignedDesigner = autoAssignedDesignerId 
+          ? admins.find(u => u.id === autoAssignedDesignerId)
+          : null;
+        const designerInfo = assignedDesigner 
+          ? ` Diseñador asignado: ${assignedDesigner.name}.`
+          : " Sin diseñador asignado (no hay diseñadores disponibles).";
+        
         for (const user of usersToNotify) {
           await db.createNotification({
             userId: user.id,
             title: "¡Cotización Aprobada - Proyecto Creado!",
-            body: `El cliente ${clientData?.name || ""} ha aprobado la cotización ${quotation.quotationNumber}. Se ha creado el proyecto #${projectId} automáticamente.${input.notes ? ` Notas: ${input.notes}` : ""}`,
+            body: `El cliente ${clientData?.name || ""} ha aprobado la cotización ${quotation.quotationNumber}. Se ha creado el proyecto #${projectId} automáticamente.${designerInfo}${input.notes ? ` Notas: ${input.notes}` : ""}`,
+            type: "proyecto",
+            referenceId: projectId,
+            referenceType: "project",
+          });
+        }
+        
+        // Notificar al diseñador asignado
+        if (autoAssignedDesignerId) {
+          await db.createNotification({
+            userId: autoAssignedDesignerId,
+            title: "🎨 Nuevo Proyecto Asignado",
+            body: `Se te ha asignado automáticamente el proyecto "${projectName}" del cliente ${clientData?.name || "Cliente"}. Cotización: ${quotation.quotationNumber}.`,
             type: "proyecto",
             referenceId: projectId,
             referenceType: "project",
@@ -3059,6 +3083,9 @@ export const appRouter = router({
         // Calcular fecha TENTATIVA de instalación: 25 días hábiles desde hoy
         const tentativeDate = await addBusinessDays(new Date(), 25);
         
+        // Asignar automáticamente el diseñador con menos proyectos activos
+        const autoAssignedDesignerId = await db.getDesignerWithLeastActiveProjects();
+        
         // Crear el proyecto con datos financieros de la cotización
         const projectId = await db.createProject({
           quotationId: quotation.id,
@@ -3071,6 +3098,7 @@ export const appRouter = router({
           tentativeInstallDate: tentativeDate,
           isInstallDateOfficial: false,
           totalAmount: quotation.total, // Precio total de la cotización
+          designerId: autoAssignedDesignerId,
         });
         
         // Crear historial de estado del proyecto
@@ -3092,11 +3120,31 @@ export const appRouter = router({
         const notifyRoles = ["super_admin", "admin", "comercial"];
         const usersToNotify = admins.filter(u => notifyRoles.includes(u.role));
         
+        // Obtener nombre del diseñador asignado para la notificación
+        const assignedDesigner = autoAssignedDesignerId 
+          ? admins.find(u => u.id === autoAssignedDesignerId)
+          : null;
+        const designerInfo = assignedDesigner 
+          ? ` Diseñador asignado: ${assignedDesigner.name}.`
+          : " Sin diseñador asignado.";
+        
         for (const user of usersToNotify) {
           await db.createNotification({
             userId: user.id,
             title: "¡Proyecto Creado!",
-            body: `Se ha creado el proyecto #${projectId} para ${clientData?.name || "Cliente"} desde la cotización ${quotation.quotationNumber}.`,
+            body: `Se ha creado el proyecto #${projectId} para ${clientData?.name || "Cliente"} desde la cotización ${quotation.quotationNumber}.${designerInfo}`,
+            type: "proyecto",
+            referenceId: projectId,
+            referenceType: "project",
+          });
+        }
+        
+        // Notificar al diseñador asignado
+        if (autoAssignedDesignerId) {
+          await db.createNotification({
+            userId: autoAssignedDesignerId,
+            title: "🎨 Nuevo Proyecto Asignado",
+            body: `Se te ha asignado automáticamente el proyecto "${projectName}" del cliente ${clientData?.name || "Cliente"}. Cotización: ${quotation.quotationNumber}.`,
             type: "proyecto",
             referenceId: projectId,
             referenceType: "project",
@@ -3106,7 +3154,7 @@ export const appRouter = router({
         return { 
           success: true, 
           projectId,
-          message: `Proyecto #${projectId} creado exitosamente`
+          message: `Proyecto #${projectId} creado exitosamente${assignedDesigner ? ` - Diseñador: ${assignedDesigner.name}` : ''}`
         };
       }),
   }),
@@ -3584,6 +3632,9 @@ export const appRouter = router({
         // Calcular fecha TENTATIVA de instalación: 25 días hábiles desde hoy
         const tentativeDate = await addBusinessDays(new Date(), 25);
         
+        // Asignar automáticamente el diseñador con menos proyectos activos
+        const autoAssignedDesignerId = await db.getDesignerWithLeastActiveProjects();
+        
         const projectId = await db.createProject({
           ...input,
           status: "cotizacion_enviada",
@@ -3591,6 +3642,7 @@ export const appRouter = router({
           createdBy: ctx.user.id,
           tentativeInstallDate: tentativeDate,
           isInstallDateOfficial: false,
+          designerId: autoAssignedDesignerId,
         });
 
         // Registrar en historial
@@ -3601,6 +3653,19 @@ export const appRouter = router({
           changedBy: ctx.user.id,
           notes: "Proyecto creado - Cotización enviada",
         });
+        
+        // Notificar al diseñador asignado
+        if (autoAssignedDesignerId) {
+          const clientData = await db.getClientById(input.clientId);
+          await db.createNotification({
+            userId: autoAssignedDesignerId,
+            title: "🎨 Nuevo Proyecto Asignado",
+            body: `Se te ha asignado automáticamente el proyecto "${input.name}" del cliente ${clientData?.name || "Cliente"}.`,
+            type: "proyecto",
+            referenceId: projectId,
+            referenceType: "project",
+          });
+        }
 
         return { success: true, projectId };
       }),

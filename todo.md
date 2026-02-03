@@ -3774,3 +3774,7 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 ### Bug iPad - Formulario Crear Cliente
 - [x] Formulario de crear cliente no hace scroll en iPad - Agregado max-h-[85vh] overflow-y-auto
 - [x] Botón de enviar no accesible en iPad - Corregido con scroll
+
+
+### Bug Notificación Diseño Entregado
+- [x] Notificación muestra nombre incorrecto del diseñador - Corregido para usar el diseñador asignado al proyecto (designerId) en lugar de ctx.user

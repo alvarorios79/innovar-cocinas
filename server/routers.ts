@@ -4243,11 +4243,20 @@ export const appRouter = router({
               const notifyRoles = ["super_admin", "admin", "comercial"];
               const usersToNotify = allUsers.filter(u => notifyRoles.includes(u.role));
               
+              // Obtener el nombre del diseñador asignado al proyecto
+              let designerName = ctx.user.name; // Por defecto, quien ejecuta la acción
+              if (project.designerId) {
+                const designer = allUsers.find(u => u.id === project.designerId);
+                if (designer) {
+                  designerName = designer.name || ctx.user.name;
+                }
+              }
+              
               for (const user of usersToNotify) {
                 await db.createNotification({
                   userId: user.id,
                   title: "🎨 Diseño Entregado al Cliente",
-                  body: `El diseñador ${ctx.user.name} ha entregado el diseño del proyecto "${project.name}" al cliente ${clientData.name}.`,
+                  body: `El diseñador ${designerName} ha entregado el diseño del proyecto "${project.name}" al cliente ${clientData.name}.`,
                   type: "proyecto",
                   referenceId: project.id,
                   referenceType: "project",

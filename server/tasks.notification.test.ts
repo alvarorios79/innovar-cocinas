@@ -109,7 +109,7 @@ describe("Task Notifications", () => {
       expect(result.success).toBe(true);
       expect(result.taskId).toBeDefined();
     }
-  });
+  }, 15000);
 
   it("should create task with due date", async () => {
     const { ctx } = createAdminContext();

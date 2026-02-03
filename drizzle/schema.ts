@@ -153,24 +153,21 @@ export const projects = mysqlTable("projects", {
   name: varchar("name", { length: 255 }).notNull(),
   workType: mysqlEnum("workType", ["cocina", "closet", "puertas", "centro_tv"]).notNull(),
   status: mysqlEnum("status", [
-    "contacto_inicial",    // Se crea cliente y cita (referido, llamada, web, etc.)
-    "visita_medidas",      // Visita realizada, datos para cotización
+    "contacto",            // Contacto inicial o visita de medidas (fusión de contacto_inicial + visita_medidas)
     "cotizacion_enviada",  // Cotización creada y enviada al cliente
     "cotizacion_aprobada", // Cliente aprobó cotización, esperando adelanto
     "adelanto_recibido",   // Adelanto recibido, inicia diseño (3 días hábiles)
     "en_diseno",           // Diseñador trabajando en modelado
     "pendiente_modelado",  // Modelado enviado, esperando aprobación del cliente
-    "pendiente_cliente",   // Modelado aprobado, preparando renders ("Diseño Listo")
-    "pendiente_render",    // Renders enviados, esperando aprobación del cliente
+    "pendiente_render",    // Renders enviados, esperando aprobación del cliente (eliminado pendiente_cliente)
     "aprobacion_final",    // Cliente aprobó renders, inician 25 días hábiles
     "despiece",            // Realizando despiece
     "corte",               // En producción - etapa corte
     "enchape",             // En producción - etapa enchape
     "ensamble",            // En producción - etapa ensamble
-    "listo_instalacion",   // Listo para instalar
-    "instalacion_programada", // Instalación programada en calendario
+    "listo_instalacion",   // Listo para instalar (fusión con instalacion_programada)
     "entregado"            // Proyecto completado
-  ]).default("contacto_inicial").notNull(),
+  ]).default("contacto").notNull(),
   
   // Medidas iniciales
   initialMeasurements: text("initialMeasurements"),

@@ -35,7 +35,7 @@ const OPERATOR_STATUSES = {
   enchape: { label: "Enchape", color: "bg-orange-600", icon: Paintbrush },
   ensamble: { label: "Ensamble", color: "bg-orange-700", icon: Package },
   listo_instalacion: { label: "Listo Instalación", color: "bg-cyan-500", icon: Package },
-  instalacion_programada: { label: "En Instalación", color: "bg-teal-500", icon: Hammer },
+  entregado: { label: "Entregado", color: "bg-green-600", icon: CheckCircle2 },
 };
 
 // Checklist por etapa
@@ -69,17 +69,7 @@ const STAGE_CHECKLISTS: Record<string, Array<{ id: string; label: string; descri
     { id: "preparar_herramientas", label: "Preparar herramientas", description: "Alistar herramientas para instalación" },
     { id: "cargar_vehiculo", label: "Cargar vehículo", description: "Cargar módulos en el vehículo de transporte" },
   ],
-  instalacion_programada: [
-    { id: "llegada_obra", label: "Llegada a obra", description: "Confirmar llegada al sitio de instalación" },
-    { id: "descargar_modulos", label: "Descargar módulos", description: "Descargar y ubicar módulos en el sitio" },
-    { id: "instalar_bases", label: "Instalar bases", description: "Nivelar y fijar bases de los muebles" },
-    { id: "instalar_modulos", label: "Instalar módulos", description: "Colocar y fijar todos los módulos" },
-    { id: "instalar_meson", label: "Instalar mesón", description: "Colocar y sellar el mesón" },
-    { id: "instalar_accesorios", label: "Instalar accesorios", description: "Colocar tiradores, organizadores, etc." },
-    { id: "ajustes_finales", label: "Ajustes finales", description: "Ajustar puertas, cajones y herrajes" },
-    { id: "limpieza_entrega", label: "Limpieza y entrega", description: "Limpiar y entregar al cliente" },
-    { id: "subir_fotos_entrega", label: "📸 Subir fotos de entrega", description: "Tomar y subir fotos del proyecto terminado" },
-  ],
+  
 };
 
 interface OperatorDailyProjectsProps {
@@ -114,7 +104,7 @@ export function OperatorDailyProjects({ className }: OperatorDailyProjectsProps)
   
   // Filtrar proyectos en etapas de producción para operario (incluyendo instalación)
   const operatorProjects = (projects || []).filter(p => 
-    ["despiece", "corte", "enchape", "ensamble", "listo_instalacion", "instalacion_programada"].includes(p.status)
+    ["despiece", "corte", "enchape", "ensamble", "listo_instalacion", "listo_instalacion"].includes(p.status)
   );
   
   const handleRequestMaterials = () => {

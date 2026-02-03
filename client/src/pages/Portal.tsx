@@ -220,7 +220,7 @@ export default function Portal() {
   };
 
   const getProgressPercentage = (status: string): number => {
-    const statusOrder = ["pendiente", "aprobado_diseno", "en_diseno", "pendiente_cliente", "corte", "enchape", "ensamble", "listo_instalacion", "entregado"];
+    const statusOrder = ["pendiente", "aprobado_diseno", "en_diseno", "pendiente_render", "corte", "enchape", "ensamble", "listo_instalacion", "entregado"];
     const index = statusOrder.indexOf(status);
     return Math.round(((index + 1) / statusOrder.length) * 100);
   };
@@ -465,7 +465,7 @@ export default function Portal() {
                         )}
 
                         {/* Aprobación de diseño */}
-                        {project.status === "pendiente_cliente" && (
+                        {project.status === "pendiente_render" && (
                           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                             <h4 className="font-medium text-yellow-800 mb-2 flex items-center gap-2">
                               <AlertCircle className="h-4 w-4" />

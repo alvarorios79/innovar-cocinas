@@ -128,7 +128,7 @@ export async function createRemindersForStatusChange(
       break;
     }
     
-    case "pendiente_cliente": {
+    case "pendiente_render": {
       // Recordatorio en 5 días si el cliente no aprueba
       const dueDate = await addBusinessDays(now, 5);
       await createProjectReminder(
@@ -155,7 +155,7 @@ export async function createRemindersForStatusChange(
       break;
     }
     
-    case "instalacion_programada": {
+    case "listo_instalacion": {
       // Recordatorio 3 días antes de la instalación
       const projectData = await db.getProjectById(projectId);
       if (projectData?.scheduledInstallDate) {

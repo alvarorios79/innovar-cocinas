@@ -90,7 +90,7 @@ describe("Recordatorios Automáticos", () => {
     it("debe crear recordatorio de aprobación pendiente cuando diseño está listo", async () => {
       vi.mocked(db.getProjectById).mockResolvedValue({ name: "Cocina Test" } as any);
       
-      await createRemindersForStatusChange(10, "pendiente_cliente", mockProject);
+      await createRemindersForStatusChange(10, "pendiente_render", mockProject);
       
       expect(db.createReminder).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -129,7 +129,7 @@ describe("Recordatorios Automáticos", () => {
       } as any);
       vi.mocked(db.getUsersByRole).mockResolvedValue([{ id: 5, name: "Jefe Taller" } as any]);
       
-      await createRemindersForStatusChange(10, "instalacion_programada", mockProject);
+      await createRemindersForStatusChange(10, "listo_instalacion", mockProject);
       
       expect(db.getUsersByRole).toHaveBeenCalledWith("jefe_taller");
       expect(db.createReminder).toHaveBeenCalledWith(
@@ -152,7 +152,7 @@ describe("Recordatorios Automáticos", () => {
       } as any);
       vi.mocked(db.getUsersByRole).mockResolvedValue([{ id: 5, name: "Jefe Taller" } as any]);
       
-      await createRemindersForStatusChange(10, "instalacion_programada", mockProject);
+      await createRemindersForStatusChange(10, "listo_instalacion", mockProject);
       
       // No debe crear recordatorio porque la fecha de aviso ya pasó
       expect(db.createReminder).not.toHaveBeenCalled();

@@ -3808,3 +3808,40 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 ### Bug Eliminar Fotos en Móvil/iPad
 - [x] Hacer visible el botón de eliminar en dispositivos táctiles (sin hover)
 - [x] Actualizado en ProjectDetail.tsx, Projects.tsx y ProjectInlineDetail.tsx
+
+## Simplificación del Sistema - Fase 3: Reducción de Estados
+
+### Completado
+- [x] Reducir estados de proyecto de 17 a 14:
+  - [x] Fusionar contacto_inicial + visita_medidas → contacto
+  - [x] Mantener pendiente_modelado y pendiente_render separados (Opción B)
+  - [x] Eliminar pendiente_cliente (reemplazado por pendiente_render)
+  - [x] Fusionar listo_instalacion + instalacion_programada → listo_instalacion
+- [x] Actualizar schema de base de datos (drizzle/schema.ts)
+- [x] Modificar enum status en la base de datos
+- [x] Actualizar archivo de permisos centralizados (shared/permissions.ts)
+- [x] Actualizar archivos del servidor:
+  - [x] deadline-reminders.ts
+  - [x] pdf-generator.ts
+  - [x] whatsapp-notifications.ts
+  - [x] whatsapp-cloud.ts
+  - [x] routers.ts (historial unificado, validación de estados)
+  - [x] db.ts (comentarios)
+- [x] Actualizar componentes del frontend:
+  - [x] ProjectCard.tsx
+  - [x] ProjectInlineDetail.tsx
+  - [x] TeamDashboard.tsx
+  - [x] Comercial.tsx
+  - [x] OperarioDashboard.tsx
+  - [x] OperatorDailyProjects.tsx
+  - [x] ProductionCalendar.tsx
+  - [x] ProjectTimeline.tsx
+  - [x] ProjectDetail.tsx
+- [x] Actualizar tests:
+  - [x] projects.test.ts
+  - [x] notifications.test.ts
+  - [x] design-ready-email.test.ts
+  - [x] payment-reminder.test.ts
+  - [x] whatsapp.test.ts
+- [x] Ejecutar todos los tests (474 pasando)
+

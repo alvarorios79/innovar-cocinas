@@ -114,13 +114,13 @@ describe("Design Ready Email with Credentials", () => {
     }
   });
 
-  it("debe incluir credenciales en mensaje de WhatsApp para pendiente_cliente", async () => {
+  it("debe incluir credenciales en mensaje de WhatsApp para pendiente_render", async () => {
     const { prepareWhatsAppNotification } = await import("./whatsapp-notifications");
     
     const project = {
       id: 1,
       name: "Cocina Test",
-      status: "pendiente_cliente",
+      status: "pendiente_render",
       workType: "cocina",
       client: {
         name: "Juan Pérez",
@@ -149,7 +149,7 @@ describe("Design Ready Email with Credentials", () => {
     const project = {
       id: 1,
       name: "Cocina Test",
-      status: "pendiente_cliente",
+      status: "pendiente_render",
       workType: "cocina",
       client: {
         name: "Juan Pérez",

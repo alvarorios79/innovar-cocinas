@@ -61,10 +61,15 @@ describe("PDF Generator", () => {
   describe("Project Status Labels", () => {
     it("should have labels for all project statuses", () => {
       const statusLabels: Record<string, string> = {
-        pendiente: "Pendiente",
-        aprobado_diseno: "Aprobado para Diseño",
+        contacto: "Contacto",
+        cotizacion_enviada: "Cotización Enviada",
+        cotizacion_aprobada: "Cotización Aprobada",
+        adelanto_recibido: "Adelanto Recibido",
         en_diseno: "En Diseño",
-        pendiente_cliente: "Pendiente Aprobación Cliente",
+        pendiente_modelado: "Pendiente Modelado 3D",
+        pendiente_render: "Pendiente Renders",
+        aprobacion_final: "Aprobación Final",
+        despiece: "Despiece",
         corte: "En Producción - Corte",
         enchape: "En Producción - Enchape",
         ensamble: "En Producción - Ensamble",
@@ -73,8 +78,9 @@ describe("PDF Generator", () => {
       };
 
       const allStatuses = [
-        "pendiente", "aprobado_diseno", "en_diseno", "pendiente_cliente",
-        "corte", "enchape", "ensamble", "listo_instalacion", "entregado"
+        "contacto", "cotizacion_enviada", "cotizacion_aprobada", "adelanto_recibido",
+        "en_diseno", "pendiente_modelado", "pendiente_render", "aprobacion_final",
+        "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "entregado"
       ];
 
       allStatuses.forEach(status => {

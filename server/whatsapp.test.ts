@@ -31,8 +31,8 @@ describe("WhatsApp Notifications Service", () => {
       expect(message).toContain(baseMessageData.portalUrl);
     });
 
-    it("should generate design approval message for pendiente_cliente status", () => {
-      const data = { ...baseMessageData, status: "pendiente_cliente" };
+    it("should generate design approval message for pendiente_render status", () => {
+      const data = { ...baseMessageData, status: "pendiente_render" };
       const message = generateProjectMessage(data);
       
       expect(message).toContain("diseño está listo");
@@ -160,20 +160,20 @@ describe("WhatsApp Notifications Service", () => {
   });
 
   describe("getStatusLabel", () => {
-    it("should return correct label for pendiente", () => {
-      expect(getStatusLabel("pendiente")).toBe("Proyecto Registrado");
+    it("should return correct label for contacto", () => {
+      expect(getStatusLabel("contacto")).toBe("Contacto");
     });
 
-    it("should return correct label for aprobado_diseno", () => {
-      expect(getStatusLabel("aprobado_diseno")).toBe("Aprobado para Diseño");
+    it("should return correct label for cotizacion_enviada", () => {
+      expect(getStatusLabel("cotizacion_enviada")).toBe("Cotización Enviada");
     });
 
     it("should return correct label for en_diseno", () => {
       expect(getStatusLabel("en_diseno")).toBe("En Diseño");
     });
 
-    it("should return correct label for pendiente_cliente", () => {
-      expect(getStatusLabel("pendiente_cliente")).toBe("Diseño Listo - Pendiente Aprobación");
+    it("should return correct label for pendiente_render", () => {
+      expect(getStatusLabel("pendiente_render")).toBe("Diseño Listo - Pendiente Aprobación");
     });
 
     it("should return correct label for corte", () => {
@@ -250,7 +250,7 @@ describe("WhatsApp Notifications Service", () => {
       const project = {
         id: 42,
         name: "Closet Principal",
-        status: "pendiente_cliente",
+        status: "pendiente_render",
         workType: "closet",
         client: {
           name: "María García",

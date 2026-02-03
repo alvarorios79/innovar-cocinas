@@ -46,8 +46,8 @@ ${data.portalUrl}
 
 *INNOVAR Cocinas Integrales*`,
 
-  // Pendiente aprobación del cliente
-  pendiente_cliente: (data) => {
+  // Pendiente aprobación del cliente (renders listos)
+  pendiente_render: (data) => {
     const credentialsSection = data.credentials ? `
 
 🔐 *Tus datos de acceso al portal:*
@@ -150,10 +150,15 @@ const WORK_TYPE_LABELS: Record<string, string> = {
 
 // Etiquetas de estado en español
 const STATUS_LABELS: Record<string, string> = {
-  pendiente: "Proyecto Registrado",
-  aprobado_diseno: "Aprobado para Diseño",
+  contacto: "Contacto",
+  cotizacion_enviada: "Cotización Enviada",
+  cotizacion_aprobada: "Cotización Aprobada",
+  adelanto_recibido: "Adelanto Recibido",
   en_diseno: "En Diseño",
-  pendiente_cliente: "Diseño Listo - Pendiente Aprobación",
+  pendiente_modelado: "Modelado 3D Listo - Pendiente Aprobación",
+  pendiente_render: "Diseño Listo - Pendiente Aprobación",
+  aprobacion_final: "Aprobación Final",
+  despiece: "Despiece",
   corte: "En Producción - Corte",
   enchape: "En Producción - Enchape",
   ensamble: "En Producción - Ensamble",

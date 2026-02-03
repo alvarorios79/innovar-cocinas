@@ -131,7 +131,7 @@ export function OperarioDashboard() {
 
   // Filtrar proyectos en producción (donde el operario trabaja)
   const productionProjects = projects.filter(p => 
-    ["aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "instalacion_programada"].includes(p.status)
+    ["aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "listo_instalacion"].includes(p.status)
   );
 
   // Tareas pendientes (no completadas)
@@ -157,7 +157,7 @@ export function OperarioDashboard() {
       enchape: "En Enchape",
       ensamble: "En Ensamble",
       listo_instalacion: "Listo Instalación",
-      instalacion_programada: "Instalación Programada",
+      entregado: "Entregado",
     };
     return statusLabels[status] || status;
   };

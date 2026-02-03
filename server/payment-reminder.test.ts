@@ -27,11 +27,10 @@ describe("Payment Reminder on Project Delivery", () => {
     const ctx = createAdminContext();
     const caller = appRouter.createCaller(ctx);
     
-    // Obtener un proyecto existente que esté en estado listo_instalacion o instalacion_programada
+    // Obtener un proyecto existente que esté en estado listo_instalacion
     const projects = await caller.projects.list();
     const eligibleProject = projects.find(p => 
-      p.status === "listo_instalacion" || 
-      p.status === "instalacion_programada" ||
+      p.status === "listo_instalacion" ||
       p.status === "ensamble"
     );
     

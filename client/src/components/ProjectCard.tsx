@@ -29,19 +29,21 @@ import {
   Pencil
 } from "lucide-react";
 
-// Estados del proyecto según Ruta INNOVAR
+// Estados del proyecto según Ruta INNOVAR (14 estados simplificados)
 const PROJECT_STATUSES = {
+  contacto: { label: "Contacto", color: "bg-slate-400", icon: Clock },
   cotizacion_enviada: { label: "Cotización Enviada", color: "bg-gray-500", icon: Clock },
   cotizacion_aprobada: { label: "Cotización Aprobada", color: "bg-blue-400", icon: CheckCircle2 },
   adelanto_recibido: { label: "Cliente Confirmado - Iniciar Diseño", color: "bg-blue-500", icon: CheckCircle2 },
   en_diseno: { label: "En Diseño", color: "bg-purple-500", icon: Paintbrush },
-  pendiente_cliente: { label: "Diseño Listo", color: "bg-yellow-500", icon: AlertCircle },
+  pendiente_modelado: { label: "Pendiente Modelado 3D", color: "bg-violet-500", icon: AlertCircle },
+  pendiente_render: { label: "Pendiente Renders", color: "bg-amber-500", icon: AlertCircle },
   aprobacion_final: { label: "Aprobación Final", color: "bg-green-400", icon: CheckCircle2 },
+  despiece: { label: "Despiece", color: "bg-indigo-500", icon: Paintbrush },
   corte: { label: "En Corte", color: "bg-orange-500", icon: Hammer },
   enchape: { label: "En Enchape", color: "bg-orange-600", icon: Paintbrush },
   ensamble: { label: "En Ensamble", color: "bg-orange-700", icon: Package },
   listo_instalacion: { label: "Listo para Instalación", color: "bg-teal-500", icon: Truck },
-  instalacion_programada: { label: "Instalación Programada", color: "bg-teal-600", icon: Truck },
   entregado: { label: "Entregado", color: "bg-green-700", icon: CheckCircle2 },
 };
 
@@ -104,16 +106,17 @@ export function ProjectCard({
 
   const getNextStatus = (currentStatus: string): string | null => {
     const flow: Record<string, string> = {
+      contacto: "cotizacion_enviada",
       cotizacion_enviada: "cotizacion_aprobada",
       cotizacion_aprobada: "adelanto_recibido",
       adelanto_recibido: "en_diseno",
-      en_diseno: "pendiente_cliente",
-      aprobacion_final: "corte",
+      en_diseno: "pendiente_render",
+      aprobacion_final: "despiece",
+      despiece: "corte",
       corte: "enchape",
       enchape: "ensamble",
       ensamble: "listo_instalacion",
-      listo_instalacion: "instalacion_programada",
-      instalacion_programada: "entregado",
+      listo_instalacion: "entregado",
     };
     return flow[currentStatus] || null;
   };
@@ -127,7 +130,7 @@ export function ProjectCard({
       return ["adelanto_recibido", "en_diseno", "aprobacion_final"].includes(status);
     }
     if (role === "jefe_taller") {
-      return ["aprobacion_final", "corte", "enchape", "ensamble", "listo_instalacion", "instalacion_programada"].includes(status);
+      return ["aprobacion_final", "corte", "enchape", "ensamble", "listo_instalacion", "listo_instalacion"].includes(status);
     }
     if (role === "operario") {
       return ["corte", "enchape", "ensamble"].includes(status);
@@ -140,7 +143,7 @@ export function ProjectCard({
   // Verificar si es un proyecto nuevo para el diseñador (listo para comenzar a diseñar)
   const isNewForDesigner = user?.role === "disenador" && project.status === "adelanto_recibido";
   // Verificar si es un proyecto en progreso del diseñador (fase de diseño activa)
-  const isInProgressForDesigner = user?.role === "disenador" && ["en_diseno", "pendiente_modelado", "pendiente_cliente", "pendiente_render", "aprobacion_final"].includes(project.status);
+  const isInProgressForDesigner = user?.role === "disenador" && ["en_diseno", "pendiente_modelado", "pendiente_render", "pendiente_render", "aprobacion_final"].includes(project.status);
 
   return (
     <Card className={`transition-all duration-300 ${isExpanded ? 'ring-2 ring-primary shadow-lg' : 'hover:shadow-md'} ${isNewForDesigner ? 'ring-2 ring-purple-500 bg-purple-50/50' : ''}`}>
@@ -279,7 +282,7 @@ export function ProjectCard({
             </div>
 
             {/* Alerta de aprobación pendiente */}
-            {detail.status === "pendiente_cliente" && 
+            {detail.status === "pendiente_render" && 
               (user?.role === "admin" || user?.role === "super_admin") && 
               onApproveDesign && (
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 my-3">

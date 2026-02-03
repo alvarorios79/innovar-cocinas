@@ -91,10 +91,10 @@ export default function InstallationCalendar() {
   // Filtrar proyectos con instalación programada o fecha tentativa
   const installations = useMemo(() => {
     return projects
-      .filter(p => p.scheduledInstallDate || p.estimatedInstallDate || (p as any).tentativeInstallDate || p.status === "listo_instalacion" || p.status === "instalacion_programada")
+      .filter(p => p.scheduledInstallDate || p.estimatedInstallDate || (p as any).tentativeInstallDate || (p.status as string) === "listo_instalacion")
       .map(p => {
         // Determinar si es fecha oficial o tentativa
-        const isOfficial = (p as any).isInstallDateOfficial === true || p.status === "instalacion_programada" || p.status === "listo_instalacion" || p.status === "entregado";
+        const isOfficial = (p as any).isInstallDateOfficial === true || (p.status as string) === "listo_instalacion" || (p.status as string) === "entregado";
         
         // Prioridad: scheduledInstallDate > estimatedInstallDate > tentativeInstallDate
         let scheduledDate: Date;

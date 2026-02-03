@@ -727,7 +727,7 @@ export async function getProjectsByDesignerId(designerId: number) {
 
 /**
  * Obtener el diseñador con menos proyectos activos para asignación automática
- * Proyectos activos = estados desde adelanto_recibido hasta pendiente_cliente (fase de diseño)
+ * Proyectos activos = estados desde adelanto_recibido hasta pendiente_render (fase de diseño)
  */
 export async function getDesignerWithLeastActiveProjects(): Promise<number | null> {
   const db = await getDb();
@@ -744,7 +744,7 @@ export async function getDesignerWithLeastActiveProjects(): Promise<number | nul
     "adelanto_recibido",
     "en_diseno",
     "pendiente_modelado",
-    "pendiente_cliente",
+    "pendiente_render",
     "pendiente_render"
   ];
 

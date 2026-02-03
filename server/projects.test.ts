@@ -25,7 +25,7 @@ describe("Projects Module", () => {
         "pendiente",
         "aprobado_diseno",
         "en_diseno",
-        "pendiente_cliente",
+        "pendiente_render",
         "corte",
         "enchape",
         "ensamble",
@@ -40,23 +40,28 @@ describe("Projects Module", () => {
 
     it("should validate status transitions", () => {
       const validTransitions: Record<string, string[]> = {
-        pendiente: ["aprobado_diseno"],
-        aprobado_diseno: ["en_diseno"],
-        en_diseno: ["pendiente_cliente"],
-        pendiente_cliente: ["corte", "en_diseno"], // corte si aprueba, en_diseno si rechaza
+        contacto: ["cotizacion_enviada"],
+        cotizacion_enviada: ["cotizacion_aprobada"],
+        cotizacion_aprobada: ["adelanto_recibido"],
+        adelanto_recibido: ["en_diseno"],
+        en_diseno: ["pendiente_modelado", "pendiente_render"],
+        pendiente_modelado: ["en_diseno", "pendiente_render"], // en_diseno si rechaza, pendiente_render si aprueba
+        pendiente_render: ["aprobacion_final", "en_diseno"], // aprobacion_final si aprueba, en_diseno si rechaza
+        aprobacion_final: ["despiece"],
+        despiece: ["corte"],
         corte: ["enchape"],
         enchape: ["ensamble"],
         ensamble: ["listo_instalacion"],
         listo_instalacion: ["entregado"],
       };
 
-      // Verificar que pendiente solo puede ir a aprobado_diseno
-      expect(validTransitions.pendiente).toContain("aprobado_diseno");
-      expect(validTransitions.pendiente).not.toContain("corte");
+      // Verificar que contacto solo puede ir a cotizacion_enviada
+      expect(validTransitions.contacto).toContain("cotizacion_enviada");
+      expect(validTransitions.contacto).not.toContain("corte");
 
-      // Verificar que pendiente_cliente puede ir a corte o en_diseno
-      expect(validTransitions.pendiente_cliente).toContain("corte");
-      expect(validTransitions.pendiente_cliente).toContain("en_diseno");
+      // Verificar que pendiente_render puede ir a aprobacion_final o en_diseno
+      expect(validTransitions.pendiente_render).toContain("aprobacion_final");
+      expect(validTransitions.pendiente_render).toContain("en_diseno");
     });
   });
 
@@ -71,7 +76,7 @@ describe("Projects Module", () => {
     });
 
     it("should allow designer to change design-related statuses", () => {
-      const designerStatuses = ["aprobado_diseno", "en_diseno", "pendiente_cliente"];
+      const designerStatuses = ["aprobado_diseno", "en_diseno", "pendiente_render"];
       const canDesignerChange = (status: string) => designerStatuses.includes(status);
       
       expect(canDesignerChange("aprobado_diseno")).toBe(true);
@@ -94,7 +99,7 @@ describe("Projects Module", () => {
 
   describe("Design Approval", () => {
     it("should allow client to approve their own project", async () => {
-      const mockProject = { id: 1, clientId: 10, status: "pendiente_cliente" };
+      const mockProject = { id: 1, clientId: 10, status: "pendiente_render" };
       const mockClient = { id: 10, userId: 5 };
       
       vi.mocked(db.getProjectById).mockResolvedValue(mockProject as any);
@@ -116,7 +121,7 @@ describe("Projects Module", () => {
     });
 
     it("should transition to corte when approved", () => {
-      const currentStatus = "pendiente_cliente";
+      const currentStatus = "pendiente_render";
       const approved = true;
       const newStatus = approved ? "corte" : "en_diseno";
       
@@ -124,7 +129,7 @@ describe("Projects Module", () => {
     });
 
     it("should transition back to en_diseno when rejected", () => {
-      const currentStatus = "pendiente_cliente";
+      const currentStatus = "pendiente_render";
       const approved = false;
       const newStatus = approved ? "corte" : "en_diseno";
       

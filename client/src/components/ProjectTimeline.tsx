@@ -33,7 +33,7 @@ const TIMELINE_STAGES = [
     label: "Diseño",
     description: "Diseño 3D y renders",
     icon: Palette,
-    statuses: ["adelanto_recibido", "en_diseno", "pendiente_cliente"],
+    statuses: ["adelanto_recibido", "en_diseno", "pendiente_render"],
     clientAction: true, // Cliente puede aprobar diseño
     actionLabel: "Aprobar Diseño",
   },
@@ -66,7 +66,7 @@ const TIMELINE_STAGES = [
     label: "Instalación",
     description: "Instalación en sitio",
     icon: Truck,
-    statuses: ["listo_instalacion", "instalacion_programada"],
+    statuses: ["listo_instalacion", "listo_instalacion"],
     clientAction: false,
   },
   {
@@ -89,18 +89,19 @@ const TIMELINE_STAGES = [
 
 // Mapeo de estados a índice de etapa completada
 const STATUS_TO_STAGE_INDEX: Record<string, number> = {
+  contacto: 0,
   cotizacion_enviada: 0,
   cotizacion_aprobada: 1,
   adelanto_recibido: 2,
   en_diseno: 3,
-  pendiente_cliente: 3,
+  pendiente_modelado: 3,
+  pendiente_render: 3,
   aprobacion_final: 4,
   despiece: 4,
   corte: 4,
   enchape: 5,
   ensamble: 6,
   listo_instalacion: 7,
-  instalacion_programada: 7,
   entregado: 9,
 };
 
@@ -209,7 +210,7 @@ export function ProjectTimeline({
           showActions && 
           stage.id === "diseno" && 
           current && 
-          project.status === "pendiente_cliente" &&
+          project.status === "pendiente_render" &&
           onApproveDesign && 
           onRequestChanges;
 

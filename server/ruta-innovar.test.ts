@@ -147,13 +147,13 @@ describe("Ruta INNOVAR - Flujo de Estados", () => {
     "cotizacion_aprobada", 
     "adelanto_recibido",
     "en_diseno",
-    "pendiente_cliente",
+    "pendiente_render",
     "aprobacion_final",
     "corte",
     "enchape",
     "ensamble",
     "listo_instalacion",
-    "instalacion_programada",
+    "listo_instalacion",
     "entregado",
   ];
 

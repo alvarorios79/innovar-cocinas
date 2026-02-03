@@ -44,21 +44,19 @@ import { LazyImage } from "@/components/LazyImage";
 import { toast } from "sonner";
 
 const PROJECT_STATUSES: Record<string, { label: string; color: string; icon: any }> = {
-  contacto_inicial: { label: "Contacto Inicial", color: "bg-slate-400", icon: Clock },
-  visita_medidas: { label: "Visita Medidas", color: "bg-slate-500", icon: Clock },
+  contacto: { label: "Contacto", color: "bg-slate-400", icon: Clock },
   cotizacion_enviada: { label: "Cotización Enviada", color: "bg-gray-500", icon: Clock },
   cotizacion_aprobada: { label: "Cotización Aprobada", color: "bg-blue-400", icon: CheckCircle2 },
   adelanto_recibido: { label: "Cliente Confirmado - Iniciar Diseño", color: "bg-blue-500", icon: CheckCircle2 },
   en_diseno: { label: "En Diseño", color: "bg-purple-500", icon: AlertCircle },
-  pendiente_modelado: { label: "Pendiente Aprobación Modelado", color: "bg-violet-500", icon: AlertCircle },
-  pendiente_cliente: { label: "Diseño Listo", color: "bg-yellow-500", icon: AlertCircle },
-  pendiente_render: { label: "Pendiente Aprobación Render", color: "bg-amber-500", icon: AlertCircle },
+  pendiente_modelado: { label: "Pendiente Modelado 3D", color: "bg-violet-500", icon: AlertCircle },
+  pendiente_render: { label: "Pendiente Renders", color: "bg-amber-500", icon: AlertCircle },
   aprobacion_final: { label: "Aprobación Final", color: "bg-green-400", icon: CheckCircle2 },
+  despiece: { label: "Despiece", color: "bg-indigo-500", icon: AlertCircle },
   corte: { label: "En Corte", color: "bg-orange-500", icon: AlertCircle },
   enchape: { label: "En Enchape", color: "bg-orange-600", icon: AlertCircle },
   ensamble: { label: "En Ensamble", color: "bg-orange-700", icon: AlertCircle },
   listo_instalacion: { label: "Listo para Instalación", color: "bg-teal-500", icon: AlertCircle },
-  instalacion_programada: { label: "Instalación Programada", color: "bg-teal-600", icon: AlertCircle },
   entregado: { label: "Entregado", color: "bg-green-700", icon: CheckCircle2 },
 };
 
@@ -78,14 +76,14 @@ const PAID_ADVANCE_STATUSES = [
   "adelanto_recibido",
   "en_diseno",
   "pendiente_modelado",
-  "pendiente_cliente",
+  "pendiente_render",
   "pendiente_render",
   "aprobacion_final",
   "corte",
   "enchape",
   "ensamble",
   "listo_instalacion",
-  "instalacion_programada",
+  "listo_instalacion",
   "entregado"
 ];
 
@@ -532,7 +530,7 @@ export function ProjectInlineDetail({
         </div>
       )}
 
-      {/* Acción para Diseñador: Entregar Diseño (en_diseno -> pendiente_cliente) */}
+      {/* Acción para Diseñador: Entregar Diseño (en_diseno -> pendiente_render) */}
       {projectDetail.status === "en_diseno" && 
         (user?.role === "disenador" || user?.role === "admin" || user?.role === "super_admin") && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
@@ -546,7 +544,7 @@ export function ProjectInlineDetail({
           <Button
             size="sm"
             className="bg-blue-600 hover:bg-blue-700"
-            onClick={() => updateStatus.mutate({ projectId: projectDetail.id, newStatus: "pendiente_cliente" })}
+            onClick={() => updateStatus.mutate({ projectId: projectDetail.id, newStatus: "pendiente_render" })}
             disabled={updateStatus.isPending}
           >
             <CheckCircle2 className="h-4 w-4 mr-1" />
@@ -686,7 +684,7 @@ export function ProjectInlineDetail({
           <Button
             size="sm"
             className="bg-teal-600 hover:bg-teal-700"
-            onClick={() => updateStatus.mutate({ projectId: projectDetail.id, newStatus: "instalacion_programada" })}
+            onClick={() => updateStatus.mutate({ projectId: projectDetail.id, newStatus: "listo_instalacion" })}
             disabled={updateStatus.isPending}
           >
             <CheckCircle2 className="h-4 w-4 mr-1" />
@@ -696,7 +694,7 @@ export function ProjectInlineDetail({
       )}
 
       {/* Instalación Programada -> Entregado */}
-      {projectDetail.status === "instalacion_programada" && 
+      {projectDetail.status === "listo_instalacion" && 
         (user?.role === "jefe_taller" || user?.role === "admin" || user?.role === "super_admin") && (
         <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
           <h4 className="font-medium text-green-800 mb-2 flex items-center gap-2">
@@ -807,7 +805,7 @@ export function ProjectInlineDetail({
             
             {/* Sección de Aprobación - Siempre visible */}
             {(() => {
-              const isPendingApproval = projectDetail.status === "pendiente_modelado" || projectDetail.status === "pendiente_cliente" || projectDetail.status === "pendiente_render";
+              const isPendingApproval = (projectDetail.status as string) === "pendiente_modelado" || (projectDetail.status as string) === "pendiente_render";
               const isApproved = projectDetail.rendersApprovedAt || projectDetail.modeladoApprovedAt;
               const hasDesignContent = (projectDetail.photos?.filter((p: any) => p.subcategory === "modelado_3d" || p.subcategory === "renders").length || 0) > 0;
               

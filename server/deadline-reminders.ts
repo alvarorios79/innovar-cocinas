@@ -146,7 +146,7 @@ export async function checkDesignDeadlineReminders() {
 export async function checkRenderChangesReminders() {
   const db = await getDb();
   if (!db) return;
-  // Buscar proyectos en estado "pendiente_cliente" que requieren cambios
+  // Buscar proyectos en estado "pendiente_render" que requieren cambios
   const projectsWithChanges = await db
     .select()
     .from(projects)
@@ -364,18 +364,19 @@ export async function runAllReminders() {
 // Helper para obtener etiqueta de estado
 function getStatusLabel(status: string): string {
   const labels: Record<string, string> = {
+    contacto: "Contacto",
     cotizacion_enviada: "Cotización Enviada",
     cotizacion_aprobada: "Cotización Aprobada",
     adelanto_recibido: "Cliente Confirmado - Iniciar Diseño",
     en_diseno: "En Diseño",
-    pendiente_cliente: "Pendiente Cliente",
+    pendiente_modelado: "Pendiente Modelado 3D",
+    pendiente_render: "Pendiente Renders",
     aprobacion_final: "Aprobación Final",
     despiece: "Despiece",
     corte: "Corte",
     enchape: "Enchape",
     ensamble: "Ensamble",
     listo_instalacion: "Listo para Instalación",
-    instalacion_programada: "Instalación Programada",
     entregado: "Entregado",
   };
   return labels[status] || status;

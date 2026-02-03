@@ -265,11 +265,11 @@ export default function ProjectDetail() {
   // Mapeo de subcategoría a estado requerido para mostrar botón de avanzar
   // El botón aparece cuando el proyecto está en la etapa correspondiente o en etapas anteriores de producción
   const photoToCurrentStatus: Record<string, string[]> = {
-    despiece: ["despiece", "pendiente_cliente", "aprobacion_final"],
+    despiece: ["despiece", "pendiente_render", "aprobacion_final"],
     corte: ["corte", "despiece"],
     enchape: ["enchape", "corte"],
     armado: ["ensamble", "enchape"],
-    proceso_instalacion: ["instalacion_programada", "listo_instalacion"],
+    proceso_instalacion: ["listo_instalacion", "listo_instalacion"],
   };
 
   // Verificar si el usuario tiene rol permitido para avanzar
@@ -653,7 +653,7 @@ export default function ProjectDetail() {
               
               {/* Sección de Aprobación - Siempre visible */}
               {(() => {
-                const isPendingApproval = projectDetail.status === "pendiente_modelado" || projectDetail.status === "pendiente_cliente" || projectDetail.status === "pendiente_render";
+                const isPendingApproval = (projectDetail.status as string) === "pendiente_modelado" || (projectDetail.status as string) === "pendiente_render";
                 const isApproved = projectDetail.rendersApprovedAt || projectDetail.modeladoApprovedAt;
                 const hasDesignContent = (projectDetail.photos?.filter((p: any) => p.subcategory === "modelado_3d" || p.subcategory === "renders").length || 0) > 0;
                 

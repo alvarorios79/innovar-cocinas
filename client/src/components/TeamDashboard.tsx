@@ -137,12 +137,12 @@ export function TeamDashboard() {
     switch (role) {
       case "disenador":
         return projects.filter(p => 
-          ["adelanto_recibido", "en_diseno", "pendiente_modelado", "pendiente_cliente", "pendiente_render", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "instalacion_programada", "entregado"].includes(p.status)
+          ["adelanto_recibido", "en_diseno", "pendiente_modelado", "pendiente_render", "pendiente_render", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "listo_instalacion", "entregado"].includes(p.status)
         );
       case "jefe_taller":
       case "operario":
         return projects.filter(p => 
-          ["aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "instalacion_programada"].includes(p.status)
+          ["aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "listo_instalacion"].includes(p.status)
         );
       case "comercial":
       case "admin":
@@ -294,10 +294,10 @@ export function TeamDashboard() {
           }] : []),
           { 
             label: "Diseño Listo", 
-            value: myProjects.filter(p => ["pendiente_cliente", "aprobacion_final"].includes(p.status)).length,
+            value: myProjects.filter(p => ["pendiente_render", "aprobacion_final"].includes(p.status)).length,
             icon: <Palette className="h-6 w-6" />,
             color: "bg-gradient-to-br from-purple-500 to-indigo-500",
-            link: "/projects?status=pendiente_cliente"
+            link: "/projects?status=pendiente_render"
           },
           { 
             label: "Despiece", 
@@ -336,7 +336,7 @@ export function TeamDashboard() {
           },
           { 
             label: "Instalaciones", 
-            value: myProjects.filter(p => p.status === "instalacion_programada").length,
+            value: myProjects.filter(p => p.status === "listo_instalacion").length,
             icon: <Calendar className="h-6 w-6" />,
             color: "bg-gradient-to-br from-blue-500 to-cyan-500",
             link: "/calendar"
@@ -363,7 +363,7 @@ export function TeamDashboard() {
           ["despiece", "corte", "enchape", "ensamble"].includes(p.status)
         );
         const listosInstalar = myProjects.filter(p => 
-          ["listo_instalacion", "instalacion_programada"].includes(p.status)
+          ["listo_instalacion", "listo_instalacion"].includes(p.status)
         );
         return [
           { 
@@ -483,18 +483,19 @@ export function TeamDashboard() {
   // Función para obtener el nombre del estado en español
   const getStatusLabel = (status: string) => {
     const statusLabels: Record<string, string> = {
+      contacto: "Contacto",
       cotizacion_enviada: "Cotización Enviada",
       cotizacion_aprobada: "Cotización Aprobada",
       adelanto_recibido: "Cliente Confirmado - Iniciar Diseño",
       en_diseno: "En Diseño",
-      pendiente_cliente: "Pendiente Cliente",
+      pendiente_modelado: "Pendiente Modelado 3D",
+      pendiente_render: "Pendiente Renders",
       aprobacion_final: "Aprobación Final",
       despiece: "En Despiece",
       corte: "En Corte",
       enchape: "En Enchape",
       ensamble: "En Ensamble",
       listo_instalacion: "Listo Instalación",
-      instalacion_programada: "Instalación Programada",
       entregado: "Entregado",
     };
     return statusLabels[status] || status;
@@ -503,18 +504,19 @@ export function TeamDashboard() {
   // Función para obtener el color del estado
   const getStatusColor = (status: string) => {
     const statusColors: Record<string, string> = {
+      contacto: "bg-slate-100 text-slate-700 border-slate-200",
       cotizacion_enviada: "bg-blue-100 text-blue-700 border-blue-200",
       cotizacion_aprobada: "bg-emerald-100 text-emerald-700 border-emerald-200",
       adelanto_recibido: "bg-green-100 text-green-700 border-green-200",
       en_diseno: "bg-purple-100 text-purple-700 border-purple-200",
-      pendiente_cliente: "bg-yellow-100 text-yellow-700 border-yellow-200",
+      pendiente_modelado: "bg-violet-100 text-violet-700 border-violet-200",
+      pendiente_render: "bg-amber-100 text-amber-700 border-amber-200",
       aprobacion_final: "bg-indigo-100 text-indigo-700 border-indigo-200",
       despiece: "bg-orange-100 text-orange-700 border-orange-200",
       corte: "bg-amber-100 text-amber-700 border-amber-200",
       enchape: "bg-rose-100 text-rose-700 border-rose-200",
       ensamble: "bg-pink-100 text-pink-700 border-pink-200",
       listo_instalacion: "bg-cyan-100 text-cyan-700 border-cyan-200",
-      instalacion_programada: "bg-teal-100 text-teal-700 border-teal-200",
       entregado: "bg-gray-100 text-gray-700 border-gray-200",
     };
     return statusColors[status] || "bg-gray-100 text-gray-700 border-gray-200";

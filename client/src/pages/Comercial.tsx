@@ -203,18 +203,19 @@ export default function Comercial() {
   // Obtener etiqueta del estado
   const getStatusLabel = (status: string) => {
     const statusLabels: Record<string, string> = {
+      contacto: "Contacto",
       cotizacion_enviada: "Cotización Enviada",
       cotizacion_aprobada: "Cotización Aprobada",
       adelanto_recibido: "Adelanto Recibido",
       en_diseno: "En Diseño",
-      pendiente_cliente: "Pendiente Cliente",
+      pendiente_modelado: "Pendiente Modelado 3D",
+      pendiente_render: "Pendiente Renders",
       aprobacion_final: "Aprobación Final",
       despiece: "En Despiece",
       corte: "En Corte",
       enchape: "En Enchape",
       ensamble: "En Ensamble",
       listo_instalacion: "Listo Instalación",
-      instalacion_programada: "Instalación Programada",
       entregado: "Entregado",
     };
     return statusLabels[status] || status;
@@ -223,18 +224,19 @@ export default function Comercial() {
   // Obtener color del estado
   const getStatusColor = (status: string) => {
     const statusColors: Record<string, string> = {
+      contacto: "bg-slate-100 text-slate-700",
       cotizacion_enviada: "bg-blue-100 text-blue-700",
       cotizacion_aprobada: "bg-emerald-100 text-emerald-700",
       adelanto_recibido: "bg-green-100 text-green-700",
       en_diseno: "bg-purple-100 text-purple-700",
-      pendiente_cliente: "bg-yellow-100 text-yellow-700",
+      pendiente_modelado: "bg-violet-100 text-violet-700",
+      pendiente_render: "bg-amber-100 text-amber-700",
       aprobacion_final: "bg-indigo-100 text-indigo-700",
       despiece: "bg-orange-100 text-orange-700",
       corte: "bg-amber-100 text-amber-700",
       enchape: "bg-rose-100 text-rose-700",
       ensamble: "bg-pink-100 text-pink-700",
       listo_instalacion: "bg-cyan-100 text-cyan-700",
-      instalacion_programada: "bg-teal-100 text-teal-700",
       entregado: "bg-gray-100 text-gray-700",
     };
     return statusColors[status] || "bg-gray-100 text-gray-700";

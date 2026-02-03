@@ -27,10 +27,15 @@ export async function generateProjectReportHTML(projectId: number): Promise<stri
 
   // Mapeo de estados
   const statusLabels: Record<string, string> = {
-    pendiente: "Pendiente",
-    aprobado_diseno: "Aprobado para Diseño",
+    contacto: "Contacto",
+    cotizacion_enviada: "Cotización Enviada",
+    cotizacion_aprobada: "Cotización Aprobada",
+    adelanto_recibido: "Adelanto Recibido",
     en_diseno: "En Diseño",
-    pendiente_cliente: "Pendiente Aprobación Cliente",
+    pendiente_modelado: "Pendiente Modelado 3D",
+    pendiente_render: "Pendiente Renders",
+    aprobacion_final: "Aprobación Final",
+    despiece: "Despiece",
     corte: "En Producción - Corte",
     enchape: "En Producción - Enchape",
     ensamble: "En Producción - Ensamble",

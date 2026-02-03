@@ -3690,21 +3690,21 @@ export const appRouter = router({
         // (necesita ver proyectos en producción para responder consultas del jefe de taller/operario)
         if (role === "disenador") {
           projectsList = projectsList.filter(p => 
-            ["adelanto_recibido", "en_diseno", "pendiente_modelado", "pendiente_cliente", "pendiente_render", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "instalacion_programada", "entregado"].includes(p.status)
+            ["adelanto_recibido", "en_diseno", "pendiente_modelado", "pendiente_render", "pendiente_render", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "listo_instalacion", "entregado"].includes(p.status)
           );
         }
 
         // Jefe de taller ve proyectos desde diseño listo hasta entregado
         if (role === "jefe_taller") {
           projectsList = projectsList.filter(p => 
-            ["pendiente_cliente", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "instalacion_programada", "entregado"].includes(p.status)
+            ["pendiente_render", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "listo_instalacion", "entregado"].includes(p.status)
           );
         }
         
         // Operario ve proyectos en producción activa (desde despiece hasta instalación)
         if (role === "operario") {
           projectsList = projectsList.filter(p => 
-            ["despiece", "corte", "enchape", "ensamble", "listo_instalacion", "instalacion_programada"].includes(p.status)
+            ["despiece", "corte", "enchape", "ensamble", "listo_instalacion", "listo_instalacion"].includes(p.status)
           );
         }
 
@@ -3767,20 +3767,20 @@ export const appRouter = router({
         const unifiedHistory: UnifiedHistoryEvent[] = [];
         let eventId = 1;
         
-        // 1. Evento de creación del cliente (contacto_inicial)
+        // 1. Evento de creación del cliente (contacto)
         if (client) {
           unifiedHistory.push({
             id: eventId++,
             type: 'client',
             previousStatus: null,
-            newStatus: 'contacto_inicial',
+            newStatus: 'contacto',
             notes: `Cliente "${client.name}" creado en el sistema`,
             changedBy: null,
             createdAt: client.createdAt,
           });
         }
         
-        // 2. Eventos de citas (visita_medidas)
+        // 2. Eventos de citas (contacto - visita de medidas)
         if (clientAppointments && clientAppointments.length > 0) {
           // Ordenar citas por fecha de creación
           const sortedAppointments = [...clientAppointments].sort((a, b) => 
@@ -3792,8 +3792,8 @@ export const appRouter = router({
             unifiedHistory.push({
               id: eventId++,
               type: 'appointment',
-              previousStatus: 'contacto_inicial',
-              newStatus: 'visita_medidas',
+              previousStatus: 'contacto',
+              newStatus: 'contacto',
               notes: `Cita programada para ${appointment.scheduledDate ? new Date(appointment.scheduledDate).toLocaleDateString('es-CO') : 'fecha pendiente'}${appointment.notes ? ` - ${appointment.notes}` : ''}`,
               changedBy: null,
               createdAt: appointment.createdAt,
@@ -3804,8 +3804,8 @@ export const appRouter = router({
               unifiedHistory.push({
                 id: eventId++,
                 type: 'appointment',
-                previousStatus: 'visita_medidas',
-                newStatus: 'visita_medidas',
+                previousStatus: 'contacto',
+                newStatus: 'contacto',
                 notes: `Visita realizada - Cita completada`,
                 changedBy: null,
                 createdAt: appointment.updatedAt,
@@ -3820,7 +3820,7 @@ export const appRouter = router({
           unifiedHistory.push({
             id: eventId++,
             type: 'quotation',
-            previousStatus: 'visita_medidas',
+            previousStatus: 'contacto',
             newStatus: 'cotizacion_enviada',
             notes: `Cotización ${quotation.quotationNumber} creada`,
             changedBy: null,
@@ -3937,9 +3937,9 @@ export const appRouter = router({
         projectId: z.number(),
         newStatus: z.enum([
           "cotizacion_enviada", "cotizacion_aprobada", "adelanto_recibido",
-          "en_diseno", "pendiente_cliente", "aprobacion_final",
+          "en_diseno", "pendiente_render", "aprobacion_final",
           "despiece", "corte", "enchape", "ensamble", 
-          "listo_instalacion", "instalacion_programada", "entregado"
+          "listo_instalacion", "listo_instalacion", "entregado"
         ]),
         notes: z.string().optional(),
         advanceAmount: z.number().optional(),
@@ -4009,7 +4009,7 @@ export const appRouter = router({
             updateData.selectedMaterials = input.selectedMaterials;
           }
         }
-        if (newStatus === "instalacion_programada" && input.scheduledInstallDate) {
+        if (newStatus === "listo_instalacion" && input.scheduledInstallDate) {
           updateData.scheduledInstallDate = input.scheduledInstallDate;
         }
         if (newStatus === "entregado" && !project.deliveredAt) {
@@ -4130,8 +4130,8 @@ export const appRouter = router({
         // Variable para guardar credenciales del cliente (para WhatsApp)
         let savedClientCredentials: { email: string; password: string } | null = null;
         
-        // Notificar al cliente cuando el diseño está listo (pendiente_cliente)
-        if (newStatus === "pendiente_cliente") {
+        // Notificar al cliente cuando el diseño está listo (pendiente_render)
+        if (newStatus === "pendiente_render") {
           try {
             const clientData = await db.getClientById(project.clientId);
             
@@ -4387,11 +4387,11 @@ export const appRouter = router({
               whatsappPhone: client.whatsappPhone,
             },
           };
-          // Pasar credenciales si es estado pendiente_cliente
+          // Pasar credenciales si es estado pendiente_render
           whatsappNotification = prepareWhatsAppNotification(
             projectWithClient, 
             baseUrl,
-            newStatus === "pendiente_cliente" ? savedClientCredentials || undefined : undefined
+            newStatus === "pendiente_render" ? savedClientCredentials || undefined : undefined
           );
           
           // Si el proyecto pasa a "entregado", enviar recordatorio del 40% pendiente
@@ -4498,7 +4498,7 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
           throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para aprobar este proyecto" });
         }
 
-        if (project.status !== "pendiente_cliente") {
+        if (project.status !== "pendiente_render") {
           throw new TRPCError({ code: "BAD_REQUEST", message: "El proyecto no está pendiente de aprobación" });
         }
 
@@ -4513,7 +4513,7 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
 
           await db.createProjectStatusHistory({
             projectId: input.projectId,
-            fromStatus: "pendiente_cliente",
+            fromStatus: "pendiente_render",
             toStatus: "corte",
             changedBy: ctx.user.id,
             notes: `${approverLabel} aprobó el diseño: ${input.notes || ""}`,
@@ -4528,7 +4528,7 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
 
           await db.createProjectStatusHistory({
             projectId: input.projectId,
-            fromStatus: "pendiente_cliente",
+            fromStatus: "pendiente_render",
             toStatus: "en_diseno",
             changedBy: ctx.user.id,
             notes: `${approverLabel} rechazó el diseño: ${input.notes || ""}`,
@@ -6141,7 +6141,7 @@ ${input.notes || "No se especificaron detalles"}
         }
 
         // Actualizar estado del proyecto si está pendiente de cliente
-        if (project.status === "pendiente_cliente" || project.status === "pendiente_modelado" || project.status === "pendiente_render") {
+        if ((project.status as string) === "pendiente_render" || (project.status as string) === "pendiente_modelado") {
           await db.updateProject(input.projectId, {
             status: "en_diseno",
             clientApprovalNotes: input.changes,
@@ -7126,22 +7126,23 @@ function validateStatusChange(role: string, currentStatus: string, newStatus: st
 
   // Diseñador puede:
   // - adelanto_recibido -> en_diseno (empezar a diseñar)
-  // - en_diseno -> pendiente_cliente (entregar diseño)
+  // - en_diseno -> pendiente_modelado/pendiente_render (entregar diseño)
   // - aprobacion_final -> despiece (hacer despiece)
   if (role === "disenador") {
     if (currentStatus === "adelanto_recibido" && newStatus === "en_diseno") return true;
-    if (currentStatus === "en_diseno" && newStatus === "pendiente_cliente") return true;
+    if (currentStatus === "en_diseno" && (newStatus === "pendiente_modelado" || newStatus === "pendiente_render")) return true;
+    if (currentStatus === "pendiente_modelado" && newStatus === "en_diseno") return true; // Cliente solicita cambios en modelado
+    if (currentStatus === "pendiente_render" && newStatus === "en_diseno") return true; // Cliente solicita cambios en render
     if (currentStatus === "aprobacion_final" && newStatus === "despiece") return true;
     return false;
   }
 
   // Jefe de taller puede:
   // - despiece -> corte (pasar a producción)
-  // - corte -> enchape -> ensamble -> listo_instalacion
-  // - listo_instalacion -> instalacion_programada
+  // - corte -> enchape -> ensamble -> listo_instalacion -> entregado
   if (role === "jefe_taller") {
     if (currentStatus === "despiece" && newStatus === "corte") return true;
-    const productionFlow = ["corte", "enchape", "ensamble", "listo_instalacion", "instalacion_programada"];
+    const productionFlow = ["corte", "enchape", "ensamble", "listo_instalacion", "entregado"];
     const currentIndex = productionFlow.indexOf(currentStatus);
     const newIndex = productionFlow.indexOf(newStatus);
     if (currentIndex >= 0 && newIndex === currentIndex + 1) return true;

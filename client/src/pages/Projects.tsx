@@ -372,13 +372,13 @@ export default function Projects() {
   const getNextStatus = (currentStatus: string): string | null => {
     // Flujo completo según Ruta INNOVAR
     const flow: Record<string, string> = {
-      contacto_inicial: "visita_medidas",
+      contacto_inicial: "contacto",
       visita_medidas: "cotizacion_enviada",
       cotizacion_enviada: "cotizacion_aprobada",
       cotizacion_aprobada: "adelanto_recibido",
       adelanto_recibido: "en_diseno",
       en_diseno: "pendiente_modelado",
-      pendiente_modelado: "pendiente_cliente",
+      pendiente_modelado: "pendiente_render",
       pendiente_cliente: "pendiente_render",
       pendiente_render: "aprobacion_final",
       aprobacion_final: "despiece",
@@ -386,7 +386,7 @@ export default function Projects() {
       corte: "enchape",
       enchape: "ensamble",
       ensamble: "listo_instalacion",
-      listo_instalacion: "instalacion_programada",
+      listo_instalacion: "listo_instalacion",
       instalacion_programada: "entregado",
     };
     return flow[currentStatus] || null;
@@ -401,7 +401,7 @@ export default function Projects() {
       return ["adelanto_recibido", "en_diseno", "aprobacion_final"].includes(status);
     }
     if (role === "jefe_taller") {
-      return ["aprobacion_final", "corte", "enchape", "ensamble", "listo_instalacion", "instalacion_programada"].includes(status);
+      return ["aprobacion_final", "corte", "enchape", "ensamble", "listo_instalacion", "listo_instalacion"].includes(status);
     }
     if (role === "operario") {
       return ["corte", "enchape", "ensamble"].includes(status);
@@ -494,11 +494,11 @@ export default function Projects() {
                   .filter(([key]) => {
                     // Jefe de taller: solo etapas desde diseño listo hasta entregado
                     if (user?.role === "jefe_taller") {
-                      return ["pendiente_cliente", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "instalacion_programada", "entregado"].includes(key);
+                      return ["pendiente_render", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "listo_instalacion", "entregado"].includes(key);
                     }
                     // Diseñador: ve todos los estados desde adelanto hasta entregado
                     if (user?.role === "disenador") {
-                      return ["adelanto_recibido", "en_diseno", "pendiente_modelado", "pendiente_cliente", "pendiente_render", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "instalacion_programada", "entregado"].includes(key);
+                      return ["adelanto_recibido", "en_diseno", "pendiente_modelado", "pendiente_render", "pendiente_render", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "listo_instalacion", "entregado"].includes(key);
                     }
                     // Operario: solo etapas de producción
                     if (user?.role === "operario") {
@@ -886,7 +886,7 @@ export default function Projects() {
             </DialogHeader>
 
             {/* Acciones según estado y rol */}
-            {projectDetail && projectDetail.status === "pendiente_cliente" && 
+            {projectDetail && projectDetail.status === "pendiente_render" && 
               (user?.role === "admin" || user?.role === "super_admin") && (
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
                 <h4 className="font-medium text-yellow-800 mb-2 flex items-center gap-2">

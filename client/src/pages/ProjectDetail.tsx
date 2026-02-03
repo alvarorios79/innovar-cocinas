@@ -1179,13 +1179,13 @@ export default function ProjectDetail() {
                                     {(user?.role === "super_admin" || user?.role === "admin" || user?.role === "comercial" || 
                                       ((user?.role === "jefe_taller" || user?.role === "operario" || user?.role === "disenador") && photo.uploadedBy === user?.id)) && (
                                       <button
-                                        className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-full p-1.5 lg:p-1 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity z-10 shadow-md"
+                                        className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-full p-2 opacity-100 xl:opacity-0 xl:group-hover:opacity-100 transition-opacity z-10 shadow-md"
                                         onClick={(e) => {
                                           e.stopPropagation();
                                           setPhotoToDelete({ id: photo.id, description: photo.description });
                                         }}
                                       >
-                                        <Trash2 className="h-4 w-4 lg:h-3 lg:w-3" />
+                                        <Trash2 className="h-5 w-5" />
                                       </button>
                                     )}
                                   </div>

@@ -1727,7 +1727,7 @@ export function ProjectInlineDetail({
                             {(user?.role === "admin" || user?.role === "super_admin" || user?.role === "comercial" || 
                               ((user?.role === "jefe_taller" || user?.role === "operario" || user?.role === "disenador") && photo.uploadedBy === user?.id)) && (
                               <button
-                                className="absolute bottom-1 right-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity bg-red-500 hover:bg-red-600 text-white rounded-full p-1.5 shadow-lg z-10"
+                                className="absolute bottom-1 right-1 opacity-100 xl:opacity-0 xl:group-hover:opacity-100 transition-opacity bg-red-500 hover:bg-red-600 text-white rounded-full p-2 shadow-lg z-10"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   if (confirm("¿Estás seguro de eliminar esta foto?")) {
@@ -1736,7 +1736,7 @@ export function ProjectInlineDetail({
                                 }}
                                 disabled={deletePhoto.isPending}
                               >
-                                <Trash2 className="h-4 w-4" />
+                                <Trash2 className="h-5 w-5" />
                               </button>
                             )}
                           </div>

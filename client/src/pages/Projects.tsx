@@ -1539,7 +1539,7 @@ export default function Projects() {
                                         </span>
                                       )}
                                     </div>
-                                    <div className="absolute top-1 right-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity flex gap-1">
+                                    <div className="absolute top-1 right-1 opacity-100 xl:opacity-0 xl:group-hover:opacity-100 transition-opacity flex gap-1">
                                       <ZoomIn className="h-4 w-4 text-white drop-shadow-lg hidden sm:block" />
                                       {/* Botón eliminar: admin/comercial pueden eliminar cualquiera, colaboradores solo sus propias fotos */}
                                       {(["admin", "super_admin", "comercial"].includes(user?.role || "") || 
@@ -1551,10 +1551,10 @@ export default function Projects() {
                                               deletePhoto.mutate({ id: photo.id });
                                             }
                                           }}
-                                          className="p-1.5 bg-red-500 rounded hover:bg-red-600 transition-colors shadow-lg"
+                                          className="p-2 bg-red-500 rounded-full hover:bg-red-600 transition-colors shadow-lg"
                                           title="Eliminar foto"
                                         >
-                                          <Trash2 className="h-4 w-4 text-white" />
+                                          <Trash2 className="h-5 w-5 text-white" />
                                         </button>
                                       )}
                                     </div>

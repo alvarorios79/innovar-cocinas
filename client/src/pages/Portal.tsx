@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useLocation, Link } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,6 +17,175 @@ import { ProjectTimeline } from "@/components/ProjectTimeline";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatPrice } from "@/lib/formatters";
+
+// Componente para la vista de aprobación de diseño (modelado 3D o renders)
+function ProjectApprovalView({ 
+  project, 
+  onApprove, 
+  isSubmitting 
+}: { 
+  project: any; 
+  onApprove: (approved: boolean, notes: string) => void; 
+  isSubmitting: boolean;
+}) {
+  const [showRejectForm, setShowRejectForm] = useState(false);
+  const [changeNotes, setChangeNotes] = useState("");
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+  // Filtrar fotos del proyecto según el estado
+  const designPhotos = project.photos?.filter((p: any) => 
+    project.status === "pendiente_modelado" 
+      ? p.category === "modelado" || p.category === "diseno"
+      : p.category === "render" || p.category === "diseno"
+  ) || [];
+
+  const isModelado = project.status === "pendiente_modelado";
+  const title = isModelado ? "Modelado 3D" : "Renders";
+  const revisionNumber = isModelado 
+    ? project.modeladoRevisionNumber || 1 
+    : project.renderRevisionNumber || 1;
+
+  return (
+    <Card className="mb-4 md:mb-8">
+      <CardHeader className="bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-t-lg">
+        <CardTitle className="flex items-center gap-2 text-white">
+          <ImageIcon className="h-6 w-6" />
+          Revisión de {title} - {project.name}
+        </CardTitle>
+        <CardDescription className="text-purple-100">
+          Revisión #{revisionNumber} - Por favor revisa las imágenes y aprueba o solicita cambios
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="p-4 md:p-6">
+        {/* Galería de imágenes */}
+        {designPhotos.length > 0 ? (
+          <div className="space-y-4">
+            <h3 className="font-semibold text-lg">Imágenes del {title}</h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+              {designPhotos.map((photo: any) => (
+                <div 
+                  key={photo.id} 
+                  className="relative aspect-square rounded-lg overflow-hidden border-2 border-gray-200 hover:border-purple-500 cursor-pointer transition-all"
+                  onClick={() => setSelectedImage(photo.url)}
+                >
+                  <img 
+                    src={photo.url} 
+                    alt={photo.description || title}
+                    className="w-full h-full object-cover"
+                  />
+                  {photo.description && (
+                    <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-xs p-1 truncate">
+                      {photo.description}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className="text-center py-8 bg-gray-50 rounded-lg">
+            <ImageIcon className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+            <p className="text-gray-500">Aún no hay imágenes disponibles para revisar</p>
+            <p className="text-sm text-gray-400 mt-2">El diseñador subirá las imágenes pronto</p>
+          </div>
+        )}
+
+        {/* Sección de aprobación */}
+        <div className="mt-6 pt-6 border-t">
+          {!showRejectForm ? (
+            <div className="space-y-4">
+              <h3 className="font-semibold text-lg">¿Qué te parece el {title.toLowerCase()}?</h3>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Button 
+                  onClick={() => onApprove(true, "")}
+                  disabled={isSubmitting || designPhotos.length === 0}
+                  className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                  size="lg"
+                >
+                  <ThumbsUp className="h-5 w-5 mr-2" />
+                  {isSubmitting ? "Procesando..." : "Aprobar Diseño"}
+                </Button>
+                <Button 
+                  onClick={() => setShowRejectForm(true)}
+                  disabled={isSubmitting}
+                  variant="outline"
+                  className="flex-1 border-orange-500 text-orange-600 hover:bg-orange-50"
+                  size="lg"
+                >
+                  <Wrench className="h-5 w-5 mr-2" />
+                  Solicitar Cambios
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <h3 className="font-semibold text-lg flex items-center gap-2">
+                <Wrench className="h-5 w-5 text-orange-500" />
+                Solicitar Cambios
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                Describe los cambios que necesitas. Sé lo más específico posible para que el diseñador pueda hacer las correcciones.
+              </p>
+              <Textarea
+                placeholder="Ej: Me gustaría que el color de las puertas sea más oscuro, y que la manija sea de otro estilo..."
+                value={changeNotes}
+                onChange={(e) => setChangeNotes(e.target.value)}
+                rows={4}
+                className="w-full"
+              />
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Button 
+                  onClick={() => {
+                    if (!changeNotes.trim()) {
+                      toast.error("Por favor describe los cambios que necesitas");
+                      return;
+                    }
+                    onApprove(false, changeNotes);
+                  }}
+                  disabled={isSubmitting || !changeNotes.trim()}
+                  className="flex-1 bg-orange-600 hover:bg-orange-700 text-white"
+                >
+                  {isSubmitting ? "Enviando..." : "Enviar Solicitud de Cambios"}
+                </Button>
+                <Button 
+                  onClick={() => {
+                    setShowRejectForm(false);
+                    setChangeNotes("");
+                  }}
+                  disabled={isSubmitting}
+                  variant="outline"
+                >
+                  Cancelar
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Notas de cambios anteriores */}
+        {project.clientApprovalNotes && (
+          <div className="mt-4 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+            <h4 className="font-medium text-orange-800 mb-2">📝 Cambios solicitados anteriormente:</h4>
+            <p className="text-orange-700 text-sm">{project.clientApprovalNotes}</p>
+          </div>
+        )}
+      </CardContent>
+
+      {/* Modal para ver imagen ampliada */}
+      {selectedImage && (
+        <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
+          <DialogContent className="max-w-4xl max-h-[90vh]">
+            <img 
+              src={selectedImage} 
+              alt="Vista ampliada"
+              className="w-full h-auto max-h-[80vh] object-contain"
+            />
+          </DialogContent>
+        </Dialog>
+      )}
+    </Card>
+  );
+}
 
 export default function Portal() {
   const { user, isAuthenticated, loading } = useAuth();
@@ -40,11 +209,24 @@ export default function Portal() {
   // Estado para mostrar timeline expandido
   const [expandedProjectId, setExpandedProjectId] = useState<number | null>(null);
 
+  // Leer el parámetro project de la URL
+  const projectIdFromUrl = useMemo(() => {
+    const params = new URLSearchParams(window.location.search);
+    const projectParam = params.get("project");
+    return projectParam ? parseInt(projectParam, 10) : null;
+  }, []);
+
   const utils = trpc.useUtils();
   const { data: appointments = [], isLoading: loadingAppointments } = trpc.appointments.getMyAppointments.useQuery();
   const { data: quotations = [], isLoading: loadingQuotations } = trpc.quotations.getMyQuotations.useQuery();
   const { data: estimates = [], isLoading: loadingEstimates } = trpc.estimates.getMyEstimates.useQuery();
   const { data: myProjects = [], isLoading: loadingProjects } = trpc.projects.getMyProjects.useQuery();
+  
+  // Obtener proyecto específico si hay un ID en la URL
+  const { data: projectFromUrl, isLoading: loadingProjectFromUrl, error: projectFromUrlError } = trpc.projects.getProjectForClient.useQuery(
+    { projectId: projectIdFromUrl! },
+    { enabled: !!projectIdFromUrl && isAuthenticated }
+  );
 
   const approveDesign = trpc.projects.approveDesign.useMutation({
     onSuccess: (_, variables) => {
@@ -265,17 +447,98 @@ export default function Portal() {
       </header>
 
       <div className="container py-4 md:py-8 px-3 md:px-4">
-        {/* Welcome Card */}
-        <Card className="mb-4 md:mb-8">
-          <CardHeader className="p-4 md:p-6">
-            <CardTitle className="text-lg md:text-xl">Bienvenido, {user?.name}</CardTitle>
-            <CardDescription>
-              Aquí puedes ver tus citas, reagendarlas y consultar tus cotizaciones
-            </CardDescription>
-          </CardHeader>
-        </Card>
+        {/* Vista especial cuando se accede desde enlace de WhatsApp con proyecto específico */}
+        {projectIdFromUrl && (
+          <>
+            {loadingProjectFromUrl ? (
+              <Card className="mb-4 md:mb-8">
+                <CardContent className="p-8 text-center">
+                  <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+                  <p>Cargando proyecto...</p>
+                </CardContent>
+              </Card>
+            ) : projectFromUrlError ? (
+              <Card className="mb-4 md:mb-8 border-red-200 bg-red-50">
+                <CardContent className="p-8 text-center">
+                  <AlertCircle className="h-12 w-12 mx-auto text-red-500 mb-4" />
+                  <h2 className="text-xl font-bold text-red-700 mb-2">Proyecto no encontrado</h2>
+                  <p className="text-red-600 mb-4">No pudimos encontrar el proyecto solicitado o no tienes acceso a él.</p>
+                  <Button onClick={() => setLocation("/portal")} variant="outline">
+                    Ver mis proyectos
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : projectFromUrl && (projectFromUrl.status === "pendiente_modelado" || projectFromUrl.status === "pendiente_render") ? (
+              <ProjectApprovalView 
+                project={projectFromUrl} 
+                onApprove={(approved, notes) => {
+                  approveDesign.mutate({
+                    projectId: projectFromUrl.id,
+                    approved,
+                    notes: notes,
+                  }, {
+                    onSuccess: () => {
+                      utils.projects.getProjectForClient.invalidate({ projectId: projectFromUrl.id });
+                    }
+                  });
+                }}
+                isSubmitting={approveDesign.isPending}
+              />
+            ) : projectFromUrl ? (
+              <Card className="mb-4 md:mb-8">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <FolderKanban className="h-5 w-5" />
+                    {projectFromUrl.name}
+                  </CardTitle>
+                  <CardDescription>
+                    Estado actual: {PROJECT_STATUSES[projectFromUrl.status]?.label || projectFromUrl.status}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {/* Barra de progreso */}
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span>Progreso</span>
+                        <span>{getProgressPercentage(projectFromUrl.status)}%</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div 
+                          className="bg-primary h-2 rounded-full transition-all duration-500"
+                          style={{ width: `${getProgressPercentage(projectFromUrl.status)}%` }}
+                        />
+                      </div>
+                    </div>
+                    
+                    <p className="text-muted-foreground">
+                      Tu proyecto está en proceso. Te notificaremos cuando haya actualizaciones.
+                    </p>
+                    
+                    <Button onClick={() => setLocation("/portal")} variant="outline" className="w-full">
+                      Ver todos mis proyectos
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : null}
+          </>
+        )}
 
-        {/* Main Content */}
+        {/* Welcome Card - solo si no hay proyecto específico en URL */}
+        {!projectIdFromUrl && (
+          <Card className="mb-4 md:mb-8">
+            <CardHeader className="p-4 md:p-6">
+              <CardTitle className="text-lg md:text-xl">Bienvenido, {user?.name}</CardTitle>
+              <CardDescription>
+                Aquí puedes ver tus citas, reagendarlas y consultar tus cotizaciones
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        )}
+
+        {/* Main Content - solo si no hay proyecto específico en URL o si ya se mostró */}
+        {!projectIdFromUrl && (
         <Tabs defaultValue="projects" className="space-y-4">
           <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 h-auto">
             <TabsTrigger value="projects" className="text-xs sm:text-sm">Mis Proyectos</TabsTrigger>
@@ -873,6 +1136,7 @@ export default function Portal() {
             </Card>
           </TabsContent>
         </Tabs>
+        )}
       </div>
 
       {/* Diálogo para subir fotos de referencia */}

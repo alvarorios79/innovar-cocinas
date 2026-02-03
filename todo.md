@@ -3879,3 +3879,20 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] ProjectDetail.tsx - scroll, volver (estados actualizados a 14)
 - [x] Estilos globales mejorados en index.css
 
+
+## Bug: Enlace de aprobación modelado 3D - Proyecto no encontrado
+- [ ] Investigar el enlace generado para aprobación de modelado 3D
+- [ ] Verificar la ruta del Portal del cliente para proyectos
+- [ ] Corregir el error que muestra "Proyecto no encontrado"
+- [ ] Probar el flujo completo de aprobación
+
+
+
+## Bug: Enlace de aprobación muestra "Proyecto no encontrado" - CORREGIDO
+
+- [x] Investigar cómo se genera el enlace de aprobación
+- [x] Verificar la ruta del portal y el parámetro project
+- [x] Agregar endpoint getProjectForClient en routers.ts
+- [x] Agregar componente ProjectApprovalView para mostrar galería de imágenes
+- [x] Implementar vista de aprobación con botones aprobar/solicitar cambios
+- [x] Corregir error de TypeScript (changes → notes)

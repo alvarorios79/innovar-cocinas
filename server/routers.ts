@@ -3931,6 +3931,44 @@ export const appRouter = router({
         return projectsWithPhotos;
       }),
 
+    // Obtener un proyecto específico por ID para el cliente (desde enlace de WhatsApp)
+    getProjectForClient: protectedProcedure
+      .input(z.object({
+        projectId: z.number(),
+      }))
+      .query(async ({ ctx, input }) => {
+        // Obtener el proyecto
+        const project = await db.getProjectById(input.projectId);
+        if (!project) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Proyecto no encontrado" });
+        }
+
+        // Verificar acceso:
+        // 1. Si es admin/super_admin/comercial, puede ver cualquier proyecto
+        // 2. Si es cliente, verificar que el proyecto pertenezca a su cliente
+        const isAdmin = ["admin", "super_admin", "comercial"].includes(ctx.user.role);
+        
+        if (!isAdmin) {
+          // Buscar cliente asociado al usuario
+          const client = await db.getClientByUserId(ctx.user.id);
+          if (!client || project.clientId !== client.id) {
+            throw new TRPCError({ code: "FORBIDDEN", message: "No tienes acceso a este proyecto" });
+          }
+        }
+
+        // Obtener fotos del proyecto
+        const photos = await db.getProjectPhotosByProjectId(project.id);
+        
+        // Obtener datos del cliente
+        const clientData = await db.getClientById(project.clientId);
+
+        return {
+          ...project,
+          photos,
+          client: clientData,
+        };
+      }),
+
     // Cambiar estado del proyecto
     updateStatus: protectedProcedure
       .input(z.object({

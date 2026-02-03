@@ -983,10 +983,10 @@ export default function ProjectDetail() {
                       </div>
                     </CardContent>
                   ) : (
-                    <CardContent className="py-6 text-center text-muted-foreground text-sm">
-                      <Eye className="h-8 w-8 mx-auto mb-2 opacity-30" />
-                      <p>Información oculta</p>
-                      <p className="text-xs">Haz clic en "Mostrar" para ver los datos</p>
+                    <CardContent className="py-8 flex flex-col items-center justify-center">
+                      <div className="w-20 h-20 rounded-full bg-gradient-to-br from-green-100 to-emerald-200 flex items-center justify-center mb-2">
+                        <DollarSign className="h-10 w-10 text-green-600" />
+                      </div>
                     </CardContent>
                   )}
                 </Card>

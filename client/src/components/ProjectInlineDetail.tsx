@@ -28,6 +28,7 @@ import {
   Send,
   Sparkles,
   Eye,
+  EyeOff,
   Trash2
 } from "lucide-react";
 import { useFileViewer } from "@/components/FileViewer";
@@ -146,6 +147,9 @@ export function ProjectInlineDetail({
   // Filtros para fotos
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [subcategoryFilter, setSubcategoryFilter] = useState<string>("all");
+  
+  // Toggle para ocultar información financiera (CEO, admin, comercial)
+  const [showFinancialInfo, setShowFinancialInfo] = useState(false);
 
   // Query para detalle del proyecto
   const { data: projectDetail, isLoading } = trpc.projects.getById.useQuery(
@@ -1189,7 +1193,7 @@ export function ProjectInlineDetail({
             </Card>
 
             {/* Información Financiera Simple - Solo si ya pagó el 60% */}
-            {user?.role !== "disenador" && user?.role !== "jefe_taller" && PAID_ADVANCE_STATUSES.includes(projectDetail.status) && (() => {
+            {user?.role !== "disenador" && user?.role !== "jefe_taller" && user?.role !== "operario" && PAID_ADVANCE_STATUSES.includes(projectDetail.status) && (() => {
               // Calcular valores financieros directamente
               const quotationTotal = (projectDetail as any).quotation?.total ? Number((projectDetail as any).quotation.total) : 0;
               const projectAdvance = projectDetail.advanceAmount ? Number(projectDetail.advanceAmount) : 0;
@@ -1200,52 +1204,68 @@ export function ProjectInlineDetail({
               return (
                 <Card className="border-blue-200 bg-blue-50">
                   <CardHeader className="py-3">
-                    <CardTitle className="text-sm flex items-center gap-2">
-                      <span className="text-lg">💰</span>
-                      Información Financiera
+                    <CardTitle className="text-sm flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">💰</span>
+                        Información Financiera
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setShowFinancialInfo(!showFinancialInfo)}
+                        className="h-8 px-2"
+                      >
+                        {showFinancialInfo ? (
+                          <><EyeOff className="h-4 w-4 mr-1" /> Ocultar</>
+                        ) : (
+                          <><Eye className="h-4 w-4 mr-1" /> Mostrar</>
+                        )}
+                      </Button>
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="text-sm space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Total del Proyecto</span>
-                      <span className="font-medium">
-                        {totalAmount > 0 
-                          ? new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(totalAmount)
-                          : "$0"}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Adelanto Pagado (60%)</span>
-                      <span className="font-medium text-green-600">
-                        {advanceAmount > 0
-                          ? new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(advanceAmount)
-                          : "$0"}
-                      </span>
-                    </div>
-                    <div className="flex justify-between bg-yellow-100 p-2 rounded">
-                      <span className="text-yellow-700">Saldo Pendiente (40%)</span>
-                      <span className="font-medium text-yellow-700">
-                        {remainingAmount > 0
-                          ? new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(remainingAmount)
-                          : "$0"}
-                      </span>
-                    </div>
-                    
-                    {/* Enlace al recibo del adelanto */}
-                    {projectDetail.advanceReceiptUrl && (
-                      <div className="pt-2 border-t">
-                        <a 
-                          href={projectDetail.advanceReceiptUrl} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2 text-blue-600 hover:text-blue-800 hover:underline"
-                        >
-                          <FileText className="h-4 w-4" />
-                          Ver Recibo del Adelanto
-                        </a>
+                  {showFinancialInfo && (
+                    <CardContent className="text-sm space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Total del Proyecto</span>
+                        <span className="font-medium">
+                          {totalAmount > 0 
+                            ? new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(totalAmount)
+                            : "$0"}
+                        </span>
                       </div>
-                    )}
-                  </CardContent>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Adelanto Pagado (60%)</span>
+                        <span className="font-medium text-green-600">
+                          {advanceAmount > 0
+                            ? new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(advanceAmount)
+                            : "$0"}
+                        </span>
+                      </div>
+                      <div className="flex justify-between bg-yellow-100 p-2 rounded">
+                        <span className="text-yellow-700">Saldo Pendiente (40%)</span>
+                        <span className="font-medium text-yellow-700">
+                          {remainingAmount > 0
+                            ? new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(remainingAmount)
+                            : "$0"}
+                        </span>
+                      </div>
+                      
+                      {/* Enlace al recibo del adelanto */}
+                      {projectDetail.advanceReceiptUrl && (
+                        <div className="pt-2 border-t">
+                          <a 
+                            href={projectDetail.advanceReceiptUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 text-blue-600 hover:text-blue-800 hover:underline"
+                          >
+                            <FileText className="h-4 w-4" />
+                            Ver Recibo del Adelanto
+                          </a>
+                        </div>
+                      )}
+                    </CardContent>
+                  )}
                 </Card>
               );
             })()}
@@ -1330,7 +1350,7 @@ export function ProjectInlineDetail({
           </div>
 
           {/* Información Financiera Prominente - Solo si ya pagó el 60% y hay total de cotización */}
-          {user?.role !== "disenador" && user?.role !== "jefe_taller" && PAID_ADVANCE_STATUSES.includes(projectDetail.status) && (projectDetail as any).financialInfo && (projectDetail as any).financialInfo.totalAmount > 0 && (
+          {user?.role !== "disenador" && user?.role !== "jefe_taller" && user?.role !== "operario" && PAID_ADVANCE_STATUSES.includes(projectDetail.status) && (projectDetail as any).financialInfo && (projectDetail as any).financialInfo.totalAmount > 0 && (
             <Card className={`border-2 ${
               projectDetail.status === "entregado" && (projectDetail as any).financialInfo.remainingAmount > 0
                 ? "border-red-400 bg-red-50"
@@ -1339,11 +1359,26 @@ export function ProjectInlineDetail({
                   : "border-blue-400 bg-blue-50"
             }`}>
               <CardHeader className="py-3">
-                <CardTitle className="text-sm flex items-center gap-2">
-                  <span className="text-lg">💰</span>
-                  Información Financiera del Proyecto
+                <CardTitle className="text-sm flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">💰</span>
+                    Información Financiera del Proyecto
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowFinancialInfo(!showFinancialInfo)}
+                    className="h-8 px-2"
+                  >
+                    {showFinancialInfo ? (
+                      <><EyeOff className="h-4 w-4 mr-1" /> Ocultar</>
+                    ) : (
+                      <><Eye className="h-4 w-4 mr-1" /> Mostrar</>
+                    )}
+                  </Button>
                 </CardTitle>
               </CardHeader>
+              {showFinancialInfo && (
               <CardContent>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   {/* Total del Proyecto */}
@@ -1446,6 +1481,7 @@ export function ProjectInlineDetail({
                   </div>
                 )}
               </CardContent>
+              )}
             </Card>
           )}
 

@@ -3791,3 +3791,9 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 ### Bug Visibilidad Diseñador
 - [x] Diseñador debe ver proyectos hasta la entrega final - Corregido en routers.ts, TeamDashboard.tsx, Projects.tsx, ProjectCard.tsx
 - [x] Diseñador no puede ver/subir despieces en proyecto Ruth - Corregido filtros y asignado diseñador al proyecto
+
+
+### Toggle Información Financiera
+- [x] Agregar botón para ocultar/mostrar información financiera en tarjeta de proyectos
+- [x] Disponible para CEO, admin y comercial (super_admin, admin, comercial)
+- [x] La información está oculta por defecto, se muestra al hacer clic en "Mostrar"

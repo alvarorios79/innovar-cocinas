@@ -123,7 +123,8 @@ export function ProjectCard({
     if (role === "super_admin" || role === "admin") return true;
     
     if (role === "disenador") {
-      return ["adelanto_recibido", "en_diseno"].includes(status);
+      // Diseñador puede avanzar en estados de diseño, pero puede VER todos los proyectos
+      return ["adelanto_recibido", "en_diseno", "aprobacion_final"].includes(status);
     }
     if (role === "jefe_taller") {
       return ["aprobacion_final", "corte", "enchape", "ensamble", "listo_instalacion", "instalacion_programada"].includes(status);
@@ -138,8 +139,8 @@ export function ProjectCard({
 
   // Verificar si es un proyecto nuevo para el diseñador (listo para comenzar a diseñar)
   const isNewForDesigner = user?.role === "disenador" && project.status === "adelanto_recibido";
-  // Verificar si es un proyecto en progreso del diseñador
-  const isInProgressForDesigner = user?.role === "disenador" && ["en_diseno", "pendiente_cliente", "aprobacion_final"].includes(project.status);
+  // Verificar si es un proyecto en progreso del diseñador (fase de diseño activa)
+  const isInProgressForDesigner = user?.role === "disenador" && ["en_diseno", "pendiente_modelado", "pendiente_cliente", "pendiente_render", "aprobacion_final"].includes(project.status);
 
   return (
     <Card className={`transition-all duration-300 ${isExpanded ? 'ring-2 ring-primary shadow-lg' : 'hover:shadow-md'} ${isNewForDesigner ? 'ring-2 ring-purple-500 bg-purple-50/50' : ''}`}>

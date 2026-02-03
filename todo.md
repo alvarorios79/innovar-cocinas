@@ -3786,3 +3786,8 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Asignar diseñador automáticamente al crear nuevo proyecto
 - [x] Notificar al diseñador cuando se le asigna un proyecto
 - [x] Incluir nombre del diseñador en notificaciones de proyecto creado
+
+
+### Bug Visibilidad Diseñador
+- [x] Diseñador debe ver proyectos hasta la entrega final - Corregido en routers.ts, TeamDashboard.tsx, Projects.tsx, ProjectCard.tsx
+- [x] Diseñador no puede ver/subir despieces en proyecto Ruth - Corregido filtros y asignado diseñador al proyecto

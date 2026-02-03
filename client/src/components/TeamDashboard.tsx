@@ -137,7 +137,7 @@ export function TeamDashboard() {
     switch (role) {
       case "disenador":
         return projects.filter(p => 
-          ["adelanto_recibido", "en_diseno", "pendiente_cliente"].includes(p.status)
+          ["adelanto_recibido", "en_diseno", "pendiente_modelado", "pendiente_cliente", "pendiente_render", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "instalacion_programada", "entregado"].includes(p.status)
         );
       case "jefe_taller":
       case "operario":

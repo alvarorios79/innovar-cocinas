@@ -3686,10 +3686,11 @@ export const appRouter = router({
           projectsList = await db.getAllProjects();
         }
 
-        // Diseñador solo ve proyectos desde adelanto recibido hasta aprobación final
+        // Diseñador ve proyectos desde adelanto recibido hasta entregado
+        // (necesita ver proyectos en producción para responder consultas del jefe de taller/operario)
         if (role === "disenador") {
           projectsList = projectsList.filter(p => 
-            ["adelanto_recibido", "en_diseno", "pendiente_cliente", "aprobacion_final"].includes(p.status)
+            ["adelanto_recibido", "en_diseno", "pendiente_modelado", "pendiente_cliente", "pendiente_render", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "instalacion_programada", "entregado"].includes(p.status)
           );
         }
 

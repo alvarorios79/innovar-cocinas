@@ -397,7 +397,8 @@ export default function Projects() {
     if (role === "super_admin" || role === "admin") return true;
     
     if (role === "disenador") {
-      return ["adelanto_recibido", "en_diseno"].includes(status);
+      // Diseñador puede avanzar en estados de diseño
+      return ["adelanto_recibido", "en_diseno", "aprobacion_final"].includes(status);
     }
     if (role === "jefe_taller") {
       return ["aprobacion_final", "corte", "enchape", "ensamble", "listo_instalacion", "instalacion_programada"].includes(status);
@@ -495,9 +496,9 @@ export default function Projects() {
                     if (user?.role === "jefe_taller") {
                       return ["pendiente_cliente", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "instalacion_programada", "entregado"].includes(key);
                     }
-                    // Diseñador: solo etapas de diseño
+                    // Diseñador: ve todos los estados desde adelanto hasta entregado
                     if (user?.role === "disenador") {
-                      return ["adelanto_recibido", "en_diseno", "pendiente_cliente", "aprobacion_final", "despiece"].includes(key);
+                      return ["adelanto_recibido", "en_diseno", "pendiente_modelado", "pendiente_cliente", "pendiente_render", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "instalacion_programada", "entregado"].includes(key);
                     }
                     // Operario: solo etapas de producción
                     if (user?.role === "operario") {

@@ -716,7 +716,7 @@ function ProjectPhotoCard({
   const designPhotos = photos.filter((p: any) => 
     p.subcategory === "renders" || 
     p.subcategory === "despieces" || 
-    p.subcategory === "modelado" ||
+    p.subcategory === "modelado_3d" ||
     p.subcategory === "detalles" ||
     p.stage === "diseno"
   );

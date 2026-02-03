@@ -17,11 +17,11 @@ describe("Public Gallery", () => {
       
       // Verificamos que los parámetros sean válidos
       expect(projectId).toBeGreaterThan(0);
-      expect(["renders", "modelado", "medidas", "avance", "instalacion", "entrega"]).toContain(photoType);
+      expect(["renders", "modelado_3d", "medidas", "avance", "instalacion", "entrega"]).toContain(photoType);
     });
 
     it("should validate photo type parameter", () => {
-      const validTypes = ["renders", "modelado", "medidas", "avance", "instalacion", "entrega", "materiales", "otros"];
+      const validTypes = ["renders", "modelado_3d", "medidas", "avance", "instalacion", "entrega", "materiales", "otros"];
       
       // Verificar que todos los tipos válidos estén definidos
       expect(validTypes.length).toBeGreaterThan(0);

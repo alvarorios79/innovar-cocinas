@@ -31,7 +31,7 @@ interface DesignerChecklistProps {
 const DESIGN_CHECKLIST_ITEMS = [
   { id: "renders", label: "Renders 3D", description: "Al menos 2 renders del diseño", icon: Image, category: "renders" },
   { id: "despieces", label: "Despieces", description: "Archivo de despiece completo", icon: FileText, category: "despieces" },
-  { id: "modelado", label: "Modelado 3D", description: "Archivo de modelado 3D", icon: Box, category: "modelado" },
+  { id: "modelado_3d", label: "Modelado 3D", description: "Archivo de modelado 3D", icon: Box, category: "modelado_3d" },
   { id: "detalles", label: "Detalles técnicos", description: "Especificaciones y medidas", icon: FileText, category: "detalles" },
   { id: "colores", label: "Paleta de colores", description: "Colores y materiales definidos", icon: Palette, category: "colores" },
 ];
@@ -93,7 +93,7 @@ export function DesignerChecklist({
       newChecked.despieces = hasDespieces;
       
       // Verificar modelado
-      const hasModelado = photos.some(p => p.subcategory === "modelado");
+      const hasModelado = photos.some(p => p.subcategory === "modelado_3d");
       newChecked.modelado = hasModelado;
       
       // Verificar detalles

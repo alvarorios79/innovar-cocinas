@@ -249,11 +249,11 @@ export function generateTeamNotificationMessage(
     clientName: string;
     projectName: string;
     projectId: number;
-    designType: "modelado" | "renders";
+    designType: "modelado_3d" | "renders";
     changes?: string;
   }
 ): string {
-  const designTypeLabel = data.designType === "modelado" ? "Modelado 3D" : "Renders";
+  const designTypeLabel = data.designType === "modelado_3d" ? "Modelado 3D" : "Renders";
   
   if (type === "approval") {
     return `✅ *CLIENTE APROBÓ ${designTypeLabel.toUpperCase()}*
@@ -262,7 +262,7 @@ export function generateTeamNotificationMessage(
 👤 *Cliente:* ${data.clientName}
 📅 *Fecha:* ${new Date().toLocaleString('es-CO')}
 
-${data.designType === "modelado" 
+${data.designType === "modelado_3d" 
   ? "➡️ *Siguiente paso:* Preparar y enviar los renders finales."
   : "➡️ *Siguiente paso:* Iniciar producción del proyecto."}
 
@@ -292,7 +292,7 @@ export function generateTeamWhatsAppLink(
     clientName: string;
     projectName: string;
     projectId: number;
-    designType: "modelado" | "renders";
+    designType: "modelado_3d" | "renders";
     changes?: string;
   }
 ): string {

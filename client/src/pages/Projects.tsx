@@ -1215,8 +1215,8 @@ export default function Projects() {
                         <>
                           <Button
                             size="sm"
-                            variant={subcategoryFilter === "modelado" ? "secondary" : "ghost"}
-                            onClick={() => setSubcategoryFilter("modelado")}
+                            variant={subcategoryFilter === "modelado_3d" ? "secondary" : "ghost"}
+                            onClick={() => setSubcategoryFilter("modelado_3d")}
                             className="h-7 text-xs"
                           >
                             Modelado
@@ -1305,7 +1305,7 @@ export default function Projects() {
                     const categoryToFolders: Record<string, string[]> = {
                       cotizacion: ["documento_cotizacion"], // Documento
                       medidas: ["fotos_iniciales", "dibujo"], // Fotos Iniciales + Dibujo
-                      disenos: ["modelado", "renders", "detalles", "despieces"], // Modelado, Renders, Detalles, Despieces
+                      disenos: ["modelado_3d", "renders", "detalles", "despieces"], // Modelado, Renders, Detalles, Despieces
                       avance: ["corte", "enchape", "armado"], // Corte, Enchape, Armado
                       instalacion: ["proceso_instalacion"], // Proceso
                       entrega: ["fotos_finales"], // Fotos Finales
@@ -1314,7 +1314,7 @@ export default function Projects() {
                     // Todas las subcarpetas disponibles
                     const allFolders = [
                       "documento_cotizacion", "fotos_iniciales", "dibujo",
-                      "modelado", "renders", "despieces", "detalles",
+                      "modelado_3d", "renders", "despieces", "detalles",
                       "corte", "enchape", "armado",
                       "proceso_instalacion", "fotos_finales"
                     ];
@@ -1327,7 +1327,7 @@ export default function Projects() {
                       fotos_iniciales: ["super_admin", "admin", "comercial", "disenador", "jefe_taller"],
                       dibujo: ["disenador", "jefe_taller", "super_admin", "admin", "comercial"],
                       // Diseños: Super Admin, Admin, Comercial, Diseñador, Jefe Taller, Operario
-                      modelado: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"],
+                      modelado_3d: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"],
                       renders: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"],
                       despieces: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"],
                       detalles: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"],
@@ -1370,7 +1370,7 @@ export default function Projects() {
                       documento_cotizacion: "Documento",
                       fotos_iniciales: "Fotos Iniciales",
                       dibujo: "Dibujo",
-                      modelado: "Modelado",
+                      modelado_3d: "Modelado 3D",
                       renders: "Renders",
                       despieces: "Despieces",
                       detalles: "Detalles",
@@ -1397,7 +1397,7 @@ export default function Projects() {
                       documento_cotizacion: "Documento",
                       fotos_iniciales: "Fotos Iniciales",
                       dibujo: "Dibujo",
-                      modelado: "Modelado",
+                      modelado_3d: "Modelado 3D",
                       renders: "Renders",
                       despieces: "Despieces",
                       detalles: "Detalles",
@@ -1421,7 +1421,7 @@ export default function Projects() {
                         fotos_iniciales: ["super_admin", "admin", "comercial"],
                         dibujo: ["super_admin", "admin"],
                         // Diseños: solo Diseñador
-                        modelado: ["disenador"],
+                        modelado_3d: ["disenador"],
                         renders: ["disenador"],
                         despieces: ["disenador"],
                         detalles: ["disenador"],
@@ -1459,7 +1459,7 @@ export default function Projects() {
                                     documento_cotizacion: "inicial",
                                     fotos_iniciales: "inicial",
                                     dibujo: "inicial",
-                                    modelado: "diseno",
+                                    modelado_3d: "diseno",
                                     renders: "diseno",
                                     despieces: "diseno",
                                     detalles: "diseno",
@@ -1474,7 +1474,7 @@ export default function Projects() {
                                     documento_cotizacion: "cotizacion",
                                     fotos_iniciales: "medidas",
                                     dibujo: "medidas",
-                                    modelado: "disenos",
+                                    modelado_3d: "disenos",
                                     renders: "disenos",
                                     despieces: "disenos",
                                     detalles: "disenos",

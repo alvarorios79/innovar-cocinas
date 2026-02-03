@@ -4824,7 +4824,7 @@ ${input.notes || "No se especificaron detalles"}
         projectId: z.number(),
         stage: z.enum(["inicial", "diseno", "corte", "enchape", "ensamble", "final"]),
         category: z.enum(["cotizacion", "medidas", "disenos", "avance", "instalacion", "entrega"]).optional().default("medidas"),
-        subcategory: z.enum(["fotos_iniciales", "dibujo", "renders", "despieces", "detalles", "modelado", "corte", "enchape", "armado", "proceso_instalacion", "fotos_finales", "documento_cotizacion"]).optional(),
+        subcategory: z.enum(["fotos_iniciales", "dibujo", "renders", "despieces", "detalles", "modelado_3d", "corte", "enchape", "armado", "proceso_instalacion", "fotos_finales", "documento_cotizacion"]).optional(),
         photoUrl: z.string(),
         description: z.string().optional(),
       }))
@@ -5930,7 +5930,7 @@ ${input.notes || "No se especificaron detalles"}
     getProjectPhotos: publicProcedure
       .input(z.object({
         projectId: z.number(),
-        type: z.enum(["modelado", "renders"]).optional(),
+        type: z.enum(["modelado_3d", "renders"]).optional(),
       }))
       .query(async ({ input }) => {
         // Obtener proyecto
@@ -5950,7 +5950,7 @@ ${input.notes || "No se especificaron detalles"}
           photos = allPhotos.filter(p => p.subcategory === input.type);
         } else {
           // Por defecto, mostrar modelado y renders
-          photos = allPhotos.filter(p => p.subcategory === "modelado" || p.subcategory === "renders");
+          photos = allPhotos.filter(p => p.subcategory === "modelado_3d" || p.subcategory === "renders");
         }
 
         return {
@@ -5969,7 +5969,7 @@ ${input.notes || "No se especificaron detalles"}
             description: p.description,
             createdAt: p.createdAt,
           })),
-          totalModelado: allPhotos.filter(p => p.subcategory === "modelado").length,
+          totalModelado: allPhotos.filter(p => p.subcategory === "modelado_3d").length,
           totalRenders: allPhotos.filter(p => p.subcategory === "renders").length,
         };
       }),
@@ -5979,7 +5979,7 @@ ${input.notes || "No se especificaron detalles"}
       .input(z.object({
         projectId: z.number(),
         clientName: z.string().min(1, "El nombre es requerido"),
-        type: z.enum(["modelado", "renders"]),
+        type: z.enum(["modelado_3d", "renders"]),
       }))
       .mutation(async ({ input }) => {
         // Obtener proyecto con cliente
@@ -5991,7 +5991,7 @@ ${input.notes || "No se especificaron detalles"}
         const now = new Date();
         
         // Guardar la aprobación según el tipo
-        if (input.type === "modelado") {
+        if (input.type === "modelado_3d") {
           await db.updateProject(input.projectId, {
             modeladoApprovedAt: now,
             modeladoApprovedBy: input.clientName,
@@ -6009,9 +6009,9 @@ ${input.notes || "No se especificaron detalles"}
         const client = await db.getClientById(project.clientId);
         
         // Crear tarea de notificación para el equipo
-        const tipoTexto = input.type === "modelado" ? "Modelado 3D" : "Renders";
+        const tipoTexto = input.type === "modelado_3d" ? "Modelado 3D" : "Renders";
         const taskTitle = `✅ Cliente aprobó ${tipoTexto}: ${project.name}`;
-        const taskDescription = `El cliente ${input.clientName} ha aprobado el ${tipoTexto.toLowerCase()} del proyecto "${project.name}" desde la galería pública.\n\nFecha: ${now.toLocaleString('es-CO')}\n\n${input.type === "modelado" ? "Siguiente paso: Preparar y enviar los renders finales." : "Siguiente paso: Iniciar producción del proyecto."}`;
+        const taskDescription = `El cliente ${input.clientName} ha aprobado el ${tipoTexto.toLowerCase()} del proyecto "${project.name}" desde la galería pública.\n\nFecha: ${now.toLocaleString('es-CO')}\n\n${input.type === "modelado_3d" ? "Siguiente paso: Preparar y enviar los renders finales." : "Siguiente paso: Iniciar producción del proyecto."}`;
         
         // Notificar al diseñador asignado o al admin
         const assignTo = project.designerId || (await db.getUsersByRole('admin'))[0]?.id || (await db.getUsersByRole('super_admin'))[0]?.id;
@@ -6039,7 +6039,7 @@ ${input.notes || "No se especificaron detalles"}
         // Enviar notificaciones push al equipo (diseñador, admin, comercial)
         try {
           const { createAndSendNotification, sendPushToRole } = await import("./push-notifications");
-          const tipoTexto = input.type === "modelado" ? "Modelado 3D" : "Renders";
+          const tipoTexto = input.type === "modelado_3d" ? "Modelado 3D" : "Renders";
           
           // Notificar al diseñador asignado
           if (project.designerId) {
@@ -6117,7 +6117,7 @@ ${input.notes || "No se especificaron detalles"}
 
         return { 
           success: true, 
-          message: input.type === "modelado" 
+          message: input.type === "modelado_3d" 
             ? "¡Gracias! Hemos registrado su aprobación del modelado. Pronto le enviaremos los renders finales."
             : "¡Gracias! Su proyecto ha sido aprobado. Pronto nos pondremos en contacto para coordinar los siguientes pasos.",
           teamWhatsAppLink, // Enlace para notificar al equipo por WhatsApp
@@ -6130,7 +6130,7 @@ ${input.notes || "No se especificaron detalles"}
       .input(z.object({
         projectId: z.number(),
         clientName: z.string().min(1, "El nombre es requerido"),
-        type: z.enum(["modelado", "renders"]),
+        type: z.enum(["modelado_3d", "renders"]),
         changes: z.string().min(10, "Por favor describe los cambios que necesitas (mínimo 10 caracteres)"),
       }))
       .mutation(async ({ input }) => {
@@ -6150,7 +6150,7 @@ ${input.notes || "No se especificaron detalles"}
         }
 
         // Crear tarea de notificación para el equipo
-        const tipoTexto = input.type === "modelado" ? "Modelado 3D" : "Renders";
+        const tipoTexto = input.type === "modelado_3d" ? "Modelado 3D" : "Renders";
         const taskTitle = `📝 Cliente solicitó cambios en ${tipoTexto}: ${project.name}`;
         const taskDescription = `El cliente ${input.clientName} ha solicitado cambios en el ${tipoTexto.toLowerCase()} del proyecto "${project.name}".\n\n**Cambios solicitados:**\n${input.changes}\n\nFecha: ${new Date().toLocaleString('es-CO')}`;
         
@@ -6181,7 +6181,7 @@ ${input.notes || "No se especificaron detalles"}
         // Enviar notificaciones push al equipo (diseñador, admin, comercial)
         try {
           const { createAndSendNotification } = await import("./push-notifications");
-          const tipoTexto = input.type === "modelado" ? "Modelado 3D" : "Renders";
+          const tipoTexto = input.type === "modelado_3d" ? "Modelado 3D" : "Renders";
           const cambiosCortos = input.changes.length > 50 ? input.changes.substring(0, 50) + "..." : input.changes;
           
           // Notificar al diseñador asignado
@@ -6429,7 +6429,7 @@ ${input.notes || "No se especificaron detalles"}
 
         // Verificar que hay modelado para enviar
         const photos = await db.getProjectPhotosByProjectId(input.projectId);
-        const modeladoPhotos = photos.filter((p: any) => p.subcategory === "modelado");
+        const modeladoPhotos = photos.filter((p: any) => p.subcategory === "modelado_3d");
         if (modeladoPhotos.length === 0) {
           throw new TRPCError({ code: "BAD_REQUEST", message: "No hay modelado para enviar" });
         }

@@ -328,7 +328,7 @@ export function ProjectInlineDetail({
       documento_cotizacion: [],
       fotos_iniciales: [],
       dibujo: [],
-      modelado: [],
+      modelado_3d: [],
       renders: [],
       detalles: [],
       despieces: [],
@@ -359,7 +359,7 @@ export function ProjectInlineDetail({
       documento_cotizacion: ["super_admin", "admin", "comercial"],
       fotos_iniciales: ["super_admin", "admin", "comercial", "disenador"],
       dibujo: ["super_admin", "admin", "comercial", "disenador"],
-      modelado: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"],
+      modelado_3d: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"],
       renders: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"],
       detalles: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"],
       despieces: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"],
@@ -386,7 +386,7 @@ export function ProjectInlineDetail({
     const categoryToFolders: Record<string, string[]> = {
       cotizacion: ["documento_cotizacion"],
       medidas: ["fotos_iniciales", "dibujo"],
-      disenos: ["modelado", "renders", "detalles", "despieces"],
+      disenos: ["modelado_3d", "renders", "detalles", "despieces"],
       avance: ["corte", "enchape", "armado"],
       instalacion: ["proceso_instalacion"],
       entrega: ["fotos_finales"],
@@ -419,7 +419,7 @@ export function ProjectInlineDetail({
     documento_cotizacion: "Documento",
     fotos_iniciales: "Fotos Iniciales",
     dibujo: "Dibujo",
-    modelado: "Modelado",
+    modelado_3d: "Modelado 3D",
     renders: "Renders",
     detalles: "Detalles",
     despieces: "Despieces",
@@ -437,7 +437,7 @@ export function ProjectInlineDetail({
       documento_cotizacion: ["super_admin", "admin", "comercial"],
       fotos_iniciales: ["super_admin", "admin", "comercial"],
       dibujo: ["super_admin", "admin"],
-      modelado: ["disenador"],
+      modelado_3d: ["disenador"],
       renders: ["disenador"],
       detalles: ["disenador"],
       despieces: ["disenador"],
@@ -735,16 +735,16 @@ export function ProjectInlineDetail({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
               
               {/* Tarjeta Modelado 3D */}
-              <div className={`relative rounded-lg p-4 transition-all duration-300 ${projectDetail.photos?.filter((p: any) => p.subcategory === "modelado").length > 0 ? 'bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/30 border-2 border-purple-200 dark:border-purple-700 hover:shadow-md' : 'bg-gray-50 dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-600'}`}>
+              <div className={`relative rounded-lg p-4 transition-all duration-300 ${projectDetail.photos?.filter((p: any) => p.subcategory === "modelado_3d").length > 0 ? 'bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/30 border-2 border-purple-200 dark:border-purple-700 hover:shadow-md' : 'bg-gray-50 dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-600'}`}>
                 <div className="flex items-start gap-3">
-                  <div className={`p-2 rounded-lg ${projectDetail.photos?.filter((p: any) => p.subcategory === "modelado").length > 0 ? 'bg-purple-500 text-white' : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400'}`}>
+                  <div className={`p-2 rounded-lg ${projectDetail.photos?.filter((p: any) => p.subcategory === "modelado_3d").length > 0 ? 'bg-purple-500 text-white' : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400'}`}>
                     <Box className="h-5 w-5" />
                   </div>
                   <div className="flex-1">
                     <h4 className="font-semibold text-gray-800 dark:text-gray-200 text-sm">Modelado 3D</h4>
                     <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                      {projectDetail.photos?.filter((p: any) => p.subcategory === "modelado").length > 0 
-                        ? `${projectDetail.photos?.filter((p: any) => p.subcategory === "modelado").length} imagen(es) listas`
+                      {projectDetail.photos?.filter((p: any) => p.subcategory === "modelado_3d").length > 0 
+                        ? `${projectDetail.photos?.filter((p: any) => p.subcategory === "modelado_3d").length} imagen(es) listas`
                         : 'Sin imágenes aún'}
                     </p>
                     {projectDetail.modeladoApprovedAt && (
@@ -755,7 +755,7 @@ export function ProjectInlineDetail({
                     )}
                   </div>
                 </div>
-                {projectDetail.photos?.filter((p: any) => p.subcategory === "modelado").length > 0 && (
+                {projectDetail.photos?.filter((p: any) => p.subcategory === "modelado_3d").length > 0 && (
                   <Button
                     size="sm"
                     className={`w-full mt-3 shadow-sm text-xs ${(projectDetail.modeladoRevisionNumber || 0) >= 1 ? 'bg-gray-400 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700'} text-white`}
@@ -809,7 +809,7 @@ export function ProjectInlineDetail({
             {(() => {
               const isPendingApproval = projectDetail.status === "pendiente_modelado" || projectDetail.status === "pendiente_cliente" || projectDetail.status === "pendiente_render";
               const isApproved = projectDetail.rendersApprovedAt || projectDetail.modeladoApprovedAt;
-              const hasDesignContent = (projectDetail.photos?.filter((p: any) => p.subcategory === "modelado" || p.subcategory === "renders").length || 0) > 0;
+              const hasDesignContent = (projectDetail.photos?.filter((p: any) => p.subcategory === "modelado_3d" || p.subcategory === "renders").length || 0) > 0;
               
               let statusMessage = "";
               let statusColor = "gray";
@@ -1008,7 +1008,7 @@ export function ProjectInlineDetail({
                   <Box className="h-4 w-4 text-purple-600" />
                   <span className="font-semibold text-sm text-gray-800 dark:text-gray-200">Modelado 3D</span>
                   <Badge variant="outline" className="text-xs">
-                    {projectDetail.photos?.filter((p: any) => p.subcategory === "modelado").length || 0} fotos
+                    {projectDetail.photos?.filter((p: any) => p.subcategory === "modelado_3d").length || 0} fotos
                   </Badge>
                   {projectDetail.modeladoApprovedAt && (
                     <Badge className="bg-green-100 text-green-700 text-xs">
@@ -1018,12 +1018,12 @@ export function ProjectInlineDetail({
                   )}
                 </div>
                 <div className="grid grid-cols-3 gap-2">
-                  {projectDetail.photos?.filter((p: any) => p.subcategory === "modelado").slice(0, 6).map((photo: any, idx: number) => (
+                  {projectDetail.photos?.filter((p: any) => p.subcategory === "modelado_3d").slice(0, 6).map((photo: any, idx: number) => (
                     <div
                       key={photo.id || idx}
                       className="aspect-square rounded-lg overflow-hidden border-2 border-purple-200 cursor-pointer hover:border-purple-400 transition-all hover:scale-105"
                       onClick={() => fileViewer.openViewer(
-                        (projectDetail.photos?.filter((p: any) => p.subcategory === "modelado") || []).map((p: any, i: number) => ({
+                        (projectDetail.photos?.filter((p: any) => p.subcategory === "modelado_3d") || []).map((p: any, i: number) => ({
                           url: p.photoUrl,
                           title: `Modelado 3D - Imagen ${i + 1}`,
                           description: p.description,
@@ -1039,7 +1039,7 @@ export function ProjectInlineDetail({
                       />
                     </div>
                   ))}
-                  {(projectDetail.photos?.filter((p: any) => p.subcategory === "modelado").length || 0) === 0 && (
+                  {(projectDetail.photos?.filter((p: any) => p.subcategory === "modelado_3d").length || 0) === 0 && (
                     <div className="col-span-3 text-center py-4 text-gray-400 text-sm">
                       Sin fotos de modelado
                     </div>
@@ -1647,7 +1647,7 @@ export function ProjectInlineDetail({
                     )}
                   </CardTitle>
                   {/* Botón de Solicitar Nueva Aprobación para modelado */}
-                  {folder === "modelado" && projectDetail.modeladoApprovedAt && (user?.role === "super_admin" || user?.role === "admin") && (
+                  {folder === "modelado_3d" && projectDetail.modeladoApprovedAt && (user?.role === "super_admin" || user?.role === "admin") && (
                     <div className="mt-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded-md border border-blue-200 dark:border-blue-800">
                       <div className="flex items-center justify-between gap-2 flex-wrap">
                         <div className="text-xs text-blue-700 dark:text-blue-300">

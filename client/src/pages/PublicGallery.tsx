@@ -43,7 +43,7 @@ export default function PublicGallery() {
   const search = useSearch();
   const params = new URLSearchParams(search);
   const projectId = parseInt(params.get("project") || "0");
-  const photoType = params.get("type") as "modelado" | "renders" | undefined;
+  const photoType = params.get("type") as "modelado_3d" | "renders" | undefined;
 
   const [selectedPhoto, setSelectedPhoto] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState<string>(photoType || "all");
@@ -191,7 +191,7 @@ export default function PublicGallery() {
     approveMutation.mutate({
       projectId,
       clientName: clientName.trim(),
-      type: photoType || "modelado",
+      type: photoType || "modelado_3d",
     });
   };
 
@@ -207,12 +207,12 @@ export default function PublicGallery() {
     changesMutation.mutate({
       projectId,
       clientName: clientName.trim(),
-      type: photoType || "modelado",
+      type: photoType || "modelado_3d",
       changes: changesText.trim(),
     });
   };
 
-  const designType = photoType === "renders" ? "renders" : "modelado";
+  const designType = photoType === "renders" ? "renders" : "modelado_3d";
   const designTypeLabel = photoType === "renders" ? "Renders" : "Modelado 3D";
 
   return (
@@ -259,7 +259,7 @@ export default function PublicGallery() {
                   {approvedAt && ` el ${new Date(approvedAt).toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' })}`}
                 </p>
                 <p className="text-green-600 text-sm mt-1">
-                  {photoType === "modelado" 
+                  {photoType === "modelado_3d" 
                     ? "Nuestro equipo está preparando los renders finales."
                     : "Tu proyecto está en producción. Pronto te contactaremos."}
                 </p>
@@ -305,7 +305,7 @@ export default function PublicGallery() {
                 <ImageIcon className="h-4 w-4" />
                 Todas ({photos.length})
               </TabsTrigger>
-              <TabsTrigger value="modelado" className="flex items-center gap-1" disabled={totalModelado === 0}>
+              <TabsTrigger value="modelado_3d" className="flex items-center gap-1" disabled={totalModelado === 0}>
                 <Box className="h-4 w-4" />
                 Modelado ({totalModelado})
               </TabsTrigger>
@@ -345,12 +345,12 @@ export default function PublicGallery() {
                   </div>
                   <Badge 
                     className={`absolute top-2 left-2 ${
-                      photo.subcategory === "modelado" 
+                      photo.subcategory === "modelado_3d" 
                         ? "bg-purple-500 hover:bg-purple-500" 
                         : "bg-green-500 hover:bg-green-500"
                     }`}
                   >
-                    {photo.subcategory === "modelado" ? "Modelado 3D" : "Render"}
+                    {photo.subcategory === "modelado_3d" ? "Modelado 3D" : "Render"}
                   </Badge>
                 </div>
                 {photo.description && (
@@ -431,7 +431,7 @@ export default function PublicGallery() {
             </DialogTitle>
             <DialogDescription>
               ¿Estás seguro de que deseas aprobar el {designTypeLabel.toLowerCase()} de tu proyecto? 
-              {photoType === "modelado" 
+              {photoType === "modelado_3d" 
                 ? " Una vez aprobado, continuaremos con los renders finales."
                 : " Una vez aprobado, procederemos con la producción de tu proyecto."
               }
@@ -583,12 +583,12 @@ export default function PublicGallery() {
                 <div>
                   <Badge 
                     className={`mb-2 ${
-                      selectedPhotoData.subcategory === "modelado" 
+                      selectedPhotoData.subcategory === "modelado_3d" 
                         ? "bg-purple-500" 
                         : "bg-green-500"
                     }`}
                   >
-                    {selectedPhotoData.subcategory === "modelado" ? "Modelado 3D" : "Render Final"}
+                    {selectedPhotoData.subcategory === "modelado_3d" ? "Modelado 3D" : "Render Final"}
                   </Badge>
                   {selectedPhotoData.description && (
                     <p className="text-white/90 text-sm">{selectedPhotoData.description}</p>

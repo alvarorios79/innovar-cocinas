@@ -364,7 +364,7 @@ export default function ProjectDetail() {
     renders: "Renders",
     despieces: "Despieces",
     detalles: "Detalles",
-    modelado: "Modelado",
+    modelado_3d: "Modelado 3D",
     corte: "Corte",
     enchape: "Enchape",
     armado: "Armado",
@@ -381,7 +381,7 @@ export default function ProjectDetail() {
       renders: ["disenador"],
       despieces: ["disenador"],
       detalles: ["disenador"],
-      modelado: ["disenador"],
+      modelado_3d: ["disenador"],
       corte: ["jefe_taller", "operario"],
       enchape: ["jefe_taller", "operario"],
       armado: ["jefe_taller", "operario"],
@@ -397,7 +397,7 @@ export default function ProjectDetail() {
     const allFolders = {
       cotizacion: ["documento_cotizacion"],
       medidas: ["fotos_iniciales", "dibujo"],
-      disenos: ["modelado", "renders", "detalles", "despieces"],
+      disenos: ["modelado_3d", "renders", "detalles", "despieces"],
       avance: ["corte", "enchape", "armado"],
       instalacion: ["proceso_instalacion"],
       entrega: ["fotos_finales"],
@@ -417,7 +417,7 @@ export default function ProjectDetail() {
           renders: ["super_admin", "admin", "comercial", "disenador", "jefe_taller"],
           despieces: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"],
           detalles: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"],
-          modelado: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"],
+          modelado_3d: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"],
           corte: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"],
           enchape: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"],
           armado: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"],
@@ -581,16 +581,16 @@ export default function ProjectDetail() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 
                 {/* Tarjeta Modelado 3D */}
-                <div className={`relative rounded-xl p-5 transition-all duration-300 ${projectDetail.photos?.filter((p: any) => p.subcategory === "modelado").length > 0 ? 'bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/30 border-2 border-purple-200 dark:border-purple-700 hover:shadow-md' : 'bg-gray-50 dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-600'}`}>
+                <div className={`relative rounded-xl p-5 transition-all duration-300 ${projectDetail.photos?.filter((p: any) => p.subcategory === "modelado_3d").length > 0 ? 'bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/30 border-2 border-purple-200 dark:border-purple-700 hover:shadow-md' : 'bg-gray-50 dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-600'}`}>
                   <div className="flex items-start gap-4">
-                    <div className={`p-3 rounded-xl ${projectDetail.photos?.filter((p: any) => p.subcategory === "modelado").length > 0 ? 'bg-purple-500 text-white' : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400'}`}>
+                    <div className={`p-3 rounded-xl ${projectDetail.photos?.filter((p: any) => p.subcategory === "modelado_3d").length > 0 ? 'bg-purple-500 text-white' : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400'}`}>
                       <Box className="h-6 w-6" />
                     </div>
                     <div className="flex-1">
                       <h4 className="font-semibold text-gray-800 dark:text-gray-200">Modelado 3D</h4>
                       <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                        {projectDetail.photos?.filter((p: any) => p.subcategory === "modelado").length > 0 
-                          ? `${projectDetail.photos?.filter((p: any) => p.subcategory === "modelado").length} imagen(es) listas`
+                        {projectDetail.photos?.filter((p: any) => p.subcategory === "modelado_3d").length > 0 
+                          ? `${projectDetail.photos?.filter((p: any) => p.subcategory === "modelado_3d").length} imagen(es) listas`
                           : 'Sin imágenes aún'}
                       </p>
                       {projectDetail.modeladoApprovedAt && (
@@ -601,7 +601,7 @@ export default function ProjectDetail() {
                       )}
                     </div>
                   </div>
-                  {projectDetail.photos?.filter((p: any) => p.subcategory === "modelado").length > 0 && (
+                  {projectDetail.photos?.filter((p: any) => p.subcategory === "modelado_3d").length > 0 && (
                     <Button
                       size="sm"
                       className={`w-full mt-4 shadow-sm ${(projectDetail.modeladoRevisionNumber || 0) >= 1 ? 'bg-gray-400 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700'} text-white`}
@@ -655,7 +655,7 @@ export default function ProjectDetail() {
               {(() => {
                 const isPendingApproval = projectDetail.status === "pendiente_modelado" || projectDetail.status === "pendiente_cliente" || projectDetail.status === "pendiente_render";
                 const isApproved = projectDetail.rendersApprovedAt || projectDetail.modeladoApprovedAt;
-                const hasDesignContent = (projectDetail.photos?.filter((p: any) => p.subcategory === "modelado" || p.subcategory === "renders").length || 0) > 0;
+                const hasDesignContent = (projectDetail.photos?.filter((p: any) => p.subcategory === "modelado_3d" || p.subcategory === "renders").length || 0) > 0;
                 
                 let statusMessage = "";
                 let statusColor = "gray";
@@ -1458,7 +1458,7 @@ export default function ProjectDetail() {
                     )}
                     {photoForm.category === "disenos" && (
                       <>
-                        <SelectItem value="modelado">Modelado</SelectItem>
+                        <SelectItem value="modelado_3d">Modelado</SelectItem>
                         <SelectItem value="renders">Renders</SelectItem>
                         <SelectItem value="detalles">Detalles</SelectItem>
                         <SelectItem value="despieces">Despieces</SelectItem>
@@ -1505,7 +1505,7 @@ export default function ProjectDetail() {
                       projectId: projectId,
                       stage: stage,
                       category: photoForm.category,
-                      subcategory: (photoForm.category === "cotizacion" ? "documento_cotizacion" : photoForm.subcategory || undefined) as "corte" | "enchape" | "fotos_iniciales" | "dibujo" | "renders" | "despieces" | "detalles" | "modelado" | "armado" | "proceso_instalacion" | "fotos_finales" | "documento_cotizacion" | undefined,
+                      subcategory: (photoForm.category === "cotizacion" ? "documento_cotizacion" : photoForm.subcategory || undefined) as "corte" | "enchape" | "fotos_iniciales" | "dibujo" | "renders" | "despieces" | "detalles" | "modelado_3d" | "armado" | "proceso_instalacion" | "fotos_finales" | "documento_cotizacion" | undefined,
                       photoUrl: url,
                       description: photoForm.description || undefined,
                     });

@@ -1539,7 +1539,7 @@ export default function Projects() {
                                         </span>
                                       )}
                                     </div>
-                                    <div className="absolute top-1 right-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity flex gap-1">
+                                    <div className="absolute top-1 right-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity flex gap-1">
                                       <ZoomIn className="h-4 w-4 text-white drop-shadow-lg hidden sm:block" />
                                       {/* Botón eliminar: admin/comercial pueden eliminar cualquiera, colaboradores solo sus propias fotos */}
                                       {(["admin", "super_admin", "comercial"].includes(user?.role || "") || 

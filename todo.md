@@ -3803,3 +3803,8 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Permitir que jefe_taller, operario y diseñador eliminen fotos que ellos mismos subieron
 - [x] Mostrar botón de eliminar solo en fotos propias
 - [x] Actualizado en ProjectDetail.tsx, Projects.tsx y ProjectInlineDetail.tsx
+
+
+### Bug Eliminar Fotos en Móvil/iPad
+- [x] Hacer visible el botón de eliminar en dispositivos táctiles (sin hover)
+- [x] Actualizado en ProjectDetail.tsx, Projects.tsx y ProjectInlineDetail.tsx

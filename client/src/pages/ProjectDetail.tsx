@@ -36,7 +36,9 @@ import {
   Box,
   ImageIcon,
   Truck,
-  Hammer
+  Hammer,
+  Eye,
+  EyeOff
 } from "lucide-react";
 import { useFileViewer, FileViewer } from "@/components/FileViewer";
 import { MaterialsForm } from "@/components/MaterialsForm";
@@ -119,6 +121,9 @@ export default function ProjectDetail() {
   });
   const [photoToDelete, setPhotoToDelete] = useState<{ id: number; description?: string } | null>(null);
   const [advanceConfirmDialog, setAdvanceConfirmDialog] = useState<{ open: boolean; subcategory: string; nextStatus: string; hasPhotos: boolean }>({ open: false, subcategory: "", nextStatus: "", hasPhotos: false });
+  
+  // Toggle para ocultar información financiera (CEO, admin, comercial)
+  const [showFinancialInfo, setShowFinancialInfo] = useState(false);
 
   const { data: projectDetail, isLoading } = trpc.projects.getById.useQuery(
     { id: projectId },
@@ -903,65 +908,87 @@ export default function ProjectDetail() {
               {user?.role !== "disenador" && user?.role !== "jefe_taller" && user?.role !== "operario" && (
                 <Card>
                   <CardHeader className="py-3 bg-green-50">
-                    <CardTitle className="text-sm flex items-center gap-2">
-                      <DollarSign className="h-4 w-4 text-green-600" />
-                      Información Financiera
-                    </CardTitle>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-sm flex items-center gap-2">
+                        <DollarSign className="h-4 w-4 text-green-600" />
+                        Información Financiera
+                      </CardTitle>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setShowFinancialInfo(!showFinancialInfo)}
+                        className="h-7 px-2 text-xs"
+                      >
+                        {showFinancialInfo ? (
+                          <><EyeOff className="h-4 w-4 mr-1" /> Ocultar</>
+                        ) : (
+                          <><Eye className="h-4 w-4 mr-1" /> Mostrar</>
+                        )}
+                      </Button>
+                    </div>
                   </CardHeader>
-                  <CardContent className="text-sm space-y-3 pt-4">
-                    {/* Total del proyecto */}
-                    <div className="flex justify-between items-center py-2 border-b">
-                      <span className="text-muted-foreground">Total del Proyecto</span>
-                      <span className="font-bold text-lg">{formatCurrency((projectDetail as any).financialInfo?.totalAmount || 0)}</span>
-                    </div>
-                    
-                    {/* Adelanto pagado */}
-                    <div className="flex justify-between items-center py-2 border-b">
-                      <span className="text-muted-foreground">Adelanto Pagado (60%)</span>
-                      <span className="font-semibold text-green-600">{formatCurrency((projectDetail as any).financialInfo?.advanceAmount || 0)}</span>
-                    </div>
-                    
-                    {/* Saldo pendiente - DESTACADO */}
-                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
-                      <div className="flex justify-between items-center">
-                        <span className="font-medium text-amber-800">Saldo Pendiente (40%)</span>
-                        <span className="font-bold text-xl text-amber-600">
-                          {formatCurrency((projectDetail as any).financialInfo?.remainingAmount || 0)}
-                        </span>
+                  {showFinancialInfo ? (
+                    <CardContent className="text-sm space-y-3 pt-4">
+                      {/* Total del proyecto */}
+                      <div className="flex justify-between items-center py-2 border-b">
+                        <span className="text-muted-foreground">Total del Proyecto</span>
+                        <span className="font-bold text-lg">{formatCurrency((projectDetail as any).financialInfo?.totalAmount || 0)}</span>
                       </div>
-                      {projectDetail.status === "entregado" && (projectDetail as any).financialInfo?.remainingAmount > 0 && (
-                        <p className="text-xs text-amber-700 mt-1">
-                          ⚠️ Proyecto entregado - Pendiente de cobro
-                        </p>
-                      )}
-                    </div>
-                    
-                    {/* Botones de documentos */}
-                    <div className="flex gap-2 pt-2">
-                      {projectDetail.advanceReceiptUrl && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="flex-1"
-                          onClick={() => fileViewer.openViewer([{ url: projectDetail.advanceReceiptUrl!, title: "Comprobante de Pago" }], 0)}
-                        >
-                          <Receipt className="h-4 w-4 mr-1" />
-                          Ver Recibo 60%
-                        </Button>
-                      )}
-                      {(projectDetail as any).quotationPdfUrl && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="flex-1"
-                          onClick={() => fileViewer.openViewer([{ url: (projectDetail as any).quotationPdfUrl!, title: "PDF Cotización" }], 0)}
-                        >
-                          <FileText className="h-4 w-4 mr-1" />
-                          Cotización
-                        </Button>
-                      )}
-                    </div>
-                  </CardContent>
+                      
+                      {/* Adelanto pagado */}
+                      <div className="flex justify-between items-center py-2 border-b">
+                        <span className="text-muted-foreground">Adelanto Pagado (60%)</span>
+                        <span className="font-semibold text-green-600">{formatCurrency((projectDetail as any).financialInfo?.advanceAmount || 0)}</span>
+                      </div>
+                      
+                      {/* Saldo pendiente - DESTACADO */}
+                      <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                        <div className="flex justify-between items-center">
+                          <span className="font-medium text-amber-800">Saldo Pendiente (40%)</span>
+                          <span className="font-bold text-xl text-amber-600">
+                            {formatCurrency((projectDetail as any).financialInfo?.remainingAmount || 0)}
+                          </span>
+                        </div>
+                        {projectDetail.status === "entregado" && (projectDetail as any).financialInfo?.remainingAmount > 0 && (
+                          <p className="text-xs text-amber-700 mt-1">
+                            ⚠️ Proyecto entregado - Pendiente de cobro
+                          </p>
+                        )}
+                      </div>
+                      
+                      {/* Botones de documentos */}
+                      <div className="flex gap-2 pt-2">
+                        {projectDetail.advanceReceiptUrl && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex-1"
+                            onClick={() => fileViewer.openViewer([{ url: projectDetail.advanceReceiptUrl!, title: "Comprobante de Pago" }], 0)}
+                          >
+                            <Receipt className="h-4 w-4 mr-1" />
+                            Ver Recibo 60%
+                          </Button>
+                        )}
+                        {(projectDetail as any).quotationPdfUrl && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex-1"
+                            onClick={() => fileViewer.openViewer([{ url: (projectDetail as any).quotationPdfUrl!, title: "PDF Cotización" }], 0)}
+                          >
+                            <FileText className="h-4 w-4 mr-1" />
+                            Cotización
+                          </Button>
+                        )}
+                      </div>
+                    </CardContent>
+                  ) : (
+                    <CardContent className="py-6 text-center text-muted-foreground text-sm">
+                      <Eye className="h-8 w-8 mx-auto mb-2 opacity-30" />
+                      <p>Información oculta</p>
+                      <p className="text-xs">Haz clic en "Mostrar" para ver los datos</p>
+                    </CardContent>
+                  )}
                 </Card>
               )}
 

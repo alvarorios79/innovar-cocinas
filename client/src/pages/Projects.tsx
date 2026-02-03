@@ -1541,9 +1541,9 @@ export default function Projects() {
                                     </div>
                                     <div className="absolute top-1 right-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity flex gap-1">
                                       <ZoomIn className="h-4 w-4 text-white drop-shadow-lg hidden sm:block" />
-                                      {/* Botón eliminar: admin/comercial/diseñador pueden eliminar cualquiera, jefe_taller/operario solo sus propias fotos */}
-                                      {(["admin", "super_admin", "comercial", "disenador"].includes(user?.role || "") || 
-                                        (["jefe_taller", "operario"].includes(user?.role || "") && photo.uploadedBy === user?.id)) && (
+                                      {/* Botón eliminar: admin/comercial pueden eliminar cualquiera, colaboradores solo sus propias fotos */}
+                                      {(["admin", "super_admin", "comercial"].includes(user?.role || "") || 
+                                        (["jefe_taller", "operario", "disenador"].includes(user?.role || "") && photo.uploadedBy === user?.id)) && (
                                         <button
                                           onClick={(e) => {
                                             e.stopPropagation();

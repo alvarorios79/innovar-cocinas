@@ -3797,3 +3797,9 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Agregar botón para ocultar/mostrar información financiera en tarjeta de proyectos
 - [x] Disponible para CEO, admin y comercial (super_admin, admin, comercial)
 - [x] La información está oculta por defecto, se muestra al hacer clic en "Mostrar"
+
+
+### Eliminar Fotos por Colaboradores
+- [x] Permitir que jefe_taller, operario y diseñador eliminen fotos que ellos mismos subieron
+- [x] Mostrar botón de eliminar solo en fotos propias
+- [x] Actualizado en ProjectDetail.tsx, Projects.tsx y ProjectInlineDetail.tsx

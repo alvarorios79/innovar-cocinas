@@ -1723,9 +1723,9 @@ export function ProjectInlineDetail({
                             <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 sm:group-hover:opacity-100 transition-opacity">
                               <ZoomIn className="h-4 w-4 text-white drop-shadow-lg" />
                             </div>
-                            {/* Botón eliminar - visible para admin/super_admin/comercial/diseñador o para jefe_taller/operario si subieron la foto */}
-                            {(user?.role === "admin" || user?.role === "super_admin" || user?.role === "comercial" || user?.role === "disenador" || 
-                              ((user?.role === "jefe_taller" || user?.role === "operario") && photo.uploadedBy === user?.id)) && (
+                            {/* Botón eliminar - admin/comercial pueden eliminar cualquiera, colaboradores solo sus propias fotos */}
+                            {(user?.role === "admin" || user?.role === "super_admin" || user?.role === "comercial" || 
+                              ((user?.role === "jefe_taller" || user?.role === "operario" || user?.role === "disenador") && photo.uploadedBy === user?.id)) && (
                               <button
                                 className="absolute bottom-1 right-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity bg-red-500 hover:bg-red-600 text-white rounded-full p-1.5 shadow-lg z-10"
                                 onClick={(e) => {

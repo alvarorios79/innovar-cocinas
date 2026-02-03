@@ -397,10 +397,59 @@
 }
 
 @layer utilities {
+  /* Layout principal con scroll correcto */
+  .page-layout {
+    @apply min-h-screen flex flex-col;
+  }
+  
+  .page-content {
+    @apply flex-1 overflow-y-auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Contenedor con scroll interno */
+  .scroll-container {
+    @apply overflow-y-auto overflow-x-hidden;
+    -webkit-overflow-scrolling: touch;
+    max-height: calc(100vh - 4rem);
+  }
+  
+  @media (min-width: 768px) {
+    .scroll-container {
+      max-height: calc(100vh - 5rem);
+    }
+  }
+  
   /* Touch-friendly targets para móvil */
   .touch-target {
     min-height: 44px;
     min-width: 44px;
+  }
+  
+  /* Botón de borrado visible y accesible */
+  .btn-delete {
+    @apply p-2 rounded-lg text-red-500 hover:bg-red-50 hover:text-red-600 transition-colors;
+    min-width: 40px;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .btn-delete:hover {
+    @apply bg-red-100;
+  }
+  
+  /* Botón volver consistente */
+  .btn-back {
+    @apply flex items-center gap-1 px-3 py-2 text-sm font-medium rounded-lg;
+    @apply bg-muted/50 hover:bg-muted text-foreground transition-colors;
+  }
+  
+  @media (max-width: 640px) {
+    .btn-back {
+      @apply px-2 py-1.5 text-xs;
+    }
   }
   
   /* Ocultar en móvil/desktop */

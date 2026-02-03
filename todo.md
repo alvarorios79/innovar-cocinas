@@ -3845,3 +3845,37 @@ Se agregó el rol "comercial" a los siguientes endpoints:
   - [x] whatsapp.test.ts
 - [x] Ejecutar todos los tests (474 pasando)
 
+
+## Optimización Responsive Completa - Fase 4
+
+### Auditoría y mejoras generales
+- [x] Revisar scroll en todas las páginas
+- [x] Agregar iconos de borrado visibles y accesibles
+- [x] Agregar botones de "Volver" donde sea necesario
+- [x] Optimizar para teléfono (320px-480px)
+- [x] Optimizar para tablet/iPad (768px-1024px)
+- [x] Optimizar para computador/laptop (1024px+)
+
+### Páginas principales
+- [x] Home.tsx - scroll y responsive
+- [x] Login.tsx - scroll y responsive
+- [x] Register.tsx - scroll y responsive
+- [x] ForgotPassword.tsx - scroll y responsive
+
+### Páginas de gestión
+- [x] Projects.tsx - scroll, borrado, volver (estados actualizados a 14)
+- [x] Tasks.tsx - scroll, borrado, volver
+- [x] Calendar.tsx - scroll y responsive
+- [x] Quotations.tsx - scroll, borrado, volver
+
+### Paneles por rol
+- [x] AdminPanel.tsx - scroll y responsive
+- [x] TeamDashboard.tsx - scroll y responsive
+- [x] OperarioDashboard.tsx - scroll y responsive
+- [x] Comercial.tsx - scroll y responsive
+
+### Portal del Cliente y detalles
+- [x] Portal.tsx - scroll, volver (estados actualizados a 14)
+- [x] ProjectDetail.tsx - scroll, volver (estados actualizados a 14)
+- [x] Estilos globales mejorados en index.css
+

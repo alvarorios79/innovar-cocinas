@@ -193,12 +193,17 @@ export default function Portal() {
 
 
 
-  // Configuración de estados de proyecto
+  // Configuración de estados de proyecto (14 estados simplificados)
   const PROJECT_STATUSES: Record<string, { label: string; color: string; icon: any }> = {
-    pendiente: { label: "Pendiente", color: "bg-gray-500", icon: Clock },
-    aprobado_diseno: { label: "Aprobado para Diseño", color: "bg-blue-500", icon: CheckCircle2 },
+    contacto: { label: "Contacto", color: "bg-slate-400", icon: Clock },
+    cotizacion_enviada: { label: "Cotización Enviada", color: "bg-gray-500", icon: Clock },
+    cotizacion_aprobada: { label: "Cotización Aprobada", color: "bg-blue-400", icon: CheckCircle2 },
+    adelanto_recibido: { label: "Adelanto Recibido", color: "bg-blue-500", icon: CheckCircle2 },
     en_diseno: { label: "En Diseño", color: "bg-purple-500", icon: Paintbrush },
-    pendiente_cliente: { label: "Pendiente tu Aprobación", color: "bg-yellow-500", icon: AlertCircle },
+    pendiente_modelado: { label: "Pendiente tu Aprobación", color: "bg-violet-500", icon: AlertCircle },
+    pendiente_render: { label: "Pendiente tu Aprobación", color: "bg-amber-500", icon: AlertCircle },
+    aprobacion_final: { label: "Aprobación Final", color: "bg-green-400", icon: CheckCircle2 },
+    despiece: { label: "En Producción", color: "bg-indigo-500", icon: Hammer },
     corte: { label: "En Corte", color: "bg-orange-500", icon: Hammer },
     enchape: { label: "En Enchape", color: "bg-orange-600", icon: Paintbrush },
     ensamble: { label: "En Ensamble", color: "bg-orange-700", icon: Package },
@@ -220,7 +225,7 @@ export default function Portal() {
   };
 
   const getProgressPercentage = (status: string): number => {
-    const statusOrder = ["pendiente", "aprobado_diseno", "en_diseno", "pendiente_render", "corte", "enchape", "ensamble", "listo_instalacion", "entregado"];
+    const statusOrder = ["contacto", "cotizacion_enviada", "cotizacion_aprobada", "adelanto_recibido", "en_diseno", "pendiente_modelado", "pendiente_render", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "entregado"];
     const index = statusOrder.indexOf(status);
     return Math.round(((index + 1) / statusOrder.length) * 100);
   };

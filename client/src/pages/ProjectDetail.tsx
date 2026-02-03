@@ -53,22 +53,21 @@ import { PhotoUploader } from "@/components/PhotoUploader";
 import { toast } from "sonner";
 
 
+// Estados del proyecto según Ruta INNOVAR (14 estados simplificados)
 const PROJECT_STATUSES: Record<string, { label: string; color: string; icon: any }> = {
-  contacto_inicial: { label: "Contacto Inicial", color: "bg-slate-400", icon: Clock },
-  visita_medidas: { label: "Visita Medidas", color: "bg-slate-500", icon: Clock },
+  contacto: { label: "Contacto", color: "bg-slate-400", icon: Clock },
   cotizacion_enviada: { label: "Cotización Enviada", color: "bg-gray-500", icon: Clock },
   cotizacion_aprobada: { label: "Cotización Aprobada", color: "bg-blue-400", icon: CheckCircle2 },
   adelanto_recibido: { label: "Adelanto Recibido", color: "bg-blue-500", icon: CheckCircle2 },
   en_diseno: { label: "En Diseño", color: "bg-purple-500", icon: AlertCircle },
-  pendiente_modelado: { label: "Pendiente Aprobación Modelado", color: "bg-violet-500", icon: AlertCircle },
-  pendiente_cliente: { label: "Diseño Listo", color: "bg-yellow-500", icon: AlertCircle },
-  pendiente_render: { label: "Pendiente Aprobación Render", color: "bg-amber-500", icon: AlertCircle },
+  pendiente_modelado: { label: "Pendiente Modelado 3D", color: "bg-violet-500", icon: AlertCircle },
+  pendiente_render: { label: "Pendiente Renders", color: "bg-amber-500", icon: AlertCircle },
   aprobacion_final: { label: "Aprobación Final", color: "bg-green-400", icon: CheckCircle2 },
+  despiece: { label: "Despiece", color: "bg-indigo-500", icon: AlertCircle },
   corte: { label: "En Corte", color: "bg-orange-500", icon: AlertCircle },
   enchape: { label: "En Enchape", color: "bg-orange-600", icon: AlertCircle },
   ensamble: { label: "En Ensamble", color: "bg-orange-700", icon: AlertCircle },
   listo_instalacion: { label: "Listo para Instalación", color: "bg-teal-500", icon: AlertCircle },
-  instalacion_programada: { label: "Instalación Programada", color: "bg-teal-600", icon: AlertCircle },
   entregado: { label: "Entregado", color: "bg-green-700", icon: CheckCircle2 },
 };
 

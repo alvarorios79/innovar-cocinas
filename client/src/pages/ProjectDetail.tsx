@@ -1247,10 +1247,13 @@ export default function ProjectDetail() {
             <Card>
               <CardHeader className="py-3 bg-orange-50 flex flex-row items-center justify-between">
                 <CardTitle className="text-sm">Notas y Detalles del Proyecto</CardTitle>
-                <Button variant="ghost" size="sm" onClick={() => setShowDetailDialog(true)}>
-                  <Plus className="h-4 w-4 mr-1" />
-                  Agregar
-                </Button>
+                {/* Solo Super Admin, Admin, Comercial y Diseñador pueden agregar detalles */}
+                {(user?.role === "super_admin" || user?.role === "admin" || user?.role === "comercial" || user?.role === "disenador") && (
+                  <Button variant="ghost" size="sm" onClick={() => setShowDetailDialog(true)}>
+                    <Plus className="h-4 w-4 mr-1" />
+                    Agregar
+                  </Button>
+                )}
               </CardHeader>
               <CardContent className="pt-4">
                 {projectDetail.details && projectDetail.details.length > 0 ? (

@@ -5025,8 +5025,9 @@ ${input.notes || "No se especificaron detalles"}
         photoUrl: z.string().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
-        // Diseñador, jefe_taller, operario, comercial, admin, super_admin pueden crear detalles
-        const allowedRoles = ["disenador", "jefe_taller", "operario", "comercial", "admin", "super_admin"];
+        // Solo Super Admin, Admin, Comercial y Diseñador pueden crear detalles
+        // Jefe de taller y Operario solo pueden ver (lectura)
+        const allowedRoles = ["disenador", "comercial", "admin", "super_admin"];
         if (!allowedRoles.includes(ctx.user.role)) {
           throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para agregar detalles" });
         }
@@ -5055,7 +5056,8 @@ ${input.notes || "No se especificaron detalles"}
         photoUrl: z.string().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
-        const allowedRoles = ["disenador", "jefe_taller", "operario", "comercial", "admin", "super_admin"];
+        // Solo Super Admin, Admin, Comercial y Diseñador pueden editar detalles
+        const allowedRoles = ["disenador", "comercial", "admin", "super_admin"];
         if (!allowedRoles.includes(ctx.user.role)) {
           throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para editar detalles" });
         }

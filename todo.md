@@ -4055,3 +4055,12 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Calcular fecha oficial cuando se cambia estado a aprobacion_final manualmente
 - [x] Actualizar proyectos existentes en producción sin fecha oficial (Orlando, Henry)
 - [x] Todos los proyectos ahora tienen isInstallDateOfficial = 1
+
+
+## Mejora: Unificar notas y detalles con permisos por rol - COMPLETADO
+
+- [x] Revisar implementación actual de pestaña Detalles
+- [x] Super Admin, Admin/Comercial, Diseñador pueden editar/agregar (botón visible)
+- [x] Jefe de Taller y Operario solo pueden ver (lectura) - botón oculto
+- [x] Permisos validados en frontend (UI) y backend (API)
+- [x] Los cambios y peticiones del cliente llegan a esta sección

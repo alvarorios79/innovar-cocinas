@@ -4080,3 +4080,16 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Mostrar historial completo en la pestaña Detalles con scroll
 - [x] Cada revisión muestra: tipo (modelado/renders), número de revisión, nombre del cliente, fecha, cambios
 - [x] Compatible con proyectos existentes que solo tienen clientApprovalNotes
+
+
+## Bug: Permisos de botones en proyecto
+
+- [ ] Ocultar botón "Agregar nota" para jefe de taller y operario (solo lectura)
+- [ ] Agregar botón de editar fechas para jefe de taller (puede adelantar/atrasar instalación según avance)
+
+
+## Mejora: Eliminar botón Agregar nota y permisos de jefe de taller - COMPLETADO
+
+- [x] Eliminar completamente el botón "Agregar nota" (Detalles cumple la misma función)
+- [x] Agregar botón de editar fechas para jefe de taller (puede adelantar/atrasar instalación según avance)
+- [x] Backend ya tenía permiso para jefe_taller en updateEstimatedDate

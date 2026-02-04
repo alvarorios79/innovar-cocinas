@@ -4025,3 +4025,10 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Se calcula estimatedInstallDate (25 días hábiles) y se marca isInstallDateOfficial=true
 - [x] La UI ya mostraba la fecha en verde cuando isInstallDateOfficial=true
 - [x] 476 tests pasando
+
+
+## Mejora: Mostrar ambas fechas (tentativa y oficial) en el proyecto - COMPLETADO
+
+- [x] Mostrar fecha tentativa en rojo siempre que exista
+- [x] Mostrar fecha oficial en verde cuando el cliente apruebe
+- [x] Ambas fechas son visibles simultáneamente

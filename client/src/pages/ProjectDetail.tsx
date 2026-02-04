@@ -976,8 +976,8 @@ export default function ProjectDetail() {
                   {/* Fecha de creación del proyecto */}
                   <p><strong>Creado:</strong> {formatDate(projectDetail.createdAt)}</p>
                   
-                  {/* Fechas de instalación - Tentativa (roja) u Oficial (verde) */}
-                  {projectDetail.tentativeInstallDate && !projectDetail.isInstallDateOfficial && projectDetail.status !== "entregado" && (
+                  {/* Fechas de instalación - Tentativa (roja) y Oficial (verde) */}
+                  {projectDetail.tentativeInstallDate && projectDetail.status !== "entregado" && (
                     <p className="text-red-600 font-medium">
                       <strong>🔴 Instalación tentativa:</strong> {formatDate(projectDetail.tentativeInstallDate)}
                     </p>

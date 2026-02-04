@@ -553,12 +553,14 @@ export default function Admin() {
             >
               Usuarios
             </TabsTrigger>
+{user?.role === "super_admin" && (
             <TabsTrigger 
               value="hardware" 
               className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-rose-500 data-[state=active]:text-white hover:bg-rose-100 transition-colors"
             >
               Herrajes
             </TabsTrigger>
+            )}
             {user?.role === "super_admin" && (
               <TabsTrigger 
                 value="pricing" 
@@ -1698,10 +1700,12 @@ export default function Admin() {
             </Card>
           </TabsContent>
 
-          {/* Hardware Catalog Tab */}
+          {/* Hardware Catalog Tab - Solo Super Admin */}
+          {user?.role === "super_admin" && (
           <TabsContent value="hardware" className="space-y-4">
             <HardwareCatalogAdmin />
           </TabsContent>
+          )}
 
           {/* Pricing Config Tab - Solo Super Admin */}
           {user?.role === "super_admin" && (

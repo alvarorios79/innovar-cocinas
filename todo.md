@@ -3974,3 +3974,31 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Actualizado resetRenderApproval para usar /gallery?project=X&type=renders
 - [x] Actualizado generatePortalUrl en whatsapp-notifications.ts
 - [x] Actualizados tests (476 tests pasando)
+
+
+## Mejora: Personalizar galería pública con branding INNOVAR
+
+- [ ] Logo de INNOVAR más prominente en el header
+- [ ] Aplicar colores de marca (verde teal #14b8a6, gradientes)
+- [ ] Mejorar diseño visual de la página de galería
+- [ ] Agregar footer con información de contacto de INNOVAR
+
+
+## Mejora: Personalizar galería pública con branding INNOVAR
+
+- [ ] Logo original de INNOVAR más prominente en el header
+- [ ] Aplicar colores de marca (verde teal, gradientes)
+- [ ] Mejorar diseño visual de la página de galería
+- [ ] Agregar footer con información de contacto de INNOVAR
+
+
+## Bug: Subir fotos de producción no cambia el estado del proyecto - CORREGIDO
+
+- [x] Al subir fotos de despiece (subcategory: despieces), el proyecto cambia automáticamente a estado "despiece"
+- [x] Al subir fotos de corte (subcategory: corte), el proyecto cambia a estado "corte"
+- [x] Al subir fotos de enchape (subcategory: enchape), el proyecto cambia a estado "enchape"
+- [x] Al subir fotos de ensamble (subcategory: armado), el proyecto cambia a estado "ensamble"
+- [x] Al subir fotos de instalación (subcategory: proceso_instalacion), cambia a "listo_instalacion"
+- [x] Al subir fotos finales (subcategory: fotos_finales), cambia a "entregado"
+- [x] Solo avanza el estado si el nuevo es posterior al actual (no retrocede)
+- [x] Se registra el cambio en el historial de estados

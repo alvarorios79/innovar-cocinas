@@ -216,16 +216,23 @@ export default function PublicGallery() {
   const designTypeLabel = photoType === "renders" ? "Renders" : "Modelado 3D";
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      {/* Header con logo */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-6xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-center">
-            <img 
-              src="/logo-light.png" 
-              alt="INNOVAR Cocinas Integrales" 
-              className="h-14 md:h-16 object-contain"
-            />
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col">
+      {/* Header con logo prominente y branding INNOVAR */}
+      <header className="bg-gradient-to-r from-teal-600 via-teal-500 to-emerald-500 shadow-lg">
+        <div className="max-w-6xl mx-auto px-4 py-6">
+          <div className="flex flex-col items-center justify-center">
+            {/* Logo grande y prominente */}
+            <div className="bg-white rounded-2xl p-4 shadow-xl mb-3">
+              <img 
+                src="/logo-light.png" 
+                alt="INNOVAR Cocinas Integrales" 
+                className="h-16 md:h-20 object-contain"
+              />
+            </div>
+            {/* Slogan */}
+            <p className="text-white/90 text-sm md:text-base font-medium tracking-wide">
+              Diseño y Fabricación de Cocinas Integrales
+            </p>
           </div>
         </div>
       </header>
@@ -409,15 +416,34 @@ export default function PublicGallery() {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="bg-gray-800 text-white py-6 mt-12">
-        <div className="max-w-6xl mx-auto px-4 text-center">
-          <p className="text-gray-400 text-sm">
-            © {new Date().getFullYear()} INNOVAR Cocinas Integrales
-          </p>
-          <p className="text-gray-500 text-xs mt-1">
-            K9 vía Cerritos a Pereira · Tel: 313 680 2025
-          </p>
+      {/* Footer con branding INNOVAR */}
+      <footer className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 text-white py-8 mt-auto">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            {/* Logo pequeño en footer */}
+            <div className="flex items-center gap-3">
+              <div className="bg-white rounded-lg p-2">
+                <img 
+                  src="/logo-light.png" 
+                  alt="INNOVAR" 
+                  className="h-8 object-contain"
+                />
+              </div>
+              <div>
+                <p className="text-white font-semibold">INNOVAR</p>
+                <p className="text-gray-400 text-xs">Cocinas Integrales</p>
+              </div>
+            </div>
+            
+            {/* Información de contacto */}
+            <div className="text-center md:text-right">
+              <p className="text-teal-400 font-medium">313 680 2025</p>
+              <p className="text-gray-400 text-sm">K9 vía Cerritos a Pereira</p>
+              <p className="text-gray-500 text-xs mt-1">
+                © {new Date().getFullYear()} Todos los derechos reservados
+              </p>
+            </div>
+          </div>
         </div>
       </footer>
 

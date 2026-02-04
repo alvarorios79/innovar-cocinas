@@ -4892,6 +4892,7 @@ ${input.notes || "No se especificaron detalles"}
         const role = ctx.user.role;
         const stage = input.stage;
         const category = input.category;
+        const subcategory = input.subcategory;
 
         // Validar permisos por etapa y categoría
         const canUpload = validatePhotoUploadPermission(role, stage, category);
@@ -4899,10 +4900,52 @@ ${input.notes || "No se especificaron detalles"}
           throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para subir fotos en esta categoría" });
         }
 
+        // Obtener proyecto actual para verificar estado
+        const project = await db.getProjectById(input.projectId);
+        if (!project) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Proyecto no encontrado" });
+        }
+
         const photoId = await db.createProjectPhoto({
           ...input,
           uploadedBy: ctx.user.id,
         });
+
+        // Cambiar estado del proyecto automáticamente según la subcategoría de foto subida
+        // Solo cambiar si el proyecto está en un estado anterior o igual
+        const statusOrder = ["contacto", "cotizacion_enviada", "cotizacion_aprobada", "adelanto_recibido", "en_diseno", "pendiente_modelado", "pendiente_render", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "entregado"];
+        const currentStatusIndex = statusOrder.indexOf(project.status);
+        
+        // Mapeo de subcategoría a estado de proyecto
+        type ProjectStatus = "contacto" | "cotizacion_enviada" | "cotizacion_aprobada" | "adelanto_recibido" | "en_diseno" | "pendiente_modelado" | "pendiente_render" | "aprobacion_final" | "despiece" | "corte" | "enchape" | "ensamble" | "listo_instalacion" | "entregado";
+        
+        const subcategoryToStatus: Record<string, ProjectStatus> = {
+          "despieces": "despiece",
+          "corte": "corte",
+          "enchape": "enchape",
+          "armado": "ensamble",
+          "proceso_instalacion": "listo_instalacion",
+          "fotos_finales": "entregado",
+        };
+
+        if (subcategory && subcategoryToStatus[subcategory]) {
+          const newStatus = subcategoryToStatus[subcategory];
+          const newStatusIndex = statusOrder.indexOf(newStatus);
+          
+          // Solo avanzar el estado si el nuevo estado es posterior al actual
+          if (newStatusIndex > currentStatusIndex) {
+            await db.updateProject(input.projectId, { status: newStatus });
+            
+            // Registrar cambio de estado en historial
+            await db.createProjectStatusHistory({
+              projectId: input.projectId,
+              fromStatus: project.status,
+              toStatus: newStatus,
+              changedBy: ctx.user.id,
+              notes: `Estado actualizado automáticamente al subir foto de ${subcategory}`,
+            });
+          }
+        }
 
         return { success: true, photoId };
       }),

@@ -287,7 +287,7 @@ export default function ProjectDetail() {
 
   // Mapeo de subcategoría a la etapa anterior requerida
   const previousStageMap: Record<string, string> = {
-    corte: "despiece",
+    corte: "despieces",  // despieces con 's' es la subcategoría correcta
     enchape: "corte",
     armado: "enchape",
     proceso_instalacion: "armado",

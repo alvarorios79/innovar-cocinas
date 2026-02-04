@@ -1,0 +1,8 @@
+{
+  "query": "SELECT p.id, p.name, p.status, pp.id as photo_id, pp.subcategory, pp.category, pp.stage, pp.created_at \nFROM projects p \nLEFT JOIN project_photos pp ON p.id = pp.project_id \nWHERE p.name LIKE '%lvaro%' OR p.name LIKE '%prueba%'\nORDER BY pp.created_at DESC\nLIMIT 20;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT p.id, p.name, p.status, pp.id as photo_id, pp.subcategory, pp.category, pp.stage, pp.created_at \nFROM projects p \nLEFT JOIN project_photos pp ON p.id = pp.project_id \nWHERE p.name LIKE '%lvaro%' OR p.name LIKE '%prueba%'\nORDER BY pp.created_at DESC\nLIMIT 20;",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1146 (42S02) at line 1: Table 'xhekcr8yxcaedfyuqebdjq.project_photos' doesn't exist"
+  ]
+}

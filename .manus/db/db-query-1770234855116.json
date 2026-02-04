@@ -1,0 +1,60 @@
+{
+  "query": "SELECT p.id, p.name, p.status, pp.id as photo_id, pp.subcategory, pp.category, pp.stage, pp.createdAt \nFROM projects p \nLEFT JOIN projectPhotos pp ON p.id = pp.projectId \nWHERE p.name LIKE '%lvaro%' OR p.name LIKE '%prueba%'\nORDER BY pp.createdAt DESC\nLIMIT 20;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT p.id, p.name, p.status, pp.id as photo_id, pp.subcategory, pp.category, pp.stage, pp.createdAt \nFROM projects p \nLEFT JOIN projectPhotos pp ON p.id = pp.projectId \nWHERE p.name LIKE '%lvaro%' OR p.name LIKE '%prueba%'\nORDER BY pp.createdAt DESC\nLIMIT 20;",
+  "rows": [
+    {
+      "id": "900006",
+      "name": "COT-2026-626-5411368 - Álvaro prueba ",
+      "status": "aprobacion_final",
+      "photo_id": "540003",
+      "subcategory": "despieces",
+      "category": "disenos",
+      "stage": "diseno",
+      "createdAt": "2026-02-04 19:42:55"
+    },
+    {
+      "id": "900006",
+      "name": "COT-2026-626-5411368 - Álvaro prueba ",
+      "status": "aprobacion_final",
+      "photo_id": "540001",
+      "subcategory": "renders",
+      "category": "disenos",
+      "stage": "diseno",
+      "createdAt": "2026-02-04 19:25:15"
+    },
+    {
+      "id": "900006",
+      "name": "COT-2026-626-5411368 - Álvaro prueba ",
+      "status": "aprobacion_final",
+      "photo_id": "540002",
+      "subcategory": "renders",
+      "category": "disenos",
+      "stage": "diseno",
+      "createdAt": "2026-02-04 19:25:15"
+    },
+    {
+      "id": "900006",
+      "name": "COT-2026-626-5411368 - Álvaro prueba ",
+      "status": "aprobacion_final",
+      "photo_id": "510001",
+      "subcategory": "modelado_3d",
+      "category": "disenos",
+      "stage": "diseno",
+      "createdAt": "2026-02-03 23:04:04"
+    },
+    {
+      "id": "900006",
+      "name": "COT-2026-626-5411368 - Álvaro prueba ",
+      "status": "aprobacion_final",
+      "photo_id": "480001",
+      "subcategory": "modelado_3d",
+      "category": "disenos",
+      "stage": "diseno",
+      "createdAt": "2026-02-03 20:18:29"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\tstatus\tphoto_id\tsubcategory\tcategory\tstage\tcreatedAt\n900006\tCOT-2026-626-5411368 - Álvaro prueba \taprobacion_final\t540003\tdespieces\tdisenos\tdiseno\t2026-02-04 19:42:55\n900006\tCOT-2026-626-5411368 - Álvaro prueba \taprobacion_final\t540001\trenders\tdisenos\tdiseno\t2026-02-04 19:25:15\n900006\tCOT-2026-626-5411368 - Álvaro prueba \taprobacion_final\t540002\trenders\tdisenos\tdiseno\t2026-02-04 19:25:15\n900006\tCOT-2026-626-5411368 - Álvaro prueba \taprobacion_final\t510001\tmodelado_3d\tdisenos\tdiseno\t2026-02-03 23:04:04\n900006\tCOT-2026-626-5411368 - Álvaro prueba \taprobacion_final\t480001\tmodelado_3d\tdisenos\tdiseno\t2026-02-03 20:18:29\n",
+  "stderr": "",
+  "execution_time_ms": 67
+}

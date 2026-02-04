@@ -4002,3 +4002,10 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Al subir fotos finales (subcategory: fotos_finales), cambia a "entregado"
 - [x] Solo avanza el estado si el nuevo es posterior al actual (no retrocede)
 - [x] Se registra el cambio en el historial de estados
+
+
+## Bug: Jefe de taller no puede subir fotos de corte - CORREGIDO
+
+- [x] Revisar permisos de validatePhotoUploadPermission para jefe de taller
+- [x] Corregido: previousStageMap usaba "despiece" pero la subcategoría correcta es "despieces"
+- [x] Ahora el botón de corte se habilita cuando hay fotos en despieces

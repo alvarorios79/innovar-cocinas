@@ -549,6 +549,7 @@ export default function ProjectDetail() {
             <Button
               variant="outline"
               size="sm"
+              className="bg-yellow-400 hover:bg-yellow-500 text-yellow-900 border-yellow-500"
               onClick={() => {
                 setEditDateForm({
                   estimatedInstallDate: projectDetail.estimatedInstallDate 

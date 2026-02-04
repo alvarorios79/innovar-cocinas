@@ -4047,3 +4047,11 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 
 - [x] El operario (Daniel Beltrán) ahora ve los mismos proyectos que el jefe de taller
 - [x] Puede ver proyectos desde pendiente_render hasta entregado
+
+
+## Mejora: Fecha oficial al aprobar internamente - COMPLETADO
+
+- [x] Calcular fecha oficial cuando se aprueba internamente (botón Aprobar en Centro de Control)
+- [x] Calcular fecha oficial cuando se cambia estado a aprobacion_final manualmente
+- [x] Actualizar proyectos existentes en producción sin fecha oficial (Orlando, Henry)
+- [x] Todos los proyectos ahora tienen isInstallDateOfficial = 1

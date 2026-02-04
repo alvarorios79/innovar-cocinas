@@ -4040,6 +4040,7 @@ export const appRouter = router({
           updateData.clientApprovedAt = new Date();
           // Calcular fecha estimada de instalación (25 días hábiles)
           updateData.estimatedInstallDate = await calculateEstimatedDeliveryDate(new Date());
+          updateData.isInstallDateOfficial = true; // Marcar como fecha oficial
           if (input.selectedColors) {
             updateData.selectedColors = input.selectedColors;
           }
@@ -4567,6 +4568,9 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
             updateData.clientApprovedAt = new Date();
             updateData.rendersApprovedAt = new Date();
             updateData.rendersApprovedBy = ctx.user.id;
+            // Calcular fecha oficial de instalación (25 días hábiles desde la aprobación)
+            updateData.estimatedInstallDate = await calculateEstimatedDeliveryDate(new Date());
+            updateData.isInstallDateOfficial = true;
           }
           
           await db.updateProject(input.projectId, updateData);

@@ -976,25 +976,21 @@ export default function ProjectDetail() {
                   {/* Fecha de creación del proyecto */}
                   <p><strong>Creado:</strong> {formatDate(projectDetail.createdAt)}</p>
                   
-                  {/* Fechas de instalación - Tentativa (roja) y Oficial (verde) */}
-                  {projectDetail.tentativeInstallDate && projectDetail.status !== "entregado" && (
+                  {/* Fechas de instalación - Tentativa (roja) y Oficial (verde) - Siempre visibles */}
+                  {projectDetail.tentativeInstallDate && (
                     <p className="text-red-600 font-medium">
                       <strong>🔴 Instalación tentativa:</strong> {formatDate(projectDetail.tentativeInstallDate)}
                     </p>
                   )}
-                  {projectDetail.estimatedInstallDate && projectDetail.isInstallDateOfficial && projectDetail.status !== "entregado" && (
+                  {projectDetail.estimatedInstallDate && projectDetail.isInstallDateOfficial && (
                     <p className="text-green-600 font-medium">
                       <strong>🟢 Instalación oficial:</strong> {formatDate(projectDetail.estimatedInstallDate)}
                     </p>
                   )}
-                  {projectDetail.estimatedInstallDate && !projectDetail.isInstallDateOfficial && !projectDetail.tentativeInstallDate && projectDetail.status !== "entregado" && (
+                  {projectDetail.estimatedInstallDate && !projectDetail.isInstallDateOfficial && !projectDetail.tentativeInstallDate && (
                     <p><strong>Instalación Est.:</strong> {formatDate(projectDetail.estimatedInstallDate)}</p>
                   )}
-                  {projectDetail.deliveredAt && (
-                    <p className="text-green-600 font-medium">
-                      <strong>Entregado:</strong> {formatDate(projectDetail.deliveredAt)}
-                    </p>
-                  )}
+
                 </CardContent>
               </Card>
             </div>

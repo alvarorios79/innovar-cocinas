@@ -4032,3 +4032,13 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Mostrar fecha tentativa en rojo siempre que exista
 - [x] Mostrar fecha oficial en verde cuando el cliente apruebe
 - [x] Ambas fechas son visibles simultáneamente
+
+
+## Bug: Las fechas tentativa y oficial no se muestran - CORREGIDO
+
+- [x] Verificar que tentativeInstallDate se guarda al crear proyecto
+- [x] Verificar que estimatedInstallDate se guarda al aprobar renders
+- [x] Corregida la UI para mostrar ambas fechas siempre (sin ocultar en estado entregado)
+- [x] Eliminada la fecha "Entregado" que no debía aparecer
+- [x] Creado script para recalcular fechas con 25 días hábiles
+- [x] Recalculadas las fechas de todos los proyectos existentes

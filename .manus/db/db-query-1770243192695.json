@@ -1,0 +1,18 @@
+{
+  "query": "SELECT id, name, tentativeInstallDate, estimatedInstallDate, isInstallDateOfficial, rendersApprovedAt FROM projects WHERE name LIKE '%Álvaro%' OR name LIKE '%Alvaro%';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT id, name, tentativeInstallDate, estimatedInstallDate, isInstallDateOfficial, rendersApprovedAt FROM projects WHERE name LIKE '%Álvaro%' OR name LIKE '%Alvaro%';",
+  "rows": [
+    {
+      "id": "900006",
+      "name": "COT-2026-626-5411368 - Álvaro prueba ",
+      "tentativeInstallDate": "2026-03-10 20:11:21",
+      "estimatedInstallDate": "NULL",
+      "isInstallDateOfficial": "0",
+      "rendersApprovedAt": "2026-02-04 19:34:39"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\ttentativeInstallDate\testimatedInstallDate\tisInstallDateOfficial\trendersApprovedAt\n900006\tCOT-2026-626-5411368 - Álvaro prueba \t2026-03-10 20:11:21\tNULL\t0\t2026-02-04 19:34:39\n",
+  "stderr": "",
+  "execution_time_ms": 60
+}

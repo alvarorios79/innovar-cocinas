@@ -1,0 +1,50 @@
+{
+  "query": "SELECT id, name, status, tentativeInstallDate, estimatedInstallDate, isInstallDateOfficial, createdAt, rendersApprovedAt FROM projects ORDER BY id DESC LIMIT 5;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT id, name, status, tentativeInstallDate, estimatedInstallDate, isInstallDateOfficial, createdAt, rendersApprovedAt FROM projects ORDER BY id DESC LIMIT 5;",
+  "rows": [
+    {
+      "id": "900006",
+      "name": "COT-2026-626-5411368 - Álvaro prueba ",
+      "status": "entregado",
+      "tentativeInstallDate": "2026-03-10 20:11:21",
+      "estimatedInstallDate": "NULL",
+      "isInstallDateOfficial": "0",
+      "createdAt": "2026-02-03 20:11:20",
+      "rendersApprovedAt": "2026-02-04 19:34:39"
+    },
+    {
+      "id": "780001",
+      "name": "COT-2026-625-0059142 - Henry Morales",
+      "status": "enchape",
+      "tentativeInstallDate": "2026-03-10 01:15:56",
+      "estimatedInstallDate": "2026-03-10 01:28:16",
+      "isInstallDateOfficial": "0",
+      "createdAt": "2026-02-03 01:15:56",
+      "rendersApprovedAt": "NULL"
+    },
+    {
+      "id": "540001",
+      "name": "Orlando Primacho - COT-2026-621-6366536",
+      "status": "corte",
+      "tentativeInstallDate": "2026-03-04 23:59:13",
+      "estimatedInstallDate": "NULL",
+      "isInstallDateOfficial": "0",
+      "createdAt": "2026-01-28 23:59:12",
+      "rendersApprovedAt": "NULL"
+    },
+    {
+      "id": "390001",
+      "name": "Sra Ruth Naranjo Viterbo",
+      "status": "despiece",
+      "tentativeInstallDate": "2026-02-27 23:58:54",
+      "estimatedInstallDate": "NULL",
+      "isInstallDateOfficial": "0",
+      "createdAt": "2026-01-25 23:58:53",
+      "rendersApprovedAt": "2026-01-31 12:36:56"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\tstatus\ttentativeInstallDate\testimatedInstallDate\tisInstallDateOfficial\tcreatedAt\trendersApprovedAt\n900006\tCOT-2026-626-5411368 - Álvaro prueba \tentregado\t2026-03-10 20:11:21\tNULL\t0\t2026-02-03 20:11:20\t2026-02-04 19:34:39\n780001\tCOT-2026-625-0059142 - Henry Morales\tenchape\t2026-03-10 01:15:56\t2026-03-10 01:28:16\t0\t2026-02-03 01:15:56\tNULL\n540001\tOrlando Primacho - COT-2026-621-6366536\tcorte\t2026-03-04 23:59:13\tNULL\t0\t2026-01-28 23:59:12\tNULL\n390001\tSra Ruth Naranjo Viterbo\tdespiece\t2026-02-27 23:58:54\tNULL\t0\t2026-01-25 23:58:53\t2026-01-31 12:36:56\n",
+  "stderr": "",
+  "execution_time_ms": 187
+}

@@ -222,10 +222,12 @@ export function generateWhatsAppLink(phone: string, message: string): string {
 }
 
 /**
- * Genera la URL del portal del cliente para un proyecto específico
+ * Genera la URL de la galería pública del cliente para un proyecto específico
+ * Usa /gallery para acceso sin login
  */
-export function generatePortalUrl(projectId: number, baseUrl: string): string {
-  return `${baseUrl}/portal?project=${projectId}`;
+export function generatePortalUrl(projectId: number, baseUrl: string, type?: "modelado_3d" | "renders"): string {
+  const typeParam = type ? `&type=${type}` : "";
+  return `${baseUrl}/gallery?project=${projectId}${typeParam}`;
 }
 
 /**

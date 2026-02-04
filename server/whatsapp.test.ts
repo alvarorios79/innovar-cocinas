@@ -146,16 +146,28 @@ describe("WhatsApp Notifications Service", () => {
   });
 
   describe("generatePortalUrl", () => {
-    it("should generate correct portal URL", () => {
+    it("should generate correct gallery URL without type", () => {
       const url = generatePortalUrl(123, "https://innovar.com");
       
-      expect(url).toBe("https://innovar.com/portal?project=123");
+      expect(url).toBe("https://innovar.com/gallery?project=123");
     });
 
     it("should handle different base URLs", () => {
       const url = generatePortalUrl(456, "https://app.innovar.co");
       
-      expect(url).toBe("https://app.innovar.co/portal?project=456");
+      expect(url).toBe("https://app.innovar.co/gallery?project=456");
+    });
+
+    it("should include type parameter when provided", () => {
+      const url = generatePortalUrl(789, "https://innovar.com", "modelado_3d");
+      
+      expect(url).toBe("https://innovar.com/gallery?project=789&type=modelado_3d");
+    });
+
+    it("should include renders type when provided", () => {
+      const url = generatePortalUrl(101, "https://innovar.com", "renders");
+      
+      expect(url).toBe("https://innovar.com/gallery?project=101&type=renders");
     });
   });
 
@@ -246,7 +258,7 @@ describe("WhatsApp Notifications Service", () => {
       expect(result.statusLabel).toBe("En Producción - Corte");
     });
 
-    it("should include portal URL in message", () => {
+    it("should include gallery URL in message", () => {
       const project = {
         id: 42,
         name: "Closet Principal",
@@ -260,7 +272,8 @@ describe("WhatsApp Notifications Service", () => {
 
       const result = prepareWhatsAppNotification(project, "https://app.innovar.co");
 
-      expect(result.message).toContain("https://app.innovar.co/portal?project=42");
+      // Ahora usa /gallery para acceso público sin login
+      expect(result.message).toContain("https://app.innovar.co/gallery?project=42");
     });
   });
 });

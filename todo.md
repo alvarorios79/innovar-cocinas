@@ -3962,3 +3962,15 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Cambiar título de la tarjeta "Aprobación del Cliente" → "Aprobar en Nombre del Cliente"
 - [x] El candado se desactiva automáticamente después de aprobar o solicitar cambios
 - [x] Botones "Aprobar" y "Solicitar Cambios" bloqueados hasta desbloquear el candado
+
+
+## Bug: Enlace de aprobación requiere login - CORREGIDO
+
+- [x] El enlace de aprobación enviado por WhatsApp ahora usa /gallery (acceso público sin login)
+- [x] No requiere login ni registro del cliente
+- [x] Actualizado sendModeladoToClient para usar /gallery?project=X&type=modelado_3d
+- [x] Actualizado sendRendersToClient para usar /gallery?project=X&type=renders
+- [x] Actualizado resetModeladoApproval para usar /gallery?project=X&type=modelado_3d
+- [x] Actualizado resetRenderApproval para usar /gallery?project=X&type=renders
+- [x] Actualizado generatePortalUrl en whatsapp-notifications.ts
+- [x] Actualizados tests (476 tests pasando)

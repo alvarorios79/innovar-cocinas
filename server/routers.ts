@@ -6417,9 +6417,9 @@ ${input.notes || "No se especificaron detalles"}
         // Obtener cliente para notificación
         const client = project.clientId ? await db.getClientById(project.clientId) : null;
         
-        // Generar enlace del portal
+        // Generar enlace de la galería pública (sin login)
         const baseUrl = process.env.VITE_APP_URL || "https://innovarcitas.manus.space";
-        const portalLink = `${baseUrl}/portal?project=${input.projectId}`;
+        const portalLink = `${baseUrl}/gallery?project=${input.projectId}&type=renders`;
 
         // Generar enlace de WhatsApp si se debe notificar
         let whatsAppLink = null;
@@ -6499,9 +6499,9 @@ ${input.notes || "No se especificaron detalles"}
         // Obtener cliente para notificación
         const client = project.clientId ? await db.getClientById(project.clientId) : null;
         
-        // Generar enlace del portal
+        // Generar enlace de la galería pública (sin login)
         const baseUrl = process.env.VITE_APP_URL || "https://innovarcitas.manus.space";
-        const portalLink = `${baseUrl}/portal?project=${input.projectId}`;
+        const portalLink = `${baseUrl}/gallery?project=${input.projectId}&type=modelado_3d`;
 
         // Generar enlace de WhatsApp si se debe notificar
         let whatsAppLink = null;
@@ -6577,7 +6577,8 @@ ${input.notes || "No se especificaron detalles"}
         // Obtener cliente para generar enlace
         const client = project.clientId ? await db.getClientById(project.clientId) : null;
         const baseUrl = process.env.VITE_APP_URL || "https://innovarcitas.manus.space";
-        const portalLink = `${baseUrl}/portal?project=${input.projectId}`;
+        // Usar /gallery para acceso público sin login (incluye type=modelado_3d)
+        const portalLink = `${baseUrl}/gallery?project=${input.projectId}&type=modelado_3d`;
 
         // Generar mensaje de WhatsApp
         let whatsAppLink = null;
@@ -6655,7 +6656,8 @@ ${input.notes || "No se especificaron detalles"}
         // Obtener cliente para generar enlace
         const client = project.clientId ? await db.getClientById(project.clientId) : null;
         const baseUrl = process.env.VITE_APP_URL || "https://innovarcitas.manus.space";
-        const portalLink = `${baseUrl}/portal?project=${input.projectId}`;
+        // Usar /gallery para acceso público sin login (incluye type=renders)
+        const portalLink = `${baseUrl}/gallery?project=${input.projectId}&type=renders`;
 
         // Generar mensaje de WhatsApp
         let whatsAppLink = null;

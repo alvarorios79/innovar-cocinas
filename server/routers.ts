@@ -3728,7 +3728,7 @@ export const appRouter = router({
         }
 
         // Optimización: ejecutar consultas en paralelo
-        const [client, photosRaw, details, history, projectTasks, quotation, payments, clientAppointments] = await Promise.all([
+        const [client, photosRaw, details, history, projectTasks, quotation, payments, clientAppointments, clientRevisions] = await Promise.all([
           db.getClientById(project.clientId),
           db.getProjectPhotosByProjectId(input.id),
           db.getProjectDetailsByProjectId(input.id),
@@ -3737,6 +3737,7 @@ export const appRouter = router({
           project.quotationId ? db.getQuotationById(project.quotationId) : Promise.resolve(null),
           db.getProjectPaymentsByProjectId(input.id),
           db.getAppointmentsByClientId(project.clientId),
+          db.getClientRevisionsByProjectId(input.id),
         ]);
         const totalPaid = payments.reduce((sum, p) => sum + Number(p.amount), 0);
         
@@ -3893,6 +3894,7 @@ export const appRouter = router({
           tasks: projectTasks,
           quotation,
           payments,
+          clientRevisions,
           financialInfo: {
             totalAmount,
             advanceAmount,
@@ -6254,6 +6256,20 @@ ${input.notes || "No se especificaron detalles"}
         if (!project) {
           throw new TRPCError({ code: "NOT_FOUND", message: "Proyecto no encontrado" });
         }
+
+        // Determinar el número de revisión actual
+        const revisionNumber = input.type === "modelado_3d" 
+          ? (project.modeladoRevisionNumber || 1)
+          : (project.renderRevisionNumber || 1);
+
+        // Guardar en el historial de revisiones del cliente
+        await db.createClientRevision({
+          projectId: input.projectId,
+          type: input.type,
+          revisionNumber,
+          clientName: input.clientName,
+          changes: input.changes,
+        });
 
         // Actualizar estado del proyecto si está pendiente de cliente
         if ((project.status as string) === "pendiente_render" || (project.status as string) === "pendiente_modelado") {

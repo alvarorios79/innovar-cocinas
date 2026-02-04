@@ -45,7 +45,9 @@ import {
   pricingHistory,
   InsertPricingHistory,
   expenses,
-  InsertExpense
+  InsertExpense,
+  clientRevisionHistory,
+  InsertClientRevisionHistory
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -2088,4 +2090,36 @@ export async function getProjectExpensesSummary() {
     .from(expenses)
     .where(eq(expenses.expenseType, "materiales_proyecto"))
     .groupBy(expenses.projectId, expenses.projectClientName);
+}
+
+
+// ============ CLIENT REVISION HISTORY ============
+
+export async function createClientRevision(data: InsertClientRevisionHistory) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.insert(clientRevisionHistory).values(data);
+  return result[0].insertId;
+}
+
+export async function getClientRevisionsByProjectId(projectId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(clientRevisionHistory)
+    .where(eq(clientRevisionHistory.projectId, projectId))
+    .orderBy(desc(clientRevisionHistory.createdAt));
+}
+
+export async function getClientRevisionsByType(projectId: number, type: "modelado_3d" | "renders") {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(clientRevisionHistory)
+    .where(and(
+      eq(clientRevisionHistory.projectId, projectId),
+      eq(clientRevisionHistory.type, type)
+    ))
+    .orderBy(desc(clientRevisionHistory.createdAt));
 }

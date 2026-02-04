@@ -744,3 +744,21 @@ export const expenses = mysqlTable("expenses", {
 
 export type Expense = typeof expenses.$inferSelect;
 export type InsertExpense = typeof expenses.$inferInsert;
+
+
+/**
+ * Historial de revisiones/cambios solicitados por el cliente
+ * Guarda cada solicitud de cambios para mantener un registro completo
+ */
+export const clientRevisionHistory = mysqlTable("client_revision_history", {
+  id: int("id").autoincrement().primaryKey(),
+  projectId: int("projectId").notNull().references(() => projects.id, { onDelete: "cascade" }),
+  type: mysqlEnum("type", ["modelado_3d", "renders"]).notNull(), // Tipo de diseño al que aplica
+  revisionNumber: int("revisionNumber").notNull(), // Número de revisión (1, 2, 3...)
+  clientName: varchar("clientName", { length: 255 }).notNull(), // Nombre del cliente que solicitó
+  changes: text("changes").notNull(), // Descripción de los cambios solicitados
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type ClientRevisionHistory = typeof clientRevisionHistory.$inferSelect;
+export type InsertClientRevisionHistory = typeof clientRevisionHistory.$inferInsert;

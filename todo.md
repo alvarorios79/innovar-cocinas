@@ -4064,3 +4064,19 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Jefe de Taller y Operario solo pueden ver (lectura) - botón oculto
 - [x] Permisos validados en frontend (UI) y backend (API)
 - [x] Los cambios y peticiones del cliente llegan a esta sección
+
+
+## Mejora: Historial de revisiones del cliente
+
+- [ ] Actualmente solo se guarda el último cambio solicitado por el cliente
+- [ ] Implementar historial acumulativo de todas las revisiones
+- [ ] Mostrar todas las revisiones en la sección Detalles con fecha y contenido
+
+
+## Mejora: Historial de revisiones del cliente en Detalles - COMPLETADO
+
+- [x] Crear tabla client_revision_history para guardar historial de todas las revisiones del cliente
+- [x] Modificar requestChanges para guardar en el historial (además de actualizar clientApprovalNotes)
+- [x] Mostrar historial completo en la pestaña Detalles con scroll
+- [x] Cada revisión muestra: tipo (modelado/renders), número de revisión, nombre del cliente, fecha, cambios
+- [x] Compatible con proyectos existentes que solo tienen clientApprovalNotes

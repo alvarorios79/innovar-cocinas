@@ -316,6 +316,13 @@
       "when": 1770147072518,
       "tag": "0044_odd_molecule_man",
       "breakpoints": true
+    },
+    {
+      "idx": 45,
+      "version": "5",
+      "when": 1770246598597,
+      "tag": "0045_silent_hellion",
+      "breakpoints": true
     }
   ]
 }

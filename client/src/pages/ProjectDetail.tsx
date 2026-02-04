@@ -1212,8 +1212,47 @@ export default function ProjectDetail() {
 
           {/* Tab Detalles */}
           <TabsContent value="details" className="space-y-4">
-            {/* Sección de Cambios Solicitados por el Cliente */}
-            {projectDetail.clientApprovalNotes && (
+            {/* Sección de Historial de Revisiones del Cliente */}
+            {projectDetail.clientRevisions && projectDetail.clientRevisions.length > 0 && (
+              <Card className="border-orange-300 bg-orange-50/50">
+                <CardHeader className="py-3 bg-gradient-to-r from-orange-500 to-orange-600">
+                  <CardTitle className="text-sm text-white flex items-center gap-2">
+                    <MessageSquare className="h-4 w-4" />
+                    Historial de Cambios Solicitados por el Cliente ({projectDetail.clientRevisions.length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-4">
+                  <div className="space-y-3 max-h-96 overflow-y-auto">
+                    {projectDetail.clientRevisions.map((revision: any, index: number) => (
+                      <div key={revision.id || index} className="p-3 bg-white rounded-lg border border-orange-200">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className={`text-xs font-medium px-2 py-1 rounded ${revision.type === 'modelado_3d' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>
+                            {revision.type === 'modelado_3d' ? '📎 Modelado 3D' : '🎨 Renders'} - Rev. {revision.revisionNumber}
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            {revision.clientName}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-700">{revision.changes}</p>
+                        <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {new Date(revision.createdAt).toLocaleDateString('es-CO', { 
+                            weekday: 'long', 
+                            day: 'numeric', 
+                            month: 'long', 
+                            year: 'numeric',
+                            hour: '2-digit', 
+                            minute: '2-digit' 
+                          })}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+            {/* Mostrar último cambio si no hay historial pero sí hay nota */}
+            {(!projectDetail.clientRevisions || projectDetail.clientRevisions.length === 0) && projectDetail.clientApprovalNotes && (
               <Card className="border-orange-300 bg-orange-50/50">
                 <CardHeader className="py-3 bg-gradient-to-r from-orange-500 to-orange-600">
                   <CardTitle className="text-sm text-white flex items-center gap-2">

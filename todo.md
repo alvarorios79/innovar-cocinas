@@ -3899,3 +3899,11 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Corregir filtro de categorías (ahora incluye "disenos", "modelado_3d", etc.)
 - [x] Corregir campo de URL de fotos (photoUrl en lugar de url)
 - [x] Imágenes del modelado ahora se muestran correctamente al cliente
+
+
+## Bug: Botón de reenvío de modelado/renders desactivado - CORREGIDO
+
+- [x] El botón WhatsApp verde es para contacto general con el cliente (funciona correctamente)
+- [x] Modificado botón "Enviar Modelado" para permitir reenviar (muestra "Reenviar (Rev. X)")
+- [x] Modificado botón "Enviar Renders" para permitir reenviar (muestra "Reenviar (Rev. X)")
+- [x] Incrementar número de revisión al reenviar

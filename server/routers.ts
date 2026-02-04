@@ -4536,12 +4536,15 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
           throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para aprobar este proyecto" });
         }
 
-        // Verificar que el proyecto esté en un estado pendiente de aprobación
-        const isPendingModelado = project.status === "pendiente_modelado";
+        // Verificar que el proyecto esté en un estado de diseño donde se puede aprobar
+        // Admin/comercial puede aprobar en cualquier momento durante el proceso de diseño
+        // (cuando el cliente confirma por teléfono/WhatsApp)
+        const isInDesignPhase = ["en_diseno", "pendiente_modelado", "pendiente_render"].includes(project.status as string);
+        const isPendingModelado = project.status === "pendiente_modelado" || project.status === "en_diseno";
         const isPendingRender = project.status === "pendiente_render";
         
-        if (!isPendingModelado && !isPendingRender) {
-          throw new TRPCError({ code: "BAD_REQUEST", message: "El proyecto no está pendiente de aprobación" });
+        if (!isInDesignPhase) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "El proyecto no está en fase de diseño" });
         }
 
         const approverLabel = isAdmin ? "Admin" : "Cliente";

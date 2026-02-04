@@ -653,6 +653,8 @@ export default function ProjectDetail() {
               
               {/* Sección de Aprobación - Siempre visible */}
               {(() => {
+                // Estados donde se puede aprobar internamente (admin/comercial puede aprobar en nombre del cliente)
+                const isInDesignPhase = ["en_diseno", "pendiente_modelado", "pendiente_render"].includes(projectDetail.status as string);
                 const isPendingApproval = (projectDetail.status as string) === "pendiente_modelado" || (projectDetail.status as string) === "pendiente_render";
                 const isApproved = projectDetail.rendersApprovedAt || projectDetail.modeladoApprovedAt;
                 const hasDesignContent = (projectDetail.photos?.filter((p: any) => p.subcategory === "modelado_3d" || p.subcategory === "renders").length || 0) > 0;
@@ -669,6 +671,9 @@ export default function ProjectDetail() {
                 } else if (projectDetail.modeladoApprovedAt) {
                   statusMessage = `Modelado aprobado el ${new Date(projectDetail.modeladoApprovedAt).toLocaleDateString('es-CO')}`;
                   statusColor = "green";
+                } else if ((projectDetail.status as string) === "en_diseno") {
+                  statusMessage = "En proceso de diseño - Puedes aprobar si el cliente confirma por teléfono/WhatsApp";
+                  statusColor = "blue";
                 } else if (!hasDesignContent) {
                   statusMessage = "Sube imágenes de modelado o renders primero";
                   statusColor = "gray";
@@ -713,13 +718,13 @@ export default function ProjectDetail() {
                     <div className="flex flex-wrap gap-3">
                       <Button
                         onClick={() => approveDesign.mutate({ projectId: projectDetail.id, approved: true })}
-                        disabled={approveDesign.isPending || !isPendingApproval}
+                        disabled={approveDesign.isPending || !isInDesignPhase}
                         className={`shadow-sm ${
-                          isPendingApproval 
+                          isInDesignPhase 
                             ? "bg-green-600 hover:bg-green-700 text-white" 
                             : "bg-gray-300 text-gray-500 cursor-not-allowed"
                         }`}
-                        title={!isPendingApproval ? "Solo disponible cuando hay diseño pendiente de aprobación" : ""}
+                        title={!isInDesignPhase ? "Solo disponible durante el proceso de diseño" : "Aprobar en nombre del cliente (confirmación por teléfono/WhatsApp)"}
                       >
                         <CheckCircle2 className="h-4 w-4 mr-2" />
                         Aprobar Diseño
@@ -727,20 +732,20 @@ export default function ProjectDetail() {
                       <Button
                         variant="outline"
                         className={`${
-                          isPendingApproval 
+                          isInDesignPhase 
                             ? "border-orange-400 text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20" 
                             : "border-gray-300 text-gray-400 cursor-not-allowed"
                         }`}
                         onClick={() => {
-                          if (isPendingApproval) {
+                          if (isInDesignPhase) {
                             const notes = prompt("Indica qué cambios se necesitan:");
                             if (notes) {
                               approveDesign.mutate({ projectId: projectDetail.id, approved: false, notes });
                             }
                           }
                         }}
-                        disabled={approveDesign.isPending || !isPendingApproval}
-                        title={!isPendingApproval ? "Solo disponible cuando hay diseño pendiente de aprobación" : ""}
+                        disabled={approveDesign.isPending || !isInDesignPhase}
+                        title={!isInDesignPhase ? "Solo disponible durante el proceso de diseño" : "Registrar cambios solicitados por el cliente"}
                       >
                         <XCircle className="h-4 w-4 mr-2" />
                         Solicitar Cambios

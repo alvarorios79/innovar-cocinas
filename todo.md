@@ -3945,3 +3945,12 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Enviar notificación push interna al diseñador (ya existía)
 - [x] Generar enlace de WhatsApp para contactar al diseñador (designerWhatsAppLink)
 - [x] Incluir detalles del proyecto y cambios solicitados en las notificaciones
+
+
+## Bug: Botones de Aprobación del Cliente desactivados - CORREGIDO
+
+- [x] Investigar por qué los botones "Aprobar Diseño" y "Solicitar Cambios" están desactivados
+- [x] Activar los botones cuando el proyecto está en en_diseno, pendiente_modelado o pendiente_render
+- [x] Permitir que el admin/comercial pueda aprobar en nombre del cliente en cualquier momento
+- [x] Actualizado endpoint approveDesign para aceptar estado en_diseno
+- [x] Actualizado ProjectDetail.tsx con nueva variable isInDesignPhase

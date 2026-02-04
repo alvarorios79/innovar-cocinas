@@ -603,13 +603,13 @@ export default function ProjectDetail() {
                   {projectDetail.photos?.filter((p: any) => p.subcategory === "modelado_3d").length > 0 && (
                     <Button
                       size="sm"
-                      className={`w-full mt-4 shadow-sm ${(projectDetail.modeladoRevisionNumber || 0) >= 1 ? 'bg-gray-400 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700'} text-white`}
+                      className={`w-full mt-4 shadow-sm ${(projectDetail.modeladoRevisionNumber || 0) >= 1 ? 'bg-purple-500 hover:bg-purple-600' : 'bg-purple-600 hover:bg-purple-700'} text-white`}
                       onClick={() => sendModeladoToClient.mutate({ projectId: projectDetail.id })}
-                      disabled={sendModeladoToClient.isPending || (projectDetail.modeladoRevisionNumber || 0) >= 1}
-                      title={(projectDetail.modeladoRevisionNumber || 0) >= 1 ? 'Ya se envió la primera revisión. Use "Enviar Revisión" para nuevos envíos.' : ''}
+                      disabled={sendModeladoToClient.isPending}
+                      title={(projectDetail.modeladoRevisionNumber || 0) >= 1 ? 'Reenviar enlace de aprobación al cliente (incrementará la revisión)' : 'Enviar modelado al cliente para aprobación'}
                     >
                       <MessageCircle className={`h-4 w-4 mr-2 ${sendModeladoToClient.isPending ? 'animate-spin' : ''}`} />
-                      {(projectDetail.modeladoRevisionNumber || 0) >= 1 ? `Enviado (Rev. ${projectDetail.modeladoRevisionNumber})` : sendModeladoToClient.isPending ? 'Enviando...' : 'Enviar Modelado'}
+                      {sendModeladoToClient.isPending ? 'Enviando...' : (projectDetail.modeladoRevisionNumber || 0) >= 1 ? `Reenviar (Rev. ${(projectDetail.modeladoRevisionNumber || 0) + 1})` : 'Enviar Modelado'}
                     </Button>
                   )}
                 </div>
@@ -638,13 +638,13 @@ export default function ProjectDetail() {
                   {projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length > 0 && (
                     <Button
                       size="sm"
-                      className={`w-full mt-4 shadow-sm ${(projectDetail.renderRevisionNumber || 0) >= 1 ? 'bg-gray-400 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-700'} text-white`}
+                      className={`w-full mt-4 shadow-sm ${(projectDetail.renderRevisionNumber || 0) >= 1 ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-emerald-600 hover:bg-emerald-700'} text-white`}
                       onClick={() => sendRendersToClient.mutate({ projectId: projectDetail.id })}
-                      disabled={sendRendersToClient.isPending || (projectDetail.renderRevisionNumber || 0) >= 1}
-                      title={(projectDetail.renderRevisionNumber || 0) >= 1 ? 'Ya se envió la primera revisión. Use "Enviar Revisión" para nuevos envíos.' : ''}
+                      disabled={sendRendersToClient.isPending}
+                      title={(projectDetail.renderRevisionNumber || 0) >= 1 ? 'Reenviar enlace de aprobación al cliente (incrementará la revisión)' : 'Enviar renders al cliente para aprobación'}
                     >
                       <MessageCircle className={`h-4 w-4 mr-2 ${sendRendersToClient.isPending ? 'animate-spin' : ''}`} />
-                      {(projectDetail.renderRevisionNumber || 0) >= 1 ? `Enviado (Rev. ${projectDetail.renderRevisionNumber})` : sendRendersToClient.isPending ? 'Enviando...' : 'Enviar Renders'}
+                      {sendRendersToClient.isPending ? 'Enviando...' : (projectDetail.renderRevisionNumber || 0) >= 1 ? `Reenviar (Rev. ${(projectDetail.renderRevisionNumber || 0) + 1})` : 'Enviar Renders'}
                     </Button>
                   )}
                 </div>

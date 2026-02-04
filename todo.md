@@ -3907,3 +3907,11 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Modificado botón "Enviar Modelado" para permitir reenviar (muestra "Reenviar (Rev. X)")
 - [x] Modificado botón "Enviar Renders" para permitir reenviar (muestra "Reenviar (Rev. X)")
 - [x] Incrementar número de revisión al reenviar
+
+
+## Corrección: Botón de reenvío en ProjectDetail.tsx - CORREGIDO
+
+- [x] Identificado que ProjectDetail.tsx tenía código diferente a ProjectInlineDetail.tsx
+- [x] Corregido botón "Enviar Modelado" → ahora muestra "Reenviar (Rev. X)" y permanece activo
+- [x] Corregido botón "Enviar Renders" → ahora muestra "Reenviar (Rev. X)" y permanece activo
+- [x] Ambos botones permiten reenviar el enlace de aprobación al cliente cuantas veces sea necesario

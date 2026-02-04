@@ -6235,6 +6235,63 @@ ${input.notes || "No se especificaron detalles"}
           changes: input.changes,
         });
 
+        // Enviar email al diseñador asignado
+        let designerWhatsAppLink: string | null = null;
+        try {
+          const { sendEmail, generateEmailHTML } = await import("./email");
+          
+          // Obtener información del diseñador
+          if (project.designerId) {
+            const designer = await db.getUserById(project.designerId);
+            if (designer?.email) {
+              const tipoTexto = input.type === "modelado_3d" ? "Modelado 3D" : "Renders";
+              const emailContent = `
+                <div style="padding: 20px;">
+                  <h2 style="color: #f97316; margin-bottom: 20px;">📝 Cambios Solicitados por el Cliente</h2>
+                  
+                  <div style="background: #fff7ed; border-left: 4px solid #f97316; padding: 15px; margin-bottom: 20px;">
+                    <p style="margin: 0; font-weight: bold;">Proyecto: ${project.name}</p>
+                    <p style="margin: 5px 0 0 0; color: #666;">Tipo: ${tipoTexto}</p>
+                    <p style="margin: 5px 0 0 0; color: #666;">Cliente: ${input.clientName}</p>
+                  </div>
+                  
+                  <h3 style="color: #333; margin-bottom: 10px;">Cambios solicitados:</h3>
+                  <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 15px; margin-bottom: 20px;">
+                    <p style="margin: 0; white-space: pre-wrap;">${input.changes}</p>
+                  </div>
+                  
+                  <p style="color: #666; font-size: 14px;">Fecha de solicitud: ${new Date().toLocaleString('es-CO', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+                  
+                  <div style="margin-top: 25px; text-align: center;">
+                    <a href="https://innovarcitas.manus.space/projects/${input.projectId}" 
+                       style="display: inline-block; background: linear-gradient(135deg, #f97316, #ea580c); color: white; padding: 12px 30px; text-decoration: none; border-radius: 8px; font-weight: bold;">
+                      Ver Proyecto
+                    </a>
+                  </div>
+                </div>
+              `;
+              
+              await sendEmail({
+                to: designer.email,
+                subject: `📝 Cambios solicitados en ${tipoTexto}: ${project.name}`,
+                html: generateEmailHTML(emailContent, `Cambios Solicitados - ${project.name}`),
+              });
+              console.log(`[Email] Notificación de cambios enviada al diseñador: ${designer.email}`);
+            }
+            
+            // Generar enlace de WhatsApp para contactar al diseñador
+            const designerUser = await db.getUserById(project.designerId);
+            if (designerUser?.phone) {
+              const phoneToUse = designerUser.phone.startsWith('57') ? designerUser.phone : `57${designerUser.phone}`;
+              const tipoTexto = input.type === "modelado_3d" ? "Modelado 3D" : "Renders";
+              const message = encodeURIComponent(`📝 *CAMBIOS SOLICITADOS POR CLIENTE*\n\nHola ${designerUser.name}, el cliente ${input.clientName} ha solicitado cambios en el ${tipoTexto.toLowerCase()} del proyecto "${project.name}".\n\n*Cambios solicitados:*\n${input.changes}\n\nPor favor revisa el proyecto: https://innovarcitas.manus.space/projects/${input.projectId}`);
+              designerWhatsAppLink = `https://wa.me/${phoneToUse}?text=${message}`;
+            }
+          }
+        } catch (emailError) {
+          console.error("Error enviando email al diseñador:", emailError);
+        }
+
         // Enviar notificaciones push al equipo (diseñador, admin, comercial)
         try {
           const { createAndSendNotification } = await import("./push-notifications");
@@ -6280,6 +6337,7 @@ ${input.notes || "No se especificaron detalles"}
           success: true, 
           message: "¡Gracias! Hemos registrado sus comentarios. Nuestro equipo de diseño revisará los cambios solicitados y se pondrá en contacto pronto.",
           teamWhatsAppLink, // Enlace para notificar al equipo por WhatsApp
+          designerWhatsAppLink, // Enlace para notificar al diseñador directamente por WhatsApp
         };
       }),
 

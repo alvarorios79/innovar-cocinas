@@ -3937,3 +3937,11 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Mostrar los cambios solicitados por el cliente en la sección de Detalles del Proyecto
 - [x] Los cambios deben aparecer junto con las notas del diseñador, comercial, etc.
 - [x] Agregada sección "Cambios Solicitados por el Cliente" en la pestaña Detalles de ProjectDetail.tsx
+
+
+## Notificaciones automáticas al diseñador cuando el cliente solicita cambios - COMPLETADO
+
+- [x] Enviar email al diseñador asignado con los cambios solicitados
+- [x] Enviar notificación push interna al diseñador (ya existía)
+- [x] Generar enlace de WhatsApp para contactar al diseñador (designerWhatsAppLink)
+- [x] Incluir detalles del proyecto y cambios solicitados en las notificaciones

@@ -4017,3 +4017,11 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Verificar que los botones de reenvío funcionan correctamente sin ella
 - [x] Eliminar la tarjeta del Centro de Control de Diseño
 - [x] 476 tests pasando
+
+
+## Bug: Fecha definitiva no se calcula al aprobar desde galería pública - CORREGIDO
+
+- [x] La función calculateEstimatedDeliveryDate ahora se llama cuando el cliente aprueba renders desde la galería
+- [x] Se calcula estimatedInstallDate (25 días hábiles) y se marca isInstallDateOfficial=true
+- [x] La UI ya mostraba la fecha en verde cuando isInstallDateOfficial=true
+- [x] 476 tests pasando

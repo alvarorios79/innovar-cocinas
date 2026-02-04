@@ -6101,10 +6101,16 @@ ${input.notes || "No se especificaron detalles"}
           });
         } else {
           // Aprobación de renders = aprobación final
+          // Calcular fecha definitiva de instalación (25 días hábiles desde hoy)
+          const fechaDefinitiva = await calculateEstimatedDeliveryDate(now);
+          
           await db.updateProject(input.projectId, {
             rendersApprovedAt: now,
             rendersApprovedBy: input.clientName,
             status: "aprobacion_final",
+            clientApprovedAt: now,
+            estimatedInstallDate: fechaDefinitiva,
+            isInstallDateOfficial: true,
           });
         }
 

@@ -3701,10 +3701,10 @@ export const appRouter = router({
           );
         }
         
-        // Operario ve proyectos en producción activa (desde despiece hasta instalación)
+        // Operario ve los mismos proyectos que el jefe de taller (desde diseño listo hasta entregado)
         if (role === "operario") {
           projectsList = projectsList.filter(p => 
-            ["despiece", "corte", "enchape", "ensamble", "listo_instalacion", "listo_instalacion"].includes(p.status)
+            ["pendiente_render", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "entregado"].includes(p.status)
           );
         }
 

@@ -4042,3 +4042,8 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Eliminada la fecha "Entregado" que no debía aparecer
 - [x] Creado script para recalcular fechas con 25 días hábiles
 - [x] Recalculadas las fechas de todos los proyectos existentes
+
+## Bug: Operario no ve todos los proyectos - CORREGIDO
+
+- [x] El operario (Daniel Beltrán) ahora ve los mismos proyectos que el jefe de taller
+- [x] Puede ver proyectos desde pendiente_render hasta entregado

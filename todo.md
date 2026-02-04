@@ -3896,3 +3896,6 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Agregar componente ProjectApprovalView para mostrar galería de imágenes
 - [x] Implementar vista de aprobación con botones aprobar/solicitar cambios
 - [x] Corregir error de TypeScript (changes → notes)
+- [x] Corregir filtro de categorías (ahora incluye "disenos", "modelado_3d", etc.)
+- [x] Corregir campo de URL de fotos (photoUrl en lugar de url)
+- [x] Imágenes del modelado ahora se muestran correctamente al cliente

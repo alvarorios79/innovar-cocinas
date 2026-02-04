@@ -33,11 +33,19 @@ function ProjectApprovalView({
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   // Filtrar fotos del proyecto según el estado
-  const designPhotos = project.photos?.filter((p: any) => 
-    project.status === "pendiente_modelado" 
-      ? p.category === "modelado" || p.category === "diseno"
-      : p.category === "render" || p.category === "diseno"
-  ) || [];
+  // Las categorías pueden ser: disenos, diseno, modelado, render, renders
+  // El campo de URL puede ser 'url' o 'photoUrl' dependiendo de cómo se carguen los datos
+  const designPhotos = project.photos?.filter((p: any) => {
+    const category = p.category?.toLowerCase() || '';
+    const subcategory = p.subcategory?.toLowerCase() || '';
+    if (project.status === "pendiente_modelado") {
+      return category === "modelado" || category === "diseno" || category === "disenos" || 
+             subcategory === "modelado_3d" || subcategory === "modelado";
+    } else {
+      return category === "render" || category === "renders" || category === "diseno" || 
+             category === "disenos" || subcategory === "renders" || subcategory === "render";
+    }
+  }) || [];
 
   const isModelado = project.status === "pendiente_modelado";
   const title = isModelado ? "Modelado 3D" : "Renders";
@@ -66,10 +74,10 @@ function ProjectApprovalView({
                 <div 
                   key={photo.id} 
                   className="relative aspect-square rounded-lg overflow-hidden border-2 border-gray-200 hover:border-purple-500 cursor-pointer transition-all"
-                  onClick={() => setSelectedImage(photo.url)}
+                  onClick={() => setSelectedImage(photo.photoUrl || photo.url)}
                 >
                   <img 
-                    src={photo.url} 
+                    src={photo.photoUrl || photo.url} 
                     alt={photo.description || title}
                     className="w-full h-full object-cover"
                   />

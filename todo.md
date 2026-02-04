@@ -3926,3 +3926,14 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Actualizado sendRendersToClient para usar /portal
 - [x] Actualizado resetModeladoApproval para usar /portal
 - [x] Actualizado resetRenderApproval para usar /portal
+
+
+## Bug: Error "el proyecto no está pendiente de aprobación" al solicitar cambios
+
+- [ ] Investigar el endpoint de solicitar cambios en el portal
+- [ ] Verificar la validación del estado del proyecto
+- [ ] Corregir para que el cliente pueda solicitar cambios cuando el proyecto está en pendiente_modelado o pendiente_render
+
+- [x] Mostrar los cambios solicitados por el cliente en la sección de Detalles del Proyecto
+- [x] Los cambios deben aparecer junto con las notas del diseñador, comercial, etc.
+- [x] Agregada sección "Cambios Solicitados por el Cliente" en la pestaña Detalles de ProjectDetail.tsx

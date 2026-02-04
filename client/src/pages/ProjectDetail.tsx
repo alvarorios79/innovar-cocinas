@@ -14,6 +14,7 @@ import {
   Upload,
   ZoomIn,
   MessageCircle,
+  MessageSquare,
   FileDown,
   Plus,
   ArrowLeft,
@@ -1255,6 +1256,38 @@ export default function ProjectDetail() {
 
           {/* Tab Detalles */}
           <TabsContent value="details" className="space-y-4">
+            {/* Sección de Cambios Solicitados por el Cliente */}
+            {projectDetail.clientApprovalNotes && (
+              <Card className="border-orange-300 bg-orange-50/50">
+                <CardHeader className="py-3 bg-gradient-to-r from-orange-500 to-orange-600">
+                  <CardTitle className="text-sm text-white flex items-center gap-2">
+                    <MessageSquare className="h-4 w-4" />
+                    Cambios Solicitados por el Cliente
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-4">
+                  <div className="space-y-3">
+                    <div className="p-3 bg-white rounded-lg border border-orange-200">
+                      <p className="text-sm text-gray-700">{projectDetail.clientApprovalNotes}</p>
+                      {projectDetail.changesRequestedAt && (
+                        <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          Solicitado: {new Date(projectDetail.changesRequestedAt).toLocaleDateString('es-CO', { 
+                            weekday: 'long', 
+                            day: 'numeric', 
+                            month: 'long', 
+                            year: 'numeric',
+                            hour: '2-digit', 
+                            minute: '2-digit' 
+                          })}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             <Card>
               <CardHeader className="py-3 bg-orange-50 flex flex-row items-center justify-between">
                 <CardTitle className="text-sm">Notas y Detalles del Proyecto</CardTitle>

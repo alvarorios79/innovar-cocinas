@@ -4536,25 +4536,44 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
           throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para aprobar este proyecto" });
         }
 
-        if (project.status !== "pendiente_render") {
+        // Verificar que el proyecto esté en un estado pendiente de aprobación
+        const isPendingModelado = project.status === "pendiente_modelado";
+        const isPendingRender = project.status === "pendiente_render";
+        
+        if (!isPendingModelado && !isPendingRender) {
           throw new TRPCError({ code: "BAD_REQUEST", message: "El proyecto no está pendiente de aprobación" });
         }
 
         const approverLabel = isAdmin ? "Admin" : "Cliente";
+        const tipoAprobacion = isPendingModelado ? "modelado 3D" : "renders";
 
         if (input.approved) {
-          await db.updateProject(input.projectId, {
-            status: "corte",
-            clientApprovedAt: new Date(),
+          // Si aprueba modelado, pasa a pendiente_render (para que el diseñador suba los renders)
+          // Si aprueba renders, pasa a aprobacion_final (para iniciar producción)
+          const nextStatus = isPendingModelado ? "pendiente_render" : "aprobacion_final";
+          
+          const updateData: Record<string, unknown> = {
+            status: nextStatus,
             clientApprovalNotes: input.notes,
-          });
+          };
+          
+          if (isPendingModelado) {
+            updateData.modeladoApprovedAt = new Date();
+            updateData.modeladoApprovedBy = ctx.user.id;
+          } else {
+            updateData.clientApprovedAt = new Date();
+            updateData.rendersApprovedAt = new Date();
+            updateData.rendersApprovedBy = ctx.user.id;
+          }
+          
+          await db.updateProject(input.projectId, updateData);
 
           await db.createProjectStatusHistory({
             projectId: input.projectId,
-            fromStatus: "pendiente_render",
-            toStatus: "corte",
+            fromStatus: project.status,
+            toStatus: nextStatus,
             changedBy: ctx.user.id,
-            notes: `${approverLabel} aprobó el diseño: ${input.notes || ""}`,
+            notes: `${approverLabel} aprobó el ${tipoAprobacion}: ${input.notes || ""}`,
           });
         } else {
           // Si rechaza, vuelve a diseño
@@ -4566,10 +4585,10 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
 
           await db.createProjectStatusHistory({
             projectId: input.projectId,
-            fromStatus: "pendiente_render",
+            fromStatus: project.status,
             toStatus: "en_diseno",
             changedBy: ctx.user.id,
-            notes: `${approverLabel} rechazó el diseño: ${input.notes || ""}`,
+            notes: `${approverLabel} rechazó el ${tipoAprobacion}: ${input.notes || ""}`,
           });
 
           // === NOTIFICACIONES AL DISEÑADOR ===

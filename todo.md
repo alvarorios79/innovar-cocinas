@@ -3954,3 +3954,11 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Permitir que el admin/comercial pueda aprobar en nombre del cliente en cualquier momento
 - [x] Actualizado endpoint approveDesign para aceptar estado en_diseno
 - [x] Actualizado ProjectDetail.tsx con nueva variable isInDesignPhase
+
+
+## Mejora: Candado de bloqueo para aprobación del cliente - COMPLETADO
+
+- [x] Agregar botón de candado que debe activarse antes de poder aprobar
+- [x] Cambiar título de la tarjeta "Aprobación del Cliente" → "Aprobar en Nombre del Cliente"
+- [x] El candado se desactiva automáticamente después de aprobar o solicitar cambios
+- [x] Botones "Aprobar" y "Solicitar Cambios" bloqueados hasta desbloquear el candado

@@ -39,7 +39,9 @@ import {
   Truck,
   Hammer,
   Eye,
-  EyeOff
+  EyeOff,
+  Lock,
+  Unlock
 } from "lucide-react";
 import { useFileViewer, FileViewer } from "@/components/FileViewer";
 import { MaterialsForm } from "@/components/MaterialsForm";
@@ -124,6 +126,9 @@ export default function ProjectDetail() {
   
   // Toggle para ocultar información financiera (CEO, admin, comercial)
   const [showFinancialInfo, setShowFinancialInfo] = useState(false);
+  
+  // Candado para evitar clics accidentales en aprobación del cliente
+  const [approvalUnlocked, setApprovalUnlocked] = useState(false);
 
   const { data: projectDetail, isLoading } = trpc.projects.getById.useQuery(
     { id: projectId },
@@ -705,7 +710,7 @@ export default function ProjectDetail() {
                           statusColor === "blue" ? "text-blue-800 dark:text-blue-200" :
                           "text-gray-600 dark:text-gray-400"
                         }`}>
-                          {isPendingApproval ? "Pendiente de Aprobación" : isApproved ? "Diseño Aprobado" : "Aprobación del Cliente"}
+                          {isPendingApproval ? "Pendiente de Aprobación" : isApproved ? "Diseño Aprobado" : "Aprobar en Nombre del Cliente"}
                         </h4>
                         <p className={`text-sm ${
                           statusColor === "amber" ? "text-amber-600 dark:text-amber-400" :
@@ -715,37 +720,57 @@ export default function ProjectDetail() {
                         }`}>{statusMessage}</p>
                       </div>
                     </div>
-                    <div className="flex flex-wrap gap-3">
+                    <div className="flex flex-wrap gap-3 items-center">
+                      {/* Botón de candado para desbloquear aprobación */}
+                      {isInDesignPhase && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setApprovalUnlocked(!approvalUnlocked)}
+                          className={`${
+                            approvalUnlocked 
+                              ? "border-green-500 text-green-700 bg-green-50 hover:bg-green-100 dark:bg-green-900/20" 
+                              : "border-gray-300 text-gray-500 hover:bg-gray-50"
+                          }`}
+                          title={approvalUnlocked ? "Clic para bloquear" : "Clic para desbloquear y poder aprobar"}
+                        >
+                          {approvalUnlocked ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
+                        </Button>
+                      )}
                       <Button
-                        onClick={() => approveDesign.mutate({ projectId: projectDetail.id, approved: true })}
-                        disabled={approveDesign.isPending || !isInDesignPhase}
+                        onClick={() => {
+                          approveDesign.mutate({ projectId: projectDetail.id, approved: true });
+                          setApprovalUnlocked(false);
+                        }}
+                        disabled={approveDesign.isPending || !isInDesignPhase || !approvalUnlocked}
                         className={`shadow-sm ${
-                          isInDesignPhase 
+                          isInDesignPhase && approvalUnlocked
                             ? "bg-green-600 hover:bg-green-700 text-white" 
                             : "bg-gray-300 text-gray-500 cursor-not-allowed"
                         }`}
-                        title={!isInDesignPhase ? "Solo disponible durante el proceso de diseño" : "Aprobar en nombre del cliente (confirmación por teléfono/WhatsApp)"}
+                        title={!isInDesignPhase ? "Solo disponible durante el proceso de diseño" : !approvalUnlocked ? "Desbloquea primero con el candado" : "Aprobar en nombre del cliente (confirmación por teléfono/WhatsApp)"}
                       >
                         <CheckCircle2 className="h-4 w-4 mr-2" />
-                        Aprobar Diseño
+                        Aprobar
                       </Button>
                       <Button
                         variant="outline"
                         className={`${
-                          isInDesignPhase 
+                          isInDesignPhase && approvalUnlocked
                             ? "border-orange-400 text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20" 
                             : "border-gray-300 text-gray-400 cursor-not-allowed"
                         }`}
                         onClick={() => {
-                          if (isInDesignPhase) {
+                          if (isInDesignPhase && approvalUnlocked) {
                             const notes = prompt("Indica qué cambios se necesitan:");
                             if (notes) {
                               approveDesign.mutate({ projectId: projectDetail.id, approved: false, notes });
+                              setApprovalUnlocked(false);
                             }
                           }
                         }}
-                        disabled={approveDesign.isPending || !isInDesignPhase}
-                        title={!isInDesignPhase ? "Solo disponible durante el proceso de diseño" : "Registrar cambios solicitados por el cliente"}
+                        disabled={approveDesign.isPending || !isInDesignPhase || !approvalUnlocked}
+                        title={!isInDesignPhase ? "Solo disponible durante el proceso de diseño" : !approvalUnlocked ? "Desbloquea primero con el candado" : "Registrar cambios solicitados por el cliente"}
                       >
                         <XCircle className="h-4 w-4 mr-2" />
                         Solicitar Cambios

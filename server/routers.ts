@@ -6337,9 +6337,9 @@ ${input.notes || "No se especificaron detalles"}
         // Obtener cliente para notificación
         const client = project.clientId ? await db.getClientById(project.clientId) : null;
         
-        // Generar enlace de galería
+        // Generar enlace del portal
         const baseUrl = process.env.VITE_APP_URL || "https://innovarcitas.manus.space";
-        const galleryLink = `${baseUrl}/gallery?project=${input.projectId}&type=renders`;
+        const portalLink = `${baseUrl}/portal?project=${input.projectId}`;
 
         // Generar enlace de WhatsApp si se debe notificar
         let whatsAppLink = null;
@@ -6350,7 +6350,7 @@ ${input.notes || "No se especificaron detalles"}
             `¡Hola ${client.name}! 👋\n\n` +
             `Hemos actualizado los renders de tu proyecto "${project.name}" con los cambios que solicitaste.\n\n` +
             `Por favor revisa los nuevos diseños y apruébalos cuando estés satisfecho:\n` +
-            `${galleryLink}\n\n` +
+            `${portalLink}\n\n` +
             `¡Gracias por tu confianza en INNOVAR Cocinas! 🏠`
           );
           whatsAppLink = `https://wa.me/${phoneWithCountry}?text=${message}`;
@@ -6359,7 +6359,7 @@ ${input.notes || "No se especificaron detalles"}
         return {
           success: true,
           message: `Aprobación de renders reiniciada (Revisión #${newRevision}). El cliente puede aprobar la nueva versión.`,
-          galleryLink,
+          portalLink,
           whatsAppLink,
           clientName: client?.name,
           revisionNumber: newRevision,
@@ -6419,9 +6419,9 @@ ${input.notes || "No se especificaron detalles"}
         // Obtener cliente para notificación
         const client = project.clientId ? await db.getClientById(project.clientId) : null;
         
-        // Generar enlace de galería
+        // Generar enlace del portal
         const baseUrl = process.env.VITE_APP_URL || "https://innovarcitas.manus.space";
-        const galleryLink = `${baseUrl}/gallery?project=${input.projectId}&type=modelado`;
+        const portalLink = `${baseUrl}/portal?project=${input.projectId}`;
 
         // Generar enlace de WhatsApp si se debe notificar
         let whatsAppLink = null;
@@ -6432,7 +6432,7 @@ ${input.notes || "No se especificaron detalles"}
             `¡Hola ${client.name}! 👋\n\n` +
             `Hemos actualizado el modelado 3D de tu proyecto "${project.name}" con los cambios que solicitaste.\n\n` +
             `Por favor revisa el nuevo diseño y apruébalo cuando estés satisfecho:\n` +
-            `${galleryLink}\n\n` +
+            `${portalLink}\n\n` +
             `¡Gracias por tu confianza en INNOVAR Cocinas! 🏠`
           );
           whatsAppLink = `https://wa.me/${phoneWithCountry}?text=${message}`;
@@ -6441,7 +6441,7 @@ ${input.notes || "No se especificaron detalles"}
         return {
           success: true,
           message: `Nueva aprobación de modelado solicitada (Revisión #${newRevision})`,
-          galleryLink,
+          portalLink,
           whatsAppLink,
           clientName: client?.name,
           revisionNumber: newRevision,
@@ -6497,7 +6497,7 @@ ${input.notes || "No se especificaron detalles"}
         // Obtener cliente para generar enlace
         const client = project.clientId ? await db.getClientById(project.clientId) : null;
         const baseUrl = process.env.VITE_APP_URL || "https://innovarcitas.manus.space";
-        const galleryLink = `${baseUrl}/gallery?project=${input.projectId}&type=modelado`;
+        const portalLink = `${baseUrl}/portal?project=${input.projectId}`;
 
         // Generar mensaje de WhatsApp
         let whatsAppLink = null;
@@ -6509,9 +6509,9 @@ ${input.notes || "No se especificaron detalles"}
             `Le escribimos de *INNOVAR Cocinas Integrales*.\n\n` +
             `Ya tenemos listo el *modelado 3D* de su proyecto *"${project.name}"*. 🏠\n\n` +
             `✨ Hemos preparado *${modeladoPhotos.length} imágenes* del modelado para que las revise.\n\n` +
-            `👉 *Ver todas las imágenes aquí:*\n${galleryLink}\n\n` +
-            `Por favor revíselas y confírmenos si está de acuerdo con el diseño para continuar con los renders finales.\n\n` +
-            `¿Aprueba el modelado para continuar? ✅`
+            `👉 *Ver y aprobar el diseño aquí:*\n${portalLink}\n\n` +
+            `En el enlace puede ver las imágenes y aprobar el diseño o solicitar cambios.\n\n` +
+            `¿Tiene alguna pregunta? ✅`
           );
           whatsAppLink = `https://wa.me/${phoneWithCountry}?text=${message}`;
         }
@@ -6519,7 +6519,7 @@ ${input.notes || "No se especificaron detalles"}
         return {
           success: true,
           message: `Modelado 3D enviado al cliente (Revisión #${newRevision})`,
-          galleryLink,
+          portalLink,
           whatsAppLink,
           clientName: client?.name,
           revisionNumber: newRevision,
@@ -6575,7 +6575,7 @@ ${input.notes || "No se especificaron detalles"}
         // Obtener cliente para generar enlace
         const client = project.clientId ? await db.getClientById(project.clientId) : null;
         const baseUrl = process.env.VITE_APP_URL || "https://innovarcitas.manus.space";
-        const galleryLink = `${baseUrl}/gallery?project=${input.projectId}&type=renders`;
+        const portalLink = `${baseUrl}/portal?project=${input.projectId}`;
 
         // Generar mensaje de WhatsApp
         let whatsAppLink = null;
@@ -6587,9 +6587,9 @@ ${input.notes || "No se especificaron detalles"}
             `Le escribimos de *INNOVAR Cocinas Integrales*.\n\n` +
             `Ya tenemos listos los *renders finales* de su proyecto *"${project.name}"*. 🎨\n\n` +
             `✨ Hemos preparado *${renderPhotos.length} imágenes* de los renders para que las revise.\n\n` +
-            `👉 *Ver todas las imágenes aquí:*\n${galleryLink}\n\n` +
-            `Estos son los diseños definitivos. Por favor revíselos y confírmenos si está de acuerdo para iniciar la producción.\n\n` +
-            `¿Aprueba el diseño para iniciar producción? ✅`
+            `👉 *Ver y aprobar el diseño aquí:*\n${portalLink}\n\n` +
+            `En el enlace puede ver las imágenes y aprobar el diseño o solicitar cambios.\n\n` +
+            `¿Tiene alguna pregunta? ✅`
           );
           whatsAppLink = `https://wa.me/${phoneWithCountry}?text=${message}`;
         }
@@ -6597,7 +6597,7 @@ ${input.notes || "No se especificaron detalles"}
         return {
           success: true,
           message: `Renders enviados al cliente (Revisión #${newRevision})`,
-          galleryLink,
+          portalLink,
           whatsAppLink,
           clientName: client?.name,
           revisionNumber: newRevision,

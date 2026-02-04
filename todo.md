@@ -3915,3 +3915,14 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Corregido botón "Enviar Modelado" → ahora muestra "Reenviar (Rev. X)" y permanece activo
 - [x] Corregido botón "Enviar Renders" → ahora muestra "Reenviar (Rev. X)" y permanece activo
 - [x] Ambos botones permiten reenviar el enlace de aprobación al cliente cuantas veces sea necesario
+
+
+## Bug: Enlace de reenvío muestra "Proyecto no encontrado" - CORREGIDO
+
+- [x] Investigar qué enlace se genera al hacer clic en "Reenviar (Rev. X)"
+- [x] Encontrado: El enlace usaba /gallery?project=X que no existe
+- [x] Corregido: Cambiado a /portal?project=X que tiene la vista de aprobación
+- [x] Actualizado sendModeladoToClient para usar /portal
+- [x] Actualizado sendRendersToClient para usar /portal
+- [x] Actualizado resetModeladoApproval para usar /portal
+- [x] Actualizado resetRenderApproval para usar /portal

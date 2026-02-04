@@ -4009,3 +4009,11 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Revisar permisos de validatePhotoUploadPermission para jefe de taller
 - [x] Corregido: previousStageMap usaba "despiece" pero la subcategoría correcta es "despieces"
 - [x] Ahora el botón de corte se habilita cuando hay fotos en despieces
+
+
+## Mejora: Eliminar tarjeta "Solicitar Nueva Aprobación" - COMPLETADO
+
+- [x] Revisar dependencias de la tarjeta en el código
+- [x] Verificar que los botones de reenvío funcionan correctamente sin ella
+- [x] Eliminar la tarjeta del Centro de Control de Diseño
+- [x] 476 tests pasando

@@ -4109,3 +4109,28 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Agregar botón de volver al inicio en la página Calendario de Instalaciones (ya existía)
 - [x] Configurar credenciales de WhatsApp Business API
 - [x] Crear servicio de WhatsApp para envío de mensajes
+- [ ] Corregir error de API que devuelve HTML en lugar de JSON
+
+## Integración WhatsApp Business API (Cloud API)
+
+### Configuración Completada
+- [x] Registrar cuenta en Meta for Developers
+- [x] Crear app de WhatsApp Business "INNOVAR Cocinas Wathapp"
+- [x] Obtener credenciales de API (Phone Number ID, Business Account ID, Access Token)
+- [x] Configurar variables de entorno en la plataforma (WHATSAPP_ACCESS_TOKEN, WHATSAPP_PHONE_NUMBER_ID)
+- [x] Crear servicio whatsapp-cloud.ts con funciones de envío de mensajes
+- [x] Enviar mensaje de prueba exitoso vía API de Meta
+- [x] Crear tests de validación de credenciales (whatsapp-api.test.ts)
+
+### Pendientes para Producción
+- [ ] Generar Access Token permanente (el actual expira en 24 horas)
+- [ ] Crear plantillas de mensajes aprobadas en Meta Business para producción
+- [ ] Agregar más números de teléfono de prueba para testing del equipo
+- [ ] Migrar de número de prueba (+1 555 194 2474) a número colombiano real
+- [ ] Implementar envío automático de notificaciones en flujo de citas
+- [ ] Implementar webhook para recibir mensajes entrantes (opcional)
+
+### Notas Importantes
+- Número de prueba temporal: +1 555 194 2474 (US)
+- Número de WhatsApp Business del propietario: +57 313 680 2025 (se mantiene en móvil para respuestas manuales)
+- Enfoque híbrido: notificaciones automáticas vía API + respuestas manuales vía móvil

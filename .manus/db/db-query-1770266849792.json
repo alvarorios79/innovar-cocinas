@@ -1,0 +1,70 @@
+{
+  "query": "SELECT id, email, name, role FROM users LIMIT 10;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT id, email, name, role FROM users LIMIT 10;",
+  "rows": [
+    {
+      "id": "1",
+      "email": "mcfy8jgnym@privaterelay.appleid.com",
+      "name": "Alvaro Rios",
+      "role": "super_admin"
+    },
+    {
+      "id": "30257",
+      "email": "alejoile300@gmail.com",
+      "name": "Alejo Gutiérrez",
+      "role": "disenador"
+    },
+    {
+      "id": "30390",
+      "email": "martha79s@hotmail.com",
+      "name": "Martha Serna",
+      "role": "admin"
+    },
+    {
+      "id": "271067",
+      "email": "albetan1530@gmail.com",
+      "name": "Carlos Albeiro Betancurt ",
+      "role": "user"
+    },
+    {
+      "id": "840290",
+      "email": "jefe.taller@innovar.temp",
+      "name": "Luis Cardoso",
+      "role": "jefe_taller"
+    },
+    {
+      "id": "840301",
+      "email": "operario@innovar.temp",
+      "name": "Daniel Beltran",
+      "role": "operario"
+    },
+    {
+      "id": "840718",
+      "email": "alvarorios79@hotmail.com",
+      "name": "Alvaro Pruebas",
+      "role": "user"
+    },
+    {
+      "id": "2220036",
+      "email": "alvarorios79@gmail.com",
+      "name": "Ruth Naranjo",
+      "role": "user"
+    },
+    {
+      "id": "2250405",
+      "email": "admin-role-protected-1769389782943@test.com",
+      "name": "Admin Role Protected",
+      "role": "admin"
+    },
+    {
+      "id": "3660185",
+      "email": "admin-bulk-1769922755640@test.com",
+      "name": "Admin Test",
+      "role": "admin"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\temail\tname\trole\n1\tmcfy8jgnym@privaterelay.appleid.com\tAlvaro Rios\tsuper_admin\n30257\talejoile300@gmail.com\tAlejo Gutiérrez\tdisenador\n30390\tmartha79s@hotmail.com\tMartha Serna\tadmin\n271067\talbetan1530@gmail.com\tCarlos Albeiro Betancurt \tuser\n840290\tjefe.taller@innovar.temp\tLuis Cardoso\tjefe_taller\n840301\toperario@innovar.temp\tDaniel Beltran\toperario\n840718\talvarorios79@hotmail.com\tAlvaro Pruebas\tuser\n2220036\talvarorios79@gmail.com\tRuth Naranjo\tuser\n2250405\tadmin-role-protected-1769389782943@test.com\tAdmin Role Protected\tadmin\n3660185\tadmin-bulk-1769922755640@test.com\tAdmin Test\tadmin\n",
+  "stderr": "",
+  "execution_time_ms": 57
+}

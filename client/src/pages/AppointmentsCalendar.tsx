@@ -116,10 +116,18 @@ export default function AppointmentsCalendar() {
     },
   });
 
-  // Procesar citas
+  // Procesar citas - filtrar solo citas de hoy en adelante
   const appointments = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Inicio del día actual
+    
     return appointmentsData
-      .filter((apt: any) => apt.scheduledDate)
+      .filter((apt: any) => {
+        if (!apt.scheduledDate) return false;
+        const aptDate = new Date(apt.scheduledDate);
+        aptDate.setHours(0, 0, 0, 0);
+        return aptDate >= today; // Solo citas de hoy en adelante
+      })
       .map((apt: any) => ({
         id: apt.id,
         clientId: apt.clientId,

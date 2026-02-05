@@ -4104,3 +4104,5 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Endpoint appointments.updateDate para editar fechas de citas
 
 - [x] Señalar en rosado los días bloqueados en el calendario de citas (sábados, domingos, festivos, lunes y miércoles)
+- [x] Diagnosticar por qué no se ven las citas en el calendario de citas
+- [x] Filtrar citas pasadas en el calendario (no mostrar citas de días anteriores al actual)

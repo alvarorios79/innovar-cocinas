@@ -1233,6 +1233,15 @@ export default function Accounting() {
 
   return (
     <div className="container max-w-4xl py-8">
+      {/* Header con botón de volver al inicio */}
+      <div className="flex items-center gap-4 mb-6">
+        <Button variant="outline" size="sm" onClick={() => window.location.href = "/"}>
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Volver al Inicio
+        </Button>
+        <h1 className="text-2xl font-bold text-gray-900">Contabilidad</h1>
+      </div>
+      
       <Tabs value={activeTab} onValueChange={(v: any) => { setActiveTab(v); if (v === "register") resetForm(); }}>
         <TabsList className="grid w-full grid-cols-3 mb-6">
           <TabsTrigger value="register" className="flex items-center gap-2">

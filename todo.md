@@ -4093,3 +4093,12 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Eliminar completamente el botón "Agregar nota" (Detalles cumple la misma función)
 - [x] Agregar botón de editar fechas para jefe de taller (puede adelantar/atrasar instalación según avance)
 - [x] Backend ya tenía permiso para jefe_taller en updateEstimatedDate
+
+
+## Mejora: Dos calendarios separados con selector - COMPLETADO
+
+- [x] Crear Calendario de Citas de Medidas (nueva página /appointments-calendar)
+- [x] Admin y super_admin pueden ver todas las citas y editar fechas
+- [x] Agregar selector en la tarjeta Calendario del inicio (Dialog con dos opciones)
+- [x] Mantener Calendario de Instalaciones sin cambios (/calendar)
+- [x] Endpoint appointments.updateDate para editar fechas de citas

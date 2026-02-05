@@ -33,6 +33,7 @@ import {
   Sparkles
 } from "lucide-react";
 import { toast } from "sonner";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { DesignerChecklist } from "@/components/DesignerChecklist";
 import { ProductionCalendar } from "@/components/ProductionCalendar";
 import { OperatorDailyProjects } from "@/components/OperatorDailyProjects";
@@ -449,7 +450,7 @@ export function TeamDashboard() {
       case "admin":
         return [
           { label: "Panel Admin", href: "/admin", icon: <LayoutDashboard className="h-6 w-6" />, color: "bg-gradient-to-br from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700" },
-          { label: "Calendario", href: "/calendar", icon: <Calendar className="h-6 w-6" />, color: "bg-gradient-to-br from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700" },
+          { label: "Calendario", href: "#calendar-selector", icon: <Calendar className="h-6 w-6" />, color: "bg-gradient-to-br from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700", isCalendarSelector: true },
           { label: "Cotizaciones", href: "/quotations", icon: <FileText className="h-6 w-6" />, color: "bg-gradient-to-br from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700" },
           { label: "Clientes", href: "/admin/clients", icon: <Users className="h-6 w-6" />, color: "bg-gradient-to-br from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700" },
           { label: "Contabilidad", href: "/accounting", icon: <DollarSign className="h-6 w-6" />, color: "bg-gradient-to-br from-green-600 to-lime-600 hover:from-green-700 hover:to-lime-700" },
@@ -470,7 +471,7 @@ export function TeamDashboard() {
         return [
           { label: "Panel Admin", href: "/admin", icon: <LayoutDashboard className="h-6 w-6" />, color: "bg-gradient-to-br from-slate-700 to-gray-800 hover:from-slate-800 hover:to-gray-900" },
           { label: "Proyectos", href: "/projects", icon: <Briefcase className="h-6 w-6" />, color: "bg-gradient-to-br from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700" },
-          { label: "Calendario", href: "/calendar", icon: <Calendar className="h-6 w-6" />, color: "bg-gradient-to-br from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700" },
+          { label: "Calendario", href: "#calendar-selector", icon: <Calendar className="h-6 w-6" />, color: "bg-gradient-to-br from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700", isCalendarSelector: true },
           { label: "Tareas", href: "/tasks", icon: <ClipboardList className="h-6 w-6" />, color: "bg-gradient-to-br from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700" },
           { label: "Contabilidad", href: "/accounting", icon: <DollarSign className="h-6 w-6" />, color: "bg-gradient-to-br from-green-600 to-lime-600 hover:from-green-700 hover:to-lime-700" },
         ];
@@ -673,16 +674,56 @@ export function TeamDashboard() {
             </h2>
             <div className={`grid ${quickActions.length <= 3 ? 'grid-cols-1 sm:grid-cols-3' : 'grid-cols-1 sm:grid-cols-2 md:grid-cols-4'} gap-3`}>
               {quickActions.map((action, index) => (
-                <Link key={index} href={action.href}>
-                  <Button 
-                    className={`w-full h-auto py-5 md:py-6 flex flex-col items-center gap-2 ${action.color} text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] border-0`}
-                  >
-                    <div className="bg-white/20 p-2 rounded-lg">
-                      {action.icon}
-                    </div>
-                    <span className="font-bold text-sm md:text-base">{action.label}</span>
-                  </Button>
-                </Link>
+                (action as any).isCalendarSelector ? (
+                  <Dialog key={index}>
+                    <DialogTrigger asChild>
+                      <Button 
+                        className={`w-full h-auto py-5 md:py-6 flex flex-col items-center gap-2 ${action.color} text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] border-0`}
+                      >
+                        <div className="bg-white/20 p-2 rounded-lg">
+                          {action.icon}
+                        </div>
+                        <span className="font-bold text-sm md:text-base">{action.label}</span>
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-md">
+                      <DialogHeader>
+                        <DialogTitle className="text-center">Seleccionar Calendario</DialogTitle>
+                      </DialogHeader>
+                      <div className="grid grid-cols-1 gap-4 py-4">
+                        <Link href="/appointments-calendar">
+                          <Button className="w-full h-auto py-6 flex flex-col items-center gap-3 bg-gradient-to-br from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white shadow-lg">
+                            <Calendar className="h-8 w-8" />
+                            <div className="text-center">
+                              <span className="font-bold text-base block">Calendario de Citas</span>
+                              <span className="text-xs text-white/80">Toma de medidas programadas</span>
+                            </div>
+                          </Button>
+                        </Link>
+                        <Link href="/calendar">
+                          <Button className="w-full h-auto py-6 flex flex-col items-center gap-3 bg-gradient-to-br from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white shadow-lg">
+                            <Truck className="h-8 w-8" />
+                            <div className="text-center">
+                              <span className="font-bold text-base block">Calendario de Instalaciones</span>
+                              <span className="text-xs text-white/80">Fechas de entrega de proyectos</span>
+                            </div>
+                          </Button>
+                        </Link>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                ) : (
+                  <Link key={index} href={action.href}>
+                    <Button 
+                      className={`w-full h-auto py-5 md:py-6 flex flex-col items-center gap-2 ${action.color} text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] border-0`}
+                    >
+                      <div className="bg-white/20 p-2 rounded-lg">
+                        {action.icon}
+                      </div>
+                      <span className="font-bold text-sm md:text-base">{action.label}</span>
+                    </Button>
+                  </Link>
+                )
               ))}
             </div>
           </div>

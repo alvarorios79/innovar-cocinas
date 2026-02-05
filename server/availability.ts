@@ -103,7 +103,7 @@ export async function getAvailableTimeSlots(dateStr: string | Date): Promise<str
  * @param dateStr - Fecha en formato "YYYY-MM-DD"
  * @param timeSlot - Horario en formato "HH:MM"
  */
-export async function isTimeSlotAvailable(dateStr: string | Date, timeSlot: string): Promise<boolean> {
+export async function isTimeSlotAvailable(dateStr: string | Date, timeSlot: string, excludeAppointmentId?: number): Promise<boolean> {
   // Parsear la fecha directamente sin conversión de zona horaria
   let date: Date;
   let year: number, month: number, day: number;
@@ -141,16 +141,21 @@ export async function isTimeSlotAvailable(dateStr: string | Date, timeSlot: stri
   const endOfDay = new Date(Date.UTC(year, month - 1, day, 23, 59, 59));
 
   // Buscar si ya existe una cita en ese horario (que no esté cancelada)
+  // Si se proporciona excludeAppointmentId, excluir esa cita de la búsqueda (para edición)
+  const whereConditions = [
+    gte(appointments.scheduledDate, startOfDay),
+    lte(appointments.scheduledDate, endOfDay),
+    sql`${appointments.status} != 'cancelada'`
+  ];
+  
+  if (excludeAppointmentId) {
+    whereConditions.push(sql`${appointments.id} != ${excludeAppointmentId}`);
+  }
+  
   const existingAppointments = await db
     .select()
     .from(appointments)
-    .where(
-      and(
-        gte(appointments.scheduledDate, startOfDay),
-        lte(appointments.scheduledDate, endOfDay),
-        sql`${appointments.status} != 'cancelada'`
-      )
-    );
+    .where(and(...whereConditions));
 
   // Verificar si alguna cita existente tiene el mismo horario
   for (const apt of existingAppointments) {

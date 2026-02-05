@@ -657,6 +657,37 @@ export const appRouter = router({
         return { success: true };
       }),
 
+    // Endpoint para que admin/super_admin editen fecha y hora de citas
+    updateDate: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        scheduledDateStr: z.string(), // "YYYY-MM-DD"
+        scheduledTimeStr: z.string(), // "HH:MM"
+      }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para editar fechas de citas" });
+        }
+        
+        // Validar disponibilidad del nuevo horario
+        const isAvailable = await isTimeSlotAvailable(input.scheduledDateStr, input.scheduledTimeStr, input.id);
+        if (!isAvailable) {
+          throw new TRPCError({
+            code: "CONFLICT",
+            message: "Este horario ya está ocupado. Por favor selecciona otro horario.",
+          });
+        }
+        
+        // Crear la fecha en zona horaria de Colombia (UTC-5)
+        const [year, month, day] = input.scheduledDateStr.split('-').map(Number);
+        const [hours, minutes] = input.scheduledTimeStr.split(':').map(Number);
+        const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}T${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00-05:00`;
+        const scheduledDate = new Date(dateStr);
+        
+        await db.updateAppointment(input.id, { scheduledDate });
+        return { success: true };
+      }),
+
     getOccupiedSlots: publicProcedure
       .input(z.object({
         date: z.string(), // Fecha en formato ISO (YYYY-MM-DD)

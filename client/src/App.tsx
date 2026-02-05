@@ -21,6 +21,7 @@ import Comercial from "./pages/Comercial";
 import PublicGallery from "./pages/PublicGallery";
 import PricingConfig from "./pages/PricingConfig";
 import Accounting from "./pages/Accounting";
+import AppointmentsCalendar from "./pages/AppointmentsCalendar";
 
 function Router() {
   return (
@@ -33,6 +34,7 @@ function Router() {
       <Route path={"/projects/:id"} component={ProjectDetail} />
       <Route path={"/tasks"} component={Tasks} />
       <Route path={"/calendar"} component={InstallationCalendar} />
+      <Route path={"/appointments-calendar"} component={AppointmentsCalendar} />
       <Route path={"/quotations"} component={Quotations} />
       <Route path={"/login"} component={Login} />
       <Route path={"/register"} component={Register} />

@@ -53,11 +53,14 @@ function isHoliday(date: Date): boolean {
   return COLOMBIAN_HOLIDAYS.has(dateStr);
 }
 
-function getDayAvailability(date: Date): "full" | "half" | "none" {
+function getDayAvailability(date: Date): "full" | "blocked" | "none" {
   const day = date.getDay();
-  if (day === 0 || isHoliday(date)) return "none"; // Domingo o festivo
-  if (day === 6) return "half"; // Sábado
-  return "full"; // Lunes a viernes
+  // Domingos y festivos - no laborables
+  if (day === 0 || isHoliday(date)) return "none";
+  // Días bloqueados para citas: Sábados (6), Lunes (1) y Miércoles (3)
+  if (day === 6 || day === 1 || day === 3) return "blocked";
+  // Días disponibles para citas: Martes, Jueves y Viernes
+  return "full";
 }
 
 // Horarios disponibles
@@ -319,13 +322,13 @@ export default function AppointmentsCalendar() {
                           ${!isCurrentMonth ? "opacity-40" : ""}
                           ${isToday ? "ring-2 ring-blue-500" : ""}
                           ${isSelected ? "bg-blue-50 border-blue-300" : "border-gray-200 hover:border-gray-300"}
-                          ${availability === "none" ? "bg-gray-100" : "bg-white"}
+                          ${availability === "none" ? "bg-gray-100" : availability === "blocked" ? "bg-pink-100" : "bg-white"}
                         `}
                       >
                         <span className={`
                           text-sm font-medium
                           ${isToday ? "text-blue-600" : "text-gray-900"}
-                          ${availability === "none" ? "text-gray-400" : ""}
+                          ${availability === "none" ? "text-gray-400" : availability === "blocked" ? "text-pink-600" : ""}
                         `}>
                           {date.getDate()}
                         </span>
@@ -354,7 +357,7 @@ export default function AppointmentsCalendar() {
                   })}
                 </div>
 
-                {/* Leyenda */}
+                {/* Leyenda de estados de citas */}
                 <div className="flex flex-wrap gap-4 mt-4 text-sm">
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 rounded-full bg-yellow-500" />
@@ -371,6 +374,22 @@ export default function AppointmentsCalendar() {
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 rounded-full bg-red-500" />
                     <span>Cancelada</span>
+                  </div>
+                </div>
+
+                {/* Leyenda de disponibilidad */}
+                <div className="flex flex-wrap gap-4 mt-3 pt-3 border-t text-sm">
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded bg-white border border-gray-300" />
+                    <span>Disponible (Mar, Jue, Vie)</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded bg-pink-100 border border-pink-200" />
+                    <span>Bloqueado (Lun, Mié, Sáb)</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded bg-gray-100 border border-gray-200" />
+                    <span>No laborable (Dom, Festivos)</span>
                   </div>
                 </div>
               </CardContent>

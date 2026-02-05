@@ -4102,3 +4102,5 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Agregar selector en la tarjeta Calendario del inicio (Dialog con dos opciones)
 - [x] Mantener Calendario de Instalaciones sin cambios (/calendar)
 - [x] Endpoint appointments.updateDate para editar fechas de citas
+
+- [x] Señalar en rosado los días bloqueados en el calendario de citas (sábados, domingos, festivos, lunes y miércoles)

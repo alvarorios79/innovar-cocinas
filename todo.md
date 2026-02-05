@@ -4106,3 +4106,6 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Señalar en rosado los días bloqueados en el calendario de citas (sábados, domingos, festivos, lunes y miércoles)
 - [x] Diagnosticar por qué no se ven las citas en el calendario de citas
 - [x] Filtrar citas pasadas en el calendario (no mostrar citas de días anteriores al actual)
+- [x] Agregar botón de volver al inicio en la página Calendario de Instalaciones (ya existía)
+- [x] Configurar credenciales de WhatsApp Business API
+- [x] Crear servicio de WhatsApp para envío de mensajes

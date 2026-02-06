@@ -1,0 +1,64 @@
+{
+  "query": "SELECT id, name, whatsappPhone, createdAt FROM clients ORDER BY createdAt DESC LIMIT 20;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT id, name, whatsappPhone, createdAt FROM clients ORDER BY createdAt DESC LIMIT 20;",
+  "rows": [
+    {
+      "id": "1560001",
+      "name": "Carolina Diaz",
+      "whatsappPhone": "3156701919",
+      "createdAt": "2026-02-06 04:30:34"
+    },
+    {
+      "id": "1020002",
+      "name": "Test Client",
+      "whatsappPhone": "3001234567",
+      "createdAt": "2026-02-01 05:12:36"
+    },
+    {
+      "id": "810004",
+      "name": "Karolina Torres",
+      "whatsappPhone": "3148422733",
+      "createdAt": "2026-01-28 00:53:32"
+    },
+    {
+      "id": "810003",
+      "name": "Nery Benjumea",
+      "whatsappPhone": "3161111709",
+      "createdAt": "2026-01-28 00:41:14"
+    },
+    {
+      "id": "810002",
+      "name": "Jhonier Cardona",
+      "whatsappPhone": "3206656740",
+      "createdAt": "2026-01-27 23:42:46"
+    },
+    {
+      "id": "810001",
+      "name": "Orlando Primacho",
+      "whatsappPhone": "+18034673002",
+      "createdAt": "2026-01-27 20:27:03"
+    },
+    {
+      "id": "720001",
+      "name": "Ruth Naranjo",
+      "whatsappPhone": "3214479321",
+      "createdAt": "2026-01-25 23:02:43"
+    },
+    {
+      "id": "300053",
+      "name": "Álvaro prueba ",
+      "whatsappPhone": "3002826317",
+      "createdAt": "2026-01-19 01:12:10"
+    },
+    {
+      "id": "90091",
+      "name": "Carlos Albeiro Betancurt ",
+      "whatsappPhone": "3208515567",
+      "createdAt": "2026-01-14 03:30:14"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\twhatsappPhone\tcreatedAt\n1560001\tCarolina Diaz\t3156701919\t2026-02-06 04:30:34\n1020002\tTest Client\t3001234567\t2026-02-01 05:12:36\n810004\tKarolina Torres\t3148422733\t2026-01-28 00:53:32\n810003\tNery Benjumea\t3161111709\t2026-01-28 00:41:14\n810002\tJhonier Cardona\t3206656740\t2026-01-27 23:42:46\n810001\tOrlando Primacho\t+18034673002\t2026-01-27 20:27:03\n720001\tRuth Naranjo\t3214479321\t2026-01-25 23:02:43\n300053\tÁlvaro prueba \t3002826317\t2026-01-19 01:12:10\n90091\tCarlos Albeiro Betancurt \t3208515567\t2026-01-14 03:30:14\n",
+  "stderr": "",
+  "execution_time_ms": 75
+}

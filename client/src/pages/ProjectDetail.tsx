@@ -129,6 +129,9 @@ export default function ProjectDetail() {
   
   // Candado para evitar clics accidentales en aprobación del cliente
   const [approvalUnlocked, setApprovalUnlocked] = useState(false);
+  
+  // Diálogo para enviar directo a taller (saltar diseño)
+  const [showDirectToWorkshopDialog, setShowDirectToWorkshopDialog] = useState(false);
 
   const { data: projectDetail, isLoading } = trpc.projects.getById.useQuery(
     { id: projectId },
@@ -562,6 +565,31 @@ export default function ProjectDetail() {
             >
               <Calendar className="h-4 w-4 mr-1" />
               Editar Fechas
+            </Button>
+          )}
+          {/* Botón Enviar directo a Taller - Solo para super_admin y admin */}
+          {(user?.role === "admin" || user?.role === "super_admin") && (
+            <Button
+              variant="outline"
+              size="sm"
+              className={`${
+                ["adelanto_recibido", "en_diseno", "pendiente_modelado", "pendiente_render"].includes(projectDetail.status as string)
+                  ? "bg-orange-500 hover:bg-orange-600 text-white border-orange-600"
+                  : "bg-gray-200 text-gray-400 border-gray-300 cursor-not-allowed"
+              }`}
+              disabled={
+                !["adelanto_recibido", "en_diseno", "pendiente_modelado", "pendiente_render"].includes(projectDetail.status as string) ||
+                updateStatus.isPending
+              }
+              onClick={() => setShowDirectToWorkshopDialog(true)}
+              title={
+                ["adelanto_recibido", "en_diseno", "pendiente_modelado", "pendiente_render"].includes(projectDetail.status as string)
+                  ? "Saltar etapas de diseño y enviar proyecto directamente al taller"
+                  : "Solo disponible en etapas de diseño (adelanto recibido, en diseño, pendiente modelado, pendiente render)"
+              }
+            >
+              <Hammer className="h-4 w-4 mr-1" />
+              Directo a Taller
             </Button>
           )}
         </div>
@@ -1735,6 +1763,60 @@ export default function ProjectDetail() {
               disabled={updateStatus.isPending}
             >
               {updateStatus.isPending ? "Avanzando..." : (advanceConfirmDialog.hasPhotos ? "Sí, avanzar" : "Avanzar sin fotos")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Diálogo de confirmación para Enviar directo a Taller */}
+      <AlertDialog open={showDirectToWorkshopDialog} onOpenChange={setShowDirectToWorkshopDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Hammer className="h-5 w-5 text-orange-500" />
+              Enviar Directo a Taller
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3">
+              <p>
+                Esta acción saltará las etapas de diseño (modelado 3D, renders) y enviará el proyecto 
+                directamente al estado <strong>"Aprobación Final"</strong>.
+              </p>
+              <p>
+                Esto es útil para proyectos pequeños que se fabrican directamente en el taller sin 
+                necesidad de diseño formal.
+              </p>
+              <p className="text-amber-600 dark:text-amber-400 font-medium">
+                ⚠️ Las secciones de diseño seguirán disponibles si deseas subir archivos después.
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-orange-500 hover:bg-orange-600"
+              onClick={() => {
+                if (projectDetail?.id) {
+                  updateStatus.mutate({
+                    projectId: projectDetail.id,
+                    newStatus: "aprobacion_final",
+                    notes: "Proyecto enviado directo a taller (sin proceso de diseño formal)",
+                  });
+                }
+                setShowDirectToWorkshopDialog(false);
+              }}
+              disabled={updateStatus.isPending}
+            >
+              {updateStatus.isPending ? (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  Enviando...
+                </>
+              ) : (
+                <>
+                  <Hammer className="h-4 w-4 mr-2" />
+                  Sí, enviar a Taller
+                </>
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -4134,3 +4134,21 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - Número de prueba temporal: +1 555 194 2474 (US)
 - Número de WhatsApp Business del propietario: +57 313 680 2025 (se mantiene en móvil para respuestas manuales)
 - Enfoque híbrido: notificaciones automáticas vía API + respuestas manuales vía móvil
+
+
+## Mejoras de Flujo de Proyectos
+- [ ] Botón "Enviar directo a Taller" debajo del botón Avanzar en cabecera de proyecto
+  - Solo visible para super_admin y admin
+  - Solo en estados: adelanto_recibido, en_diseno, pendiente_modelado, pendiente_render
+  - Cambia estado directamente a aprobacion_final
+  - Las secciones de diseño siguen disponibles para subir archivos después
+
+
+## Mejoras de Flujo de Proyectos
+
+### Botón Directo a Taller
+- [x] Botón "Directo a Taller" para saltar etapas de diseño (super_admin/admin)
+- [x] Visible siempre pero desactivado cuando no aplica
+- [x] Activo en estados: adelanto_recibido, en_diseno, pendiente_modelado, pendiente_render
+- [x] Diálogo de confirmación con explicación clara
+- [x] Secciones de diseño siguen disponibles después de saltar

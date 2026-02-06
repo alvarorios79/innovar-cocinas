@@ -1340,17 +1340,17 @@ export default function Admin() {
                               </div>
                               <div className="space-y-3">
                                 {teamUsers.map((usr) => (
-                                  <div key={usr.id} className="border rounded-lg p-3 sm:p-4 space-y-2 bg-muted/30">
+                                  <div key={usr.id} className="border rounded-lg p-3 sm:p-4 bg-muted/30">
+                                    {/* Fila principal: checkbox + info + badge */}
                                     <div className="flex items-start gap-3">
                                       <Checkbox
                                         checked={selectedUsers.includes(usr.id)}
                                         onCheckedChange={() => toggleSelectUser(usr.id)}
-                                        className="mt-1"
+                                        className="mt-1 shrink-0"
                                       />
-                                      <div className="flex items-start justify-between gap-4 flex-1">
-                                      <div className="space-y-1 flex-1">
+                                      <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-2 flex-wrap">
-                                          <h3 className="font-semibold">{usr.name || "Sin nombre"}</h3>
+                                          <h3 className="font-semibold truncate">{usr.name || "Sin nombre"}</h3>
                                           <Badge 
                                             variant={usr.role === "super_admin" || usr.role === "admin" ? "default" : "secondary"}
                                             className={
@@ -1369,76 +1369,85 @@ export default function Admin() {
                                              usr.role === "jefe_taller" ? "Jefe de Taller" :
                                              usr.role === "operario" ? "Operario" : "Usuario"}
                                           </Badge>
+                                          {usr.id === user?.id && (
+                                            <Badge variant="outline" className="text-xs">Tú</Badge>
+                                          )}
                                         </div>
-                                        <p className="text-sm text-muted-foreground">{usr.email || "Sin email"}</p>
+                                        <p className="text-sm text-muted-foreground truncate">{usr.email || "Sin email"}</p>
                                         <p className="text-xs text-muted-foreground">
                                           Registrado: {new Date(usr.createdAt).toLocaleDateString('es-ES')}
                                         </p>
                                       </div>
-                                      <div className="flex flex-col gap-2">
-                                        {usr.id === user?.id && (
-                                          <Badge variant="outline" className="text-xs self-end">Tú</Badge>
-                                        )}
-                                        {/* Botón de cumpleaños siempre visible para super_admin (incluso para sí mismo) */}
-                                        {user?.role === "super_admin" && (
-                                          <div className="flex gap-2">
-                                            <Button
-                                              size="sm"
-                                              variant="outline"
-                                              onClick={() => setEditBirthdayUser({ 
-                                                id: usr.id, 
-                                                name: usr.name || "Usuario", 
-                                                birthDate: (usr as any).birthDate || null 
-                                              })}
-                                            >
-                                              <Cake className="h-4 w-4 mr-1" />
-                                              Cumpleaños
-                                            </Button>
-                                            <Button
-                                              size="sm"
-                                              variant="outline"
-                                              onClick={() => setEditPhoneUser({ 
-                                                id: usr.id, 
-                                                name: usr.name || "Usuario", 
-                                                phone: (usr as any).phone || "" 
-                                              })}
-                                            >
-                                              <Phone className="h-4 w-4 mr-1" />
-                                              Teléfono
-                                            </Button>
-                                          </div>
-                                        )}
-                                        {usr.id !== user?.id && user?.role === "super_admin" && (
-                                          <div className="flex gap-2">
-                                            <Button
-                                              size="sm"
-                                              variant="secondary"
-                                              onClick={() => {
-                                                if (window.confirm(
-                                                  `¿Resetear contraseña de ${usr.name}? Se generará una contraseña temporal.`
-                                                )) {
-                                                  resetPassword.mutate({ userId: usr.id });
-                                                }
-                                              }}
-                                              disabled={resetPassword.isPending}
-                                            >
-                                              Resetear Contraseña
-                                            </Button>
-                                            <Button
-                                              size="sm"
-                                              variant="destructive"
-                                              onClick={() => {
-                                                setDeleteConfirm({ type: "user", id: usr.id, name: usr.name || "Usuario" });
-                                              }}
-                                              disabled={deleteUser.isPending}
-                                            >
-                                              Eliminar
-                                            </Button>
-                                          </div>
-                                        )}
-                                      </div>
-                                      </div>
                                     </div>
+                                    {/* Fila de botones de acción - responsive */}
+                                    {user?.role === "super_admin" && (
+                                      <div className="mt-3 pt-3 border-t border-border/50">
+                                        <div className="flex flex-wrap gap-2">
+                                          <Button
+                                            size="sm"
+                                            variant="outline"
+                                            className="flex-1 min-w-[100px] sm:flex-none"
+                                            onClick={() => setEditBirthdayUser({ 
+                                              id: usr.id, 
+                                              name: usr.name || "Usuario", 
+                                              birthDate: (usr as any).birthDate || null 
+                                            })}
+                                          >
+                                            <Cake className="h-4 w-4 mr-1" />
+                                            <span className="hidden sm:inline">Cumpleaños</span>
+                                            <span className="sm:hidden">🎂</span>
+                                          </Button>
+                                          <Button
+                                            size="sm"
+                                            variant="outline"
+                                            className="flex-1 min-w-[100px] sm:flex-none"
+                                            onClick={() => setEditPhoneUser({ 
+                                              id: usr.id, 
+                                              name: usr.name || "Usuario", 
+                                              phone: (usr as any).phone || "" 
+                                            })}
+                                          >
+                                            <Phone className="h-4 w-4 mr-1" />
+                                            <span className="hidden sm:inline">Teléfono</span>
+                                            <span className="sm:hidden">📞</span>
+                                          </Button>
+                                          {usr.id !== user?.id && (
+                                            <>
+                                              <Button
+                                                size="sm"
+                                                variant="secondary"
+                                                className="flex-1 min-w-[100px] sm:flex-none"
+                                                onClick={() => {
+                                                  if (window.confirm(
+                                                    `¿Resetear contraseña de ${usr.name}? Se generará una contraseña temporal.`
+                                                  )) {
+                                                    resetPassword.mutate({ userId: usr.id });
+                                                  }
+                                                }}
+                                                disabled={resetPassword.isPending}
+                                              >
+                                                <Key className="h-4 w-4 mr-1" />
+                                                <span className="hidden sm:inline">Contraseña</span>
+                                                <span className="sm:hidden">🔑</span>
+                                              </Button>
+                                              <Button
+                                                size="sm"
+                                                variant="destructive"
+                                                className="flex-1 min-w-[100px] sm:flex-none"
+                                                onClick={() => {
+                                                  setDeleteConfirm({ type: "user", id: usr.id, name: usr.name || "Usuario" });
+                                                }}
+                                                disabled={deleteUser.isPending}
+                                              >
+                                                <Trash2 className="h-4 w-4 mr-1" />
+                                                <span className="hidden sm:inline">Eliminar</span>
+                                                <span className="sm:hidden">🗑️</span>
+                                              </Button>
+                                            </>
+                                          )}
+                                        </div>
+                                      </div>
+                                    )}
                                   </div>
                                 ))}
                               </div>
@@ -1470,108 +1479,107 @@ export default function Admin() {
                               </div>
                               <div className="space-y-3">
                                 {regularUsers.map((usr) => (
-                                  <div key={usr.id} className="border rounded-lg p-3 sm:p-4 space-y-2">
+                                  <div key={usr.id} className="border rounded-lg p-3 sm:p-4">
+                                    {/* Fila principal: checkbox + info */}
                                     <div className="flex items-start gap-3">
                                       <Checkbox
                                         checked={selectedUsers.includes(usr.id)}
                                         onCheckedChange={() => toggleSelectUser(usr.id)}
-                                        className="mt-1"
+                                        className="mt-1 shrink-0"
                                       />
-                                      <div className="flex items-start justify-between gap-4 flex-1">
-                          <div className="space-y-1 flex-1">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <h3 className="font-semibold">{usr.name || "Sin nombre"}</h3>
-                              <Badge 
-                                variant={usr.role === "super_admin" || usr.role === "admin" ? "default" : "secondary"}
-                                className={
-                                  usr.role === "super_admin" ? "bg-red-600" :
-                                  usr.role === "admin" ? "bg-blue-500" :
-                                  usr.role === "comercial" ? "bg-green-600" :
-                                  usr.role === "disenador" ? "bg-cyan-600" :
-                                  usr.role === "jefe_taller" ? "bg-orange-600" :
-                                  usr.role === "operario" ? "bg-yellow-600 text-black" : ""
-                                }
-                              >
-                                {usr.role === "super_admin" ? "Super Admin" :
-                                 usr.role === "admin" ? "Administrador" :
-                                 usr.role === "comercial" ? "Comercial" :
-                                 usr.role === "disenador" ? "Diseñador" :
-                                 usr.role === "jefe_taller" ? "Jefe de Taller" :
-                                 usr.role === "operario" ? "Operario" : "Usuario"}
-                              </Badge>
-                            </div>
-                            <p className="text-sm text-muted-foreground">{usr.email || "Sin email"}</p>
-                            <p className="text-xs text-muted-foreground">
-                              Registrado: {new Date(usr.createdAt).toLocaleDateString('es-ES')}
-                            </p>
-                          </div>
-                          <div className="flex flex-col gap-2">
-                            {usr.id === user?.id && (
-                              <Badge variant="outline" className="text-xs self-end">Tú</Badge>
-                            )}
-                            {usr.id !== user?.id && (
-                              <div className="flex gap-2">
-                                {/* Botón Cambiar Rol - Solo visible si tiene permisos */}
-                                {(user?.role === "super_admin" || 
-                                  (user?.role === "admin" && usr.role === "user")) && (
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => {
-                                      const newRole = 
-                                        usr.role === "user" ? "admin" :
-                                        usr.role === "admin" ? "user" :
-                                        "user";
-                                      
-                                      if (window.confirm(
-                                        `¿Cambiar rol de ${usr.name} a ${newRole === "admin" ? "Administrador" : "Usuario"}?`
-                                      )) {
-                                        updateUserRole.mutate({
-                                          userId: usr.id,
-                                          newRole: newRole as "user" | "admin" | "super_admin",
-                                        });
-                                      }
-                                    }}
-                                    disabled={updateUserRole.isPending}
-                                  >
-                                    {usr.role === "admin" ? "Quitar Admin" : "Hacer Admin"}
-                                  </Button>
-                                )}
-                                {/* Botón Resetear Contraseña - Solo super_admin */}
-                                {user?.role === "super_admin" && (
-                                  <Button
-                                    size="sm"
-                                    variant="secondary"
-                                    onClick={() => {
-                                      if (window.confirm(
-                                        `¿Resetear contraseña de ${usr.name}? Se generará una contraseña temporal.`
-                                      )) {
-                                        resetPassword.mutate({ userId: usr.id });
-                                      }
-                                    }}
-                                    disabled={resetPassword.isPending}
-                                  >
-                                    <Key className="h-4 w-4 mr-1" />
-                                    Contraseña
-                                  </Button>
-                                )}
-                                {/* Botón Eliminar - Solo visible si tiene permisos */}
-                                {(user?.role === "super_admin" || 
-                                  (user?.role === "admin" && usr.role === "user")) && (
-                                  <Button
-                                    size="sm"
-                                    variant="destructive"
-                                    onClick={() => setDeleteConfirm({ type: "user", id: usr.id, name: usr.name || "Usuario" })}
-                                  >
-                                    <Trash2 className="h-4 w-4 mr-2" />
-                                    Eliminar
-                                  </Button>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                          </div>
-                        </div>
+                                      <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-2 flex-wrap">
+                                          <h3 className="font-semibold truncate">{usr.name || "Sin nombre"}</h3>
+                                          <Badge 
+                                            variant={usr.role === "super_admin" || usr.role === "admin" ? "default" : "secondary"}
+                                            className={
+                                              usr.role === "super_admin" ? "bg-red-600" :
+                                              usr.role === "admin" ? "bg-blue-500" :
+                                              usr.role === "comercial" ? "bg-green-600" :
+                                              usr.role === "disenador" ? "bg-cyan-600" :
+                                              usr.role === "jefe_taller" ? "bg-orange-600" :
+                                              usr.role === "operario" ? "bg-yellow-600 text-black" : ""
+                                            }
+                                          >
+                                            {usr.role === "super_admin" ? "Super Admin" :
+                                             usr.role === "admin" ? "Administrador" :
+                                             usr.role === "comercial" ? "Comercial" :
+                                             usr.role === "disenador" ? "Diseñador" :
+                                             usr.role === "jefe_taller" ? "Jefe de Taller" :
+                                             usr.role === "operario" ? "Operario" : "Usuario"}
+                                          </Badge>
+                                          {usr.id === user?.id && (
+                                            <Badge variant="outline" className="text-xs">Tú</Badge>
+                                          )}
+                                        </div>
+                                        <p className="text-sm text-muted-foreground truncate">{usr.email || "Sin email"}</p>
+                                        <p className="text-xs text-muted-foreground">
+                                          Registrado: {new Date(usr.createdAt).toLocaleDateString('es-ES')}
+                                        </p>
+                                      </div>
+                                    </div>
+                                    {/* Fila de botones de acción - responsive */}
+                                    {usr.id !== user?.id && (user?.role === "super_admin" || (user?.role === "admin" && usr.role === "user")) && (
+                                      <div className="mt-3 pt-3 border-t border-border/50">
+                                        <div className="flex flex-wrap gap-2">
+                                          {/* Botón Cambiar Rol */}
+                                          <Button
+                                            size="sm"
+                                            variant="outline"
+                                            className="flex-1 min-w-[90px] sm:flex-none"
+                                            onClick={() => {
+                                              const newRole = 
+                                                usr.role === "user" ? "admin" :
+                                                usr.role === "admin" ? "user" :
+                                                "user";
+                                              if (window.confirm(
+                                                `¿Cambiar rol de ${usr.name} a ${newRole === "admin" ? "Administrador" : "Usuario"}?`
+                                              )) {
+                                                updateUserRole.mutate({
+                                                  userId: usr.id,
+                                                  newRole: newRole as "user" | "admin" | "super_admin",
+                                                });
+                                              }
+                                            }}
+                                            disabled={updateUserRole.isPending}
+                                          >
+                                            <span className="hidden sm:inline">{usr.role === "admin" ? "Quitar Admin" : "Hacer Admin"}</span>
+                                            <span className="sm:hidden">{usr.role === "admin" ? "⬇️ Rol" : "⬆️ Rol"}</span>
+                                          </Button>
+                                          {/* Botón Resetear Contraseña - Solo super_admin */}
+                                          {user?.role === "super_admin" && (
+                                            <Button
+                                              size="sm"
+                                              variant="secondary"
+                                              className="flex-1 min-w-[90px] sm:flex-none"
+                                              onClick={() => {
+                                                if (window.confirm(
+                                                  `¿Resetear contraseña de ${usr.name}? Se generará una contraseña temporal.`
+                                                )) {
+                                                  resetPassword.mutate({ userId: usr.id });
+                                                }
+                                              }}
+                                              disabled={resetPassword.isPending}
+                                            >
+                                              <Key className="h-4 w-4 mr-1" />
+                                              <span className="hidden sm:inline">Contraseña</span>
+                                              <span className="sm:hidden">🔑</span>
+                                            </Button>
+                                          )}
+                                          {/* Botón Eliminar */}
+                                          <Button
+                                            size="sm"
+                                            variant="destructive"
+                                            className="flex-1 min-w-[90px] sm:flex-none"
+                                            onClick={() => setDeleteConfirm({ type: "user", id: usr.id, name: usr.name || "Usuario" })}
+                                          >
+                                            <Trash2 className="h-4 w-4 mr-1" />
+                                            <span className="hidden sm:inline">Eliminar</span>
+                                            <span className="sm:hidden">🗑️</span>
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    )}
                                   </div>
                                 ))}
                               </div>

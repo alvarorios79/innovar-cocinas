@@ -4156,3 +4156,6 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 ### Ajuste de permisos Directo a Taller
 - [x] Habilitar subida de fotos para jefe_taller y operario en estado aprobacion_final
 - [x] Permitir avanzar en el proceso de producción desde aprobacion_final
+
+## Optimización Móvil
+- [x] Diseño responsivo para página admin/usuarios en teléfonos

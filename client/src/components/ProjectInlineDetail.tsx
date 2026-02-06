@@ -428,9 +428,15 @@ export function ProjectInlineDetail({
     fotos_finales: "Fotos Finales",
   };
 
-  // Permisos de subida por carpeta según rol
+  // Permisos de subida por carpeta según rol y estado del proyecto
   const canUploadToFolder = (folder: string) => {
     const role = user?.role;
+    const status = projectDetail?.status;
+    
+    // Carpetas de producción que se habilitan desde aprobacion_final
+    const productionFolders = ["corte", "enchape", "armado", "proceso_instalacion", "fotos_finales"];
+    const productionStates = ["aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "entregado"];
+    
     const uploadPermissions: Record<string, string[]> = {
       documento_cotizacion: ["super_admin", "admin", "comercial"],
       fotos_iniciales: ["super_admin", "admin", "comercial"],
@@ -446,6 +452,15 @@ export function ProjectInlineDetail({
       fotos_finales: ["jefe_taller", "operario"],
     };
     const allowedRoles = uploadPermissions[folder] || [];
+    
+    // Para carpetas de producción, verificar que el proyecto esté en un estado apropiado
+    if (productionFolders.includes(folder)) {
+      // jefe_taller y operario solo pueden subir si el proyecto está en aprobacion_final o posterior
+      if ((role === "jefe_taller" || role === "operario") && !productionStates.includes(status || "")) {
+        return false;
+      }
+    }
+    
     return allowedRoles.includes(role || "");
   };
 

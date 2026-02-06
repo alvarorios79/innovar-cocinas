@@ -4152,3 +4152,7 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Activo en estados: adelanto_recibido, en_diseno, pendiente_modelado, pendiente_render
 - [x] Diálogo de confirmación con explicación clara
 - [x] Secciones de diseño siguen disponibles después de saltar
+
+### Ajuste de permisos Directo a Taller
+- [x] Habilitar subida de fotos para jefe_taller y operario en estado aprobacion_final
+- [x] Permitir avanzar en el proceso de producción desde aprobacion_final

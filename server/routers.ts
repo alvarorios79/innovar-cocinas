@@ -2684,6 +2684,21 @@ export const appRouter = router({
           // Actualizar estado a "sent"
           await db.updateQuotation(input.id, { status: "sent", sentAt: new Date() });
 
+          // Enviar notificación WhatsApp al cliente (cotización lista)
+          if (client.whatsappPhone) {
+            try {
+              await whatsappCloud.sendQuotationReady(
+                client.whatsappPhone,
+                client.name,
+                quotation.quotationNumber,
+                String(quotation.total)
+              );
+            } catch (waError) {
+              console.error('[WhatsApp] Error enviando notificación de cotización:', waError);
+              // No fallar el flujo principal si WhatsApp falla
+            }
+          }
+
           return { success: true };
         } catch (error: any) {
           console.error('Error enviando cotización:', error);
@@ -3003,6 +3018,20 @@ export const appRouter = router({
           totalPrice: quotation.totalPrice,
           validUntil: quotation.validUntil || undefined,
         });
+
+        // Enviar notificación WhatsApp Cloud API al cliente (cotización lista)
+        if (client.whatsappPhone) {
+          try {
+            await whatsappCloud.sendQuotationReady(
+              client.whatsappPhone,
+              client.name,
+              quotation.quotationNumber || `COT-${quotation.id}`,
+              String(quotation.totalPrice || quotation.total)
+            );
+          } catch (waError) {
+            console.error('[WhatsApp] Error enviando notificación de cotización:', waError);
+          }
+        }
 
         return { success: true, whatsappLink };
       }),

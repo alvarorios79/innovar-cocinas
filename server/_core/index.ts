@@ -11,6 +11,8 @@ import { serveStatic, setupVite } from "./vite";
 import { startAutoReminderSystem } from "../task-auto-reminders";
 import { scheduleBirthdayNotifications } from "../birthday-service";
 import { startOverdueChangesService } from "../overdue-changes-service";
+import { startAppointmentReminderService } from "../appointment-reminder-service";
+import { startTeamWhatsAppService } from "../whatsapp-team-notifications";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -143,6 +145,12 @@ async function startServer() {
     
     // Iniciar servicio de verificación de cambios pendientes vencidos (>48h)
     startOverdueChangesService();
+    
+    // Iniciar servicio de recordatorios de citas por WhatsApp (7pm, día anterior)
+    startAppointmentReminderService();
+    
+    // Iniciar servicio de notificaciones WhatsApp al equipo (8am y 12pm)
+    startTeamWhatsAppService();
   });
 }
 

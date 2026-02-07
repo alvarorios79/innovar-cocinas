@@ -4192,3 +4192,30 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Actualizar sendProjectStatusUpdate para usar plantilla con logo + fallback texto libre
 - [x] Actualizar tests (nuevos tests para las 3 plantillas)
 - [x] Verificar compilación y todos los tests pasan (50 archivos, 491 tests passed)
+
+## Activación Completa de Notificaciones WhatsApp (Feb 2026)
+
+### 1. Funciones WhatsApp al cliente - Conectar al flujo automático
+- [x] Crear servicio appointment-reminder-service.ts que revise citas del día siguiente y envíe sendAppointmentReminder (7pm)
+- [x] Conectar sendQuotationReady al flujo de creación/envío de cotización en routers.ts (sendByEmail y send)
+
+### 2. Recordatorios al equipo por WhatsApp (1 vez al día)
+- [x] 2A: Recordatorios por estado del proyecto → enviar WhatsApp al miembro asignado (8am y 12pm, 1 WhatsApp/día)
+- [x] 2B: Recordatorios de tareas → enviar WhatsApp a asignado (8am y 12pm, 1 WhatsApp/día por tarea)
+- [x] 2C: Cambios pendientes >48h → enviar WhatsApp a admins (1 vez/día 8am)
+
+### 3. Cumpleaños por WhatsApp
+- [x] Activar envío de felicitación de cumpleaños por WhatsApp (sendBirthdayGreeting) en whatsapp-team-notifications.ts
+
+### 4. Infraestructura
+- [x] Crear whatsapp-team-notifications.ts (servicio central de WhatsApp al equipo)
+- [x] Crear appointment-reminder-service.ts (recordatorio de citas al cliente)
+- [x] Registrar ambos servicios en _core/index.ts (startAppointmentReminderService, startTeamWhatsAppService)
+- [x] Crear tests para appointment-reminder-service (4 tests)
+- [x] Crear tests para whatsapp-team-notifications (13 tests)
+- [x] Todos los tests pasan (52 archivos, 508 tests passed)
+
+### Notas
+- Recordatorio de pago (sendPaymentReminder) se implementará más adelante
+- WhatsApp al equipo: enviar al número personal de cada miembro (phone en tabla users)
+- Frecuencias: recordatorios de tareas 2x/día (8am, 12pm), WhatsApp 1x/día

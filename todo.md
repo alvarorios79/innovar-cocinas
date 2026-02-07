@@ -4133,7 +4133,7 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Implementar envío automático de notificaciones en flujo de citas y proyectos
 
 ### Pendientes
-- [ ] Crear plantillas personalizadas de mensajes aprobadas en Meta Business (para enviar sin ventana de 24h)
+- [x] Crear plantilla "confirmacion_cita" con logo e imagen de encabezado (ID: 1361565679343107, estado: PENDING)
 - [ ] Implementar webhook para recibir mensajes entrantes (opcional)
 
 ### Notas Importantes
@@ -4170,3 +4170,14 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 
 ## Optimización Móvil
 - [x] Diseño responsivo para página admin/usuarios en teléfonos
+
+## Plantilla WhatsApp para Confirmación de Citas (Feb 2026)
+- [x] Diseñar plantilla con campos dinámicos (nombre, fecha, hora, tipo de trabajo, dirección)
+- [x] Subir logo de INNOVAR a Meta via Resumable Upload API
+- [x] Crear plantilla "confirmacion_cita" con imagen de encabezado (logo) via API
+- [x] Actualizar sendAppointmentConfirmation para usar plantilla con logo + fallback a texto libre
+- [x] Actualizar API de WhatsApp a v21.0
+- [x] Integrar envío automático al confirmar/crear cita (ya estaba conectado)
+- [x] Actualizar tests para la función de envío de plantilla
+- [x] Todos los tests pasan (50 archivos, 482 tests)
+

@@ -8,7 +8,10 @@
 // Variables de entorno necesarias (se configuran en el panel de administración)
 const WHATSAPP_ACCESS_TOKEN = process.env.WHATSAPP_ACCESS_TOKEN || "";
 const WHATSAPP_PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID || "";
-const WHATSAPP_API_VERSION = "v18.0";
+const WHATSAPP_API_VERSION = "v21.0";
+
+// Logo de INNOVAR para plantillas con imagen
+const INNOVAR_LOGO_URL = "https://files.manuscdn.com/user_upload_by_module/session_file/310519663292328262/MrjmfKRiCJFHQLzk.png";
 const WHATSAPP_API_URL = `https://graph.facebook.com/${WHATSAPP_API_VERSION}`;
 
 export interface WhatsAppCloudConfig {
@@ -277,7 +280,9 @@ export async function verifyConnection(): Promise<{
 // ============ MENSAJES PRE-DEFINIDOS PARA INNOVAR ============
 
 /**
- * Envía confirmación de cita agendada al cliente
+ * Envía confirmación de cita agendada al cliente usando plantilla con logo
+ * Plantilla: confirmacion_cita (con imagen de encabezado)
+ * Variables: {{1}} nombre, {{2}} fecha, {{3}} hora, {{4}} tipo de trabajo
  */
 export async function sendAppointmentConfirmation(
   clientPhone: string,
@@ -285,15 +290,6 @@ export async function sendAppointmentConfirmation(
   appointmentDate: Date,
   workType: string
 ): Promise<WhatsAppMessageResponse> {
-  const dateStr = appointmentDate.toLocaleString("es-CO", {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-
   const workTypeLabels: Record<string, string> = {
     cocina: "Cocina Integral",
     closet: "Closet",
@@ -301,23 +297,56 @@ export async function sendAppointmentConfirmation(
     centro_tv: "Centro de TV",
   };
 
-  const message = `✅ *Cita Confirmada - INNOVAR Cocinas*
+  const dateStr = appointmentDate.toLocaleDateString("es-CO", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
 
-Hola ${clientName},
+  const timeStr = appointmentDate.toLocaleTimeString("es-CO", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
 
-Tu cita ha sido agendada exitosamente:
+  const workTypeLabel = workTypeLabels[workType] || workType;
 
-📅 *Fecha:* ${dateStr}
-🛠️ *Tipo:* ${workTypeLabels[workType] || workType}
+  // Intentar enviar con plantilla (funciona sin ventana de 24h)
+  const templateResult = await sendTemplateMessage(
+    clientPhone,
+    "confirmacion_cita",
+    "es",
+    [
+      {
+        type: "header",
+        parameters: [
+          {
+            type: "image",
+            image: { link: INNOVAR_LOGO_URL },
+          },
+        ],
+      },
+      {
+        type: "body",
+        parameters: [
+          { type: "text", text: clientName },
+          { type: "text", text: dateStr },
+          { type: "text", text: timeStr },
+          { type: "text", text: workTypeLabel },
+        ],
+      },
+    ]
+  );
 
-📍 Nos encontramos en:
-K9 vía Cerritos a Pereira
+  // Si la plantilla falla (no aprobada aún), usar texto libre como fallback
+  if (!templateResult.success) {
+    console.log(`[WhatsApp] Plantilla falló (${templateResult.error}), usando texto libre como fallback`);
+    const message = `✅ *Cita Confirmada - INNOVAR Cocinas*\n\nHola ${clientName},\n\nTu cita ha sido agendada exitosamente:\n\n📅 *Fecha:* ${dateStr}\n⏰ *Hora:* ${timeStr}\n🛠️ *Tipo:* ${workTypeLabel}\n\n📍 *Dirección:* K9 vía Cerritos a Pereira\n\nSi necesitas reagendar, contáctanos con anticipación.\n\n¡Te esperamos! 🏠`;
+    return sendTextMessage(clientPhone, message);
+  }
 
-Si necesitas reagendar, contáctanos con anticipación.
-
-¡Te esperamos! 🏠`;
-
-  return sendTextMessage(clientPhone, message);
+  return templateResult;
 }
 
 /**

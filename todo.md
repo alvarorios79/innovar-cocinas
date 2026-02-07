@@ -4219,3 +4219,8 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - Recordatorio de pago (sendPaymentReminder) se implementará más adelante
 - WhatsApp al equipo: enviar al número personal de cada miembro (phone en tabla users)
 - Frecuencias: recordatorios de tareas 2x/día (8am, 12pm), WhatsApp 1x/día
+
+## Configuración de Perfil de WhatsApp Business (Feb 2026)
+- [x] Actualizar información del perfil de negocio (about, descripción, dirección, sitio web)
+- [x] Configurar foto de perfil del número +57 313 6808400 con logo de INNOVAR via Resumable Upload API
+- [x] Verificar que profile_picture_url está activa en el perfil

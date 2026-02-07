@@ -350,7 +350,9 @@ export async function sendAppointmentConfirmation(
 }
 
 /**
- * Envía recordatorio de cita (24 horas antes)
+ * Envía recordatorio de cita (24 horas antes) usando plantilla con logo
+ * Plantilla: recordatorio_cita (con imagen de encabezado)
+ * Variables: {{1}} nombre, {{2}} fecha, {{3}} hora
  */
 export async function sendAppointmentReminder(
   clientPhone: string,
@@ -358,33 +360,66 @@ export async function sendAppointmentReminder(
   appointmentDate: Date,
   workType: string
 ): Promise<WhatsAppMessageResponse> {
-  const dateStr = appointmentDate.toLocaleString("es-CO", {
+  const dateStr = appointmentDate.toLocaleDateString("es-CO", {
     weekday: "long",
     day: "numeric",
     month: "long",
-    hour: "2-digit",
-    minute: "2-digit",
+    year: "numeric",
   });
 
-  const message = `⏰ *Recordatorio de Cita - INNOVAR Cocinas*
+  const timeStr = appointmentDate.toLocaleTimeString("es-CO", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
 
-Hola ${clientName},
+  // Intentar enviar con plantilla (funciona sin ventana de 24h)
+  const templateResult = await sendTemplateMessage(
+    clientPhone,
+    "recordatorio_cita",
+    "es",
+    [
+      {
+        type: "header",
+        parameters: [
+          {
+            type: "image",
+            image: { link: INNOVAR_LOGO_URL },
+          },
+        ],
+      },
+      {
+        type: "body",
+        parameters: [
+          { type: "text", text: clientName },
+          { type: "text", text: dateStr },
+          { type: "text", text: timeStr },
+        ],
+      },
+    ]
+  );
 
-Te recordamos que tienes una cita programada para *mañana*:
+  // Si la plantilla falla, usar texto libre como fallback
+  if (!templateResult.success) {
+    console.log(`[WhatsApp] Plantilla recordatorio_cita falló (${templateResult.error}), usando texto libre como fallback`);
+    const fullDateStr = appointmentDate.toLocaleString("es-CO", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    const message = `⏰ *Recordatorio de Cita - INNOVAR Cocinas*\n\nHola ${clientName},\n\nTe recordamos que tienes una cita programada para *mañana*:\n\n📅 ${fullDateStr}\n\n📍 K9 vía Cerritos a Pereira\n\nSi no puedes asistir, por favor avísanos con tiempo.\n\n¡Te esperamos! 🏠`;
+    return sendTextMessage(clientPhone, message);
+  }
 
-📅 ${dateStr}
-
-📍 K9 vía Cerritos a Pereira
-
-Si no puedes asistir, por favor avísanos con tiempo.
-
-¡Te esperamos! 🏠`;
-
-  return sendTextMessage(clientPhone, message);
+  return templateResult;
 }
 
 /**
- * Envía notificación de cotización lista
+ * Envía notificación de cotización lista usando plantilla con logo
+ * Plantilla: cotizacion_lista (con imagen de encabezado)
+ * Variables: {{1}} nombre, {{2}} número cotización, {{3}} total
  */
 export async function sendQuotationReady(
   clientPhone: string,
@@ -399,32 +434,50 @@ export async function sendQuotationReady(
     minimumFractionDigits: 0,
   }).format(Number(totalAmount));
 
-  let message = `📋 *Cotización Lista - INNOVAR Cocinas*
+  // Intentar enviar con plantilla (funciona sin ventana de 24h)
+  const templateResult = await sendTemplateMessage(
+    clientPhone,
+    "cotizacion_lista",
+    "es",
+    [
+      {
+        type: "header",
+        parameters: [
+          {
+            type: "image",
+            image: { link: INNOVAR_LOGO_URL },
+          },
+        ],
+      },
+      {
+        type: "body",
+        parameters: [
+          { type: "text", text: clientName },
+          { type: "text", text: quotationNumber },
+          { type: "text", text: formattedAmount },
+        ],
+      },
+    ]
+  );
 
-Hola ${clientName},
-
-Tu cotización *${quotationNumber}* está lista:
-
-💰 *Total:* ${formattedAmount}
-
-`;
-
-  if (portalUrl) {
-    message += `🔗 Puedes verla y aprobarla aquí:
-${portalUrl}
-
-`;
+  // Si la plantilla falla, usar texto libre como fallback
+  if (!templateResult.success) {
+    console.log(`[WhatsApp] Plantilla cotizacion_lista falló (${templateResult.error}), usando texto libre como fallback`);
+    let message = `📋 *Cotización Lista - INNOVAR Cocinas*\n\nHola ${clientName},\n\nTu cotización *${quotationNumber}* está lista:\n\n💰 *Total:* ${formattedAmount}\n\n`;
+    if (portalUrl) {
+      message += `🔗 Puedes verla y aprobarla aquí:\n${portalUrl}\n\n`;
+    }
+    message += `Si tienes preguntas, estamos para ayudarte.\n\n¡Gracias por confiar en INNOVAR! 🏠`;
+    return sendTextMessage(clientPhone, message);
   }
 
-  message += `Si tienes preguntas, estamos para ayudarte.
-
-¡Gracias por confiar en INNOVAR! 🏠`;
-
-  return sendTextMessage(clientPhone, message);
+  return templateResult;
 }
 
 /**
- * Envía actualización de estado del proyecto
+ * Envía actualización de estado del proyecto usando plantilla con logo
+ * Plantilla: actualizacion_proyecto (con imagen de encabezado)
+ * Variables: {{1}} nombre, {{2}} nombre proyecto, {{3}} nuevo estado
  */
 export async function sendProjectStatusUpdate(
   clientPhone: string,
@@ -470,26 +523,44 @@ export async function sendProjectStatusUpdate(
   const emoji = statusEmojis[newStatus] || "📋";
   const statusLabel = statusLabels[newStatus] || newStatus;
 
-  let message = `${emoji} *Actualización de Proyecto - INNOVAR*
+  // Intentar enviar con plantilla (funciona sin ventana de 24h)
+  const templateResult = await sendTemplateMessage(
+    clientPhone,
+    "actualizacion_proyecto",
+    "es",
+    [
+      {
+        type: "header",
+        parameters: [
+          {
+            type: "image",
+            image: { link: INNOVAR_LOGO_URL },
+          },
+        ],
+      },
+      {
+        type: "body",
+        parameters: [
+          { type: "text", text: clientName },
+          { type: "text", text: projectName },
+          { type: "text", text: statusLabel },
+        ],
+      },
+    ]
+  );
 
-Hola ${clientName},
-
-Tu proyecto *${projectName}* ha cambiado de estado:
-
-📋 *Nuevo estado:* ${statusLabel}
-
-`;
-
-  if (portalUrl) {
-    message += `🔗 Ver detalles:
-${portalUrl}
-
-`;
+  // Si la plantilla falla, usar texto libre como fallback
+  if (!templateResult.success) {
+    console.log(`[WhatsApp] Plantilla actualizacion_proyecto falló (${templateResult.error}), usando texto libre como fallback`);
+    let message = `${emoji} *Actualización de Proyecto - INNOVAR*\n\nHola ${clientName},\n\nTu proyecto *${projectName}* ha cambiado de estado:\n\n📋 *Nuevo estado:* ${statusLabel}\n\n`;
+    if (portalUrl) {
+      message += `🔗 Ver detalles:\n${portalUrl}\n\n`;
+    }
+    message += `¡Gracias por tu confianza! 🏠`;
+    return sendTextMessage(clientPhone, message);
   }
 
-  message += `¡Gracias por tu confianza! 🏠`;
-
-  return sendTextMessage(clientPhone, message);
+  return templateResult;
 }
 
 /**

@@ -4181,3 +4181,14 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Actualizar tests para la función de envío de plantilla
 - [x] Todos los tests pasan (50 archivos, 482 tests)
 
+
+## Plantillas WhatsApp Adicionales con Logo (Feb 2026)
+- [x] Crear plantilla "recordatorio_cita" con logo (ID: 849376698145815, estado: PENDING)
+- [x] Crear plantilla "cotizacion_lista" con logo (ID: 1602866907724485, estado: PENDING)
+- [x] Crear plantilla "actualizacion_proyecto" con logo (ID: 908004741700695, estado: PENDING)
+- [x] Registrar las 3 plantillas en Meta via API (subida de logo + creación)
+- [x] Actualizar sendAppointmentReminder para usar plantilla con logo + fallback texto libre
+- [x] Actualizar sendQuotationReady para usar plantilla con logo + fallback texto libre
+- [x] Actualizar sendProjectStatusUpdate para usar plantilla con logo + fallback texto libre
+- [x] Actualizar tests (nuevos tests para las 3 plantillas)
+- [x] Verificar compilación y todos los tests pasan (50 archivos, 491 tests passed)

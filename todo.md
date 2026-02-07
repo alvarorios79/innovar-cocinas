@@ -4122,18 +4122,29 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Enviar mensaje de prueba exitoso vía API de Meta
 - [x] Crear tests de validación de credenciales (whatsapp-api.test.ts)
 
-### Pendientes para Producción
-- [ ] Generar Access Token permanente (el actual expira en 24 horas)
-- [ ] Crear plantillas de mensajes aprobadas en Meta Business para producción
-- [ ] Agregar más números de teléfono de prueba para testing del equipo
-- [ ] Migrar de número de prueba (+1 555 194 2474) a número colombiano real
-- [ ] Implementar envío automático de notificaciones en flujo de citas
+### Completado para Producción
+- [x] Generar Access Token permanente (System User token, no expira)
+- [x] Migrar de número de prueba a número colombiano real (+57 313 680 8400)
+- [x] Registrar número colombiano en Cloud API (status: CONNECTED)
+- [x] Verificar nombre de negocio aprobado por Meta ("Innovar Cocinas de diseño")
+- [x] Limpiar cuentas WABA duplicadas que bloqueaban el envío
+- [x] Resolver error de método de pago en WABA
+- [x] Confirmar envío exitoso de plantillas (hello_world) y mensajes de texto libre
+- [x] Implementar envío automático de notificaciones en flujo de citas y proyectos
+
+### Pendientes
+- [ ] Crear plantillas personalizadas de mensajes aprobadas en Meta Business (para enviar sin ventana de 24h)
 - [ ] Implementar webhook para recibir mensajes entrantes (opcional)
 
 ### Notas Importantes
-- Número de prueba temporal: +1 555 194 2474 (US)
+- Número de producción: +57 313 680 8400 (Cloud API, CONNECTED, LIVE)
+- Phone Number ID: 1043323385524323
+- WABA ID: 920948637152314
+- App: "INNOVAR Cocinas Wathapp" (ID: 1867771624625437)
+- Token: System User permanente (API INNOVAR)
 - Número de WhatsApp Business del propietario: +57 313 680 2025 (se mantiene en móvil para respuestas manuales)
 - Enfoque híbrido: notificaciones automáticas vía API + respuestas manuales vía móvil
+- IMPORTANTE: Mensajes de texto libre solo se entregan si el cliente respondió en las últimas 24h. Para primer contacto usar plantillas aprobadas.
 
 
 ## Mejoras de Flujo de Proyectos

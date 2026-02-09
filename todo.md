@@ -355,6 +355,11 @@
 - [x] Actualizar Portal.tsx para enviar categoría por defecto
 
 
+## Bug Fix: Cálculo de Acabados Especiales
+
+- [x] Revisar y corregir lógica de cálculo para puertas de aluminio y vidrio en acabados especiales de cotizaciones
+  - Corregida fórmula de bisagras: altura ≤ 0.80m = 1 par, 0.80m < altura ≤ 1.40m = 2 pares, altura > 1.40m = 3 pares
+
 ## Corrección de Errores
 
 ### Error en Creación de Tareas

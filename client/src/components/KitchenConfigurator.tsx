@@ -770,7 +770,7 @@ export function KitchenConfigurator({
                     <div className="space-y-2">
                       {(currentConfig.specialFinishes?.aluminumGlassDoors || []).map((door, index) => {
                         const sqm = door.height * door.width;
-                        const extraHinges = door.height > 1.4 ? 2 : (door.height > 0.8 ? 1 : 0);
+                        const extraHinges = door.height <= 0.8 ? 1 : (door.height <= 1.4 ? 2 : 3);
                         const doorPrice = sqm * precioAluminioVidrioM2;
                         const hingePrice = extraHinges * precioBisagraPar;
                         const totalDoorPrice = doorPrice + hingePrice;
@@ -792,7 +792,7 @@ export function KitchenConfigurator({
                                     ...newDoors[index],
                                     height: newHeight,
                                     squareMeters: newHeight * newDoors[index].width,
-                                    extraHinges: newHeight > 1.4 ? 2 : (newHeight > 0.8 ? 1 : 0),
+                                    extraHinges: newHeight <= 0.8 ? 1 : (newHeight <= 1.4 ? 2 : 3),
                                   };
                                   updateConfig("specialFinishes", {
                                     ...currentConfig.specialFinishes,
@@ -928,10 +928,10 @@ export function KitchenConfigurator({
                     <span className="font-semibold text-amber-800">Total Acabados Especiales:</span>
                     <span className="text-xl font-bold text-amber-900">
                       ${(
-                        (currentConfig.specialFinishes?.aluminumGlassDoors || []).reduce((sum, door) => {
-                          const sqm = door.height * door.width;
-                          const extraHinges = door.height > 1.4 ? 2 : (door.height > 0.8 ? 1 : 0);
-                          return sum + (sqm * precioAluminioVidrioM2) + (extraHinges * precioBisagraPar);
+                       (currentConfig.specialFinishes?.aluminumGlassDoors || []).reduce((sum, door) => {
+                       const sqm = door.height * door.width;
+                       const extraHinges = door.height <= 0.8 ? 1 : (door.height <= 1.4 ? 2 : 3);
+                       return sum + (sqm * precioAluminioVidrioM2) + (extraHinges * precioBisagraPar);
                         }, 0) +
                         (currentConfig.specialFinishes?.ledLighting?.enabled ? (currentConfig.specialFinishes?.ledLighting?.meters || 0) * precioLedMl : 0)
                       ).toLocaleString()}

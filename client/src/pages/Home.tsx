@@ -567,10 +567,11 @@ export default function Home() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="apt-email">Correo electrónico</Label>
+                        <Label htmlFor="apt-email">Correo electrónico *</Label>
                         <Input
                           id="apt-email"
                           type="email"
+                          required
                           value={appointmentForm.email}
                           onChange={(e) => setAppointmentForm({ ...appointmentForm, email: e.target.value })}
                         />
@@ -632,9 +633,10 @@ export default function Home() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="apt-address">Dirección</Label>
+                      <Label htmlFor="apt-address">Dirección *</Label>
                       <Input
                         id="apt-address"
+                        required
                         value={appointmentForm.address}
                         onChange={(e) => setAppointmentForm({ ...appointmentForm, address: e.target.value })}
                       />

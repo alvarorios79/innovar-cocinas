@@ -4235,3 +4235,10 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Revisar y corregir el enlace en el email de bienvenida que llega a los clientes
   - Configurada variable de entorno VITE_APP_URL = https://innovarcitas.manus.space
   - Test validado: Los emails ahora generan enlaces correctos a https://innovarcitas.manus.space/portal
+
+## Validaciones de Formularios
+
+- [x] Hacer obligatorios correo y dirección en formulario de agendamiento de citas
+  - Correo electrónico: obligatorio (agregado required)
+  - Dirección: obligatoria (agregado required - necesaria para hacer la visita)
+  - Notas adicionales: opcional

@@ -4229,3 +4229,9 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Actualizar información del perfil de negocio (about, descripción, dirección, sitio web)
 - [x] Configurar foto de perfil del número +57 313 6808400 con logo de INNOVAR via Resumable Upload API
 - [x] Verificar que profile_picture_url está activa en el perfil
+
+## Bug Fix: Enlace en Email de Bienvenida
+
+- [x] Revisar y corregir el enlace en el email de bienvenida que llega a los clientes
+  - Configurada variable de entorno VITE_APP_URL = https://innovarcitas.manus.space
+  - Test validado: Los emails ahora generan enlaces correctos a https://innovarcitas.manus.space/portal

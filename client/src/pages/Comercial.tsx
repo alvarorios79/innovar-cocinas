@@ -79,9 +79,16 @@ export default function Comercial() {
   const utils = trpc.useUtils();
   
   // Queries - TODAS las queries igual que CEO
-  const { data: appointments = [], isLoading: loadingAppointments } = trpc.appointments.list.useQuery();
-  const { data: quotations = [], isLoading: loadingQuotations } = trpc.quotations.list.useQuery();
-  const { data: projects = [], isLoading: loadingProjects } = trpc.projects.list.useQuery();
+  const { data: appointments = [], isLoading: loadingAppointments } = trpc.appointments.list.useQuery(undefined, {
+    refetchOnWindowFocus: true,
+    refetchInterval: 30000, // Refrescar cada 30 segundos
+  });
+  const { data: quotations = [], isLoading: loadingQuotations } = trpc.quotations.list.useQuery(undefined, {
+    refetchOnWindowFocus: true,
+  });
+  const { data: projects = [], isLoading: loadingProjects } = trpc.projects.list.useQuery(undefined, {
+    refetchOnWindowFocus: true,
+  });
   const { data: clients = [] } = trpc.clients.list.useQuery();
   const { data: tasks = [] } = trpc.tasks.list.useQuery();
 
@@ -303,7 +310,7 @@ export default function Comercial() {
             
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center gap-1 lg:gap-2">
-              <Link href="/calendar">
+              <Link href="/appointments-calendar">
                 <Button variant="ghost" size="sm" className="text-sm font-medium">Calendario</Button>
               </Link>
               <Link href="/quotations">
@@ -476,7 +483,7 @@ export default function Comercial() {
                 </CardContent>
               </Card>
             </Link>
-            <Link href="/calendar">
+            <Link href="/appointments-calendar">
               <Card className="bg-gradient-to-br from-rose-400 to-pink-500 text-white shadow-lg hover:shadow-xl transition-all hover:scale-[1.02] cursor-pointer">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
@@ -766,7 +773,7 @@ export default function Comercial() {
                     ))}
                   </div>
                 )}
-                <Link href="/calendar">
+                <Link href="/appointments-calendar">
                   <Button variant="ghost" className="w-full mt-3 text-pink-600 hover:text-pink-700 hover:bg-pink-50">
                     Ver todas las citas <ArrowRight className="h-4 w-4 ml-1" />
                   </Button>

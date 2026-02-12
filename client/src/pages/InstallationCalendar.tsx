@@ -231,12 +231,20 @@ export default function InstallationCalendar() {
                 </p>
               </div>
             </div>
-            <Link href="/projects">
-              <Button variant="outline" size="sm" className="px-2 md:px-3">
-                <Wrench className="h-4 w-4 md:mr-2" />
-                <span className="hidden md:inline">Ver Proyectos</span>
-              </Button>
-            </Link>
+            <div className="flex items-center gap-2">
+              <Link href="/appointments-calendar">
+                <Button variant="outline" size="sm" className="gap-2">
+                  <Calendar className="h-4 w-4" />
+                  <span className="hidden sm:inline">Citas</span>
+                </Button>
+              </Link>
+              <Link href="/projects">
+                <Button variant="outline" size="sm" className="px-2 md:px-3">
+                  <Wrench className="h-4 w-4 md:mr-2" />
+                  <span className="hidden md:inline">Ver Proyectos</span>
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </header>

@@ -4249,3 +4249,14 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Revisar y corregir horarios disponibles para agendamiento de citas
   - Mañana: 8:30 AM, 10:00 AM (2 citas de 1.5 horas)
   - Tarde: 2:00 PM, 3:30 PM (2 citas de 1.5 horas)
+
+## Bug Fix: Validación de Disponibilidad y Actualización de Contadores
+
+- [x] Restaurar calendario de citas que desapareció (solo se muestra calendario de instalación)
+  - Agregado botón "Citas" en calendario de instalaciones
+  - Corregidos enlaces en Comercial.tsx para apuntar a /appointments-calendar
+- [x] Calendario de citas visible desde panel comercial - corregidos enlaces en Home.tsx
+- [x] Bloquear horarios que ya pasaron del día actual en getAvailableTimeSlots e isTimeSlotAvailable
+- [x] Validar horarios válidos en función de reagendar - corregido procedimiento reschedule con validación estricta
+- [x] Agregar refetchOnWindowFocus y refetchInterval (30s) para contadores de citas en Comercial.tsx
+- [x] Tests de disponibilidad (11/11 pasando)

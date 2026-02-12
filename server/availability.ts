@@ -90,9 +90,24 @@ export async function getAvailableTimeSlots(dateStr: string | Date): Promise<str
   }).filter(Boolean) as string[];
 
   // Filtrar horarios disponibles
-  const availableSlots = APPOINTMENT_CONFIG.timeSlots
+  let availableSlots = APPOINTMENT_CONFIG.timeSlots
     .filter(slot => !occupiedSlots.includes(slot.start))
     .map(slot => slot.start);
+
+  // Bloquear horarios que ya pasaron del día actual (zona horaria Colombia UTC-5)
+  const nowColombia = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Bogota" }));
+  const todayColombia = new Date(nowColombia.getFullYear(), nowColombia.getMonth(), nowColombia.getDate(), 12, 0, 0);
+  const requestedDate = new Date(year, month - 1, day, 12, 0, 0);
+  
+  if (requestedDate.getTime() === todayColombia.getTime()) {
+    // Es hoy: filtrar horarios que ya pasaron
+    const currentHour = nowColombia.getHours();
+    const currentMinute = nowColombia.getMinutes();
+    availableSlots = availableSlots.filter(slot => {
+      const [slotHour, slotMinute] = slot.split(':').map(Number);
+      return slotHour > currentHour || (slotHour === currentHour && slotMinute > currentMinute);
+    });
+  }
 
   return availableSlots;
 }
@@ -126,7 +141,23 @@ export async function isTimeSlotAvailable(dateStr: string | Date, timeSlot: stri
   // Verificar si el horario está en los slots permitidos
   const isValidSlot = APPOINTMENT_CONFIG.timeSlots.some(slot => slot.start === timeSlot);
   if (!isValidSlot) {
+    console.log(`[Availability] Horario ${timeSlot} NO está en los slots permitidos:`, APPOINTMENT_CONFIG.timeSlots.map(s => s.start));
     return false;
+  }
+
+  // Bloquear horarios que ya pasaron del día actual (zona horaria Colombia UTC-5)
+  const nowColombia = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Bogota" }));
+  const todayColombia = new Date(nowColombia.getFullYear(), nowColombia.getMonth(), nowColombia.getDate(), 12, 0, 0);
+  const requestedDate = new Date(year, month - 1, day, 12, 0, 0);
+  
+  if (requestedDate.getTime() === todayColombia.getTime()) {
+    const currentHour = nowColombia.getHours();
+    const currentMinute = nowColombia.getMinutes();
+    const [slotHour, slotMinute] = timeSlot.split(':').map(Number);
+    if (slotHour < currentHour || (slotHour === currentHour && slotMinute <= currentMinute)) {
+      console.log(`[Availability] Horario ${timeSlot} ya pasó (hora actual: ${currentHour}:${currentMinute})`);
+      return false;
+    }
   }
 
   const db = await getDb();

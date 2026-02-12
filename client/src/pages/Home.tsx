@@ -390,7 +390,7 @@ export default function Home() {
                       <Link href="/tasks">
                         <Button variant="ghost" size="sm" className="text-sm">Tareas</Button>
                       </Link>
-                      <Link href="/calendar">
+                      <Link href="/appointments-calendar">
                         <Button variant="ghost" size="sm" className="text-sm">Calendario</Button>
                       </Link>
                       <Link href="/comercial">
@@ -406,7 +406,7 @@ export default function Home() {
                       <Link href="/tasks">
                         <Button variant="ghost" size="sm" className="text-sm">Tareas</Button>
                       </Link>
-                      <Link href="/calendar">
+                      <Link href="/appointments-calendar">
                         <Button variant="ghost" size="sm" className="text-sm">Calendario</Button>
                       </Link>
                       <Link href="/admin">

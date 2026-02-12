@@ -179,7 +179,8 @@ export const appointmentsRouter = router({
   reschedule: protectedProcedure
     .input(z.object({
       id: z.number(),
-      scheduledDate: z.string(),
+      scheduledDateStr: z.string(), // "YYYY-MM-DD"
+      scheduledTimeStr: z.string(), // "HH:MM"
     }))
     .mutation(async ({ ctx, input }) => {
       const client = await db.getClientByUserId(ctx.user.id);
@@ -192,8 +193,23 @@ export const appointmentsRouter = router({
         throw new TRPCError({ code: "FORBIDDEN" });
       }
 
+      // Validar disponibilidad del nuevo horario
+      const isAvailable = await isTimeSlotAvailable(input.scheduledDateStr, input.scheduledTimeStr, input.id);
+      if (!isAvailable) {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: "Este horario no está disponible. Por favor selecciona otro horario.",
+        });
+      }
+
+      // Crear la fecha para guardar en BD en zona horaria de Colombia (UTC-5)
+      const [year, month, day] = input.scheduledDateStr.split('-').map(Number);
+      const [hours, minutes] = input.scheduledTimeStr.split(':').map(Number);
+      const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}T${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00-05:00`;
+      const scheduledDate = new Date(dateStr);
+
       await db.updateAppointment(input.id, {
-        scheduledDate: new Date(input.scheduledDate),
+        scheduledDate,
       });
 
       return { success: true };

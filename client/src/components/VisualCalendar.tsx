@@ -245,7 +245,7 @@ export function VisualCalendar({
           </div>
 
           <p className="text-xs text-muted-foreground mt-2">
-            Horarios: 8am-12pm y 2pm-5pm • Duración: 1.5 horas
+            Horarios: 8:30am-11:30am y 2pm-5pm • Duración: 1.5 horas
           </p>
         </Card>
       )}

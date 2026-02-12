@@ -14,11 +14,10 @@ export const APPOINTMENT_CONFIG = {
   
   // Horarios disponibles
   timeSlots: [
-    { start: "08:00", end: "09:30" },
-    { start: "09:30", end: "11:00" },
-    { start: "11:00", end: "12:30" }, // Última de la mañana (termina a 12:30, dentro del rango)
-    { start: "14:00", end: "15:30" },
-    { start: "15:30", end: "17:00" }, // Última de la tarde (termina a 5pm)
+    { start: "08:30", end: "10:00" }, // Primera cita de la mañana
+    { start: "10:00", end: "11:30" }, // Segunda cita de la mañana
+    { start: "14:00", end: "15:30" }, // Primera cita de la tarde
+    { start: "15:30", end: "17:00" }, // Segunda cita de la tarde
   ],
 };
 

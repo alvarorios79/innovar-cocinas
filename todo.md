@@ -4242,3 +4242,10 @@ Se agregó el rol "comercial" a los siguientes endpoints:
   - Correo electrónico: obligatorio (agregado required)
   - Dirección: obligatoria (agregado required - necesaria para hacer la visita)
   - Notas adicionales: opcional
+
+## Configuración de Disponibilidad de Citas
+
+- [x] Revisar y corregir días activos para agendamiento de citas (Martes, Jueves, Viernes)
+- [x] Revisar y corregir horarios disponibles para agendamiento de citas
+  - Mañana: 8:30 AM, 10:00 AM (2 citas de 1.5 horas)
+  - Tarde: 2:00 PM, 3:30 PM (2 citas de 1.5 horas)

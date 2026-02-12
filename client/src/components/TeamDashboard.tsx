@@ -211,7 +211,7 @@ export function TeamDashboard() {
             value: pendingAppointments.length,
             icon: <Calendar className="h-6 w-6" />,
             color: "bg-gradient-to-br from-pink-500 to-rose-500",
-            link: "/calendar"
+            link: "/appointments-calendar"
           },
           { 
             label: "Cotizaciones Borrador", 
@@ -242,7 +242,7 @@ export function TeamDashboard() {
             value: pendingAppointments.length,
             icon: <Calendar className="h-6 w-6" />,
             color: "bg-gradient-to-br from-emerald-500 to-teal-500",
-            link: "/calendar"
+            link: "/appointments-calendar"
           },
           { 
             label: "Cotizaciones Borrador", 
@@ -411,7 +411,7 @@ export function TeamDashboard() {
             value: pendingAppointments.length,
             icon: <Calendar className="h-6 w-6" />,
             color: "bg-gradient-to-br from-teal-500 to-emerald-500",
-            link: "/calendar"
+            link: "/appointments-calendar"
           },
           { 
             label: "Cotizaciones", 

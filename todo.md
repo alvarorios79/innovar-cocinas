@@ -4260,3 +4260,10 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Validar horarios válidos en función de reagendar - corregido procedimiento reschedule con validación estricta
 - [x] Agregar refetchOnWindowFocus y refetchInterval (30s) para contadores de citas en Comercial.tsx
 - [x] Tests de disponibilidad (11/11 pasando)
+
+## Bug Fix: Calendario de Citas No Visible (Persistente)
+
+- [x] Diagnosticar y corregir por qué el calendario de citas sigue sin visualizarse desde el panel
+  - El problema estaba en TeamDashboard.tsx: las tarjetas de Citas Hoy/Pendientes apuntaban a /calendar (instalaciones)
+- [x] Corregir tarjeta "Citas Hoy" para que abra /appointments-calendar
+  - Corregidos 3 enlaces en TeamDashboard.tsx (super_admin, admin, comercial)

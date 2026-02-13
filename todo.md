@@ -4361,3 +4361,12 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] 2. Soft Delete (deletedAt) en tablas principales
 - [x] 3. División del router monolítico (routers.ts) por dominios funcionales
 - [x] 4. Paginación en servidor para endpoints que retornan listas completas
+
+
+## Prioridades de Implementación
+
+- [x] Prioridad 1: Logging estructurado con Pino
+- [ ] Prioridad 2: Migración del frontend a endpoints paginados
+- [ ] Prioridad 3: Cálculo automático de festivos colombianos
+- [ ] Prioridad 4: Endpoints de exportación CSV/Excel
+- [ ] Prioridad 5: Propuesta de dashboard de métricas operativas

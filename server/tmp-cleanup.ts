@@ -6,6 +6,7 @@
  */
 import { existsSync, unlinkSync, readdirSync, statSync } from "fs";
 import { join } from "path";
+import { logger } from "./logger";
 
 /**
  * Elimina un archivo temporal de forma segura.
@@ -17,7 +18,7 @@ export function cleanupTempFile(filepath: string): void {
       unlinkSync(filepath);
     }
   } catch (error) {
-    console.error(`[TmpCleanup] Error eliminando archivo temporal: ${filepath}`, error);
+    logger.error({ filepath, error }, "[TmpCleanup] Error eliminando archivo temporal");
   }
 }
 
@@ -83,14 +84,16 @@ export function startPeriodicCleanup(): void {
   // Limpieza inicial
   const initial = cleanupOrphanedPDFs(30);
   if (initial.cleaned > 0) {
-    console.log(`[TmpCleanup] Limpieza inicial: ${initial.cleaned} archivos eliminados`);
+    logger.info({ cleaned: initial.cleaned }, "[TmpCleanup] Limpieza inicial");
   }
 
   // Limpieza periódica cada 30 minutos
   setInterval(() => {
     const result = cleanupOrphanedPDFs(30);
     if (result.cleaned > 0) {
-      console.log(`[TmpCleanup] Limpieza periódica: ${result.cleaned} archivos eliminados`);
+      logger.info({ cleaned: result.cleaned, errors: result.errors }, "[TmpCleanup] Limpieza periódica");
     }
   }, 30 * 60 * 1000);
+
+  logger.info("[TmpCleanup] Limpieza periódica de /tmp iniciada");
 }

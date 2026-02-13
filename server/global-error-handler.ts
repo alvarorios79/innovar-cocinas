@@ -9,18 +9,23 @@
  * No modifica flujos funcionales existentes.
  */
 
+import { logger } from "./logger";
+
 /**
- * Registra un error con contexto estructurado.
+ * Registra un error con contexto estructurado usando Pino.
  */
 function logError(type: string, error: unknown): void {
-  const timestamp = new Date().toISOString();
   const errorMessage = error instanceof Error ? error.message : String(error);
   const errorStack = error instanceof Error ? error.stack : undefined;
 
-  console.error(`[${timestamp}] [${type}] ${errorMessage}`);
-  if (errorStack) {
-    console.error(`[${timestamp}] [${type}] Stack: ${errorStack}`);
-  }
+  logger.error(
+    {
+      type,
+      message: errorMessage,
+      stack: errorStack,
+    },
+    `[${type}] Error no capturado`
+  );
 }
 
 /**
@@ -42,12 +47,12 @@ export function initGlobalErrorHandlers(): void {
 
   // Señales de terminación (para logging limpio)
   process.on("SIGTERM", () => {
-    console.log(`[${new Date().toISOString()}] [Process] SIGTERM recibido. Cerrando servidor...`);
+    logger.info("[Process] SIGTERM recibido. Cerrando servidor...");
   });
 
   process.on("SIGINT", () => {
-    console.log(`[${new Date().toISOString()}] [Process] SIGINT recibido. Cerrando servidor...`);
+    logger.info("[Process] SIGINT recibido. Cerrando servidor...");
   });
 
-  console.log("[GlobalErrorHandler] Handlers de errores globales inicializados");
+  logger.info("[GlobalErrorHandler] Handlers de errores globales inicializados");
 }

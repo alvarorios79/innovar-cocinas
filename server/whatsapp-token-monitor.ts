@@ -8,6 +8,7 @@
  */
 
 import { ENV } from "./_core/env";
+import { logger } from "./logger";
 
 // Estado interno del token
 let tokenStatus: {
@@ -118,9 +119,9 @@ async function sendTokenAlert(error: string): Promise<void> {
       `,
     });
 
-    console.log("[WhatsAppMonitor] Alerta enviada por email");
+    logger.info("[WhatsAppMonitor] Alerta enviada por email");
   } catch (emailError) {
-    console.error("[WhatsAppMonitor] Error enviando alerta por email:", emailError);
+    logger.error({ emailError }, "[WhatsAppMonitor] Error enviando alerta por email");
   }
 }
 
@@ -134,7 +135,7 @@ async function runTokenCheck(): Promise<void> {
 
   if (result.valid) {
     if (!tokenStatus.isValid) {
-      console.log("[WhatsAppMonitor] Token de WhatsApp restaurado correctamente");
+      logger.info("[WhatsAppMonitor] Token de WhatsApp restaurado correctamente");
     }
     tokenStatus.isValid = true;
     tokenStatus.lastError = null;
@@ -144,7 +145,10 @@ async function runTokenCheck(): Promise<void> {
     tokenStatus.lastError = result.error || "Error desconocido";
     tokenStatus.consecutiveFailures++;
 
-    console.error(`[WhatsAppMonitor] Token inválido (fallo #${tokenStatus.consecutiveFailures}): ${result.error}`);
+    logger.warn(
+      { consecutiveFailures: tokenStatus.consecutiveFailures, error: result.error },
+      "[WhatsAppMonitor] Token inválido"
+    );
 
     // Enviar alerta por email solo en el primer fallo y cada 3 fallos consecutivos
     // para evitar spam de emails
@@ -161,21 +165,21 @@ async function runTokenCheck(): Promise<void> {
 export function startWhatsAppTokenMonitor(): void {
   // Verificación inicial (con delay de 10 segundos para que el servidor arranque)
   setTimeout(async () => {
-    console.log("[WhatsAppMonitor] Verificación inicial del token de WhatsApp...");
+    logger.info("[WhatsAppMonitor] Verificación inicial del token de WhatsApp...");
     await runTokenCheck();
 
     if (tokenStatus.isValid) {
-      console.log("[WhatsAppMonitor] Token de WhatsApp válido ✓");
+      logger.info("[WhatsAppMonitor] Token de WhatsApp válido ✓");
     } else {
-      console.error(`[WhatsAppMonitor] Token de WhatsApp inválido ✗: ${tokenStatus.lastError}`);
+      logger.error({ error: tokenStatus.lastError }, "[WhatsAppMonitor] Token de WhatsApp inválido ✗");
     }
   }, 10_000);
 
   // Verificación diaria (cada 24 horas)
   setInterval(async () => {
-    console.log("[WhatsAppMonitor] Verificación diaria del token de WhatsApp...");
+    logger.info("[WhatsAppMonitor] Verificación diaria del token de WhatsApp...");
     await runTokenCheck();
   }, 24 * 60 * 60 * 1000);
 
-  console.log("[WhatsAppMonitor] Servicio de monitoreo de token programado (cada 24h)");
+  logger.info("[WhatsAppMonitor] Servicio de monitoreo de token programado (cada 24h)");
 }

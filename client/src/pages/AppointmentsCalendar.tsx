@@ -27,6 +27,7 @@ import {
   Check,
   X,
 } from "lucide-react";
+import { VisualCalendar } from "@/components/VisualCalendar";
 import { toast } from "sonner";
 
 // Nombres de los días y meses en español
@@ -603,13 +604,13 @@ export default function AppointmentsCalendar() {
         </DialogContent>
       </Dialog>
 
-      {/* Dialog de edición de fecha */}
+      {/* Dialog de edición de fecha - usa VisualCalendar con las mismas restricciones */}
       <Dialog open={!!editingAppointment} onOpenChange={() => setEditingAppointment(null)}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Pencil className="h-5 w-5 text-blue-600" />
-              Editar Fecha de Cita
+              Reagendar Cita
             </DialogTitle>
           </DialogHeader>
           {editingAppointment && (
@@ -618,31 +619,38 @@ export default function AppointmentsCalendar() {
                 Cliente: <span className="font-medium">{editingAppointment.clientName}</span>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="newDate">Nueva Fecha</Label>
-                  <Input
-                    id="newDate"
-                    type="date"
-                    value={newDate}
-                    onChange={(e) => setNewDate(e.target.value)}
-                  />
+              <VisualCalendar
+                selectedDate={newDate}
+                selectedTime={newTime}
+                onDateChange={(date) => {
+                  setNewDate(date);
+                  setNewTime("");
+                }}
+                onTimeChange={(time) => setNewTime(time)}
+              />
+
+              {newDate && newTime && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm">
+                  <p className="font-semibold text-blue-800">Nueva fecha seleccionada:</p>
+                  <p className="text-blue-700">
+                    {new Date(newDate + "T12:00:00").toLocaleDateString("es-CO", {
+                      weekday: "long",
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                      timeZone: "America/Bogota",
+                    })}{" "}
+                    a las{" "}
+                    {(() => {
+                      const [h, m] = newTime.split(":");
+                      const hour = parseInt(h);
+                      const ampm = hour >= 12 ? "PM" : "AM";
+                      const displayHour = hour > 12 ? hour - 12 : hour;
+                      return `${displayHour}:${m} ${ampm}`;
+                    })()}
+                  </p>
                 </div>
-                <div>
-                  <Label htmlFor="newTime">Nueva Hora</Label>
-                  <select
-                    id="newTime"
-                    value={newTime}
-                    onChange={(e) => setNewTime(e.target.value)}
-                    className="w-full h-10 px-3 rounded-md border border-input bg-background"
-                  >
-                    <option value="">Seleccionar...</option>
-                    {TIME_SLOTS.map(slot => (
-                      <option key={slot} value={slot}>{slot}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
+              )}
 
               <DialogFooter className="gap-2">
                 <Button variant="outline" onClick={() => setEditingAppointment(null)}>
@@ -654,7 +662,7 @@ export default function AppointmentsCalendar() {
                   disabled={!newDate || !newTime || updateDateMutation.isPending}
                 >
                   <Check className="h-4 w-4 mr-2" />
-                  {updateDateMutation.isPending ? "Guardando..." : "Guardar"}
+                  {updateDateMutation.isPending ? "Guardando..." : "Reagendar"}
                 </Button>
               </DialogFooter>
             </div>

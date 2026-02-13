@@ -4290,3 +4290,9 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Actualizar URL del logo en whatsapp-cloud.ts
 - [x] Crear versión PNG con fondo transparente del logo para WhatsApp
 - [x] Subir nueva versión a S3 y actualizar URL en whatsapp-cloud.ts
+
+## Bug: Reagendamiento sin restricciones de calendario
+
+- [x] El formulario de reagendar permite seleccionar días bloqueados (ej: miércoles 18)
+- [x] El formulario de reagendar permite seleccionar horarios no disponibles (ej: 9:15 AM)
+- [x] Aplicar las mismas restricciones del VisualCalendar al formulario de reagendamiento

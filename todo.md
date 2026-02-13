@@ -4316,3 +4316,7 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Agregar notificación en campanilla al cliente cuando se agenda una cita
 - [x] Agregar notificación en campanilla al cliente cuando se reagenda una cita
 - [x] Agregar notificación en campanilla al cliente cuando admin reagenda desde updateDate
+
+## Notificación al equipo cuando cliente reagenda cita
+
+- [x] Notificar en campanilla a admin, comercial y super_admin cuando un cliente reagenda su cita desde el portal

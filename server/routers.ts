@@ -641,10 +641,10 @@ export const appRouter = router({
         });
 
         // Notificación en campanilla para el cliente
+        const dateFormatted = newDate.toLocaleDateString('es-CO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'America/Bogota' });
+        const timeFormatted = newDate.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'America/Bogota' });
         if (client.userId) {
           try {
-            const dateFormatted = newDate.toLocaleDateString('es-CO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'America/Bogota' });
-            const timeFormatted = newDate.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'America/Bogota' });
             await db.createNotification({
               userId: client.userId,
               type: 'cita',
@@ -653,8 +653,29 @@ export const appRouter = router({
               referenceId: input.id,
             });
           } catch (notifError) {
-            console.error('[Reagendar] Error al crear notificación en campanilla:', notifError);
+            console.error('[Reagendar] Error al crear notificación cliente:', notifError);
           }
+        }
+
+        // Notificación en campanilla para el equipo (admin, comercial, super_admin)
+        try {
+          const [admins, comerciales, superAdmins] = await Promise.all([
+            db.getUsersByRole('admin'),
+            db.getUsersByRole('comercial'),
+            db.getUsersByRole('super_admin'),
+          ]);
+          const teamUsers = [...admins, ...comerciales, ...superAdmins];
+          for (const user of teamUsers) {
+            await db.createNotification({
+              userId: user.id,
+              type: 'cita',
+              title: '🔄 Cliente Reagendó Cita',
+              body: `${client.name} reagendó su cita para el ${dateFormatted} a las ${timeFormatted}.`,
+              referenceId: input.id,
+            });
+          }
+        } catch (notifError) {
+          console.error('[Reagendar] Error al notificar equipo:', notifError);
         }
 
         return { success: true };

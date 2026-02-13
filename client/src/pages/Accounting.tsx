@@ -292,15 +292,23 @@ export default function Accounting() {
 
   // Calcular totales
   const totals = useMemo(() => {
-    if (!summary) return { materiales: 0, operativos: 0, total: 0 };
+    if (!summary) return { materiales: 0, operativos: 0, total: 0, byGeneralCategory: {} };
     
     const materiales = summary.byType.find(t => t.expenseType === "materiales_proyecto")?.total || 0;
     const operativos = summary.byType.find(t => t.expenseType === "gasto_operativo")?.total || 0;
+    
+    const byGeneralCategory: Record<string, number> = {};
+    if (summary.byGeneralCategory) {
+      summary.byGeneralCategory.forEach((cat: any) => {
+        byGeneralCategory[cat.generalCategory] = cat.total;
+      });
+    }
     
     return {
       materiales,
       operativos,
       total: materiales + operativos,
+      byGeneralCategory,
     };
   }, [summary]);
 
@@ -1265,6 +1273,36 @@ export default function Accounting() {
         </Card>
       )}
 
+      {/* Gastos por Categoría General */}
+      {summary?.byGeneralCategory && summary.byGeneralCategory.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Filter className="w-5 h-5" />
+              Gastos por Categoría General
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {summary.byGeneralCategory.map(cat => {
+                const label = GENERAL_CATEGORIES.find(c => c.value === cat.generalCategory)?.label || cat.generalCategory;
+                return (
+                  <div key={cat.generalCategory} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <Badge variant="secondary">
+                        {label}
+                      </Badge>
+                      <span className="text-sm text-gray-500">{cat.count} gastos</span>
+                    </div>
+                    <span className="font-bold">{formatCurrency(cat.total)}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Gastos por proyecto */}
       {summary?.byProject && summary.byProject.length > 0 && (
         <Card>
@@ -1294,6 +1332,14 @@ export default function Accounting() {
 
   return (
     <div className="container max-w-4xl py-8">
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-3xl font-bold text-gray-900">Contabilidad</h1>
+        <Button variant="outline" onClick={() => window.history.back()} className="gap-2">
+          <ArrowLeft className="w-4 h-4" />
+          Volver al Inicio
+        </Button>
+      </div>
+
       <Tabs value={activeTab} onValueChange={(v: any) => { setActiveTab(v); if (v === "register") resetForm(); }}>
         <TabsList className="grid w-full grid-cols-3 mb-6">
           <TabsTrigger value="register" className="flex items-center gap-2">

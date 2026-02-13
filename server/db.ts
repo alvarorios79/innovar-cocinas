@@ -2093,6 +2093,19 @@ export async function getOperativeExpensesSummaryByCategory() {
     .groupBy(expenses.operativeCategory);
 }
 
+export async function getExpensesSummaryByGeneralCategory() {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select({
+    generalCategory: expenses.generalCategory,
+    total: sql<string>`COALESCE(SUM(amount), 0)`,
+    count: sql<number>`COUNT(*)`
+  })
+    .from(expenses)
+    .groupBy(expenses.generalCategory);
+}
+
 export async function getProjectExpensesSummary() {
   const db = await getDb();
   if (!db) return [];

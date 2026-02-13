@@ -253,10 +253,11 @@ export const expensesRouter = router({
           });
         }
 
-        const [byType, byCategory, byProject] = await Promise.all([
+        const [byType, byCategory, byProject, byGeneralCategory] = await Promise.all([
           db.getExpensesSummaryByType(),
           db.getOperativeExpensesSummaryByCategory(),
           db.getProjectExpensesSummary(),
+          db.getExpensesSummaryByGeneralCategory(),
         ]);
 
         return {
@@ -271,6 +272,10 @@ export const expensesRouter = router({
           byProject: byProject.map(p => ({
             ...p,
             total: parseFloat(p.total),
+          })),
+          byGeneralCategory: byGeneralCategory.map(g => ({
+            ...g,
+            total: parseFloat(g.total),
           })),
         };
       }),

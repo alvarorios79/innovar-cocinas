@@ -1,0 +1,9 @@
+{
+  "query": "DELETE FROM appointmentWorkTypes WHERE appointmentId IN (SELECT a.id FROM appointments a JOIN clients c ON a.clientId = c.id WHERE c.name = 'Test Fix'); DELETE FROM appointments WHERE clientId IN (SELECT id FROM clients WHERE name = 'Test Fix'); DELETE FROM clients WHERE name = 'Test Fix';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute DELETE FROM appointmentWorkTypes WHERE appointmentId IN (SELECT a.id FROM appointments a JOIN clients c ON a.clientId = c.id WHERE c.name = 'Test Fix'); DELETE FROM appointments WHERE clientId IN (SELECT id FROM clients WHERE name = 'Test Fix'); DELETE FROM clients WHERE name = 'Test Fix';",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 82
+}

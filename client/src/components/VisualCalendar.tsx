@@ -145,14 +145,14 @@ export function VisualCalendar({
       {/* Calendario */}
       <Card className="p-3 sm:p-4">
         <div className="flex items-center justify-between mb-3 sm:mb-4">
-          <Button variant="outline" size="sm" onClick={previousMonth} className="h-10 w-10 p-0">
+          <Button type="button" variant="outline" size="sm" onClick={previousMonth} className="h-10 w-10 p-0">
             ←
           </Button>
           <div className="flex items-center gap-2 font-semibold text-sm sm:text-base">
             <CalendarIcon className="h-4 w-4" />
             {monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}
           </div>
-          <Button variant="outline" size="sm" onClick={nextMonth} className="h-10 w-10 p-0">
+          <Button type="button" variant="outline" size="sm" onClick={nextMonth} className="h-10 w-10 p-0">
             →
           </Button>
         </div>
@@ -207,6 +207,7 @@ export function VisualCalendar({
               
               return (
                 <Button
+                  type="button"
                   key={slot}
                   variant={isSelected ? "default" : "outline"}
                   size="sm"

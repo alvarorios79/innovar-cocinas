@@ -660,9 +660,57 @@ export default function Home() {
                       />
                     </div>
 
-                    <Button type="submit" className="w-full" size="lg">
-                      Agendar Cita
-                      <Calendar className="ml-2 h-4 w-4" />
+                    {/* Resumen de confirmación antes de agendar */}
+                    {appointmentDate && appointmentTime && (() => {
+                      const [year, month, day] = appointmentDate.split('-').map(Number);
+                      const dateObj = new Date(year, month - 1, day, 12, 0, 0);
+                      const dayNames = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+                      const monthNames = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+                      const dayName = dayNames[dateObj.getDay()];
+                      const monthName = monthNames[dateObj.getMonth()];
+                      const [hours, minutes] = appointmentTime.split(':');
+                      const hour = parseInt(hours);
+                      const ampm = hour >= 12 ? 'PM' : 'AM';
+                      const displayHour = hour > 12 ? hour - 12 : hour;
+                      const timeFormatted = `${displayHour}:${minutes} ${ampm}`;
+                      return (
+                        <div className="rounded-lg border-2 border-primary bg-primary/5 p-4 space-y-2">
+                          <div className="flex items-center gap-2 text-primary font-semibold text-base">
+                            <CheckCircle2 className="h-5 w-5" />
+                            <span>Confirma tu cita</span>
+                          </div>
+                          <div className="text-center py-2">
+                            <p className="text-lg font-bold text-foreground">
+                              {dayName} {day} de {monthName} de {year}
+                            </p>
+                            <p className="text-2xl font-bold text-primary mt-1">
+                              {timeFormatted}
+                            </p>
+                            <p className="text-sm text-muted-foreground mt-2">
+                              Duración aproximada: 1 hora y 30 minutos
+                            </p>
+                          </div>
+                          <p className="text-xs text-muted-foreground text-center">
+                            Verifica que el día y la hora sean correctos antes de presionar "Agendar Cita"
+                          </p>
+                        </div>
+                      );
+                    })()}
+
+                    <Button 
+                      type="submit" 
+                      className="w-full" 
+                      size="lg"
+                      disabled={!appointmentDate || !appointmentTime || createAppointmentMutation.isPending}
+                    >
+                      {createAppointmentMutation.isPending ? (
+                        <>Agendando...</>
+                      ) : (
+                        <>
+                          Agendar Cita
+                          <Calendar className="ml-2 h-4 w-4" />
+                        </>
+                      )}
                     </Button>
                   </form>
                 </CardContent>

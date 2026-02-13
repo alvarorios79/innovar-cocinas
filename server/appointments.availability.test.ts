@@ -26,18 +26,18 @@ describe("Validación de disponibilidad horaria", () => {
       }
     }
 
-    // Martes 20 de enero de 2026 a las 08:00
-    const date = new Date(2026, 0, 20, 8, 0, 0, 0);
-    const timeSlot = "08:00";
+    // Martes 20 de enero de 2026 a las 08:30 (slot configurado)
+    const date = new Date(2026, 0, 20, 8, 30, 0, 0);
+    const timeSlot = "08:30";
 
     const isAvailable = await isTimeSlotAvailable(date, timeSlot);
     expect(isAvailable).toBe(true);
   });
 
   it("debe bloquear horario después de agendar una cita", async () => {
-    // Martes 20 de enero de 2026 a las 09:30
-    const date = new Date(2026, 0, 20, 9, 30, 0, 0);
-    const timeSlot = "09:30";
+    // Martes 20 de enero de 2026 a las 10:00 (slot configurado)
+    const date = new Date(2026, 0, 20, 10, 0, 0, 0);
+    const timeSlot = "10:00";
 
     // Verificar que está disponible
     const isAvailableBefore = await isTimeSlotAvailable(date, timeSlot);
@@ -60,9 +60,9 @@ describe("Validación de disponibilidad horaria", () => {
   });
 
   it.skip("debe mostrar horario disponible después de cancelar cita", async () => {
-    // Martes 20 de enero de 2026 a las 14:30
-    const date = new Date(2026, 0, 20, 14, 30, 0, 0);
-    const timeSlot = "14:30";
+    // Martes 20 de enero de 2026 a las 14:00 (slot configurado)
+    const date = new Date(2026, 0, 20, 14, 0, 0, 0);
+    const timeSlot = "14:00";
 
     // Agendar cita
     testAppointmentId = await db.createAppointment({
@@ -110,11 +110,11 @@ describe("Validación de disponibilidad horaria", () => {
     // Obtener horarios disponibles antes de agendar
     const slotsBefore = await getAvailableTimeSlots(date);
     expect(slotsBefore.length).toBeGreaterThan(0);
-    expect(slotsBefore).toContain("08:00");
-    expect(slotsBefore).toContain("09:30");
+    expect(slotsBefore).toContain("08:30");
+    expect(slotsBefore).toContain("10:00");
 
-    // Agendar cita a las 08:00 en zona horaria de Colombia
-    const dateStr = `2026-01-20T08:00:00-05:00`;
+    // Agendar cita a las 08:30 en zona horaria de Colombia
+    const dateStr = `2026-01-20T08:30:00-05:00`;
     const appointmentDate = new Date(dateStr);
     testAppointmentId = await db.createAppointment({
       clientId: testClientId,
@@ -126,17 +126,17 @@ describe("Validación de disponibilidad horaria", () => {
     // Obtener horarios disponibles después de agendar
     const slotsAfter = await getAvailableTimeSlots(date);
     expect(slotsAfter.length).toBe(slotsBefore.length - 1);
-    expect(slotsAfter).not.toContain("08:00"); // Este ya está ocupado
-    expect(slotsAfter).toContain("09:30"); // Este sigue disponible
+    expect(slotsAfter).not.toContain("08:30"); // Este ya está ocupado
+    expect(slotsAfter).toContain("10:00"); // Este sigue disponible
 
     // Limpiar
     await db.deleteAppointment(testAppointmentId);
   });
 
   it("no debe permitir agendar en día no permitido (lunes)", async () => {
-    // Lunes 19 de enero de 2026 a las 08:00
-    const date = new Date(2026, 0, 19, 8, 0, 0, 0);
-    const timeSlot = "08:00";
+    // Lunes 19 de enero de 2026 a las 08:30
+    const date = new Date(2026, 0, 19, 8, 30, 0, 0);
+    const timeSlot = "08:30";
 
     const isAvailable = await isTimeSlotAvailable(date, timeSlot);
     expect(isAvailable).toBe(false);

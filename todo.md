@@ -4267,3 +4267,8 @@ Se agregó el rol "comercial" a los siguientes endpoints:
   - El problema estaba en TeamDashboard.tsx: las tarjetas de Citas Hoy/Pendientes apuntaban a /calendar (instalaciones)
 - [x] Corregir tarjeta "Citas Hoy" para que abra /appointments-calendar
   - Corregidos 3 enlaces en TeamDashboard.tsx (super_admin, admin, comercial)
+
+## Flujo de Agendamiento - Confirmación antes de crear cita
+
+- [x] Corregir flujo: la cita no debe crearse automáticamente al seleccionar hora, solo al presionar botón "Agendar Cita"
+- [x] Agregar resumen de confirmación (día y hora elegidos) encima del botón "Agendar Cita" antes de enviar

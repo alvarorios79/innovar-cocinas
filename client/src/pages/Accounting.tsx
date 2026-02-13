@@ -99,6 +99,7 @@ export default function Accounting() {
   const [customDateFrom, setCustomDateFrom] = useState<string>("");
   const [customDateTo, setCustomDateTo] = useState<string>("");
   const [showExportMenu, setShowExportMenu] = useState(false);
+  const [filterGeneralCategory, setFilterGeneralCategory] = useState<string | "all">("all");
 
   // Queries
   const { data: projects } = trpc.expenses.getProjectsForSelect.useQuery();
@@ -263,15 +264,19 @@ export default function Accounting() {
     if (!expenses) return [];
     
     const dateRange = getDateRange();
-    if (!dateRange) return expenses;
-    
-    return expenses.filter(expense => {
+    let filtered = dateRange ? expenses.filter(expense => {
       const expenseDate = new Date(expense.expenseDate);
       if (dateRange.from && expenseDate < dateRange.from) return false;
       if (dateRange.to && expenseDate > dateRange.to) return false;
       return true;
-    });
-  }, [expenses, dateFilterPeriod, customDateFrom, customDateTo]);
+    }) : expenses;
+    
+    if (filterGeneralCategory !== "all") {
+      filtered = filtered.filter(expense => expense.generalCategory === filterGeneralCategory);
+    }
+    
+    return filtered;
+  }, [expenses, dateFilterPeriod, customDateFrom, customDateTo, filterGeneralCategory]);
 
   // Calcular totales de gastos filtrados
   const filteredTotals = useMemo(() => {
@@ -1100,6 +1105,24 @@ export default function Accounting() {
               </Select>
             </div>
             
+            {/* Filtro por Categoría General */}
+            <div className="flex-1 min-w-[150px]">
+              <Label className="text-sm text-gray-600 mb-1 block">Categoría General</Label>
+              <Select value={filterGeneralCategory} onValueChange={(v: any) => setFilterGeneralCategory(v)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas</SelectItem>
+                  {GENERAL_CATEGORIES.map(cat => (
+                    <SelectItem key={cat.value} value={cat.value}>
+                      {cat.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
             {/* Fechas personalizadas */}
             {dateFilterPeriod === "custom" && (
               <>
@@ -1334,10 +1357,17 @@ export default function Accounting() {
     <div className="container max-w-4xl py-8">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-bold text-gray-900">Contabilidad</h1>
-        <Button variant="outline" onClick={() => window.history.back()} className="gap-2">
-          <ArrowLeft className="w-4 h-4" />
-          Volver al Inicio
-        </Button>
+        {currentStep === 0 ? (
+          <Button variant="outline" onClick={() => window.history.back()} className="gap-2">
+            <ArrowLeft className="w-4 h-4" />
+            Volver al Inicio
+          </Button>
+        ) : (
+          <Button variant="ghost" onClick={() => setCurrentStep(0)} className="gap-2">
+            <ArrowLeft className="w-4 h-4" />
+            Atras
+          </Button>
+        )}
       </div>
 
       <Tabs value={activeTab} onValueChange={(v: any) => { setActiveTab(v); if (v === "register") resetForm(); }}>

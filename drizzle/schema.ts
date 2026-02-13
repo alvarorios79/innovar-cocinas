@@ -40,6 +40,7 @@ export const clients = mysqlTable("clients", {
   internalManagement: boolean("internalManagement").default(false).notNull(), // Gestión interna: el equipo gestiona las comunicaciones
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  deletedAt: timestamp("deletedAt"),
 }, (table) => ({
   userIdIdx: index("clients_userId_idx").on(table.userId),
   whatsappPhoneIdx: index("clients_whatsappPhone_idx").on(table.whatsappPhone),
@@ -59,6 +60,7 @@ export const appointments = mysqlTable("appointments", {
   notes: text("notes"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  deletedAt: timestamp("deletedAt"),
 }, (table) => ({
   clientIdIdx: index("appointments_clientId_idx").on(table.clientId),
   scheduledDateIdx: index("appointments_scheduledDate_idx").on(table.scheduledDate),
@@ -154,6 +156,7 @@ export const quotations = mysqlTable("quotations", {
   createdBy: int("createdBy").notNull().references(() => users.id),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  deletedAt: timestamp("deletedAt"),
 }, (table) => ({
   clientIdIdx: index("quotations_clientId_idx").on(table.clientId),
   statusIdx: index("quotations_status_idx").on(table.status),
@@ -255,6 +258,7 @@ export const projects = mysqlTable("projects", {
   // Timestamps
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  deletedAt: timestamp("deletedAt"),
 }, (table) => ({
   clientIdIdx: index("projects_clientId_idx").on(table.clientId),
   statusIdx: index("projects_status_idx").on(table.status),
@@ -370,6 +374,7 @@ export const tasks = mysqlTable("tasks", {
   reminderCount: int("reminderCount").default(0).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  deletedAt: timestamp("deletedAt"),
 }, (table) => ({
   assignedToIdx: index("tasks_assignedTo_idx").on(table.assignedTo),
   statusIdx: index("tasks_status_idx").on(table.status),

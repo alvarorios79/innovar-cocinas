@@ -112,39 +112,46 @@ describe("Sanitización de entradas de texto", () => {
   });
 });
 
-describe("Integración de sanitización en routers.ts", () => {
-  it("routers.ts debe importar funciones de sanitización", async () => {
-    const fs = await import("fs");
-    const path = await import("path");
-    const content = fs.readFileSync(path.resolve(__dirname, "routers.ts"), "utf-8");
-    
-    expect(content).toContain('import { sanitizeText, sanitizeHtml, sanitizeForEmail, sanitizePhone, sanitizeEmail } from "./sanitize"');
+describe("Integración de sanitización en routers/", () => {
+  // Después de la división del router monolítico, la sanitización está en los archivos individuales
+  function readAllRouterFiles(): string {
+    const fs = require("fs");
+    const path = require("path");
+    const routersDir = path.resolve(__dirname, "routers");
+    let allContent = "";
+    try {
+      const files = fs.readdirSync(routersDir).filter((f: string) => f.endsWith(".ts"));
+      for (const file of files) {
+        allContent += fs.readFileSync(path.join(routersDir, file), "utf-8");
+      }
+    } catch (e) {
+      // fallback: read routers.ts directly
+      allContent = fs.readFileSync(path.resolve(__dirname, "routers.ts"), "utf-8");
+    }
+    return allContent;
+  }
+
+  it("archivos de routers deben importar funciones de sanitización", () => {
+    const content = readAllRouterFiles();
+    expect(content).toContain('sanitizeText');
+    expect(content).toContain('sanitizePhone');
+    expect(content).toContain('sanitizeEmail');
   });
 
-  it("routers.ts debe usar sanitizeText en campos de texto libre", async () => {
-    const fs = await import("fs");
-    const path = await import("path");
-    const content = fs.readFileSync(path.resolve(__dirname, "routers.ts"), "utf-8");
-    
-    // Verificar que se usa sanitizeText en los puntos críticos
+  it("routers deben usar sanitizeText en campos de texto libre", () => {
+    const content = readAllRouterFiles();
     const sanitizeTextCount = (content.match(/sanitizeText\(/g) || []).length;
     expect(sanitizeTextCount).toBeGreaterThanOrEqual(10);
   });
 
-  it("routers.ts debe usar sanitizePhone en campos de teléfono", async () => {
-    const fs = await import("fs");
-    const path = await import("path");
-    const content = fs.readFileSync(path.resolve(__dirname, "routers.ts"), "utf-8");
-    
+  it("routers deben usar sanitizePhone en campos de teléfono", () => {
+    const content = readAllRouterFiles();
     const sanitizePhoneCount = (content.match(/sanitizePhone\(/g) || []).length;
     expect(sanitizePhoneCount).toBeGreaterThanOrEqual(3);
   });
 
-  it("routers.ts debe usar sanitizeEmail en campos de email", async () => {
-    const fs = await import("fs");
-    const path = await import("path");
-    const content = fs.readFileSync(path.resolve(__dirname, "routers.ts"), "utf-8");
-    
+  it("routers deben usar sanitizeEmail en campos de email", () => {
+    const content = readAllRouterFiles();
     const sanitizeEmailCount = (content.match(/sanitizeEmail\(/g) || []).length;
     expect(sanitizeEmailCount).toBeGreaterThanOrEqual(4);
   });

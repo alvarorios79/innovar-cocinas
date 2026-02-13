@@ -1,4 +1,4 @@
-import { eq, desc, and, gte, lte, gt, between, sql, inArray } from "drizzle-orm";
+import { eq, desc, and, gte, lte, gt, between, sql, inArray, isNull } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { 
   InsertUser, 
@@ -63,6 +63,21 @@ export async function getDb() {
     }
   }
   return _db;
+}
+
+/**
+ * Ejecuta una función dentro de una transacción de base de datos.
+ * Si la función lanza un error, la transacción se revierte automáticamente.
+ * Si completa sin error, la transacción se confirma.
+ */
+export async function withTransaction<T>(
+  fn: (tx: Awaited<ReturnType<typeof getDb>>) => Promise<T>
+): Promise<T> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return await (db as any).transaction(async (tx: any) => {
+    return await fn(tx);
+  });
 }
 
 export async function upsertUser(user: InsertUser): Promise<void> {
@@ -200,7 +215,7 @@ export async function getAllClients() {
   const db = await getDb();
   if (!db) return [];
 
-  return await db.select().from(clients).orderBy(desc(clients.createdAt));
+  return await db.select().from(clients).where(isNull(clients.deletedAt)).orderBy(desc(clients.createdAt));
 }
 
 export async function updateClient(id: number, data: Partial<InsertClient>) {
@@ -264,7 +279,7 @@ export async function getAppointmentsByClientId(clientId: number) {
   const db = await getDb();
   if (!db) return [];
 
-  const appointmentsList = await db.select().from(appointments).where(eq(appointments.clientId, clientId)).orderBy(desc(appointments.scheduledDate));
+  const appointmentsList = await db.select().from(appointments).where(and(eq(appointments.clientId, clientId), isNull(appointments.deletedAt))).orderBy(desc(appointments.scheduledDate));
   
   // Para cada cita, obtener sus workTypes
   const appointmentsWithWorkTypes = await Promise.all(
@@ -284,7 +299,7 @@ export async function getAllAppointments() {
   const db = await getDb();
   if (!db) return [];
 
-  const appointmentsList = await db.select().from(appointments).orderBy(desc(appointments.createdAt));
+  const appointmentsList = await db.select().from(appointments).where(isNull(appointments.deletedAt)).orderBy(desc(appointments.createdAt));
   
   // Para cada cita, obtener sus workTypes
   const appointmentsWithWorkTypes = await Promise.all(
@@ -351,7 +366,8 @@ export async function getAppointmentsByDate(date: Date) {
         gte(appointments.scheduledDate, startOfDay),
         lte(appointments.scheduledDate, endOfDay),
         // Excluir canceladas
-        eq(appointments.status, "pendiente")
+        eq(appointments.status, "pendiente"),
+        isNull(appointments.deletedAt)
       )
     )
     .orderBy(appointments.scheduledDate);
@@ -450,14 +466,14 @@ export async function getQuotationsByClientId(clientId: number) {
   const db = await getDb();
   if (!db) return [];
 
-  return await db.select().from(quotations).where(eq(quotations.clientId, clientId)).orderBy(desc(quotations.createdAt));
+  return await db.select().from(quotations).where(and(eq(quotations.clientId, clientId), isNull(quotations.deletedAt))).orderBy(desc(quotations.createdAt));
 }
 
 export async function getAllQuotations() {
   const db = await getDb();
   if (!db) return [];
 
-  return await db.select().from(quotations).orderBy(desc(quotations.createdAt));
+  return await db.select().from(quotations).where(isNull(quotations.deletedAt)).orderBy(desc(quotations.createdAt));
 }
 
 export async function updateQuotation(id: number, data: Partial<InsertQuotation>) {
@@ -617,9 +633,9 @@ export async function deleteAppointment(appointmentId: number): Promise<void> {
   }
 
   try {
-    await db.delete(appointments).where(eq(appointments.id, appointmentId));
+    await db.update(appointments).set({ deletedAt: new Date() }).where(eq(appointments.id, appointmentId));
   } catch (error) {
-    console.error("[Database] Failed to delete appointment:", error);
+    console.error("[Database] Failed to soft-delete appointment:", error);
     throw error;
   }
 }
@@ -645,9 +661,9 @@ export async function deleteQuotation(quotationId: number): Promise<void> {
   }
 
   try {
-    await db.delete(quotations).where(eq(quotations.id, quotationId));
+    await db.update(quotations).set({ deletedAt: new Date() }).where(eq(quotations.id, quotationId));
   } catch (error) {
-    console.error("[Database] Failed to delete quotation:", error);
+    console.error("[Database] Failed to soft-delete quotation:", error);
     throw error;
   }
 }
@@ -659,9 +675,9 @@ export async function deleteClient(clientId: number): Promise<void> {
   }
 
   try {
-    await db.delete(clients).where(eq(clients.id, clientId));
+    await db.update(clients).set({ deletedAt: new Date() }).where(eq(clients.id, clientId));
   } catch (error) {
-    console.error("[Database] Failed to delete client:", error);
+    console.error("[Database] Failed to soft-delete client:", error);
     throw error;
   }
 }
@@ -689,7 +705,7 @@ export async function getAllProjects() {
   const db = await getDb();
   if (!db) return [];
 
-  return await db.select().from(projects).orderBy(desc(projects.createdAt));
+  return await db.select().from(projects).where(isNull(projects.deletedAt)).orderBy(desc(projects.createdAt));
 }
 
 export async function getProjectByQuotationId(quotationId: number) {
@@ -705,7 +721,7 @@ export async function getProjectsByStatus(status: string) {
   if (!db) return [];
 
   return await db.select().from(projects)
-    .where(eq(projects.status, status as any))
+    .where(and(eq(projects.status, status as any), isNull(projects.deletedAt)))
     .orderBy(desc(projects.createdAt));
 }
 
@@ -714,7 +730,7 @@ export async function getProjectsByClientId(clientId: number) {
   if (!db) return [];
 
   return await db.select().from(projects)
-    .where(eq(projects.clientId, clientId))
+    .where(and(eq(projects.clientId, clientId), isNull(projects.deletedAt)))
     .orderBy(desc(projects.createdAt));
 }
 
@@ -723,7 +739,7 @@ export async function getProjectsByDesignerId(designerId: number) {
   if (!db) return [];
 
   return await db.select().from(projects)
-    .where(eq(projects.designerId, designerId))
+    .where(and(eq(projects.designerId, designerId), isNull(projects.deletedAt)))
     .orderBy(desc(projects.createdAt));
 }
 
@@ -793,8 +809,8 @@ export async function deleteProject(id: number) {
   await deleteProjectDetails(id);
   await deleteProjectNotifications(id);
   
-  // Finalmente eliminar el proyecto
-  await db.delete(projects).where(eq(projects.id, id));
+  // Soft delete del proyecto (mantiene datos para auditoría)
+  await db.update(projects).set({ deletedAt: new Date() }).where(eq(projects.id, id));
 }
 
 // ============ PROJECT PHOTOS ============
@@ -911,7 +927,7 @@ export async function getTasksByAssignedTo(userId: number) {
   if (!db) return [];
 
   return await db.select().from(tasks)
-    .where(eq(tasks.assignedTo, userId))
+    .where(and(eq(tasks.assignedTo, userId), isNull(tasks.deletedAt)))
     .orderBy(desc(tasks.createdAt));
 }
 
@@ -920,7 +936,7 @@ export async function getTasksByProjectId(projectId: number) {
   if (!db) return [];
 
   return await db.select().from(tasks)
-    .where(eq(tasks.projectId, projectId))
+    .where(and(eq(tasks.projectId, projectId), isNull(tasks.deletedAt)))
     .orderBy(desc(tasks.createdAt));
 }
 
@@ -928,7 +944,7 @@ export async function getAllTasks() {
   const db = await getDb();
   if (!db) return [];
 
-  return await db.select().from(tasks).orderBy(desc(tasks.createdAt));
+  return await db.select().from(tasks).where(isNull(tasks.deletedAt)).orderBy(desc(tasks.createdAt));
 }
 
 export async function updateTask(id: number, data: Partial<InsertTask>) {
@@ -942,7 +958,7 @@ export async function deleteTask(id: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  await db.delete(tasks).where(eq(tasks.id, id));
+  await db.update(tasks).set({ deletedAt: new Date() }).where(eq(tasks.id, id));
 }
 
 export async function updateTaskReminderHistory(taskId: number, sentByUserId: number) {
@@ -2122,4 +2138,167 @@ export async function getClientRevisionsByType(projectId: number, type: "modelad
       eq(clientRevisionHistory.type, type)
     ))
     .orderBy(desc(clientRevisionHistory.createdAt));
+}
+
+
+// ============ PAGINATED QUERIES ============
+
+export type PaginationParams = {
+  page?: number;
+  limit?: number;
+  search?: string;
+};
+
+export type PaginatedResult<T> = {
+  data: T[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+};
+
+export async function getAllClientsPaginated(params: PaginationParams = {}): Promise<PaginatedResult<any>> {
+  const db = await getDb();
+  if (!db) return { data: [], total: 0, page: 1, limit: 50, totalPages: 0 };
+
+  const page = Math.max(1, params.page || 1);
+  const limit = Math.min(100, Math.max(1, params.limit || 50));
+  const offset = (page - 1) * limit;
+
+  const conditions = [isNull(clients.deletedAt)];
+  if (params.search) {
+    const searchTerm = `%${params.search}%`;
+    conditions.push(sql`(${clients.name} LIKE ${searchTerm} OR ${clients.email} LIKE ${searchTerm} OR ${clients.whatsappPhone} LIKE ${searchTerm})`);
+  }
+
+  const [countResult, data] = await Promise.all([
+    db.select({ count: sql<number>`count(*)` }).from(clients).where(and(...conditions)),
+    db.select().from(clients).where(and(...conditions)).orderBy(desc(clients.createdAt)).limit(limit).offset(offset),
+  ]);
+
+  const total = countResult[0]?.count || 0;
+  return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
+}
+
+export async function getAllAppointmentsPaginated(params: PaginationParams & { status?: string } = {}): Promise<PaginatedResult<any>> {
+  const db = await getDb();
+  if (!db) return { data: [], total: 0, page: 1, limit: 50, totalPages: 0 };
+
+  const page = Math.max(1, params.page || 1);
+  const limit = Math.min(100, Math.max(1, params.limit || 50));
+  const offset = (page - 1) * limit;
+
+  const conditions: any[] = [isNull(appointments.deletedAt)];
+  if (params.status) {
+    conditions.push(eq(appointments.status, params.status as any));
+  }
+
+  const [countResult, appointmentsList] = await Promise.all([
+    db.select({ count: sql<number>`count(*)` }).from(appointments).where(and(...conditions)),
+    db.select().from(appointments).where(and(...conditions)).orderBy(desc(appointments.createdAt)).limit(limit).offset(offset),
+  ]);
+
+  // Obtener workTypes para las citas de esta página
+  const appointmentsWithWorkTypes = await Promise.all(
+    appointmentsList.map(async (appointment) => {
+      const workTypes = await db.select().from(appointmentWorkTypes).where(eq(appointmentWorkTypes.appointmentId, appointment.id));
+      return { ...appointment, workTypes: workTypes.map(wt => wt.workType) };
+    })
+  );
+
+  const total = countResult[0]?.count || 0;
+  return { data: appointmentsWithWorkTypes, total, page, limit, totalPages: Math.ceil(total / limit) };
+}
+
+export async function getAllQuotationsPaginated(params: PaginationParams & { status?: string } = {}): Promise<PaginatedResult<any>> {
+  const db = await getDb();
+  if (!db) return { data: [], total: 0, page: 1, limit: 50, totalPages: 0 };
+
+  const page = Math.max(1, params.page || 1);
+  const limit = Math.min(100, Math.max(1, params.limit || 50));
+  const offset = (page - 1) * limit;
+
+  const conditions: any[] = [isNull(quotations.deletedAt)];
+  if (params.status) {
+    conditions.push(eq(quotations.status, params.status as any));
+  }
+
+  const [countResult, data] = await Promise.all([
+    db.select({ count: sql<number>`count(*)` }).from(quotations).where(and(...conditions)),
+    db.select().from(quotations).where(and(...conditions)).orderBy(desc(quotations.createdAt)).limit(limit).offset(offset),
+  ]);
+
+  const total = countResult[0]?.count || 0;
+  return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
+}
+
+export async function getAllProjectsPaginated(params: PaginationParams & { status?: string } = {}): Promise<PaginatedResult<any>> {
+  const db = await getDb();
+  if (!db) return { data: [], total: 0, page: 1, limit: 50, totalPages: 0 };
+
+  const page = Math.max(1, params.page || 1);
+  const limit = Math.min(100, Math.max(1, params.limit || 50));
+  const offset = (page - 1) * limit;
+
+  const conditions: any[] = [isNull(projects.deletedAt)];
+  if (params.status) {
+    conditions.push(eq(projects.status, params.status as any));
+  }
+
+  const [countResult, data] = await Promise.all([
+    db.select({ count: sql<number>`count(*)` }).from(projects).where(and(...conditions)),
+    db.select().from(projects).where(and(...conditions)).orderBy(desc(projects.createdAt)).limit(limit).offset(offset),
+  ]);
+
+  const total = countResult[0]?.count || 0;
+  return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
+}
+
+export async function getAllTasksPaginated(params: PaginationParams & { status?: string; assignedTo?: number } = {}): Promise<PaginatedResult<any>> {
+  const db = await getDb();
+  if (!db) return { data: [], total: 0, page: 1, limit: 50, totalPages: 0 };
+
+  const page = Math.max(1, params.page || 1);
+  const limit = Math.min(100, Math.max(1, params.limit || 50));
+  const offset = (page - 1) * limit;
+
+  const conditions: any[] = [isNull(tasks.deletedAt)];
+  if (params.status) {
+    conditions.push(eq(tasks.status, params.status as any));
+  }
+  if (params.assignedTo) {
+    conditions.push(eq(tasks.assignedTo, params.assignedTo));
+  }
+
+  const [countResult, data] = await Promise.all([
+    db.select({ count: sql<number>`count(*)` }).from(tasks).where(and(...conditions)),
+    db.select().from(tasks).where(and(...conditions)).orderBy(desc(tasks.createdAt)).limit(limit).offset(offset),
+  ]);
+
+  const total = countResult[0]?.count || 0;
+  return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
+}
+
+export async function getAllExpensesPaginated(params: PaginationParams & { expenseType?: string } = {}): Promise<PaginatedResult<any>> {
+  const db = await getDb();
+  if (!db) return { data: [], total: 0, page: 1, limit: 50, totalPages: 0 };
+
+  const page = Math.max(1, params.page || 1);
+  const limit = Math.min(100, Math.max(1, params.limit || 50));
+  const offset = (page - 1) * limit;
+
+  const conditions: any[] = [];
+  if (params.expenseType) {
+    conditions.push(eq(expenses.expenseType, params.expenseType as any));
+  }
+
+  const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+  const [countResult, data] = await Promise.all([
+    db.select({ count: sql<number>`count(*)` }).from(expenses).where(whereClause),
+    db.select().from(expenses).where(whereClause).orderBy(desc(expenses.expenseDate)).limit(limit).offset(offset),
+  ]);
+
+  const total = countResult[0]?.count || 0;
+  return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
 }

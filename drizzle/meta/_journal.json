@@ -330,6 +330,13 @@
       "when": 1770958730924,
       "tag": "0046_kind_demogoblin",
       "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "5",
+      "when": 1770962720884,
+      "tag": "0047_bored_bedlam",
+      "breakpoints": true
     }
   ]
 }

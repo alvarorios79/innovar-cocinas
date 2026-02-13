@@ -4354,3 +4354,10 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] 5. Manejo global de errores no capturados
 - [x] 6. Monitoreo diario del token de WhatsApp
 - [x] 7. Sanitización de entradas de texto
+
+## Fase 2: Integridad y Mantenibilidad
+
+- [x] 1. Transacciones multi-tabla (db.transaction) en operaciones críticas
+- [x] 2. Soft Delete (deletedAt) en tablas principales
+- [x] 3. División del router monolítico (routers.ts) por dominios funcionales
+- [x] 4. Paginación en servidor para endpoints que retornan listas completas

@@ -792,6 +792,20 @@ export const expenses = mysqlTable("expenses", {
   projectId: int("projectId").references(() => projects.id),
   projectClientName: varchar("projectClientName", { length: 255 }), // Nombre del cliente/proyecto para referencia rápida
   
+  // Categoría general obligatoria para todos los gastos
+  generalCategory: mysqlEnum("generalCategory", [
+    "materiales",
+    "mano_de_obra",
+    "alquiler",
+    "servicios",
+    "transporte",
+    "mantenimiento",
+    "otros"
+  ]).notNull(),
+  
+  // Subcategoría opcional para mayor detalle
+  subcategory: varchar("subcategory", { length: 255 }),
+  
   // Para gastos operativos - categoría
   operativeCategory: mysqlEnum("operativeCategory", [
     "arriendo",

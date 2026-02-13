@@ -23,6 +23,8 @@ export const expensesRouter = router({
         expenseType: z.enum(["materiales_proyecto", "gasto_operativo"]),
         projectId: z.number().optional(),
         projectClientName: z.string().optional(),
+        generalCategory: z.enum(["materiales", "mano_de_obra", "alquiler", "servicios", "transporte", "mantenimiento", "otros"]),
+        subcategory: z.string().optional(),
         operativeCategory: z.enum([
           "arriendo", "energia", "agua", "internet", "mantenimiento",
           "herramientas", "jardineria", "reparaciones", "transporte",
@@ -64,6 +66,8 @@ export const expensesRouter = router({
           expenseType: input.expenseType,
           projectId: input.projectId || null,
           projectClientName: input.projectClientName || null,
+          generalCategory: input.generalCategory,
+          subcategory: input.subcategory || null,
           operativeCategory: input.operativeCategory || null,
           description: sanitizeText(input.description),
           amount: input.amount.toString(),

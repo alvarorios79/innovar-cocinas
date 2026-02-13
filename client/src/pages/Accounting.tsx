@@ -33,6 +33,17 @@ import {
 } from "lucide-react";
 // Storage upload will be handled via tRPC
 
+// Categorías generales obligatorias
+const GENERAL_CATEGORIES = [
+  { value: "materiales", label: "Materiales" },
+  { value: "mano_de_obra", label: "Mano de obra" },
+  { value: "alquiler", label: "Alquiler" },
+  { value: "servicios", label: "Servicios" },
+  { value: "transporte", label: "Transporte" },
+  { value: "mantenimiento", label: "Mantenimiento" },
+  { value: "otros", label: "Otros" },
+] as const;
+
 // Categorías operativas con etiquetas amigables
 const OPERATIVE_CATEGORIES = [
   { value: "arriendo", label: "Arriendo" },
@@ -50,12 +61,15 @@ const OPERATIVE_CATEGORIES = [
 ] as const;
 
 type ExpenseType = "materiales_proyecto" | "gasto_operativo";
+type GeneralCategory = typeof GENERAL_CATEGORIES[number]["value"];
 type OperativeCategory = typeof OPERATIVE_CATEGORIES[number]["value"];
 
 interface ExpenseFormData {
   expenseType: ExpenseType;
   projectId?: number;
   projectClientName?: string;
+  generalCategory: GeneralCategory;
+  subcategory?: string;
   operativeCategory?: OperativeCategory;
   description: string;
   amount: string;
@@ -70,6 +84,7 @@ export default function Accounting() {
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState<ExpenseFormData>({
     expenseType: "materiales_proyecto",
+    generalCategory: "materiales",
     description: "",
     amount: "",
     expenseDate: new Date().toISOString().split("T")[0],
@@ -119,6 +134,7 @@ export default function Accounting() {
     setCurrentStep(0);
     setFormData({
       expenseType: "materiales_proyecto",
+      generalCategory: "materiales",
       description: "",
       amount: "",
       expenseDate: new Date().toISOString().split("T")[0],
@@ -181,6 +197,8 @@ export default function Accounting() {
       expenseType: expenseType!,
       projectId: formData.projectId,
       projectClientName: formData.projectClientName,
+      generalCategory: formData.generalCategory,
+      subcategory: formData.subcategory,
       operativeCategory: formData.operativeCategory as any,
       description: formData.description,
       amount: parseFloat(formData.amount),
@@ -377,7 +395,7 @@ export default function Accounting() {
           </Button>
           <div>
             <h2 className="text-xl font-bold text-blue-600">Gastos de Materiales</h2>
-            <p className="text-sm text-gray-500">Paso {currentStep} de 5</p>
+            <p className="text-sm text-gray-500">Paso {currentStep} de 7</p>
           </div>
         </div>
 
@@ -586,7 +604,9 @@ export default function Accounting() {
   // Renderizar formulario de gastos operativos
   const renderOperativeForm = () => {
     const steps = [
-      { title: "Categoría", description: "¿Este gasto corresponde a qué tipo?" },
+      { title: "Categoría General", description: "Clasifica el gasto en una categoría general" },
+      { title: "Categoría Operativa", description: "Selecciona la categoría operativa específica" },
+      { title: "Subcategoría", description: "Agrega más detalle (opcional)" },
       { title: "Descripción", description: "Describe el gasto" },
       { title: "Valor", description: "¿Cuál fue el valor pagado?" },
       { title: "Fecha", description: "¿Qué fecha tiene este gasto?" },
@@ -601,7 +621,7 @@ export default function Accounting() {
           </Button>
           <div>
             <h2 className="text-xl font-bold text-purple-600">Gastos Operativos</h2>
-            <p className="text-sm text-gray-500">Paso {currentStep} de 5</p>
+            <p className="text-sm text-gray-500">Paso {currentStep} de 7</p>
           </div>
         </div>
 
@@ -624,6 +644,30 @@ export default function Accounting() {
             {currentStep === 1 && (
               <div className="space-y-4">
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                  {GENERAL_CATEGORIES.map(cat => (
+                    <Button
+                      key={cat.value}
+                      variant={formData.generalCategory === cat.value ? "default" : "outline"}
+                      className="h-auto py-3"
+                      onClick={() => setFormData(prev => ({ ...prev, generalCategory: cat.value }))}
+                    >
+                      {cat.label}
+                    </Button>
+                  ))}
+                </div>
+                <Button 
+                  className="w-full" 
+                  onClick={() => setCurrentStep(2)}
+                  disabled={!formData.generalCategory}
+                >
+                  Continuar
+                </Button>
+              </div>
+            )}
+
+            {currentStep === 2 && (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                   {OPERATIVE_CATEGORIES.map(cat => (
                     <Button
                       key={cat.value}
@@ -637,7 +681,7 @@ export default function Accounting() {
                 </div>
                 <Button 
                   className="w-full" 
-                  onClick={() => setCurrentStep(2)}
+                  onClick={() => setCurrentStep(3)}
                   disabled={!formData.operativeCategory}
                 >
                   Continuar
@@ -645,7 +689,24 @@ export default function Accounting() {
               </div>
             )}
 
-            {currentStep === 2 && (
+            {currentStep === 3 && (
+              <div className="space-y-4">
+                <Input
+                  placeholder="Ej: Gasolina guadaña, Insumos jardín, Herramientas específicas..."
+                  value={formData.subcategory || ""}
+                  onChange={(e) => setFormData(prev => ({ ...prev, subcategory: e.target.value }))}
+                />
+                <p className="text-sm text-gray-500">Este campo es opcional</p>
+                <Button 
+                  className="w-full" 
+                  onClick={() => setCurrentStep(4)}
+                >
+                  Continuar
+                </Button>
+              </div>
+            )}
+
+            {currentStep === 4 && (
               <div className="space-y-4">
                 <Textarea 
                   placeholder="Ej: energía bodega enero, arreglo taladro, mantenimiento sierra..."
@@ -655,7 +716,7 @@ export default function Accounting() {
                 />
                 <Button 
                   className="w-full" 
-                  onClick={() => setCurrentStep(3)}
+                  onClick={() => setCurrentStep(5)}
                   disabled={!formData.description.trim()}
                 >
                   Continuar
@@ -663,7 +724,7 @@ export default function Accounting() {
               </div>
             )}
 
-            {currentStep === 3 && (
+            {currentStep === 5 && (
               <div className="space-y-4">
                 <div className="relative">
                   <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -682,7 +743,7 @@ export default function Accounting() {
                 )}
                 <Button 
                   className="w-full" 
-                  onClick={() => setCurrentStep(4)}
+                  onClick={() => setCurrentStep(6)}
                   disabled={!formData.amount || parseFloat(formData.amount) <= 0}
                 >
                   Continuar
@@ -690,7 +751,7 @@ export default function Accounting() {
               </div>
             )}
 
-            {currentStep === 4 && (
+            {currentStep === 7 && (
               <div className="space-y-4">
                 <div className="relative">
                   <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -703,7 +764,7 @@ export default function Accounting() {
                 </div>
                 <Button 
                   className="w-full" 
-                  onClick={() => setCurrentStep(5)}
+                  onClick={() => setCurrentStep(8)}
                   disabled={!formData.expenseDate}
                 >
                   Continuar
@@ -711,7 +772,7 @@ export default function Accounting() {
               </div>
             )}
 
-            {currentStep === 5 && (
+            {currentStep === 8 && (
               <div className="space-y-4">
                 <div className="border-2 border-dashed rounded-lg p-8 text-center">
                   {formData.supportUrl ? (

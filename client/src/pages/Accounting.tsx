@@ -1317,8 +1317,8 @@ export default function Accounting() {
 
       {/* Totales generales */}
       <div className="grid md:grid-cols-3 gap-4">
-        <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white">
-          <CardContent className="p-6">
+        <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-lg border-0">
+          <CardContent className="p-8">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-blue-100">Materiales</p>
@@ -1329,8 +1329,8 @@ export default function Accounting() {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white">
-          <CardContent className="p-6">
+        <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white shadow-lg border-0">
+          <CardContent className="p-8">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-purple-100">Operativos</p>
@@ -1341,14 +1341,14 @@ export default function Accounting() {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-emerald-500 to-emerald-600 text-white">
-          <CardContent className="p-6">
+        <Card className="bg-gradient-to-br from-emerald-500 to-emerald-600 text-white shadow-lg border-0">
+          <CardContent className="p-8">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-emerald-100">Total General</p>
-                <p className="text-2xl font-bold mt-1">{formatCurrency(totals.total)}</p>
+                <p className="text-emerald-100 text-sm font-semibold tracking-wide">TOTAL GENERAL</p>
+                <p className="text-4xl font-bold mt-2">{formatCurrency(totals.total)}</p>
               </div>
-              <TrendingUp className="w-10 h-10 opacity-50" />
+              <TrendingUp className="w-12 h-12 opacity-60" />
             </div>
           </CardContent>
         </Card>
@@ -1356,24 +1356,24 @@ export default function Accounting() {
 
       {/* Gastos por categoría operativa */}
       {summary?.byCategory && summary.byCategory.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Building2 className="w-5 h-5" />
+        <Card className="border-l-4 border-l-purple-500">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Building2 className="w-5 h-5 text-purple-600" />
               Gastos Operativos por Categoría
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
               {summary.byCategory.map(cat => (
-                <div key={cat.category} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <Badge variant="secondary">
+                <div key={cat.category} className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-50 to-transparent rounded-lg hover:bg-purple-100 transition-colors">
+                  <div className="flex items-center gap-3 flex-1">
+                    <Badge className="bg-purple-600 hover:bg-purple-700 text-white font-semibold">
                       {OPERATIVE_CATEGORIES.find(c => c.value === cat.category)?.label || cat.category}
                     </Badge>
-                    <span className="text-sm text-gray-500">{cat.count} gastos</span>
+                    <span className="text-sm text-gray-600 font-medium">{cat.count} gasto{cat.count !== 1 ? 's' : ''}</span>
                   </div>
-                  <span className="font-bold">{formatCurrency(cat.total)}</span>
+                  <span className="font-bold text-purple-700">{formatCurrency(cat.total)}</span>
                 </div>
               ))}
             </div>
@@ -1383,10 +1383,10 @@ export default function Accounting() {
 
       {/* Gastos por Categoría General */}
       {summary?.byGeneralCategory && summary.byGeneralCategory.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Filter className="w-5 h-5" />
+        <Card className="border-l-4 border-l-cyan-500">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Filter className="w-5 h-5 text-cyan-600" />
               Gastos por Categoría General
             </CardTitle>
           </CardHeader>
@@ -1395,14 +1395,14 @@ export default function Accounting() {
               {summary.byGeneralCategory.map(cat => {
                 const label = GENERAL_CATEGORIES.find(c => c.value === cat.generalCategory)?.label || cat.generalCategory;
                 return (
-                  <div key={cat.generalCategory} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <Badge variant="secondary">
+                  <div key={cat.generalCategory} className="flex items-center justify-between p-4 bg-gradient-to-r from-cyan-50 to-transparent rounded-lg hover:bg-cyan-100 transition-colors">
+                    <div className="flex items-center gap-3 flex-1">
+                      <Badge className="bg-cyan-600 hover:bg-cyan-700 text-white font-semibold">
                         {label}
                       </Badge>
-                      <span className="text-sm text-gray-500">{cat.count} gastos</span>
+                      <span className="text-sm text-gray-600 font-medium">{cat.count} gasto{cat.count !== 1 ? 's' : ''}</span>
                     </div>
-                    <span className="font-bold">{formatCurrency(cat.total)}</span>
+                    <span className="font-bold text-cyan-700">{formatCurrency(cat.total)}</span>
                   </div>
                 );
               })}

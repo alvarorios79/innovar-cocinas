@@ -4325,3 +4325,10 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 
 - [x] Enviar email al equipo (admin, comercial, super_admin) cuando cliente reagenda cita
 - [x] Enviar WhatsApp al equipo cuando cliente reagenda cita
+
+## Cancelar cita desde portal del cliente
+
+- [x] Crear procedimiento backend para cancelar cita desde el portal del cliente
+- [x] Agregar botón de cancelar cita en el frontend del Portal del cliente
+- [x] Notificar al equipo (campanilla, email, WhatsApp) cuando cliente cancela cita
+- [x] Liberar el horario para que otro cliente pueda agendar (al cambiar status a 'cancelada' el slot queda libre automáticamente)

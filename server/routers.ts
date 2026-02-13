@@ -740,6 +740,144 @@ export const appRouter = router({
         return { success: true };
       }),
 
+    cancelByClient: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        reason: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const client = await db.getClientByUserId(ctx.user.id);
+        if (!client) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Cliente no encontrado" });
+        }
+
+        const appointment = await db.getAppointmentById(input.id);
+        if (!appointment || appointment.clientId !== client.id) {
+          throw new TRPCError({ code: "FORBIDDEN" });
+        }
+
+        if (appointment.status === 'cancelada') {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "La cita ya está cancelada" });
+        }
+
+        if (appointment.status === 'completada') {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "No se puede cancelar una cita completada" });
+        }
+
+        // Cambiar estado a cancelada (libera el horario automáticamente)
+        await db.updateAppointment(input.id, {
+          status: 'cancelada',
+          notes: input.reason ? `Cancelada por cliente: ${input.reason}` : 'Cancelada por el cliente desde el portal',
+        });
+
+        const scheduledDate = appointment.scheduledDate ? new Date(appointment.scheduledDate) : new Date();
+        const dateFormatted = scheduledDate.toLocaleDateString('es-CO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'America/Bogota' });
+        const timeFormatted = scheduledDate.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'America/Bogota' });
+
+        // Obtener tipo de trabajo
+        let tipoTrabajo = 'No especificado';
+        try {
+          const { appointmentWorkTypes } = await import('../drizzle/schema');
+          const { eq } = await import('drizzle-orm');
+          const { getDb } = await import('./db');
+          const dbConn = await getDb();
+          if (dbConn) {
+            const workTypes = await dbConn.select().from(appointmentWorkTypes).where(eq(appointmentWorkTypes.appointmentId, input.id));
+            if (workTypes.length > 0) {
+              const labels: Record<string, string> = { cocina: 'Cocina Integral', closet: 'Closet', puertas: 'Puertas', centro_tv: 'Centro de TV' };
+              tipoTrabajo = workTypes.map(wt => labels[wt.workType] || wt.workType).join(', ');
+            }
+          }
+        } catch (e) { /* ignorar */ }
+
+        const motivoCancelacion = input.reason || 'No especificado';
+
+        // Notificación en campanilla para el cliente
+        if (client.userId) {
+          try {
+            await db.createNotification({
+              userId: client.userId,
+              type: 'cita',
+              title: '❌ Cita Cancelada',
+              body: `Tu cita del ${dateFormatted} a las ${timeFormatted} ha sido cancelada. El horario queda disponible para reagendar.`,
+              referenceId: input.id,
+            });
+          } catch (notifError) {
+            console.error('[CancelarCita] Error notificación cliente:', notifError);
+          }
+        }
+
+        // Notificaciones al equipo (campanilla + email + WhatsApp)
+        try {
+          const [admins, comerciales, superAdmins] = await Promise.all([
+            db.getUsersByRole('admin'),
+            db.getUsersByRole('comercial'),
+            db.getUsersByRole('super_admin'),
+          ]);
+          const teamUsers = [...admins, ...comerciales, ...superAdmins];
+
+          for (const user of teamUsers) {
+            // Campanilla
+            await db.createNotification({
+              userId: user.id,
+              type: 'cita',
+              title: '❌ Cliente Canceló Cita',
+              body: `${client.name} canceló su cita del ${dateFormatted} a las ${timeFormatted}. Motivo: ${motivoCancelacion}. El horario quedó libre.`,
+              referenceId: input.id,
+            });
+
+            // Email al equipo
+            if (user.email) {
+              try {
+                const { sendEmail, generateEmailHTML } = await import('./email');
+                const emailHtml = generateEmailHTML(`
+                  <h2 style="color: #e74c3c;">❌ Cita Cancelada por Cliente</h2>
+                  <p>El cliente <strong>${client.name}</strong> ha cancelado su cita.</p>
+                  <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
+                    <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">Cliente</td><td style="padding: 8px; border-bottom: 1px solid #eee;">${client.name}</td></tr>
+                    <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">WhatsApp</td><td style="padding: 8px; border-bottom: 1px solid #eee;">${client.whatsappPhone}</td></tr>
+                    <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">Tipo de Trabajo</td><td style="padding: 8px; border-bottom: 1px solid #eee;">${tipoTrabajo}</td></tr>
+                    <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">Fecha Cancelada</td><td style="padding: 8px; border-bottom: 1px solid #eee;">${dateFormatted}</td></tr>
+                    <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">Hora</td><td style="padding: 8px; border-bottom: 1px solid #eee;">${timeFormatted}</td></tr>
+                    <tr><td style="padding: 8px; font-weight: bold;">Motivo</td><td style="padding: 8px;">${motivoCancelacion}</td></tr>
+                  </table>
+                  <p style="color: #27ae60; font-weight: bold;">✅ El horario ha quedado libre para otro cliente.</p>
+                `, 'Cita Cancelada por Cliente');
+                await sendEmail({
+                  to: user.email,
+                  subject: `❌ ${client.name} canceló su cita - ${dateFormatted}`,
+                  html: emailHtml,
+                });
+              } catch (emailErr) {
+                console.error(`[CancelarCita] Error email a ${user.email}:`, emailErr);
+              }
+            }
+
+            // WhatsApp al equipo
+            if (user.phone) {
+              try {
+                const whatsappCloud = await import('./whatsapp-cloud');
+                const mensaje = `❌ *Cita Cancelada por Cliente*\n\n` +
+                  `El cliente *${client.name}* canceló su cita.\n\n` +
+                  `📅 *Fecha:* ${dateFormatted}\n` +
+                  `⏰ *Hora:* ${timeFormatted}\n` +
+                  `🛠️ *Tipo:* ${tipoTrabajo}\n` +
+                  `📝 *Motivo:* ${motivoCancelacion}\n` +
+                  `📱 *WhatsApp cliente:* ${client.whatsappPhone}\n\n` +
+                  `✅ El horario ha quedado libre para otro cliente.`;
+                await whatsappCloud.sendTextMessage(user.phone, mensaje);
+              } catch (waErr) {
+                console.error(`[CancelarCita] Error WhatsApp a ${user.phone}:`, waErr);
+              }
+            }
+          }
+        } catch (notifError) {
+          console.error('[CancelarCita] Error al notificar equipo:', notifError);
+        }
+
+        return { success: true };
+      }),
+
     list: protectedProcedure
       .query(async ({ ctx }) => {
         if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "comercial") {

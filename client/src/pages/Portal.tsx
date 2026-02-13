@@ -204,6 +204,8 @@ export default function Portal() {
   const [rescheduleDate, setRescheduleDate] = useState("");
   const [rescheduleTime, setRescheduleTime] = useState("");
   const [showRescheduleDialog, setShowRescheduleDialog] = useState(false);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
   const [showPhotoDialog, setShowPhotoDialog] = useState(false);
   const [selectedProjectForPhoto, setSelectedProjectForPhoto] = useState<any>(null);
   const [photoDescription, setPhotoDescription] = useState("");
@@ -271,6 +273,19 @@ export default function Portal() {
     },
     onError: (error) => {
       toast.error(error.message || "Error al reagendar la cita");
+    },
+  });
+
+  const cancelAppointment = trpc.appointments.cancelByClient.useMutation({
+    onSuccess: () => {
+      utils.appointments.getMyAppointments.invalidate();
+      toast.success("Cita cancelada exitosamente. El horario ha quedado libre.");
+      setSelectedAppointment(null);
+      setCancelReason("");
+      setShowCancelDialog(false);
+    },
+    onError: (error) => {
+      toast.error(error.message || "Error al cancelar la cita");
     },
   });
 
@@ -433,6 +448,14 @@ export default function Portal() {
     await rescheduleAppointment.mutateAsync({
       id: selectedAppointment.id,
       scheduledDate,
+    });
+  };
+
+  const handleCancel = async () => {
+    if (!selectedAppointment) return;
+    await cancelAppointment.mutateAsync({
+      id: selectedAppointment.id,
+      reason: cancelReason || undefined,
     });
   };
 
@@ -953,6 +976,7 @@ export default function Portal() {
                             )}
                           </div>
                           {(apt.status === "pendiente" || apt.status === "confirmada") && (
+                          <div className="flex flex-col gap-2">
                             <Dialog open={showRescheduleDialog && selectedAppointment?.id === apt.id} onOpenChange={(open) => {
                               if (!open) {
                                 setShowRescheduleDialog(false);
@@ -1009,6 +1033,77 @@ export default function Portal() {
                                 </div>
                               </DialogContent>
                             </Dialog>
+
+                            {/* Botón Cancelar Cita */}
+                            <Dialog open={showCancelDialog && selectedAppointment?.id === apt.id} onOpenChange={(open) => {
+                              if (!open) {
+                                setShowCancelDialog(false);
+                                setSelectedAppointment(null);
+                                setCancelReason("");
+                              }
+                            }}>
+                              <DialogTrigger asChild>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="border-red-300 text-red-600 hover:bg-red-50"
+                                  onClick={() => {
+                                    setSelectedAppointment(apt);
+                                    setCancelReason("");
+                                    setShowCancelDialog(true);
+                                  }}
+                                >
+                                  Cancelar Cita
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent>
+                                <DialogHeader>
+                                  <DialogTitle className="text-red-600">❌ Cancelar Cita</DialogTitle>
+                                  <DialogDescription>
+                                    {getWorkTypeLabel(apt.workTypes)} - {formatDate(apt.scheduledDate)}
+                                  </DialogDescription>
+                                </DialogHeader>
+                                <div className="space-y-4">
+                                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                                    <p className="text-sm text-red-800 font-medium">¿Estás seguro de que deseas cancelar esta cita?</p>
+                                    <p className="text-xs text-red-600 mt-1">El horario quedará libre para que otro cliente pueda agendar.</p>
+                                  </div>
+                                  <div>
+                                    <label className="text-sm font-medium">Motivo de cancelación (opcional)</label>
+                                    <textarea
+                                      className="w-full mt-1 p-2 border rounded-md text-sm min-h-[80px] resize-none"
+                                      placeholder="Escribe el motivo de la cancelación..."
+                                      value={cancelReason}
+                                      onChange={(e) => setCancelReason(e.target.value)}
+                                    />
+                                  </div>
+                                  <div className="flex gap-2">
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      className="flex-1"
+                                      onClick={() => {
+                                        setShowCancelDialog(false);
+                                        setSelectedAppointment(null);
+                                        setCancelReason("");
+                                      }}
+                                    >
+                                      No, mantener cita
+                                    </Button>
+                                    <Button
+                                      type="button"
+                                      variant="destructive"
+                                      className="flex-1"
+                                      disabled={cancelAppointment.isPending}
+                                      onClick={handleCancel}
+                                    >
+                                      {cancelAppointment.isPending ? "Cancelando..." : "Sí, cancelar cita"}
+                                    </Button>
+                                  </div>
+                                </div>
+                              </DialogContent>
+                            </Dialog>
+                          </div>
                           )}
                         </div>
                       </div>

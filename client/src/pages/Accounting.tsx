@@ -100,6 +100,7 @@ export default function Accounting() {
   const [customDateTo, setCustomDateTo] = useState<string>("");
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [filterGeneralCategory, setFilterGeneralCategory] = useState<string | "all">("all");
+  const [searchDescription, setSearchDescription] = useState<string>("");
 
   // Queries
   const { data: projects } = trpc.expenses.getProjectsForSelect.useQuery();
@@ -275,8 +276,15 @@ export default function Accounting() {
       filtered = filtered.filter(expense => expense.generalCategory === filterGeneralCategory);
     }
     
+    if (searchDescription.trim()) {
+      const searchLower = searchDescription.toLowerCase();
+      filtered = filtered.filter(expense => 
+        expense.description.toLowerCase().includes(searchLower)
+      );
+    }
+    
     return filtered;
-  }, [expenses, dateFilterPeriod, customDateFrom, customDateTo, filterGeneralCategory]);
+  }, [expenses, dateFilterPeriod, customDateFrom, customDateTo, filterGeneralCategory, searchDescription]);
 
   // Calcular totales de gastos filtrados
   const filteredTotals = useMemo(() => {
@@ -1084,6 +1092,18 @@ export default function Accounting() {
                   <SelectItem value="gasto_operativo">Operativos</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+            
+            {/* Búsqueda por descripción */}
+            <div className="flex-1 min-w-[150px]">
+              <Label className="text-sm text-gray-600 mb-1 block">Buscar descripción</Label>
+              <Input 
+                type="text" 
+                placeholder="Ej: gasolina, arriendo..." 
+                value={searchDescription}
+                onChange={(e) => setSearchDescription(e.target.value)}
+                className="w-full"
+              />
             </div>
             
             {/* Filtro por período */}

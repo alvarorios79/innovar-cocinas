@@ -4288,3 +4288,5 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 
 - [x] Subir logo de INNOVAR a S3 para mayor estabilidad
 - [x] Actualizar URL del logo en whatsapp-cloud.ts
+- [x] Crear versión PNG con fondo transparente del logo para WhatsApp
+- [x] Subir nueva versión a S3 y actualizar URL en whatsapp-cloud.ts

@@ -18,6 +18,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatPrice } from "@/lib/formatters";
 import { VisualCalendar } from "@/components/VisualCalendar";
+import { NotificationBell } from "@/components/NotificationBell";
 
 // Componente para la vista de aprobación de diseño (modelado 3D o renders)
 function ProjectApprovalView({ 
@@ -466,6 +467,7 @@ export default function Portal() {
             <h1 className="text-lg md:text-xl font-bold">Mi Portal</h1>
           </div>
           <div className="flex items-center gap-2 md:gap-4">
+            <NotificationBell />
             <span className="hidden sm:inline text-sm text-muted-foreground truncate max-w-[120px]">{user?.name}</span>
             <Button variant="ghost" size="sm" onClick={() => logoutMutation.mutate()} className="px-2 md:px-3">
               <LogOut className="h-4 w-4 md:mr-2" />

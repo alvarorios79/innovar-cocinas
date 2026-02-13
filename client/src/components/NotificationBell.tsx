@@ -221,16 +221,32 @@ export function NotificationBell() {
                     if (!notification.read) {
                       markAsReadMutation.mutate({ id: notification.id });
                     }
-                    // Navegar según el tipo de notificación
+                    // Navegar según el tipo de notificación y rol del usuario
+                    const isClient = user?.role === "user";
                     if (notification.type === "tarea") {
                       setOpen(false);
                       setLocation("/tasks");
-                    } else if (notification.type === "proyecto" && notification.referenceId) {
+                    } else if (notification.type === "proyecto") {
                       setOpen(false);
-                      setLocation("/projects");
+                      if (isClient && notification.referenceId) {
+                        setLocation(`/portal?project=${notification.referenceId}`);
+                      } else if (notification.referenceId) {
+                        setLocation("/projects");
+                      }
                     } else if (notification.type === "cita") {
                       setOpen(false);
-                      setLocation("/admin");
+                      if (isClient) {
+                        setLocation("/portal");
+                      } else {
+                        setLocation("/appointments-calendar");
+                      }
+                    } else if (notification.type === "cotizacion") {
+                      setOpen(false);
+                      if (isClient) {
+                        setLocation("/portal");
+                      } else {
+                        setLocation("/admin");
+                      }
                     }
                   }}
                 >

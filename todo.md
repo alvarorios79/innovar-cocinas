@@ -4298,3 +4298,11 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Aplicar las mismas restricciones del VisualCalendar al formulario de reagendamiento
 - [x] Corregido en AppointmentsCalendar.tsx (panel admin)
 - [x] Corregido en Portal.tsx (portal del cliente) - reemplazado datetime-local por VisualCalendar con resumen de confirmación
+
+## Bug: Notificaciones no llegan a la campanilla del cliente
+
+- [x] Diagnosticar por qué las notificaciones no aparecen en la campanilla para el rol cliente
+  - Causa: NotificationBell no estaba incluido en Portal.tsx (portal del cliente)
+- [x] Corregir el flujo de notificaciones para que el cliente reciba notificaciones en la app
+  - Agregado NotificationBell al header de Portal.tsx
+  - Corregida navegación: clientes van a /portal, equipo va a rutas de admin

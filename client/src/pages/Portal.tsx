@@ -17,6 +17,7 @@ import { ProjectTimeline } from "@/components/ProjectTimeline";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatPrice } from "@/lib/formatters";
+import { VisualCalendar } from "@/components/VisualCalendar";
 
 // Componente para la vista de aprobación de diseño (modelado 3D o renders)
 function ProjectApprovalView({ 
@@ -200,6 +201,8 @@ export default function Portal() {
   const [, setLocation] = useLocation();
   const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
   const [rescheduleDate, setRescheduleDate] = useState("");
+  const [rescheduleTime, setRescheduleTime] = useState("");
+  const [showRescheduleDialog, setShowRescheduleDialog] = useState(false);
   const [showPhotoDialog, setShowPhotoDialog] = useState(false);
   const [selectedProjectForPhoto, setSelectedProjectForPhoto] = useState<any>(null);
   const [photoDescription, setPhotoDescription] = useState("");
@@ -262,6 +265,8 @@ export default function Portal() {
       toast.success("Cita reagendada exitosamente");
       setSelectedAppointment(null);
       setRescheduleDate("");
+      setRescheduleTime("");
+      setShowRescheduleDialog(false);
     },
     onError: (error) => {
       toast.error(error.message || "Error al reagendar la cita");
@@ -420,14 +425,30 @@ export default function Portal() {
     return Math.round(((index + 1) / statusOrder.length) * 100);
   };
 
-  const handleReschedule = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedAppointment || !rescheduleDate) return;
+  const handleReschedule = async () => {
+    if (!selectedAppointment || !rescheduleDate || !rescheduleTime) return;
 
+    const scheduledDate = `${rescheduleDate}T${rescheduleTime}:00`;
     await rescheduleAppointment.mutateAsync({
       id: selectedAppointment.id,
-      scheduledDate: rescheduleDate,
+      scheduledDate,
     });
+  };
+
+  // Formatear fecha y hora para el resumen de confirmación
+  const formatRescheduleConfirmation = () => {
+    if (!rescheduleDate || !rescheduleTime) return null;
+    const [year, month, day] = rescheduleDate.split('-').map(Number);
+    const date = new Date(year, month - 1, day, 12, 0, 0);
+    const dayNames = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+    const monthNames = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+    const dayName = dayNames[date.getDay()];
+    const monthName = monthNames[date.getMonth()];
+    const [hours, minutes] = rescheduleTime.split(':');
+    const hour = parseInt(hours);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const displayHour = hour > 12 ? hour - 12 : hour;
+    return `${dayName} ${day} de ${monthName} de ${year} — ${displayHour}:${minutes} ${ampm}`;
   };
 
   return (
@@ -930,38 +951,60 @@ export default function Portal() {
                             )}
                           </div>
                           {(apt.status === "pendiente" || apt.status === "confirmada") && (
-                            <Dialog>
+                            <Dialog open={showRescheduleDialog && selectedAppointment?.id === apt.id} onOpenChange={(open) => {
+                              if (!open) {
+                                setShowRescheduleDialog(false);
+                                setSelectedAppointment(null);
+                                setRescheduleDate("");
+                                setRescheduleTime("");
+                              }
+                            }}>
                               <DialogTrigger asChild>
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  onClick={() => setSelectedAppointment(apt)}
+                                  onClick={() => {
+                                    setSelectedAppointment(apt);
+                                    setRescheduleDate("");
+                                    setRescheduleTime("");
+                                    setShowRescheduleDialog(true);
+                                  }}
                                 >
                                   Reagendar
                                 </Button>
                               </DialogTrigger>
-                              <DialogContent>
+                              <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
                                 <DialogHeader>
                                   <DialogTitle>Reagendar Cita</DialogTitle>
                                   <DialogDescription>
                                     {getWorkTypeLabel(apt.workTypes)} - {formatDate(apt.scheduledDate)}
                                   </DialogDescription>
                                 </DialogHeader>
-                                <form onSubmit={handleReschedule} className="space-y-4">
-                                  <div className="space-y-2">
-                                    <Label htmlFor="newDate">Nueva fecha y hora</Label>
-                                    <Input
-                                      id="newDate"
-                                      type="datetime-local"
-                                      required
-                                      value={rescheduleDate}
-                                      onChange={(e) => setRescheduleDate(e.target.value)}
-                                    />
-                                  </div>
-                                  <Button type="submit" className="w-full">
-                                    Confirmar Reagendamiento
+                                <div className="space-y-4">
+                                  <VisualCalendar
+                                    selectedDate={rescheduleDate}
+                                    selectedTime={rescheduleTime}
+                                    onDateChange={setRescheduleDate}
+                                    onTimeChange={setRescheduleTime}
+                                  />
+
+                                  {rescheduleDate && rescheduleTime && (
+                                    <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+                                      <p className="text-sm font-semibold text-green-800">Confirma tu nueva fecha</p>
+                                      <p className="text-green-700 font-medium mt-1">{formatRescheduleConfirmation()}</p>
+                                      <p className="text-xs text-green-600 mt-1">Duración aproximada: 1 hora y 30 minutos</p>
+                                    </div>
+                                  )}
+
+                                  <Button
+                                    type="button"
+                                    className="w-full"
+                                    disabled={!rescheduleDate || !rescheduleTime || rescheduleAppointment.isPending}
+                                    onClick={handleReschedule}
+                                  >
+                                    {rescheduleAppointment.isPending ? "Reagendando..." : "Confirmar Reagendamiento"}
                                   </Button>
-                                </form>
+                                </div>
                               </DialogContent>
                             </Dialog>
                           )}

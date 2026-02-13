@@ -554,6 +554,24 @@ export const appRouter = router({
             notes: input.notes,
           });
 
+          // Notificación en campanilla para el cliente (si tiene userId)
+          const updatedClient = await db.getClientById(client.id);
+          if (updatedClient?.userId && scheduledDate) {
+            try {
+              const dateFormatted = scheduledDate.toLocaleDateString('es-CO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'America/Bogota' });
+              const timeFormatted = scheduledDate.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'America/Bogota' });
+              await db.createNotification({
+                userId: updatedClient.userId,
+                type: 'cita',
+                title: '📅 ¡Cita Agendada!',
+                body: `Tu cita ha sido agendada para el ${dateFormatted} a las ${timeFormatted}. Tipo: ${workTypesText}.`,
+                referenceId: appointmentId,
+              });
+            } catch (notifError) {
+              console.error('[Cita] Error al crear notificación en campanilla:', notifError);
+            }
+          }
+
           // Enviar WhatsApp automático al cliente si está configurado
           let whatsappAutoSent = false;
           if (whatsappCloud.isWhatsAppCloudConfigured() && client.whatsappPhone && scheduledDate) {
@@ -617,9 +635,27 @@ export const appRouter = router({
           throw new TRPCError({ code: "FORBIDDEN" });
         }
 
+        const newDate = new Date(input.scheduledDate);
         await db.updateAppointment(input.id, {
-          scheduledDate: new Date(input.scheduledDate),
+          scheduledDate: newDate,
         });
+
+        // Notificación en campanilla para el cliente
+        if (client.userId) {
+          try {
+            const dateFormatted = newDate.toLocaleDateString('es-CO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'America/Bogota' });
+            const timeFormatted = newDate.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'America/Bogota' });
+            await db.createNotification({
+              userId: client.userId,
+              type: 'cita',
+              title: '🔄 Cita Reagendada',
+              body: `Tu cita ha sido reagendada para el ${dateFormatted} a las ${timeFormatted}.`,
+              referenceId: input.id,
+            });
+          } catch (notifError) {
+            console.error('[Reagendar] Error al crear notificación en campanilla:', notifError);
+          }
+        }
 
         return { success: true };
       }),
@@ -685,6 +721,28 @@ export const appRouter = router({
         const scheduledDate = new Date(dateStr);
         
         await db.updateAppointment(input.id, { scheduledDate });
+
+        // Notificación en campanilla para el cliente
+        try {
+          const appointment = await db.getAppointmentById(input.id);
+          if (appointment) {
+            const client = await db.getClientById(appointment.clientId);
+            if (client?.userId) {
+              const dateFormatted = scheduledDate.toLocaleDateString('es-CO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'America/Bogota' });
+              const timeFormatted = scheduledDate.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'America/Bogota' });
+              await db.createNotification({
+                userId: client.userId,
+                type: 'cita',
+                title: '🔄 Cita Reagendada',
+                body: `Tu cita ha sido reagendada para el ${dateFormatted} a las ${timeFormatted}.`,
+                referenceId: input.id,
+              });
+            }
+          }
+        } catch (notifError) {
+          console.error('[UpdateDate] Error al crear notificación en campanilla:', notifError);
+        }
+
         return { success: true };
       }),
 

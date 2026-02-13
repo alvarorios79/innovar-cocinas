@@ -4306,3 +4306,13 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Corregir el flujo de notificaciones para que el cliente reciba notificaciones en la app
   - Agregado NotificationBell al header de Portal.tsx
   - Corregida navegación: clientes van a /portal, equipo va a rutas de admin
+
+## Bug: Error API devuelve HTML en vez de JSON en página principal
+
+- [ ] Diagnosticar error "Unexpected token '<', <!doctype..." en queries tRPC desde la página principal
+
+## Notificaciones en campanilla para el cliente al agendar/reagendar cita
+
+- [x] Agregar notificación en campanilla al cliente cuando se agenda una cita
+- [x] Agregar notificación en campanilla al cliente cuando se reagenda una cita
+- [x] Agregar notificación en campanilla al cliente cuando admin reagenda desde updateDate

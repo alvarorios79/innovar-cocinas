@@ -4332,3 +4332,25 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Agregar botón de cancelar cita en el frontend del Portal del cliente
 - [x] Notificar al equipo (campanilla, email, WhatsApp) cuando cliente cancela cita
 - [x] Liberar el horario para que otro cliente pueda agendar (al cambiar status a 'cancelada' el slot queda libre automáticamente)
+
+
+## Fase 1: Blindaje Inmediato (Documento Mejoras Estratégicas)
+
+- [ ] 1. Índices de base de datos en drizzle/schema.ts
+- [ ] 2. Rate limiting en endpoints públicos (express-rate-limit)
+- [x] 3. VAPID keys a variables de entorno (eliminar hardcoded)
+- [x] 4. Limpieza automática de /tmp tras subir PDFs a S3
+- [x] 5. Manejo global de errores no capturados (process.on)
+- [x] 6. Monitoreo diario del token de WhatsApp (verificación + alerta email)
+- [x] 7. Sanitización de entradas de texto (XSS prevention)
+
+
+## Fase 1: Blindaje Inmediato (Escalabilidad Técnica)
+
+- [x] 1. Índices de base de datos (56 índices en 22 tablas)
+- [x] 2. Rate limiting en endpoints públicos (express-rate-limit)
+- [x] 3. VAPID keys a variables de entorno
+- [x] 4. Limpieza automática de /tmp tras subir PDFs a S3
+- [x] 5. Manejo global de errores no capturados
+- [x] 6. Monitoreo diario del token de WhatsApp
+- [x] 7. Sanitización de entradas de texto

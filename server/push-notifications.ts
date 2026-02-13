@@ -1,17 +1,26 @@
 import webpush from "web-push";
 import * as db from "./db";
 
-// Configurar VAPID keys (se generan una vez y se guardan)
-// En producción, estas keys deberían estar en variables de entorno
-const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY || "BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYp5Nksh8U";
-const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || "UUxI4O8-FbRouAevSmBQ6o18hgE4nSG3qwvJTfKc-ls";
+// VAPID keys cargadas desde variables de entorno (obligatorio)
+const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY;
+const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY;
 
-// Configurar web-push
-webpush.setVapidDetails(
-  "mailto:info@innovarcocinas.com",
-  VAPID_PUBLIC_KEY,
-  VAPID_PRIVATE_KEY
-);
+if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) {
+  console.error("[Push] VAPID_PUBLIC_KEY y VAPID_PRIVATE_KEY son obligatorias. Notificaciones push deshabilitadas.");
+}
+
+// Configurar web-push solo si las keys están disponibles
+if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
+  webpush.setVapidDetails(
+    "mailto:info@innovarcocinas.com",
+    VAPID_PUBLIC_KEY,
+    VAPID_PRIVATE_KEY
+  );
+}
+
+function isPushEnabled(): boolean {
+  return !!(VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY);
+}
 
 export function getVapidPublicKey() {
   return VAPID_PUBLIC_KEY;
@@ -37,6 +46,9 @@ interface PushPayload {
 
 // Enviar notificación push a un usuario específico
 export async function sendPushToUser(userId: number, payload: PushPayload): Promise<{ success: number; failed: number }> {
+  if (!isPushEnabled()) {
+    return { success: 0, failed: 0 };
+  }
   const subscriptions = await db.getPushSubscriptionsByUserId(userId);
   
   let success = 0;

@@ -1,4 +1,9 @@
 import "dotenv/config";
+import { initGlobalErrorHandlers } from "../global-error-handler";
+
+// Inicializar handlers globales de errores ANTES de cualquier otra cosa
+initGlobalErrorHandlers();
+
 import express from "express";
 import { createServer } from "http";
 import net from "net";
@@ -13,6 +18,9 @@ import { scheduleBirthdayNotifications } from "../birthday-service";
 import { startOverdueChangesService } from "../overdue-changes-service";
 import { startAppointmentReminderService } from "../appointment-reminder-service";
 import { startTeamWhatsAppService } from "../whatsapp-team-notifications";
+import { startPeriodicCleanup } from "../tmp-cleanup";
+import { startWhatsAppTokenMonitor } from "../whatsapp-token-monitor";
+import { apiRateLimiter, authRateLimiter, uploadRateLimiter } from "../rate-limiter";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -39,8 +47,14 @@ async function startServer() {
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
+  // Trust proxy para obtener IP real detrás de reverse proxy
+  app.set('trust proxy', 1);
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);
+  // Rate limiting para endpoints de autenticación
+  app.use("/api/oauth", authRateLimiter);
+  // Rate limiting general para la API tRPC
+  app.use("/api/trpc", apiRateLimiter);
   // tRPC API
   app.use(
     "/api/trpc",
@@ -50,6 +64,8 @@ async function startServer() {
     })
   );
   
+  // Rate limiting para uploads (image proxy puede usarse para abuso)
+  app.use("/api/image-proxy", uploadRateLimiter);
   // Image proxy endpoint - sirve imágenes desde S3 usando credenciales del servidor
   app.get("/api/image-proxy", async (req, res) => {
     try {
@@ -151,6 +167,12 @@ async function startServer() {
     
     // Iniciar servicio de notificaciones WhatsApp al equipo (8am y 12pm)
     startTeamWhatsAppService();
+    
+    // Iniciar limpieza periódica de archivos temporales en /tmp
+    startPeriodicCleanup();
+    
+    // Iniciar monitoreo diario del token de WhatsApp
+    startWhatsAppTokenMonitor();
   });
 }
 

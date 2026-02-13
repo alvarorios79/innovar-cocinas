@@ -12,6 +12,7 @@ import { prepareWhatsAppNotification, generateTeamWhatsAppLink } from "./whatsap
 import { createRemindersForStatusChange } from "./reminders-service";
 import * as whatsappCloud from "./whatsapp-cloud";
 import { addBusinessDays, calculateEstimatedDeliveryDate } from "./business-days";
+import { sanitizeText, sanitizeHtml, sanitizeForEmail, sanitizePhone, sanitizeEmail } from "./sanitize";
 
 export const appRouter = router({
   system: systemRouter,
@@ -95,8 +96,8 @@ export const appRouter = router({
 
         // Crear usuario con rol "user" (cliente)
         const userId = await db.createUserExtended({
-          name: input.name,
-          email: input.email,
+          name: sanitizeText(input.name),
+          email: sanitizeEmail(input.email),
           role: "user",
           passwordHash,
         });
@@ -104,9 +105,9 @@ export const appRouter = router({
         // Crear registro de cliente asociado
         await db.createClient({
           userId,
-          name: input.name,
-          email: input.email,
-          whatsappPhone: input.whatsappPhone,
+          name: sanitizeText(input.name),
+          email: sanitizeEmail(input.email),
+          whatsappPhone: sanitizePhone(input.whatsappPhone),
         });
 
         // Obtener el usuario recién creado para crear la sesión
@@ -248,10 +249,10 @@ export const appRouter = router({
           // Crear nuevo cliente, asociando con usuario si está autenticado
           const clientId = await db.createClient({
             userId: ctx.user?.id, // Asociar con usuario autenticado si existe
-            name: input.name,
-            email: input.email,
-            whatsappPhone: input.whatsappPhone,
-            address: input.address,
+          name: sanitizeText(input.name),
+          email: input.email ? sanitizeEmail(input.email) : undefined,
+          whatsappPhone: sanitizePhone(input.whatsappPhone),
+          address: input.address ? sanitizeText(input.address) : undefined,
           });
           client = await db.getClientById(clientId);
         } else if (ctx.user && !client.userId) {
@@ -340,8 +341,8 @@ export const appRouter = router({
 
           // Crear usuario con rol "user" (cliente)
           userId = await db.createUserExtended({
-            name: input.name,
-            email: input.email,
+            name: sanitizeText(input.name),
+            email: sanitizeEmail(input.email),
             role: "user",
             passwordHash,
           });
@@ -351,10 +352,10 @@ export const appRouter = router({
         // Crear cliente (con o sin usuario asociado)
         const clientId = await db.createClient({
           userId,
-          name: input.name,
-          email: input.email || undefined,
-          whatsappPhone: input.whatsappPhone,
-          address: input.address,
+          name: sanitizeText(input.name),
+          email: input.email ? sanitizeEmail(input.email) : undefined,
+          whatsappPhone: sanitizePhone(input.whatsappPhone),
+          address: input.address ? sanitizeText(input.address) : undefined,
           internalManagement: input.internalManagement,
         });
 
@@ -445,7 +446,7 @@ export const appRouter = router({
         const appointmentId = await db.createAppointment({
           clientId: input.clientId,
           scheduledDate,
-          notes: input.notes,
+          notes: input.notes ? sanitizeText(input.notes) : undefined,
         });
 
         // Insertar los tipos de trabajo en la tabla appointmentWorkTypes
@@ -531,7 +532,7 @@ export const appRouter = router({
                 clientName: client.name,
                 appointmentDate: scheduledDate,
                 workTypes: input.workTypes,
-                notes: input.notes,
+                notes: input.notes ? sanitizeText(input.notes) : undefined,
                 portalUrl: `${process.env.VITE_APP_URL || ""}/portal`,
               });
               await sendEmail({
@@ -551,7 +552,7 @@ export const appRouter = router({
             clientAddress: client.address || undefined,
             workType: workTypesText,
             scheduledDate,
-            notes: input.notes,
+            notes: input.notes ? sanitizeText(input.notes) : undefined,
           });
 
           // Notificación en campanilla para el cliente (si tiene userId)
@@ -767,7 +768,7 @@ export const appRouter = router({
         // Cambiar estado a cancelada (libera el horario automáticamente)
         await db.updateAppointment(input.id, {
           status: 'cancelada',
-          notes: input.reason ? `Cancelada por cliente: ${input.reason}` : 'Cancelada por el cliente desde el portal',
+          notes: input.reason ? `Cancelada por cliente: ${sanitizeText(input.reason)}` : 'Cancelada por el cliente desde el portal',
         });
 
         const scheduledDate = appointment.scheduledDate ? new Date(appointment.scheduledDate) : new Date();
@@ -996,10 +997,10 @@ export const appRouter = router({
           clientId: input.clientId,
           workType: input.workType,
           preferredCallTime: input.preferredCallTime,
-          notes: input.notes,
+          notes: input.notes ? sanitizeText(input.notes) : undefined,
         });
 
-        // Obtener datos del cliente para notificación
+        // Obtener datos del cliente para notificación WhatsApp
         const client = await db.getClientById(input.clientId);
         if (client) {
           const whatsappLink = whatsapp.notifyNewAdvisoryRequest({
@@ -1008,7 +1009,7 @@ export const appRouter = router({
             clientEmail: client.email || undefined,
             workType: input.workType,
             preferredCallTime: input.preferredCallTime,
-            notes: input.notes,
+            notes: input.notes ? sanitizeText(input.notes) : undefined,
           });
           
           return { id: requestId, success: true, whatsappLink };
@@ -1205,7 +1206,7 @@ export const appRouter = router({
             quotationId,
             itemNumber: item.itemNumber,
             itemType: item.itemType,
-            description: item.description || "Item",
+            description: sanitizeText(item.description) || "Item",
             quantity: item.quantity || "1",
             unitPrice: item.unitPrice || null,
             totalPrice: item.totalPrice.toString(),
@@ -1290,7 +1291,7 @@ export const appRouter = router({
               quotationId: id,
               itemNumber: item.itemNumber,
               itemType: item.itemType,
-              description: item.description || "Item",
+              description: sanitizeText(item.description) || "Item",
               quantity: item.quantity || "1",
               unitPrice: item.unitPrice || null,
               totalPrice: item.totalPrice.toString(),
@@ -2037,6 +2038,7 @@ export const appRouter = router({
           const filename = path.basename(result.pdfPath);
           
           // Devolver URL de descarga con nombre real como query param
+          // Nota: el archivo se limpia en el endpoint /api/pdf/:filename después de servirlo
           const downloadUrl = `/api/pdf/${filename}?name=${encodeURIComponent(result.filename)}`;
           
           return {
@@ -2420,6 +2422,7 @@ export const appRouter = router({
           
           const path = await import('path');
           const filename = path.basename(result.pdfPath);
+          // Nota: el archivo se limpia en el endpoint /api/pdf/:filename después de servirlo
           const downloadUrl = `/api/pdf/${filename}?name=${encodeURIComponent(result.filename)}`;
           
           return {
@@ -3199,7 +3202,7 @@ export const appRouter = router({
         // Actualizar estado a "rejected"
         await db.updateQuotation(input.id, {
           status: "rejected",
-          rejectionReason: input.reason,
+          rejectionReason: sanitizeText(input.reason),
         });
         
         // Obtener datos del cliente para la notificación
@@ -3250,7 +3253,7 @@ export const appRouter = router({
           kitchenShape: input.kitchenShape,
           measurements: input.measurements,
           materialType: input.materialType,
-          description: input.description,
+          description: sanitizeText(input.description),
           materials: input.materials,
           totalPrice: input.totalPrice,
           validUntil: input.validUntil ? new Date(input.validUntil) : undefined,
@@ -3582,8 +3585,8 @@ export const appRouter = router({
         }
 
         await db.createUser({
-          name: input.name,
-          email: input.email,
+          name: sanitizeText(input.name),
+          email: sanitizeEmail(input.email),
           role: input.role,
           passwordHash,
         });
@@ -4348,7 +4351,7 @@ export const appRouter = router({
           fromStatus: currentStatus,
           toStatus: newStatus,
           changedBy: ctx.user.id,
-          notes: input.notes,
+          notes: input.notes ? sanitizeText(input.notes) : undefined,
         });
 
         // Crear recordatorios automáticos según el nuevo estado
@@ -5151,7 +5154,7 @@ ${input.notes || "No se especificaron detalles"}
           amount: input.amount.toString(),
           paymentDate: input.paymentDate,
           receiptUrl: input.receiptUrl,
-          notes: input.notes,
+          notes: input.notes ? sanitizeText(input.notes) : undefined,
           registeredBy: ctx.user.id,
         });
 
@@ -7403,7 +7406,7 @@ ${input.notes || "No se especificaron detalles"}
           projectId: input.projectId || null,
           projectClientName: input.projectClientName || null,
           operativeCategory: input.operativeCategory || null,
-          description: input.description,
+          description: sanitizeText(input.description),
           amount: input.amount.toString(),
           expenseDate: new Date(input.expenseDate),
           supportUrl: input.supportUrl || null,

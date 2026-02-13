@@ -1,4 +1,4 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, decimal, boolean, json } from "drizzle-orm/mysql-core";
+import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, decimal, boolean, json, index } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -19,7 +19,10 @@ export const users = mysqlTable("users", {
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
-});
+}, (table) => ({
+  roleIdx: index("users_role_idx").on(table.role),
+  emailIdx: index("users_email_idx").on(table.email),
+}));
 
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
@@ -37,7 +40,10 @@ export const clients = mysqlTable("clients", {
   internalManagement: boolean("internalManagement").default(false).notNull(), // Gestión interna: el equipo gestiona las comunicaciones
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, (table) => ({
+  userIdIdx: index("clients_userId_idx").on(table.userId),
+  whatsappPhoneIdx: index("clients_whatsappPhone_idx").on(table.whatsappPhone),
+}));
 
 export type Client = typeof clients.$inferSelect;
 export type InsertClient = typeof clients.$inferInsert;
@@ -53,7 +59,12 @@ export const appointments = mysqlTable("appointments", {
   notes: text("notes"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, (table) => ({
+  clientIdIdx: index("appointments_clientId_idx").on(table.clientId),
+  scheduledDateIdx: index("appointments_scheduledDate_idx").on(table.scheduledDate),
+  statusIdx: index("appointments_status_idx").on(table.status),
+  clientStatusIdx: index("appointments_client_status_idx").on(table.clientId, table.status),
+}));
 
 export type Appointment = typeof appointments.$inferSelect;
 export type InsertAppointment = typeof appointments.$inferInsert;
@@ -66,7 +77,9 @@ export const appointmentWorkTypes = mysqlTable("appointmentWorkTypes", {
   appointmentId: int("appointmentId").notNull().references(() => appointments.id, { onDelete: "cascade" }),
   workType: mysqlEnum("workType", ["cocina", "closet", "puertas", "centro_tv"]).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
+}, (table) => ({
+  appointmentIdIdx: index("appointmentWorkTypes_appointmentId_idx").on(table.appointmentId),
+}));
 
 export type AppointmentWorkType = typeof appointmentWorkTypes.$inferSelect;
 export type InsertAppointmentWorkType = typeof appointmentWorkTypes.$inferInsert;
@@ -83,7 +96,10 @@ export const advisoryRequests = mysqlTable("advisoryRequests", {
   notes: text("notes"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, (table) => ({
+  clientIdIdx: index("advisoryRequests_clientId_idx").on(table.clientId),
+  statusIdx: index("advisoryRequests_status_idx").on(table.status),
+}));
 
 export type AdvisoryRequest = typeof advisoryRequests.$inferSelect;
 export type InsertAdvisoryRequest = typeof advisoryRequests.$inferInsert;
@@ -101,7 +117,9 @@ export const priorEstimates = mysqlTable("priorEstimates", {
   materialType: mysqlEnum("materialType", ["quarzone", "sinterizado"]),
   additionalDetails: text("additionalDetails"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
+}, (table) => ({
+  clientIdIdx: index("priorEstimates_clientId_idx").on(table.clientId),
+}));
 
 export type PriorEstimate = typeof priorEstimates.$inferSelect;
 export type InsertPriorEstimate = typeof priorEstimates.$inferInsert;
@@ -136,7 +154,12 @@ export const quotations = mysqlTable("quotations", {
   createdBy: int("createdBy").notNull().references(() => users.id),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, (table) => ({
+  clientIdIdx: index("quotations_clientId_idx").on(table.clientId),
+  statusIdx: index("quotations_status_idx").on(table.status),
+  createdByIdx: index("quotations_createdBy_idx").on(table.createdBy),
+  createdAtIdx: index("quotations_createdAt_idx").on(table.createdAt),
+}));
 
 export type Quotation = typeof quotations.$inferSelect;
 export type InsertQuotation = typeof quotations.$inferInsert;
@@ -232,7 +255,14 @@ export const projects = mysqlTable("projects", {
   // Timestamps
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, (table) => ({
+  clientIdIdx: index("projects_clientId_idx").on(table.clientId),
+  statusIdx: index("projects_status_idx").on(table.status),
+  createdAtIdx: index("projects_createdAt_idx").on(table.createdAt),
+  quotationIdIdx: index("projects_quotationId_idx").on(table.quotationId),
+  designerIdIdx: index("projects_designerId_idx").on(table.designerId),
+  createdByIdx: index("projects_createdBy_idx").on(table.createdBy),
+}));
 
 export type Project = typeof projects.$inferSelect;
 export type InsertProject = typeof projects.$inferInsert;
@@ -283,7 +313,11 @@ export const projectPhotos = mysqlTable("projectPhotos", {
   description: text("description"),
   uploadedBy: int("uploadedBy").notNull().references(() => users.id),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
+}, (table) => ({
+  projectIdIdx: index("projectPhotos_projectId_idx").on(table.projectId),
+  categoryIdx: index("projectPhotos_category_idx").on(table.category),
+  projectCategoryIdx: index("projectPhotos_project_category_idx").on(table.projectId, table.category),
+}));
 
 export type ProjectPhoto = typeof projectPhotos.$inferSelect;
 export type InsertProjectPhoto = typeof projectPhotos.$inferInsert;
@@ -303,7 +337,9 @@ export const projectDetails = mysqlTable("projectDetails", {
   createdBy: int("createdBy").notNull().references(() => users.id),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, (table) => ({
+  projectIdIdx: index("projectDetails_projectId_idx").on(table.projectId),
+}));
 
 export type ProjectDetail = typeof projectDetails.$inferSelect;
 export type InsertProjectDetail = typeof projectDetails.$inferInsert;
@@ -334,7 +370,13 @@ export const tasks = mysqlTable("tasks", {
   reminderCount: int("reminderCount").default(0).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, (table) => ({
+  assignedToIdx: index("tasks_assignedTo_idx").on(table.assignedTo),
+  statusIdx: index("tasks_status_idx").on(table.status),
+  dueDateIdx: index("tasks_dueDate_idx").on(table.dueDate),
+  projectIdIdx: index("tasks_projectId_idx").on(table.projectId),
+  assignedStatusIdx: index("tasks_assigned_status_idx").on(table.assignedTo, table.status),
+}));
 
 export type Task = typeof tasks.$inferSelect;
 export type InsertTask = typeof tasks.$inferInsert;
@@ -350,7 +392,9 @@ export const projectStatusHistory = mysqlTable("projectStatusHistory", {
   changedBy: int("changedBy").notNull().references(() => users.id),
   notes: text("notes"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
+}, (table) => ({
+  projectIdIdx: index("projectStatusHistory_projectId_idx").on(table.projectId),
+}));
 
 export type ProjectStatusHistory = typeof projectStatusHistory.$inferSelect;
 export type InsertProjectStatusHistory = typeof projectStatusHistory.$inferInsert;
@@ -368,7 +412,9 @@ export const pushSubscriptions = mysqlTable("pushSubscriptions", {
   userAgent: text("userAgent"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, (table) => ({
+  userIdIdx: index("pushSubscriptions_userId_idx").on(table.userId),
+}));
 
 export type PushSubscription = typeof pushSubscriptions.$inferSelect;
 export type InsertPushSubscription = typeof pushSubscriptions.$inferInsert;
@@ -387,7 +433,11 @@ export const notifications = mysqlTable("notifications", {
   read: boolean("read").default(false).notNull(),
   sentPush: boolean("sentPush").default(false).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
+}, (table) => ({
+  userIdIdx: index("notifications_userId_idx").on(table.userId),
+  readIdx: index("notifications_read_idx").on(table.read),
+  userReadIdx: index("notifications_user_read_idx").on(table.userId, table.read),
+}));
 
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = typeof notifications.$inferInsert;
@@ -400,7 +450,10 @@ export const colombianHolidays = mysqlTable("colombianHolidays", {
   date: timestamp("date").notNull(),
   name: varchar("name", { length: 255 }).notNull(),
   year: int("year").notNull(),
-});
+}, (table) => ({
+  yearIdx: index("colombianHolidays_year_idx").on(table.year),
+  dateIdx: index("colombianHolidays_date_idx").on(table.date),
+}));
 
 export type ColombianHoliday = typeof colombianHolidays.$inferSelect;
 export type InsertColombianHoliday = typeof colombianHolidays.$inferInsert;
@@ -424,7 +477,12 @@ export const reminders = mysqlTable("reminders", {
   message: text("message"),
   sentAt: timestamp("sentAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
+}, (table) => ({
+  projectIdIdx: index("reminders_projectId_idx").on(table.projectId),
+  assignedToIdx: index("reminders_assignedTo_idx").on(table.assignedTo),
+  dueDateIdx: index("reminders_dueDate_idx").on(table.dueDate),
+  statusIdx: index("reminders_status_idx").on(table.status),
+}));
 
 export type Reminder = typeof reminders.$inferSelect;
 export type InsertReminder = typeof reminders.$inferInsert;
@@ -446,7 +504,10 @@ export const hardwareCatalog = mysqlTable("hardwareCatalog", {
   active: boolean("active").default(true).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, (table) => ({
+  categoryIdx: index("hardwareCatalog_category_idx").on(table.category),
+  activeIdx: index("hardwareCatalog_active_idx").on(table.active),
+}));
 
 export type HardwareCatalog = typeof hardwareCatalog.$inferSelect;
 export type InsertHardwareCatalog = typeof hardwareCatalog.$inferInsert;
@@ -476,7 +537,9 @@ export const projectMaterials = mysqlTable("projectMaterials", {
   createdBy: int("createdBy").notNull().references(() => users.id),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, (table) => ({
+  projectIdIdx: index("projectMaterials_projectId_idx").on(table.projectId),
+}));
 
 export type ProjectMaterial = typeof projectMaterials.$inferSelect;
 export type InsertProjectMaterial = typeof projectMaterials.$inferInsert;
@@ -494,7 +557,10 @@ export const projectHardwareSelections = mysqlTable("projectHardwareSelections",
   notes: text("notes"),
   createdBy: int("createdBy").notNull().references(() => users.id),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
+}, (table) => ({
+  projectIdIdx: index("projectHardwareSelections_projectId_idx").on(table.projectId),
+  hardwareIdIdx: index("projectHardwareSelections_hardwareId_idx").on(table.hardwareId),
+}));
 
 export type ProjectHardwareSelection = typeof projectHardwareSelections.$inferSelect;
 export type InsertProjectHardwareSelection = typeof projectHardwareSelections.$inferInsert;
@@ -596,7 +662,9 @@ export const kitchenQuotations = mysqlTable("kitchenQuotations", {
   
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, (table) => ({
+  quotationIdIdx: index("kitchenQuotations_quotationId_idx").on(table.quotationId),
+}));
 
 export type KitchenQuotation = typeof kitchenQuotations.$inferSelect;
 export type InsertKitchenQuotation = typeof kitchenQuotations.$inferInsert;
@@ -620,7 +688,9 @@ export const quotationItems = mysqlTable("quotationItems", {
   tvCenterConfig: json("tvCenterConfig"), // { width, basePrice, hasHighGloss, hasLedLights, floatingShelves, equipmentSpaces, includeTransport, transportCost, notes, subtotal }
   countertopConfig: json("countertopConfig"), // { material, tipo, metrosLineales, fondo, precioML, incluyeLaterales, incluyeRegrueso, alturaLateral, subtotalMeson, subtotalLaterales, subtotalRegrueso, subtotalLavaplatos, total, notes, includeTransport, transportCost }
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
+}, (table) => ({
+  quotationIdIdx: index("quotationItems_quotationId_idx").on(table.quotationId),
+}));
 
 export type QuotationItem = typeof quotationItems.$inferSelect;
 export type InsertQuotationItem = typeof quotationItems.$inferInsert;
@@ -639,7 +709,9 @@ export const projectPayments = mysqlTable("projectPayments", {
   notes: text("notes"),
   registeredBy: int("registeredBy").notNull().references(() => users.id),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
+}, (table) => ({
+  projectIdIdx: index("projectPayments_projectId_idx").on(table.projectId),
+}));
 
 export type ProjectPayment = typeof projectPayments.$inferSelect;
 export type InsertProjectPayment = typeof projectPayments.$inferInsert;
@@ -674,7 +746,9 @@ export const pricingConfig = mysqlTable("pricingConfig", {
   updatedBy: int("updatedBy").references(() => users.id),     // Quién lo actualizó
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, (table) => ({
+  categoryIdx: index("pricingConfig_category_idx").on(table.category),
+}));
 
 export type PricingConfig = typeof pricingConfig.$inferSelect;
 export type InsertPricingConfig = typeof pricingConfig.$inferInsert;
@@ -690,7 +764,9 @@ export const pricingHistory = mysqlTable("pricingHistory", {
   changedBy: int("changedBy").notNull().references(() => users.id),
   reason: text("reason"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
+}, (table) => ({
+  pricingConfigIdIdx: index("pricingHistory_pricingConfigId_idx").on(table.pricingConfigId),
+}));
 
 export type PricingHistory = typeof pricingHistory.$inferSelect;
 export type InsertPricingHistory = typeof pricingHistory.$inferInsert;
@@ -740,7 +816,11 @@ export const expenses = mysqlTable("expenses", {
   createdBy: int("createdBy").notNull().references(() => users.id),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, (table) => ({
+  projectIdIdx: index("expenses_projectId_idx").on(table.projectId),
+  expenseDateIdx: index("expenses_expenseDate_idx").on(table.expenseDate),
+  expenseTypeIdx: index("expenses_expenseType_idx").on(table.expenseType),
+}));
 
 export type Expense = typeof expenses.$inferSelect;
 export type InsertExpense = typeof expenses.$inferInsert;
@@ -758,7 +838,9 @@ export const clientRevisionHistory = mysqlTable("client_revision_history", {
   clientName: varchar("clientName", { length: 255 }).notNull(), // Nombre del cliente que solicitó
   changes: text("changes").notNull(), // Descripción de los cambios solicitados
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
+}, (table) => ({
+  projectIdIdx: index("clientRevisionHistory_projectId_idx").on(table.projectId),
+}));
 
 export type ClientRevisionHistory = typeof clientRevisionHistory.$inferSelect;
 export type InsertClientRevisionHistory = typeof clientRevisionHistory.$inferInsert;

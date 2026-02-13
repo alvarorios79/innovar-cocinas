@@ -29,7 +29,8 @@ import {
   Download,
   FileSpreadsheet,
   FileType,
-  CalendarRange
+  CalendarRange,
+  X
 } from "lucide-react";
 // Storage upload will be handled via tRPC
 
@@ -1097,13 +1098,24 @@ export default function Accounting() {
             {/* Búsqueda por descripción */}
             <div className="flex-1 min-w-[150px]">
               <Label className="text-sm text-gray-600 mb-1 block">Buscar descripción</Label>
-              <Input 
-                type="text" 
-                placeholder="Ej: gasolina, arriendo..." 
-                value={searchDescription}
-                onChange={(e) => setSearchDescription(e.target.value)}
-                className="w-full"
-              />
+              <div className="relative">
+                <Input 
+                  type="text" 
+                  placeholder="Ej: gasolina, arriendo..." 
+                  value={searchDescription}
+                  onChange={(e) => setSearchDescription(e.target.value)}
+                  className="w-full pr-10"
+                />
+                {searchDescription && (
+                  <button
+                    onClick={() => setSearchDescription("")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                    title="Limpiar búsqueda"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
             </div>
             
             {/* Filtro por período */}

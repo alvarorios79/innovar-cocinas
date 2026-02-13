@@ -657,7 +657,7 @@ export const appRouter = router({
           }
         }
 
-        // Notificación en campanilla para el equipo (admin, comercial, super_admin)
+        // Notificación en campanilla + email + WhatsApp para el equipo (admin, comercial, super_admin)
         try {
           const [admins, comerciales, superAdmins] = await Promise.all([
             db.getUsersByRole('admin'),
@@ -665,7 +665,24 @@ export const appRouter = router({
             db.getUsersByRole('super_admin'),
           ]);
           const teamUsers = [...admins, ...comerciales, ...superAdmins];
+          // Obtener tipos de trabajo de la cita
+          let tipoTrabajo = 'No especificado';
+          try {
+            const { appointmentWorkTypes } = await import('../drizzle/schema');
+            const { eq } = await import('drizzle-orm');
+            const { getDb } = await import('./db');
+            const dbConn = await getDb();
+            if (dbConn) {
+              const workTypes = await dbConn.select().from(appointmentWorkTypes).where(eq(appointmentWorkTypes.appointmentId, input.id));
+              if (workTypes.length > 0) {
+                const labels: Record<string, string> = { cocina: 'Cocina Integral', closet: 'Closet', puertas: 'Puertas', centro_tv: 'Centro de TV' };
+                tipoTrabajo = workTypes.map(wt => labels[wt.workType] || wt.workType).join(', ');
+              }
+            }
+          } catch (e) { /* ignorar */ }
+
           for (const user of teamUsers) {
+            // Campanilla
             await db.createNotification({
               userId: user.id,
               type: 'cita',
@@ -673,6 +690,48 @@ export const appRouter = router({
               body: `${client.name} reagendó su cita para el ${dateFormatted} a las ${timeFormatted}.`,
               referenceId: input.id,
             });
+
+            // Email al equipo
+            if (user.email) {
+              try {
+                const { sendEmail, generateEmailHTML } = await import('./email');
+                const emailHtml = generateEmailHTML(`
+                  <h2 style="color: #2a9d8f;">🔄 Cita Reagendada por Cliente</h2>
+                  <p>El cliente <strong>${client.name}</strong> ha reagendado su cita.</p>
+                  <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
+                    <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">Cliente</td><td style="padding: 8px; border-bottom: 1px solid #eee;">${client.name}</td></tr>
+                    <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">WhatsApp</td><td style="padding: 8px; border-bottom: 1px solid #eee;">${client.whatsappPhone}</td></tr>
+                    <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">Tipo de Trabajo</td><td style="padding: 8px; border-bottom: 1px solid #eee;">${tipoTrabajo}</td></tr>
+                    <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">Nueva Fecha</td><td style="padding: 8px; border-bottom: 1px solid #eee;">${dateFormatted}</td></tr>
+                    <tr><td style="padding: 8px; font-weight: bold;">Nueva Hora</td><td style="padding: 8px;">${timeFormatted}</td></tr>
+                  </table>
+                  <p style="color: #666;">Revisa el calendario de citas para más detalles.</p>
+                `, 'Cita Reagendada por Cliente');
+                await sendEmail({
+                  to: user.email,
+                  subject: `🔄 ${client.name} reagendó su cita - ${dateFormatted}`,
+                  html: emailHtml,
+                });
+              } catch (emailErr) {
+                console.error(`[Reagendar] Error email a ${user.email}:`, emailErr);
+              }
+            }
+
+            // WhatsApp al equipo
+            if (user.phone) {
+              try {
+                const whatsappCloud = await import('./whatsapp-cloud');
+                const mensaje = `🔄 *Cita Reagendada por Cliente*\n\n` +
+                  `El cliente *${client.name}* reagendó su cita.\n\n` +
+                  `📅 *Nueva fecha:* ${dateFormatted}\n` +
+                  `⏰ *Nueva hora:* ${timeFormatted}\n` +
+                  `🛠️ *Tipo:* ${tipoTrabajo}\n` +
+                  `📱 *WhatsApp cliente:* ${client.whatsappPhone}`;
+                await whatsappCloud.sendTextMessage(user.phone, mensaje);
+              } catch (waErr) {
+                console.error(`[Reagendar] Error WhatsApp a ${user.phone}:`, waErr);
+              }
+            }
           }
         } catch (notifError) {
           console.error('[Reagendar] Error al notificar equipo:', notifError);

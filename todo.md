@@ -4320,3 +4320,8 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 ## Notificación al equipo cuando cliente reagenda cita
 
 - [x] Notificar en campanilla a admin, comercial y super_admin cuando un cliente reagenda su cita desde el portal
+
+## Notificación email + WhatsApp al equipo cuando cliente reagenda
+
+- [x] Enviar email al equipo (admin, comercial, super_admin) cuando cliente reagenda cita
+- [x] Enviar WhatsApp al equipo cuando cliente reagenda cita

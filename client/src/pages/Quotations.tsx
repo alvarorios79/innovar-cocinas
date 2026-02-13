@@ -98,6 +98,8 @@ export default function Quotations() {
   // Estados para filtros
   const [filterClient, setFilterClient] = useState<string>("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [quotationPage, setQuotationPage] = useState(1);
+  const QUOTATIONS_PER_PAGE = 50;
   const [filterDateFrom, setFilterDateFrom] = useState<string>("");
   const [filterDateTo, setFilterDateTo] = useState<string>("");
   
@@ -171,7 +173,12 @@ export default function Quotations() {
     },
   ]);
 
-  const { data: quotations = [], isLoading } = trpc.quotations.list.useQuery();
+  const { data: quotationsData, isLoading } = trpc.quotations.listPaginated.useQuery({
+    page: quotationPage,
+    limit: QUOTATIONS_PER_PAGE,
+    status: filterStatus !== "all" ? filterStatus : undefined
+  });
+  const quotations = quotationsData?.data || [];
   const { data: clients = [] } = trpc.clients.list.useQuery();
 
   // Filtrar cotizaciones
@@ -212,6 +219,7 @@ export default function Quotations() {
   const createQuotation = trpc.quotations.create.useMutation({
     onSuccess: () => {
       utils.quotations.list.invalidate();
+      utils.quotations.listPaginated.invalidate();
       toast.success("Cotización creada exitosamente");
       setShowCreateDialog(false);
       resetForm();
@@ -224,6 +232,7 @@ export default function Quotations() {
   const updateQuotation = trpc.quotations.update.useMutation({
     onSuccess: () => {
       utils.quotations.list.invalidate();
+      utils.quotations.listPaginated.invalidate();
       toast.success("Cotización actualizada exitosamente");
       setShowCreateDialog(false);
       resetForm();
@@ -236,6 +245,7 @@ export default function Quotations() {
   const updateStatus = trpc.quotations.updateStatus.useMutation({
     onSuccess: () => {
       utils.quotations.list.invalidate();
+      utils.quotations.listPaginated.invalidate();
       toast.success("Estado actualizado");
     },
   });
@@ -243,6 +253,7 @@ export default function Quotations() {
   const deleteQuotation = trpc.quotations.delete.useMutation({
     onSuccess: () => {
       utils.quotations.list.invalidate();
+      utils.quotations.listPaginated.invalidate();
       toast.success("Cotización eliminada");
     },
   });
@@ -250,6 +261,7 @@ export default function Quotations() {
   const toggleLock = trpc.quotations.toggleLock.useMutation({
     onSuccess: (data) => {
       utils.quotations.list.invalidate();
+      utils.quotations.listPaginated.invalidate();
       toast.success(data.message);
     },
     onError: (error) => {
@@ -274,6 +286,7 @@ export default function Quotations() {
   const sendByEmail = trpc.quotations.sendByEmail.useMutation({
     onSuccess: () => {
       utils.quotations.list.invalidate();
+      utils.quotations.listPaginated.invalidate();
       toast.success("Cotización enviada por email");
       setPreviewDialogOpen(false);
       setSelectedQuotationForEmail(null);

@@ -80,6 +80,8 @@ export default function Tasks() {
   // Estado para reasignación masiva
   const [showReassignDialog, setShowReassignDialog] = useState(false);
   const [reassignTo, setReassignTo] = useState<string>("");
+  const [taskPage, setTaskPage] = useState(1);
+  const TASKS_PER_PAGE = 10;
   
   // Estado para diálogo de WhatsApp después de crear tarea o enviar recordatorio
   const [showWhatsAppDialog, setShowWhatsAppDialog] = useState(false);
@@ -92,16 +94,24 @@ export default function Tasks() {
   // Verificar si el usuario puede ver todas las tareas
   const canViewAllTasks = ["admin", "super_admin", "comercial", "jefe_taller"].includes(user?.role || "");
   
-  const { data: myTasks = [], isLoading: loadingMyTasks } = trpc.tasks.getMyTasks.useQuery();
-  const { data: allTasks = [], isLoading: loadingAllTasks } = trpc.tasks.list.useQuery(undefined, {
-    enabled: canViewAllTasks,
+  const { data: myTasksData, isLoading: loadingMyTasks } = trpc.tasks.listPaginated.useQuery({
+    page: taskPage,
+    limit: TASKS_PER_PAGE,
+    assignedTo: user?.id
   });
+  const myTasks = myTasksData?.data || [];
+  const { data: allTasksData, isLoading: loadingAllTasks } = trpc.tasks.listPaginated.useQuery(
+    { page: taskPage, limit: TASKS_PER_PAGE },
+    { enabled: canViewAllTasks }
+  );
+  const allTasks = allTasksData?.data || [];
   const { data: assignableUsers = [] } = trpc.tasks.getAssignableUsers.useQuery();
   const { data: projects = [] } = trpc.projects.list.useQuery();
 
   const createTask = trpc.tasks.create.useMutation({
     onSuccess: (result) => {
       utils.tasks.getMyTasks.invalidate();
+      utils.tasks.listPaginated.invalidate();
       if (canViewAllTasks) {
         utils.tasks.list.invalidate();
       }
@@ -125,6 +135,7 @@ export default function Tasks() {
   const updateTaskStatus = trpc.tasks.updateStatus.useMutation({
     onSuccess: () => {
       utils.tasks.getMyTasks.invalidate();
+      utils.tasks.listPaginated.invalidate();
       if (canViewAllTasks) {
         utils.tasks.list.invalidate();
       }
@@ -156,6 +167,7 @@ export default function Tasks() {
   const deleteTask = trpc.tasks.delete.useMutation({
     onSuccess: () => {
       utils.tasks.getMyTasks.invalidate();
+      utils.tasks.listPaginated.invalidate();
       if (canViewAllTasks) {
         utils.tasks.list.invalidate();
       }
@@ -169,6 +181,7 @@ export default function Tasks() {
   const bulkReassign = trpc.tasks.bulkReassign.useMutation({
     onSuccess: (result) => {
       utils.tasks.getMyTasks.invalidate();
+      utils.tasks.listPaginated.invalidate();
       if (canViewAllTasks) {
         utils.tasks.list.invalidate();
       }

@@ -4367,6 +4367,11 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 
 - [x] Prioridad 1: Logging estructurado con Pino
 - [ ] Prioridad 2: Migración del frontend a endpoints paginados
+  - [ ] 2.1 Vista Clientes (EN PROGRESO)
+  - [ ] 2.2 Vista Citas
+  - [ ] 2.3 Vista Cotizaciones
+  - [ ] 2.4 Vista Proyectos
+  - [ ] 2.5 Vista Tareas
 - [ ] Prioridad 3: Cálculo automático de festivos colombianos
 - [ ] Prioridad 4: Endpoints de exportación CSV/Excel
 - [ ] Prioridad 5: Propuesta de dashboard de métricas operativas

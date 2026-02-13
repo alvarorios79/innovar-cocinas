@@ -54,17 +54,28 @@ export default function Admin() {
   const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
   const [clientSearchQuery, setClientSearchQuery] = useState("");
   const [clientSortBy, setClientSortBy] = useState<"name-asc" | "name-desc" | "date-asc" | "date-desc">("date-desc");
+  const [clientPage, setClientPage] = useState(1);
+  const [appointmentPage, setAppointmentPage] = useState(1);
+  const CLIENTS_PER_PAGE = 10;
+  const APPOINTMENTS_PER_PAGE = 10;
 
   const utils = trpc.useUtils();
-  const { data: appointments = [], isLoading: loadingAppointments } = trpc.appointments.list.useQuery();
+  const { data: appointmentsData, isLoading: loadingAppointments } = trpc.appointments.listPaginated.useQuery({ page: appointmentPage, limit: APPOINTMENTS_PER_PAGE });
+  const appointments = appointmentsData?.data || [];
+  const totalAppointments = appointmentsData?.total || 0;
+  const totalAppointmentPages = appointmentsData?.totalPages || 0;
   const { data: advisoryRequests = [], isLoading: loadingAdvisory } = trpc.advisory.list.useQuery();
   const { data: quotations = [], isLoading: loadingQuotations } = trpc.quotations.list.useQuery();
-  const { data: clients = [], isLoading: loadingClients } = trpc.clients.list.useQuery();
+  const { data: clientsData, isLoading: loadingClients } = trpc.clients.listPaginated.useQuery({ page: clientPage, limit: CLIENTS_PER_PAGE });
+  const clients = clientsData?.data || [];
+  const totalClients = clientsData?.total || 0;
+  const totalClientPages = clientsData?.totalPages || 0;
   const { data: allUsers = [], isLoading: loadingUsers } = trpc.userManagement.listAll.useQuery();
 
   const updateAppointmentStatus = trpc.appointments.updateStatus.useMutation({
     onSuccess: () => {
       utils.appointments.list.invalidate();
+      utils.appointments.listPaginated.invalidate();
       toast.success("Estado actualizado");
     },
   });
@@ -79,6 +90,8 @@ export default function Admin() {
   const createQuotation = trpc.quotations.create.useMutation({
     onSuccess: () => {
       utils.quotations.list.invalidate();
+      utils.appointments.list.invalidate();
+      utils.appointments.listPaginated.invalidate();
       toast.success("Cotización creada exitosamente");
       setSelectedAppointment(null);
       setQuotationForm({
@@ -93,6 +106,8 @@ export default function Admin() {
   const sendQuotation = trpc.quotations.updateStatus.useMutation({
     onSuccess: () => {
       utils.quotations.list.invalidate();
+      utils.appointments.list.invalidate();
+      utils.appointments.listPaginated.invalidate();
       toast.success("Cotización enviada al cliente");
     },
   });
@@ -175,6 +190,7 @@ export default function Admin() {
   const deleteAppointment = trpc.appointments.delete.useMutation({
     onSuccess: () => {
       utils.appointments.list.invalidate();
+      utils.appointments.listPaginated.invalidate();
       toast.success("Cita eliminada exitosamente");
       setDeleteConfirm(null);
     },
@@ -205,6 +221,7 @@ export default function Admin() {
   const deleteClient = trpc.clients.delete.useMutation({
     onSuccess: () => {
       utils.clients.list.invalidate();
+      utils.clients.listPaginated.invalidate();
       toast.success("Cliente eliminado exitosamente");
       setDeleteConfirm(null);
     },
@@ -769,6 +786,13 @@ export default function Admin() {
                   </div>
                 )}
               </CardContent>
+              {totalAppointmentPages > 1 && (
+                <div className="flex items-center justify-between border-t p-4 gap-2">
+                  <Button variant="outline" size="sm" disabled={appointmentPage === 1} onClick={() => setAppointmentPage(p => Math.max(1, p - 1))}>← Anterior</Button>
+                  <span className="text-sm text-muted-foreground">Página {appointmentPage} de {totalAppointmentPages} ({totalAppointments} registros)</span>
+                  <Button variant="outline" size="sm" disabled={appointmentPage === totalAppointmentPages} onClick={() => setAppointmentPage(p => Math.min(totalAppointmentPages, p + 1))}>Siguiente →</Button>
+                </div>
+              )}
             </Card>
           </TabsContent>
 
@@ -956,7 +980,11 @@ export default function Admin() {
                   </div>
                   <div className="flex gap-2">
                     <CreateQuickClientDialog 
-                      onClientCreated={() => utils.clients.list.invalidate()}
+                      onClientCreated={() => {
+                        utils.clients.list.invalidate();
+                        utils.clients.listPaginated.invalidate();
+                        setClientPage(1);
+                      }}
                     />
                     {selectedClients.length > 0 && (
                       <Button
@@ -1119,6 +1147,13 @@ export default function Admin() {
                   </div>
                 )}
               </CardContent>
+              {totalClientPages > 1 && (
+                <div className="flex items-center justify-between border-t p-4 gap-2">
+                  <Button variant="outline" size="sm" disabled={clientPage === 1} onClick={() => setClientPage(p => Math.max(1, p - 1))}>← Anterior</Button>
+                  <span className="text-sm text-muted-foreground">Página {clientPage} de {totalClientPages} ({totalClients} registros)</span>
+                  <Button variant="outline" size="sm" disabled={clientPage === totalClientPages} onClick={() => setClientPage(p => Math.min(totalClientPages, p + 1))}>Siguiente →</Button>
+                </div>
+              )}
             </Card>
           </TabsContent>
 

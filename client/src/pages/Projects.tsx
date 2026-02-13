@@ -162,14 +162,19 @@ export default function Projects() {
   const [projectToDelete, setProjectToDelete] = useState<any>(null);
   const [selectedProjects, setSelectedProjects] = useState<number[]>([]);
   const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
+  const [projectPage, setProjectPage] = useState(1);
+  const PROJECTS_PER_PAGE = 50;
   
   // Estado para confirmación de avance a aprobacion_final
   const [showAdvanceConfirmDialog, setShowAdvanceConfirmDialog] = useState(false);
   const [projectToAdvance, setProjectToAdvance] = useState<any>(null);
   
-  const { data: projects = [], isLoading: loadingProjects } = trpc.projects.list.useQuery(
-    statusFilter !== "all" ? { status: statusFilter } : undefined
-  );
+  const { data: projectsData, isLoading: loadingProjects } = trpc.projects.listPaginated.useQuery({
+    page: projectPage,
+    limit: PROJECTS_PER_PAGE,
+    ...(statusFilter !== "all" && { search: statusFilter })
+  });
+  const projects = projectsData?.data || [];
   const { data: clients = [] } = trpc.clients.list.useQuery();
   const { data: projectDetail } = trpc.projects.getById.useQuery(
     { id: selectedProject?.id },
@@ -179,6 +184,7 @@ export default function Projects() {
   const createProject = trpc.projects.create.useMutation({
     onSuccess: () => {
       utils.projects.list.invalidate();
+      utils.projects.listPaginated.invalidate();
       toast.success("Proyecto creado exitosamente");
       setShowCreateDialog(false);
       setCreateForm({ clientId: "", name: "", workType: "cocina", initialMeasurements: "" });
@@ -191,6 +197,7 @@ export default function Projects() {
   const updateStatus = trpc.projects.updateStatus.useMutation({
     onSuccess: (data) => {
       utils.projects.list.invalidate();
+      utils.projects.listPaginated.invalidate();
       utils.projects.getById.invalidate();
       toast.success("Estado actualizado");
       
@@ -274,6 +281,7 @@ export default function Projects() {
   const deleteProject = trpc.projects.delete.useMutation({
     onSuccess: () => {
       utils.projects.list.invalidate();
+      utils.projects.listPaginated.invalidate();
       toast.success("Proyecto eliminado exitosamente");
       setShowDeleteDialog(false);
       setProjectToDelete(null);
@@ -303,6 +311,7 @@ export default function Projects() {
   const approveDesign = trpc.projects.approveDesign.useMutation({
     onSuccess: (_, variables) => {
       utils.projects.list.invalidate();
+      utils.projects.listPaginated.invalidate();
       utils.projects.getById.invalidate();
       toast.success(variables.approved ? "Diseño aprobado exitosamente" : "Diseño rechazado, vuelve a diseño");
     },

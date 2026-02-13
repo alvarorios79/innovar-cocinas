@@ -4283,3 +4283,8 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] La cita se agenda a las 10:00 AM pero el mensaje de WhatsApp muestra 3:00 PM (diferencia de 5 horas = UTC vs Colombia)
 - [x] Corregir conversión de zona horaria en sendAppointmentConfirmation de whatsapp-cloud.ts
 - [x] Agregar timeZone: "America/Bogota" a TODOS los formateos de fecha en: whatsapp-cloud.ts, email-templates.ts, routers.ts, task-auto-reminders.ts, whatsapp-team-notifications.ts
+
+## Logo de WhatsApp - Migrar a S3
+
+- [x] Subir logo de INNOVAR a S3 para mayor estabilidad
+- [x] Actualizar URL del logo en whatsapp-cloud.ts

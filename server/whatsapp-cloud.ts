@@ -11,7 +11,7 @@ const WHATSAPP_PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID || "";
 const WHATSAPP_API_VERSION = "v21.0";
 
 // Logo de INNOVAR para plantillas con imagen
-const INNOVAR_LOGO_URL = "https://files.manuscdn.com/user_upload_by_module/session_file/310519663292328262/MrjmfKRiCJFHQLzk.png";
+const INNOVAR_LOGO_URL = "https://d2xsxph8kpxj0f.cloudfront.net/310519663292328262/XhEkCr8yXcaeDFyuQebdJQ/branding/innovar-logo-whatsapp-nb23hz4t.jpg";
 const WHATSAPP_API_URL = `https://graph.facebook.com/${WHATSAPP_API_VERSION}`;
 
 export interface WhatsAppCloudConfig {

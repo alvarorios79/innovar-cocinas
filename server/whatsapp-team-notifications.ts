@@ -203,7 +203,7 @@ export async function sendTaskRemindersToTeam(): Promise<{
         `Hola ${user.name?.split(" ")[0] || "Equipo"},\n\n` +
         `*${urgencyText}*\n` +
         `📝 Tarea: *${task.title}*\n` +
-        `📅 Fecha límite: ${dueDate.toLocaleDateString("es-CO")}\n` +
+        `📅 Fecha límite: ${dueDate.toLocaleDateString("es-CO", { timeZone: "America/Bogota" })}\n` +
         `${task.priority === "alta" ? "🔴 Prioridad: Alta\n" : ""}` +
         `\nPor favor revisa la plataforma para más detalles.`;
 

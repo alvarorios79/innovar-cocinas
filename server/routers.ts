@@ -1234,11 +1234,11 @@ export const appRouter = router({
         // Preparar datos para el PDF
         const pdfData = {
           quotationNumber: quotation.quotationNumber,
-          date: new Date().toLocaleDateString('es-CO'),
+          date: new Date().toLocaleDateString('es-CO', { timeZone: 'America/Bogota' }),
           clientName: client.name,
           vendorName: quotation.vendorName,
           productType: quotation.productType,
-          validUntil: quotation.validUntil ? new Date(quotation.validUntil).toLocaleDateString('es-CO') : '',
+          validUntil: quotation.validUntil ? new Date(quotation.validUntil).toLocaleDateString('es-CO', { timeZone: 'America/Bogota' }) : '',
           items: items.map(item => {
             let description = item.description;
             
@@ -2116,11 +2116,11 @@ export const appRouter = router({
         
         const pdfData = {
           quotationNumber: quotation.quotationNumber,
-          date: new Date().toLocaleDateString('es-CO'),
+          date: new Date().toLocaleDateString('es-CO', { timeZone: 'America/Bogota' }),
           clientName: client.name,
           vendorName: quotation.vendorName,
           productType: quotation.productType,
-          validUntil: quotation.validUntil ? new Date(quotation.validUntil).toLocaleDateString('es-CO') : '',
+          validUntil: quotation.validUntil ? new Date(quotation.validUntil).toLocaleDateString('es-CO', { timeZone: 'America/Bogota' }) : '',
           items: items.map(item => {
             return {
               itemNumber: item.itemNumber,
@@ -2183,11 +2183,11 @@ export const appRouter = router({
         // Generar PDF
         const pdfData = {
           quotationNumber: quotation.quotationNumber,
-          date: new Date().toLocaleDateString('es-CO'),
+          date: new Date().toLocaleDateString('es-CO', { timeZone: 'America/Bogota' }),
           clientName: client.name,
           vendorName: quotation.vendorName,
           productType: quotation.productType,
-          validUntil: quotation.validUntil ? new Date(quotation.validUntil).toLocaleDateString('es-CO') : '',
+          validUntil: quotation.validUntil ? new Date(quotation.validUntil).toLocaleDateString('es-CO', { timeZone: 'America/Bogota' }) : '',
           items: items.map(item => {
             let description = item.description;
             
@@ -2754,11 +2754,11 @@ export const appRouter = router({
           
           const pdfData = {
             quotationNumber: quotation.quotationNumber,
-            date: new Date().toLocaleDateString('es-CO'),
+            date: new Date().toLocaleDateString('es-CO', { timeZone: 'America/Bogota' }),
             clientName: clientData?.name || 'Cliente',
             vendorName: quotation.vendorName,
             productType: quotation.productType,
-            validUntil: quotation.validUntil ? new Date(quotation.validUntil).toLocaleDateString('es-CO') : '',
+            validUntil: quotation.validUntil ? new Date(quotation.validUntil).toLocaleDateString('es-CO', { timeZone: 'America/Bogota' }) : '',
             items: items.map(item => ({
               itemNumber: item.itemNumber,
               description: item.description,
@@ -3855,7 +3855,7 @@ export const appRouter = router({
               type: 'appointment',
               previousStatus: 'contacto',
               newStatus: 'contacto',
-              notes: `Cita programada para ${appointment.scheduledDate ? new Date(appointment.scheduledDate).toLocaleDateString('es-CO') : 'fecha pendiente'}${appointment.notes ? ` - ${appointment.notes}` : ''}`,
+              notes: `Cita programada para ${appointment.scheduledDate ? new Date(appointment.scheduledDate).toLocaleDateString('es-CO', { timeZone: 'America/Bogota' }) : 'fecha pendiente'}${appointment.notes ? ` - ${appointment.notes}` : ''}`,
               changedBy: null,
               createdAt: appointment.createdAt,
             });
@@ -4823,7 +4823,7 @@ ${input.notes || "No se especificaron detalles"}
           fromStatus: project.status,
           toStatus: project.status,
           changedBy: ctx.user.id,
-          notes: `Fecha estimada cambiada de ${oldDate ? new Date(oldDate).toLocaleDateString('es-CO') : 'sin fecha'} a ${input.estimatedInstallDate.toLocaleDateString('es-CO')}${input.reason ? `. Motivo: ${input.reason}` : ''}`,
+          notes: `Fecha estimada cambiada de ${oldDate ? new Date(oldDate).toLocaleDateString('es-CO', { timeZone: 'America/Bogota' }) : 'sin fecha'} a ${input.estimatedInstallDate.toLocaleDateString('es-CO', { timeZone: 'America/Bogota' })}${input.reason ? `. Motivo: ${input.reason}` : ''}`,
         });
 
         await db.updateProject(input.projectId, {
@@ -5178,7 +5178,7 @@ ${input.notes || "No se especificaron detalles"}
         let notificationBody = `${ctx.user.name || "Un administrador"} te ha asignado una nueva tarea: "${input.title}"`;
         notificationBody += `\nPrioridad: ${priorityLabels[input.priority] || input.priority}`;
         if (input.dueDate) {
-          notificationBody += `\nFecha límite: ${new Date(input.dueDate).toLocaleDateString("es-CO")}`;
+          notificationBody += `\nFecha límite: ${new Date(input.dueDate).toLocaleDateString("es-CO", { timeZone: "America/Bogota" })}`;
         }
         if (input.description) {
           notificationBody += `\n${input.description.substring(0, 100)}${input.description.length > 100 ? "..." : ""}`;
@@ -5246,7 +5246,7 @@ ${input.notes || "No se especificaron detalles"}
             `*Título:* ${input.title}\n` +
             `*Prioridad:* ${priorityLabels[input.priority] || input.priority}\n` +
             `*Asignado a:* ${assignedUser.name || "Usuario"}\n` +
-            (input.dueDate ? `*Fecha límite:* ${new Date(input.dueDate).toLocaleDateString("es-CO")}\n` : "") +
+            (input.dueDate ? `*Fecha límite:* ${new Date(input.dueDate).toLocaleDateString("es-CO", { timeZone: "America/Bogota" })}\n` : "") +
             (input.description ? `\n📝 *Descripción:*\n${input.description.substring(0, 200)}${input.description.length > 200 ? "..." : ""}\n` : "") +
             `\nPor favor revisa tus tareas pendientes.`
           );
@@ -5422,7 +5422,7 @@ ${input.notes || "No se especificaron detalles"}
         notificationBody += `\nPrioridad: ${priorityLabels[task.priority] || task.priority}`;
         notificationBody += `\nEstado actual: ${task.status === "pendiente" ? "Pendiente" : "En Progreso"}`;
         if (task.dueDate) {
-          notificationBody += `\nFecha límite: ${new Date(task.dueDate).toLocaleDateString("es-CO")}`;
+          notificationBody += `\nFecha límite: ${new Date(task.dueDate).toLocaleDateString("es-CO", { timeZone: "America/Bogota" })}`;
         }
 
         await db.createNotification({
@@ -5464,7 +5464,7 @@ ${input.notes || "No se especificaron detalles"}
             `*Título:* ${task.title}\n` +
             `*Prioridad:* ${priorityLabels[task.priority] || task.priority}\n` +
             `*Estado:* ${task.status === "pendiente" ? "Pendiente" : "En Progreso"}\n` +
-            (task.dueDate ? `*Fecha límite:* ${new Date(task.dueDate).toLocaleDateString("es-CO")}\n` : "") +
+            (task.dueDate ? `*Fecha límite:* ${new Date(task.dueDate).toLocaleDateString("es-CO", { timeZone: "America/Bogota" })}\n` : "") +
             (task.description ? `\n📝 *Descripción:*\n${task.description.substring(0, 200)}${task.description.length > 200 ? "..." : ""}\n` : "") +
             `\nPor favor revisa tus tareas pendientes. 🙏`
           );

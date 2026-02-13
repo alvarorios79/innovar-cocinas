@@ -72,7 +72,7 @@ export async function checkAndSendAutoReminders() {
         urgencyText = "📅 Vence MAÑANA";
       }
 
-      const notificationBody = `${urgencyText}\nTarea: "${task.title}"\nFecha límite: ${dueDate.toLocaleDateString("es-CO")}`;
+      const notificationBody = `${urgencyText}\nTarea: "${task.title}"\nFecha límite: ${dueDate.toLocaleDateString("es-CO", { timeZone: "America/Bogota" })}`;
 
       // Crear notificación en la app
       await db.createNotification({

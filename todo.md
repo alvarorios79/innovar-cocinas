@@ -4272,3 +4272,14 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 
 - [x] Corregir flujo: la cita no debe crearse automáticamente al seleccionar hora, solo al presionar botón "Agendar Cita"
 - [x] Agregar resumen de confirmación (día y hora elegidos) encima del botón "Agendar Cita" antes de enviar
+
+## Bug: Confirmación de cita por WhatsApp API no llega
+
+- [ ] Diagnosticar por qué la confirmación por WhatsApp no se envía al agendar una cita
+- [ ] Corregir el flujo de envío de confirmación
+
+## Bug: Hora incorrecta en mensaje de WhatsApp de confirmación
+
+- [x] La cita se agenda a las 10:00 AM pero el mensaje de WhatsApp muestra 3:00 PM (diferencia de 5 horas = UTC vs Colombia)
+- [x] Corregir conversión de zona horaria en sendAppointmentConfirmation de whatsapp-cloud.ts
+- [x] Agregar timeZone: "America/Bogota" a TODOS los formateos de fecha en: whatsapp-cloud.ts, email-templates.ts, routers.ts, task-auto-reminders.ts, whatsapp-team-notifications.ts

@@ -78,7 +78,7 @@ export function taskAssignedEmailTemplate(data: {
       <h3 style="margin-top: 0; color: #1e3a8a;">${data.taskTitle}</h3>
       ${data.taskDescription ? `<p style="color: #64748b;">${data.taskDescription}</p>` : ""}
       <p style="margin: 10px 0;"><strong>Prioridad:</strong> ${priorityLabels[data.priority]}</p>
-      ${data.dueDate ? `<p style="margin: 10px 0;"><strong>Fecha límite:</strong> ${data.dueDate.toLocaleDateString("es-CO", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}</p>` : ""}
+      ${data.dueDate ? `<p style="margin: 10px 0;"><strong>Fecha límite:</strong> ${data.dueDate.toLocaleDateString("es-CO", { weekday: "long", year: "numeric", month: "long", day: "numeric", timeZone: "America/Bogota" })}</p>` : ""}
     </div>
 
     <a href="${data.portalUrl}" class="button">Ver tarea en el portal</a>
@@ -112,7 +112,7 @@ export function taskReminderEmailTemplate(data: {
     
     <div style="background-color: #fef2f2; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid ${urgencyColor};">
       <h3 style="margin-top: 0; color: ${urgencyColor};">${data.taskTitle}</h3>
-      <p style="margin: 10px 0;"><strong>Vence:</strong> ${data.dueDate.toLocaleDateString("es-CO", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}</p>
+      <p style="margin: 10px 0;"><strong>Vence:</strong> ${data.dueDate.toLocaleDateString("es-CO", { weekday: "long", year: "numeric", month: "long", day: "numeric", timeZone: "America/Bogota" })}</p>
       <p style="margin: 10px 0; font-size: 18px; color: ${urgencyColor};"><strong>${data.daysRemaining === 0 ? "¡Vence hoy!" : `Quedan ${data.daysRemaining} día${data.daysRemaining > 1 ? "s" : ""}`}</strong></p>
     </div>
 
@@ -205,7 +205,7 @@ export function quotationSentEmailTemplate(data: {
       <h3 style="margin-top: 0; color: #065f46;">${data.projectName}</h3>
       <p style="margin: 10px 0;"><strong>Tipo de trabajo:</strong> ${workTypeLabels[data.workType] || data.workType}</p>
       <p style="margin: 10px 0; font-size: 24px; color: #065f46;"><strong>Valor:</strong> $${data.totalPrice}</p>
-      ${data.validUntil ? `<p style="margin: 10px 0; color: #059669;"><strong>Válida hasta:</strong> ${data.validUntil.toLocaleDateString("es-CO", { year: "numeric", month: "long", day: "numeric" })}</p>` : ""}
+      ${data.validUntil ? `<p style="margin: 10px 0; color: #059669;"><strong>Válida hasta:</strong> ${data.validUntil.toLocaleDateString("es-CO", { year: "numeric", month: "long", day: "numeric", timeZone: "America/Bogota" })}</p>` : ""}
     </div>
 
     <a href="${data.portalUrl}" class="button">Ver cotización completa</a>
@@ -273,7 +273,7 @@ export function readyForInstallationEmailTemplate(data: {
     <div style="background-color: #f0fdf4; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #10b981;">
       <h3 style="margin-top: 0; color: #065f46;">${data.projectName}</h3>
       <p style="color: #059669;">La producción ha finalizado y tu proyecto está listo para ser llevado a tu hogar.</p>
-      ${data.estimatedDate ? `<p style="margin: 15px 0;"><strong>Fecha estimada de instalación:</strong> ${data.estimatedDate.toLocaleDateString("es-CO", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}</p>` : ""}
+      ${data.estimatedDate ? `<p style="margin: 15px 0;"><strong>Fecha estimada de instalación:</strong> ${data.estimatedDate.toLocaleDateString("es-CO", { weekday: "long", year: "numeric", month: "long", day: "numeric", timeZone: "America/Bogota" })}</p>` : ""}
     </div>
 
     <a href="${data.portalUrl}" class="button">Ver detalles</a>
@@ -320,7 +320,7 @@ export function appointmentConfirmedEmailTemplate(data: {
     
     <div style="background-color: #eff6ff; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #3b82f6;">
       <h3 style="margin-top: 0; color: #1e3a8a;">Detalles de tu cita</h3>
-      <p style="margin: 10px 0;"><strong>Fecha y hora:</strong> ${data.appointmentDate.toLocaleDateString("es-CO", { weekday: "long", year: "numeric", month: "long", day: "numeric" })} a las ${data.appointmentDate.toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" })}</p>
+      <p style="margin: 10px 0;"><strong>Fecha y hora:</strong> ${data.appointmentDate.toLocaleDateString("es-CO", { weekday: "long", year: "numeric", month: "long", day: "numeric", timeZone: "America/Bogota" })} a las ${data.appointmentDate.toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit", timeZone: "America/Bogota" })}</p>
       <p style="margin: 10px 0;"><strong>Tipo de trabajo:</strong> ${workTypesText}</p>
       ${data.notes ? `<p style="margin: 10px 0;"><strong>Notas:</strong> ${data.notes}</p>` : ""}
     </div>
@@ -332,7 +332,7 @@ export function appointmentConfirmedEmailTemplate(data: {
   `;
 
   return {
-    subject: `Cita confirmada - ${data.appointmentDate.toLocaleDateString("es-CO")}`,
+    subject: `Cita confirmada - ${data.appointmentDate.toLocaleDateString("es-CO", { timeZone: "America/Bogota" })}`,
     html: generateEmailHTML(content, "Cita confirmada"),
   };
 }
@@ -362,7 +362,7 @@ export function appointmentReminderEmailTemplate(data: {
     
     <div style="background-color: #fef3c7; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
       <h3 style="margin-top: 0; color: #92400e;">Detalles de tu cita</h3>
-      <p style="margin: 10px 0; font-size: 18px;"><strong>Mañana ${data.appointmentDate.toLocaleDateString("es-CO", { weekday: "long", day: "numeric", month: "long" })} a las ${data.appointmentDate.toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" })}</strong></p>
+      <p style="margin: 10px 0; font-size: 18px;"><strong>Mañana ${data.appointmentDate.toLocaleDateString("es-CO", { weekday: "long", day: "numeric", month: "long", timeZone: "America/Bogota" })} a las ${data.appointmentDate.toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit", timeZone: "America/Bogota" })}</strong></p>
       <p style="margin: 10px 0;"><strong>Tipo de trabajo:</strong> ${workTypesText}</p>
     </div>
 
@@ -373,7 +373,7 @@ export function appointmentReminderEmailTemplate(data: {
   `;
 
   return {
-    subject: `⏰ Recordatorio: Cita mañana - ${data.appointmentDate.toLocaleDateString("es-CO")}`,
+    subject: `⏰ Recordatorio: Cita mañana - ${data.appointmentDate.toLocaleDateString("es-CO", { timeZone: "America/Bogota" })}`,
     html: generateEmailHTML(content, "Recordatorio de cita"),
   };
 }

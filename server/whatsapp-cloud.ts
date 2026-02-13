@@ -302,12 +302,14 @@ export async function sendAppointmentConfirmation(
     day: "numeric",
     month: "long",
     year: "numeric",
+    timeZone: "America/Bogota",
   });
 
   const timeStr = appointmentDate.toLocaleTimeString("es-CO", {
     hour: "2-digit",
     minute: "2-digit",
     hour12: true,
+    timeZone: "America/Bogota",
   });
 
   const workTypeLabel = workTypeLabels[workType] || workType;
@@ -365,12 +367,14 @@ export async function sendAppointmentReminder(
     day: "numeric",
     month: "long",
     year: "numeric",
+    timeZone: "America/Bogota",
   });
 
   const timeStr = appointmentDate.toLocaleTimeString("es-CO", {
     hour: "2-digit",
     minute: "2-digit",
     hour12: true,
+    timeZone: "America/Bogota",
   });
 
   // Intentar enviar con plantilla (funciona sin ventana de 24h)

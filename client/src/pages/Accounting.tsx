@@ -30,7 +30,8 @@ import {
   FileSpreadsheet,
   FileType,
   CalendarRange,
-  X
+  X,
+  Edit
 } from "lucide-react";
 // Storage upload will be handled via tRPC
 
@@ -102,6 +103,7 @@ export default function Accounting() {
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [filterGeneralCategory, setFilterGeneralCategory] = useState<string | "all">("all");
   const [searchDescription, setSearchDescription] = useState<string>("");
+  const [editingExpenseId, setEditingExpenseId] = useState<number | null>(null);
 
   // Queries
   const { data: projects } = trpc.expenses.getProjectsForSelect.useQuery();
@@ -118,6 +120,19 @@ export default function Accounting() {
     },
     onError: (error) => {
       toast.error(error.message || "Error al registrar el gasto");
+    },
+  });
+
+  const updateExpense = trpc.expenses.update.useMutation({
+    onSuccess: () => {
+      toast.success("Gasto actualizado correctamente");
+      setEditingExpenseId(null);
+      resetForm();
+      refetchExpenses();
+      refetchSummary();
+    },
+    onError: (error) => {
+      toast.error(error.message || "Error al actualizar el gasto");
     },
   });
 
@@ -196,7 +211,20 @@ export default function Accounting() {
       return;
     }
 
-    createExpense.mutate({
+    if (editingExpenseId) {
+      updateExpense.mutate({
+        id: editingExpenseId,
+        generalCategory: formData.generalCategory,
+        subcategory: formData.subcategory,
+        operativeCategory: formData.operativeCategory as any,
+        description: formData.description,
+        amount: parseFloat(formData.amount),
+        expenseDate: formData.expenseDate,
+        supportUrl: formData.supportUrl,
+        supportFileName: formData.supportFileName,
+      });
+    } else {
+      createExpense.mutate({
       expenseType: expenseType!,
       projectId: formData.projectId,
       projectClientName: formData.projectClientName,
@@ -208,7 +236,8 @@ export default function Accounting() {
       expenseDate: formData.expenseDate,
       supportUrl: formData.supportUrl,
       supportFileName: formData.supportFileName,
-    });
+      });
+    }
   };
 
   const formatCurrency = (value: number) => {
@@ -1229,6 +1258,30 @@ export default function Accounting() {
                   <div className="text-right">
                     <p className="font-bold text-lg">{formatCurrency(expense.amount)}</p>
                     <div className="flex gap-1 mt-2">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="text-blue-500 hover:text-blue-700"
+                        onClick={() => {
+                          setEditingExpenseId(expense.id);
+                          setFormData({
+                            expenseType: expense.expenseType,
+                            generalCategory: expense.generalCategory || "materiales",
+                            operativeCategory: expense.operativeCategory || undefined,
+                            subcategory: expense.subcategory || "",
+                            description: expense.description,
+                            amount: expense.amount.toString(),
+                            expenseDate: new Date(expense.expenseDate).toISOString().split('T')[0],
+                            supportUrl: expense.supportUrl || "",
+                            supportFileName: expense.supportFileName || "",
+                          });
+                          setExpenseType(expense.expenseType);
+                          setCurrentStep(0);
+                        }}
+                        title="Editar gasto"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Button>
                       {expense.supportUrl && (
                         <Button variant="ghost" size="icon" onClick={() => setViewExpense(expense)}>
                           <Eye className="w-4 h-4" />

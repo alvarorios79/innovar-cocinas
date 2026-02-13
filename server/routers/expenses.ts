@@ -203,6 +203,10 @@ export const expensesRouter = router({
         expenseDate: z.string().optional(),
         supportUrl: z.string().optional(),
         supportFileName: z.string().optional(),
+        expenseType: z.enum(["materiales_proyecto", "gasto_operativo"]).optional(),
+        generalCategory: z.string().optional(),
+        operativeCategory: z.string().optional(),
+        subcategory: z.string().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         const allowedRoles = ["super_admin", "admin"];
@@ -221,6 +225,10 @@ export const expensesRouter = router({
         if (data.expenseDate) updateData.expenseDate = new Date(data.expenseDate);
         if (data.supportUrl !== undefined) updateData.supportUrl = data.supportUrl;
         if (data.supportFileName !== undefined) updateData.supportFileName = data.supportFileName;
+        if (data.expenseType) updateData.expenseType = data.expenseType;
+        if (data.generalCategory) updateData.generalCategory = data.generalCategory;
+        if (data.operativeCategory) updateData.operativeCategory = data.operativeCategory;
+        if (data.subcategory !== undefined) updateData.subcategory = data.subcategory;
 
         await db.updateExpense(id, updateData);
         return { success: true };

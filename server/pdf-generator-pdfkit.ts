@@ -29,6 +29,8 @@ interface QuotationData {
   discountAmount?: string; // Monto del descuento
   total: string;
   generalNotes?: string; // Notas generales personalizadas
+  versionNumber?: number; // Número de versión (v1, v2, etc.)
+  baseQuotationNumber?: string; // Número de cotización base si es versión adicional
 }
 
 export async function generateQuotationPDF(
@@ -74,10 +76,22 @@ export async function generateQuotationPDF(
         width: 200,
       });
       
+      // Número de versión si aplica
+      if (data.versionNumber && data.versionNumber > 1) {
+        doc.fontSize(10).fillColor(darkGray).font("Helvetica");
+        doc.text(`Versión: v${data.versionNumber}`, 350, 57, { align: "right", width: 200 });
+        
+        // Referencia a cotización base si es versión adicional
+        if (data.baseQuotationNumber) {
+          doc.fontSize(9).fillColor("#9CA3AF").font("Helvetica");
+          doc.text(`(Base: COT-${data.baseQuotationNumber})`, 350, 68, { align: "right", width: 200 });
+        }
+      }
+      
       // Fecha y validez (derecha, más abajo y más grande)
       doc.fontSize(10).fillColor(darkGray).font("Helvetica");
-      doc.text(`Fecha: ${data.date}`, 350, 70, { align: "right", width: 200 });
-      doc.text(`Válida hasta: ${data.validUntil}`, 350, 88, { align: "right", width: 200 });
+      doc.text(`Fecha: ${data.date}`, 350, 88, { align: "right", width: 200 });
+      doc.text(`Válida hasta: ${data.validUntil}`, 350, 106, { align: "right", width: 200 });
 
       // Línea separadora
       doc.strokeColor(turquoise).lineWidth(1);

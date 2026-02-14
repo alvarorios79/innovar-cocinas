@@ -930,6 +930,8 @@ export const quotationsRouter = router({
           discountAmount: String(parseFloat(String(quotation.discountAmount)) || 0),
           total: String(parseFloat(String(quotation.total)) || 0),
           generalNotes: quotation.generalNotes || '',
+          versionNumber: quotation.versionNumber || 1,
+          baseQuotationNumber: quotation.baseQuotationId ? (await db.getQuotationById(quotation.baseQuotationId))?.quotationNumber : undefined,
         };
 
         // Generar PDF usando módulo separado
@@ -1318,6 +1320,8 @@ export const quotationsRouter = router({
           discountAmount: String(parseFloat(String(quotation.discountAmount)) || 0),
           total: String(parseFloat(String(quotation.total)) || 0),
           generalNotes: quotation.generalNotes || '',
+          versionNumber: quotation.versionNumber || 1,
+          baseQuotationNumber: quotation.baseQuotationId ? (await db.getQuotationById(quotation.baseQuotationId))?.quotationNumber : undefined,
         };
 
         try {

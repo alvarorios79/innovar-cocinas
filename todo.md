@@ -4395,3 +4395,12 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Listado de versiones con badge "vigente"
 - [x] Botón "Crear Nueva Versión" con validaciones
 - [x] Diálogo de confirmación con explicación
+
+
+## Versionado de Cotizaciones - Mini-Fase 4 PDF
+
+- [x] Interfaz QuotationData actualizada con versionNumber y baseQuotationNumber
+- [x] Encabezado del PDF modificado para mostrar número de versión
+- [x] Referencia a cotización base agregada al PDF
+- [x] Datos de versionado integrados en pdfData
+- [x] Diseño y estructura del PDF preservados

@@ -1,1 +1,0 @@
-ALTER TABLE `quotationItems` ADD `tvCenterConfig` json;

@@ -1,0 +1,9 @@
+{
+  "query": "CREATE TABLE IF NOT EXISTS __drizzle_migrations__ (\n  id SERIAL PRIMARY KEY,\n  hash text NOT NULL,\n  created_at bigint\n);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute CREATE TABLE IF NOT EXISTS __drizzle_migrations__ (\n  id SERIAL PRIMARY KEY,\n  hash text NOT NULL,\n  created_at bigint\n);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 293
+}

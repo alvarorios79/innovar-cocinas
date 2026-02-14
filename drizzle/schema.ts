@@ -1,865 +1,569 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, decimal, boolean, json, index } from "drizzle-orm/mysql-core";
+import { mysqlTable, mysqlSchema, AnyMySqlColumn, index, text, foreignKey, int, mysqlEnum, timestamp, varchar, decimal, json } from "drizzle-orm/mysql-core"
+import { sql } from "drizzle-orm"
 
-/**
- * Core user table backing auth flow.
- * Roles: user (cliente), admin, super_admin, comercial, diseñador, jefe_taller, operario
- */
-export const users = mysqlTable("users", {
-  id: int("id").autoincrement().primaryKey(),
-  openId: varchar("openId", { length: 64 }).notNull().unique(),
-  name: text("name"),
-  email: varchar("email", { length: 320 }),
-  loginMethod: varchar("loginMethod", { length: 64 }),
-  passwordHash: varchar("passwordHash", { length: 255 }),
-  passwordResetToken: varchar("passwordResetToken", { length: 100 }),
-  passwordResetExpires: timestamp("passwordResetExpires"),
-  role: mysqlEnum("role", ["user", "admin", "super_admin", "comercial", "disenador", "jefe_taller", "operario"]).default("user").notNull(),
-  phone: varchar("phone", { length: 20 }), // Teléfono del miembro del equipo para WhatsApp
-  birthDate: timestamp("birthDate"),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-  lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
-}, (table) => ({
-  roleIdx: index("users_role_idx").on(table.role),
-  emailIdx: index("users_email_idx").on(table.email),
-}));
+export const drizzleMigrations = mysqlTable("__drizzle_migrations__", {
+	id: bigint({ mode: "number" }).autoincrement().notNull(),
+	hash: text().notNull(),
+	createdAt: bigint("created_at", { mode: "number" }),
+},
+(table) => [
+	index("id").on(table.id),
+]);
 
-export type User = typeof users.$inferSelect;
-export type InsertUser = typeof users.$inferInsert;
-
-/**
- * Clientes de INNOVAR Cocinas
- */
-export const clients = mysqlTable("clients", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").references(() => users.id),
-  name: varchar("name", { length: 255 }).notNull(),
-  email: varchar("email", { length: 320 }),
-  whatsappPhone: varchar("whatsappPhone", { length: 20 }).notNull(),
-  address: text("address"),
-  internalManagement: boolean("internalManagement").default(false).notNull(), // Gestión interna: el equipo gestiona las comunicaciones
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-  deletedAt: timestamp("deletedAt"),
-}, (table) => ({
-  userIdIdx: index("clients_userId_idx").on(table.userId),
-  whatsappPhoneIdx: index("clients_whatsappPhone_idx").on(table.whatsappPhone),
-}));
-
-export type Client = typeof clients.$inferSelect;
-export type InsertClient = typeof clients.$inferInsert;
-
-/**
- * Citas agendadas por clientes
- */
-export const appointments = mysqlTable("appointments", {
-  id: int("id").autoincrement().primaryKey(),
-  clientId: int("clientId").notNull().references(() => clients.id),
-  scheduledDate: timestamp("scheduledDate"),
-  status: mysqlEnum("status", ["pendiente", "confirmada", "completada", "cancelada"]).default("pendiente").notNull(),
-  notes: text("notes"),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-  deletedAt: timestamp("deletedAt"),
-}, (table) => ({
-  clientIdIdx: index("appointments_clientId_idx").on(table.clientId),
-  scheduledDateIdx: index("appointments_scheduledDate_idx").on(table.scheduledDate),
-  statusIdx: index("appointments_status_idx").on(table.status),
-  clientStatusIdx: index("appointments_client_status_idx").on(table.clientId, table.status),
-}));
-
-export type Appointment = typeof appointments.$inferSelect;
-export type InsertAppointment = typeof appointments.$inferInsert;
-
-/**
- * Tipos de trabajo asociados a cada cita (relación muchos a muchos)
- */
-export const appointmentWorkTypes = mysqlTable("appointmentWorkTypes", {
-  id: int("id").autoincrement().primaryKey(),
-  appointmentId: int("appointmentId").notNull().references(() => appointments.id, { onDelete: "cascade" }),
-  workType: mysqlEnum("workType", ["cocina", "closet", "puertas", "centro_tv"]).notNull(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-}, (table) => ({
-  appointmentIdIdx: index("appointmentWorkTypes_appointmentId_idx").on(table.appointmentId),
-}));
-
-export type AppointmentWorkType = typeof appointmentWorkTypes.$inferSelect;
-export type InsertAppointmentWorkType = typeof appointmentWorkTypes.$inferInsert;
-
-/**
- * Solicitudes de asesoramiento telefónico
- */
 export const advisoryRequests = mysqlTable("advisoryRequests", {
-  id: int("id").autoincrement().primaryKey(),
-  clientId: int("clientId").notNull().references(() => clients.id),
-  workType: mysqlEnum("workType", ["cocina", "closet", "puertas", "centro_tv"]).notNull(),
-  status: mysqlEnum("status", ["pendiente", "contactado", "completado"]).default("pendiente").notNull(),
-  preferredCallTime: text("preferredCallTime"),
-  notes: text("notes"),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-}, (table) => ({
-  clientIdIdx: index("advisoryRequests_clientId_idx").on(table.clientId),
-  statusIdx: index("advisoryRequests_status_idx").on(table.status),
-}));
+	id: int().autoincrement().notNull(),
+	clientId: int().notNull().references(() => clients.id),
+	workType: mysqlEnum(['cocina','closet','puertas','centro_tv']).notNull(),
+	status: mysqlEnum(['pendiente','contactado','completado']).default('pendiente').notNull(),
+	notes: text(),
+	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+	preferredCallTime: text(),
+},
+(table) => [
+	index("advisoryRequests_clientId_idx").on(table.clientId),
+	index("advisoryRequests_status_idx").on(table.status),
+]);
 
-export type AdvisoryRequest = typeof advisoryRequests.$inferSelect;
-export type InsertAdvisoryRequest = typeof advisoryRequests.$inferInsert;
+export const appointmentWorkTypes = mysqlTable("appointmentWorkTypes", {
+	id: int().autoincrement().notNull(),
+	appointmentId: int().notNull().references(() => appointments.id, { onDelete: "cascade" } ),
+	workType: mysqlEnum(['cocina','closet','puertas','centro_tv']).notNull(),
+	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+},
+(table) => [
+	index("appointmentWorkTypes_appointmentId_idx").on(table.appointmentId),
+]);
 
-/**
- * Estimados previos opcionales
- */
-export const priorEstimates = mysqlTable("priorEstimates", {
-  id: int("id").autoincrement().primaryKey(),
-  clientId: int("clientId").notNull().references(() => clients.id),
-  workType: mysqlEnum("workType", ["cocina", "closet", "puertas", "centro_tv"]).notNull(),
-  kitchenShape: mysqlEnum("kitchenShape", ["L", "U", "lineal"]),
-  linearLength: decimal("linearLength", { precision: 10, scale: 2 }),
-  height: decimal("height", { precision: 10, scale: 2 }),
-  materialType: mysqlEnum("materialType", ["quarzone", "sinterizado"]),
-  additionalDetails: text("additionalDetails"),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-}, (table) => ({
-  clientIdIdx: index("priorEstimates_clientId_idx").on(table.clientId),
-}));
+export const appointments = mysqlTable("appointments", {
+	id: int().autoincrement().notNull(),
+	clientId: int().notNull().references(() => clients.id),
+	scheduledDate: timestamp({ mode: 'string' }),
+	status: mysqlEnum(['pendiente','confirmada','completada','cancelada']).default('pendiente').notNull(),
+	notes: text(),
+	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+	deletedAt: timestamp({ mode: 'string' }),
+},
+(table) => [
+	index("appointments_clientId_idx").on(table.clientId),
+	index("appointments_scheduledDate_idx").on(table.scheduledDate),
+	index("appointments_status_idx").on(table.status),
+	index("appointments_client_status_idx").on(table.clientId, table.status),
+]);
 
-export type PriorEstimate = typeof priorEstimates.$inferSelect;
-export type InsertPriorEstimate = typeof priorEstimates.$inferInsert;
-
-/**
- * Cotizaciones - Tabla principal
- * Arquitectura robusta que soporta múltiples tipos de productos
- */
-export const quotations = mysqlTable("quotations", {
-  id: int("id").autoincrement().primaryKey(),
-  quotationNumber: varchar("quotationNumber", { length: 50 }).notNull().unique(), // COT-2026-001
-  clientId: int("clientId").notNull().references(() => clients.id),
-  vendorName: varchar("vendorName", { length: 255 }).notNull(),
-  productType: mysqlEnum("productType", ["cocina", "closet", "puerta", "centro_tv", "herrajes", "mesones", "acabados_especiales", "otro"]).default("otro").notNull(),
-  status: mysqlEnum("status", ["draft", "sent", "approved", "rejected"]).default("draft").notNull(),
-  validUntil: timestamp("validUntil"),
-  subtotal: decimal("subtotal", { precision: 12, scale: 2 }).notNull(),
-  transportCost: decimal("transportCost", { precision: 12, scale: 2 }).default("600000").notNull(),
-  discountPercent: decimal("discountPercent", { precision: 5, scale: 2 }).default("0"), // Porcentaje de descuento (0-100)
-  discountAmount: decimal("discountAmount", { precision: 12, scale: 2 }).default("0"), // Monto del descuento calculado
-  total: decimal("total", { precision: 12, scale: 2 }).notNull(),
-  pdfUrl: text("pdfUrl"),
-  // Campos para descripciones personalizadas del PDF
-  customDescriptions: json("customDescriptions").$type<Record<number, string>>(), // Descripciones por índice de producto
-  generalNotes: text("generalNotes"), // Notas generales al final del PDF
-  sentAt: timestamp("sentAt"),
-  approvedAt: timestamp("approvedAt"),
-  rejectionReason: text("rejectionReason"),
-  isLocked: boolean("isLocked").default(false).notNull(), // Bloquear cotización para evitar edición/eliminación
-  lockedAt: timestamp("lockedAt"), // Fecha de bloqueo
-  lockedBy: int("lockedBy").references(() => users.id), // Usuario que bloqueó
-  createdBy: int("createdBy").notNull().references(() => users.id),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-  deletedAt: timestamp("deletedAt"),
-}, (table) => ({
-  clientIdIdx: index("quotations_clientId_idx").on(table.clientId),
-  statusIdx: index("quotations_status_idx").on(table.status),
-  createdByIdx: index("quotations_createdBy_idx").on(table.createdBy),
-  createdAtIdx: index("quotations_createdAt_idx").on(table.createdAt),
-}));
-
-export type Quotation = typeof quotations.$inferSelect;
-export type InsertQuotation = typeof quotations.$inferInsert;
-
-/**
- * Proyectos de fabricación
- * Estados del flujo: pendiente → aprobado_diseno → en_diseno → pendiente_cliente → 
- *                    corte → enchape → ensamble → listo_instalacion → entregado
- */
-export const projects = mysqlTable("projects", {
-  id: int("id").autoincrement().primaryKey(),
-  quotationId: int("quotationId").references(() => quotations.id),
-  clientId: int("clientId").notNull().references(() => clients.id),
-  name: varchar("name", { length: 255 }).notNull(),
-  workType: mysqlEnum("workType", ["cocina", "closet", "puertas", "centro_tv"]).notNull(),
-  status: mysqlEnum("status", [
-    "contacto",            // Contacto inicial o visita de medidas (fusión de contacto_inicial + visita_medidas)
-    "cotizacion_enviada",  // Cotización creada y enviada al cliente
-    "cotizacion_aprobada", // Cliente aprobó cotización, esperando adelanto
-    "adelanto_recibido",   // Adelanto recibido, inicia diseño (3 días hábiles)
-    "en_diseno",           // Diseñador trabajando en modelado
-    "pendiente_modelado",  // Modelado enviado, esperando aprobación del cliente
-    "pendiente_render",    // Renders enviados, esperando aprobación del cliente (eliminado pendiente_cliente)
-    "aprobacion_final",    // Cliente aprobó renders, inician 25 días hábiles
-    "despiece",            // Realizando despiece
-    "corte",               // En producción - etapa corte
-    "enchape",             // En producción - etapa enchape
-    "ensamble",            // En producción - etapa ensamble
-    "listo_instalacion",   // Listo para instalar (fusión con instalacion_programada)
-    "entregado"            // Proyecto completado
-  ]).default("contacto").notNull(),
-  
-  // Medidas iniciales
-  initialMeasurements: text("initialMeasurements"),
-  // Archivos de diseño 3D (URLs separadas por coma)
-  design3dFiles: text("design3dFiles"),
-  // Archivos de despiece (URLs separadas por coma)
-  despieceFiles: text("despieceFiles"),
-  
-  // === FECHAS CLAVE DE RUTA INNOVAR ===
-  // Fecha de envío de cotización
-  quotationSentAt: timestamp("quotationSentAt"),
-  // Fecha de aprobación de cotización por el cliente
-  quotationApprovedAt: timestamp("quotationApprovedAt"),
-  // Fecha de recepción del adelanto (inicia contador de 3 días para diseño)
-  advanceReceivedAt: timestamp("advanceReceivedAt"),
-  // Monto total del proyecto (de la cotización)
-  totalAmount: decimal("totalAmount", { precision: 12, scale: 2 }),
-  // Monto del adelanto
-  advanceAmount: decimal("advanceAmount", { precision: 12, scale: 2 }),
-  // URL del comprobante de pago del adelanto
-  advanceReceiptUrl: text("advanceReceiptUrl"),
-  // URL del PDF de la cotización aprobada
-  quotationPdfUrl: text("quotationPdfUrl"),
-  // Fecha límite para entregar diseño (3 días hábiles desde adelanto)
-  designDeadline: timestamp("designDeadline"),
-  // Fecha de entrega del diseño al cliente
-  designDeliveredAt: timestamp("designDeliveredAt"),
-  // Fecha de aprobación final del cliente (inicia 25 días hábiles)
-  clientApprovedAt: timestamp("clientApprovedAt"),
-  clientApprovalNotes: text("clientApprovalNotes"),
-  // Aprobación del modelado 3D por el cliente (desde galería pública)
-  modeladoApprovedAt: timestamp("modeladoApprovedAt"),
-  modeladoApprovedBy: varchar("modeladoApprovedBy", { length: 255 }), // Nombre del cliente que aprobó
-  // Aprobación de renders por el cliente (desde galería pública)
-  rendersApprovedAt: timestamp("rendersApprovedAt"),
-  rendersApprovedBy: varchar("rendersApprovedBy", { length: 255 }), // Nombre del cliente que aprobó
-  // Contador de revisiones de modelado (1 = primera versión, 2 = segunda versión después de cambios, etc.)
-  modeladoRevisionNumber: int("modeladoRevisionNumber").default(0),
-  // Contador de revisiones de renders (1 = primera versión, 2 = segunda versión después de cambios, etc.)
-  renderRevisionNumber: int("renderRevisionNumber").default(0),
-  // Fecha en que el cliente solicitó cambios (para calcular tiempo pendiente)
-  changesRequestedAt: timestamp("changesRequestedAt"),
-  // Selección de colores y materiales
-  selectedColors: text("selectedColors"),
-  selectedMaterials: text("selectedMaterials"),
-  // Fecha TENTATIVA de instalación (25 días hábiles desde creación de cotización)
-  tentativeInstallDate: timestamp("tentativeInstallDate"),
-  // Indica si la fecha de instalación ya es oficial (cliente aprobó diseños)
-  isInstallDateOfficial: boolean("isInstallDateOfficial").default(false),
-  // Fecha OFICIAL de instalación (25 días hábiles desde aprobación de diseños)
-  estimatedInstallDate: timestamp("estimatedInstallDate"),
-  // Fecha real programada de instalación
-  scheduledInstallDate: timestamp("scheduledInstallDate"),
-  // Duración estimada de instalación (en días)
-  installDurationDays: int("installDurationDays").default(1),
-  // Fecha de entrega real
-  deliveredAt: timestamp("deliveredAt"),
-  
-  // Responsables
-  createdBy: int("createdBy").notNull().references(() => users.id),
-  designerId: int("designerId").references(() => users.id),
-  // Timestamps
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-  deletedAt: timestamp("deletedAt"),
-}, (table) => ({
-  clientIdIdx: index("projects_clientId_idx").on(table.clientId),
-  statusIdx: index("projects_status_idx").on(table.status),
-  createdAtIdx: index("projects_createdAt_idx").on(table.createdAt),
-  quotationIdIdx: index("projects_quotationId_idx").on(table.quotationId),
-  designerIdIdx: index("projects_designerId_idx").on(table.designerId),
-  createdByIdx: index("projects_createdBy_idx").on(table.createdBy),
-}));
-
-export type Project = typeof projects.$inferSelect;
-export type InsertProject = typeof projects.$inferInsert;
-
-/**
- * Fotos del proyecto organizadas por etapa
- */
-export const projectPhotos = mysqlTable("projectPhotos", {
-  id: int("id").autoincrement().primaryKey(),
-  projectId: int("projectId").notNull().references(() => projects.id),
-  stage: mysqlEnum("stage", [
-    "inicial",      // Fotos iniciales (medidas, sitio)
-    "diseno",       // Fotos/renders del diseño
-    "corte",        // Fotos de producción - corte
-    "enchape",      // Fotos de producción - enchape
-    "ensamble",     // Fotos de producción - ensamble
-    "final"         // Fotos del producto terminado
-  ]).notNull(),
-  category: mysqlEnum("category", [
-    "cotizacion",   // Documento de cotización
-    "medidas",      // Documentos de medidas (GoodNotes, PDFs)
-    "disenos",      // Diseños 3D, renders, planos
-    "avance",       // Fotos de avance de producción
-    "instalacion", // Fotos de instalación
-    "entrega"       // Fotos de entrega final
-  ]).default("medidas").notNull(),
-  subcategory: mysqlEnum("subcategory", [
-    // Medidas
-    "fotos_iniciales",
-    "dibujo",
-    // Diseños
-    "renders",
-    "despieces",
-    "detalles",
-    "modelado_3d",
-    // Avance
-    "corte",
-    "enchape",
-    "armado",
-    // Instalación
-    "proceso_instalacion",
-    // Entrega
-    "fotos_finales",
-    // Cotización
-    "documento_cotizacion"
-  ]),
-  photoUrl: text("photoUrl").notNull(),
-  description: text("description"),
-  uploadedBy: int("uploadedBy").notNull().references(() => users.id),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-}, (table) => ({
-  projectIdIdx: index("projectPhotos_projectId_idx").on(table.projectId),
-  categoryIdx: index("projectPhotos_category_idx").on(table.category),
-  projectCategoryIdx: index("projectPhotos_project_category_idx").on(table.projectId, table.category),
-}));
-
-export type ProjectPhoto = typeof projectPhotos.$inferSelect;
-export type InsertProjectPhoto = typeof projectPhotos.$inferInsert;
-
-/**
- * Detalles importantes del proyecto
- * Visible para: Diseñador, Jefe de Taller, Operario
- * Contiene: medidas especiales, notas importantes, fotos de referencia
- */
-export const projectDetails = mysqlTable("projectDetails", {
-  id: int("id").autoincrement().primaryKey(),
-  projectId: int("projectId").notNull().references(() => projects.id),
-  type: mysqlEnum("type", ["medida_especial", "nota_importante", "foto_referencia"]).notNull(),
-  title: varchar("title", { length: 255 }).notNull(),
-  content: text("content").notNull(),
-  photoUrl: text("photoUrl"),
-  createdBy: int("createdBy").notNull().references(() => users.id),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-}, (table) => ({
-  projectIdIdx: index("projectDetails_projectId_idx").on(table.projectId),
-}));
-
-export type ProjectDetail = typeof projectDetails.$inferSelect;
-export type InsertProjectDetail = typeof projectDetails.$inferInsert;
-
-/**
- * Sistema de tareas
- * Permisos de asignación:
- * - super_admin: puede asignar a todos
- * - admin: puede asignar a diseñador, jefe_taller, operario
- * - diseñador: puede asignar a jefe_taller, operario
- * - jefe_taller: puede asignar a admin, diseñador, operario
- * - operario: puede asignar a diseñador, jefe_taller
- */
-export const tasks = mysqlTable("tasks", {
-  id: int("id").autoincrement().primaryKey(),
-  projectId: int("projectId").references(() => projects.id),
-  title: varchar("title", { length: 255 }).notNull(),
-  description: text("description"),
-  priority: mysqlEnum("priority", ["alta", "media", "baja"]).default("media").notNull(),
-  status: mysqlEnum("status", ["pendiente", "en_progreso", "completada"]).default("pendiente").notNull(),
-  dueDate: timestamp("dueDate"),
-  assignedTo: int("assignedTo").notNull().references(() => users.id),
-  assignedBy: int("assignedBy").notNull().references(() => users.id),
-  completedAt: timestamp("completedAt"),
-  // Historial de recordatorios
-  lastReminderSentAt: timestamp("lastReminderSentAt"),
-  lastReminderSentBy: int("lastReminderSentBy").references(() => users.id),
-  reminderCount: int("reminderCount").default(0).notNull(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-  deletedAt: timestamp("deletedAt"),
-}, (table) => ({
-  assignedToIdx: index("tasks_assignedTo_idx").on(table.assignedTo),
-  statusIdx: index("tasks_status_idx").on(table.status),
-  dueDateIdx: index("tasks_dueDate_idx").on(table.dueDate),
-  projectIdIdx: index("tasks_projectId_idx").on(table.projectId),
-  assignedStatusIdx: index("tasks_assigned_status_idx").on(table.assignedTo, table.status),
-}));
-
-export type Task = typeof tasks.$inferSelect;
-export type InsertTask = typeof tasks.$inferInsert;
-
-/**
- * Historial de cambios de estado del proyecto
- */
-export const projectStatusHistory = mysqlTable("projectStatusHistory", {
-  id: int("id").autoincrement().primaryKey(),
-  projectId: int("projectId").notNull().references(() => projects.id),
-  fromStatus: varchar("fromStatus", { length: 50 }),
-  toStatus: varchar("toStatus", { length: 50 }).notNull(),
-  changedBy: int("changedBy").notNull().references(() => users.id),
-  notes: text("notes"),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-}, (table) => ({
-  projectIdIdx: index("projectStatusHistory_projectId_idx").on(table.projectId),
-}));
-
-export type ProjectStatusHistory = typeof projectStatusHistory.$inferSelect;
-export type InsertProjectStatusHistory = typeof projectStatusHistory.$inferInsert;
-
-
-/**
- * Suscripciones a notificaciones push
- */
-export const pushSubscriptions = mysqlTable("pushSubscriptions", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull().references(() => users.id),
-  endpoint: text("endpoint").notNull(),
-  p256dh: varchar("p256dh", { length: 255 }).notNull(),
-  auth: varchar("auth", { length: 255 }).notNull(),
-  userAgent: text("userAgent"),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-}, (table) => ({
-  userIdIdx: index("pushSubscriptions_userId_idx").on(table.userId),
-}));
-
-export type PushSubscription = typeof pushSubscriptions.$inferSelect;
-export type InsertPushSubscription = typeof pushSubscriptions.$inferInsert;
-
-/**
- * Notificaciones del sistema
- */
-export const notifications = mysqlTable("notifications", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull().references(() => users.id),
-  title: varchar("title", { length: 255 }).notNull(),
-  body: text("body").notNull(),
-  type: mysqlEnum("type", ["proyecto", "tarea", "cita", "cotizacion", "sistema"]).default("sistema").notNull(),
-  referenceId: int("referenceId"),
-  referenceType: varchar("referenceType", { length: 50 }),
-  read: boolean("read").default(false).notNull(),
-  sentPush: boolean("sentPush").default(false).notNull(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-}, (table) => ({
-  userIdIdx: index("notifications_userId_idx").on(table.userId),
-  readIdx: index("notifications_read_idx").on(table.read),
-  userReadIdx: index("notifications_user_read_idx").on(table.userId, table.read),
-}));
-
-export type Notification = typeof notifications.$inferSelect;
-export type InsertNotification = typeof notifications.$inferInsert;
-
-/**
- * Festivos colombianos para cálculo de días hábiles
- */
-export const colombianHolidays = mysqlTable("colombianHolidays", {
-  id: int("id").autoincrement().primaryKey(),
-  date: timestamp("date").notNull(),
-  name: varchar("name", { length: 255 }).notNull(),
-  year: int("year").notNull(),
-}, (table) => ({
-  yearIdx: index("colombianHolidays_year_idx").on(table.year),
-  dateIdx: index("colombianHolidays_date_idx").on(table.date),
-}));
-
-export type ColombianHoliday = typeof colombianHolidays.$inferSelect;
-export type InsertColombianHoliday = typeof colombianHolidays.$inferInsert;
-
-/**
- * Recordatorios automáticos del sistema
- */
-export const reminders = mysqlTable("reminders", {
-  id: int("id").autoincrement().primaryKey(),
-  projectId: int("projectId").notNull().references(() => projects.id),
-  type: mysqlEnum("type", [
-    "cotizacion_sin_respuesta",  // 2 días sin respuesta a cotización
-    "diseno_pendiente",          // 3 días para entregar diseño
-    "aprobacion_pendiente",      // 5 días esperando aprobación del cliente
-    "produccion_retrasada",      // Producción retrasada
-    "instalacion_proxima"        // Instalación próxima (3 días antes)
-  ]).notNull(),
-  assignedTo: int("assignedTo").notNull().references(() => users.id),
-  dueDate: timestamp("dueDate").notNull(),
-  status: mysqlEnum("status", ["pendiente", "enviado", "completado", "cancelado"]).default("pendiente").notNull(),
-  message: text("message"),
-  sentAt: timestamp("sentAt"),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-}, (table) => ({
-  projectIdIdx: index("reminders_projectId_idx").on(table.projectId),
-  assignedToIdx: index("reminders_assignedTo_idx").on(table.assignedTo),
-  dueDateIdx: index("reminders_dueDate_idx").on(table.dueDate),
-  statusIdx: index("reminders_status_idx").on(table.status),
-}));
-
-export type Reminder = typeof reminders.$inferSelect;
-export type InsertReminder = typeof reminders.$inferInsert;
-
-
-/**
- * Catálogo de herrajes con fotos fijas
- * Categorías: cocinas, closets, puertas
- */
-export const hardwareCatalog = mysqlTable("hardwareCatalog", {
-  id: int("id").autoincrement().primaryKey(),
-  category: mysqlEnum("category", ["cocinas", "closets", "puertas"]).notNull(),
-  name: varchar("name", { length: 255 }).notNull(),
-  description: text("description"),
-  options: text("options"), // JSON con opciones disponibles
-  photoUrl: text("photoUrl"),
-  price: decimal("price", { precision: 12, scale: 2 }).default("0").notNull(),
-  sortOrder: int("sortOrder").default(0).notNull(),
-  active: boolean("active").default(true).notNull(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-}, (table) => ({
-  categoryIdx: index("hardwareCatalog_category_idx").on(table.category),
-  activeIdx: index("hardwareCatalog_active_idx").on(table.active),
-}));
-
-export type HardwareCatalog = typeof hardwareCatalog.$inferSelect;
-export type InsertHardwareCatalog = typeof hardwareCatalog.$inferInsert;
-
-/**
- * Materiales base del proyecto (Madera, Mesón, Lavaplatos)
- */
-export const projectMaterials = mysqlTable("projectMaterials", {
-  id: int("id").autoincrement().primaryKey(),
-  projectId: int("projectId").notNull().references(() => projects.id),
-  
-  // Madera
-  woodType: mysqlEnum("woodType", ["rh", "estandar"]),
-  woodColor: varchar("woodColor", { length: 255 }),
-  woodPhotoUrl: text("woodPhotoUrl"),
-  
-  // Mesón
-  countertopType: mysqlEnum("countertopType", ["granito", "cuarzo", "sinterizado"]),
-  countertopName: varchar("countertopName", { length: 255 }),
-  countertopPhotoUrl: text("countertopPhotoUrl"),
-  
-  // Lavaplatos
-  sinkMeasure: varchar("sinkMeasure", { length: 100 }),
-  sinkPhotoUrl: text("sinkPhotoUrl"),
-  
-  notes: text("notes"),
-  createdBy: int("createdBy").notNull().references(() => users.id),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-}, (table) => ({
-  projectIdIdx: index("projectMaterials_projectId_idx").on(table.projectId),
-}));
-
-export type ProjectMaterial = typeof projectMaterials.$inferSelect;
-export type InsertProjectMaterial = typeof projectMaterials.$inferInsert;
-
-/**
- * Herrajes seleccionados para cada proyecto
- */
-export const projectHardwareSelections = mysqlTable("projectHardwareSelections", {
-  id: int("id").autoincrement().primaryKey(),
-  projectId: int("projectId").notNull().references(() => projects.id),
-  hardwareId: int("hardwareId").notNull().references(() => hardwareCatalog.id),
-  quantity: int("quantity").default(1).notNull(), // Cantidad seleccionada
-  priceAtQuotation: decimal("priceAtQuotation", { precision: 10, scale: 2 }), // Precio histórico al momento de la cotización
-  selectedOption: text("selectedOption"), // Opción específica seleccionada
-  notes: text("notes"),
-  createdBy: int("createdBy").notNull().references(() => users.id),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-}, (table) => ({
-  projectIdIdx: index("projectHardwareSelections_projectId_idx").on(table.projectId),
-  hardwareIdIdx: index("projectHardwareSelections_hardwareId_idx").on(table.hardwareId),
-}));
-
-export type ProjectHardwareSelection = typeof projectHardwareSelections.$inferSelect;
-export type InsertProjectHardwareSelection = typeof projectHardwareSelections.$inferInsert;
-
-
-/**
-/**
- * Cotizaciones de Cocinas - Estructura detallada
- * Todos los componentes de una cocina integral
- */
-export const kitchenQuotations = mysqlTable("kitchenQuotations", {
-  id: int("id").autoincrement().primaryKey(),
-  quotationId: int("quotationId").notNull().references(() => quotations.id, { onDelete: "cascade" }),
-  
-  // Forma de la cocina
-  shape: mysqlEnum("shape", ["L", "U", "lineal"]).notNull(),
-  
-  // Metraje
-  totalMeters: decimal("totalMeters", { precision: 10, scale: 2 }).notNull(),
-  resultingMeters: decimal("resultingMeters", { precision: 10, scale: 2 }).notNull(),
-  
-  // Muebles lineales
-  lowerCabinetsMeters: decimal("lowerCabinetsMeters", { precision: 10, scale: 2 }).notNull(),
-  lowerCabinetsPrice: decimal("lowerCabinetsPrice", { precision: 12, scale: 2 }).notNull(),
-  upperCabinetsMeters: decimal("upperCabinetsMeters", { precision: 10, scale: 2 }).notNull(),
-  upperCabinetsPrice: decimal("upperCabinetsPrice", { precision: 12, scale: 2 }).notNull(),
-  
-  // Muebles especiales
-  hasNichoNevecon: boolean("hasNichoNevecon").default(false).notNull(),
-  nichoNeveconPrice: decimal("nichoNeveconPrice", { precision: 12, scale: 2 }),
-  hasNichoNeveraStandard: boolean("hasNichoNeveraStandard").default(false).notNull(),
-  nichoNeveraStandardPrice: decimal("nichoNeveraStandardPrice", { precision: 12, scale: 2 }),
-  hasAlacenaEntrepanos: boolean("hasAlacenaEntrepanos").default(false).notNull(),
-  alacenaEntrepanosPrice: decimal("alacenaEntrepanosPrice", { precision: 12, scale: 2 }),
-  hasAlacenaHerraje: boolean("hasAlacenaHerraje").default(false).notNull(),
-  alacenaHerrajePrice: decimal("alacenaHerrajePrice", { precision: 12, scale: 2 }),
-  hasHerrajeItem: boolean("hasHerrajeItem").default(false).notNull(),
-  herrajePrice: decimal("herrajePrice", { precision: 12, scale: 2 }),
-  hasTorreHornos: boolean("hasTorreHornos").default(false).notNull(),
-  torreHornosPrice: decimal("torreHornosPrice", { precision: 12, scale: 2 }),
-  
-  // Mesón principal
-  countertopType: mysqlEnum("countertopType", ["quarzone", "sinterizado"]).notNull(),
-  countertopMeters: decimal("countertopMeters", { precision: 10, scale: 2 }).notNull(),
-  countertopSurcharge30: boolean("countertopSurcharge30").default(false).notNull(),
-  countertopDouble: boolean("countertopDouble").default(false).notNull(),
-  countertopPrice: decimal("countertopPrice", { precision: 12, scale: 2 }).notNull(),
-  
-  // Isla
-  hasIsland: boolean("hasIsland").default(false).notNull(),
-  islandCabinetsMeters: decimal("islandCabinetsMeters", { precision: 10, scale: 2 }),
-  islandCabinetsPrice: decimal("islandCabinetsPrice", { precision: 12, scale: 2 }),
-  islandCountertopMeters: decimal("islandCountertopMeters", { precision: 10, scale: 2 }),
-  islandCountertopType: mysqlEnum("islandCountertopType", ["quarzone", "sinterizado"]),
-  islandCountertopPrice: decimal("islandCountertopPrice", { precision: 12, scale: 2 }),
-  islandHasLaterals: boolean("islandHasLaterals").default(false).notNull(),
-  islandLateralPrice: decimal("islandLateralPrice", { precision: 12, scale: 2 }),
-  islandRegruesoPrice: decimal("islandRegruesoPrice", { precision: 12, scale: 2 }),
-  islandTotalPrice: decimal("islandTotalPrice", { precision: 12, scale: 2 }),
-  
-  // Barra
-  hasBar: boolean("hasBar").default(false).notNull(),
-  barCabinetsMeters: decimal("barCabinetsMeters", { precision: 10, scale: 2 }),
-  barCabinetsPrice: decimal("barCabinetsPrice", { precision: 12, scale: 2 }),
-  barCountertopMeters: decimal("barCountertopMeters", { precision: 10, scale: 2 }),
-  barCountertopType: mysqlEnum("barCountertopType", ["quarzone", "sinterizado"]),
-  barCountertopPrice: decimal("barCountertopPrice", { precision: 12, scale: 2 }),
-  barHasLateral: boolean("barHasLateral").default(false).notNull(),
-  barLateralPrice: decimal("barLateralPrice", { precision: 12, scale: 2 }),
-  barTotalPrice: decimal("barTotalPrice", { precision: 12, scale: 2 }),
-  
-  // Luz LED
-  hasLed: boolean("hasLed").default(false).notNull(),
-  ledMeters: decimal("ledMeters", { precision: 10, scale: 2 }),
-  ledPrice: decimal("ledPrice", { precision: 12, scale: 2 }),
-  
-  // Pintado Puertas Alto Brillo
-  hasPaintedDoors: boolean("hasPaintedDoors").default(false).notNull(),
-  paintedDoorsUpperQty: int("paintedDoorsUpperQty").default(0),
-  paintedDoorsUpperPrice: decimal("paintedDoorsUpperPrice", { precision: 12, scale: 2 }),
-  paintedDoorsLowerQty: int("paintedDoorsLowerQty").default(0),
-  paintedDoorsLowerPrice: decimal("paintedDoorsLowerPrice", { precision: 12, scale: 2 }),
-  paintedDoorsPantryQty: int("paintedDoorsPantryQty").default(0),
-  paintedDoorsPantryPrice: decimal("paintedDoorsPantryPrice", { precision: 12, scale: 2 }),
-  paintedDoorsDrawerQty: int("paintedDoorsDrawerQty").default(0),
-  paintedDoorsDrawerPrice: decimal("paintedDoorsDrawerPrice", { precision: 12, scale: 2 }),
-  paintedDoorsSpiceQty: int("paintedDoorsSpiceQty").default(0),
-  paintedDoorsSpicePrice: decimal("paintedDoorsSpicePrice", { precision: 12, scale: 2 }),
-  paintedDoorsGolaQty: int("paintedDoorsGolaQty").default(0),
-  paintedDoorsGolaPrice: decimal("paintedDoorsGolaPrice", { precision: 12, scale: 2 }),
-  paintedDoorsTotalPrice: decimal("paintedDoorsTotalPrice", { precision: 12, scale: 2 }),
-  
-  // Costos fijos
-  transportCost: decimal("transportCost", { precision: 12, scale: 2 }).default("600000").notNull(),
-  
-  // Total
-  subtotal: decimal("subtotal", { precision: 12, scale: 2 }).notNull(),
-  total: decimal("total", { precision: 12, scale: 2 }).notNull(),
-  
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-}, (table) => ({
-  quotationIdIdx: index("kitchenQuotations_quotationId_idx").on(table.quotationId),
-}));
-
-export type KitchenQuotation = typeof kitchenQuotations.$inferSelect;
-export type InsertKitchenQuotation = typeof kitchenQuotations.$inferInsert;
-
-// Tabla de items de cotizaciones
-export const quotationItems = mysqlTable("quotationItems", {
-  id: int("id").primaryKey().autoincrement(),
-  quotationId: int("quotationId").notNull().references(() => quotations.id, { onDelete: "cascade" }),
-  itemNumber: int("itemNumber").notNull(),
-  itemType: varchar("itemType", { length: 50 }).notNull(),
-  description: text("description").notNull(),
-  quantity: varchar("quantity", { length: 50 }).notNull(),
-  unitPrice: varchar("unitPrice", { length: 50 }),
-  totalPrice: varchar("totalPrice", { length: 50 }).notNull(),
-  includesFixedCosts: boolean("includesFixedCosts").default(false).notNull(),
-  fixedCostsAmount: int("fixedCostsAmount"),
-  kitchenConfig: json("kitchenConfig"),
-  hardwareSelections: json("hardwareSelections"), // Array de { hardwareId, name, price, quantity, subtotal }
-  closetConfig: json("closetConfig"), // { type, width, height, doorType, squareMeters, pricePerSquareMeter, subtotal }
-  doorConfig: json("doorConfig"), // { type, widthRange, width, height, quantity, hardwareColor, pricePerUnit, subtotal, notes }
-  tvCenterConfig: json("tvCenterConfig"), // { width, basePrice, hasHighGloss, hasLedLights, floatingShelves, equipmentSpaces, includeTransport, transportCost, notes, subtotal }
-  countertopConfig: json("countertopConfig"), // { material, tipo, metrosLineales, fondo, precioML, incluyeLaterales, incluyeRegrueso, alturaLateral, subtotalMeson, subtotalLaterales, subtotalRegrueso, subtotalLavaplatos, total, notes, includeTransport, transportCost }
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-}, (table) => ({
-  quotationIdIdx: index("quotationItems_quotationId_idx").on(table.quotationId),
-}));
-
-export type QuotationItem = typeof quotationItems.$inferSelect;
-export type InsertQuotationItem = typeof quotationItems.$inferInsert;
-
-
-/**
- * Historial de pagos de proyectos
- */
-export const projectPayments = mysqlTable("projectPayments", {
-  id: int("id").autoincrement().primaryKey(),
-  projectId: int("projectId").notNull().references(() => projects.id, { onDelete: "cascade" }),
-  type: mysqlEnum("type", ["adelanto", "saldo_final", "abono", "otro"]).notNull(),
-  amount: decimal("amount", { precision: 12, scale: 2 }).notNull(),
-  paymentDate: timestamp("paymentDate").notNull(),
-  receiptUrl: text("receiptUrl"),
-  notes: text("notes"),
-  registeredBy: int("registeredBy").notNull().references(() => users.id),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-}, (table) => ({
-  projectIdIdx: index("projectPayments_projectId_idx").on(table.projectId),
-}));
-
-export type ProjectPayment = typeof projectPayments.$inferSelect;
-export type InsertProjectPayment = typeof projectPayments.$inferInsert;
-
-
-/**
- * Configuración de precios del sistema de cotizaciones
- * Permite actualizar precios sin modificar código
- */
-export const pricingConfig = mysqlTable("pricingConfig", {
-  id: int("id").autoincrement().primaryKey(),
-  category: mysqlEnum("category", [
-    "cocina_base",        // Precios base por metro lineal según forma
-    "mesones",            // Precios de mesones por tipo
-    "muebles_especiales", // Nicho nevera, alacena, torre hornos
-    "extras",             // Isla, barra, luz LED, pintado
-    "puertas_tapas",      // Precios de puertas y tapas (solo cambio)
-    "herrajes",           // Bisagras, plateros, etc.
-    "closets",            // Precios de closets por tipo
-    "puertas_producto",   // Precios de puertas como producto
-    "centros_tv",         // Precios de centros de TV
-    "otros",              // Otros precios configurables
-    "acabados_especiales" // Puertas aluminio+vidrio, bisagras, LED
-  ]).notNull(),
-  code: varchar("code", { length: 100 }).notNull().unique(), // Código único para identificar el precio
-  name: varchar("name", { length: 255 }).notNull(),          // Nombre descriptivo
-  description: text("description"),                           // Descripción detallada
-  value: decimal("value", { precision: 12, scale: 2 }).notNull(), // Valor del precio
-  unit: varchar("unit", { length: 50 }),                      // Unidad (ml, m2, unidad, %)
-  sortOrder: int("sortOrder").default(0).notNull(),           // Orden de visualización
-  active: boolean("active").default(true).notNull(),          // Si está activo
-  updatedBy: int("updatedBy").references(() => users.id),     // Quién lo actualizó
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-}, (table) => ({
-  categoryIdx: index("pricingConfig_category_idx").on(table.category),
-}));
-
-export type PricingConfig = typeof pricingConfig.$inferSelect;
-export type InsertPricingConfig = typeof pricingConfig.$inferInsert;
-
-/**
- * Historial de cambios de precios
- */
-export const pricingHistory = mysqlTable("pricingHistory", {
-  id: int("id").autoincrement().primaryKey(),
-  pricingConfigId: int("pricingConfigId").notNull().references(() => pricingConfig.id),
-  previousValue: decimal("previousValue", { precision: 12, scale: 2 }).notNull(),
-  newValue: decimal("newValue", { precision: 12, scale: 2 }).notNull(),
-  changedBy: int("changedBy").notNull().references(() => users.id),
-  reason: text("reason"),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-}, (table) => ({
-  pricingConfigIdIdx: index("pricingHistory_pricingConfigId_idx").on(table.pricingConfigId),
-}));
-
-export type PricingHistory = typeof pricingHistory.$inferSelect;
-export type InsertPricingHistory = typeof pricingHistory.$inferInsert;
-
-
-/**
- * Sistema Contable Interno - Gastos
- * Tipos: materiales_proyecto (gastos de materiales para proyectos específicos)
- *        gasto_operativo (gastos generales del negocio)
- */
-export const expenses = mysqlTable("expenses", {
-  id: int("id").autoincrement().primaryKey(),
-  
-  // Tipo de gasto
-  expenseType: mysqlEnum("expenseType", ["materiales_proyecto", "gasto_operativo"]).notNull(),
-  
-  // Para gastos de materiales - referencia al proyecto/cliente
-  projectId: int("projectId").references(() => projects.id),
-  projectClientName: varchar("projectClientName", { length: 255 }), // Nombre del cliente/proyecto para referencia rápida
-  
-  // Categoría general obligatoria para todos los gastos
-  generalCategory: mysqlEnum("generalCategory", [
-    "materiales",
-    "mano_de_obra",
-    "alquiler",
-    "servicios",
-    "transporte",
-    "mantenimiento",
-    "otros"
-  ]).notNull(),
-  
-  // Subcategoría opcional para mayor detalle
-  subcategory: varchar("subcategory", { length: 255 }),
-  
-  // Para gastos operativos - categoría
-  operativeCategory: mysqlEnum("operativeCategory", [
-    "arriendo",
-    "energia",
-    "agua",
-    "internet",
-    "mantenimiento",
-    "herramientas",
-    "jardineria",
-    "reparaciones",
-    "transporte",
-    "papeleria",
-    "aseo",
-    "otro"
-  ]),
-  
-  // Datos comunes
-  description: text("description").notNull(),
-  amount: decimal("amount", { precision: 12, scale: 2 }).notNull(),
-  expenseDate: timestamp("expenseDate").notNull(),
-  
-  // Soporte (foto de recibo/factura)
-  supportUrl: text("supportUrl"),
-  supportFileName: varchar("supportFileName", { length: 255 }),
-  
-  // Auditoría
-  createdBy: int("createdBy").notNull().references(() => users.id),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-}, (table) => ({
-  projectIdIdx: index("expenses_projectId_idx").on(table.projectId),
-  expenseDateIdx: index("expenses_expenseDate_idx").on(table.expenseDate),
-  expenseTypeIdx: index("expenses_expenseType_idx").on(table.expenseType),
-}));
-
-export type Expense = typeof expenses.$inferSelect;
-export type InsertExpense = typeof expenses.$inferInsert;
-
-
-/**
- * Historial de revisiones/cambios solicitados por el cliente
- * Guarda cada solicitud de cambios para mantener un registro completo
- */
 export const clientRevisionHistory = mysqlTable("client_revision_history", {
-  id: int("id").autoincrement().primaryKey(),
-  projectId: int("projectId").notNull().references(() => projects.id, { onDelete: "cascade" }),
-  type: mysqlEnum("type", ["modelado_3d", "renders"]).notNull(), // Tipo de diseño al que aplica
-  revisionNumber: int("revisionNumber").notNull(), // Número de revisión (1, 2, 3...)
-  clientName: varchar("clientName", { length: 255 }).notNull(), // Nombre del cliente que solicitó
-  changes: text("changes").notNull(), // Descripción de los cambios solicitados
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-}, (table) => ({
-  projectIdIdx: index("clientRevisionHistory_projectId_idx").on(table.projectId),
-}));
+	id: int().autoincrement().notNull(),
+	projectId: int().notNull().references(() => projects.id, { onDelete: "cascade" } ),
+	type: mysqlEnum(['modelado_3d','renders']).notNull(),
+	revisionNumber: int().notNull(),
+	clientName: varchar({ length: 255 }).notNull(),
+	changes: text().notNull(),
+	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+},
+(table) => [
+	index("clientRevisionHistory_projectId_idx").on(table.projectId),
+]);
 
-export type ClientRevisionHistory = typeof clientRevisionHistory.$inferSelect;
-export type InsertClientRevisionHistory = typeof clientRevisionHistory.$inferInsert;
+export const clients = mysqlTable("clients", {
+	id: int().autoincrement().notNull(),
+	userId: int().references(() => users.id),
+	name: varchar({ length: 255 }).notNull(),
+	email: varchar({ length: 320 }),
+	whatsappPhone: varchar({ length: 20 }).notNull(),
+	address: text(),
+	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+	internalManagement: tinyint().default(0).notNull(),
+	deletedAt: timestamp({ mode: 'string' }),
+},
+(table) => [
+	index("clients_userId_idx").on(table.userId),
+	index("clients_whatsappPhone_idx").on(table.whatsappPhone),
+]);
+
+export const colombianHolidays = mysqlTable("colombianHolidays", {
+	id: int().autoincrement().notNull(),
+	date: timestamp({ mode: 'string' }).notNull(),
+	name: varchar({ length: 255 }).notNull(),
+	year: int().notNull(),
+},
+(table) => [
+	index("colombianHolidays_year_idx").on(table.year),
+	index("colombianHolidays_date_idx").on(table.date),
+]);
+
+export const expenses = mysqlTable("expenses", {
+	id: int().autoincrement().notNull(),
+	expenseType: mysqlEnum(['materiales_proyecto','gasto_operativo']).notNull(),
+	projectId: int().references(() => projects.id, { onDelete: "set null" } ),
+	projectClientName: varchar({ length: 255 }),
+	operativeCategory: mysqlEnum(['arriendo','energia','agua','internet','mantenimiento','herramientas','jardineria','reparaciones','transporte','papeleria','aseo','otro']),
+	description: text().notNull(),
+	amount: decimal({ precision: 12, scale: 2 }).notNull(),
+	expenseDate: timestamp({ mode: 'string' }).notNull(),
+	supportUrl: text(),
+	supportFileName: varchar({ length: 255 }),
+	createdBy: int().notNull().references(() => users.id),
+	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+	generalCategory: mysqlEnum(['materiales','mano_de_obra','alquiler','servicios','transporte','mantenimiento','otros']).notNull(),
+	subcategory: varchar({ length: 255 }),
+},
+(table) => [
+	index("expenses_projectId_idx").on(table.projectId),
+	index("expenses_expenseDate_idx").on(table.expenseDate),
+	index("expenses_expenseType_idx").on(table.expenseType),
+]);
+
+export const hardwareCatalog = mysqlTable("hardwareCatalog", {
+	id: int().autoincrement().notNull(),
+	category: mysqlEnum(['cocinas','closets','puertas']).notNull(),
+	name: varchar({ length: 255 }).notNull(),
+	description: text(),
+	options: text(),
+	photoUrl: text(),
+	sortOrder: int().default(0).notNull(),
+	active: tinyint().default(1).notNull(),
+	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+	price: decimal({ precision: 12, scale: 2 }).default('0').notNull(),
+},
+(table) => [
+	index("hardwareCatalog_category_idx").on(table.category),
+	index("hardwareCatalog_active_idx").on(table.active),
+]);
+
+export const kitchenQuotations = mysqlTable("kitchenQuotations", {
+	id: int().autoincrement().notNull(),
+	quotationId: int().notNull(),
+	shape: mysqlEnum(['L','U','lineal']).notNull(),
+	totalMeters: decimal({ precision: 10, scale: 2 }).notNull(),
+	resultingMeters: decimal({ precision: 10, scale: 2 }).notNull(),
+	lowerCabinetsMeters: decimal({ precision: 10, scale: 2 }).notNull(),
+	lowerCabinetsPrice: decimal({ precision: 12, scale: 2 }).notNull(),
+	upperCabinetsMeters: decimal({ precision: 10, scale: 2 }).notNull(),
+	upperCabinetsPrice: decimal({ precision: 12, scale: 2 }).notNull(),
+	hasNichoNevecon: tinyint().default(0).notNull(),
+	nichoNeveconPrice: decimal({ precision: 12, scale: 2 }),
+	hasNichoNeveraStandard: tinyint().default(0).notNull(),
+	nichoNeveraStandardPrice: decimal({ precision: 12, scale: 2 }),
+	hasAlacenaEntrepanos: tinyint().default(0).notNull(),
+	alacenaEntrepanosPrice: decimal({ precision: 12, scale: 2 }),
+	hasAlacenaHerraje: tinyint().default(0).notNull(),
+	alacenaHerrajePrice: decimal({ precision: 12, scale: 2 }),
+	hasHerrajeItem: tinyint().default(0).notNull(),
+	herrajePrice: decimal({ precision: 12, scale: 2 }),
+	hasTorreHornos: tinyint().default(0).notNull(),
+	torreHornosPrice: decimal({ precision: 12, scale: 2 }),
+	countertopType: mysqlEnum(['quarzone','sinterizado']).notNull(),
+	countertopMeters: decimal({ precision: 10, scale: 2 }).notNull(),
+	countertopSurcharge30: tinyint().default(0).notNull(),
+	countertopDouble: tinyint().default(0).notNull(),
+	countertopPrice: decimal({ precision: 12, scale: 2 }).notNull(),
+	hasIsland: tinyint().default(0).notNull(),
+	islandCabinetsMeters: decimal({ precision: 10, scale: 2 }),
+	islandCabinetsPrice: decimal({ precision: 12, scale: 2 }),
+	islandCountertopMeters: decimal({ precision: 10, scale: 2 }),
+	islandCountertopType: mysqlEnum(['quarzone','sinterizado']),
+	islandCountertopPrice: decimal({ precision: 12, scale: 2 }),
+	islandHasLaterals: tinyint().default(0).notNull(),
+	islandLateralPrice: decimal({ precision: 12, scale: 2 }),
+	islandRegruesoPrice: decimal({ precision: 12, scale: 2 }),
+	islandTotalPrice: decimal({ precision: 12, scale: 2 }),
+	hasBar: tinyint().default(0).notNull(),
+	barCabinetsMeters: decimal({ precision: 10, scale: 2 }),
+	barCabinetsPrice: decimal({ precision: 12, scale: 2 }),
+	barCountertopMeters: decimal({ precision: 10, scale: 2 }),
+	barCountertopType: mysqlEnum(['quarzone','sinterizado']),
+	barCountertopPrice: decimal({ precision: 12, scale: 2 }),
+	barHasLateral: tinyint().default(0).notNull(),
+	barLateralPrice: decimal({ precision: 12, scale: 2 }),
+	barTotalPrice: decimal({ precision: 12, scale: 2 }),
+	hasLed: tinyint().default(0).notNull(),
+	ledMeters: decimal({ precision: 10, scale: 2 }),
+	ledPrice: decimal({ precision: 12, scale: 2 }),
+	transportCost: decimal({ precision: 12, scale: 2 }).default('600000').notNull(),
+	subtotal: decimal({ precision: 12, scale: 2 }).notNull(),
+	total: decimal({ precision: 12, scale: 2 }).notNull(),
+	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+	hasPaintedDoors: tinyint().default(0).notNull(),
+	paintedDoorsUpperQty: int().default(0),
+	paintedDoorsUpperPrice: decimal({ precision: 12, scale: 2 }),
+	paintedDoorsLowerQty: int().default(0),
+	paintedDoorsLowerPrice: decimal({ precision: 12, scale: 2 }),
+	paintedDoorsPantryQty: int().default(0),
+	paintedDoorsPantryPrice: decimal({ precision: 12, scale: 2 }),
+	paintedDoorsDrawerQty: int().default(0),
+	paintedDoorsDrawerPrice: decimal({ precision: 12, scale: 2 }),
+	paintedDoorsSpiceQty: int().default(0),
+	paintedDoorsSpicePrice: decimal({ precision: 12, scale: 2 }),
+	paintedDoorsGolaQty: int().default(0),
+	paintedDoorsGolaPrice: decimal({ precision: 12, scale: 2 }),
+	paintedDoorsTotalPrice: decimal({ precision: 12, scale: 2 }),
+},
+(table) => [
+	index("kitchenQuotations_quotationId_idx").on(table.quotationId),
+]);
+
+export const notifications = mysqlTable("notifications", {
+	id: int().autoincrement().notNull(),
+	userId: int().notNull().references(() => users.id),
+	title: varchar({ length: 255 }).notNull(),
+	body: text().notNull(),
+	type: mysqlEnum(['proyecto','tarea','cita','cotizacion','sistema']).default('sistema').notNull(),
+	referenceId: int(),
+	referenceType: varchar({ length: 50 }),
+	read: tinyint().default(0).notNull(),
+	sentPush: tinyint().default(0).notNull(),
+	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+},
+(table) => [
+	index("notifications_userId_idx").on(table.userId),
+	index("notifications_read_idx").on(table.read),
+	index("notifications_user_read_idx").on(table.userId, table.read),
+]);
+
+export const pricingConfig = mysqlTable("pricingConfig", {
+	id: int().autoincrement().notNull(),
+	category: mysqlEnum(['cocina_base','mesones','muebles_especiales','extras','puertas_tapas','herrajes','closets','puertas_producto','centros_tv','otros','acabados_especiales']).notNull(),
+	code: varchar({ length: 100 }).notNull(),
+	name: varchar({ length: 255 }).notNull(),
+	description: text(),
+	value: decimal({ precision: 12, scale: 2 }).notNull(),
+	unit: varchar({ length: 50 }),
+	sortOrder: int().default(0).notNull(),
+	active: tinyint().default(1).notNull(),
+	updatedBy: int(),
+	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+},
+(table) => [
+	index("code").on(table.code),
+	index("pricingConfig_category_idx").on(table.category),
+]);
+
+export const pricingHistory = mysqlTable("pricingHistory", {
+	id: int().autoincrement().notNull(),
+	pricingConfigId: int().notNull(),
+	previousValue: decimal({ precision: 12, scale: 2 }).notNull(),
+	newValue: decimal({ precision: 12, scale: 2 }).notNull(),
+	changedBy: int().notNull(),
+	reason: text(),
+	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+},
+(table) => [
+	index("pricingHistory_pricingConfigId_idx").on(table.pricingConfigId),
+]);
+
+export const priorEstimates = mysqlTable("priorEstimates", {
+	id: int().autoincrement().notNull(),
+	clientId: int().notNull().references(() => clients.id),
+	workType: mysqlEnum(['cocina','closet','puertas','centro_tv']).notNull(),
+	additionalDetails: text(),
+	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	kitchenShape: mysqlEnum(['L','U','lineal']),
+	materialType: mysqlEnum(['quarzone','sinterizado']),
+	linearLength: decimal({ precision: 10, scale: 2 }),
+	height: decimal({ precision: 10, scale: 2 }),
+},
+(table) => [
+	index("priorEstimates_clientId_idx").on(table.clientId),
+]);
+
+export const projectDetails = mysqlTable("projectDetails", {
+	id: int().autoincrement().notNull(),
+	projectId: int().notNull().references(() => projects.id),
+	type: mysqlEnum(['medida_especial','nota_importante','foto_referencia']).notNull(),
+	title: varchar({ length: 255 }).notNull(),
+	content: text().notNull(),
+	photoUrl: text(),
+	createdBy: int().notNull().references(() => users.id),
+	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+},
+(table) => [
+	index("projectDetails_projectId_idx").on(table.projectId),
+]);
+
+export const projectHardwareSelections = mysqlTable("projectHardwareSelections", {
+	id: int().autoincrement().notNull(),
+	projectId: int().notNull(),
+	hardwareId: int().notNull(),
+	selectedOption: text(),
+	notes: text(),
+	createdBy: int().notNull(),
+	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	quantity: int().default(1).notNull(),
+	priceAtQuotation: decimal({ precision: 10, scale: 2 }),
+},
+(table) => [
+	index("projectHardwareSelections_projectId_idx").on(table.projectId),
+	index("projectHardwareSelections_hardwareId_idx").on(table.hardwareId),
+]);
+
+export const projectMaterials = mysqlTable("projectMaterials", {
+	id: int().autoincrement().notNull(),
+	projectId: int().notNull(),
+	woodType: mysqlEnum(['rh','estandar']),
+	woodColor: varchar({ length: 255 }),
+	woodPhotoUrl: text(),
+	countertopType: mysqlEnum(['granito','cuarzo','sinterizado']),
+	countertopName: varchar({ length: 255 }),
+	countertopPhotoUrl: text(),
+	sinkMeasure: varchar({ length: 100 }),
+	sinkPhotoUrl: text(),
+	notes: text(),
+	createdBy: int().notNull(),
+	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+},
+(table) => [
+	index("projectMaterials_projectId_idx").on(table.projectId),
+]);
+
+export const projectPayments = mysqlTable("projectPayments", {
+	id: int().autoincrement().notNull(),
+	projectId: int().notNull().references(() => projects.id, { onDelete: "cascade" } ),
+	type: mysqlEnum(['adelanto','saldo_final','abono','otro']).notNull(),
+	amount: decimal({ precision: 12, scale: 2 }).notNull(),
+	paymentDate: timestamp({ mode: 'string' }).notNull(),
+	receiptUrl: text(),
+	notes: text(),
+	registeredBy: int().notNull().references(() => users.id),
+	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+},
+(table) => [
+	index("projectPayments_projectId_idx").on(table.projectId),
+]);
+
+export const projectPhotos = mysqlTable("projectPhotos", {
+	id: int().autoincrement().notNull(),
+	projectId: int().notNull().references(() => projects.id),
+	stage: mysqlEnum(['inicial','diseno','corte','enchape','ensamble','final']).notNull(),
+	photoUrl: text().notNull(),
+	description: text(),
+	uploadedBy: int().notNull().references(() => users.id),
+	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	category: mysqlEnum(['cotizacion','medidas','disenos','avance','instalacion','entrega']).default('medidas').notNull(),
+	subcategory: mysqlEnum(['fotos_iniciales','dibujo','renders','despieces','detalles','modelado','modelado_3d','corte','enchape','armado','proceso_instalacion','fotos_finales','documento_cotizacion']),
+},
+(table) => [
+	index("projectPhotos_projectId_idx").on(table.projectId),
+	index("projectPhotos_category_idx").on(table.category),
+	index("projectPhotos_project_category_idx").on(table.projectId, table.category),
+]);
+
+export const projectStatusHistory = mysqlTable("projectStatusHistory", {
+	id: int().autoincrement().notNull(),
+	projectId: int().notNull().references(() => projects.id),
+	fromStatus: varchar({ length: 50 }),
+	toStatus: varchar({ length: 50 }).notNull(),
+	changedBy: int().notNull().references(() => users.id),
+	notes: text(),
+	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+},
+(table) => [
+	index("projectStatusHistory_projectId_idx").on(table.projectId),
+]);
+
+export const projects = mysqlTable("projects", {
+	id: int().autoincrement().notNull(),
+	quotationId: int(),
+	clientId: int().notNull().references(() => clients.id),
+	name: varchar({ length: 255 }).notNull(),
+	workType: mysqlEnum(['cocina','closet','puertas','centro_tv']).notNull(),
+	status: mysqlEnum(['contacto','cotizacion_enviada','cotizacion_aprobada','adelanto_recibido','en_diseno','pendiente_modelado','pendiente_render','aprobacion_final','despiece','corte','enchape','ensamble','listo_instalacion','entregado']).default('contacto').notNull(),
+	initialMeasurements: text(),
+	design3DFiles: text(),
+	despieceFiles: text(),
+	clientApprovedAt: timestamp({ mode: 'string' }),
+	clientApprovalNotes: text(),
+	createdBy: int().notNull().references(() => users.id),
+	designerId: int().references(() => users.id),
+	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+	quotationSentAt: timestamp({ mode: 'string' }),
+	quotationApprovedAt: timestamp({ mode: 'string' }),
+	advanceReceivedAt: timestamp({ mode: 'string' }),
+	totalAmount: decimal({ precision: 12, scale: 2 }),
+	advanceAmount: decimal({ precision: 12, scale: 2 }),
+	designDeadline: timestamp({ mode: 'string' }),
+	designDeliveredAt: timestamp({ mode: 'string' }),
+	selectedColors: text(),
+	selectedMaterials: text(),
+	estimatedInstallDate: timestamp({ mode: 'string' }),
+	scheduledInstallDate: timestamp({ mode: 'string' }),
+	installDurationDays: int().default(1),
+	deliveredAt: timestamp({ mode: 'string' }),
+	advanceReceiptUrl: text(),
+	advanceReceiptUrl: text("advance_receipt_url"),
+	quotationPdfUrl: text(),
+	tentativeInstallDate: timestamp({ mode: 'string' }),
+	isInstallDateOfficial: tinyint().default(0),
+	modeladoApprovedAt: timestamp({ mode: 'string' }),
+	modeladoApprovedBy: varchar({ length: 255 }),
+	rendersApprovedAt: timestamp({ mode: 'string' }),
+	rendersApprovedBy: varchar({ length: 255 }),
+	renderRevisionNumber: int().default(0),
+	modeladoRevisionNumber: int().default(0),
+	changesRequestedAt: timestamp({ mode: 'string' }),
+	deletedAt: timestamp({ mode: 'string' }),
+	currentApprovedQuotationId: int(),
+},
+(table) => [
+	index("projects_quotationId_quotations_id_fk").on(table.quotationId),
+	index("projects_clientId_idx").on(table.clientId),
+	index("projects_status_idx").on(table.status),
+	index("projects_createdAt_idx").on(table.createdAt),
+	index("projects_quotationId_idx").on(table.quotationId),
+	index("projects_designerId_idx").on(table.designerId),
+	index("projects_createdBy_idx").on(table.createdBy),
+]);
+
+export const pushSubscriptions = mysqlTable("pushSubscriptions", {
+	id: int().autoincrement().notNull(),
+	userId: int().notNull().references(() => users.id),
+	endpoint: text().notNull(),
+	p256Dh: varchar({ length: 255 }).notNull(),
+	auth: varchar({ length: 255 }).notNull(),
+	userAgent: text(),
+	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+},
+(table) => [
+	index("pushSubscriptions_userId_idx").on(table.userId),
+]);
+
+export const quotationItems = mysqlTable("quotationItems", {
+	id: int().autoincrement().notNull(),
+	quotationId: int().notNull().references(() => quotations.id, { onDelete: "cascade" } ),
+	itemNumber: int().notNull(),
+	itemType: varchar({ length: 50 }).default('otro').notNull(),
+	description: text().notNull(),
+	quantity: varchar({ length: 50 }).notNull(),
+	unitPrice: varchar({ length: 50 }),
+	totalPrice: decimal({ precision: 12, scale: 2 }).notNull(),
+	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	includesFixedCosts: tinyint().default(0).notNull(),
+	kitchenConfig: json(),
+	hardwareSelections: json(),
+	closetConfig: json(),
+	fixedCostsAmount: decimal({ precision: 12, scale: 2 }).default('600000'),
+	doorConfig: json(),
+	tvCenterConfig: json(),
+	countertopConfig: json(),
+},
+(table) => [
+	index("quotationItems_quotationId_idx").on(table.quotationId),
+]);
+
+export const quotations = mysqlTable("quotations", {
+	id: int().autoincrement().notNull(),
+	quotationNumber: varchar({ length: 50 }).notNull(),
+	clientId: int().notNull().references(() => clients.id, { onDelete: "cascade" } ),
+	vendorName: varchar({ length: 255 }).notNull(),
+	productType: mysqlEnum(['cocina','closet','puerta','centro_tv','herrajes','mesones','acabados_especiales','otro']).default('otro').notNull(),
+	status: mysqlEnum(['draft','sent','approved','rejected']).default('draft').notNull(),
+	validUntil: timestamp({ mode: 'string' }),
+	subtotal: decimal({ precision: 12, scale: 2 }).notNull(),
+	transportCost: decimal({ precision: 12, scale: 2 }).default('600000').notNull(),
+	total: decimal({ precision: 12, scale: 2 }).notNull(),
+	pdfUrl: text(),
+	sentAt: timestamp({ mode: 'string' }),
+	createdBy: int().notNull().references(() => users.id),
+	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+	approvedAt: timestamp({ mode: 'string' }),
+	rejectionReason: text(),
+	customDescriptions: json(),
+	generalNotes: text(),
+	discountPercent: decimal({ precision: 5, scale: 2 }).default('0'),
+	discountAmount: decimal({ precision: 15, scale: 2 }).default('0'),
+	isLocked: tinyint().default(0).notNull(),
+	lockedAt: timestamp({ mode: 'string' }),
+	lockedBy: int(),
+	deletedAt: timestamp({ mode: 'string' }),
+},
+(table) => [
+	index("quotationNumber").on(table.quotationNumber),
+	index("quotations_clientId_idx").on(table.clientId),
+	index("quotations_status_idx").on(table.status),
+	index("quotations_createdBy_idx").on(table.createdBy),
+	index("quotations_createdAt_idx").on(table.createdAt),
+]);
+
+export const reminders = mysqlTable("reminders", {
+	id: int().autoincrement().notNull(),
+	projectId: int().references(() => projects.id),
+	type: mysqlEnum(['cotizacion_sin_respuesta','diseno_pendiente','aprobacion_pendiente','produccion_retrasada','instalacion_proxima']).notNull(),
+	assignedTo: int().notNull().references(() => users.id),
+	dueDate: timestamp({ mode: 'string' }).notNull(),
+	status: mysqlEnum(['pendiente','enviado','completado','cancelado']).default('pendiente').notNull(),
+	message: text(),
+	sentAt: timestamp({ mode: 'string' }),
+	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+},
+(table) => [
+	index("reminders_projectId_idx").on(table.projectId),
+	index("reminders_assignedTo_idx").on(table.assignedTo),
+	index("reminders_dueDate_idx").on(table.dueDate),
+	index("reminders_status_idx").on(table.status),
+]);
+
+export const taskReminders = mysqlTable("taskReminders", {
+	id: int().autoincrement().notNull(),
+	taskId: int().notNull().references(() => tasks.id, { onDelete: "cascade" } ),
+	sentBy: int().notNull().references(() => users.id),
+	sentTo: int().notNull().references(() => users.id),
+	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+});
+
+export const tasks = mysqlTable("tasks", {
+	id: int().autoincrement().notNull(),
+	projectId: int().references(() => projects.id),
+	title: varchar({ length: 255 }).notNull(),
+	description: text(),
+	priority: mysqlEnum(['alta','media','baja']).default('media').notNull(),
+	status: mysqlEnum(['pendiente','en_progreso','completada']).default('pendiente').notNull(),
+	dueDate: timestamp({ mode: 'string' }),
+	assignedTo: int().notNull().references(() => users.id),
+	assignedBy: int().notNull().references(() => users.id),
+	completedAt: timestamp({ mode: 'string' }),
+	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+	lastReminderSentAt: timestamp({ mode: 'string' }),
+	lastReminderSentBy: int(),
+	reminderCount: int().default(0).notNull(),
+	deletedAt: timestamp({ mode: 'string' }),
+},
+(table) => [
+	index("tasks_assignedTo_idx").on(table.assignedTo),
+	index("tasks_status_idx").on(table.status),
+	index("tasks_dueDate_idx").on(table.dueDate),
+	index("tasks_projectId_idx").on(table.projectId),
+	index("tasks_assigned_status_idx").on(table.assignedTo, table.status),
+]);
+
+export const users = mysqlTable("users", {
+	id: int().autoincrement().notNull(),
+	openId: varchar({ length: 64 }).notNull(),
+	name: text(),
+	email: varchar({ length: 320 }),
+	loginMethod: varchar({ length: 64 }),
+	role: mysqlEnum(['user','admin','super_admin','comercial','disenador','jefe_taller','operario']).default('user').notNull(),
+	phone: varchar({ length: 20 }),
+	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+	lastSignedIn: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	passwordHash: varchar({ length: 255 }),
+	passwordResetToken: varchar({ length: 100 }),
+	passwordResetExpires: timestamp({ mode: 'string' }),
+	birthDate: timestamp({ mode: 'string' }),
+},
+(table) => [
+	index("users_openId_unique").on(table.openId),
+	index("users_role_idx").on(table.role),
+	index("users_email_idx").on(table.email),
+]);

@@ -1,2 +1,0 @@
-ALTER TABLE `expenses` ADD `generalCategory` enum('materiales','mano_de_obra','alquiler','servicios','transporte','mantenimiento','otros') NOT NULL;--> statement-breakpoint
-ALTER TABLE `expenses` ADD `subcategory` varchar(255);

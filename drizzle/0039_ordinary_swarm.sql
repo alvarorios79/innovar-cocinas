@@ -1,2 +1,0 @@
-ALTER TABLE `projects` MODIFY COLUMN `status` enum('contacto_inicial','visita_medidas','cotizacion_enviada','cotizacion_aprobada','adelanto_recibido','en_diseno','pendiente_modelado','pendiente_cliente','pendiente_render','aprobacion_final','despiece','corte','enchape','ensamble','listo_instalacion','instalacion_programada','entregado') NOT NULL DEFAULT 'contacto_inicial';--> statement-breakpoint
-ALTER TABLE `projects` ADD `modeladoRevisionNumber` int DEFAULT 0;

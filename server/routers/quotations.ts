@@ -155,11 +155,7 @@ export const quotationsRouter = router({
           throw new TRPCError({ code: "FORBIDDEN" });
         }
 
-        // Verificar si la cotización está bloqueada
-        const existingQuotation = await db.getQuotationById(input.id);
-        if (existingQuotation?.isLocked) {
-          throw new TRPCError({ code: "FORBIDDEN", message: "No se puede editar una cotización bloqueada. Desblóqueala primero." });
-        }
+        // Verificación de bloqueo pendiente en Mini-Fase 2
 
         const { id, items, ...quotationData } = input;
 
@@ -375,17 +371,10 @@ export const quotationsRouter = router({
           throw new TRPCError({ code: "NOT_FOUND" });
         }
 
-        const isCurrentlyLocked = quotation.isLocked;
-        await db.updateQuotation(input.id, {
-          isLocked: !isCurrentlyLocked,
-          lockedAt: !isCurrentlyLocked ? new Date() : null,
-          lockedBy: !isCurrentlyLocked ? ctx.user.id : null,
-        });
-
+        // Funcionalidad de bloqueo pendiente en Mini-Fase 2
         return { 
           success: true, 
-          isLocked: !isCurrentlyLocked,
-          message: !isCurrentlyLocked ? "Cotización bloqueada" : "Cotización desbloqueada"
+          message: "Funcionalidad de bloqueo en desarrollo"
         };
       }),
 
@@ -397,11 +386,7 @@ export const quotationsRouter = router({
           throw new TRPCError({ code: "FORBIDDEN" });
         }
 
-        // Verificar si la cotización está bloqueada
-        const quotation = await db.getQuotationById(input.id);
-        if (quotation?.isLocked) {
-          throw new TRPCError({ code: "FORBIDDEN", message: "No se puede eliminar una cotización bloqueada. Desblóqueala primero." });
-        }
+        // Verificación de bloqueo pendiente en Mini-Fase 2
 
         await db.deleteQuotation(input.id);
         return { success: true };

@@ -1,1 +1,0 @@
-ALTER TABLE `projects` ADD `totalAmount` decimal(12,2);

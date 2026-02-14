@@ -4428,3 +4428,27 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 ## Bugs Móvil - Fase 3 (Febrero 2026)
 
 - [x] Botón "Bloquear" no funciona en iPhone - Funciona en desktop pero no en móvil (ARREGLADO: reemplazado window.confirm con AlertDialog)
+
+
+## Fase 2: Backend - Copias Históricas y Sincronización Financiera (Febrero 2026)
+
+### Implementación de Copias Históricas
+- [x] Crear función `createHistoricalCopy()` en db.ts - Copia cotización al crear proyecto (COMPLETADO)
+- [x] Crear función `getHistoricalCopies()` en db.ts - Obtiene copias de una cotización (COMPLETADO)
+- [x] Crear función `getActiveQuotation()` en db.ts - Obtiene cotización activa del proyecto (COMPLETADO)
+- [x] Integrar `createHistoricalCopy()` en procedimiento de crear proyecto (COMPLETADO)
+- [x] Usar lógica: id !== baseQuotationId para identificar copias (sin flag isHistoricalCopy) (COMPLETADO)
+
+### Sincronización Financiera
+- [x] Implementar sincronización: proyecto siempre usa última cotización aprobada (YA EXISTENTE)
+- [x] Actualizar monto del proyecto cuando se aprueba nueva cotización (YA EXISTENTE)
+- [x] Asegurar que copias históricas no afecten financiero (solo auditoría) (COMPLETADO)
+
+### Testing
+- [x] Test: Crear copia histórica al crear proyecto (COMPLETADO)
+- [x] Test: Números de versión correctos (V1, V2, V3) (COMPLETADO)
+- [x] Test: Proyecto sincronizado con cotización activa (COMPLETADO)
+- [x] Test: Copias no afectan cálculos financieros (COMPLETADO)
+
+### Checkpoint
+- [x] Crear checkpoint Fase 2 Backend completo

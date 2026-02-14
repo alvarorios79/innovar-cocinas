@@ -2026,6 +2026,14 @@ export const quotationsRouter = router({
           designerId: autoAssignedDesignerId,
         });
         
+        // Crear copia histórica de la cotización aprobada para auditoría
+        try {
+          await db.createHistoricalCopy(quotation.id);
+        } catch (error) {
+          console.error("Error creating historical copy:", error);
+          // No lanzar error, solo registrar
+        }
+        
         // Crear historial de estado del proyecto
         await db.createProjectStatusHistory({
           projectId: projectId,

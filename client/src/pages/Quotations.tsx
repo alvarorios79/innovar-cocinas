@@ -1348,7 +1348,8 @@ export default function Quotations() {
           />
           <Button onClick={() => setShowCreateDialog(true)}>
             <Plus className="h-4 w-4 mr-2" />
-            Nueva Cotización
+            <span className="hidden sm:inline">Nueva Cotización</span>
+            <span className="sm:hidden">Nueva</span>
           </Button>
         </div>
       </div>

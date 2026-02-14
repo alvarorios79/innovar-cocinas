@@ -4413,3 +4413,9 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Eliminar badges/indicadores de versión en tabla de cotizaciones
 - [x] Verificar que flujo Editar → Guardar → Aprobar → Crear Proyecto funciona
 - [ ] Checkpoint Fase 1 Frontend Cleanup
+
+
+## Bugs Reportados - Móvil
+
+- [x] Botón "Nueva Cotización" fuera de pantalla en iPhone - Cambiar a "Nueva" en móvil
+- [x] Botón "Bloquear" no funciona desde móvil (iPhone) - Implementar lógica real de toggleLock

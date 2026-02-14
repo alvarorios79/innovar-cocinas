@@ -371,10 +371,19 @@ export const quotationsRouter = router({
           throw new TRPCError({ code: "NOT_FOUND" });
         }
 
-        // Funcionalidad de bloqueo pendiente en Mini-Fase 2
+        // Alternar estado de bloqueo
+        const newLockedState = !quotation.isLocked;
+        const now = new Date();
+
+        await db.query(
+          'UPDATE quotations SET isLocked = ?, lockedAt = ?, lockedBy = ? WHERE id = ?',
+          [newLockedState ? 1 : 0, newLockedState ? now : null, newLockedState ? ctx.user.id : null, input.id]
+        );
+
+        const action = newLockedState ? "bloqueada" : "desbloqueada";
         return { 
           success: true, 
-          message: "Funcionalidad de bloqueo en desarrollo"
+          message: `Cotizacion ${action} correctamente`
         };
       }),
 

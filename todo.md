@@ -4404,3 +4404,12 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Referencia a cotización base agregada al PDF
 - [x] Datos de versionado integrados en pdfData
 - [x] Diseño y estructura del PDF preservados
+
+
+## Fase 1: Frontend Cleanup - Remover UI de Versionado
+
+- [x] Remover QuotationVersioning.tsx del componente Quotations
+- [x] Eliminar botón "Crear Nueva Versión"
+- [x] Eliminar badges/indicadores de versión en tabla de cotizaciones
+- [x] Verificar que flujo Editar → Guardar → Aprobar → Crear Proyecto funciona
+- [ ] Checkpoint Fase 1 Frontend Cleanup

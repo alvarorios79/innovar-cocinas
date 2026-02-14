@@ -28,15 +28,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+
 import { Plus, Trash2, FileText, Send, Eye, Pencil, Mail, Search, X, UserPlus, FolderPlus, ChefHat, Ruler, Package, Sofa, DoorOpen, Tv, Wrench, LayoutGrid, Calendar, User, Building2, Truck, Sparkles, CircleDollarSign, Lightbulb, Palette, Edit3, Lock, Unlock, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { formatPrice } from "@/lib/formatters";
@@ -1582,8 +1574,17 @@ export default function Quotations() {
                   <Button
                     size="sm"
                     variant={quot.isLocked ? "default" : "outline"}
-                    className={quot.isLocked ? "bg-amber-500 hover:bg-amber-600 text-white" : "border-amber-300 text-amber-700 hover:bg-amber-50"}
-                    onClick={() => {
+                    className={`${quot.isLocked ? "bg-amber-500 hover:bg-amber-600 text-white" : "border-amber-300 text-amber-700 hover:bg-amber-50"} pointer-events-auto`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      console.log("Botón Bloquear clickeado", quot.id);
+                      setLockConfirmDialog({ open: true, quotationId: quot.id, isLocking: !quot.isLocked });
+                    }}
+                    onTouchEnd={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      console.log("Botón Bloquear tocado", quot.id);
                       setLockConfirmDialog({ open: true, quotationId: quot.id, isLocking: !quot.isLocked });
                     }}
                     disabled={toggleLock.isPending}
@@ -3426,21 +3427,28 @@ export default function Quotations() {
         quotationNumber={pdfEditorQuotationNumber}
       />
 
-      <AlertDialog open={lockConfirmDialog.open} onOpenChange={(open) => setLockConfirmDialog({ ...lockConfirmDialog, open })}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
+      <Dialog open={lockConfirmDialog.open} onOpenChange={(open) => setLockConfirmDialog({ ...lockConfirmDialog, open })}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
               {lockConfirmDialog.isLocking ? "Bloquear cotizacion" : "Desbloquear cotizacion"}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-sm text-muted-foreground">
               {lockConfirmDialog.isLocking
                 ? "Estás seguro de bloquear esta cotización? No podrás editarla ni eliminarla hasta desbloquearla."
                 : "Estás seguro de desbloquear esta cotización? Podrás editarla y eliminarla nuevamente."}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
+            </p>
+          </div>
           <div className="flex gap-2 justify-end">
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
+            <Button
+              variant="outline"
+              onClick={() => setLockConfirmDialog({ open: false, quotationId: null, isLocking: false })}
+            >
+              Cancelar
+            </Button>
+            <Button
               onClick={() => {
                 if (lockConfirmDialog.quotationId) {
                   toggleLock.mutate({ id: lockConfirmDialog.quotationId });
@@ -3448,12 +3456,13 @@ export default function Quotations() {
                 }
               }}
               disabled={toggleLock.isPending}
+              className={lockConfirmDialog.isLocking ? "bg-amber-500 hover:bg-amber-600" : "bg-green-600 hover:bg-green-700"}
             >
               {lockConfirmDialog.isLocking ? "Bloquear" : "Desbloquear"}
-            </AlertDialogAction>
+            </Button>
           </div>
-        </AlertDialogContent>
-      </AlertDialog>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

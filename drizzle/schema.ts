@@ -1,4 +1,4 @@
-import { mysqlTable, mysqlSchema, AnyMySqlColumn, index, text, foreignKey, int, mysqlEnum, timestamp, varchar, decimal, json } from "drizzle-orm/mysql-core"
+import { mysqlTable, mysqlSchema, AnyMySqlColumn, index, text, foreignKey, int, mysqlEnum, timestamp, varchar, decimal, json, bigint, tinyint } from "drizzle-orm/mysql-core"
 import { sql } from "drizzle-orm"
 
 export const drizzleMigrations = mysqlTable("__drizzle_migrations__", {
@@ -484,6 +484,10 @@ export const quotations = mysqlTable("quotations", {
 	isLocked: tinyint().default(0).notNull(),
 	lockedAt: timestamp({ mode: 'string' }),
 	lockedBy: int(),
+	parentQuotationId: int(),
+	isAdditional: tinyint().default(0).notNull(),
+	baseQuotationId: int(),
+	versionNumber: int().default(1).notNull(),
 	deletedAt: timestamp({ mode: 'string' }),
 },
 (table) => [

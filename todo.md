@@ -4375,3 +4375,12 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [ ] Prioridad 3: Cálculo automático de festivos colombianos
 - [ ] Prioridad 4: Endpoints de exportación CSV/Excel
 - [ ] Prioridad 5: Propuesta de dashboard de métricas operativas
+
+## Versionado de Cotizaciones - Mini-Fase 2 Backend
+
+- [x] Campos de versionado en BD (parentQuotationId, isAdditional, baseQuotationId, versionNumber)
+- [x] Importaciones bigint/tinyint en schema.ts
+- [x] Lógica core quotation-versioning.ts (6 funciones)
+- [x] Router tRPC quotations-versioning.ts (5 procedimientos)
+- [x] db-test.ts para inicialización explícita de BD en vitest
+- [x] 13 tests pasando (quotation-versioning.test.ts)

@@ -16,6 +16,7 @@ import { publicGalleryRouter } from "./routers/publicGallery";
 import { pricingRouter } from "./routers/pricing";
 import { whatsappCloudRouter } from "./routers/whatsappCloud";
 import { expensesRouter } from "./routers/expenses";
+import { quotationsVersioningRouter } from "./routers/quotations-versioning";
 
 export const appRouter = router({
   system: systemRouter,
@@ -42,6 +43,7 @@ export const appRouter = router({
   pricing: pricingRouter,
   whatsappCloud: whatsappCloudRouter,
   expenses: expensesRouter,
+  quotationsVersioning: quotationsVersioningRouter,
 });
 
 export type AppRouter = typeof appRouter;

@@ -33,6 +33,7 @@ import { toast } from "sonner";
 import { formatPrice } from "@/lib/formatters";
 import { CreateQuickClientDialog } from "@/components/CreateQuickClientDialog";
 import { usePricing, getPriceFromMap } from "@/hooks/usePricing";
+import { QuotationVersioning } from "@/components/QuotationVersioning";
 
 interface HardwareSelection {
   hardwareId: number;
@@ -1485,6 +1486,20 @@ export default function Quotations() {
                       <span className="block text-red-500 text-[10px]">* Tentativa</span>
                     </div>
                   </div>
+                </div>
+
+                {/* Componente de Versionado */}
+                <div className="mt-4">
+                  <QuotationVersioning
+                    quotationId={quot.id}
+                    quotationNumber={quot.quotationNumber}
+                    status={quot.status}
+                    isLocked={quot.isLocked}
+                    versionNumber={quot.versionNumber || 1}
+                    baseQuotationId={quot.baseQuotationId}
+                    parentQuotationId={quot.parentQuotationId}
+                    isAdditional={quot.isAdditional || false}
+                  />
                 </div>
 
                 <div className="flex gap-2 mt-4 flex-wrap">

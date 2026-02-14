@@ -4384,3 +4384,14 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Router tRPC quotations-versioning.ts (5 procedimientos)
 - [x] db-test.ts para inicialización explícita de BD en vitest
 - [x] 13 tests pasando (quotation-versioning.test.ts)
+
+
+## Versionado de Cotizaciones - Mini-Fase 3 Frontend
+
+- [x] Componente QuotationVersioning.tsx creado
+- [x] Importación agregada a Quotations.tsx
+- [x] Componente integrado en tarjeta de cotización
+- [x] Indicador de bloqueo (Bloqueada)
+- [x] Listado de versiones con badge "vigente"
+- [x] Botón "Crear Nueva Versión" con validaciones
+- [x] Diálogo de confirmación con explicación

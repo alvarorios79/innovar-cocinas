@@ -1337,20 +1337,20 @@ export default function Quotations() {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Cotizaciones</h1>
         <div className="flex gap-2 flex-wrap justify-end">
-          <CreateQuickClientDialog 
-            onClientCreated={() => utils.clients.list.invalidate()}
-            trigger={
-              <Button variant="outline" className="gap-2 text-xs sm:text-sm px-2 sm:px-4">
-                <UserPlus className="h-4 w-4" />
-                <span className="hidden sm:inline">Crear Cliente Rápido</span>
-                <span className="sm:hidden">Cliente</span>
-              </Button>
-            }
-          />
-          <Button onClick={() => setShowCreateDialog(true)} className="text-xs sm:text-sm px-2 sm:px-4">
+          <div className="hidden sm:block">
+            <CreateQuickClientDialog 
+              onClientCreated={() => utils.clients.list.invalidate()}
+              trigger={
+                <Button variant="outline" className="gap-2">
+                  <UserPlus className="h-4 w-4" />
+                  Crear Cliente Rápido
+                </Button>
+              }
+            />
+          </div>
+          <Button onClick={() => setShowCreateDialog(true)}>
             <Plus className="h-4 w-4 mr-2" />
-            <span className="hidden sm:inline">Nueva Cotización</span>
-            <span className="sm:hidden">Nueva</span>
+            Nueva Cotización
           </Button>
         </div>
       </div>

@@ -28,6 +28,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Plus, Trash2, FileText, Send, Eye, Pencil, Mail, Search, X, UserPlus, FolderPlus, ChefHat, Ruler, Package, Sofa, DoorOpen, Tv, Wrench, LayoutGrid, Calendar, User, Building2, Truck, Sparkles, CircleDollarSign, Lightbulb, Palette, Edit3, Lock, Unlock, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { formatPrice } from "@/lib/formatters";
@@ -76,6 +85,7 @@ export default function Quotations() {
   // Hook para precios dinámicos desde la base de datos
   const { prices, isLoading: isPricingLoading, getPrice } = usePricing();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [lockConfirmDialog, setLockConfirmDialog] = useState<{ open: boolean; quotationId: number | null; isLocking: boolean }>({ open: false, quotationId: null, isLocking: false });
   
   // Abrir diálogo automáticamente si viene con ?new en la URL
   useEffect(() => {
@@ -1574,10 +1584,7 @@ export default function Quotations() {
                     variant={quot.isLocked ? "default" : "outline"}
                     className={quot.isLocked ? "bg-amber-500 hover:bg-amber-600 text-white" : "border-amber-300 text-amber-700 hover:bg-amber-50"}
                     onClick={() => {
-                      const action = quot.isLocked ? "desbloquear" : "bloquear";
-                      if (window.confirm(`¿Estás seguro de ${action} esta cotización?`)) {
-                        toggleLock.mutate({ id: quot.id });
-                      }
+                      setLockConfirmDialog({ open: true, quotationId: quot.id, isLocking: !quot.isLocked });
                     }}
                     disabled={toggleLock.isPending}
                     title={quot.isLocked ? "Desbloquear cotización" : "Bloquear cotización"}
@@ -3418,6 +3425,35 @@ export default function Quotations() {
         clientName={pdfEditorClientName}
         quotationNumber={pdfEditorQuotationNumber}
       />
+
+      <AlertDialog open={lockConfirmDialog.open} onOpenChange={(open) => setLockConfirmDialog({ ...lockConfirmDialog, open })}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {lockConfirmDialog.isLocking ? "Bloquear cotizacion" : "Desbloquear cotizacion"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {lockConfirmDialog.isLocking
+                ? "Estás seguro de bloquear esta cotización? No podrás editarla ni eliminarla hasta desbloquearla."
+                : "Estás seguro de desbloquear esta cotización? Podrás editarla y eliminarla nuevamente."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex gap-2 justify-end">
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (lockConfirmDialog.quotationId) {
+                  toggleLock.mutate({ id: lockConfirmDialog.quotationId });
+                  setLockConfirmDialog({ open: false, quotationId: null, isLocking: false });
+                }
+              }}
+              disabled={toggleLock.isPending}
+            >
+              {lockConfirmDialog.isLocking ? "Bloquear" : "Desbloquear"}
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

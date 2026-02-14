@@ -4424,3 +4424,7 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 
 - [x] Botón "Nueva" sigue cortado en iPhone - Botón "Crear Cliente Rápido" ocupa demasiado espacio (ARREGLADO: oculto en móvil, solo visible en desktop)
 - [x] Botón "Bloquear" no funciona - solo permite copiar texto, no ejecuta toggleLock (ARREGLADO: implementado db.updateQuotation)
+
+## Bugs Móvil - Fase 3 (Febrero 2026)
+
+- [x] Botón "Bloquear" no funciona en iPhone - Funciona en desktop pero no en móvil (ARREGLADO: reemplazado window.confirm con AlertDialog)

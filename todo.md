@@ -4419,3 +4419,8 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 
 - [x] Botón "Nueva Cotización" fuera de pantalla en iPhone - Cambiar a "Nueva" en móvil
 - [x] Botón "Bloquear" no funciona desde móvil (iPhone) - Implementar lógica real de toggleLock
+
+## Bugs Confirmados - Fase 2 (Febrero 2026)
+
+- [x] Botón "Nueva" sigue cortado en iPhone - Botón "Crear Cliente Rápido" ocupa demasiado espacio (ARREGLADO: texto "Cliente" en móvil)
+- [x] Botón "Bloquear" no funciona - solo permite copiar texto, no ejecuta toggleLock (ARREGLADO: implementado db.updateQuotation)

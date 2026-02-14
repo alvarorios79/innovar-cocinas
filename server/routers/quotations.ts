@@ -375,10 +375,11 @@ export const quotationsRouter = router({
         const newLockedState = !quotation.isLocked;
         const now = new Date();
 
-        await db.query(
-          'UPDATE quotations SET isLocked = ?, lockedAt = ?, lockedBy = ? WHERE id = ?',
-          [newLockedState ? 1 : 0, newLockedState ? now : null, newLockedState ? ctx.user.id : null, input.id]
-        );
+        await db.updateQuotation(input.id, {
+          isLocked: newLockedState,
+          lockedAt: newLockedState ? now : null,
+          lockedBy: newLockedState ? ctx.user.id : null,
+        });
 
         const action = newLockedState ? "bloqueada" : "desbloqueada";
         return { 

@@ -4475,3 +4475,11 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 4. **Editar cotización V2** → Crea V3 (baseQuotationId = id_v1)
 5. **Crear proyecto** → Usa la última versión aprobada (V2, V3, V4...)
 6. **Información financiera del proyecto** → Siempre sincroniza con última versión
+
+
+## Versionado Externo de Cotizaciones (V2, V3, V4...)
+- [x] Corregir error "or is not defined" - faltaba import de `or` de drizzle-orm en db.ts
+- [x] Crear botón "Crear Nueva Versión" en tarjeta de cotización con proyecto asociado
+- [x] Integrar mutación createVersion con apertura automática en editor
+- [x] Actualizar proyecto para apuntar a última versión de cotización
+- [x] Limpiar onSuccess de updateQuotation (sin lógica de versionado)

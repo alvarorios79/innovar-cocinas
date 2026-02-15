@@ -13,6 +13,7 @@ import { protectedProcedure, router } from "../_core/trpc";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import * as versioning from "../quotation-versioning";
+import { getProjectByQuotationId, updateProject } from "../db";
 
 export const quotationsVersioningRouter = router({
   createVersion: protectedProcedure
@@ -33,6 +34,22 @@ export const quotationsVersioningRouter = router({
           input.quotationId,
           ctx.user.id
         );
+
+        // Actualizar el proyecto para que apunte a la nueva versión
+        const project = await getProjectByQuotationId(input.quotationId);
+        if (project) {
+          await updateProject(project.id, { quotationId: newQuotationId });
+        } else {
+          // Buscar si el proyecto está asociado a la cotización base
+          const versionInfo = await versioning.getQuotationVersionInfo(input.quotationId);
+          if (versionInfo?.baseQuotationId) {
+            const baseProject = await getProjectByQuotationId(versionInfo.baseQuotationId);
+            if (baseProject) {
+              await updateProject(baseProject.id, { quotationId: newQuotationId });
+            }
+          }
+        }
+
         return { newQuotationId };
       } catch (error: any) {
         throw new TRPCError({

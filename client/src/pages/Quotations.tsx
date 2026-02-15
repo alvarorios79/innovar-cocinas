@@ -29,7 +29,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-import { Plus, Trash2, FileText, Send, Eye, Pencil, Mail, Search, X, UserPlus, FolderPlus, ChefHat, Ruler, Package, Sofa, DoorOpen, Tv, Wrench, LayoutGrid, Calendar, User, Building2, Truck, Sparkles, CircleDollarSign, Lightbulb, Palette, Edit3, Lock, Unlock, ArrowLeft } from "lucide-react";
+import { Plus, Trash2, FileText, Send, Eye, Pencil, Mail, Search, X, UserPlus, FolderPlus, ChefHat, Ruler, Package, Sofa, DoorOpen, Tv, Wrench, LayoutGrid, Calendar, User, Building2, Truck, Sparkles, CircleDollarSign, Lightbulb, Palette, Edit3, Lock, Unlock, ArrowLeft, Copy } from "lucide-react";
 import { toast } from "sonner";
 import { formatPrice } from "@/lib/formatters";
 import { CreateQuickClientDialog } from "@/components/CreateQuickClientDialog";
@@ -233,23 +233,14 @@ export default function Quotations() {
   });
 
   const updateQuotation = trpc.quotations.update.useMutation({
-    onSuccess: (data: any) => {
+    onSuccess: () => {
       utils.quotations.list.invalidate();
       utils.quotations.listPaginated.invalidate();
-      
-      // Si se creó una nueva versión, cargarla automáticamente
-      if (data.newVersionId && data.newVersionId !== editingQuotation) {
-        toast.success(`Cotización actualizada - Nueva versión V${data.versionNumber} creada`);
-        // Cargar la nueva versión
-        setEditingQuotation(data.newVersionId);
-        handleEdit(data.newVersionId);
-      } else {
-        toast.success("Cotización actualizada exitosamente");
-        setShowCreateDialog(false);
-        resetForm();
-      }
+      toast.success("Cotización actualizada exitosamente");
+      setShowCreateDialog(false);
+      resetForm();
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast.error(error.message || "Error al actualizar cotización");
     },
   });
@@ -326,6 +317,20 @@ export default function Quotations() {
     },
     onError: (error) => {
       toast.error(error.message || "Error al crear el proyecto");
+    },
+  });
+
+  // Mutación para crear nueva versión de cotización
+  const createVersion = trpc.quotationsVersioning.createVersion.useMutation({
+    onSuccess: (data) => {
+      toast.success(`Nueva versión creada exitosamente`);
+      utils.quotations.list.invalidate();
+      utils.quotations.listPaginated.invalidate();
+      // Abrir la nueva versión en el editor
+      handleEdit(data.newQuotationId);
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Error al crear nueva versión");
     },
   });
 
@@ -1582,6 +1587,27 @@ export default function Quotations() {
                     >
                       <FolderPlus className="h-4 w-4 mr-1" />
                       Crear Proyecto
+                    </Button>
+                  )}
+                  {/* Botón Crear Nueva Versión - Solo visible cuando la cotización tiene proyecto asociado */}
+                  {quot.projectId && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                      onClick={() => {
+                        if (
+                          window.confirm(
+                            `¿Crear nueva versión de la cotización ${quot.quotationNumber}?\n\nSe creará una copia (V${(quot.versionNumber ?? 1) + 1}) que podrás editar libremente. La versión actual se preservará como histórica.`
+                          )
+                        ) {
+                          createVersion.mutate({ quotationId: quot.id });
+                        }
+                      }}
+                      disabled={createVersion.isPending}
+                    >
+                      <Copy className="h-4 w-4 mr-1" />
+                      Nueva Versión (V{(quot.versionNumber ?? 1) + 1})
                     </Button>
                   )}
                   {/* Botón de Bloqueo/Desbloqueo */}

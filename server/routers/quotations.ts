@@ -302,16 +302,21 @@ export const quotationsRouter = router({
         }
 
         // Optimización: ejecutar consultas en paralelo
-        const [quotations, clients] = await Promise.all([
+        const [quotations, clients, allProjects] = await Promise.all([
           db.getAllQuotations(),
           db.getAllClients(),
+          db.getAllProjects(),
         ]);
+
+        // Crear mapa de quotationId -> projectId
+        const projectMap = new Map(allProjects.filter(p => p.quotationId).map(p => [p.quotationId, p.id]));
 
         return quotations.map(quot => {
           const client = clients.find(c => c.id === quot.clientId);
           return {
             ...quot,
             client,
+            projectId: projectMap.get(quot.id) || null,
           };
         });
       }),
@@ -331,11 +336,15 @@ export const quotationsRouter = router({
           limit: input?.limit,
           status: input?.status,
         });
-        const allClients = await db.getAllClients();
+        const [allClients, allProjects] = await Promise.all([
+          db.getAllClients(),
+          db.getAllProjects(),
+        ]);
         const clientMap = new Map(allClients.map(c => [c.id, c]));
+        const projectMap = new Map(allProjects.filter(p => p.quotationId).map(p => [p.quotationId, p.id]));
         return {
           ...result,
-          data: result.data.map(q => ({ ...q, client: clientMap.get(q.clientId) })),
+          data: result.data.map(q => ({ ...q, client: clientMap.get(q.clientId), projectId: projectMap.get(q.id) || null })),
         };
       }),
 

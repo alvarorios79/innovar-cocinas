@@ -1,8 +1,0 @@
-{
-  "query": "SELECT c.id, c.name, c.userId, u.phone, u.email FROM clients c LEFT JOIN users u ON c.userId = u.id WHERE c.id = 720001;",
-  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT c.id, c.name, c.userId, u.phone, u.email FROM clients c LEFT JOIN users u ON c.userId = u.id WHERE c.id = 720001;",
-  "returncode": 1,
-  "logs": [
-    "ERROR 1054 (42S22) at line 1: Unknown column 'u.phone' in 'field list'"
-  ]
-}

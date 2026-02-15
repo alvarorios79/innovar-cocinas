@@ -1,9 +1,0 @@
-{
-  "query": "CREATE TABLE IF NOT EXISTS `hardwareCatalog` (\n  `id` int AUTO_INCREMENT NOT NULL,\n  `category` enum('cocinas','closets','puertas') NOT NULL,\n  `name` varchar(255) NOT NULL,\n  `description` text,\n  `options` text,\n  `photoUrl` text,\n  `sortOrder` int NOT NULL DEFAULT 0,\n  `active` boolean NOT NULL DEFAULT true,\n  `createdAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,\n  `updatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,\n  PRIMARY KEY(`id`)\n);",
-  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute CREATE TABLE IF NOT EXISTS `hardwareCatalog` (\n  `id` int AUTO_INCREMENT NOT NULL,\n  `category` enum('cocinas','closets','puertas') NOT NULL,\n  `name` varchar(255) NOT NULL,\n  `description` text,\n  `options` text,\n  `photoUrl` text,\n  `sortOrder` int NOT NULL DEFAULT 0,\n  `active` boolean NOT NULL DEFAULT true,\n  `createdAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,\n  `updatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,\n  PRIMARY KEY(`id`)\n);",
-  "rows": [],
-  "messages": [],
-  "stdout": "",
-  "stderr": "",
-  "execution_time_ms": 361
-}

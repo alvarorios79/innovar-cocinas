@@ -1,8 +1,0 @@
-{
-  "query": "SELECT qi.itemNumber, qi.itemType, qi.description, qi.totalPrice, qi.includesFixedCosts, qi.kitchenConfig\nFROM quotation_items qi\nJOIN quotations q ON qi.quotationId = q.id\nWHERE q.quotationNumber LIKE '%621%'\nORDER BY qi.itemNumber;",
-  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT qi.itemNumber, qi.itemType, qi.description, qi.totalPrice, qi.includesFixedCosts, qi.kitchenConfig\nFROM quotation_items qi\nJOIN quotations q ON qi.quotationId = q.id\nWHERE q.quotationNumber LIKE '%621%'\nORDER BY qi.itemNumber;",
-  "returncode": 1,
-  "logs": [
-    "ERROR 1146 (42S02) at line 1: Table 'xhekcr8yxcaedfyuqebdjq.quotation_items' doesn't exist"
-  ]
-}

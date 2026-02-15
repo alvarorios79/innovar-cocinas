@@ -1,9 +1,0 @@
-{
-  "query": "INSERT INTO projectStatusHistory (projectId, fromStatus, toStatus, changedBy, notes, createdAt) VALUES \n(390001, 'en_diseno', 'en_diseno', 1, 'Modelado 3D enviado al cliente para revisión', '2026-01-27T10:00:00.000Z'),\n(390001, 'en_diseno', 'pendiente_cliente', 1, 'Modelado aprobado por el cliente - Listo para renders', '2026-01-27T15:00:00.000Z'),\n(390001, 'pendiente_cliente', 'pendiente_render', 1, 'Renders enviados al cliente (Revisión #1)', '2026-01-28T10:00:00.000Z'),\n(390001, 'pendiente_render', 'pendiente_render', 1, 'Cliente solicitó cambios en los renders', '2026-01-29T14:00:00.000Z'),\n(390001, 'pendiente_render', 'pendiente_render', 1, 'Renders enviados al cliente (Revisión #2)', '2026-01-30T03:41:00.000Z');",
-  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute INSERT INTO projectStatusHistory (projectId, fromStatus, toStatus, changedBy, notes, createdAt) VALUES \n(390001, 'en_diseno', 'en_diseno', 1, 'Modelado 3D enviado al cliente para revisión', '2026-01-27T10:00:00.000Z'),\n(390001, 'en_diseno', 'pendiente_cliente', 1, 'Modelado aprobado por el cliente - Listo para renders', '2026-01-27T15:00:00.000Z'),\n(390001, 'pendiente_cliente', 'pendiente_render', 1, 'Renders enviados al cliente (Revisión #1)', '2026-01-28T10:00:00.000Z'),\n(390001, 'pendiente_render', 'pendiente_render', 1, 'Cliente solicitó cambios en los renders', '2026-01-29T14:00:00.000Z'),\n(390001, 'pendiente_render', 'pendiente_render', 1, 'Renders enviados al cliente (Revisión #2)', '2026-01-30T03:41:00.000Z');",
-  "rows": [],
-  "messages": [],
-  "stdout": "",
-  "stderr": "",
-  "execution_time_ms": 64
-}

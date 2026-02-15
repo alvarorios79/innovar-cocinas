@@ -1,20 +1,5 @@
 {
   "version": "7",
   "dialect": "mysql",
-  "entries": [
-    {
-      "idx": 0,
-      "version": "5",
-      "when": 1707864000000,
-      "tag": "0000_baseline_with_versioning_fields",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "5",
-      "when": 1771029511952,
-      "tag": "0001_sharp_colleen_wing",
-      "breakpoints": true
-    }
-  ]
+  "entries": []
 }

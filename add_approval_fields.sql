@@ -1,5 +1,0 @@
-ALTER TABLE projects 
-ADD COLUMN modeladoApprovedAt TIMESTAMP NULL,
-ADD COLUMN modeladoApprovedBy VARCHAR(255) NULL,
-ADD COLUMN rendersApprovedAt TIMESTAMP NULL,
-ADD COLUMN rendersApprovedBy VARCHAR(255) NULL;

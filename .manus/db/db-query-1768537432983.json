@@ -1,9 +1,0 @@
-{
-  "query": "ALTER TABLE `projectPhotos` ADD COLUMN IF NOT EXISTS `subcategory` enum('fotos_iniciales','dibujo','renders','despieces','detalles','corte','enchape','armado','proceso_instalacion','fotos_finales','documento_cotizacion') NULL;",
-  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute ALTER TABLE `projectPhotos` ADD COLUMN IF NOT EXISTS `subcategory` enum('fotos_iniciales','dibujo','renders','despieces','detalles','corte','enchape','armado','proceso_instalacion','fotos_finales','documento_cotizacion') NULL;",
-  "rows": [],
-  "messages": [],
-  "stdout": "",
-  "stderr": "",
-  "execution_time_ms": 797
-}

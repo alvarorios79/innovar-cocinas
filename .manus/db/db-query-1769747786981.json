@@ -1,9 +1,0 @@
-{
-  "query": "ALTER TABLE projects MODIFY COLUMN status ENUM(\n  'contacto_inicial',\n  'visita_medidas',\n  'cotizacion_enviada',\n  'cotizacion_aprobada',\n  'adelanto_recibido',\n  'en_diseno',\n  'pendiente_modelado',\n  'pendiente_cliente',\n  'pendiente_render',\n  'aprobacion_final',\n  'despiece',\n  'corte',\n  'enchape',\n  'ensamble',\n  'listo_instalacion',\n  'instalacion_programada',\n  'entregado'\n) NOT NULL DEFAULT 'contacto_inicial';",
-  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute ALTER TABLE projects MODIFY COLUMN status ENUM(\n  'contacto_inicial',\n  'visita_medidas',\n  'cotizacion_enviada',\n  'cotizacion_aprobada',\n  'adelanto_recibido',\n  'en_diseno',\n  'pendiente_modelado',\n  'pendiente_cliente',\n  'pendiente_render',\n  'aprobacion_final',\n  'despiece',\n  'corte',\n  'enchape',\n  'ensamble',\n  'listo_instalacion',\n  'instalacion_programada',\n  'entregado'\n) NOT NULL DEFAULT 'contacto_inicial';",
-  "rows": [],
-  "messages": [],
-  "stdout": "",
-  "stderr": "",
-  "execution_time_ms": 2329
-}

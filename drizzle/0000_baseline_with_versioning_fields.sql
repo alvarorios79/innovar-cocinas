@@ -1,8 +1,0 @@
--- Baseline Migration: Synchronize Drizzle metadata with existing database state
--- 
--- This migration establishes the baseline for the migration history.
--- All tables and fields (including versioning fields: parentQuotationId, isAdditional, 
--- baseQuotationId, versionNumber, currentApprovedQuotationId) already exist in the database
--- from previous migrations that were not tracked by Drizzle.
---
--- No SQL changes are applied in this migration - it only synchronizes the metadata.

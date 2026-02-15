@@ -65,6 +65,29 @@ export function QuotationGroupCard({
     }
   };
 
+  // Función para calcular fecha de entrega estimada (25 días hábiles)
+  const calculateEstimatedDelivery = (createdDate: Date | string) => {
+    const startDate = new Date(createdDate);
+    let businessDays = 0;
+    let currentDate = new Date(startDate);
+
+    while (businessDays < 25) {
+      currentDate.setDate(currentDate.getDate() + 1);
+      const dayOfWeek = currentDate.getDay();
+      // 0 = domingo, 6 = sábado
+      if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+        businessDays++;
+      }
+    }
+
+    return currentDate;
+  };
+
+  // Calcular fechas
+  const createdDate = new Date(selectedVersion.createdAt);
+  const validUntilDate = selectedVersion.validUntil ? new Date(selectedVersion.validUntil) : new Date(createdDate.getTime() + 7 * 24 * 60 * 60 * 1000);
+  const estimatedDeliveryDate = calculateEstimatedDelivery(createdDate);
+
   return (
     <Card className="w-full">
       <CardHeader>
@@ -99,6 +122,30 @@ export function QuotationGroupCard({
       </CardHeader>
 
       <CardContent className="space-y-4">
+        {/* Fechas importantes */}
+        <div className="grid grid-cols-3 gap-3 p-3 bg-gray-50 rounded border border-gray-200 text-xs">
+          <div>
+            <span className="text-gray-600 font-medium block">Fecha Creación</span>
+            <span className="text-gray-900 font-semibold">
+              {createdDate.toLocaleDateString('es-CO')}
+            </span>
+          </div>
+          <div>
+            <span className="text-gray-600 font-medium block">Válida hasta</span>
+            <span className="text-gray-900 font-semibold">
+              {validUntilDate.toLocaleDateString('es-CO')}
+            </span>
+            <span className="text-gray-500 text-xs">(7 días)</span>
+          </div>
+          <div>
+            <span className="text-gray-600 font-medium block">Entrega estimada*</span>
+            <span className="text-gray-900 font-semibold">
+              {estimatedDeliveryDate.toLocaleDateString('es-CO')}
+            </span>
+            <span className="text-gray-500 text-xs">Tentativa</span>
+          </div>
+        </div>
+
         {/* Selector de versiones */}
         {group.versionCount > 1 && (
           <div className="space-y-2">

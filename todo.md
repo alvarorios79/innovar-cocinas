@@ -4533,3 +4533,9 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 ## Mejoras de UX en Cotizaciones (Nueva Sesión)
 - [x] Bloqueo mejorado: desactivar todos los botones excepto "Ver PDF" cuando está bloqueada
 - [x] Privacidad de valores: mostrar valores una sola vez, ocultos por defecto con toggle de ojo
+
+
+## Fechas en Tarjeta de Cotización
+- [x] Mostrar fecha de creación en la tarjeta
+- [x] Mostrar fecha válida hasta (7 días desde creación)
+- [x] Mostrar entrega estimada tentativa (25 días hábiles desde creación)

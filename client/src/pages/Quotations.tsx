@@ -1473,6 +1473,14 @@ export default function Quotations() {
                 }
               }}
               onEditPDF={(quotation) => handleOpenPdfEditor(quotation.id)}
+              onToggleLock={(quotation) => {
+                toggleLock.mutate({ id: quotation.id });
+              }}
+              onDelete={(quotation) => {
+                if (window.confirm(`¿Eliminar la cotización ${group.quotationNumber}?\n\nEsta acción no se puede deshacer.`)) {
+                  deleteQuotation.mutate({ id: quotation.id });
+                }
+              }}
             />
           ))}
         </div>

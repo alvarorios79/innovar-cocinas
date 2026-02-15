@@ -4524,3 +4524,8 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 ## Mejoras de Navegación
 - [x] Agregar tab de Proyectos en el Panel Admin (COMPLETADO - tab funciona correctamente)
 - [x] Agregar Cotizaciones a la navegación superior del super_admin (COMPLETADO - enlace agregado en Home.tsx)
+
+
+## Funcionalidades Faltantes en Cotizaciones
+- [x] Restaurar botón Bloquear cotización (evita eliminación involuntaria) - RESTAURADO Y FUNCIONAL
+- [x] Restaurar botón Eliminar (papelera) para eliminar cotizaciones - RESTAURADO Y FUNCIONAL

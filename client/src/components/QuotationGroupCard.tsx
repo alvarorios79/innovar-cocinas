@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Eye, Edit, FileText, Send, Copy, Download, FolderPlus, FileEdit } from "lucide-react";
+import { Eye, Edit, FileText, Send, Copy, Download, FolderPlus, FileEdit, Lock, Trash2 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 
@@ -23,6 +23,8 @@ interface QuotationGroupCardProps {
   onCreateVersion: (quotation: any) => void;
   onCreateProject: (quotation: any) => void;
   onEditPDF?: (quotation: any) => void;
+  onToggleLock?: (quotation: any) => void;
+  onDelete?: (quotation: any) => void;
 }
 
 export function QuotationGroupCard({
@@ -34,6 +36,8 @@ export function QuotationGroupCard({
   onCreateVersion,
   onCreateProject,
   onEditPDF,
+  onToggleLock,
+  onDelete,
 }: QuotationGroupCardProps) {
   const [selectedVersionId, setSelectedVersionId] = useState(group.activeVersion.id);
   const selectedVersion = group.versions.find(v => v.id === selectedVersionId) || group.activeVersion;
@@ -227,6 +231,30 @@ export function QuotationGroupCard({
             >
               <Download className="w-4 h-4" />
               Descargar
+            </Button>
+          )}
+
+          {/* Botones de bloquear y eliminar */}
+          {isActiveVersion && onToggleLock && (
+            <Button
+              size="sm"
+              variant={selectedVersion.isLocked ? "default" : "outline"}
+              onClick={() => onToggleLock(selectedVersion)}
+              className="gap-2"
+            >
+              <Lock className="w-4 h-4" />
+              {selectedVersion.isLocked ? "Desbloqueada" : "Bloquear"}
+            </Button>
+          )}
+          {isActiveVersion && onDelete && !selectedVersion.isLocked && (
+            <Button
+              size="sm"
+              variant="destructive"
+              onClick={() => onDelete(selectedVersion)}
+              className="gap-2"
+            >
+              <Trash2 className="w-4 h-4" />
+              Eliminar
             </Button>
           )}
         </div>

@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Eye, EyeOff, Edit, FileText, Send, Copy, Download, FolderPlus, FileEdit, Lock, Trash2 } from "lucide-react";
+import { Eye, EyeOff, Edit, FileText, Send, Copy, Download, FolderPlus, FileEdit, Lock, Trash2, ChevronDown } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 
@@ -41,6 +41,8 @@ export function QuotationGroupCard({
 }: QuotationGroupCardProps) {
   const [selectedVersionId, setSelectedVersionId] = useState(group.activeVersion.id);
   const [showValues, setShowValues] = useState(false);
+  const [expandDetails, setExpandDetails] = useState(false);
+  
   const selectedVersion = group.versions.find(v => v.id === selectedVersionId) || group.activeVersion;
   const isActiveVersion = selectedVersionId === group.activeVersion.id;
   const isLocked = selectedVersion.isLocked;
@@ -49,7 +51,7 @@ export function QuotationGroupCard({
     switch (status) {
       case "draft": return "bg-gray-100 text-gray-800";
       case "sent": return "bg-blue-100 text-blue-800";
-      case "approved": return "bg-green-100 text-green-800";
+      case "approved": return "bg-emerald-100 text-emerald-800";
       case "rejected": return "bg-red-100 text-red-800";
       default: return "bg-gray-100 text-gray-800";
     }
@@ -65,7 +67,6 @@ export function QuotationGroupCard({
     }
   };
 
-  // Función para calcular fecha de entrega estimada (25 días hábiles)
   const calculateEstimatedDelivery = (createdDate: Date | string) => {
     const startDate = new Date(createdDate);
     let businessDays = 0;
@@ -74,87 +75,85 @@ export function QuotationGroupCard({
     while (businessDays < 25) {
       currentDate.setDate(currentDate.getDate() + 1);
       const dayOfWeek = currentDate.getDay();
-      // 0 = domingo, 6 = sábado
       if (dayOfWeek !== 0 && dayOfWeek !== 6) {
         businessDays++;
       }
     }
-
     return currentDate;
   };
 
-  // Calcular fechas
   const createdDate = new Date(selectedVersion.createdAt);
   const validUntilDate = selectedVersion.validUntil ? new Date(selectedVersion.validUntil) : new Date(createdDate.getTime() + 7 * 24 * 60 * 60 * 1000);
   const estimatedDeliveryDate = calculateEstimatedDelivery(createdDate);
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex-1">
-            <div className="flex items-center gap-2">
-              <CardTitle className="text-lg">{group.quotationNumber}</CardTitle>
-              <Badge variant="outline" className="text-xs">
-                {group.versionCount} versión{group.versionCount !== 1 ? "es" : ""}
-              </Badge>
+    <Card className="w-full overflow-hidden shadow-sm hover:shadow-md transition-shadow border-l-4 border-l-teal-500">
+      {/* HEADER - Información principal */}
+      <div className="bg-white px-6 py-4 border-b border-gray-100">
+        <div className="flex items-start justify-between gap-4 mb-3">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-3 flex-wrap">
+              <h3 className="text-lg font-bold text-gray-900">{group.quotationNumber}</h3>
+              {isActiveVersion && (
+                <Badge className="bg-teal-50 text-teal-700 border border-teal-200 font-medium">
+                  Activa
+                </Badge>
+              )}
+              {group.versionCount > 1 && (
+                <Badge variant="outline" className="text-xs text-gray-600">
+                  {group.versionCount} versión{group.versionCount !== 1 ? "es" : ""}
+                </Badge>
+              )}
             </div>
-            <CardDescription className="mt-1">
-              {client?.name || "Cliente"} • {client?.phone || ""}
-            </CardDescription>
+            <p className="text-sm text-gray-600 mt-1">
+              {client?.name || "Cliente"} {client?.phone && `• ${client.phone}`}
+            </p>
           </div>
-          <div className="text-right">
-            <div className="text-sm font-semibold">
+          
+          <div className="text-right flex flex-col items-end gap-2">
+            <div className="text-2xl font-bold text-gray-900">
               {showValues ? (
                 `$${parseFloat(selectedVersion.total || "0").toLocaleString("es-CO", {
                   minimumFractionDigits: 0,
                   maximumFractionDigits: 0,
                 })}`
               ) : (
-                "••••••••"
+                <span className="text-gray-400">••••••••</span>
               )}
             </div>
-            <Badge className={`mt-1 ${getStatusColor(selectedVersion.status)}`}>
+            <Badge className={`${getStatusColor(selectedVersion.status)} border-0`}>
               {getStatusLabel(selectedVersion.status)}
             </Badge>
           </div>
         </div>
-      </CardHeader>
 
-      <CardContent className="space-y-4">
-        {/* Fechas importantes */}
-        <div className="grid grid-cols-3 gap-3 p-3 bg-gray-50 rounded border border-gray-200 text-xs">
+        {/* Fechas importantes - Fila compacta */}
+        <div className="grid grid-cols-3 gap-4 pt-3 border-t border-gray-100 text-xs">
           <div>
-            <span className="text-gray-600 font-medium block">Fecha Creación</span>
-            <span className="text-gray-900 font-semibold">
-              {createdDate.toLocaleDateString('es-CO')}
-            </span>
+            <span className="text-gray-500 block font-medium">Creación</span>
+            <span className="text-gray-900 font-semibold">{createdDate.toLocaleDateString('es-CO')}</span>
           </div>
           <div>
-            <span className="text-gray-600 font-medium block">Válida hasta</span>
-            <span className="text-gray-900 font-semibold">
-              {validUntilDate.toLocaleDateString('es-CO')}
-            </span>
-            <span className="text-gray-500 text-xs">(7 días)</span>
+            <span className="text-gray-500 block font-medium">Válida hasta</span>
+            <span className="text-gray-900 font-semibold">{validUntilDate.toLocaleDateString('es-CO')}</span>
           </div>
           <div>
-            <span className="text-gray-600 font-medium block">Entrega estimada*</span>
-            <span className="text-gray-900 font-semibold">
-              {estimatedDeliveryDate.toLocaleDateString('es-CO')}
-            </span>
-            <span className="text-gray-500 text-xs">Tentativa</span>
+            <span className="text-gray-500 block font-medium">Entrega est.*</span>
+            <span className="text-gray-900 font-semibold">{estimatedDeliveryDate.toLocaleDateString('es-CO')}</span>
           </div>
         </div>
+      </div>
 
-        {/* Selector de versiones */}
+      <CardContent className="px-6 py-4">
+        {/* Selector de versiones - Solo si hay múltiples versiones */}
         {group.versionCount > 1 && (
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Versión</label>
+          <div className="mb-4 pb-4 border-b border-gray-100">
+            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-2">Versión</label>
             <Select
               value={selectedVersionId.toString()}
               onValueChange={(value) => setSelectedVersionId(parseInt(value))}
             >
-              <SelectTrigger>
+              <SelectTrigger className="w-full sm:w-48 h-9">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -169,193 +168,187 @@ export function QuotationGroupCard({
           </div>
         )}
 
-        {/* Información de la versión seleccionada - Valores privados */}
-        <div className="space-y-3">
-          {/* Toggle de privacidad de valores */}
-          <div className="flex items-center justify-between p-2 bg-gray-50 rounded border border-gray-200">
-            <span className="text-sm font-medium text-gray-700">Información de Precios</span>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => setShowValues(!showValues)}
-              className="gap-2 h-8 px-2"
-            >
+        {/* Sección de Precios - Colapsable */}
+        <div className="mb-4 pb-4 border-b border-gray-100">
+          <button
+            onClick={() => setShowValues(!showValues)}
+            className="w-full flex items-center justify-between p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors"
+          >
+            <span className="text-sm font-semibold text-gray-700">Información de Precios</span>
+            <div className="flex items-center gap-2">
               {showValues ? (
-                <>
-                  <EyeOff className="w-4 h-4" />
-                  <span className="text-xs">Ocultar</span>
-                </>
+                <EyeOff className="w-4 h-4 text-gray-600" />
               ) : (
-                <>
-                  <Eye className="w-4 h-4" />
-                  <span className="text-xs">Mostrar</span>
-                </>
+                <Eye className="w-4 h-4 text-gray-600" />
               )}
-            </Button>
-          </div>
-
-          {/* Valores visibles solo si showValues es true */}
+            </div>
+          </button>
+          
           {showValues && (
-            <div className="grid grid-cols-2 gap-4 text-sm p-2 bg-blue-50 rounded border border-blue-200">
-              <div>
-                <span className="text-gray-600">Subtotal:</span>
-                <div className="font-semibold">
-                  ${parseFloat(selectedVersion.subtotal || "0").toLocaleString("es-CO", {
-                    minimumFractionDigits: 0,
-                    maximumFractionDigits: 0,
-                  })}
+            <div className="mt-3 p-3 rounded-lg bg-teal-50 border border-teal-200">
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span className="text-gray-600 text-xs font-medium block mb-1">Subtotal</span>
+                  <div className="text-lg font-bold text-gray-900">
+                    ${parseFloat(selectedVersion.subtotal || "0").toLocaleString("es-CO", {
+                      minimumFractionDigits: 0,
+                      maximumFractionDigits: 0,
+                    })}
+                  </div>
                 </div>
-              </div>
-              <div>
-                <span className="text-gray-600">Transporte:</span>
-                <div className="font-semibold">
-                  ${parseFloat(selectedVersion.transportCost || "0").toLocaleString("es-CO", {
-                    minimumFractionDigits: 0,
-                    maximumFractionDigits: 0,
-                  })}
+                <div>
+                  <span className="text-gray-600 text-xs font-medium block mb-1">Transporte</span>
+                  <div className="text-lg font-bold text-gray-900">
+                    ${parseFloat(selectedVersion.transportCost || "0").toLocaleString("es-CO", {
+                      minimumFractionDigits: 0,
+                      maximumFractionDigits: 0,
+                    })}
+                  </div>
                 </div>
               </div>
             </div>
           )}
-
-          {/* Información de fechas y estado (siempre visible) */}
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <span className="text-gray-600">Creada:</span>
-              <div className="font-semibold">
-                {new Date(selectedVersion.createdAt).toLocaleDateString("es-CO")}
-              </div>
-            </div>
-            <div>
-              <span className="text-gray-600">Estado:</span>
-              <div className="font-semibold">{getStatusLabel(selectedVersion.status)}</div>
-            </div>
-          </div>
         </div>
 
-        {/* Botones de acción - Desactivados si está bloqueada (excepto Ver PDF) */}
-        <div className="flex flex-wrap gap-2 pt-2">
-          {/* Botones disponibles para versión activa */}
-          {isActiveVersion && (
-            <>
-              <Button
-                size="sm"
-                variant="default"
-                onClick={() => onEdit(selectedVersion)}
-                disabled={isLocked}
-                className="gap-2"
-              >
-                <Edit className="w-4 h-4" />
-                Editar
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => onCreateVersion(selectedVersion)}
-                disabled={isLocked}
-                className="gap-2"
-              >
-                <Copy className="w-4 h-4" />
-                Crear Nueva Versión
-              </Button>
-              {!selectedVersion.projectId && (
+        {/* Botones de acción - Jerarquía clara */}
+        <div className="space-y-3">
+          {/* Botones principales - Fila 1 */}
+          <div className="flex flex-col sm:flex-row gap-2">
+            {isActiveVersion && (
+              <>
                 <Button
                   size="sm"
-                  variant="default"
-                  className="gap-2 bg-green-600 hover:bg-green-700"
-                  onClick={() => onCreateProject(selectedVersion)}
+                  className="flex-1 sm:flex-none gap-2 bg-teal-600 hover:bg-teal-700 text-white font-medium"
+                  onClick={() => onEdit(selectedVersion)}
                   disabled={isLocked}
                 >
-                  <FolderPlus className="w-4 h-4" />
-                  Crear Proyecto
+                  <Edit className="w-4 h-4" />
+                  <span className="hidden sm:inline">Editar</span>
+                  <span className="sm:hidden">Editar</span>
                 </Button>
-              )}
-            </>
-          )}
-
-          {/* Botónes disponibles para todas las versiones */}
-          {isActiveVersion && onEditPDF && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="flex-1 sm:flex-none gap-2 font-medium"
+                  onClick={() => onCreateVersion(selectedVersion)}
+                  disabled={isLocked}
+                >
+                  <Copy className="w-4 h-4" />
+                  <span className="hidden sm:inline">Nueva Versión</span>
+                  <span className="sm:hidden">V. Nueva</span>
+                </Button>
+              </>
+            )}
+            
             <Button
               size="sm"
               variant="outline"
-              onClick={() => onEditPDF(selectedVersion)}
-              disabled={isLocked}
-              className="gap-2"
+              className="flex-1 sm:flex-none gap-2 font-medium"
+              onClick={() => onViewPDF(selectedVersion)}
             >
-              <FileEdit className="w-4 h-4" />
-              Editar PDF
+              <FileText className="w-4 h-4" />
+              <span className="hidden sm:inline">Ver PDF</span>
+              <span className="sm:hidden">PDF</span>
             </Button>
-          )}
-          {/* Ver PDF - SIEMPRE ACTIVO incluso si está bloqueada */}
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => onViewPDF(selectedVersion)}
-            className="gap-2"
-          >
-            <FileText className="w-4 h-4" />
-            Ver PDF
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => onSend(selectedVersion)}
-            disabled={isLocked}
-            className="gap-2"
-          >
-            <Send className="w-4 h-4" />
-            Enviar
-          </Button>
+          </div>
 
-          {/* Descargar PDF para versiones históricas */}
-          {!isActiveVersion && selectedVersion.pdfUrl && (
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => {
-                const link = document.createElement("a");
-                link.href = selectedVersion.pdfUrl;
-                link.download = `${group.quotationNumber}-V${selectedVersion.versionNumber}.pdf`;
-                link.click();
-              }}
-              className="gap-2"
-            >
-              <Download className="w-4 h-4" />
-              Descargar
-            </Button>
-          )}
+          {/* Botones secundarios - Fila 2 */}
+          <div className="flex flex-col sm:flex-row gap-2">
+            {isActiveVersion && !selectedVersion.projectId && (
+              <Button
+                size="sm"
+                className="flex-1 sm:flex-none gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium"
+                onClick={() => onCreateProject(selectedVersion)}
+                disabled={isLocked}
+              >
+                <FolderPlus className="w-4 h-4" />
+                <span className="hidden sm:inline">Crear Proyecto</span>
+                <span className="sm:hidden">Proyecto</span>
+              </Button>
+            )}
 
-          {/* Botones de bloquear y eliminar */}
-          {isActiveVersion && onToggleLock && (
-            <Button
-              size="sm"
-              variant={selectedVersion.isLocked ? "default" : "outline"}
-              onClick={() => onToggleLock(selectedVersion)}
-              className="gap-2"
-            >
-              <Lock className="w-4 h-4" />
-              {selectedVersion.isLocked ? "Desbloqueada" : "Bloquear"}
-            </Button>
-          )}
-          {isActiveVersion && onDelete && (
-            <Button
-              size="sm"
-              variant="destructive"
-              onClick={() => onDelete(selectedVersion)}
-              disabled={selectedVersion.isLocked}
-              title={selectedVersion.isLocked ? "Desbloquea la cotización para poder eliminar" : "Eliminar cotización"}
-              className="gap-2"
-            >
-              <Trash2 className="w-4 h-4" />
-              Eliminar
-            </Button>
-          )}
+            {isActiveVersion && onEditPDF && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="flex-1 sm:flex-none gap-2 font-medium"
+                onClick={() => onEditPDF(selectedVersion)}
+                disabled={isLocked}
+              >
+                <FileEdit className="w-4 h-4" />
+                <span className="hidden sm:inline">Editar PDF</span>
+                <span className="sm:hidden">Edit PDF</span>
+              </Button>
+            )}
+
+            {isActiveVersion && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="flex-1 sm:flex-none gap-2 font-medium"
+                onClick={() => onSend(selectedVersion)}
+                disabled={isLocked}
+              >
+                <Send className="w-4 h-4" />
+                <span className="hidden sm:inline">Enviar</span>
+                <span className="sm:hidden">Enviar</span>
+              </Button>
+            )}
+
+            {!isActiveVersion && selectedVersion.pdfUrl && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="flex-1 sm:flex-none gap-2 font-medium"
+                onClick={() => {
+                  const link = document.createElement("a");
+                  link.href = selectedVersion.pdfUrl;
+                  link.download = `${group.quotationNumber}-V${selectedVersion.versionNumber}.pdf`;
+                  link.click();
+                }}
+              >
+                <Download className="w-4 h-4" />
+                <span className="hidden sm:inline">Descargar</span>
+                <span className="sm:hidden">Descar.</span>
+              </Button>
+            )}
+          </div>
+
+          {/* Botones de control - Fila 3 */}
+          <div className="flex flex-col sm:flex-row gap-2 pt-2 border-t border-gray-100">
+            {isActiveVersion && onToggleLock && (
+              <Button
+                size="sm"
+                variant={isLocked ? "default" : "outline"}
+                className={`flex-1 sm:flex-none gap-2 font-medium ${isLocked ? "bg-gray-800 hover:bg-gray-900" : ""}`}
+                onClick={() => onToggleLock(selectedVersion)}
+              >
+                <Lock className="w-4 h-4" />
+                {isLocked ? "Bloqueada" : "Bloquear"}
+              </Button>
+            )}
+
+            {isActiveVersion && onDelete && (
+              <Button
+                size="sm"
+                variant="destructive"
+                className="flex-1 sm:flex-none gap-2 font-medium"
+                onClick={() => onDelete(selectedVersion)}
+                disabled={isLocked}
+                title={isLocked ? "Desbloquea la cotización para poder eliminar" : "Eliminar cotización"}
+              >
+                <Trash2 className="w-4 h-4" />
+                <span className="hidden sm:inline">Eliminar</span>
+                <span className="sm:hidden">Elim.</span>
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Indicador de versión histórica */}
         {!isActiveVersion && (
-          <div className="mt-2 p-2 bg-amber-50 border border-amber-200 rounded text-xs text-amber-800">
-            Esta es una versión histórica. No se puede editar ni crear nuevas versiones desde aquí.
+          <div className="mt-4 p-3 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-800 font-medium">
+            ℹ️ Versión histórica - No se puede editar desde aquí
           </div>
         )}
       </CardContent>

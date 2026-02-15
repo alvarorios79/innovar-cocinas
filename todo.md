@@ -4539,3 +4539,10 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Mostrar fecha de creación en la tarjeta
 - [x] Mostrar fecha válida hasta (7 días desde creación)
 - [x] Mostrar entrega estimada tentativa (25 días hábiles desde creación)
+
+
+## Rediseño Visual de Cotizaciones
+- [x] Revisar paleta de colores y componentes de la app
+- [x] Rediseñar QuotationGroupCard con mejor jerarquía visual
+- [x] Mejorar layout de botones y acciones
+- [x] Validar responsive design (desktop, tablet, móvil)

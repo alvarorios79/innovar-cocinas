@@ -4519,3 +4519,8 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 
 ## Funcionalidades Perdidas
 - [x] Encontrar y restaurar botón "Editar PDF" con anotaciones especiales en cotizaciones (RESTAURADO - funciona correctamente)
+
+
+## Mejoras de Navegación
+- [x] Agregar tab de Proyectos en el Panel Admin (COMPLETADO - tab funciona correctamente)
+- [x] Agregar Cotizaciones a la navegación superior del super_admin (COMPLETADO - enlace agregado en Home.tsx)

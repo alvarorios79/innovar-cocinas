@@ -409,6 +409,9 @@ export default function Home() {
                       <Link href="/appointments-calendar">
                         <Button variant="ghost" size="sm" className="text-sm">Calendario</Button>
                       </Link>
+                      <Link href="/quotations">
+                        <Button variant="ghost" size="sm" className="text-sm">Cotizaciones</Button>
+                      </Link>
                       <Link href="/admin">
                         <Button variant="ghost" size="sm" className="text-sm">Panel Admin</Button>
                       </Link>

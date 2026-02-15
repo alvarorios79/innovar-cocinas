@@ -590,6 +590,12 @@ export default function Admin() {
             >
               Herrajes
             </TabsTrigger>
+            <TabsTrigger 
+              value="projects" 
+              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-purple-500 data-[state=active]:text-white hover:bg-purple-100 transition-colors"
+            >
+              Proyectos
+            </TabsTrigger>
             {user?.role === "super_admin" && (
               <TabsTrigger 
                 value="pricing" 
@@ -1775,6 +1781,29 @@ export default function Admin() {
           {/* Hardware Catalog Tab */}
           <TabsContent value="hardware" className="space-y-4">
             <HardwareCatalogAdmin />
+          </TabsContent>
+
+          {/* Projects Tab */}
+          <TabsContent value="projects" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-purple-600" />
+                  Gestión de Proyectos
+                </CardTitle>
+                <CardDescription>
+                  Accede a todos los proyectos de la empresa. Haz clic en el botón para ir a la página completa de proyectos.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Link href="/projects">
+                  <Button className="bg-purple-600 hover:bg-purple-700">
+                    <FileText className="h-4 w-4 mr-2" />
+                    Ver Todos los Proyectos
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* Pricing Config Tab - Solo Super Admin */}

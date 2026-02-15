@@ -246,11 +246,13 @@ export function QuotationGroupCard({
               {selectedVersion.isLocked ? "Desbloqueada" : "Bloquear"}
             </Button>
           )}
-          {isActiveVersion && onDelete && !selectedVersion.isLocked && (
+          {isActiveVersion && onDelete && (
             <Button
               size="sm"
               variant="destructive"
               onClick={() => onDelete(selectedVersion)}
+              disabled={selectedVersion.isLocked}
+              title={selectedVersion.isLocked ? "Desbloquea la cotización para poder eliminar" : "Eliminar cotización"}
               className="gap-2"
             >
               <Trash2 className="w-4 h-4" />

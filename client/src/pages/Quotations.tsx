@@ -1472,6 +1472,7 @@ export default function Quotations() {
                   createProjectFromQuotation.mutate({ quotationId: quotation.id });
                 }
               }}
+              onEditPDF={(quotation) => handleOpenPdfEditor(quotation.id)}
             />
           ))}
         </div>

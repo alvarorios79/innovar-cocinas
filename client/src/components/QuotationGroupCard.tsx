@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Eye, Edit, FileText, Send, Copy, Download, FolderPlus } from "lucide-react";
+import { Eye, Edit, FileText, Send, Copy, Download, FolderPlus, FileEdit } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 
@@ -22,6 +22,7 @@ interface QuotationGroupCardProps {
   onSend: (quotation: any) => void;
   onCreateVersion: (quotation: any) => void;
   onCreateProject: (quotation: any) => void;
+  onEditPDF?: (quotation: any) => void;
 }
 
 export function QuotationGroupCard({
@@ -32,6 +33,7 @@ export function QuotationGroupCard({
   onSend,
   onCreateVersion,
   onCreateProject,
+  onEditPDF,
 }: QuotationGroupCardProps) {
   const [selectedVersionId, setSelectedVersionId] = useState(group.activeVersion.id);
   const selectedVersion = group.versions.find(v => v.id === selectedVersionId) || group.activeVersion;
@@ -179,7 +181,18 @@ export function QuotationGroupCard({
             </>
           )}
 
-          {/* Botones disponibles para todas las versiones */}
+          {/* Botónes disponibles para todas las versiones */}
+          {isActiveVersion && onEditPDF && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => onEditPDF(selectedVersion)}
+              className="gap-2"
+            >
+              <FileEdit className="w-4 h-4" />
+              Editar PDF
+            </Button>
+          )}
           <Button
             size="sm"
             variant="outline"

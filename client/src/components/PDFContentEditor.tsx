@@ -75,66 +75,34 @@ const generateAutoDescription = (item: QuotationItem, index: number): string => 
       parts.push(`• ${getKitchenShapeName(config.shape)}`);
     }
     
-    // Metraje según la forma
-    if (config.shape === 'frente_pll') {
-      // Frente PLL: mostrar metraje del frente y módulo superior por separado
-      if (config.totalMeters) {
-        parts.push(`• Frente PLL: ${config.totalMeters} ml`);
-      }
-      // Módulo superior opcional
-      if (config.includeUpperModule && config.upperModuleMeters) {
-        parts.push(`• Módulo superior: ${config.upperModuleMeters} ml`);
-      }
-    } else if (config.shape === 'solo_superiores') {
-      if (config.totalMeters) {
-        parts.push(`• Muebles superiores: ${config.totalMeters} ml`);
-      }
-    } else if (config.shape === 'solo_inferiores') {
-      if (config.totalMeters) {
-        parts.push(`• Muebles inferiores: ${config.totalMeters} ml`);
-      }
-    } else if (config.shape === 'puertas_tapas') {
-      // Puertas y Tapas: mostrar cantidades
-      const dc = config.doorsAndCovers || {};
-      if (dc.upperDoors70) parts.push(`• Puertas superiores 70cm: ${dc.upperDoors70} unidades`);
-      if (dc.upperDoors90) parts.push(`• Puertas superiores 90cm: ${dc.upperDoors90} unidades`);
-      if (dc.upperDoors100) parts.push(`• Puertas superiores 100cm: ${dc.upperDoors100} unidades`);
-      if (dc.lowerDoors) parts.push(`• Puertas inferiores: ${dc.lowerDoors} unidades`);
-      if (dc.pantryDoors) parts.push(`• Puertas alacena: ${dc.pantryDoors} unidades`);
-      if (dc.drawerCovers) parts.push(`• Tapas de cajón: ${dc.drawerCovers} unidades`);
-      if (dc.smallCovers) parts.push(`• Tapas pequeñas: ${dc.smallCovers} unidades`);
-    } else {
-      // Cocinas completas (L, U, Lineal)
-      if (config.totalMeters) {
-        parts.push(`• Metraje total: ${config.totalMeters} ml`);
-      }
-      // Muebles inferiores y superiores (estructura antigua)
-      if (config.lowerCabinets?.meters) {
-        parts.push(`• Muebles inferiores: ${config.lowerCabinets.meters} ml`);
-      }
-      if (config.upperCabinets?.meters) {
-        parts.push(`• Muebles superiores: ${config.upperCabinets.meters} ml`);
-      }
+    // Metraje
+    if (config.totalMeters) {
+      parts.push(`• Metraje total: ${config.totalMeters} ml`);
     }
     
-    // Muebles especiales (solo para cocinas completas y puertas_tapas)
-    const isSpecialShape = ['frente_pll', 'solo_superiores', 'solo_inferiores'].includes(config.shape);
-    if (!isSpecialShape || config.shape === 'puertas_tapas') {
-      if (config.specialModules?.nichoNevecon || config.specialCabinets?.nichoNevecon) {
-        parts.push("• Nicho nevecon (100cm)");
-      }
-      if (config.specialModules?.nichoNevera || config.specialCabinets?.nichoNevera) {
-        parts.push("• Nicho nevera estándar (75cm)");
-      }
-      if (config.specialModules?.alacenaEntrepanos || config.specialCabinets?.alacenaEntrepanos) {
-        parts.push("• Alacena entrepaños (50cm)");
-      }
-      if (config.specialModules?.alacenaHerraje || config.specialCabinets?.alacenaHerraje) {
-        parts.push("• Alacena herraje (50cm)");
-      }
-      if (config.specialModules?.torreHornos || config.specialCabinets?.torreHornos) {
-        parts.push("• Torre hornos (70cm)");
-      }
+    // Muebles inferiores y superiores
+    if (config.lowerCabinets?.meters) {
+      parts.push(`• Muebles inferiores: ${config.lowerCabinets.meters} ml`);
+    }
+    if (config.upperCabinets?.meters) {
+      parts.push(`• Muebles superiores: ${config.upperCabinets.meters} ml`);
+    }
+    
+    // Muebles especiales
+    if (config.specialCabinets?.nichoNevecon) {
+      parts.push("• Nicho nevecon (100cm)");
+    }
+    if (config.specialCabinets?.nichoNevera) {
+      parts.push("• Nicho nevera estándar (75cm)");
+    }
+    if (config.specialCabinets?.alacenaEntrepanos) {
+      parts.push("• Alacena entrepaños (50cm)");
+    }
+    if (config.specialCabinets?.alacenaHerraje) {
+      parts.push("• Alacena herraje (50cm)");
+    }
+    if (config.specialCabinets?.torreHornos) {
+      parts.push("• Torre hornos (70cm)");
     }
     
     // Mesón

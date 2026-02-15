@@ -4515,3 +4515,7 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 
 ## Bugs Reportados
 - [x] Botón "Crear Proyecto" desapareció de QuotationGroupCard (necesario para aprobar cotizaciones) - RESUELTO
+
+
+## Funcionalidades Perdidas
+- [x] Encontrar y restaurar botón "Editar PDF" con anotaciones especiales en cotizaciones (RESTAURADO - funciona correctamente)

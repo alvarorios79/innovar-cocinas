@@ -495,9 +495,9 @@ export default function Quotations() {
             width: item.closetConfig.width || 0,
             height: item.closetConfig.height || 0,
             doorType: item.closetConfig.doorType || "sliding",
-            squareMeters: typeof item.closetConfig.squareMeters === 'string' ? parseFloat(item.closetConfig.squareMeters) : (item.closetConfig.squareMeters || 0),
-            pricePerSquareMeter: typeof item.closetConfig.pricePerSquareMeter === 'string' ? parseFloat(item.closetConfig.pricePerSquareMeter) : (item.closetConfig.pricePerSquareMeter || 750000),
-            subtotal: typeof item.closetConfig.subtotal === 'string' ? parseFloat(item.closetConfig.subtotal) : (item.closetConfig.subtotal || 0),
+            squareMeters: typeof item.closetConfig.squareMeters === 'string' ? parseFloat(item.closetConfig.squareMeters) : (item.closetConfig.squareMeters ?? 0),
+            pricePerSquareMeter: typeof item.closetConfig.pricePerSquareMeter === 'string' ? parseFloat(item.closetConfig.pricePerSquareMeter) : (item.closetConfig.pricePerSquareMeter ?? 750000),
+            subtotal: typeof item.closetConfig.subtotal === 'string' ? parseFloat(item.closetConfig.subtotal) : (item.closetConfig.subtotal ?? 0),
             notes: item.closetConfig.notes || "",
           } : undefined,
           tvCenterConfig: item.tvCenterConfig ? {

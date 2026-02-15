@@ -254,27 +254,11 @@ export default function Quotations() {
     },
   });
 
-  const createVersion = trpc.quotationsVersioning.createVersion.useMutation({
-    onSuccess: (data) => {
-      utils.quotations.list.invalidate();
-      utils.quotations.listPaginated.invalidate();
-      toast.success("Nueva versión de cotización creada");
-    },
-    onError: (error) => {
-      toast.error("Error al crear versión: " + error.message);
-    },
-  });
-
   const updateStatus = trpc.quotations.updateStatus.useMutation({
-    onSuccess: (data: any) => {
+    onSuccess: () => {
       utils.quotations.list.invalidate();
       utils.quotations.listPaginated.invalidate();
       toast.success("Estado actualizado");
-      
-      // Si la cotización fue aprobada, crear una nueva versión automáticamente
-      if (data.newStatus === "approved" && data.quotationId) {
-        createVersion.mutate({ quotationId: data.quotationId });
-      }
     },
   });
 
@@ -1094,8 +1078,8 @@ export default function Quotations() {
     const itemsWithUpdatedPrices = items.map((item, index) => {
       if (item.itemType === "cocina" && item.kitchenConfig) {
         // Asegurar que campos requeridos tengan valores para items de cocina
-        const description = item.description ?? "Cocina integral";
-        const quantity = item.quantity ?? "1";
+        const description = item.description || "Cocina integral";
+        const quantity = item.quantity || "1";
         // Recalcular el total basado en la configuración actual
         const config = item.kitchenConfig;
         let total = 0;
@@ -1131,14 +1115,14 @@ export default function Quotations() {
           total += config.totalMeters * getPrice('MUEBLE_INFERIOR_ML');
         } else if (config.shape === 'puertas_tapas') {
           // Puertas y Tapas (solo cambio) - precios dinámicos
-          const dc = (config.doorsAndCovers ?? {}) as any;
-          total += (dc.upperDoors70 ?? 0) * getPrice('PUERTA_SUP_70');
-          total += (dc.upperDoors90 ?? 0) * getPrice('PUERTA_SUP_90');
-          total += (dc.upperDoors100 ?? 0) * getPrice('PUERTA_SUP_100');
-          total += (dc.lowerDoors ?? 0) * getPrice('PUERTA_INF');
-          total += (dc.pantryDoors ?? 0) * getPrice('PUERTA_ALACENA');
-          total += (dc.drawerCovers ?? 0) * getPrice('TAPA_CAJON');
-          total += (dc.smallCovers ?? 0) * getPrice('TAPA_PEQUENA');
+          const dc = (config.doorsAndCovers || {}) as any;
+          total += (dc.upperDoors70 || 0) * getPrice('PUERTA_SUP_70');
+          total += (dc.upperDoors90 || 0) * getPrice('PUERTA_SUP_90');
+          total += (dc.upperDoors100 || 0) * getPrice('PUERTA_SUP_100');
+          total += (dc.lowerDoors || 0) * getPrice('PUERTA_INF');
+          total += (dc.pantryDoors || 0) * getPrice('PUERTA_ALACENA');
+          total += (dc.drawerCovers || 0) * getPrice('TAPA_CAJON');
+          total += (dc.smallCovers || 0) * getPrice('TAPA_PEQUENA');
         } else {
           // Cocinas completas (Lineal, L, U, etc.): inferiores + superiores
           total += resultingMeters * getPrice('MUEBLE_INFERIOR_ML');
@@ -1214,12 +1198,12 @@ export default function Quotations() {
 
         // Pintado Puertas Alto Brillo - precios dinámicos
         if (config.paintedDoors?.enabled) {
-          total += (config.paintedDoors.upperQty ?? 0) * getPrice('PINTADO_SUP');
-          total += (config.paintedDoors.lowerQty ?? 0) * getPrice('PINTADO_INF');
-          total += (config.paintedDoors.pantryQty ?? 0) * getPrice('PINTADO_ALACENA');
-          total += (config.paintedDoors.drawerQty ?? 0) * getPrice('PINTADO_CAJON');
-          total += (config.paintedDoors.spiceQty ?? 0) * getPrice('PINTADO_ESPECIERO');
-          total += (config.paintedDoors.golaQty ?? 0) * getPrice('PINTADO_GOLA');
+          total += (config.paintedDoors.upperQty || 0) * getPrice('PINTADO_SUP');
+          total += (config.paintedDoors.lowerQty || 0) * getPrice('PINTADO_INF');
+          total += (config.paintedDoors.pantryQty || 0) * getPrice('PINTADO_ALACENA');
+          total += (config.paintedDoors.drawerQty || 0) * getPrice('PINTADO_CAJON');
+          total += (config.paintedDoors.spiceQty || 0) * getPrice('PINTADO_ESPECIERO');
+          total += (config.paintedDoors.golaQty || 0) * getPrice('PINTADO_GOLA');
         }
 
         // Transporte e imprevistos - OPCIONAL (se maneja con checkbox)
@@ -1275,7 +1259,7 @@ export default function Quotations() {
         let totalPrice = item.hardwareSelections.reduce((sum, s) => sum + s.subtotal, 0);
         // Incluir transporte si está marcado (usar el monto editable)
         if (item.includesFixedCosts) {
-          totalPrice += (item.fixedCostsAmount ?? 600000);
+          totalPrice += (item.fixedCostsAmount || 600000);
         }
         return { 
           ...item, 

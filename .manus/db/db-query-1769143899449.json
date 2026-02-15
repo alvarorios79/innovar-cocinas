@@ -1,0 +1,40 @@
+{
+  "query": "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'notifications';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'notifications';",
+  "rows": [
+    {
+      "COLUMN_NAME": "id"
+    },
+    {
+      "COLUMN_NAME": "userId"
+    },
+    {
+      "COLUMN_NAME": "title"
+    },
+    {
+      "COLUMN_NAME": "body"
+    },
+    {
+      "COLUMN_NAME": "type"
+    },
+    {
+      "COLUMN_NAME": "referenceId"
+    },
+    {
+      "COLUMN_NAME": "referenceType"
+    },
+    {
+      "COLUMN_NAME": "read"
+    },
+    {
+      "COLUMN_NAME": "sentPush"
+    },
+    {
+      "COLUMN_NAME": "createdAt"
+    }
+  ],
+  "messages": [],
+  "stdout": "COLUMN_NAME\nid\nuserId\ntitle\nbody\ntype\nreferenceId\nreferenceType\nread\nsentPush\ncreatedAt\n",
+  "stderr": "",
+  "execution_time_ms": 59
+}

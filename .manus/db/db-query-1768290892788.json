@@ -1,0 +1,40 @@
+{
+  "query": "SELECT id, name, email, role FROM users ORDER BY lastSignedIn DESC LIMIT 5;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT id, name, email, role FROM users ORDER BY lastSignedIn DESC LIMIT 5;",
+  "rows": [
+    {
+      "id": "1",
+      "name": "Alvaro Rios",
+      "email": "mcfy8jgnym@privaterelay.appleid.com",
+      "role": "super_admin"
+    },
+    {
+      "id": "60086",
+      "name": "Admin Role Protected",
+      "email": "admin-role-protected-1768289392965@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "60085",
+      "name": "New User",
+      "email": "newuser-1768289392492@test.com",
+      "role": "user"
+    },
+    {
+      "id": "60084",
+      "name": "Target User",
+      "email": "target-1768289392790@test.com",
+      "role": "user"
+    },
+    {
+      "id": "60087",
+      "name": "New Admin",
+      "email": "newadmin-1768289392958@test.com",
+      "role": "admin"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\temail\trole\n1\tAlvaro Rios\tmcfy8jgnym@privaterelay.appleid.com\tsuper_admin\n60086\tAdmin Role Protected\tadmin-role-protected-1768289392965@test.com\tadmin\n60085\tNew User\tnewuser-1768289392492@test.com\tuser\n60084\tTarget User\ttarget-1768289392790@test.com\tuser\n60087\tNew Admin\tnewadmin-1768289392958@test.com\tadmin\n",
+  "stderr": "",
+  "execution_time_ms": 410
+}

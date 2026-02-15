@@ -1,0 +1,17 @@
+{
+  "query": "SELECT id, quotationNumber, subtotal, transportCost, total \nFROM quotations \nWHERE quotationNumber = 'COT-2026-620';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT id, quotationNumber, subtotal, transportCost, total \nFROM quotations \nWHERE quotationNumber = 'COT-2026-620';",
+  "rows": [
+    {
+      "id": "90006",
+      "quotationNumber": "COT-2026-620",
+      "subtotal": "16832500.00",
+      "transportCost": "600000.00",
+      "total": "17432500.00"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tquotationNumber\tsubtotal\ttransportCost\ttotal\n90006\tCOT-2026-620\t16832500.00\t600000.00\t17432500.00\n",
+  "stderr": "",
+  "execution_time_ms": 481
+}

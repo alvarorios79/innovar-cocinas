@@ -1,0 +1,24 @@
+{
+  "query": "SELECT id, name, email, role, createdAt FROM users WHERE email = 'martha79s@hotmail.com' ORDER BY createdAt ASC;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT id, name, email, role, createdAt FROM users WHERE email = 'martha79s@hotmail.com' ORDER BY createdAt ASC;",
+  "rows": [
+    {
+      "id": "30390",
+      "name": "Martha Serna",
+      "email": "martha79s@hotmail.com",
+      "role": "comercial",
+      "createdAt": "2026-01-13 02:50:09"
+    },
+    {
+      "id": "2250885",
+      "name": "martha79s",
+      "email": "martha79s@hotmail.com",
+      "role": "user",
+      "createdAt": "2026-01-26 02:44:19"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\temail\trole\tcreatedAt\n30390\tMartha Serna\tmartha79s@hotmail.com\tcomercial\t2026-01-13 02:50:09\n2250885\tmartha79s\tmartha79s@hotmail.com\tuser\t2026-01-26 02:44:19\n",
+  "stderr": "",
+  "execution_time_ms": 55
+}

@@ -1,0 +1,8 @@
+{
+  "query": "SELECT id, name, status, quotation_number FROM projects WHERE quotation_number = 'COT-2026-621' OR name LIKE '%Álvaro prueba%' OR name LIKE '%Alvaro prueba%';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT id, name, status, quotation_number FROM projects WHERE quotation_number = 'COT-2026-621' OR name LIKE '%Álvaro prueba%' OR name LIKE '%Alvaro prueba%';",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1054 (42S22) at line 1: Unknown column 'quotation_number' in 'where clause'"
+  ]
+}

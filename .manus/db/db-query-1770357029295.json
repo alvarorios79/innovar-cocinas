@@ -1,0 +1,59 @@
+{
+  "query": "SELECT q.id, q.quotationNumber, c.name as clientName, q.status, q.createdAt \nFROM quotations q \nJOIN clients c ON q.clientId = c.id \nORDER BY q.createdAt DESC;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT q.id, q.quotationNumber, c.name as clientName, q.status, q.createdAt \nFROM quotations q \nJOIN clients c ON q.clientId = c.id \nORDER BY q.createdAt DESC;",
+  "rows": [
+    {
+      "id": "1320001",
+      "quotationNumber": "COT-2026-627-9938891",
+      "clientName": "Carolina Diaz",
+      "status": "approved",
+      "createdAt": "2026-02-06 04:53:49"
+    },
+    {
+      "id": "1050059",
+      "quotationNumber": "COT-2026-626-5411368",
+      "clientName": "Álvaro prueba ",
+      "status": "approved",
+      "createdAt": "2026-02-03 20:10:55"
+    },
+    {
+      "id": "540012",
+      "quotationNumber": "COT-2026-624-1431056",
+      "clientName": "Karolina Torres",
+      "status": "draft",
+      "createdAt": "2026-01-28 01:03:31"
+    },
+    {
+      "id": "540011",
+      "quotationNumber": "COT-2026-623-3145875",
+      "clientName": "Nery Benjumea",
+      "status": "draft",
+      "createdAt": "2026-01-28 00:47:33"
+    },
+    {
+      "id": "540010",
+      "quotationNumber": "COT-2026-622-8727580",
+      "clientName": "Jhonier Cardona",
+      "status": "approved",
+      "createdAt": "2026-01-28 00:21:58"
+    },
+    {
+      "id": "540008",
+      "quotationNumber": "COT-2026-621-6366536",
+      "clientName": "Orlando Primacho",
+      "status": "approved",
+      "createdAt": "2026-01-27 22:53:56"
+    },
+    {
+      "id": "510001",
+      "quotationNumber": "COT-2026-620-1770965",
+      "clientName": "Ruth Naranjo",
+      "status": "sent",
+      "createdAt": "2026-01-25 23:24:01"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tquotationNumber\tclientName\tstatus\tcreatedAt\n1320001\tCOT-2026-627-9938891\tCarolina Diaz\tapproved\t2026-02-06 04:53:49\n1050059\tCOT-2026-626-5411368\tÁlvaro prueba \tapproved\t2026-02-03 20:10:55\n540012\tCOT-2026-624-1431056\tKarolina Torres\tdraft\t2026-01-28 01:03:31\n540011\tCOT-2026-623-3145875\tNery Benjumea\tdraft\t2026-01-28 00:47:33\n540010\tCOT-2026-622-8727580\tJhonier Cardona\tapproved\t2026-01-28 00:21:58\n540008\tCOT-2026-621-6366536\tOrlando Primacho\tapproved\t2026-01-27 22:53:56\n510001\tCOT-2026-620-1770965\tRuth Naranjo\tsent\t2026-01-25 23:24:01\n",
+  "stderr": "",
+  "execution_time_ms": 72
+}

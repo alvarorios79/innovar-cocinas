@@ -1,0 +1,916 @@
+{
+  "query": "SELECT id, name, email, role FROM users WHERE role IN ('admin', 'super_admin', 'comercial', 'disenador', 'jefe_taller', 'operario') ORDER BY role;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT id, name, email, role FROM users WHERE role IN ('admin', 'super_admin', 'comercial', 'disenador', 'jefe_taller', 'operario') ORDER BY role;",
+  "rows": [
+    {
+      "id": "270961",
+      "name": "Admin Role Protected",
+      "email": "admin-role-protected-1768359688721@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "270264",
+      "name": "Admin Role Protected",
+      "email": "admin-role-protected-1768353027722@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "60325",
+      "name": "Protected Admin",
+      "email": "admin-protected-1768292774608@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "60329",
+      "name": "Admin Role Protected",
+      "email": "admin-role-protected-1768292775321@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "60332",
+      "name": "User To Promote",
+      "email": "user-promote-1768292775794@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "60334",
+      "name": "New Admin",
+      "email": "newadmin-1768292777553@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "60338",
+      "name": "New Admin",
+      "email": "newadmin-1768292839082@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "60343",
+      "name": "Protected Admin",
+      "email": "admin-protected-1768292840075@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "300931",
+      "name": "New Admin",
+      "email": "newadmin-1768381988359@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "300927",
+      "name": "User To Promote",
+      "email": "user-promote-1768381987414@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "60346",
+      "name": "Admin Role Protected",
+      "email": "admin-role-protected-1768292840783@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "60350",
+      "name": "User To Promote",
+      "email": "user-promote-1768292841253@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "60352",
+      "name": "New Admin",
+      "email": "newadmin-1768292843518@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "60367",
+      "name": "Alvaro Gutierrez",
+      "email": "alvarorios79@hotmail.com",
+      "role": "admin"
+    },
+    {
+      "id": "270086",
+      "name": "New Admin",
+      "email": "newadmin-1768350547925@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "300925",
+      "name": "Admin Role Protected",
+      "email": "admin-role-protected-1768381986978@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "300921",
+      "name": "Protected Admin",
+      "email": "admin-protected-1768381986302@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "270091",
+      "name": "Protected Admin",
+      "email": "admin-protected-1768350548864@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "270094",
+      "name": "Admin Role Protected",
+      "email": "admin-role-protected-1768350549528@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "270097",
+      "name": "User To Promote",
+      "email": "user-promote-1768350549967@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "270100",
+      "name": "New Admin",
+      "email": "newadmin-1768350552033@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "270138",
+      "name": "New Admin",
+      "email": "newadmin-1768351041567@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "300916",
+      "name": "New Admin",
+      "email": "newadmin-1768381985323@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "270143",
+      "name": "Protected Admin",
+      "email": "admin-protected-1768351042522@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "30257",
+      "name": "Alejo Gutiérrez",
+      "email": "alejoile300@gmail.com",
+      "role": "admin"
+    },
+    {
+      "id": "270149",
+      "name": "User To Promote",
+      "email": "user-promote-1768351043577@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "270152",
+      "name": "New Admin",
+      "email": "newadmin-1768351045582@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "270256",
+      "name": "New Admin",
+      "email": "newadmin-1768353026150@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "300818",
+      "name": "New Admin",
+      "email": "newadmin-1768380377938@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "270261",
+      "name": "Protected Admin",
+      "email": "admin-protected-1768353027077@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "270965",
+      "name": "User To Promote",
+      "email": "user-promote-1768359689191@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "270267",
+      "name": "User To Promote",
+      "email": "user-promote-1768353028151@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "270270",
+      "name": "New Admin",
+      "email": "newadmin-1768353029933@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "270359",
+      "name": "New Admin",
+      "email": "newadmin-1768353837619@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "300814",
+      "name": "User To Promote",
+      "email": "user-promote-1768380376939@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "270364",
+      "name": "Protected Admin",
+      "email": "admin-protected-1768353838553@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "270367",
+      "name": "Admin Role Protected",
+      "email": "admin-role-protected-1768353839205@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "270370",
+      "name": "User To Promote",
+      "email": "user-promote-1768353839637@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "270373",
+      "name": "New Admin",
+      "email": "newadmin-1768353841701@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "270491",
+      "name": "New Admin",
+      "email": "newadmin-1768355381656@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "300812",
+      "name": "Admin Role Protected",
+      "email": "admin-role-protected-1768380376468@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "270496",
+      "name": "Protected Admin",
+      "email": "admin-protected-1768355382636@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "270499",
+      "name": "Admin Role Protected",
+      "email": "admin-role-protected-1768355383320@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "270502",
+      "name": "User To Promote",
+      "email": "user-promote-1768355383766@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "270505",
+      "name": "New Admin",
+      "email": "newadmin-1768355386133@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "270512",
+      "name": "New Admin",
+      "email": "newadmin-1768355427376@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "300808",
+      "name": "Protected Admin",
+      "email": "admin-protected-1768380375756@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "270517",
+      "name": "Protected Admin",
+      "email": "admin-protected-1768355428349@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "270967",
+      "name": "New Admin",
+      "email": "newadmin-1768359689510@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "270523",
+      "name": "User To Promote",
+      "email": "user-promote-1768355429488@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "270526",
+      "name": "New Admin",
+      "email": "newadmin-1768355431859@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "270536",
+      "name": "New Admin",
+      "email": "newadmin-1768355503988@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "300803",
+      "name": "New Admin",
+      "email": "newadmin-1768380374733@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "270541",
+      "name": "Protected Admin",
+      "email": "admin-protected-1768355504953@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "270544",
+      "name": "Admin Role Protected",
+      "email": "admin-role-protected-1768355505643@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "270547",
+      "name": "User To Promote",
+      "email": "user-promote-1768355506105@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "270550",
+      "name": "New Admin",
+      "email": "newadmin-1768355508403@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "270555",
+      "name": "New Admin",
+      "email": "newadmin-1768355533760@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "300721",
+      "name": "New Admin",
+      "email": "newadmin-1768379224492@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "270560",
+      "name": "Protected Admin",
+      "email": "admin-protected-1768355534776@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "270564",
+      "name": "Admin Role Protected",
+      "email": "admin-role-protected-1768355535495@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "270567",
+      "name": "User To Promote",
+      "email": "user-promote-1768355535970@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "270569",
+      "name": "New Admin",
+      "email": "newadmin-1768355538296@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "300717",
+      "name": "User To Promote",
+      "email": "user-promote-1768379223572@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "300715",
+      "name": "Admin Role Protected",
+      "email": "admin-role-protected-1768379223098@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "270802",
+      "name": "New Admin",
+      "email": "newadmin-1768358360780@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "300711",
+      "name": "Protected Admin",
+      "email": "admin-protected-1768379222362@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "270807",
+      "name": "Protected Admin",
+      "email": "admin-protected-1768358361763@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "270810",
+      "name": "Admin Role Protected",
+      "email": "admin-role-protected-1768358362454@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "270813",
+      "name": "User To Promote",
+      "email": "user-promote-1768358362913@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "270817",
+      "name": "New Admin",
+      "email": "newadmin-1768358363248@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "270953",
+      "name": "New Admin",
+      "email": "newadmin-1768359687009@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "300706",
+      "name": "New Admin",
+      "email": "newadmin-1768379221294@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "270958",
+      "name": "Protected Admin",
+      "email": "admin-protected-1768359688005@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "270146",
+      "name": "Admin Role Protected",
+      "email": "admin-role-protected-1768351043159@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "60320",
+      "name": "New Admin",
+      "email": "newadmin-1768292773579@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "270520",
+      "name": "Admin Role Protected",
+      "email": "admin-role-protected-1768355429039@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "271027",
+      "name": "New Admin",
+      "email": "newadmin-1768360900130@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "300689",
+      "name": "New Admin",
+      "email": "newadmin-1768379089762@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "271033",
+      "name": "Protected Admin",
+      "email": "admin-protected-1768360901360@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "271036",
+      "name": "Admin Role Protected",
+      "email": "admin-role-protected-1768360902205@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "271039",
+      "name": "User To Promote",
+      "email": "user-promote-1768360902705@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "271042",
+      "name": "New Admin",
+      "email": "newadmin-1768360904709@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "271137",
+      "name": "New Admin",
+      "email": "newadmin-1768362337222@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "300686",
+      "name": "User To Promote",
+      "email": "user-promote-1768379088638@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "271143",
+      "name": "Protected Admin",
+      "email": "admin-protected-1768362338239@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "271146",
+      "name": "Admin Role Protected",
+      "email": "admin-role-protected-1768362338963@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "271149",
+      "name": "User To Promote",
+      "email": "user-promote-1768362339434@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "271152",
+      "name": "New Admin",
+      "email": "newadmin-1768362340294@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "271230",
+      "name": "New Admin",
+      "email": "newadmin-1768363107159@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "300683",
+      "name": "Admin Role Protected",
+      "email": "admin-role-protected-1768379088164@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "271235",
+      "name": "Protected Admin",
+      "email": "admin-protected-1768363108119@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "271239",
+      "name": "Admin Role Protected",
+      "email": "admin-role-protected-1768363108810@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "271241",
+      "name": "User To Promote",
+      "email": "user-promote-1768363109257@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "271245",
+      "name": "New Admin",
+      "email": "newadmin-1768363110683@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "300238",
+      "name": "New Admin",
+      "email": "newadmin-1768375310818@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "300679",
+      "name": "Protected Admin",
+      "email": "admin-protected-1768379087442@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "300244",
+      "name": "Protected Admin",
+      "email": "admin-protected-1768375311873@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "300248",
+      "name": "Admin Role Protected",
+      "email": "admin-role-protected-1768375312610@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "300250",
+      "name": "User To Promote",
+      "email": "user-promote-1768375313093@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "300254",
+      "name": "New Admin",
+      "email": "newadmin-1768375315189@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "300343",
+      "name": "New Admin",
+      "email": "newadmin-1768376121684@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "300674",
+      "name": "New Admin",
+      "email": "newadmin-1768379086440@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "300348",
+      "name": "Protected Admin",
+      "email": "admin-protected-1768376122737@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "300352",
+      "name": "Admin Role Protected",
+      "email": "admin-role-protected-1768376123552@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "300355",
+      "name": "User To Promote",
+      "email": "user-promote-1768376124043@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "300359",
+      "name": "New Admin",
+      "email": "newadmin-1768376126289@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "300409",
+      "name": "New Admin",
+      "email": "newadmin-1768376768757@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "300560",
+      "name": "New Admin",
+      "email": "newadmin-1768377827537@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "300415",
+      "name": "Protected Admin",
+      "email": "admin-protected-1768376769807@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "300418",
+      "name": "Admin Role Protected",
+      "email": "admin-role-protected-1768376770548@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "300421",
+      "name": "User To Promote",
+      "email": "user-promote-1768376771034@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "300424",
+      "name": "New Admin",
+      "email": "newadmin-1768376772187@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "300482",
+      "name": "New Admin",
+      "email": "newadmin-1768377372708@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "300557",
+      "name": "User To Promote",
+      "email": "user-promote-1768377826565@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "300488",
+      "name": "Protected Admin",
+      "email": "admin-protected-1768377373762@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "300491",
+      "name": "Admin Role Protected",
+      "email": "admin-role-protected-1768377374500@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "300494",
+      "name": "User To Promote",
+      "email": "user-promote-1768377374978@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "300497",
+      "name": "New Admin",
+      "email": "newadmin-1768377376195@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "300545",
+      "name": "New Admin",
+      "email": "newadmin-1768377824334@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "300554",
+      "name": "Admin Role Protected",
+      "email": "admin-role-protected-1768377826084@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "300551",
+      "name": "Protected Admin",
+      "email": "admin-protected-1768377825360@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "270360",
+      "name": "New Super Admin",
+      "email": "newsuperadmin-1768353838057@test.com",
+      "role": "super_admin"
+    },
+    {
+      "id": "270556",
+      "name": "New Super Admin",
+      "email": "newsuperadmin-1768355534216@test.com",
+      "role": "super_admin"
+    },
+    {
+      "id": "300410",
+      "name": "New Super Admin",
+      "email": "newsuperadmin-1768376769240@test.com",
+      "role": "super_admin"
+    },
+    {
+      "id": "300344",
+      "name": "New Super Admin",
+      "email": "newsuperadmin-1768376122179@test.com",
+      "role": "super_admin"
+    },
+    {
+      "id": "300675",
+      "name": "New Super Admin",
+      "email": "newsuperadmin-1768379086895@test.com",
+      "role": "super_admin"
+    },
+    {
+      "id": "300239",
+      "name": "New Super Admin",
+      "email": "newsuperadmin-1768375311312@test.com",
+      "role": "super_admin"
+    },
+    {
+      "id": "271231",
+      "name": "New Super Admin",
+      "email": "newsuperadmin-1768363107594@test.com",
+      "role": "super_admin"
+    },
+    {
+      "id": "271138",
+      "name": "New Super Admin",
+      "email": "newsuperadmin-1768362337688@test.com",
+      "role": "super_admin"
+    },
+    {
+      "id": "271028",
+      "name": "New Super Admin",
+      "email": "newsuperadmin-1768360900792@test.com",
+      "role": "super_admin"
+    },
+    {
+      "id": "270954",
+      "name": "New Super Admin",
+      "email": "newsuperadmin-1768359687467@test.com",
+      "role": "super_admin"
+    },
+    {
+      "id": "300707",
+      "name": "New Super Admin",
+      "email": "newsuperadmin-1768379221805@test.com",
+      "role": "super_admin"
+    },
+    {
+      "id": "270803",
+      "name": "New Super Admin",
+      "email": "newsuperadmin-1768358361231@test.com",
+      "role": "super_admin"
+    },
+    {
+      "id": "1",
+      "name": "Alvaro Rios",
+      "email": "mcfy8jgnym@privaterelay.appleid.com",
+      "role": "super_admin"
+    },
+    {
+      "id": "300546",
+      "name": "New Super Admin",
+      "email": "newsuperadmin-1768377824808@test.com",
+      "role": "super_admin"
+    },
+    {
+      "id": "300483",
+      "name": "New Super Admin",
+      "email": "newsuperadmin-1768377373205@test.com",
+      "role": "super_admin"
+    },
+    {
+      "id": "300804",
+      "name": "New Super Admin",
+      "email": "newsuperadmin-1768380375217@test.com",
+      "role": "super_admin"
+    },
+    {
+      "id": "60321",
+      "name": "New Super Admin",
+      "email": "newsuperadmin-1768292774051@test.com",
+      "role": "super_admin"
+    },
+    {
+      "id": "270513",
+      "name": "New Super Admin",
+      "email": "newsuperadmin-1768355427819@test.com",
+      "role": "super_admin"
+    },
+    {
+      "id": "270492",
+      "name": "New Super Admin",
+      "email": "newsuperadmin-1768355382113@test.com",
+      "role": "super_admin"
+    },
+    {
+      "id": "60339",
+      "name": "New Super Admin",
+      "email": "newsuperadmin-1768292839539@test.com",
+      "role": "super_admin"
+    },
+    {
+      "id": "270257",
+      "name": "New Super Admin",
+      "email": "newsuperadmin-1768353026578@test.com",
+      "role": "super_admin"
+    },
+    {
+      "id": "270537",
+      "name": "New Super Admin",
+      "email": "newsuperadmin-1768355504426@test.com",
+      "role": "super_admin"
+    },
+    {
+      "id": "270087",
+      "name": "New Super Admin",
+      "email": "newsuperadmin-1768350548356@test.com",
+      "role": "super_admin"
+    },
+    {
+      "id": "270139",
+      "name": "New Super Admin",
+      "email": "newsuperadmin-1768351042034@test.com",
+      "role": "super_admin"
+    },
+    {
+      "id": "300917",
+      "name": "New Super Admin",
+      "email": "newsuperadmin-1768381985785@test.com",
+      "role": "super_admin"
+    },
+    {
+      "id": "30390",
+      "name": "Martha Serna",
+      "email": "martha79s@hotmail.com",
+      "role": "comercial"
+    },
+    {
+      "id": "270793",
+      "name": "martha79s",
+      "email": "martha79s@hotmail.com",
+      "role": "comercial"
+    },
+    {
+      "id": "300873",
+      "name": "Luis Cardoso",
+      "email": "jefe.taller@innovar.temp",
+      "role": "jefe_taller"
+    },
+    {
+      "id": "300874",
+      "name": "Daniel Beltran",
+      "email": "operario@innovar.temp",
+      "role": "operario"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\temail\trole\n270961\tAdmin Role Protected\tadmin-role-protected-1768359688721@test.com\tadmin\n270264\tAdmin Role Protected\tadmin-role-protected-1768353027722@test.com\tadmin\n60325\tProtected Admin\tadmin-protected-1768292774608@test.com\tadmin\n60329\tAdmin Role Protected\tadmin-role-protected-1768292775321@test.com\tadmin\n60332\tUser To Promote\tuser-promote-1768292775794@test.com\tadmin\n60334\tNew Admin\tnewadmin-1768292777553@test.com\tadmin\n60338\tNew Admin\tnewadmin-1768292839082@test.com\tadmin\n60343\tProtected Admin\tadmin-protected-1768292840075@test.com\tadmin\n300931\tNew Admin\tnewadmin-1768381988359@test.com\tadmin\n300927\tUser To Promote\tuser-promote-1768381987414@test.com\tadmin\n60346\tAdmin Role Protected\tadmin-role-protected-1768292840783@test.com\tadmin\n60350\tUser To Promote\tuser-promote-1768292841253@test.com\tadmin\n60352\tNew Admin\tnewadmin-1768292843518@test.com\tadmin\n60367\tAlvaro Gutierrez\talvarorios79@hotmail.com\tadmin\n270086\tNew Admin\tnewadmin-1768350547925@test.com\tadmin\n300925\tAdmin Role Protected\tadmin-role-protected-1768381986978@test.com\tadmin\n300921\tProtected Admin\tadmin-protected-1768381986302@test.com\tadmin\n270091\tProtected Admin\tadmin-protected-1768350548864@test.com\tadmin\n270094\tAdmin Role Protected\tadmin-role-protected-1768350549528@test.com\tadmin\n270097\tUser To Promote\tuser-promote-1768350549967@test.com\tadmin\n270100\tNew Admin\tnewadmin-1768350552033@test.com\tadmin\n270138\tNew Admin\tnewadmin-1768351041567@test.com\tadmin\n300916\tNew Admin\tnewadmin-1768381985323@test.com\tadmin\n270143\tProtected Admin\tadmin-protected-1768351042522@test.com\tadmin\n30257\tAlejo Gutiérrez\talejoile300@gmail.com\tadmin\n270149\tUser To Promote\tuser-promote-1768351043577@test.com\tadmin\n270152\tNew Admin\tnewadmin-1768351045582@test.com\tadmin\n270256\tNew Admin\tnewadmin-1768353026150@test.com\tadmin\n300818\tNew Admin\tnewadmin-1768380377938@test.com\tadmin\n270261\tProtected Admin\tadmin-protected-1768353027077@test.com\tadmin\n270965\tUser To Promote\tuser-promote-1768359689191@test.com\tadmin\n270267\tUser To Promote\tuser-promote-1768353028151@test.com\tadmin\n270270\tNew Admin\tnewadmin-1768353029933@test.com\tadmin\n270359\tNew Admin\tnewadmin-1768353837619@test.com\tadmin\n300814\tUser To Promote\tuser-promote-1768380376939@test.com\tadmin\n270364\tProtected Admin\tadmin-protected-1768353838553@test.com\tadmin\n270367\tAdmin Role Protected\tadmin-role-protected-1768353839205@test.com\tadmin\n270370\tUser To Promote\tuser-promote-1768353839637@test.com\tadmin\n270373\tNew Admin\tnewadmin-1768353841701@test.com\tadmin\n270491\tNew Admin\tnewadmin-1768355381656@test.com\tadmin\n300812\tAdmin Role Protected\tadmin-role-protected-1768380376468@test.com\tadmin\n270496\tProtected Admin\tadmin-protected-1768355382636@test.com\tadmin\n270499\tAdmin Role Protected\tadmin-role-protected-1768355383320@test.com\tadmin\n270502\tUser To Promote\tuser-promote-1768355383766@test.com\tadmin\n270505\tNew Admin\tnewadmin-1768355386133@test.com\tadmin\n270512\tNew Admin\tnewadmin-1768355427376@test.com\tadmin\n300808\tProtected Admin\tadmin-protected-1768380375756@test.com\tadmin\n270517\tProtected Admin\tadmin-protected-1768355428349@test.com\tadmin\n270967\tNew Admin\tnewadmin-1768359689510@test.com\tadmin\n270523\tUser To Promote\tuser-promote-1768355429488@test.com\tadmin\n270526\tNew Admin\tnewadmin-1768355431859@test.com\tadmin\n270536\tNew Admin\tnewadmin-1768355503988@test.com\tadmin\n300803\tNew Admin\tnewadmin-1768380374733@test.com\tadmin\n270541\tProtected Admin\tadmin-protected-1768355504953@test.com\tadmin\n270544\tAdmin Role Protected\tadmin-role-protected-1768355505643@test.com\tadmin\n270547\tUser To Promote\tuser-promote-1768355506105@test.com\tadmin\n270550\tNew Admin\tnewadmin-1768355508403@test.com\tadmin\n270555\tNew Admin\tnewadmin-1768355533760@test.com\tadmin\n300721\tNew Admin\tnewadmin-1768379224492@test.com\tadmin\n270560\tProtected Admin\tadmin-protected-1768355534776@test.com\tadmin\n270564\tAdmin Role Protected\tadmin-role-protected-1768355535495@test.com\tadmin\n270567\tUser To Promote\tuser-promote-1768355535970@test.com\tadmin\n270569\tNew Admin\tnewadmin-1768355538296@test.com\tadmin\n300717\tUser To Promote\tuser-promote-1768379223572@test.com\tadmin\n300715\tAdmin Role Protected\tadmin-role-protected-1768379223098@test.com\tadmin\n270802\tNew Admin\tnewadmin-1768358360780@test.com\tadmin\n300711\tProtected Admin\tadmin-protected-1768379222362@test.com\tadmin\n270807\tProtected Admin\tadmin-protected-1768358361763@test.com\tadmin\n270810\tAdmin Role Protected\tadmin-role-protected-1768358362454@test.com\tadmin\n270813\tUser To Promote\tuser-promote-1768358362913@test.com\tadmin\n270817\tNew Admin\tnewadmin-1768358363248@test.com\tadmin\n270953\tNew Admin\tnewadmin-1768359687009@test.com\tadmin\n300706\tNew Admin\tnewadmin-1768379221294@test.com\tadmin\n270958\tProtected Admin\tadmin-protected-1768359688005@test.com\tadmin\n270146\tAdmin Role Protected\tadmin-role-protected-1768351043159@test.com\tadmin\n60320\tNew Admin\tnewadmin-1768292773579@test.com\tadmin\n270520\tAdmin Role Protected\tadmin-role-protected-1768355429039@test.com\tadmin\n271027\tNew Admin\tnewadmin-1768360900130@test.com\tadmin\n300689\tNew Admin\tnewadmin-1768379089762@test.com\tadmin\n271033\tProtected Admin\tadmin-protected-1768360901360@test.com\tadmin\n271036\tAdmin Role Protected\tadmin-role-protected-1768360902205@test.com\tadmin\n271039\tUser To Promote\tuser-promote-1768360902705@test.com\tadmin\n271042\tNew Admin\tnewadmin-1768360904709@test.com\tadmin\n271137\tNew Admin\tnewadmin-1768362337222@test.com\tadmin\n300686\tUser To Promote\tuser-promote-1768379088638@test.com\tadmin\n271143\tProtected Admin\tadmin-protected-1768362338239@test.com\tadmin\n271146\tAdmin Role Protected\tadmin-role-protected-1768362338963@test.com\tadmin\n271149\tUser To Promote\tuser-promote-1768362339434@test.com\tadmin\n271152\tNew Admin\tnewadmin-1768362340294@test.com\tadmin\n271230\tNew Admin\tnewadmin-1768363107159@test.com\tadmin\n300683\tAdmin Role Protected\tadmin-role-protected-1768379088164@test.com\tadmin\n271235\tProtected Admin\tadmin-protected-1768363108119@test.com\tadmin\n271239\tAdmin Role Protected\tadmin-role-protected-1768363108810@test.com\tadmin\n271241\tUser To Promote\tuser-promote-1768363109257@test.com\tadmin\n271245\tNew Admin\tnewadmin-1768363110683@test.com\tadmin\n300238\tNew Admin\tnewadmin-1768375310818@test.com\tadmin\n300679\tProtected Admin\tadmin-protected-1768379087442@test.com\tadmin\n300244\tProtected Admin\tadmin-protected-1768375311873@test.com\tadmin\n300248\tAdmin Role Protected\tadmin-role-protected-1768375312610@test.com\tadmin\n300250\tUser To Promote\tuser-promote-1768375313093@test.com\tadmin\n300254\tNew Admin\tnewadmin-1768375315189@test.com\tadmin\n300343\tNew Admin\tnewadmin-1768376121684@test.com\tadmin\n300674\tNew Admin\tnewadmin-1768379086440@test.com\tadmin\n300348\tProtected Admin\tadmin-protected-1768376122737@test.com\tadmin\n300352\tAdmin Role Protected\tadmin-role-protected-1768376123552@test.com\tadmin\n300355\tUser To Promote\tuser-promote-1768376124043@test.com\tadmin\n300359\tNew Admin\tnewadmin-1768376126289@test.com\tadmin\n300409\tNew Admin\tnewadmin-1768376768757@test.com\tadmin\n300560\tNew Admin\tnewadmin-1768377827537@test.com\tadmin\n300415\tProtected Admin\tadmin-protected-1768376769807@test.com\tadmin\n300418\tAdmin Role Protected\tadmin-role-protected-1768376770548@test.com\tadmin\n300421\tUser To Promote\tuser-promote-1768376771034@test.com\tadmin\n300424\tNew Admin\tnewadmin-1768376772187@test.com\tadmin\n300482\tNew Admin\tnewadmin-1768377372708@test.com\tadmin\n300557\tUser To Promote\tuser-promote-1768377826565@test.com\tadmin\n300488\tProtected Admin\tadmin-protected-1768377373762@test.com\tadmin\n300491\tAdmin Role Protected\tadmin-role-protected-1768377374500@test.com\tadmin\n300494\tUser To Promote\tuser-promote-1768377374978@test.com\tadmin\n300497\tNew Admin\tnewadmin-1768377376195@test.com\tadmin\n300545\tNew Admin\tnewadmin-1768377824334@test.com\tadmin\n300554\tAdmin Role Protected\tadmin-role-protected-1768377826084@test.com\tadmin\n300551\tProtected Admin\tadmin-protected-1768377825360@test.com\tadmin\n270360\tNew Super Admin\tnewsuperadmin-1768353838057@test.com\tsuper_admin\n270556\tNew Super Admin\tnewsuperadmin-1768355534216@test.com\tsuper_admin\n300410\tNew Super Admin\tnewsuperadmin-1768376769240@test.com\tsuper_admin\n300344\tNew Super Admin\tnewsuperadmin-1768376122179@test.com\tsuper_admin\n300675\tNew Super Admin\tnewsuperadmin-1768379086895@test.com\tsuper_admin\n300239\tNew Super Admin\tnewsuperadmin-1768375311312@test.com\tsuper_admin\n271231\tNew Super Admin\tnewsuperadmin-1768363107594@test.com\tsuper_admin\n271138\tNew Super Admin\tnewsuperadmin-1768362337688@test.com\tsuper_admin\n271028\tNew Super Admin\tnewsuperadmin-1768360900792@test.com\tsuper_admin\n270954\tNew Super Admin\tnewsuperadmin-1768359687467@test.com\tsuper_admin\n300707\tNew Super Admin\tnewsuperadmin-1768379221805@test.com\tsuper_admin\n270803\tNew Super Admin\tnewsuperadmin-1768358361231@test.com\tsuper_admin\n1\tAlvaro Rios\tmcfy8jgnym@privaterelay.appleid.com\tsuper_admin\n300546\tNew Super Admin\tnewsuperadmin-1768377824808@test.com\tsuper_admin\n300483\tNew Super Admin\tnewsuperadmin-1768377373205@test.com\tsuper_admin\n300804\tNew Super Admin\tnewsuperadmin-1768380375217@test.com\tsuper_admin\n60321\tNew Super Admin\tnewsuperadmin-1768292774051@test.com\tsuper_admin\n270513\tNew Super Admin\tnewsuperadmin-1768355427819@test.com\tsuper_admin\n270492\tNew Super Admin\tnewsuperadmin-1768355382113@test.com\tsuper_admin\n60339\tNew Super Admin\tnewsuperadmin-1768292839539@test.com\tsuper_admin\n270257\tNew Super Admin\tnewsuperadmin-1768353026578@test.com\tsuper_admin\n270537\tNew Super Admin\tnewsuperadmin-1768355504426@test.com\tsuper_admin\n270087\tNew Super Admin\tnewsuperadmin-1768350548356@test.com\tsuper_admin\n270139\tNew Super Admin\tnewsuperadmin-1768351042034@test.com\tsuper_admin\n300917\tNew Super Admin\tnewsuperadmin-1768381985785@test.com\tsuper_admin\n30390\tMartha Serna\tmartha79s@hotmail.com\tcomercial\n270793\tmartha79s\tmartha79s@hotmail.com\tcomercial\n300873\tLuis Cardoso\tjefe.taller@innovar.temp\tjefe_taller\n300874\tDaniel Beltran\toperario@innovar.temp\toperario\n",
+  "stderr": "",
+  "execution_time_ms": 395
+}

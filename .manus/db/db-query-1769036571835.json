@@ -1,0 +1,16 @@
+{
+  "query": "SHOW TABLES LIKE '%quot%';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SHOW TABLES LIKE '%quot%';",
+  "rows": [
+    {
+      "Tables_in_XhEkCr8yXcaeDFyuQebdJQ (%quot%)": "quotationItems"
+    },
+    {
+      "Tables_in_XhEkCr8yXcaeDFyuQebdJQ (%quot%)": "quotations"
+    }
+  ],
+  "messages": [],
+  "stdout": "Tables_in_XhEkCr8yXcaeDFyuQebdJQ (%quot%)\nquotationItems\nquotations\n",
+  "stderr": "",
+  "execution_time_ms": 363
+}

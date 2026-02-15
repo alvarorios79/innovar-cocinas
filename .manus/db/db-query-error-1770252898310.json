@@ -1,0 +1,8 @@
+{
+  "query": "SELECT a.id, a.clientId, a.scheduledDate, a.status, a.workTypes, c.name as clientName \nFROM appointments a \nLEFT JOIN clients c ON a.clientId = c.id \nWHERE a.scheduledDate IS NOT NULL \nORDER BY a.scheduledDate DESC \nLIMIT 20;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT a.id, a.clientId, a.scheduledDate, a.status, a.workTypes, c.name as clientName \nFROM appointments a \nLEFT JOIN clients c ON a.clientId = c.id \nWHERE a.scheduledDate IS NOT NULL \nORDER BY a.scheduledDate DESC \nLIMIT 20;",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1054 (42S22) at line 1: Unknown column 'a.worktypes' in 'field list'"
+  ]
+}

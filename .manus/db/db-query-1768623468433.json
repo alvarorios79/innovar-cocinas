@@ -1,0 +1,210 @@
+{
+  "query": "SELECT * FROM appointments LIMIT 20;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT * FROM appointments LIMIT 20;",
+  "rows": [
+    {
+      "id": "30009",
+      "clientId": "2",
+      "workType": "cocina",
+      "scheduledDate": "2026-01-29 13:00:00",
+      "status": "pendiente",
+      "notes": "NULL",
+      "createdAt": "2026-01-13 02:22:16",
+      "updatedAt": "2026-01-13 02:22:16"
+    },
+    {
+      "id": "60006",
+      "clientId": "1",
+      "workType": "cocina",
+      "scheduledDate": "NULL",
+      "status": "pendiente",
+      "notes": "Test appointment",
+      "createdAt": "2026-01-13 08:26:14",
+      "updatedAt": "2026-01-13 08:26:14"
+    },
+    {
+      "id": "60010",
+      "clientId": "1",
+      "workType": "cocina",
+      "scheduledDate": "NULL",
+      "status": "pendiente",
+      "notes": "Test appointment",
+      "createdAt": "2026-01-13 08:27:19",
+      "updatedAt": "2026-01-13 08:27:19"
+    },
+    {
+      "id": "90002",
+      "clientId": "1",
+      "workType": "cocina",
+      "scheduledDate": "NULL",
+      "status": "pendiente",
+      "notes": "Test appointment",
+      "createdAt": "2026-01-14 00:29:08",
+      "updatedAt": "2026-01-14 00:29:08"
+    },
+    {
+      "id": "90005",
+      "clientId": "1",
+      "workType": "cocina",
+      "scheduledDate": "NULL",
+      "status": "pendiente",
+      "notes": "Test appointment",
+      "createdAt": "2026-01-14 00:37:22",
+      "updatedAt": "2026-01-14 00:37:22"
+    },
+    {
+      "id": "90009",
+      "clientId": "1",
+      "workType": "cocina",
+      "scheduledDate": "NULL",
+      "status": "pendiente",
+      "notes": "Test appointment",
+      "createdAt": "2026-01-14 01:10:26",
+      "updatedAt": "2026-01-14 01:10:26"
+    },
+    {
+      "id": "90013",
+      "clientId": "1",
+      "workType": "cocina",
+      "scheduledDate": "NULL",
+      "status": "pendiente",
+      "notes": "Test appointment",
+      "createdAt": "2026-01-14 01:23:58",
+      "updatedAt": "2026-01-14 01:23:58"
+    },
+    {
+      "id": "90017",
+      "clientId": "1",
+      "workType": "cocina",
+      "scheduledDate": "NULL",
+      "status": "pendiente",
+      "notes": "Test appointment",
+      "createdAt": "2026-01-14 01:49:42",
+      "updatedAt": "2026-01-14 01:49:42"
+    },
+    {
+      "id": "90021",
+      "clientId": "1",
+      "workType": "cocina",
+      "scheduledDate": "NULL",
+      "status": "pendiente",
+      "notes": "Test appointment",
+      "createdAt": "2026-01-14 01:50:27",
+      "updatedAt": "2026-01-14 01:50:27"
+    },
+    {
+      "id": "90025",
+      "clientId": "1",
+      "workType": "cocina",
+      "scheduledDate": "NULL",
+      "status": "pendiente",
+      "notes": "Test appointment",
+      "createdAt": "2026-01-14 01:51:44",
+      "updatedAt": "2026-01-14 01:51:44"
+    },
+    {
+      "id": "90029",
+      "clientId": "1",
+      "workType": "cocina",
+      "scheduledDate": "NULL",
+      "status": "pendiente",
+      "notes": "Test appointment",
+      "createdAt": "2026-01-14 01:52:14",
+      "updatedAt": "2026-01-14 01:52:14"
+    },
+    {
+      "id": "90033",
+      "clientId": "1",
+      "workType": "cocina",
+      "scheduledDate": "NULL",
+      "status": "pendiente",
+      "notes": "Test appointment",
+      "createdAt": "2026-01-14 02:39:21",
+      "updatedAt": "2026-01-14 02:39:21"
+    },
+    {
+      "id": "90037",
+      "clientId": "1",
+      "workType": "cocina",
+      "scheduledDate": "NULL",
+      "status": "pendiente",
+      "notes": "Test appointment",
+      "createdAt": "2026-01-14 03:01:27",
+      "updatedAt": "2026-01-14 03:01:27"
+    },
+    {
+      "id": "90041",
+      "clientId": "1",
+      "workType": "cocina",
+      "scheduledDate": "NULL",
+      "status": "pendiente",
+      "notes": "Test appointment",
+      "createdAt": "2026-01-14 03:21:40",
+      "updatedAt": "2026-01-14 03:21:40"
+    },
+    {
+      "id": "90045",
+      "clientId": "1",
+      "workType": "cocina",
+      "scheduledDate": "NULL",
+      "status": "pendiente",
+      "notes": "Test appointment",
+      "createdAt": "2026-01-14 03:45:37",
+      "updatedAt": "2026-01-14 03:45:37"
+    },
+    {
+      "id": "90049",
+      "clientId": "1",
+      "workType": "cocina",
+      "scheduledDate": "NULL",
+      "status": "pendiente",
+      "notes": "Test appointment",
+      "createdAt": "2026-01-14 03:58:27",
+      "updatedAt": "2026-01-14 03:58:27"
+    },
+    {
+      "id": "120001",
+      "clientId": "1",
+      "workType": "cocina",
+      "scheduledDate": "NULL",
+      "status": "pendiente",
+      "notes": "Test appointment",
+      "createdAt": "2026-01-14 07:21:51",
+      "updatedAt": "2026-01-14 07:21:51"
+    },
+    {
+      "id": "120005",
+      "clientId": "1",
+      "workType": "cocina",
+      "scheduledDate": "NULL",
+      "status": "pendiente",
+      "notes": "Test appointment",
+      "createdAt": "2026-01-14 07:35:22",
+      "updatedAt": "2026-01-14 07:35:22"
+    },
+    {
+      "id": "120009",
+      "clientId": "1",
+      "workType": "cocina",
+      "scheduledDate": "NULL",
+      "status": "pendiente",
+      "notes": "Test appointment",
+      "createdAt": "2026-01-14 07:46:09",
+      "updatedAt": "2026-01-14 07:46:09"
+    },
+    {
+      "id": "120013",
+      "clientId": "1",
+      "workType": "cocina",
+      "scheduledDate": "NULL",
+      "status": "pendiente",
+      "notes": "Test appointment",
+      "createdAt": "2026-01-14 07:56:13",
+      "updatedAt": "2026-01-14 07:56:13"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tclientId\tworkType\tscheduledDate\tstatus\tnotes\tcreatedAt\tupdatedAt\n30009\t2\tcocina\t2026-01-29 13:00:00\tpendiente\tNULL\t2026-01-13 02:22:16\t2026-01-13 02:22:16\n60006\t1\tcocina\tNULL\tpendiente\tTest appointment\t2026-01-13 08:26:14\t2026-01-13 08:26:14\n60010\t1\tcocina\tNULL\tpendiente\tTest appointment\t2026-01-13 08:27:19\t2026-01-13 08:27:19\n90002\t1\tcocina\tNULL\tpendiente\tTest appointment\t2026-01-14 00:29:08\t2026-01-14 00:29:08\n90005\t1\tcocina\tNULL\tpendiente\tTest appointment\t2026-01-14 00:37:22\t2026-01-14 00:37:22\n90009\t1\tcocina\tNULL\tpendiente\tTest appointment\t2026-01-14 01:10:26\t2026-01-14 01:10:26\n90013\t1\tcocina\tNULL\tpendiente\tTest appointment\t2026-01-14 01:23:58\t2026-01-14 01:23:58\n90017\t1\tcocina\tNULL\tpendiente\tTest appointment\t2026-01-14 01:49:42\t2026-01-14 01:49:42\n90021\t1\tcocina\tNULL\tpendiente\tTest appointment\t2026-01-14 01:50:27\t2026-01-14 01:50:27\n90025\t1\tcocina\tNULL\tpendiente\tTest appointment\t2026-01-14 01:51:44\t2026-01-14 01:51:44\n90029\t1\tcocina\tNULL\tpendiente\tTest appointment\t2026-01-14 01:52:14\t2026-01-14 01:52:14\n90033\t1\tcocina\tNULL\tpendiente\tTest appointment\t2026-01-14 02:39:21\t2026-01-14 02:39:21\n90037\t1\tcocina\tNULL\tpendiente\tTest appointment\t2026-01-14 03:01:27\t2026-01-14 03:01:27\n90041\t1\tcocina\tNULL\tpendiente\tTest appointment\t2026-01-14 03:21:40\t2026-01-14 03:21:40\n90045\t1\tcocina\tNULL\tpendiente\tTest appointment\t2026-01-14 03:45:37\t2026-01-14 03:45:37\n90049\t1\tcocina\tNULL\tpendiente\tTest appointment\t2026-01-14 03:58:27\t2026-01-14 03:58:27\n120001\t1\tcocina\tNULL\tpendiente\tTest appointment\t2026-01-14 07:21:51\t2026-01-14 07:21:51\n120005\t1\tcocina\tNULL\tpendiente\tTest appointment\t2026-01-14 07:35:22\t2026-01-14 07:35:22\n120009\t1\tcocina\tNULL\tpendiente\tTest appointment\t2026-01-14 07:46:09\t2026-01-14 07:46:09\n120013\t1\tcocina\tNULL\tpendiente\tTest appointment\t2026-01-14 07:56:13\t2026-01-14 07:56:13\n",
+  "stderr": "",
+  "execution_time_ms": 52
+}

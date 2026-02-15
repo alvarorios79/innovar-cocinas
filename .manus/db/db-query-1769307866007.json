@@ -1,0 +1,25 @@
+{
+  "query": "SELECT id, name, status FROM projects WHERE name LIKE '%prueba%' ORDER BY id DESC LIMIT 10;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT id, name, status FROM projects WHERE name LIKE '%prueba%' ORDER BY id DESC LIMIT 10;",
+  "rows": [
+    {
+      "id": "90003",
+      "name": "Álvaro prueba  - COT-2026-621",
+      "status": "pendiente_cliente"
+    },
+    {
+      "id": "90002",
+      "name": "Álvaro prueba  - COT-2026-622",
+      "status": "pendiente_cliente"
+    },
+    {
+      "id": "90001",
+      "name": "Álvaro prueba  - COT-2026-624",
+      "status": "adelanto_recibido"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\tstatus\n90003\tÁlvaro prueba  - COT-2026-621\tpendiente_cliente\n90002\tÁlvaro prueba  - COT-2026-622\tpendiente_cliente\n90001\tÁlvaro prueba  - COT-2026-624\tadelanto_recibido\n",
+  "stderr": "",
+  "execution_time_ms": 55
+}

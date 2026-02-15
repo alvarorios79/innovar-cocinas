@@ -1,0 +1,9 @@
+{
+  "query": "\n-- Muebles Superiores\nINSERT INTO pricingConfig (category, code, name, description, value, unit, sortOrder) VALUES\n('cocina_base', 'MUEBLE_SUPERIOR_ML', 'Mueble Superior - Metro Lineal', 'Precio por metro lineal de mueble superior', 1400000, 'ml', 10),\n('cocina_base', 'MUEBLE_INFERIOR_ML', 'Mueble Inferior - Metro Lineal', 'Precio por metro lineal de mueble inferior', 1400000, 'ml', 11);\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute \n-- Muebles Superiores\nINSERT INTO pricingConfig (category, code, name, description, value, unit, sortOrder) VALUES\n('cocina_base', 'MUEBLE_SUPERIOR_ML', 'Mueble Superior - Metro Lineal', 'Precio por metro lineal de mueble superior', 1400000, 'ml', 10),\n('cocina_base', 'MUEBLE_INFERIOR_ML', 'Mueble Inferior - Metro Lineal', 'Precio por metro lineal de mueble inferior', 1400000, 'ml', 11);\n",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 57
+}

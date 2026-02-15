@@ -1,0 +1,12 @@
+Verificación del candado de aprobación - 2026-02-04
+
+✅ VERIFICADO:
+1. El título de la tarjeta ahora dice "Aprobar en Nombre del Cliente" (antes era "Aprobación del Cliente")
+2. El botón de candado (🔒) está visible a la izquierda de los botones de aprobación
+3. Los botones "Aprobar" y "Solicitar Cambios" están deshabilitados (grises) porque el candado está bloqueado
+4. El tooltip del candado dice "Clic para desbloquear y poder aprobar"
+
+FUNCIONAMIENTO:
+- Estado inicial: candado bloqueado, botones deshabilitados
+- Al hacer clic en el candado: se desbloquea, botones se activan
+- Al aprobar o solicitar cambios: el candado se vuelve a bloquear automáticamente

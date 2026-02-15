@@ -1,0 +1,64 @@
+{
+  "query": "SELECT * FROM projectStatusHistory WHERE projectId = 390001 ORDER BY createdAt ASC;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT * FROM projectStatusHistory WHERE projectId = 390001 ORDER BY createdAt ASC;",
+  "rows": [
+    {
+      "id": "270001",
+      "projectId": "390001",
+      "fromStatus": "NULL",
+      "toStatus": "cotizacion_enviada",
+      "changedBy": "1",
+      "notes": "Proyecto creado - Cotización enviada",
+      "createdAt": "2026-01-25 23:58:53"
+    },
+    {
+      "id": "270002",
+      "projectId": "390001",
+      "fromStatus": "cotizacion_enviada",
+      "toStatus": "cotizacion_aprobada",
+      "changedBy": "1",
+      "notes": "NULL",
+      "createdAt": "2026-01-26 00:01:29"
+    },
+    {
+      "id": "270003",
+      "projectId": "390001",
+      "fromStatus": "cotizacion_aprobada",
+      "toStatus": "adelanto_recibido",
+      "changedBy": "1",
+      "notes": "NULL",
+      "createdAt": "2026-01-26 00:20:45"
+    },
+    {
+      "id": "270004",
+      "projectId": "390001",
+      "fromStatus": "adelanto_recibido",
+      "toStatus": "en_diseno",
+      "changedBy": "30257",
+      "notes": "NULL",
+      "createdAt": "2026-01-26 00:31:02"
+    },
+    {
+      "id": "270006",
+      "projectId": "390001",
+      "fromStatus": "en_diseno",
+      "toStatus": "pendiente_cliente",
+      "changedBy": "1",
+      "notes": "NULL",
+      "createdAt": "2026-01-26 02:23:10"
+    },
+    {
+      "id": "330001",
+      "projectId": "390001",
+      "fromStatus": "pendiente_cliente",
+      "toStatus": "pendiente_render",
+      "changedBy": "1",
+      "notes": "Renders enviados al cliente (Revisión #1)",
+      "createdAt": "2026-01-30 03:41:11"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tprojectId\tfromStatus\ttoStatus\tchangedBy\tnotes\tcreatedAt\n270001\t390001\tNULL\tcotizacion_enviada\t1\tProyecto creado - Cotización enviada\t2026-01-25 23:58:53\n270002\t390001\tcotizacion_enviada\tcotizacion_aprobada\t1\tNULL\t2026-01-26 00:01:29\n270003\t390001\tcotizacion_aprobada\tadelanto_recibido\t1\tNULL\t2026-01-26 00:20:45\n270004\t390001\tadelanto_recibido\ten_diseno\t30257\tNULL\t2026-01-26 00:31:02\n270006\t390001\ten_diseno\tpendiente_cliente\t1\tNULL\t2026-01-26 02:23:10\n330001\t390001\tpendiente_cliente\tpendiente_render\t1\tRenders enviados al cliente (Revisión #1)\t2026-01-30 03:41:11\n",
+  "stderr": "",
+  "execution_time_ms": 57
+}

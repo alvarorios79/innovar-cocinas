@@ -1,0 +1,22 @@
+{
+  "query": "SELECT status, COUNT(*) as cantidad FROM projects GROUP BY status;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT status, COUNT(*) as cantidad FROM projects GROUP BY status;",
+  "rows": [
+    {
+      "status": "corte",
+      "cantidad": "1"
+    },
+    {
+      "status": "despiece",
+      "cantidad": "1"
+    },
+    {
+      "status": "enchape",
+      "cantidad": "1"
+    }
+  ],
+  "messages": [],
+  "stdout": "status\tcantidad\ncorte\t1\ndespiece\t1\nenchape\t1\n",
+  "stderr": "",
+  "execution_time_ms": 349
+}

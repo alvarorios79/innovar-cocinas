@@ -1,11 +1,58 @@
-import { eq } from "drizzle-orm";
+import { eq, desc, and, gte, lte, gt, between, sql, inArray, isNull } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { 
+  InsertUser, 
+  users, 
+  clients, 
+  InsertClient,
+  appointments,
+  InsertAppointment,
+  appointmentWorkTypes,
+  InsertAppointmentWorkType,
+  advisoryRequests,
+  InsertAdvisoryRequest,
+  priorEstimates,
+  InsertPriorEstimate,
+  quotations,
+  InsertQuotation,
+  quotationItems,
+  InsertQuotationItem,
+  colombianHolidays,
+  InsertColombianHoliday,
+  reminders,
+  InsertReminder,
+  hardwareCatalog,
+  projectHardwareSelections,
+  projects,
+  InsertProject,
+  projectPhotos,
+  InsertProjectPhoto,
+  projectDetails,
+  InsertProjectDetail,
+  tasks,
+  InsertTask,
+  projectStatusHistory,
+  InsertProjectStatusHistory,
+  pushSubscriptions,
+  InsertPushSubscription,
+  notifications,
+  InsertNotification,
+  projectMaterials,
+  projectPayments,
+  InsertProjectPayment,
+  pricingConfig,
+  InsertPricingConfig,
+  pricingHistory,
+  InsertPricingHistory,
+  expenses,
+  InsertExpense,
+  clientRevisionHistory,
+  InsertClientRevisionHistory
+} from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
-// Lazily create the drizzle instance so local tooling can run without a DB.
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
@@ -16,6 +63,21 @@ export async function getDb() {
     }
   }
   return _db;
+}
+
+/**
+ * Ejecuta una función dentro de una transacción de base de datos.
+ * Si la función lanza un error, la transacción se revierte automáticamente.
+ * Si completa sin error, la transacción se confirma.
+ */
+export async function withTransaction<T>(
+  fn: (tx: Awaited<ReturnType<typeof getDb>>) => Promise<T>
+): Promise<T> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return await (db as any).transaction(async (tx: any) => {
+    return await fn(tx);
+  });
 }
 
 export async function upsertUser(user: InsertUser): Promise<void> {
@@ -53,11 +115,13 @@ export async function upsertUser(user: InsertUser): Promise<void> {
       updateSet.lastSignedIn = user.lastSignedIn;
     }
     if (user.role !== undefined) {
+      // Solo actualizar rol si se proporciona explícitamente
       values.role = user.role;
       updateSet.role = user.role;
     } else if (user.openId === ENV.ownerOpenId) {
-      values.role = 'admin';
-      updateSet.role = 'admin';
+      // Asignar rol inicial solo para usuarios nuevos (insert)
+      values.role = 'super_admin';
+      // NO incluir en updateSet para no sobrescribir rol existente
     }
 
     if (!values.lastSignedIn) {
@@ -89,4 +153,2360 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+export async function getUserById(id: number) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get user: database not available");
+    return undefined;
+  }
+
+  const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
+
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getUserByEmail(email: string) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get user: database not available");
+    return undefined;
+  }
+
+  const result = await db.select().from(users).where(eq(users.email, email)).limit(1);
+
+  return result.length > 0 ? result[0] : undefined;
+}
+
+// ============ CLIENTS ============
+
+export async function createClient(client: InsertClient) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.insert(clients).values(client);
+  return result[0].insertId;
+}
+
+export async function getClientById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db.select().from(clients).where(eq(clients.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getClientByWhatsApp(whatsappPhone: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db.select().from(clients).where(eq(clients.whatsappPhone, whatsappPhone)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getClientByUserId(userId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db.select().from(clients).where(eq(clients.userId, userId)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getAllClients() {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(clients).where(isNull(clients.deletedAt)).orderBy(desc(clients.createdAt));
+}
+
+export async function updateClient(id: number, data: Partial<InsertClient>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  // Filtrar valores undefined para evitar error "No values to set"
+  const filteredData = Object.fromEntries(
+    Object.entries(data).filter(([_, v]) => v !== undefined)
+  );
+  
+  if (Object.keys(filteredData).length === 0) {
+    return; // No hay nada que actualizar
+  }
+
+  await db.update(clients).set(filteredData).where(eq(clients.id, id));
+}
+
+// ============ APPOINTMENTS ============
+
+export async function createAppointment(appointment: InsertAppointment & { workTypes?: string[] }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const { workTypes, ...appointmentData } = appointment;
+  const result = await db.insert(appointments).values(appointmentData);
+  const appointmentId = result[0].insertId;
+  
+  // Si se proporcionan workTypes, crear los registros relacionados
+  if (workTypes && workTypes.length > 0) {
+    await Promise.all(
+      workTypes.map(workType =>
+        db.insert(appointmentWorkTypes).values({
+          appointmentId,
+          workType: workType as "cocina" | "closet" | "puertas" | "centro_tv"
+        })
+      )
+    );
+  }
+  
+  return appointmentId;
+}
+
+export async function createAppointmentWorkType(appointmentWorkType: InsertAppointmentWorkType) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.insert(appointmentWorkTypes).values(appointmentWorkType);
+  return result[0].insertId;
+}
+
+export async function getAppointmentById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db.select().from(appointments).where(eq(appointments.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getAppointmentsByClientId(clientId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  const appointmentsList = await db.select().from(appointments).where(and(eq(appointments.clientId, clientId), isNull(appointments.deletedAt))).orderBy(desc(appointments.scheduledDate));
+  
+  // Para cada cita, obtener sus workTypes
+  const appointmentsWithWorkTypes = await Promise.all(
+    appointmentsList.map(async (appointment) => {
+      const workTypes = await db.select().from(appointmentWorkTypes).where(eq(appointmentWorkTypes.appointmentId, appointment.id));
+      return {
+        ...appointment,
+        workTypes: workTypes.map(wt => wt.workType)
+      };
+    })
+  );
+  
+  return appointmentsWithWorkTypes;
+}
+
+export async function getAllAppointments() {
+  const db = await getDb();
+  if (!db) return [];
+
+  const appointmentsList = await db.select().from(appointments).where(isNull(appointments.deletedAt)).orderBy(desc(appointments.createdAt));
+  
+  // Para cada cita, obtener sus workTypes
+  const appointmentsWithWorkTypes = await Promise.all(
+    appointmentsList.map(async (appointment) => {
+      const workTypes = await db.select().from(appointmentWorkTypes).where(eq(appointmentWorkTypes.appointmentId, appointment.id));
+      return {
+        ...appointment,
+        workTypes: workTypes.map(wt => wt.workType)
+      };
+    })
+  );
+  
+  return appointmentsWithWorkTypes;
+}
+
+export async function updateAppointment(id: number, data: Partial<InsertAppointment>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(appointments).set(data).where(eq(appointments.id, id));
+}
+
+/**
+ * Verifica si ya existe una cita en la fecha/hora especificada (excluyendo citas canceladas)
+ */
+export async function isTimeSlotAvailable(scheduledDate: Date): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return true; // Si no hay DB, permitir (fallback)
+
+  const result = await db
+    .select()
+    .from(appointments)
+    .where(
+      and(
+        eq(appointments.scheduledDate, scheduledDate),
+        // Excluir citas canceladas
+        eq(appointments.status, "pendiente") // Solo considerar pendientes
+      )
+    )
+    .limit(1);
+
+  return result.length === 0; // Disponible si no hay resultados
+}
+
+/**
+ * Obtiene todas las citas de un día específico (excluyendo canceladas)
+ */
+export async function getAppointmentsByDate(date: Date) {
+  const db = await getDb();
+  if (!db) return [];
+
+  // Inicio y fin del día
+  const startOfDay = new Date(date);
+  startOfDay.setHours(0, 0, 0, 0);
+  
+  const endOfDay = new Date(date);
+  endOfDay.setHours(23, 59, 59, 999);
+
+  return await db
+    .select()
+    .from(appointments)
+    .where(
+      and(
+        gte(appointments.scheduledDate, startOfDay),
+        lte(appointments.scheduledDate, endOfDay),
+        // Excluir canceladas
+        eq(appointments.status, "pendiente"),
+        isNull(appointments.deletedAt)
+      )
+    )
+    .orderBy(appointments.scheduledDate);
+}
+
+// ============ ADVISORY REQUESTS ============
+
+export async function createAdvisoryRequest(request: InsertAdvisoryRequest) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.insert(advisoryRequests).values(request);
+  return result[0].insertId;
+}
+
+export async function getAdvisoryRequestsByClientId(clientId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(advisoryRequests).where(eq(advisoryRequests.clientId, clientId)).orderBy(desc(advisoryRequests.createdAt));
+}
+
+export async function getAllAdvisoryRequests() {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(advisoryRequests).orderBy(desc(advisoryRequests.createdAt));
+}
+
+export async function updateAdvisoryRequest(id: number, data: Partial<InsertAdvisoryRequest>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(advisoryRequests).set(data).where(eq(advisoryRequests.id, id));
+}
+
+// ============ PRIOR ESTIMATES ============
+
+export async function createPriorEstimate(estimate: InsertPriorEstimate) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.insert(priorEstimates).values(estimate);
+  return result[0].insertId;
+}
+
+export async function getPriorEstimatesByClientId(clientId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(priorEstimates).where(eq(priorEstimates.clientId, clientId)).orderBy(desc(priorEstimates.createdAt));
+}
+
+// ============ QUOTATIONS ============
+
+export async function createQuotation(quotation: InsertQuotation) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  // Generar quotationNumber automáticamente si no se proporciona
+  if (!quotation.quotationNumber) {
+    const year = new Date().getFullYear();
+    
+    // Obtener el último número de cotización del año actual
+    const lastQuotation = await db
+      .select()
+      .from(quotations)
+      .where(sql`${quotations.quotationNumber} LIKE ${`COT-${year}-%`}`)
+      .orderBy(sql`${quotations.id} DESC`)
+      .limit(1);
+
+    let nextNumber = 620; // Número inicial
+    if (lastQuotation.length > 0 && lastQuotation[0].quotationNumber) {
+      const match = lastQuotation[0].quotationNumber.match(/COT-\d{4}-(\d+)/);
+      if (match) {
+        nextNumber = parseInt(match[1]) + 1;
+      }
+    }
+
+    quotation.quotationNumber = `COT-${year}-${nextNumber}`;
+  }
+
+  const result = await db.insert(quotations).values(quotation);
+  return result[0].insertId;
+}
+
+export async function getQuotationById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db.select().from(quotations).where(eq(quotations.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getQuotationsByClientId(clientId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(quotations).where(and(eq(quotations.clientId, clientId), isNull(quotations.deletedAt))).orderBy(desc(quotations.createdAt));
+}
+
+export async function getAllQuotations() {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(quotations).where(isNull(quotations.deletedAt)).orderBy(desc(quotations.createdAt));
+}
+
+export async function updateQuotation(id: number, data: Partial<InsertQuotation>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(quotations).set(data).where(eq(quotations.id, id));
+}
+
+export async function getNextQuotationNumber(): Promise<string> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  // Obtener el último número de cotización
+  const lastQuotation = await db
+    .select({ quotationNumber: quotations.quotationNumber })
+    .from(quotations)
+    .orderBy(desc(quotations.id))
+    .limit(1);
+
+  // Agregar un sufijo aleatorio para evitar colisiones en tests paralelos
+  const randomSuffix = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+  const timestamp = Date.now().toString().slice(-4);
+
+  if (lastQuotation.length === 0) {
+    // Primera cotización
+    return `COT-2026-620-${timestamp}${randomSuffix}`;
+  }
+
+  // Extraer el número base de la última cotización (COT-2026-620 -> 620)
+  const parts = lastQuotation[0].quotationNumber.split("-");
+  const lastNumber = parseInt(parts[2]);
+  const nextNumber = lastNumber + 1;
+  
+  return `COT-2026-${nextNumber}-${timestamp}${randomSuffix}`;
+}
+
+// ============ QUOTATION ITEMS ============
+
+export async function createQuotationItem(item: InsertQuotationItem) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.insert(quotationItems).values(item);
+  return result[0].insertId;
+}
+
+export async function getQuotationItems(quotationId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db
+    .select()
+    .from(quotationItems)
+    .where(eq(quotationItems.quotationId, quotationId))
+    .orderBy(quotationItems.itemNumber);
+}
+
+export async function deleteQuotationItems(quotationId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.delete(quotationItems).where(eq(quotationItems.quotationId, quotationId));
+}
+
+// User management functions
+export async function getAllUsers() {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get users: database not available");
+    return [];
+  }
+
+  try {
+    const allUsers = await db.select().from(users);
+    return allUsers;
+  } catch (error) {
+    console.error("[Database] Failed to get users:", error);
+    return [];
+  }
+}
+
+export async function updateUserRole(userId: number, newRole: "user" | "admin" | "super_admin") {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot update user role: database not available");
+    throw new Error("Database not available");
+  }
+
+  try {
+    await db.update(users)
+      .set({ role: newRole })
+      .where(eq(users.id, userId));
+    return true;
+  } catch (error) {
+    console.error("[Database] Failed to update user role:", error);
+    throw error;
+  }
+}
+
+export async function createUser(userData: {
+  name: string;
+  email: string;
+  role: "user" | "admin" | "super_admin";
+  passwordHash?: string;
+}): Promise<void> {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  // Generate a unique openId for manually created users
+  const openId = `manual-${Date.now()}-${Math.random().toString(36).substring(7)}`;
+
+  await db.insert(users).values({
+    openId,
+    name: userData.name,
+    email: userData.email,
+    role: userData.role,
+    loginMethod: userData.passwordHash ? "password" : "manual",
+    passwordHash: userData.passwordHash,
+    lastSignedIn: new Date(),
+  });
+}
+
+export async function updateUserLastSignedIn(userId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  await db.update(users)
+    .set({ lastSignedIn: new Date() })
+    .where(eq(users.id, userId));
+}
+
+export async function deleteUser(userId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  try {
+    await db.delete(users).where(eq(users.id, userId));
+  } catch (error) {
+    console.error("[Database] Failed to delete user:", error);
+    throw error;
+  }
+}
+
+// ============ DELETE FUNCTIONS ============
+
+export async function deleteAppointment(appointmentId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  try {
+    await db.update(appointments).set({ deletedAt: new Date() }).where(eq(appointments.id, appointmentId));
+  } catch (error) {
+    console.error("[Database] Failed to soft-delete appointment:", error);
+    throw error;
+  }
+}
+
+export async function deleteAdvisoryRequest(advisoryId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  try {
+    await db.delete(advisoryRequests).where(eq(advisoryRequests.id, advisoryId));
+  } catch (error) {
+    console.error("[Database] Failed to delete advisory request:", error);
+    throw error;
+  }
+}
+
+export async function deleteQuotation(quotationId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  try {
+    await db.update(quotations).set({ deletedAt: new Date() }).where(eq(quotations.id, quotationId));
+  } catch (error) {
+    console.error("[Database] Failed to soft-delete quotation:", error);
+    throw error;
+  }
+}
+
+export async function deleteClient(clientId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  try {
+    await db.update(clients).set({ deletedAt: new Date() }).where(eq(clients.id, clientId));
+  } catch (error) {
+    console.error("[Database] Failed to soft-delete client:", error);
+    throw error;
+  }
+}
+
+
+// ============ PROJECTS ============
+
+export async function createProject(project: InsertProject) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.insert(projects).values(project);
+  return result[0].insertId;
+}
+
+export async function getProjectById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db.select().from(projects).where(eq(projects.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getAllProjects() {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(projects).where(isNull(projects.deletedAt)).orderBy(desc(projects.createdAt));
+}
+
+export async function getProjectByQuotationId(quotationId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db.select().from(projects).where(eq(projects.quotationId, quotationId)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getProjectsByStatus(status: string) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(projects)
+    .where(and(eq(projects.status, status as any), isNull(projects.deletedAt)))
+    .orderBy(desc(projects.createdAt));
+}
+
+export async function getProjectsByClientId(clientId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(projects)
+    .where(and(eq(projects.clientId, clientId), isNull(projects.deletedAt)))
+    .orderBy(desc(projects.createdAt));
+}
+
+export async function getProjectsByDesignerId(designerId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(projects)
+    .where(and(eq(projects.designerId, designerId), isNull(projects.deletedAt)))
+    .orderBy(desc(projects.createdAt));
+}
+
+/**
+ * Obtener el diseñador con menos proyectos activos para asignación automática
+ * Proyectos activos = estados desde adelanto_recibido hasta pendiente_render (fase de diseño)
+ */
+export async function getDesignerWithLeastActiveProjects(): Promise<number | null> {
+  const db = await getDb();
+  if (!db) return null;
+
+  // Obtener todos los diseñadores activos
+  const designers = await db.select().from(users).where(eq(users.role, "disenador"));
+  
+  if (designers.length === 0) return null;
+  if (designers.length === 1) return designers[0].id;
+
+  // Estados en los que el diseñador está activamente trabajando
+  const activeDesignStatuses = [
+    "adelanto_recibido",
+    "en_diseno",
+    "pendiente_modelado",
+    "pendiente_render",
+    "pendiente_render"
+  ];
+
+  // Contar proyectos activos por diseñador
+  let minProjects = Infinity;
+  let selectedDesignerId: number | null = null;
+
+  for (const designer of designers) {
+    const activeProjects = await db.select().from(projects)
+      .where(
+        and(
+          eq(projects.designerId, designer.id),
+          inArray(projects.status, activeDesignStatuses as any)
+        )
+      );
+    
+    if (activeProjects.length < minProjects) {
+      minProjects = activeProjects.length;
+      selectedDesignerId = designer.id;
+    }
+  }
+
+  return selectedDesignerId;
+}
+
+export async function updateProject(id: number, data: Partial<InsertProject>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(projects).set(data).where(eq(projects.id, id));
+}
+
+export async function deleteProject(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  // Eliminar todas las dependencias en cascada antes de eliminar el proyecto
+  await deleteProjectPhotos(id);
+  await deleteProjectTasks(id);
+  await deleteProjectStatusHistory(id);
+  await deleteProjectMaterials(id);
+  await deleteProjectPaymentsByProjectId(id);
+  await deleteRemindersByProjectId(id);
+  await deleteProjectDetails(id);
+  await deleteProjectNotifications(id);
+  
+  // Soft delete del proyecto (mantiene datos para auditoría)
+  await db.update(projects).set({ deletedAt: new Date() }).where(eq(projects.id, id));
+}
+
+// ============ PROJECT PHOTOS ============
+
+export async function createProjectPhoto(photo: InsertProjectPhoto) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.insert(projectPhotos).values(photo);
+  return result[0].insertId;
+}
+
+export async function getProjectPhotosByProjectId(projectId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(projectPhotos)
+    .where(eq(projectPhotos.projectId, projectId))
+    .orderBy(desc(projectPhotos.createdAt));
+}
+
+export async function getProjectPhotosByStage(projectId: number, stage: string) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(projectPhotos)
+    .where(and(
+      eq(projectPhotos.projectId, projectId),
+      eq(projectPhotos.stage, stage as any)
+    ))
+    .orderBy(desc(projectPhotos.createdAt));
+}
+
+export async function getProjectPhotosByCategory(projectId: number, category: string) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(projectPhotos)
+    .where(and(
+      eq(projectPhotos.projectId, projectId),
+      eq(projectPhotos.category, category as any)
+    ))
+    .orderBy(desc(projectPhotos.createdAt));
+}
+
+export async function deleteProjectPhoto(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.delete(projectPhotos).where(eq(projectPhotos.id, id));
+}
+
+export async function getProjectPhotoById(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+
+  const result = await db.select().from(projectPhotos).where(eq(projectPhotos.id, id));
+  return result[0] || null;
+}
+
+// ============ PROJECT DETAILS ============
+
+export async function createProjectDetail(detail: InsertProjectDetail) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.insert(projectDetails).values(detail);
+  return result[0].insertId;
+}
+
+export async function getProjectDetailsByProjectId(projectId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(projectDetails)
+    .where(eq(projectDetails.projectId, projectId))
+    .orderBy(desc(projectDetails.createdAt));
+}
+
+export async function updateProjectDetail(id: number, data: Partial<InsertProjectDetail>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(projectDetails).set(data).where(eq(projectDetails.id, id));
+}
+
+export async function deleteProjectDetail(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.delete(projectDetails).where(eq(projectDetails.id, id));
+}
+
+// ============ TASKS ============
+
+export async function createTask(task: InsertTask) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.insert(tasks).values(task);
+  return result[0].insertId;
+}
+
+export async function getTaskById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db.select().from(tasks).where(eq(tasks.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getTasksByAssignedTo(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(tasks)
+    .where(and(eq(tasks.assignedTo, userId), isNull(tasks.deletedAt)))
+    .orderBy(desc(tasks.createdAt));
+}
+
+export async function getTasksByProjectId(projectId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(tasks)
+    .where(and(eq(tasks.projectId, projectId), isNull(tasks.deletedAt)))
+    .orderBy(desc(tasks.createdAt));
+}
+
+export async function getAllTasks() {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(tasks).where(isNull(tasks.deletedAt)).orderBy(desc(tasks.createdAt));
+}
+
+export async function updateTask(id: number, data: Partial<InsertTask>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(tasks).set(data).where(eq(tasks.id, id));
+}
+
+export async function deleteTask(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(tasks).set({ deletedAt: new Date() }).where(eq(tasks.id, id));
+}
+
+export async function updateTaskReminderHistory(taskId: number, sentByUserId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  // Obtener el conteo actual de recordatorios
+  const task = await getTaskById(taskId);
+  const currentCount = task?.reminderCount || 0;
+
+  await db.update(tasks).set({
+    lastReminderSentAt: new Date(),
+    lastReminderSentBy: sentByUserId,
+    reminderCount: currentCount + 1,
+  }).where(eq(tasks.id, taskId));
+}
+
+// ============ PROJECT STATUS HISTORY ============
+
+export async function createProjectStatusHistory(history: InsertProjectStatusHistory) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.insert(projectStatusHistory).values(history);
+  return result[0].insertId;
+}
+
+export async function getProjectStatusHistoryByProjectId(projectId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  // Obtener historial con información del usuario que hizo el cambio
+  const history = await db.select().from(projectStatusHistory)
+    .where(eq(projectStatusHistory.projectId, projectId))
+    .orderBy(desc(projectStatusHistory.createdAt));
+  
+  // Obtener información de los usuarios que hicieron los cambios
+  const userIds = Array.from(new Set(history.filter(h => h.changedBy).map(h => h.changedBy!)));
+  const usersData = userIds.length > 0 
+    ? await db.select().from(users).where(inArray(users.id, userIds))
+    : [];
+  const userMap = new Map(usersData.map(u => [u.id, u]));
+  
+  return history.map(h => ({
+    ...h,
+    changedByUser: h.changedBy ? userMap.get(h.changedBy) : null,
+  }));
+}
+
+// ============ HELPER: Update user role with new roles ============
+
+export async function updateUserRoleExtended(userId: number, newRole: "user" | "admin" | "super_admin" | "disenador" | "jefe_taller" | "operario") {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  await db.update(users)
+    .set({ role: newRole })
+    .where(eq(users.id, userId));
+  return true;
+}
+
+export async function createUserExtended(userData: {
+  name: string;
+  email: string;
+  role: "user" | "admin" | "super_admin" | "disenador" | "jefe_taller" | "operario";
+  passwordHash?: string;
+}): Promise<number> {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  const openId = `manual-${Date.now()}-${Math.random().toString(36).substring(7)}`;
+
+  const result = await db.insert(users).values({
+    openId,
+    name: userData.name,
+    email: userData.email,
+    role: userData.role,
+    loginMethod: userData.passwordHash ? "password" : "manual",
+    passwordHash: userData.passwordHash,
+    lastSignedIn: new Date(),
+  });
+
+  return result[0].insertId;
+}
+
+// ============ GET USERS BY ROLE ============
+
+export async function getUsersByRole(role: string) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(users)
+    .where(eq(users.role, role as any))
+    .orderBy(users.name);
+}
+
+// ============ PASSWORD RESET ============
+
+export async function setPasswordResetToken(userId: number, token: string, expires: Date) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(users)
+    .set({ 
+      passwordResetToken: token,
+      passwordResetExpires: expires 
+    })
+    .where(eq(users.id, userId));
+}
+
+export async function getUserByResetToken(token: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db.select().from(users)
+    .where(and(
+      eq(users.passwordResetToken, token),
+      gt(users.passwordResetExpires, new Date())
+    ))
+    .limit(1);
+
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function updateUserPassword(userId: number, passwordHash: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(users)
+    .set({ 
+      passwordHash,
+      loginMethod: "password"
+    })
+    .where(eq(users.id, userId));
+}
+
+export async function clearPasswordResetToken(userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(users)
+    .set({ 
+      passwordResetToken: null,
+      passwordResetExpires: null 
+    })
+    .where(eq(users.id, userId));
+}
+
+export async function updateUserBirthDate(userId: number, birthDate: string | null) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(users)
+    .set({ birthDate: birthDate ? new Date(birthDate) : null })
+    .where(eq(users.id, userId));
+}
+
+export async function updateUserPhone(userId: number, phone: string | null) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(users)
+    .set({ phone: phone || null })
+    .where(eq(users.id, userId));
+}
+
+// ============ PUSH SUBSCRIPTIONS ============
+
+export async function createPushSubscription(subscription: InsertPushSubscription) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  // Verificar si ya existe una suscripción con el mismo endpoint para este usuario
+  const existing = await db.select().from(pushSubscriptions)
+    .where(and(
+      eq(pushSubscriptions.userId, subscription.userId),
+      eq(pushSubscriptions.endpoint, subscription.endpoint)
+    ))
+    .limit(1);
+
+  if (existing.length > 0) {
+    // Actualizar la existente
+    await db.update(pushSubscriptions)
+      .set({ p256dh: subscription.p256dh, auth: subscription.auth, userAgent: subscription.userAgent })
+      .where(eq(pushSubscriptions.id, existing[0].id));
+    return existing[0].id;
+  }
+
+  const result = await db.insert(pushSubscriptions).values(subscription);
+  return result[0].insertId;
+}
+
+export async function getPushSubscriptionsByUserId(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(pushSubscriptions)
+    .where(eq(pushSubscriptions.userId, userId));
+}
+
+export async function deletePushSubscription(endpoint: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.delete(pushSubscriptions).where(eq(pushSubscriptions.endpoint, endpoint));
+}
+
+export async function getAllPushSubscriptions() {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(pushSubscriptions);
+}
+
+// ============ NOTIFICATIONS ============
+
+export async function createNotification(notification: InsertNotification) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.insert(notifications).values(notification);
+  return result[0].insertId;
+}
+
+export async function getNotificationsByUserId(userId: number, limit = 50) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(notifications)
+    .where(eq(notifications.userId, userId))
+    .orderBy(desc(notifications.createdAt))
+    .limit(limit);
+}
+
+export async function getUnreadNotificationsCount(userId: number) {
+  const db = await getDb();
+  if (!db) return 0;
+
+  const result = await db.select({ count: sql<number>`count(*)` })
+    .from(notifications)
+    .where(and(
+      eq(notifications.userId, userId),
+      eq(notifications.read, false)
+    ));
+
+  return result[0]?.count || 0;
+}
+
+export async function markNotificationAsRead(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(notifications).set({ read: true }).where(eq(notifications.id, id));
+}
+
+export async function markAllNotificationsAsRead(userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(notifications)
+    .set({ read: true })
+    .where(eq(notifications.userId, userId));
+}
+
+export async function deleteNotification(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.delete(notifications).where(eq(notifications.id, id));
+}
+
+export async function updateNotificationPushSent(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(notifications).set({ sentPush: true }).where(eq(notifications.id, id));
+}
+
+// ============ COLOMBIAN HOLIDAYS ============
+
+export async function createColombianHoliday(holiday: InsertColombianHoliday) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.insert(colombianHolidays).values(holiday);
+  return result[0].insertId;
+}
+
+export async function getColombianHolidays(yearStart: number, yearEnd: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(colombianHolidays)
+    .where(and(
+      gte(colombianHolidays.year, yearStart),
+      lte(colombianHolidays.year, yearEnd)
+    ))
+    .orderBy(colombianHolidays.date);
+}
+
+export async function getColombianHolidaysByYear(year: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(colombianHolidays)
+    .where(eq(colombianHolidays.year, year))
+    .orderBy(colombianHolidays.date);
+}
+
+// ============ REMINDERS ============
+
+export async function createReminder(reminder: InsertReminder) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.insert(reminders).values(reminder);
+  return result[0].insertId;
+}
+
+export async function getRemindersByProjectId(projectId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(reminders)
+    .where(eq(reminders.projectId, projectId))
+    .orderBy(desc(reminders.dueDate));
+}
+
+export async function getRemindersByUserId(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(reminders)
+    .where(eq(reminders.assignedTo, userId))
+    .orderBy(reminders.dueDate);
+}
+
+export async function getPendingReminders() {
+  const db = await getDb();
+  if (!db) return [];
+
+  const now = new Date();
+  return await db.select().from(reminders)
+    .where(and(
+      eq(reminders.status, "pendiente"),
+      lte(reminders.dueDate, now)
+    ))
+    .orderBy(reminders.dueDate);
+}
+
+export async function updateReminderStatus(id: number, status: "pendiente" | "enviado" | "completado" | "cancelado") {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const updateData: { status: typeof status; sentAt?: Date } = { status };
+  if (status === "enviado") {
+    updateData.sentAt = new Date();
+  }
+
+  await db.update(reminders).set(updateData).where(eq(reminders.id, id));
+}
+
+export async function deleteReminder(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.delete(reminders).where(eq(reminders.id, id));
+}
+
+export async function cancelProjectReminders(projectId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(reminders)
+    .set({ status: "cancelado" })
+    .where(and(
+      eq(reminders.projectId, projectId),
+      eq(reminders.status, "pendiente")
+    ));
+}
+
+
+// ============ HARDWARE CATALOG ============
+
+export async function getHardwareCatalog(category?: "cocinas" | "closets" | "puertas") {
+  const db = await getDb();
+  if (!db) return [];
+
+  if (category) {
+    return await db.select().from(hardwareCatalog)
+      .where(and(
+        eq(hardwareCatalog.category, category),
+        eq(hardwareCatalog.active, true)
+      ))
+      .orderBy(hardwareCatalog.sortOrder, hardwareCatalog.name);
+  }
+
+  return await db.select().from(hardwareCatalog)
+    .where(eq(hardwareCatalog.active, true))
+    .orderBy(hardwareCatalog.category, hardwareCatalog.sortOrder, hardwareCatalog.name);
+}
+
+export async function createHardwareItem(item: {
+  category: "cocinas" | "closets" | "puertas";
+  name: string;
+  description?: string;
+  options?: string;
+  price?: number;
+  photoUrl?: string;
+  sortOrder?: number;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.insert(hardwareCatalog).values({
+    category: item.category,
+    name: item.name,
+    description: item.description,
+    options: item.options,
+    price: item.price !== undefined ? item.price.toString() : "0",
+    photoUrl: item.photoUrl,
+    sortOrder: item.sortOrder || 0,
+    active: true,
+  });
+  return result[0].insertId;
+}
+
+export async function updateHardwareItem(id: number, data: {
+  name?: string;
+  description?: string;
+  options?: string;
+  price?: number;
+  photoUrl?: string;
+  sortOrder?: number;
+  active?: boolean;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const updateData: any = { ...data };
+  if (data.price !== undefined) {
+    updateData.price = data.price.toString();
+  }
+
+  await db.update(hardwareCatalog).set(updateData).where(eq(hardwareCatalog.id, id));
+}
+
+export async function deleteHardwareItem(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  // Soft delete - just mark as inactive
+  await db.update(hardwareCatalog).set({ active: false }).where(eq(hardwareCatalog.id, id));
+}
+
+// ============ PROJECT MATERIALS ============
+
+export async function getProjectMaterials(projectId: number) {
+  const db = await getDb();
+  if (!db) return null;
+
+  const result = await db.select().from(projectMaterials)
+    .where(eq(projectMaterials.projectId, projectId))
+    .limit(1);
+  
+  return result.length > 0 ? result[0] : null;
+}
+
+export async function saveProjectMaterials(projectId: number, data: {
+  woodType?: "rh" | "estandar";
+  woodColor?: string;
+  woodPhotoUrl?: string;
+  countertopType?: "granito" | "cuarzo" | "sinterizado";
+  countertopName?: string;
+  countertopPhotoUrl?: string;
+  sinkMeasure?: string;
+  sinkPhotoUrl?: string;
+  notes?: string;
+}, createdBy: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  // Check if materials already exist for this project
+  const existing = await db.select().from(projectMaterials)
+    .where(eq(projectMaterials.projectId, projectId))
+    .limit(1);
+
+  if (existing.length > 0) {
+    // Update existing
+    await db.update(projectMaterials)
+      .set(data)
+      .where(eq(projectMaterials.projectId, projectId));
+    return existing[0].id;
+  } else {
+    // Create new
+    const result = await db.insert(projectMaterials).values({
+      projectId,
+      ...data,
+      createdBy,
+    });
+    return result[0].insertId;
+  }
+}
+
+// ============ PROJECT HARDWARE SELECTIONS ============
+
+export async function getProjectHardwareSelections(projectId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select({
+    id: projectHardwareSelections.id,
+    projectId: projectHardwareSelections.projectId,
+    hardwareId: projectHardwareSelections.hardwareId,
+    selectedOption: projectHardwareSelections.selectedOption,
+    notes: projectHardwareSelections.notes,
+    createdBy: projectHardwareSelections.createdBy,
+    createdAt: projectHardwareSelections.createdAt,
+    hardware: {
+      id: hardwareCatalog.id,
+      category: hardwareCatalog.category,
+      name: hardwareCatalog.name,
+      description: hardwareCatalog.description,
+      options: hardwareCatalog.options,
+      photoUrl: hardwareCatalog.photoUrl,
+    }
+  })
+    .from(projectHardwareSelections)
+    .innerJoin(hardwareCatalog, eq(projectHardwareSelections.hardwareId, hardwareCatalog.id))
+    .where(eq(projectHardwareSelections.projectId, projectId));
+}
+
+export async function addProjectHardwareSelection(
+  projectId: number, 
+  hardwareId: number, 
+  selectedOption?: string, 
+  notes?: string,
+  createdBy?: number
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  // Check if already selected
+  const existing = await db.select().from(projectHardwareSelections)
+    .where(and(
+      eq(projectHardwareSelections.projectId, projectId),
+      eq(projectHardwareSelections.hardwareId, hardwareId)
+    ))
+    .limit(1);
+
+  if (existing.length > 0) {
+    // Update existing selection
+    await db.update(projectHardwareSelections)
+      .set({ selectedOption, notes })
+      .where(eq(projectHardwareSelections.id, existing[0].id));
+    return existing[0].id;
+  }
+
+  const result = await db.insert(projectHardwareSelections).values({
+    projectId,
+    hardwareId,
+    selectedOption,
+    notes,
+    createdBy: createdBy || 0,
+  });
+  return result[0].insertId;
+}
+
+export async function removeProjectHardwareSelection(projectId: number, hardwareId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.delete(projectHardwareSelections)
+    .where(and(
+      eq(projectHardwareSelections.projectId, projectId),
+      eq(projectHardwareSelections.hardwareId, hardwareId)
+    ));
+}
+
+// ============ HARDWARE CATALOG ============
+
+export async function getHardwareByCategory(category: "cocinas" | "closets" | "puertas") {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  return await db.select()
+    .from(hardwareCatalog)
+    .where(and(
+      eq(hardwareCatalog.category, category),
+      eq(hardwareCatalog.active, true)
+    ))
+    .orderBy(hardwareCatalog.sortOrder, hardwareCatalog.name);
+}
+
+export async function getAllHardware() {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  return await db.select()
+    .from(hardwareCatalog)
+    .orderBy(hardwareCatalog.category, hardwareCatalog.sortOrder, hardwareCatalog.name);
+}
+
+export async function createHardware(data: {
+  category: "cocinas" | "closets" | "puertas";
+  name: string;
+  description?: string;
+  price: number;
+  photoUrl?: string;
+  sortOrder?: number;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.insert(hardwareCatalog).values({
+    category: data.category,
+    name: data.name,
+    description: data.description,
+    price: data.price.toString(),
+    photoUrl: data.photoUrl,
+    sortOrder: data.sortOrder ?? 0,
+  });
+  
+  return result[0].insertId;
+}
+
+export async function updateHardware(id: number, data: {
+  category?: "cocinas" | "closets" | "puertas";
+  name?: string;
+  description?: string;
+  price?: number;
+  photoUrl?: string;
+  sortOrder?: number;
+  active?: boolean;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const updateData: any = {};
+  if (data.category !== undefined) updateData.category = data.category;
+  if (data.name !== undefined) updateData.name = data.name;
+  if (data.description !== undefined) updateData.description = data.description;
+  if (data.price !== undefined) updateData.price = data.price.toString();
+  if (data.photoUrl !== undefined) updateData.photoUrl = data.photoUrl;
+  if (data.sortOrder !== undefined) updateData.sortOrder = data.sortOrder;
+  if (data.active !== undefined) updateData.active = data.active;
+
+  await db.update(hardwareCatalog)
+    .set(updateData)
+    .where(eq(hardwareCatalog.id, id));
+}
+
+export async function deleteHardware(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.delete(hardwareCatalog)
+    .where(eq(hardwareCatalog.id, id));
+}
+
+
+// ============ PROJECT PAYMENTS ============
+
+export async function createProjectPayment(payment: InsertProjectPayment) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.insert(projectPayments).values(payment);
+  return result[0].insertId;
+}
+
+export async function getProjectPaymentsByProjectId(projectId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(projectPayments)
+    .where(eq(projectPayments.projectId, projectId))
+    .orderBy(desc(projectPayments.paymentDate));
+}
+
+export async function getProjectPaymentById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db.select().from(projectPayments).where(eq(projectPayments.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function deleteProjectPayment(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.delete(projectPayments).where(eq(projectPayments.id, id));
+}
+
+export async function getTotalPaymentsByProjectId(projectId: number) {
+  const db = await getDb();
+  if (!db) return 0;
+
+  const payments = await db.select().from(projectPayments)
+    .where(eq(projectPayments.projectId, projectId));
+  
+  return payments.reduce((sum, p) => sum + Number(p.amount), 0);
+}
+
+
+// ============ FUNCIONES DE LIMPIEZA EN CASCADA ============
+
+export async function deleteProjectPhotos(projectId: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(projectPhotos).where(eq(projectPhotos.projectId, projectId));
+}
+
+export async function deleteProjectTasks(projectId: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(tasks).where(eq(tasks.projectId, projectId));
+}
+
+export async function deleteProjectStatusHistory(projectId: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(projectStatusHistory).where(eq(projectStatusHistory.projectId, projectId));
+}
+
+export async function deleteProjectMaterials(projectId: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(projectMaterials).where(eq(projectMaterials.projectId, projectId));
+}
+
+export async function deletePriorEstimatesByClientId(clientId: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(priorEstimates).where(eq(priorEstimates.clientId, clientId));
+}
+
+export async function deleteAdvisoryRequestsByClientId(clientId: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(advisoryRequests).where(eq(advisoryRequests.clientId, clientId));
+}
+
+export async function deletePushSubscriptionsByUserId(userId: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(pushSubscriptions).where(eq(pushSubscriptions.userId, userId));
+}
+
+export async function deleteProjectPaymentsByProjectId(projectId: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(projectPayments).where(eq(projectPayments.projectId, projectId));
+}
+
+export async function deleteRemindersByProjectId(projectId: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(reminders).where(eq(reminders.projectId, projectId));
+}
+
+
+// ============ FUNCIONES PARA LIMPIEZA DE USUARIOS ============
+
+export async function checkUserDependencies(userId: number): Promise<{ hasRealDependencies: boolean; details: string[] }> {
+  const db = await getDb();
+  if (!db) return { hasRealDependencies: false, details: [] };
+  
+  const details: string[] = [];
+  
+  // Verificar si tiene tareas asignadas
+  const userTasks = await db.select().from(tasks).where(eq(tasks.assignedTo, userId));
+  if (userTasks.length > 0) {
+    details.push(`${userTasks.length} tareas asignadas`);
+  }
+  
+  // Verificar si creó proyectos
+  const userProjects = await db.select().from(projects).where(eq(projects.createdBy, userId));
+  if (userProjects.length > 0) {
+    details.push(`${userProjects.length} proyectos creados`);
+  }
+  
+  // Verificar si creó cotizaciones
+  const userQuotations = await db.select().from(quotations).where(eq(quotations.createdBy, userId));
+  if (userQuotations.length > 0) {
+    details.push(`${userQuotations.length} cotizaciones creadas`);
+  }
+  
+  // Verificar si subió fotos
+  const userPhotos = await db.select().from(projectPhotos).where(eq(projectPhotos.uploadedBy, userId));
+  if (userPhotos.length > 0) {
+    details.push(`${userPhotos.length} fotos subidas`);
+  }
+  
+  // Verificar si tiene clientes vinculados
+  const userClients = await db.select().from(clients).where(eq(clients.userId, userId));
+  if (userClients.length > 0) {
+    details.push(`${userClients.length} clientes vinculados`);
+  }
+  
+  return {
+    hasRealDependencies: details.length > 0,
+    details
+  };
+}
+
+export async function deleteNotificationsByUserId(userId: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(notifications).where(eq(notifications.userId, userId));
+}
+
+// La tabla birthdayNotifications no existe en el schema actual
+// Si se necesita en el futuro, agregar al schema primero
+
+
+// ============ PRICING CONFIG ============
+
+export async function getAllPricingConfig() {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(pricingConfig)
+    .where(eq(pricingConfig.active, true))
+    .orderBy(pricingConfig.category, pricingConfig.sortOrder);
+}
+
+export async function getPricingByCategory(category: string) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(pricingConfig)
+    .where(and(
+      eq(pricingConfig.category, category as any),
+      eq(pricingConfig.active, true)
+    ))
+    .orderBy(pricingConfig.sortOrder);
+}
+
+export async function getPricingByCode(code: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db.select().from(pricingConfig)
+    .where(eq(pricingConfig.code, code))
+    .limit(1);
+  
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function updatePricingConfig(
+  id: number, 
+  newValue: number, 
+  updatedBy: number,
+  reason?: string
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  // Get current value for history
+  const current = await db.select().from(pricingConfig)
+    .where(eq(pricingConfig.id, id))
+    .limit(1);
+  
+  if (current.length === 0) {
+    throw new Error("Pricing config not found");
+  }
+
+  const previousValue = Number(current[0].value);
+
+  // Update the price
+  await db.update(pricingConfig)
+    .set({ 
+      value: newValue.toString(),
+      updatedBy 
+    })
+    .where(eq(pricingConfig.id, id));
+
+  // Record in history
+  await db.insert(pricingHistory).values({
+    pricingConfigId: id,
+    previousValue: previousValue.toString(),
+    newValue: newValue.toString(),
+    changedBy: updatedBy,
+    reason,
+  });
+
+  return true;
+}
+
+export async function createPricingConfig(data: {
+  category: string;
+  code: string;
+  name: string;
+  description?: string;
+  value: number;
+  unit?: string;
+  sortOrder?: number;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.insert(pricingConfig).values({
+    category: data.category as any,
+    code: data.code,
+    name: data.name,
+    description: data.description,
+    value: data.value.toString(),
+    unit: data.unit,
+    sortOrder: data.sortOrder ?? 0,
+    active: true,
+  });
+
+  return result[0].insertId;
+}
+
+export async function getPricingHistory(pricingConfigId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  const history = await db.select().from(pricingHistory)
+    .where(eq(pricingHistory.pricingConfigId, pricingConfigId))
+    .orderBy(desc(pricingHistory.createdAt));
+
+  // Get user info for each history entry
+  const userIds = Array.from(new Set(history.map(h => h.changedBy)));
+  const usersData = userIds.length > 0 
+    ? await db.select().from(users).where(inArray(users.id, userIds))
+    : [];
+  const userMap = new Map(usersData.map(u => [u.id, u]));
+
+  return history.map(h => ({
+    ...h,
+    changedByUser: userMap.get(h.changedBy),
+  }));
+}
+
+export async function getAllPricingHistory(limit = 50) {
+  const db = await getDb();
+  if (!db) return [];
+
+  const history = await db.select({
+    id: pricingHistory.id,
+    pricingConfigId: pricingHistory.pricingConfigId,
+    previousValue: pricingHistory.previousValue,
+    newValue: pricingHistory.newValue,
+    changedBy: pricingHistory.changedBy,
+    reason: pricingHistory.reason,
+    createdAt: pricingHistory.createdAt,
+    pricingName: pricingConfig.name,
+    pricingCode: pricingConfig.code,
+    pricingCategory: pricingConfig.category,
+  })
+    .from(pricingHistory)
+    .innerJoin(pricingConfig, eq(pricingHistory.pricingConfigId, pricingConfig.id))
+    .orderBy(desc(pricingHistory.createdAt))
+    .limit(limit);
+
+  // Get user info
+  const userIds = Array.from(new Set(history.map(h => h.changedBy)));
+  const usersData = userIds.length > 0 
+    ? await db.select().from(users).where(inArray(users.id, userIds))
+    : [];
+  const userMap = new Map(usersData.map(u => [u.id, u]));
+
+  return history.map(h => ({
+    ...h,
+    changedByUser: userMap.get(h.changedBy),
+  }));
+}
+
+export async function deletePricingConfig(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  // Soft delete
+  await db.update(pricingConfig)
+    .set({ active: false })
+    .where(eq(pricingConfig.id, id));
+}
+
+// ============ FUNCIONES ADICIONALES DE LIMPIEZA EN CASCADA ============
+
+export async function deleteProjectDetails(projectId: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(projectDetails).where(eq(projectDetails.projectId, projectId));
+}
+
+export async function deleteProjectNotifications(projectId: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(notifications).where(
+    and(
+      eq(notifications.referenceId, projectId),
+      eq(notifications.referenceType, "project")
+    )
+  );
+}
+
+
+// ============ SISTEMA CONTABLE - GASTOS ============
+
+export async function createExpense(expense: InsertExpense) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.insert(expenses).values(expense);
+  return result[0].insertId;
+}
+
+export async function getExpenseById(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+
+  const result = await db.select().from(expenses).where(eq(expenses.id, id)).limit(1);
+  return result[0] || null;
+}
+
+export async function getAllExpenses() {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(expenses).orderBy(desc(expenses.expenseDate));
+}
+
+export async function getExpensesByType(expenseType: "materiales_proyecto" | "gasto_operativo") {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(expenses)
+    .where(eq(expenses.expenseType, expenseType))
+    .orderBy(desc(expenses.expenseDate));
+}
+
+export async function getExpensesByProjectId(projectId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(expenses)
+    .where(eq(expenses.projectId, projectId))
+    .orderBy(desc(expenses.expenseDate));
+}
+
+export async function getExpensesByCategory(category: string) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(expenses)
+    .where(eq(expenses.operativeCategory, category as any))
+    .orderBy(desc(expenses.expenseDate));
+}
+
+export async function getExpensesByDateRange(startDate: Date, endDate: Date) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(expenses)
+    .where(between(expenses.expenseDate, startDate, endDate))
+    .orderBy(desc(expenses.expenseDate));
+}
+
+export async function updateExpense(id: number, data: Partial<InsertExpense>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(expenses).set(data).where(eq(expenses.id, id));
+}
+
+export async function deleteExpense(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.delete(expenses).where(eq(expenses.id, id));
+}
+
+export async function getExpensesTotalByProject(projectId: number) {
+  const db = await getDb();
+  if (!db) return 0;
+
+  const result = await db.select({ 
+    total: sql<string>`COALESCE(SUM(amount), 0)` 
+  })
+    .from(expenses)
+    .where(eq(expenses.projectId, projectId));
+
+  return parseFloat(result[0]?.total || "0");
+}
+
+export async function getExpensesTotalByCategory(category: string) {
+  const db = await getDb();
+  if (!db) return 0;
+
+  const result = await db.select({ 
+    total: sql<string>`COALESCE(SUM(amount), 0)` 
+  })
+    .from(expenses)
+    .where(eq(expenses.operativeCategory, category as any));
+
+  return parseFloat(result[0]?.total || "0");
+}
+
+export async function getExpensesSummaryByType() {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select({
+    expenseType: expenses.expenseType,
+    total: sql<string>`COALESCE(SUM(amount), 0)`,
+    count: sql<number>`COUNT(*)`
+  })
+    .from(expenses)
+    .groupBy(expenses.expenseType);
+}
+
+export async function getOperativeExpensesSummaryByCategory() {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select({
+    category: expenses.operativeCategory,
+    total: sql<string>`COALESCE(SUM(amount), 0)`,
+    count: sql<number>`COUNT(*)`
+  })
+    .from(expenses)
+    .where(eq(expenses.expenseType, "gasto_operativo"))
+    .groupBy(expenses.operativeCategory);
+}
+
+export async function getExpensesSummaryByGeneralCategory() {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select({
+    generalCategory: expenses.generalCategory,
+    total: sql<string>`COALESCE(SUM(amount), 0)`,
+    count: sql<number>`COUNT(*)`
+  })
+    .from(expenses)
+    .groupBy(expenses.generalCategory);
+}
+
+export async function getProjectExpensesSummary() {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select({
+    projectId: expenses.projectId,
+    projectClientName: expenses.projectClientName,
+    total: sql<string>`COALESCE(SUM(amount), 0)`,
+    count: sql<number>`COUNT(*)`
+  })
+    .from(expenses)
+    .where(eq(expenses.expenseType, "materiales_proyecto"))
+    .groupBy(expenses.projectId, expenses.projectClientName);
+}
+
+
+// ============ CLIENT REVISION HISTORY ============
+
+export async function createClientRevision(data: InsertClientRevisionHistory) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.insert(clientRevisionHistory).values(data);
+  return result[0].insertId;
+}
+
+export async function getClientRevisionsByProjectId(projectId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(clientRevisionHistory)
+    .where(eq(clientRevisionHistory.projectId, projectId))
+    .orderBy(desc(clientRevisionHistory.createdAt));
+}
+
+export async function getClientRevisionsByType(projectId: number, type: "modelado_3d" | "renders") {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(clientRevisionHistory)
+    .where(and(
+      eq(clientRevisionHistory.projectId, projectId),
+      eq(clientRevisionHistory.type, type)
+    ))
+    .orderBy(desc(clientRevisionHistory.createdAt));
+}
+
+
+// ============ PAGINATED QUERIES ============
+
+export type PaginationParams = {
+  page?: number;
+  limit?: number;
+  search?: string;
+};
+
+export type PaginatedResult<T> = {
+  data: T[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+};
+
+export async function getAllClientsPaginated(params: PaginationParams = {}): Promise<PaginatedResult<any>> {
+  const db = await getDb();
+  if (!db) return { data: [], total: 0, page: 1, limit: 50, totalPages: 0 };
+
+  const page = Math.max(1, params.page || 1);
+  const limit = Math.min(100, Math.max(1, params.limit || 50));
+  const offset = (page - 1) * limit;
+
+  const conditions = [isNull(clients.deletedAt)];
+  if (params.search) {
+    const searchTerm = `%${params.search}%`;
+    conditions.push(sql`(${clients.name} LIKE ${searchTerm} OR ${clients.email} LIKE ${searchTerm} OR ${clients.whatsappPhone} LIKE ${searchTerm})`);
+  }
+
+  const [countResult, data] = await Promise.all([
+    db.select({ count: sql<number>`count(*)` }).from(clients).where(and(...conditions)),
+    db.select().from(clients).where(and(...conditions)).orderBy(desc(clients.createdAt)).limit(limit).offset(offset),
+  ]);
+
+  const total = countResult[0]?.count || 0;
+  return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
+}
+
+export async function getAllAppointmentsPaginated(params: PaginationParams & { status?: string } = {}): Promise<PaginatedResult<any>> {
+  const db = await getDb();
+  if (!db) return { data: [], total: 0, page: 1, limit: 50, totalPages: 0 };
+
+  const page = Math.max(1, params.page || 1);
+  const limit = Math.min(100, Math.max(1, params.limit || 50));
+  const offset = (page - 1) * limit;
+
+  const conditions: any[] = [isNull(appointments.deletedAt)];
+  if (params.status) {
+    conditions.push(eq(appointments.status, params.status as any));
+  }
+
+  const [countResult, appointmentsList] = await Promise.all([
+    db.select({ count: sql<number>`count(*)` }).from(appointments).where(and(...conditions)),
+    db.select().from(appointments).where(and(...conditions)).orderBy(desc(appointments.createdAt)).limit(limit).offset(offset),
+  ]);
+
+  // Obtener workTypes para las citas de esta página
+  const appointmentsWithWorkTypes = await Promise.all(
+    appointmentsList.map(async (appointment) => {
+      const workTypes = await db.select().from(appointmentWorkTypes).where(eq(appointmentWorkTypes.appointmentId, appointment.id));
+      return { ...appointment, workTypes: workTypes.map(wt => wt.workType) };
+    })
+  );
+
+  const total = countResult[0]?.count || 0;
+  return { data: appointmentsWithWorkTypes, total, page, limit, totalPages: Math.ceil(total / limit) };
+}
+
+export async function getAllQuotationsPaginated(params: PaginationParams & { status?: string } = {}): Promise<PaginatedResult<any>> {
+  const db = await getDb();
+  if (!db) return { data: [], total: 0, page: 1, limit: 50, totalPages: 0 };
+
+  const page = Math.max(1, params.page || 1);
+  const limit = Math.min(100, Math.max(1, params.limit || 50));
+  const offset = (page - 1) * limit;
+
+  const conditions: any[] = [isNull(quotations.deletedAt)];
+  if (params.status) {
+    conditions.push(eq(quotations.status, params.status as any));
+  }
+
+  const [countResult, data] = await Promise.all([
+    db.select({ count: sql<number>`count(*)` }).from(quotations).where(and(...conditions)),
+    db.select().from(quotations).where(and(...conditions)).orderBy(desc(quotations.createdAt)).limit(limit).offset(offset),
+  ]);
+
+  const total = countResult[0]?.count || 0;
+  return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
+}
+
+export async function getAllProjectsPaginated(params: PaginationParams & { status?: string } = {}): Promise<PaginatedResult<any>> {
+  const db = await getDb();
+  if (!db) return { data: [], total: 0, page: 1, limit: 50, totalPages: 0 };
+
+  const page = Math.max(1, params.page || 1);
+  const limit = Math.min(100, Math.max(1, params.limit || 50));
+  const offset = (page - 1) * limit;
+
+  const conditions: any[] = [isNull(projects.deletedAt)];
+  if (params.status) {
+    conditions.push(eq(projects.status, params.status as any));
+  }
+
+  const [countResult, data] = await Promise.all([
+    db.select({ count: sql<number>`count(*)` }).from(projects).where(and(...conditions)),
+    db.select().from(projects).where(and(...conditions)).orderBy(desc(projects.createdAt)).limit(limit).offset(offset),
+  ]);
+
+  const total = countResult[0]?.count || 0;
+  return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
+}
+
+export async function getAllTasksPaginated(params: PaginationParams & { status?: string; assignedTo?: number } = {}): Promise<PaginatedResult<any>> {
+  const db = await getDb();
+  if (!db) return { data: [], total: 0, page: 1, limit: 50, totalPages: 0 };
+
+  const page = Math.max(1, params.page || 1);
+  const limit = Math.min(100, Math.max(1, params.limit || 50));
+  const offset = (page - 1) * limit;
+
+  const conditions: any[] = [isNull(tasks.deletedAt)];
+  if (params.status) {
+    conditions.push(eq(tasks.status, params.status as any));
+  }
+  if (params.assignedTo) {
+    conditions.push(eq(tasks.assignedTo, params.assignedTo));
+  }
+
+  const [countResult, data] = await Promise.all([
+    db.select({ count: sql<number>`count(*)` }).from(tasks).where(and(...conditions)),
+    db.select().from(tasks).where(and(...conditions)).orderBy(desc(tasks.createdAt)).limit(limit).offset(offset),
+  ]);
+
+  const total = countResult[0]?.count || 0;
+  return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
+}
+
+export async function getAllExpensesPaginated(params: PaginationParams & { expenseType?: string } = {}): Promise<PaginatedResult<any>> {
+  const db = await getDb();
+  if (!db) return { data: [], total: 0, page: 1, limit: 50, totalPages: 0 };
+
+  const page = Math.max(1, params.page || 1);
+  const limit = Math.min(100, Math.max(1, params.limit || 50));
+  const offset = (page - 1) * limit;
+
+  const conditions: any[] = [];
+  if (params.expenseType) {
+    conditions.push(eq(expenses.expenseType, params.expenseType as any));
+  }
+
+  const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+  const [countResult, data] = await Promise.all([
+    db.select({ count: sql<number>`count(*)` }).from(expenses).where(whereClause),
+    db.select().from(expenses).where(whereClause).orderBy(desc(expenses.expenseDate)).limit(limit).offset(offset),
+  ]);
+
+  const total = countResult[0]?.count || 0;
+  return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
+}
+
+
+// ============ QUOTATION VERSIONING ============
+
+/**
+ * Obtiene la cotización base (V1) de un cliente
+ * Si la cotización es una versión, devuelve la V1
+ * Si la cotización es V1, devuelve ella misma
+ */
+export async function getBaseQuotation(quotationId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const quotation = await getQuotationById(quotationId);
+  if (!quotation) return undefined;
+
+  // Si tiene baseQuotationId, obtener la V1
+  if (quotation.baseQuotationId) {
+    return await getQuotationById(quotation.baseQuotationId);
+  }
+
+  // Si no tiene baseQuotationId, es la V1
+  return quotation;
+}
+
+/**
+ * Obtiene todas las versiones de una cotización (V1, V2, V3, etc.)
+ */
+export async function getQuotationVersions(quotationId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  // Obtener la cotización para saber cuál es la base
+  const quotation = await getQuotationById(quotationId);
+  if (!quotation) return [];
+
+  // Determinar el baseQuotationId
+  const baseId = quotation.baseQuotationId || quotationId;
+
+  // Obtener todas las versiones (la base + todas las que tengan baseQuotationId = baseId)
+  const result = await db
+    .select()
+    .from(quotations)
+    .where(
+      or(
+        eq(quotations.id, baseId),
+        eq(quotations.baseQuotationId, baseId)
+      )
+    )
+    .orderBy(quotations.versionNumber);
+
+  return result;
+}
+
+/**
+ * Obtiene la última versión aprobada de una cotización
+ */
+export async function getLatestApprovedQuotationVersion(baseQuotationId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db
+    .select()
+    .from(quotations)
+    .where(
+      and(
+        or(
+          eq(quotations.id, baseQuotationId),
+          eq(quotations.baseQuotationId, baseQuotationId)
+        ),
+        eq(quotations.status, "approved")
+      )
+    )
+    .orderBy(desc(quotations.versionNumber))
+    .limit(1);
+
+  return result.length > 0 ? result[0] : undefined;
+}
+
+/**
+ * Crea una nueva versión de una cotización
+ * Copia todos los items y crea una nueva cotización con versionNumber + 1
+ */
+export async function createQuotationVersion(sourceQuotationId: number, userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  return await withTransaction(async (tx) => {
+    // Obtener la cotización fuente
+    const sourceQuotation = await getQuotationById(sourceQuotationId);
+    if (!sourceQuotation) throw new Error("Source quotation not found");
+
+    // Determinar baseQuotationId y siguiente versionNumber
+    const baseId = sourceQuotation.baseQuotationId || sourceQuotationId;
+    
+    // Obtener todas las versiones para calcular el siguiente número
+    const versions = await tx
+      .select()
+      .from(quotations)
+      .where(
+        or(
+          eq(quotations.id, baseId),
+          eq(quotations.baseQuotationId, baseId)
+        )
+      );
+
+    const nextVersionNumber = Math.max(...versions.map(v => v.versionNumber), 0) + 1;
+
+    // Crear nueva cotización con la siguiente versión
+    const newQuotationData: InsertQuotation = {
+      quotationNumber: sourceQuotation.quotationNumber + `-V${nextVersionNumber}`,
+      clientId: sourceQuotation.clientId,
+      vendorName: sourceQuotation.vendorName,
+      productType: sourceQuotation.productType,
+      status: "draft", // Nueva versión comienza como borrador
+      validUntil: sourceQuotation.validUntil,
+      subtotal: sourceQuotation.subtotal,
+      transportCost: sourceQuotation.transportCost,
+      total: sourceQuotation.total,
+      discountPercent: sourceQuotation.discountPercent,
+      discountAmount: sourceQuotation.discountAmount,
+      customDescriptions: sourceQuotation.customDescriptions,
+      generalNotes: sourceQuotation.generalNotes,
+      createdBy: userId,
+      baseQuotationId: baseId,
+      versionNumber: nextVersionNumber,
+    };
+
+    const result = await tx.insert(quotations).values(newQuotationData);
+    const newQuotationId = result[0].insertId;
+
+    // Copiar todos los items de la cotización fuente
+    const sourceItems = await tx
+      .select()
+      .from(quotationItems)
+      .where(eq(quotationItems.quotationId, sourceQuotationId));
+
+    for (const item of sourceItems) {
+      await tx.insert(quotationItems).values({
+        quotationId: newQuotationId,
+        itemNumber: item.itemNumber,
+        itemType: item.itemType,
+        description: item.description,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+        totalPrice: item.totalPrice,
+        includesFixedCosts: item.includesFixedCosts,
+        fixedCostsAmount: item.fixedCostsAmount,
+        kitchenConfig: item.kitchenConfig,
+        hardwareSelections: item.hardwareSelections,
+        closetConfig: item.closetConfig,
+        doorConfig: item.doorConfig,
+        tvCenterConfig: item.tvCenterConfig,
+        countertopConfig: item.countertopConfig,
+      });
+    }
+
+    return newQuotationId;
+  });
+}
+
+/**
+ * Obtiene la última versión de una cotización (aprobada o no)
+ */
+export async function getLatestQuotationVersion(quotationId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const quotation = await getQuotationById(quotationId);
+  if (!quotation) return undefined;
+
+  const baseId = quotation.baseQuotationId || quotationId;
+
+  const result = await db
+    .select()
+    .from(quotations)
+    .where(
+      or(
+        eq(quotations.id, baseId),
+        eq(quotations.baseQuotationId, baseId)
+      )
+    )
+    .orderBy(desc(quotations.versionNumber))
+    .limit(1);
+
+  return result.length > 0 ? result[0] : undefined;
+}
+
+/**
+ * Obtiene el número de versión de una cotización
+ */
+export async function getQuotationVersionNumber(quotationId: number): Promise<number> {
+  const quotation = await getQuotationById(quotationId);
+  return quotation?.versionNumber || 1;
+}

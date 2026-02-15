@@ -1,0 +1,40 @@
+{
+  "query": "SELECT id, name, phone, role FROM users WHERE role IN ('super_admin', 'admin', 'comercial', 'disenador', 'jefe_taller', 'operario') AND phone IS NOT NULL AND phone != '' ORDER BY FIELD(role, 'super_admin', 'admin', 'comercial', 'disenador', 'jefe_taller', 'operario'), name LIMIT 10;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT id, name, phone, role FROM users WHERE role IN ('super_admin', 'admin', 'comercial', 'disenador', 'jefe_taller', 'operario') AND phone IS NOT NULL AND phone != '' ORDER BY FIELD(role, 'super_admin', 'admin', 'comercial', 'disenador', 'jefe_taller', 'operario'), name LIMIT 10;",
+  "rows": [
+    {
+      "id": "1",
+      "name": "Alvaro Rios",
+      "phone": "3002826317",
+      "role": "super_admin"
+    },
+    {
+      "id": "30390",
+      "name": "Martha Serna",
+      "phone": "3003880244",
+      "role": "admin"
+    },
+    {
+      "id": "30257",
+      "name": "Alejo Gutiérrez",
+      "phone": "3234078716",
+      "role": "disenador"
+    },
+    {
+      "id": "840290",
+      "name": "Luis Cardoso",
+      "phone": "3174266768",
+      "role": "jefe_taller"
+    },
+    {
+      "id": "840301",
+      "name": "Daniel Beltran",
+      "phone": "3134574062",
+      "role": "operario"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\tphone\trole\n1\tAlvaro Rios\t3002826317\tsuper_admin\n30390\tMartha Serna\t3003880244\tadmin\n30257\tAlejo Gutiérrez\t3234078716\tdisenador\n840290\tLuis Cardoso\t3174266768\tjefe_taller\n840301\tDaniel Beltran\t3134574062\toperario\n",
+  "stderr": "",
+  "execution_time_ms": 54
+}

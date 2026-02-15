@@ -1,0 +1,16 @@
+{
+  "query": "SELECT id, email, name, role FROM users WHERE role = 'jefe_taller' LIMIT 1;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT id, email, name, role FROM users WHERE role = 'jefe_taller' LIMIT 1;",
+  "rows": [
+    {
+      "id": "840290",
+      "email": "jefe.taller@innovar.temp",
+      "name": "Luis Cardoso",
+      "role": "jefe_taller"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\temail\tname\trole\n840290\tjefe.taller@innovar.temp\tLuis Cardoso\tjefe_taller\n",
+  "stderr": "",
+  "execution_time_ms": 55
+}

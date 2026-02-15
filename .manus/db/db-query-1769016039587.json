@@ -1,0 +1,9 @@
+{
+  "query": "ALTER TABLE projectHardwareSelections \nADD COLUMN quantity INT NOT NULL DEFAULT 1,\nADD COLUMN priceAtQuotation DECIMAL(10, 2);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute ALTER TABLE projectHardwareSelections \nADD COLUMN quantity INT NOT NULL DEFAULT 1,\nADD COLUMN priceAtQuotation DECIMAL(10, 2);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 1477
+}

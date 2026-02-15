@@ -1,0 +1,22 @@
+{
+  "query": "SELECT id, name, email, whatsappPhone FROM clients WHERE email IN ('albetan1530@gmail.com', 'alvarorios79@hotmail.com') OR whatsappPhone IN ('3208515567', '3002826317');",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT id, name, email, whatsappPhone FROM clients WHERE email IN ('albetan1530@gmail.com', 'alvarorios79@hotmail.com') OR whatsappPhone IN ('3208515567', '3002826317');",
+  "rows": [
+    {
+      "id": "90091",
+      "name": "Carlos Albeiro Betancurt ",
+      "email": "albetan1530@gmail.com",
+      "whatsappPhone": "3208515567"
+    },
+    {
+      "id": "300053",
+      "name": "Álvaro prueba ",
+      "email": "alvarorios79@hotmail.com",
+      "whatsappPhone": "3002826317"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\temail\twhatsappPhone\n90091\tCarlos Albeiro Betancurt \talbetan1530@gmail.com\t3208515567\n300053\tÁlvaro prueba \talvarorios79@hotmail.com\t3002826317\n",
+  "stderr": "",
+  "execution_time_ms": 57
+}

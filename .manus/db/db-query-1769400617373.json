@@ -1,0 +1,70 @@
+{
+  "query": "SELECT TABLE_NAME, COLUMN_NAME \nFROM information_schema.KEY_COLUMN_USAGE \nWHERE REFERENCED_TABLE_NAME = 'users' \nAND TABLE_SCHEMA = DATABASE();",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT TABLE_NAME, COLUMN_NAME \nFROM information_schema.KEY_COLUMN_USAGE \nWHERE REFERENCED_TABLE_NAME = 'users' \nAND TABLE_SCHEMA = DATABASE();",
+  "rows": [
+    {
+      "TABLE_NAME": "clients",
+      "COLUMN_NAME": "userId"
+    },
+    {
+      "TABLE_NAME": "projectDetails",
+      "COLUMN_NAME": "createdBy"
+    },
+    {
+      "TABLE_NAME": "projectPhotos",
+      "COLUMN_NAME": "uploadedBy"
+    },
+    {
+      "TABLE_NAME": "projectStatusHistory",
+      "COLUMN_NAME": "changedBy"
+    },
+    {
+      "TABLE_NAME": "projects",
+      "COLUMN_NAME": "createdBy"
+    },
+    {
+      "TABLE_NAME": "projects",
+      "COLUMN_NAME": "designerId"
+    },
+    {
+      "TABLE_NAME": "tasks",
+      "COLUMN_NAME": "assignedTo"
+    },
+    {
+      "TABLE_NAME": "tasks",
+      "COLUMN_NAME": "assignedBy"
+    },
+    {
+      "TABLE_NAME": "notifications",
+      "COLUMN_NAME": "userId"
+    },
+    {
+      "TABLE_NAME": "pushSubscriptions",
+      "COLUMN_NAME": "userId"
+    },
+    {
+      "TABLE_NAME": "reminders",
+      "COLUMN_NAME": "assignedTo"
+    },
+    {
+      "TABLE_NAME": "quotations",
+      "COLUMN_NAME": "createdBy"
+    },
+    {
+      "TABLE_NAME": "projectPayments",
+      "COLUMN_NAME": "registeredBy"
+    },
+    {
+      "TABLE_NAME": "taskReminders",
+      "COLUMN_NAME": "sentBy"
+    },
+    {
+      "TABLE_NAME": "taskReminders",
+      "COLUMN_NAME": "sentTo"
+    }
+  ],
+  "messages": [],
+  "stdout": "TABLE_NAME\tCOLUMN_NAME\nclients\tuserId\nprojectDetails\tcreatedBy\nprojectPhotos\tuploadedBy\nprojectStatusHistory\tchangedBy\nprojects\tcreatedBy\nprojects\tdesignerId\ntasks\tassignedTo\ntasks\tassignedBy\nnotifications\tuserId\npushSubscriptions\tuserId\nreminders\tassignedTo\nquotations\tcreatedBy\nprojectPayments\tregisteredBy\ntaskReminders\tsentBy\ntaskReminders\tsentTo\n",
+  "stderr": "",
+  "execution_time_ms": 99
+}

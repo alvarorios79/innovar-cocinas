@@ -1,0 +1,16 @@
+{
+  "query": "SELECT id, name, role, phone FROM users WHERE role = 'disenador' OR role = 'designer' OR name LIKE '%dise%';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT id, name, role, phone FROM users WHERE role = 'disenador' OR role = 'designer' OR name LIKE '%dise%';",
+  "rows": [
+    {
+      "id": "30257",
+      "name": "Alejo Gutiérrez",
+      "role": "disenador",
+      "phone": "3234078716"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\trole\tphone\n30257\tAlejo Gutiérrez\tdisenador\t3234078716\n",
+  "stderr": "",
+  "execution_time_ms": 108
+}

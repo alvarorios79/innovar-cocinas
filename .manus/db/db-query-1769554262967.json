@@ -1,0 +1,26 @@
+{
+  "query": "SELECT id, quotationNumber, subtotal, discountPercent, discountAmount, total FROM quotations ORDER BY createdAt DESC LIMIT 5;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT id, quotationNumber, subtotal, discountPercent, discountAmount, total FROM quotations ORDER BY createdAt DESC LIMIT 5;",
+  "rows": [
+    {
+      "id": "540007",
+      "quotationNumber": "COT-2026-621-2360887",
+      "subtotal": "8117500.00",
+      "discountPercent": "0.00",
+      "discountAmount": "0.00",
+      "total": "8117500.00"
+    },
+    {
+      "id": "510001",
+      "quotationNumber": "COT-2026-620-1770965",
+      "subtotal": "26621600.00",
+      "discountPercent": "0.00",
+      "discountAmount": "0.00",
+      "total": "26621600.00"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tquotationNumber\tsubtotal\tdiscountPercent\tdiscountAmount\ttotal\n540007\tCOT-2026-621-2360887\t8117500.00\t0.00\t0.00\t8117500.00\n510001\tCOT-2026-620-1770965\t26621600.00\t0.00\t0.00\t26621600.00\n",
+  "stderr": "",
+  "execution_time_ms": 109
+}

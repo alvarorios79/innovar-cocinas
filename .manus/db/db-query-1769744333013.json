@@ -1,0 +1,16 @@
+{
+  "query": "SELECT id, name, status, renderRevisionNumber FROM projects WHERE id = 390001;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT id, name, status, renderRevisionNumber FROM projects WHERE id = 390001;",
+  "rows": [
+    {
+      "id": "390001",
+      "name": "Sra Ruth Naranjo Viterbo",
+      "status": "pendiente_cliente",
+      "renderRevisionNumber": "0"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\tstatus\trenderRevisionNumber\n390001\tSra Ruth Naranjo Viterbo\tpendiente_cliente\t0\n",
+  "stderr": "",
+  "execution_time_ms": 60
+}

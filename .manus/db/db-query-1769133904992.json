@@ -1,0 +1,80 @@
+{
+  "query": "SELECT c.id, c.name, c.email, c.userId, u.name as userName FROM clients c LEFT JOIN users u ON c.userId = u.id WHERE c.userId IS NOT NULL LIMIT 10;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT c.id, c.name, c.email, c.userId, u.name as userName FROM clients c LEFT JOIN users u ON c.userId = u.id WHERE c.userId IS NOT NULL LIMIT 10;",
+  "rows": [
+    {
+      "id": "390021",
+      "name": "Cliente Duplicado",
+      "email": "duplicado@test.com",
+      "userId": "1",
+      "userName": "Alvaro Rios"
+    },
+    {
+      "id": "300004",
+      "name": "Test Client",
+      "email": "test@example.com",
+      "userId": "1",
+      "userName": "Alvaro Rios"
+    },
+    {
+      "id": "90091",
+      "name": "Carlos Albeiro Betancurt ",
+      "email": "albetan1530@gmail.com",
+      "userId": "271067",
+      "userName": "Carlos Albeiro Betancurt "
+    },
+    {
+      "id": "300053",
+      "name": "Álvaro prueba ",
+      "email": "alvarorios79@hotmail.com",
+      "userId": "840718",
+      "userName": "Alvaro Pruebas"
+    },
+    {
+      "id": "390001",
+      "name": "Cliente Test Bulk",
+      "email": "cliente-bulk@test.com",
+      "userId": "1530072",
+      "userName": "Cliente Test Bulk"
+    },
+    {
+      "id": "390013",
+      "name": "Test User",
+      "email": "test-1769087935664@example.com",
+      "userId": "1530076",
+      "userName": "Test User"
+    },
+    {
+      "id": "390015",
+      "name": "Cliente Test Auto-registro",
+      "email": "test-1769087938701@example.com",
+      "userId": "1530084",
+      "userName": "Cliente Test Auto-registro"
+    },
+    {
+      "id": "390040",
+      "name": "Test User",
+      "email": "test-1769088529485@example.com",
+      "userId": "1530146",
+      "userName": "Test User"
+    },
+    {
+      "id": "390042",
+      "name": "Cliente Test Auto-registro",
+      "email": "test-1769088531662@example.com",
+      "userId": "1530152",
+      "userName": "Cliente Test Auto-registro"
+    },
+    {
+      "id": "390062",
+      "name": "Test User",
+      "email": "test-1769088544787@example.com",
+      "userId": "1530175",
+      "userName": "Test User"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\temail\tuserId\tuserName\n390021\tCliente Duplicado\tduplicado@test.com\t1\tAlvaro Rios\n300004\tTest Client\ttest@example.com\t1\tAlvaro Rios\n90091\tCarlos Albeiro Betancurt \talbetan1530@gmail.com\t271067\tCarlos Albeiro Betancurt \n300053\tÁlvaro prueba \talvarorios79@hotmail.com\t840718\tAlvaro Pruebas\n390001\tCliente Test Bulk\tcliente-bulk@test.com\t1530072\tCliente Test Bulk\n390013\tTest User\ttest-1769087935664@example.com\t1530076\tTest User\n390015\tCliente Test Auto-registro\ttest-1769087938701@example.com\t1530084\tCliente Test Auto-registro\n390040\tTest User\ttest-1769088529485@example.com\t1530146\tTest User\n390042\tCliente Test Auto-registro\ttest-1769088531662@example.com\t1530152\tCliente Test Auto-registro\n390062\tTest User\ttest-1769088544787@example.com\t1530175\tTest User\n",
+  "stderr": "",
+  "execution_time_ms": 97
+}

@@ -1,0 +1,20 @@
+{
+  "query": "SELECT u.id as userId, u.name, u.email, u.role, \n       pp.id as photoId, pp.subcategory, pp.uploadedBy, pp.projectId\nFROM users u\nLEFT JOIN projectPhotos pp ON pp.uploadedBy = u.id\nWHERE u.role = 'operario';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT u.id as userId, u.name, u.email, u.role, \n       pp.id as photoId, pp.subcategory, pp.uploadedBy, pp.projectId\nFROM users u\nLEFT JOIN projectPhotos pp ON pp.uploadedBy = u.id\nWHERE u.role = 'operario';",
+  "rows": [
+    {
+      "userId": "840301",
+      "name": "Daniel Beltran",
+      "email": "operario@innovar.temp",
+      "role": "operario",
+      "photoId": "330001",
+      "subcategory": "corte",
+      "uploadedBy": "840301",
+      "projectId": "390001"
+    }
+  ],
+  "messages": [],
+  "stdout": "userId\tname\temail\trole\tphotoId\tsubcategory\tuploadedBy\tprojectId\n840301\tDaniel Beltran\toperario@innovar.temp\toperario\t330001\tcorte\t840301\t390001\n",
+  "stderr": "",
+  "execution_time_ms": 73
+}

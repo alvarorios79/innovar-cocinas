@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Eye, Edit, FileText, Send, Copy, Download, FolderPlus, FileEdit, Lock, Trash2 } from "lucide-react";
+import { Eye, EyeOff, Edit, FileText, Send, Copy, Download, FolderPlus, FileEdit, Lock, Trash2 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 
@@ -40,8 +40,10 @@ export function QuotationGroupCard({
   onDelete,
 }: QuotationGroupCardProps) {
   const [selectedVersionId, setSelectedVersionId] = useState(group.activeVersion.id);
+  const [showValues, setShowValues] = useState(false);
   const selectedVersion = group.versions.find(v => v.id === selectedVersionId) || group.activeVersion;
   const isActiveVersion = selectedVersionId === group.activeVersion.id;
+  const isLocked = selectedVersion.isLocked;
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -80,10 +82,14 @@ export function QuotationGroupCard({
           </div>
           <div className="text-right">
             <div className="text-sm font-semibold">
-              ${parseFloat(selectedVersion.total || "0").toLocaleString("es-CO", {
-                minimumFractionDigits: 0,
-                maximumFractionDigits: 0,
-              })}
+              {showValues ? (
+                `$${parseFloat(selectedVersion.total || "0").toLocaleString("es-CO", {
+                  minimumFractionDigits: 0,
+                  maximumFractionDigits: 0,
+                })}`
+              ) : (
+                "••••••••"
+              )}
             </div>
             <Badge className={`mt-1 ${getStatusColor(selectedVersion.status)}`}>
               {getStatusLabel(selectedVersion.status)}
@@ -116,39 +122,71 @@ export function QuotationGroupCard({
           </div>
         )}
 
-        {/* Información de la versión seleccionada */}
-        <div className="grid grid-cols-2 gap-4 text-sm">
-          <div>
-            <span className="text-gray-600">Subtotal:</span>
-            <div className="font-semibold">
-              ${parseFloat(selectedVersion.subtotal || "0").toLocaleString("es-CO", {
-                minimumFractionDigits: 0,
-                maximumFractionDigits: 0,
-              })}
-            </div>
+        {/* Información de la versión seleccionada - Valores privados */}
+        <div className="space-y-3">
+          {/* Toggle de privacidad de valores */}
+          <div className="flex items-center justify-between p-2 bg-gray-50 rounded border border-gray-200">
+            <span className="text-sm font-medium text-gray-700">Información de Precios</span>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => setShowValues(!showValues)}
+              className="gap-2 h-8 px-2"
+            >
+              {showValues ? (
+                <>
+                  <EyeOff className="w-4 h-4" />
+                  <span className="text-xs">Ocultar</span>
+                </>
+              ) : (
+                <>
+                  <Eye className="w-4 h-4" />
+                  <span className="text-xs">Mostrar</span>
+                </>
+              )}
+            </Button>
           </div>
-          <div>
-            <span className="text-gray-600">Transporte:</span>
-            <div className="font-semibold">
-              ${parseFloat(selectedVersion.transportCost || "0").toLocaleString("es-CO", {
-                minimumFractionDigits: 0,
-                maximumFractionDigits: 0,
-              })}
+
+          {/* Valores visibles solo si showValues es true */}
+          {showValues && (
+            <div className="grid grid-cols-2 gap-4 text-sm p-2 bg-blue-50 rounded border border-blue-200">
+              <div>
+                <span className="text-gray-600">Subtotal:</span>
+                <div className="font-semibold">
+                  ${parseFloat(selectedVersion.subtotal || "0").toLocaleString("es-CO", {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0,
+                  })}
+                </div>
+              </div>
+              <div>
+                <span className="text-gray-600">Transporte:</span>
+                <div className="font-semibold">
+                  ${parseFloat(selectedVersion.transportCost || "0").toLocaleString("es-CO", {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0,
+                  })}
+                </div>
+              </div>
             </div>
-          </div>
-          <div>
-            <span className="text-gray-600">Creada:</span>
-            <div className="font-semibold">
-              {new Date(selectedVersion.createdAt).toLocaleDateString("es-CO")}
+          )}
+
+          {/* Información de fechas y estado (siempre visible) */}
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <span className="text-gray-600">Creada:</span>
+              <div className="font-semibold">
+                {new Date(selectedVersion.createdAt).toLocaleDateString("es-CO")}
+              </div>
             </div>
-          </div>
-          <div>
-            <span className="text-gray-600">Estado:</span>
-            <div className="font-semibold">{getStatusLabel(selectedVersion.status)}</div>
+            <div>
+              <span className="text-gray-600">Estado:</span>
+              <div className="font-semibold">{getStatusLabel(selectedVersion.status)}</div>
+            </div>
           </div>
         </div>
 
-        {/* Botones de acción */}
+        {/* Botones de acción - Desactivados si está bloqueada (excepto Ver PDF) */}
         <div className="flex flex-wrap gap-2 pt-2">
           {/* Botones disponibles para versión activa */}
           {isActiveVersion && (
@@ -157,6 +195,7 @@ export function QuotationGroupCard({
                 size="sm"
                 variant="default"
                 onClick={() => onEdit(selectedVersion)}
+                disabled={isLocked}
                 className="gap-2"
               >
                 <Edit className="w-4 h-4" />
@@ -166,6 +205,7 @@ export function QuotationGroupCard({
                 size="sm"
                 variant="outline"
                 onClick={() => onCreateVersion(selectedVersion)}
+                disabled={isLocked}
                 className="gap-2"
               >
                 <Copy className="w-4 h-4" />
@@ -177,6 +217,7 @@ export function QuotationGroupCard({
                   variant="default"
                   className="gap-2 bg-green-600 hover:bg-green-700"
                   onClick={() => onCreateProject(selectedVersion)}
+                  disabled={isLocked}
                 >
                   <FolderPlus className="w-4 h-4" />
                   Crear Proyecto
@@ -191,12 +232,14 @@ export function QuotationGroupCard({
               size="sm"
               variant="outline"
               onClick={() => onEditPDF(selectedVersion)}
+              disabled={isLocked}
               className="gap-2"
             >
               <FileEdit className="w-4 h-4" />
               Editar PDF
             </Button>
           )}
+          {/* Ver PDF - SIEMPRE ACTIVO incluso si está bloqueada */}
           <Button
             size="sm"
             variant="outline"
@@ -210,6 +253,7 @@ export function QuotationGroupCard({
             size="sm"
             variant="outline"
             onClick={() => onSend(selectedVersion)}
+            disabled={isLocked}
             className="gap-2"
           >
             <Send className="w-4 h-4" />

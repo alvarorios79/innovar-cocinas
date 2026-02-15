@@ -4529,3 +4529,7 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 ## Funcionalidades Faltantes en Cotizaciones
 - [x] Restaurar botón Bloquear cotización (evita eliminación involuntaria) - RESTAURADO Y FUNCIONAL
 - [x] Restaurar botón Eliminar (papelera) para eliminar cotizaciones - RESTAURADO Y FUNCIONAL
+
+## Mejoras de UX en Cotizaciones (Nueva Sesión)
+- [x] Bloqueo mejorado: desactivar todos los botones excepto "Ver PDF" cuando está bloqueada
+- [x] Privacidad de valores: mostrar valores una sola vez, ocultos por defecto con toggle de ojo

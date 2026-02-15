@@ -254,11 +254,27 @@ export default function Quotations() {
     },
   });
 
+  const createVersion = trpc.quotationsVersioning.createVersion.useMutation({
+    onSuccess: (data) => {
+      utils.quotations.list.invalidate();
+      utils.quotations.listPaginated.invalidate();
+      toast.success("Nueva versión de cotización creada");
+    },
+    onError: (error) => {
+      toast.error("Error al crear versión: " + error.message);
+    },
+  });
+
   const updateStatus = trpc.quotations.updateStatus.useMutation({
-    onSuccess: () => {
+    onSuccess: (data: any) => {
       utils.quotations.list.invalidate();
       utils.quotations.listPaginated.invalidate();
       toast.success("Estado actualizado");
+      
+      // Si la cotización fue aprobada, crear una nueva versión automáticamente
+      if (data.newStatus === "approved" && data.quotationId) {
+        createVersion.mutate({ quotationId: data.quotationId });
+      }
     },
   });
 

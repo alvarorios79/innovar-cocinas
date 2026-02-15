@@ -15,6 +15,20 @@
       "when": 1771029511952,
       "tag": "0001_sharp_colleen_wing",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1771172783194,
+      "tag": "0002_magenta_mentor",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1771173236694,
+      "tag": "0003_tense_sprite",
+      "breakpoints": true
     }
   ]
 }

@@ -333,7 +333,7 @@ export default function Quotations() {
       {
         onSuccess: (data) => {
           // Agregar parámetro preview=true para visualización inline
-          const previewUrl = `${data.downloadUrl}?preview=true`;
+          const previewUrl = `${data.downloadUrl}&preview=true`;
           setPreviewPdfUrl(previewUrl);
           setPreviewDialogOpen(true);
         },

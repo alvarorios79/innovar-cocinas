@@ -176,6 +176,31 @@ export const clientsRouter = router({
         };
       }),
 
+    update: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        name: z.string().min(1).optional(),
+        email: z.string().email().optional(),
+        whatsappPhone: z.string().optional(),
+        address: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "comercial") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para editar clientes" });
+        }
+        
+        const { id, ...updateData } = input;
+        const sanitizedData = {
+          name: updateData.name ? sanitizeText(updateData.name) : undefined,
+          email: updateData.email ? sanitizeEmail(updateData.email) : undefined,
+          whatsappPhone: updateData.whatsappPhone ? sanitizePhone(updateData.whatsappPhone) : undefined,
+          address: updateData.address ? sanitizeText(updateData.address) : undefined,
+        };
+        
+        await db.updateClient(id, sanitizedData);
+        return { success: true };
+      }),
+
     delete: protectedProcedure
       .input(z.object({ id: z.number() }))
       .mutation(async ({ ctx, input }) => {

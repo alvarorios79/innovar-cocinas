@@ -45,6 +45,8 @@ export default function Admin() {
   const [showPassword, setShowPassword] = useState(false);
   const [editBirthdayUser, setEditBirthdayUser] = useState<{ id: number; name: string; birthDate: string | null } | null>(null);
   const [editPhoneUser, setEditPhoneUser] = useState<{ id: number; name: string; phone: string } | null>(null);
+  const [editingClient, setEditingClient] = useState<any>(null);
+  const [editFormData, setEditFormData] = useState({ name: '', email: '', whatsappPhone: '', address: '' });
   
   // Estados para selección múltiple
   const [selectedAppointments, setSelectedAppointments] = useState<number[]>([]);
@@ -227,6 +229,18 @@ export default function Admin() {
     },
     onError: (error) => {
       toast.error(error.message || "Error al eliminar cliente");
+    },
+  });
+
+  const updateClient = trpc.clients.update.useMutation({
+    onSuccess: () => {
+      utils.clients.list.invalidate();
+      utils.clients.listPaginated.invalidate();
+      toast.success("Cliente actualizado exitosamente");
+      setEditingClient(null);
+    },
+    onError: (error) => {
+      toast.error(error.message || "Error al actualizar cliente");
     },
   });
 
@@ -1131,13 +1145,30 @@ export default function Admin() {
                                     Registrado: {formatDate(client.createdAt)}
                                   </p>
                                 </div>
-                                <Button
-                                  size="sm"
-                                  variant="destructive"
-                                  onClick={() => setDeleteConfirm({ type: "client", id: client.id, name: client.name })}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
+                                <div className="flex gap-2">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => {
+                                      setEditingClient(client);
+                                      setEditFormData({
+                                        name: client.name || '',
+                                        email: client.email || '',
+                                        whatsappPhone: client.whatsappPhone || '',
+                                        address: client.address || ''
+                                      });
+                                    }}
+                                  >
+                                    Editar
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="destructive"
+                                    onClick={() => setDeleteConfirm({ type: "client", id: client.id, name: client.name })}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
                               </div>
                             </div>
                           ))}
@@ -1957,6 +1988,80 @@ export default function Admin() {
                 disabled={updateUserPhone.isPending}
               >
                 Quitar Teléfono
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Diálogo de edición de cliente */}
+      <Dialog open={!!editingClient} onOpenChange={(open) => !open && setEditingClient(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar Cliente</DialogTitle>
+            <DialogDescription>
+              Actualiza los datos del cliente
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-name">Nombre</Label>
+              <Input
+                id="edit-name"
+                placeholder="Nombre del cliente"
+                value={editFormData.name}
+                onChange={(e) => setEditFormData(prev => ({ ...prev, name: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-email">Email</Label>
+              <Input
+                id="edit-email"
+                type="email"
+                placeholder="cliente@example.com"
+                value={editFormData.email}
+                onChange={(e) => setEditFormData(prev => ({ ...prev, email: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-whatsapp">WhatsApp</Label>
+              <Input
+                id="edit-whatsapp"
+                placeholder="3001234567"
+                value={editFormData.whatsappPhone}
+                onChange={(e) => setEditFormData(prev => ({ ...prev, whatsappPhone: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-address">Dirección</Label>
+              <Input
+                id="edit-address"
+                placeholder="Dirección del cliente"
+                value={editFormData.address}
+                onChange={(e) => setEditFormData(prev => ({ ...prev, address: e.target.value }))}
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button
+                className="flex-1"
+                onClick={() => {
+                  if (editingClient) {
+                    updateClient.mutate({
+                      id: editingClient.id,
+                      ...editFormData
+                    });
+                  }
+                }}
+                disabled={updateClient.isPending}
+              >
+                {updateClient.isPending ? "Guardando..." : "Guardar"}
+              </Button>
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => setEditingClient(null)}
+              >
+                Cancelar
               </Button>
             </div>
           </div>

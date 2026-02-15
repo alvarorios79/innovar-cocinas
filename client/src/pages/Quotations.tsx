@@ -488,7 +488,7 @@ export default function Quotations() {
           unitPrice: item.unitPrice || "",
           totalPrice: typeof item.totalPrice === 'string' ? parseFloat(item.totalPrice) : item.totalPrice,
           includesFixedCosts: item.includesFixedCosts || false,
-          fixedCostsAmount: typeof item.fixedCostsAmount === 'string' ? parseFloat(item.fixedCostsAmount) : (item.fixedCostsAmount || 600000),
+          fixedCostsAmount: typeof item.fixedCostsAmount === 'string' ? parseFloat(item.fixedCostsAmount) : (item.fixedCostsAmount ?? 600000),
           hardwareSelections: item.hardwareSelections || [],
           closetConfig: item.closetConfig ? {
             type: item.closetConfig.type || "estandar",
@@ -3264,15 +3264,18 @@ export default function Quotations() {
                                 <Label>Total *</Label>
                                 <Input
                                   type="number"
-                                  value={item.totalPrice}
-                                  onChange={(e) =>
+                                  value={item.totalPrice || ""}
+                                  onChange={(e) => {
+                                    const value = e.target.value.trim();
                                     updateItem(
                                       index,
                                       "totalPrice",
-                                      parseFloat(e.target.value) || 0
-                                    )
-                                  }
+                                      value === "" ? 0 : parseFloat(value) || 0
+                                    );
+                                  }}
                                   placeholder="0"
+                                  min="0"
+                                  step="1"
                                 />
                               </div>
                             </div>

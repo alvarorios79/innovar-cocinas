@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
-import { Calendar, Phone, FileText, Users, Trash2, Plus, Bell, Key, Wrench, CheckSquare, Square, Eye, EyeOff, Search, Cake, DollarSign, Pencil } from "lucide-react";
+import { Calendar, Phone, FileText, Users, Trash2, Plus, Bell, Key, Wrench, CheckSquare, Square, Eye, EyeOff, Search, Cake, DollarSign } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RemindersPanel } from "@/components/RemindersPanel";
 import { toast } from "sonner";
@@ -45,9 +45,6 @@ export default function Admin() {
   const [showPassword, setShowPassword] = useState(false);
   const [editBirthdayUser, setEditBirthdayUser] = useState<{ id: number; name: string; birthDate: string | null } | null>(null);
   const [editPhoneUser, setEditPhoneUser] = useState<{ id: number; name: string; phone: string } | null>(null);
-  const [editingClient, setEditingClient] = useState<any>(null);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [editFormData, setEditFormData] = useState({ name: "", whatsappPhone: "", email: "", address: "" });
   
   // Estados para selección múltiple
   const [selectedAppointments, setSelectedAppointments] = useState<number[]>([]);
@@ -218,19 +215,6 @@ export default function Admin() {
       utils.quotations.list.invalidate();
       toast.success("Cotización eliminada exitosamente");
       setDeleteConfirm(null);
-    },
-  });
-
-  const updateClient = trpc.clients.update.useMutation({
-    onSuccess: () => {
-      utils.clients.list.invalidate();
-      utils.clients.listPaginated.invalidate();
-      toast.success("Cliente actualizado exitosamente");
-      setEditDialogOpen(false);
-      setEditingClient(null);
-    },
-    onError: (error) => {
-      toast.error(error.message || "Error al actualizar cliente");
     },
   });
 
@@ -1147,32 +1131,13 @@ export default function Admin() {
                                     Registrado: {formatDate(client.createdAt)}
                                   </p>
                                 </div>
-                                <div className="flex gap-2">
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => {
-                                      // Abrir diálogo de edición
-                                      setEditingClient(client);
-                                      setEditFormData({
-                                        name: client.name,
-                                        whatsappPhone: client.whatsappPhone,
-                                        email: client.email || "",
-                                        address: client.address || "",
-                                      });
-                                      setEditDialogOpen(true);
-                                    }}
-                                  >
-                                    <Pencil className="h-4 w-4" />
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="destructive"
-                                    onClick={() => setDeleteConfirm({ type: "client", id: client.id, name: client.name })}
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </div>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => setDeleteConfirm({ type: "client", id: client.id, name: client.name })}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
                               </div>
                             </div>
                           ))}
@@ -2000,72 +1965,3 @@ export default function Admin() {
     </div>
   );
 }
-
-      {/* Diálogo de edición de cliente */}
-      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Editar Cliente</DialogTitle>
-            <DialogDescription>
-              Actualiza los datos del cliente
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div>
-              <Label htmlFor="edit-name">Nombre</Label>
-              <Input
-                id="edit-name"
-                value={editFormData.name}
-                onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
-                placeholder="Nombre del cliente"
-              />
-            </div>
-            <div>
-              <Label htmlFor="edit-phone">Teléfono WhatsApp</Label>
-              <Input
-                id="edit-phone"
-                value={editFormData.whatsappPhone}
-                onChange={(e) => setEditFormData({ ...editFormData, whatsappPhone: e.target.value })}
-                placeholder="Teléfono"
-              />
-            </div>
-            <div>
-              <Label htmlFor="edit-email">Email</Label>
-              <Input
-                id="edit-email"
-                type="email"
-                value={editFormData.email}
-                onChange={(e) => setEditFormData({ ...editFormData, email: e.target.value })}
-                placeholder="Email del cliente"
-              />
-            </div>
-            <div>
-              <Label htmlFor="edit-address">Dirección</Label>
-              <Textarea
-                id="edit-address"
-                value={editFormData.address}
-                onChange={(e) => setEditFormData({ ...editFormData, address: e.target.value })}
-                placeholder="Dirección del cliente"
-              />
-            </div>
-          </div>
-          <div className="flex gap-2 justify-end">
-            <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
-              Cancelar
-            </Button>
-            <Button
-              onClick={() => {
-                if (editingClient) {
-                  updateClient.mutate({
-                    id: editingClient.id,
-                    ...editFormData,
-                  });
-                }
-              }}
-              disabled={updateClient.isPending}
-            >
-              Guardar
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>

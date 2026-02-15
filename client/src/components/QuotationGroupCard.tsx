@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Eye, EyeOff, Edit, FileText, Send, Copy, Download, FolderPlus, FileEdit, Lock, Trash2, ChevronDown } from "lucide-react";
+import { Eye, EyeOff, Edit, FileText, Send, Copy, Download, FolderPlus, FileEdit, Lock, Trash2, Image as ImageIcon } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 
@@ -41,7 +41,6 @@ export function QuotationGroupCard({
 }: QuotationGroupCardProps) {
   const [selectedVersionId, setSelectedVersionId] = useState(group.activeVersion.id);
   const [showValues, setShowValues] = useState(false);
-  const [expandDetails, setExpandDetails] = useState(false);
   
   const selectedVersion = group.versions.find(v => v.id === selectedVersionId) || group.activeVersion;
   const isActiveVersion = selectedVersionId === group.activeVersion.id;
@@ -87,268 +86,257 @@ export function QuotationGroupCard({
   const estimatedDeliveryDate = calculateEstimatedDelivery(createdDate);
 
   return (
-    <Card className="w-full overflow-hidden shadow-sm hover:shadow-md transition-shadow border-l-4 border-l-teal-500">
-      {/* HEADER - Información principal */}
-      <div className="bg-white px-6 py-4 border-b border-gray-100">
-        <div className="flex items-start justify-between gap-4 mb-3">
+    <Card className="w-full overflow-hidden shadow-sm border-l-2 border-l-[#14B8A6]">
+      {/* HEADER COMPACTO - UNA SOLA LÍNEA */}
+      <div className="bg-white px-3 py-2 md:px-3 md:py-2 border-b border-gray-200">
+        <div className="flex items-center gap-2 md:gap-3 mb-2">
+          {/* Thumbnail pequeño */}
+          <div className="flex-shrink-0 w-14 h-14 md:w-16 md:h-16 rounded-md bg-gray-100 border border-gray-200 flex items-center justify-center overflow-hidden">
+            {selectedVersion.thumbnailUrl ? (
+              <img 
+                src={selectedVersion.thumbnailUrl} 
+                alt="Thumbnail" 
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <ImageIcon className="w-6 h-6 text-gray-400" />
+            )}
+          </div>
+
+          {/* Información principal en una línea */}
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-3 flex-wrap">
-              <h3 className="text-lg font-bold text-gray-900">{group.quotationNumber}</h3>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="text-sm md:text-base font-semibold text-gray-900 truncate">
+                {group.quotationNumber}
+              </h3>
               {isActiveVersion && (
-                <Badge className="bg-teal-50 text-teal-700 border border-teal-200 font-medium">
+                <Badge className="bg-[#14B8A6] text-white text-xs py-0 px-2">
                   Activa
                 </Badge>
               )}
               {group.versionCount > 1 && (
-                <Badge variant="outline" className="text-xs text-gray-600">
-                  {group.versionCount} versión{group.versionCount !== 1 ? "es" : ""}
+                <Badge variant="outline" className="text-xs py-0 px-2 text-gray-600">
+                  {group.versionCount}v
                 </Badge>
               )}
+              <Badge className={`${getStatusColor(selectedVersion.status)} text-xs py-0 px-2 border-0`}>
+                {getStatusLabel(selectedVersion.status)}
+              </Badge>
             </div>
-            <p className="text-sm text-gray-600 mt-1">
+            <p className="text-xs text-gray-500 truncate mt-0.5">
               {client?.name || "Cliente"} {client?.phone && `• ${client.phone}`}
             </p>
           </div>
-          
-          <div className="text-right flex flex-col items-end gap-2">
-            <div className="text-2xl font-bold text-gray-900">
+
+          {/* Total y fechas compactas */}
+          <div className="flex-shrink-0 text-right">
+            <div className="text-sm md:text-base font-bold text-gray-900">
               {showValues ? (
                 `$${parseFloat(selectedVersion.total || "0").toLocaleString("es-CO", {
                   minimumFractionDigits: 0,
                   maximumFractionDigits: 0,
                 })}`
               ) : (
-                <span className="text-gray-400">••••••••</span>
+                <span className="text-gray-400 text-xs">••••••••</span>
               )}
             </div>
-            <Badge className={`${getStatusColor(selectedVersion.status)} border-0`}>
-              {getStatusLabel(selectedVersion.status)}
-            </Badge>
+            <div className="text-xs text-gray-500 mt-0.5 space-y-0.5">
+              <div>Crea: {createdDate.toLocaleDateString('es-CO', { month: '2-digit', day: '2-digit' })}</div>
+              <div>Vence: {validUntilDate.toLocaleDateString('es-CO', { month: '2-digit', day: '2-digit' })}</div>
+            </div>
           </div>
         </div>
 
-        {/* Fechas importantes - Fila compacta */}
-        <div className="grid grid-cols-3 gap-4 pt-3 border-t border-gray-100 text-xs">
-          <div>
-            <span className="text-gray-500 block font-medium">Creación</span>
-            <span className="text-gray-900 font-semibold">{createdDate.toLocaleDateString('es-CO')}</span>
-          </div>
-          <div>
-            <span className="text-gray-500 block font-medium">Válida hasta</span>
-            <span className="text-gray-900 font-semibold">{validUntilDate.toLocaleDateString('es-CO')}</span>
-          </div>
-          <div>
-            <span className="text-gray-500 block font-medium">Entrega est.*</span>
-            <span className="text-gray-900 font-semibold">{estimatedDeliveryDate.toLocaleDateString('es-CO')}</span>
-          </div>
-        </div>
-      </div>
-
-      <CardContent className="px-6 py-4">
-        {/* Selector de versiones - Solo si hay múltiples versiones */}
+        {/* Selector de versión compacto - Solo si hay múltiples versiones */}
         {group.versionCount > 1 && (
-          <div className="mb-4 pb-4 border-b border-gray-100">
-            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-2">Versión</label>
+          <div className="flex items-center gap-2">
+            <label className="text-xs font-medium text-gray-600">Versión:</label>
             <Select
               value={selectedVersionId.toString()}
               onValueChange={(value) => setSelectedVersionId(parseInt(value))}
             >
-              <SelectTrigger className="w-full sm:w-48 h-9">
+              <SelectTrigger className="w-32 h-7 text-xs">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 {group.versions.map((version) => (
                   <SelectItem key={version.id} value={version.id.toString()}>
                     V{version.versionNumber}
-                    {version.id === group.activeVersion.id ? " (Activa)" : " (Histórica)"}
+                    {version.id === group.activeVersion.id ? " (Activa)" : " (Hist)"}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
         )}
+      </div>
 
-        {/* Sección de Precios - Colapsable */}
-        <div className="mb-4 pb-4 border-b border-gray-100">
-          <button
-            onClick={() => setShowValues(!showValues)}
-            className="w-full flex items-center justify-between p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors"
-          >
-            <span className="text-sm font-semibold text-gray-700">Información de Precios</span>
-            <div className="flex items-center gap-2">
+      <CardContent className="px-3 py-2 md:px-3 md:py-2 space-y-2">
+        {/* Sección de Precios - Colapsable compacta */}
+        {isActiveVersion && (
+          <div className="border-b border-gray-200 pb-2">
+            <button
+              onClick={() => setShowValues(!showValues)}
+              className="w-full flex items-center justify-between px-2 py-1 rounded text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              <span>Precios</span>
               {showValues ? (
-                <EyeOff className="w-4 h-4 text-gray-600" />
+                <EyeOff className="w-3 h-3 text-gray-500" />
               ) : (
-                <Eye className="w-4 h-4 text-gray-600" />
+                <Eye className="w-3 h-3 text-gray-500" />
               )}
-            </div>
-          </button>
-          
-          {showValues && (
-            <div className="mt-3 p-3 rounded-lg bg-teal-50 border border-teal-200">
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="text-gray-600 text-xs font-medium block mb-1">Subtotal</span>
-                  <div className="text-lg font-bold text-gray-900">
+            </button>
+            
+            {showValues && (
+              <div className="mt-1 p-2 rounded bg-[#14B8A6]/5 border border-[#14B8A6]/20 text-xs space-y-1">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Subtotal:</span>
+                  <span className="font-semibold">
                     ${parseFloat(selectedVersion.subtotal || "0").toLocaleString("es-CO", {
                       minimumFractionDigits: 0,
                       maximumFractionDigits: 0,
                     })}
-                  </div>
+                  </span>
                 </div>
-                <div>
-                  <span className="text-gray-600 text-xs font-medium block mb-1">Transporte</span>
-                  <div className="text-lg font-bold text-gray-900">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Transporte:</span>
+                  <span className="font-semibold">
                     ${parseFloat(selectedVersion.transportCost || "0").toLocaleString("es-CO", {
                       minimumFractionDigits: 0,
                       maximumFractionDigits: 0,
                     })}
-                  </div>
+                  </span>
                 </div>
               </div>
-            </div>
-          )}
-        </div>
-
-        {/* Botones de acción - Jerarquía clara */}
-        <div className="space-y-3">
-          {/* Botones principales - Fila 1 */}
-          <div className="flex flex-col sm:flex-row gap-2">
-            {isActiveVersion && (
-              <>
-                <Button
-                  size="sm"
-                  className="flex-1 sm:flex-none gap-2 bg-teal-600 hover:bg-teal-700 text-white font-medium"
-                  onClick={() => onEdit(selectedVersion)}
-                  disabled={isLocked}
-                >
-                  <Edit className="w-4 h-4" />
-                  <span className="hidden sm:inline">Editar</span>
-                  <span className="sm:hidden">Editar</span>
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="flex-1 sm:flex-none gap-2 font-medium"
-                  onClick={() => onCreateVersion(selectedVersion)}
-                  disabled={isLocked}
-                >
-                  <Copy className="w-4 h-4" />
-                  <span className="hidden sm:inline">Nueva Versión</span>
-                  <span className="sm:hidden">V. Nueva</span>
-                </Button>
-              </>
             )}
-            
+          </div>
+        )}
+
+        {/* Botones - Jerarquía clara y compacta */}
+        <div className="flex flex-wrap gap-1">
+          {/* PRIMARIOS */}
+          {isActiveVersion && (
+            <>
+              <Button
+                size="sm"
+                className="text-xs py-1 px-2 h-7 gap-1 bg-[#14B8A6] hover:bg-[#0d9488] text-white"
+                onClick={() => onEdit(selectedVersion)}
+                disabled={isLocked}
+              >
+                <Edit className="w-3 h-3" />
+                <span className="hidden sm:inline">Editar</span>
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="text-xs py-1 px-2 h-7 gap-1"
+                onClick={() => onCreateVersion(selectedVersion)}
+                disabled={isLocked}
+              >
+                <Copy className="w-3 h-3" />
+                <span className="hidden sm:inline">V.Nueva</span>
+              </Button>
+            </>
+          )}
+          
+          <Button
+            size="sm"
+            variant="outline"
+            className="text-xs py-1 px-2 h-7 gap-1"
+            onClick={() => onViewPDF(selectedVersion)}
+          >
+            <FileText className="w-3 h-3" />
+            <span className="hidden sm:inline">PDF</span>
+          </Button>
+
+          {/* SECUNDARIOS */}
+          {isActiveVersion && !selectedVersion.projectId && (
+            <Button
+              size="sm"
+              className="text-xs py-1 px-2 h-7 gap-1 bg-emerald-600 hover:bg-emerald-700 text-white"
+              onClick={() => onCreateProject(selectedVersion)}
+              disabled={isLocked}
+            >
+              <FolderPlus className="w-3 h-3" />
+              <span className="hidden sm:inline">Proyecto</span>
+            </Button>
+          )}
+
+          {isActiveVersion && onEditPDF && (
             <Button
               size="sm"
               variant="outline"
-              className="flex-1 sm:flex-none gap-2 font-medium"
-              onClick={() => onViewPDF(selectedVersion)}
+              className="text-xs py-1 px-2 h-7 gap-1"
+              onClick={() => onEditPDF(selectedVersion)}
+              disabled={isLocked}
             >
-              <FileText className="w-4 h-4" />
-              <span className="hidden sm:inline">Ver PDF</span>
-              <span className="sm:hidden">PDF</span>
+              <FileEdit className="w-3 h-3" />
+              <span className="hidden sm:inline">Edit.PDF</span>
             </Button>
-          </div>
+          )}
 
-          {/* Botones secundarios - Fila 2 */}
-          <div className="flex flex-col sm:flex-row gap-2">
-            {isActiveVersion && !selectedVersion.projectId && (
-              <Button
-                size="sm"
-                className="flex-1 sm:flex-none gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium"
-                onClick={() => onCreateProject(selectedVersion)}
-                disabled={isLocked}
-              >
-                <FolderPlus className="w-4 h-4" />
-                <span className="hidden sm:inline">Crear Proyecto</span>
-                <span className="sm:hidden">Proyecto</span>
-              </Button>
-            )}
+          {isActiveVersion && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="text-xs py-1 px-2 h-7 gap-1"
+              onClick={() => onSend(selectedVersion)}
+              disabled={isLocked}
+            >
+              <Send className="w-3 h-3" />
+              <span className="hidden sm:inline">Enviar</span>
+            </Button>
+          )}
 
-            {isActiveVersion && onEditPDF && (
-              <Button
-                size="sm"
-                variant="outline"
-                className="flex-1 sm:flex-none gap-2 font-medium"
-                onClick={() => onEditPDF(selectedVersion)}
-                disabled={isLocked}
-              >
-                <FileEdit className="w-4 h-4" />
-                <span className="hidden sm:inline">Editar PDF</span>
-                <span className="sm:hidden">Edit PDF</span>
-              </Button>
-            )}
+          {!isActiveVersion && selectedVersion.pdfUrl && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="text-xs py-1 px-2 h-7 gap-1"
+              onClick={() => {
+                const link = document.createElement("a");
+                link.href = selectedVersion.pdfUrl;
+                link.download = `${group.quotationNumber}-V${selectedVersion.versionNumber}.pdf`;
+                link.click();
+              }}
+            >
+              <Download className="w-3 h-3" />
+              <span className="hidden sm:inline">Descar</span>
+            </Button>
+          )}
 
-            {isActiveVersion && (
-              <Button
-                size="sm"
-                variant="outline"
-                className="flex-1 sm:flex-none gap-2 font-medium"
-                onClick={() => onSend(selectedVersion)}
-                disabled={isLocked}
-              >
-                <Send className="w-4 h-4" />
-                <span className="hidden sm:inline">Enviar</span>
-                <span className="sm:hidden">Enviar</span>
-              </Button>
-            )}
+          {/* CONTROL - Discretos */}
+          {isActiveVersion && onToggleLock && (
+            <Button
+              size="sm"
+              variant={isLocked ? "default" : "outline"}
+              className={`text-xs py-1 px-2 h-7 gap-1 ${isLocked ? "bg-gray-800 hover:bg-gray-900" : ""}`}
+              onClick={() => onToggleLock(selectedVersion)}
+            >
+              <Lock className="w-3 h-3" />
+              <span className="hidden sm:inline">{isLocked ? "Bloq" : "Bloquear"}</span>
+            </Button>
+          )}
 
-            {!isActiveVersion && selectedVersion.pdfUrl && (
-              <Button
-                size="sm"
-                variant="outline"
-                className="flex-1 sm:flex-none gap-2 font-medium"
-                onClick={() => {
-                  const link = document.createElement("a");
-                  link.href = selectedVersion.pdfUrl;
-                  link.download = `${group.quotationNumber}-V${selectedVersion.versionNumber}.pdf`;
-                  link.click();
-                }}
-              >
-                <Download className="w-4 h-4" />
-                <span className="hidden sm:inline">Descargar</span>
-                <span className="sm:hidden">Descar.</span>
-              </Button>
-            )}
-          </div>
-
-          {/* Botones de control - Fila 3 */}
-          <div className="flex flex-col sm:flex-row gap-2 pt-2 border-t border-gray-100">
-            {isActiveVersion && onToggleLock && (
-              <Button
-                size="sm"
-                variant={isLocked ? "default" : "outline"}
-                className={`flex-1 sm:flex-none gap-2 font-medium ${isLocked ? "bg-gray-800 hover:bg-gray-900" : ""}`}
-                onClick={() => onToggleLock(selectedVersion)}
-              >
-                <Lock className="w-4 h-4" />
-                {isLocked ? "Bloqueada" : "Bloquear"}
-              </Button>
-            )}
-
-            {isActiveVersion && onDelete && (
-              <Button
-                size="sm"
-                variant="destructive"
-                className="flex-1 sm:flex-none gap-2 font-medium"
-                onClick={() => onDelete(selectedVersion)}
-                disabled={isLocked}
-                title={isLocked ? "Desbloquea la cotización para poder eliminar" : "Eliminar cotización"}
-              >
-                <Trash2 className="w-4 h-4" />
-                <span className="hidden sm:inline">Eliminar</span>
-                <span className="sm:hidden">Elim.</span>
-              </Button>
-            )}
-          </div>
+          {isActiveVersion && onDelete && (
+            <Button
+              size="sm"
+              variant="destructive"
+              className="text-xs py-1 px-2 h-7 gap-1"
+              onClick={() => onDelete(selectedVersion)}
+              disabled={isLocked}
+              title={isLocked ? "Desbloquea la cotización para poder eliminar" : "Eliminar cotización"}
+            >
+              <Trash2 className="w-3 h-3" />
+              <span className="hidden sm:inline">Elim</span>
+            </Button>
+          )}
         </div>
 
         {/* Indicador de versión histórica */}
         {!isActiveVersion && (
-          <div className="mt-4 p-3 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-800 font-medium">
-            ℹ️ Versión histórica - No se puede editar desde aquí
+          <div className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-1">
+            Versión histórica - Solo lectura
           </div>
         )}
       </CardContent>

@@ -4546,3 +4546,12 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Rediseñar QuotationGroupCard con mejor jerarquía visual
 - [x] Mejorar layout de botones y acciones
 - [x] Validar responsive design (desktop, tablet, móvil)
+
+
+## Compactación Visual de Cotizaciones (Nueva Sesión)
+- [x] Reducir padding y gaps en tarjeta (p-3 desktop, p-2 mobile)
+- [x] Reorganizar header en una sola línea con metadata compacta
+- [x] Mejorar jerarquía de botones (primarios, secundarios, peligrosos)
+- [x] Agregar thumbnail pequeño (56x56) a la izquierda del header
+- [x] Validar responsive (desktop, tablet, mobile)
+- [x] Probar funcionalidad: editar, PDF, enviar, bloquear, eliminar

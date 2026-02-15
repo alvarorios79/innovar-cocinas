@@ -4511,3 +4511,7 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Actualizar Quotations.tsx para renderizar tarjetas agrupadas
 - [x] Botones contextuales: Editar/Crear versión solo para versión activa
 - [x] Probar flujo completo en navegador (selector funciona, botones contextuales correctos, versiones históricas solo lectura)
+
+
+## Bugs Reportados
+- [x] Botón "Crear Proyecto" desapareció de QuotationGroupCard (necesario para aprobar cotizaciones) - RESUELTO

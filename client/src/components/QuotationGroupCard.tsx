@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Eye, Edit, FileText, Send, Copy, Download } from "lucide-react";
+import { Eye, Edit, FileText, Send, Copy, Download, FolderPlus } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 
@@ -21,6 +21,7 @@ interface QuotationGroupCardProps {
   onViewPDF: (quotation: any) => void;
   onSend: (quotation: any) => void;
   onCreateVersion: (quotation: any) => void;
+  onCreateProject: (quotation: any) => void;
 }
 
 export function QuotationGroupCard({
@@ -30,6 +31,7 @@ export function QuotationGroupCard({
   onViewPDF,
   onSend,
   onCreateVersion,
+  onCreateProject,
 }: QuotationGroupCardProps) {
   const [selectedVersionId, setSelectedVersionId] = useState(group.activeVersion.id);
   const selectedVersion = group.versions.find(v => v.id === selectedVersionId) || group.activeVersion;
@@ -163,6 +165,17 @@ export function QuotationGroupCard({
                 <Copy className="w-4 h-4" />
                 Crear Nueva Versión
               </Button>
+              {!selectedVersion.projectId && (
+                <Button
+                  size="sm"
+                  variant="default"
+                  className="gap-2 bg-green-600 hover:bg-green-700"
+                  onClick={() => onCreateProject(selectedVersion)}
+                >
+                  <FolderPlus className="w-4 h-4" />
+                  Crear Proyecto
+                </Button>
+              )}
             </>
           )}
 

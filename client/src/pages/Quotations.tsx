@@ -1467,6 +1467,11 @@ export default function Quotations() {
                   createVersion.mutate({ quotationId: quotation.id });
                 }
               }}
+              onCreateProject={(quotation) => {
+                if (window.confirm(`¿Crear proyecto para la cotización ${group.quotationNumber}?\n\nEsto creará un proyecto con los datos financieros y fechas de la cotización.`)) {
+                  createProjectFromQuotation.mutate({ quotationId: quotation.id });
+                }
+              }}
             />
           ))}
         </div>

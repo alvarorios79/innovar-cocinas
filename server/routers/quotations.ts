@@ -163,121 +163,29 @@ export const quotationsRouter = router({
           throw new TRPCError({ code: "NOT_FOUND", message: "Quotation not found" });
         }
 
-        // Si la cotización está aprobada o fue editada antes, crear una nueva versión
-        // Si es un borrador sin versiones previas, actualizar la existente
-        const baseId = currentQuotation.baseQuotationId || id;
-        const allVersions = await db.getQuotationVersions(id);
-        const isFirstVersion = allVersions.length === 1 && allVersions[0].id === id;
-        const isApproved = currentQuotation.status === "approved";
-
-        // Si es la primera versión Y está en borrador, actualizar directamente
-        // Si está aprobada O tiene versiones previas, crear nueva versión
-        if (isFirstVersion && !isApproved) {
-          // Actualizar la cotización existente (V1 en borrador)
-          if (items) {
-            const subtotal = items.reduce((sum, item) => sum + item.totalPrice, 0);
-            const transportCost = 0;
-            const discountPercent = input.discountPercent ?? 0;
-            const discountAmount = subtotal * (discountPercent / 100);
-            const total = subtotal - discountAmount;
-
-            await withTransaction(async (tx) => {
-              await db.deleteQuotationItems(id);
-              for (const item of items) {
-                await db.createQuotationItem({
-                  quotationId: id,
-                  itemNumber: item.itemNumber,
-                  itemType: item.itemType,
-                  description: sanitizeText(item.description) || "Item",
-                  quantity: item.quantity || "1",
-                  unitPrice: item.unitPrice || null,
-                  totalPrice: item.totalPrice.toString(),
-                  includesFixedCosts: item.includesFixedCosts || false,
-                  fixedCostsAmount: item.fixedCostsAmount || null,
-                  kitchenConfig: item.kitchenConfig ? JSON.stringify(item.kitchenConfig) : null,
-                  hardwareSelections: item.hardwareSelections ? JSON.stringify(item.hardwareSelections) : null,
-                  closetConfig: item.closetConfig ? JSON.stringify(item.closetConfig) : null,
-                  doorConfig: item.doorConfig ? JSON.stringify(item.doorConfig) : null,
-                  tvCenterConfig: item.tvCenterConfig ? JSON.stringify(item.tvCenterConfig) : null,
-                  countertopConfig: item.countertopConfig ? JSON.stringify(item.countertopConfig) : null,
-                });
-              }
-              await db.updateQuotation(id, {
-                ...quotationData,
-                subtotal: subtotal.toString(),
-                transportCost: transportCost.toString(),
-                discountPercent: discountPercent.toString(),
-                discountAmount: discountAmount.toString(),
-                total: total.toString(),
-              });
-            });
-          } else if (input.discountPercent !== undefined) {
-            const subtotal = parseFloat(currentQuotation.subtotal);
-            const discountPercent = input.discountPercent;
-            const discountAmount = subtotal * (discountPercent / 100);
-            const total = subtotal - discountAmount;
-            await db.updateQuotation(id, {
-              ...quotationData,
-              discountPercent: discountPercent.toString(),
-              discountAmount: discountAmount.toString(),
-              total: total.toString(),
-            });
-          } else {
-            const { discountPercent: _, ...safeQuotationData } = quotationData;
-            await db.updateQuotation(id, safeQuotationData);
-          }
-          return { success: true, newVersionId: id, versionNumber: 1 };
-        } else {
-          // Crear nueva versión (V2, V3, V4...)
-          if (!items) {
-            throw new TRPCError({ code: "BAD_REQUEST", message: "Items are required when creating a new version" });
-          }
-
+        // La mutación update SIEMPRE actualiza la cotización directamente.
+        // La creación de nuevas versiones se maneja exclusivamente con el botón
+        // "Crear Nueva Versión" (quotationsVersioning.createVersion).
+        if (items) {
           const subtotal = items.reduce((sum, item) => sum + item.totalPrice, 0);
           const transportCost = 0;
           const discountPercent = input.discountPercent ?? 0;
           const discountAmount = subtotal * (discountPercent / 100);
           const total = subtotal - discountAmount;
 
-          const newVersionId = await withTransaction(async (tx) => {
-            // Obtener el siguiente número de versión
-            const nextVersionNumber = Math.max(...allVersions.map(v => v.versionNumber), 0) + 1;
-
-            // Crear nueva cotización
-            const newQuotationData: any = {
-              quotationNumber: currentQuotation.quotationNumber + `-V${nextVersionNumber}`,
-              clientId: currentQuotation.clientId,
-              vendorName: quotationData.vendorName || currentQuotation.vendorName,
-              productType: quotationData.productType || currentQuotation.productType,
-              status: "draft",
-              validUntil: currentQuotation.validUntil,
-              subtotal: subtotal.toString(),
-              transportCost: transportCost.toString(),
-              discountPercent: discountPercent.toString(),
-              discountAmount: discountAmount.toString(),
-              total: total.toString(),
-              customDescriptions: quotationData.customDescriptions || currentQuotation.customDescriptions,
-              generalNotes: quotationData.generalNotes || currentQuotation.generalNotes,
-              createdBy: ctx.user.id,
-              baseQuotationId: baseId,
-              versionNumber: nextVersionNumber,
-            };
-
-            const result = await tx.insert(quotations).values(newQuotationData);
-            const newQId = result[0].insertId;
-
-            // Copiar items
+          await withTransaction(async (tx) => {
+            await db.deleteQuotationItems(id);
             for (const item of items) {
-              await tx.insert(quotationItems).values({
-                quotationId: newQId,
+              await db.createQuotationItem({
+                quotationId: id,
                 itemNumber: item.itemNumber,
                 itemType: item.itemType,
-                description: sanitizeText(item.description) || "Item",
-                quantity: item.quantity || "1",
-                unitPrice: item.unitPrice || null,
+                description: sanitizeText(item.description) ?? "Item",
+                quantity: item.quantity ?? "1",
+                unitPrice: item.unitPrice ?? null,
                 totalPrice: item.totalPrice.toString(),
-                includesFixedCosts: item.includesFixedCosts || false,
-                fixedCostsAmount: item.fixedCostsAmount || null,
+                includesFixedCosts: item.includesFixedCosts ?? false,
+                fixedCostsAmount: item.fixedCostsAmount ?? null,
                 kitchenConfig: item.kitchenConfig ? JSON.stringify(item.kitchenConfig) : null,
                 hardwareSelections: item.hardwareSelections ? JSON.stringify(item.hardwareSelections) : null,
                 closetConfig: item.closetConfig ? JSON.stringify(item.closetConfig) : null,
@@ -286,12 +194,31 @@ export const quotationsRouter = router({
                 countertopConfig: item.countertopConfig ? JSON.stringify(item.countertopConfig) : null,
               });
             }
-
-            return newQId;
+            await db.updateQuotation(id, {
+              ...quotationData,
+              subtotal: subtotal.toString(),
+              transportCost: transportCost.toString(),
+              discountPercent: discountPercent.toString(),
+              discountAmount: discountAmount.toString(),
+              total: total.toString(),
+            });
           });
-
-          return { success: true, newVersionId, versionNumber: Math.max(...allVersions.map(v => v.versionNumber), 0) + 1 };
+        } else if (input.discountPercent !== undefined) {
+          const subtotal = parseFloat(currentQuotation.subtotal);
+          const discountPercent = input.discountPercent;
+          const discountAmount = subtotal * (discountPercent / 100);
+          const total = subtotal - discountAmount;
+          await db.updateQuotation(id, {
+            ...quotationData,
+            discountPercent: discountPercent.toString(),
+            discountAmount: discountAmount.toString(),
+            total: total.toString(),
+          });
+        } else {
+          const { discountPercent: _, ...safeQuotationData } = quotationData;
+          await db.updateQuotation(id, safeQuotationData);
         }
+        return { success: true, quotationId: id };
       }),
 
     // Listar todas las cotizaciones (Admin)
@@ -302,16 +229,14 @@ export const quotationsRouter = router({
         }
 
         // Optimización: ejecutar consultas en paralelo
-        const [quotations, clients, allProjects] = await Promise.all([
+          const [quotationsList, clients, allProjects] = await Promise.all([
           db.getAllQuotations(),
           db.getAllClients(),
           db.getAllProjects(),
         ]);
-
         // Crear mapa de quotationId -> projectId
         const projectMap = new Map(allProjects.filter(p => p.quotationId).map(p => [p.quotationId, p.id]));
-
-        return quotations.map(quot => {
+        return quotationsList.map(quot => {
           const client = clients.find(c => c.id === quot.clientId);
           return {
             ...quot,
@@ -2319,12 +2244,12 @@ export const quotationsRouter = router({
         }
         
         // Optimización: ejecutar consultas en paralelo
-        const [quotations, clients] = await Promise.all([
+        const [quotationsList2, clients] = await Promise.all([
           db.getAllQuotations(),
           db.getAllClients(),
         ]);
         
-        return quotations.map(quot => {
+        return quotationsList2.map(quot => {
           const client = clients.find(c => c.id === quot.clientId);
           return {
             ...quot,

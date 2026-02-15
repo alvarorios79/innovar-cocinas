@@ -4483,3 +4483,9 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Integrar mutación createVersion con apertura automática en editor
 - [x] Actualizar proyecto para apuntar a última versión de cotización
 - [x] Limpiar onSuccess de updateQuotation (sin lógica de versionado)
+
+- [x] Corregir error "quotations is not defined" al guardar cotización editada
+- [x] Corregir mutación update para que borradores se actualicen directamente (sin crear versiones)
+- [x] Corregir QuotationVersioning.tsx: getAll → list/listPaginated, versionChain data access
+- [x] Limpiar V3 incorrecta creada durante pruebas
+- [x] Reescribir test quotations-versioning.test.ts con setup correcto (20/20 tests pasando)

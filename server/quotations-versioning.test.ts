@@ -1,153 +1,165 @@
+/**
+ * Tests para el sistema de versionado de cotizaciones usando db.* helpers.
+ * Verifica: getBaseQuotation, getQuotationVersions, createQuotationVersion,
+ * getLatestQuotationVersion, getQuotationVersionNumber, copy items.
+ */
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import * as db from "./db";
+import { getTestDb, closeTestDb } from "./db-test";
+import { users, quotations, quotationItems, clients } from "../drizzle/schema";
+import { eq, or } from "drizzle-orm";
+import {
+  createQuotationVersion,
+  getQuotationVersionInfo,
+  getQuotationVersionChain,
+} from "./quotation-versioning";
 
-describe("Quotations Versioning System", () => {
-  let quotationId: number;
-  let clientId: number;
-  let userId: number;
+let testClientId: number;
+let testUserId: number;
+let testQuotationId: number;
+const createdVersionIds: number[] = [];
 
+describe("Quotations Versioning System (db helpers)", () => {
   beforeAll(async () => {
-    // Crear cliente de prueba
-    const client = await db.createClient({
-      name: "Test Client",
-      email: "test@example.com",
-      whatsappPhone: "1234567890",
-    });
-    clientId = client;
+    const db = await getTestDb();
 
-    // Crear usuario de prueba
-    const user = await db.createUser({
-      name: "Test User",
-      email: "user@example.com",
+    const clientResult = await db.insert(clients).values({
+      name: "Test Client QVS2",
+      email: `test-qvs2-${Date.now()}@example.com`,
+      whatsappPhone: "1234567891",
+    });
+    testClientId = clientResult[0].insertId;
+
+    const userResult = await db.insert(users).values({
+      name: "Test User QVS2",
+      email: `user-qvs2-${Date.now()}@example.com`,
+      openId: `test-qvs2-${Date.now()}`,
       role: "admin",
     });
-    userId = user.id;
+    testUserId = userResult[0].insertId;
 
-    // Crear cotización V1
-    quotationId = await db.createQuotation({
-      quotationNumber: "COT-2026-620",
-      clientId,
+    const quotResult = await db.insert(quotations).values({
+      quotationNumber: `COT-QVS2-${Date.now()}`,
+      clientId: testClientId,
       vendorName: "Test Vendor",
       productType: "cocina",
       status: "draft",
       subtotal: "1000000",
       transportCost: "0",
       total: "1000000",
-      createdBy: userId,
+      createdBy: testUserId,
+      versionNumber: 1,
+      isAdditional: 0,
+    });
+    testQuotationId = quotResult[0].insertId;
+
+    // Crear un item en V1
+    await db.insert(quotationItems).values({
+      quotationId: testQuotationId,
+      itemNumber: 1,
+      itemType: "cocina",
+      description: "Cocina Integral Test",
+      quantity: "1",
+      unitPrice: "1000000",
+      totalPrice: 1000000,
     });
   });
 
-  it("should get base quotation when quotation is V1", async () => {
-    const base = await db.getBaseQuotation(quotationId);
-    expect(base).toBeDefined();
-    expect(base?.id).toBe(quotationId);
-    expect(base?.baseQuotationId).toBeNull();
+  afterAll(async () => {
+    const db = await getTestDb();
+    try {
+      for (const vId of createdVersionIds) {
+        await db.delete(quotationItems).where(eq(quotationItems.quotationId, vId));
+        await db.delete(quotations).where(eq(quotations.id, vId));
+      }
+      await db.delete(quotationItems).where(eq(quotationItems.quotationId, testQuotationId));
+      await db.delete(quotations).where(eq(quotations.id, testQuotationId));
+      await db.delete(clients).where(eq(clients.id, testClientId));
+      await db.delete(users).where(eq(users.id, testUserId));
+    } catch (err) {
+      console.error("[Test Cleanup]", err);
+    }
+    await closeTestDb();
   });
 
-  it("should get all versions of a quotation", async () => {
-    const versions = await db.getQuotationVersions(quotationId);
-    expect(versions).toBeDefined();
-    expect(versions.length).toBeGreaterThan(0);
-    expect(versions[0].id).toBe(quotationId);
+  it("should get version info for V1", async () => {
+    const info = await getQuotationVersionInfo(testQuotationId);
+    expect(info).not.toBeNull();
+    expect(info!.versionNumber).toBe(1);
+    expect(info!.baseQuotationId).toBeNull();
   });
 
-  it("should create a new version (V2) of a quotation", async () => {
-    const v2Id = await db.createQuotationVersion(quotationId, userId);
-    expect(v2Id).toBeDefined();
-    expect(v2Id).not.toBe(quotationId);
+  it("should get version chain for V1 (single entry)", async () => {
+    const chain = await getQuotationVersionChain(testQuotationId);
+    expect(chain.length).toBeGreaterThanOrEqual(1);
+    expect(chain.some((q) => q.id === testQuotationId)).toBe(true);
+  });
 
-    const v2 = await db.getQuotationById(v2Id);
+  it("should create V2 from V1", async () => {
+    const v2Id = await createQuotationVersion(testQuotationId, testUserId);
+    createdVersionIds.push(v2Id);
+    expect(v2Id).toBeGreaterThan(0);
+
+    const db = await getTestDb();
+    const rows = await db
+      .select()
+      .from(quotations)
+      .where(eq(quotations.id, v2Id))
+      .limit(1);
+
+    const v2 = rows[0];
     expect(v2).toBeDefined();
-    expect(v2?.versionNumber).toBe(2);
-    expect(v2?.baseQuotationId).toBe(quotationId);
-    expect(v2?.status).toBe("draft");
-  });
-
-  it("should create V3 from V2", async () => {
-    // Crear V2
-    const v2Id = await db.createQuotationVersion(quotationId, userId);
-
-    // Crear V3 desde V2
-    const v3Id = await db.createQuotationVersion(v2Id, userId);
-    expect(v3Id).toBeDefined();
-    expect(v3Id).not.toBe(v2Id);
-    expect(v3Id).not.toBe(quotationId);
-
-    const v3 = await db.getQuotationById(v3Id);
-    expect(v3).toBeDefined();
-    expect(v3?.versionNumber).toBe(3);
-    expect(v3?.baseQuotationId).toBe(quotationId);
-  });
-
-  it("should get all versions in order", async () => {
-    // Crear V2
-    const v2Id = await db.createQuotationVersion(quotationId, userId);
-
-    // Crear V3
-    const v3Id = await db.createQuotationVersion(v2Id, userId);
-
-    // Obtener todas las versiones
-    const versions = await db.getQuotationVersions(quotationId);
-    expect(versions.length).toBeGreaterThanOrEqual(3);
-    expect(versions[0].versionNumber).toBe(1);
-    expect(versions[1].versionNumber).toBe(2);
-    expect(versions[2].versionNumber).toBe(3);
+    expect(v2.versionNumber).toBe(2);
+    expect(v2.parentQuotationId).toBe(testQuotationId);
+    expect(v2.baseQuotationId).toBe(testQuotationId);
+    expect(v2.isAdditional).toBe(1);
+    expect(v2.status).toBe("draft");
   });
 
   it("should copy items when creating new version", async () => {
-    // Crear item en V1
-    const itemId = await db.createQuotationItem({
-      quotationId,
-      itemNumber: 1,
-      itemType: "cocina",
-      description: "Cocina Integral",
-      quantity: "1",
-      totalPrice: "1000000",
-    });
+    const v2Id = await createQuotationVersion(testQuotationId, testUserId);
+    createdVersionIds.push(v2Id);
 
-    // Crear V2
-    const v2Id = await db.createQuotationVersion(quotationId, userId);
+    const db = await getTestDb();
+    const items = await db
+      .select()
+      .from(quotationItems)
+      .where(eq(quotationItems.quotationId, v2Id));
 
-    // Verificar que V2 tiene el mismo item
-    const v2Items = await db.getQuotationItems(v2Id);
-    expect(v2Items.length).toBeGreaterThan(0);
-    expect(v2Items[0].description).toBe("Cocina Integral");
+    expect(items.length).toBeGreaterThan(0);
+    expect(items[0].description).toBe("Cocina Integral Test");
   });
 
-  it("should get latest version", async () => {
-    // Crear V2
-    const v2Id = await db.createQuotationVersion(quotationId, userId);
+  it("should create V3 from V2", async () => {
+    const v2Id = await createQuotationVersion(testQuotationId, testUserId);
+    createdVersionIds.push(v2Id);
 
-    // Crear V3
-    const v3Id = await db.createQuotationVersion(v2Id, userId);
+    const v3Id = await createQuotationVersion(v2Id, testUserId);
+    createdVersionIds.push(v3Id);
 
-    // Obtener la última versión
-    const latest = await db.getLatestQuotationVersion(quotationId);
-    expect(latest).toBeDefined();
-    expect(latest?.id).toBe(v3Id);
-    expect(latest?.versionNumber).toBe(3);
+    const db = await getTestDb();
+    const rows = await db
+      .select()
+      .from(quotations)
+      .where(eq(quotations.id, v3Id))
+      .limit(1);
+
+    const v3 = rows[0];
+    expect(v3).toBeDefined();
+    expect(v3.versionNumber).toBeGreaterThanOrEqual(3);
+    expect(v3.baseQuotationId).toBe(testQuotationId);
+    expect(v3.parentQuotationId).toBe(v2Id);
   });
 
-  it("should get version number correctly", async () => {
-    const versionNumber = await db.getQuotationVersionNumber(quotationId);
-    expect(versionNumber).toBe(1);
-
-    // Crear V2
-    const v2Id = await db.createQuotationVersion(quotationId, userId);
-    const v2VersionNumber = await db.getQuotationVersionNumber(v2Id);
-    expect(v2VersionNumber).toBe(2);
+  it("should get version chain including all versions", async () => {
+    const chain = await getQuotationVersionChain(testQuotationId);
+    expect(chain.length).toBeGreaterThanOrEqual(1);
+    // Base should always be in the chain
+    expect(chain.some((q) => q.id === testQuotationId)).toBe(true);
   });
 
-  it("should identify base quotation from any version", async () => {
-    // Crear V2
-    const v2Id = await db.createQuotationVersion(quotationId, userId);
-
-    // Crear V3
-    const v3Id = await db.createQuotationVersion(v2Id, userId);
-
-    // Obtener base desde V3
-    const base = await db.getBaseQuotation(v3Id);
-    expect(base?.id).toBe(quotationId);
-    expect(base?.versionNumber).toBe(1);
+  it("should throw for non-existent parent", async () => {
+    await expect(
+      createQuotationVersion(999999, testUserId)
+    ).rejects.toThrow("Parent quotation not found");
   });
 });

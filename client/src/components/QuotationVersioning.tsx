@@ -39,17 +39,19 @@ export function QuotationVersioning({
   const utils = trpc.useUtils();
 
   // Obtener cadena de versiones
-  const { data: versionChain = [] } = trpc.quotationsVersioning.getVersionChain.useQuery(
+  const { data: versionChainData } = trpc.quotationsVersioning.getVersionChain.useQuery(
     { quotationId },
     { enabled: !!quotationId }
   );
+  const versionChain = versionChainData?.versions ?? [];
 
   // Crear nueva versión
   const createVersion = trpc.quotationsVersioning.createVersion.useMutation({
     onSuccess: () => {
       toast.success("Nueva versión creada exitosamente");
       setShowVersionDialog(false);
-      utils.quotations.getAll.invalidate();
+      utils.quotations.list.invalidate();
+      utils.quotations.listPaginated.invalidate();
       utils.quotationsVersioning.getVersionChain.invalidate();
     },
     onError: (error) => {
@@ -95,11 +97,11 @@ export function QuotationVersioning({
           </div>
 
           {/* Listado de versiones */}
-          {versionChain.length > 0 && (
+          {versionChain && versionChain.length > 0 && (
             <div className="bg-white rounded p-2 border border-blue-100">
               <p className="text-xs font-medium text-muted-foreground mb-2">Historial de versiones:</p>
               <div className="flex flex-wrap gap-2">
-                {versionChain.map((version, index) => (
+                {versionChain.map((version: any, index: number) => (
                   <Badge
                     key={version.id}
                     variant={version.id === quotationId ? "default" : "outline"}

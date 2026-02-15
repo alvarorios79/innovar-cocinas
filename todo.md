@@ -4504,3 +4504,10 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Agregar validación backend para impedir degradación del rol super_admin
 - [x] Agregar validación frontend (deshabilitar selector de rol para super_admin)
 - [x] Escribir test de la validación (19/19 tests pasando)
+
+## Agrupación de Cotizaciones por Versiones
+- [x] Actualizar query de cotizaciones para agrupar por baseQuotationId
+- [x] Rediseñar QuotationCard con selector de versiones
+- [x] Actualizar Quotations.tsx para renderizar tarjetas agrupadas
+- [x] Botones contextuales: Editar/Crear versión solo para versión activa
+- [x] Probar flujo completo en navegador (selector funciona, botones contextuales correctos, versiones históricas solo lectura)

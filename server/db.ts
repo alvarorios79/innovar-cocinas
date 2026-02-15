@@ -2510,3 +2510,51 @@ export async function getQuotationVersionNumber(quotationId: number): Promise<nu
   const quotation = await getQuotationById(quotationId);
   return quotation?.versionNumber || 1;
 }
+
+export async function getAllQuotationsGroupedByBase(params: PaginationParams & { status?: string } = {}): Promise<PaginatedResult<any>> {
+  const db = await getDb();
+  if (!db) return { data: [], total: 0, page: 1, limit: 50, totalPages: 0 };
+
+  const page = Math.max(1, params.page || 1);
+  const limit = Math.min(100, Math.max(1, params.limit || 50));
+  const offset = (page - 1) * limit;
+
+  const conditions: any[] = [isNull(quotations.deletedAt)];
+  if (params.status) {
+    conditions.push(eq(quotations.status, params.status as any));
+  }
+
+  const allQuotations = await db.select().from(quotations).where(and(...conditions));
+  
+  const groupedMap = new Map<number, any[]>();
+  allQuotations.forEach(q => {
+    const groupKey = q.baseQuotationId || q.id;
+    if (!groupedMap.has(groupKey)) {
+      groupedMap.set(groupKey, []);
+    }
+    groupedMap.get(groupKey)!.push(q);
+  });
+
+  let groupedData = Array.from(groupedMap.values()).map(group => {
+    const sorted = group.sort((a, b) => (b.versionNumber || 1) - (a.versionNumber || 1));
+    return {
+      baseQuotationId: sorted[0].baseQuotationId || sorted[0].id,
+      quotationNumber: sorted[0].quotationNumber,
+      clientId: sorted[0].clientId,
+      versions: sorted,
+      activeVersion: sorted[0],
+      versionCount: sorted.length,
+    };
+  });
+
+  groupedData = groupedData.sort((a, b) => {
+    const aDate = new Date(a.activeVersion.createdAt).getTime();
+    const bDate = new Date(b.activeVersion.createdAt).getTime();
+    return bDate - aDate;
+  });
+
+  const total = groupedData.length;
+  const paginatedData = groupedData.slice(offset, offset + limit);
+
+  return { data: paginatedData, total, page, limit, totalPages: Math.ceil(total / limit) };
+}

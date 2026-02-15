@@ -273,6 +273,38 @@ export const quotationsRouter = router({
         };
       }),
 
+    listPaginatedGrouped: protectedProcedure
+      .input(z.object({
+        page: z.number().min(1).optional().default(1),
+        limit: z.number().min(1).max(100).optional().default(50),
+        status: z.string().optional(),
+      }).optional())
+      .query(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "comercial") {
+          throw new TRPCError({ code: "FORBIDDEN" });
+        }
+        const result = await db.getAllQuotationsGroupedByBase({
+          page: input?.page,
+          limit: input?.limit,
+          status: input?.status,
+        });
+        const [allClients, allProjects] = await Promise.all([
+          db.getAllClients(),
+          db.getAllProjects(),
+        ]);
+        const clientMap = new Map(allClients.map(c => [c.id, c]));
+        const projectMap = new Map(allProjects.filter(p => p.quotationId).map(p => [p.quotationId, p.id]));
+        return {
+          ...result,
+          data: result.data.map((group: any) => ({
+            ...group,
+            client: clientMap.get(group.clientId),
+            activeVersion: { ...group.activeVersion, projectId: projectMap.get(group.activeVersion.id) || null },
+            versions: group.versions.map((v: any) => ({ ...v, projectId: projectMap.get(v.id) || null })),
+          })),
+        };
+      }),
+
     // Obtener cotización por ID con items
     getById: protectedProcedure
       .input(z.object({ id: z.number() }))

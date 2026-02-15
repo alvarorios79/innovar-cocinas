@@ -34,6 +34,7 @@ import { toast } from "sonner";
 import { formatPrice } from "@/lib/formatters";
 import { CreateQuickClientDialog } from "@/components/CreateQuickClientDialog";
 import { usePricing, getPriceFromMap } from "@/hooks/usePricing";
+import { QuotationGroupCard } from "@/components/QuotationGroupCard";
 
 
 interface HardwareSelection {
@@ -176,7 +177,7 @@ export default function Quotations() {
     },
   ]);
 
-  const { data: quotationsData, isLoading } = trpc.quotations.listPaginated.useQuery({
+  const { data: quotationsData, isLoading } = trpc.quotations.listPaginatedGrouped.useQuery({
     page: quotationPage,
     limit: QUOTATIONS_PER_PAGE,
     status: filterStatus !== "all" ? filterStatus : undefined
@@ -222,7 +223,7 @@ export default function Quotations() {
   const createQuotation = trpc.quotations.create.useMutation({
     onSuccess: () => {
       utils.quotations.list.invalidate();
-      utils.quotations.listPaginated.invalidate();
+      utils.quotations.listPaginatedGrouped.invalidate();
       toast.success("Cotización creada exitosamente");
       setShowCreateDialog(false);
       resetForm();
@@ -235,7 +236,7 @@ export default function Quotations() {
   const updateQuotation = trpc.quotations.update.useMutation({
     onSuccess: () => {
       utils.quotations.list.invalidate();
-      utils.quotations.listPaginated.invalidate();
+      utils.quotations.listPaginatedGrouped.invalidate();
       toast.success("Cotización actualizada exitosamente");
       setShowCreateDialog(false);
       resetForm();
@@ -248,7 +249,7 @@ export default function Quotations() {
   const updateStatus = trpc.quotations.updateStatus.useMutation({
     onSuccess: () => {
       utils.quotations.list.invalidate();
-      utils.quotations.listPaginated.invalidate();
+      utils.quotations.listPaginatedGrouped.invalidate();
       toast.success("Estado actualizado");
     },
   });
@@ -256,7 +257,7 @@ export default function Quotations() {
   const deleteQuotation = trpc.quotations.delete.useMutation({
     onSuccess: () => {
       utils.quotations.list.invalidate();
-      utils.quotations.listPaginated.invalidate();
+      utils.quotations.listPaginatedGrouped.invalidate();
       toast.success("Cotización eliminada");
     },
   });
@@ -264,7 +265,7 @@ export default function Quotations() {
   const toggleLock = trpc.quotations.toggleLock.useMutation({
     onSuccess: (data) => {
       utils.quotations.list.invalidate();
-      utils.quotations.listPaginated.invalidate();
+      utils.quotations.listPaginatedGrouped.invalidate();
       toast.success(data.message);
     },
     onError: (error) => {
@@ -289,7 +290,7 @@ export default function Quotations() {
   const sendByEmail = trpc.quotations.sendByEmail.useMutation({
     onSuccess: () => {
       utils.quotations.list.invalidate();
-      utils.quotations.listPaginated.invalidate();
+      utils.quotations.listPaginatedGrouped.invalidate();
       toast.success("Cotización enviada por email");
       setPreviewDialogOpen(false);
       setSelectedQuotationForEmail(null);
@@ -325,7 +326,7 @@ export default function Quotations() {
     onSuccess: (data) => {
       toast.success(`Nueva versión creada exitosamente`);
       utils.quotations.list.invalidate();
-      utils.quotations.listPaginated.invalidate();
+      utils.quotations.listPaginatedGrouped.invalidate();
       // Abrir la nueva versión en el editor
       handleEdit(data.newQuotationId);
     },
@@ -1453,6 +1454,27 @@ export default function Quotations() {
         </Card>
       ) : (
         <div className="grid gap-4">
+          {filteredQuotations.map((group: any) => (
+            <QuotationGroupCard
+              key={group.baseQuotationId}
+              group={group}
+              client={group.client}
+              onEdit={(quotation) => handleEdit(quotation.id)}
+              onViewPDF={(quotation) => handlePreviewClick(quotation.id, `${group.quotationNumber} - ${group.client?.name || 'Cliente'}`)}
+              onSend={(quotation) => handleEmailClick(quotation.id, group.client?.email || "", group.quotationNumber, group.client?.name || "Cliente")}
+              onCreateVersion={(quotation) => {
+                if (window.confirm(`¿Crear nueva versión de la cotización ${group.quotationNumber}?`)) {
+                  createVersion.mutate({ quotationId: quotation.id });
+                }
+              }}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* LEGACY CODE - KEPT FOR REFERENCE */}
+      {false && (
+        <div className="grid gap-4">
           {filteredQuotations.map((quot: any) => (
             <Card key={quot.id}>
               <CardHeader>
@@ -1663,6 +1685,7 @@ export default function Quotations() {
           ))}
         </div>
       )}
+      {/* END LEGACY CODE */}
 
       {/* Dialog para crear cotización */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>

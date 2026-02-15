@@ -94,7 +94,7 @@ export async function sendProjectRemindersToTeam(): Promise<{
       const user = await getUserWithPhone(reminder.assignedTo);
       if (!user) continue;
 
-      const project = await db.getProjectById(reminder.projectId);
+      const project = await db.getProjectById(reminder.projectId ?? 0);
       const projectName = project?.name || "Proyecto";
       const reminderConfig = REMINDER_CONFIG[reminder.type as ReminderType];
       const title = reminderConfig?.title || "Recordatorio";
@@ -266,7 +266,7 @@ export async function sendOverdueChangesToTeam(): Promise<{
 
     for (const project of projectsWithChanges) {
       const changesDate = new Date(
-        project.changesRequestedAt as Date
+        project.changesRequestedAt as unknown as Date
       ).getTime();
       const timeSinceChanges = now - changesDate;
 

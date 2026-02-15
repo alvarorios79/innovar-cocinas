@@ -278,7 +278,7 @@ export const projectsRouter = router({
               newStatus: 'cotizacion_enviada',
               notes: `Cotización ${quotation.quotationNumber} enviada al cliente`,
               changedBy: null,
-              createdAt: quotation.sentAt,
+              createdAt: quotation.sentAt as unknown as Date,
             });
           }
           
@@ -291,7 +291,7 @@ export const projectsRouter = router({
               newStatus: 'cotizacion_aprobada',
               notes: `Cotización ${quotation.quotationNumber} aprobada por el cliente`,
               changedBy: null,
-              createdAt: quotation.approvedAt,
+              createdAt: quotation.approvedAt as unknown as Date,
             });
           }
           
@@ -304,7 +304,7 @@ export const projectsRouter = router({
               newStatus: 'cotizacion_enviada',
               notes: `Cotización ${quotation.quotationNumber} rechazada: ${quotation.rejectionReason}`,
               changedBy: null,
-              createdAt: quotation.updatedAt,
+              createdAt: quotation.updatedAt as unknown as Date,
             });
           }
         }
@@ -318,7 +318,7 @@ export const projectsRouter = router({
             newStatus: h.toStatus,
             notes: h.notes,
             changedBy: h.changedByUser?.name || null,
-            createdAt: h.createdAt,
+            createdAt: h.createdAt as unknown as Date,
           });
         }
         

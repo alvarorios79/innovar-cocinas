@@ -55,6 +55,7 @@ export function PDFPreviewDialog({
             src={pdfUrl}
             className="w-full h-full border-0"
             onLoad={() => setIsLoading(false)}
+            sandbox="allow-same-origin allow-scripts"
           />
         </div>
 

@@ -4428,3 +4428,8 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 ## Bugs Móvil - Fase 3 (Febrero 2026)
 
 - [x] Botón "Bloquear" no funciona en iPhone - Funciona en desktop pero no en móvil (ARREGLADO: reemplazado window.confirm con AlertDialog)
+
+
+## Bugs Pendientes - Solucionar Más Adelante
+
+- [ ] Descarga automática de PDF al abrir vista previa de email - El navegador descarga el PDF automáticamente cuando se abre el diálogo de vista previa, aunque se visualiza correctamente. Solución: Investigar uso de blob URLs o servidor proxy para prevenir descarga automática sin afectar visualización.

@@ -1585,7 +1585,7 @@ export default function Admin() {
                                       </div>
                                     </div>
                                     {/* Fila de botones de acción - responsive */}
-                                    {usr.id !== user?.id && (user?.role === "super_admin" || (user?.role === "admin" && usr.role === "user")) && (
+                                    {usr.id !== user?.id && usr.role !== "super_admin" && (user?.role === "super_admin" || (user?.role === "admin" && usr.role === "user")) && (
                                       <div className="mt-3 pt-3 border-t border-border/50">
                                         <div className="flex flex-wrap gap-2">
                                           {/* Botón Cambiar Rol */}

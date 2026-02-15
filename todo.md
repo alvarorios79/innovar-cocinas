@@ -4499,3 +4499,8 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Restaurar página Home (CEO) con colores, tarjetas y diseño original previo a cambios de versionado
 - [x] Restaurar enlace/sección de Proyectos en la página Admin (rol super_admin restaurado + Proyectos/Tareas agregados al rol admin)
 - [x] Conservar correcciones de versionado ya logradas
+
+## Protección de rol super_admin
+- [x] Agregar validación backend para impedir degradación del rol super_admin
+- [x] Agregar validación frontend (deshabilitar selector de rol para super_admin)
+- [x] Escribir test de la validación (19/19 tests pasando)

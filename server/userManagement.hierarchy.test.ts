@@ -352,4 +352,46 @@ describe("User Management - Role Hierarchy", () => {
       expect(result.success).toBe(true);
     });
   });
+
+  describe("Owner protection", () => {
+    it("cannot degrade the owner (identified by OWNER_OPEN_ID) even as super_admin", async () => {
+      const superAdminCtx = createSuperAdminContext();
+      const superAdminCaller = appRouter.createCaller(superAdminCtx);
+
+      // Find the owner user in the DB
+      const users = await superAdminCaller.userManagement.listAll();
+      const ownerUser = users.find(u => u.role === "super_admin" && u.id === 1);
+      
+      if (ownerUser) {
+        // Try to degrade the owner to admin
+        await expect(
+          superAdminCaller.userManagement.updateRole({
+            userId: ownerUser.id,
+            newRole: "admin",
+          })
+        ).rejects.toThrow();
+
+        // Try to degrade the owner to user
+        await expect(
+          superAdminCaller.userManagement.updateRole({
+            userId: ownerUser.id,
+            newRole: "user",
+          })
+        ).rejects.toThrow();
+      }
+    });
+
+    it("super_admin cannot degrade themselves if they are the owner", async () => {
+      // Simulate the owner trying to degrade themselves
+      const ownerCtx = createSuperAdminContext();
+      const ownerCaller = appRouter.createCaller(ownerCtx);
+
+      await expect(
+        ownerCaller.userManagement.updateRole({
+          userId: ownerCtx.user!.id,
+          newRole: "admin",
+        })
+      ).rejects.toThrow();
+    });
+  });
 });

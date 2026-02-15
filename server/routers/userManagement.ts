@@ -14,6 +14,7 @@ import { createRemindersForStatusChange } from "../reminders-service";
 import * as whatsappCloud from "../whatsapp-cloud";
 import { addBusinessDays, calculateEstimatedDeliveryDate } from "../business-days";
 import { sanitizeText, sanitizeHtml, sanitizeForEmail, sanitizePhone, sanitizeEmail } from "../sanitize";
+import { ENV } from "../_core/env";
 
 
 export const userManagementRouter = router({
@@ -108,6 +109,22 @@ export const userManagementRouter = router({
         
         if (!targetUser) {
           throw new TRPCError({ code: "NOT_FOUND", message: "Usuario no encontrado" });
+        }
+
+        // Proteger al owner (super_admin principal) de ser degradado por nadie
+        if (targetUser.openId === ENV.ownerOpenId && input.newRole !== "super_admin") {
+          throw new TRPCError({ 
+            code: "FORBIDDEN", 
+            message: "El rol del propietario del sistema no puede ser modificado" 
+          });
+        }
+
+        // Proteger al owner de ser eliminado del rol super_admin incluso por sí mismo
+        if (targetUser.role === "super_admin" && targetUser.openId === ENV.ownerOpenId && input.newRole !== "super_admin") {
+          throw new TRPCError({ 
+            code: "FORBIDDEN", 
+            message: "El super administrador principal no puede ser degradado" 
+          });
         }
 
         // Solo super_admin puede modificar roles de admin o super_admin

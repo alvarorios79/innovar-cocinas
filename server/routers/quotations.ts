@@ -117,7 +117,7 @@ export const quotationsRouter = router({
         return { success: true, quotationId, quotationNumber };
       }),
 
-    // Actualizar cotización existente
+    // Actualizar cotización existente - AHORA CREA NUEVA VERSIÓN
     update: protectedProcedure
       .input(z.object({
         id: z.number(),
@@ -155,31 +155,121 @@ export const quotationsRouter = router({
           throw new TRPCError({ code: "FORBIDDEN" });
         }
 
-        // Verificación de bloqueo pendiente en Mini-Fase 2
-
         const { id, items, ...quotationData } = input;
 
-        // Si se actualizan items, recalcular totales
-        if (items) {
-          // El totalPrice de cada item YA incluye todo (cocina + extras + transporte si aplica)
-          // No necesitamos sumar nada adicional
+        // Obtener la cotización actual
+        const currentQuotation = await db.getQuotationById(id);
+        if (!currentQuotation) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Quotation not found" });
+        }
+
+        // Si la cotización está aprobada o fue editada antes, crear una nueva versión
+        // Si es un borrador sin versiones previas, actualizar la existente
+        const baseId = currentQuotation.baseQuotationId || id;
+        const allVersions = await db.getQuotationVersions(id);
+        const isFirstVersion = allVersions.length === 1 && allVersions[0].id === id;
+        const isApproved = currentQuotation.status === "approved";
+
+        // Si es la primera versión Y está en borrador, actualizar directamente
+        // Si está aprobada O tiene versiones previas, crear nueva versión
+        if (isFirstVersion && !isApproved) {
+          // Actualizar la cotización existente (V1 en borrador)
+          if (items) {
+            const subtotal = items.reduce((sum, item) => sum + item.totalPrice, 0);
+            const transportCost = 0;
+            const discountPercent = input.discountPercent ?? 0;
+            const discountAmount = subtotal * (discountPercent / 100);
+            const total = subtotal - discountAmount;
+
+            await withTransaction(async (tx) => {
+              await db.deleteQuotationItems(id);
+              for (const item of items) {
+                await db.createQuotationItem({
+                  quotationId: id,
+                  itemNumber: item.itemNumber,
+                  itemType: item.itemType,
+                  description: sanitizeText(item.description) || "Item",
+                  quantity: item.quantity || "1",
+                  unitPrice: item.unitPrice || null,
+                  totalPrice: item.totalPrice.toString(),
+                  includesFixedCosts: item.includesFixedCosts || false,
+                  fixedCostsAmount: item.fixedCostsAmount || null,
+                  kitchenConfig: item.kitchenConfig ? JSON.stringify(item.kitchenConfig) : null,
+                  hardwareSelections: item.hardwareSelections ? JSON.stringify(item.hardwareSelections) : null,
+                  closetConfig: item.closetConfig ? JSON.stringify(item.closetConfig) : null,
+                  doorConfig: item.doorConfig ? JSON.stringify(item.doorConfig) : null,
+                  tvCenterConfig: item.tvCenterConfig ? JSON.stringify(item.tvCenterConfig) : null,
+                  countertopConfig: item.countertopConfig ? JSON.stringify(item.countertopConfig) : null,
+                });
+              }
+              await db.updateQuotation(id, {
+                ...quotationData,
+                subtotal: subtotal.toString(),
+                transportCost: transportCost.toString(),
+                discountPercent: discountPercent.toString(),
+                discountAmount: discountAmount.toString(),
+                total: total.toString(),
+              });
+            });
+          } else if (input.discountPercent !== undefined) {
+            const subtotal = parseFloat(currentQuotation.subtotal);
+            const discountPercent = input.discountPercent;
+            const discountAmount = subtotal * (discountPercent / 100);
+            const total = subtotal - discountAmount;
+            await db.updateQuotation(id, {
+              ...quotationData,
+              discountPercent: discountPercent.toString(),
+              discountAmount: discountAmount.toString(),
+              total: total.toString(),
+            });
+          } else {
+            const { discountPercent: _, ...safeQuotationData } = quotationData;
+            await db.updateQuotation(id, safeQuotationData);
+          }
+          return { success: true, newVersionId: id, versionNumber: 1 };
+        } else {
+          // Crear nueva versión (V2, V3, V4...)
+          if (!items) {
+            throw new TRPCError({ code: "BAD_REQUEST", message: "Items are required when creating a new version" });
+          }
+
           const subtotal = items.reduce((sum, item) => sum + item.totalPrice, 0);
-          const transportCost = 0; // Ya incluido en totalPrice de items
-          
-          // Calcular descuento
+          const transportCost = 0;
           const discountPercent = input.discountPercent ?? 0;
           const discountAmount = subtotal * (discountPercent / 100);
           const total = subtotal - discountAmount;
 
-          // Actualizar items y totales en transacción
-          await withTransaction(async (tx) => {
-            // Eliminar items antiguos
-            await db.deleteQuotationItems(id);
+          const newVersionId = await withTransaction(async (tx) => {
+            // Obtener el siguiente número de versión
+            const nextVersionNumber = Math.max(...allVersions.map(v => v.versionNumber), 0) + 1;
 
-            // Crear nuevos items
+            // Crear nueva cotización
+            const newQuotationData: any = {
+              quotationNumber: currentQuotation.quotationNumber + `-V${nextVersionNumber}`,
+              clientId: currentQuotation.clientId,
+              vendorName: quotationData.vendorName || currentQuotation.vendorName,
+              productType: quotationData.productType || currentQuotation.productType,
+              status: "draft",
+              validUntil: currentQuotation.validUntil,
+              subtotal: subtotal.toString(),
+              transportCost: transportCost.toString(),
+              discountPercent: discountPercent.toString(),
+              discountAmount: discountAmount.toString(),
+              total: total.toString(),
+              customDescriptions: quotationData.customDescriptions || currentQuotation.customDescriptions,
+              generalNotes: quotationData.generalNotes || currentQuotation.generalNotes,
+              createdBy: ctx.user.id,
+              baseQuotationId: baseId,
+              versionNumber: nextVersionNumber,
+            };
+
+            const result = await tx.insert(quotations).values(newQuotationData);
+            const newQId = result[0].insertId;
+
+            // Copiar items
             for (const item of items) {
-              await db.createQuotationItem({
-                quotationId: id,
+              await tx.insert(quotationItems).values({
+                quotationId: newQId,
                 itemNumber: item.itemNumber,
                 itemType: item.itemType,
                 description: sanitizeText(item.description) || "Item",
@@ -197,39 +287,11 @@ export const quotationsRouter = router({
               });
             }
 
-            // Actualizar totales
-            await db.updateQuotation(id, {
-              ...quotationData,
-              subtotal: subtotal.toString(),
-              transportCost: transportCost.toString(),
-              discountPercent: discountPercent.toString(),
-              discountAmount: discountAmount.toString(),
-              total: total.toString(),
-            });
+            return newQId;
           });
-        } else if (input.discountPercent !== undefined) {
-          // Si solo se actualiza el descuento sin cambiar items
-          const existingQuotation = await db.getQuotationById(id);
-          if (existingQuotation) {
-            const subtotal = parseFloat(existingQuotation.subtotal);
-            const discountPercent = input.discountPercent;
-            const discountAmount = subtotal * (discountPercent / 100);
-            const total = subtotal - discountAmount;
-            
-            await db.updateQuotation(id, {
-              ...quotationData,
-              discountPercent: discountPercent.toString(),
-              discountAmount: discountAmount.toString(),
-              total: total.toString(),
-            });
-          }
-        } else {
-          // Remover discountPercent del quotationData ya que es un número y la BD espera string
-          const { discountPercent: _, ...safeQuotationData } = quotationData;
-          await db.updateQuotation(id, safeQuotationData);
-        }
 
-        return { success: true };
+          return { success: true, newVersionId, versionNumber: Math.max(...allVersions.map(v => v.versionNumber), 0) + 1 };
+        }
       }),
 
     // Listar todas las cotizaciones (Admin)

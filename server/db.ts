@@ -2315,3 +2315,198 @@ export async function getAllExpensesPaginated(params: PaginationParams & { expen
   const total = countResult[0]?.count || 0;
   return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
 }
+
+
+// ============ QUOTATION VERSIONING ============
+
+/**
+ * Obtiene la cotización base (V1) de un cliente
+ * Si la cotización es una versión, devuelve la V1
+ * Si la cotización es V1, devuelve ella misma
+ */
+export async function getBaseQuotation(quotationId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const quotation = await getQuotationById(quotationId);
+  if (!quotation) return undefined;
+
+  // Si tiene baseQuotationId, obtener la V1
+  if (quotation.baseQuotationId) {
+    return await getQuotationById(quotation.baseQuotationId);
+  }
+
+  // Si no tiene baseQuotationId, es la V1
+  return quotation;
+}
+
+/**
+ * Obtiene todas las versiones de una cotización (V1, V2, V3, etc.)
+ */
+export async function getQuotationVersions(quotationId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  // Obtener la cotización para saber cuál es la base
+  const quotation = await getQuotationById(quotationId);
+  if (!quotation) return [];
+
+  // Determinar el baseQuotationId
+  const baseId = quotation.baseQuotationId || quotationId;
+
+  // Obtener todas las versiones (la base + todas las que tengan baseQuotationId = baseId)
+  const result = await db
+    .select()
+    .from(quotations)
+    .where(
+      or(
+        eq(quotations.id, baseId),
+        eq(quotations.baseQuotationId, baseId)
+      )
+    )
+    .orderBy(quotations.versionNumber);
+
+  return result;
+}
+
+/**
+ * Obtiene la última versión aprobada de una cotización
+ */
+export async function getLatestApprovedQuotationVersion(baseQuotationId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db
+    .select()
+    .from(quotations)
+    .where(
+      and(
+        or(
+          eq(quotations.id, baseQuotationId),
+          eq(quotations.baseQuotationId, baseQuotationId)
+        ),
+        eq(quotations.status, "approved")
+      )
+    )
+    .orderBy(desc(quotations.versionNumber))
+    .limit(1);
+
+  return result.length > 0 ? result[0] : undefined;
+}
+
+/**
+ * Crea una nueva versión de una cotización
+ * Copia todos los items y crea una nueva cotización con versionNumber + 1
+ */
+export async function createQuotationVersion(sourceQuotationId: number, userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  return await withTransaction(async (tx) => {
+    // Obtener la cotización fuente
+    const sourceQuotation = await getQuotationById(sourceQuotationId);
+    if (!sourceQuotation) throw new Error("Source quotation not found");
+
+    // Determinar baseQuotationId y siguiente versionNumber
+    const baseId = sourceQuotation.baseQuotationId || sourceQuotationId;
+    
+    // Obtener todas las versiones para calcular el siguiente número
+    const versions = await tx
+      .select()
+      .from(quotations)
+      .where(
+        or(
+          eq(quotations.id, baseId),
+          eq(quotations.baseQuotationId, baseId)
+        )
+      );
+
+    const nextVersionNumber = Math.max(...versions.map(v => v.versionNumber), 0) + 1;
+
+    // Crear nueva cotización con la siguiente versión
+    const newQuotationData: InsertQuotation = {
+      quotationNumber: sourceQuotation.quotationNumber + `-V${nextVersionNumber}`,
+      clientId: sourceQuotation.clientId,
+      vendorName: sourceQuotation.vendorName,
+      productType: sourceQuotation.productType,
+      status: "draft", // Nueva versión comienza como borrador
+      validUntil: sourceQuotation.validUntil,
+      subtotal: sourceQuotation.subtotal,
+      transportCost: sourceQuotation.transportCost,
+      total: sourceQuotation.total,
+      discountPercent: sourceQuotation.discountPercent,
+      discountAmount: sourceQuotation.discountAmount,
+      customDescriptions: sourceQuotation.customDescriptions,
+      generalNotes: sourceQuotation.generalNotes,
+      createdBy: userId,
+      baseQuotationId: baseId,
+      versionNumber: nextVersionNumber,
+    };
+
+    const result = await tx.insert(quotations).values(newQuotationData);
+    const newQuotationId = result[0].insertId;
+
+    // Copiar todos los items de la cotización fuente
+    const sourceItems = await tx
+      .select()
+      .from(quotationItems)
+      .where(eq(quotationItems.quotationId, sourceQuotationId));
+
+    for (const item of sourceItems) {
+      await tx.insert(quotationItems).values({
+        quotationId: newQuotationId,
+        itemNumber: item.itemNumber,
+        itemType: item.itemType,
+        description: item.description,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+        totalPrice: item.totalPrice,
+        includesFixedCosts: item.includesFixedCosts,
+        fixedCostsAmount: item.fixedCostsAmount,
+        kitchenConfig: item.kitchenConfig,
+        hardwareSelections: item.hardwareSelections,
+        closetConfig: item.closetConfig,
+        doorConfig: item.doorConfig,
+        tvCenterConfig: item.tvCenterConfig,
+        countertopConfig: item.countertopConfig,
+      });
+    }
+
+    return newQuotationId;
+  });
+}
+
+/**
+ * Obtiene la última versión de una cotización (aprobada o no)
+ */
+export async function getLatestQuotationVersion(quotationId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const quotation = await getQuotationById(quotationId);
+  if (!quotation) return undefined;
+
+  const baseId = quotation.baseQuotationId || quotationId;
+
+  const result = await db
+    .select()
+    .from(quotations)
+    .where(
+      or(
+        eq(quotations.id, baseId),
+        eq(quotations.baseQuotationId, baseId)
+      )
+    )
+    .orderBy(desc(quotations.versionNumber))
+    .limit(1);
+
+  return result.length > 0 ? result[0] : undefined;
+}
+
+/**
+ * Obtiene el número de versión de una cotización
+ */
+export async function getQuotationVersionNumber(quotationId: number): Promise<number> {
+  const quotation = await getQuotationById(quotationId);
+  return quotation?.versionNumber || 1;
+}

@@ -233,12 +233,21 @@ export default function Quotations() {
   });
 
   const updateQuotation = trpc.quotations.update.useMutation({
-    onSuccess: () => {
+    onSuccess: (data: any) => {
       utils.quotations.list.invalidate();
       utils.quotations.listPaginated.invalidate();
-      toast.success("Cotización actualizada exitosamente");
-      setShowCreateDialog(false);
-      resetForm();
+      
+      // Si se creó una nueva versión, cargarla automáticamente
+      if (data.newVersionId && data.newVersionId !== editingQuotation) {
+        toast.success(`Cotización actualizada - Nueva versión V${data.versionNumber} creada`);
+        // Cargar la nueva versión
+        setEditingQuotation(data.newVersionId);
+        handleEdit(data.newVersionId);
+      } else {
+        toast.success("Cotización actualizada exitosamente");
+        setShowCreateDialog(false);
+        resetForm();
+      }
     },
     onError: (error) => {
       toast.error(error.message || "Error al actualizar cotización");
@@ -1444,7 +1453,12 @@ export default function Quotations() {
               <CardHeader>
                 <div className="flex justify-between items-start">
                   <div>
-                    <CardTitle>{quot.quotationNumber} - {quot.client?.name}</CardTitle>
+                    <div className="flex items-center gap-2">
+                      <CardTitle>{quot.quotationNumber} - {quot.client?.name}</CardTitle>
+                      {quot.versionNumber > 1 && (
+                        <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-semibold rounded">V{quot.versionNumber}</span>
+                      )}
+                    </div>
                     <p className="text-sm text-muted-foreground mt-1">
                       {quot.productType === "cocina" ? "Cocina Integral" : 
                        quot.productType === "closet" ? "Closet" :

@@ -4433,3 +4433,45 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 ## Bugs Pendientes - Solucionar Más Adelante
 
 - [ ] Descarga automática de PDF al abrir vista previa de email - El navegador descarga el PDF automáticamente cuando se abre el diálogo de vista previa, aunque se visualiza correctamente. Solución: Investigar uso de blob URLs o servidor proxy para prevenir descarga automática sin afectar visualización.
+
+
+## Sistema de Versionado de Cotizaciones (V1, V2, V3...)
+
+### Completado
+- [x] Implementar funciones de versionado en db.ts:
+  - getBaseQuotation() - Obtiene la V1 de una cotización
+  - getQuotationVersions() - Obtiene todas las versiones
+  - getLatestApprovedQuotationVersion() - Obtiene la última versión aprobada
+  - createQuotationVersion() - Crea nueva versión (V2, V3, V4...)
+  - getLatestQuotationVersion() - Obtiene la última versión
+  - getQuotationVersionNumber() - Obtiene el número de versión
+
+- [x] Actualizar mutación update en backend:
+  - Si es V1 en borrador → Actualiza directamente
+  - Si es V1 aprobada O tiene versiones previas → Crea nueva versión
+  - Nueva versión comienza como borrador
+  - Todos los items se copian automáticamente
+
+- [x] Actualizar frontend:
+  - Agregar indicador de versión (V2, V3, V4...) en tarjeta de cotización
+  - Cuando se crea nueva versión, se carga automáticamente en el editor
+  - Mostrar mensaje: "Cotización actualizada - Nueva versión V2 creada"
+
+- [x] Sincronizar proyecto con última versión:
+  - Cuando se crea proyecto, obtiene la última versión aprobada
+  - El proyecto siempre sincroniza con la última versión
+  - Si hay V1, V2, V3... el proyecto usa V3 (la más reciente)
+
+- [x] Crear tests para validar versionado:
+  - Tests en quotations-versioning.test.ts
+  - Validar creación de versiones
+  - Validar copia de items
+  - Validar obtención de versiones ordenadas
+
+### Workflow Implementado
+1. **Crear cotización** → V1 con baseQuotationId = null
+2. **Editar cotización V1 en borrador** → Actualiza directamente (sin crear versión)
+3. **Editar cotización V1 aprobada** → Crea V2 (baseQuotationId = id_v1)
+4. **Editar cotización V2** → Crea V3 (baseQuotationId = id_v1)
+5. **Crear proyecto** → Usa la última versión aprobada (V2, V3, V4...)
+6. **Información financiera del proyecto** → Siempre sincroniza con última versión

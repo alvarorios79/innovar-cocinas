@@ -33,6 +33,14 @@ export const projectsRouter = router({
           throw new TRPCError({ code: "FORBIDDEN", message: "Solo administradores pueden crear proyectos" });
         }
 
+        // Si se proporciona quotationId, obtener la última versión aprobada
+        let finalQuotationId = input.quotationId;
+        if (finalQuotationId) {
+          const latestVersion = await db.getLatestApprovedQuotationVersion(finalQuotationId);
+          if (latestVersion) {
+            finalQuotationId = latestVersion.id;
+          }
+        }
         // Calcular fecha TENTATIVA de instalación: 25 días hábiles desde hoy
         const tentativeDate = await addBusinessDays(new Date(), 25);
         
@@ -40,7 +48,11 @@ export const projectsRouter = router({
         const autoAssignedDesignerId = await db.getDesignerWithLeastActiveProjects();
         
         const projectId = await db.createProject({
-          ...input,
+          quotationId: finalQuotationId,
+          clientId: input.clientId,
+          name: input.name,
+          workType: input.workType,
+          initialMeasurements: input.initialMeasurements,
           status: "cotizacion_enviada",
           quotationSentAt: new Date(),
           createdBy: ctx.user.id,
@@ -1358,7 +1370,11 @@ export const projectPhotosRouter = router({
         }
 
         const photoId = await db.createProjectPhoto({
-          ...input,
+          quotationId: finalQuotationId,
+          clientId: input.clientId,
+          name: input.name,
+          workType: input.workType,
+          initialMeasurements: input.initialMeasurements,
           uploadedBy: ctx.user.id,
         });
 
@@ -1479,7 +1495,11 @@ export const projectDetailsRouter = router({
         }
 
         const detailId = await db.createProjectDetail({
-          ...input,
+          quotationId: finalQuotationId,
+          clientId: input.clientId,
+          name: input.name,
+          workType: input.workType,
+          initialMeasurements: input.initialMeasurements,
           createdBy: ctx.user.id,
         });
 

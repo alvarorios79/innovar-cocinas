@@ -1,7 +1,7 @@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Download, Mail, X } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 interface PDFPreviewDialogProps {
   open: boolean;
@@ -23,36 +23,6 @@ export function PDFPreviewDialog({
   quotationNumber = "",
 }: PDFPreviewDialogProps) {
   const [isLoading, setIsLoading] = useState(true);
-  const [blobUrl, setBlobUrl] = useState<string>("");
-
-  // Convertir URL a blob para evitar descarga automática
-  const loadPdfAsBlob = async () => {
-    try {
-      setIsLoading(true);
-      const response = await fetch(pdfUrl);
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      setBlobUrl(url);
-    } catch (error) {
-      console.error("Error loading PDF:", error);
-      setBlobUrl(pdfUrl); // Fallback a URL original
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Cargar PDF cuando el diálogo se abre
-  useEffect(() => {
-    if (open && !blobUrl) {
-      loadPdfAsBlob();
-    }
-    return () => {
-      // Limpiar blob URL cuando se cierra el diálogo
-      if (blobUrl && blobUrl.startsWith("blob:")) {
-        URL.revokeObjectURL(blobUrl);
-      }
-    };
-  }, [open, blobUrl]);
 
   const handleDownload = () => {
     const link = document.createElement("a");
@@ -82,10 +52,9 @@ export function PDFPreviewDialog({
             </div>
           )}
           <iframe
-            src={blobUrl || pdfUrl}
+            src={pdfUrl}
             className="w-full h-full border-0"
             onLoad={() => setIsLoading(false)}
-            sandbox="allow-same-origin"
           />
         </div>
 

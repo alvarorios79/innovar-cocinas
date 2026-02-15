@@ -1259,7 +1259,7 @@ export default function Quotations() {
         let totalPrice = item.hardwareSelections.reduce((sum, s) => sum + s.subtotal, 0);
         // Incluir transporte si está marcado (usar el monto editable)
         if (item.includesFixedCosts) {
-          totalPrice += (item.fixedCostsAmount || 600000);
+          totalPrice += (item.fixedCostsAmount ?? 600000);
         }
         return { 
           ...item, 

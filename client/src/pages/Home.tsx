@@ -345,7 +345,7 @@ export default function Home() {
             </Link>
             
             {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center gap-1 lg:gap-2">
+            <nav className="hidden md:flex items-center gap-0.5 lg:gap-1 flex-wrap">
               {isAuthenticated ? (
                 <>
                   <Link href="/portal">
@@ -400,23 +400,20 @@ export default function Home() {
                   )}
                   {(user?.role === "admin" || user?.role === "super_admin") && (
                     <>
-                      <Link href="/projects">
-                        <Button variant="ghost" size="sm" className="text-sm">Proyectos</Button>
+                      <Link href="/quotations">
+                        <Button variant="ghost" size="sm" className="text-xs">Cotizaciones</Button>
                       </Link>
-                      <Link href="/tasks">
-                        <Button variant="ghost" size="sm" className="text-sm">Tareas</Button>
+                      <Link href="/projects">
+                        <Button variant="ghost" size="sm" className="text-xs">Proyectos</Button>
                       </Link>
                       <Link href="/appointments-calendar">
-                        <Button variant="ghost" size="sm" className="text-sm">Calendario</Button>
+                        <Button variant="ghost" size="sm" className="text-xs">Calendario</Button>
                       </Link>
-                      <Link href="/quotations">
-                        <Button variant="ghost" size="sm" className="text-sm">Cotizaciones</Button>
+                      <Link href="/tasks">
+                        <Button variant="ghost" size="sm" className="text-xs">Tareas</Button>
                       </Link>
                       <Link href="/admin">
-                        <Button variant="ghost" size="sm" className="text-sm">Panel Admin</Button>
-                      </Link>
-                      <Link href="/accounting">
-                        <Button variant="ghost" size="sm" className="text-sm">Contabilidad</Button>
+                        <Button variant="ghost" size="sm" className="text-xs">Panel Admin</Button>
                       </Link>
                     </>
                   )}

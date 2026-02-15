@@ -4489,3 +4489,13 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Corregir QuotationVersioning.tsx: getAll → list/listPaginated, versionChain data access
 - [x] Limpiar V3 incorrecta creada durante pruebas
 - [x] Reescribir test quotations-versioning.test.ts con setup correcto (20/20 tests pasando)
+
+## Restauración de UI (Bug reportado por usuario)
+- [x] Restaurar página de Proyectos que desapareció de la aplicación (rol super_admin restaurado)
+- [x] Restaurar diseño original del Panel Admin (colores, tarjetas, layout) (Panel CEO restaurado)
+- [x] Conservar correcciones de versionado ya logradas
+
+## Restauración Frontend CEO y Admin
+- [x] Restaurar página Home (CEO) con colores, tarjetas y diseño original previo a cambios de versionado
+- [x] Restaurar enlace/sección de Proyectos en la página Admin (rol super_admin restaurado + Proyectos/Tareas agregados al rol admin)
+- [x] Conservar correcciones de versionado ya logradas

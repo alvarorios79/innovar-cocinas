@@ -4576,3 +4576,10 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Identificar conflicto de posicionamiento en header (número de cotización vs "Válida hasta")
 - [x] Corregir layout del header para evitar superposición
 - [x] Generar nuevo PDF y validar que no hay superposición
+
+
+## Bug: Firma en segunda hoja del PDF de Cotizaciones
+- [x] Analizar espaciado excesivo en el PDF
+- [x] Reducir gaps y espacios innecesarios entre secciones
+- [x] Ajustar márgenes para optimizar espacio vertical
+- [x] Probar que PDF cabe en una sola hoja con pocos items

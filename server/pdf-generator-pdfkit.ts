@@ -238,7 +238,7 @@ export async function generateQuotationPDF(
 
       // Observaciones Generales (si existen)
       if (data.generalNotes && data.generalNotes.trim()) {
-        currentY += 40;
+        currentY += 15;
         if (currentY > 650) {
           doc.addPage();
           currentY = 50;
@@ -265,8 +265,8 @@ export async function generateQuotationPDF(
         }
       }
 
-      // Términos y condiciones
-      currentY += 30;
+      // Terminos y condiciones
+      currentY += 10;
       if (currentY > 650) {
         doc.addPage();
         currentY = 50;
@@ -292,7 +292,7 @@ export async function generateQuotationPDF(
       }
 
       // Firmas
-      currentY += 30;
+      currentY += 12;
       if (currentY > 680) {
         doc.addPage();
         currentY = 50;

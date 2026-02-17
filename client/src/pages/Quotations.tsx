@@ -458,11 +458,26 @@ export default function Quotations() {
   };
 
   const handleEdit = async (quotationId: number) => {
-    const quotation = quotations.find(q => q.id === quotationId);
-    if (!quotation) return;
+    // Buscar la versión en todos los grupos
+    let selectedVersion = null;
+    let quotationGroup = null;
+    
+    for (const group of quotations) {
+      const version = group.versions?.find((v: any) => v.id === quotationId);
+      if (version) {
+        selectedVersion = version;
+        quotationGroup = group;
+        break;
+      }
+    }
+    
+    if (!selectedVersion || !quotationGroup) {
+      toast.error("No se encontró la versión de la cotización");
+      return;
+    }
 
     // Verificar si la cotización está bloqueada
-    if (quotation.isLocked) {
+    if (selectedVersion.isLocked) {
       toast.error("No se puede editar una cotización bloqueada. Desblóqueala primero.");
       return;
     }
@@ -476,9 +491,9 @@ export default function Quotations() {
       });
       
       setEditingQuotation(quotationId);
-      setSelectedClient(quotation.clientId);
-      setVendorName(quotation.vendorName);
-      setWorkType(quotation.productType);
+      setSelectedClient(quotationGroup.clientId);
+      setVendorName(quotationGroup.vendorName);
+      setWorkType(quotationGroup.productType);
       
       // Cargar descuento si existe
       const quotationDiscount = (quotationData as any)?.discountPercent;

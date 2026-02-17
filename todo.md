@@ -4555,3 +4555,17 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Agregar thumbnail pequeño (56x56) a la izquierda del header
 - [x] Validar responsive (desktop, tablet, mobile)
 - [x] Probar funcionalidad: editar, PDF, enviar, bloquear, eliminar
+
+
+## Corrección: Botón Editar en Cotizaciones
+- [ ] Revisar por qué el botón "Editar" no abre el editor de cotización
+- [ ] Implementar navegación/modal para editar items de cotización
+- [ ] Probar que el botón Editar funciona correctamente
+
+
+## Corrección: Botón Editar en Cotizaciones (COMPLETADO)
+- [x] Revisar código del handler onEdit
+- [x] Identificar por qué no abre el editor (problema: buscaba en array incorrecto)
+- [x] Corregir la búsqueda de versión en handleEdit (buscar en group.versions)
+- [x] Corregir referencias a quotation por quotationGroup
+- [x] Probar que el botón abre el editor correctamente ✅ FUNCIONAL

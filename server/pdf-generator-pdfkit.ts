@@ -69,29 +69,36 @@ export async function generateQuotationPDF(
       doc.text("ventas@cocinasintegralespereira.co", 130, 69);
       doc.text("Bancolombia Ahorros: 11533034332", 130, 81);
 
-      // Número de cotización (derecha, destacado)
-      doc.fontSize(14).fillColor(turquoise).font("Helvetica-Bold");
-      doc.text(`Cotización N° ${data.quotationNumber}`, 350, 40, {
+      // Numero de cotizacion (derecha, destacado) - separado en dos lineas
+      doc.fontSize(13).fillColor(turquoise).font("Helvetica-Bold");
+      doc.text(`Cotizacion N°`, 350, 38, {
+        align: "right",
+        width: 200,
+      });
+      doc.text(`${data.quotationNumber}`, 350, 53, {
         align: "right",
         width: 200,
       });
       
-      // Número de versión si aplica
+      // Numero de version si aplica
+      let versionY = 68;
       if (data.versionNumber && data.versionNumber > 1) {
-        doc.fontSize(10).fillColor(darkGray).font("Helvetica");
-        doc.text(`Versión: v${data.versionNumber}`, 350, 57, { align: "right", width: 200 });
+        doc.fontSize(9).fillColor(darkGray).font("Helvetica");
+        doc.text(`Version: v${data.versionNumber}`, 350, versionY, { align: "right", width: 200 });
+        versionY += 12;
         
-        // Referencia a cotización base si es versión adicional
+        // Referencia a cotizacion base si es version adicional
         if (data.baseQuotationNumber) {
-          doc.fontSize(9).fillColor("#9CA3AF").font("Helvetica");
-          doc.text(`(Base: COT-${data.baseQuotationNumber})`, 350, 68, { align: "right", width: 200 });
+          doc.fontSize(8).fillColor("#9CA3AF").font("Helvetica");
+          doc.text(`(Base: COT-${data.baseQuotationNumber})`, 350, versionY, { align: "right", width: 200 });
+          versionY += 12;
         }
       }
       
-      // Fecha y validez (derecha, más abajo y más grande)
-      doc.fontSize(10).fillColor(darkGray).font("Helvetica");
-      doc.text(`Fecha: ${data.date}`, 350, 88, { align: "right", width: 200 });
-      doc.text(`Válida hasta: ${data.validUntil}`, 350, 106, { align: "right", width: 200 });
+      // Fecha y validez (derecha, mas abajo)
+      doc.fontSize(9).fillColor(darkGray).font("Helvetica");
+      doc.text(`Fecha: ${data.date}`, 350, versionY + 8, { align: "right", width: 200 });
+      doc.text(`Valida hasta: ${data.validUntil}`, 350, versionY + 22, { align: "right", width: 200 });
 
       // Línea separadora
       doc.strokeColor(turquoise).lineWidth(1);

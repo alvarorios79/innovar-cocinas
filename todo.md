@@ -4569,3 +4569,10 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Corregir la búsqueda de versión en handleEdit (buscar en group.versions)
 - [x] Corregir referencias a quotation por quotationGroup
 - [x] Probar que el botón abre el editor correctamente ✅ FUNCIONAL
+
+
+## Bug: Letra Sobrepuesta en PDF de Cotizaciones
+- [x] Revisar código que genera el PDF de cotizaciones
+- [x] Identificar conflicto de posicionamiento en header (número de cotización vs "Válida hasta")
+- [x] Corregir layout del header para evitar superposición
+- [x] Generar nuevo PDF y validar que no hay superposición

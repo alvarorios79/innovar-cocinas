@@ -4583,3 +4583,9 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Reducir gaps y espacios innecesarios entre secciones
 - [x] Ajustar márgenes para optimizar espacio vertical
 - [x] Probar que PDF cabe en una sola hoja con pocos items
+
+
+## Corrección: Dirección en PDF de Cotizaciones
+- [x] Localizar dónde se define la dirección "K9" en el código
+- [x] Cambiar "K9" por "Km 9" en el PDF
+- [x] Generar nuevo PDF y validar la corrección

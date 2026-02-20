@@ -64,7 +64,7 @@ export async function generateQuotationPDF(
 
       // Información de contacto (centro-izquierda, al lado del logo)
       doc.fontSize(8).fillColor(darkGray).font("Helvetica");
-      doc.text("K9 vía Cerritos a Pereira", 130, 45);
+      doc.text("Km 9 vía Cerritos a Pereira", 130, 45);
       doc.text("313 680 2025", 130, 57);
       doc.text("ventas@cocinasintegralespereira.co", 130, 69);
       doc.text("Bancolombia Ahorros: 11533034332", 130, 81);

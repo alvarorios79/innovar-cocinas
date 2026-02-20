@@ -1991,12 +1991,12 @@ export const quotationsRouter = router({
           // Enviar documento por WhatsApp
           const caption = `Hola ${client.name},\n\nTe comparto tu cotizacion ${quotation.quotationNumber} (v${quotation.versionNumber}).\n\nTotal: ${formatCurrency(Number(quotation.total))}\n\nEsta cotizacion tiene una validez de 1 semana.\n\nQuedamos atentos a cualquier consulta.\n\nSaludos cordiales,\nINNOVAR Cocinas Integrales`;
           
-          const response = await whatsappCloud.sendDocumentMessage({
-            to: client.whatsappPhone,
-            documentUrl: pdfUrl,
-            filename: `Cotizacion-${quotation.quotationNumber}.pdf`,
-            caption: caption
-          });
+          const response = await whatsappCloud.sendDocumentMessage(
+            client.whatsappPhone,
+            pdfUrl,
+            `Cotizacion-${quotation.quotationNumber}.pdf`,
+            caption
+          );
 
           console.log("WHATSAPP RESPONSE:", response);
 

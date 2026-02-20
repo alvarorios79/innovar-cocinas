@@ -621,3 +621,75 @@ Si ya realizaste el pago, por favor envíanos el comprobante.
 
   return sendTextMessage(clientPhone, message);
 }
+
+
+/**
+ * Envía un documento (PDF, imagen, etc.) por WhatsApp
+ * Utiliza la API de WhatsApp Cloud para enviar documentos
+ */
+export async function sendDocumentMessage(
+  to: string,
+  documentUrl: string,
+  filename: string,
+  caption?: string
+): Promise<WhatsAppMessageResponse> {
+  if (!isWhatsAppCloudConfigured()) {
+    return {
+      success: false,
+      error: "WhatsApp Cloud API no está configurado.",
+    };
+  }
+
+  const formattedPhone = formatPhoneForWhatsApp(to);
+
+  try {
+    const payload: Record<string, unknown> = {
+      messaging_product: "whatsapp",
+      recipient_type: "individual",
+      to: formattedPhone,
+      type: "document",
+      document: {
+        link: documentUrl,
+        filename: filename,
+      },
+    };
+
+    // Agregar caption si se proporciona
+    if (caption) {
+      payload.caption = caption;
+    }
+
+    const response = await fetch(
+      `${WHATSAPP_API_URL}/${WHATSAPP_PHONE_NUMBER_ID}/messages`,
+      {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${WHATSAPP_ACCESS_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      }
+    );
+
+    const data = await response.json();
+
+    if (response.ok && data.messages && data.messages.length > 0) {
+      return {
+        success: true,
+        messageId: data.messages[0].id,
+      };
+    }
+
+    return {
+      success: false,
+      error: data.error?.message || "Error al enviar documento",
+      errorCode: data.error?.code?.toString(),
+    };
+  } catch (error) {
+    console.error("[WhatsApp Cloud] Error enviando documento:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Error de conexión",
+    };
+  }
+}

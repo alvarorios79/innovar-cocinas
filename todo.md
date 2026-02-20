@@ -4595,3 +4595,12 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Agregar NIT (10021456-1) debajo de firma en PDF
 - [x] Implementar alertas visuales de vencimiento en tarjetas de cotización
 - [x] Probar ambas funcionalidades
+
+
+## Implementación: Envío de Cotizaciones por WhatsApp API
+- [x] Resolver problema de migraciones de BD
+- [x] Agregar botón "WhatsApp API" (turquesa corporativo) en tarjeta de cotización
+- [x] Crear sección "Notas" con fondo rosa y estados (Aprobado/Rechazado/Revisión)
+- [ ] Implementar endpoint tRPC para enviar cotización por WhatsApp API (PENDIENTE)
+- [ ] Agregar notificaciones a admin/super admin cuando se registra nota (PENDIENTE)
+- [x] Probar funcionalidad UI en navegador

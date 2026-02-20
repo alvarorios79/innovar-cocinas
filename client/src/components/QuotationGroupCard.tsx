@@ -305,6 +305,21 @@ export function QuotationGroupCard({
             </Button>
           )}
 
+          {isActiveVersion && client?.phone && (
+            <Button
+              size="sm"
+              className="text-xs py-1 px-2 h-7 gap-1 bg-[#14B8A6] hover:bg-[#0d9488] text-white"
+              onClick={() => {
+                toast.info("Enviando por WhatsApp API...");
+              }}
+              disabled={isLocked}
+              title="Enviar cotizacion por WhatsApp API"
+            >
+              <Send className="w-3 h-3" />
+              <span className="hidden sm:inline">WhatsApp API</span>
+            </Button>
+          )}
+
           {!isActiveVersion && selectedVersion.pdfUrl && (
             <Button
               size="sm"
@@ -354,6 +369,29 @@ export function QuotationGroupCard({
         {!isActiveVersion && (
           <div className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-1">
             Versión histórica - Solo lectura
+          </div>
+        )}
+
+        {/* Sección de Notas */}
+        {isActiveVersion && (
+          <div className="mt-3 p-3 rounded bg-pink-50 border border-pink-200">
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-sm font-semibold text-gray-700">Notas del Cliente</label>
+              <div className="flex gap-1">
+                <select className="text-xs px-2 py-1 rounded border border-pink-300 bg-white">
+                  <option value="">Sin estado</option>
+                  <option value="aprobado">Aprobado</option>
+                  <option value="rechazado">Rechazado</option>
+                  <option value="revision">Revisión</option>
+                </select>
+              </div>
+            </div>
+            <textarea
+              className="w-full text-xs p-2 rounded border border-pink-300 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-400"
+              placeholder="Ingresa la respuesta del cliente aquí..."
+              rows={2}
+              defaultValue={selectedVersion.clientResponseNotes || ""}
+            />
           </div>
         )}
       </CardContent>

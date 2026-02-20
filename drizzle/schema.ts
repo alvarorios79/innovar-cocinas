@@ -384,7 +384,6 @@ export const projects = mysqlTable("projects", {
 	designerId: int().references(() => users.id),
 	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
-	quotationSentAt: timestamp({ mode: 'string' }),
 	quotationApprovedAt: timestamp({ mode: 'string' }),
 	advanceReceivedAt: timestamp({ mode: 'string' }),
 	totalAmount: decimal({ precision: 12, scale: 2 }),
@@ -488,14 +487,18 @@ export const quotations = mysqlTable("quotations", {
 	isAdditional: tinyint().default(0).notNull(),
 	baseQuotationId: int(),
 	versionNumber: int().default(1).notNull(),
+	clientResponseStatus: mysqlEnum(['aprobado','rechazado','revision']),
+	clientResponseNotes: text(),
+	clientResponseAt: timestamp({ mode: 'string' }),
 	deletedAt: timestamp({ mode: 'string' }),
-},
-(table) => [
-	index("quotationNumber").on(table.quotationNumber),
+	},
+	(table) => [
+		index("quotationNumber").on(table.quotationNumber),
 	index("quotations_clientId_idx").on(table.clientId),
 	index("quotations_status_idx").on(table.status),
 	index("quotations_createdBy_idx").on(table.createdBy),
-	index("quotations_createdAt_idx").on(table.createdAt),
+		index("quotations_createdAt_idx").on(table.createdAt),
+		index("quotations_clientResponseStatus_idx").on(table.clientResponseStatus),
 ]);
 
 export const reminders = mysqlTable("reminders", {

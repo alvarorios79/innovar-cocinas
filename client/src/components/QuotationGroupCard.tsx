@@ -84,11 +84,19 @@ export function QuotationGroupCard({
   const createdDate = new Date(selectedVersion.createdAt);
   const validUntilDate = selectedVersion.validUntil ? new Date(selectedVersion.validUntil) : new Date(createdDate.getTime() + 7 * 24 * 60 * 60 * 1000);
   const estimatedDeliveryDate = calculateEstimatedDelivery(createdDate);
+  
+  // Calcular días hasta vencimiento
+  const daysUntilExpiry = Math.ceil((validUntilDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+  const isExpiringSoon = daysUntilExpiry <= 2 && daysUntilExpiry > 0;
+  const isExpired = daysUntilExpiry <= 0;
+
+  const cardBorderClass = isExpired ? 'border-l-red-500' : isExpiringSoon ? 'border-l-yellow-500' : 'border-l-[#14B8A6]';
+  const cardBgClass = isExpired ? 'bg-red-50' : isExpiringSoon ? 'bg-yellow-50' : 'bg-white';
 
   return (
-    <Card className="w-full overflow-hidden shadow-sm border-l-2 border-l-[#14B8A6]">
+    <Card className={`w-full overflow-hidden shadow-sm border-l-2 ${cardBorderClass} ${cardBgClass}`}>
       {/* HEADER COMPACTO - UNA SOLA LÍNEA */}
-      <div className="bg-white px-3 py-2 md:px-3 md:py-2 border-b border-gray-200">
+      <div className={`px-3 py-2 md:px-3 md:py-2 border-b border-gray-200 ${isExpired ? 'bg-red-50' : isExpiringSoon ? 'bg-yellow-50' : 'bg-white'}`}>
         <div className="flex items-center gap-2 md:gap-3 mb-2">
           {/* Thumbnail pequeño */}
           <div className="flex-shrink-0 w-14 h-14 md:w-16 md:h-16 rounded-md bg-gray-100 border border-gray-200 flex items-center justify-center overflow-hidden">
@@ -122,6 +130,16 @@ export function QuotationGroupCard({
               <Badge className={`${getStatusColor(selectedVersion.status)} text-xs py-0 px-2 border-0`}>
                 {getStatusLabel(selectedVersion.status)}
               </Badge>
+              {isExpired && (
+                <Badge className="bg-red-500 text-white text-xs py-0 px-2 border-0">
+                  Vencida
+                </Badge>
+              )}
+              {isExpiringSoon && !isExpired && (
+                <Badge className="bg-yellow-500 text-white text-xs py-0 px-2 border-0">
+                  Vence pronto
+                </Badge>
+              )}
             </div>
             <p className="text-xs text-gray-500 truncate mt-0.5">
               {client?.name || "Cliente"} {client?.phone && `• ${client.phone}`}

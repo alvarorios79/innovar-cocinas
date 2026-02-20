@@ -4589,3 +4589,9 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [x] Localizar dónde se define la dirección "K9" en el código
 - [x] Cambiar "K9" por "Km 9" en el PDF
 - [x] Generar nuevo PDF y validar la corrección
+
+
+## Mejora: NIT en PDF y Alertas de Vencimiento
+- [x] Agregar NIT (10021456-1) debajo de firma en PDF
+- [x] Implementar alertas visuales de vencimiento en tarjetas de cotización
+- [x] Probar ambas funcionalidades

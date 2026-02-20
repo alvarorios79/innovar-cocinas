@@ -306,6 +306,11 @@ export async function generateQuotationPDF(
       doc.fontSize(9).font("Helvetica");
       doc.text("Firma del Cliente", 80, currentY);
       doc.text("INNOVAR Cocinas de Diseño", 350, currentY);
+      
+      // NIT debajo de la firma de INNOVAR
+      currentY += 18;
+      doc.fontSize(8).fillColor("#9CA3AF").font("Helvetica");
+      doc.text("NIT: 10021456-1", 350, currentY);
 
       // Mensaje de agradecimiento (debajo de las firmas)
       currentY += 40;

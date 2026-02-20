@@ -1372,11 +1372,12 @@ export const projectPhotosRouter = router({
         }
 
         const photoId = await db.createProjectPhoto({
-          quotationId: finalQuotationId,
-          clientId: input.clientId,
-          name: input.name,
-          workType: input.workType,
-          initialMeasurements: input.initialMeasurements,
+          projectId: input.projectId,
+          photoUrl: input.photoUrl,
+          stage: input.stage,
+          category: input.category,
+          subcategory: input.subcategory,
+          description: input.description,
           uploadedBy: ctx.user.id,
         });
 

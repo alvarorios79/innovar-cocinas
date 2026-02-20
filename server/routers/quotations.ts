@@ -1939,10 +1939,15 @@ export const quotationsRouter = router({
           throw new TRPCError({ code: "FORBIDDEN" });
         }
 
+        console.log("QUOTATION ID RECIBIDO:", input.id);
+        
         const quotation = await db.getQuotationById(input.id);
         if (!quotation) {
           throw new TRPCError({ code: "NOT_FOUND" });
         }
+
+        console.log("QUOTATION VERSION:", quotation.versionNumber);
+        console.log("QUOTATION TOTAL:", quotation.total);
 
         const client = await db.getClientById(quotation.clientId);
         if (!client || !client.whatsappPhone) {
@@ -1950,20 +1955,55 @@ export const quotationsRouter = router({
         }
 
         try {
-          // Enviar mensaje por WhatsApp
-          const message = `Hola ${client.name},\n\nTe compartimos la cotización ${quotation.quotationNumber} para tu proyecto de ${quotation.productType}.\n\nTotal: $${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(Number(quotation.total))}\n\nEsta cotización tiene una validez de 1 semana.\n\nQuedamos atentos a cualquier consulta.\n\nSaludos cordiales,\nINNOVAR Cocinas Integrales`;
-
-          // Usar la API de WhatsApp Cloud
-          const result = await whatsappCloud.sendTextMessage(client.whatsappPhone, message);
+          // Generar PDF de la cotizacion
+          const formatCurrency = (value: number) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(value);
           
-          if (!result.success) {
-            throw new Error(result.error || "Error enviando mensaje por WhatsApp");
-          }
+          const pdfData = {
+            quotationNumber: quotation.quotationNumber,
+            date: new Date().toLocaleDateString('es-CO', { timeZone: 'America/Bogota' }),
+            clientName: client.name,
+            clientEmail: client.email,
+            clientPhone: client.whatsappPhone,
+            items: quotation.items || [],
+            subtotal: quotation.subtotal || 0,
+            discount: quotation.discount || 0,
+            tax: quotation.tax || 0,
+            total: quotation.total || 0,
+            notes: quotation.notes,
+            validUntil: quotation.validUntil,
+          };
 
-          return { success: true, message: "Cotización enviada por WhatsApp" };
+          // Generar PDF
+          const { generateQuotationPDF } = await import('../quotation-pdf-generator');
+          const result = await generateQuotationPDF(pdfData, quotation.id);
+          
+          // Leer el PDF generado y subirlo a S3
+          const fs = await import('fs');
+          const pdfBuffer = fs.readFileSync(result.pdfPath);
+          const { storagePut } = await import('../storage');
+          
+          const pdfKey = `quotations/${quotation.quotationNumber}-${Date.now()}.pdf`;
+          const { url: pdfUrl } = await storagePut(pdfKey, pdfBuffer, 'application/pdf');
+          
+          // Limpiar archivo temporal
+          fs.unlinkSync(result.pdfPath);
+
+          // Enviar documento por WhatsApp
+          const caption = `Hola ${client.name},\n\nTe comparto tu cotizacion ${quotation.quotationNumber} (v${quotation.versionNumber}).\n\nTotal: ${formatCurrency(Number(quotation.total))}\n\nEsta cotizacion tiene una validez de 1 semana.\n\nQuedamos atentos a cualquier consulta.\n\nSaludos cordiales,\nINNOVAR Cocinas Integrales`;
+          
+          const response = await whatsappCloud.sendDocumentMessage({
+            to: client.whatsappPhone,
+            documentUrl: pdfUrl,
+            filename: `Cotizacion-${quotation.quotationNumber}.pdf`,
+            caption: caption
+          });
+
+          console.log("WHATSAPP RESPONSE:", response);
+
+          return { success: true, response };
         } catch (error: any) {
-          console.error('Error enviando cotización por WhatsApp:', error);
-          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: error.message || "Error enviando cotización por WhatsApp" });
+          console.error('Error enviando cotizacion por WhatsApp:', error);
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: error.message || "Error enviando cotizacion por WhatsApp" });
         }
       }),
 

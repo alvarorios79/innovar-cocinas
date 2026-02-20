@@ -151,7 +151,7 @@ interface HistoryItem {
   newValue: string;
   changedBy: number;
   reason: string | null;
-  createdAt: Date;
+  createdAt: Date | string;
   pricingName: string;
   pricingCode: string;
   pricingCategory: string;

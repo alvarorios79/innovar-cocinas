@@ -1991,7 +1991,8 @@ export const quotationsRouter = router({
           fs.unlinkSync(result.pdfPath);
 
           // 1️⃣ Enviar mensaje formal primero
-          const formalMessage = `Hola ${client.name} 👋\n\nGracias por confiar en INNOVAR Cocinas de Diseño.\n\nTe compartimos la cotización ${quotation.quotationNumber}.\nEn el documento encontrarás especificaciones técnicas, materiales y valor total del proyecto.\n\nLa propuesta tiene una vigencia hasta ${new Date(quotation.validUntil).toLocaleDateString('es-CO')}.\n\nQuedamos atentos para cualquier ajuste o para avanzar con tu proyecto 🚀`;
+          const validUntilDate = quotation.validUntil ? new Date(quotation.validUntil).toLocaleDateString('es-CO') : 'sin especificar';
+          const formalMessage = `Hola ${client.name} 👋\n\nGracias por confiar en INNOVAR Cocinas de Diseño.\n\nTe compartimos la cotización ${quotation.quotationNumber}.\nEn el documento encontrarás especificaciones técnicas, materiales y valor total del proyecto.\n\nLa propuesta tiene una vigencia hasta ${validUntilDate}.\n\nQuedamos atentos para cualquier ajuste o para avanzar con tu proyecto 🚀`;
           // @ts-ignore
           
           const textResponse = await whatsappCloud.sendTextMessage(

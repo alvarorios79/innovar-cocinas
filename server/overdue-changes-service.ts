@@ -107,8 +107,7 @@ export async function checkOverdueChanges(): Promise<{
                 projectId: project.id,
                 title: `🚨 URGENTE: Cambios pendientes > 48h - ${project.name}`,
                 description: `El proyecto "${project.name}" lleva más de 48 horas con cambios solicitados por el cliente sin atender.\n\n` +
-                  `📅 Fecha de solicitud: ${new Date(project.changesRequestedAt as Date).toLocaleString('es-CO')}\n` +
-    // @ts-ignore
+                  `📅 Fecha de solicitud: ${project.changesRequestedAt ? new Date(project.changesRequestedAt).toLocaleString('es-CO') : 'N/A'}\n` +
                   `⏰ Tiempo transcurrido: ${daysOverdue} día(s) y ${hoursOverdue} hora(s)\n` +
                   `👤 Diseñador asignado: ${designerName}\n\n` +
                   `📝 Cambios solicitados:\n${project.clientApprovalNotes || "No especificados"}\n\n` +

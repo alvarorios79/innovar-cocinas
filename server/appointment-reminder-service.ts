@@ -110,11 +110,11 @@ export async function sendAppointmentReminders(): Promise<{
 
       try {
         const workType = workTypes[0] || "cocina";
+        const scheduledDate = appointment.scheduledDate ? new Date(appointment.scheduledDate) : new Date();
         const result = await whatsappCloud.sendAppointmentReminder(
           client.whatsappPhone,
           client.name,
-          appointment.scheduledDate || new Date(),
-    // @ts-ignore
+          scheduledDate,
           workType
         );
 

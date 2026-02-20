@@ -140,8 +140,8 @@ interface PricingItem {
   value: string;
   unit: string | null;
   sortOrder: number;
-  active: boolean;
-  updatedAt: Date;
+  active: boolean | number;
+  updatedAt: Date | string;
 }
 
 interface HistoryItem {

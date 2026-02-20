@@ -246,9 +246,11 @@ export async function checkAppointmentReminders() {
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
   tomorrow.setHours(0, 0, 0, 0);
+  const tomorrowStr = tomorrow.toISOString().split('T')[0];
   
   const dayAfterTomorrow = new Date(tomorrow);
   dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 1);
+  const dayAfterTomorrowStr = dayAfterTomorrow.toISOString().split('T')[0];
   
   // Buscar citas programadas para mañana
   const upcomingAppointments = await db
@@ -264,9 +266,8 @@ export async function checkAppointmentReminders() {
           eq(appointments.status, "pendiente"),
           eq(appointments.status, "confirmada")
         ),
-        gte(appointments.scheduledDate, tomorrow),
-        lte(appointments.scheduledDate, dayAfterTomorrow)
-    // @ts-ignore
+        gte(appointments.scheduledDate, tomorrowStr),
+        lte(appointments.scheduledDate, dayAfterTomorrowStr)
       )
     // @ts-ignore
     );
@@ -306,18 +307,18 @@ export async function setProjectDeadlines(projectId: number, newStatus: string) 
   if (!project) return;
   
   const now = new Date();
+  const nowStr = now.toISOString();
   
   switch (newStatus) {
     case "adelanto_recibido":
       // Establecer deadline de diseño: 3 días hábiles
       const designDeadline = addBusinessDays(now, 3);
+      const designDeadlineStr = designDeadline.toISOString();
       await db
         .update(projects)
         .set({
-    // @ts-ignore
-          advanceReceivedAt: now,
-    // @ts-ignore
-          designDeadline: designDeadline,
+          advanceReceivedAt: nowStr,
+          designDeadline: designDeadlineStr,
         })
         .where(eq(projects.id, projectId));
       break;
@@ -325,13 +326,13 @@ export async function setProjectDeadlines(projectId: number, newStatus: string) 
     case "aprobacion_final":
       // Establecer fecha OFICIAL de instalación: 25 días hábiles desde aprobación
       const estimatedInstall = addBusinessDays(now, 25);
+      const estimatedInstallStr = estimatedInstall.toISOString();
       await db
         .update(projects)
-    // @ts-ignore
         .set({
-          clientApprovedAt: now,
-          estimatedInstallDate: estimatedInstall,
-          isInstallDateOfficial: true, // Marcar como fecha oficial
+          clientApprovedAt: nowStr,
+          estimatedInstallDate: estimatedInstallStr,
+          isInstallDateOfficial: 1, // Marcar como fecha oficial (1 = true en tinyint)
           tentativeInstallDate: null, // Eliminar fecha tentativa
         })
         .where(eq(projects.id, projectId));
@@ -341,7 +342,7 @@ export async function setProjectDeadlines(projectId: number, newStatus: string) 
       await db
         .update(projects)
         .set({
-          deliveredAt: now,
+          deliveredAt: nowStr,
         })
         .where(eq(projects.id, projectId));
       break;

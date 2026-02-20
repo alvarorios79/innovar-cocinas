@@ -171,14 +171,14 @@ export async function isTimeSlotAvailable(dateStr: string | Date, timeSlot: stri
   // Crear fechas en UTC para comparar correctamente con las fechas de la BD
   const startOfDay = new Date(Date.UTC(year, month - 1, day, 0, 0, 0));
   const endOfDay = new Date(Date.UTC(year, month - 1, day, 23, 59, 59));
+  const startOfDayStr = startOfDay.toISOString();
+  const endOfDayStr = endOfDay.toISOString();
 
   // Buscar si ya existe una cita en ese horario (que no esté cancelada)
   // Si se proporciona excludeAppointmentId, excluir esa cita de la búsqueda (para edición)
   const whereConditions = [
-    gte(appointments.scheduledDate, startOfDay),
-    // @ts-ignore
-    lte(appointments.scheduledDate, endOfDay),
-    // @ts-ignore
+    gte(appointments.scheduledDate, startOfDayStr),
+    lte(appointments.scheduledDate, endOfDayStr),
     sql`${appointments.status} != 'cancelada'`
   ];
   

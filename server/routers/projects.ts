@@ -481,9 +481,7 @@ export const projectsRouter = router({
         // Actualizar fechas clave según el estado
         const updateData: Record<string, unknown> = { status: newStatus };
         
-        if (newStatus === "cotizacion_enviada" && !project.quotationSentAt) {
-          updateData.quotationSentAt = new Date();
-        }
+        // Estado 'cotizacion_enviada' se registra en el historial, no necesita campo adicional
         if (newStatus === "cotizacion_aprobada" && !project.quotationApprovedAt) {
           updateData.quotationApprovedAt = new Date();
         }

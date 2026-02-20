@@ -316,18 +316,22 @@ export function QuotationGroupCard({
             </Button>
           )}
 
-          {isActiveVersion && client?.phone && (
+          {isActiveVersion && (
             <Button
               size="sm"
               className="text-xs py-1 px-2 h-7 gap-1 bg-[#14B8A6] hover:bg-[#0d9488] text-white"
               onClick={() => {
+                if (!client?.phone) {
+                  toast.error("El cliente no tiene número de teléfono registrado");
+                  return;
+                }
                 toast.info("Enviando por WhatsApp API...");
               }}
-              disabled={isLocked}
-              title="Enviar cotizacion por WhatsApp API"
+              disabled={isLocked || !client?.phone}
+              title={client?.phone ? "Enviar cotización por WhatsApp API" : "Cliente sin teléfono registrado"}
             >
               <Send className="w-3 h-3" />
-              <span className="hidden sm:inline">WhatsApp API</span>
+              <span className="hidden sm:inline">WhatsApp</span>
             </Button>
           )}
 

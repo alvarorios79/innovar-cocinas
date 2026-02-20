@@ -1988,19 +1988,65 @@ export const quotationsRouter = router({
           // Limpiar archivo temporal
           fs.unlinkSync(result.pdfPath);
 
-          // Enviar documento por WhatsApp
-          const caption = `Hola ${client.name},\n\nTe comparto tu cotizacion ${quotation.quotationNumber} (v${quotation.versionNumber}).\n\nTotal: ${formatCurrency(Number(quotation.total))}\n\nEsta cotizacion tiene una validez de 1 semana.\n\nQuedamos atentos a cualquier consulta.\n\nSaludos cordiales,\nINNOVAR Cocinas Integrales`;
+          // 1️⃣ Enviar mensaje formal primero
+          const formalMessage = `Hola ${client.name} 👋\n\nGracias por confiar en INNOVAR Cocinas de Diseño.\n\nTe compartimos la cotización ${quotation.quotationNumber}.\nEn el documento encontrarás especificaciones técnicas, materiales y valor total del proyecto.\n\nLa propuesta tiene una vigencia hasta ${new Date(quotation.validUntil).toLocaleDateString('es-CO')}.\n\nQuedamos atentos para cualquier ajuste o para avanzar con tu proyecto 🚀`;
           
-          const response = await whatsappCloud.sendDocumentMessage(
+          const textResponse = await whatsappCloud.sendTextMessage(
+            client.whatsappPhone,
+            formalMessage
+          );
+          
+          console.log("[WhatsApp] Mensaje de texto enviado:", textResponse);
+          
+          if (!textResponse.success) {
+            console.warn("[WhatsApp] Error enviando mensaje de texto:", textResponse.error);
+          }
+          
+          // 2️⃣ Pequeña pausa para asegurar orden correcto en WhatsApp
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+          
+          // 3️⃣ Enviar PDF
+          const pdfResponse = await whatsappCloud.sendDocumentMessage(
             client.whatsappPhone,
             pdfUrl,
             `Cotizacion-${quotation.quotationNumber}.pdf`,
-            caption
+            "Cotización oficial INNOVAR Cocinas 📄"
           );
-
-          console.log("WHATSAPP RESPONSE:", response);
-
-          return { success: true, response };
+          
+          console.log("[WhatsApp] Documento PDF enviado:", pdfResponse);
+          
+          if (!pdfResponse.success) {
+            console.warn("[WhatsApp] Error enviando PDF:", pdfResponse.error);
+          }
+          
+          // Validar que ambos envios fueron exitosos
+          const bothSuccessful = textResponse.success && pdfResponse.success;
+          
+          if (!bothSuccessful) {
+            console.error("[WhatsApp] Fallo en envio de cotizacion:", {
+              textMessageSuccess: textResponse.success,
+              pdfSuccess: pdfResponse.success,
+              textError: textResponse.error,
+              pdfError: pdfResponse.error,
+            });
+            
+            const errorParts = [];
+            if (!textResponse.success) errorParts.push("Mensaje de texto: " + textResponse.error);
+            if (!pdfResponse.success) errorParts.push("PDF: " + pdfResponse.error);
+            const errorMsg = "Error enviando cotizacion: " + errorParts.join(", ");
+            
+            throw new TRPCError({
+              code: "INTERNAL_SERVER_ERROR",
+              message: errorMsg,
+            });
+          }
+          
+          return {
+            success: true,
+            textMessage: textResponse,
+            pdfDocument: pdfResponse,
+            message: "Cotizacion enviada exitosamente por WhatsApp",
+          };
         } catch (error: any) {
           console.error('Error enviando cotizacion por WhatsApp:', error);
           throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: error.message || "Error enviando cotizacion por WhatsApp" });

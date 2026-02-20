@@ -42,13 +42,6 @@ export function QuotationGroupCard({
   const [selectedVersionId, setSelectedVersionId] = useState(group.activeVersion.id);
   const [showValues, setShowValues] = useState(false);
   
-  // DEBUG: Revisar datos del cliente
-  if (typeof window !== 'undefined') {
-    (window as any).CLIENT_DATA = client;
-    (window as any).PHONE = client?.phone;
-    (window as any).WHATSAPP_PHONE = client?.whatsappPhone;
-  }
-  
   const sendWhatsApp = trpc.quotations.sendByWhatsApp.useMutation({
     onSuccess: () => {
       toast.success("Cotización enviada por WhatsApp");
@@ -337,14 +330,14 @@ export function QuotationGroupCard({
               size="sm"
               className="text-xs py-1 px-2 h-7 gap-1 bg-[#14B8A6] hover:bg-[#0d9488] text-white"
               onClick={() => {
-                if (!client?.whatsappPhone) {
-                  toast.error("El cliente no tiene número de WhatsApp registrado");
+                if (!client?.phone) {
+                  toast.error("El cliente no tiene número de teléfono registrado");
                   return;
                 }
                 sendWhatsApp.mutate({ id: selectedVersion.id });
               }}
-              disabled={isLocked || !client?.whatsappPhone || sendWhatsApp.isPending}
-              title={client?.whatsappPhone ? "Enviar cotización por WhatsApp API" : "Cliente sin WhatsApp registrado"}
+              disabled={isLocked || !client?.phone || sendWhatsApp.isPending}
+              title={client?.phone ? "Enviar cotización por WhatsApp API" : "Cliente sin teléfono registrado"}
             >
               <Send className="w-3 h-3" />
               <span className="hidden sm:inline">WhatsApp</span>

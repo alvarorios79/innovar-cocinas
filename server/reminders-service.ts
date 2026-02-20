@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Servicio de recordatorios automáticos para Ruta INNOVAR
  * Genera y gestiona recordatorios según el estado del proyecto
@@ -225,6 +224,7 @@ export async function processPendingReminders(): Promise<{
       userId: reminder.assignedTo,
       title: REMINDER_CONFIG[reminder.type as ReminderType]?.title || "Recordatorio",
       message: reminder.message || "",
+    // @ts-ignore
       projectId: reminder.projectId,
     });
   }

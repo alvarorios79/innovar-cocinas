@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Sistema de Recordatorios de Plazos - INNOVAR Cocinas
  * 
@@ -64,6 +63,7 @@ async function createNotification(
   const db = await getDb();
   if (!db) return;
   try {
+    // @ts-ignore
     await db.insert(notifications).values({
       userId,
       title,
@@ -266,7 +266,9 @@ export async function checkAppointmentReminders() {
         ),
         gte(appointments.scheduledDate, tomorrow),
         lte(appointments.scheduledDate, dayAfterTomorrow)
+    // @ts-ignore
       )
+    // @ts-ignore
     );
   
   for (const { appointment, client } of upcomingAppointments) {
@@ -312,7 +314,9 @@ export async function setProjectDeadlines(projectId: number, newStatus: string) 
       await db
         .update(projects)
         .set({
+    // @ts-ignore
           advanceReceivedAt: now,
+    // @ts-ignore
           designDeadline: designDeadline,
         })
         .where(eq(projects.id, projectId));
@@ -323,6 +327,7 @@ export async function setProjectDeadlines(projectId: number, newStatus: string) 
       const estimatedInstall = addBusinessDays(now, 25);
       await db
         .update(projects)
+    // @ts-ignore
         .set({
           clientApprovedAt: now,
           estimatedInstallDate: estimatedInstall,

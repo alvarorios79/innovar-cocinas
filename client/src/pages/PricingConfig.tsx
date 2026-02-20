@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 import DashboardLayout from "@/components/DashboardLayout";
@@ -191,6 +190,7 @@ export default function PricingConfig() {
     if (!acc[item.category]) {
       acc[item.category] = [];
     }
+    // @ts-ignore
     acc[item.category].push(item);
     return acc;
   }, {} as Record<string, PricingItem[]>) || {};
@@ -261,6 +261,7 @@ export default function PricingConfig() {
       acc[item.category] = [];
     }
     acc[item.category].push(item);
+    // @ts-ignore
     return acc;
   }, {} as Record<string, PricingItem[]>);
 
@@ -687,6 +688,7 @@ export default function PricingConfig() {
             <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
               {historyData && historyData.length > 0 ? (
                 historyData.map((item: HistoryItem) => {
+    // @ts-ignore
                   const prevValue = parseFloat(item.previousValue);
                   const newVal = parseFloat(item.newValue);
                   const isIncrease = newVal > prevValue;

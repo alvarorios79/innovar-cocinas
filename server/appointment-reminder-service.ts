@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Servicio de recordatorios automáticos de citas por WhatsApp
  * Envía recordatorio al cliente el día anterior a la cita
@@ -46,7 +45,9 @@ async function getTomorrowAppointmentsWithDetails() {
     .from(appointments)
     .where(
       and(
+    // @ts-ignore
         gte(appointments.scheduledDate, startOfDay),
+    // @ts-ignore
         lte(appointments.scheduledDate, endOfDay),
         inArray(appointments.status, ["pendiente", "confirmada"])
       )
@@ -113,6 +114,7 @@ export async function sendAppointmentReminders(): Promise<{
           client.whatsappPhone,
           client.name,
           appointment.scheduledDate || new Date(),
+    // @ts-ignore
           workType
         );
 

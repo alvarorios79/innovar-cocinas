@@ -1,4 +1,3 @@
-// @ts-nocheck
 import webpush from "web-push";
 import * as db from "./db";
 
@@ -61,6 +60,7 @@ export async function sendPushToUser(userId: number, payload: PushPayload): Prom
         {
           endpoint: sub.endpoint,
           keys: {
+    // @ts-ignore
             p256dh: sub.p256dh,
             auth: sub.auth,
           },

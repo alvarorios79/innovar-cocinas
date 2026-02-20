@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Servicio de notificaciones automáticas para cambios pendientes vencidos
  * Notifica al administrador cuando un proyecto lleva más de 48 horas
@@ -56,6 +55,7 @@ export async function checkOverdueChanges(): Promise<{
     const now = Date.now();
 
     for (const project of projectsWithChanges) {
+    // @ts-ignore
       const changesDate = new Date(project.changesRequestedAt as Date).getTime();
       const timeSinceChanges = now - changesDate;
 
@@ -108,6 +108,7 @@ export async function checkOverdueChanges(): Promise<{
                 title: `🚨 URGENTE: Cambios pendientes > 48h - ${project.name}`,
                 description: `El proyecto "${project.name}" lleva más de 48 horas con cambios solicitados por el cliente sin atender.\n\n` +
                   `📅 Fecha de solicitud: ${new Date(project.changesRequestedAt as Date).toLocaleString('es-CO')}\n` +
+    // @ts-ignore
                   `⏰ Tiempo transcurrido: ${daysOverdue} día(s) y ${hoursOverdue} hora(s)\n` +
                   `👤 Diseñador asignado: ${designerName}\n\n` +
                   `📝 Cambios solicitados:\n${project.clientApprovalNotes || "No especificados"}\n\n` +

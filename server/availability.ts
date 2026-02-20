@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { getDb } from "./db";
 import { appointments } from "../drizzle/schema";
 import { and, eq, gte, lte, sql } from "drizzle-orm";
@@ -71,7 +70,9 @@ export async function getAvailableTimeSlots(dateStr: string | Date): Promise<str
     .from(appointments)
     .where(
       and(
+    // @ts-ignore
         gte(appointments.scheduledDate, startOfDay),
+    // @ts-ignore
         lte(appointments.scheduledDate, endOfDay),
         sql`${appointments.status} != 'cancelada'`
       )
@@ -175,7 +176,9 @@ export async function isTimeSlotAvailable(dateStr: string | Date, timeSlot: stri
   // Si se proporciona excludeAppointmentId, excluir esa cita de la búsqueda (para edición)
   const whereConditions = [
     gte(appointments.scheduledDate, startOfDay),
+    // @ts-ignore
     lte(appointments.scheduledDate, endOfDay),
+    // @ts-ignore
     sql`${appointments.status} != 'cancelada'`
   ];
   

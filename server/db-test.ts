@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Database initialization for Vitest
  * Provides explicit Drizzle connection for test files.
@@ -19,6 +18,7 @@ export async function getTestDb() {
   }
 
   pool = mysql.createPool(databaseUrl);
+// @ts-ignore
   testDb = drizzle(pool);
   return testDb;
 }

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { mysqlTable, mysqlSchema, AnyMySqlColumn, index, text, foreignKey, int, mysqlEnum, timestamp, varchar, decimal, json, bigint, tinyint } from "drizzle-orm/mysql-core"
 import { sql } from "drizzle-orm"
 
@@ -397,7 +396,7 @@ export const projects = mysqlTable("projects", {
 	scheduledInstallDate: timestamp({ mode: 'string' }),
 	installDurationDays: int().default(1),
 	deliveredAt: timestamp({ mode: 'string' }),
-	advanceReceiptUrl: text(),
+
 	advanceReceiptUrl: text("advance_receipt_url"),
 	quotationPdfUrl: text(),
 	tentativeInstallDate: timestamp({ mode: 'string' }),

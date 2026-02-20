@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { validatePhotoUploadPermission, validateStatusChange } from "./helpers";
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "../_core/cookies";
@@ -233,7 +232,7 @@ export const projectsRouter = router({
             newStatus: 'contacto',
             notes: `Cliente "${client.name}" creado en el sistema`,
             changedBy: null,
-            createdAt: client.createdAt,
+            createdAt: new Date(client.createdAt),
           });
         }
         
@@ -253,7 +252,7 @@ export const projectsRouter = router({
               newStatus: 'contacto',
               notes: `Cita programada para ${appointment.scheduledDate ? new Date(appointment.scheduledDate).toLocaleDateString('es-CO', { timeZone: 'America/Bogota' }) : 'fecha pendiente'}${appointment.notes ? ` - ${appointment.notes}` : ''}`,
               changedBy: null,
-              createdAt: appointment.createdAt,
+              createdAt: new Date(appointment.createdAt),
             });
             
             // Si la cita fue completada, agregar evento
@@ -265,7 +264,7 @@ export const projectsRouter = router({
                 newStatus: 'contacto',
                 notes: `Visita realizada - Cita completada`,
                 changedBy: null,
-                createdAt: appointment.updatedAt,
+                createdAt: new Date(appointment.updatedAt),
               });
             }
           }
@@ -281,7 +280,7 @@ export const projectsRouter = router({
             newStatus: 'cotizacion_enviada',
             notes: `Cotización ${quotation.quotationNumber} creada`,
             changedBy: null,
-            createdAt: quotation.createdAt,
+            createdAt: new Date(quotation.createdAt),
           });
           
           // Cotización enviada
@@ -293,7 +292,7 @@ export const projectsRouter = router({
               newStatus: 'cotizacion_enviada',
               notes: `Cotización ${quotation.quotationNumber} enviada al cliente`,
               changedBy: null,
-              createdAt: quotation.sentAt,
+              createdAt: new Date(quotation.sentAt),
             });
           }
           
@@ -306,7 +305,7 @@ export const projectsRouter = router({
               newStatus: 'cotizacion_aprobada',
               notes: `Cotización ${quotation.quotationNumber} aprobada por el cliente`,
               changedBy: null,
-              createdAt: quotation.approvedAt,
+              createdAt: new Date(quotation.approvedAt),
             });
           }
           
@@ -319,7 +318,7 @@ export const projectsRouter = router({
               newStatus: 'cotizacion_enviada',
               notes: `Cotización ${quotation.quotationNumber} rechazada: ${quotation.rejectionReason}`,
               changedBy: null,
-              createdAt: quotation.updatedAt,
+              createdAt: new Date(quotation.updatedAt),
             });
           }
         }
@@ -333,7 +332,7 @@ export const projectsRouter = router({
             newStatus: h.toStatus,
             notes: h.notes,
             changedBy: h.changedByUser?.name || null,
-            createdAt: h.createdAt,
+            createdAt: new Date(h.createdAt),
           });
         }
         

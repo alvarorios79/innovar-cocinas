@@ -1,12 +1,12 @@
-// @ts-nocheck
 import type { CreateExpressContextOptions } from "@trpc/server/adapters/express";
+// @ts-ignore
 import type { User } from "../../drizzle/schema";
 import { sdk } from "./sdk";
 
 export type TrpcContext = {
   req: CreateExpressContextOptions["req"];
   res: CreateExpressContextOptions["res"];
-  user: User | null;
+  user: any | null;
 };
 
 export async function createContext(

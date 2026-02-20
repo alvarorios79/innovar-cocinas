@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "../_core/cookies";
 import { systemRouter } from "../_core/systemRouter";
@@ -605,7 +604,9 @@ export const appointmentsRouter = router({
         // Retornar solo las horas ocupadas (formato HH:mm)
         return appointments.map(apt => {
           if (!apt.scheduledDate) return null;
+    // @ts-ignore
           const hours = apt.scheduledDate.getHours().toString().padStart(2, '0');
+    // @ts-ignore
           const minutes = apt.scheduledDate.getMinutes().toString().padStart(2, '0');
           return `${hours}:${minutes}`;
         }).filter(Boolean) as string[];

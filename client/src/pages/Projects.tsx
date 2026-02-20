@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState, useEffect } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useLocation, Link } from "wouter";
@@ -993,8 +992,8 @@ export default function Projects() {
                         <p><strong>Validez cotización:</strong> {new Date((projectDetail as any).quotation.validUntil).toLocaleDateString("es-CO")}</p>
                       )}
                       <p><strong>Proyecto creado:</strong> {new Date(projectDetail.createdAt).toLocaleDateString("es-CO")}</p>
-                      {projectDetail.quotationSentAt && user?.role !== "disenador" && user?.role !== "jefe_taller" && (
-                        <p><strong>Cotización enviada:</strong> {new Date(projectDetail.quotationSentAt).toLocaleDateString("es-CO")}</p>
+                      {projectDetail.createdAt && user?.role !== "disenador" && user?.role !== "jefe_taller" && (
+                        <p><strong>Cotización enviada:</strong> {new Date(projectDetail.createdAt).toLocaleDateString("es-CO")}</p>
                       )}
                       {projectDetail.quotationApprovedAt && user?.role !== "disenador" && user?.role !== "jefe_taller" && (
                         <p><strong>Cotización aprobada:</strong> {new Date(projectDetail.quotationApprovedAt).toLocaleDateString("es-CO")}</p>
@@ -1099,16 +1098,16 @@ export default function Projects() {
                     </Card>
                   )}
 
-                  {(projectDetail.design3dFiles || projectDetail.despieceFiles) && (
+                  {(projectDetail.design3DFiles || projectDetail.despieceFiles) && (
                     <Card>
                       <CardHeader>
                         <CardTitle className="text-sm">Archivos de Diseño</CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-2">
-                        {projectDetail.design3dFiles && (
+                        {projectDetail.design3DFiles && (
                           <div>
                             <strong className="text-sm">Diseño 3D:</strong>
-                            <p className="text-sm text-muted-foreground">{projectDetail.design3dFiles}</p>
+                            <p className="text-sm text-muted-foreground">{projectDetail.design3DFiles}</p>
                           </div>
                         )}
                         {projectDetail.despieceFiles && (

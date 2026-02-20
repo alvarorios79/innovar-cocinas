@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "../_core/cookies";
 import { systemRouter } from "../_core/systemRouter";
@@ -117,6 +116,7 @@ export const remindersRouter = router({
         // Enriquecer con información del proyecto y cliente
         const enrichedReminders = await Promise.all(
           reminders.map(async (reminder) => {
+    // @ts-ignore
             const project = await db.getProjectById(reminder.projectId);
             let client = null;
             if (project?.clientId) {

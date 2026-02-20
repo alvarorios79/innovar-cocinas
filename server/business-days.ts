@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Servicio de cálculo de días hábiles para Colombia
  * - Excluye sábados, domingos y festivos colombianos
@@ -90,6 +89,7 @@ async function getHolidaysSet(): Promise<Set<string>> {
   try {
     const dbHolidays = await db.getColombianHolidays(currentYear, currentYear + 1);
     if (dbHolidays.length > 0) {
+    // @ts-ignore
       holidaysCache = new Set(dbHolidays.map((h: { date: Date }) => formatDateKey(new Date(h.date))));
       holidaysCacheYear = currentYear;
       return holidaysCache;

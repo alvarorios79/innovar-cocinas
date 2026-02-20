@@ -1,7 +1,11 @@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Download, Mail, X, AlertCircle } from "lucide-react";
-import { useState, useEffect } from "react";
+import { Download, Mail, X, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, AlertCircle, Loader2 } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Document, Page, pdfjs } from "react-pdf";
+
+// Configurar worker de PDF.js
+pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 interface PDFPreviewDialogProps {
   open: boolean;
@@ -22,13 +26,46 @@ export function PDFPreviewDialog({
   isSending = false,
   quotationNumber = "",
 }: PDFPreviewDialogProps) {
+  const [numPages, setNumPages] = useState<number>(0);
+  const [pageNumber, setPageNumber] = useState<number>(1);
+  const [scale, setScale] = useState<number>(1.0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [containerWidth, setContainerWidth] = useState<number>(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Medir el ancho del contenedor para ajustar el PDF
+  useEffect(() => {
+    if (containerRef.current) {
+      const resizeObserver = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+          setContainerWidth(entry.contentRect.width - 32); // Restar padding
+        }
+      });
+      resizeObserver.observe(containerRef.current);
+      return () => resizeObserver.disconnect();
+    }
+  }, []);
 
   useEffect(() => {
-    setIsLoading(true);
-    setError(null);
-  }, [pdfUrl]);
+    if (open) {
+      setPageNumber(1);
+      setScale(1.0);
+      setIsLoading(true);
+      setError(null);
+    }
+  }, [open, pdfUrl]);
+
+  const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
+    setNumPages(numPages);
+    setIsLoading(false);
+  };
+
+  const onDocumentLoadError = (error: Error) => {
+    console.error("Error loading PDF:", error);
+    setError("No se pudo cargar el PDF. Intenta descargar el archivo.");
+    setIsLoading(false);
+  };
 
   const handleDownload = () => {
     const link = document.createElement("a");
@@ -43,6 +80,22 @@ export function PDFPreviewDialog({
     link.click();
   };
 
+  const handlePreviousPage = () => {
+    setPageNumber(Math.max(pageNumber - 1, 1));
+  };
+
+  const handleNextPage = () => {
+    setPageNumber(Math.min(pageNumber + 1, numPages));
+  };
+
+  const handleZoomIn = () => {
+    setScale(Math.min(scale + 0.2, 2.0));
+  };
+
+  const handleZoomOut = () => {
+    setScale(Math.max(scale - 0.2, 0.5));
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl h-[90vh] flex flex-col">
@@ -53,10 +106,10 @@ export function PDFPreviewDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 relative bg-gray-100 rounded-md overflow-hidden">
+        <div className="flex-1 flex flex-col relative bg-gray-100 rounded-md overflow-hidden" ref={containerRef}>
           {isLoading && (
             <div className="absolute inset-0 flex items-center justify-center z-10 bg-gray-100">
-              <div className="text-gray-500">Cargando PDF...</div>
+              <Loader2 className="h-8 w-8 text-gray-400 animate-spin" />
             </div>
           )}
           {error && (
@@ -68,27 +121,70 @@ export function PDFPreviewDialog({
               </div>
             </div>
           )}
-          <object
-            data={pdfUrl}
-            type="application/pdf"
-            className="w-full h-full"
-            onLoad={() => setIsLoading(false)}
-            onError={() => {
-              setIsLoading(false);
-              setError("No se pudo cargar el PDF. Intenta descargar el archivo.");
-            }}
-          >
-            <embed
-              src={pdfUrl}
-              type="application/pdf"
-              className="w-full h-full"
-              onLoad={() => setIsLoading(false)}
-              onError={() => {
-                setIsLoading(false);
-                setError("No se pudo cargar el PDF. Intenta descargar el archivo.");
-              }}
-            />
-          </object>
+          
+          {!error && (
+            <>
+              {/* Controles de zoom y navegación */}
+              <div className="flex items-center justify-between px-4 py-2 bg-gray-200 border-b border-gray-300">
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleZoomOut}
+                    disabled={scale <= 0.5 || isLoading}
+                  >
+                    <ZoomOut className="h-4 w-4" />
+                  </Button>
+                  <span className="px-2 py-1 text-sm font-medium">{Math.round(scale * 100)}%</span>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleZoomIn}
+                    disabled={scale >= 2.0 || isLoading}
+                  >
+                    <ZoomIn className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handlePreviousPage}
+                    disabled={pageNumber <= 1 || isLoading}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <span className="px-2 py-1 text-sm font-medium">
+                    {pageNumber} / {numPages}
+                  </span>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleNextPage}
+                    disabled={pageNumber >= numPages || isLoading}
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+
+              {/* Área de visualización del PDF */}
+              <div className="flex-1 overflow-auto flex items-center justify-center p-4">
+                <Document
+                  file={pdfUrl}
+                  onLoadSuccess={onDocumentLoadSuccess}
+                  onLoadError={onDocumentLoadError}
+                  loading={<Loader2 className="h-8 w-8 text-gray-400 animate-spin" />}
+                >
+                  <Page
+                    pageNumber={pageNumber}
+                    scale={scale}
+                    width={containerWidth > 0 ? containerWidth : 400}
+                  />
+                </Document>
+              </div>
+            </>
+          )}
         </div>
 
         <DialogFooter className="flex-row justify-between gap-2">
@@ -111,7 +207,7 @@ export function PDFPreviewDialog({
             </Button>
             <Button
               onClick={onConfirmSend}
-              disabled={isSending || isLoading}
+              disabled={isSending || isLoading || !!error}
             >
               <Mail className="h-4 w-4 mr-2" />
               {isSending ? "Enviando..." : "Enviar por Email"}

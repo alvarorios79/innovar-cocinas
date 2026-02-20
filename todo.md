@@ -4614,3 +4614,10 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [ ] Backend: Notificaciones automáticas cuando se registra nota (PENDIENTE)
 - [ ] Backend: Conectar botón WhatsApp API al endpoint tRPC (PENDIENTE)
 - [ ] Backend: Conectar selector de estado de Notas al endpoint de notificaciones (PENDIENTE)
+
+
+## Mejora: Indicador Visual de Proyecto Vinculado
+- [ ] Agregar badge con ✅ verde cuando cotización tiene proyecto vinculado
+- [ ] Agregar badge con ❌ rojo cuando cotización NO tiene proyecto vinculado
+- [ ] Mostrar indicador al lado del número de cotización en el header
+- [ ] Probar que aparece correctamente en todas las cotizaciones

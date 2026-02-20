@@ -140,6 +140,17 @@ export function QuotationGroupCard({
                   Vence pronto
                 </Badge>
               )}
+              {selectedVersion.projectId ? (
+                <Badge className="bg-emerald-100 text-emerald-800 text-xs py-0 px-2 border border-emerald-300 flex items-center gap-1">
+                  <span className="text-base">✅</span>
+                  <span>Proyecto</span>
+                </Badge>
+              ) : (
+                <Badge className="bg-red-100 text-red-800 text-xs py-0 px-2 border border-red-300 flex items-center gap-1">
+                  <span className="text-base">❌</span>
+                  <span>Sin Proyecto</span>
+                </Badge>
+              )}
             </div>
             <p className="text-xs text-gray-500 truncate mt-0.5">
               {client?.name || "Cliente"} {client?.phone && `• ${client.phone}`}

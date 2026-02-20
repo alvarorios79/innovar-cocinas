@@ -287,6 +287,17 @@ export default function Quotations() {
     },
   });
 
+  const sendWhatsApp = trpc.quotations.sendByWhatsApp.useMutation({
+    onSuccess: () => {
+      utils.quotations.list.invalidate();
+      utils.quotations.listPaginatedGrouped.invalidate();
+      toast.success("Cotizacion enviada por WhatsApp");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Error al enviar por WhatsApp");
+    },
+  });
+
   const sendByEmail = trpc.quotations.sendByEmail.useMutation({
     onSuccess: () => {
       utils.quotations.list.invalidate();
@@ -1640,6 +1651,24 @@ export default function Quotations() {
                       Crear Proyecto
                     </Button>
                   )}
+
+                  <Button
+                    size="sm"
+                    className={quot.client?.phone ? "bg-teal-500 hover:bg-teal-600 text-white" : "bg-gray-300 hover:bg-gray-300 text-gray-600 cursor-not-allowed"}
+                    onClick={() => {
+                      if (!quot.client?.phone) {
+                        toast.error("El cliente no tiene numero de telefono registrado");
+                        return;
+                      }
+                      sendWhatsApp.mutate({ id: quot.id });
+                    }}
+                    disabled={!quot.client?.phone || sendWhatsApp.isPending}
+                    title={!quot.client?.phone ? "El cliente no tiene telefono registrado" : "Enviar cotizacion por WhatsApp"}
+                  >
+                    <Send className="h-4 w-4 mr-1" />
+                    {sendWhatsApp.isPending ? "Enviando..." : "WhatsApp"}
+                  </Button>
+
                   {/* Botón Crear Nueva Versión - Solo visible cuando la cotización tiene proyecto asociado */}
                   {quot.projectId && (
                     <Button

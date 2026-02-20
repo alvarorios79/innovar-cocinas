@@ -1931,6 +1931,42 @@ export const quotationsRouter = router({
         }
       }),
 
+    // Enviar cotización por WhatsApp
+    sendByWhatsApp: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "comercial") {
+          throw new TRPCError({ code: "FORBIDDEN" });
+        }
+
+        const quotation = await db.getQuotationById(input.id);
+        if (!quotation) {
+          throw new TRPCError({ code: "NOT_FOUND" });
+        }
+
+        const client = await db.getClientById(quotation.clientId);
+        if (!client || !client.whatsappPhone) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Cliente sin teléfono WhatsApp" });
+        }
+
+        try {
+          // Enviar mensaje por WhatsApp
+          const message = `Hola ${client.name},\n\nTe compartimos la cotización ${quotation.quotationNumber} para tu proyecto de ${quotation.productType}.\n\nTotal: $${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(Number(quotation.total))}\n\nEsta cotización tiene una validez de 1 semana.\n\nQuedamos atentos a cualquier consulta.\n\nSaludos cordiales,\nINNOVAR Cocinas Integrales`;
+
+          // Usar la API de WhatsApp Cloud
+          const result = await whatsappCloud.sendTextMessage(client.whatsappPhone, message);
+          
+          if (!result.success) {
+            throw new Error(result.error || "Error enviando mensaje por WhatsApp");
+          }
+
+          return { success: true, message: "Cotización enviada por WhatsApp" };
+        } catch (error: any) {
+          console.error('Error enviando cotización por WhatsApp:', error);
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: error.message || "Error enviando cotización por WhatsApp" });
+        }
+      }),
+
     // Aprobar cotización desde el portal del cliente
     clientApprove: protectedProcedure
       .input(z.object({

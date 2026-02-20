@@ -1,7 +1,7 @@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Download, Mail, X } from "lucide-react";
-import { useState } from "react";
+import { Download, Mail, X, AlertCircle } from "lucide-react";
+import { useState, useEffect } from "react";
 
 interface PDFPreviewDialogProps {
   open: boolean;
@@ -23,10 +23,18 @@ export function PDFPreviewDialog({
   quotationNumber = "",
 }: PDFPreviewDialogProps) {
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setIsLoading(true);
+    setError(null);
+  }, [pdfUrl]);
 
   const handleDownload = () => {
     const link = document.createElement("a");
-    link.href = pdfUrl;
+    // Remover parámetro preview=true para descarga
+    const downloadUrl = pdfUrl.replace('&preview=true', '').replace('?preview=true', '');
+    link.href = downloadUrl;
     // Limpiar el nombre para que sea válido como nombre de archivo
     const cleanName = quotationNumber 
       ? quotationNumber.replace(/[^a-zA-Z0-9\-_\s]/g, '').replace(/\s+/g, '_')
@@ -51,19 +59,43 @@ export function PDFPreviewDialog({
               <div className="text-gray-500">Cargando PDF...</div>
             </div>
           )}
-          <iframe
-            src={pdfUrl}
-            className="w-full h-full border-0"
+          {error && (
+            <div className="absolute inset-0 flex items-center justify-center z-10 bg-red-50 flex-col gap-2">
+              <AlertCircle className="h-8 w-8 text-red-500" />
+              <div className="text-red-700 text-center px-4">
+                <p className="font-semibold">Error al cargar PDF</p>
+                <p className="text-sm mt-1">{error}</p>
+              </div>
+            </div>
+          )}
+          <object
+            data={pdfUrl}
+            type="application/pdf"
+            className="w-full h-full"
             onLoad={() => setIsLoading(false)}
-            sandbox="allow-same-origin allow-scripts"
-          />
+            onError={() => {
+              setIsLoading(false);
+              setError("No se pudo cargar el PDF. Intenta descargar el archivo.");
+            }}
+          >
+            <embed
+              src={pdfUrl}
+              type="application/pdf"
+              className="w-full h-full"
+              onLoad={() => setIsLoading(false)}
+              onError={() => {
+                setIsLoading(false);
+                setError("No se pudo cargar el PDF. Intenta descargar el archivo.");
+              }}
+            />
+          </object>
         </div>
 
         <DialogFooter className="flex-row justify-between gap-2">
           <Button
             variant="outline"
             onClick={handleDownload}
-            disabled={isLoading}
+            disabled={isLoading || !!error}
           >
             <Download className="h-4 w-4 mr-2" />
             Descargar

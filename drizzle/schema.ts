@@ -490,6 +490,7 @@ export const quotations = mysqlTable("quotations", {
 	clientResponseStatus: mysqlEnum(['aprobado','rechazado','revision']),
 	clientResponseNotes: text(),
 	clientResponseAt: timestamp({ mode: 'string' }),
+	whatsappApiSentAt: timestamp({ mode: 'string' }),
 	deletedAt: timestamp({ mode: 'string' }),
 	},
 	(table) => [

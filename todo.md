@@ -4604,3 +4604,13 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [ ] Implementar endpoint tRPC para enviar cotización por WhatsApp API (PENDIENTE)
 - [ ] Agregar notificaciones a admin/super admin cuando se registra nota (PENDIENTE)
 - [x] Probar funcionalidad UI en navegador
+
+
+## Backend: WhatsApp API y Notificaciones
+- [x] UI: Botón "WhatsApp API" (turquesa) implementado
+- [x] UI: Sección "Notas del Cliente" con fondo rosa implementada
+- [x] UI: Selector de estados (Aprobado/Rechazado/Revisión) implementado
+- [ ] Backend: Endpoint tRPC para enviar cotización por WhatsApp API (PENDIENTE)
+- [ ] Backend: Notificaciones automáticas cuando se registra nota (PENDIENTE)
+- [ ] Backend: Conectar botón WhatsApp API al endpoint tRPC (PENDIENTE)
+- [ ] Backend: Conectar selector de estado de Notas al endpoint de notificaciones (PENDIENTE)

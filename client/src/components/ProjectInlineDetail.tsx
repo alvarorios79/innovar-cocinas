@@ -2050,8 +2050,9 @@ export function ProjectInlineDetail({
                   });
                 }}
                 disabled={createDetail.isPending}
+                className="w-full"
               >
-                {createDetail.isPending ? "Guardando..." : "Guardar"}
+                {createDetail.isPending ? "Guardando..." : "Guardar Detalle"}
               </Button>
             </div>
           </div>

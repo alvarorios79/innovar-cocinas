@@ -15,6 +15,8 @@ import { createRemindersForStatusChange } from "../reminders-service";
 import * as whatsappCloud from "../whatsapp-cloud";
 import { addBusinessDays, calculateEstimatedDeliveryDate } from "../business-days";
 import { sanitizeText, sanitizeHtml, sanitizeForEmail, sanitizePhone, sanitizeEmail } from "../sanitize";
+import { eq } from "drizzle-orm";
+import { projects, projectDetails } from "../../drizzle/schema";
 
 
 export const projectsRouter = router({
@@ -1494,16 +1496,28 @@ export const projectDetailsRouter = router({
           throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para agregar detalles" });
         }
 
-        const detailId = await db.createProjectDetail({
-          quotationId: finalQuotationId,
-          clientId: input.clientId,
-          name: input.name,
-          workType: input.workType,
-          initialMeasurements: input.initialMeasurements,
+        // Validar que el proyecto existe
+        const projectExists = await db.getProjectById(input.projectId);
+        if (!projectExists) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Proyecto no encontrado" });
+        }
+
+        // Insertar el detalle del proyecto directamente usando la función de db
+        const database = await db.getDb();
+        if (!database) {
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Base de datos no disponible" });
+        }
+
+        await database.insert(projectDetails).values({
+          projectId: input.projectId,
+          type: input.type,
+          title: input.title,
+          content: input.content,
+          photoUrl: input.photoUrl || null,
           createdBy: ctx.user.id,
         });
 
-        return { success: true, detailId };
+        return { success: true };
       }),
 
     // Obtener detalles por proyecto

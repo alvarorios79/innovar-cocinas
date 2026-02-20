@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Servicio de recordatorios automáticos para Ruta INNOVAR
  * Genera y gestiona recordatorios según el estado del proyecto

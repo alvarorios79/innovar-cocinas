@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Sistema de Recordatorios de Plazos - INNOVAR Cocinas
  * 

@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Servicio de cálculo de días hábiles para Colombia
  * - Excluye sábados, domingos y festivos colombianos

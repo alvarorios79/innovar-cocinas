@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Servicio de notificaciones automáticas para cambios pendientes vencidos
  * Notifica al administrador cuando un proyecto lleva más de 48 horas

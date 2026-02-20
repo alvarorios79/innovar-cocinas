@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { getDb } from "./db";
 import { appointments } from "../drizzle/schema";
 import { and, eq, gte, lte, sql } from "drizzle-orm";

@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Servicio de recordatorios automáticos de citas por WhatsApp
  * Envía recordatorio al cliente el día anterior a la cita

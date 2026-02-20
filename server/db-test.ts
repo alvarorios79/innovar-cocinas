@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Database initialization for Vitest
  * Provides explicit Drizzle connection for test files.

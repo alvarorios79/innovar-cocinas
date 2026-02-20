@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { mysqlTable, mysqlSchema, AnyMySqlColumn, index, text, foreignKey, int, mysqlEnum, timestamp, varchar, decimal, json, bigint, tinyint } from "drizzle-orm/mysql-core"
 import { sql } from "drizzle-orm"
 

@@ -627,6 +627,68 @@ export default function Projects() {
               )}
             </div>
 
+            {/* Gráfico de Distribución de Rentabilidad */}
+            {(() => {
+              const healthy = projects.filter((p: any) => (p.rentabilidad ?? 0) > 20).length;
+              const moderate = projects.filter((p: any) => (p.rentabilidad ?? 0) >= 10 && (p.rentabilidad ?? 0) <= 20).length;
+              const risk = projects.filter((p: any) => (p.rentabilidad ?? 0) >= 5 && (p.rentabilidad ?? 0) < 10).length;
+              const critical = projects.filter((p: any) => (p.rentabilidad ?? 0) < 5).length;
+              const total = healthy + moderate + risk + critical;
+              const healthyLabel = "Saludable (mayor a 20%)";
+              const criticalLabel = "Crítico (menor a 5%)";
+
+              return (
+                <div className="mt-6 p-4 bg-white rounded-lg border">
+                  <h3 className="text-sm font-semibold mb-4">Distribución de Rentabilidad</h3>
+                  <div className="space-y-3">
+                    {/* Saludable */}
+                    <div>
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="text-green-700 font-medium">{healthyLabel}</span>
+                        <span className="text-green-700 font-semibold">{healthy}</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div className="bg-green-600 h-2 rounded-full" style={{ width: total > 0 ? `${(healthy / total) * 100}%` : "0%" }}></div>
+                      </div>
+                    </div>
+
+                    {/* Moderado */}
+                    <div>
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="text-yellow-700 font-medium">Moderado (10-20%)</span>
+                        <span className="text-yellow-700 font-semibold">{moderate}</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div className="bg-yellow-500 h-2 rounded-full" style={{ width: total > 0 ? `${(moderate / total) * 100}%` : "0%" }}></div>
+                      </div>
+                    </div>
+
+                    {/* En Riesgo */}
+                    <div>
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="text-orange-700 font-medium">En Riesgo (5-10%)</span>
+                        <span className="text-orange-700 font-semibold">{risk}</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div className="bg-orange-500 h-2 rounded-full" style={{ width: total > 0 ? `${(risk / total) * 100}%` : "0%" }}></div>
+                      </div>
+                    </div>
+
+                    {/* Crítico */}
+                    <div>
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="text-red-700 font-medium">{criticalLabel}</span>
+                        <span className="text-red-700 font-semibold">{critical}</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div className="bg-red-600 h-2 rounded-full" style={{ width: total > 0 ? `${(critical / total) * 100}%` : "0%" }}></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+
             {/* Botón crear (solo admin) */}
             {(user?.role === "admin" || user?.role === "super_admin") && (
               <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>

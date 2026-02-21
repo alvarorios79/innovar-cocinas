@@ -85,7 +85,7 @@ const WORK_TYPES = {
 
 export default function Projects() {
   const { user, isAuthenticated, loading } = useAuth();
-  useEffect(() => { console.log("[DEBUG] Projects component rendered"); }, []);
+
   const [location, setLocation] = useLocation();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [selectedProject, setSelectedProject] = useState<any>(null);
@@ -400,7 +400,7 @@ export default function Projects() {
         toast.error("Error al generar el reporte");
       }
     } catch (error) {
-      console.error("Error exporting PDF:", error);
+      // Error controlado - se muestra toast al usuario
       toast.error("Error al exportar el proyecto");
     } finally {
       setGeneratingPdf(false);

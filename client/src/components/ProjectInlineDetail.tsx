@@ -112,6 +112,9 @@ export function ProjectInlineDetail({
   const utils = trpc.useUtils();
   const fileViewer = useFileViewer();
   
+  console.log("Render ProjectInlineDetail");
+  console.log("Project:", project);
+  console.log("Project ID:", project?.id);
   // Estados para diálogos
   const [showPhotoDialog, setShowPhotoDialog] = useState(false);
   const [showDetailDialog, setShowDetailDialog] = useState(false);
@@ -148,6 +151,7 @@ export function ProjectInlineDetail({
   
   // Toggle para ocultar información financiera (CEO, admin, comercial)
   const [showFinancialInfo, setShowFinancialInfo] = useState(false);
+  const [showFinancialSummary, setShowFinancialSummary] = useState(true);
 
   // Query para detalle del proyecto
   const { data: projectDetail, isLoading } = trpc.projects.getById.useQuery(
@@ -155,14 +159,33 @@ export function ProjectInlineDetail({
     { enabled: !!project.id }
   );
 
+  // Query para resumen financiero
+  // @ts-ignore - Procedimiento tRPC no reconocido por TypeScript (problema de caché de tipos)
+  const { data: financialSummary, isLoading: isLoadingFinancial, refetch: refetchFinancial, error: financialError } = trpc.projects.getFinancialSummary.useQuery(
+    { projectId: project.id },
+    { enabled: !!project.id }
+  );
+  
+  // Debug
+  useEffect(() => {
+    console.log("Financial Summary Debug:", {
+      projectId: project.id,
+      financialSummary,
+      isLoadingFinancial,
+      financialError: financialError?.message,
+      userRole: user?.role
+    });
+  }, [financialSummary, isLoadingFinancial, financialError, project.id, user?.role]);
+
 
   // Mutations
   const uploadPhoto = trpc.projectPhotos.upload.useMutation({
     onSuccess: () => {
       utils.projects.getById.invalidate();
-      toast.success("Foto subida exitosamente");
+      refetchFinancial();
       setShowPhotoDialog(false);
       setPhotoForm({ stage: "", category: "medidas", subcategory: "", photoUrl: "", description: "" });
+      toast.success("Foto subida exitosamente");
     },
     onError: (error) => {
       toast.error(error.message || "Error al subir foto");
@@ -172,6 +195,7 @@ export function ProjectInlineDetail({
   const deletePhoto = trpc.projectPhotos.delete.useMutation({
     onSuccess: () => {
       utils.projects.getById.invalidate();
+      refetchFinancial();
       toast.success("Foto eliminada exitosamente");
     },
     onError: (error) => {
@@ -182,6 +206,7 @@ export function ProjectInlineDetail({
   const createDetail = trpc.projectDetails.create.useMutation({
     onSuccess: () => {
       utils.projects.getById.invalidate();
+      refetchFinancial();
       toast.success("Detalle agregado exitosamente");
       setShowDetailDialog(false);
       setDetailForm({ type: "nota_importante", title: "", content: "", photoUrl: "" });
@@ -195,6 +220,7 @@ export function ProjectInlineDetail({
     onSuccess: () => {
       utils.projects.getById.invalidate();
       utils.projects.list.invalidate();
+      refetchFinancial();
       toast.success("Fecha estimada actualizada");
       setShowEditDateDialog(false);
       setEditDateForm({ estimatedInstallDate: "", reason: "" });
@@ -208,6 +234,7 @@ export function ProjectInlineDetail({
     onSuccess: (result, variables) => {
       utils.projects.list.invalidate();
       utils.projects.getById.invalidate();
+      refetchFinancial();
       
       if (variables.approved) {
         toast.success("Diseño aprobado exitosamente");
@@ -246,6 +273,7 @@ export function ProjectInlineDetail({
   const resetRendersApproval = trpc.publicGallery.resetRendersApproval.useMutation({
     onSuccess: (result) => {
       utils.projects.getById.invalidate();
+      refetchFinancial();
       toast.success(result.message);
       // Abrir WhatsApp si hay enlace
       if (result.whatsAppLink) {
@@ -262,6 +290,7 @@ export function ProjectInlineDetail({
   const resetModeladoApproval = trpc.publicGallery.resetModeladoApproval.useMutation({
     onSuccess: (result) => {
       utils.projects.getById.invalidate();
+      refetchFinancial();
       toast.success(result.message);
       // Abrir WhatsApp si hay enlace
       if (result.whatsAppLink) {
@@ -309,7 +338,19 @@ export function ProjectInlineDetail({
     },
   });
 
-  if (isLoading || !projectDetail) {
+  // Helper function to get margin color
+  const getMarginColor = (rentabilidad: number) => {
+    if (rentabilidad >= 20) return { bg: "bg-green-100/50", text: "text-green-700", border: "border-green-300" };
+    if (rentabilidad >= 10) return { bg: "bg-yellow-100/50", text: "text-yellow-700", border: "border-yellow-300" };
+    return { bg: "bg-red-100/50", text: "text-red-700", border: "border-red-300" };
+  };
+
+  // Helper function to format currency
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(value);
+  };
+
+  if (isLoading || isLoadingFinancial || !projectDetail) {
     return (
       <div className="p-4 bg-muted/30 rounded-lg mt-2">
         <div className="flex justify-center py-8">
@@ -1493,6 +1534,149 @@ export function ProjectInlineDetail({
                     </div>
                   </div>
                 )}
+              </CardContent>
+              )}
+            </Card>
+          )}
+
+          {/* NUEVA SECCIÓN: Resumen Financiero Detallado */}
+          {user?.role !== "disenador" && user?.role !== "jefe_taller" && user?.role !== "operario" && financialSummary && (
+            <Card className={`border-2 ${
+              financialSummary.margen < 0
+                ? "border-red-400 bg-red-50"
+                : financialSummary.rentabilidad < 10
+                ? "border-yellow-400 bg-yellow-50"
+                : "border-green-400 bg-green-50"
+            }`}>
+              <CardHeader className="py-3">
+                <CardTitle className="text-sm flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">💰</span>
+                    Resumen Financiero Detallado
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowFinancialSummary(!showFinancialSummary)}
+                    className="h-8 px-2"
+                  >
+                    {showFinancialSummary ? (
+                      <><EyeOff className="h-4 w-4 mr-1" /> Ocultar</>
+                    ) : (
+                      <><Eye className="h-4 w-4 mr-1" /> Mostrar</>
+                    )}
+                  </Button>
+                </CardTitle>
+              </CardHeader>
+              {showFinancialSummary && (
+              <CardContent>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {/* Total del Proyecto */}
+                  <div className="text-center p-3 bg-blue-100/50 rounded-lg border border-blue-300">
+                    <p className="text-xs text-blue-700 mb-1 font-medium">Total del Proyecto</p>
+                    <p className="text-lg font-bold text-blue-900">
+                      {formatCurrency(financialSummary.totalAmount)}
+                    </p>
+                  </div>
+
+                  {/* Total Pagado */}
+                  <div className="text-center p-3 bg-green-100/50 rounded-lg border border-green-300">
+                    <p className="text-xs text-green-700 mb-1 font-medium">Total Pagado</p>
+                    <p className="text-lg font-bold text-green-900">
+                      {formatCurrency(financialSummary.totalPagado)}
+                    </p>
+                  </div>
+
+                  {/* Total Gastos */}
+                  <div className="text-center p-3 bg-orange-100/50 rounded-lg border border-orange-300">
+                    <p className="text-xs text-orange-700 mb-1 font-medium">Total Gastos</p>
+                    <p className="text-lg font-bold text-orange-900">
+                      {formatCurrency(financialSummary.totalGastos)}
+                    </p>
+                  </div>
+
+                  {/* Saldo Pendiente */}
+                  <div className={`text-center p-3 rounded-lg border ${
+                    financialSummary.saldoPendiente > 0
+                      ? "bg-yellow-100/50 border-yellow-300"
+                      : "bg-green-100/50 border-green-300"
+                  }`}>
+                    <p className={`text-xs mb-1 font-medium ${
+                      financialSummary.saldoPendiente > 0
+                        ? "text-yellow-700"
+                        : "text-green-700"
+                    }`}>
+                      Saldo Pendiente
+                    </p>
+                    <p className={`text-lg font-bold ${
+                      financialSummary.saldoPendiente > 0
+                        ? "text-yellow-900"
+                        : "text-green-900"
+                    }`}>
+                      {formatCurrency(financialSummary.saldoPendiente)}
+                    </p>
+                  </div>
+
+                  {/* Margen */}
+                  <div className={`text-center p-3 rounded-lg border ${getMarginColor(financialSummary.rentabilidad).bg} border-opacity-50`}>
+                    <p className={`text-xs mb-1 font-medium ${getMarginColor(financialSummary.rentabilidad).text}`}>
+                      Margen
+                    </p>
+                    <p className={`text-lg font-bold ${getMarginColor(financialSummary.rentabilidad).text}`}>
+                      {formatCurrency(financialSummary.margen)}
+                    </p>
+                  </div>
+
+                  {/* Rentabilidad % */}
+                  <div className={`text-center p-3 rounded-lg border ${getMarginColor(financialSummary.rentabilidad).bg} border-opacity-50`}>
+                    <p className={`text-xs mb-1 font-medium ${getMarginColor(financialSummary.rentabilidad).text}`}>
+                      Rentabilidad
+                    </p>
+                    <p className={`text-lg font-bold ${getMarginColor(financialSummary.rentabilidad).text}`}>
+                      {financialSummary.rentabilidad.toFixed(2)}%
+                    </p>
+                  </div>
+                </div>
+
+                {/* Botones de acción rápida */}
+                <div className="mt-4 pt-4 border-t flex flex-wrap gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="text-xs"
+                    onClick={() => {
+                      // Redirigir a Accounting con proyecto preseleccionado
+                      window.location.href = `/accounting?projectId=${project.id}`;
+                    }}
+                  >
+                    <Plus className="h-3 w-3 mr-1" />
+                    Registrar Gasto
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="text-xs"
+                    onClick={() => {
+                      // TODO: Abrir modal de pago rápido
+                      toast.info("Funcionalidad en desarrollo");
+                    }}
+                  >
+                    <Plus className="h-3 w-3 mr-1" />
+                    Registrar Pago
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="text-xs"
+                    onClick={() => {
+                      // TODO: Mostrar historial de gastos y pagos
+                      toast.info("Funcionalidad en desarrollo");
+                    }}
+                  >
+                    <History className="h-3 w-3 mr-1" />
+                    Ver Historial
+                  </Button>
+                </div>
               </CardContent>
               )}
             </Card>

@@ -2576,3 +2576,83 @@ export async function getAllQuotationsGroupedByBase(params: PaginationParams & {
 
   return { data: paginatedData, total, page, limit, totalPages: Math.ceil(total / limit) };
 }
+
+
+// ============ PROJECT FINANCIAL SUMMARY ============
+
+export async function getProjectFinancialSummary(projectId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  // Get project with quotation
+  const project = await db.select().from(projects)
+    .where(eq(projects.id, projectId))
+    .limit(1);
+
+  if (!project || project.length === 0) {
+    throw new Error("Project not found");
+  }
+
+  const projectData = project[0];
+
+  // Get quotation total
+  let totalAmount = 0;
+  if (projectData.quotationId) {
+    const quotation = await db.select({
+      total: quotations.total
+    }).from(quotations)
+      .where(eq(quotations.id, projectData.quotationId))
+      .limit(1);
+
+    if (quotation && quotation.length > 0) {
+      totalAmount = Number(quotation[0].total) || 0;
+    }
+  }
+
+  // If no quotation total, use advance amount / 0.6
+  if (totalAmount === 0 && projectData.advanceAmount) {
+    totalAmount = Math.round(Number(projectData.advanceAmount) / 0.6);
+  }
+
+  // Get total paid from payments
+  const paymentsResult = await db.select({
+    total: sql<number>`COALESCE(SUM(amount), 0)`
+  }).from(projectPayments)
+    .where(eq(projectPayments.projectId, projectId));
+
+  const totalPagado = paymentsResult && paymentsResult.length > 0
+    ? Number(paymentsResult[0].total) || 0
+    : 0;
+
+  // Get total expenses for this project (only materiales_proyecto)
+  const expensesResult = await db.select({
+    total: sql<number>`COALESCE(SUM(amount), 0)`
+  }).from(expenses)
+    .where(eq(expenses.projectId, projectId))
+    .where(eq(expenses.expenseType, "materiales_proyecto"));
+
+  const totalGastos = expensesResult && expensesResult.length > 0
+    ? Number(expensesResult[0].total) || 0
+    : 0;
+
+  // Calculate financial metrics
+  const margen = totalAmount - totalGastos;
+  const rentabilidad = totalAmount > 0
+    ? Math.round((margen / totalAmount) * 100 * 100) / 100 // 2 decimal places
+    : 0;
+
+  const saldoPendiente = totalAmount - totalPagado;
+
+  return {
+    totalAmount,
+    totalPagado,
+    totalGastos,
+    margen,
+    rentabilidad,
+    saldoPendiente,
+    paymentProgress: totalAmount > 0
+      ? Math.round((totalPagado / totalAmount) * 100)
+      : 0,
+    isPaid: saldoPendiente <= 0,
+  };
+}

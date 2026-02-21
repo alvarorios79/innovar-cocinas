@@ -1659,5 +1659,22 @@ export const projectMaterialsRouter = router({
         await db.removeProjectHardwareSelection(input.projectId, input.hardwareId);
         return { success: true };
       }),
+
+    // Get financial summary for a project
+    getFinancialSummary: protectedProcedure
+      .input(z.object({
+        projectId: z.number(),
+      }))
+      .query(async ({ ctx, input }) => {
+        // Allow all roles except operario to view financial summary
+        if (ctx.user.role === "operario") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para ver información financiera" });
+        }
+        // Use dynamic import to avoid TypeScript cache issues
+        // @ts-ignore - Function exists but TypeScript cache issue
+        const dbModule = await import("../db");
+        // @ts-ignore - Function exists but TypeScript cache issue
+        return await dbModule.getProjectFinancialSummary(input.projectId);
+      }),
 });
 

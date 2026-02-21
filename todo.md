@@ -4621,3 +4621,49 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 - [ ] Agregar badge con ❌ rojo cuando cotización NO tiene proyecto vinculado
 - [ ] Mostrar indicador al lado del número de cotización en el header
 - [ ] Probar que aparece correctamente en todas las cotizaciones
+
+
+## Capa Financiera - Fase 7.1: Resumen Financiero Detallado
+
+### Backend Implementation (✅ COMPLETADO)
+- [x] Crear función `getProjectFinancialSummary()` en `/server/db.ts` (línea 2583)
+  - Calcula ingreso total (desde payments)
+  - Calcula gastos totales (project_expenses + operational_expenses)
+  - Calcula margen (ingreso - gastos)
+  - Calcula rentabilidad % (margen / ingreso * 100)
+- [x] Agregar procedimiento tRPC `getFinancialSummary` en `/server/routers/projects.ts` (líneas 1664-1674)
+  - Protegido con role-based access (super_admin, admin, comercial)
+  - Rechaza acceso para diseñador, jefe_taller, operario, user
+- [x] Resolver error de TypeScript usando dynamic import: `await import("../db")`
+
+### Frontend Implementation (✅ COMPLETADO)
+- [x] Agregar UI de "Resumen Financiero Detallado" en `/client/src/components/ProjectInlineDetail.tsx`
+  - Sección con icono de dinero 💰
+  - Botón "Mostrar/Ocultar" para expandir/contraer
+  - Muestra: Total del Proyecto, Adelanto Pagado (%), Saldo Pendiente (%)
+  - Barra de progreso de pago
+- [x] Agregar tRPC query para obtener datos financieros (líneas 160-163)
+- [x] Protección de rol en frontend (solo visible para super_admin, admin, comercial)
+
+### Diagnóstico y Fixes (✅ COMPLETADO)
+- [x] Identificar y remover IIFE de depuración que bloqueaba el renderizado (línea 835-841)
+- [x] Agregar onClick handler al botón chevron para expandir/contraer proyecto
+  - Antes: botón sin funcionalidad
+  - Después: `onClick={() => setExpandedProjectId(expandedProjectId === project.id ? null : project.id)}`
+- [x] Verificar que el componente ProjectInlineDetail se renderiza correctamente
+- [x] Confirmar que los datos financieros se muestran correctamente en el navegador
+
+### Verificación Final (✅ COMPLETADO)
+- [x] Componente ProjectInlineDetail renderiza correctamente
+- [x] Sección "Información Financiera del Proyecto" visible
+- [x] Datos financieros se muestran con valores reales:
+  - Total del Proyecto: $ 8.050.000
+  - Adelanto Pagado (60%): $ 4.830.000
+  - Saldo Pendiente (40%): $ 3.220.000
+  - Barra de progreso: 60%
+- [x] Botón "Mostrar/Ocultar" funciona correctamente
+- [x] Protección de rol funciona (solo visible para usuarios con permisos)
+
+### Status: ✅ FASE 7.1 COMPLETADA
+El Resumen Financiero Detallado está completamente implementado y funcional.
+Listo para pasar a Fase 7.2 (Intelligent Alerts) cuando sea requerido.

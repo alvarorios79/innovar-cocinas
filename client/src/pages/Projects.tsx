@@ -85,6 +85,7 @@ const WORK_TYPES = {
 
 export default function Projects() {
   const { user, isAuthenticated, loading } = useAuth();
+  useEffect(() => { console.log("[DEBUG] Projects component rendered"); }, []);
   const [location, setLocation] = useLocation();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [selectedProject, setSelectedProject] = useState<any>(null);
@@ -818,7 +819,11 @@ export default function Projects() {
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         )}
-                        <Button variant="ghost" size="sm">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => setExpandedProjectId(expandedProjectId === project.id ? null : project.id)}
+                        >
                           {expandedProjectId === project.id ? (
                             <ChevronUp className="h-4 w-4" />
                           ) : (

@@ -1,0 +1,40 @@
+{
+  "query": "SELECT id, name, email, role FROM users WHERE openId IS NOT NULL LIMIT 5;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT id, name, email, role FROM users WHERE openId IS NOT NULL LIMIT 5;",
+  "rows": [
+    {
+      "id": "1",
+      "name": "Alvaro Rios",
+      "email": "mcfy8jgnym@privaterelay.appleid.com",
+      "role": "super_admin"
+    },
+    {
+      "id": "30257",
+      "name": "Alejo Gutiérrez",
+      "email": "alejoile300@gmail.com",
+      "role": "disenador"
+    },
+    {
+      "id": "30390",
+      "name": "Martha Serna",
+      "email": "martha79s@hotmail.com",
+      "role": "admin"
+    },
+    {
+      "id": "271067",
+      "name": "Carlos Albeiro Betancurt ",
+      "email": "albetan1530@gmail.com",
+      "role": "user"
+    },
+    {
+      "id": "840290",
+      "name": "Luis Cardoso",
+      "email": "jefe.taller@innovar.temp",
+      "role": "jefe_taller"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\temail\trole\n1\tAlvaro Rios\tmcfy8jgnym@privaterelay.appleid.com\tsuper_admin\n30257\tAlejo Gutiérrez\talejoile300@gmail.com\tdisenador\n30390\tMartha Serna\tmartha79s@hotmail.com\tadmin\n271067\tCarlos Albeiro Betancurt \talbetan1530@gmail.com\tuser\n840290\tLuis Cardoso\tjefe.taller@innovar.temp\tjefe_taller\n",
+  "stderr": "",
+  "execution_time_ms": 78
+}

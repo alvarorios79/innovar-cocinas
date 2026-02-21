@@ -166,6 +166,9 @@ export default function Projects() {
   const [projectPage, setProjectPage] = useState(1);
   const PROJECTS_PER_PAGE = 50;
   
+  // Estado para filtro de rentabilidad
+  const [profitFilter, setProfitFilter] = useState<string>("all");
+  
   // Estado para confirmación de avance a aprobacion_final
   const [showAdvanceConfirmDialog, setShowAdvanceConfirmDialog] = useState(false);
   const [projectToAdvance, setProjectToAdvance] = useState<any>(null);
@@ -176,6 +179,24 @@ export default function Projects() {
     ...(statusFilter !== "all" && { search: statusFilter })
   });
   const projects = projectsData?.data || [];
+  
+  // Aplicar filtro de rentabilidad
+  const filteredProjects = projects.filter(p => {
+    const rent = Number((p as any).rentabilidad ?? 0);
+    
+    switch (profitFilter) {
+      case "healthy":
+        return rent > 20;
+      case "moderate":
+        return rent >= 10 && rent <= 20;
+      case "risk":
+        return rent < 15;
+      case "critical":
+        return rent < 10;
+      default:
+        return true;
+    }
+  });
   const { data: clients = [] } = trpc.clients.list.useQuery();
   const { data: projectDetail } = trpc.projects.getById.useQuery(
     { id: selectedProject?.id },
@@ -521,6 +542,22 @@ export default function Projects() {
               </SelectContent>
             </Select>
             
+            {/* Filtro de rentabilidad */}
+            {(user?.role === "admin" || user?.role === "super_admin" || user?.role === "comercial") && (
+              <Select value={profitFilter} onValueChange={setProfitFilter}>
+                <SelectTrigger className="w-full sm:w-[180px]">
+                  <SelectValue placeholder="Rentabilidad" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas</SelectItem>
+                  <SelectItem value="healthy">Saludable (&gt;20%)</SelectItem>
+                  <SelectItem value="moderate">Moderada (10-20%)</SelectItem>
+                  <SelectItem value="risk">En Riesgo (&lt;15%)</SelectItem>
+                  <SelectItem value="critical">Critica (&lt;10%)</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+            
             {/* Filtro de saldo pendiente */}
             {(user?.role === "admin" || user?.role === "super_admin") && (
               <Button
@@ -662,7 +699,7 @@ export default function Projects() {
           </Card>
         ) : (
           <div className="grid gap-3">
-            {projects
+            {filteredProjects
               .filter((project: any) => {
                 // Filtro de saldo pendiente: proyectos entregados con saldo > 0
                 if (showPendingPaymentOnly) {

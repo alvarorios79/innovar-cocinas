@@ -1,0 +1,18 @@
+{
+  "query": "SELECT dataOrigin, COUNT(*) as count FROM users GROUP BY dataOrigin;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT dataOrigin, COUNT(*) as count FROM users GROUP BY dataOrigin;",
+  "rows": [
+    {
+      "dataOrigin": "system",
+      "count": "246"
+    },
+    {
+      "dataOrigin": "manual",
+      "count": "10"
+    }
+  ],
+  "messages": [],
+  "stdout": "dataOrigin\tcount\nsystem\t246\nmanual\t10\n",
+  "stderr": "",
+  "execution_time_ms": 361
+}

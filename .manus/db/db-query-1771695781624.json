@@ -1,0 +1,14 @@
+{
+  "query": "SELECT dataOrigin, COUNT(*) as count FROM users WHERE email LIKE '%test%' OR email LIKE '%example%' OR email LIKE '%bulk%' GROUP BY dataOrigin;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT dataOrigin, COUNT(*) as count FROM users WHERE email LIKE '%test%' OR email LIKE '%example%' OR email LIKE '%bulk%' GROUP BY dataOrigin;",
+  "rows": [
+    {
+      "dataOrigin": "manual",
+      "count": "246"
+    }
+  ],
+  "messages": [],
+  "stdout": "dataOrigin\tcount\nmanual\t246\n",
+  "stderr": "",
+  "execution_time_ms": 354
+}

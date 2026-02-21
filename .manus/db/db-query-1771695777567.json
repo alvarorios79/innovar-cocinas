@@ -1,0 +1,15 @@
+{
+  "query": "SELECT \n  (SELECT COUNT(*) FROM projects WHERE createdBy IN (SELECT id FROM users WHERE email LIKE '%test%' OR email LIKE '%example%' OR email LIKE '%bulk%')) as projects_count,\n  (SELECT COUNT(*) FROM quotations WHERE createdBy IN (SELECT id FROM users WHERE email LIKE '%test%' OR email LIKE '%example%' OR email LIKE '%bulk%')) as quotations_count,\n  (SELECT COUNT(*) FROM appointments WHERE clientId IN (SELECT id FROM clients WHERE userId IN (SELECT id FROM users WHERE email LIKE '%test%' OR email LIKE '%example%' OR email LIKE '%bulk%'))) as appointments_count;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT \n  (SELECT COUNT(*) FROM projects WHERE createdBy IN (SELECT id FROM users WHERE email LIKE '%test%' OR email LIKE '%example%' OR email LIKE '%bulk%')) as projects_count,\n  (SELECT COUNT(*) FROM quotations WHERE createdBy IN (SELECT id FROM users WHERE email LIKE '%test%' OR email LIKE '%example%' OR email LIKE '%bulk%')) as quotations_count,\n  (SELECT COUNT(*) FROM appointments WHERE clientId IN (SELECT id FROM clients WHERE userId IN (SELECT id FROM users WHERE email LIKE '%test%' OR email LIKE '%example%' OR email LIKE '%bulk%'))) as appointments_count;",
+  "rows": [
+    {
+      "projects_count": "6",
+      "quotations_count": "236",
+      "appointments_count": "36"
+    }
+  ],
+  "messages": [],
+  "stdout": "projects_count\tquotations_count\tappointments_count\n6\t236\t36\n",
+  "stderr": "",
+  "execution_time_ms": 366
+}

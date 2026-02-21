@@ -1,0 +1,13 @@
+{
+  "query": "SELECT COUNT(*) as test_users FROM users WHERE email LIKE '%test%' OR email LIKE '%example%' OR email LIKE '%bulk%';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT COUNT(*) as test_users FROM users WHERE email LIKE '%test%' OR email LIKE '%example%' OR email LIKE '%bulk%';",
+  "rows": [
+    {
+      "test_users": "246"
+    }
+  ],
+  "messages": [],
+  "stdout": "test_users\n246\n",
+  "stderr": "",
+  "execution_time_ms": 347
+}

@@ -741,7 +741,7 @@ export default function Projects() {
                             <p className="flex items-center gap-1" title="Rentabilidad del proyecto">
                               <span>💰</span>
                               {(() => {
-                                const rent = 0; // Placeholder - datos no disponibles en listPaginated
+                                const rent = Number((project as any).rentabilidad ?? 0)
                                 let colorClass = "text-gray-500";
                                 if (rent > 20) {
                                   colorClass = "text-green-600 font-semibold";

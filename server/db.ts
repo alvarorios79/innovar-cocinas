@@ -2282,7 +2282,19 @@ export async function getAllProjectsPaginated(params: PaginationParams & { statu
   ]);
 
   const total = countResult[0]?.count || 0;
-  return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
+  
+  // Enriquecer con datos financieros para cada proyecto
+  const enrichedData = await Promise.all(data.map(async (project: any) => {
+    const financialSummary = await getProjectFinancialSummary(project.id);
+    return {
+      ...project,
+      rentabilidad: financialSummary.rentabilidad,
+      totalGastos: financialSummary.totalGastos,
+      margen: financialSummary.margen,
+    };
+  }));
+  
+  return { data: enrichedData, total, page, limit, totalPages: Math.ceil(total / limit) };
 }
 
 export async function getAllTasksPaginated(params: PaginationParams & { status?: string; assignedTo?: number } = {}): Promise<PaginatedResult<any>> {

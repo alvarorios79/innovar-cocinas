@@ -723,7 +723,7 @@ export default function Projects() {
                             </Badge>
                           )}
                         </div>
-                        <div className="text-sm text-muted-foreground grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-1">
+                        <div className="text-sm text-muted-foreground grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-x-4 gap-y-1">
                           <p className="flex items-center gap-1">
                             <User className="h-3 w-3" />
                             {project.client?.name || "N/A"}
@@ -736,6 +736,24 @@ export default function Projects() {
                             <Calendar className="h-3 w-3" />
                             {new Date(project.createdAt).toLocaleDateString("es-CO")}
                           </p>
+                          {/* Rentabilidad con codigo de colores */}
+                          {(user?.role === "super_admin" || user?.role === "admin" || user?.role === "comercial") && (
+                            <p className="flex items-center gap-1" title="Rentabilidad del proyecto">
+                              <span>💰</span>
+                              {(() => {
+                                const rent = 0; // Placeholder - datos no disponibles en listPaginated
+                                let colorClass = "text-gray-500";
+                                if (rent > 20) {
+                                  colorClass = "text-green-600 font-semibold";
+                                } else if (rent >= 10) {
+                                  colorClass = "text-yellow-600 font-semibold";
+                                } else {
+                                  colorClass = "text-red-600 font-semibold";
+                                }
+                                return <span className={colorClass}>{rent.toFixed(1)}%</span>;
+                              })()}
+                            </p>
+                          )}
                           {/* Fecha tentativa (rojo) */}
                           {(project as any).tentativeInstallDate && !(project as any).isInstallDateOfficial && project.status !== "entregado" && (
                             <p className="flex items-center gap-1 font-medium text-red-600">

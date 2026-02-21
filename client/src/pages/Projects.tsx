@@ -550,10 +550,10 @@ export default function Projects() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todas</SelectItem>
-                  <SelectItem value="healthy">Saludable (&gt;20%)</SelectItem>
+                  <SelectItem value="healthy">Saludable (mayor a 20%)</SelectItem>
                   <SelectItem value="moderate">Moderada (10-20%)</SelectItem>
-                  <SelectItem value="risk">En Riesgo (&lt;15%)</SelectItem>
-                  <SelectItem value="critical">Critica (&lt;10%)</SelectItem>
+                  <SelectItem value="risk">En Riesgo (menor a 15%)</SelectItem>
+                  <SelectItem value="critical">Crítica (menor a 10%)</SelectItem>
                 </SelectContent>
               </Select>
             )}
@@ -598,6 +598,16 @@ export default function Projects() {
                 Eliminar ({selectedProjects.length})
               </Button>
             )}
+
+            {/* Contador de proyectos filtrados */}
+            <div className="text-sm text-gray-500 ml-auto">
+              Mostrando {filteredProjects.length} de {projects.length} proyectos
+              {profitFilter !== "all" && (
+                <span className="ml-2">
+                  (Filtro: {profitFilter === "healthy" ? "Saludable" : profitFilter === "moderate" ? "Moderada" : profitFilter === "risk" ? "En Riesgo" : "Crítica"})
+                </span>
+              )}
+            </div>
 
             {/* Botón crear (solo admin) */}
             {(user?.role === "admin" || user?.role === "super_admin") && (

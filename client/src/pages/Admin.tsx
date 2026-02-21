@@ -596,6 +596,14 @@ export default function Admin() {
             >
               Proyectos
             </TabsTrigger>
+            {(user?.role === "super_admin" || user?.role === "admin") && (
+              <Link href="/profitability-dashboard">
+                <Button variant="outline" className="text-xs sm:text-sm px-2 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border-indigo-300">
+                  <DollarSign className="h-4 w-4 mr-1" />
+                  Rentabilidad
+                </Button>
+              </Link>
+            )}
             {user?.role === "super_admin" && (
               <TabsTrigger 
                 value="pricing" 

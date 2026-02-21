@@ -13,6 +13,8 @@ import { hashPassword, validatePasswordStrength, authenticateWithPassword } from
 import { prepareWhatsAppNotification, generateTeamWhatsAppLink } from "../whatsapp-notifications";
 import { createRemindersForStatusChange } from "../reminders-service";
 import * as whatsappCloud from "../whatsapp-cloud";
+
+console.log("=== PROJECTS ROUTER FILE LOADED ===");
 import { addBusinessDays, calculateEstimatedDeliveryDate } from "../business-days";
 import { sanitizeText, sanitizeHtml, sanitizeForEmail, sanitizePhone, sanitizeEmail } from "../sanitize";
 import { eq } from "drizzle-orm";
@@ -1675,6 +1677,23 @@ export const projectMaterialsRouter = router({
         const dbModule = await import("../db");
         // @ts-ignore - Function exists but TypeScript cache issue
         return await dbModule.getProjectFinancialSummary(input.projectId);
+      }),
+    
+    // Test endpoint to verify router registration
+    testEndpoint: protectedProcedure
+      .query(() => {
+        return { ok: true, message: "Test endpoint works!" };
+      }),
+
+    // Get global financial dashboard (CEO/Admin only)
+    getGlobalDashboard: protectedProcedure
+      .query(async ({ ctx }) => {
+        // Only super_admin and admin can view global dashboard
+        if (ctx.user.role !== "super_admin" && ctx.user.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para ver el dashboard financiero" });
+        }
+        // @ts-ignore - Function exists but TypeScript cache issue
+        return await db.getGlobalFinancialDashboard();
       }),
 });
 

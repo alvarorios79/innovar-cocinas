@@ -22,6 +22,7 @@ import PublicGallery from "./pages/PublicGallery";
 import PricingConfig from "./pages/PricingConfig";
 import Accounting from "./pages/Accounting";
 import AppointmentsCalendar from "./pages/AppointmentsCalendar";
+import { CEODashboard } from "./pages/CEODashboard";
 
 function Router() {
   return (
@@ -43,6 +44,7 @@ function Router() {
       <Route path={"/gallery"} component={PublicGallery} />
       <Route path={"/pricing-config"} component={PricingConfig} />
       <Route path={"/accounting"} component={Accounting} />
+      <Route path={"/ceo-dashboard"} component={CEODashboard} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>

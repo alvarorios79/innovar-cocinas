@@ -152,6 +152,13 @@ export function ProjectInlineDetail({
   // Toggle para ocultar información financiera (CEO, admin, comercial)
   const [showFinancialInfo, setShowFinancialInfo] = useState(false);
   const [showFinancialSummary, setShowFinancialSummary] = useState(true);
+  
+  // Estados para alertas inteligentes
+  const [closedAlerts, setClosedAlerts] = useState<Set<string>>(new Set());
+  const closeAlert = (alertId: string) => {
+    setClosedAlerts(prev => new Set(prev).add(alertId));
+  };
+  const isAlertClosed = (alertId: string) => closedAlerts.has(alertId);
 
   // Query para detalle del proyecto
   const { data: projectDetail, isLoading } = trpc.projects.getById.useQuery(
@@ -1537,6 +1544,103 @@ export function ProjectInlineDetail({
               </CardContent>
               )}
             </Card>
+          )}
+
+          {/* ALERTAS INTELIGENTES */}
+          {user?.role !== "disenador" && user?.role !== "jefe_taller" && user?.role !== "operario" && financialSummary && (
+            <div className="space-y-2">
+              {/* Alerta de Margen Crítico (< 5%) */}
+              {!isAlertClosed("critical-margin") && financialSummary.rentabilidad < 5 && (
+                <div className="flex items-center justify-between p-4 bg-red-900 text-white rounded-lg border border-red-700 shadow-md">
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">🚨</span>
+                    <div>
+                      <p className="font-bold">Proyecto en zona crítica de rentabilidad</p>
+                      <p className="text-sm text-red-100">Rentabilidad: {financialSummary.rentabilidad.toFixed(2)}% - Revisar costos inmediatamente</p>
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => closeAlert("critical-margin")}
+                    className="text-white hover:bg-red-800"
+                  >
+                    ✕
+                  </Button>
+                </div>
+              )}
+              
+              {/* Alerta de Margen Bajo (5-10%) */}
+              {!isAlertClosed("low-margin") && financialSummary.rentabilidad >= 5 && financialSummary.rentabilidad < 10 && (
+                <div className="flex items-center justify-between p-4 bg-red-600 text-white rounded-lg border border-red-500 shadow-md">
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">🚨</span>
+                    <div>
+                      <p className="font-bold">Margen bajo detectado</p>
+                      <p className="text-sm text-red-100">Rentabilidad: {financialSummary.rentabilidad.toFixed(2)}% - Revisar costos</p>
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => closeAlert("low-margin")}
+                    className="text-white hover:bg-red-700"
+                  >
+                    ✕
+                  </Button>
+                </div>
+              )}
+              
+              {/* Alerta de Margen Moderado (10-15%) */}
+              {!isAlertClosed("moderate-margin") && financialSummary.rentabilidad >= 10 && financialSummary.rentabilidad < 15 && (
+                <div className="flex items-center justify-between p-4 bg-yellow-500 text-gray-900 rounded-lg border border-yellow-600 shadow-md">
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">⚠</span>
+                    <div>
+                      <p className="font-bold">Margen moderado</p>
+                      <p className="text-sm text-gray-800">Rentabilidad: {financialSummary.rentabilidad.toFixed(2)}% - Monitorear costos</p>
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => closeAlert("moderate-margin")}
+                    className="text-gray-900 hover:bg-yellow-600"
+                  >
+                    ✕
+                  </Button>
+                </div>
+              )}
+              
+              {/* Alerta de Saldo Vencido */}
+              {!isAlertClosed("overdue-balance") && financialSummary.saldoPendiente > 0 && projectDetail && (
+                (() => {
+                  const estimatedDate = projectDetail.estimatedInstallDate ? new Date(projectDetail.estimatedInstallDate) : null;
+                  if (!estimatedDate) return null;
+                  const today = new Date();
+                  const daysOverdue = Math.floor((today.getTime() - estimatedDate.getTime()) / (1000 * 60 * 60 * 24));
+                  return daysOverdue > 7 ? (
+                    <div className="flex items-center justify-between p-4 bg-orange-500 text-white rounded-lg border border-orange-600 shadow-md">
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">⚠</span>
+                        <div>
+                          <p className="font-bold">Cliente con saldo pendiente vencido</p>
+                          <p className="text-sm text-orange-100">Vencimiento: {daysOverdue} días - Saldo: {new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(financialSummary.saldoPendiente)}</p>
+                        </div>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => closeAlert("overdue-balance")}
+                        className="text-white hover:bg-orange-600"
+                      >
+                        ✕
+                      </Button>
+                    </div>
+                  ) : null;
+                })()
+              )}
+            </div>
           )}
 
           {/* NUEVA SECCIÓN: Resumen Financiero Detallado */}

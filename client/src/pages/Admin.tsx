@@ -18,6 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Link } from "wouter";
 import { HardwareCatalogAdmin } from "@/components/HardwareCatalogAdmin";
 import { CreateQuickClientDialog } from "@/components/CreateQuickClientDialog";
+import { SystemCleanupButton } from "@/components/SystemCleanupButton";
 import { formatPrice } from "@/lib/formatters";
 
 export default function Admin() {
@@ -605,13 +606,22 @@ export default function Admin() {
               </Link>
             )}
             {user?.role === "super_admin" && (
-              <TabsTrigger 
-                value="pricing" 
-                className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-emerald-600 data-[state=active]:text-white hover:bg-emerald-100 transition-colors"
-              >
-                <DollarSign className="h-4 w-4 mr-1" />
-                Precios
-              </TabsTrigger>
+              <>
+                <TabsTrigger 
+                  value="pricing" 
+                  className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-emerald-600 data-[state=active]:text-white hover:bg-emerald-100 transition-colors"
+                >
+                  <DollarSign className="h-4 w-4 mr-1" />
+                  Precios
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="system-zone" 
+                  className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-red-600 data-[state=active]:text-white hover:bg-red-100 transition-colors"
+                >
+                  <Wrench className="h-4 w-4 mr-1" />
+                  Zona Crítica
+                </TabsTrigger>
+              </>
             )}
           </TabsList>
 
@@ -1834,6 +1844,30 @@ export default function Admin() {
                       Abrir Panel de Precios
                     </Button>
                   </Link>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          )}
+          {user?.role === "super_admin" && (
+            <TabsContent value="system-zone" className="space-y-4">
+              <Card className="border-red-200 bg-red-50/50">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-red-700">
+                    <Wrench className="h-5 w-5" />
+                    Zona Crítica del Sistema
+                  </CardTitle>
+                  <CardDescription>
+                    Operaciones de mantenimiento y limpieza del sistema. Úsalas con cuidado.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+                    <h3 className="font-semibold text-red-900 mb-2">Limpieza de Datos del Sistema</h3>
+                    <p className="text-sm text-red-700 mb-4">
+                      Elimina todos los registros marcados como "system" (dataOrigin = 'system'). Esta acción es irreversible.
+                    </p>
+                    <SystemCleanupButton />
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>

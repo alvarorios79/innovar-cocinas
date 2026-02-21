@@ -1,4 +1,3 @@
-import { systemRouter } from "./_core/systemRouter";
 import { router } from "./_core/trpc";
 import { authRouter } from "./routers/auth";
 import { clientsRouter } from "./routers/clients";
@@ -17,6 +16,7 @@ import { pricingRouter } from "./routers/pricing";
 import { whatsappCloudRouter } from "./routers/whatsappCloud";
 import { expensesRouter } from "./routers/expenses";
 import { quotationsVersioningRouter } from "./routers/quotations-versioning";
+import { systemRouter } from "./routers/system";
 
 export const appRouter = router({
   system: systemRouter,

@@ -181,11 +181,11 @@ export async function getUserByEmail(email: string) {
 
 // ============ CLIENTS ============
 
-export async function createClient(client: InsertClient) {
+export async function createClient(client: InsertClient, dataOrigin: "manual" | "system" = "manual") {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  const result = await db.insert(clients).values(client);
+  const result = await db.insert(clients).values({ ...client, dataOrigin });
   return result[0].insertId;
 }
 
@@ -238,12 +238,12 @@ export async function updateClient(id: number, data: Partial<InsertClient>) {
 
 // ============ APPOINTMENTS ============
 
-export async function createAppointment(appointment: InsertAppointment & { workTypes?: string[] }) {
+export async function createAppointment(appointment: InsertAppointment & { workTypes?: string[] }, dataOrigin: "manual" | "system" = "manual") {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
   const { workTypes, ...appointmentData } = appointment;
-  const result = await db.insert(appointments).values(appointmentData);
+  const result = await db.insert(appointments).values({ ...appointmentData, dataOrigin });
   const appointmentId = result[0].insertId;
   
   // Si se proporcionan workTypes, crear los registros relacionados
@@ -425,7 +425,7 @@ export async function getPriorEstimatesByClientId(clientId: number) {
 
 // ============ QUOTATIONS ============
 
-export async function createQuotation(quotation: InsertQuotation) {
+export async function createQuotation(quotation: InsertQuotation, dataOrigin: "manual" | "system" = "manual") {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
@@ -452,7 +452,7 @@ export async function createQuotation(quotation: InsertQuotation) {
     quotation.quotationNumber = `COT-${year}-${nextNumber}`;
   }
 
-  const result = await db.insert(quotations).values(quotation);
+  const result = await db.insert(quotations).values({ ...quotation, dataOrigin });
   return result[0].insertId;
 }
 
@@ -691,11 +691,11 @@ export async function deleteClient(clientId: number): Promise<void> {
 
 // ============ PROJECTS ============
 
-export async function createProject(project: InsertProject) {
+export async function createProject(project: InsertProject, dataOrigin: "manual" | "system" = "manual") {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  const result = await db.insert(projects).values(project);
+  const result = await db.insert(projects).values({ ...project, dataOrigin });
   return result[0].insertId;
 }
 
@@ -1036,7 +1036,7 @@ export async function createUserExtended(userData: {
   email: string;
   role: "user" | "admin" | "super_admin" | "disenador" | "jefe_taller" | "operario";
   passwordHash?: string;
-}): Promise<number> {
+}, dataOrigin: "manual" | "system" = "manual"): Promise<number> {
   const db = await getDb();
   if (!db) {
     throw new Error("Database not available");
@@ -1052,6 +1052,7 @@ export async function createUserExtended(userData: {
     loginMethod: userData.passwordHash ? "password" : "manual",
     passwordHash: userData.passwordHash,
     lastSignedIn: new Date(),
+    dataOrigin,
   });
 
   return result[0].insertId;

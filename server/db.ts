@@ -2283,11 +2283,18 @@ export async function getAllProjectsPaginated(params: PaginationParams & { statu
 
   const total = countResult[0]?.count || 0;
   
-  // Enriquecer con datos financieros para cada proyecto
+  // Enriquecer con datos financieros y nombre del cliente para cada proyecto
   const enrichedData = await Promise.all(data.map(async (project: any) => {
     const financialSummary = await getProjectFinancialSummary(project.id);
+    
+    // Obtener nombre del cliente
+    const db = await getDb();
+    const client = await db?.select().from(clients).where(eq(clients.id, project.clientId)).limit(1);
+    const clientName = client?.[0]?.name || "";
+    
     return {
       ...project,
+      clientName,
       rentabilidad: financialSummary.rentabilidad,
       totalGastos: financialSummary.totalGastos,
       margen: financialSummary.margen,

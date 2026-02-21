@@ -169,6 +169,9 @@ export default function Projects() {
   // Estado para filtro de rentabilidad
   const [profitFilter, setProfitFilter] = useState<string>("all");
   
+  // Estado para búsqueda de cliente
+  const [searchTerm, setSearchTerm] = useState("");
+  
   // Estado para confirmación de avance a aprobacion_final
   const [showAdvanceConfirmDialog, setShowAdvanceConfirmDialog] = useState(false);
   const [projectToAdvance, setProjectToAdvance] = useState<any>(null);
@@ -181,7 +184,7 @@ export default function Projects() {
   const projects = projectsData?.data || [];
   
   // Aplicar filtro de rentabilidad
-  const filteredProjects = projects.filter(p => {
+  const filteredByProfit = projects.filter(p => {
     const rent = Number((p as any).rentabilidad ?? 0);
     
     switch (profitFilter) {
@@ -196,6 +199,12 @@ export default function Projects() {
       default:
         return true;
     }
+  });
+  
+  // Aplicar filtro de busqueda por cliente
+  const filteredProjects = filteredByProfit.filter(p => {
+    const clientName = (p as any).clientName?.toLowerCase() || "";
+    return clientName.includes(searchTerm.toLowerCase());
   });
   const { data: clients = [] } = trpc.clients.list.useQuery();
   const { data: projectDetail } = trpc.projects.getById.useQuery(
@@ -557,6 +566,15 @@ export default function Projects() {
                 </SelectContent>
               </Select>
             )}
+            
+            {/* Input de busqueda por cliente */}
+            <Input
+              type="text"
+              placeholder="Buscar por cliente..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full sm:w-[200px]"
+            />
             
             {/* Filtro de saldo pendiente */}
             {(user?.role === "admin" || user?.role === "super_admin") && (

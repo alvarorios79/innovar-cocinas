@@ -2720,9 +2720,55 @@ export async function getGlobalFinancialDashboard() {
     ? Number(projectsCountResult[0].count) || 0
     : 0;
 
+  // Calculate outstanding balance (saldo pendiente)
+  const totalOutstandingBalance = totalIngresos - totalPagosRecibidos;
+  const outstandingRatio = totalIngresos > 0
+    ? Math.round((totalOutstandingBalance / totalIngresos) * 100 * 100) / 100
+    : 0;
+
+  // Calculate collection rate (tasa de cobranza)
+  const collectionRate = totalIngresos > 0
+    ? Math.round((totalPagosRecibidos / totalIngresos) * 100 * 100) / 100
+    : 0;
+
+  // Get count of delivered projects with outstanding balance
+  const deliveredWithOutstandingResult = await db.select({
+    count: sql<number>`COUNT(*)`
+  }).from(projects)
+    .where(and(
+      eq(projects.status, "entregado"),
+      sql`${projects.totalAmount} > 0`,
+      sql`(SELECT COALESCE(SUM(amount), 0) FROM payments WHERE projectId = projects.id) < ${projects.totalAmount}`,
+      manualProjectsFilter
+    ));
+
+  const deliveredWithOutstanding = deliveredWithOutstandingResult && deliveredWithOutstandingResult.length > 0
+    ? Number(deliveredWithOutstandingResult[0].count) || 0
+    : 0;
+
+  // Get count of projects with low profitability (< 10%)
+  const lowProfitProjectsResult = await db.select({
+    count: sql<number>`COUNT(*)`
+  }).from(projects)
+    .where(and(
+      sql`${projects.totalAmount} > 0`,
+      sql`((${projects.totalAmount} - COALESCE((SELECT SUM(amount) FROM expenses WHERE projectId = projects.id AND expenseType = 'materiales_proyecto'), 0)) / ${projects.totalAmount} * 100) < 10`,
+      manualProjectsFilter
+    ));
+
+  const lowProfitProjectsCount = lowProfitProjectsResult && lowProfitProjectsResult.length > 0
+    ? Number(lowProfitProjectsResult[0].count) || 0
+    : 0;
+
+  // Calculate alerts
+  const alerts = {
+    highOutstanding: outstandingRatio > 40,
+    lowCollectionRate: collectionRate < 70,
+    deliveredWithOutstanding: deliveredWithOutstanding > 0,
+    lowProfitProjectsCount: lowProfitProjectsCount > 0,
+  };
+
   // Simplified calculation for projects at risk and overdue
-  // For now, return 0 as these require complex calculations
-  // In production, these should be calculated with a separate aggregation query
   const proyectosEnRiesgo = 0;
   const proyectosConSaldoVencido = 0;
 
@@ -2736,6 +2782,11 @@ export async function getGlobalFinancialDashboard() {
     proyectosEnRiesgo,
     proyectosConSaldoVencido,
     totalProyectos,
+    outstandingRatio,
+    collectionRate,
+    deliveredWithOutstanding,
+    lowProfitProjectsCount,
+    alerts,
   };
 }
 

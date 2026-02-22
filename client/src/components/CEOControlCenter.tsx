@@ -99,8 +99,44 @@ export function CEOControlCenter() {
         </div>
       </CardHeader>
 
-      {/* Contenido - 4 Secciones */}
+      {/* Contenido - Alertas + 4 Secciones */}
       <CardContent className="p-6 space-y-6">
+        {/* ALERTAS FINANCIERAS */}
+        {dashboardData?.alerts && Object.values(dashboardData.alerts).some(Boolean) && (
+          <div className="bg-red-950/40 border-l-4 border-red-500 rounded-lg p-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-red-400" />
+              <h3 className="text-sm font-bold text-red-300">Alertas Financieras</h3>
+            </div>
+            <div className="space-y-2 text-sm text-red-200">
+              {dashboardData.alerts.highOutstanding && (
+                <div className="flex items-start gap-2">
+                  <span className="text-red-400 mt-0.5">•</span>
+                  <span>Cartera pendiente supera 40% ({dashboardData.outstandingRatio?.toFixed(1)}%)</span>
+                </div>
+              )}
+              {dashboardData.alerts.lowCollectionRate && (
+                <div className="flex items-start gap-2">
+                  <span className="text-red-400 mt-0.5">•</span>
+                  <span>Tasa de cobranza inferior al 70% ({dashboardData.collectionRate?.toFixed(1)}%)</span>
+                </div>
+              )}
+              {dashboardData.alerts.deliveredWithOutstanding && (
+                <div className="flex items-start gap-2">
+                  <span className="text-red-400 mt-0.5">•</span>
+                  <span>Existen {dashboardData.deliveredWithOutstanding} proyecto(s) entregado(s) con saldo pendiente</span>
+                </div>
+              )}
+              {dashboardData.alerts.lowProfitProjectsCount && (
+                <div className="flex items-start gap-2">
+                  <span className="text-red-400 mt-0.5">•</span>
+                  <span>Hay {dashboardData.lowProfitProjectsCount} proyecto(s) con rentabilidad inferior al 10%</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* 1️⃣ FLUJO DE CAJA MENSUAL */}
         <div className="space-y-3">
           <h3 className="text-sm font-bold text-slate-200 flex items-center gap-2">

@@ -1,0 +1,70 @@
+{
+  "query": "SELECT id, email FROM users WHERE email IN (\n  'admin-bulk-1771708315665@test.com',\n  'test-manual-1771708316540@example.com',\n  'cliente-bulk@test.com',\n  'manual-mix-1771708317396@example.com',\n  'manual-quot-1771708318425@example.com',\n  'test@advisory.com',\n  'admin-fixedcosts-test@test.com',\n  'user-qvs2-1771708324065@example.com',\n  'test-1771708324325@example.com',\n  'admin-edit-test@test.com'\n);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT id, email FROM users WHERE email IN (\n  'admin-bulk-1771708315665@test.com',\n  'test-manual-1771708316540@example.com',\n  'cliente-bulk@test.com',\n  'manual-mix-1771708317396@example.com',\n  'manual-quot-1771708318425@example.com',\n  'test@advisory.com',\n  'admin-fixedcosts-test@test.com',\n  'user-qvs2-1771708324065@example.com',\n  'test-1771708324325@example.com',\n  'admin-edit-test@test.com'\n);",
+  "rows": [
+    {
+      "id": "8580019",
+      "email": "admin-bulk-1771708315665@test.com"
+    },
+    {
+      "id": "8580053",
+      "email": "admin-edit-test@test.com"
+    },
+    {
+      "id": "8580038",
+      "email": "admin-fixedcosts-test@test.com"
+    },
+    {
+      "id": "8580040",
+      "email": "admin-fixedcosts-test@test.com"
+    },
+    {
+      "id": "8580043",
+      "email": "admin-fixedcosts-test@test.com"
+    },
+    {
+      "id": "8580080",
+      "email": "admin-fixedcosts-test@test.com"
+    },
+    {
+      "id": "8580081",
+      "email": "admin-fixedcosts-test@test.com"
+    },
+    {
+      "id": "8580082",
+      "email": "admin-fixedcosts-test@test.com"
+    },
+    {
+      "id": "8580027",
+      "email": "cliente-bulk@test.com"
+    },
+    {
+      "id": "8580031",
+      "email": "manual-mix-1771708317396@example.com"
+    },
+    {
+      "id": "8580035",
+      "email": "manual-quot-1771708318425@example.com"
+    },
+    {
+      "id": "8580046",
+      "email": "test-1771708324325@example.com"
+    },
+    {
+      "id": "8580025",
+      "email": "test-manual-1771708316540@example.com"
+    },
+    {
+      "id": "8580037",
+      "email": "test@advisory.com"
+    },
+    {
+      "id": "8580045",
+      "email": "user-qvs2-1771708324065@example.com"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\temail\n8580019\tadmin-bulk-1771708315665@test.com\n8580053\tadmin-edit-test@test.com\n8580038\tadmin-fixedcosts-test@test.com\n8580040\tadmin-fixedcosts-test@test.com\n8580043\tadmin-fixedcosts-test@test.com\n8580080\tadmin-fixedcosts-test@test.com\n8580081\tadmin-fixedcosts-test@test.com\n8580082\tadmin-fixedcosts-test@test.com\n8580027\tcliente-bulk@test.com\n8580031\tmanual-mix-1771708317396@example.com\n8580035\tmanual-quot-1771708318425@example.com\n8580046\ttest-1771708324325@example.com\n8580025\ttest-manual-1771708316540@example.com\n8580037\ttest@advisory.com\n8580045\tuser-qvs2-1771708324065@example.com\n",
+  "stderr": "",
+  "execution_time_ms": 348
+}

@@ -572,8 +572,9 @@ export const tasks = mysqlTable("tasks", {
 		passwordHash: varchar({ length: 255 }),
 		passwordResetToken: varchar({ length: 100 }),
 		passwordResetExpires: timestamp({ mode: 'string' }),
-		birthDate: timestamp({ mode: 'string' }),
+			birthDate: timestamp({ mode: 'string' }),
 		dataOrigin: mysqlEnum(['manual', 'system']).default('manual').notNull(),
+		deletedAt: timestamp({ mode: 'string' }),
 	},
 (table) => [
 	index("users_openId_unique").on(table.openId),

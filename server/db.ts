@@ -150,7 +150,7 @@ export async function getUserByOpenId(openId: string) {
     return undefined;
   }
 
-  const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
+  const result = await db.select().from(users).where(and(eq(users.openId, openId), isNull(users.deletedAt))).limit(1);
 
   return result.length > 0 ? result[0] : undefined;
 }
@@ -162,7 +162,7 @@ export async function getUserById(id: number) {
     return undefined;
   }
 
-  const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
+  const result = await db.select().from(users).where(and(eq(users.id, id), isNull(users.deletedAt))).limit(1);
 
   return result.length > 0 ? result[0] : undefined;
 }
@@ -174,7 +174,7 @@ export async function getUserByEmail(email: string) {
     return undefined;
   }
 
-  const result = await db.select().from(users).where(eq(users.email, email)).limit(1);
+  const result = await db.select().from(users).where(and(eq(users.email, email), isNull(users.deletedAt))).limit(1);
 
   return result.length > 0 ? result[0] : undefined;
 }
@@ -550,7 +550,7 @@ export async function getAllUsers() {
   }
 
   try {
-    const allUsers = await db.select().from(users);
+    const allUsers = await db.select().from(users).where(isNull(users.deletedAt));
     return allUsers;
   } catch (error) {
     console.error("[Database] Failed to get users:", error);
@@ -620,7 +620,9 @@ export async function deleteUser(userId: number): Promise<void> {
   }
 
   try {
-    await db.delete(users).where(eq(users.id, userId));
+    // Soft delete: marcar como eliminado sin eliminar físicamente
+    // @ts-ignore
+    await db.update(users).set({ deletedAt: new Date().toISOString() }).where(eq(users.id, userId));
   } catch (error) {
     console.error("[Database] Failed to delete user:", error);
     throw error;

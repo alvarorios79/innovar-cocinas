@@ -1,0 +1,15 @@
+{
+  "query": "SELECT COUNT(*) as total_users, \n       SUM(CASE WHEN deletedAt IS NULL THEN 1 ELSE 0 END) as active_users,\n       SUM(CASE WHEN deletedAt IS NOT NULL THEN 1 ELSE 0 END) as deleted_users\nFROM users;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT COUNT(*) as total_users, \n       SUM(CASE WHEN deletedAt IS NULL THEN 1 ELSE 0 END) as active_users,\n       SUM(CASE WHEN deletedAt IS NOT NULL THEN 1 ELSE 0 END) as deleted_users\nFROM users;",
+  "rows": [
+    {
+      "total_users": "34",
+      "active_users": "19",
+      "deleted_users": "15"
+    }
+  ],
+  "messages": [],
+  "stdout": "total_users\tactive_users\tdeleted_users\n34\t19\t15\n",
+  "stderr": "",
+  "execution_time_ms": 348
+}

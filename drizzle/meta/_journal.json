@@ -71,6 +71,13 @@
       "when": 1771773505931,
       "tag": "0009_broken_red_shift",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "5",
+      "when": 1771792465425,
+      "tag": "0010_colorful_captain_cross",
+      "breakpoints": true
     }
   ]
 }

@@ -583,3 +583,17 @@ export const tasks = mysqlTable("tasks", {
 	index("users_role_idx").on(table.role),
 	index("users_email_idx").on(table.email),
 ]);
+
+export const financialAlerts = mysqlTable("financialAlerts", {
+	id: int().autoincrement().notNull(),
+	alertType: mysqlEnum(['deliveredWithOutstanding','lowCollectionRate']).notNull(),
+	isActive: tinyint().default(0).notNull(),
+	lastTriggeredAt: timestamp({ mode: 'string' }),
+	lastMessageSentAt: timestamp({ mode: 'string' }),
+	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+},
+(table) => [
+	index("financialAlerts_alertType_idx").on(table.alertType),
+	index("financialAlerts_isActive_idx").on(table.isActive),
+]);

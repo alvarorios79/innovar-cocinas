@@ -49,9 +49,12 @@ import {
   expenses,
   InsertExpense,
   clientRevisionHistory,
-  InsertClientRevisionHistory
+  InsertClientRevisionHistory,
+  financialAlerts,
+  InsertFinancialAlert
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
+import { triggerAlertEvaluation } from './services/financialAlertMonitor';
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
@@ -801,6 +804,11 @@ export async function updateProject(id: number, data: Partial<InsertProject>) {
   if (!db) throw new Error("Database not available");
 
   await db.update(projects).set(data).where(eq(projects.id, id));
+
+  // Trigger alert evaluation if status changed to delivered
+  if (data.status === 'delivered') {
+    triggerAlertEvaluation();
+  }
 }
 
 export async function deleteProject(id: number) {
@@ -1948,7 +1956,12 @@ export async function createExpense(expense: InsertExpense) {
   if (!db) throw new Error("Database not available");
 
   const result = await db.insert(expenses).values(expense);
-  return result[0].insertId;
+  const expenseId = result[0].insertId;
+
+  // Trigger alert evaluation asynchronously
+  triggerAlertEvaluation();
+
+  return expenseId;
 }
 
 export async function getExpenseById(id: number) {
@@ -2799,7 +2812,12 @@ export async function createPayment(payment: InsertPayment) {
   if (!db) throw new Error("Database not available");
 
   const result = await db.insert(payments).values(payment);
-  return result[0].insertId;
+  const paymentId = result[0].insertId;
+
+  // Trigger alert evaluation asynchronously
+  triggerAlertEvaluation();
+
+  return paymentId;
 }
 
 /**
@@ -2849,4 +2867,60 @@ export async function deletePayment(id: number) {
   if (!db) throw new Error("Database not available");
 
   await db.delete(payments).where(eq(payments.id, id));
+}
+
+
+// ==================== FINANCIAL ALERTS ====================
+
+export async function getFinancialAlertByType(alertType: 'deliveredWithOutstanding' | 'lowCollectionRate') {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db
+    .select()
+    .from(financialAlerts)
+    .where(eq(financialAlerts.alertType, alertType))
+    .limit(1);
+
+  return result[0] || null;
+}
+
+export async function updateFinancialAlert(
+  alertType: 'deliveredWithOutstanding' | 'lowCollectionRate',
+  data: {
+    isActive?: number;
+    lastTriggeredAt?: string;
+    lastMessageSentAt?: string;
+  }
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const existing = await getFinancialAlertByType(alertType);
+
+  if (existing) {
+    await db
+      .update(financialAlerts)
+      .set({
+        ...data,
+        updatedAt: new Date().toISOString(),
+      })
+      .where(eq(financialAlerts.alertType, alertType));
+  } else {
+    await db.insert(financialAlerts).values({
+      alertType,
+      isActive: data.isActive || 0,
+      lastTriggeredAt: data.lastTriggeredAt,
+      lastMessageSentAt: data.lastMessageSentAt,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    });
+  }
+}
+
+export async function getAllFinancialAlerts() {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  return await db.select().from(financialAlerts);
 }

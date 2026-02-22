@@ -51,7 +51,9 @@ import {
   clientRevisionHistory,
   InsertClientRevisionHistory,
   financialAlerts,
-  InsertFinancialAlert
+  InsertFinancialAlert,
+  financialSettings,
+  InsertFinancialSettings
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 import { triggerAlertEvaluation } from './services/financialAlertMonitor';
@@ -2923,4 +2925,52 @@ export async function getAllFinancialAlerts() {
   if (!db) throw new Error("Database not available");
 
   return await db.select().from(financialAlerts);
+}
+
+// ============ CONFIGURACIÓN FINANCIERA ============
+
+export async function getFinancialSettings() {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const settings = await db.select().from(financialSettings).limit(1);
+  
+  if (settings.length === 0) {
+    // Create default settings if not exist
+    await db.insert(financialSettings).values({
+      outstandingThresholdPercent: 40,
+      collectionThresholdPercent: 70,
+      lowProfitThresholdPercent: 10,
+    });
+    
+    return {
+      id: 1,
+      outstandingThresholdPercent: 40,
+      collectionThresholdPercent: 70,
+      lowProfitThresholdPercent: 10,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+  }
+  
+  return settings[0];
+}
+
+export async function updateFinancialSettings(data: Partial<InsertFinancialSettings>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  // Validate values are between 0 and 100
+  if (data.outstandingThresholdPercent !== undefined && (data.outstandingThresholdPercent < 0 || data.outstandingThresholdPercent > 100)) {
+    throw new Error("outstandingThresholdPercent must be between 0 and 100");
+  }
+  if (data.collectionThresholdPercent !== undefined && (data.collectionThresholdPercent < 0 || data.collectionThresholdPercent > 100)) {
+    throw new Error("collectionThresholdPercent must be between 0 and 100");
+  }
+  if (data.lowProfitThresholdPercent !== undefined && (data.lowProfitThresholdPercent < 0 || data.lowProfitThresholdPercent > 100)) {
+    throw new Error("lowProfitThresholdPercent must be between 0 and 100");
+  }
+
+  await db.update(financialSettings).set(data).where(eq(financialSettings.id, 1));
+  return await getFinancialSettings();
 }

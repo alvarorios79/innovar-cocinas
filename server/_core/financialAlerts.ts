@@ -74,15 +74,26 @@ Revise el Panel CEO.`;
 }
 
 /**
- * Determine which alerts should be triggered based on metrics
+ * Determine which alerts should be triggered based on metrics and thresholds
  */
-export function determineActiveAlerts(metrics: FinancialMetrics): {
+export function determineActiveAlerts(
+  metrics: FinancialMetrics,
+  thresholds?: {
+    outstandingThresholdPercent: number;
+    collectionThresholdPercent: number;
+    lowProfitThresholdPercent: number;
+  }
+): {
   deliveredWithOutstanding: boolean;
   lowCollectionRate: boolean;
 } {
+  // Use provided thresholds or defaults
+  const outstandingThreshold = thresholds?.outstandingThresholdPercent ?? 40;
+  const collectionThreshold = thresholds?.collectionThresholdPercent ?? 70;
+
   return {
     deliveredWithOutstanding: metrics.deliveredWithOutstanding > 0,
-    lowCollectionRate: metrics.collectionRate < 70,
+    lowCollectionRate: metrics.collectionRate < collectionThreshold,
   };
 }
 

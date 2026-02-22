@@ -9,6 +9,7 @@ import {
   getFinancialAlertByType,
   updateFinancialAlert,
   getUsersByRole,
+  getFinancialSettings,
 } from '../db';
 import {
   generateDeliveredWithOutstandingMessage,
@@ -33,8 +34,21 @@ export async function evaluateFinancialAlerts(): Promise<void> {
       return;
     }
 
+    // Get financial settings (thresholds)
+    let settings;
+    try {
+      settings = await getFinancialSettings();
+    } catch (error) {
+      console.warn('[FinancialAlertMonitor] Failed to get financial settings, using defaults:', error);
+      settings = {
+        outstandingThresholdPercent: 40,
+        collectionThresholdPercent: 70,
+        lowProfitThresholdPercent: 10,
+      };
+    }
+
     // Determine which alerts should be active
-    const currentAlerts = determineActiveAlerts(metrics);
+    const currentAlerts = determineActiveAlerts(metrics, settings);
 
     // Get super_admin user for WhatsApp notifications
     const superAdmins = await getUsersByRole('super_admin');

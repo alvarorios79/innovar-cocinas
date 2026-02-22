@@ -18,10 +18,12 @@ import { expensesRouter } from "./routers/expenses";
 import { quotationsVersioningRouter } from "./routers/quotations-versioning";
 import { systemRouter } from "./routers/system";
 import { paymentsRouter } from "./routers/payments";
+import { financialSettingsRouter } from "./routers/financialSettings";
 
 export const appRouter = router({
   system: systemRouter,
   payments: paymentsRouter,
+  financialSettings: financialSettingsRouter,
   auth: authRouter,
   clients: clientsRouter,
   appointments: appointmentsRouter,

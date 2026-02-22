@@ -597,3 +597,15 @@ export const financialAlerts = mysqlTable("financialAlerts", {
 	index("financialAlerts_alertType_idx").on(table.alertType),
 	index("financialAlerts_isActive_idx").on(table.isActive),
 ]);
+
+export const financialSettings = mysqlTable("financialSettings", {
+	id: int().autoincrement().notNull().primaryKey(),
+	outstandingThresholdPercent: int().default(40).notNull(),
+	collectionThresholdPercent: int().default(70).notNull(),
+	lowProfitThresholdPercent: int().default(10).notNull(),
+	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+});
+
+export type InsertFinancialSettings = typeof financialSettings.$inferInsert;
+export type SelectFinancialSettings = typeof financialSettings.$inferSelect;

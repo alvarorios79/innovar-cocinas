@@ -41,7 +41,8 @@ import {
   Eye,
   EyeOff,
   Lock,
-  Unlock
+  Unlock,
+  CreditCard
 } from "lucide-react";
 import { useFileViewer, FileViewer } from "@/components/FileViewer";
 import { MaterialsForm } from "@/components/MaterialsForm";
@@ -53,6 +54,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PhotoUploader } from "@/components/PhotoUploader";
+import { PaymentsSection } from "@/components/PaymentsSection";
 import { toast } from "sonner";
 
 
@@ -854,6 +856,15 @@ export default function ProjectDetail() {
               <History className="h-4 w-4 mr-2" />
               Historial
             </TabsTrigger>
+            {user?.role !== "disenador" && user?.role !== "jefe_taller" && user?.role !== "operario" && (
+              <TabsTrigger 
+                value="payments" 
+                className="flex-1 min-w-[100px] text-sm px-4 py-2.5 bg-emerald-100 text-emerald-700 data-[state=active]:bg-emerald-500 data-[state=active]:text-white hover:bg-emerald-200 transition-colors rounded-md"
+              >
+                <CreditCard className="h-4 w-4 mr-2" />
+                Pagos
+              </TabsTrigger>
+            )}
           </TabsList>
 
           {/* Tab Información */}
@@ -1466,6 +1477,19 @@ export default function ProjectDetail() {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {/* Tab Pagos */}
+          {user?.role !== "disenador" && user?.role !== "jefe_taller" && user?.role !== "operario" && (
+            <TabsContent value="payments" className="space-y-4">
+              <PaymentsSection 
+                projectId={projectId}
+                totalAmount={(projectDetail as any).financialInfo?.totalAmount || 0}
+                totalPaid={(projectDetail as any).financialInfo?.totalPaid || 0}
+                balance={(projectDetail as any).financialInfo?.balance || 0}
+                isAdmin={user?.role === "admin" || user?.role === "super_admin"}
+              />
+            </TabsContent>
+          )}
         </Tabs>
       </div>
 

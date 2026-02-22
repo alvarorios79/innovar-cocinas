@@ -1,0 +1,9 @@
+{
+  "query": "CREATE TABLE IF NOT EXISTS `financialAlerts` (\n\t`id` int AUTO_INCREMENT NOT NULL,\n\t`alertType` enum('deliveredWithOutstanding','lowCollectionRate') NOT NULL,\n\t`isActive` tinyint NOT NULL DEFAULT 0,\n\t`lastTriggeredAt` timestamp,\n\t`lastMessageSentAt` timestamp,\n\t`createdAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,\n\t`updatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,\n\tCONSTRAINT `financialAlerts_id` PRIMARY KEY(`id`),\n\tCONSTRAINT `financialAlerts_alertType_unique` UNIQUE(`alertType`)\n);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute CREATE TABLE IF NOT EXISTS `financialAlerts` (\n\t`id` int AUTO_INCREMENT NOT NULL,\n\t`alertType` enum('deliveredWithOutstanding','lowCollectionRate') NOT NULL,\n\t`isActive` tinyint NOT NULL DEFAULT 0,\n\t`lastTriggeredAt` timestamp,\n\t`lastMessageSentAt` timestamp,\n\t`createdAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,\n\t`updatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,\n\tCONSTRAINT `financialAlerts_id` PRIMARY KEY(`id`),\n\tCONSTRAINT `financialAlerts_alertType_unique` UNIQUE(`alertType`)\n);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 180
+}

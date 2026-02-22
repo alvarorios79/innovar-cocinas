@@ -1,0 +1,9 @@
+{
+  "query": "CREATE TABLE IF NOT EXISTS `financialSettings` (\n\t`id` int AUTO_INCREMENT NOT NULL,\n\t`outstandingThresholdPercent` int NOT NULL DEFAULT 40,\n\t`collectionThresholdPercent` int NOT NULL DEFAULT 70,\n\t`lowProfitThresholdPercent` int NOT NULL DEFAULT 10,\n\t`createdAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,\n\t`updatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,\n\tCONSTRAINT `financialSettings_id` PRIMARY KEY(`id`)\n);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute CREATE TABLE IF NOT EXISTS `financialSettings` (\n\t`id` int AUTO_INCREMENT NOT NULL,\n\t`outstandingThresholdPercent` int NOT NULL DEFAULT 40,\n\t`collectionThresholdPercent` int NOT NULL DEFAULT 70,\n\t`lowProfitThresholdPercent` int NOT NULL DEFAULT 10,\n\t`createdAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,\n\t`updatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,\n\tCONSTRAINT `financialSettings_id` PRIMARY KEY(`id`)\n);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 183
+}

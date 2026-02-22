@@ -17,9 +17,11 @@ import { whatsappCloudRouter } from "./routers/whatsappCloud";
 import { expensesRouter } from "./routers/expenses";
 import { quotationsVersioningRouter } from "./routers/quotations-versioning";
 import { systemRouter } from "./routers/system";
+import { paymentsRouter } from "./routers/payments";
 
 export const appRouter = router({
   system: systemRouter,
+  payments: paymentsRouter,
   auth: authRouter,
   clients: clientsRouter,
   appointments: appointmentsRouter,

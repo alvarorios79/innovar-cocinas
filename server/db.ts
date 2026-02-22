@@ -42,6 +42,8 @@ import {
   projectMaterials,
   projectPayments,
   InsertProjectPayment,
+  payments,
+  InsertPayment,
   pricingConfig,
   InsertPricingConfig,
   pricingHistory,
@@ -2768,4 +2770,65 @@ export async function getGlobalFinancialDashboard() {
     proyectosConSaldoVencido,
     totalProyectos,
   };
+}
+
+
+/**
+ * Create a new payment
+ */
+export async function createPayment(payment: InsertPayment) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.insert(payments).values(payment);
+  return result[0].insertId;
+}
+
+/**
+ * Get payment by ID
+ */
+export async function getPaymentById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db.select().from(payments).where(eq(payments.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+/**
+ * Get all payments for a project, ordered by receivedAt DESC
+ */
+export async function getPaymentsByProjectId(projectId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select()
+    .from(payments)
+    .where(eq(payments.projectId, projectId))
+    .orderBy(desc(payments.receivedAt));
+}
+
+/**
+ * Get total amount paid for a project
+ */
+export async function getTotalPaidByProjectId(projectId: number) {
+  const db = await getDb();
+  if (!db) return 0;
+
+  const result = await db.select({
+    total: sql<number>`COALESCE(SUM(amount), 0)`
+  }).from(payments)
+    .where(eq(payments.projectId, projectId));
+
+  return result && result.length > 0 ? Number(result[0].total) || 0 : 0;
+}
+
+/**
+ * Delete a payment by ID
+ */
+export async function deletePayment(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.delete(payments).where(eq(payments.id, id));
 }

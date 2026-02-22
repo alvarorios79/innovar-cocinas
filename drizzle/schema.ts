@@ -558,7 +558,23 @@ export const tasks = mysqlTable("tasks", {
 	index("tasks_assigned_status_idx").on(table.assignedTo, table.status),
 ]);
 
-	export const users = mysqlTable("users", {
+	export const payments = mysqlTable("payments", {
+		id: int().autoincrement().notNull(),
+		projectId: int().notNull().references(() => projects.id, { onDelete: "cascade" }),
+		amount: decimal({ precision: 12, scale: 2 }).notNull(),
+		type: mysqlEnum(['advance','final','partial','other']).notNull(),
+		receivedAt: timestamp({ mode: 'string' }).notNull(),
+		method: varchar({ length: 100 }),
+		notes: text(),
+		registeredBy: int().references(() => users.id),
+		createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	},
+	(table) => [
+		index("payments_projectId_idx").on(table.projectId),
+		index("payments_receivedAt_idx").on(table.receivedAt),
+	]);
+
+		export const users = mysqlTable("users", {
 		id: int().autoincrement().notNull(),
 		openId: varchar({ length: 64 }).notNull(),
 		name: text(),

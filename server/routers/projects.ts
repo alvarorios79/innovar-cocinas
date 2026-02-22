@@ -185,7 +185,7 @@ export const projectsRouter = router({
         }
 
         // Optimización: ejecutar consultas en paralelo
-        const [client, photosRaw, details, history, projectTasks, quotation, payments, clientAppointments, clientRevisions] = await Promise.all([
+        const [client, photosRaw, details, history, projectTasks, quotation, payments, clientAppointments, clientRevisions, totalPaidFromPayments] = await Promise.all([
           db.getClientById(project.clientId),
           db.getProjectPhotosByProjectId(input.id),
           db.getProjectDetailsByProjectId(input.id),
@@ -195,8 +195,9 @@ export const projectsRouter = router({
           db.getProjectPaymentsByProjectId(input.id),
           db.getAppointmentsByClientId(project.clientId),
           db.getClientRevisionsByProjectId(input.id),
+          db.getTotalPaidByProjectId(input.id),
         ]);
-        const totalPaid = payments.reduce((sum, p) => sum + Number(p.amount), 0);
+        const totalPaid = totalPaidFromPayments || (payments.reduce((sum, p) => sum + Number(p.amount), 0));
         
         // Usar las fotos con sus URLs originales
         const photos = photosRaw;
@@ -361,6 +362,8 @@ export const projectsRouter = router({
             remainingPercentage: totalAmount > 0 ? Math.round((remainingAmount / totalAmount) * 100) : 40,
             isPaid: remainingAmount <= 0,
             paymentProgress: totalAmount > 0 ? Math.round((actualPaid / totalAmount) * 100) : 0,
+            totalPaid: totalPaidFromPayments,
+            balance: totalAmount - totalPaidFromPayments,
           },
         };
         

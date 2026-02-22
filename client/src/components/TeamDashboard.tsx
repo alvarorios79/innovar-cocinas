@@ -38,6 +38,7 @@ import { DesignerChecklist } from "@/components/DesignerChecklist";
 import { ProductionCalendar } from "@/components/ProductionCalendar";
 import { OperatorDailyProjects } from "@/components/OperatorDailyProjects";
 import { DailyMotivation } from "@/components/DailyMotivation";
+import { CEOControlCenter } from "@/components/CEOControlCenter";
 
 // Componente de botón de cerrar sesión
 function LogoutButton() {
@@ -731,6 +732,17 @@ export function TeamDashboard() {
           </div>
         </div>
       </section>
+
+      {/* CEO Control Center - Solo para super_admin */}
+      {role === "super_admin" && (
+        <section className="py-3 md:py-4">
+          <div className="container">
+            <div className="max-w-4xl mx-auto">
+              <CEOControlCenter />
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Proyectos Recientes */}
       {myProjects.length > 0 && (

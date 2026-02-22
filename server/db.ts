@@ -822,7 +822,8 @@ export async function deleteProject(id: number) {
   await deleteProjectTasks(id);
   await deleteProjectStatusHistory(id);
   await deleteProjectMaterials(id);
-  await deleteProjectPaymentsByProjectId(id);
+  // Eliminar pagos asociados al proyecto (tabla payments)
+  await db.delete(payments).where(eq(payments.projectId, id));
   await deleteRemindersByProjectId(id);
   await deleteProjectDetails(id);
   await deleteProjectNotifications(id);

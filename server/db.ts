@@ -2690,43 +2690,60 @@ export async function getGlobalFinancialDashboard() {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  // Get total income (sum of all project amounts)
+  // Filter: Only include manual projects (exclude system/test data)
+  const manualProjectsFilter = and(
+    gt(projects.totalAmount, 0),
+    isNull(projects.deletedAt),
+    or(
+      isNull(projects.dataOrigin),
+      sql`${projects.dataOrigin} != 'system'`
+    )
+  );
+
+  // Get total income (sum of all project amounts) - ONLY MANUAL PROJECTS
   const incomesResult = await db.select({
     total: sql<number>`COALESCE(SUM(totalAmount), 0)`
   }).from(projects)
-    .where(and(
-      gt(projects.totalAmount, 0),
-      isNull(projects.deletedAt)
-    ));
+    .where(manualProjectsFilter);
 
   const totalIngresos = incomesResult && incomesResult.length > 0
     ? Number(incomesResult[0].total) || 0
     : 0;
 
-  // Get total payments received
+  // Get total payments received - ONLY FROM MANUAL PROJECTS
   const paymentsResult = await db.select({
-    total: sql<number>`COALESCE(SUM(amount), 0)`
-  }).from(projectPayments);
+    total: sql<number>`COALESCE(SUM(${payments.amount}), 0)`
+  }).from(payments)
+    .innerJoin(projects, eq(payments.projectId, projects.id))
+    .where(manualProjectsFilter);
 
   const totalPagosRecibidos = paymentsResult && paymentsResult.length > 0
     ? Number(paymentsResult[0].total) || 0
     : 0;
 
-  // Get total project expenses (only materiales_proyecto)
+  // Get total project expenses (only materiales_proyecto) - ONLY FROM MANUAL PROJECTS
   const projectExpensesResult = await db.select({
     total: sql<number>`COALESCE(SUM(amount), 0)`
   }).from(expenses)
-    .where(eq(expenses.expenseType, "materiales_proyecto"));
+    .innerJoin(projects, eq(expenses.projectId, projects.id))
+    .where(and(
+      eq(expenses.expenseType, "materiales_proyecto"),
+      manualProjectsFilter
+    ));
 
   const totalGastosProyectos = projectExpensesResult && projectExpensesResult.length > 0
     ? Number(projectExpensesResult[0].total) || 0
     : 0;
 
-  // Get total operational expenses
+  // Get total operational expenses - ONLY FROM MANUAL PROJECTS
   const operationalExpensesResult = await db.select({
     total: sql<number>`COALESCE(SUM(amount), 0)`
   }).from(expenses)
-    .where(eq(expenses.expenseType, "gasto_operativo"));
+    .innerJoin(projects, eq(expenses.projectId, projects.id))
+    .where(and(
+      eq(expenses.expenseType, "gasto_operativo"),
+      manualProjectsFilter
+    ));
 
   const totalGastosOperativos = operationalExpensesResult && operationalExpensesResult.length > 0
     ? Number(operationalExpensesResult[0].total) || 0
@@ -2740,14 +2757,11 @@ export async function getGlobalFinancialDashboard() {
     ? Math.round((margenGlobal / totalIngresos) * 100 * 100) / 100
     : 0;
 
-  // Get total projects count
+  // Get total projects count - ONLY MANUAL PROJECTS
   const projectsCountResult = await db.select({
     count: sql<number>`COUNT(*)`
   }).from(projects)
-    .where(and(
-      gt(projects.totalAmount, 0),
-      isNull(projects.deletedAt)
-    ));
+    .where(manualProjectsFilter);
 
   const totalProyectos = projectsCountResult && projectsCountResult.length > 0
     ? Number(projectsCountResult[0].count) || 0

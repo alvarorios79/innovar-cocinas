@@ -5,7 +5,7 @@ import { appointmentsRouter, availabilityRouter } from "./routers/appointments";
 import { advisoryRouter, estimatesRouter } from "./routers/advisory";
 import { quotationsRouter } from "./routers/quotations";
 import { userManagementRouter } from "./routers/userManagement";
-import { projectsRouter, projectPaymentsRouter, projectPhotosRouter, projectDetailsRouter, projectMaterialsRouter } from "./routers/projects";
+import { projectsRouter, projectPhotosRouter, projectDetailsRouter, projectMaterialsRouter } from "./routers/projects";
 import { tasksRouter } from "./routers/tasks";
 import { uploadRouter } from "./routers/upload";
 import { notificationsRouter, remindersRouter } from "./routers/notifications";
@@ -31,7 +31,6 @@ export const appRouter = router({
   quotations: quotationsRouter,
   userManagement: userManagementRouter,
   projects: projectsRouter,
-  projectPayments: projectPaymentsRouter,
   projectPhotos: projectPhotosRouter,
   projectDetails: projectDetailsRouter,
   projectMaterials: projectMaterialsRouter,

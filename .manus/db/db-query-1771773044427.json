@@ -1,0 +1,16 @@
+{
+  "query": "SELECT \n  COUNT(*) as total_proyectos,\n  SUM(CASE WHEN dataOrigin = 'manual' THEN 1 ELSE 0 END) as proyectos_manual,\n  SUM(CASE WHEN dataOrigin = 'system' THEN 1 ELSE 0 END) as proyectos_system,\n  SUM(CASE WHEN dataOrigin IS NULL THEN 1 ELSE 0 END) as proyectos_null\nFROM projects;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT \n  COUNT(*) as total_proyectos,\n  SUM(CASE WHEN dataOrigin = 'manual' THEN 1 ELSE 0 END) as proyectos_manual,\n  SUM(CASE WHEN dataOrigin = 'system' THEN 1 ELSE 0 END) as proyectos_system,\n  SUM(CASE WHEN dataOrigin IS NULL THEN 1 ELSE 0 END) as proyectos_null\nFROM projects;",
+  "rows": [
+    {
+      "total_proyectos": "23",
+      "proyectos_manual": "23",
+      "proyectos_system": "0",
+      "proyectos_null": "0"
+    }
+  ],
+  "messages": [],
+  "stdout": "total_proyectos\tproyectos_manual\tproyectos_system\tproyectos_null\n23\t23\t0\t0\n",
+  "stderr": "",
+  "execution_time_ms": 56
+}

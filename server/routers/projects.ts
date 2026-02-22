@@ -192,12 +192,12 @@ export const projectsRouter = router({
           db.getProjectStatusHistoryByProjectId(input.id),
           db.getTasksByProjectId(input.id),
           project.quotationId ? db.getQuotationById(project.quotationId) : Promise.resolve(null),
-          db.getProjectPaymentsByProjectId(input.id),
+          db.getPaymentsByProjectId(input.id),
           db.getAppointmentsByClientId(project.clientId),
           db.getClientRevisionsByProjectId(input.id),
           db.getTotalPaidByProjectId(input.id),
         ]);
-        const totalPaid = totalPaidFromPayments || (payments.reduce((sum, p) => sum + Number(p.amount), 0));
+        const totalPaid = totalPaidFromPayments || (payments.reduce((sum: number, p: any) => sum + Number(p.amount), 0));
         
         // Usar las fotos con sus URLs originales
         const photos = photosRaw;
@@ -1246,104 +1246,6 @@ ${input.notes || "No se especificaron detalles"}
       }),
 });
 
-export const projectPaymentsRouter = router({
-    // Registrar pago
-    create: protectedProcedure
-      .input(z.object({
-        projectId: z.number(),
-        type: z.enum(["adelanto", "saldo_final", "abono", "otro"]),
-        amount: z.number().positive("El monto debe ser positivo"),
-        paymentDate: z.date(),
-        receiptUrl: z.string().optional(),
-        notes: z.string().optional(),
-      }))
-      .mutation(async ({ ctx, input }) => {
-        // Solo admin, super_admin y comercial pueden registrar pagos
-        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "comercial") {
-          throw new TRPCError({ code: "FORBIDDEN", message: "Solo administradores pueden registrar pagos" });
-        }
-
-        const project = await db.getProjectById(input.projectId);
-        if (!project) {
-          throw new TRPCError({ code: "NOT_FOUND", message: "Proyecto no encontrado" });
-        }
-
-        // Crear pago y registrar historial en transacción
-        const formatCurrency = (value: number) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(value);
-        const typeLabels: Record<string, string> = {
-          adelanto: "Adelanto (60%)",
-          saldo_final: "Saldo Final (40%)",
-          abono: "Abono",
-          otro: "Otro",
-        };
-
-        const paymentId = await withTransaction(async (tx) => {
-          const pId = await db.createProjectPayment({
-            projectId: input.projectId,
-            type: input.type,
-            amount: input.amount.toString(),
-            paymentDate: input.paymentDate,
-            receiptUrl: input.receiptUrl,
-            notes: input.notes ? sanitizeText(input.notes) : undefined,
-            registeredBy: ctx.user.id,
-          });
-
-          await db.createProjectStatusHistory({
-            projectId: input.projectId,
-            fromStatus: project.status,
-            toStatus: project.status,
-            changedBy: ctx.user.id,
-            notes: `💰 Pago registrado: ${typeLabels[input.type]} - ${formatCurrency(input.amount)}${input.notes ? `. Nota: ${input.notes}` : ''}`,
-          });
-
-          return pId;
-        });
-
-        return { success: true, paymentId };
-      }),
-
-    // Obtener pagos de un proyecto
-    getByProjectId: protectedProcedure
-      .input(z.object({ projectId: z.number() }))
-      .query(async ({ ctx, input }) => {
-        // Diseñador no puede ver pagos
-        if (ctx.user.role === "disenador") {
-          return [];
-        }
-
-        return await db.getProjectPaymentsByProjectId(input.projectId);
-      }),
-
-    // Eliminar pago
-    delete: protectedProcedure
-      .input(z.object({ id: z.number() }))
-      .mutation(async ({ ctx, input }) => {
-        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "comercial") {
-          throw new TRPCError({ code: "FORBIDDEN", message: "Solo administradores pueden eliminar pagos" });
-        }
-
-        const payment = await db.getProjectPaymentById(input.id);
-        if (!payment) {
-          throw new TRPCError({ code: "NOT_FOUND", message: "Pago no encontrado" });
-        }
-
-        // Registrar eliminación en historial
-        const project = await db.getProjectById(payment.projectId);
-        if (project) {
-          const formatCurrency = (value: number) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(value);
-          await db.createProjectStatusHistory({
-            projectId: payment.projectId,
-            fromStatus: project.status,
-            toStatus: project.status,
-            changedBy: ctx.user.id,
-            notes: `❌ Pago eliminado: ${formatCurrency(Number(payment.amount))}`,
-          });
-        }
-
-        await db.deleteProjectPayment(input.id);
-        return { success: true };
-      }),
-});
 
 export const projectPhotosRouter = router({
     // Subir foto

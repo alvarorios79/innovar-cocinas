@@ -64,6 +64,13 @@
       "when": 1771737209711,
       "tag": "0008_parched_leper_queen",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "5",
+      "when": 1771773505931,
+      "tag": "0009_broken_red_shift",
+      "breakpoints": true
     }
   ]
 }

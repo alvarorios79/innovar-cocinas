@@ -304,7 +304,7 @@ export default function ProjectDetail() {
     if (!previousStage) return true; // despiece no tiene etapa anterior
     
     const photos = projectDetail?.photos || [];
-    return photos.some(p => p.subcategory === previousStage);
+    return photos.some((p: any) => p.subcategory === previousStage);
   };
 
   // Verificar si se puede subir fotos a esta etapa
@@ -331,7 +331,7 @@ export default function ProjectDetail() {
   const openAdvanceConfirmDialog = (subcategory: string) => {
     const nextStatus = photoToNextStatus[subcategory];
     const photos = projectDetail?.photos || [];
-    const hasPhotos = photos.some(p => p.subcategory === subcategory);
+    const hasPhotos = photos.some((p: any) => p.subcategory === subcategory);
     
     setAdvanceConfirmDialog({
       open: true,

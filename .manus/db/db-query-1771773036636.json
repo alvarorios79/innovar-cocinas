@@ -1,0 +1,9 @@
+{
+  "query": "SELECT \n  pp.id,\n  pp.projectId,\n  pp.amount,\n  pp.paymentDate,\n  pp.type,\n  p.dataOrigin,\n  p.totalAmount,\n  p.name\nFROM projectPayments pp\nLEFT JOIN projects p ON pp.projectId = p.id\nORDER BY pp.projectId, pp.paymentDate;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT \n  pp.id,\n  pp.projectId,\n  pp.amount,\n  pp.paymentDate,\n  pp.type,\n  p.dataOrigin,\n  p.totalAmount,\n  p.name\nFROM projectPayments pp\nLEFT JOIN projects p ON pp.projectId = p.id\nORDER BY pp.projectId, pp.paymentDate;",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 57
+}

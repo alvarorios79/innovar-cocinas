@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm/relations";
-import { clients, advisoryRequests, appointments, appointmentWorkTypes, projects, clientRevisionHistory, users, expenses, notifications, priorEstimates, projectDetails, projectPayments, projectPhotos, projectStatusHistory, pushSubscriptions, quotations, quotationItems, reminders, tasks, taskReminders } from "./schema";
+import { clients, advisoryRequests, appointments, appointmentWorkTypes, projects, clientRevisionHistory, users, expenses, notifications, priorEstimates, projectDetails, projectPhotos, projectStatusHistory, pushSubscriptions, quotations, quotationItems, reminders, tasks, taskReminders } from "./schema";
 
 export const advisoryRequestsRelations = relations(advisoryRequests, ({one}) => ({
 	client: one(clients, {
@@ -46,7 +46,6 @@ export const projectsRelations = relations(projects, ({one, many}) => ({
 	clientRevisionHistories: many(clientRevisionHistory),
 	expenses: many(expenses),
 	projectDetails: many(projectDetails),
-	projectPayments: many(projectPayments),
 	projectPhotos: many(projectPhotos),
 	projectStatusHistories: many(projectStatusHistory),
 	client: one(clients, {
@@ -72,7 +71,6 @@ export const usersRelations = relations(users, ({many}) => ({
 	expenses: many(expenses),
 	notifications: many(notifications),
 	projectDetails: many(projectDetails),
-	projectPayments: many(projectPayments),
 	projectPhotos: many(projectPhotos),
 	projectStatusHistories: many(projectStatusHistory),
 	projects_createdBy: many(projects, {
@@ -134,16 +132,6 @@ export const projectDetailsRelations = relations(projectDetails, ({one}) => ({
 	}),
 }));
 
-export const projectPaymentsRelations = relations(projectPayments, ({one}) => ({
-	project: one(projects, {
-		fields: [projectPayments.projectId],
-		references: [projects.id]
-	}),
-	user: one(users, {
-		fields: [projectPayments.registeredBy],
-		references: [users.id]
-	}),
-}));
 
 export const projectPhotosRelations = relations(projectPhotos, ({one}) => ({
 	project: one(projects, {

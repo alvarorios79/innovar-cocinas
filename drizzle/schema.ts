@@ -325,20 +325,6 @@ export const projectMaterials = mysqlTable("projectMaterials", {
 	index("projectMaterials_projectId_idx").on(table.projectId),
 ]);
 
-export const projectPayments = mysqlTable("projectPayments", {
-	id: int().autoincrement().notNull(),
-	projectId: int().notNull().references(() => projects.id, { onDelete: "cascade" } ),
-	type: mysqlEnum(['adelanto','saldo_final','abono','otro']).notNull(),
-	amount: decimal({ precision: 12, scale: 2 }).notNull(),
-	paymentDate: timestamp({ mode: 'string' }).notNull(),
-	receiptUrl: text(),
-	notes: text(),
-	registeredBy: int().notNull().references(() => users.id),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
-},
-(table) => [
-	index("projectPayments_projectId_idx").on(table.projectId),
-]);
 
 export const projectPhotos = mysqlTable("projectPhotos", {
 	id: int().autoincrement().notNull(),

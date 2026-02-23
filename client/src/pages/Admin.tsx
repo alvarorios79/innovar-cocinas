@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -48,6 +48,18 @@ export default function Admin() {
   const [editPhoneUser, setEditPhoneUser] = useState<{ id: number; name: string; phone: string } | null>(null);
   const [editingClient, setEditingClient] = useState<any>(null);
   const [editFormData, setEditFormData] = useState({ name: '', email: '', whatsappPhone: '', address: '' });
+  
+  // Sincronizar editFormData cuando cambia editingClient
+  useEffect(() => {
+    if (editingClient) {
+      setEditFormData({
+        name: editingClient.name || '',
+        email: editingClient.email || '',
+        whatsappPhone: editingClient.whatsappPhone || '',
+        address: editingClient.address || ''
+      });
+    }
+  }, [editingClient]);
   
   // Estados para selección múltiple
   const [selectedAppointments, setSelectedAppointments] = useState<number[]>([]);

@@ -20,7 +20,7 @@ export const clientsRouter = router({
     getOrCreateByWhatsApp: publicProcedure
       .input(z.object({
         name: z.string().min(1),
-        email: z.string().email().optional(),
+        email: z.string().email().optional().or(z.literal("")),
         whatsappPhone: z.string().min(10),
         address: z.string().optional(),
       }))
@@ -33,7 +33,7 @@ export const clientsRouter = router({
           const clientId = await db.createClient({
             userId: ctx.user?.id, // Asociar con usuario autenticado si existe
           name: sanitizeText(input.name),
-          email: input.email ? sanitizeEmail(input.email) : undefined,
+          email: input.email && input.email.trim() !== "" ? sanitizeEmail(input.email) : undefined,
           whatsappPhone: sanitizePhone(input.whatsappPhone),
           address: input.address ? sanitizeText(input.address) : undefined,
           });
@@ -56,7 +56,7 @@ export const clientsRouter = router({
     updateMyProfile: protectedProcedure
       .input(z.object({
         name: z.string().min(1).optional(),
-        email: z.string().email().optional(),
+        email: z.string().email().optional().or(z.literal("")),
       }))
       .mutation(async ({ ctx, input }) => {
         const client = await db.getClientByUserId(ctx.user.id);
@@ -64,7 +64,12 @@ export const clientsRouter = router({
           throw new TRPCError({ code: "NOT_FOUND", message: "Cliente no encontrado" });
         }
         
-        await db.updateClient(client.id, input);
+        const sanitizedData = {
+          name: input.name ? sanitizeText(input.name) : undefined,
+          email: input.email && input.email.trim() !== "" ? sanitizeEmail(input.email) : null,
+        };
+        
+        await db.updateClient(client.id, sanitizedData);
         return { success: true };
       }),
 
@@ -155,7 +160,7 @@ export const clientsRouter = router({
           const cid = await db.createClient({
             userId,
             name: sanitizeText(input.name),
-            email: input.email ? sanitizeEmail(input.email) : undefined,
+            email: input.email && input.email.trim() !== "" ? sanitizeEmail(input.email) : undefined,
             whatsappPhone: sanitizePhone(input.whatsappPhone),
             address: input.address ? sanitizeText(input.address) : undefined,
             internalManagement: input.internalManagement,
@@ -180,7 +185,7 @@ export const clientsRouter = router({
       .input(z.object({
         id: z.number(),
         name: z.string().min(1).optional(),
-        email: z.string().email().optional(),
+        email: z.string().email().optional().or(z.literal("")),
         whatsappPhone: z.string().optional(),
         address: z.string().optional(),
       }))
@@ -192,7 +197,7 @@ export const clientsRouter = router({
         const { id, ...updateData } = input;
         const sanitizedData = {
           name: updateData.name ? sanitizeText(updateData.name) : undefined,
-          email: updateData.email ? sanitizeEmail(updateData.email) : undefined,
+          email: updateData.email && updateData.email.trim() !== "" ? sanitizeEmail(updateData.email) : null,
           whatsappPhone: updateData.whatsappPhone ? sanitizePhone(updateData.whatsappPhone) : undefined,
           address: updateData.address ? sanitizeText(updateData.address) : undefined,
         };

@@ -823,35 +823,35 @@ export default function ProjectDetail() {
           <TabsList className="flex flex-wrap w-full gap-1 h-auto p-1 bg-muted/50 mb-4">
             <TabsTrigger 
               value="info" 
-              className="flex-1 min-w-[100px] text-sm px-4 py-2.5 bg-blue-100 text-blue-700 data-[state=active]:bg-blue-500 data-[state=active]:text-white hover:bg-blue-200 transition-colors rounded-md"
+              className="flex-1 min-w-0 sm:min-w-[100px] text-sm px-2 sm:px-4 py-2.5 bg-blue-100 text-blue-700 data-[state=active]:bg-blue-500 data-[state=active]:text-white hover:bg-blue-200 transition-colors rounded-md"
             >
               <Info className="h-4 w-4 mr-2" />
               Información
             </TabsTrigger>
             <TabsTrigger 
               value="materials" 
-              className="flex-1 min-w-[100px] text-sm px-4 py-2.5 bg-purple-100 text-purple-700 data-[state=active]:bg-purple-500 data-[state=active]:text-white hover:bg-purple-200 transition-colors rounded-md"
+              className="flex-1 min-w-0 sm:min-w-[100px] text-sm px-2 sm:px-4 py-2.5 bg-purple-100 text-purple-700 data-[state=active]:bg-purple-500 data-[state=active]:text-white hover:bg-purple-200 transition-colors rounded-md"
             >
               <Palette className="h-4 w-4 mr-2" />
               Materiales
             </TabsTrigger>
             <TabsTrigger 
               value="photos" 
-              className="flex-1 min-w-[100px] text-sm px-4 py-2.5 bg-green-100 text-green-700 data-[state=active]:bg-green-500 data-[state=active]:text-white hover:bg-green-200 transition-colors rounded-md"
+              className="flex-1 min-w-0 sm:min-w-[100px] text-sm px-2 sm:px-4 py-2.5 bg-green-100 text-green-700 data-[state=active]:bg-green-500 data-[state=active]:text-white hover:bg-green-200 transition-colors rounded-md"
             >
               <Camera className="h-4 w-4 mr-2" />
               Fotos
             </TabsTrigger>
             <TabsTrigger 
               value="details" 
-              className="flex-1 min-w-[100px] text-sm px-4 py-2.5 bg-orange-100 text-orange-700 data-[state=active]:bg-orange-500 data-[state=active]:text-white hover:bg-orange-200 transition-colors rounded-md"
+              className="flex-1 min-w-0 sm:min-w-[100px] text-sm px-2 sm:px-4 py-2.5 bg-orange-100 text-orange-700 data-[state=active]:bg-orange-500 data-[state=active]:text-white hover:bg-orange-200 transition-colors rounded-md"
             >
               <ListTodo className="h-4 w-4 mr-2" />
               Detalles
             </TabsTrigger>
             <TabsTrigger 
               value="history" 
-              className="flex-1 min-w-[100px] text-sm px-4 py-2.5 bg-gray-200 text-gray-700 data-[state=active]:bg-gray-600 data-[state=active]:text-white hover:bg-gray-300 transition-colors rounded-md"
+              className="flex-1 min-w-0 sm:min-w-[100px] text-sm px-2 sm:px-4 py-2.5 bg-gray-200 text-gray-700 data-[state=active]:bg-gray-600 data-[state=active]:text-white hover:bg-gray-300 transition-colors rounded-md"
             >
               <History className="h-4 w-4 mr-2" />
               Historial
@@ -859,7 +859,7 @@ export default function ProjectDetail() {
             {user?.role !== "disenador" && user?.role !== "jefe_taller" && user?.role !== "operario" && (
               <TabsTrigger 
                 value="payments" 
-                className="flex-1 min-w-[100px] text-sm px-4 py-2.5 bg-emerald-100 text-emerald-700 data-[state=active]:bg-emerald-500 data-[state=active]:text-white hover:bg-emerald-200 transition-colors rounded-md"
+                className="flex-1 min-w-0 sm:min-w-[100px] text-sm px-2 sm:px-4 py-2.5 bg-emerald-100 text-emerald-700 data-[state=active]:bg-emerald-500 data-[state=active]:text-white hover:bg-emerald-200 transition-colors rounded-md"
               >
                 <CreditCard className="h-4 w-4 mr-2" />
                 Pagos

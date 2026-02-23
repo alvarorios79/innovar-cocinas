@@ -504,7 +504,7 @@ export default function Admin() {
           </div>
           <div className="flex items-center gap-2">
             <Badge variant="outline" className="text-xs">Admin</Badge>
-            <span className="hidden sm:inline text-sm text-muted-foreground truncate max-w-[100px]">{user?.name}</span>
+            <span className="hidden sm:inline text-sm text-muted-foreground truncate max-w-[100px] lg:max-w-none">{user?.name}</span>
           </div>
         </div>
       </header>
@@ -731,7 +731,7 @@ export default function Admin() {
                                 updateAppointmentStatus.mutate({ id: apt.id, status: value as any })
                               }
                             >
-                              <SelectTrigger className="w-[140px]">
+                              <SelectTrigger className="w-full sm:w-[140px]">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
@@ -940,7 +940,7 @@ export default function Admin() {
                                 updateAdvisoryStatus.mutate({ id: req.id, status: value as any })
                               }
                             >
-                              <SelectTrigger className="w-[140px]">
+                              <SelectTrigger className="w-full sm:w-[140px]">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
@@ -1073,9 +1073,9 @@ export default function Admin() {
                         />
                       </div>
                       <Select value={clientSortBy} onValueChange={(value: any) => setClientSortBy(value)}>
-                        <SelectTrigger className="w-[200px]">
-                          <SelectValue />
-                        </SelectTrigger>
+                              <SelectTrigger className="w-full sm:w-[200px]">
+                                <SelectValue />
+                              </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="date-desc">Más recientes</SelectItem>
                           <SelectItem value="date-asc">Más antiguos</SelectItem>
@@ -1488,7 +1488,7 @@ export default function Admin() {
                                           <Button
                                             size="sm"
                                             variant="outline"
-                                            className="flex-1 min-w-[100px] sm:flex-none"
+                                            className="flex-1 min-w-0 sm:flex-none sm:w-auto"
                                             onClick={() => setEditBirthdayUser({ 
                                               id: usr.id, 
                                               name: usr.name || "Usuario", 
@@ -1502,7 +1502,7 @@ export default function Admin() {
                                           <Button
                                             size="sm"
                                             variant="outline"
-                                            className="flex-1 min-w-[100px] sm:flex-none"
+                                            className="flex-1 min-w-0 sm:flex-none sm:w-auto"
                                             onClick={() => setEditPhoneUser({ 
                                               id: usr.id, 
                                               name: usr.name || "Usuario", 
@@ -1518,7 +1518,7 @@ export default function Admin() {
                                               <Button
                                                 size="sm"
                                                 variant="secondary"
-                                                className="flex-1 min-w-[100px] sm:flex-none"
+                                                className="flex-1 min-w-0 sm:flex-none sm:w-auto"
                                                 onClick={() => {
                                                   if (window.confirm(
                                                     `¿Resetear contraseña de ${usr.name}? Se generará una contraseña temporal.`
@@ -1535,7 +1535,7 @@ export default function Admin() {
                                               <Button
                                                 size="sm"
                                                 variant="destructive"
-                                                className="flex-1 min-w-[100px] sm:flex-none"
+                                                className="flex-1 min-w-0 sm:flex-none sm:w-auto"
                                                 onClick={() => {
                                                   setDeleteConfirm({ type: "user", id: usr.id, name: usr.name || "Usuario" });
                                                 }}
@@ -1628,7 +1628,7 @@ export default function Admin() {
                                           <Button
                                             size="sm"
                                             variant="outline"
-                                            className="flex-1 min-w-[90px] sm:flex-none"
+                                            className="flex-1 min-w-0 sm:flex-none sm:w-auto"
                                             onClick={() => {
                                               const newRole = 
                                                 usr.role === "user" ? "admin" :
@@ -1653,7 +1653,7 @@ export default function Admin() {
                                             <Button
                                               size="sm"
                                               variant="secondary"
-                                              className="flex-1 min-w-[90px] sm:flex-none"
+                                              className="flex-1 min-w-0 sm:flex-none sm:w-auto"
                                               onClick={() => {
                                                 if (window.confirm(
                                                   `¿Resetear contraseña de ${usr.name}? Se generará una contraseña temporal.`
@@ -1672,7 +1672,7 @@ export default function Admin() {
                                           <Button
                                             size="sm"
                                             variant="destructive"
-                                            className="flex-1 min-w-[90px] sm:flex-none"
+                                            className="flex-1 min-w-0 sm:flex-none sm:w-auto"
                                             onClick={() => setDeleteConfirm({ type: "user", id: usr.id, name: usr.name || "Usuario" })}
                                           >
                                             <Trash2 className="h-4 w-4 mr-1" />

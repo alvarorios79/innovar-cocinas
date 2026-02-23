@@ -499,7 +499,7 @@ export default function Projects() {
           </div>
           <div className="flex items-center gap-1 md:gap-2">
             <Badge variant="outline" className="text-xs md:text-sm">{getRoleLabel(user?.role || "")}</Badge>
-            <span className="hidden sm:inline text-sm text-muted-foreground truncate max-w-[100px] md:max-w-none">{user?.name}</span>
+            <span className="hidden sm:inline text-sm text-muted-foreground truncate max-w-[100px] lg:max-w-none">{user?.name}</span>
           </div>
         </div>
       </header>

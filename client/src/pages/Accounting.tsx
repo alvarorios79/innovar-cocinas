@@ -1109,7 +1109,7 @@ export default function Accounting() {
         <CardContent className="p-4">
           <div className="flex flex-wrap gap-4 items-end">
             {/* Filtro por tipo */}
-            <div className="flex-1 min-w-[150px]">
+            <div className="flex-1 min-w-0 md:min-w-[150px]">
               <Label className="text-sm text-gray-600 mb-1 block">Tipo de gasto</Label>
               <Select value={filterType} onValueChange={(v: any) => setFilterType(v)}>
                 <SelectTrigger>
@@ -1125,7 +1125,7 @@ export default function Accounting() {
             </div>
             
             {/* Búsqueda por descripción */}
-            <div className="flex-1 min-w-[150px]">
+            <div className="flex-1 min-w-0 md:min-w-[150px]">
               <Label className="text-sm text-gray-600 mb-1 block">Buscar descripción</Label>
               <div className="relative">
                 <Input 
@@ -1148,7 +1148,7 @@ export default function Accounting() {
             </div>
             
             {/* Filtro por período */}
-            <div className="flex-1 min-w-[150px]">
+            <div className="flex-1 min-w-0 md:min-w-[150px]">
               <Label className="text-sm text-gray-600 mb-1 block">Período</Label>
               <Select value={dateFilterPeriod} onValueChange={(v: any) => setDateFilterPeriod(v)}>
                 <SelectTrigger>
@@ -1167,7 +1167,7 @@ export default function Accounting() {
             </div>
             
             {/* Filtro por Categoría General */}
-            <div className="flex-1 min-w-[150px]">
+            <div className="flex-1 min-w-0 md:min-w-[150px]">
               <Label className="text-sm text-gray-600 mb-1 block">Categoría General</Label>
               <Select value={filterGeneralCategory} onValueChange={(v: any) => setFilterGeneralCategory(v)}>
                 <SelectTrigger>
@@ -1187,7 +1187,7 @@ export default function Accounting() {
             {/* Fechas personalizadas */}
             {dateFilterPeriod === "custom" && (
               <>
-                <div className="flex-1 min-w-[140px]">
+                <div className="flex-1 min-w-0 md:min-w-[140px]">
                   <Label className="text-sm text-gray-600 mb-1 block">Desde</Label>
                   <Input 
                     type="date" 
@@ -1195,7 +1195,7 @@ export default function Accounting() {
                     onChange={(e) => setCustomDateFrom(e.target.value)}
                   />
                 </div>
-                <div className="flex-1 min-w-[140px]">
+                <div className="flex-1 min-w-0 md:min-w-[140px]">
                   <Label className="text-sm text-gray-600 mb-1 block">Hasta</Label>
                   <Input 
                     type="date" 

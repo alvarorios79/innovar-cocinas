@@ -260,7 +260,7 @@ export default function InstallationCalendar() {
                     <Button variant="outline" size="icon" onClick={goToPreviousMonth}>
                       <ChevronLeft className="h-4 w-4" />
                     </Button>
-                    <h2 className="text-lg font-semibold min-w-[180px] text-center">
+                    <h2 className="text-lg font-semibold min-w-0 md:min-w-[180px] text-center">
                       {MONTHS[currentDate.getMonth()]} {currentDate.getFullYear()}
                     </h2>
                     <Button variant="outline" size="icon" onClick={goToNextMonth}>

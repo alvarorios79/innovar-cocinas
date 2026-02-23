@@ -166,42 +166,41 @@ export default function ProfitabilityDashboard() {
   const scale = maxValue > 0 ? 100 / maxValue : 1;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">
-            📊 Dashboard de Rentabilidad
-          </h1>
-          <p className="text-slate-600">
-            Análisis financiero del mes actual y últimos 6 meses
-          </p>
-        </div>
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-2xl font-semibold tracking-tight mb-2">
+          📊 Dashboard de Rentabilidad
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          Análisis financiero del mes actual y últimos 6 meses
+        </p>
+      </div>
 
-        {/* KPI Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-          {/* Ingresos */}
-          <Card className="border-l-4 border-l-green-500">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-slate-600 flex items-center gap-2">
-                <DollarSign className="h-4 w-4 text-green-500" />
-                Ingresos del Mes
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600">
-                {formatPrice(currentMonthMetrics.ingresos)}
-              </div>
-              <p className="text-xs text-slate-500 mt-1">
-                {currentMonthMetrics.totalProyectos} proyectos
-              </p>
-            </CardContent>
-          </Card>
+      {/* KPI Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+        {/* Ingresos */}
+        <Card className="border-0 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 bg-white dark:bg-slate-900 border-l-4 border-l-green-500">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <DollarSign className="h-4 w-4 text-green-500" />
+              Ingresos del Mes
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">
+              {formatPrice(currentMonthMetrics.ingresos)}
+            </div>
+            <p className="text-xs text-slate-500 mt-1">
+              {currentMonthMetrics.totalProyectos} proyectos
+            </p>
+          </CardContent>
+        </Card>
 
           {/* Gastos */}
-          <Card className="border-l-4 border-l-red-500">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-slate-600 flex items-center gap-2">
+        <Card className="border-0 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 bg-white dark:bg-slate-900 border-l-4 border-l-red-500">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                 <Zap className="h-4 w-4 text-red-500" />
                 Gastos del Mes
               </CardTitle>
@@ -221,9 +220,9 @@ export default function ProfitabilityDashboard() {
           </Card>
 
           {/* Margen */}
-          <Card className="border-l-4 border-l-blue-500">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-slate-600 flex items-center gap-2">
+        <Card className="border-0 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 bg-white dark:bg-slate-900 border-l-4 border-l-blue-500">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                 <TrendingUp className="h-4 w-4 text-blue-500" />
                 Margen del Mes
               </CardTitle>
@@ -243,9 +242,9 @@ export default function ProfitabilityDashboard() {
           </Card>
 
           {/* Rentabilidad Promedio */}
-          <Card className="border-l-4 border-l-amber-500">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-slate-600 flex items-center gap-2">
+        <Card className="border-0 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 bg-white dark:bg-slate-900 border-l-4 border-l-amber-500">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                 <Target className="h-4 w-4 text-amber-500" />
                 Rentabilidad Prom.
               </CardTitle>
@@ -260,36 +259,36 @@ export default function ProfitabilityDashboard() {
             </CardContent>
           </Card>
 
-          {/* Proyectos del Mes */}
-          <Card className="border-l-4 border-l-purple-500">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-slate-600 flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-purple-500" />
-                Proyectos del Mes
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-purple-600">
-                {currentMonthMetrics.totalProyectos}
-              </div>
-              <p className="text-xs text-slate-500 mt-1">
-                Proyectos creados
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Gráfico de Ingresos vs Gastos */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle>Ingresos vs Gastos - Últimos 6 Meses</CardTitle>
-            <CardDescription>
-              Comparativa de ingresos y gastos por mes
-            </CardDescription>
+        {/* Proyectos del Mes */}
+        <Card className="border-0 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 bg-white dark:bg-slate-900 border-l-4 border-l-purple-500">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-purple-500" />
+              Proyectos del Mes
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {monthlyData.map((month, idx) => (
+            <div className="text-2xl font-bold text-purple-600">
+              {currentMonthMetrics.totalProyectos}
+            </div>
+            <p className="text-xs text-slate-500 mt-1">
+              Proyectos creados
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Gráfico de Ingresos vs Gastos */}
+      <Card className="border-0 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 bg-white dark:bg-slate-900 mb-8">
+        <CardHeader>
+          <CardTitle className="text-2xl font-semibold tracking-tight">Ingresos vs Gastos - Últimos 6 Meses</CardTitle>
+          <CardDescription>
+            Comparativa de ingresos y gastos por mes
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {monthlyData.map((month, idx) => (
                 <div key={idx} className="space-y-2">
                   <div className="flex justify-between items-center">
                     <span className="text-sm font-medium text-slate-700">
@@ -350,16 +349,16 @@ export default function ProfitabilityDashboard() {
           </CardContent>
         </Card>
 
-        {/* Tabla de Rentabilidad por Mes */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Resumen Mensual</CardTitle>
-            <CardDescription>
-              Métricas financieras agregadas por mes
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="w-full overflow-x-auto">
+      {/* Tabla de Rentabilidad por Mes */}
+      <Card className="border-0 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 bg-white dark:bg-slate-900">
+        <CardHeader>
+          <CardTitle className="text-2xl font-semibold tracking-tight">Resumen Mensual</CardTitle>
+          <CardDescription>
+            Métricas financieras agregadas por mes
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="w-full overflow-x-auto">
               <table className="w-full min-w-full text-sm">
                 <thead>
                   <tr className="border-b border-slate-200">
@@ -427,10 +426,9 @@ export default function ProfitabilityDashboard() {
                   ))}
                 </tbody>
               </table>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

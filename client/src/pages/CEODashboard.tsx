@@ -91,16 +91,16 @@ export function CEODashboard() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Panel Financiero CEO</h1>
-          <p className="text-gray-600">Control total del negocio - Métricas en tiempo real</p>
+          <h1 className="text-4xl font-bold tracking-tight text-gray-900 mb-2">Panel Financiero CEO</h1>
+          <p className="text-sm text-muted-foreground">Control total del negocio - Métricas en tiempo real</p>
         </div>
 
         {/* KPI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {/* Total Ingresos */}
-          <Card className="border-0 shadow-md hover:shadow-lg transition-shadow">
+          <Card className="border-0 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 bg-white dark:bg-slate-900">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-600 flex items-center gap-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                 <DollarSign className="h-4 w-4 text-green-600" />
                 Total Ingresos
               </CardTitle>
@@ -112,9 +112,9 @@ export function CEODashboard() {
           </Card>
 
           {/* Total Pagos */}
-          <Card className="border-0 shadow-md hover:shadow-lg transition-shadow">
+          <Card className="border-0 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 bg-white dark:bg-slate-900">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-600 flex items-center gap-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                 <TrendingUp className="h-4 w-4 text-blue-600" />
                 Total Pagado
               </CardTitle>
@@ -130,7 +130,7 @@ export function CEODashboard() {
           </Card>
 
           {/* Margen Global */}
-          <Card className={`border-0 shadow-md hover:shadow-lg transition-shadow ${getRentabilidadColor(dashboardData.rentabilidadPromedio)}`}>
+          <Card className={`border-0 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 ${getRentabilidadColor(dashboardData.rentabilidadPromedio)}`}>
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
                 <AlertTriangle className="h-4 w-4" />
@@ -144,9 +144,9 @@ export function CEODashboard() {
           </Card>
 
           {/* Proyectos en Riesgo */}
-          <Card className={`border-0 shadow-md hover:shadow-lg transition-shadow ${dashboardData.proyectosEnRiesgo > 0 ? "bg-red-50" : "bg-green-50"}`}>
+          <Card className={`border-0 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 ${dashboardData.proyectosEnRiesgo > 0 ? "bg-red-50" : "bg-green-50"}`}>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-600 flex items-center gap-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                 <Clock className="h-4 w-4 text-red-600" />
                 Proyectos en Riesgo
               </CardTitle>
@@ -161,9 +161,9 @@ export function CEODashboard() {
         </div>
 
         {/* Financial Summary */}
-        <Card className="border-0 shadow-md mb-8">
+        <Card className="border-0 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 bg-white dark:bg-slate-900 mb-8">
           <CardHeader>
-            <CardTitle>Resumen Financiero Detallado</CardTitle>
+            <CardTitle className="text-2xl font-semibold tracking-tight">Resumen Financiero Detallado</CardTitle>
             <CardDescription>Desglose completo de ingresos y gastos</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -231,9 +231,9 @@ export function CEODashboard() {
 
         {/* Flujo de Caja - Últimos 6 Meses */}
         {dashboardData?.cashFlow && dashboardData.cashFlow.length > 0 && (
-          <Card className="border-0 shadow-md mb-8">
+          <Card className="border-0 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 bg-white dark:bg-slate-900 mb-8">
             <CardHeader>
-              <CardTitle>Flujo de Caja - Últimos 6 Meses</CardTitle>
+              <CardTitle className="text-2xl font-semibold tracking-tight">Flujo de Caja - Últimos 6 Meses</CardTitle>
               <CardDescription>Ingresos vs Egresos por mes</CardDescription>
             </CardHeader>
             <CardContent>

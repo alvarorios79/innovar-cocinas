@@ -4766,3 +4766,15 @@ Listo para pasar a Fase 7.2 (Intelligent Alerts) cuando sea requerido.
 - [ ] Agregar tests de responsive design
 - [ ] Integrar validación responsive en CI/CD
 - [ ] Crear componentes responsive reutilizables
+
+
+## Technical Debt & Mejoras Futuras
+
+- [ ] Separación visual manual vs system en Admin.tsx (clientes)
+- [ ] Separación visual manual vs system en Projects.tsx (proyectos)
+- [ ] Separación visual manual vs system en Quotations.tsx (cotizaciones)
+- [ ] Separación visual manual vs system en AppointmentsCalendar.tsx (citas)
+- [ ] Crear componente reutilizable DataOriginSeparator
+- [ ] Refactorizar Admin.tsx para extraer lógica de clientes
+- [ ] Refactorizar Projects.tsx para mejorar mantenibilidad
+- [ ] Refactorizar Quotations.tsx para mejorar mantenibilidad

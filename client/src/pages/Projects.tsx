@@ -819,7 +819,7 @@ export default function Projects() {
                       {/* Info básica */}
                       <div className="flex-1 min-w-0">
                         <div className="flex flex-wrap items-center gap-2 mb-2">
-                          <h3 className="font-semibold text-base sm:text-lg truncate max-w-[200px] sm:max-w-none">
+                          <h3 className="font-semibold text-base sm:text-lg break-words min-w-0 max-w-[200px] sm:max-w-none">
                             {project.name}
                           </h3>
                           {getStatusBadge(project.status, (project as any).modeladoRevisionNumber, (project as any).renderRevisionNumber)}
@@ -1716,7 +1716,7 @@ export default function Projects() {
                                       )}
                                     </div>
                                     {photo.description && (
-                                      <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-xs p-1 truncate opacity-0 group-hover:opacity-100 transition-opacity">
+                                      <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-xs p-1 break-words min-w-0 opacity-0 group-hover:opacity-100 transition-opacity">
                                         {photo.description}
                                       </div>
                                     )}

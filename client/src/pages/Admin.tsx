@@ -706,12 +706,12 @@ export default function Admin() {
                               <span className="font-medium">WhatsApp:</span> {apt.client?.whatsappPhone}
                             </p>
                             {apt.client?.email && (
-                              <p className="text-sm">
+                              <p className="text-sm break-words min-w-0">
                                 <span className="font-medium">Email:</span> {apt.client?.email}
                               </p>
                             )}
                             {apt.client?.address && (
-                              <p className="text-sm">
+                              <p className="text-sm break-words min-w-0">
                                 <span className="font-medium">Dirección:</span> {apt.client?.address}
                               </p>
                             )}
@@ -719,7 +719,7 @@ export default function Admin() {
                               <span className="font-medium">Fecha:</span> {formatDate(apt.scheduledDate)}
                             </p>
                             {apt.notes && (
-                              <p className="text-sm">
+                              <p className="text-sm break-words min-w-0">
                                 <span className="font-medium">Notas:</span> {apt.notes}
                               </p>
                             )}
@@ -915,7 +915,7 @@ export default function Admin() {
                               <span className="font-medium">WhatsApp:</span> {req.client?.whatsappPhone}
                             </p>
                             {req.client?.email && (
-                              <p className="text-sm">
+                              <p className="text-sm break-words min-w-0">
                                 <span className="font-medium">Email:</span> {req.client?.email}
                               </p>
                             )}
@@ -925,7 +925,7 @@ export default function Admin() {
                               </p>
                             )}
                             {req.notes && (
-                              <p className="text-sm">
+                              <p className="text-sm break-words min-w-0">
                                 <span className="font-medium">Consulta:</span> {req.notes}
                               </p>
                             )}

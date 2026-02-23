@@ -1341,8 +1341,8 @@ export default function ProjectDetail() {
                               {detail.type === "medida_especial" ? "Medida Especial" : 
                                detail.type === "nota_importante" ? "Nota Importante" : "Foto Referencia"}
                             </Badge>
-                            <h5 className="font-medium">{detail.title}</h5>
-                            <p className="text-sm text-muted-foreground">{detail.content}</p>
+                            <h5 className="font-medium break-words min-w-0">{detail.title}</h5>
+                            <p className="text-sm text-muted-foreground break-words min-w-0">{detail.content}</p>
                           </div>
                           {detail.photoUrl && (
                             <img

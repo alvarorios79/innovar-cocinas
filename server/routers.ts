@@ -4,6 +4,7 @@ import { clientsRouter } from "./routers/clients";
 import { appointmentsRouter, availabilityRouter } from "./routers/appointments";
 import { advisoryRouter, estimatesRouter } from "./routers/advisory";
 import { quotationsRouter } from "./routers/quotations";
+import { quotationsDebugRouter } from "./routers/quotations-debug";
 import { userManagementRouter } from "./routers/userManagement";
 import { projectsRouter, projectPhotosRouter, projectDetailsRouter, projectMaterialsRouter } from "./routers/projects";
 import { tasksRouter } from "./routers/tasks";
@@ -33,6 +34,7 @@ export const appRouter = router({
   advisory: advisoryRouter,
   estimates: estimatesRouter,
   quotations: quotationsRouter,
+  quotationsDebug: quotationsDebugRouter,
   userManagement: userManagementRouter,
   projects: projectsRouter,
   projectPhotos: projectPhotosRouter,

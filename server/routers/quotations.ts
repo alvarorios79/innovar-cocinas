@@ -1939,23 +1939,27 @@ export const quotationsRouter = router({
           throw new TRPCError({ code: "FORBIDDEN" });
         }
 
-        console.log("QUOTATION ID RECIBIDO:", input.id);
+        console.log("[WHATSAPP DEBUG] QUOTATION ID RECIBIDO:", input.id);
         
         const quotation = await db.getQuotationById(input.id);
         if (!quotation) {
           throw new TRPCError({ code: "NOT_FOUND" });
         }
 
-        console.log("QUOTATION VERSION:", quotation.versionNumber);
-        console.log("QUOTATION TOTAL:", quotation.total);
+        console.log("[WHATSAPP DEBUG] QUOTATION VERSION:", quotation.versionNumber);
+        console.log("[WHATSAPP DEBUG] QUOTATION TOTAL:", quotation.total);
 
         const client = await db.getClientById(quotation.clientId);
         if (!client || !client.whatsappPhone) {
           throw new TRPCError({ code: "NOT_FOUND", message: "Cliente sin teléfono WhatsApp" });
         }
+        
+        console.log("[WHATSAPP DEBUG] Número original del cliente:", client.whatsappPhone);
 
         try {
+          console.log("[WHATSAPP DEBUG] Iniciando proceso de envío por WhatsApp...");
           // Generar PDF de la cotizacion
+          console.log("[WHATSAPP DEBUG] Generando PDF...");
           const formatCurrency = (value: number) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(value);
           
           // @ts-ignore - Propiedades opcionales del quotation

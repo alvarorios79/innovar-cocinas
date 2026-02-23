@@ -3,6 +3,16 @@ import { trpc } from "@/lib/trpc";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { AlertCircle, TrendingUp, DollarSign, AlertTriangle, Clock } from "lucide-react";
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+  Legend
+} from "recharts";
 
 const formatCurrency = (value: number) => {
   return new Intl.NumberFormat('es-CO', {
@@ -14,12 +24,7 @@ const formatCurrency = (value: number) => {
 };
 
 export function CEODashboard() {
-  // Test endpoint first
-  // @ts-expect-error - TypeScript cache issue, procedure exists at runtime
-  const { data: testData, isLoading: testLoading, error: testError } = trpc.projects.testEndpoint.useQuery();
-
-  // @ts-expect-error - TypeScript cache issue, procedure exists at runtime
-  const { data: dashboardData, isLoading, error } = trpc.projects.getGlobalDashboard.useQuery();
+  const { data: dashboardData, isLoading, error } = trpc.dashboard.getGlobalDashboard.useQuery();
 
   // DEBUG LOGS
   useEffect(() => {
@@ -39,44 +44,7 @@ export function CEODashboard() {
     );
   }
 
-  // Show test endpoint result first
-  if (testError || testData) {
-    return (
-      <div className="flex items-center justify-center h-screen p-4">
-        <div className="text-center max-w-2xl">
-          <h2 className="text-2xl font-bold mb-4">Test Endpoint Result</h2>
-          <pre style={{
-            backgroundColor: "#f3f4f6",
-            padding: "16px",
-            borderRadius: "8px",
-            overflow: "auto",
-            maxHeight: "400px",
-            textAlign: "left",
-            fontSize: "12px",
-            color: testError ? "#dc2626" : "#059669",
-            fontFamily: "monospace"
-          }}>
-            {testError ? JSON.stringify(testError, null, 2) : JSON.stringify(testData, null, 2)}
-          </pre>
-          <hr className="my-8" />
-          <h2 className="text-2xl font-bold mb-4">Dashboard Error</h2>
-          <pre style={{
-            backgroundColor: "#f3f4f6",
-            padding: "16px",
-            borderRadius: "8px",
-            overflow: "auto",
-            maxHeight: "400px",
-            textAlign: "left",
-            fontSize: "12px",
-            color: "#dc2626",
-            fontFamily: "monospace"
-          }}>
-            {JSON.stringify(error, null, 2)}
-          </pre>
-        </div>
-      </div>
-    );
-  }
+
 
   if (error || !dashboardData) {
     return (
@@ -260,6 +228,29 @@ export function CEODashboard() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Flujo de Caja - Últimos 6 Meses */}
+        {dashboardData?.cashFlow && dashboardData.cashFlow.length > 0 && (
+          <Card className="border-0 shadow-md mb-8">
+            <CardHeader>
+              <CardTitle>Flujo de Caja - Últimos 6 Meses</CardTitle>
+              <CardDescription>Ingresos vs Egresos por mes</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={dashboardData.cashFlow}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="label" />
+                  <YAxis />
+                  <Tooltip formatter={(value) => formatCurrency(Number(value))} />
+                  <Legend />
+                  <Bar dataKey="ingresos" fill="#16a34a" name="Ingresos" />
+                  <Bar dataKey="egresos" fill="#dc2626" name="Egresos" />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Info Card */}
         <Card className="border-0 shadow-md bg-blue-50">

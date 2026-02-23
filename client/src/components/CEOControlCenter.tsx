@@ -3,6 +3,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, TrendingDown, AlertCircle, CheckCircle2, DollarSign, Target } from "lucide-react";
 import { trpc } from "@/lib/trpc";
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+  Legend
+} from "recharts";
 
 const formatCurrency = (value: number) => {
   return new Intl.NumberFormat('es-CO', {
@@ -14,9 +24,9 @@ const formatCurrency = (value: number) => {
 };
 
 interface CashFlowMonth {
-  month: string;
-  inflow: number;
-  outflow: number;
+  label: string;
+  ingresos: number;
+  egresos: number;
 }
 
 interface ProjectRentability {
@@ -75,15 +85,18 @@ export function CEOControlCenter() {
   const collectionRate = dashboardData?.collectionRate || 0;
   const outstandingRatio = dashboardData?.outstandingRatio || 0;
   
-  // Datos de flujo de caja (simulado por ahora)
-  const cashFlowData: CashFlowMonth[] = [
-    { month: 'Ene', inflow: 45000000, outflow: 28000000 },
-    { month: 'Feb', inflow: 52000000, outflow: 31000000 },
-    { month: 'Mar', inflow: 48000000, outflow: 29000000 },
-    { month: 'Abr', inflow: 61000000, outflow: 35000000 },
-    { month: 'May', inflow: 58000000, outflow: 32000000 },
-    { month: 'Jun', inflow: 67000000, outflow: 38000000 },
-  ];
+  // Datos de flujo de caja del backend
+  const cashFlowData: CashFlowMonth[] = dashboardData?.cashFlow || [];
+  
+  // DEBUG
+  console.log('[CEOControlCenter] dashboardData:', dashboardData);
+  console.log('[CEOControlCenter] cashFlowData:', cashFlowData);
+  console.log('[CEOControlCenter] cashFlowData.length:', cashFlowData.length);
+  
+  // Si no hay datos, mostrar array vacio (no fallara la UI)
+  if (!cashFlowData || cashFlowData.length === 0) {
+    console.warn('[CEOControlCenter] No cash flow data available');
+  }
 
   // Rentabilidad (simulada por ahora)
   const rentabilityData: ProjectRentability[] = [
@@ -158,9 +171,9 @@ export function CEOControlCenter() {
           </h3>
           <div className="grid grid-cols-6 gap-2">
             {cashFlowData.map((month, idx) => {
-              const maxValue = Math.max(...cashFlowData.map(m => Math.max(m.inflow, m.outflow)));
-              const inflowHeight = (month.inflow / maxValue) * 100;
-              const outflowHeight = (month.outflow / maxValue) * 100;
+              const maxValue = Math.max(...cashFlowData.map(m => Math.max(m.ingresos, m.egresos)));
+              const inflowHeight = (month.ingresos / maxValue) * 100;
+              const outflowHeight = (month.egresos / maxValue) * 100;
               
               return (
                 <div key={idx} className="flex flex-col items-center gap-1">
@@ -168,15 +181,15 @@ export function CEOControlCenter() {
                     <div 
                       className="w-1/2 bg-gradient-to-t from-green-500 to-green-400 rounded-t opacity-80 hover:opacity-100 transition-opacity"
                       style={{ height: `${inflowHeight}%`, minHeight: '4px' }}
-                      title={`Ingresos: ${formatCurrency(month.inflow)}`}
+                      title={`Ingresos: ${formatCurrency(month.ingresos)}`}
                     />
                     <div 
                       className="w-1/2 bg-gradient-to-t from-red-500 to-red-400 rounded-t opacity-80 hover:opacity-100 transition-opacity"
                       style={{ height: `${outflowHeight}%`, minHeight: '4px' }}
-                      title={`Egresos: ${formatCurrency(month.outflow)}`}
+                      title={`Egresos: ${formatCurrency(month.egresos)}`}
                     />
                   </div>
-                  <span className="text-xs text-slate-400 font-semibold">{month.month}</span>
+                  <span className="text-xs text-slate-400 font-semibold">{month.label}</span>
                 </div>
               );
             })}
@@ -285,6 +298,24 @@ export function CEOControlCenter() {
             </table>
           </div>
         </div>
+
+        {/* GRAFICO FLUJO DE CAJA */}
+        {cashFlowData && cashFlowData.length > 0 && (
+          <div className="mt-6 bg-slate-800/50 p-6 rounded-lg border border-slate-700">
+            <h3 className="text-sm font-bold text-slate-200 mb-4">Flujo de Caja - Ultimos 6 Meses</h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={cashFlowData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
+                <XAxis dataKey="label" stroke="#94a3b8" />
+                <YAxis stroke="#94a3b8" />
+                <Tooltip contentStyle={{ backgroundColor: "#1e293b", border: "1px solid #475569" }} />
+                <Legend />
+                <Bar dataKey="ingresos" fill="#16a34a" name="Ingresos" />
+                <Bar dataKey="egresos" fill="#dc2626" name="Egresos" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        )}
 
         {/* Footer con KPI Summary */}
         <div className="pt-4 border-t border-slate-600 flex items-center justify-between text-xs text-slate-400">

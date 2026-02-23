@@ -1,5 +1,5 @@
 import { router, protectedProcedure } from "../_core/trpc";
-import { getGlobalFinancialDashboard } from "../db";
+import { getGlobalFinancialDashboard, getCashFlowData } from "../db";
 
 export const dashboardRouter = router({
   getGlobalDashboard: protectedProcedure.query(async ({ ctx }) => {
@@ -9,7 +9,12 @@ export const dashboardRouter = router({
     }
 
     // Obtener datos del dashboard
-    const result = await getGlobalFinancialDashboard();
-    return result;
+    const financialData = await getGlobalFinancialDashboard();
+    const cashFlowData = await getCashFlowData();
+
+    return {
+      ...financialData,
+      cashFlow: cashFlowData,
+    };
   }),
 });

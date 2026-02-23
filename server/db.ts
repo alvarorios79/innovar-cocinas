@@ -57,8 +57,22 @@ import {
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 import { triggerAlertEvaluation } from './services/financialAlertMonitor';
+import mysql from 'mysql2/promise';
 
 let _db: ReturnType<typeof drizzle> | null = null;
+let _pool: mysql.Pool | null = null;
+
+export async function getPool() {
+  if (!_pool && process.env.DATABASE_URL) {
+    try {
+      _pool = mysql.createPool(process.env.DATABASE_URL);
+    } catch (error) {
+      console.warn("[Database Pool] Failed to connect:", error);
+      _pool = null;
+    }
+  }
+  return _pool;
+}
 
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
@@ -2680,11 +2694,18 @@ export async function getGlobalFinancialDashboard(): Promise<{
   if (!db) throw new Error("Database not available");
 
   // Filter: Only include manual projects (exclude system/test data)
-  // NOTE: Do NOT filter by totalAmount - use payments table for financial metrics
   const manualProjectsFilter = and(
     eq(projects.dataOrigin, 'manual'),
     isNull(projects.deletedAt)
   );
+
+  // Get manual project IDs first
+  const manualProjectIds = await db.select({
+    id: projects.id
+  }).from(projects)
+    .where(manualProjectsFilter);
+
+  const validProjectIdSet = new Set(manualProjectIds.map(p => p.id));
 
   // Get total income (sum of all project amounts) - ONLY MANUAL PROJECTS
   const incomesResult = await db.select({
@@ -2700,56 +2721,50 @@ export async function getGlobalFinancialDashboard(): Promise<{
   console.log('[Dashboard] totalIngresos:', totalIngresos);
   
   // Write debug info to file
-  const fs = await import('fs').then(m => m.promises);
+  const fs_module = await import('fs').then(m => m.promises);
   try {
-    await fs.writeFile('/tmp/dashboard-debug.log', `[${new Date().toISOString()}] incomesResult: ${JSON.stringify(incomesResult)}\ntotalIngresos: ${totalIngresos}\n`, { flag: 'a' });
+    await fs_module.writeFile('/tmp/dashboard-debug.log', `[${new Date().toISOString()}] incomesResult: ${JSON.stringify(incomesResult)}\ntotalIngresos: ${totalIngresos}\n`, { flag: 'a' });
   } catch (e) {
     console.error('[Dashboard] Error writing debug log:', e);
   }
 
   // Get total payments received - ONLY FROM MANUAL PROJECTS
-  const paymentsResult = await db.select({
-    total: sql<number>`COALESCE(SUM(${payments.amount}), 0)`
-  }).from(payments)
-    .innerJoin(projects, eq(payments.projectId, projects.id))
-    .where(manualProjectsFilter);
+  // Filter payments by valid project IDs instead of using innerJoin in select
+  const allPayments = await db.select({
+    amount: payments.amount,
+    projectId: payments.projectId
+  }).from(payments);
 
-  const totalPagosRecibidos = paymentsResult && paymentsResult.length > 0
-    ? Number(paymentsResult[0].total) || 0
-    : 0;
+  const totalPagosRecibidos = allPayments
+    .filter(p => validProjectIdSet.has(p.projectId || ''))
+    .reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
 
-  console.log('[Dashboard] paymentsResult:', paymentsResult);
   console.log('[Dashboard] totalPagosRecibidos:', totalPagosRecibidos);
 
   // Get total project expenses (only materiales_proyecto) - ONLY FROM MANUAL PROJECTS
-  const projectExpensesResult = await db.select({
-    total: sql<number>`COALESCE(SUM(amount), 0)`
+  const allProjectExpenses = await db.select({
+    amount: expenses.amount,
+    expenseType: expenses.expenseType,
+    projectId: expenses.projectId
   }).from(expenses)
-    .innerJoin(projects, eq(expenses.projectId, projects.id))
-    .where(and(
-      eq(expenses.expenseType, "materiales_proyecto"),
-      manualProjectsFilter
-    ));
+    .where(eq(expenses.expenseType, "materiales_proyecto"));
 
-  const totalGastosProyectos = projectExpensesResult && projectExpensesResult.length > 0
-    ? Number(projectExpensesResult[0].total) || 0
-    : 0;
+  const totalGastosProyectos = allProjectExpenses
+    .filter(e => validProjectIdSet.has(e.projectId || ''))
+    .reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
 
   // Get total operational expenses - ONLY FROM MANUAL PROJECTS
-  const operationalExpensesResult = await db.select({
-    total: sql<number>`COALESCE(SUM(amount), 0)`
+  const allOperationalExpenses = await db.select({
+    amount: expenses.amount,
+    expenseType: expenses.expenseType,
+    projectId: expenses.projectId
   }).from(expenses)
-    .innerJoin(projects, eq(expenses.projectId, projects.id))
-    .where(and(
-      eq(expenses.expenseType, "gasto_operativo"),
-      manualProjectsFilter
-    ));
+    .where(eq(expenses.expenseType, "gasto_operativo"));
 
-  const totalGastosOperativos = operationalExpensesResult && operationalExpensesResult.length > 0
-    ? Number(operationalExpensesResult[0].total) || 0
-    : 0;
+  const totalGastosOperativos = allOperationalExpenses
+    .filter(e => validProjectIdSet.has(e.projectId || ''))
+    .reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
 
-  // Calculate global margin
   const margenGlobal = totalIngresos - totalGastosProyectos;
 
   // Calculate global profitability
@@ -2784,8 +2799,7 @@ export async function getGlobalFinancialDashboard(): Promise<{
   }).from(projects)
     .where(and(
       eq(projects.status, "entregado"),
-      sql`${projects.totalAmount} > 0`,
-      sql`(SELECT COALESCE(SUM(amount), 0) FROM payments WHERE projectId = projects.id) < ${projects.totalAmount}`,
+      gt(projects.totalAmount, 0),
       manualProjectsFilter
     ));
 
@@ -2798,8 +2812,7 @@ export async function getGlobalFinancialDashboard(): Promise<{
     count: sql<number>`COUNT(*)`
   }).from(projects)
     .where(and(
-      sql`${projects.totalAmount} > 0`,
-      sql`((${projects.totalAmount} - COALESCE((SELECT SUM(amount) FROM expenses WHERE projectId = projects.id AND expenseType = 'materiales_proyecto'), 0)) / ${projects.totalAmount} * 100) < 10`,
+      gt(projects.totalAmount, 0),
       manualProjectsFilter
     ));
 
@@ -3005,4 +3018,175 @@ export async function updateFinancialSettings(data: Partial<InsertFinancialSetti
 
   await db.update(financialSettings).set(data).where(eq(financialSettings.id, 1));
   return await getFinancialSettings();
+}
+
+
+/**
+ * Get cash flow data for the last 6 months
+ */
+/**
+ * Get cash flow data for the last 6 months
+ */
+/**
+ * Get cash flow data for the last 6 months
+ */
+/**
+ * Get cash flow data for the last 6 months
+ */
+/**
+ * Get cash flow data for the last 6 months
+ * FASE 1-4: Rango dinámico + SQL simple + Array fijo + Agrupación manual JS
+ */
+/**
+ * Get cash flow data for the last 6 months
+ * FASE 1-4: Rango dinámico + SQL simple + Array fijo + Agrupación manual JS
+ */
+export async function getCashFlowData() {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const pool = await getPool();
+  if (!pool) throw new Error("Database pool not available");
+
+  // ========================================
+  // PASO 1: CÁLCULO DE RANGO DINÁMICO
+  // ========================================
+  const now = new Date();
+  const startDate = new Date(
+    now.getFullYear(),
+    now.getMonth() - 5,
+    1
+  );
+
+  // ========================================
+  // PASO 2: OBTENER PROYECTOS VÁLIDOS (MANUAL)
+  // ========================================
+  const validProjects = await db.select({
+    id: projects.id
+  }).from(projects)
+    .where(and(
+      eq(projects.dataOrigin, 'manual'),
+      isNull(projects.deletedAt)
+    ));
+
+  const validProjectIds = validProjects.map(p => p.id);
+  if (validProjectIds.length === 0) {
+    // Sin proyectos válidos, retornar array vacío de 6 meses
+    return generateEmptyCashFlowMonths(now);
+  }
+
+  // ========================================
+  // PASO 3: RAW SQL QUERY - INGRESOS
+  // ========================================
+  const incomesQuery = `
+    SELECT 
+      YEAR(receivedAt) AS year,
+      MONTH(receivedAt) AS month,
+      SUM(amount) AS total
+    FROM payments
+    WHERE receivedAt >= ? AND projectId IN (${validProjectIds.map(() => '?').join(',')})
+    GROUP BY YEAR(receivedAt), MONTH(receivedAt)
+  `;
+
+  const incomesParams = [startDate, ...validProjectIds];
+  const [incomesRows] = await pool.execute(incomesQuery, incomesParams);
+
+  // ========================================
+  // PASO 4: RAW SQL QUERY - EGRESOS
+  // ========================================
+  const expensesQuery = `
+    SELECT 
+      YEAR(expenseDate) AS year,
+      MONTH(expenseDate) AS month,
+      SUM(amount) AS total
+    FROM expenses
+    WHERE expenseDate >= ? AND projectId IN (${validProjectIds.map(() => '?').join(',')})
+    GROUP BY YEAR(expenseDate), MONTH(expenseDate)
+  `;
+
+  const expensesParams = [startDate, ...validProjectIds];
+  const [expensesRows] = await pool.execute(expensesQuery, expensesParams);
+
+  // ========================================
+  // PASO 5: CONSTRUIR ARRAY FIJO DE 6 MESES
+  // ========================================
+  const months: Array<{
+    year: number;
+    month: number;
+    label: string;
+    ingresos: number;
+    egresos: number;
+  }> = [];
+
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const year = d.getFullYear();
+    const month = d.getMonth() + 1; // JavaScript 0-11, MySQL 1-12
+    
+    const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    const label = monthNames[month - 1];
+
+    months.push({
+      year,
+      month,
+      label,
+      ingresos: 0,
+      egresos: 0
+    });
+  }
+
+  // ========================================
+  // PASO 6: MAPEO DE RESULTADOS SQL
+  // ========================================
+
+  // Mapear ingresos
+  (incomesRows as any[]).forEach(row => {
+    const monthEntry = months.find(m => 
+      m.year === row.year && m.month === row.month
+    );
+    if (monthEntry) {
+      monthEntry.ingresos += Number(row.total) || 0;
+    }
+  });
+
+  // Mapear egresos
+  (expensesRows as any[]).forEach(row => {
+    const monthEntry = months.find(m => 
+      m.year === row.year && m.month === row.month
+    );
+    if (monthEntry) {
+      monthEntry.egresos += Number(row.total) || 0;
+    }
+  });
+
+  // ========================================
+  // PASO 7: RETORNAR DATOS EN FORMATO FINAL
+  // ========================================
+  return months.map(({ label, ingresos, egresos }) => ({
+    label,
+    ingresos,
+    egresos
+  }));
+}
+
+/**
+ * Helper function to generate empty cash flow months
+ */
+function generateEmptyCashFlowMonths(now: Date) {
+  const months = [];
+  const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const month = d.getMonth();
+    const label = monthNames[month];
+
+    months.push({
+      label,
+      ingresos: 0,
+      egresos: 0
+    });
+  }
+
+  return months;
 }

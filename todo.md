@@ -4667,3 +4667,41 @@ Se agregó el rol "comercial" a los siguientes endpoints:
 ### Status: ✅ FASE 7.1 COMPLETADA
 El Resumen Financiero Detallado está completamente implementado y funcional.
 Listo para pasar a Fase 7.2 (Intelligent Alerts) cuando sea requerido.
+
+
+## Flujo de Caja Dinámico en Dashboard CEO
+
+### Backend - Implementación Raw SQL
+- [x] Crear función getCashFlowData() en server/db.ts
+- [x] Calcular rango dinámico de últimos 6 meses (incluye mes actual)
+- [x] Implementar pool de MySQL2 exportado para raw SQL queries
+- [x] Query raw SQL para ingresos agrupados por año/mes
+- [x] Query raw SQL para egresos agrupados por año/mes
+- [x] Construir array fijo de 6 meses con estructura correcta
+- [x] Agrupación manual en JavaScript de resultados SQL
+- [x] Validación: exactamente 6 meses, sin meses futuros, sin hardcodeados
+
+### Integración Backend
+- [x] Importar getCashFlowData en dashboardRouter
+- [x] Agregar cashFlow a respuesta de getGlobalDashboard
+- [x] Exportar pool de MySQL2 en db.ts
+- [x] Corregir estructura de datos retornada (label, ingresos, egresos)
+
+### Frontend - Renderización
+- [x] Importar Recharts (BarChart, Bar, XAxis, YAxis, Tooltip, Legend)
+- [x] Agregar gráfico en CEODashboard.tsx
+- [x] Mostrar título "Flujo de Caja - Últimos 6 Meses"
+- [x] Renderizar barras verdes para ingresos
+- [x] Renderizar barras rojas para egresos
+- [x] Formatear valores en tooltip como moneda
+- [x] Mostrar leyenda con "Ingresos" y "Egresos"
+
+### Validación
+- [x] Gráfico muestra exactamente 6 meses dinámicos
+- [x] Meses correctos: Sep 2025, Oct 2025, Nov 2025, Dic 2025, Ene 2026, Feb 2026
+- [x] No hay meses hardcodeados
+- [x] Funciona cruzando cambios de año
+- [x] Datos reales de la base de datos
+- [x] Sin errores SQL
+- [x] Sin errores de Drizzle ORM
+- [x] TypeScript compilando sin errores

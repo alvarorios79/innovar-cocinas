@@ -2455,6 +2455,11 @@ export const quotationsRouter = router({
     createProject: protectedProcedure
       .input(z.object({
         quotationId: z.number(),
+        initialPayment: z.object({
+          amount: z.number().min(0),
+          method: z.string(),
+          notes: z.string().optional(),
+        }).optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         // Solo admin y super_admin pueden crear proyectos
@@ -2520,6 +2525,29 @@ export const quotationsRouter = router({
           changedBy: ctx.user.id,
           notes: `Proyecto creado manualmente desde cotización ${quotation.quotationNumber}`,
         });
+
+        // Registrar pago inicial si se proporciona
+        if (input.initialPayment && input.initialPayment.amount > 0) {
+          // Validar que el monto no supere el total
+          const quotationTotal = typeof quotation.total === 'string' ? parseFloat(quotation.total) : quotation.total;
+          if (input.initialPayment.amount > quotationTotal) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: `El pago inicial (${input.initialPayment.amount}) no puede superar el total del proyecto (${quotation.total})`,
+            });
+          }
+          
+          // Crear pago inicial
+          await db.createPayment({
+            projectId: projectId,
+            amount: input.initialPayment.amount,
+            type: "advance",
+            method: input.initialPayment.method,
+            notes: input.initialPayment.notes || "Pago inicial registrado al crear proyecto",
+            registeredBy: ctx.user.id,
+            receivedAt: new Date(),
+          });
+        }
 
         // Actualizar el estado de la cotización a aprobada
         await db.updateQuotation(input.quotationId, {

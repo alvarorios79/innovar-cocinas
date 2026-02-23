@@ -19,11 +19,13 @@ import { quotationsVersioningRouter } from "./routers/quotations-versioning";
 import { systemRouter } from "./routers/system";
 import { paymentsRouter } from "./routers/payments";
 import { financialSettingsRouter } from "./routers/financialSettings";
+import { dashboardRouter } from "./routers/dashboard";
 
 export const appRouter = router({
   system: systemRouter,
   payments: paymentsRouter,
   financialSettings: financialSettingsRouter,
+  dashboard: dashboardRouter,
   auth: authRouter,
   clients: clientsRouter,
   appointments: appointmentsRouter,

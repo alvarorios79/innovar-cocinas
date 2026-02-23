@@ -30,8 +30,7 @@ interface ProjectRentability {
 
 export function CEOControlCenter() {
   // Query para obtener datos globales del dashboard
-  // @ts-expect-error - TypeScript cache issue, endpoint exists at runtime
-  const { data: dashboardData, isLoading, error } = trpc.projects.getGlobalDashboard.useQuery();
+  const { data: dashboardData, isLoading, error } = trpc.dashboard.getGlobalDashboard.useQuery();
 
   console.log('[CEOControlCenter] isLoading:', isLoading);
   console.log('[CEOControlCenter] error:', error);

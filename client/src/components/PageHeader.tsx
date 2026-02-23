@@ -54,8 +54,8 @@ export function PageHeader({
       {/* Título y acciones */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold">{title}</h1>
-          {subtitle && <p className="text-muted-foreground mt-1">{subtitle}</p>}
+          <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
+          {subtitle && <p className="text-sm text-muted-foreground mt-2">{subtitle}</p>}
         </div>
         {actions && <div className="flex gap-2 flex-wrap">{actions}</div>}
       </div>

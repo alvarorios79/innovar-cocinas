@@ -46,6 +46,7 @@ import { FileViewer, useFileViewer } from "@/components/FileViewer";
 import { MaterialsForm } from "@/components/MaterialsForm";
 import { HardwareSelector } from "@/components/HardwareSelector";
 import { ProjectInlineDetail } from "@/components/ProjectInlineDetail";
+import { PageHeader } from "@/components/PageHeader";
 
 // Estados del proyecto según Ruta INNOVAR (14 estados simplificados)
 const PROJECT_STATUSES: Record<string, { label: string; color: string; icon: any }> = {
@@ -506,19 +507,14 @@ export default function Projects() {
 
       <div className="container py-4 md:py-8 px-3 md:px-4">
         {/* Header con filtros y botón crear */}
+        <PageHeader
+          title="Proyectos"
+          subtitle={user?.role === "disenador" ? "Proyectos pendientes de diseño" : (user?.role === "jefe_taller" || user?.role === "operario") ? "Proyectos en producción" : "Todos los proyectos"}
+          showBack={false}
+        />
         <div className="flex flex-col gap-4 mb-4 md:mb-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div>
-              <h1 className="text-xl md:text-2xl font-bold flex items-center gap-2">
-                <FolderKanban className="h-5 w-5 md:h-6 md:w-6" />
-                Proyectos
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                {user?.role === "disenador" && "Proyectos pendientes de diseño"}
-                {(user?.role === "jefe_taller" || user?.role === "operario") && "Proyectos en producción"}
-                {(user?.role === "admin" || user?.role === "super_admin") && "Todos los proyectos"}
-              </p>
-            </div>
+            <div></div>
 
             <div className="flex flex-wrap gap-2">
               {/* Filtro por estado - filtrado según rol */}

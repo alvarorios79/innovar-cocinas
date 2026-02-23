@@ -33,6 +33,7 @@ import {
   X,
   Edit
 } from "lucide-react";
+import { PageHeader } from "@/components/PageHeader";
 // Storage upload will be handled via tRPC
 
 // Categorías generales obligatorias
@@ -358,13 +359,11 @@ export default function Accounting() {
   // Renderizar menú inicial
   const renderMainMenu = () => (
     <div className="space-y-6">
-      <div className="text-center mb-8">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-100 mb-4">
-          <Calculator className="w-8 h-8 text-emerald-600" />
-        </div>
-        <h2 className="text-2xl font-bold text-gray-900">Sistema Contable Interno</h2>
-        <p className="text-gray-500 mt-2">Selecciona el tipo de gasto que deseas registrar</p>
-      </div>
+      <PageHeader
+        title="Sistema Contable Interno"
+        subtitle="Selecciona el tipo de gasto que deseas registrar"
+        showBack={false}
+      />
 
       <div className="grid md:grid-cols-2 gap-4">
         <Card 

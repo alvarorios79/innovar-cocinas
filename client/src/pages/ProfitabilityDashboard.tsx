@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { trpc } from "@/lib/trpc";
 import { TrendingUp, DollarSign, Zap, Target, Calendar } from "lucide-react";
 import { formatPrice } from "@/lib/formatters";
+import { PageHeader } from "@/components/PageHeader";
 
 interface MonthlyMetrics {
   month: number;
@@ -166,16 +167,13 @@ export default function ProfitabilityDashboard() {
   const scale = maxValue > 0 ? 100 / maxValue : 1;
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-semibold tracking-tight mb-2">
-          📊 Dashboard de Rentabilidad
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          Análisis financiero del mes actual y últimos 6 meses
-        </p>
-      </div>
+    <div className="min-h-screen bg-background p-6">
+      <div className="max-w-7xl mx-auto">
+        <PageHeader
+          title="📊 Dashboard de Rentabilidad"
+          subtitle="Análisis financiero del mes actual y últimos 6 meses"
+          showBack={false}
+        />
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
@@ -429,6 +427,7 @@ export default function ProfitabilityDashboard() {
           </div>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }

@@ -55,6 +55,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PhotoUploader } from "@/components/PhotoUploader";
 import { PaymentsSection } from "@/components/PaymentsSection";
+import { PageHeader } from "@/components/PageHeader";
 import { toast } from "sonner";
 
 
@@ -508,23 +509,16 @@ export default function ProjectDetail() {
       
       <div className="container py-6">
         {/* Header */}
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-          <div className="flex items-center gap-4">
-            <Button variant="outline" onClick={() => window.history.back()}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Volver
-            </Button>
-            <div>
-              <h1 className="text-2xl font-bold">{projectDetail.name}</h1>
-              <p className="text-muted-foreground">
-                {WORK_TYPES[projectDetail.workType as keyof typeof WORK_TYPES] || projectDetail.workType}
-              </p>
-            </div>
-          </div>
-          <Badge className={`${PROJECT_STATUSES[projectDetail.status as keyof typeof PROJECT_STATUSES]?.color || "bg-gray-500"} text-white text-sm px-3 py-1`}>
-            {getStatusLabel(projectDetail.status, (projectDetail as any).modeladoRevisionNumber, (projectDetail as any).renderRevisionNumber)}
-          </Badge>
-        </div>
+        <PageHeader
+          title={projectDetail.name}
+          subtitle={WORK_TYPES[projectDetail.workType as keyof typeof WORK_TYPES] || projectDetail.workType}
+          showBack={true}
+          actions={
+            <Badge className={`${PROJECT_STATUSES[projectDetail.status as keyof typeof PROJECT_STATUSES]?.color || "bg-gray-500"} text-white text-sm px-3 py-1`}>
+              {getStatusLabel(projectDetail.status, (projectDetail as any).modeladoRevisionNumber, (projectDetail as any).renderRevisionNumber)}
+            </Badge>
+          }
+        />
 
         {/* Acciones rápidas */}
         <div className="flex flex-wrap gap-2 mb-6">

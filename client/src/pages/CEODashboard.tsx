@@ -3,6 +3,7 @@ import { trpc } from "@/lib/trpc";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { AlertCircle, TrendingUp, DollarSign, AlertTriangle, Clock } from "lucide-react";
+import { PageHeader } from "@/components/PageHeader";
 import {
   ResponsiveContainer,
   BarChart,
@@ -89,11 +90,11 @@ export function CEODashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-6">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold tracking-tight text-gray-900 mb-2">Panel Financiero CEO</h1>
-          <p className="text-sm text-muted-foreground">Control total del negocio - Métricas en tiempo real</p>
-        </div>
+        <PageHeader
+          title="Panel Financiero CEO"
+          subtitle="Control total del negocio - Métricas en tiempo real"
+          showBack={false}
+        />
 
         {/* KPI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">

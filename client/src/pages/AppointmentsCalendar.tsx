@@ -28,6 +28,7 @@ import {
   X,
 } from "lucide-react";
 import { VisualCalendar } from "@/components/VisualCalendar";
+import { PageHeader } from "@/components/PageHeader";
 import { toast } from "sonner";
 
 // Nombres de los días y meses en español
@@ -262,16 +263,11 @@ export default function AppointmentsCalendar() {
               <span className="hidden sm:inline">Inicio</span>
             </Button>
           </Link>
-          <div>
-            <h1 className="text-base md:text-xl font-bold text-gray-900 flex items-center gap-2">
-              <Calendar className="h-4 w-4 md:h-5 md:w-5 text-blue-600" />
-              <span className="hidden sm:inline">Calendario de Citas</span>
-              <span className="sm:hidden">Citas</span>
-            </h1>
-            <p className="hidden md:block text-sm text-gray-500">
-              Citas de toma de medidas programadas
-            </p>
-          </div>
+          <PageHeader
+            title="Calendario de Citas"
+            subtitle="Citas de toma de medidas programadas"
+            showBack={false}
+          />
           <Link href="/calendar">
             <Button variant="outline" size="sm" className="gap-2">
               <Calendar className="h-4 w-4" />

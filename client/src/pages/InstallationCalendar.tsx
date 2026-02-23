@@ -31,6 +31,7 @@ import {
   CheckCircle2,
   Home,
 } from "lucide-react";
+import { PageHeader } from "@/components/PageHeader";
 
 // Nombres de los días y meses en español
 const DAYS_SHORT = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
@@ -220,16 +221,11 @@ export default function InstallationCalendar() {
                   <span className="hidden sm:inline ml-1">Volver</span>
                 </Button>
               </Link>
-              <div>
-                <h1 className="text-base md:text-xl font-bold text-gray-900 flex items-center gap-2">
-                  <Calendar className="h-4 w-4 md:h-5 md:w-5 text-teal-600" />
-                  <span className="hidden sm:inline">Calendario de Instalaciones</span>
-                  <span className="sm:hidden">Instalaciones</span>
-                </h1>
-                <p className="hidden md:block text-sm text-gray-500">
-                  Gestiona las instalaciones programadas
-                </p>
-              </div>
+              <PageHeader
+                title="Calendario de Instalaciones"
+                subtitle="Gestiona las instalaciones programadas"
+                showBack={false}
+              />
             </div>
             <div className="flex items-center gap-2">
               <Link href="/appointments-calendar">

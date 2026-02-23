@@ -21,7 +21,8 @@ import {
   Calendar,
   ArrowUp,
   ArrowDown,
-  MessageCircle
+  MessageCircle,
+  ArrowLeft
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RemindersPanel } from "@/components/RemindersPanel";
@@ -1053,6 +1054,17 @@ export default function Tasks() {
                   </CardContent>
                 </Card>
               </div>
+
+              {/* Botón atrás */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => window.history.back()}
+                className="w-fit gap-2 mb-4"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Atrás
+              </Button>
 
               {/* Header con filtros */}
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">

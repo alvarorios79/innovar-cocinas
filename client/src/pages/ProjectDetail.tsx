@@ -476,7 +476,7 @@ export default function ProjectDetail() {
         
         <div className="container py-8">
           <p>Proyecto no encontrado.</p>
-          <Button onClick={() => navigate("/projects")} className="mt-4">
+          <Button onClick={() => window.history.back()} className="mt-4">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Volver a Proyectos
           </Button>
@@ -510,7 +510,7 @@ export default function ProjectDetail() {
         {/* Header */}
         <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
           <div className="flex items-center gap-4">
-            <Button variant="outline" onClick={() => navigate("/projects")}>
+            <Button variant="outline" onClick={() => window.history.back()}>
               <ArrowLeft className="h-4 w-4 mr-2" />
               Volver
             </Button>

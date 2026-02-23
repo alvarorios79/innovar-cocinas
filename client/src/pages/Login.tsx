@@ -123,7 +123,7 @@ export default function Login() {
               </Link>
             </p>
             <button
-              onClick={() => setLocation("/")}
+              onClick={() => window.history.back()}
               className="text-sm text-gray-500 hover:text-amber-600 transition-colors"
             >
               ← Volver a la página principal

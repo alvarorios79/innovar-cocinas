@@ -4705,3 +4705,34 @@ Listo para pasar a Fase 7.2 (Intelligent Alerts) cuando sea requerido.
 - [x] Sin errores SQL
 - [x] Sin errores de Drizzle ORM
 - [x] TypeScript compilando sin errores
+
+
+## Mini-Fase 16 – Email Opcional en Clientes + Fix Formulario de Edición
+
+### Backend (Zod Schema)
+- [x] Email opcional en getOrCreateByWhatsApp
+- [x] Email opcional en updateMyProfile
+- [x] Email opcional en createQuick
+- [x] Email opcional en update
+- [x] Soporta `.or(z.literal(""))` para permitir campo vacío
+- [x] Normalización: email vacío → null en BD
+
+### Frontend (Admin.tsx)
+- [x] Agregado useEffect para sincronizar editFormData cuando cambia editingClient
+- [x] Evita datos stale al editar múltiples clientes
+- [x] Flujo correcto: Editar Cliente A → Cancelar → Editar Cliente B → datos correctos
+
+### Tests
+- [x] 5 tests creados y pasando
+- [x] Actualizar cliente con todos los campos
+- [x] Permitir email vacío (se guarda como null)
+- [x] Actualizar solo algunos campos
+- [x] Rechazar sin permisos
+- [x] Validar email si se proporciona
+
+### Validación
+- [x] TypeScript: 0 errores
+- [x] Dev server: Corriendo correctamente
+- [x] Tests: 5/5 pasando
+- [x] BD: Columna email ya permite NULL
+- [x] Sistema completamente funcional

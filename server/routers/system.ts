@@ -64,31 +64,44 @@ export const systemRouter = router({
         const appointmentResult = await tx
           .delete(appointments)
           .where(eq(appointments.dataOrigin, "system"));
-        appointmentsDeleted = appointmentResult[0].affectedRows || 0;
+        console.log("[Cleanup] appointmentResult:", appointmentResult);
+        appointmentsDeleted = appointmentResult?.[0]?.affectedRows || 0;
 
         // 2. Delete quotations with dataOrigin = 'system'
         const quotationResult = await tx
           .delete(quotations)
           .where(eq(quotations.dataOrigin, "system"));
-        quotationsDeleted = quotationResult[0].affectedRows || 0;
+        console.log("[Cleanup] quotationResult:", quotationResult);
+        quotationsDeleted = quotationResult?.[0]?.affectedRows || 0;
 
         // 3. Delete projects with dataOrigin = 'system'
         const projectResult = await tx
           .delete(projects)
           .where(eq(projects.dataOrigin, "system"));
-        projectsDeleted = projectResult[0].affectedRows || 0;
+        console.log("[Cleanup] projectResult:", projectResult);
+        projectsDeleted = projectResult?.[0]?.affectedRows || 0;
 
         // 4. Delete clients with dataOrigin = 'system'
         const clientResult = await tx
           .delete(clients)
           .where(eq(clients.dataOrigin, "system"));
-        clientsDeleted = clientResult[0].affectedRows || 0;
+        console.log("[Cleanup] clientResult:", clientResult);
+        clientsDeleted = clientResult?.[0]?.affectedRows || 0;
 
         // 5. Delete users with dataOrigin = 'system'
         const userResult = await tx
           .delete(users)
           .where(eq(users.dataOrigin, "system"));
-        usersDeleted = userResult[0].affectedRows || 0;
+        console.log("[Cleanup] userResult:", userResult);
+        usersDeleted = userResult?.[0]?.affectedRows || 0;
+      });
+
+      console.log("[Cleanup] Final results:", {
+        appointmentsDeleted,
+        quotationsDeleted,
+        projectsDeleted,
+        clientsDeleted,
+        usersDeleted,
       });
 
       return {

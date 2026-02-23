@@ -35,6 +35,7 @@ import { formatPrice } from "@/lib/formatters";
 import { CreateQuickClientDialog } from "@/components/CreateQuickClientDialog";
 import { usePricing, getPriceFromMap } from "@/hooks/usePricing";
 import { QuotationGroupCard } from "@/components/QuotationGroupCard";
+import { InitialPaymentModal } from "@/components/InitialPaymentModal";
 
 
 interface HardwareSelection {
@@ -115,6 +116,10 @@ export default function Quotations() {
   const [pdfEditorNotes, setPdfEditorNotes] = useState("");
   const [pdfEditorClientName, setPdfEditorClientName] = useState("");
   const [pdfEditorQuotationNumber, setPdfEditorQuotationNumber] = useState("");
+  
+  // Estados para modal de pago inicial
+  const [initialPaymentModalOpen, setInitialPaymentModalOpen] = useState(false);
+  const [pendingQuotationForProject, setPendingQuotationForProject] = useState<any | null>(null);
   
   // Estado para descuento
   const [discountPercent, setDiscountPercent] = useState<number>(0);
@@ -331,6 +336,17 @@ export default function Quotations() {
       toast.error(error.message || "Error al crear el proyecto");
     },
   });
+
+  const handleCreateProjectWithPayment = (paymentData: { amount: number; method: string }) => {
+    if (!pendingQuotationForProject) return;
+    createProjectFromQuotation.mutate({
+      quotationId: pendingQuotationForProject.id,
+      initialPayment: {
+        amount: paymentData.amount,
+        method: paymentData.method,
+      },
+    });
+  };
 
   // Mutación para crear nueva versión de cotización
   const createVersion = trpc.quotationsVersioning.createVersion.useMutation({
@@ -1494,9 +1510,8 @@ export default function Quotations() {
                 }
               }}
               onCreateProject={(quotation) => {
-                if (window.confirm(`¿Crear proyecto para la cotización ${group.quotationNumber}?\n\nEsto creará un proyecto con los datos financieros y fechas de la cotización.`)) {
-                  createProjectFromQuotation.mutate({ quotationId: quotation.id });
-                }
+                setPendingQuotationForProject(quotation);
+                setInitialPaymentModalOpen(true);
               }}
               onEditPDF={(quotation) => handleOpenPdfEditor(quotation.id)}
               onToggleLock={(quotation) => {
@@ -3480,6 +3495,21 @@ export default function Quotations() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Modal de Pago Inicial */}
+      {pendingQuotationForProject && (
+        <InitialPaymentModal
+          open={initialPaymentModalOpen}
+          totalAmount={pendingQuotationForProject.totalAmount || 0}
+          quotationNumber={pendingQuotationForProject.quotationNumber || ""}
+          onConfirm={handleCreateProjectWithPayment}
+          onCancel={() => {
+            setInitialPaymentModalOpen(false);
+            setPendingQuotationForProject(null);
+          }}
+          isLoading={createProjectFromQuotation.isPending}
+        />
+      )}
     </div>
   );
 }

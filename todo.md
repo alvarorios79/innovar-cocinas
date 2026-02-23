@@ -4736,3 +4736,33 @@ Listo para pasar a Fase 7.2 (Intelligent Alerts) cuando sea requerido.
 - [x] Tests: 5/5 pasando
 - [x] BD: Columna email ya permite NULL
 - [x] Sistema completamente funcional
+
+
+## Política de Responsive Design Obligatorio
+
+### Establecimiento de Estándares
+- [x] Crear guía de responsive design (RESPONSIVE_DESIGN_GUIDE.md)
+- [x] Documentar breakpoints estándar (mobile-first)
+- [x] Crear checklist de validación responsive
+- [x] Documentar patrones recomendados
+- [x] Documentar anti-patrones prohibidos
+
+### Aplicación de Política
+- [ ] Auditar y corregir páginas existentes con widths fijos
+- [ ] Reemplazar widths fijos en Admin.tsx
+- [ ] Reemplazar widths fijos en Projects.tsx
+- [ ] Reemplazar widths fijos en Accounting.tsx
+- [ ] Reemplazar widths fijos en ProjectDetail.tsx
+- [ ] Reemplazar widths fijos en AppointmentsCalendar.tsx
+- [ ] Reemplazar widths fijos en InstallationCalendar.tsx
+
+### Validación
+- [ ] Probar todas las páginas en móvil (≤640px)
+- [ ] Probar todas las páginas en tablet (641-1024px)
+- [ ] Probar todas las páginas en laptop (1025-1536px)
+- [ ] Probar todas las páginas en desktop (>1536px)
+
+### Futuro
+- [ ] Agregar tests de responsive design
+- [ ] Integrar validación responsive en CI/CD
+- [ ] Crear componentes responsive reutilizables

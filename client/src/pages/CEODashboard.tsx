@@ -2,7 +2,9 @@ import { useEffect, useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { AlertCircle, TrendingUp, DollarSign, AlertTriangle, Clock } from "lucide-react";
+import { AlertCircle, TrendingUp, DollarSign, AlertTriangle, Clock, Bug } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/_core/hooks/useAuth";
 import { PageHeader } from "@/components/PageHeader";
 import {
   ResponsiveContainer,
@@ -26,6 +28,8 @@ const formatCurrency = (value: number) => {
 
 export function CEODashboard() {
   const { data: dashboardData, isLoading, error } = trpc.dashboard.getGlobalDashboard.useQuery();
+  const { user } = useAuth();
+  const debugWhatsapp = trpc.quotationsDebug.sendByWhatsAppDebug.useMutation();
 
   // DEBUG LOGS
   useEffect(() => {
@@ -33,6 +37,19 @@ export function CEODashboard() {
     console.log("Dashboard error:", error);
     console.log("Dashboard loading:", isLoading);
   }, [dashboardData, error, isLoading]);
+
+  // Manejar respuesta de debug
+  useEffect(() => {
+    if (debugWhatsapp.data) {
+      console.log("[WHATSAPP DEBUG] RESULTADO COMPLETO:", debugWhatsapp.data);
+    }
+  }, [debugWhatsapp.data]);
+
+  useEffect(() => {
+    if (debugWhatsapp.error) {
+      console.error("[WHATSAPP DEBUG] ERROR:", debugWhatsapp.error);
+    }
+  }, [debugWhatsapp.error]);
 
   if (isLoading) {
     return (
@@ -94,6 +111,22 @@ export function CEODashboard() {
           title="Panel Financiero CEO"
           subtitle="Control total del negocio - Métricas en tiempo real"
           showBack={false}
+          actions={
+            user?.role === 'super_admin' && (
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => {
+                  debugWhatsapp.mutate({ quotationId: 1 });
+                }}
+                disabled={debugWhatsapp.isPending}
+                className="gap-2"
+              >
+                <Bug className="h-4 w-4" />
+                {debugWhatsapp.isPending ? "Enviando..." : "DEBUG WHATSAPP"}
+              </Button>
+            )
+          }
         />
 
         {/* KPI Cards */}

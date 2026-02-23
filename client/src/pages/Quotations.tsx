@@ -1660,9 +1660,18 @@ export default function Quotations() {
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
         <DialogContent className="w-[95vw] sm:w-[90vw] md:max-w-3xl lg:max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto p-0">
           {/* Header con gradiente */}
-          <div className="bg-gradient-to-r from-[oklch(0.72_0.14_180)] to-[oklch(0.60_0.14_180)] p-4 sm:p-6 rounded-t-lg">
+          <div className="bg-gradient-to-r from-[oklch(0.72_0.14_180)] to-[oklch(0.60_0.14_180)] p-4 sm:p-6 rounded-t-lg relative">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute right-2 top-2 sm:right-4 sm:top-4 text-white hover:bg-white/20 h-8 w-8 sm:h-10 sm:w-10"
+              onClick={() => setShowCreateDialog(false)}
+              title="Cerrar (ESC)"
+            >
+              ✕
+            </Button>
             <DialogHeader>
-              <DialogTitle className="text-white text-lg sm:text-xl flex items-center gap-2 sm:gap-3">
+              <DialogTitle className="text-white text-lg sm:text-xl flex items-center gap-2 sm:gap-3 pr-8">
                 <FileText className="h-5 w-5 sm:h-6 sm:w-6" />
                 {editingQuotation ? "Editar Cotización" : "Nueva Cotización"}
               </DialogTitle>

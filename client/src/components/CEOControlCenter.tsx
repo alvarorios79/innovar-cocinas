@@ -207,22 +207,22 @@ export function CEOControlCenter() {
         </div>
 
         {/* 2️⃣ CARTERA PENDIENTE */}
-        <div className="grid grid-cols-3 gap-3">
-          <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600 min-w-0 overflow-hidden">
             <p className="text-xs text-slate-400 mb-1">Cartera Pendiente</p>
-            <p className="text-lg font-bold text-red-400">{formatCurrency(carteraPendiente)}</p>
+            <p className="text-lg md:text-xl lg:text-2xl font-bold text-red-400 break-words">{formatCurrency(carteraPendiente)}</p>
             <p className="text-xs text-slate-400 mt-1">{dashboardData?.proyectosConSaldoVencido || 0} proyectos</p>
           </div>
 
-          <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600">
+          <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600 min-w-0 overflow-hidden">
             <p className="text-xs text-slate-400 mb-1">Cartera Total</p>
-            <p className="text-lg font-bold text-blue-400">{formatCurrency(totalIngresos)}</p>
+            <p className="text-lg md:text-xl lg:text-2xl font-bold text-blue-400 break-words">{formatCurrency(totalIngresos)}</p>
             <p className="text-xs text-slate-400 mt-1">{totalProjects} proyectos</p>
           </div>
 
-          <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600">
+          <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600 min-w-0 overflow-hidden">
             <p className="text-xs text-slate-400 mb-1">Proyectos Activos</p>
-            <p className="text-lg font-bold text-amber-400">{totalProjects}</p>
+            <p className="text-lg md:text-xl lg:text-2xl font-bold text-amber-400 break-words">{totalProjects}</p>
             <p className="text-xs text-slate-400 mt-1">En producción</p>
           </div>
         </div>

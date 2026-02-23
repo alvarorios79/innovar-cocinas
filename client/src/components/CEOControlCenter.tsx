@@ -113,7 +113,7 @@ export function CEOControlCenter() {
       </CardHeader>
 
       {/* Contenido - Alertas + 4 Secciones */}
-      <CardContent className="p-4 md:p-6 space-y-6">
+      <CardContent className="p-6 space-y-6">
         {/* ALERTAS FINANCIERAS */}
         {dashboardData?.alerts && Object.values(dashboardData.alerts).some(Boolean) && (
           <div className="bg-red-950/40 border-l-4 border-red-500 rounded-lg p-4 space-y-3">
@@ -152,11 +152,11 @@ export function CEOControlCenter() {
 
         {/* 1️⃣ FLUJO DE CAJA MENSUAL */}
         <div className="space-y-3">
-          <h3 className="text-xs md:text-sm font-bold text-slate-200 flex items-center gap-2">
+          <h3 className="text-sm font-bold text-slate-200 flex items-center gap-2">
             <TrendingUp className="h-4 w-4 text-green-400" />
             Flujo de Caja Mensual (últimos 6 meses)
           </h3>
-          <div className="grid grid-cols-3 md:grid-cols-6 gap-1 md:gap-2">
+          <div className="grid grid-cols-6 gap-2">
             {cashFlowData.map((month, idx) => {
               const maxValue = Math.max(...cashFlowData.map(m => Math.max(m.inflow, m.outflow)));
               const inflowHeight = (month.inflow / maxValue) * 100;
@@ -194,30 +194,30 @@ export function CEOControlCenter() {
         </div>
 
         {/* 2️⃣ CARTERA PENDIENTE */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          <div className="bg-slate-700/50 rounded-lg p-3 md:p-4 border border-slate-600">
+        <div className="grid grid-cols-3 gap-3">
+          <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600">
             <p className="text-xs text-slate-400 mb-1">Cartera Pendiente</p>
-            <p className="text-xl md:text-2xl lg:text-3xl font-bold text-red-400 break-words">{formatCurrency(carteraPendiente)}</p>
+            <p className="text-lg font-bold text-red-400">{formatCurrency(carteraPendiente)}</p>
             <p className="text-xs text-slate-400 mt-1">{dashboardData?.proyectosConSaldoVencido || 0} proyectos</p>
           </div>
 
-          <div className="bg-slate-700/50 rounded-lg p-3 md:p-4 border border-slate-600">
+          <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600">
             <p className="text-xs text-slate-400 mb-1">Cartera Total</p>
-            <p className="text-xl md:text-2xl lg:text-3xl font-bold text-blue-400 break-words">{formatCurrency(totalIngresos)}</p>
+            <p className="text-lg font-bold text-blue-400">{formatCurrency(totalIngresos)}</p>
             <p className="text-xs text-slate-400 mt-1">{totalProjects} proyectos</p>
           </div>
 
-          <div className="bg-slate-700/50 rounded-lg p-3 md:p-4 border border-slate-600">
+          <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600">
             <p className="text-xs text-slate-400 mb-1">Proyectos Activos</p>
-            <p className="text-xl md:text-2xl lg:text-3xl font-bold text-amber-400">{totalProjects}</p>
+            <p className="text-lg font-bold text-amber-400">{totalProjects}</p>
             <p className="text-xs text-slate-400 mt-1">En producción</p>
           </div>
         </div>
 
         {/* 3️⃣ TASA DE COBRANZA */}
         <div className="space-y-2">
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-2">
-            <h3 className="text-xs md:text-sm font-bold text-slate-200 flex items-center gap-2">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-bold text-slate-200 flex items-center gap-2">
               <Target className="h-4 w-4 text-cyan-400" />
               Tasa de Cobranza
             </h3>
@@ -235,15 +235,15 @@ export function CEOControlCenter() {
               style={{ width: `${Math.min(collectionRate, 100)}%` }}
             />
           </div>
-          <div className="flex flex-col md:flex-row justify-between text-xs text-slate-400 mt-2 gap-1">
-            <span className="break-words">Pagado: {formatCurrency(totalPagosRecibidos)}</span>
+          <div className="flex justify-between text-xs text-slate-400 mt-2">
+            <span>Pagado: {formatCurrency(totalPagosRecibidos)}</span>
             <span>Meta: 80%</span>
           </div>
         </div>
 
         {/* 4️⃣ TABLA RENTABILIDAD */}
         <div className="space-y-2">
-          <h3 className="text-xs md:text-sm font-bold text-slate-200 flex items-center gap-2">
+          <h3 className="text-sm font-bold text-slate-200 flex items-center gap-2">
             <DollarSign className="h-4 w-4 text-emerald-400" />
             Top 5 Proyectos por Rentabilidad
           </h3>
@@ -251,26 +251,26 @@ export function CEOControlCenter() {
             <table className="w-full text-xs">
               <thead>
                 <tr className="border-b border-slate-600">
-                  <th className="text-left py-2 px-1 md:px-2 text-slate-300">Proyecto</th>
-                  <th className="text-right py-2 px-1 md:px-2 text-slate-300 text-xs">Total</th>
-                  <th className="text-right py-2 px-1 md:px-2 text-slate-300 text-xs">Pagado</th>
-                  <th className="text-right py-2 px-1 md:px-2 text-slate-300 text-xs">Margen</th>
+                  <th className="text-left py-2 px-2 text-slate-300">Proyecto</th>
+                  <th className="text-right py-2 px-2 text-slate-300">Total</th>
+                  <th className="text-right py-2 px-2 text-slate-300">Pagado</th>
+                  <th className="text-right py-2 px-2 text-slate-300">Margen</th>
                 </tr>
               </thead>
               <tbody>
                 {rentabilityData.map((project, idx) => (
                   <tr key={idx} className="border-b border-slate-700 hover:bg-slate-700/30 transition-colors">
-                    <td className="py-2 px-1 md:px-2 text-slate-300 truncate text-xs">{project.name}</td>
-                    <td className="text-right py-2 px-1 md:px-2 text-slate-300 text-xs min-w-0">{formatCurrency(project.totalAmount)}</td>
-                    <td className="text-right py-2 px-1 md:px-2 text-xs min-w-0">
+                    <td className="py-2 px-2 text-slate-300 truncate">{project.name}</td>
+                    <td className="text-right py-2 px-2 text-slate-300 text-xs">{formatCurrency(project.totalAmount)}</td>
+                    <td className="text-right py-2 px-2">
                       <span className={project.totalPaid > 0 ? 'text-green-400' : 'text-slate-400'}>
                         {formatCurrency(project.totalPaid)}
                       </span>
                     </td>
-                    <td className="text-right py-2 px-1 md:px-2">
+                    <td className="text-right py-2 px-2">
                       <Badge 
                         variant="outline" 
-                        className={`text-xs ${
+                        className={`${
                           project.profitMargin >= 40 ? 'bg-green-900 text-green-300 border-green-700' :
                           project.profitMargin >= 25 ? 'bg-blue-900 text-blue-300 border-blue-700' :
                           'bg-slate-700 text-slate-300 border-slate-600'
@@ -287,7 +287,7 @@ export function CEOControlCenter() {
         </div>
 
         {/* Footer con KPI Summary */}
-        <div className="pt-4 border-t border-slate-600 flex flex-col md:flex-row items-start md:items-center justify-between text-xs text-slate-400 gap-2">
+        <div className="pt-4 border-t border-slate-600 flex items-center justify-between text-xs text-slate-400">
           <span>Última actualización: Hoy</span>
           <div className="flex items-center gap-2">
             <CheckCircle2 className="h-3 w-3 text-green-400" />

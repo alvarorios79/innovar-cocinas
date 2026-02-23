@@ -49,4 +49,10 @@ export const appRouter = router({
   quotationsVersioning: quotationsVersioningRouter,
 });
 
+// DEBUG: Confirmar ruta del AppRouter
+if (typeof __filename !== 'undefined') {
+  console.log('[AppRouter DEBUG] Loaded from:', __filename);
+  console.log('[AppRouter DEBUG] appRouter keys:', Object.keys(appRouter._def.procedures));
+}
+
 export type AppRouter = typeof appRouter;

@@ -1,0 +1,19 @@
+{
+  "query": "SELECT COUNT(*) as project_count FROM projects WHERE dataOrigin = 'manual' AND deletedAt IS NULL; SELECT COUNT(*) as payment_count FROM payments;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT COUNT(*) as project_count FROM projects WHERE dataOrigin = 'manual' AND deletedAt IS NULL; SELECT COUNT(*) as payment_count FROM payments;",
+  "rows": [
+    {
+      "project_count": "6"
+    },
+    {
+      "project_count": "payment_count"
+    },
+    {
+      "project_count": "7"
+    }
+  ],
+  "messages": [],
+  "stdout": "project_count\n6\npayment_count\n7\n",
+  "stderr": "",
+  "execution_time_ms": 87
+}

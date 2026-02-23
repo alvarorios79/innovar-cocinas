@@ -1584,11 +1584,17 @@ export const projectMaterialsRouter = router({
         return await dbModule.getProjectFinancialSummary(input.projectId);
       }),
     
-    // Test endpoint to verify router registration
-    testEndpoint: protectedProcedure
+    // Test endpoint
+    testEndpoint: publicProcedure
       .query(() => {
-        return { ok: true, message: "Test endpoint works!" };
+        return { message: "Test endpoint works!" };
       }),
+
+    // Ping test para verificar alineación de tipos
+    pingTest: publicProcedure
+      .query(() => "pong"),
+
+
 
     // Get global financial dashboard (CEO/Admin only)
     getGlobalDashboard: protectedProcedure
@@ -1597,8 +1603,9 @@ export const projectMaterialsRouter = router({
         if (ctx.user.role !== "super_admin" && ctx.user.role !== "admin") {
           throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para ver el dashboard financiero" });
         }
-        // @ts-ignore - Function exists but TypeScript cache issue
-        return await db.getGlobalFinancialDashboard();
+        const result = await db.getGlobalFinancialDashboard();
+        console.log('[DASHBOARD DEBUG] Result:', result);
+        return result;
       }),
 });
 

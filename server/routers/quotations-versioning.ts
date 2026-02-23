@@ -35,17 +35,29 @@ export const quotationsVersioningRouter = router({
           ctx.user.id
         );
 
+        // Import getQuotationById to fetch the new quotation
+        const { getQuotationById } = await import("../db");
+        const newQuotation = await getQuotationById(newQuotationId);
+
         // Actualizar el proyecto para que apunte a la nueva versión
         const project = await getProjectByQuotationId(input.quotationId);
-        if (project) {
-          await updateProject(project.id, { quotationId: newQuotationId });
-        } else {
+        if (project && newQuotation) {
+          // PHASE 2: Sync projects.totalAmount with new quotation.total
+          await updateProject(project.id, {
+            quotationId: newQuotationId,
+            totalAmount: Number(newQuotation.total) || 0,
+          });
+        } else if (!project) {
           // Buscar si el proyecto está asociado a la cotización base
           const versionInfo = await versioning.getQuotationVersionInfo(input.quotationId);
           if (versionInfo?.baseQuotationId) {
             const baseProject = await getProjectByQuotationId(versionInfo.baseQuotationId);
-            if (baseProject) {
-              await updateProject(baseProject.id, { quotationId: newQuotationId });
+            if (baseProject && newQuotation) {
+              // PHASE 2: Sync projects.totalAmount with new quotation.total
+              await updateProject(baseProject.id, {
+                quotationId: newQuotationId,
+                totalAmount: Number(newQuotation.total) || 0,
+              });
             }
           }
         }

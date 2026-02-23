@@ -1,0 +1,52 @@
+{
+  "query": "SELECT p.id, p.quotationId, p.totalAmount, q.id as quot_id, q.total as quot_total FROM projects p LEFT JOIN quotations q ON p.quotationId = q.id WHERE p.dataOrigin = 'manual' AND p.deletedAt IS NULL;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT p.id, p.quotationId, p.totalAmount, q.id as quot_id, q.total as quot_total FROM projects p LEFT JOIN quotations q ON p.quotationId = q.id WHERE p.dataOrigin = 'manual' AND p.deletedAt IS NULL;",
+  "rows": [
+    {
+      "id": "390001",
+      "quotationId": "510001",
+      "totalAmount": "26621600.00",
+      "quot_id": "510001",
+      "quot_total": "26621600.00"
+    },
+    {
+      "id": "540001",
+      "quotationId": "540008",
+      "totalAmount": "7305750.00",
+      "quot_id": "540008",
+      "quot_total": "7305750.00"
+    },
+    {
+      "id": "1170001",
+      "quotationId": "1320001",
+      "totalAmount": "16787435.00",
+      "quot_id": "1320001",
+      "quot_total": "16787435.00"
+    },
+    {
+      "id": "1170002",
+      "quotationId": "1320002",
+      "totalAmount": "1500000.00",
+      "quot_id": "1320002",
+      "quot_total": "1500000.00"
+    },
+    {
+      "id": "1260001",
+      "quotationId": "1410002",
+      "totalAmount": "2550000.00",
+      "quot_id": "1410002",
+      "quot_total": "2550000.00"
+    },
+    {
+      "id": "1290001",
+      "quotationId": "1740001",
+      "totalAmount": "2970000.00",
+      "quot_id": "1740001",
+      "quot_total": "4460000.00"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tquotationId\ttotalAmount\tquot_id\tquot_total\n390001\t510001\t26621600.00\t510001\t26621600.00\n540001\t540008\t7305750.00\t540008\t7305750.00\n1170001\t1320001\t16787435.00\t1320001\t16787435.00\n1170002\t1320002\t1500000.00\t1320002\t1500000.00\n1260001\t1410002\t2550000.00\t1410002\t2550000.00\n1290001\t1740001\t2970000.00\t1740001\t4460000.00\n",
+  "stderr": "",
+  "execution_time_ms": 60
+}

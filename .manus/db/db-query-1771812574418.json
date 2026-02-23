@@ -1,0 +1,46 @@
+{
+  "query": "SELECT id, quotationId, totalAmount, dataOrigin FROM projects WHERE dataOrigin = 'manual' AND deletedAt IS NULL LIMIT 10;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT id, quotationId, totalAmount, dataOrigin FROM projects WHERE dataOrigin = 'manual' AND deletedAt IS NULL LIMIT 10;",
+  "rows": [
+    {
+      "id": "390001",
+      "quotationId": "510001",
+      "totalAmount": "NULL",
+      "dataOrigin": "manual"
+    },
+    {
+      "id": "540001",
+      "quotationId": "540008",
+      "totalAmount": "7305750.00",
+      "dataOrigin": "manual"
+    },
+    {
+      "id": "1170001",
+      "quotationId": "1320001",
+      "totalAmount": "16787435.00",
+      "dataOrigin": "manual"
+    },
+    {
+      "id": "1170002",
+      "quotationId": "1320002",
+      "totalAmount": "1500000.00",
+      "dataOrigin": "manual"
+    },
+    {
+      "id": "1260001",
+      "quotationId": "1410002",
+      "totalAmount": "2550000.00",
+      "dataOrigin": "manual"
+    },
+    {
+      "id": "1290001",
+      "quotationId": "1740001",
+      "totalAmount": "2970000.00",
+      "dataOrigin": "manual"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tquotationId\ttotalAmount\tdataOrigin\n390001\t510001\tNULL\tmanual\n540001\t540008\t7305750.00\tmanual\n1170001\t1320001\t16787435.00\tmanual\n1170002\t1320002\t1500000.00\tmanual\n1260001\t1410002\t2550000.00\tmanual\n1290001\t1740001\t2970000.00\tmanual\n",
+  "stderr": "",
+  "execution_time_ms": 58
+}

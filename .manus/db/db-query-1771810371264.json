@@ -1,0 +1,24 @@
+{
+  "query": "SELECT \n  COUNT(*) as total_pagos,\n  COUNT(CASE WHEN amount > 0 THEN 1 END) as pagos_con_monto,\n  SUM(amount) as monto_total\nFROM payments;\n\nSELECT \n  id,\n  projectId,\n  amount,\n  type,\n  receivedAt,\n  method\nFROM payments\nORDER BY receivedAt DESC\nLIMIT 20;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT \n  COUNT(*) as total_pagos,\n  COUNT(CASE WHEN amount > 0 THEN 1 END) as pagos_con_monto,\n  SUM(amount) as monto_total\nFROM payments;\n\nSELECT \n  id,\n  projectId,\n  amount,\n  type,\n  receivedAt,\n  method\nFROM payments\nORDER BY receivedAt DESC\nLIMIT 20;",
+  "rows": [
+    {
+      "total_pagos": "7",
+      "pagos_con_monto": "7",
+      "monto_total": "34251421.00"
+    }
+  ],
+  "messages": [
+    "id\tprojectId\tamount\ttype\treceivedAt\tmethod",
+    "1\t1290001\t2676000.00\tadvance\t2026-02-23 00:00:00\ttransfer",
+    "2\t1260001\t1530000.00\tadvance\t2026-02-23 00:00:00\tcash",
+    "7\t390001\t15972960.00\tadvance\t2026-02-20 00:00:00\ttransfer",
+    "4\t1170002\t500000.00\tfinal\t2026-02-19 00:00:00\ttransfer",
+    "6\t540001\t2500000.00\tadvance\t2026-02-18 00:00:00\ttransfer",
+    "5\t1170001\t10072461.00\tadvance\t2026-02-10 00:00:00\ttransfer",
+    "3\t1170002\t1000000.00\tadvance\t2026-01-23 00:00:00\ttransfer"
+  ],
+  "stdout": "total_pagos\tpagos_con_monto\tmonto_total\n7\t7\t34251421.00\nid\tprojectId\tamount\ttype\treceivedAt\tmethod\n1\t1290001\t2676000.00\tadvance\t2026-02-23 00:00:00\ttransfer\n2\t1260001\t1530000.00\tadvance\t2026-02-23 00:00:00\tcash\n7\t390001\t15972960.00\tadvance\t2026-02-20 00:00:00\ttransfer\n4\t1170002\t500000.00\tfinal\t2026-02-19 00:00:00\ttransfer\n6\t540001\t2500000.00\tadvance\t2026-02-18 00:00:00\ttransfer\n5\t1170001\t10072461.00\tadvance\t2026-02-10 00:00:00\ttransfer\n3\t1170002\t1000000.00\tadvance\t2026-01-23 00:00:00\ttransfer\n",
+  "stderr": "",
+  "execution_time_ms": 69
+}

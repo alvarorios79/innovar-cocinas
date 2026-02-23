@@ -30,8 +30,12 @@ interface ProjectRentability {
 
 export function CEOControlCenter() {
   // Query para obtener datos globales del dashboard
-  // @ts-expect-error - TypeScript cache issue, procedure exists at runtime
-  const { data: dashboardData, isLoading } = trpc.projects.getGlobalDashboard.useQuery();
+  // @ts-expect-error - TypeScript cache issue, endpoint exists at runtime
+  const { data: dashboardData, isLoading, error } = trpc.projects.getGlobalDashboard.useQuery();
+
+  console.log('[CEOControlCenter] isLoading:', isLoading);
+  console.log('[CEOControlCenter] error:', error);
+  console.log('[CEOControlCenter] data:', dashboardData);
 
   if (isLoading) {
     return (
@@ -43,12 +47,36 @@ export function CEOControlCenter() {
     );
   }
 
-  // Calcular datos para las 4 secciones
-  const projects = dashboardData?.projects || [];
-  const totalProjects = projects.length;
-  const activeProjects = projects.filter((p: any) => !['entregado', 'cancelado'].includes(p.status)).length;
+  if (error) {
+    return (
+      <Card className="border-2 border-red-800 bg-gradient-to-br from-red-900 to-red-800 shadow-2xl">
+        <CardContent className="p-6 text-center text-red-300">
+          <div className="font-bold mb-2">Error al cargar Dashboard</div>
+          <div className="text-sm">{error.message}</div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!dashboardData) {
+    return (
+      <Card className="border-2 border-yellow-800 bg-gradient-to-br from-yellow-900 to-yellow-800 shadow-2xl">
+        <CardContent className="p-6 text-center text-yellow-300">
+          Sin datos disponibles
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Usar datos reales del backend
+  const totalIngresos = Number(dashboardData?.totalIngresos) || 0;
+  const totalPagosRecibidos = Number(dashboardData?.totalPagosRecibidos) || 0;
+  const carteraPendiente = totalIngresos - totalPagosRecibidos;
+  const totalProjects = dashboardData?.totalProyectos || 0;
+  const collectionRate = dashboardData?.collectionRate || 0;
+  const outstandingRatio = dashboardData?.outstandingRatio || 0;
   
-  // Datos de flujo de caja (simulado)
+  // Datos de flujo de caja (simulado por ahora)
   const cashFlowData: CashFlowMonth[] = [
     { month: 'Ene', inflow: 45000000, outflow: 28000000 },
     { month: 'Feb', inflow: 52000000, outflow: 31000000 },
@@ -58,31 +86,17 @@ export function CEOControlCenter() {
     { month: 'Jun', inflow: 67000000, outflow: 38000000 },
   ];
 
-  // Cartera pendiente
-  const pendingPortfolio = projects
-    .filter((p: any) => p.financialInfo?.balance > 0)
-    .reduce((sum: number, p: any) => sum + (p.financialInfo?.balance || 0), 0);
-
-  const totalPortfolio = projects
-    .reduce((sum: number, p: any) => sum + (p.financialInfo?.totalAmount || 0), 0);
-
-  // Tasa de cobranza
-  const totalPaid = projects
-    .reduce((sum: number, p: any) => sum + (p.financialInfo?.totalPaid || 0), 0);
-
-  const collectionRate = totalPortfolio > 0 ? (totalPaid / totalPortfolio) * 100 : 0;
-
-  // Rentabilidad (simulada)
-  const rentabilityData: ProjectRentability[] = projects
-    .slice(0, 5)
-    .map((p: any) => ({
-      name: p.name || 'Proyecto',
-      totalAmount: p.financialInfo?.totalAmount || 0,
-      totalPaid: p.financialInfo?.totalPaid || 0,
-      balance: p.financialInfo?.balance || 0,
-      profitMargin: Math.random() * 40 + 20, // 20-60%
-      status: p.status || 'desconocido',
-    }));
+  // Rentabilidad (simulada por ahora)
+  const rentabilityData: ProjectRentability[] = [
+    {
+      name: 'Proyecto 1',
+      totalAmount: totalIngresos / 5,
+      totalPaid: totalPagosRecibidos / 5,
+      balance: carteraPendiente / 5,
+      profitMargin: 35,
+      status: 'en_produccion',
+    },
+  ];
 
   return (
     <Card className="border-2 border-slate-800 bg-gradient-to-br from-slate-900 to-slate-800 shadow-2xl overflow-hidden">
@@ -112,13 +126,13 @@ export function CEOControlCenter() {
               {dashboardData.alerts.highOutstanding && (
                 <div className="flex items-start gap-2">
                   <span className="text-red-400 mt-0.5">•</span>
-                  <span>Cartera pendiente supera 40% ({dashboardData.outstandingRatio?.toFixed(1)}%)</span>
+                  <span>Cartera pendiente supera 40% ({outstandingRatio?.toFixed(1)}%)</span>
                 </div>
               )}
               {dashboardData.alerts.lowCollectionRate && (
                 <div className="flex items-start gap-2">
                   <span className="text-red-400 mt-0.5">•</span>
-                  <span>Tasa de cobranza inferior al 70% ({dashboardData.collectionRate?.toFixed(1)}%)</span>
+                  <span>Tasa de cobranza inferior al 70% ({collectionRate?.toFixed(1)}%)</span>
                 </div>
               )}
               {dashboardData.alerts.deliveredWithOutstanding && (
@@ -184,19 +198,19 @@ export function CEOControlCenter() {
         <div className="grid grid-cols-3 gap-3">
           <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600">
             <p className="text-xs text-slate-400 mb-1">Cartera Pendiente</p>
-            <p className="text-lg font-bold text-red-400">{formatCurrency(pendingPortfolio)}</p>
-            <p className="text-xs text-slate-400 mt-1">{projects.filter((p: any) => p.financialInfo?.balance > 0).length} proyectos</p>
+            <p className="text-lg font-bold text-red-400">{formatCurrency(carteraPendiente)}</p>
+            <p className="text-xs text-slate-400 mt-1">{dashboardData?.proyectosConSaldoVencido || 0} proyectos</p>
           </div>
 
           <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600">
             <p className="text-xs text-slate-400 mb-1">Cartera Total</p>
-            <p className="text-lg font-bold text-blue-400">{formatCurrency(totalPortfolio)}</p>
+            <p className="text-lg font-bold text-blue-400">{formatCurrency(totalIngresos)}</p>
             <p className="text-xs text-slate-400 mt-1">{totalProjects} proyectos</p>
           </div>
 
           <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600">
             <p className="text-xs text-slate-400 mb-1">Proyectos Activos</p>
-            <p className="text-lg font-bold text-amber-400">{activeProjects}</p>
+            <p className="text-lg font-bold text-amber-400">{totalProjects}</p>
             <p className="text-xs text-slate-400 mt-1">En producción</p>
           </div>
         </div>
@@ -223,7 +237,7 @@ export function CEOControlCenter() {
             />
           </div>
           <div className="flex justify-between text-xs text-slate-400 mt-2">
-            <span>Pagado: {formatCurrency(totalPaid)}</span>
+            <span>Pagado: {formatCurrency(totalPagosRecibidos)}</span>
             <span>Meta: 80%</span>
           </div>
         </div>

@@ -1,0 +1,9 @@
+{
+  "query": "UPDATE projects p JOIN quotations q ON p.quotationId = q.id SET p.totalAmount = CAST(q.total AS DECIMAL(15,2)) WHERE p.dataOrigin = 'manual' AND p.deletedAt IS NULL AND (p.totalAmount IS NULL OR p.totalAmount = 0);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute UPDATE projects p JOIN quotations q ON p.quotationId = q.id SET p.totalAmount = CAST(q.total AS DECIMAL(15,2)) WHERE p.dataOrigin = 'manual' AND p.deletedAt IS NULL AND (p.totalAmount IS NULL OR p.totalAmount = 0);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 70
+}

@@ -2655,18 +2655,35 @@ export async function getProjectFinancialSummary(projectId: number) {
  * Get global financial dashboard metrics
  * Calculates aggregated financial data for CEO dashboard
  */
-export async function getGlobalFinancialDashboard() {
+export async function getGlobalFinancialDashboard(): Promise<{
+  totalIngresos: number;
+  totalPagosRecibidos: number;
+  totalGastosProyectos: number;
+  totalGastosOperativos: number;
+  margenGlobal: number;
+  rentabilidadPromedio: number;
+  proyectosEnRiesgo: number;
+  proyectosConSaldoVencido: number;
+  totalProyectos: number;
+  outstandingRatio: number;
+  collectionRate: number;
+  deliveredWithOutstanding: number;
+  lowProfitProjectsCount: number;
+  alerts: {
+    highOutstanding: boolean;
+    lowCollectionRate: boolean;
+    deliveredWithOutstanding: boolean;
+    lowProfitProjectsCount: boolean;
+  };
+}> {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
   // Filter: Only include manual projects (exclude system/test data)
+  // NOTE: Do NOT filter by totalAmount - use payments table for financial metrics
   const manualProjectsFilter = and(
-    gt(projects.totalAmount, 0),
-    isNull(projects.deletedAt),
-    or(
-      isNull(projects.dataOrigin),
-      sql`${projects.dataOrigin} != 'system'`
-    )
+    eq(projects.dataOrigin, 'manual'),
+    isNull(projects.deletedAt)
   );
 
   // Get total income (sum of all project amounts) - ONLY MANUAL PROJECTS
@@ -2679,6 +2696,17 @@ export async function getGlobalFinancialDashboard() {
     ? Number(incomesResult[0].total) || 0
     : 0;
 
+  console.log('[Dashboard] incomesResult:', incomesResult);
+  console.log('[Dashboard] totalIngresos:', totalIngresos);
+  
+  // Write debug info to file
+  const fs = await import('fs').then(m => m.promises);
+  try {
+    await fs.writeFile('/tmp/dashboard-debug.log', `[${new Date().toISOString()}] incomesResult: ${JSON.stringify(incomesResult)}\ntotalIngresos: ${totalIngresos}\n`, { flag: 'a' });
+  } catch (e) {
+    console.error('[Dashboard] Error writing debug log:', e);
+  }
+
   // Get total payments received - ONLY FROM MANUAL PROJECTS
   const paymentsResult = await db.select({
     total: sql<number>`COALESCE(SUM(${payments.amount}), 0)`
@@ -2689,6 +2717,9 @@ export async function getGlobalFinancialDashboard() {
   const totalPagosRecibidos = paymentsResult && paymentsResult.length > 0
     ? Number(paymentsResult[0].total) || 0
     : 0;
+
+  console.log('[Dashboard] paymentsResult:', paymentsResult);
+  console.log('[Dashboard] totalPagosRecibidos:', totalPagosRecibidos);
 
   // Get total project expenses (only materiales_proyecto) - ONLY FROM MANUAL PROJECTS
   const projectExpensesResult = await db.select({

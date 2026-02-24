@@ -1244,6 +1244,50 @@ ${input.notes || "No se especificaron detalles"}
         await db.deleteProject(input.id);
         return { success: true };
       }),
+
+    // Enviar notificacion de seccion por WhatsApp
+    sendSectionNotification: protectedProcedure
+      .input(z.object({
+        projectId: z.number(),
+        sectionKey: z.enum(['corte', 'enchape', 'armado', 'instalacion', 'entrega']),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== 'super_admin' && ctx.user.role !== 'admin' && ctx.user.role !== 'comercial') {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'No tienes permisos para enviar notificaciones' });
+        }
+
+        const project = await db.getProjectById(input.projectId);
+
+        if (!project) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Proyecto no encontrado' });
+        }
+
+        const client = await db.getClientById(project.clientId);
+
+        if (!client || !client.whatsappPhone) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Cliente no tiene numero de WhatsApp' });
+        }
+
+        const messages: Record<string, string> = {
+          corte: `Hola ${client.name}, iniciamos el CORTE de tu cocina.`,
+          enchape: `Hola ${client.name}, iniciamos el ENCHAPE de tu cocina.`,
+          armado: `Hola ${client.name}, iniciamos el ARMADO de tu cocina.`,
+          instalacion: `Hola ${client.name}, iniciamos la INSTALACION de tu cocina.`,
+          entrega: `Hola ${client.name}, tu cocina esta LISTA!`,
+        };
+
+        const message = messages[input.sectionKey];
+
+        console.log(`[SECTION NOTIFICATION] Enviando notificacion de ${input.sectionKey} a ${client.whatsappPhone}`);
+        const response = await whatsappCloud.sendTextMessage(client.whatsappPhone, message);
+        console.log(`[SECTION NOTIFICATION] Respuesta:`, response);
+
+        return {
+          success: true,
+          messageId: response.messageId,
+          message: `Notificacion de ${input.sectionKey} enviada por WhatsApp`,
+        };
+      }),
 });
 
 

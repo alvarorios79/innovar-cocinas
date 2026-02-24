@@ -237,12 +237,46 @@ export default function ProjectDetail() {
   const resetModeladoApproval = trpc.publicGallery.resetModeladoApproval.useMutation({
     onSuccess: (data) => {
       utils.projects.getById.invalidate({ id: projectId });
-      toast.success("Aprobación de modelado reiniciada");
+      toast.success("Aprobacion de modelado reiniciada");
     },
     onError: (error) => {
-      toast.error(error.message || "Error al reiniciar aprobación");
+      toast.error(error.message || "Error al reiniciar aprobacion");
     },
   });
+
+  const sendSectionNotification = trpc.projects.sendSectionNotification.useMutation({
+    onSuccess: (data) => {
+      utils.projects.getById.invalidate({ id: projectId });
+      toast.success(data.message || "Notificacion enviada por WhatsApp");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Error al enviar notificacion");
+    },
+  });
+
+  // Funcion para enviar notificacion de seccion
+  const handleSendSectionNotification = (sectionKey: string) => {
+    if (!projectId) return;
+    sendSectionNotification.mutate({
+      projectId,
+      sectionKey: sectionKey as "corte" | "enchape" | "armado" | "instalacion" | "entrega",
+    });
+  };
+
+  // Verificar si el usuario puede enviar notificaciones de seccion
+  const canSendSectionNotification = () => {
+    const role = user?.role;
+    return role === "super_admin" || role === "admin";
+  };
+
+  // Mapeo de seccion a emoji y nombre
+  const sectionNotificationMap: Record<string, { emoji: string; name: string }> = {
+    corte: { emoji: "📦", name: "Corte" },
+    enchape: { emoji: "🎨", name: "Enchape" },
+    armado: { emoji: "🔧", name: "Armado" },
+    instalacion: { emoji: "🏠", name: "Instalacion" },
+    entrega: { emoji: "✅", name: "Entrega" },
+  }
 
   // Mapeo de subcategoría de foto a siguiente estado del proyecto
   const photoToNextStatus: Record<string, string> = {
@@ -1176,6 +1210,17 @@ export default function ProjectDetail() {
                                                photoToNextStatus[subcategory] === "listo_instalacion" ? "Listo para Instalación" :
                                                photoToNextStatus[subcategory] === "entregado" ? "Entregado" : "Siguiente Etapa"}
                                   </Button>
+                                  {canSendSectionNotification() && (
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      disabled={sendSectionNotification.isPending}
+                                      onClick={() => handleSendSectionNotification(subcategory)}
+                                      className="w-full sm:w-auto mt-2 text-xs sm:text-sm"
+                                    >
+                                      {sendSectionNotification.isPending ? "Enviando..." : "📲 Notificar al cliente"}
+                                    </Button>
+                                  )}
                                 </div>
                               )}
                             </>
@@ -1207,6 +1252,17 @@ export default function ProjectDetail() {
                                                photoToNextStatus[subcategory] === "listo_instalacion" ? "Listo para Instalación" :
                                                photoToNextStatus[subcategory] === "entregado" ? "Entregado" : "Siguiente Etapa"}
                                   </Button>
+                                  {canSendSectionNotification() && (
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      disabled={sendSectionNotification.isPending}
+                                      onClick={() => handleSendSectionNotification(subcategory)}
+                                      className="w-full sm:w-auto mt-2 text-xs sm:text-sm"
+                                    >
+                                      {sendSectionNotification.isPending ? "Enviando..." : "📲 Notificar al cliente"}
+                                    </Button>
+                                  )}
                                 </div>
                               )}
                             </>

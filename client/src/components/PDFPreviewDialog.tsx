@@ -126,10 +126,10 @@ export function PDFPreviewDialog({
           
           {!error && (
             <>
-              {/* Área de visualización del PDF usando iframe para compatibilidad iOS */}
+              {/* Área de visualización del PDF usando iframe con endpoint /api/pdf/:filename */}
               <div className="flex-1 overflow-auto">
                 <iframe
-                  src={quotationId ? `/api/pdf-preview/${quotationId}?url=${encodeURIComponent(pdfUrl)}` : pdfUrl}
+                  src={pdfUrl}
                   className="w-full h-full border-0"
                   title="PDF Preview"
                   onLoad={() => setIsLoading(false)}

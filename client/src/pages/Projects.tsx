@@ -143,6 +143,22 @@ export default function Projects() {
   // Hook para visor de archivos (imágenes y PDFs)
   const fileViewer = useFileViewer();
   
+  // Mutation para enviar por WhatsApp
+  const sendWhatsappMutation = trpc.quotations.sendByWhatsApp.useMutation({
+    onSuccess: () => {
+      toast.success("Cotización enviada correctamente por WhatsApp");
+      setShowWhatsAppDialog(false);
+      setWhatsAppMessage("");
+    },
+    onError: (error) => {
+      toast.error(`Error enviando cotización: ${error.message}`);
+      console.error("Error al enviar por WhatsApp:", error);
+    }
+  });
+  
+  // Estado para guardar el ID de la cotización actual
+  const [currentProjectId, setCurrentProjectId] = useState<number | null>(null);
+  
   // Estado para generar PDF
   const [generatingPdf, setGeneratingPdf] = useState(false);
   
@@ -2068,17 +2084,15 @@ export default function Projects() {
               </Button>
               <Button
                 className="bg-green-600 hover:bg-green-700"
+                disabled={sendWhatsappMutation.isPending}
                 onClick={() => {
-                  // Regenerar el enlace con el mensaje editado
-                  const cleanPhone = whatsAppPhone.replace(/\D/g, "");
-                  const fullPhone = cleanPhone.startsWith("57") ? cleanPhone : `57${cleanPhone}`;
-                  const newLink = `https://wa.me/${fullPhone}?text=${encodeURIComponent(whatsAppMessage)}`;
-                  window.open(newLink, "_blank");
-                  setShowWhatsAppDialog(false);
+                  if (currentProjectId) {
+                    sendWhatsappMutation.mutate({ id: currentProjectId });
+                  }
                 }}
               >
                 <Send className="h-4 w-4 mr-2" />
-                Enviar por WhatsApp
+                {sendWhatsappMutation.isPending ? "Enviando..." : "Enviar por WhatsApp"}
               </Button>
             </div>
           </div>

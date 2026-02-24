@@ -4778,3 +4778,21 @@ Listo para pasar a Fase 7.2 (Intelligent Alerts) cuando sea requerido.
 - [ ] Refactorizar Admin.tsx para extraer lógica de clientes
 - [ ] Refactorizar Projects.tsx para mejorar mantenibilidad
 - [ ] Refactorizar Quotations.tsx para mejorar mantenibilidad
+
+
+## Mini-Fase 17 - Integracion WhatsApp Cloud API
+
+### Completadas
+- [x] Implementar endpoint sendByWhatsApp en backend (tRPC)
+- [x] Generar PDF de cotizacion y subirlo a S3
+- [x] Enviar PDF por WhatsApp Cloud API (no web)
+- [x] Reemplazar window.open(wa.me) en Projects.tsx con API real
+- [x] Agregar loading states y toast notifications
+- [x] Preparar CreateQuickClientDialog para futura integracion
+
+### Pendientes
+- [ ] Crear endpoint separado para enviar credenciales por WhatsApp
+- [ ] Remover router temporal quotations-debug.ts despues de validacion
+- [ ] Remover boton DEBUG WHATSAPP de CEODashboard.tsx despues de validacion
+- [ ] Validar que mensajes se envian correctamente por WhatsApp Cloud API
+- [ ] Validar que PDFs se generan y suben a S3 correctamente

@@ -27,6 +27,18 @@ export function CreateQuickClientDialog({ trigger, onClientCreated }: CreateQuic
     internalManagement: false,
   });
 
+  // Mutation para enviar credenciales por WhatsApp
+  const sendCredentialsMutation = trpc.quotations.sendByWhatsApp.useMutation({
+    onSuccess: () => {
+      toast.success("Credenciales enviadas correctamente por WhatsApp");
+      handleClose();
+    },
+    onError: (error) => {
+      toast.error(`Error enviando credenciales: ${error.message}`);
+      console.error("Error al enviar por WhatsApp:", error);
+    }
+  });
+
   const createQuickMutation = trpc.clients.createQuick.useMutation({
     onSuccess: (data) => {
       if (data.isInternalManagement || !data.credentials) {
@@ -65,6 +77,11 @@ export function CreateQuickClientDialog({ trigger, onClientCreated }: CreateQuic
 
   const handleSendWhatsApp = () => {
     if (!credentials) return;
+    
+    // Nota: Este componente está diseñado para enviar credenciales de nuevo cliente
+    // pero sendByWhatsApp está diseñado para cotizaciones.
+    // Por ahora, usamos window.open para mantener la funcionalidad original.
+    // TODO: Crear endpoint separado para enviar credenciales por WhatsApp
     
     const message = `¡Hola ${formData.name}! 👋
 
@@ -259,9 +276,13 @@ Te hemos creado una cuenta en INNOVAR Cocinas para que puedas seguir el estado d
               </div>
               
               <div className="flex flex-col gap-2">
-                <Button onClick={handleSendWhatsApp} className="w-full gap-2 bg-green-600 hover:bg-green-700">
+                <Button 
+                  onClick={handleSendWhatsApp} 
+                  className="w-full gap-2 bg-green-600 hover:bg-green-700"
+                  disabled={sendCredentialsMutation.isPending}
+                >
                   <MessageCircle className="h-4 w-4" />
-                  Enviar por WhatsApp
+                  {sendCredentialsMutation.isPending ? "Enviando..." : "Enviar por WhatsApp"}
                 </Button>
                 <Button variant="outline" onClick={handleCopyAll} className="w-full gap-2">
                   <Copy className="h-4 w-4" />

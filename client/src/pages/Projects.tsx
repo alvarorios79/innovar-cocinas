@@ -151,8 +151,15 @@ export default function Projects() {
       setWhatsAppMessage("");
     },
     onError: (error) => {
-      toast.error(`Error enviando cotización: ${error.message}`);
-      console.error("Error al enviar por WhatsApp:", error);
+      const errorMessage = error.message || "Error desconocido";
+      const fullError = JSON.stringify({
+        message: errorMessage,
+        code: (error as any).code,
+        data: (error as any).data,
+      }, null, 2);
+      toast.error(`Error: ${errorMessage}\n${fullError}`);
+      console.error("[WHATSAPP ERROR] Error al enviar por WhatsApp:", error);
+      console.error("[WHATSAPP ERROR] Full error:", fullError);
     }
   });
   

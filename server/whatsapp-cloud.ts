@@ -110,6 +110,19 @@ export async function sendTextMessage(
   const formattedPhone = formatPhoneForWhatsApp(to);
 
   try {
+    const payload = {
+      messaging_product: "whatsapp",
+      recipient_type: "individual",
+      to: formattedPhone,
+      type: "text",
+      text: {
+        preview_url: true,
+        body: message,
+      },
+    };
+    
+    console.log("[WHATSAPP DEBUG] REQUEST PAYLOAD:", JSON.stringify(payload, null, 2));
+    
     const response = await fetch(
       `${WHATSAPP_API_URL}/${WHATSAPP_PHONE_NUMBER_ID}/messages`,
       {
@@ -118,22 +131,17 @@ export async function sendTextMessage(
           "Authorization": `Bearer ${WHATSAPP_ACCESS_TOKEN}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          messaging_product: "whatsapp",
-          recipient_type: "individual",
-          to: formattedPhone,
-          type: "text",
-          text: {
-            preview_url: true,
-            body: message,
-          },
-        }),
+        body: JSON.stringify(payload),
       }
     );
 
     const data = await response.json();
+    
+    console.log("[WHATSAPP DEBUG] RESPONSE STATUS:", response.status);
+    console.log("[WHATSAPP DEBUG] RESPONSE BODY:", JSON.stringify(data, null, 2));
 
     if (response.ok && data.messages && data.messages.length > 0) {
+      console.log("[WHATSAPP DEBUG] SUCCESS - Message ID:", data.messages[0].id);
       return {
         success: true,
         messageId: data.messages[0].id,
@@ -141,13 +149,14 @@ export async function sendTextMessage(
     }
 
     // Error de la API
+    console.log("[WHATSAPP DEBUG] API ERROR:", data.error);
     return {
       success: false,
       error: data.error?.message || "Error desconocido al enviar mensaje",
       errorCode: data.error?.code?.toString(),
     };
   } catch (error) {
-    console.error("[WhatsApp Cloud] Error enviando mensaje:", error);
+    console.error("[WHATSAPP DEBUG] CATCH ERROR:", error);
     return {
       success: false,
       error: error instanceof Error ? error.message : "Error de conexión",
@@ -658,6 +667,8 @@ export async function sendDocumentMessage(
     if (caption) {
       payload.caption = caption;
     }
+    
+    console.log("[WHATSAPP DEBUG] DOCUMENT REQUEST PAYLOAD:", JSON.stringify(payload, null, 2));
 
     const response = await fetch(
       `${WHATSAPP_API_URL}/${WHATSAPP_PHONE_NUMBER_ID}/messages`,
@@ -672,21 +683,26 @@ export async function sendDocumentMessage(
     );
 
     const data = await response.json();
+    
+    console.log("[WHATSAPP DEBUG] DOCUMENT RESPONSE STATUS:", response.status);
+    console.log("[WHATSAPP DEBUG] DOCUMENT RESPONSE BODY:", JSON.stringify(data, null, 2));
 
     if (response.ok && data.messages && data.messages.length > 0) {
+      console.log("[WHATSAPP DEBUG] DOCUMENT SUCCESS - Message ID:", data.messages[0].id);
       return {
         success: true,
         messageId: data.messages[0].id,
       };
     }
 
+    console.log("[WHATSAPP DEBUG] DOCUMENT API ERROR:", data.error);
     return {
       success: false,
       error: data.error?.message || "Error al enviar documento",
       errorCode: data.error?.code?.toString(),
     };
   } catch (error) {
-    console.error("[WhatsApp Cloud] Error enviando documento:", error);
+    console.error("[WHATSAPP DEBUG] DOCUMENT CATCH ERROR:", error);
     return {
       success: false,
       error: error instanceof Error ? error.message : "Error de conexión",

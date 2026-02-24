@@ -7,7 +7,6 @@ import { DoorConfigurator, DoorConfig } from "@/components/DoorConfigurator";
 import { TVCenterConfigurator, TVCenterConfig } from "@/components/TVCenterConfigurator";
 import { KitchenConfigurator, KitchenConfig } from "@/components/KitchenConfigurator";
 import { CountertopConfigurator, CountertopConfig, defaultCountertopConfig } from "@/components/CountertopConfigurator";
-import { PDFPreviewDialog } from "@/components/PDFPreviewDialog";
 import { PDFPreviewBeforeSave } from "@/components/PDFPreviewBeforeSave";
 import { PDFContentEditor } from "@/components/PDFContentEditor";
 import { Button } from "@/components/ui/button";
@@ -91,9 +90,6 @@ export default function Quotations() {
   const [selectedClient, setSelectedClient] = useState<number | null>(null);
   const [vendorName, setVendorName] = useState("Alvaro Gutierrez");
   const [workType, setWorkType] = useState("");
-  const [previewDialogOpen, setPreviewDialogOpen] = useState(false);
-  const [previewPdfUrl, setPreviewPdfUrl] = useState("");
-  const [selectedQuotationForEmail, setSelectedQuotationForEmail] = useState<{id: number, email: string, quotationNumber: string, clientName: string} | null>(null);
   
   // Estados para vista previa antes de guardar
   const [previewBeforeSaveOpen, setPreviewBeforeSaveOpen] = useState(false);
@@ -357,35 +353,14 @@ export default function Quotations() {
   };
 
   const handleEmailClick = async (quotationId: number, clientEmail: string, quotationNumber: string, clientName: string) => {
-    setSelectedQuotationForEmail({ id: quotationId, email: clientEmail, quotationNumber, clientName });
-    // Generar PDF para vista previa
-    generatePDF.mutate(
-      { id: quotationId },
-      {
-        onSuccess: (data) => {
-          // Agregar parámetro preview=true para visualización inline
-          const previewUrl = `${data.downloadUrl}&preview=true`;
-          setPreviewPdfUrl(previewUrl);
-          setPreviewDialogOpen(true);
-        },
-        onError: (error) => {
-          toast.error(error.message || "Error al generar vista previa");
-        },
-      }
-    );
-  };
-
-  const handleConfirmSend = async () => {
-    if (!selectedQuotationForEmail) return;
+    if (!clientEmail) {
+      toast.error("El cliente no tiene email configurado");
+      return;
+    }
     
     try {
-      await sendByEmail.mutateAsync({ id: selectedQuotationForEmail.id });
+      await sendByEmail.mutateAsync({ id: quotationId });
       toast.success("Cotizacion enviada correctamente");
-      
-      // Limpiar estados
-      setPreviewDialogOpen(false);
-      setSelectedQuotationForEmail(null);
-      setPreviewPdfUrl("");
       
       // Invalidar cache
       utils.quotations.list.invalidate();
@@ -394,6 +369,7 @@ export default function Quotations() {
       toast.error((error as any)?.message || "Error al enviar la cotizacion");
     }
   };
+
 
   // Función para abrir el editor de contenido PDF
   const handleOpenPdfEditor = async (quotationId: number) => {
@@ -3436,16 +3412,6 @@ export default function Quotations() {
         </DialogContent>
       </Dialog>
 
-      <PDFPreviewDialog
-        open={previewDialogOpen}
-        onOpenChange={setPreviewDialogOpen}
-        pdfUrl={previewPdfUrl}
-        recipientEmail={selectedQuotationForEmail?.email || ""}
-        onConfirmSend={handleConfirmSend}
-        isSending={sendByEmail.isPending}
-        quotationNumber={selectedQuotationForEmail ? `${selectedQuotationForEmail.quotationNumber} - ${selectedQuotationForEmail.clientName}` : ""}
-        quotationId={selectedQuotationForEmail?.id}
-      />
 
       <PDFPreviewBeforeSave
         open={previewBeforeSaveOpen}

@@ -208,12 +208,6 @@ export default function ProjectDetail() {
     onSuccess: (data) => {
       utils.projects.getById.invalidate({ id: projectId });
       toast.success(data.message);
-      // Abrir WhatsApp con el enlace
-      if (data.whatsAppLink) {
-        setTimeout(() => {
-          window.open(data.whatsAppLink as string, "_blank");
-        }, 500);
-      }
     },
     onError: (error) => {
       toast.error(error.message || "Error al enviar modelado");
@@ -224,12 +218,6 @@ export default function ProjectDetail() {
     onSuccess: (data) => {
       utils.projects.getById.invalidate({ id: projectId });
       toast.success(data.message);
-      // Abrir WhatsApp con el enlace
-      if (data.whatsAppLink) {
-        setTimeout(() => {
-          window.open(data.whatsAppLink as string, "_blank");
-        }, 500);
-      }
     },
     onError: (error) => {
       toast.error(error.message || "Error al enviar renders");
@@ -240,10 +228,6 @@ export default function ProjectDetail() {
     onSuccess: (data) => {
       utils.projects.getById.invalidate({ id: projectId });
       toast.success("Aprobación de renders reiniciada");
-      // Abrir WhatsApp con el enlace
-      if (data.whatsAppLink) {
-        window.open(data.whatsAppLink, "_blank");
-      }
     },
     onError: (error) => {
       toast.error(error.message || "Error al reiniciar aprobación");
@@ -254,10 +238,6 @@ export default function ProjectDetail() {
     onSuccess: (data) => {
       utils.projects.getById.invalidate({ id: projectId });
       toast.success("Aprobación de modelado reiniciada");
-      // Abrir WhatsApp con el enlace
-      if (data.whatsAppLink) {
-        window.open(data.whatsAppLink, "_blank");
-      }
     },
     onError: (error) => {
       toast.error(error.message || "Error al reiniciar aprobación");

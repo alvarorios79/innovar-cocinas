@@ -316,12 +316,6 @@ export function ProjectInlineDetail({
       utils.projects.getById.invalidate();
       utils.projects.list.invalidate();
       toast.success(result.message);
-      // Abrir WhatsApp si hay enlace
-      if (result.whatsAppLink) {
-        setTimeout(() => {
-          window.open(result.whatsAppLink as string, "_blank");
-        }, 500);
-      }
     },
     onError: (error) => {
       toast.error(error.message || "Error al enviar modelado");
@@ -333,12 +327,6 @@ export function ProjectInlineDetail({
       utils.projects.getById.invalidate();
       utils.projects.list.invalidate();
       toast.success(result.message);
-      // Abrir WhatsApp si hay enlace
-      if (result.whatsAppLink) {
-        setTimeout(() => {
-          window.open(result.whatsAppLink as string, "_blank");
-        }, 500);
-      }
     },
     onError: (error) => {
       toast.error(error.message || "Error al enviar renders");

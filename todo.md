@@ -4796,3 +4796,14 @@ Listo para pasar a Fase 7.2 (Intelligent Alerts) cuando sea requerido.
 - [ ] Remover boton DEBUG WHATSAPP de CEODashboard.tsx despues de validacion
 - [ ] Validar que mensajes se envian correctamente por WhatsApp Cloud API
 - [ ] Validar que PDFs se generan y suben a S3 correctamente
+
+
+## Mini-Fase 18 - Migración Modelado/Renders a WhatsApp Cloud API
+
+- [x] Crear endpoint sendSectionNotification en projects router
+- [x] Implementar lógica de envío por WhatsApp Cloud API (sendTextMessage)
+- [x] Actualizar frontend para usar nuevo endpoint en lugar de wa.me
+- [x] Eliminar completamente window.open y wa.me del código
+- [x] Validar flujo en laptop, iPhone e iPad
+- [x] Confirmar que el enlace de galería funciona correctamente
+- [x] Confirmar que la aprobación web sigue intacta

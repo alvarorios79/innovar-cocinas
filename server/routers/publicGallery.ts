@@ -581,7 +581,7 @@ export const publicGalleryRouter = router({
         };
       }),
 
-    // Enviar modelado al cliente (cambia estado a pendiente_modelado)
+    // Enviar modelado al cliente por WhatsApp Cloud API (cambia estado a pendiente_modelado)
     sendModeladoToClient: protectedProcedure
       .input(z.object({
         projectId: z.number(),
@@ -605,6 +605,12 @@ export const publicGalleryRouter = router({
           throw new TRPCError({ code: "BAD_REQUEST", message: "No hay modelado para enviar" });
         }
 
+        // Obtener cliente
+        const client = project.clientId ? await db.getClientById(project.clientId) : null;
+        if (!client?.whatsappPhone) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "El cliente no tiene número de WhatsApp registrado" });
+        }
+
         // Determinar el número de revisión
         const currentRevision = (project as any).modeladoRevisionNumber || 0;
         const newRevision = currentRevision === 0 ? 1 : currentRevision;
@@ -622,45 +628,46 @@ export const publicGalleryRouter = router({
               fromStatus: project.status,
               toStatus: "pendiente_modelado",
               changedBy: ctx.user.id,
-              notes: `Modelado 3D enviado al cliente (Revisión #${newRevision})`,
+              notes: `Modelado 3D enviado al cliente por WhatsApp (Revisión #${newRevision})`,
             });
           });
         }
 
-        // Obtener cliente para generar enlace
-        const client = project.clientId ? await db.getClientById(project.clientId) : null;
+        // Construir URL de galería pública
         const baseUrl = process.env.VITE_APP_URL || "https://innovarcitas.manus.space";
-        // Usar /gallery para acceso público sin login (incluye type=modelado_3d)
         const portalLink = `${baseUrl}/gallery?project=${input.projectId}&type=modelado_3d`;
 
-        // Generar mensaje de WhatsApp
-        let whatsAppLink = null;
-        if (client?.whatsappPhone) {
-          const phone = client.whatsappPhone.replace(/\D/g, '');
-          const phoneWithCountry = phone.startsWith('57') ? phone : `57${phone}`;
-          const message = encodeURIComponent(
-            `¡Hola ${client.name}! 👋\n\n` +
-            `Le escribimos de *INNOVAR Cocinas Integrales*.\n\n` +
-            `Ya tenemos listo el *modelado 3D* de su proyecto *"${project.name}"*. 🏠\n\n` +
-            `✨ Hemos preparado *${modeladoPhotos.length} imágenes* del modelado para que las revise.\n\n` +
-            `👉 *Ver y aprobar el diseño aquí:*\n${portalLink}\n\n` +
-            `En el enlace puede ver las imágenes y aprobar el diseño o solicitar cambios.\n\n` +
-            `¿Tiene alguna pregunta? ✅`
-          );
-          whatsAppLink = `https://wa.me/${phoneWithCountry}?text=${message}`;
+        // Construir mensaje de WhatsApp
+        const message = 
+          `📐 *Modelado 3D de tu proyecto*\n\n` +
+          `Hola ${client.name},\n\n` +
+          `Ya puedes revisar el modelado 3D aquí:\n` +
+          `${portalLink}\n\n` +
+          `Por favor déjanos tus comentarios o aprobación.\n\n` +
+          `INNOVAR Cocinas Integrales`;
+
+        // Enviar por WhatsApp Cloud API
+        const phone = client.whatsappPhone.replace(/\D/g, '');
+        const phoneWithCountry = phone.startsWith('57') ? phone : `57${phone}`;
+        
+        try {
+          const result = await whatsappCloud.sendTextMessage(phoneWithCountry, message);
+          console.log(`[MODELADO] Mensaje enviado exitosamente. MessageID: ${result.messageId}`);
+        } catch (error) {
+          console.error(`[MODELADO] Error enviando mensaje:`, error);
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Error al enviar mensaje por WhatsApp" });
         }
 
         return {
           success: true,
-          message: `Modelado 3D enviado al cliente (Revisión #${newRevision})`,
+          message: `Modelado 3D enviado al cliente por WhatsApp (Revisión #${newRevision})`,
           portalLink,
-          whatsAppLink,
           clientName: client?.name,
           revisionNumber: newRevision,
         };
       }),
 
-    // Enviar renders al cliente (cambia estado a pendiente_render)
+    // Enviar renders al cliente por WhatsApp Cloud API (cambia estado a pendiente_render)
     sendRendersToClient: protectedProcedure
       .input(z.object({
         projectId: z.number(),
@@ -684,6 +691,12 @@ export const publicGalleryRouter = router({
           throw new TRPCError({ code: "BAD_REQUEST", message: "No hay renders para enviar" });
         }
 
+        // Obtener cliente
+        const client = project.clientId ? await db.getClientById(project.clientId) : null;
+        if (!client?.whatsappPhone) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "El cliente no tiene número de WhatsApp registrado" });
+        }
+
         // Determinar el número de revisión
         const currentRevision = (project as any).renderRevisionNumber || 0;
         const newRevision = currentRevision === 0 ? 1 : currentRevision;
@@ -701,39 +714,41 @@ export const publicGalleryRouter = router({
               fromStatus: project.status,
               toStatus: "pendiente_render",
               changedBy: ctx.user.id,
-              notes: `Renders enviados al cliente (Revisión #${newRevision})`,
+              notes: `Renders enviados al cliente por WhatsApp (Revisión #${newRevision})`,
             });
           });
         }
 
-        // Obtener cliente para generar enlace
-        const client = project.clientId ? await db.getClientById(project.clientId) : null;
+        // Construir URL de galería pública
         const baseUrl = process.env.VITE_APP_URL || "https://innovarcitas.manus.space";
-        // Usar /gallery para acceso público sin login (incluye type=renders)
         const portalLink = `${baseUrl}/gallery?project=${input.projectId}&type=renders`;
 
-        // Generar mensaje de WhatsApp
-        let whatsAppLink = null;
-        if (client?.whatsappPhone) {
-          const phone = client.whatsappPhone.replace(/\D/g, '');
-          const phoneWithCountry = phone.startsWith('57') ? phone : `57${phone}`;
-          const message = encodeURIComponent(
-            `¡Hola ${client.name}! 👋\n\n` +
-            `Le escribimos de *INNOVAR Cocinas Integrales*.\n\n` +
-            `Ya tenemos listos los *renders finales* de su proyecto *"${project.name}"*. 🎨\n\n` +
-            `✨ Hemos preparado *${renderPhotos.length} imágenes* de los renders para que las revise.\n\n` +
-            `👉 *Ver y aprobar el diseño aquí:*\n${portalLink}\n\n` +
-            `En el enlace puede ver las imágenes y aprobar el diseño o solicitar cambios.\n\n` +
-            `¿Tiene alguna pregunta? ✅`
-          );
-          whatsAppLink = `https://wa.me/${phoneWithCountry}?text=${message}`;
+        // Construir mensaje de WhatsApp
+        const message = 
+          `🗸️ *Renders de tu proyecto*\n\n` +
+          `Hola ${client.name},\n\n` +
+          `Tus renders están listos.\n` +
+          `Puedes verlos aquí:\n` +
+          `${portalLink}\n\n` +
+          `Quedamos atentos a tu aprobación.\n\n` +
+          `INNOVAR Cocinas Integrales`;
+
+        // Enviar por WhatsApp Cloud API
+        const phone = client.whatsappPhone.replace(/\D/g, '');
+        const phoneWithCountry = phone.startsWith('57') ? phone : `57${phone}`;
+        
+        try {
+          const result = await whatsappCloud.sendTextMessage(phoneWithCountry, message);
+          console.log(`[RENDERS] Mensaje enviado exitosamente. MessageID: ${result.messageId}`);
+        } catch (error) {
+          console.error(`[RENDERS] Error enviando mensaje:`, error);
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Error al enviar mensaje por WhatsApp" });
         }
 
         return {
           success: true,
-          message: `Renders enviados al cliente (Revisión #${newRevision})`,
+          message: `Renders enviados al cliente por WhatsApp (Revisión #${newRevision})`,
           portalLink,
-          whatsAppLink,
           clientName: client?.name,
           revisionNumber: newRevision,
         };

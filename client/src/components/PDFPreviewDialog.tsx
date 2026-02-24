@@ -15,6 +15,7 @@ interface PDFPreviewDialogProps {
   onConfirmSend: () => void;
   isSending?: boolean;
   quotationNumber?: string;
+  quotationId?: number;
 }
 
 export function PDFPreviewDialog({
@@ -25,6 +26,7 @@ export function PDFPreviewDialog({
   onConfirmSend,
   isSending = false,
   quotationNumber = "",
+  quotationId,
 }: PDFPreviewDialogProps) {
   const [numPages, setNumPages] = useState<number>(0);
   const [pageNumber, setPageNumber] = useState<number>(1);
@@ -124,64 +126,18 @@ export function PDFPreviewDialog({
           
           {!error && (
             <>
-              {/* Controles de zoom y navegación */}
-              <div className="flex items-center justify-between px-4 py-2 bg-gray-200 border-b border-gray-300">
-                <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={handleZoomOut}
-                    disabled={scale <= 0.5 || isLoading}
-                  >
-                    <ZoomOut className="h-4 w-4" />
-                  </Button>
-                  <span className="px-2 py-1 text-sm font-medium">{Math.round(scale * 100)}%</span>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={handleZoomIn}
-                    disabled={scale >= 2.0 || isLoading}
-                  >
-                    <ZoomIn className="h-4 w-4" />
-                  </Button>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={handlePreviousPage}
-                    disabled={pageNumber <= 1 || isLoading}
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  <span className="px-2 py-1 text-sm font-medium">
-                    {pageNumber} / {numPages}
-                  </span>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={handleNextPage}
-                    disabled={pageNumber >= numPages || isLoading}
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-
-              {/* Área de visualización del PDF */}
-              <div className="flex-1 overflow-auto flex items-center justify-center p-4">
-                <Document
-                  file={pdfUrl}
-                  onLoadSuccess={onDocumentLoadSuccess}
-                  onLoadError={onDocumentLoadError}
-                  loading={<Loader2 className="h-8 w-8 text-gray-400 animate-spin" />}
-                >
-                  <Page
-                    pageNumber={pageNumber}
-                    scale={scale}
-                    width={containerWidth > 0 ? containerWidth : 400}
-                  />
-                </Document>
+              {/* Área de visualización del PDF usando iframe para compatibilidad iOS */}
+              <div className="flex-1 overflow-auto">
+                <iframe
+                  src={quotationId ? `/api/pdf-preview/${quotationId}?url=${encodeURIComponent(pdfUrl)}` : pdfUrl}
+                  className="w-full h-full border-0"
+                  title="PDF Preview"
+                  onLoad={() => setIsLoading(false)}
+                  onError={() => {
+                    setError('No se pudo cargar el PDF');
+                    setIsLoading(false);
+                  }}
+                />
               </div>
             </>
           )}

@@ -95,6 +95,47 @@ async function startServer() {
     }
   });
 
+  // PDF preview endpoint - Envuelve PDF en HTML para evitar que WebKit iOS lo promueva a visor nativo
+  app.get("/api/pdf-preview/:quotationId", async (req, res) => {
+    try {
+      const quotationId = parseInt(req.params.quotationId);
+      if (isNaN(quotationId)) {
+        return res.status(400).json({ error: 'Invalid quotation ID' });
+      }
+      
+      // Obtener la URL del PDF desde la base de datos o generar
+      // Por ahora, asumimos que se pasa como query param
+      const pdfUrl = req.query.url as string;
+      if (!pdfUrl) {
+        return res.status(400).json({ error: 'PDF URL required' });
+      }
+      
+      // Envolver en HTML para evitar que WebKit iOS lo promueva a visor nativo
+      const html = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <style>
+    html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #fff; }
+    embed { display: block; width: 100%; height: 100%; border: none; }
+  </style>
+</head>
+<body>
+  <embed src="${pdfUrl}" type="application/pdf" />
+</body>
+</html>`;
+      
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('X-Content-Type-Options', 'nosniff');
+      res.send(html);
+    } catch (error) {
+      console.error('[PDFPreview] Error serving PDF preview:', error);
+      res.status(500).json({ error: 'Error serving PDF preview' });
+    }
+  });
+
   // PDF download endpoint
   app.get("/api/pdf/:filename", async (req, res) => {
     try {

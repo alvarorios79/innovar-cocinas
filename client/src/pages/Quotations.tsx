@@ -3441,6 +3441,7 @@ export default function Quotations() {
         onConfirmSend={handleConfirmSend}
         isSending={sendByEmail.isPending}
         quotationNumber={selectedQuotationForEmail ? `${selectedQuotationForEmail.quotationNumber} - ${selectedQuotationForEmail.clientName}` : ""}
+        quotationId={selectedQuotationForEmail?.id}
       />
 
       <PDFPreviewBeforeSave

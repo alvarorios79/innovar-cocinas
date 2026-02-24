@@ -303,18 +303,7 @@ export default function Quotations() {
     },
   });
 
-  const sendByEmail = trpc.quotations.sendByEmail.useMutation({
-    onSuccess: () => {
-      utils.quotations.list.invalidate();
-      utils.quotations.listPaginatedGrouped.invalidate();
-      toast.success("Cotización enviada por email");
-      setPreviewDialogOpen(false);
-      setSelectedQuotationForEmail(null);
-    },
-    onError: (error) => {
-      toast.error(error.message || "Error al enviar email");
-    },
-  });
+  const sendByEmail = trpc.quotations.sendByEmail.useMutation();
 
   const previewPDF = trpc.quotations.previewPDF.useMutation({
     onSuccess: (data) => {
@@ -386,9 +375,23 @@ export default function Quotations() {
     );
   };
 
-  const handleConfirmSend = () => {
-    if (selectedQuotationForEmail) {
-      sendByEmail.mutate({ id: selectedQuotationForEmail.id });
+  const handleConfirmSend = async () => {
+    if (!selectedQuotationForEmail) return;
+    
+    try {
+      await sendByEmail.mutateAsync({ id: selectedQuotationForEmail.id });
+      toast.success("Cotizacion enviada correctamente");
+      
+      // Limpiar estados
+      setPreviewDialogOpen(false);
+      setSelectedQuotationForEmail(null);
+      setPreviewPdfUrl("");
+      
+      // Invalidar cache
+      utils.quotations.list.invalidate();
+      utils.quotations.listPaginatedGrouped.invalidate();
+    } catch (error) {
+      toast.error((error as any)?.message || "Error al enviar la cotizacion");
     }
   };
 

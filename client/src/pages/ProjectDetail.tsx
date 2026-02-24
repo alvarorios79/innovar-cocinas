@@ -1610,9 +1610,20 @@ export default function ProjectDetail() {
                                photoForm.category === "avance" ? "corte" :
                                photoForm.category === "instalacion" ? "final" : "final";
                   urls.forEach((url) => {
+                    // Mapear subcategoría a stage correcto para avance
+                    let finalStage: "corte" | "enchape" | "ensamble" | "final" | "inicial" | "diseno" = stage as "corte" | "enchape" | "ensamble" | "final" | "inicial" | "diseno";
+                    if (photoForm.category === "avance" && photoForm.subcategory) {
+                      const subcategoryToStage: Record<string, "corte" | "enchape" | "ensamble" | "final" | "inicial" | "diseno"> = {
+                        "corte": "corte",
+                        "enchape": "enchape",
+                        "armado": "ensamble",
+                      };
+                      finalStage = subcategoryToStage[photoForm.subcategory] || stage as "corte" | "enchape" | "ensamble" | "final" | "inicial" | "diseno";
+                    }
+                    
                     uploadPhoto.mutate({
                       projectId: projectId,
-                      stage: stage,
+                      stage: finalStage as "corte" | "enchape" | "ensamble" | "final" | "inicial" | "diseno",
                       category: photoForm.category,
                       subcategory: (photoForm.category === "cotizacion" ? "documento_cotizacion" : photoForm.subcategory || undefined) as "corte" | "enchape" | "fotos_iniciales" | "dibujo" | "renders" | "despieces" | "detalles" | "modelado_3d" | "armado" | "proceso_instalacion" | "fotos_finales" | "documento_cotizacion" | undefined,
                       photoUrl: url,

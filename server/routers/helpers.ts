@@ -64,8 +64,14 @@ export function validatePhotoUploadPermission(role: string, stage: string, categ
     return ["inicial", "diseno"].includes(stage);
   }
 
-  if (role === "jefe_taller" || role === "operario") {
+  if (role === "jefe_taller") {
+    // jefe_taller puede subir en todas las etapas de producción
     return ["corte", "enchape", "ensamble", "final"].includes(stage);
+  }
+
+  if (role === "operario") {
+    // operario puede subir en etapas de producción pero NO en final (fotos finales)
+    return ["corte", "enchape", "ensamble"].includes(stage);
   }
 
   return false;

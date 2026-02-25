@@ -255,11 +255,13 @@ export default function ProjectDetail() {
   });
 
   // Funcion para enviar notificacion de seccion
-  const handleSendSectionNotification = (sectionKey: string) => {
+  const handleSendSectionNotification = (subcategory: string) => {
     if (!projectId) return;
+    // Convertir subcategory a sectionKey válido
+    const sectionKey = subcategoryToSectionKey[subcategory] || "corte";
     sendSectionNotification.mutate({
       projectId,
-      sectionKey: sectionKey as "corte" | "enchape" | "armado" | "instalacion" | "entrega",
+      sectionKey,
     });
   };
 
@@ -267,6 +269,25 @@ export default function ProjectDetail() {
   const canSendSectionNotification = () => {
     const role = user?.role;
     return role === "super_admin" || role === "admin";
+  };
+
+  // Mapeo de subcategory a sectionKey válido para el backend
+  const subcategoryToSectionKey: Record<string, "corte" | "enchape" | "armado" | "instalacion" | "entrega"> = {
+    // Fotos de avance
+    corte: "corte",
+    enchape: "enchape",
+    armado: "armado",
+    // Fotos de instalación
+    proceso_instalacion: "instalacion",
+    // Fotos finales
+    fotos_finales: "entrega",
+    // Fallback para otros valores
+    fotos_iniciales: "corte",
+    renders: "corte",
+    despieces: "corte",
+    detalles: "corte",
+    modelado_3d: "corte",
+    dibujo: "corte",
   };
 
   // Mapeo de seccion a emoji y nombre

@@ -306,6 +306,7 @@ export default function ProjectDetail() {
     enchape: "ensamble",
     armado: "listo_instalacion",
     proceso_instalacion: "entregado",
+    fotos_finales: "entregado",
   };
 
   // Mapeo de subcategoría a estado requerido para mostrar botón de avanzar
@@ -316,6 +317,7 @@ export default function ProjectDetail() {
     enchape: ["enchape", "corte"],
     armado: ["ensamble", "enchape"],
     proceso_instalacion: ["listo_instalacion", "listo_instalacion"],
+    fotos_finales: ["listo_instalacion", "entregado"],
   };
 
   // Verificar si el usuario tiene rol permitido para avanzar
@@ -332,6 +334,7 @@ export default function ProjectDetail() {
     enchape: "corte",
     armado: "enchape",
     proceso_instalacion: "armado",
+    fotos_finales: "proceso_instalacion",
   };
 
   // Verificar si la etapa anterior tiene al menos una foto

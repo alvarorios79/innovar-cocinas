@@ -140,17 +140,16 @@ export async function generateQuotationPDF(
       // Tabla de items
       let currentY = infoY + 55;
 
-      // Encabezado de tabla - Ajustado para mejor distribución
+      // Encabezado de tabla - Reorganizado para mejor legibilidad
       doc
         .fillColor(turquoise)
         .rect(50, currentY, 512, 20)
         .fill();
-      doc.fontSize(9).fillColor("white").font("Helvetica-Bold");
-      doc.text("ÍTEM", 60, currentY + 6);
-      doc.text("DESCRIPCIÓN", 100, currentY + 6);
-      doc.text("CANT.", 370, currentY + 6);
-      doc.text("V.UNITARIO", 410, currentY + 6);
-      doc.text("TOTAL", 500, currentY + 6, { align: "right" });
+      doc.fontSize(8).fillColor("white").font("Helvetica-Bold");
+      doc.text("ÍTEM", 55, currentY + 7);
+      doc.text("DESCRIPCIÓN", 85, currentY + 7);
+      doc.text("CANT.", 430, currentY + 7);
+      doc.text("TOTAL", 480, currentY + 7, { align: "right" });
 
       currentY += 25;
 
@@ -171,27 +170,24 @@ export async function generateQuotationPDF(
         }
 
         doc.fillColor(darkGray);
-        doc.text(item.itemNumber.toString(), 60, currentY + 5);
+        doc.fontSize(8).font("Helvetica");
+        doc.text(item.itemNumber.toString(), 55, currentY + 5);
         
-        // Calcular altura necesaria para la descripción
-        const descriptionHeight = doc.heightOfString(item.description, { width: 260 });
+        // Calcular altura necesaria para la descripción (ancho máximo)
+        const descriptionHeight = doc.heightOfString(item.description, { width: 340 });
         
         // Renderizar descripción completa con saltos de línea
         doc.text(
           item.description,
-          100,
+          85,
           currentY + 5,
-          { width: 260, lineGap: 2 }
+          { width: 340, lineGap: 2 }
         );
         
-        // Cantidad, precio unitario y total alineados a la derecha
-        doc.fontSize(8).fillColor(darkGray).font("Helvetica");
-        doc.text(item.quantity, 370, currentY + 5, { width: 30, align: "center" });
-        if (item.unitPrice) {
-          doc.text(formatCurrency(item.unitPrice), 410, currentY + 5, { width: 80, align: "right" });
-        }
-        doc.text(formatCurrency(item.totalPrice), 500, currentY + 5, {
-          width: 50,
+        // Cantidad y total alineados a la derecha
+        doc.text(item.quantity, 430, currentY + 5, { width: 35, align: "center" });
+        doc.text(formatCurrency(item.totalPrice), 480, currentY + 5, {
+          width: 70,
           align: "right",
         });
 

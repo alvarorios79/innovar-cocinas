@@ -158,8 +158,11 @@ export function ProjectCard({
             <div className="flex-1 min-w-0">
               <div className="flex flex-wrap items-center gap-2 mb-2">
                 <h3 className="font-semibold text-base sm:text-lg truncate max-w-[200px] sm:max-w-none">
-                  {project.name}
+                  {project.client?.name || "Cliente"}
                 </h3>
+                <p className="text-xs text-gray-500 truncate">
+                  {project.name}
+                </p>
                 {getStatusBadge(project.status)}
                 {isNewForDesigner && (
                   <Badge className="bg-purple-600 text-white animate-pulse">
@@ -168,10 +171,6 @@ export function ProjectCard({
                 )}
               </div>
               <div className="text-sm text-muted-foreground grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-1">
-                <p className="flex items-center gap-1">
-                  <User className="h-3 w-3" />
-                  {project.client?.name || "N/A"}
-                </p>
                 <p className="flex items-center gap-1">
                   <Package className="h-3 w-3" />
                   {WORK_TYPES[project.workType as keyof typeof WORK_TYPES]}

@@ -837,13 +837,15 @@ export default function Projects() {
                     <div className="flex flex-col sm:flex-row justify-between gap-3">
                       {/* Info básica */}
                       <div className="flex-1 min-w-0">
-                        <div className="flex flex-wrap items-center gap-2 mb-2">
+                        <div className="flex flex-col gap-1 mb-2">
                           <h3 className="font-semibold text-base sm:text-lg break-words min-w-0 max-w-[200px] sm:max-w-none">
                             {project.client?.name || "Cliente"}
                           </h3>
                           <p className="text-xs text-gray-500 break-words min-w-0 max-w-[200px] sm:max-w-none">
                             {project.name}
                           </p>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2 mb-2">
                           {getStatusBadge(project.status, (project as any).modeladoRevisionNumber, (project as any).renderRevisionNumber)}
                           {/* Indicador de Nuevo para Producción (aprobado en las últimas 48 horas) */}
                           {["aprobacion_final", "despiece"].includes(project.status) && 
@@ -873,10 +875,6 @@ export default function Projects() {
                           )}
                         </div>
                         <div className="text-sm text-muted-foreground grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-x-4 gap-y-1">
-                          <p className="flex items-center gap-1">
-                            <User className="h-3 w-3" />
-                            {project.client?.name || "N/A"}
-                          </p>
                           <p className="flex items-center gap-1">
                             <Package className="h-3 w-3" />
                             {WORK_TYPES[project.workType as keyof typeof WORK_TYPES]}

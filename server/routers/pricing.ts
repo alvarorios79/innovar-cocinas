@@ -61,12 +61,13 @@ export const pricingRouter = router({
         id: z.number(),
         value: z.number().min(0, "El valor debe ser mayor o igual a 0"),
         reason: z.string().optional(),
+        descriptionTemplate: z.string().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         if (ctx.user.role !== "super_admin") {
           throw new TRPCError({ code: "FORBIDDEN", message: "Solo el super administrador puede modificar precios" });
         }
-        await db.updatePricingConfig(input.id, input.value, ctx.user.id, input.reason);
+        await db.updatePricingConfig(input.id, input.value, ctx.user.id, input.reason, input.descriptionTemplate);
         return { success: true };
       }),
 

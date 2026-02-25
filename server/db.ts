@@ -1818,7 +1818,8 @@ export async function updatePricingConfig(
   id: number, 
   newValue: number, 
   updatedBy: number,
-  reason?: string
+  reason?: string,
+  descriptionTemplate?: string
 ) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
@@ -1835,11 +1836,15 @@ export async function updatePricingConfig(
   const previousValue = Number(current[0].value);
 
   // Update the price
+  const updateData: any = { 
+    value: newValue.toString(),
+    updatedBy 
+  };
+  if (descriptionTemplate !== undefined) {
+    updateData.descriptionTemplate = descriptionTemplate || null;
+  }
   await db.update(pricingConfig)
-    .set({ 
-      value: newValue.toString(),
-      updatedBy 
-    })
+    .set(updateData)
     .where(eq(pricingConfig.id, id));
 
   // Record in history

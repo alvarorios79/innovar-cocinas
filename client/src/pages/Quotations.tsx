@@ -77,6 +77,7 @@ export default function Quotations() {
   
   // Hook para precios dinámicos desde la base de datos
   const { prices, isLoading: isPricingLoading, getPrice } = usePricing();
+  const { data: allPricing } = trpc.pricing.getAll.useQuery();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [lockConfirmDialog, setLockConfirmDialog] = useState<{ open: boolean; quotationId: number | null; isLocking: boolean }>({ open: false, quotationId: null, isLocking: false });
   
@@ -771,7 +772,24 @@ export default function Quotations() {
     }
     current[fields[fields.length - 1]] = value;
     
-    // Recalcular automáticamente con el item actualizado
+    // Autocompletar descripcion si se selecciona shape y la descripcion esta vacia
+    if (field === 'shape' && (!newItems[index].description || newItems[index].description.trim() === '')) {
+      const shapeToCode: Record<string, string> = {
+        'L': 'COCINA_ML_L',
+        'U': 'COCINA_ML_U',
+        'lineal': 'COCINA_ML_LINEAL',
+      };
+      
+      const code = shapeToCode[value];
+      if (code && allPricing) {
+        const pricingItem = allPricing.find(p => p.code === code);
+        if (pricingItem && pricingItem.descriptionTemplate) {
+          newItems[index].description = pricingItem.descriptionTemplate;
+        }
+      }
+    }
+    
+    // Recalcular automaticamente con el item actualizado
     calculateKitchenTotal(index, newItems);
   };
 

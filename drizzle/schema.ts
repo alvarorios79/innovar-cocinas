@@ -233,6 +233,7 @@ export const pricingConfig = mysqlTable("pricingConfig", {
 	code: varchar({ length: 100 }).notNull(),
 	name: varchar({ length: 255 }).notNull(),
 	description: text(),
+	descriptionTemplate: text(),
 	value: decimal({ precision: 12, scale: 2 }).notNull(),
 	unit: varchar({ length: 50 }),
 	sortOrder: int().default(0).notNull(),

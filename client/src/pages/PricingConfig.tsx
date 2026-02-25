@@ -137,6 +137,7 @@ interface PricingItem {
   code: string;
   name: string;
   description: string | null;
+  descriptionTemplate: string | null;
   value: string;
   unit: string | null;
   sortOrder: number;
@@ -163,6 +164,7 @@ export default function PricingConfig() {
   const [editingItem, setEditingItem] = useState<PricingItem | null>(null);
   const [newValue, setNewValue] = useState("");
   const [reason, setReason] = useState("");
+  const [descriptionTemplate, setDescriptionTemplate] = useState("");
   const [showHistory, setShowHistory] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
@@ -179,6 +181,7 @@ export default function PricingConfig() {
       setEditingItem(null);
       setNewValue("");
       setReason("");
+      setDescriptionTemplate("");
     },
     onError: (error) => {
       toast.error(error.message);
@@ -222,6 +225,7 @@ export default function PricingConfig() {
     setEditingItem(item);
     setNewValue(item.value);
     setReason("");
+    setDescriptionTemplate(item.descriptionTemplate || "");
   };
 
   const handleSave = () => {
@@ -237,6 +241,7 @@ export default function PricingConfig() {
       id: editingItem.id,
       value: numValue,
       reason: reason || undefined,
+      descriptionTemplate: descriptionTemplate || undefined,
     });
   };
 
@@ -645,15 +650,29 @@ export default function PricingConfig() {
                 
                 <div>
                   <Label htmlFor="reason" className="text-sm font-medium">
-                    Razón del cambio <span className="text-gray-400">(opcional)</span>
+                    Razon del cambio <span className="text-gray-400">(opcional)</span>
                   </Label>
                   <Textarea
                     id="reason"
                     value={reason}
                     onChange={(e) => setReason(e.target.value)}
-                    placeholder="Ej: Ajuste por inflación, Promoción temporal, Actualización de costos..."
+                    placeholder="Ej: Ajuste por inflacion, Promocion temporal, Actualizacion de costos..."
                     className="mt-2"
                     rows={2}
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="descriptionTemplate" className="text-sm font-medium">
+                    Template de Descripcion <span className="text-gray-400">(opcional)</span>
+                  </Label>
+                  <Textarea
+                    id="descriptionTemplate"
+                    value={descriptionTemplate}
+                    onChange={(e) => setDescriptionTemplate(e.target.value)}
+                    placeholder="Descripcion tecnica que se autocompletara en cotizaciones..."
+                    className="mt-2"
+                    rows={4}
                   />
                 </div>
               </div>

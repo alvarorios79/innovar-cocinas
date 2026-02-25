@@ -757,6 +757,33 @@ export default function Quotations() {
   const updateItem = (index: number, field: keyof QuotationItem, value: any) => {
     const newItems = [...items];
     newItems[index] = { ...newItems[index], [field]: value };
+    
+    // Auto-calcular total para items "Otro" cuando cambia cantidad o precio unitario
+
+    if (newItems[index].itemType === "otro" && (field === "quantity" || field === "unitPrice")) {
+      // Obtener cantidad: si es el campo que cambió, usar el nuevo valor; si no, usar el existente
+      let quantity = 0;
+      if (field === "quantity") {
+        // Extraer número de la cantidad (puede ser "8" o "8 unidades")
+        const quantityStr = (value as string) || "";
+        quantity = parseFloat(quantityStr.match(/\d+(\.\d+)?/)?.[0] || "0") || 0;
+      } else {
+        const quantityStr = (newItems[index].quantity as string) || "";
+        quantity = parseFloat(quantityStr.match(/\d+(\.\d+)?/)?.[0] || "0") || 0;
+      }
+      
+      // Obtener precio unitario
+      let unitPrice = 0;
+      if (field === "unitPrice") {
+        unitPrice = parseFloat((value as string) || "0") || 0;
+      } else {
+        unitPrice = parseFloat((newItems[index].unitPrice as string) || "0") || 0;
+      }
+      
+      // Calcular total
+      newItems[index].totalPrice = quantity * unitPrice;
+    }
+    
     setItems(newItems);
   };
 

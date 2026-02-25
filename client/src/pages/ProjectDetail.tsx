@@ -1180,7 +1180,13 @@ export default function ProjectDetail() {
                           {photos.length > 0 ? (
                             <>
                               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
-                                {photos.map((photo: any, idx: number) => (
+                                {photos.map((photo: any, idx: number) => {
+                                  if (idx === 0) {
+                                    console.log('=== PHOTO DEBUG ===');
+               
+                                    console.log('photoUrl:', photo.photoUrl);
+                                  }
+                                  return (
                                   <div
                                     key={photo.id}
                                     className="aspect-square rounded-md overflow-hidden cursor-pointer hover:opacity-80 transition-opacity relative group"
@@ -1196,9 +1202,13 @@ export default function ProjectDetail() {
                                       </div>
                                     ) : (
                                       <img
-                                        src={photo.photoUrl}
+                                        src={photo.photoUrl || ''}
                                         alt={photo.description || "Foto"}
                                         className="w-full h-full object-cover"
+                                        onError={(e) => {
+                                          console.log('Image load error for:', photo.photoUrl);
+                                          (e.target as HTMLImageElement).src = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22%3E%3Crect fill=%22%23f0f0f0%22 width=%22100%22 height=%22100%22/%3E%3C/svg%3E';
+                                        }}
                                       />
                                     )}
                                     <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
@@ -1215,11 +1225,10 @@ export default function ProjectDetail() {
                                         }}
                                       >
                                         <Trash2 className="h-5 w-5" />
-                                      </button>
-                                    )}
+                                      </button>                                    )})
                                   </div>
-                                ))}
-                              </div>
+                                );
+                                })})                              </div>
                               {/* Botón de avanzar etapa - siempre visible para roles permitidos */}
                               {canShowAdvanceButton(subcategory) && (
                                 <div className="mt-3 pt-3 border-t border-dashed border-emerald-200">

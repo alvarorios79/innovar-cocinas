@@ -1,0 +1,20 @@
+{
+  "query": "SELECT code, name, value FROM pricingConfig WHERE code IN ('MUEBLE_INFERIOR_ML', 'MUEBLE_SUPERIOR_ML');",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT code, name, value FROM pricingConfig WHERE code IN ('MUEBLE_INFERIOR_ML', 'MUEBLE_SUPERIOR_ML');",
+  "rows": [
+    {
+      "code": "MUEBLE_INFERIOR_ML",
+      "name": "Mueble Inferior - Metro Lineal",
+      "value": "900000.00"
+    },
+    {
+      "code": "MUEBLE_SUPERIOR_ML",
+      "name": "Mueble Superior - Metro Lineal",
+      "value": "750000.00"
+    }
+  ],
+  "messages": [],
+  "stdout": "code\tname\tvalue\nMUEBLE_INFERIOR_ML\tMueble Inferior - Metro Lineal\t900000.00\nMUEBLE_SUPERIOR_ML\tMueble Superior - Metro Lineal\t750000.00\n",
+  "stderr": "",
+  "execution_time_ms": 57
+}

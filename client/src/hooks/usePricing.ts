@@ -3,13 +3,13 @@ import { trpc } from "@/lib/trpc";
 // Precios por defecto (fallback si no se cargan de la BD)
 const DEFAULT_PRICES: Record<string, { value: number; unit: string | null }> = {
   // Cocina Base
-  COCINA_ML_L: { value: 2800000, unit: "ml" },
-  COCINA_ML_U: { value: 2800000, unit: "ml" },
-  COCINA_ML_LINEAL: { value: 2800000, unit: "ml" },
-  COCINA_ML_FRENTE_PLL: { value: 1400000, unit: "ml" },
-  COCINA_ML_SOLO_MUEBLES: { value: 1400000, unit: "ml" },
-  MUEBLE_SUPERIOR_ML: { value: 1400000, unit: "ml" },
-  MUEBLE_INFERIOR_ML: { value: 1400000, unit: "ml" },
+  COCINA_ML_L: { value: 1800000, unit: "ml" },
+  COCINA_ML_U: { value: 1800000, unit: "ml" },
+  COCINA_ML_LINEAL: { value: 1800000, unit: "ml" },
+  COCINA_ML_FRENTE_PLL: { value: 900000, unit: "ml" },
+  COCINA_ML_SOLO_MUEBLES: { value: 900000, unit: "ml" },
+  MUEBLE_SUPERIOR_ML: { value: 900000, unit: "ml" },
+  MUEBLE_INFERIOR_ML: { value: 900000, unit: "ml" },
   
   // Mesones
   MESON_GRANITO: { value: 450000, unit: "ml" },

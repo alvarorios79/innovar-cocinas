@@ -1,0 +1,52 @@
+{
+  "query": "SELECT id, code, name, value FROM pricingConfig WHERE category = 'cocina_base' ORDER BY sortOrder;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT id, code, name, value FROM pricingConfig WHERE category = 'cocina_base' ORDER BY sortOrder;",
+  "rows": [
+    {
+      "id": "1",
+      "code": "COCINA_ML_L",
+      "name": "Cocina Forma L - Metro Lineal",
+      "value": "900000.00"
+    },
+    {
+      "id": "2",
+      "code": "COCINA_ML_U",
+      "name": "Cocina Forma U - Metro Lineal",
+      "value": "900000.00"
+    },
+    {
+      "id": "3",
+      "code": "COCINA_ML_LINEAL",
+      "name": "Cocina Lineal - Metro Lineal",
+      "value": "900000.00"
+    },
+    {
+      "id": "4",
+      "code": "COCINA_ML_FRENTE_PLL",
+      "name": "Frente PLL - Metro Lineal",
+      "value": "650000.00"
+    },
+    {
+      "id": "5",
+      "code": "COCINA_ML_SOLO_MUEBLES",
+      "name": "Solo Muebles Inferiores - Metro Lineal",
+      "value": "900000.00"
+    },
+    {
+      "id": "50",
+      "code": "MUEBLE_SUPERIOR_ML",
+      "name": "Mueble Superior - Metro Lineal",
+      "value": "900000.00"
+    },
+    {
+      "id": "51",
+      "code": "MUEBLE_INFERIOR_ML",
+      "name": "Mueble Inferior - Metro Lineal",
+      "value": "900000.00"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tcode\tname\tvalue\n1\tCOCINA_ML_L\tCocina Forma L - Metro Lineal\t900000.00\n2\tCOCINA_ML_U\tCocina Forma U - Metro Lineal\t900000.00\n3\tCOCINA_ML_LINEAL\tCocina Lineal - Metro Lineal\t900000.00\n4\tCOCINA_ML_FRENTE_PLL\tFrente PLL - Metro Lineal\t650000.00\n5\tCOCINA_ML_SOLO_MUEBLES\tSolo Muebles Inferiores - Metro Lineal\t900000.00\n50\tMUEBLE_SUPERIOR_ML\tMueble Superior - Metro Lineal\t900000.00\n51\tMUEBLE_INFERIOR_ML\tMueble Inferior - Metro Lineal\t900000.00\n",
+  "stderr": "",
+  "execution_time_ms": 121
+}

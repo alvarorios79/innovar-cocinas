@@ -1932,9 +1932,9 @@ export default function Quotations() {
                                   <SelectValue placeholder="Selecciona la forma" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value="L">En L</SelectItem>
-                                  <SelectItem value="U">En U</SelectItem>
-                                  <SelectItem value="lineal">Lineal</SelectItem>
+                                  <SelectItem value="L">Cocina Estándar</SelectItem>
+                                  <SelectItem value="U">Cocina Premium</SelectItem>
+                                  <SelectItem value="lineal">Cocina Deluxe</SelectItem>
                                   <SelectItem value="frente_pll">Frente PLL ($650,000/ml)</SelectItem>
                                   <SelectItem value="solo_superiores">Solo Muebles Superiores ($900,000/ml)</SelectItem>
                                   <SelectItem value="solo_inferiores">Solo Muebles Inferiores ($900,000/ml)</SelectItem>

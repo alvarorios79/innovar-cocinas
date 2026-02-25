@@ -107,25 +107,30 @@ export function QuotationGroupCard({
       {/* HEADER COMPACTO - UNA SOLA LÍNEA */}
       <div className={`px-3 py-2 md:px-3 md:py-2 border-b border-gray-200 ${isExpired ? 'bg-red-50' : isExpiringSoon ? 'bg-yellow-50' : 'bg-white'}`}>
         <div className="flex items-center gap-2 md:gap-3 mb-2">
-          {/* Thumbnail pequeño */}
-          <div className="flex-shrink-0 w-14 h-14 md:w-16 md:h-16 rounded-md bg-gray-100 border border-gray-200 flex items-center justify-center overflow-hidden">
-            {selectedVersion.thumbnailUrl ? (
-              <img 
-                src={selectedVersion.thumbnailUrl} 
-                alt="Thumbnail" 
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <ImageIcon className="w-6 h-6 text-gray-400" />
-            )}
+          {/* Logo Innovar pequeño (32px) */}
+          <div className="flex-shrink-0 w-8 h-8 md:w-8 md:h-8 rounded-md flex items-center justify-center overflow-hidden bg-white">
+            <img 
+              src="/logo-light.png" 
+              alt="Innovar" 
+              className="w-full h-full object-contain p-0.5"
+              onError={(e) => {
+                // Fallback si el logo no existe
+                (e.target as HTMLImageElement).style.display = 'none';
+              }}
+            />
           </div>
 
-          {/* Información principal en una línea */}
+          {/* Información principal - Nombre cliente primero */}
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="text-sm md:text-base font-semibold text-gray-900 truncate">
+            {/* Nombre del cliente - Primero */}
+            <h3 className="text-sm md:text-base font-semibold text-gray-900 truncate">
+              {client?.name || "Cliente"}
+            </h3>
+            {/* Número de cotización - Debajo */}
+            <div className="flex items-center gap-2 flex-wrap mt-0.5">
+              <p className="text-xs text-gray-500 truncate">
                 {group.quotationNumber}
-              </h3>
+              </p>
               {isActiveVersion && (
                 <Badge className="bg-[#14B8A6] text-white text-xs py-0 px-2">
                   Activa
@@ -161,9 +166,11 @@ export function QuotationGroupCard({
                 </Badge>
               )}
             </div>
-            <p className="text-xs text-gray-500 truncate mt-0.5">
-              {client?.name || "Cliente"} {client?.phone && `• ${client.phone}`}
-            </p>
+            {client?.phone && (
+              <p className="text-xs text-gray-500 truncate mt-0.5">
+                {client.phone}
+              </p>
+            )}
           </div>
 
           {/* Total y fechas compactas */}

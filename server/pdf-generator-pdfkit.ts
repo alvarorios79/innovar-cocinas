@@ -6,6 +6,8 @@ import { dirname } from "path";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+
+// console.log("🔥 PDFKIT RENDER FILE EXECUTED 🔥");
 interface QuotationItem {
   itemNumber: number;
   description: string;
@@ -37,6 +39,9 @@ export async function generateQuotationPDF(
   data: QuotationData,
   outputPath: string
 ): Promise<void> {
+  console.log("🔥 generateQuotationPDF FUNCTION CALLED 🔥");
+  console.log("📊 Items count:", data.items.length);
+  console.log("📄 First item description length:", data.items[0]?.description?.length || 0);
   return new Promise((resolve, reject) => {
     try {
       // Crear documento PDF
@@ -158,41 +163,39 @@ export async function generateQuotationPDF(
       let rowBackground = false;
 
       for (const item of data.items) {
-        // Fondo alternado
-        if (rowBackground) {
-          doc.fillColor("#F3F4F6").rect(50, currentY, 512, 20).fill();
-        }
+        // Calcular altura necesaria para la descripción
+        const descriptionHeight = doc.heightOfString(item.description, { width: 340, lineGap: 2 });
+        const rowHeight = Math.max(descriptionHeight + 8, 20);
 
         // Verificar si necesitamos nueva página
-        if (currentY > 700) {
+        if (currentY + rowHeight > doc.page.height - 80) {
           doc.addPage();
-          currentY = 50;
+          currentY = 60;
         }
 
+        // Dibujar fondo alternado con altura correcta
+        if (rowBackground) {
+          doc.fillColor("#F3F4F6").rect(50, currentY, 512, rowHeight).fill();
+        }
+
+        // Dibujar todas las columnas con la MISMA coordenada Y (alineación vertical)
         doc.fillColor(darkGray);
         doc.fontSize(8).font("Helvetica");
-        doc.text(item.itemNumber.toString(), 55, currentY + 5);
         
-        // Calcular altura necesaria para la descripción (ancho máximo)
-        const descriptionHeight = doc.heightOfString(item.description, { width: 340 });
+        // Número de ítem
+        doc.text(item.itemNumber.toString(), 55, currentY + 4, { width: 25 });
         
-        // Renderizar descripción completa con saltos de línea
-        doc.text(
-          item.description,
-          85,
-          currentY + 5,
-          { width: 340, lineGap: 2 }
-        );
+        // Descripción (puede ocupar múltiples líneas)
+        doc.text(item.description, 85, currentY + 4, { width: 340, lineGap: 2 });
         
-        // Cantidad y total alineados a la derecha
-        doc.text(item.quantity, 430, currentY + 5, { width: 35, align: "center" });
-        doc.text(formatCurrency(item.totalPrice), 480, currentY + 5, {
-          width: 70,
-          align: "right",
-        });
+        // Cantidad (centrada)
+        doc.text(item.quantity, 430, currentY + 4, { width: 35, align: "center" });
+        
+        // Total (alineado a la derecha)
+        doc.text(formatCurrency(item.totalPrice), 480, currentY + 4, { width: 70, align: "right" });
 
-        // Ajustar currentY según la altura de la descripción
-        currentY += Math.max(descriptionHeight + 10, 25);
+        // Avanzar cursor correctamente
+        currentY += rowHeight + 4;
         rowBackground = !rowBackground;
       }
 

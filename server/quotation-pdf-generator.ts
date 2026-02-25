@@ -20,12 +20,14 @@ interface QuotationPDFData {
   discountAmount?: string; // Monto del descuento
   total: string;
   generalNotes?: string; // Notas generales personalizadas
+  version?: number; // Versión del PDF
 }
 
 export async function generateQuotationPDF(
   data: QuotationPDFData,
-  quotationId: number
-): Promise<{ pdfPath: string; filename: string }> {
+  quotationId: number,
+  version?: number
+): Promise<{ pdfPath: string; filename: string; pdfKey: string }> {
   const outputPath = `/tmp/quotation_${quotationId}_${Date.now()}.pdf`;
 
   try {
@@ -41,10 +43,15 @@ export async function generateQuotationPDF(
     
     // Formato: COT-2026-XXX_NombreCliente.pdf
     const filename = `${data.quotationNumber}_${cleanClientName}.pdf`;
+    
+    // Generar pdfKey con versionado: quotations/COT-2026-XXX/v1.pdf
+    const versionNumber = version || 1;
+    const pdfKey = `quotations/${data.quotationNumber}/v${versionNumber}.pdf`;
 
     return {
       pdfPath: outputPath,
       filename,
+      pdfKey,
     };
   } catch (error: any) {
     console.error("[PDF] Error al generar PDF:", error);

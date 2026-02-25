@@ -504,6 +504,24 @@ export async function updateQuotation(id: number, data: Partial<InsertQuotation>
   await db.update(quotations).set(data).where(eq(quotations.id, id));
 }
 
+// Incrementar versión de cotización y retornar nueva versión
+export async function incrementQuotationVersion(id: number): Promise<number> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const quotation = await db.select().from(quotations).where(eq(quotations.id, id)).limit(1);
+  if (!quotation.length) throw new Error("Quotation not found");
+
+  const currentVersion = quotation[0].versionNumber || 1;
+  const newVersion = currentVersion + 1;
+
+  await db.update(quotations)
+    .set({ versionNumber: newVersion })
+    .where(eq(quotations.id, id));
+
+  return newVersion;
+}
+
 export async function getNextQuotationNumber(): Promise<string> {
   const db = await getDb();
   if (!db) throw new Error("Database not available");

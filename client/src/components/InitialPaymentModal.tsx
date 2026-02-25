@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -43,6 +43,16 @@ export function InitialPaymentModal({
   const suggestedAdvance = Math.round(totalAmount * 0.6);
   const [paymentAmount, setPaymentAmount] = useState(suggestedAdvance.toString());
   const [paymentMethod, setPaymentMethod] = useState("transfer");
+  const [wasLoading, setWasLoading] = useState(false);
+
+  // Cerrar modal automáticamente cuando se completa el guardado
+  useEffect(() => {
+    if (wasLoading && !isLoading && open) {
+      // isLoading cambió de true a false, significa que se guardó exitosamente
+      setTimeout(() => onCancel(), 500);
+    }
+    setWasLoading(isLoading);
+  }, [isLoading, open, onCancel]);
 
   const handleConfirm = () => {
     const amount = parseFloat(paymentAmount);
@@ -70,7 +80,7 @@ export function InitialPaymentModal({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-4">
           {/* Información del Proyecto */}
           <Card className="bg-slate-50">
             <CardContent className="pt-6">
@@ -162,7 +172,7 @@ export function InitialPaymentModal({
           )}
 
           {/* Botones */}
-          <div className="flex gap-3 pt-4">
+          <div className="flex gap-3 pt-4 sticky bottom-0 bg-white border-t">
             <Button
               variant="outline"
               onClick={onCancel}

@@ -94,6 +94,15 @@ export function formatPhoneForWhatsApp(phone: string): string {
 }
 
 /**
+ * Crea un AbortController con timeout
+ */
+function createTimeoutController(timeoutMs: number = 10000): AbortController {
+  const controller = new AbortController();
+  setTimeout(() => controller.abort(), timeoutMs);
+  return controller;
+}
+
+/**
  * Envía un mensaje de texto simple por WhatsApp
  */
 export async function sendTextMessage(
@@ -123,6 +132,7 @@ export async function sendTextMessage(
     
     console.log("[WHATSAPP DEBUG] REQUEST PAYLOAD:", JSON.stringify(payload, null, 2));
     
+    const controller = createTimeoutController(10000);
     const response = await fetch(
       `${WHATSAPP_API_URL}/${WHATSAPP_PHONE_NUMBER_ID}/messages`,
       {
@@ -132,6 +142,7 @@ export async function sendTextMessage(
           "Content-Type": "application/json",
         },
         body: JSON.stringify(payload),
+        signal: controller.signal,
       }
     );
 
@@ -156,10 +167,21 @@ export async function sendTextMessage(
       errorCode: data.error?.code?.toString(),
     };
   } catch (error) {
-    console.error("[WHATSAPP DEBUG] CATCH ERROR:", error);
+    const errorMsg = error instanceof Error ? error.message : "Error de conexión";
+    console.error("[WHATSAPP DEBUG] CATCH ERROR:", errorMsg);
+    
+    // Detectar timeout
+    if (errorMsg.includes("abort") || errorMsg.includes("timeout")) {
+      return {
+        success: false,
+        error: "Timeout: La API de WhatsApp tardó demasiado en responder (>10s). Intenta de nuevo.",
+        errorCode: "TIMEOUT",
+      };
+    }
+    
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Error de conexión",
+      error: errorMsg,
     };
   }
 }
@@ -202,6 +224,7 @@ export async function sendTemplateMessage(
       (templatePayload.template as Record<string, unknown>).components = components;
     }
 
+    const controller = createTimeoutController(10000);
     const response = await fetch(
       `${WHATSAPP_API_URL}/${WHATSAPP_PHONE_NUMBER_ID}/messages`,
       {
@@ -211,6 +234,7 @@ export async function sendTemplateMessage(
           "Content-Type": "application/json",
         },
         body: JSON.stringify(templatePayload),
+        signal: controller.signal,
       }
     );
 
@@ -229,10 +253,21 @@ export async function sendTemplateMessage(
       errorCode: data.error?.code?.toString(),
     };
   } catch (error) {
-    console.error("[WhatsApp Cloud] Error enviando plantilla:", error);
+    const errorMsg = error instanceof Error ? error.message : "Error de conexión";
+    console.error("[WhatsApp Cloud] Error enviando plantilla:", errorMsg);
+    
+    // Detectar timeout
+    if (errorMsg.includes("abort") || errorMsg.includes("timeout")) {
+      return {
+        success: false,
+        error: "Timeout: La API de WhatsApp tardó demasiado en responder (>10s). Intenta de nuevo.",
+        errorCode: "TIMEOUT",
+      };
+    }
+    
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Error de conexión",
+      error: errorMsg,
     };
   }
 }
@@ -279,9 +314,19 @@ export async function verifyConnection(): Promise<{
       error: data.error?.message || "Error de conexión",
     };
   } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : "Error de conexión";
+    
+    // Detectar timeout
+    if (errorMsg.includes("abort") || errorMsg.includes("timeout")) {
+      return {
+        connected: false,
+        error: "Timeout: No se pudo conectar a WhatsApp Cloud API (>10s)",
+      };
+    }
+    
     return {
       connected: false,
-      error: error instanceof Error ? error.message : "Error de conexión",
+      error: errorMsg,
     };
   }
 }

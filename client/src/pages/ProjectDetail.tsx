@@ -828,49 +828,54 @@ export default function ProjectDetail() {
 
         {/* Tabs con colores distintivos */}
         <Tabs defaultValue="info" className="w-full">
-          <TabsList className="flex flex-wrap w-full gap-1 h-auto p-1 bg-muted/50 mb-4">
+          <TabsList className="flex md:flex-wrap overflow-x-auto md:overflow-x-visible w-full gap-1 h-auto p-1 bg-muted/50 mb-4 md:mb-4 scrollbar-hide">
             <TabsTrigger 
               value="info" 
-              className="flex-1 min-w-0 sm:min-w-[100px] text-sm px-2 sm:px-4 py-2.5 bg-blue-100 text-blue-700 data-[state=active]:bg-blue-500 data-[state=active]:text-white hover:bg-blue-200 transition-colors rounded-md"
+              className="flex-shrink-0 md:flex-1 min-w-max md:min-w-0 text-xs sm:text-sm px-2 sm:px-4 py-2.5 bg-blue-100 text-blue-700 data-[state=active]:bg-blue-500 data-[state=active]:text-white hover:bg-blue-200 transition-colors rounded-md whitespace-nowrap"
             >
-              <Info className="h-4 w-4 mr-2" />
-              Información
+              <Info className="h-4 w-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Información</span>
+              <span className="sm:hidden">Info</span>
             </TabsTrigger>
             <TabsTrigger 
               value="materials" 
-              className="flex-1 min-w-0 sm:min-w-[100px] text-sm px-2 sm:px-4 py-2.5 bg-purple-100 text-purple-700 data-[state=active]:bg-purple-500 data-[state=active]:text-white hover:bg-purple-200 transition-colors rounded-md"
+              className="flex-shrink-0 md:flex-1 min-w-max md:min-w-0 text-xs sm:text-sm px-2 sm:px-4 py-2.5 bg-purple-100 text-purple-700 data-[state=active]:bg-purple-500 data-[state=active]:text-white hover:bg-purple-200 transition-colors rounded-md whitespace-nowrap"
             >
-              <Palette className="h-4 w-4 mr-2" />
-              Materiales
+              <Palette className="h-4 w-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Materiales</span>
+              <span className="sm:hidden">Mat.</span>
             </TabsTrigger>
             <TabsTrigger 
               value="photos" 
-              className="flex-1 min-w-0 sm:min-w-[100px] text-sm px-2 sm:px-4 py-2.5 bg-green-100 text-green-700 data-[state=active]:bg-green-500 data-[state=active]:text-white hover:bg-green-200 transition-colors rounded-md"
+              className="flex-shrink-0 md:flex-1 min-w-max md:min-w-0 text-xs sm:text-sm px-2 sm:px-4 py-2.5 bg-green-100 text-green-700 data-[state=active]:bg-green-500 data-[state=active]:text-white hover:bg-green-200 transition-colors rounded-md whitespace-nowrap"
             >
-              <Camera className="h-4 w-4 mr-2" />
+              <Camera className="h-4 w-4 mr-1 sm:mr-2" />
               Fotos
             </TabsTrigger>
             <TabsTrigger 
               value="details" 
-              className="flex-1 min-w-0 sm:min-w-[100px] text-sm px-2 sm:px-4 py-2.5 bg-orange-100 text-orange-700 data-[state=active]:bg-orange-500 data-[state=active]:text-white hover:bg-orange-200 transition-colors rounded-md"
+              className="flex-shrink-0 md:flex-1 min-w-max md:min-w-0 text-xs sm:text-sm px-2 sm:px-4 py-2.5 bg-orange-100 text-orange-700 data-[state=active]:bg-orange-500 data-[state=active]:text-white hover:bg-orange-200 transition-colors rounded-md whitespace-nowrap"
             >
-              <ListTodo className="h-4 w-4 mr-2" />
-              Detalles
+              <ListTodo className="h-4 w-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Detalles</span>
+              <span className="sm:hidden">Det.</span>
             </TabsTrigger>
             <TabsTrigger 
               value="history" 
-              className="flex-1 min-w-0 sm:min-w-[100px] text-sm px-2 sm:px-4 py-2.5 bg-gray-200 text-gray-700 data-[state=active]:bg-gray-600 data-[state=active]:text-white hover:bg-gray-300 transition-colors rounded-md"
+              className="flex-shrink-0 md:flex-1 min-w-max md:min-w-0 text-xs sm:text-sm px-2 sm:px-4 py-2.5 bg-gray-200 text-gray-700 data-[state=active]:bg-gray-600 data-[state=active]:text-white hover:bg-gray-300 transition-colors rounded-md whitespace-nowrap"
             >
-              <History className="h-4 w-4 mr-2" />
-              Historial
+              <History className="h-4 w-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Historial</span>
+              <span className="sm:hidden">Hist.</span>
             </TabsTrigger>
             {user?.role !== "disenador" && user?.role !== "jefe_taller" && user?.role !== "operario" && (
               <TabsTrigger 
                 value="payments" 
-                className="flex-1 min-w-0 sm:min-w-[100px] text-sm px-2 sm:px-4 py-2.5 bg-emerald-100 text-emerald-700 data-[state=active]:bg-emerald-500 data-[state=active]:text-white hover:bg-emerald-200 transition-colors rounded-md"
+                className="flex-shrink-0 md:flex-1 min-w-max md:min-w-0 text-xs sm:text-sm px-2 sm:px-4 py-2.5 bg-emerald-100 text-emerald-700 data-[state=active]:bg-emerald-500 data-[state=active]:text-white hover:bg-emerald-200 transition-colors rounded-md whitespace-nowrap"
               >
-                <CreditCard className="h-4 w-4 mr-2" />
-                Pagos
+                <CreditCard className="h-4 w-4 mr-1 sm:mr-2" />
+                <span className="hidden sm:inline">Pagos</span>
+                <span className="sm:hidden">Pag.</span>
               </TabsTrigger>
             )}
           </TabsList>

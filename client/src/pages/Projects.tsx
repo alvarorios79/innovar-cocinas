@@ -839,8 +839,11 @@ export default function Projects() {
                       <div className="flex-1 min-w-0">
                         <div className="flex flex-wrap items-center gap-2 mb-2">
                           <h3 className="font-semibold text-base sm:text-lg break-words min-w-0 max-w-[200px] sm:max-w-none">
-                            {project.name}
+                            {project.client?.name || "Cliente"}
                           </h3>
+                          <p className="text-xs text-gray-500 break-words min-w-0 max-w-[200px] sm:max-w-none">
+                            {project.name}
+                          </p>
                           {getStatusBadge(project.status, (project as any).modeladoRevisionNumber, (project as any).renderRevisionNumber)}
                           {/* Indicador de Nuevo para Producción (aprobado en las últimas 48 horas) */}
                           {["aprobacion_final", "despiece"].includes(project.status) && 

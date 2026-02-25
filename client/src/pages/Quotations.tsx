@@ -3479,7 +3479,7 @@ export default function Quotations() {
       {pendingQuotationForProject && (
         <InitialPaymentModal
           open={initialPaymentModalOpen}
-          totalAmount={pendingQuotationForProject.totalAmount || 0}
+          totalAmount={parseFloat(pendingQuotationForProject.total || "0")}
           quotationNumber={pendingQuotationForProject.quotationNumber || ""}
           onConfirm={handleCreateProjectWithPayment}
           onCancel={() => {

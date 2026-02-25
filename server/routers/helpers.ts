@@ -70,8 +70,8 @@ export function validatePhotoUploadPermission(role: string, stage: string, categ
   }
 
   if (role === "operario") {
-    // operario puede subir en etapas de producción pero NO en final (fotos finales)
-    return ["corte", "enchape", "ensamble"].includes(stage);
+    // operario puede subir en todas las etapas de producción incluyendo fotos finales
+    return ["corte", "enchape", "ensamble", "final"].includes(stage);
   }
 
   return false;

@@ -42,9 +42,9 @@ describe("Photo Upload Permissions - jefe_taller", () => {
     expect(result).toBe(true);
   });
 
-  it("debe rechazar a operario subir fotos en stage 'final'", () => {
+  it("debe permitir a operario subir fotos en stage 'final' (fotos finales)", () => {
     const result = validatePhotoUploadPermission("operario", "final", "entrega");
-    expect(result).toBe(false);
+    expect(result).toBe(true);
   });
 
   it("debe permitir a admin subir fotos en cualquier stage", () => {

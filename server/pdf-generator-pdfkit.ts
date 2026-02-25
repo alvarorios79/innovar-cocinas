@@ -140,17 +140,17 @@ export async function generateQuotationPDF(
       // Tabla de items
       let currentY = infoY + 55;
 
-      // Encabezado de tabla
+      // Encabezado de tabla - Ajustado para mejor distribución
       doc
         .fillColor(turquoise)
         .rect(50, currentY, 512, 20)
         .fill();
       doc.fontSize(9).fillColor("white").font("Helvetica-Bold");
       doc.text("ÍTEM", 60, currentY + 6);
-      doc.text("DESCRIPCIÓN", 110, currentY + 6);
-      doc.text("CANTIDAD", 360, currentY + 6);
-      doc.text("PRECIO UNIT.", 430, currentY + 6);
-      doc.text("TOTAL", 510, currentY + 6, { align: "right" });
+      doc.text("DESCRIPCIÓN", 100, currentY + 6);
+      doc.text("CANT.", 370, currentY + 6);
+      doc.text("V.UNITARIO", 410, currentY + 6);
+      doc.text("TOTAL", 500, currentY + 6, { align: "right" });
 
       currentY += 25;
 
@@ -174,22 +174,24 @@ export async function generateQuotationPDF(
         doc.text(item.itemNumber.toString(), 60, currentY + 5);
         
         // Calcular altura necesaria para la descripción
-        const descriptionHeight = doc.heightOfString(item.description, { width: 240 });
+        const descriptionHeight = doc.heightOfString(item.description, { width: 260 });
         
         // Renderizar descripción completa con saltos de línea
         doc.text(
           item.description,
-          110,
+          100,
           currentY + 5,
-          { width: 240, lineGap: 2 }
+          { width: 260, lineGap: 2 }
         );
         
-        // Cantidad, precio unitario y total en la misma línea inicial
-        doc.text(item.quantity, 360, currentY + 5);
+        // Cantidad, precio unitario y total alineados a la derecha
+        doc.fontSize(8).fillColor(darkGray).font("Helvetica");
+        doc.text(item.quantity, 370, currentY + 5, { width: 30, align: "center" });
         if (item.unitPrice) {
-          doc.text(formatCurrency(item.unitPrice), 430, currentY + 5);
+          doc.text(formatCurrency(item.unitPrice), 410, currentY + 5, { width: 80, align: "right" });
         }
-        doc.text(formatCurrency(item.totalPrice), 510, currentY + 5, {
+        doc.text(formatCurrency(item.totalPrice), 500, currentY + 5, {
+          width: 50,
           align: "right",
         });
 

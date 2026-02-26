@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Download, Mail, X, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, AlertCircle, Loader2 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
+import { toast } from "sonner";
+import { downloadPDFiOS } from "@/lib/pdf-download";
 
 // Configurar worker de PDF.js
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
@@ -69,17 +71,16 @@ export function PDFPreviewDialog({
     setIsLoading(false);
   };
 
-  const handleDownload = () => {
-    const link = document.createElement("a");
+  const handleDownload = async () => {
     // Remover parámetro preview=true para descarga
     const downloadUrl = pdfUrl.replace('&preview=true', '').replace('?preview=true', '');
-    link.href = downloadUrl;
     // Limpiar el nombre para que sea válido como nombre de archivo
     const cleanName = quotationNumber 
       ? quotationNumber.replace(/[^a-zA-Z0-9\-_\s]/g, '').replace(/\s+/g, '_')
       : `cotizacion_${Date.now()}`;
-    link.download = `${cleanName}.pdf`;
-    link.click();
+    const filename = `${cleanName}.pdf`;
+    // Usar función compatible con iOS
+    await downloadPDFiOS(downloadUrl, filename);
   };
 
   const handlePreviousPage = () => {

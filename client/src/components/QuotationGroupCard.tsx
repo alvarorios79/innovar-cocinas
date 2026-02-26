@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Eye, EyeOff, Edit, FileText, Send, Copy, Download, FolderPlus, FileEdit, Lock, Trash2, Image as ImageIcon } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
+import { downloadPDFiOS } from "@/lib/pdf-download";
 
 interface QuotationGroupCardProps {
   group: {
@@ -357,10 +358,8 @@ export function QuotationGroupCard({
               variant="outline"
               className="text-xs py-1 px-2 h-7 gap-1"
               onClick={() => {
-                const link = document.createElement("a");
-                link.href = selectedVersion.pdfUrl;
-                link.download = `${group.quotationNumber}-V${selectedVersion.versionNumber}.pdf`;
-                link.click();
+                const filename = `${group.quotationNumber}-V${selectedVersion.versionNumber}.pdf`;
+                downloadPDFiOS(selectedVersion.pdfUrl, filename);
               }}
             >
               <Download className="w-3 h-3" />

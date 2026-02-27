@@ -33,7 +33,9 @@ import {
   ChevronUp,
   Trash2,
   AlertTriangle,
-  Sparkles
+  Sparkles,
+  Archive,
+  RotateCcw
 } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -47,6 +49,7 @@ import { MaterialsForm } from "@/components/MaterialsForm";
 import { HardwareSelector } from "@/components/HardwareSelector";
 import { ProjectInlineDetail } from "@/components/ProjectInlineDetail";
 import { PageHeader } from "@/components/PageHeader";
+import { archiveProject, unarchiveProject } from "@/api/projectsArchive";
 
 // Estados del proyecto según Ruta INNOVAR (14 estados simplificados)
 const PROJECT_STATUSES: Record<string, { label: string; color: string; icon: any }> = {
@@ -196,6 +199,12 @@ export default function Projects() {
   // Estado para búsqueda de cliente
   const [searchTerm, setSearchTerm] = useState("");
   
+  // Estado para tab de archivado
+  const [archiveTab, setArchiveTab] = useState<'active' | 'delivered' | 'archived'>('active');
+  
+  // Estado para carga de archivado
+  const [archivingProjectId, setArchivingProjectId] = useState<number | null>(null);
+  
   // Estado para confirmación de avance a aprobacion_final
   const [showAdvanceConfirmDialog, setShowAdvanceConfirmDialog] = useState(false);
   const [projectToAdvance, setProjectToAdvance] = useState<any>(null);
@@ -225,8 +234,23 @@ export default function Projects() {
     }
   });
   
+  // Aplicar filtro de archivado según tab
+  const filteredByArchive = filteredByProfit.filter(p => {
+    const isArchived = (p as any).isArchived === 1;
+    const status = (p as any).status?.toLowerCase() || "";
+    
+    if (archiveTab === 'active') {
+      return status !== 'entregado' && !isArchived;
+    } else if (archiveTab === 'delivered') {
+      return status === 'entregado' && !isArchived;
+    } else if (archiveTab === 'archived') {
+      return isArchived === true;
+    }
+    return true;
+  });
+  
   // Aplicar filtro de busqueda por cliente
-  const filteredProjects = filteredByProfit.filter(p => {
+  const filteredProjects = filteredByArchive.filter(p => {
     const clientName = (p as any).clientName?.toLowerCase() || "";
     return clientName.includes(searchTerm.toLowerCase());
   });
@@ -345,6 +369,36 @@ export default function Projects() {
       toast.error(error.message || "Error al eliminar proyecto");
     },
   });
+
+  const handleArchive = async (projectId: number) => {
+    try {
+      setArchivingProjectId(projectId);
+      await archiveProject(projectId);
+      toast.success("Proyecto archivado correctamente");
+      utils.projects.list.invalidate();
+      utils.projects.listPaginated.invalidate();
+    } catch (error: any) {
+      toast.error(error.message || "Error al archivar proyecto");
+      console.error("Archive error:", error);
+    } finally {
+      setArchivingProjectId(null);
+    }
+  };
+
+  const handleUnarchive = async (projectId: number) => {
+    try {
+      setArchivingProjectId(projectId);
+      await unarchiveProject(projectId);
+      toast.success("Proyecto restaurado correctamente");
+      utils.projects.list.invalidate();
+      utils.projects.listPaginated.invalidate();
+    } catch (error: any) {
+      toast.error(error.message || "Error al restaurar proyecto");
+      console.error("Unarchive error:", error);
+    } finally {
+      setArchivingProjectId(null);
+    }
+  };
 
   const handleBulkDelete = async () => {
     for (const projectId of selectedProjects) {
@@ -535,6 +589,47 @@ export default function Projects() {
           subtitle={user?.role === "disenador" ? "Proyectos pendientes de diseño" : (user?.role === "jefe_taller" || user?.role === "operario") ? "Proyectos en producción" : "Todos los proyectos"}
           showBack={false}
         />
+        
+        {/* Tabs de archivado */}
+        <div className="flex gap-1 bg-muted p-1 rounded-lg w-fit mb-4">
+          <Button
+            variant={archiveTab === 'active' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setArchiveTab('active')}
+            className={`text-sm font-medium transition-colors ${
+              archiveTab === 'active'
+                ? 'bg-white shadow-sm text-foreground'
+                : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+            }`}
+          >
+            En Curso
+          </Button>
+          <Button
+            variant={archiveTab === 'delivered' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setArchiveTab('delivered')}
+            className={`text-sm font-medium transition-colors ${
+              archiveTab === 'delivered'
+                ? 'bg-white shadow-sm text-foreground'
+                : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+            }`}
+          >
+            Entregados
+          </Button>
+          <Button
+            variant={archiveTab === 'archived' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setArchiveTab('archived')}
+            className={`text-sm font-medium transition-colors ${
+              archiveTab === 'archived'
+                ? 'bg-white shadow-sm text-foreground'
+                : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+            }`}
+          >
+            Archivados
+          </Button>
+        </div>
+        
         <div className="flex flex-col gap-4 mb-4 md:mb-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div></div>
@@ -954,17 +1049,43 @@ export default function Projects() {
                         )}
                         {/* Botón eliminar individual */}
                         {(user?.role === "admin" || user?.role === "super_admin") && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                            onClick={() => {
-                              setProjectToDelete(project);
-                              setShowDeleteDialog(true);
-                            }}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          <>
+                            {archiveTab === 'delivered' && (project as any).status === 'entregado' && !(project as any).isArchived && (
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                disabled={archivingProjectId === project.id}
+                                onClick={() => handleArchive(project.id)}
+                                className="text-muted-foreground hover:text-foreground hover:bg-accent"
+                              >
+                                <Archive className="h-4 w-4 mr-1" />
+                                <span className="hidden md:inline">Archivar</span>
+                              </Button>
+                            )}
+                            {archiveTab === 'archived' && (project as any).isArchived && (
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                disabled={archivingProjectId === project.id}
+                                onClick={() => handleUnarchive(project.id)}
+                                className="text-muted-foreground hover:text-foreground hover:bg-accent"
+                              >
+                                <RotateCcw className="h-4 w-4 mr-1" />
+                                <span className="hidden md:inline">Restaurar</span>
+                              </Button>
+                            )}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                              onClick={() => {
+                                setProjectToDelete(project);
+                                setShowDeleteDialog(true);
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </>
                         )}
                         <Button 
                           variant="ghost" 

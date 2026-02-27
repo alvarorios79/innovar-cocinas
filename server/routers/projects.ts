@@ -466,6 +466,55 @@ export const projectsRouter = router({
           });
         }
 
+        // Validación general: Etapas productivas requieren fotos antes de avanzar
+        const stagesRequiringPhotos = ["corte", "enchape", "ensamble", "listo_instalacion"];
+        
+        if (stagesRequiringPhotos.includes(currentStatus)) {
+          try {
+            const dbInstance = await db.getDb();
+            if (!dbInstance) {
+              throw new TRPCError({
+                code: "INTERNAL_SERVER_ERROR",
+                message: "Base de datos no disponible"
+              });
+            }
+
+            // Mapear estado del proyecto a categoría de fotos
+            let photoCategory = "avance"; // corte, enchape, ensamble usan "avance"
+            if (currentStatus === "listo_instalacion") {
+              photoCategory = "instalacion";
+            }
+
+            const stagePhotos = await dbInstance.select().from(projectPhotos)
+              .where(and(
+                eq(projectPhotos.projectId, input.projectId),
+                eq(projectPhotos.category, photoCategory as any)
+              ));
+
+            if (stagePhotos.length === 0) {
+              console.error({
+                action: "VALIDATION_FAILED",
+                entity: "project",
+                id: input.projectId,
+                reason: `No photos found for stage: ${currentStatus}`,
+                user: ctx.user.id,
+                timestamp: new Date()
+              });
+              throw new TRPCError({
+                code: "BAD_REQUEST",
+                message: `No se puede avanzar desde "${currentStatus}" sin subir fotos de esta etapa.`
+              });
+            }
+          } catch (error) {
+            if (error instanceof TRPCError) throw error;
+            console.error("Error validating stage photos:", error);
+            throw new TRPCError({
+              code: "INTERNAL_SERVER_ERROR",
+              message: "Error validando fotos de la etapa"
+            });
+          }
+        }
+
         // Validación especial: Fotos de instalación requeridas antes de marcar como entregado
         if (currentStatus === "listo_instalacion" && newStatus === "entregado") {
           try {

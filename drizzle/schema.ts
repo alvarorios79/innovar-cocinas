@@ -400,6 +400,7 @@ export const projects = mysqlTable("projects", {
 		deletedAt: timestamp({ mode: 'string' }),
 		currentApprovedQuotationId: int(),
 		dataOrigin: mysqlEnum(['manual', 'system']).default('manual').notNull(),
+		isArchived: tinyint().default(0).notNull(),
 	},
 (table) => [
 	index("projects_quotationId_quotations_id_fk").on(table.quotationId),
@@ -483,6 +484,7 @@ export const quotations = mysqlTable("quotations", {
 		whatsappApiSentAt: timestamp({ mode: 'string' }),
 		deletedAt: timestamp({ mode: 'string' }),
 		dataOrigin: mysqlEnum(['manual', 'system']).default('manual').notNull(),
+		isArchived: tinyint().default(0).notNull(),
 		},
 	(table) => [
 		index("quotationNumber").on(table.quotationNumber),

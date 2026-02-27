@@ -2600,4 +2600,36 @@ export const quotationsRouter = router({
           message: `Proyecto #${projectId} creado exitosamente${assignedDesigner ? ` - Diseñador: ${assignedDesigner.name}` : ''}`
         };
       }),
+
+      archive: protectedProcedure
+        .input(z.object({ quotationId: z.number() }))
+        .mutation(async ({ ctx, input }) => {
+          try {
+            if (!ctx.user || (ctx.user.role !== 'admin' && ctx.user.role !== 'super_admin')) {
+              throw new TRPCError({ code: 'FORBIDDEN', message: 'No tienes permiso' });
+            }
+            await db.updateQuotation(input.quotationId, { isArchived: 1 });
+            console.log({ action: 'ARCHIVE', entity: 'quotation', id: input.quotationId, user: ctx.user.id, timestamp: new Date() });
+            return { success: true, message: 'Cotización archivada' };
+          } catch (error) {
+            console.error('ERROR ARCHIVING:', error);
+            throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Error al archivar' });
+          }
+        }),
+
+      unarchive: protectedProcedure
+        .input(z.object({ quotationId: z.number() }))
+        .mutation(async ({ ctx, input }) => {
+          try {
+            if (!ctx.user || (ctx.user.role !== 'admin' && ctx.user.role !== 'super_admin')) {
+              throw new TRPCError({ code: 'FORBIDDEN', message: 'No tienes permiso' });
+            }
+            await db.updateQuotation(input.quotationId, { isArchived: 0 });
+            console.log({ action: 'UNARCHIVE', entity: 'quotation', id: input.quotationId, user: ctx.user.id, timestamp: new Date() });
+            return { success: true, message: 'Cotización desarchivada' };
+          } catch (error) {
+            console.error('ERROR UNARCHIVING:', error);
+            throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Error al desarchivar' });
+          }
+        }),
 });

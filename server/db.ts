@@ -2260,7 +2260,7 @@ export async function getAllQuotationsPaginated(params: PaginationParams & { sta
   const limit = Math.min(100, Math.max(1, params.limit || 50));
   const offset = (page - 1) * limit;
 
-  const conditions: any[] = [isNull(quotations.deletedAt)];
+  const conditions: any[] = [isNull(quotations.deletedAt), eq(quotations.isArchived, 0)];
   if (params.status) {
     conditions.push(eq(quotations.status, params.status as any));
   }
@@ -2567,7 +2567,7 @@ export async function getAllQuotationsGroupedByBase(params: PaginationParams & {
   const limit = Math.min(100, Math.max(1, params.limit || 50));
   const offset = (page - 1) * limit;
 
-  const conditions: any[] = [isNull(quotations.deletedAt)];
+  const conditions: any[] = [isNull(quotations.deletedAt), eq(quotations.isArchived, 0)];
   if (params.status) {
     conditions.push(eq(quotations.status, params.status as any));
   }

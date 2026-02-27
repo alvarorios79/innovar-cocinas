@@ -28,12 +28,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-import { Plus, Trash2, FileText, Send, Eye, Pencil, Mail, Search, X, UserPlus, FolderPlus, ChefHat, Ruler, Package, Sofa, DoorOpen, Tv, Wrench, LayoutGrid, Calendar, User, Building2, Truck, Sparkles, CircleDollarSign, Lightbulb, Palette, Edit3, Lock, Unlock, ArrowLeft, Copy } from "lucide-react";
+import { Plus, Trash2, FileText, Send, Eye, Pencil, Mail, Search, X, UserPlus, FolderPlus, ChefHat, Ruler, Package, Sofa, DoorOpen, Tv, Wrench, LayoutGrid, Calendar, User, Building2, Truck, Sparkles, CircleDollarSign, Lightbulb, Palette, Edit3, Lock, Unlock, ArrowLeft, Copy, Archive } from "lucide-react";
 import { toast } from "sonner";
 import { formatPrice } from "@/lib/formatters";
 import { CreateQuickClientDialog } from "@/components/CreateQuickClientDialog";
 import { usePricing, getPriceFromMap } from "@/hooks/usePricing";
 import { QuotationGroupCard } from "@/components/QuotationGroupCard";
+import { ArchiveFilterTabs } from "@/components/ArchiveFilterTabs";
 import { InitialPaymentModal } from "@/components/InitialPaymentModal";
 
 
@@ -100,6 +101,7 @@ export default function Quotations() {
   // Estados para filtros
   const [filterClient, setFilterClient] = useState<string>("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [archiveTab, setArchiveTab] = useState<"active" | "archived">("active");
   const [quotationPage, setQuotationPage] = useState(1);
   const QUOTATIONS_PER_PAGE = 50;
   const [filterDateFrom, setFilterDateFrom] = useState<string>("");
@@ -189,6 +191,11 @@ export default function Quotations() {
 
   // Filtrar cotizaciones
   const filteredQuotations = quotations.filter((quot: any) => {
+    // Filtro por tab de archivado
+    const isArchived = quot.isArchived === 1 || quot.isArchived === true;
+    if (archiveTab === "active" && isArchived) return false;
+    if (archiveTab === "archived" && !isArchived) return false;
+    
     // Filtro por cliente (nombre)
     if (filterClient && !quot.client?.name?.toLowerCase().includes(filterClient.toLowerCase())) {
       return false;
@@ -1418,7 +1425,17 @@ export default function Quotations() {
       </Button>
       
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Cotizaciones</h1>
+        <div>
+          <h1 className="text-3xl font-bold mb-3">Cotizaciones</h1>
+          <ArchiveFilterTabs
+            activeTab={archiveTab}
+            onTabChange={setArchiveTab}
+            tabs={[
+              { id: "active", label: "Activas" },
+              { id: "archived", label: "Archivadas" },
+            ]}
+          />
+        </div>
         <div className="flex gap-2 flex-wrap justify-end">
           <div className="hidden sm:block">
             <CreateQuickClientDialog 
@@ -1540,6 +1557,9 @@ export default function Quotations() {
               onEditPDF={(quotation) => handleOpenPdfEditor(quotation.id)}
               onToggleLock={(quotation) => {
                 toggleLock.mutate({ id: quotation.id });
+              }}
+              onArchive={() => {
+                utils.quotations.listPaginatedGrouped.invalidate();
               }}
               onDelete={(quotation) => {
                 if (window.confirm(`¿Eliminar la cotización ${group.quotationNumber}?\n\nEsta acción no se puede deshacer.`)) {

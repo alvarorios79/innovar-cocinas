@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Eye, EyeOff, Edit, FileText, Send, Copy, Download, FolderPlus, FileEdit, Lock, Trash2, Image as ImageIcon } from "lucide-react";
+import { Eye, EyeOff, Edit, FileText, Send, Copy, Download, FolderPlus, FileEdit, Lock, Trash2, Image as ImageIcon, Archive } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { downloadPDFiOS } from "@/lib/pdf-download";
@@ -26,6 +26,7 @@ interface QuotationGroupCardProps {
   onEditPDF?: (quotation: any) => void;
   onToggleLock?: (quotation: any) => void;
   onDelete?: (quotation: any) => void;
+  onArchive?: (quotation: any) => void;
 }
 
 export function QuotationGroupCard({
@@ -39,10 +40,22 @@ export function QuotationGroupCard({
   onEditPDF,
   onToggleLock,
   onDelete,
+  onArchive,
 }: QuotationGroupCardProps) {
   const [selectedVersionId, setSelectedVersionId] = useState(group.activeVersion.id);
   const [showValues, setShowValues] = useState(false);
   
+  const archiveQuotation = trpc.quotations.archive.useMutation({
+    onSuccess: () => {
+      toast.success("Cotización archivada correctamente");
+      // Invalidar lista para refrescar
+    },
+    onError: (error: any) => {
+      console.error("ERROR ARCHIVING:", error);
+      toast.error("Error al archivar la cotización");
+    },
+  });
+
   const sendWhatsApp = trpc.quotations.sendByWhatsApp.useMutation({
     onSuccess: () => {
       toast.success("Cotización enviada por WhatsApp");
@@ -377,6 +390,23 @@ export function QuotationGroupCard({
             >
               <Lock className="w-3 h-3" />
               <span className="hidden sm:inline">{isLocked ? "Bloq" : "Bloquear"}</span>
+            </Button>
+          )}
+
+          {isActiveVersion && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="text-xs py-1 px-2 h-7 gap-1"
+              onClick={() => {
+                archiveQuotation.mutate({ quotationId: selectedVersion.id });
+                if (onArchive) onArchive(selectedVersion);
+              }}
+              disabled={archiveQuotation.isPending}
+              title="Archivar cotización"
+            >
+              <Archive className="w-3 h-3" />
+              <span className="hidden sm:inline">Archivar</span>
             </Button>
           )}
 

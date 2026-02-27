@@ -1811,4 +1811,72 @@ export const projectMaterialsRouter = router({
           });
         }
       }),
+
+
+    // Retroceder estado del proyecto un paso atras
+    revertStatus: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        try {
+          // 1. Validar permisos
+          if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+            throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para retroceder estados" });
+          }
+
+          // 2. Obtener proyecto
+          const project = await db.getProjectById(input.id);
+          if (!project) {
+            throw new TRPCError({ code: "NOT_FOUND", message: "Proyecto no encontrado" });
+          }
+
+          // 3. Flujo inverso de estados
+          const reverseFlow: Record<string, string | null> = {
+            entregado: "listo_instalacion",
+            listo_instalacion: "ensamble",
+            ensamble: "enchape",
+            enchape: "corte",
+            corte: "despiece",
+            despiece: "aprobacion_final",
+            aprobacion_final: "pendiente_render",
+            pendiente_render: "pendiente_modelado",
+            pendiente_modelado: "en_diseno",
+            en_diseno: "adelanto_recibido",
+            adelanto_recibido: "cotizacion_aprobada",
+            cotizacion_aprobada: "cotizacion_enviada",
+            cotizacion_enviada: "contacto",
+            contacto: null
+          };
+
+          const previousStatus = reverseFlow[project.status];
+
+          if (!previousStatus) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: `No se puede retroceder desde el estado ${project.status}.`
+            });
+          }
+
+          // 4. Actualizar estado
+          await db.updateProject(input.id, { status: previousStatus });
+
+          // 5. Log de auditoria
+          console.log({
+            action: "REVERT_STATUS",
+            projectId: input.id,
+            from: project.status,
+            to: previousStatus,
+            user: ctx.user.id,
+            timestamp: new Date()
+          });
+
+          return { success: true, newStatus: previousStatus };
+        } catch (error) {
+          console.error("ERROR REVERTING PROJECT STATUS:", error);
+          if (error instanceof TRPCError) throw error;
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "No se pudo retroceder el estado del proyecto"
+          });
+        }
+      }),
 });

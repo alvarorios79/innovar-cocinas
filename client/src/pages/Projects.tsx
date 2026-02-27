@@ -50,6 +50,7 @@ import { HardwareSelector } from "@/components/HardwareSelector";
 import { ProjectInlineDetail } from "@/components/ProjectInlineDetail";
 import { PageHeader } from "@/components/PageHeader";
 import { archiveProject, unarchiveProject } from "@/api/projectsArchive";
+import { revertProjectStatus } from "@/api/projectsRevert";
 
 // Estados del proyecto según Ruta INNOVAR (14 estados simplificados)
 const PROJECT_STATUSES: Record<string, { label: string; color: string; icon: any }> = {
@@ -397,6 +398,24 @@ export default function Projects() {
       console.error("Unarchive error:", error);
     } finally {
       setArchivingProjectId(null);
+    }
+  };
+
+  const handleRevert = async (projectId: number, currentStatus: string) => {
+    const confirmed = window.confirm(
+      `Retroceder proyecto desde "${currentStatus}" al estado anterior?`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      await revertProjectStatus(projectId);
+      toast.success("Estado retrocedido correctamente");
+      utils.projects.list.invalidate();
+      utils.projects.listPaginated.invalidate();
+    } catch (error: any) {
+      toast.error(error.message || "No se pudo retroceder el estado");
+      console.error("Revert error:", error);
     }
   };
 
@@ -1074,6 +1093,20 @@ export default function Projects() {
                                 <span className="hidden md:inline">Restaurar</span>
                               </Button>
                             )}
+                            {user?.role === "admin" || user?.role === "super_admin" ? (
+                              (project as any).status !== "contacto_inicial" && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="text-muted-foreground hover:text-foreground hover:bg-accent"
+                                  onClick={() => handleRevert(project.id, (project as any).status)}
+                                  title="Retroceder al estado anterior"
+                                >
+                                  <RotateCcw className="h-4 w-4 mr-1" />
+                                  <span className="hidden md:inline">Retroceder</span>
+                                </Button>
+                              )
+                            ) : null}
                             <Button
                               variant="ghost"
                               size="sm"

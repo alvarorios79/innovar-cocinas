@@ -33,7 +33,9 @@ import {
   ChevronUp,
   Trash2,
   AlertTriangle,
-  Sparkles
+  Sparkles,
+  Archive,
+  RotateCcw
 } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -196,6 +198,9 @@ export default function Projects() {
   // Estado para búsqueda de cliente
   const [searchTerm, setSearchTerm] = useState("");
   
+  // Estado para tab de archivado
+  const [archiveTab, setArchiveTab] = useState<'active' | 'delivered' | 'archived'>('active');
+  
   // Estado para confirmación de avance a aprobacion_final
   const [showAdvanceConfirmDialog, setShowAdvanceConfirmDialog] = useState(false);
   const [projectToAdvance, setProjectToAdvance] = useState<any>(null);
@@ -225,8 +230,25 @@ export default function Projects() {
     }
   });
   
+  // Aplicar filtro de archivado
+  const filteredByArchive = filteredByProfit.filter(p => {
+    const isArchived = (p as any).isArchived === 1 || (p as any).isArchived === true;
+    const status = (p as any).status || "";
+    
+    switch (archiveTab) {
+      case 'active':
+        return status !== "entregado" && !isArchived;
+      case 'delivered':
+        return status === "entregado" && !isArchived;
+      case 'archived':
+        return isArchived;
+      default:
+        return true;
+    }
+  });
+  
   // Aplicar filtro de busqueda por cliente
-  const filteredProjects = filteredByProfit.filter(p => {
+  const filteredProjects = filteredByArchive.filter(p => {
     const clientName = (p as any).clientName?.toLowerCase() || "";
     return clientName.includes(searchTerm.toLowerCase());
   });
@@ -343,6 +365,28 @@ export default function Projects() {
     },
     onError: (error) => {
       toast.error(error.message || "Error al eliminar proyecto");
+    },
+  });
+  
+  const archiveProject = trpc.projects.archive.useMutation({
+    onSuccess: () => {
+      utils.projects.list.invalidate();
+      utils.projects.listPaginated.invalidate();
+      toast.success("Proyecto archivado correctamente");
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Error al archivar proyecto");
+    },
+  });
+  
+  const unarchiveProject = trpc.projects.unarchive.useMutation({
+    onSuccess: () => {
+      utils.projects.list.invalidate();
+      utils.projects.listPaginated.invalidate();
+      toast.success("Proyecto restaurado correctamente");
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Error al restaurar proyecto");
     },
   });
 
@@ -535,6 +579,41 @@ export default function Projects() {
           subtitle={user?.role === "disenador" ? "Proyectos pendientes de diseño" : (user?.role === "jefe_taller" || user?.role === "operario") ? "Proyectos en producción" : "Todos los proyectos"}
           showBack={false}
         />
+        
+        {/* Tabs de archivado */}
+        <div className="rounded-lg bg-muted p-1 flex gap-1 mb-4 w-fit">
+          <button
+            onClick={() => setArchiveTab('active')}
+            className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+              archiveTab === 'active'
+                ? 'bg-white shadow-sm text-foreground'
+                : 'text-muted-foreground hover:bg-accent'
+            }`}
+          >
+            En Curso
+          </button>
+          <button
+            onClick={() => setArchiveTab('delivered')}
+            className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+              archiveTab === 'delivered'
+                ? 'bg-white shadow-sm text-foreground'
+                : 'text-muted-foreground hover:bg-accent'
+            }`}
+          >
+            Entregados
+          </button>
+          <button
+            onClick={() => setArchiveTab('archived')}
+            className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+              archiveTab === 'archived'
+                ? 'bg-white shadow-sm text-foreground'
+                : 'text-muted-foreground hover:bg-accent'
+            }`}
+          >
+            Archivados
+          </button>
+        </div>
+        
         <div className="flex flex-col gap-4 mb-4 md:mb-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div></div>
@@ -964,6 +1043,35 @@ export default function Projects() {
                             }}
                           >
                             <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
+                        {/* Botón archivar - solo si está entregado y no archivado */}
+                        {(user?.role === "admin" || user?.role === "super_admin") && 
+                         (project as any).status === "entregado" && 
+                         !((project as any).isArchived === 1 || (project as any).isArchived === true) && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="rounded-md text-muted-foreground hover:text-foreground hover:bg-accent"
+                            onClick={() => archiveProject.mutate({ projectId: project.id })}
+                            disabled={archiveProject.isPending}
+                          >
+                            <Archive className="h-4 w-4 mr-1" />
+                            <span className="hidden sm:inline">Archivar</span>
+                          </Button>
+                        )}
+                        {/* Botón restaurar - solo si está archivado */}
+                        {(user?.role === "admin" || user?.role === "super_admin") && 
+                         ((project as any).isArchived === 1 || (project as any).isArchived === true) && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="rounded-md text-muted-foreground hover:text-foreground hover:bg-accent"
+                            onClick={() => unarchiveProject.mutate({ projectId: project.id })}
+                            disabled={unarchiveProject.isPending}
+                          >
+                            <RotateCcw className="h-4 w-4 mr-1" />
+                            <span className="hidden sm:inline">Restaurar</span>
                           </Button>
                         )}
                         <Button 

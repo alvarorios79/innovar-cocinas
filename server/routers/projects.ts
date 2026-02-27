@@ -17,8 +17,8 @@ import * as whatsappCloud from "../whatsapp-cloud";
 console.log("=== PROJECTS ROUTER FILE LOADED ===");
 import { addBusinessDays, calculateEstimatedDeliveryDate } from "../business-days";
 import { sanitizeText, sanitizeHtml, sanitizeForEmail, sanitizePhone, sanitizeEmail } from "../sanitize";
-import { eq } from "drizzle-orm";
-import { projects, projectDetails } from "../../drizzle/schema";
+import { eq, and, desc } from "drizzle-orm";
+import { projects, projectDetails, projectPhotos } from "../../drizzle/schema";
 
 
 export const projectsRouter = router({
@@ -464,6 +464,47 @@ export const projectsRouter = router({
             code: "FORBIDDEN", 
             message: "No tienes permisos para realizar este cambio de estado" 
           });
+        }
+
+        // Validación especial: Fotos de instalación requeridas antes de marcar como entregado
+        if (currentStatus === "listo_instalacion" && newStatus === "entregado") {
+          try {
+            const dbInstance = await db.getDb();
+            if (!dbInstance) {
+              throw new TRPCError({
+                code: "INTERNAL_SERVER_ERROR",
+                message: "Base de datos no disponible"
+              });
+            }
+
+            const installationPhotos = await dbInstance.select().from(projectPhotos)
+              .where(and(
+                eq(projectPhotos.projectId, input.projectId),
+                eq(projectPhotos.category, "instalacion")
+              ));
+
+            if (installationPhotos.length === 0) {
+              console.error({
+                action: "VALIDATION_FAILED",
+                entity: "project",
+                id: input.projectId,
+                reason: "No installation photos found",
+                user: ctx.user.id,
+                timestamp: new Date()
+              });
+              throw new TRPCError({
+                code: "BAD_REQUEST",
+                message: "No se puede marcar como Entregado sin subir fotos de Instalacion."
+              });
+            }
+          } catch (error) {
+            if (error instanceof TRPCError) throw error;
+            console.error("Error validating installation photos:", error);
+            throw new TRPCError({
+              code: "INTERNAL_SERVER_ERROR",
+              message: "Error validando fotos de instalación"
+            });
+          }
         }
 
         // Registrar en historial

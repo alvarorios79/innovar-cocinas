@@ -50,7 +50,6 @@ import { HardwareSelector } from "@/components/HardwareSelector";
 import { ProjectInlineDetail } from "@/components/ProjectInlineDetail";
 import { PageHeader } from "@/components/PageHeader";
 import { archiveProject, unarchiveProject } from "@/api/projectsArchive";
-import { revertProjectStatus } from "@/api/projectsRevert";
 
 // Estados del proyecto según Ruta INNOVAR (14 estados simplificados)
 const PROJECT_STATUSES: Record<string, { label: string; color: string; icon: any }> = {
@@ -401,6 +400,19 @@ export default function Projects() {
     }
   };
 
+  // Mutation para retroceder estado
+  const revertStatus = trpc.projects.revertStatus.useMutation({
+    onSuccess: () => {
+      toast.success("Estado retrocedido correctamente");
+      utils.projects.list.invalidate();
+      utils.projects.listPaginated.invalidate();
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "No se pudo retroceder el estado");
+      console.error("Revert error:", error);
+    },
+  });
+
   const handleRevert = async (projectId: number, currentStatus: string) => {
     const confirmed = window.confirm(
       `Retroceder proyecto desde "${currentStatus}" al estado anterior?`
@@ -409,13 +421,9 @@ export default function Projects() {
     if (!confirmed) return;
 
     try {
-      await revertProjectStatus(projectId);
-      toast.success("Estado retrocedido correctamente");
-      utils.projects.list.invalidate();
-      utils.projects.listPaginated.invalidate();
+      await revertStatus.mutateAsync({ id: projectId });
     } catch (error: any) {
-      toast.error(error.message || "No se pudo retroceder el estado");
-      console.error("Revert error:", error);
+      // Error ya se maneja en onError
     }
   };
 

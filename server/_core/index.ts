@@ -53,11 +53,10 @@ async function startServer() {
   registerOAuthRoutes(app);
   // Rate limiting para endpoints de autenticación
   app.use("/api/oauth", authRateLimiter);
-  // Rate limiting general para la API tRPC
-  app.use("/api/trpc", apiRateLimiter);
-  // tRPC API
+  // tRPC API con rate limiting integrado
   app.use(
     "/api/trpc",
+    apiRateLimiter,
     createExpressMiddleware({
       router: appRouter,
       createContext,

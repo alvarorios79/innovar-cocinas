@@ -1449,6 +1449,76 @@ ${input.notes || "No se especificaron detalles"}
           });
         }
       }),
+
+    // Archivar proyecto (solo si estado es "Entregado")
+    archive: protectedProcedure
+      .input(z.object({ projectId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        try {
+          if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+            throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permiso para archivar proyectos" });
+          }
+
+          const project = await db.getProjectById(input.projectId);
+          if (!project) {
+            throw new TRPCError({ code: "NOT_FOUND", message: "Proyecto no encontrado" });
+          }
+
+          if (project.status !== "entregado") {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: "Solo se pueden archivar proyectos en estado Entregado"
+            });
+          }
+
+          await db.updateProject(input.projectId, { isArchived: 1 });
+
+          console.log({
+            action: "ARCHIVE_PROJECT",
+            projectId: input.projectId,
+            userId: ctx.user.id,
+            timestamp: new Date()
+          });
+
+          return { success: true, message: "Proyecto archivado correctamente" };
+        } catch (error) {
+          console.error("ERROR ARCHIVING PROJECT:", error);
+          if (error instanceof TRPCError) throw error;
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "No se pudo archivar el proyecto"
+          });
+        }
+      }),
+
+    // Desarchivar proyecto
+    unarchive: protectedProcedure
+      .input(z.object({ projectId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        try {
+          if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+            throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permiso para desarchivar proyectos" });
+          }
+
+          await db.updateProject(input.projectId, { isArchived: 0 });
+
+          console.log({
+            action: "UNARCHIVE_PROJECT",
+            projectId: input.projectId,
+            userId: ctx.user.id,
+            timestamp: new Date()
+          });
+
+          return { success: true, message: "Proyecto desarchivado correctamente" };
+        } catch (error) {
+          console.error("ERROR UNARCHIVING PROJECT:", error);
+          if (error instanceof TRPCError) throw error;
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "No se pudo desarchivar el proyecto"
+          });
+        }
+      }),
 });
 
 
@@ -1813,73 +1883,5 @@ export const projectMaterialsRouter = router({
         return result;
       }),
 
-    // Archivar proyecto (solo si estado es "Entregado")
-    archive: protectedProcedure
-      .input(z.object({ projectId: z.number() }))
-      .mutation(async ({ ctx, input }) => {
-        try {
-          if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
-            throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permiso para archivar proyectos" });
-          }
 
-          const project = await db.getProjectById(input.projectId);
-          if (!project) {
-            throw new TRPCError({ code: "NOT_FOUND", message: "Proyecto no encontrado" });
-          }
-
-          if (project.status !== "entregado") {
-            throw new TRPCError({
-              code: "BAD_REQUEST",
-              message: "Solo se pueden archivar proyectos en estado Entregado"
-            });
-          }
-
-          await db.updateProject(input.projectId, { isArchived: 1 });
-
-          console.log({
-            action: "ARCHIVE_PROJECT",
-            projectId: input.projectId,
-            userId: ctx.user.id,
-            timestamp: new Date()
-          });
-
-          return { success: true, message: "Proyecto archivado correctamente" };
-        } catch (error) {
-          console.error("ERROR ARCHIVING PROJECT:", error);
-          if (error instanceof TRPCError) throw error;
-          throw new TRPCError({
-            code: "INTERNAL_SERVER_ERROR",
-            message: "No se pudo archivar el proyecto"
-          });
-        }
-      }),
-
-    // Desarchivar proyecto
-    unarchive: protectedProcedure
-      .input(z.object({ projectId: z.number() }))
-      .mutation(async ({ ctx, input }) => {
-        try {
-          if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
-            throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permiso para desarchivar proyectos" });
-          }
-
-          await db.updateProject(input.projectId, { isArchived: 0 });
-
-          console.log({
-            action: "UNARCHIVE_PROJECT",
-            projectId: input.projectId,
-            userId: ctx.user.id,
-            timestamp: new Date()
-          });
-
-          return { success: true, message: "Proyecto desarchivado correctamente" };
-        } catch (error) {
-          console.error("ERROR UNARCHIVING PROJECT:", error);
-          if (error instanceof TRPCError) throw error;
-          throw new TRPCError({
-            code: "INTERNAL_SERVER_ERROR",
-            message: "No se pudo desarchivar el proyecto"
-          });
-        }
-      }),
 });

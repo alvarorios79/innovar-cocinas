@@ -477,21 +477,22 @@ export function ProjectInlineDetail({
       documento_cotizacion: ["super_admin", "admin", "comercial"],
       fotos_iniciales: ["super_admin", "admin", "comercial"],
       dibujo: ["super_admin", "admin"],
-      modelado_3d: ["disenador"],
-      renders: ["disenador"],
-      detalles: ["disenador"],
-      despieces: ["disenador"],
-      corte: ["jefe_taller", "operario"],
-      enchape: ["jefe_taller", "operario"],
-      armado: ["jefe_taller", "operario"],
-      proceso_instalacion: ["jefe_taller", "operario"],
-      fotos_finales: ["jefe_taller", "operario"],
+      modelado_3d: ["super_admin", "admin", "disenador"],
+      renders: ["super_admin", "admin", "disenador"],
+      detalles: ["super_admin", "admin", "disenador"],
+      despieces: ["super_admin", "admin", "disenador"],
+      corte: ["super_admin", "admin", "jefe_taller", "operario"],
+      enchape: ["super_admin", "admin", "jefe_taller", "operario"],
+      armado: ["super_admin", "admin", "jefe_taller", "operario"],
+      proceso_instalacion: ["super_admin", "admin", "jefe_taller", "operario"],
+      fotos_finales: ["super_admin", "admin", "jefe_taller", "operario"],
     };
     const allowedRoles = uploadPermissions[folder] || [];
     
     // Para carpetas de producción, verificar que el proyecto esté en un estado apropiado
     if (productionFolders.includes(folder)) {
       // jefe_taller y operario solo pueden subir si el proyecto está en aprobacion_final o posterior
+      // PERO admin y super_admin pueden subir en CUALQUIER estado
       if ((role === "jefe_taller" || role === "operario") && !productionStates.includes(status || "")) {
         return false;
       }

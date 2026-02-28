@@ -18,6 +18,7 @@ interface QuotationGroupCardProps {
     versionCount: number;
   };
   client: any;
+  archiveTab: 'active' | 'archived';
   onEdit: (quotation: any) => void;
   onViewPDF: (quotation: any) => void;
   onSend: (quotation: any) => void;
@@ -32,6 +33,7 @@ interface QuotationGroupCardProps {
 export function QuotationGroupCard({
   group,
   client,
+  archiveTab,
   onEdit,
   onViewPDF,
   onSend,
@@ -406,7 +408,7 @@ export function QuotationGroupCard({
           )}
 
           {isActiveVersion && (
-            group.activeVersion.archived ? (
+            archiveTab === "archived" ? (
               <Button
                 size="sm"
                 variant="outline"

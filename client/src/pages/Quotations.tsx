@@ -1538,6 +1538,7 @@ export default function Quotations() {
               key={group.baseQuotationId}
               group={group}
               client={group.client}
+              archiveTab={archiveTab}
               onEdit={(quotation) => handleEdit(quotation.id)}
               onViewPDF={(quotation) => handlePreviewClick(quotation.id, `${group.quotationNumber} - ${group.client?.name || 'Cliente'}`)}
               onSend={(quotation) => handleEmailClick(quotation.id, group.client?.email || "", group.quotationNumber, group.client?.name || "Cliente")}

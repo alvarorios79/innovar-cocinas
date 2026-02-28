@@ -42,11 +42,13 @@ export function QuotationGroupCard({
   onDelete,
   onArchive,
 }: QuotationGroupCardProps) {
+  const utils = trpc.useUtils();
   const [selectedVersionId, setSelectedVersionId] = useState(group.activeVersion.id);
   const [showValues, setShowValues] = useState(false);
   
   const archiveQuotation = trpc.quotations.archive.useMutation({
     onSuccess: () => {
+      utils.quotations.listPaginatedGrouped.invalidate();
       toast.success("Cotización archivada correctamente");
     },
     onError: (error: any) => {
@@ -57,6 +59,7 @@ export function QuotationGroupCard({
 
   const unarchiveQuotation = trpc.quotations.unarchive.useMutation({
     onSuccess: () => {
+      utils.quotations.listPaginatedGrouped.invalidate();
       toast.success("Cotización restaurada correctamente");
     },
     onError: (error: any) => {

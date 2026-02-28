@@ -48,11 +48,20 @@ export function QuotationGroupCard({
   const archiveQuotation = trpc.quotations.archive.useMutation({
     onSuccess: () => {
       toast.success("Cotización archivada correctamente");
-      // Invalidar lista para refrescar
     },
     onError: (error: any) => {
       console.error("ERROR ARCHIVING:", error);
       toast.error("Error al archivar la cotización");
+    },
+  });
+
+  const unarchiveQuotation = trpc.quotations.unarchive.useMutation({
+    onSuccess: () => {
+      toast.success("Cotización restaurada correctamente");
+    },
+    onError: (error: any) => {
+      console.error("ERROR UNARCHIVING:", error);
+      toast.error("Error al restaurar la cotización");
     },
   });
 
@@ -394,20 +403,37 @@ export function QuotationGroupCard({
           )}
 
           {isActiveVersion && (
-            <Button
-              size="sm"
-              variant="outline"
-              className="text-xs py-1 px-2 h-7 gap-1"
-              onClick={() => {
-                archiveQuotation.mutate({ quotationId: selectedVersion.id });
-                if (onArchive) onArchive(selectedVersion);
-              }}
-              disabled={archiveQuotation.isPending}
-              title="Archivar cotización"
-            >
-              <Archive className="w-3 h-3" />
-              <span className="hidden sm:inline">Archivar</span>
-            </Button>
+            selectedVersion.archived ? (
+              <Button
+                size="sm"
+                variant="outline"
+                className="text-xs py-1 px-2 h-7 gap-1"
+                onClick={() => {
+                  unarchiveQuotation.mutate({ quotationId: selectedVersion.id });
+                  if (onArchive) onArchive(selectedVersion);
+                }}
+                disabled={unarchiveQuotation.isPending}
+                title="Restaurar cotización"
+              >
+                <Archive className="w-3 h-3" />
+                <span className="hidden sm:inline">Restaurar</span>
+              </Button>
+            ) : (
+              <Button
+                size="sm"
+                variant="destructive"
+                className="text-xs py-1 px-2 h-7 gap-1"
+                onClick={() => {
+                  archiveQuotation.mutate({ quotationId: selectedVersion.id });
+                  if (onArchive) onArchive(selectedVersion);
+                }}
+                disabled={archiveQuotation.isPending}
+                title="Archivar cotización"
+              >
+                <Archive className="w-3 h-3" />
+                <span className="hidden sm:inline">Archivar</span>
+              </Button>
+            )
           )}
 
           {isActiveVersion && onDelete && (

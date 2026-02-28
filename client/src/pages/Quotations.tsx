@@ -185,18 +185,13 @@ export default function Quotations() {
     page: quotationPage,
     limit: QUOTATIONS_PER_PAGE,
     status: filterStatus !== "all" ? filterStatus : undefined,
-    includeArchived: archiveTab === "archived" ? true : (archiveTab === "active" ? false : undefined),
+    archived: archiveTab === "archived",
   });
   const quotations = quotationsData?.data || [];
   const { data: clients = [] } = trpc.clients.list.useQuery();
 
   // Filtrar cotizaciones
   const filteredQuotations = quotations.filter((quot: any) => {
-    // Filtro por tab de archivado
-    const isArchived = quot.isArchived === 1 || quot.isArchived === true;
-    if (archiveTab === "active" && isArchived) return false;
-    if (archiveTab === "archived" && !isArchived) return false;
-    
     // Filtro por cliente (nombre)
     if (filterClient && !quot.client?.name?.toLowerCase().includes(filterClient.toLowerCase())) {
       return false;

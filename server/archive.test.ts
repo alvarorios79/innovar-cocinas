@@ -79,7 +79,7 @@ describe("Archive functionality", () => {
 
     // Verificar que NO aparece en resultados activos
     const activeResults = await db.getAllProjectsPaginated({
-      includeArchived: false,
+      archived: false,
     });
     const foundInActive = activeResults.data.some(
       (p) => p.id === testProjectId
@@ -88,7 +88,7 @@ describe("Archive functionality", () => {
 
     // Verificar que SÍ aparece en resultados archivados
     const archivedResults = await db.getAllProjectsPaginated({
-      includeArchived: true,
+      archived: true,
     });
     const foundInArchived = archivedResults.data.some(
       (p) => p.id === testProjectId
@@ -116,7 +116,7 @@ describe("Archive functionality", () => {
 
     // Verificar que NO aparece en resultados activos
     const activeResults = await db.getAllQuotationsGroupedByBase({
-      includeArchived: false,
+      archived: false,
     });
     const foundInActive = activeResults.data.some(
       (group) => group.baseQuotationId === testQuotationId
@@ -125,7 +125,7 @@ describe("Archive functionality", () => {
 
     // Verificar que SÍ aparece en resultados archivados
     const archivedResults = await db.getAllQuotationsGroupedByBase({
-      includeArchived: true,
+      archived: true,
     });
     const foundInArchived = archivedResults.data.some(
       (group) => group.baseQuotationId === testQuotationId
@@ -177,7 +177,7 @@ describe("Archive functionality", () => {
       .set({ isArchived: 1 })
       .where(eq(quotations.id, testQuotationId));
 
-    // Obtener sin especificar includeArchived (debe devolver solo activas)
+    // Obtener sin especificar archived (debe devolver solo activas)
     const defaultResults = await db.getAllQuotationsGroupedByBase({});
 
     // Verificar que NO incluye archivadas
@@ -193,14 +193,14 @@ describe("Archive functionality", () => {
       .where(eq(quotations.id, testQuotationId));
   });
 
-  it("should return all projects when includeArchived is not specified", async () => {
+  it("should return all projects when archived is not specified", async () => {
     const database = await getDb();
     if (!database) throw new Error("Database not available");
 
     // Archivar proyecto
     await db.updateProject(testProjectId, { isArchived: 1 });
 
-    // Obtener todos sin especificar includeArchived
+    // Obtener todos sin especificar archived
     const allResults = await db.getAllProjectsPaginated({});
 
     // Verificar que incluye tanto archivados como activos

@@ -200,7 +200,7 @@ export default function Projects() {
   const [searchTerm, setSearchTerm] = useState("");
   
   // Estado para tab de archivado
-  const [archiveTab, setArchiveTab] = useState<'active' | 'delivered' | 'archived'>('active');
+  const [archiveTab, setArchiveTab] = useState<'active' | 'archived'>('active');
   
   // Estado para carga de archivado
   const [archivingProjectId, setArchivingProjectId] = useState<number | null>(null);
@@ -213,7 +213,7 @@ export default function Projects() {
     page: projectPage,
     limit: PROJECTS_PER_PAGE,
     ...(statusFilter !== "all" && { search: statusFilter }),
-    includeArchived: archiveTab === 'archived' ? true : (archiveTab === 'active' || archiveTab === 'delivered' ? false : undefined),
+    archived: archiveTab === 'archived',
   });
   const projects = projectsData?.data || [];
   
@@ -235,18 +235,15 @@ export default function Projects() {
     }
   });
   
-  // Aplicar filtro de archivado según tab
+  // Filtrar por estado (entregado vs no entregado) solo cuando está en 'active'
   const filteredByArchive = filteredByProfit.filter(p => {
-    const isArchived = (p as any).isArchived === 1;
     const status = (p as any).status?.toLowerCase() || "";
     
     if (archiveTab === 'active') {
-      return status !== 'entregado' && !isArchived;
-    } else if (archiveTab === 'delivered') {
-      return status === 'entregado' && !isArchived;
-    } else if (archiveTab === 'archived') {
-      return isArchived === true;
+      // En tab activo, mostrar solo no entregados
+      return status !== 'entregado';
     }
+    // En tab archivados, backend ya filtró, mostrar todos
     return true;
   });
   
@@ -632,18 +629,7 @@ export default function Projects() {
           >
             En Curso
           </Button>
-          <Button
-            variant={archiveTab === 'delivered' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => setArchiveTab('delivered')}
-            className={`text-sm font-medium transition-colors ${
-              archiveTab === 'delivered'
-                ? 'bg-white shadow-sm text-foreground'
-                : 'text-muted-foreground hover:text-foreground hover:bg-accent'
-            }`}
-          >
-            Entregados
-          </Button>
+
           <Button
             variant={archiveTab === 'archived' ? 'default' : 'ghost'}
             size="sm"
@@ -1078,7 +1064,7 @@ export default function Projects() {
                         {/* Botón eliminar individual */}
                         {(user?.role === "admin" || user?.role === "super_admin") && (
                           <>
-                            {archiveTab === 'delivered' && (project as any).status === 'entregado' && !(project as any).isArchived && (
+                            {archiveTab === 'active' && !(project as any).isArchived && (
                               <Button 
                                 variant="ghost" 
                                 size="sm"

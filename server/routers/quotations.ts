@@ -278,7 +278,7 @@ export const quotationsRouter = router({
         page: z.number().min(1).optional().default(1),
         limit: z.number().min(1).max(100).optional().default(50),
         status: z.string().optional(),
-        includeArchived: z.boolean().optional(),
+        archived: z.boolean().optional(),
       }).optional())
       .query(async ({ ctx, input }) => {
         if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "comercial") {
@@ -288,7 +288,7 @@ export const quotationsRouter = router({
           page: input?.page,
           limit: input?.limit,
           status: input?.status,
-          includeArchived: input?.includeArchived,
+          archived: input?.archived,
         });
         const [allClients, allProjects] = await Promise.all([
           db.getAllClients(),

@@ -2274,7 +2274,7 @@ export async function getAllQuotationsPaginated(params: PaginationParams & { sta
   return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
 }
 
-export async function getAllProjectsPaginated(params: PaginationParams & { status?: string; includeArchived?: boolean } = {}): Promise<PaginatedResult<any>> {
+export async function getAllProjectsPaginated(params: PaginationParams & { status?: string; archived?: boolean } = {}): Promise<PaginatedResult<any>> {
   const db = await getDb();
   if (!db) return { data: [], total: 0, page: 1, limit: 50, totalPages: 0 };
 
@@ -2286,13 +2286,10 @@ export async function getAllProjectsPaginated(params: PaginationParams & { statu
   if (params.status) {
     conditions.push(eq(projects.status, params.status as any));
   }
-  // Filtrar por archivado según el parámetro
-  if (params.includeArchived === true) {
-    conditions.push(eq(projects.isArchived, 1));
-  } else if (params.includeArchived === false) {
-    conditions.push(eq(projects.isArchived, 0));
+  // Filtrar por archivado
+  if (params.archived !== undefined) {
+    conditions.push(eq(projects.isArchived, params.archived ? 1 : 0));
   }
-  // Si no se especifica includeArchived, devolver todos (para compatibilidad hacia atrás)
 
   const [countResult, data] = await Promise.all([
     db.select({ count: sql<number>`count(*)` }).from(projects).where(and(...conditions)),
@@ -2566,7 +2563,7 @@ export async function getQuotationVersionNumber(quotationId: number): Promise<nu
   return quotation?.versionNumber || 1;
 }
 
-export async function getAllQuotationsGroupedByBase(params: PaginationParams & { status?: string; includeArchived?: boolean } = {}): Promise<PaginatedResult<any>> {
+export async function getAllQuotationsGroupedByBase(params: PaginationParams & { status?: string; archived?: boolean } = {}): Promise<PaginatedResult<any>> {
   const db = await getDb();
   if (!db) return { data: [], total: 0, page: 1, limit: 50, totalPages: 0 };
 
@@ -2578,11 +2575,9 @@ export async function getAllQuotationsGroupedByBase(params: PaginationParams & {
   if (params.status) {
     conditions.push(eq(quotations.status, params.status as any));
   }
-  // Filtrar por archivado según el parámetro
-  if (params.includeArchived === true) {
-    conditions.push(eq(quotations.isArchived, 1));
-  } else if (params.includeArchived === false) {
-    conditions.push(eq(quotations.isArchived, 0));
+  // Filtrar por archivado
+  if (params.archived !== undefined) {
+    conditions.push(eq(quotations.isArchived, params.archived ? 1 : 0));
   } else {
     // Por defecto, mostrar solo NO archivadas
     conditions.push(eq(quotations.isArchived, 0));

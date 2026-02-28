@@ -328,7 +328,6 @@ export const publicGalleryRouter = router({
                 subject: `📝 Cambios solicitados en ${tipoTexto}: ${project.name}`,
                 html: generateEmailHTML(emailContent, `Cambios Solicitados - ${project.name}`),
               });
-              console.log(`[Email] Notificación de cambios enviada al diseñador: ${designer.email}`);
             }
             
             // Generar enlace de WhatsApp para contactar al diseñador
@@ -652,7 +651,6 @@ export const publicGalleryRouter = router({
         
         try {
           const result = await whatsappCloud.sendTextMessage(phoneWithCountry, message);
-          console.log(`[MODELADO] Mensaje enviado exitosamente. MessageID: ${result.messageId}`);
         } catch (error) {
           console.error(`[MODELADO] Error enviando mensaje:`, error);
           throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Error al enviar mensaje por WhatsApp" });
@@ -739,7 +737,6 @@ export const publicGalleryRouter = router({
         
         try {
           const result = await whatsappCloud.sendTextMessage(phoneWithCountry, message);
-          console.log(`[RENDERS] Mensaje enviado exitosamente. MessageID: ${result.messageId}`);
         } catch (error) {
           console.error(`[RENDERS] Error enviando mensaje:`, error);
           throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Error al enviar mensaje por WhatsApp" });

@@ -14,7 +14,6 @@ import { prepareWhatsAppNotification, generateTeamWhatsAppLink } from "../whatsa
 import { createRemindersForStatusChange } from "../reminders-service";
 import * as whatsappCloud from "../whatsapp-cloud";
 
-console.log("=== PROJECTS ROUTER FILE LOADED ===");
 import { addBusinessDays, calculateEstimatedDeliveryDate } from "../business-days";
 import { sanitizeText, sanitizeHtml, sanitizeForEmail, sanitizePhone, sanitizeEmail } from "../sanitize";
 import { eq, and, desc } from "drizzle-orm";
@@ -1368,9 +1367,7 @@ ${input.notes || "No se especificaron detalles"}
 
         const message = messages[input.sectionKey];
 
-        console.log(`[SECTION NOTIFICATION] Enviando notificacion de ${input.sectionKey} a ${client.whatsappPhone}`);
         const response = await whatsappCloud.sendTextMessage(client.whatsappPhone, message);
-        console.log(`[SECTION NOTIFICATION] Respuesta:`, response);
 
         return {
           success: true,
@@ -1383,10 +1380,6 @@ ${input.notes || "No se especificaron detalles"}
     revertStatus: protectedProcedure
       .input(z.object({ id: z.number() }))
       .mutation(async ({ ctx, input }) => {
-        console.log("[revertStatus] Input received:", JSON.stringify(input));
-        console.log("[revertStatus] Input type:", typeof input);
-        console.log("[revertStatus] Input keys:", Object.keys(input || {}));
-        console.log("[revertStatus] Input.id:", input?.id);
         try {
           // 1. Validar permisos
           if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
@@ -1980,7 +1973,6 @@ export const projectMaterialsRouter = router({
           throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para ver el dashboard financiero" });
         }
         const result = await db.getGlobalFinancialDashboard();
-        console.log('[DASHBOARD DEBUG] Result:', result);
         return result;
       }),
 

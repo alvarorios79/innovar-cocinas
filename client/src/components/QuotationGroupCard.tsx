@@ -403,14 +403,14 @@ export function QuotationGroupCard({
           )}
 
           {isActiveVersion && (
-            selectedVersion.archived ? (
+            group.activeVersion.archived ? (
               <Button
                 size="sm"
                 variant="outline"
                 className="text-xs py-1 px-2 h-7 gap-1"
                 onClick={() => {
-                  unarchiveQuotation.mutate({ quotationId: selectedVersion.id });
-                  if (onArchive) onArchive(selectedVersion);
+                  unarchiveQuotation.mutate({ quotationId: group.activeVersion.id });
+                  if (onArchive) onArchive(group.activeVersion);
                 }}
                 disabled={unarchiveQuotation.isPending}
                 title="Restaurar cotización"
@@ -424,8 +424,8 @@ export function QuotationGroupCard({
                 variant="destructive"
                 className="text-xs py-1 px-2 h-7 gap-1"
                 onClick={() => {
-                  archiveQuotation.mutate({ quotationId: selectedVersion.id });
-                  if (onArchive) onArchive(selectedVersion);
+                  archiveQuotation.mutate({ quotationId: group.activeVersion.id });
+                  if (onArchive) onArchive(group.activeVersion);
                 }}
                 disabled={archiveQuotation.isPending}
                 title="Archivar cotización"

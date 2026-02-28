@@ -1450,6 +1450,107 @@ ${input.notes || "No se especificaron detalles"}
         }
       }),
 
+    // Actualizar skipDesignProcess
+    updateSkipDesignProcess: protectedProcedure
+      .input(z.object({
+        projectId: z.number(),
+        skipDesignProcess: z.boolean(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        // Validar permisos
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos" });
+        }
+
+        const project = await db.getProjectById(input.projectId);
+        if (!project) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Proyecto no encontrado" });
+        }
+
+        await db.updateProject(input.projectId, {
+          skipDesignProcess: input.skipDesignProcess ? 1 : 0,
+        });
+
+        return { success: true };
+      }),
+
+    // Enviar directamente a taller
+    sendDirectlyToWorkshop: protectedProcedure
+      .input(z.object({
+        projectId: z.number(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        // Validar permisos
+        if (![ "admin", "super_admin", "comercial"].includes(ctx.user.role)) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos" });
+        }
+
+        const project = await db.getProjectById(input.projectId);
+        if (!project) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Proyecto no encontrado" });
+        }
+
+        // Validar que skipDesignProcess esté habilitado
+        if (!project.skipDesignProcess) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Este proyecto requiere proceso de diseño. Marca 'Enviar directamente a taller' si deseas saltarlo.",
+          });
+        }
+
+        // Validar estado
+        if (!["cotizacion_aprobada", "adelanto_recibido"].includes(project.status)) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "El proyecto no está en estado válido para enviar a taller",
+          });
+        }
+
+        // Cambiar estado a despiece
+        await db.updateProject(input.projectId, {
+          status: "despiece",
+        });
+
+        // Obtener datos para notificaciones
+        const client = await db.getClientById(project.clientId);
+        const workTypeLabel = project.workType || "Proyecto";
+
+        // Crear notificación a Jefe de Taller
+        try {
+          const jefeTallerUsers = await db.getAllUsers();
+          const jefeTaller = jefeTallerUsers.find(u => u.role === "jefe_taller");
+          
+          if (jefeTaller) {
+            await db.createNotification({
+              userId: jefeTaller.id,
+              title: "📦 Nuevo proyecto en taller",
+              body: `${project.name} - ${workTypeLabel}`,
+              type: "proyecto",
+              referenceId: project.id,
+              referenceType: "project",
+            });
+          }
+        } catch (error) {
+          console.error("Error creating notification for jefe_taller:", error);
+        }
+
+        // Notificación a admin/comercial
+        try {
+          await db.createNotification({
+            userId: ctx.user.id,
+            title: "✅ Proyecto enviado a taller",
+            body: `${project.name} fue enviado a taller exitosamente`,
+            type: "proyecto",
+            referenceId: project.id,
+            referenceType: "project",
+          });
+        } catch (error) {
+          console.error("Error creating notification for user:", error);
+        }
+
+        return { success: true, message: "Proyecto enviado a taller" };
+      }),
+
     // Archivar proyecto (solo si estado es "Entregado")
     archive: protectedProcedure
       .input(z.object({ projectId: z.number() }))

@@ -322,6 +322,27 @@ export function ProjectInlineDetail({
     },
   });
 
+  const updateSkipDesignProcess = trpc.projects.updateSkipDesignProcess.useMutation({
+    onSuccess: () => {
+      utils.projects.getById.invalidate();
+      toast.success("Configuración actualizada");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Error al actualizar");
+    },
+  });
+
+  const sendDirectlyToWorkshop = trpc.projects.sendDirectlyToWorkshop.useMutation({
+    onSuccess: () => {
+      utils.projects.list.invalidate();
+      utils.projects.getById.invalidate();
+      toast.success("Proyecto enviado a taller exitosamente");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Error al enviar a taller");
+    },
+  });
+
   const sendRendersToClient = trpc.publicGallery.sendRendersToClient.useMutation({
     onSuccess: (result) => {
       utils.projects.getById.invalidate();
@@ -603,6 +624,82 @@ export function ProjectInlineDetail({
             Entregar Diseño al Cliente
           </Button>
         </div>
+      )}
+
+      {/* Checkbox para Enviar Directamente a Taller (solo admin/super_admin) */}
+      {(projectDetail.status === "cotizacion_aprobada" || projectDetail.status === "adelanto_recibido") &&
+        (user?.role === "admin" || user?.role === "super_admin") && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+          <div className="flex items-center gap-3">
+            <input
+              type="checkbox"
+              id="skipDesign"
+              checked={Boolean(projectDetail.skipDesignProcess)}
+              onChange={(e) => {
+                updateSkipDesignProcess.mutate({
+                  projectId: projectDetail.id,
+                  skipDesignProcess: e.target.checked,
+                });
+              }}
+              className="w-4 h-4 cursor-pointer"
+            />
+            <label htmlFor="skipDesign" className="cursor-pointer flex-1">
+              <span className="font-medium text-blue-800">
+                ☐ Enviar directamente a taller (sin proceso de diseño)
+              </span>
+              <p className="text-xs text-blue-700 mt-1">
+                Marca esto si el cliente no requiere diseño, modelado ni render
+              </p>
+            </label>
+          </div>
+        </div>
+      )}
+
+      {/* Botón para Enviar Directamente a Taller */}
+      {(projectDetail.status === "cotizacion_aprobada" || projectDetail.status === "adelanto_recibido") &&
+        (user?.role === "admin" || user?.role === "super_admin" || user?.role === "comercial") && (
+        <>
+          {projectDetail.skipDesignProcess ? (
+            <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4">
+              <h4 className="font-medium text-orange-800 mb-2 flex items-center gap-2">
+                <Send className="h-4 w-4" />
+                Enviar Directamente a Taller
+              </h4>
+              <p className="text-sm text-orange-700 mb-4">
+                Este proyecto saltará el proceso de diseño y irá directamente a producción.
+              </p>
+              <Button
+                size="sm"
+                className="bg-orange-600 hover:bg-orange-700"
+                onClick={() => sendDirectlyToWorkshop.mutate({ projectId: projectDetail.id })}
+                disabled={sendDirectlyToWorkshop.isPending}
+              >
+                <Send className="h-4 w-4 mr-1" />
+                Enviar a Taller Ahora
+              </Button>
+            </div>
+          ) : (
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
+              <h4 className="font-medium text-gray-600 mb-2 flex items-center gap-2">
+                <AlertCircle className="h-4 w-4" />
+                Enviar a Taller (Deshabilitado)
+              </h4>
+              <p className="text-sm text-gray-600 mb-4">
+                Este proyecto requiere pasar por el proceso de diseño.
+                <br />
+                <strong>Marca la opción arriba si deseas saltarlo.</strong>
+              </p>
+              <Button
+                size="sm"
+                disabled
+                className="opacity-50 cursor-not-allowed"
+              >
+                <AlertCircle className="h-4 w-4 mr-1" />
+                Enviar a Taller (Bloqueado)
+              </Button>
+            </div>
+          )}
+        </>
       )}
 
       {/* Acción para Diseñador: Pasar a Producción (aprobacion_final -> despiece) */}

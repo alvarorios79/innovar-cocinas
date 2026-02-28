@@ -401,8 +401,9 @@ export const projects = mysqlTable("projects", {
 		currentApprovedQuotationId: int(),
 		dataOrigin: mysqlEnum(['manual', 'system']).default('manual').notNull(),
 		isArchived: tinyint().default(0).notNull(),
+		skipDesignProcess: tinyint().default(0).notNull(),
 	},
-(table) => [
+	(table) => [
 	index("projects_quotationId_quotations_id_fk").on(table.quotationId),
 	index("projects_clientId_idx").on(table.clientId),
 	index("projects_status_idx").on(table.status),

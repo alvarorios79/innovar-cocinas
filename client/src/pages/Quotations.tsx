@@ -184,7 +184,8 @@ export default function Quotations() {
   const { data: quotationsData, isLoading } = trpc.quotations.listPaginatedGrouped.useQuery({
     page: quotationPage,
     limit: QUOTATIONS_PER_PAGE,
-    status: filterStatus !== "all" ? filterStatus : undefined
+    status: filterStatus !== "all" ? filterStatus : undefined,
+    includeArchived: archiveTab === "archived" ? true : (archiveTab === "active" ? false : undefined),
   });
   const quotations = quotationsData?.data || [];
   const { data: clients = [] } = trpc.clients.list.useQuery();

@@ -212,7 +212,8 @@ export default function Projects() {
   const { data: projectsData, isLoading: loadingProjects } = trpc.projects.listPaginated.useQuery({
     page: projectPage,
     limit: PROJECTS_PER_PAGE,
-    ...(statusFilter !== "all" && { search: statusFilter })
+    ...(statusFilter !== "all" && { search: statusFilter }),
+    includeArchived: archiveTab === 'archived' ? true : (archiveTab === 'active' || archiveTab === 'delivered' ? false : undefined),
   });
   const projects = projectsData?.data || [];
   

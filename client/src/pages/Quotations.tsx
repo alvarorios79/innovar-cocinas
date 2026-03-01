@@ -3450,25 +3450,38 @@ export default function Quotations() {
             </div>
 
             {/* Botones de acción */}
-            <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 pt-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setShowCreateDialog(false)}
-                className="px-4 sm:px-6 text-sm sm:text-base border-slate-300 hover:bg-slate-100 dark:border-slate-600 dark:hover:bg-slate-800 order-2 sm:order-1"
-              >
-                Cancelar
-              </Button>
-              <Button 
-                type="submit" 
-                disabled={createQuotation.isPending || updateQuotation.isPending}
-                className="px-4 sm:px-6 text-sm sm:text-base bg-[oklch(0.72_0.14_180)] hover:bg-[oklch(0.60_0.14_180)] text-white shadow-md order-1 sm:order-2"
-              >
-                {editingQuotation 
-                  ? (updateQuotation.isPending ? "Guardando..." : "Guardar Cambios")
-                  : (createQuotation.isPending ? "Creando..." : "Crear Cotización")
-                }
-              </Button>
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-3 pt-2">
+              <div>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={addItem}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm text-xs sm:text-sm w-full sm:w-auto"
+                >
+                  <Plus className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                  Agregar Producto
+                </Button>
+              </div>
+              <div className="flex gap-2 sm:gap-3 w-full sm:w-auto">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowCreateDialog(false)}
+                  className="px-4 sm:px-6 text-sm sm:text-base border-slate-300 hover:bg-slate-100 dark:border-slate-600 dark:hover:bg-slate-800 flex-1 sm:flex-none"
+                >
+                  Cancelar
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={createQuotation.isPending || updateQuotation.isPending}
+                  className="px-4 sm:px-6 text-sm sm:text-base bg-[oklch(0.72_0.14_180)] hover:bg-[oklch(0.60_0.14_180)] text-white shadow-md flex-1 sm:flex-none"
+                >
+                  {editingQuotation 
+                    ? (updateQuotation.isPending ? "Guardando..." : "Guardar Cambios")
+                    : (createQuotation.isPending ? "Creando..." : "Crear Cotización")
+                  }
+                </Button>
+              </div>
             </div>
           </form>
         </DialogContent>

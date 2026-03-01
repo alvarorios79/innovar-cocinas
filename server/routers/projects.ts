@@ -606,6 +606,13 @@ export const projectsRouter = router({
           updateData.deliveredAt = new Date();
         }
 
+        // Sincronizar isArchived con status: solo archivado si es "entregado"
+        if (newStatus === "entregado") {
+          updateData.isArchived = 1;
+        } else {
+          updateData.isArchived = 0;
+        }
+
         await db.updateProject(input.projectId, updateData);
 
         // Notificar al diseñador cuando el proyecto pasa a "Cliente Confirmado - Iniciar Diseño"
@@ -1424,15 +1431,7 @@ ${input.notes || "No se especificaron detalles"}
           // 4. Actualizar estado
           await db.updateProject(input.id, { status: previousStatus });
 
-          // 5. Log de auditoria
-          console.log({
-            action: "REVERT_STATUS",
-            projectId: input.id,
-            from: project.status,
-            to: previousStatus,
-            user: ctx.user.id,
-            timestamp: new Date()
-          });
+          // 5. Log de auditoria (opcional para auditoría futura)
 
           return { success: true, newStatus: previousStatus };
         } catch (error) {
@@ -1560,16 +1559,7 @@ ${input.notes || "No se especificaron detalles"}
             throw new TRPCError({ code: "NOT_FOUND", message: "Proyecto no encontrado" });
           }
 
-
-
           await db.updateProject(input.projectId, { isArchived: 1 });
-
-          console.log({
-            action: "ARCHIVE_PROJECT",
-            projectId: input.projectId,
-            userId: ctx.user.id,
-            timestamp: new Date()
-          });
 
           return { success: true, message: "Proyecto archivado correctamente" };
         } catch (error) {
@@ -1592,13 +1582,6 @@ ${input.notes || "No se especificaron detalles"}
           }
 
           await db.updateProject(input.projectId, { isArchived: 0 });
-
-          console.log({
-            action: "UNARCHIVE_PROJECT",
-            projectId: input.projectId,
-            userId: ctx.user.id,
-            timestamp: new Date()
-          });
 
           return { success: true, message: "Proyecto desarchivado correctamente" };
         } catch (error) {

@@ -49,7 +49,7 @@ import { MaterialsForm } from "@/components/MaterialsForm";
 import { HardwareSelector } from "@/components/HardwareSelector";
 import { ProjectInlineDetail } from "@/components/ProjectInlineDetail";
 import { PageHeader } from "@/components/PageHeader";
-import { archiveProject, unarchiveProject } from "@/api/projectsArchive";
+// Usar tRPC mutations en lugar de fetch directo
 
 // Estados del proyecto según Ruta INNOVAR (14 estados simplificados)
 const PROJECT_STATUSES: Record<string, { label: string; color: string; icon: any }> = {
@@ -359,34 +359,45 @@ export default function Projects() {
     },
   });
 
-  const handleArchive = async (projectId: number) => {
-    try {
-      setArchivingProjectId(projectId);
-      await archiveProject(projectId);
+  // Mutations para archivar/desarchivar
+  const archiveMutation = trpc.projects.archive.useMutation({
+    onSuccess: () => {
       toast.success("Proyecto archivado correctamente");
-      // Invalidar TODAS las queries de proyectos
-      await utils.projects.listPaginated.invalidate();
-    } catch (error: any) {
+      utils.projects.listPaginated.invalidate();
+    },
+    onError: (error: any) => {
+      console.error("ARCHIVE PROJECT ERROR FULL:", error);
+      console.error("ARCHIVE PROJECT ERROR MESSAGE:", error.message);
+      console.error("ARCHIVE PROJECT ERROR DATA:", error.data);
       toast.error(error.message || "Error al archivar proyecto");
-      console.error("Archive error:", error);
-    } finally {
+    },
+    onSettled: () => {
       setArchivingProjectId(null);
     }
-  };
+  });
 
-  const handleUnarchive = async (projectId: number) => {
-    try {
-      setArchivingProjectId(projectId);
-      await unarchiveProject(projectId);
+  const unarchiveMutation = trpc.projects.unarchive.useMutation({
+    onSuccess: () => {
       toast.success("Proyecto restaurado correctamente");
-      // Invalidar TODAS las queries de proyectos
-      await utils.projects.listPaginated.invalidate();
-    } catch (error: any) {
+      utils.projects.listPaginated.invalidate();
+    },
+    onError: (error: any) => {
       toast.error(error.message || "Error al restaurar proyecto");
       console.error("Unarchive error:", error);
-    } finally {
+    },
+    onSettled: () => {
       setArchivingProjectId(null);
     }
+  });
+
+  const handleArchive = (projectId: number) => {
+    setArchivingProjectId(projectId);
+    archiveMutation.mutate({ projectId });
+  };
+
+  const handleUnarchive = (projectId: number) => {
+    setArchivingProjectId(projectId);
+    unarchiveMutation.mutate({ projectId });
   };
 
   // Mutation para retroceder estado

@@ -1546,7 +1546,7 @@ ${input.notes || "No se especificaron detalles"}
         return { success: true, message: "Proyecto enviado a taller" };
       }),
 
-    // Archivar proyecto (solo si estado es "Entregado")
+    // Archivar proyecto (cualquier estado)
     archive: protectedProcedure
       .input(z.object({ projectId: z.number() }))
       .mutation(async ({ ctx, input }) => {
@@ -1560,12 +1560,7 @@ ${input.notes || "No se especificaron detalles"}
             throw new TRPCError({ code: "NOT_FOUND", message: "Proyecto no encontrado" });
           }
 
-          if (project.status !== "entregado") {
-            throw new TRPCError({
-              code: "BAD_REQUEST",
-              message: "Solo se pueden archivar proyectos en estado Entregado"
-            });
-          }
+
 
           await db.updateProject(input.projectId, { isArchived: 1 });
 

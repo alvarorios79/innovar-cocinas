@@ -837,7 +837,11 @@ export async function updateProject(id: number, data: Partial<InsertProject>) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  await db.update(projects).set(data).where(eq(projects.id, id));
+  console.log("[updateProject] INPUT:", { id, data });
+  
+  const result = await db.update(projects).set(data).where(eq(projects.id, id));
+  
+  console.log("[updateProject] UPDATE RESULT:", result);
 
   // Trigger alert evaluation if status changed to delivered
   if (data.status === 'delivered') {

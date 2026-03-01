@@ -1,0 +1,12 @@
+
+========================================================================================================================
+MARCAR CLUSTER DE PRUEBA COMO dataOrigin = "system"
+========================================================================================================================
+
+📋 PASO 1: Identificando usuarios de prueba...
+
+✓ Usuarios de prueba identificados: 421
+
+📝 PASO 2: Marcando cluster como dataOrigin = "system"...
+
+❌ Error: Unknown column 'userid' in 'where clause'

@@ -373,8 +373,8 @@ export default function Projects() {
       setArchivingProjectId(projectId);
       await archiveProject(projectId);
       toast.success("Proyecto archivado correctamente");
-      utils.projects.list.invalidate();
-      utils.projects.listPaginated.invalidate();
+      // Invalidar TODAS las queries de proyectos
+      await utils.projects.listPaginated.invalidate();
     } catch (error: any) {
       toast.error(error.message || "Error al archivar proyecto");
       console.error("Archive error:", error);
@@ -388,8 +388,8 @@ export default function Projects() {
       setArchivingProjectId(projectId);
       await unarchiveProject(projectId);
       toast.success("Proyecto restaurado correctamente");
-      utils.projects.list.invalidate();
-      utils.projects.listPaginated.invalidate();
+      // Invalidar TODAS las queries de proyectos
+      await utils.projects.listPaginated.invalidate();
     } catch (error: any) {
       toast.error(error.message || "Error al restaurar proyecto");
       console.error("Unarchive error:", error);

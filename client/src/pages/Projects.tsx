@@ -212,7 +212,7 @@ export default function Projects() {
   const { data: projectsData, isLoading: loadingProjects } = trpc.projects.listPaginated.useQuery({
     page: projectPage,
     limit: PROJECTS_PER_PAGE,
-    ...(statusFilter !== "all" && { search: statusFilter }),
+    ...(statusFilter !== "all" && { status: statusFilter }),
     archived: archiveTab === 'archived',
   });
   const projects = projectsData?.data || [];
@@ -235,17 +235,8 @@ export default function Projects() {
     }
   });
   
-  // Filtrar por estado (entregado vs no entregado) solo cuando está en 'active'
-  const filteredByArchive = filteredByProfit.filter(p => {
-    const status = (p as any).status?.toLowerCase() || "";
-    
-    if (archiveTab === 'active') {
-      // En tab activo, mostrar solo no entregados
-      return status !== 'entregado';
-    }
-    // En tab archivados, backend ya filtró, mostrar todos
-    return true;
-  });
+  // No filtrar por estado aquí - el backend ya está filtrando por archived
+  const filteredByArchive = filteredByProfit;
   
   // Aplicar filtro de busqueda por cliente
   const filteredProjects = filteredByArchive.filter(p => {
@@ -1064,7 +1055,7 @@ export default function Projects() {
                         {/* Botón eliminar individual */}
                         {(user?.role === "admin" || user?.role === "super_admin") && (
                           <>
-                            {archiveTab === 'active' && !(project as any).isArchived && (
+                            {archiveTab === 'active' && (
                               <Button 
                                 variant="ghost" 
                                 size="sm"
@@ -1076,7 +1067,7 @@ export default function Projects() {
                                 <span className="hidden md:inline">Archivar</span>
                               </Button>
                             )}
-                            {archiveTab === 'archived' && (project as any).isArchived && (
+                            {archiveTab === 'archived' && (
                               <Button 
                                 variant="ghost" 
                                 size="sm"

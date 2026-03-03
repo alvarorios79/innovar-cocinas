@@ -280,11 +280,21 @@ export default function Quotations() {
 
   const generatePDF = trpc.quotations.generatePDF.useMutation({
     onSuccess: (data) => {
-      // Descargar PDF usando URL
-      const link = document.createElement("a");
-      link.href = data.downloadUrl;
-      link.download = data.filename;
-      link.click();
+      // Detectar si es iOS
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      
+      if (isIOS) {
+        // En iOS, abrir en nueva pestana
+        window.open(data.downloadUrl, '_blank');
+      } else {
+        // En desktop, descargar directamente
+        const link = document.createElement("a");
+        link.href = data.downloadUrl;
+        link.download = data.filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
       toast.success("PDF generado exitosamente");
     },
     onError: (error) => {

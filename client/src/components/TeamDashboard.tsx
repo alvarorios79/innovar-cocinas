@@ -38,7 +38,7 @@ import { DesignerChecklist } from "@/components/DesignerChecklist";
 import { ProductionCalendar } from "@/components/ProductionCalendar";
 import { OperatorDailyProjects } from "@/components/OperatorDailyProjects";
 import { DailyMotivation } from "@/components/DailyMotivation";
-import { CEOControlCenter } from "@/components/CEOControlCenter";
+import { CEODashboard } from "@/pages/CEODashboard";
 
 // Componente de botón de cerrar sesión
 function LogoutButton() {
@@ -528,6 +528,9 @@ export function TeamDashboard() {
 
   return (
     <div className={`min-h-screen ${config.bgGradient}`}>
+      <div style={{background:"red", color:"white", padding:"10px"}}>
+        TEST TEAM DASHBOARD
+      </div>
       {/* Header */}
       <header className="border-b bg-white/95 backdrop-blur-md sticky top-0 z-50 shadow-sm">
         <div className="container">
@@ -738,7 +741,7 @@ export function TeamDashboard() {
         <section className="py-3 md:py-4">
           <div className="container">
             <div className="max-w-4xl mx-auto">
-              <CEOControlCenter />
+              <CEODashboard />
             </div>
           </div>
         </section>

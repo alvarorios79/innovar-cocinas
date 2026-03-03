@@ -1,9 +1,0 @@
-{
-  "query": "CREATE TABLE `projectPayments` (\n  `id` int AUTO_INCREMENT NOT NULL,\n  `projectId` int NOT NULL,\n  `type` enum('adelanto','saldo_final','abono','otro') NOT NULL,\n  `amount` decimal(12,2) NOT NULL,\n  `paymentDate` timestamp NOT NULL,\n  `receiptUrl` text,\n  `notes` text,\n  `registeredBy` int NOT NULL,\n  `createdAt` timestamp NOT NULL DEFAULT (now()),\n  CONSTRAINT `projectPayments_id` PRIMARY KEY(`id`),\n  CONSTRAINT `projectPayments_projectId_projects_id_fk` FOREIGN KEY (`projectId`) REFERENCES `projects`(`id`) ON DELETE CASCADE,\n  CONSTRAINT `projectPayments_registeredBy_users_id_fk` FOREIGN KEY (`registeredBy`) REFERENCES `users`(`id`)\n);",
-  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute CREATE TABLE `projectPayments` (\n  `id` int AUTO_INCREMENT NOT NULL,\n  `projectId` int NOT NULL,\n  `type` enum('adelanto','saldo_final','abono','otro') NOT NULL,\n  `amount` decimal(12,2) NOT NULL,\n  `paymentDate` timestamp NOT NULL,\n  `receiptUrl` text,\n  `notes` text,\n  `registeredBy` int NOT NULL,\n  `createdAt` timestamp NOT NULL DEFAULT (now()),\n  CONSTRAINT `projectPayments_id` PRIMARY KEY(`id`),\n  CONSTRAINT `projectPayments_projectId_projects_id_fk` FOREIGN KEY (`projectId`) REFERENCES `projects`(`id`) ON DELETE CASCADE,\n  CONSTRAINT `projectPayments_registeredBy_users_id_fk` FOREIGN KEY (`registeredBy`) REFERENCES `users`(`id`)\n);",
-  "rows": [],
-  "messages": [],
-  "stdout": "",
-  "stderr": "",
-  "execution_time_ms": 261
-}

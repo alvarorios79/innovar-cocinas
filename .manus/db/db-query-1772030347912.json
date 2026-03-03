@@ -1,9 +1,0 @@
-{
-  "query": "UPDATE pricingConfig SET name = 'Cocina Estándar' WHERE code = 'COCINA_ML_L';\nUPDATE pricingConfig SET name = 'Cocina Premium' WHERE code = 'COCINA_ML_U';\nUPDATE pricingConfig SET name = 'Cocina Deluxe' WHERE code = 'COCINA_ML_LINEAL';",
-  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute UPDATE pricingConfig SET name = 'Cocina Estándar' WHERE code = 'COCINA_ML_L';\nUPDATE pricingConfig SET name = 'Cocina Premium' WHERE code = 'COCINA_ML_U';\nUPDATE pricingConfig SET name = 'Cocina Deluxe' WHERE code = 'COCINA_ML_LINEAL';",
-  "rows": [],
-  "messages": [],
-  "stdout": "",
-  "stderr": "",
-  "execution_time_ms": 85
-}

@@ -1,8 +1,0 @@
-{
-  "query": "SELECT \n  COUNT(*) as total_pagos,\n  COUNT(CASE WHEN amount > 0 THEN 1 END) as pagos_con_monto,\n  COUNT(CASE WHEN dataOrigin = 'manual' THEN 1 END) as pagos_manuales,\n  SUM(amount) as monto_total\nFROM payments;\n\nSELECT \n  id,\n  projectId,\n  amount,\n  type,\n  receivedAt,\n  dataOrigin\nFROM payments\nLIMIT 20;",
-  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT \n  COUNT(*) as total_pagos,\n  COUNT(CASE WHEN amount > 0 THEN 1 END) as pagos_con_monto,\n  COUNT(CASE WHEN dataOrigin = 'manual' THEN 1 END) as pagos_manuales,\n  SUM(amount) as monto_total\nFROM payments;\n\nSELECT \n  id,\n  projectId,\n  amount,\n  type,\n  receivedAt,\n  dataOrigin\nFROM payments\nLIMIT 20;",
-  "returncode": 1,
-  "logs": [
-    "ERROR 1054 (42S22) at line 1: Unknown column 'dataorigin' in ''"
-  ]
-}

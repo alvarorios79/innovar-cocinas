@@ -1,8 +1,0 @@
-{
-  "query": "SELECT u.id, u.name, u.email, u.role,\n       (SELECT COUNT(*) FROM tasks WHERE assignedTo = u.id) as tasks_assigned,\n       (SELECT COUNT(*) FROM tasks WHERE createdBy = u.id) as tasks_created,\n       (SELECT COUNT(*) FROM quotations WHERE createdBy = u.id) as quotations_created,\n       (SELECT COUNT(*) FROM projects WHERE createdBy = u.id) as projects_created,\n       (SELECT COUNT(*) FROM reminders WHERE createdBy = u.id) as reminders_created\nFROM users u\nWHERE u.email LIKE '%test%' OR u.email LIKE '%bulk%'\nLIMIT 5;",
-  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT u.id, u.name, u.email, u.role,\n       (SELECT COUNT(*) FROM tasks WHERE assignedTo = u.id) as tasks_assigned,\n       (SELECT COUNT(*) FROM tasks WHERE createdBy = u.id) as tasks_created,\n       (SELECT COUNT(*) FROM quotations WHERE createdBy = u.id) as quotations_created,\n       (SELECT COUNT(*) FROM projects WHERE createdBy = u.id) as projects_created,\n       (SELECT COUNT(*) FROM reminders WHERE createdBy = u.id) as reminders_created\nFROM users u\nWHERE u.email LIKE '%test%' OR u.email LIKE '%bulk%'\nLIMIT 5;",
-  "returncode": 1,
-  "logs": [
-    "ERROR 1054 (42S22) at line 1: Unknown column 'createdby' in 'where clause'"
-  ]
-}

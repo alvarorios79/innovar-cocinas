@@ -1,9 +1,0 @@
-{
-  "query": "UPDATE pricingConfig SET value = '900000' WHERE code IN ('MUEBLE_INFERIOR_ML', 'MUEBLE_SUPERIOR_ML');",
-  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute UPDATE pricingConfig SET value = '900000' WHERE code IN ('MUEBLE_INFERIOR_ML', 'MUEBLE_SUPERIOR_ML');",
-  "rows": [],
-  "messages": [],
-  "stdout": "",
-  "stderr": "",
-  "execution_time_ms": 67
-}

@@ -1,9 +1,0 @@
-{
-  "query": "ALTER TABLE quotations ADD COLUMN IF NOT EXISTS clientResponseStatus ENUM('aprobado','rechazado','revision') NULL, ADD COLUMN IF NOT EXISTS clientResponseNotes TEXT NULL, ADD COLUMN IF NOT EXISTS clientResponseAt TIMESTAMP NULL, ADD COLUMN IF NOT EXISTS whatsappApiSentAt TIMESTAMP NULL;",
-  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute ALTER TABLE quotations ADD COLUMN IF NOT EXISTS clientResponseStatus ENUM('aprobado','rechazado','revision') NULL, ADD COLUMN IF NOT EXISTS clientResponseNotes TEXT NULL, ADD COLUMN IF NOT EXISTS clientResponseAt TIMESTAMP NULL, ADD COLUMN IF NOT EXISTS whatsappApiSentAt TIMESTAMP NULL;",
-  "rows": [],
-  "messages": [],
-  "stdout": "",
-  "stderr": "",
-  "execution_time_ms": 1329
-}

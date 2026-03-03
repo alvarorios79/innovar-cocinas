@@ -1,9 +1,0 @@
-{
-  "query": "ALTER TABLE kitchenQuotations \nADD COLUMN hasPaintedDoors BOOLEAN DEFAULT FALSE NOT NULL,\nADD COLUMN paintedDoorsUpperQty INT DEFAULT 0,\nADD COLUMN paintedDoorsUpperPrice DECIMAL(12,2),\nADD COLUMN paintedDoorsLowerQty INT DEFAULT 0,\nADD COLUMN paintedDoorsLowerPrice DECIMAL(12,2),\nADD COLUMN paintedDoorsPantryQty INT DEFAULT 0,\nADD COLUMN paintedDoorsPantryPrice DECIMAL(12,2),\nADD COLUMN paintedDoorsDrawerQty INT DEFAULT 0,\nADD COLUMN paintedDoorsDrawerPrice DECIMAL(12,2),\nADD COLUMN paintedDoorsSpiceQty INT DEFAULT 0,\nADD COLUMN paintedDoorsSpicePrice DECIMAL(12,2),\nADD COLUMN paintedDoorsGolaQty INT DEFAULT 0,\nADD COLUMN paintedDoorsGolaPrice DECIMAL(12,2),\nADD COLUMN paintedDoorsTotalPrice DECIMAL(12,2);",
-  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute ALTER TABLE kitchenQuotations \nADD COLUMN hasPaintedDoors BOOLEAN DEFAULT FALSE NOT NULL,\nADD COLUMN paintedDoorsUpperQty INT DEFAULT 0,\nADD COLUMN paintedDoorsUpperPrice DECIMAL(12,2),\nADD COLUMN paintedDoorsLowerQty INT DEFAULT 0,\nADD COLUMN paintedDoorsLowerPrice DECIMAL(12,2),\nADD COLUMN paintedDoorsPantryQty INT DEFAULT 0,\nADD COLUMN paintedDoorsPantryPrice DECIMAL(12,2),\nADD COLUMN paintedDoorsDrawerQty INT DEFAULT 0,\nADD COLUMN paintedDoorsDrawerPrice DECIMAL(12,2),\nADD COLUMN paintedDoorsSpiceQty INT DEFAULT 0,\nADD COLUMN paintedDoorsSpicePrice DECIMAL(12,2),\nADD COLUMN paintedDoorsGolaQty INT DEFAULT 0,\nADD COLUMN paintedDoorsGolaPrice DECIMAL(12,2),\nADD COLUMN paintedDoorsTotalPrice DECIMAL(12,2);",
-  "rows": [],
-  "messages": [],
-  "stdout": "",
-  "stderr": "",
-  "execution_time_ms": 4550
-}

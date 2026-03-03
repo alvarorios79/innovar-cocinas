@@ -1,1 +1,0 @@
-ALTER TABLE `projects` ADD `skipDesignProcess` tinyint DEFAULT 0 NOT NULL;

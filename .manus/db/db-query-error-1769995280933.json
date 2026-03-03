@@ -1,8 +1,0 @@
-{
-  "query": "SELECT pp.id, pp.subcategory, pp.stage, pp.category, p.name as project_name \nFROM project_photos pp \nJOIN projects p ON pp.project_id = p.id \nWHERE p.name LIKE '%Ruth%' OR p.name LIKE '%Naranjo%' OR p.name LIKE '%Viterbo%'\nORDER BY pp.subcategory;",
-  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT pp.id, pp.subcategory, pp.stage, pp.category, p.name as project_name \nFROM project_photos pp \nJOIN projects p ON pp.project_id = p.id \nWHERE p.name LIKE '%Ruth%' OR p.name LIKE '%Naranjo%' OR p.name LIKE '%Viterbo%'\nORDER BY pp.subcategory;",
-  "returncode": 1,
-  "logs": [
-    "ERROR 1146 (42S02) at line 1: Table 'xhekcr8yxcaedfyuqebdjq.project_photos' doesn't exist"
-  ]
-}

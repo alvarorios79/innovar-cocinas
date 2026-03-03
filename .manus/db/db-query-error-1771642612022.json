@@ -1,8 +1,0 @@
-{
-  "query": "SELECT \n  p.id, \n  p.quotationNumber, \n  fi.totalAmount,\n  fi.totalCost,\n  ((fi.totalAmount - fi.totalCost) / fi.totalAmount * 100) as rentabilidad,\n  fi.remainingAmount,\n  p.estimatedInstallDate\nFROM projects p\nJOIN financialInfo fi ON p.id = fi.projectId\nWHERE fi.totalAmount > 0\nORDER BY rentabilidad ASC\nLIMIT 10;",
-  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT \n  p.id, \n  p.quotationNumber, \n  fi.totalAmount,\n  fi.totalCost,\n  ((fi.totalAmount - fi.totalCost) / fi.totalAmount * 100) as rentabilidad,\n  fi.remainingAmount,\n  p.estimatedInstallDate\nFROM projects p\nJOIN financialInfo fi ON p.id = fi.projectId\nWHERE fi.totalAmount > 0\nORDER BY rentabilidad ASC\nLIMIT 10;",
-  "returncode": 1,
-  "logs": [
-    "ERROR 1146 (42S02) at line 1: Table 'xhekcr8yxcaedfyuqebdjq.financialInfo' doesn't exist"
-  ]
-}

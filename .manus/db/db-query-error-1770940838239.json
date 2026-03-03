@@ -1,8 +1,0 @@
-{
-  "query": "SELECT a.id, a.scheduled_date, a.status, c.name, c.whatsapp_phone FROM appointments a JOIN clients c ON a.client_id = c.id WHERE c.name = 'Test Prueba' ORDER BY a.id DESC LIMIT 5;",
-  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT a.id, a.scheduled_date, a.status, c.name, c.whatsapp_phone FROM appointments a JOIN clients c ON a.client_id = c.id WHERE c.name = 'Test Prueba' ORDER BY a.id DESC LIMIT 5;",
-  "returncode": 1,
-  "logs": [
-    "ERROR 1054 (42S22) at line 1: Unknown column 'a.client_id' in 'on clause'"
-  ]
-}

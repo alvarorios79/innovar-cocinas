@@ -1,9 +1,0 @@
-{
-  "query": "CREATE TABLE IF NOT EXISTS `projectHardwareSelections` (\n  `id` int AUTO_INCREMENT NOT NULL,\n  `projectId` int NOT NULL,\n  `hardwareId` int NOT NULL,\n  `selectedOption` text,\n  `notes` text,\n  `createdBy` int NOT NULL,\n  `createdAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,\n  PRIMARY KEY(`id`),\n  FOREIGN KEY (`projectId`) REFERENCES `projects`(`id`),\n  FOREIGN KEY (`hardwareId`) REFERENCES `hardwareCatalog`(`id`),\n  FOREIGN KEY (`createdBy`) REFERENCES `users`(`id`)\n);",
-  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute CREATE TABLE IF NOT EXISTS `projectHardwareSelections` (\n  `id` int AUTO_INCREMENT NOT NULL,\n  `projectId` int NOT NULL,\n  `hardwareId` int NOT NULL,\n  `selectedOption` text,\n  `notes` text,\n  `createdBy` int NOT NULL,\n  `createdAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,\n  PRIMARY KEY(`id`),\n  FOREIGN KEY (`projectId`) REFERENCES `projects`(`id`),\n  FOREIGN KEY (`hardwareId`) REFERENCES `hardwareCatalog`(`id`),\n  FOREIGN KEY (`createdBy`) REFERENCES `users`(`id`)\n);",
-  "rows": [],
-  "messages": [],
-  "stdout": "",
-  "stderr": "",
-  "execution_time_ms": 360
-}

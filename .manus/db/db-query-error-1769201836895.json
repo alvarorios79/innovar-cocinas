@@ -1,8 +1,0 @@
-{
-  "query": "SELECT id, client_name, status, advance_receipt_url FROM projects WHERE advance_receipt_url IS NOT NULL AND advance_receipt_url != '' LIMIT 10;",
-  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT id, client_name, status, advance_receipt_url FROM projects WHERE advance_receipt_url IS NOT NULL AND advance_receipt_url != '' LIMIT 10;",
-  "returncode": 1,
-  "logs": [
-    "ERROR 1054 (42S22) at line 1: Unknown column 'client_name' in 'field list'"
-  ]
-}

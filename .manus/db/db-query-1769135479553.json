@@ -1,9 +1,0 @@
-{
-  "query": "SELECT q.id, q.quotationNumber, q.status, q.total, c.name as clientName, c.userId \nFROM quotations q \nJOIN clients c ON q.clientId = c.id \nWHERE c.name LIKE '%Alvaro%' OR c.name LIKE '%Pruebas%'\nORDER BY q.id DESC\nLIMIT 10;",
-  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT q.id, q.quotationNumber, q.status, q.total, c.name as clientName, c.userId \nFROM quotations q \nJOIN clients c ON q.clientId = c.id \nWHERE c.name LIKE '%Alvaro%' OR c.name LIKE '%Pruebas%'\nORDER BY q.id DESC\nLIMIT 10;",
-  "rows": [],
-  "messages": [],
-  "stdout": "",
-  "stderr": "",
-  "execution_time_ms": 69
-}

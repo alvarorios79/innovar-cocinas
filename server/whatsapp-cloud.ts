@@ -6,9 +6,81 @@
  */
 
 // Variables de entorno necesarias (se configuran en el panel de administración)
-const WHATSAPP_ACCESS_TOKEN = process.env.WHATSAPP_ACCESS_TOKEN || "";
-const WHATSAPP_PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID || "";
+// NOTA: Se leen dinámicamente para permitir cambios sin reiniciar el servidor
 const WHATSAPP_API_VERSION = "v21.0";
+
+// Funciones para obtener valores dinámicamente
+function getWhatsAppAccessToken(): string {
+  return process.env.WHATSAPP_ACCESS_TOKEN || "";
+}
+
+function getWhatsAppPhoneNumberId(): string {
+  return process.env.WHATSAPP_PHONE_NUMBER_ID || "";
+}
+
+function getWhatsAppBusinessAccountId(): string {
+  return process.env.WHATSAPP_BUSINESS_ACCOUNT_ID || "";
+}
+
+/**
+ * Obtiene el Phone Number ID desde el WABA ID
+ * Útil cuando se necesita descubrir el ID correcto
+ */
+export async function getPhoneNumberIdFromWABA(): Promise<{
+  success: boolean;
+  phoneNumberId?: string;
+  phoneNumber?: string;
+  error?: string;
+}> {
+  const accessToken = getWhatsAppAccessToken();
+  const wabaId = getWhatsAppBusinessAccountId();
+
+  if (!accessToken || !wabaId) {
+    return {
+      success: false,
+      error: "WHATSAPP_ACCESS_TOKEN o WHATSAPP_BUSINESS_ACCOUNT_ID no configurados",
+    };
+  }
+
+  try {
+    console.log("[WHATSAPP] Obteniendo Phone Number ID desde WABA:", wabaId);
+    const response = await fetch(
+      `${WHATSAPP_API_URL}/${wabaId}/phone_numbers`,
+      {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${accessToken}`,
+        },
+      }
+    );
+
+    const data = await response.json();
+    console.log("[WHATSAPP] Respuesta de phone_numbers:", JSON.stringify(data, null, 2));
+
+    if (response.ok && data.data && data.data.length > 0) {
+      const phoneNumberId = data.data[0].id;
+      const phoneNumber = data.data[0].display_phone_number;
+      console.log("[WHATSAPP] Phone Number ID encontrado:", phoneNumberId);
+      return {
+        success: true,
+        phoneNumberId,
+        phoneNumber,
+      };
+    }
+
+    return {
+      success: false,
+      error: data.error?.message || "No se encontraron números de teléfono",
+    };
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : "Error de conexión";
+    console.error("[WHATSAPP] Error obteniendo Phone Number ID:", errorMsg);
+    return {
+      success: false,
+      error: errorMsg,
+    };
+  }
+}
 
 // Logo de INNOVAR para plantillas con imagen
 const INNOVAR_LOGO_URL = "https://d2xsxph8kpxj0f.cloudfront.net/310519663292328262/XhEkCr8yXcaeDFyuQebdJQ/branding/innovar-logo-transparent-jt9je6rz.png";
@@ -55,7 +127,7 @@ export interface TemplateParameter {
  * Verifica si WhatsApp Cloud API está configurado
  */
 export function isWhatsAppCloudConfigured(): boolean {
-  return !!(WHATSAPP_ACCESS_TOKEN && WHATSAPP_PHONE_NUMBER_ID);
+  return !!(getWhatsAppAccessToken() && getWhatsAppPhoneNumberId());
 }
 
 /**
@@ -66,8 +138,8 @@ export function getWhatsAppCloudConfig(): WhatsAppCloudConfig | null {
     return null;
   }
   return {
-    accessToken: WHATSAPP_ACCESS_TOKEN,
-    phoneNumberId: WHATSAPP_PHONE_NUMBER_ID,
+    accessToken: getWhatsAppAccessToken(),
+    phoneNumberId: getWhatsAppPhoneNumberId(),
   };
 }
 
@@ -117,6 +189,8 @@ export async function sendTextMessage(
   }
 
   const formattedPhone = formatPhoneForWhatsApp(to);
+  const accessToken = getWhatsAppAccessToken();
+  const phoneNumberId = getWhatsAppPhoneNumberId();
 
   try {
     const payload = {
@@ -131,14 +205,15 @@ export async function sendTextMessage(
     };
     
     console.log("[WHATSAPP DEBUG] REQUEST PAYLOAD:", JSON.stringify(payload, null, 2));
+    console.log("[WHATSAPP DEBUG] Using Phone Number ID:", phoneNumberId);
     
     const controller = createTimeoutController(10000);
     const response = await fetch(
-      `${WHATSAPP_API_URL}/${WHATSAPP_PHONE_NUMBER_ID}/messages`,
+      `${WHATSAPP_API_URL}/${phoneNumberId}/messages`,
       {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${WHATSAPP_ACCESS_TOKEN}`,
+          "Authorization": `Bearer ${accessToken}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(payload),
@@ -204,6 +279,8 @@ export async function sendTemplateMessage(
   }
 
   const formattedPhone = formatPhoneForWhatsApp(to);
+  const accessToken = getWhatsAppAccessToken();
+  const phoneNumberId = getWhatsAppPhoneNumberId();
 
   try {
     const templatePayload: Record<string, unknown> = {
@@ -226,11 +303,11 @@ export async function sendTemplateMessage(
 
     const controller = createTimeoutController(10000);
     const response = await fetch(
-      `${WHATSAPP_API_URL}/${WHATSAPP_PHONE_NUMBER_ID}/messages`,
+      `${WHATSAPP_API_URL}/${phoneNumberId}/messages`,
       {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${WHATSAPP_ACCESS_TOKEN}`,
+          "Authorization": `Bearer ${accessToken}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(templatePayload),
@@ -288,13 +365,16 @@ export async function verifyConnection(): Promise<{
     };
   }
 
+  const accessToken = getWhatsAppAccessToken();
+  const phoneNumberId = getWhatsAppPhoneNumberId();
+
   try {
     const response = await fetch(
-      `${WHATSAPP_API_URL}/${WHATSAPP_PHONE_NUMBER_ID}`,
+      `${WHATSAPP_API_URL}/${phoneNumberId}`,
       {
         method: "GET",
         headers: {
-          "Authorization": `Bearer ${WHATSAPP_ACCESS_TOKEN}`,
+          "Authorization": `Bearer ${accessToken}`,
         },
       }
     );
@@ -695,6 +775,8 @@ export async function sendDocumentMessage(
   }
 
   const formattedPhone = formatPhoneForWhatsApp(to);
+  const accessToken = getWhatsAppAccessToken();
+  const phoneNumberId = getWhatsAppPhoneNumberId();
 
   try {
     const payload: Record<string, unknown> = {
@@ -714,13 +796,14 @@ export async function sendDocumentMessage(
     }
     
     console.log("[WHATSAPP DEBUG] DOCUMENT REQUEST PAYLOAD:", JSON.stringify(payload, null, 2));
+    console.log("[WHATSAPP DEBUG] Using Phone Number ID:", phoneNumberId);
 
     const response = await fetch(
-      `${WHATSAPP_API_URL}/${WHATSAPP_PHONE_NUMBER_ID}/messages`,
+      `${WHATSAPP_API_URL}/${phoneNumberId}/messages`,
       {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${WHATSAPP_ACCESS_TOKEN}`,
+          "Authorization": `Bearer ${accessToken}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(payload),

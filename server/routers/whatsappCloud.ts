@@ -45,6 +45,18 @@ export const whatsappCloudRouter = router({
         };
       }),
 
+    // Obtener Phone Number ID desde WABA
+    getPhoneNumberId: protectedProcedure
+      .query(async ({ ctx }) => {
+        if (ctx.user.role !== "super_admin" && ctx.user.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para ver la configuracion de WhatsApp" });
+        }
+        
+        const result = await whatsappCloud.getPhoneNumberIdFromWABA();
+        
+        return result;
+      }),
+
     // Enviar mensaje de prueba
     sendTestMessage: protectedProcedure
       .input(z.object({

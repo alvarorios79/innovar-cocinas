@@ -14,6 +14,7 @@ import { createRemindersForStatusChange } from "../reminders-service";
 import * as whatsappCloud from "../whatsapp-cloud";
 import { addBusinessDays, calculateEstimatedDeliveryDate } from "../business-days";
 import { sanitizeText, sanitizeHtml, sanitizeForEmail, sanitizePhone, sanitizeEmail } from "../sanitize";
+import { triggerBusinessEvent } from "../business-events";
 
 
 export const quotationsRouter = router({
@@ -1996,11 +1997,30 @@ export const quotationsRouter = router({
           // Limpiar archivo temporal
           fs.unlinkSync(result.pdfPath);
 
-          // 1️⃣ Enviar mensaje formal primero
+          // 0️⃣ Enviar plantilla primero (abre ventana de 24h)
+          console.log("[WhatsApp] Paso 1: Enviando plantilla de cotización...");
+          const templateResponse = await whatsappCloud.sendQuotationTemplate(
+            client.whatsappPhone,
+            client.name,
+            quotation.quotationNumber
+          );
+          
+          console.log("[WhatsApp] Respuesta de plantilla:", templateResponse);
+          
+          if (!templateResponse.success) {
+            console.error("[WhatsApp] Error enviando plantilla, abortando envío:", templateResponse.error);
+            throw new TRPCError({
+              code: "INTERNAL_SERVER_ERROR",
+              message: "Error enviando plantilla de cotización: " + templateResponse.error,
+            });
+          }
+          
+          // 1️⃣ Enviar mensaje formal después de la plantilla
           const validUntilDate = quotation.validUntil ? new Date(quotation.validUntil).toLocaleDateString('es-CO') : 'sin especificar';
           const formalMessage = `Hola ${client.name} 👋\n\nGracias por confiar en INNOVAR Cocinas de Diseño.\n\nTe compartimos la cotización ${quotation.quotationNumber}.\nEn el documento encontrarás especificaciones técnicas, materiales y valor total del proyecto.\n\nLa propuesta tiene una vigencia hasta ${validUntilDate}.\n\nQuedamos atentos para cualquier ajuste o para avanzar con tu proyecto 🚀`;
           // @ts-ignore
           
+          console.log("[WhatsApp] Paso 2: Enviando mensaje de texto...");
           const textResponse = await whatsappCloud.sendTextMessage(
             client.whatsappPhone,
             formalMessage
@@ -2016,6 +2036,7 @@ export const quotationsRouter = router({
           await new Promise((resolve) => setTimeout(resolve, 1000));
           
           // 3️⃣ Enviar PDF
+          console.log("[WhatsApp] Paso 3: Enviando PDF...");
           const pdfResponse = await whatsappCloud.sendDocumentMessage(
             client.whatsappPhone,
             pdfUrl,
@@ -2028,6 +2049,12 @@ export const quotationsRouter = router({
           if (!pdfResponse.success) {
             console.warn("[WhatsApp] Error enviando PDF:", pdfResponse.error);
           }
+          
+          // AUDITORÍA - Validar orden y respuestas
+          console.log("[AUDIT] EXECUTION ORDER COMPLETE: 1 -> 2 -> 3");
+          console.log("[AUDIT] TEMPLATE RESPONSE:", templateResponse.success ? "SUCCESS" : "FAILED");
+          console.log("[AUDIT] TEXT RESPONSE:", textResponse.success ? "SUCCESS" : "FAILED");
+          console.log("[AUDIT] PDF RESPONSE:", pdfResponse.success ? "SUCCESS" : "FAILED");
           
           // Validar que ambos envios fueron exitosos
           const bothSuccessful = textResponse.success && pdfResponse.success;
@@ -2096,6 +2123,13 @@ export const quotationsRouter = router({
         await db.updateQuotation(input.id, {
           status: "approved",
           approvedAt: new Date(),
+        });
+        
+        // Disparar evento de negocio
+        await triggerBusinessEvent('quotation.approved', {
+          quotationId: quotation.id,
+          clientId: quotation.clientId,
+          commercialId: quotation.createdBy,
         });
         
         // Obtener datos del cliente para la notificación

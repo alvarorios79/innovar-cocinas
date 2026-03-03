@@ -754,3 +754,101 @@ export async function sendDocumentMessage(
     };
   }
 }
+
+/**
+ * Envía una plantilla de cotización aprobada en Meta
+ * Abre una ventana de 24h para enviar mensajes sin consentimiento previo
+ * 
+ * Plantilla: cotizacion_enviada_innovar
+ * Parámetros: {{1}} = nombre del cliente, {{2}} = número de cotización
+ */
+export async function sendQuotationTemplate(
+  to: string,
+  clientName: string,
+  quotationNumber: string
+): Promise<WhatsAppMessageResponse> {
+  if (!isWhatsAppCloudConfigured()) {
+    return {
+      success: false,
+      error: "WhatsApp Cloud API no está configurado.",
+    };
+  }
+
+  const formattedPhone = formatPhoneForWhatsApp(to);
+
+  try {
+    const templateName = "cotizacion_enviada_innovar";
+    const languageCode = "es";
+    
+    console.log("[WhatsApp] Enviando plantilla de cotización a:", formattedPhone);
+    console.log("[WhatsApp] Cliente:", clientName, "Cotización:", quotationNumber);
+
+    const templatePayload = {
+      messaging_product: "whatsapp",
+      recipient_type: "individual",
+      to: formattedPhone,
+      type: "template",
+      template: {
+        name: templateName,
+        language: {
+          code: languageCode,
+        },
+        components: [
+          {
+            type: "body",
+            parameters: [
+              { type: "text", text: clientName },
+              { type: "text", text: quotationNumber },
+            ],
+          },
+        ],
+      },
+    };
+
+    const controller = createTimeoutController(10000);
+    const response = await fetch(
+      `${WHATSAPP_API_URL}/${WHATSAPP_PHONE_NUMBER_ID}/messages`,
+      {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${WHATSAPP_ACCESS_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(templatePayload),
+        signal: controller.signal,
+      }
+    );
+
+    const data = await response.json();
+
+    if (response.ok && data.messages && data.messages.length > 0) {
+      console.log("[WhatsApp] Plantilla de cotización enviada exitosamente");
+      return {
+        success: true,
+        messageId: data.messages[0].id,
+      };
+    }
+
+    console.error("[WhatsApp] Error en respuesta de plantilla:", data.error);
+    return {
+      success: false,
+      error: data.error?.message || "Error al enviar plantilla de cotización",
+      errorCode: data.error?.code?.toString(),
+    };
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : "Error de conexión";
+    console.error("[WhatsApp Cloud] Error enviando plantilla de cotización:", errorMsg);
+
+    if (errorMsg.includes("abort") || errorMsg.includes("timeout")) {
+      return {
+        success: false,
+        error: "Timeout: La API de WhatsApp tardó demasiado en responder (>10s). Intenta de nuevo.",
+        errorCode: "TIMEOUT",
+      };
+    }
+    return {
+      success: false,
+      error: errorMsg,
+    };
+  }
+}

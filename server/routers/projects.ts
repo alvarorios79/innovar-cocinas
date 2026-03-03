@@ -18,6 +18,7 @@ import { addBusinessDays, calculateEstimatedDeliveryDate } from "../business-day
 import { sanitizeText, sanitizeHtml, sanitizeForEmail, sanitizePhone, sanitizeEmail } from "../sanitize";
 import { eq, and, desc } from "drizzle-orm";
 import { projects, projectDetails, projectPhotos } from "../../drizzle/schema";
+import { triggerBusinessEvent } from "../business-events";
 
 
 export const projectsRouter = router({
@@ -614,6 +615,14 @@ export const projectsRouter = router({
         }
 
         await db.updateProject(input.projectId, updateData);
+        
+        // Disparar evento de negocio cuando proyecto se entrega
+        if (newStatus === "entregado") {
+          await triggerBusinessEvent('project.delivered', {
+            projectId: project.id,
+            clientId: project.clientId,
+          });
+        }
 
         // Notificar al diseñador cuando el proyecto pasa a "Cliente Confirmado - Iniciar Diseño"
         if (newStatus === "adelanto_recibido" && project.designerId) {

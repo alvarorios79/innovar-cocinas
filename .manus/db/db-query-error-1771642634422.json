@@ -1,0 +1,8 @@
+{
+  "query": "SELECT \n  p.id, \n  p.quotationNumber,\n  p.totalAmount,\n  p.advanceAmount,\n  (p.totalAmount - p.advanceAmount) as saldoPendiente,\n  p.estimatedInstallDate,\n  DATEDIFF(NOW(), p.estimatedInstallDate) as diasVencido\nFROM projects p\nWHERE p.totalAmount > 0 \n  AND p.advanceAmount > 0\n  AND (p.totalAmount - p.advanceAmount) > 0\n  AND p.estimatedInstallDate < DATE_SUB(NOW(), INTERVAL 7 DAY)\nLIMIT 5;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT \n  p.id, \n  p.quotationNumber,\n  p.totalAmount,\n  p.advanceAmount,\n  (p.totalAmount - p.advanceAmount) as saldoPendiente,\n  p.estimatedInstallDate,\n  DATEDIFF(NOW(), p.estimatedInstallDate) as diasVencido\nFROM projects p\nWHERE p.totalAmount > 0 \n  AND p.advanceAmount > 0\n  AND (p.totalAmount - p.advanceAmount) > 0\n  AND p.estimatedInstallDate < DATE_SUB(NOW(), INTERVAL 7 DAY)\nLIMIT 5;",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1054 (42S22) at line 1: Unknown column 'p.quotationnumber' in 'field list'"
+  ]
+}

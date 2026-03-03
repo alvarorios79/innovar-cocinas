@@ -1,0 +1,9 @@
+{
+  "query": "CREATE TABLE IF NOT EXISTS payments (\n  id INT AUTO_INCREMENT PRIMARY KEY,\n  projectId INT NOT NULL,\n  amount DECIMAL(12, 2) NOT NULL,\n  type ENUM('advance', 'final', 'partial', 'other') NOT NULL,\n  receivedAt TIMESTAMP NOT NULL,\n  method VARCHAR(100),\n  notes TEXT,\n  registeredBy INT,\n  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,\n  FOREIGN KEY (projectId) REFERENCES projects(id) ON DELETE CASCADE,\n  FOREIGN KEY (registeredBy) REFERENCES users(id),\n  INDEX payments_projectId_idx (projectId),\n  INDEX payments_receivedAt_idx (receivedAt)\n);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute CREATE TABLE IF NOT EXISTS payments (\n  id INT AUTO_INCREMENT PRIMARY KEY,\n  projectId INT NOT NULL,\n  amount DECIMAL(12, 2) NOT NULL,\n  type ENUM('advance', 'final', 'partial', 'other') NOT NULL,\n  receivedAt TIMESTAMP NOT NULL,\n  method VARCHAR(100),\n  notes TEXT,\n  registeredBy INT,\n  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,\n  FOREIGN KEY (projectId) REFERENCES projects(id) ON DELETE CASCADE,\n  FOREIGN KEY (registeredBy) REFERENCES users(id),\n  INDEX payments_projectId_idx (projectId),\n  INDEX payments_receivedAt_idx (receivedAt)\n);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 761
+}

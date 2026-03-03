@@ -1,0 +1,1 @@
+ALTER TABLE `pricingConfig` ADD `descriptionTemplate` text;

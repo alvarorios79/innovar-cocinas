@@ -1,0 +1,150 @@
+{
+  "query": "SELECT id, name, email, role, createdAt FROM users WHERE role IN ('super_admin', 'admin', 'comercial', 'disenador', 'jefe_taller', 'operario') ORDER BY createdAt DESC LIMIT 20;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT id, name, email, role, createdAt FROM users WHERE role IN ('super_admin', 'admin', 'comercial', 'disenador', 'jefe_taller', 'operario') ORDER BY createdAt DESC LIMIT 20;",
+  "rows": [
+    {
+      "id": "750827",
+      "name": "New Admin",
+      "email": "newadmin-1768765556012@test.com",
+      "role": "admin",
+      "createdAt": "2026-01-18 19:45:56"
+    },
+    {
+      "id": "750830",
+      "name": "Super Admin Test",
+      "email": "superadmin-reset-1768765556144@test.com",
+      "role": "super_admin",
+      "createdAt": "2026-01-18 19:45:56"
+    },
+    {
+      "id": "750819",
+      "name": "Admin Role Protected",
+      "email": "admin-role-protected-1768765553656@test.com",
+      "role": "admin",
+      "createdAt": "2026-01-18 19:45:53"
+    },
+    {
+      "id": "750811",
+      "name": "Admin Test",
+      "email": "admin-bulk-1768765553124@test.com",
+      "role": "admin",
+      "createdAt": "2026-01-18 19:45:53"
+    },
+    {
+      "id": "750813",
+      "name": "New Super Admin",
+      "email": "newsuperadmin-1768765553286@test.com",
+      "role": "super_admin",
+      "createdAt": "2026-01-18 19:45:53"
+    },
+    {
+      "id": "750816",
+      "name": "Protected Admin",
+      "email": "admin-protected-1768765553472@test.com",
+      "role": "admin",
+      "createdAt": "2026-01-18 19:45:53"
+    },
+    {
+      "id": "750821",
+      "name": "User To Promote",
+      "email": "user-promote-1768765553768@test.com",
+      "role": "admin",
+      "createdAt": "2026-01-18 19:45:53"
+    },
+    {
+      "id": "750812",
+      "name": "New Admin",
+      "email": "newadmin-1768765553120@test.com",
+      "role": "admin",
+      "createdAt": "2026-01-18 19:45:53"
+    },
+    {
+      "id": "750807",
+      "name": "Admin Test",
+      "email": "admin-bulk-1768765533331@test.com",
+      "role": "admin",
+      "createdAt": "2026-01-18 19:45:33"
+    },
+    {
+      "id": "750801",
+      "name": "Admin Test",
+      "email": "admin-bulk-1768765500420@test.com",
+      "role": "admin",
+      "createdAt": "2026-01-18 19:45:00"
+    },
+    {
+      "id": "750796",
+      "name": "Admin Test",
+      "email": "admin-bulk-1768765484067@test.com",
+      "role": "admin",
+      "createdAt": "2026-01-18 19:44:44"
+    },
+    {
+      "id": "750789",
+      "name": "Admin Test",
+      "email": "admin-bulk-1768765460651@test.com",
+      "role": "admin",
+      "createdAt": "2026-01-18 19:44:20"
+    },
+    {
+      "id": "750733",
+      "name": "Super Admin Test",
+      "email": "superadmin-reset-1768765048114@test.com",
+      "role": "super_admin",
+      "createdAt": "2026-01-18 19:37:28"
+    },
+    {
+      "id": "750730",
+      "name": "New Admin",
+      "email": "newadmin-1768765047744@test.com",
+      "role": "admin",
+      "createdAt": "2026-01-18 19:37:27"
+    },
+    {
+      "id": "750715",
+      "name": "New Admin",
+      "email": "newadmin-1768765045199@test.com",
+      "role": "admin",
+      "createdAt": "2026-01-18 19:37:25"
+    },
+    {
+      "id": "750725",
+      "name": "User To Promote",
+      "email": "user-promote-1768765045886@test.com",
+      "role": "admin",
+      "createdAt": "2026-01-18 19:37:25"
+    },
+    {
+      "id": "750720",
+      "name": "Protected Admin",
+      "email": "admin-protected-1768765045540@test.com",
+      "role": "admin",
+      "createdAt": "2026-01-18 19:37:25"
+    },
+    {
+      "id": "750723",
+      "name": "Admin Role Protected",
+      "email": "admin-role-protected-1768765045759@test.com",
+      "role": "admin",
+      "createdAt": "2026-01-18 19:37:25"
+    },
+    {
+      "id": "750716",
+      "name": "New Super Admin",
+      "email": "newsuperadmin-1768765045352@test.com",
+      "role": "super_admin",
+      "createdAt": "2026-01-18 19:37:25"
+    },
+    {
+      "id": "750717",
+      "name": "Admin Test",
+      "email": "admin-bulk-1768765045317@test.com",
+      "role": "admin",
+      "createdAt": "2026-01-18 19:37:25"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\temail\trole\tcreatedAt\n750827\tNew Admin\tnewadmin-1768765556012@test.com\tadmin\t2026-01-18 19:45:56\n750830\tSuper Admin Test\tsuperadmin-reset-1768765556144@test.com\tsuper_admin\t2026-01-18 19:45:56\n750819\tAdmin Role Protected\tadmin-role-protected-1768765553656@test.com\tadmin\t2026-01-18 19:45:53\n750811\tAdmin Test\tadmin-bulk-1768765553124@test.com\tadmin\t2026-01-18 19:45:53\n750813\tNew Super Admin\tnewsuperadmin-1768765553286@test.com\tsuper_admin\t2026-01-18 19:45:53\n750816\tProtected Admin\tadmin-protected-1768765553472@test.com\tadmin\t2026-01-18 19:45:53\n750821\tUser To Promote\tuser-promote-1768765553768@test.com\tadmin\t2026-01-18 19:45:53\n750812\tNew Admin\tnewadmin-1768765553120@test.com\tadmin\t2026-01-18 19:45:53\n750807\tAdmin Test\tadmin-bulk-1768765533331@test.com\tadmin\t2026-01-18 19:45:33\n750801\tAdmin Test\tadmin-bulk-1768765500420@test.com\tadmin\t2026-01-18 19:45:00\n750796\tAdmin Test\tadmin-bulk-1768765484067@test.com\tadmin\t2026-01-18 19:44:44\n750789\tAdmin Test\tadmin-bulk-1768765460651@test.com\tadmin\t2026-01-18 19:44:20\n750733\tSuper Admin Test\tsuperadmin-reset-1768765048114@test.com\tsuper_admin\t2026-01-18 19:37:28\n750730\tNew Admin\tnewadmin-1768765047744@test.com\tadmin\t2026-01-18 19:37:27\n750715\tNew Admin\tnewadmin-1768765045199@test.com\tadmin\t2026-01-18 19:37:25\n750725\tUser To Promote\tuser-promote-1768765045886@test.com\tadmin\t2026-01-18 19:37:25\n750720\tProtected Admin\tadmin-protected-1768765045540@test.com\tadmin\t2026-01-18 19:37:25\n750723\tAdmin Role Protected\tadmin-role-protected-1768765045759@test.com\tadmin\t2026-01-18 19:37:25\n750716\tNew Super Admin\tnewsuperadmin-1768765045352@test.com\tsuper_admin\t2026-01-18 19:37:25\n750717\tAdmin Test\tadmin-bulk-1768765045317@test.com\tadmin\t2026-01-18 19:37:25\n",
+  "stderr": "",
+  "execution_time_ms": 62
+}

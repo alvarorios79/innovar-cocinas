@@ -1,0 +1,19 @@
+{
+  "query": "SELECT q.id, q.quotationNumber, q.subtotal, q.transportCost, q.discountPercent, q.discountAmount, q.total \nFROM quotations q \nJOIN clients c ON q.clientId = c.id \nWHERE c.name LIKE '%Orlando%' OR q.quotationNumber LIKE '%621%'\nORDER BY q.id DESC LIMIT 5;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT q.id, q.quotationNumber, q.subtotal, q.transportCost, q.discountPercent, q.discountAmount, q.total \nFROM quotations q \nJOIN clients c ON q.clientId = c.id \nWHERE c.name LIKE '%Orlando%' OR q.quotationNumber LIKE '%621%'\nORDER BY q.id DESC LIMIT 5;",
+  "rows": [
+    {
+      "id": "540004",
+      "quotationNumber": "COT-2026-621-3694526",
+      "subtotal": "8500000.00",
+      "transportCost": "0.00",
+      "discountPercent": "0.00",
+      "discountAmount": "0.00",
+      "total": "8500000.00"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tquotationNumber\tsubtotal\ttransportCost\tdiscountPercent\tdiscountAmount\ttotal\n540004\tCOT-2026-621-3694526\t8500000.00\t0.00\t0.00\t0.00\t8500000.00\n",
+  "stderr": "",
+  "execution_time_ms": 58
+}

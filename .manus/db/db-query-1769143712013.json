@@ -1,0 +1,15 @@
+{
+  "query": "SELECT id, name, status FROM projects WHERE name LIKE '%621%';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT id, name, status FROM projects WHERE name LIKE '%621%';",
+  "rows": [
+    {
+      "id": "90003",
+      "name": "Álvaro prueba  - COT-2026-621",
+      "status": "en_diseno"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\tstatus\n90003\tÁlvaro prueba  - COT-2026-621\ten_diseno\n",
+  "stderr": "",
+  "execution_time_ms": 54
+}

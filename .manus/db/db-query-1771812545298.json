@@ -1,0 +1,64 @@
+{
+  "query": "SELECT p.id, p.quotationId, p.totalAmount, p.dataOrigin, p.deletedAt, COUNT(pay.id) as payment_count, SUM(pay.amount) as total_paid FROM projects p LEFT JOIN payments pay ON p.id = pay.projectId WHERE p.dataOrigin = 'manual' AND p.deletedAt IS NULL GROUP BY p.id LIMIT 10;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT p.id, p.quotationId, p.totalAmount, p.dataOrigin, p.deletedAt, COUNT(pay.id) as payment_count, SUM(pay.amount) as total_paid FROM projects p LEFT JOIN payments pay ON p.id = pay.projectId WHERE p.dataOrigin = 'manual' AND p.deletedAt IS NULL GROUP BY p.id LIMIT 10;",
+  "rows": [
+    {
+      "id": "390001",
+      "quotationId": "510001",
+      "totalAmount": "NULL",
+      "dataOrigin": "manual",
+      "deletedAt": "NULL",
+      "payment_count": "1",
+      "total_paid": "15972960.00"
+    },
+    {
+      "id": "1170002",
+      "quotationId": "1320002",
+      "totalAmount": "1500000.00",
+      "dataOrigin": "manual",
+      "deletedAt": "NULL",
+      "payment_count": "2",
+      "total_paid": "1500000.00"
+    },
+    {
+      "id": "1290001",
+      "quotationId": "1740001",
+      "totalAmount": "2970000.00",
+      "dataOrigin": "manual",
+      "deletedAt": "NULL",
+      "payment_count": "1",
+      "total_paid": "2676000.00"
+    },
+    {
+      "id": "540001",
+      "quotationId": "540008",
+      "totalAmount": "7305750.00",
+      "dataOrigin": "manual",
+      "deletedAt": "NULL",
+      "payment_count": "1",
+      "total_paid": "2500000.00"
+    },
+    {
+      "id": "1170001",
+      "quotationId": "1320001",
+      "totalAmount": "16787435.00",
+      "dataOrigin": "manual",
+      "deletedAt": "NULL",
+      "payment_count": "1",
+      "total_paid": "10072461.00"
+    },
+    {
+      "id": "1260001",
+      "quotationId": "1410002",
+      "totalAmount": "2550000.00",
+      "dataOrigin": "manual",
+      "deletedAt": "NULL",
+      "payment_count": "1",
+      "total_paid": "1530000.00"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tquotationId\ttotalAmount\tdataOrigin\tdeletedAt\tpayment_count\ttotal_paid\n390001\t510001\tNULL\tmanual\tNULL\t1\t15972960.00\n1170002\t1320002\t1500000.00\tmanual\tNULL\t2\t1500000.00\n1290001\t1740001\t2970000.00\tmanual\tNULL\t1\t2676000.00\n540001\t540008\t7305750.00\tmanual\tNULL\t1\t2500000.00\n1170001\t1320001\t16787435.00\tmanual\tNULL\t1\t10072461.00\n1260001\t1410002\t2550000.00\tmanual\tNULL\t1\t1530000.00\n",
+  "stderr": "",
+  "execution_time_ms": 57
+}

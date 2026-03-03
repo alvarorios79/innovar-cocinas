@@ -1,0 +1,9 @@
+{
+  "query": "SELECT id, stage, category, subcategory, description, createdAt FROM projectPhotos WHERE projectId = 621 ORDER BY createdAt DESC LIMIT 20;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT id, stage, category, subcategory, description, createdAt FROM projectPhotos WHERE projectId = 621 ORDER BY createdAt DESC LIMIT 20;",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 55
+}

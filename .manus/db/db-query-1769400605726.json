@@ -1,0 +1,100 @@
+{
+  "query": "SELECT TABLE_NAME, COLUMN_NAME, REFERENCED_TABLE_NAME, REFERENCED_COLUMN_NAME \nFROM information_schema.KEY_COLUMN_USAGE \nWHERE REFERENCED_TABLE_NAME = 'users' \nAND TABLE_SCHEMA = DATABASE();",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT TABLE_NAME, COLUMN_NAME, REFERENCED_TABLE_NAME, REFERENCED_COLUMN_NAME \nFROM information_schema.KEY_COLUMN_USAGE \nWHERE REFERENCED_TABLE_NAME = 'users' \nAND TABLE_SCHEMA = DATABASE();",
+  "rows": [
+    {
+      "TABLE_NAME": "clients",
+      "COLUMN_NAME": "userId",
+      "REFERENCED_TABLE_NAME": "users",
+      "REFERENCED_COLUMN_NAME": "id"
+    },
+    {
+      "TABLE_NAME": "projectDetails",
+      "COLUMN_NAME": "createdBy",
+      "REFERENCED_TABLE_NAME": "users",
+      "REFERENCED_COLUMN_NAME": "id"
+    },
+    {
+      "TABLE_NAME": "projectPhotos",
+      "COLUMN_NAME": "uploadedBy",
+      "REFERENCED_TABLE_NAME": "users",
+      "REFERENCED_COLUMN_NAME": "id"
+    },
+    {
+      "TABLE_NAME": "projectStatusHistory",
+      "COLUMN_NAME": "changedBy",
+      "REFERENCED_TABLE_NAME": "users",
+      "REFERENCED_COLUMN_NAME": "id"
+    },
+    {
+      "TABLE_NAME": "projects",
+      "COLUMN_NAME": "createdBy",
+      "REFERENCED_TABLE_NAME": "users",
+      "REFERENCED_COLUMN_NAME": "id"
+    },
+    {
+      "TABLE_NAME": "projects",
+      "COLUMN_NAME": "designerId",
+      "REFERENCED_TABLE_NAME": "users",
+      "REFERENCED_COLUMN_NAME": "id"
+    },
+    {
+      "TABLE_NAME": "tasks",
+      "COLUMN_NAME": "assignedTo",
+      "REFERENCED_TABLE_NAME": "users",
+      "REFERENCED_COLUMN_NAME": "id"
+    },
+    {
+      "TABLE_NAME": "tasks",
+      "COLUMN_NAME": "assignedBy",
+      "REFERENCED_TABLE_NAME": "users",
+      "REFERENCED_COLUMN_NAME": "id"
+    },
+    {
+      "TABLE_NAME": "notifications",
+      "COLUMN_NAME": "userId",
+      "REFERENCED_TABLE_NAME": "users",
+      "REFERENCED_COLUMN_NAME": "id"
+    },
+    {
+      "TABLE_NAME": "pushSubscriptions",
+      "COLUMN_NAME": "userId",
+      "REFERENCED_TABLE_NAME": "users",
+      "REFERENCED_COLUMN_NAME": "id"
+    },
+    {
+      "TABLE_NAME": "reminders",
+      "COLUMN_NAME": "assignedTo",
+      "REFERENCED_TABLE_NAME": "users",
+      "REFERENCED_COLUMN_NAME": "id"
+    },
+    {
+      "TABLE_NAME": "quotations",
+      "COLUMN_NAME": "createdBy",
+      "REFERENCED_TABLE_NAME": "users",
+      "REFERENCED_COLUMN_NAME": "id"
+    },
+    {
+      "TABLE_NAME": "projectPayments",
+      "COLUMN_NAME": "registeredBy",
+      "REFERENCED_TABLE_NAME": "users",
+      "REFERENCED_COLUMN_NAME": "id"
+    },
+    {
+      "TABLE_NAME": "taskReminders",
+      "COLUMN_NAME": "sentBy",
+      "REFERENCED_TABLE_NAME": "users",
+      "REFERENCED_COLUMN_NAME": "id"
+    },
+    {
+      "TABLE_NAME": "taskReminders",
+      "COLUMN_NAME": "sentTo",
+      "REFERENCED_TABLE_NAME": "users",
+      "REFERENCED_COLUMN_NAME": "id"
+    }
+  ],
+  "messages": [],
+  "stdout": "TABLE_NAME\tCOLUMN_NAME\tREFERENCED_TABLE_NAME\tREFERENCED_COLUMN_NAME\nclients\tuserId\tusers\tid\nprojectDetails\tcreatedBy\tusers\tid\nprojectPhotos\tuploadedBy\tusers\tid\nprojectStatusHistory\tchangedBy\tusers\tid\nprojects\tcreatedBy\tusers\tid\nprojects\tdesignerId\tusers\tid\ntasks\tassignedTo\tusers\tid\ntasks\tassignedBy\tusers\tid\nnotifications\tuserId\tusers\tid\npushSubscriptions\tuserId\tusers\tid\nreminders\tassignedTo\tusers\tid\nquotations\tcreatedBy\tusers\tid\nprojectPayments\tregisteredBy\tusers\tid\ntaskReminders\tsentBy\tusers\tid\ntaskReminders\tsentTo\tusers\tid\n",
+  "stderr": "",
+  "execution_time_ms": 69
+}

@@ -1,5 +1,111 @@
 {
   "version": "7",
   "dialect": "mysql",
-  "entries": []
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1707864000000,
+      "tag": "0000_baseline_with_versioning_fields",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1771029511952,
+      "tag": "0001_sharp_colleen_wing",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1771172783194,
+      "tag": "0002_magenta_mentor",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1771173236694,
+      "tag": "0003_tense_sprite",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1771561986604,
+      "tag": "0004_keen_hellcat",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1771563311947,
+      "tag": "0005_smiling_iron_monger",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1771690265702,
+      "tag": "0006_red_morbius",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1771725168307,
+      "tag": "0007_amusing_sally_floyd",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "5",
+      "when": 1771737209711,
+      "tag": "0008_parched_leper_queen",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "5",
+      "when": 1771773505931,
+      "tag": "0009_broken_red_shift",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "5",
+      "when": 1771792465425,
+      "tag": "0010_colorful_captain_cross",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "5",
+      "when": 1771793390971,
+      "tag": "0011_sharp_madrox",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "5",
+      "when": 1772031383504,
+      "tag": "0012_productive_silver_surfer",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "5",
+      "when": 1772154565508,
+      "tag": "0013_familiar_venus",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "5",
+      "when": 1772253296016,
+      "tag": "0014_smooth_wonder_man",
+      "breakpoints": true
+    }
+  ]
 }

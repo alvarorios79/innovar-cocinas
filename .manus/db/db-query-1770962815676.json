@@ -1,0 +1,30 @@
+{
+  "query": "SELECT TABLE_NAME, COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE COLUMN_NAME = 'deletedAt' AND TABLE_SCHEMA = DATABASE();",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT TABLE_NAME, COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE COLUMN_NAME = 'deletedAt' AND TABLE_SCHEMA = DATABASE();",
+  "rows": [
+    {
+      "TABLE_NAME": "appointments",
+      "COLUMN_NAME": "deletedAt"
+    },
+    {
+      "TABLE_NAME": "clients",
+      "COLUMN_NAME": "deletedAt"
+    },
+    {
+      "TABLE_NAME": "projects",
+      "COLUMN_NAME": "deletedAt"
+    },
+    {
+      "TABLE_NAME": "quotations",
+      "COLUMN_NAME": "deletedAt"
+    },
+    {
+      "TABLE_NAME": "tasks",
+      "COLUMN_NAME": "deletedAt"
+    }
+  ],
+  "messages": [],
+  "stdout": "TABLE_NAME\tCOLUMN_NAME\nappointments\tdeletedAt\nclients\tdeletedAt\nprojects\tdeletedAt\nquotations\tdeletedAt\ntasks\tdeletedAt\n",
+  "stderr": "",
+  "execution_time_ms": 62
+}

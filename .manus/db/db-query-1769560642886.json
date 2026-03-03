@@ -1,0 +1,46 @@
+{
+  "query": "SHOW INDEX FROM clients;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SHOW INDEX FROM clients;",
+  "rows": [
+    {
+      "Table": "clients",
+      "Non_unique": "0",
+      "Key_name": "PRIMARY",
+      "Seq_in_index": "1",
+      "Column_name": "id",
+      "Collation": "A",
+      "Cardinality": "0",
+      "Sub_part": "NULL",
+      "Packed": "NULL",
+      "Null": "",
+      "Index_type": "BTREE",
+      "Comment": "",
+      "Index_comment": "",
+      "Visible": "YES",
+      "Expression": "NULL",
+      "Clustered": "YES"
+    },
+    {
+      "Table": "clients",
+      "Non_unique": "1",
+      "Key_name": "clients_userId_users_id_fk",
+      "Seq_in_index": "1",
+      "Column_name": "userId",
+      "Collation": "A",
+      "Cardinality": "0",
+      "Sub_part": "NULL",
+      "Packed": "NULL",
+      "Null": "YES",
+      "Index_type": "BTREE",
+      "Comment": "",
+      "Index_comment": "",
+      "Visible": "YES",
+      "Expression": "NULL",
+      "Clustered": "NO"
+    }
+  ],
+  "messages": [],
+  "stdout": "Table\tNon_unique\tKey_name\tSeq_in_index\tColumn_name\tCollation\tCardinality\tSub_part\tPacked\tNull\tIndex_type\tComment\tIndex_comment\tVisible\tExpression\tClustered\nclients\t0\tPRIMARY\t1\tid\tA\t0\tNULL\tNULL\t\tBTREE\t\t\tYES\tNULL\tYES\nclients\t1\tclients_userId_users_id_fk\t1\tuserId\tA\t0\tNULL\tNULL\tYES\tBTREE\t\t\tYES\tNULL\tNO\n",
+  "stderr": "",
+  "execution_time_ms": 56
+}

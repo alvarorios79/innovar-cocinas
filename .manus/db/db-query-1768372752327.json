@@ -1,0 +1,17 @@
+{
+  "query": "UPDATE users SET passwordHash = '$2b$10$eZPI.7bivVahvwi/oYvVB.dQv3tgjsPESAmYlpTiOhQi0rQgF0CKe' WHERE email = 'mcfy8jgnym@privaterelay.appleid.com';\n\nSELECT id, name, email, role, passwordHash IS NOT NULL as hasPassword FROM users WHERE email = 'mcfy8jgnym@privaterelay.appleid.com';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute UPDATE users SET passwordHash = '$2b$10$eZPI.7bivVahvwi/oYvVB.dQv3tgjsPESAmYlpTiOhQi0rQgF0CKe' WHERE email = 'mcfy8jgnym@privaterelay.appleid.com';\n\nSELECT id, name, email, role, passwordHash IS NOT NULL as hasPassword FROM users WHERE email = 'mcfy8jgnym@privaterelay.appleid.com';",
+  "rows": [
+    {
+      "id": "1",
+      "name": "Alvaro Rios",
+      "email": "mcfy8jgnym@privaterelay.appleid.com",
+      "role": "super_admin",
+      "hasPassword": "1"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\temail\trole\thasPassword\n1\tAlvaro Rios\tmcfy8jgnym@privaterelay.appleid.com\tsuper_admin\t1\n",
+  "stderr": "",
+  "execution_time_ms": 471
+}

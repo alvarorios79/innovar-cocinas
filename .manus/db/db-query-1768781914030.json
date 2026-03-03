@@ -1,0 +1,360 @@
+{
+  "query": "SELECT id, name, email, createdAt, loginMethod FROM users WHERE role = 'user' ORDER BY createdAt DESC LIMIT 50;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT id, name, email, createdAt, loginMethod FROM users WHERE role = 'user' ORDER BY createdAt DESC LIMIT 50;",
+  "rows": [
+    {
+      "id": "750829",
+      "name": "Test User",
+      "email": "admin-created-1768765555853@example.com",
+      "createdAt": "2026-01-18 19:45:56",
+      "loginMethod": "password"
+    },
+    {
+      "id": "750826",
+      "name": "New User",
+      "email": "newuser-1768765555837@test.com",
+      "createdAt": "2026-01-18 19:45:56",
+      "loginMethod": "manual"
+    },
+    {
+      "id": "750831",
+      "name": "Target User",
+      "email": "target-reset-1768765556144@test.com",
+      "createdAt": "2026-01-18 19:45:56",
+      "loginMethod": "password"
+    },
+    {
+      "id": "750828",
+      "name": "First User",
+      "email": "duplicate-1768765556056@test.com",
+      "createdAt": "2026-01-18 19:45:56",
+      "loginMethod": "manual"
+    },
+    {
+      "id": "750825",
+      "name": "Test Password User",
+      "email": "password-user-1768765555539@example.com",
+      "createdAt": "2026-01-18 19:45:55",
+      "loginMethod": "password"
+    },
+    {
+      "id": "750824",
+      "name": "Test User",
+      "email": "test-1768765554609@example.com",
+      "createdAt": "2026-01-18 19:45:54",
+      "loginMethod": "password"
+    },
+    {
+      "id": "750823",
+      "name": "Test User",
+      "email": "test-1768765553915@example.com",
+      "createdAt": "2026-01-18 19:45:54",
+      "loginMethod": "password"
+    },
+    {
+      "id": "750818",
+      "name": "Target User",
+      "email": "target-1768765553606@test.com",
+      "createdAt": "2026-01-18 19:45:53",
+      "loginMethod": "manual"
+    },
+    {
+      "id": "750814",
+      "name": "Regular User",
+      "email": "regularuser-1768765553320@test.com",
+      "createdAt": "2026-01-18 19:45:53",
+      "loginMethod": "manual"
+    },
+    {
+      "id": "750820",
+      "name": "User No Promote",
+      "email": "user-no-promote-1768765553709@test.com",
+      "createdAt": "2026-01-18 19:45:53",
+      "loginMethod": "manual"
+    },
+    {
+      "id": "750822",
+      "name": "User Test",
+      "email": "user-bulk-1768765553884@test.com",
+      "createdAt": "2026-01-18 19:45:53",
+      "loginMethod": "manual"
+    },
+    {
+      "id": "750808",
+      "name": "User Test",
+      "email": "user-bulk-1768765534022@test.com",
+      "createdAt": "2026-01-18 19:45:34",
+      "loginMethod": "manual"
+    },
+    {
+      "id": "750802",
+      "name": "User Test",
+      "email": "user-bulk-1768765501094@test.com",
+      "createdAt": "2026-01-18 19:45:01",
+      "loginMethod": "manual"
+    },
+    {
+      "id": "750797",
+      "name": "User Test",
+      "email": "user-bulk-1768765484738@test.com",
+      "createdAt": "2026-01-18 19:44:44",
+      "loginMethod": "manual"
+    },
+    {
+      "id": "750790",
+      "name": "User Test",
+      "email": "user-bulk-1768765461339@test.com",
+      "createdAt": "2026-01-18 19:44:21",
+      "loginMethod": "manual"
+    },
+    {
+      "id": "750734",
+      "name": "Target User",
+      "email": "target-reset-1768765048114@test.com",
+      "createdAt": "2026-01-18 19:37:28",
+      "loginMethod": "password"
+    },
+    {
+      "id": "750735",
+      "name": "Test User",
+      "email": "admin-created-1768765048025@example.com",
+      "createdAt": "2026-01-18 19:37:28",
+      "loginMethod": "password"
+    },
+    {
+      "id": "750732",
+      "name": "Test Password User",
+      "email": "password-user-1768765047718@example.com",
+      "createdAt": "2026-01-18 19:37:28",
+      "loginMethod": "password"
+    },
+    {
+      "id": "750728",
+      "name": "Test User",
+      "email": "test-1768765046821@example.com",
+      "createdAt": "2026-01-18 19:37:27",
+      "loginMethod": "password"
+    },
+    {
+      "id": "750729",
+      "name": "New User",
+      "email": "newuser-1768765047592@test.com",
+      "createdAt": "2026-01-18 19:37:27",
+      "loginMethod": "manual"
+    },
+    {
+      "id": "750731",
+      "name": "First User",
+      "email": "duplicate-1768765047778@test.com",
+      "createdAt": "2026-01-18 19:37:27",
+      "loginMethod": "manual"
+    },
+    {
+      "id": "750727",
+      "name": "Test User",
+      "email": "test-1768765045874@example.com",
+      "createdAt": "2026-01-18 19:37:26",
+      "loginMethod": "password"
+    },
+    {
+      "id": "750726",
+      "name": "User Test",
+      "email": "user-bulk-1768765046039@test.com",
+      "createdAt": "2026-01-18 19:37:26",
+      "loginMethod": "manual"
+    },
+    {
+      "id": "750724",
+      "name": "User No Promote",
+      "email": "user-no-promote-1768765045817@test.com",
+      "createdAt": "2026-01-18 19:37:25",
+      "loginMethod": "manual"
+    },
+    {
+      "id": "750722",
+      "name": "Target User",
+      "email": "target-1768765045713@test.com",
+      "createdAt": "2026-01-18 19:37:25",
+      "loginMethod": "manual"
+    },
+    {
+      "id": "750718",
+      "name": "Regular User",
+      "email": "regularuser-1768765045395@test.com",
+      "createdAt": "2026-01-18 19:37:25",
+      "loginMethod": "manual"
+    },
+    {
+      "id": "750711",
+      "name": "User Test",
+      "email": "user-bulk-1768765026107@test.com",
+      "createdAt": "2026-01-18 19:37:06",
+      "loginMethod": "manual"
+    },
+    {
+      "id": "750707",
+      "name": "User Test",
+      "email": "user-bulk-1768765007081@test.com",
+      "createdAt": "2026-01-18 19:36:47",
+      "loginMethod": "manual"
+    },
+    {
+      "id": "750568",
+      "name": "Target User",
+      "email": "target-reset-1768763375588@test.com",
+      "createdAt": "2026-01-18 19:09:35",
+      "loginMethod": "password"
+    },
+    {
+      "id": "750563",
+      "name": "New User",
+      "email": "newuser-1768763375421@test.com",
+      "createdAt": "2026-01-18 19:09:35",
+      "loginMethod": "manual"
+    },
+    {
+      "id": "750564",
+      "name": "Test Password User",
+      "email": "password-user-1768763375286@example.com",
+      "createdAt": "2026-01-18 19:09:35",
+      "loginMethod": "password"
+    },
+    {
+      "id": "750566",
+      "name": "First User",
+      "email": "duplicate-1768763375618@test.com",
+      "createdAt": "2026-01-18 19:09:35",
+      "loginMethod": "manual"
+    },
+    {
+      "id": "750569",
+      "name": "Test User",
+      "email": "admin-created-1768763375601@example.com",
+      "createdAt": "2026-01-18 19:09:35",
+      "loginMethod": "password"
+    },
+    {
+      "id": "750562",
+      "name": "Test User",
+      "email": "test-1768763374317@example.com",
+      "createdAt": "2026-01-18 19:09:34",
+      "loginMethod": "password"
+    },
+    {
+      "id": "750553",
+      "name": "Regular User",
+      "email": "regularuser-1768763373219@test.com",
+      "createdAt": "2026-01-18 19:09:33",
+      "loginMethod": "manual"
+    },
+    {
+      "id": "750561",
+      "name": "Test User",
+      "email": "test-1768763373426@example.com",
+      "createdAt": "2026-01-18 19:09:33",
+      "loginMethod": "password"
+    },
+    {
+      "id": "750557",
+      "name": "Target User",
+      "email": "target-1768763373504@test.com",
+      "createdAt": "2026-01-18 19:09:33",
+      "loginMethod": "manual"
+    },
+    {
+      "id": "750559",
+      "name": "User No Promote",
+      "email": "user-no-promote-1768763373604@test.com",
+      "createdAt": "2026-01-18 19:09:33",
+      "loginMethod": "manual"
+    },
+    {
+      "id": "750543",
+      "name": "Test User",
+      "email": "admin-created-1768763232821@example.com",
+      "createdAt": "2026-01-18 19:07:13",
+      "loginMethod": "password"
+    },
+    {
+      "id": "750542",
+      "name": "Target User",
+      "email": "target-reset-1768763232823@test.com",
+      "createdAt": "2026-01-18 19:07:12",
+      "loginMethod": "password"
+    },
+    {
+      "id": "750540",
+      "name": "First User",
+      "email": "duplicate-1768763232832@test.com",
+      "createdAt": "2026-01-18 19:07:12",
+      "loginMethod": "manual"
+    },
+    {
+      "id": "750538",
+      "name": "Test Password User",
+      "email": "password-user-1768763232499@example.com",
+      "createdAt": "2026-01-18 19:07:12",
+      "loginMethod": "password"
+    },
+    {
+      "id": "750537",
+      "name": "New User",
+      "email": "newuser-1768763232632@test.com",
+      "createdAt": "2026-01-18 19:07:12",
+      "loginMethod": "manual"
+    },
+    {
+      "id": "750536",
+      "name": "Test User",
+      "email": "test-1768763231580@example.com",
+      "createdAt": "2026-01-18 19:07:11",
+      "loginMethod": "password"
+    },
+    {
+      "id": "750535",
+      "name": "Test User",
+      "email": "test-1768763230624@example.com",
+      "createdAt": "2026-01-18 19:07:11",
+      "loginMethod": "password"
+    },
+    {
+      "id": "750533",
+      "name": "User No Promote",
+      "email": "user-no-promote-1768763230805@test.com",
+      "createdAt": "2026-01-18 19:07:10",
+      "loginMethod": "manual"
+    },
+    {
+      "id": "750527",
+      "name": "Regular User",
+      "email": "regularuser-1768763230339@test.com",
+      "createdAt": "2026-01-18 19:07:10",
+      "loginMethod": "manual"
+    },
+    {
+      "id": "750531",
+      "name": "Target User",
+      "email": "target-1768763230686@test.com",
+      "createdAt": "2026-01-18 19:07:10",
+      "loginMethod": "manual"
+    },
+    {
+      "id": "750517",
+      "name": "Target User",
+      "email": "target-reset-1768763185139@test.com",
+      "createdAt": "2026-01-18 19:06:25",
+      "loginMethod": "password"
+    },
+    {
+      "id": "750519",
+      "name": "First User",
+      "email": "duplicate-1768763185268@test.com",
+      "createdAt": "2026-01-18 19:06:25",
+      "loginMethod": "manual"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\temail\tcreatedAt\tloginMethod\n750829\tTest User\tadmin-created-1768765555853@example.com\t2026-01-18 19:45:56\tpassword\n750826\tNew User\tnewuser-1768765555837@test.com\t2026-01-18 19:45:56\tmanual\n750831\tTarget User\ttarget-reset-1768765556144@test.com\t2026-01-18 19:45:56\tpassword\n750828\tFirst User\tduplicate-1768765556056@test.com\t2026-01-18 19:45:56\tmanual\n750825\tTest Password User\tpassword-user-1768765555539@example.com\t2026-01-18 19:45:55\tpassword\n750824\tTest User\ttest-1768765554609@example.com\t2026-01-18 19:45:54\tpassword\n750823\tTest User\ttest-1768765553915@example.com\t2026-01-18 19:45:54\tpassword\n750818\tTarget User\ttarget-1768765553606@test.com\t2026-01-18 19:45:53\tmanual\n750814\tRegular User\tregularuser-1768765553320@test.com\t2026-01-18 19:45:53\tmanual\n750820\tUser No Promote\tuser-no-promote-1768765553709@test.com\t2026-01-18 19:45:53\tmanual\n750822\tUser Test\tuser-bulk-1768765553884@test.com\t2026-01-18 19:45:53\tmanual\n750808\tUser Test\tuser-bulk-1768765534022@test.com\t2026-01-18 19:45:34\tmanual\n750802\tUser Test\tuser-bulk-1768765501094@test.com\t2026-01-18 19:45:01\tmanual\n750797\tUser Test\tuser-bulk-1768765484738@test.com\t2026-01-18 19:44:44\tmanual\n750790\tUser Test\tuser-bulk-1768765461339@test.com\t2026-01-18 19:44:21\tmanual\n750734\tTarget User\ttarget-reset-1768765048114@test.com\t2026-01-18 19:37:28\tpassword\n750735\tTest User\tadmin-created-1768765048025@example.com\t2026-01-18 19:37:28\tpassword\n750732\tTest Password User\tpassword-user-1768765047718@example.com\t2026-01-18 19:37:28\tpassword\n750728\tTest User\ttest-1768765046821@example.com\t2026-01-18 19:37:27\tpassword\n750729\tNew User\tnewuser-1768765047592@test.com\t2026-01-18 19:37:27\tmanual\n750731\tFirst User\tduplicate-1768765047778@test.com\t2026-01-18 19:37:27\tmanual\n750727\tTest User\ttest-1768765045874@example.com\t2026-01-18 19:37:26\tpassword\n750726\tUser Test\tuser-bulk-1768765046039@test.com\t2026-01-18 19:37:26\tmanual\n750724\tUser No Promote\tuser-no-promote-1768765045817@test.com\t2026-01-18 19:37:25\tmanual\n750722\tTarget User\ttarget-1768765045713@test.com\t2026-01-18 19:37:25\tmanual\n750718\tRegular User\tregularuser-1768765045395@test.com\t2026-01-18 19:37:25\tmanual\n750711\tUser Test\tuser-bulk-1768765026107@test.com\t2026-01-18 19:37:06\tmanual\n750707\tUser Test\tuser-bulk-1768765007081@test.com\t2026-01-18 19:36:47\tmanual\n750568\tTarget User\ttarget-reset-1768763375588@test.com\t2026-01-18 19:09:35\tpassword\n750563\tNew User\tnewuser-1768763375421@test.com\t2026-01-18 19:09:35\tmanual\n750564\tTest Password User\tpassword-user-1768763375286@example.com\t2026-01-18 19:09:35\tpassword\n750566\tFirst User\tduplicate-1768763375618@test.com\t2026-01-18 19:09:35\tmanual\n750569\tTest User\tadmin-created-1768763375601@example.com\t2026-01-18 19:09:35\tpassword\n750562\tTest User\ttest-1768763374317@example.com\t2026-01-18 19:09:34\tpassword\n750553\tRegular User\tregularuser-1768763373219@test.com\t2026-01-18 19:09:33\tmanual\n750561\tTest User\ttest-1768763373426@example.com\t2026-01-18 19:09:33\tpassword\n750557\tTarget User\ttarget-1768763373504@test.com\t2026-01-18 19:09:33\tmanual\n750559\tUser No Promote\tuser-no-promote-1768763373604@test.com\t2026-01-18 19:09:33\tmanual\n750543\tTest User\tadmin-created-1768763232821@example.com\t2026-01-18 19:07:13\tpassword\n750542\tTarget User\ttarget-reset-1768763232823@test.com\t2026-01-18 19:07:12\tpassword\n750540\tFirst User\tduplicate-1768763232832@test.com\t2026-01-18 19:07:12\tmanual\n750538\tTest Password User\tpassword-user-1768763232499@example.com\t2026-01-18 19:07:12\tpassword\n750537\tNew User\tnewuser-1768763232632@test.com\t2026-01-18 19:07:12\tmanual\n750536\tTest User\ttest-1768763231580@example.com\t2026-01-18 19:07:11\tpassword\n750535\tTest User\ttest-1768763230624@example.com\t2026-01-18 19:07:11\tpassword\n750533\tUser No Promote\tuser-no-promote-1768763230805@test.com\t2026-01-18 19:07:10\tmanual\n750527\tRegular User\tregularuser-1768763230339@test.com\t2026-01-18 19:07:10\tmanual\n750531\tTarget User\ttarget-1768763230686@test.com\t2026-01-18 19:07:10\tmanual\n750517\tTarget User\ttarget-reset-1768763185139@test.com\t2026-01-18 19:06:25\tpassword\n750519\tFirst User\tduplicate-1768763185268@test.com\t2026-01-18 19:06:25\tmanual\n",
+  "stderr": "",
+  "execution_time_ms": 86
+}

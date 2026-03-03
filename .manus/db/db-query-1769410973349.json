@@ -1,0 +1,65 @@
+{
+  "query": "SELECT * FROM projectPhotos;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT * FROM projectPhotos;",
+  "rows": [
+    {
+      "id": "180001",
+      "projectId": "390001",
+      "stage": "inicial",
+      "photoUrl": "https://d2xsxph8kpxj0f.cloudfront.net/310519663292328262/XhEkCr8yXcaeDFyuQebdJQ/projects/390001/inicial/1769386411174-imql69.jpg",
+      "description": "NULL",
+      "uploadedBy": "1",
+      "createdAt": "2026-01-26 00:13:32",
+      "category": "medidas",
+      "subcategory": "fotos_iniciales"
+    },
+    {
+      "id": "180002",
+      "projectId": "390001",
+      "stage": "diseno",
+      "photoUrl": "https://d2xsxph8kpxj0f.cloudfront.net/310519663292328262/XhEkCr8yXcaeDFyuQebdJQ/projects/390001/diseno/1769387351563-yejfwy.jpg",
+      "description": "NULL",
+      "uploadedBy": "30257",
+      "createdAt": "2026-01-26 00:29:14",
+      "category": "disenos",
+      "subcategory": "modelado"
+    },
+    {
+      "id": "180003",
+      "projectId": "390001",
+      "stage": "diseno",
+      "photoUrl": "https://d2xsxph8kpxj0f.cloudfront.net/310519663292328262/XhEkCr8yXcaeDFyuQebdJQ/projects/390001/diseno/1769387353720-dcs6bm.jpg",
+      "description": "NULL",
+      "uploadedBy": "30257",
+      "createdAt": "2026-01-26 00:29:14",
+      "category": "disenos",
+      "subcategory": "modelado"
+    },
+    {
+      "id": "180004",
+      "projectId": "390001",
+      "stage": "diseno",
+      "photoUrl": "https://d2xsxph8kpxj0f.cloudfront.net/310519663292328262/XhEkCr8yXcaeDFyuQebdJQ/projects/390001/diseno/1769387352961-1lz7rj.jpg",
+      "description": "NULL",
+      "uploadedBy": "30257",
+      "createdAt": "2026-01-26 00:29:14",
+      "category": "disenos",
+      "subcategory": "modelado"
+    },
+    {
+      "id": "180005",
+      "projectId": "390001",
+      "stage": "diseno",
+      "photoUrl": "https://d2xsxph8kpxj0f.cloudfront.net/310519663292328262/XhEkCr8yXcaeDFyuQebdJQ/projects/390001/diseno/1769387352199-wzn8c2.jpg",
+      "description": "NULL",
+      "uploadedBy": "30257",
+      "createdAt": "2026-01-26 00:29:14",
+      "category": "disenos",
+      "subcategory": "modelado"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tprojectId\tstage\tphotoUrl\tdescription\tuploadedBy\tcreatedAt\tcategory\tsubcategory\n180001\t390001\tinicial\thttps://d2xsxph8kpxj0f.cloudfront.net/310519663292328262/XhEkCr8yXcaeDFyuQebdJQ/projects/390001/inicial/1769386411174-imql69.jpg\tNULL\t1\t2026-01-26 00:13:32\tmedidas\tfotos_iniciales\n180002\t390001\tdiseno\thttps://d2xsxph8kpxj0f.cloudfront.net/310519663292328262/XhEkCr8yXcaeDFyuQebdJQ/projects/390001/diseno/1769387351563-yejfwy.jpg\tNULL\t30257\t2026-01-26 00:29:14\tdisenos\tmodelado\n180003\t390001\tdiseno\thttps://d2xsxph8kpxj0f.cloudfront.net/310519663292328262/XhEkCr8yXcaeDFyuQebdJQ/projects/390001/diseno/1769387353720-dcs6bm.jpg\tNULL\t30257\t2026-01-26 00:29:14\tdisenos\tmodelado\n180004\t390001\tdiseno\thttps://d2xsxph8kpxj0f.cloudfront.net/310519663292328262/XhEkCr8yXcaeDFyuQebdJQ/projects/390001/diseno/1769387352961-1lz7rj.jpg\tNULL\t30257\t2026-01-26 00:29:14\tdisenos\tmodelado\n180005\t390001\tdiseno\thttps://d2xsxph8kpxj0f.cloudfront.net/310519663292328262/XhEkCr8yXcaeDFyuQebdJQ/projects/390001/diseno/1769387352199-wzn8c2.jpg\tNULL\t30257\t2026-01-26 00:29:14\tdisenos\tmodelado\n",
+  "stderr": "",
+  "execution_time_ms": 352
+}

@@ -1,0 +1,34 @@
+{
+  "query": "SELECT COUNT(*) as total, status FROM projects GROUP BY status ORDER BY status;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT COUNT(*) as total, status FROM projects GROUP BY status ORDER BY status;",
+  "rows": [
+    {
+      "total": "1",
+      "status": "cotizacion_aprobada"
+    },
+    {
+      "total": "1",
+      "status": "en_diseno"
+    },
+    {
+      "total": "1",
+      "status": "pendiente_render"
+    },
+    {
+      "total": "1",
+      "status": "aprobacion_final"
+    },
+    {
+      "total": "2",
+      "status": "despiece"
+    },
+    {
+      "total": "2",
+      "status": "entregado"
+    }
+  ],
+  "messages": [],
+  "stdout": "total\tstatus\n1\tcotizacion_aprobada\n1\ten_diseno\n1\tpendiente_render\n1\taprobacion_final\n2\tdespiece\n2\tentregado\n",
+  "stderr": "",
+  "execution_time_ms": 112
+}

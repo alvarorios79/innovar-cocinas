@@ -1,0 +1,18 @@
+{
+  "query": "SHOW COLUMNS FROM projects WHERE Field = 'status';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SHOW COLUMNS FROM projects WHERE Field = 'status';",
+  "rows": [
+    {
+      "Field": "status",
+      "Type": "enum('contacto_inicial','visita_medidas','cotizacion_enviada','cotizacion_aprobada','adelanto_recibido','en_diseno','pendiente_modelado','pendiente_cliente','pendiente_render','aprobacion_final','despiece','corte','enchape','ensamble','listo_instalacion','instalacion_programada','entregado')",
+      "Null": "NO",
+      "Key": "",
+      "Default": "contacto_inicial",
+      "Extra": ""
+    }
+  ],
+  "messages": [],
+  "stdout": "Field\tType\tNull\tKey\tDefault\tExtra\nstatus\tenum('contacto_inicial','visita_medidas','cotizacion_enviada','cotizacion_aprobada','adelanto_recibido','en_diseno','pendiente_modelado','pendiente_cliente','pendiente_render','aprobacion_final','despiece','corte','enchape','ensamble','listo_instalacion','instalacion_programada','entregado')\tNO\t\tcontacto_inicial\t\n",
+  "stderr": "",
+  "execution_time_ms": 348
+}

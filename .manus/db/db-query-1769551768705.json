@@ -1,0 +1,26 @@
+{
+  "query": "SELECT qi.itemNumber, qi.itemType, qi.description, qi.totalPrice, qi.includesFixedCosts, qi.kitchenConfig\nFROM quotationItems qi\nJOIN quotations q ON qi.quotationId = q.id\nWHERE q.quotationNumber LIKE '%621%'\nORDER BY qi.itemNumber;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT qi.itemNumber, qi.itemType, qi.description, qi.totalPrice, qi.includesFixedCosts, qi.kitchenConfig\nFROM quotationItems qi\nJOIN quotations q ON qi.quotationId = q.id\nWHERE q.quotationNumber LIKE '%621%'\nORDER BY qi.itemNumber;",
+  "rows": [
+    {
+      "itemNumber": "1",
+      "itemType": "cocina",
+      "description": "Cocina integral",
+      "totalPrice": "4124000.00",
+      "includesFixedCosts": "0",
+      "kitchenConfig": "\"{\\\"shape\\\":\\\"frente_pll\\\",\\\"totalMeters\\\":1.9,\\\"includeUpperModule\\\":true,\\\"upperModuleMeters\\\":3.21,\\\"specialModules\\\":{\\\"nichoNevecon\\\":false,\\\"nichoNevera\\\":false,\\\"alacenaEntrepanos\\\":false,\\\"alacenaHerraje\\\":false,\\\"torreHornos\\\":false},\\\"countertop\\\":{\\\"type\\\":\\\"\\\",\\\"depthSurcharge\\\":\\\"none\\\"},\\\"island\\\":{\\\"enabled\\\":false,\\\"meters\\\":0,\\\"countertopType\\\":\\\"\\\",\\\"hasLaterals\\\":false},\\\"bar\\\":{\\\"enabled\\\":false,\\\"meters\\\":0,\\\"countertopType\\\":\\\"\\\",\\\"hasLateral\\\":false},\\\"ledLighting\\\":0,\\\"paintedDoors\\\":{\\\"enabled\\\":false,\\\"upperQty\\\":0,\\\"lowerQty\\\":0,\\\"pantryQty\\\":0,\\\"drawerQty\\\":0,\\\"spiceQty\\\":0,\\\"golaQty\\\":0}}\""
+    },
+    {
+      "itemNumber": "2",
+      "itemType": "cocina",
+      "description": "Cocina integral",
+      "totalPrice": "4376000.00",
+      "includesFixedCosts": "0",
+      "kitchenConfig": "\"{\\\"shape\\\":\\\"frente_pll\\\",\\\"totalMeters\\\":1.9,\\\"includeUpperModule\\\":true,\\\"upperModuleMeters\\\":3.49,\\\"specialModules\\\":{\\\"nichoNevecon\\\":false,\\\"nichoNevera\\\":false,\\\"alacenaEntrepanos\\\":false,\\\"alacenaHerraje\\\":false,\\\"torreHornos\\\":false},\\\"countertop\\\":{\\\"type\\\":\\\"\\\",\\\"depthSurcharge\\\":\\\"none\\\"},\\\"island\\\":{\\\"enabled\\\":false,\\\"meters\\\":0,\\\"countertopType\\\":\\\"\\\",\\\"hasLaterals\\\":false},\\\"bar\\\":{\\\"enabled\\\":false,\\\"meters\\\":0,\\\"countertopType\\\":\\\"\\\",\\\"hasLateral\\\":false},\\\"ledLighting\\\":0,\\\"paintedDoors\\\":{\\\"enabled\\\":false,\\\"upperQty\\\":0,\\\"lowerQty\\\":0,\\\"pantryQty\\\":0,\\\"drawerQty\\\":0,\\\"spiceQty\\\":0,\\\"golaQty\\\":0}}\""
+    }
+  ],
+  "messages": [],
+  "stdout": "itemNumber\titemType\tdescription\ttotalPrice\tincludesFixedCosts\tkitchenConfig\n1\tcocina\tCocina integral\t4124000.00\t0\t\"{\\\"shape\\\":\\\"frente_pll\\\",\\\"totalMeters\\\":1.9,\\\"includeUpperModule\\\":true,\\\"upperModuleMeters\\\":3.21,\\\"specialModules\\\":{\\\"nichoNevecon\\\":false,\\\"nichoNevera\\\":false,\\\"alacenaEntrepanos\\\":false,\\\"alacenaHerraje\\\":false,\\\"torreHornos\\\":false},\\\"countertop\\\":{\\\"type\\\":\\\"\\\",\\\"depthSurcharge\\\":\\\"none\\\"},\\\"island\\\":{\\\"enabled\\\":false,\\\"meters\\\":0,\\\"countertopType\\\":\\\"\\\",\\\"hasLaterals\\\":false},\\\"bar\\\":{\\\"enabled\\\":false,\\\"meters\\\":0,\\\"countertopType\\\":\\\"\\\",\\\"hasLateral\\\":false},\\\"ledLighting\\\":0,\\\"paintedDoors\\\":{\\\"enabled\\\":false,\\\"upperQty\\\":0,\\\"lowerQty\\\":0,\\\"pantryQty\\\":0,\\\"drawerQty\\\":0,\\\"spiceQty\\\":0,\\\"golaQty\\\":0}}\"\n2\tcocina\tCocina integral\t4376000.00\t0\t\"{\\\"shape\\\":\\\"frente_pll\\\",\\\"totalMeters\\\":1.9,\\\"includeUpperModule\\\":true,\\\"upperModuleMeters\\\":3.49,\\\"specialModules\\\":{\\\"nichoNevecon\\\":false,\\\"nichoNevera\\\":false,\\\"alacenaEntrepanos\\\":false,\\\"alacenaHerraje\\\":false,\\\"torreHornos\\\":false},\\\"countertop\\\":{\\\"type\\\":\\\"\\\",\\\"depthSurcharge\\\":\\\"none\\\"},\\\"island\\\":{\\\"enabled\\\":false,\\\"meters\\\":0,\\\"countertopType\\\":\\\"\\\",\\\"hasLaterals\\\":false},\\\"bar\\\":{\\\"enabled\\\":false,\\\"meters\\\":0,\\\"countertopType\\\":\\\"\\\",\\\"hasLateral\\\":false},\\\"ledLighting\\\":0,\\\"paintedDoors\\\":{\\\"enabled\\\":false,\\\"upperQty\\\":0,\\\"lowerQty\\\":0,\\\"pantryQty\\\":0,\\\"drawerQty\\\":0,\\\"spiceQty\\\":0,\\\"golaQty\\\":0}}\"\n",
+  "stderr": "",
+  "execution_time_ms": 60
+}

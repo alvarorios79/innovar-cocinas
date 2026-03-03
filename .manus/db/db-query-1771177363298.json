@@ -1,0 +1,19 @@
+{
+  "query": "SELECT id, quotationNumber, versionNumber, baseQuotationId, parentQuotationId, status, isAdditional FROM quotations WHERE quotationNumber LIKE '%V3%' OR quotationNumber LIKE '%v3%' OR versionNumber >= 3 ORDER BY id DESC LIMIT 10;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT id, quotationNumber, versionNumber, baseQuotationId, parentQuotationId, status, isAdditional FROM quotations WHERE quotationNumber LIKE '%V3%' OR quotationNumber LIKE '%v3%' OR versionNumber >= 3 ORDER BY id DESC LIMIT 10;",
+  "rows": [
+    {
+      "id": "1680005",
+      "quotationNumber": "COT-2026-853-9278951-v2-V3",
+      "versionNumber": "3",
+      "baseQuotationId": "1650016",
+      "parentQuotationId": "NULL",
+      "status": "draft",
+      "isAdditional": "0"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tquotationNumber\tversionNumber\tbaseQuotationId\tparentQuotationId\tstatus\tisAdditional\n1680005\tCOT-2026-853-9278951-v2-V3\t3\t1650016\tNULL\tdraft\t0\n",
+  "stderr": "",
+  "execution_time_ms": 122
+}

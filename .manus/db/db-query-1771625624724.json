@@ -1,0 +1,40 @@
+{
+  "query": "SELECT id, name, email, role FROM users WHERE role IN ('admin', 'super_admin', 'comercial') LIMIT 5;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT id, name, email, role FROM users WHERE role IN ('admin', 'super_admin', 'comercial') LIMIT 5;",
+  "rows": [
+    {
+      "id": "1",
+      "name": "Alvaro Rios",
+      "email": "mcfy8jgnym@privaterelay.appleid.com",
+      "role": "super_admin"
+    },
+    {
+      "id": "30390",
+      "name": "Martha Serna",
+      "email": "martha79s@hotmail.com",
+      "role": "admin"
+    },
+    {
+      "id": "2250405",
+      "name": "Admin Role Protected",
+      "email": "admin-role-protected-1769389782943@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "3840828",
+      "name": "Admin Test",
+      "email": "admin-bulk-1770002490061@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "6752075",
+      "name": "Admin Test",
+      "email": "admin-bulk-1770963687979@test.com",
+      "role": "admin"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\temail\trole\n1\tAlvaro Rios\tmcfy8jgnym@privaterelay.appleid.com\tsuper_admin\n30390\tMartha Serna\tmartha79s@hotmail.com\tadmin\n2250405\tAdmin Role Protected\tadmin-role-protected-1769389782943@test.com\tadmin\n3840828\tAdmin Test\tadmin-bulk-1770002490061@test.com\tadmin\n6752075\tAdmin Test\tadmin-bulk-1770963687979@test.com\tadmin\n",
+  "stderr": "",
+  "execution_time_ms": 102
+}

@@ -1,0 +1,21 @@
+{
+  "query": "SELECT id, name, status, createdAt, tentativeInstallDate, estimatedInstallDate, isInstallDateOfficial, rendersApprovedAt, clientApprovedAt FROM projects WHERE id = 900006;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT id, name, status, createdAt, tentativeInstallDate, estimatedInstallDate, isInstallDateOfficial, rendersApprovedAt, clientApprovedAt FROM projects WHERE id = 900006;",
+  "rows": [
+    {
+      "id": "900006",
+      "name": "COT-2026-626-5411368 - Álvaro prueba ",
+      "status": "entregado",
+      "createdAt": "2026-02-03 20:11:20",
+      "tentativeInstallDate": "2026-03-10 20:11:21",
+      "estimatedInstallDate": "NULL",
+      "isInstallDateOfficial": "0",
+      "rendersApprovedAt": "2026-02-04 19:34:39",
+      "clientApprovedAt": "NULL"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\tstatus\tcreatedAt\ttentativeInstallDate\testimatedInstallDate\tisInstallDateOfficial\trendersApprovedAt\tclientApprovedAt\n900006\tCOT-2026-626-5411368 - Álvaro prueba \tentregado\t2026-02-03 20:11:20\t2026-03-10 20:11:21\tNULL\t0\t2026-02-04 19:34:39\tNULL\n",
+  "stderr": "",
+  "execution_time_ms": 69
+}

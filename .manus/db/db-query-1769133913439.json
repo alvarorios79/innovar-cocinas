@@ -1,0 +1,50 @@
+{
+  "query": "SELECT c.id, c.name, c.email, c.userId, u.name as userName, u.openId FROM clients c LEFT JOIN users u ON c.userId = u.id WHERE c.userId IS NOT NULL LIMIT 5;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT c.id, c.name, c.email, c.userId, u.name as userName, u.openId FROM clients c LEFT JOIN users u ON c.userId = u.id WHERE c.userId IS NOT NULL LIMIT 5;",
+  "rows": [
+    {
+      "id": "300004",
+      "name": "Test Client",
+      "email": "test@example.com",
+      "userId": "1",
+      "userName": "Alvaro Rios",
+      "openId": "BaLsNrkFPrAGjYNGr3Ev7p"
+    },
+    {
+      "id": "90091",
+      "name": "Carlos Albeiro Betancurt ",
+      "email": "albetan1530@gmail.com",
+      "userId": "271067",
+      "userName": "Carlos Albeiro Betancurt ",
+      "openId": "manual-1768361414455-mcj5v6"
+    },
+    {
+      "id": "300053",
+      "name": "Álvaro prueba ",
+      "email": "alvarorios79@hotmail.com",
+      "userId": "840718",
+      "userName": "Alvaro Pruebas",
+      "openId": "manual-1768784385418-4ah52f"
+    },
+    {
+      "id": "390001",
+      "name": "Cliente Test Bulk",
+      "email": "cliente-bulk@test.com",
+      "userId": "1530072",
+      "userName": "Cliente Test Bulk",
+      "openId": "manual-1769087934230-cd7pg"
+    },
+    {
+      "id": "390013",
+      "name": "Test User",
+      "email": "test-1769087935664@example.com",
+      "userId": "1530076",
+      "userName": "Test User",
+      "openId": "manual-1769087936061-266df"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\temail\tuserId\tuserName\topenId\n300004\tTest Client\ttest@example.com\t1\tAlvaro Rios\tBaLsNrkFPrAGjYNGr3Ev7p\n90091\tCarlos Albeiro Betancurt \talbetan1530@gmail.com\t271067\tCarlos Albeiro Betancurt \tmanual-1768361414455-mcj5v6\n300053\tÁlvaro prueba \talvarorios79@hotmail.com\t840718\tAlvaro Pruebas\tmanual-1768784385418-4ah52f\n390001\tCliente Test Bulk\tcliente-bulk@test.com\t1530072\tCliente Test Bulk\tmanual-1769087934230-cd7pg\n390013\tTest User\ttest-1769087935664@example.com\t1530076\tTest User\tmanual-1769087936061-266df\n",
+  "stderr": "",
+  "execution_time_ms": 66
+}

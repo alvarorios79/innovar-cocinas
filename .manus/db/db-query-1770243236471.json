@@ -1,0 +1,9 @@
+{
+  "query": "UPDATE projects \nSET estimatedInstallDate = DATE_ADD(rendersApprovedAt, INTERVAL 35 DAY),\n    isInstallDateOfficial = 1\nWHERE id = 900006 AND rendersApprovedAt IS NOT NULL AND (estimatedInstallDate IS NULL OR isInstallDateOfficial = 0);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute UPDATE projects \nSET estimatedInstallDate = DATE_ADD(rendersApprovedAt, INTERVAL 35 DAY),\n    isInstallDateOfficial = 1\nWHERE id = 900006 AND rendersApprovedAt IS NOT NULL AND (estimatedInstallDate IS NULL OR isInstallDateOfficial = 0);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 67
+}

@@ -1,0 +1,8 @@
+{
+  "query": "DELETE FROM users \nWHERE email IN (\n  'admin-bulk-1771708315665@test.com',\n  'test-manual-1771708316540@example.com',\n  'cliente-bulk@test.com',\n  'manual-mix-1771708317396@example.com',\n  'manual-quot-1771708318425@example.com',\n  'test@advisory.com',\n  'admin-fixedcosts-test@test.com',\n  'user-qvs2-1771708324065@example.com',\n  'test-1771708324325@example.com',\n  'admin-edit-test@test.com'\n);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute DELETE FROM users \nWHERE email IN (\n  'admin-bulk-1771708315665@test.com',\n  'test-manual-1771708316540@example.com',\n  'cliente-bulk@test.com',\n  'manual-mix-1771708317396@example.com',\n  'manual-quot-1771708318425@example.com',\n  'test@advisory.com',\n  'admin-fixedcosts-test@test.com',\n  'user-qvs2-1771708324065@example.com',\n  'test-1771708324325@example.com',\n  'admin-edit-test@test.com'\n);",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1451 (23000) at line 1: Cannot delete or update a parent row: a foreign key constraint fails (`xhekcr8yxcaedfyuqebdjq`.`notifications`, CONSTRAINT `notifications_userId_users_id_fk` FOREIGN KEY (`userId`) REFERENCES `users` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION)"
+  ]
+}

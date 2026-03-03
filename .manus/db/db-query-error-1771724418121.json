@@ -1,0 +1,8 @@
+{
+  "query": "SELECT \n  u.id,\n  u.email,\n  u.dataOrigin,\n  (SELECT COUNT(*) FROM clients WHERE userId = u.id) as clients_count,\n  (SELECT COUNT(*) FROM projects WHERE userId = u.id) as projects_count,\n  (SELECT COUNT(*) FROM quotations WHERE createdBy = u.id) as quotations_count,\n  (SELECT COUNT(*) FROM appointments WHERE clientId IN (SELECT id FROM clients WHERE userId = u.id)) as appointments_count\nFROM users u\nWHERE u.email IN (\n  'admin-bulk-1771708315665@test.com',\n  'test-manual-1771708316540@example.com',\n  'cliente-bulk@test.com',\n  'manual-mix-1771708317396@example.com',\n  'manual-quot-1771708318425@example.com'\n);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT \n  u.id,\n  u.email,\n  u.dataOrigin,\n  (SELECT COUNT(*) FROM clients WHERE userId = u.id) as clients_count,\n  (SELECT COUNT(*) FROM projects WHERE userId = u.id) as projects_count,\n  (SELECT COUNT(*) FROM quotations WHERE createdBy = u.id) as quotations_count,\n  (SELECT COUNT(*) FROM appointments WHERE clientId IN (SELECT id FROM clients WHERE userId = u.id)) as appointments_count\nFROM users u\nWHERE u.email IN (\n  'admin-bulk-1771708315665@test.com',\n  'test-manual-1771708316540@example.com',\n  'cliente-bulk@test.com',\n  'manual-mix-1771708317396@example.com',\n  'manual-quot-1771708318425@example.com'\n);",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1054 (42S22) at line 1: Unknown column 'userid' in 'where clause'"
+  ]
+}

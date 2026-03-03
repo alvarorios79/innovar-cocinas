@@ -1,0 +1,17 @@
+{
+  "query": "SELECT id, name, role, lastSignedIn, updatedAt FROM users WHERE id = 1;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT id, name, role, lastSignedIn, updatedAt FROM users WHERE id = 1;",
+  "rows": [
+    {
+      "id": "1",
+      "name": "Alvaro Rios",
+      "role": "admin",
+      "lastSignedIn": "2026-01-13 07:02:00",
+      "updatedAt": "2026-01-13 07:01:59"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\trole\tlastSignedIn\tupdatedAt\n1\tAlvaro Rios\tadmin\t2026-01-13 07:02:00\t2026-01-13 07:01:59\n",
+  "stderr": "",
+  "execution_time_ms": 395
+}

@@ -1,0 +1,9 @@
+{
+  "query": "SELECT t.id, t.title, t.assignedTo, u.name, u.email \nFROM tasks t \nJOIN users u ON t.assignedTo = u.id \nWHERE u.email LIKE '%test%' OR u.email LIKE '%bulk%' OR u.email LIKE '%promote%' \nLIMIT 10;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT t.id, t.title, t.assignedTo, u.name, u.email \nFROM tasks t \nJOIN users u ON t.assignedTo = u.id \nWHERE u.email LIKE '%test%' OR u.email LIKE '%bulk%' OR u.email LIKE '%promote%' \nLIMIT 10;",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 84
+}

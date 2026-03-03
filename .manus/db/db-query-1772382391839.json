@@ -1,0 +1,17 @@
+{
+  "query": "\n-- PRUEBA 1: Flujo normal - Cambiar a \"entregado\"\n-- Primero, obtener un proyecto activo\nSELECT 'ANTES DE CAMBIO' as paso, id, name, status, isArchived \nFROM projects \nWHERE isArchived = 0 \nORDER BY id DESC \nLIMIT 1;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute \n-- PRUEBA 1: Flujo normal - Cambiar a \"entregado\"\n-- Primero, obtener un proyecto activo\nSELECT 'ANTES DE CAMBIO' as paso, id, name, status, isArchived \nFROM projects \nWHERE isArchived = 0 \nORDER BY id DESC \nLIMIT 1;\n",
+  "rows": [
+    {
+      "paso": "ANTES DE CAMBIO",
+      "id": "1830037",
+      "name": "Manual Mix Project",
+      "status": "contacto",
+      "isArchived": "0"
+    }
+  ],
+  "messages": [],
+  "stdout": "paso\tid\tname\tstatus\tisArchived\nANTES DE CAMBIO\t1830037\tManual Mix Project\tcontacto\t0\n",
+  "stderr": "",
+  "execution_time_ms": 61
+}

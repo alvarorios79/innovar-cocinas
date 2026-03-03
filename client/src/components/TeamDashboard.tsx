@@ -528,9 +528,6 @@ export function TeamDashboard() {
 
   return (
     <div className={`min-h-screen ${config.bgGradient}`}>
-      <div style={{background:"red", color:"white", padding:"10px"}}>
-        TEST TEAM DASHBOARD
-      </div>
       {/* Header */}
       <header className="border-b bg-white/95 backdrop-blur-md sticky top-0 z-50 shadow-sm">
         <div className="container">

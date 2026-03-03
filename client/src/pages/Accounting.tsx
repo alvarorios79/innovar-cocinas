@@ -19,7 +19,7 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
-import { useRouter } from "wouter";
+import { Link } from "wouter";
 
 // Categorías operativas
 const OPERATIVE_CATEGORIES = [
@@ -50,7 +50,6 @@ const GENERAL_CATEGORIES = [
 type ExpenseType = "materiales_proyecto" | "gasto_operativo";
 
 export default function Accounting() {
-  const [, navigate] = useRouter() as any;
   const [expenseType, setExpenseType] = useState<ExpenseType>("materiales_proyecto");
   const [projectId, setProjectId] = useState<string>("");
   const [operativeCategory, setOperativeCategory] = useState<string>("");
@@ -150,14 +149,15 @@ export default function Accounting() {
       {/* Botón de navegación */}
       <div className="bg-white border-b shadow-sm">
         <div className="container max-w-6xl mx-auto px-4 py-3">
-          <Button
-            onClick={() => navigate("/admin")}
-            variant="ghost"
-            className="w-full md:w-auto h-10 md:h-9 mb-3 md:mb-0 text-gray-700 hover:text-teal-600 hover:bg-teal-50"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Volver al Panel
-          </Button>
+          <Link href="/admin">
+            <Button
+              variant="ghost"
+              className="w-full md:w-auto h-10 md:h-9 mb-3 md:mb-0 text-gray-700 hover:text-teal-600 hover:bg-teal-50"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Volver al Panel
+            </Button>
+          </Link>
         </div>
       </div>
 

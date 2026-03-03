@@ -88,6 +88,7 @@ interface ExpenseFormData {
 
 export default function Accounting() {
   const [activeTab, setActiveTab] = useState<"register" | "history" | "summary">("register");
+  const [selectedExpenseType, setSelectedExpenseType] = useState<null | "materiales_proyecto" | "gasto_operativo">(null);
   const [formData, setFormData] = useState<ExpenseFormData>({
     expenseType: "materiales_proyecto",
     generalCategory: "materiales",
@@ -489,6 +490,97 @@ export default function Accounting() {
     };
   }, [summary]);
 
+  // Renderizar selección de tipo de gasto
+  const renderTypeSelection = () => (
+    <div className="space-y-6">
+      <PageHeader
+        title="Sistema Contable Interno"
+        subtitle="Selecciona el tipo de gasto que deseas registrar"
+        showBack={false}
+      />
+
+      <div className="grid md:grid-cols-2 gap-6">
+        {/* TARJETA: Gastos de Proyecto */}
+        <Card 
+          className="cursor-pointer hover:shadow-xl hover:border-blue-300 transition-all duration-300 border-2 rounded-xl overflow-hidden group"
+          onClick={() => {
+            setSelectedExpenseType("materiales_proyecto");
+            setFormData(prev => ({ ...prev, expenseType: "materiales_proyecto" }));
+          }}
+        >
+          <CardContent className="p-8">
+            <div className="space-y-4">
+              {/* Icono */}
+              <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-blue-100 to-blue-50 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Package className="w-8 h-8 text-blue-600" />
+              </div>
+              
+              {/* Contenido */}
+              <div>
+                <h3 className="text-2xl font-bold text-gray-900">Gastos de Proyecto</h3>
+                <p className="text-gray-600 mt-2 leading-relaxed">
+                  Materiales y costos vinculados a un cliente o proyecto específico. Madera, bisagras, rieles, vidrio, transporte, instalación, etc.
+                </p>
+              </div>
+
+              {/* Tags */}
+              <div className="flex flex-wrap gap-2 pt-2">
+                <Badge variant="secondary" className="bg-blue-100 text-blue-700">Madera</Badge>
+                <Badge variant="secondary" className="bg-blue-100 text-blue-700">Bisagras</Badge>
+                <Badge variant="secondary" className="bg-blue-100 text-blue-700">Rieles</Badge>
+                <Badge variant="secondary" className="bg-blue-100 text-blue-700">Vidrio</Badge>
+              </div>
+
+              {/* Botón */}
+              <Button className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-6 text-lg rounded-lg">
+                Registrar Gasto
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* TARJETA: Gastos Operativos */}
+        <Card 
+          className="cursor-pointer hover:shadow-xl hover:border-amber-300 transition-all duration-300 border-2 rounded-xl overflow-hidden group"
+          onClick={() => {
+            setSelectedExpenseType("gasto_operativo");
+            setFormData(prev => ({ ...prev, expenseType: "gasto_operativo" }));
+          }}
+        >
+          <CardContent className="p-8">
+            <div className="space-y-4">
+              {/* Icono */}
+              <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-amber-100 to-amber-50 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Building2 className="w-8 h-8 text-amber-600" />
+              </div>
+              
+              {/* Contenido */}
+              <div>
+                <h3 className="text-2xl font-bold text-gray-900">Gastos Operativos</h3>
+                <p className="text-gray-600 mt-2 leading-relaxed">
+                  Arriendo, servicios, transporte y gastos generales del negocio que NO pertenecen a un cliente específico.
+                </p>
+              </div>
+
+              {/* Tags */}
+              <div className="flex flex-wrap gap-2 pt-2">
+                <Badge variant="secondary" className="bg-amber-100 text-amber-700">Arriendo</Badge>
+                <Badge variant="secondary" className="bg-amber-100 text-amber-700">Energía</Badge>
+                <Badge variant="secondary" className="bg-amber-100 text-amber-700">Agua</Badge>
+                <Badge variant="secondary" className="bg-amber-100 text-amber-700">Internet</Badge>
+              </div>
+
+              {/* Botón */}
+              <Button className="w-full mt-4 bg-amber-600 hover:bg-amber-700 text-white font-semibold py-6 text-lg rounded-lg">
+                Registrar Gasto
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+
   // Renderizar formulario simplificado
   const renderSimplifiedForm = () => (
     <Card>
@@ -497,33 +589,11 @@ export default function Accounting() {
           <Receipt className="w-5 h-5" />
           Registrar Nuevo Gasto
         </CardTitle>
-        <CardDescription>Completa los campos y guarda el gasto</CardDescription>
+        <CardDescription>
+          {selectedExpenseType === "materiales_proyecto" ? "Gastos de Materiales de Proyecto" : "Gastos Operativos"}
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        
-        {/* Tipo de Gasto */}
-        <div className="space-y-2">
-          <Label className="font-semibold">Tipo de Gasto *</Label>
-          <Select 
-            value={formData.expenseType}
-            onValueChange={(value) => {
-              setFormData(prev => ({
-                ...prev,
-                expenseType: value as ExpenseType,
-                projectId: undefined,
-                operativeCategory: undefined,
-              }));
-            }}
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="materiales_proyecto">Gastos de Materiales de Proyecto</SelectItem>
-              <SelectItem value="gasto_operativo">Gastos Operativos</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
 
         {/* Grid de 2 columnas en desktop */}
         <div className="grid md:grid-cols-2 gap-4">
@@ -531,7 +601,7 @@ export default function Accounting() {
           {/* Columna 1 */}
           <div className="space-y-4">
             {/* Campos condicionales para Materiales de Proyecto */}
-            {formData.expenseType === "materiales_proyecto" && (
+            {selectedExpenseType === "materiales_proyecto" && (
               <div className="space-y-2">
                 <Label className="font-semibold">Proyecto o Cliente *</Label>
                 <Select 
@@ -573,7 +643,7 @@ export default function Accounting() {
             )}
 
             {/* Campos condicionales para Gastos Operativos */}
-            {formData.expenseType === "gasto_operativo" && (
+            {selectedExpenseType === "gasto_operativo" && (
               <div className="space-y-2">
                 <Label className="font-semibold">Categoría Operativa *</Label>
                 <Select 
@@ -708,13 +778,37 @@ export default function Accounting() {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Sistema Contable Interno"
-        subtitle="Gestiona los gastos de INNOVAR Cocinas"
-        showBack={false}
-      />
+      {/* Si no hay tipo seleccionado, mostrar selector */}
+      {selectedExpenseType === null && activeTab === "register" ? (
+        renderTypeSelection()
+      ) : (
+        <>
+          <PageHeader
+            title="Sistema Contable Interno"
+            subtitle="Gestiona los gastos de INNOVAR Cocinas"
+            showBack={false}
+          />
 
-      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="space-y-4">
+          {/* Botón para cambiar tipo de gasto (solo en tab registro) */}
+          {activeTab === "register" && selectedExpenseType !== null && (
+            <Button
+              variant="ghost"
+              onClick={() => setSelectedExpenseType(null)}
+              className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Cambiar tipo de gasto
+            </Button>
+          )}
+        </>
+      )}
+
+      <Tabs value={activeTab} onValueChange={(v) => {
+        setActiveTab(v as any);
+        if (v === "register") {
+          setSelectedExpenseType(null);
+        }
+      }} className="space-y-4">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="register" className="flex items-center gap-2">
             <Plus className="w-4 h-4" />
@@ -732,7 +826,11 @@ export default function Accounting() {
 
         {/* TAB: REGISTRAR */}
         <TabsContent value="register" className="space-y-4">
-          {renderSimplifiedForm()}
+          {selectedExpenseType === null ? (
+            renderTypeSelection()
+          ) : (
+            renderSimplifiedForm()
+          )}
         </TabsContent>
 
         {/* TAB: HISTORIAL */}

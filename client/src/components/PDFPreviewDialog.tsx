@@ -37,6 +37,7 @@ export function PDFPreviewDialog({
   const [error, setError] = useState<string | null>(null);
   const [containerWidth, setContainerWidth] = useState<number>(0);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [isIOS] = useState(() => /iPad|iPhone|iPod/.test(navigator.userAgent));
 
   // Medir el ancho del contenedor para ajustar el PDF
   useEffect(() => {
@@ -110,50 +111,88 @@ export function PDFPreviewDialog({
         </DialogHeader>
 
         <div className="flex-1 flex flex-col relative bg-gray-100 rounded-md overflow-hidden" ref={containerRef}>
-          {isLoading && (
-            <div className="absolute inset-0 flex items-center justify-center z-10 bg-gray-100">
-              <Loader2 className="h-8 w-8 text-gray-400 animate-spin" />
-            </div>
-          )}
-          {error && (
-            <div className="absolute inset-0 flex items-center justify-center z-10 bg-red-50 flex-col gap-2">
-              <AlertCircle className="h-8 w-8 text-red-500" />
-              <div className="text-red-700 text-center px-4">
-                <p className="font-semibold">Error al cargar PDF</p>
-                <p className="text-sm mt-1">{error}</p>
+          {/* Botón de cierre en esquina superior derecha */}
+          <button
+            onClick={() => onOpenChange(false)}
+            className="absolute top-2 right-2 z-50 p-2 bg-white rounded-full shadow-lg hover:bg-gray-100"
+            title="Cerrar"
+          >
+            <X className="h-5 w-5" />
+          </button>
+
+          {isIOS ? (
+            // En iOS, mostrar mensaje y botón para abrir PDF
+            <div className="flex-1 flex flex-col items-center justify-center gap-4 p-6">
+              <AlertCircle className="h-12 w-12 text-amber-500" />
+              <div className="text-center">
+                <p className="font-semibold text-gray-900">Vista previa no disponible en iPhone</p>
+                <p className="text-sm text-gray-600 mt-2">Toca el botón de abajo para ver el PDF en pantalla completa</p>
               </div>
+              <Button
+                onClick={() => window.open(pdfUrl, '_blank')}
+                className="mt-4"
+              >
+                Abrir PDF
+              </Button>
             </div>
-          )}
-          
-          {!error && (
+          ) : (
+            // En desktop, mostrar iframe normal
             <>
-              {/* Área de visualización del PDF usando iframe con endpoint /api/pdf/:filename */}
-              <div className="flex-1 overflow-auto">
-                <iframe
-                  src={pdfUrl}
-                  className="w-full h-full border-0"
-                  title="PDF Preview"
-                  onLoad={() => setIsLoading(false)}
-                  onError={() => {
-                    setError('No se pudo cargar el PDF');
-                    setIsLoading(false);
-                  }}
-                />
-              </div>
+              {isLoading && (
+                <div className="absolute inset-0 flex items-center justify-center z-10 bg-gray-100">
+                  <Loader2 className="h-8 w-8 text-gray-400 animate-spin" />
+                </div>
+              )}
+              {error && (
+                <div className="absolute inset-0 flex items-center justify-center z-10 bg-red-50 flex-col gap-2">
+                  <AlertCircle className="h-8 w-8 text-red-500" />
+                  <div className="text-red-700 text-center px-4">
+                    <p className="font-semibold">Error al cargar PDF</p>
+                    <p className="text-sm mt-1">{error}</p>
+                  </div>
+                </div>
+              )}
+              
+              {!error && (
+                <div className="flex-1 overflow-auto">
+                  <iframe
+                    src={pdfUrl}
+                    className="w-full h-full border-0"
+                    title="PDF Preview"
+                    onLoad={() => setIsLoading(false)}
+                    onError={() => {
+                      setError('No se pudo cargar el PDF');
+                      setIsLoading(false);
+                    }}
+                  />
+                </div>
+              )}
             </>
           )}
         </div>
 
         <DialogFooter className="flex-row justify-between gap-2">
-          <Button
-            variant="outline"
-            onClick={handleDownload}
-            disabled={isLoading || !!error}
-          >
-            <Download className="h-4 w-4 mr-2" />
-            Descargar
-          </Button>
-          <div className="flex gap-2">
+          {!isIOS && (
+            <Button
+              variant="outline"
+              onClick={handleDownload}
+              disabled={isLoading || !!error}
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Descargar
+            </Button>
+          )}
+          <div className="flex gap-2 ml-auto">
+            {isIOS && (
+              <Button
+                variant="outline"
+                onClick={handleDownload}
+                disabled={isSending}
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Descargar
+              </Button>
+            )}
             <Button
               variant="outline"
               onClick={() => onOpenChange(false)}

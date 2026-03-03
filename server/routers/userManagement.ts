@@ -111,6 +111,14 @@ export const userManagementRouter = router({
           throw new TRPCError({ code: "NOT_FOUND", message: "Usuario no encontrado" });
         }
 
+        // Proteger al super_admin principal (lalismanqie@...)
+        if (targetUser.email?.toLowerCase().includes('lalismanqie@') && input.newRole !== "super_admin") {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "No se puede modificar el rol del super_admin principal"
+          });
+        }
+
         // Proteger al owner (super_admin principal) de ser degradado por nadie
         if (targetUser.openId === ENV.ownerOpenId && input.newRole !== "super_admin") {
           throw new TRPCError({ 

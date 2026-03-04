@@ -1997,13 +1997,36 @@ export const quotationsRouter = router({
           fs.unlinkSync(result.pdfPath);
 
           // 1️⃣ Enviar plantilla aprobada primero
-          console.log("[WHATSAPP DEBUG] Enviando plantilla aprobada: cotizacion_lista");
-          console.log("[WHATSAPP DEBUG] Idioma: es");
-          console.log("[WHATSAPP DEBUG] Cliente nombre:", client.name);
+          console.log("\n\n========== WHATSAPP QUOTATION FLOW START ==========");
+          console.log("[WHATSAPP] Enviando plantilla aprobada: cotizacion_lista");
+          console.log("[WHATSAPP] Idioma: es");
+          console.log("[WHATSAPP] Cliente nombre:", client.name);
+          console.log("[WHATSAPP] Número de teléfono destino:", client.whatsappPhone);
+          console.log("[WHATSAPP] Cotización ID:", quotation.id);
+          console.log("[WHATSAPP] Cotización número:", quotation.quotationNumber);
           
-          // Plantilla cotizacion_lista tiene header de imagen, no documento
-          // Por eso no incluimos el PDF en los componentes
+          // Plantilla cotizacion_lista requiere 3 parámetros en el body
+          // {{1}} = clientName, {{2}} = quotationNumber, {{3}} = quotationTotal
+          const formattedAmount = new Intl.NumberFormat("es-CO", {
+            style: "currency",
+            currency: "COP",
+            minimumFractionDigits: 0,
+          }).format(Number(quotation.total));
+          
+          const INNOVAR_LOGO_URL = "https://d2xsxph8kpxj0f.cloudfront.net/310519663292328262/XhEkCr8yXcaeDFyuQebdJQ/branding/innovar-logo-transparent-jt9je6rz.png";
+          
           const templateComponents: any[] = [
+            {
+              type: "header",
+              parameters: [
+                {
+                  type: "image",
+                  image: {
+                    link: INNOVAR_LOGO_URL,
+                  },
+                },
+              ],
+            },
             {
               type: "body",
               parameters: [
@@ -2011,11 +2034,21 @@ export const quotationsRouter = router({
                   type: "text",
                   text: client.name,
                 },
+                {
+                  type: "text",
+                  text: quotation.quotationNumber,
+                },
+                {
+                  type: "text",
+                  text: formattedAmount,
+                },
               ],
             },
           ];
           
-          console.log("[WHATSAPP DEBUG] Template components:", JSON.stringify(templateComponents, null, 2));
+          console.log("[WHATSAPP] Logo URL:", INNOVAR_LOGO_URL);
+          console.log("[WHATSAPP] Template components:", JSON.stringify(templateComponents, null, 2));
+          console.log("[WHATSAPP] Paso 1: Enviando plantilla...");
           
           // Enviar plantilla
           const templateResponse = await whatsappCloud.sendTemplateMessage(
@@ -2025,7 +2058,17 @@ export const quotationsRouter = router({
             templateComponents
           );
           
-          console.log("[WhatsApp] Plantilla enviada:", templateResponse);
+          console.log("\n========== TEMPLATE RESPONSE ==========");
+          console.log("[WHATSAPP] Status: " + (templateResponse.success ? "SUCCESS" : "FAILED"));
+          console.log("[WHATSAPP] Full Response:", JSON.stringify(templateResponse, null, 2));
+          if (templateResponse.messageId) {
+            console.log("[WHATSAPP] Template Message ID:", templateResponse.messageId);
+          }
+          if (templateResponse.error) {
+            console.log("[WHATSAPP] Template Error:", templateResponse.error);
+            console.log("[WHATSAPP] Error Code:", templateResponse.errorCode);
+          }
+          console.log("========== END TEMPLATE RESPONSE ==========");
           
           if (!templateResponse.success) {
             console.error("[WhatsApp] Fallo en envio de plantilla:", {
@@ -2039,13 +2082,16 @@ export const quotationsRouter = router({
             });
           }
           
-          console.log("[WHATSAPP DEBUG] Plantilla enviada exitosamente, messageId:", templateResponse.messageId);
+          console.log("[WHATSAPP] Plantilla enviada exitosamente");
           
           // 2️⃣ Pequeña pausa para asegurar orden correcto en WhatsApp
+          console.log("[WHATSAPP] Paso 2: Esperando 1 segundo...");
           await new Promise((resolve) => setTimeout(resolve, 1000));
           
           // 3️⃣ Enviar PDF como documento separado
-          console.log("[WHATSAPP DEBUG] Enviando PDF como documento separado");
+          console.log("[WHATSAPP] Paso 3: Enviando PDF como documento separado");
+          console.log("[WHATSAPP] PDF URL:", pdfUrl);
+          console.log("[WHATSAPP] PDF Filename:", `Cotizacion-${quotation.quotationNumber}.pdf`);
           const pdfResponse = await whatsappCloud.sendDocumentMessage(
             client.whatsappPhone,
             pdfUrl,
@@ -2053,12 +2099,28 @@ export const quotationsRouter = router({
             "Cotización oficial INNOVAR Cocinas 📄"
           );
           
-          console.log("[WhatsApp] Documento PDF enviado:", pdfResponse);
+          console.log("\n========== DOCUMENT RESPONSE ==========");
+          console.log("[WHATSAPP] Status: " + (pdfResponse.success ? "SUCCESS" : "FAILED"));
+          console.log("[WHATSAPP] Full Response:", JSON.stringify(pdfResponse, null, 2));
+          if (pdfResponse.messageId) {
+            console.log("[WHATSAPP] Document Message ID:", pdfResponse.messageId);
+          }
+          if (pdfResponse.error) {
+            console.log("[WHATSAPP] Document Error:", pdfResponse.error);
+            console.log("[WHATSAPP] Error Code:", pdfResponse.errorCode);
+          }
+          console.log("========== END DOCUMENT RESPONSE ==========");
           
           if (!pdfResponse.success) {
-            console.warn("[WhatsApp] Error enviando PDF (no es crítico):", pdfResponse.error);
+            console.warn("[WHATSAPP] Error enviando PDF (no es crítico):", pdfResponse.error);
             // No lanzamos error aquí porque la plantilla ya se envió exitosamente
           }
+          
+          console.log("\n========== WHATSAPP QUOTATION FLOW COMPLETED ==========");
+          console.log("[WHATSAPP] Template sent: " + (templateResponse.success ? "✓" : "✗"));
+          console.log("[WHATSAPP] Document sent: " + (pdfResponse.success ? "✓" : "✗"));
+          console.log("========== END FLOW ==========");
+          console.log("\n");
           
           return {
             success: true,

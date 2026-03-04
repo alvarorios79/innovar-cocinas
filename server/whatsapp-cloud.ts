@@ -301,6 +301,14 @@ export async function sendTemplateMessage(
       (templatePayload.template as Record<string, unknown>).components = components;
     }
 
+    console.log("\n----- WHATSAPP TEMPLATE REQUEST -----");
+    console.log("PHONE:", formattedPhone);
+    console.log("TEMPLATE:", templateName);
+    console.log("LANGUAGE:", languageCode);
+    console.log("REQUEST:", JSON.stringify(templatePayload, null, 2));
+    console.log("ENDPOINT:", `${WHATSAPP_API_URL}/${phoneNumberId}/messages`);
+    console.log("-----");
+
     const controller = createTimeoutController(10000);
     const response = await fetch(
       `${WHATSAPP_API_URL}/${phoneNumberId}/messages`,
@@ -316,6 +324,14 @@ export async function sendTemplateMessage(
     );
 
     const data = await response.json();
+
+    console.log("\n----- WHATSAPP TEMPLATE RESPONSE -----");
+    console.log("STATUS:", response.status);
+    console.log("RESPONSE:", JSON.stringify(data, null, 2));
+    if (data.messages && data.messages.length > 0) {
+      console.log("MESSAGE_ID:", data.messages[0].id);
+    }
+    console.log("-----\n");
 
     if (response.ok && data.messages && data.messages.length > 0) {
       return {
@@ -795,8 +811,12 @@ export async function sendDocumentMessage(
       payload.caption = caption;
     }
     
-    console.log("[WHATSAPP DEBUG] DOCUMENT REQUEST PAYLOAD:", JSON.stringify(payload, null, 2));
-    console.log("[WHATSAPP DEBUG] Using Phone Number ID:", phoneNumberId);
+    console.log("\n----- WHATSAPP DOCUMENT REQUEST -----");
+    console.log("PHONE:", formattedPhone);
+    console.log("PDF_URL:", documentUrl);
+    console.log("REQUEST:", JSON.stringify(payload, null, 2));
+    console.log("ENDPOINT:", `${WHATSAPP_API_URL}/${phoneNumberId}/messages`);
+    console.log("-----");
 
     const response = await fetch(
       `${WHATSAPP_API_URL}/${phoneNumberId}/messages`,
@@ -812,18 +832,21 @@ export async function sendDocumentMessage(
 
     const data = await response.json();
     
-    console.log("[WHATSAPP DEBUG] DOCUMENT RESPONSE STATUS:", response.status);
-    console.log("[WHATSAPP DEBUG] DOCUMENT RESPONSE BODY:", JSON.stringify(data, null, 2));
+    console.log("\n----- WHATSAPP DOCUMENT RESPONSE -----");
+    console.log("STATUS:", response.status);
+    console.log("RESPONSE:", JSON.stringify(data, null, 2));
+    if (data.messages && data.messages.length > 0) {
+      console.log("MESSAGE_ID:", data.messages[0].id);
+    }
+    console.log("-----\n");
 
     if (response.ok && data.messages && data.messages.length > 0) {
-      console.log("[WHATSAPP DEBUG] DOCUMENT SUCCESS - Message ID:", data.messages[0].id);
       return {
         success: true,
         messageId: data.messages[0].id,
       };
     }
 
-    console.log("[WHATSAPP DEBUG] DOCUMENT API ERROR:", data.error);
     return {
       success: false,
       error: data.error?.message || "Error al enviar documento",

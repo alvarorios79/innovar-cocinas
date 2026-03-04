@@ -183,6 +183,75 @@ Si tienes alguna pregunta, no dudes en contactarnos.
 }
 
 /**
+ * Envía un documento por WhatsApp
+ */
+export async function sendWhatsAppDocument(
+  to: string,
+  documentUrl: string,
+  filename: string,
+  caption?: string
+): Promise<{ success: boolean; messageId?: string; error?: string }> {
+  if (!ENV.whatsappAccessToken || !ENV.whatsappPhoneNumberId) {
+    console.error("[WhatsApp] Credenciales no configuradas");
+    return { success: false, error: "Credenciales de WhatsApp no configuradas" };
+  }
+
+  const formattedPhone = to.replace(/[\s\-\+]/g, "");
+
+  try {
+    const payload: Record<string, unknown> = {
+      messaging_product: "whatsapp",
+      recipient_type: "individual",
+      to: formattedPhone,
+      type: "document",
+      document: {
+        link: documentUrl,
+        filename: filename,
+      },
+    };
+
+    if (caption) {
+      payload.caption = caption;
+    }
+
+    console.log("[WhatsApp] Enviando documento...");
+    console.log("[WhatsApp] Phone Number ID:", ENV.whatsappPhoneNumberId);
+    console.log("[WhatsApp] URL del documento:", documentUrl);
+    console.log("[WhatsApp] Nombre del archivo:", filename);
+
+    const response = await fetch(
+      `${WHATSAPP_API_URL}/${ENV.whatsappPhoneNumberId}/messages`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${ENV.whatsappAccessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      }
+    );
+
+    const data = await response.json();
+
+    console.log("[WhatsApp] Respuesta de Meta (status:", response.status, ")");
+    console.log("[WhatsApp] Respuesta completa:", JSON.stringify(data, null, 2));
+
+    if (!response.ok) {
+      const errorData = data as WhatsAppError;
+      console.error("[WhatsApp] Error al enviar documento:", errorData.error?.message);
+      return { success: false, error: errorData.error?.message || "Error desconocido" };
+    }
+
+    const successData = data as WhatsAppMessageResponse;
+    console.log("[WhatsApp] Documento enviado exitosamente:", successData.messages[0]?.id);
+    return { success: true, messageId: successData.messages[0]?.id };
+  } catch (error) {
+    console.error("[WhatsApp] Error de conexión:", error);
+    return { success: false, error: "Error de conexión con WhatsApp API" };
+  }
+}
+
+/**
  * Envía recordatorio de cita
  */
 export async function sendAppointmentReminder(

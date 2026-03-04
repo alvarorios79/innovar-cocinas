@@ -1996,66 +1996,66 @@ export const quotationsRouter = router({
           // Limpiar archivo temporal
           fs.unlinkSync(result.pdfPath);
 
-          // 1️⃣ Enviar mensaje formal primero
-          const validUntilDate = quotation.validUntil ? new Date(quotation.validUntil).toLocaleDateString('es-CO') : 'sin especificar';
-          const formalMessage = `Hola ${client.name} 👋\n\nGracias por confiar en INNOVAR Cocinas de Diseño.\n\nTe compartimos la cotización ${quotation.quotationNumber}.\nEn el documento encontrarás especificaciones técnicas, materiales y valor total del proyecto.\n\nLa propuesta tiene una vigencia hasta ${validUntilDate}.\n\nQuedamos atentos para cualquier ajuste o para avanzar con tu proyecto 🚀`;
-          // @ts-ignore
+          // 1️⃣ Enviar cotización usando plantilla aprobada con PDF en header
+          console.log("[WHATSAPP DEBUG] Usando plantilla aprobada: cotizacion_lista");
+          console.log("[WHATSAPP DEBUG] PDF URL:", pdfUrl);
+          console.log("[WHATSAPP DEBUG] Cliente nombre:", client.name);
           
-          const textResponse = await whatsappCloud.sendTextMessage(
+          // Preparar componentes para la plantilla
+          // Header: Document (PDF)
+          // Body: Texto con variable {{1}} para nombre del cliente
+          const templateComponents: any[] = [
+            {
+              type: "header",
+              parameters: [
+                {
+                  type: "document",
+                  document: {
+                    link: pdfUrl,
+                    filename: `Cotizacion-${quotation.quotationNumber}.pdf`,
+                  },
+                },
+              ],
+            },
+            {
+              type: "body",
+              parameters: [
+                {
+                  type: "text",
+                  text: client.name,
+                },
+              ],
+            },
+          ];
+          
+          console.log("[WHATSAPP DEBUG] Template components:", JSON.stringify(templateComponents, null, 2));
+          
+          // Enviar plantilla con PDF
+          const templateResponse = await whatsappCloud.sendTemplateMessage(
             client.whatsappPhone,
-            formalMessage
+            "cotizacion_lista",
+            "es_CO",
+            templateComponents
           );
           
-          console.log("[WhatsApp] Mensaje de texto enviado:", textResponse);
+          console.log("[WhatsApp] Plantilla con PDF enviada:", templateResponse);
           
-          if (!textResponse.success) {
-            console.warn("[WhatsApp] Error enviando mensaje de texto:", textResponse.error);
-          }
-          
-          // 2️⃣ Pequeña pausa para asegurar orden correcto en WhatsApp
-          await new Promise((resolve) => setTimeout(resolve, 1000));
-          
-          // 3️⃣ Enviar PDF
-          const pdfResponse = await whatsappCloud.sendDocumentMessage(
-            client.whatsappPhone,
-            pdfUrl,
-            `Cotizacion-${quotation.quotationNumber}.pdf`,
-            "Cotización oficial INNOVAR Cocinas 📄"
-          );
-          
-          console.log("[WhatsApp] Documento PDF enviado:", pdfResponse);
-          
-          if (!pdfResponse.success) {
-            console.warn("[WhatsApp] Error enviando PDF:", pdfResponse.error);
-          }
-          
-          // Validar que ambos envios fueron exitosos
-          const bothSuccessful = textResponse.success && pdfResponse.success;
-          
-          if (!bothSuccessful) {
-            console.error("[WhatsApp] Fallo en envio de cotizacion:", {
-              textMessageSuccess: textResponse.success,
-              pdfSuccess: pdfResponse.success,
-              textError: textResponse.error,
-              pdfError: pdfResponse.error,
+          if (!templateResponse.success) {
+            console.error("[WhatsApp] Fallo en envio de plantilla:", {
+              templateSuccess: templateResponse.success,
+              templateError: templateResponse.error,
             });
-            
-            const errorParts = [];
-            if (!textResponse.success) errorParts.push("Mensaje de texto: " + textResponse.error);
-            if (!pdfResponse.success) errorParts.push("PDF: " + pdfResponse.error);
-            const errorMsg = "Error enviando cotizacion: " + errorParts.join(", ");
             
             throw new TRPCError({
               code: "INTERNAL_SERVER_ERROR",
-              message: errorMsg,
+              message: `Error enviando cotizacion: ${templateResponse.error}`,
             });
           }
           
           return {
             success: true,
-            textMessage: textResponse,
-            pdfDocument: pdfResponse,
-            message: "Cotizacion enviada exitosamente por WhatsApp",
+            templateMessage: templateResponse,
+            message: "Cotizacion enviada exitosamente por WhatsApp usando plantilla aprobada",
           };
         } catch (error: any) {
           console.error('Error enviando cotizacion por WhatsApp:', error);

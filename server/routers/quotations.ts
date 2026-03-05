@@ -2017,7 +2017,7 @@ export const quotationsRouter = router({
           const templateWithDocResponse = await whatsappCloud.sendTemplateWithDocument(
             client.whatsappPhone,
             "cotizacion_pdf",
-            "es",
+            "es_CO",
             pdfUrl,
             `Cotizacion-${quotation.quotationNumber}.pdf`,
             client.name,

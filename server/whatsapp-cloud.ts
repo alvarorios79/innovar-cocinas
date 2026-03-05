@@ -860,3 +860,127 @@ export async function sendDocumentMessage(
     };
   }
 }
+
+
+/**
+ * Envía una plantilla de WhatsApp con documento (PDF) en el header
+ * El documento se incluye dentro de la plantilla, permitiendo enviar el PDF
+ * en un solo mensaje sin requerir que el cliente haya iniciado conversación
+ * 
+ * @param to - Número de teléfono del destinatario (ej: 573002826317)
+ * @param templateName - Nombre de la plantilla aprobada (ej: cotizacion_lista)
+ * @param language - Código de idioma (ej: es)
+ * @param documentUrl - URL del PDF en S3
+ * @param fileName - Nombre del archivo PDF
+ * @param clientName - Nombre del cliente (parámetro {{1}} del body)
+ * @param quotationNumber - Número de cotización (parámetro {{2}} del body)
+ * @param quotationTotal - Monto total formateado (parámetro {{3}} del body)
+ */
+export async function sendTemplateWithDocument(
+  to: string,
+  templateName: string,
+  language: string,
+  documentUrl: string,
+  fileName: string,
+  clientName: string,
+  quotationNumber: string,
+  quotationTotal: string
+): Promise<WhatsAppMessageResponse> {
+  if (!isWhatsAppCloudConfigured()) {
+    return {
+      success: false,
+      error: "WhatsApp Cloud API no está configurado.",
+    };
+  }
+
+  const formattedPhone = formatPhoneForWhatsApp(to);
+  const accessToken = getWhatsAppAccessToken();
+  const phoneNumberId = getWhatsAppPhoneNumberId();
+
+  try {
+    const payload: Record<string, unknown> = {
+      messaging_product: "whatsapp",
+      to: formattedPhone,
+      type: "template",
+      template: {
+        name: templateName,
+        language: {
+          code: language,
+        },
+        components: [
+          {
+            type: "header",
+            parameters: [
+              {
+                type: "document",
+                document: {
+                  link: documentUrl,
+                  filename: fileName,
+                },
+              },
+            ],
+          },
+          {
+            type: "body",
+            parameters: [
+              { type: "text", text: clientName },
+              { type: "text", text: quotationNumber },
+              { type: "text", text: quotationTotal },
+            ],
+          },
+        ],
+      },
+    };
+
+    console.log("\n----- WHATSAPP TEMPLATE WITH DOCUMENT -----");
+    console.log("PHONE:", formattedPhone);
+    console.log("TEMPLATE:", templateName);
+    console.log("LANGUAGE:", language);
+    console.log("DOCUMENT_URL:", documentUrl);
+    console.log("FILENAME:", fileName);
+    console.log("REQUEST:", JSON.stringify(payload, null, 2));
+    console.log("ENDPOINT:", `${WHATSAPP_API_URL}/${phoneNumberId}/messages`);
+    console.log("-----");
+
+    const response = await fetch(
+      `${WHATSAPP_API_URL}/${phoneNumberId}/messages`,
+      {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      }
+    );
+
+    const data = await response.json();
+
+    console.log("\n----- WHATSAPP TEMPLATE WITH DOCUMENT RESPONSE -----");
+    console.log("STATUS:", response.status);
+    console.log("RESPONSE:", JSON.stringify(data, null, 2));
+    if (data.messages && data.messages.length > 0) {
+      console.log("MESSAGE_ID:", data.messages[0].id);
+    }
+    console.log("-----\n");
+
+    if (response.ok && data.messages && data.messages.length > 0) {
+      return {
+        success: true,
+        messageId: data.messages[0].id,
+      };
+    }
+
+    return {
+      success: false,
+      error: data.error?.message || "Error al enviar plantilla con documento",
+      errorCode: data.error?.code?.toString(),
+    };
+  } catch (error) {
+    console.error("[WHATSAPP] TEMPLATE WITH DOCUMENT CATCH ERROR:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Error de conexión",
+    };
+  }
+}

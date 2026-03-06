@@ -415,19 +415,28 @@ export const projects = mysqlTable("projects", {
 	index("projects_createdBy_idx").on(table.createdBy),
 ]);
 
-export const pushSubscriptions = mysqlTable("pushSubscriptions", {
-	id: int().autoincrement().notNull(),
-	userId: int().notNull().references(() => users.id),
+	export const pushSubscriptions = mysqlTable("pushSubscriptions", {
+	id: int().autoincrement().notNull().primaryKey(),
+	userId: int().notNull().references(() => users.id, { onDelete: "cascade" }),
 	endpoint: text().notNull(),
 	p256Dh: varchar({ length: 255 }).notNull(),
 	auth: varchar({ length: 255 }).notNull(),
+	isActive: tinyint().default(1).notNull(),
 	userAgent: text(),
 	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
-},
-(table) => [
-	index("pushSubscriptions_userId_idx").on(table.userId),
-]);
+	lastUsedAt: timestamp({ mode: 'string' }),
+	dataOrigin: mysqlEnum(['manual', 'system']).default('manual').notNull(),
+	},
+	(table) => [
+		index("pushSubscriptions_userId_idx").on(table.userId),
+		index("pushSubscriptions_endpoint_idx").on(table.endpoint),
+		index("pushSubscriptions_isActive_idx").on(table.isActive),
+		index("pushSubscriptions_createdAt_idx").on(table.createdAt),
+	]);
+
+	export type InsertPushSubscription = typeof pushSubscriptions.$inferInsert;
+	export type SelectPushSubscription = typeof pushSubscriptions.$inferSelect;
 
 export const quotationItems = mysqlTable("quotationItems", {
 	id: int().autoincrement().notNull(),
@@ -684,3 +693,5 @@ export const cleanupAuditLog = mysqlTable("cleanupAuditLog", {
 	index("cleanupAuditLog_timestamp_idx").on(table.timestamp),
 	index("cleanupAuditLog_cleanupSessionId_idx").on(table.cleanupSessionId),
 ]);
+
+

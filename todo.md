@@ -5172,3 +5172,53 @@ Listo para pasar a Fase 7.2 (Intelligent Alerts) cuando sea requerido.
 - [x] Add container constraints to prevent horizontal scrolling
 - [x] Make tables scrollable on small screens
 - [x] Test on iPhone (375px), Android (360px), iPad (768px), Desktop (1200px+)
+
+
+## Push Notifications Implementation
+
+### Phase 1: Service Worker Setup
+- [ ] Enable push event handling in service-worker.js
+- [ ] Implement notification display logic
+- [ ] Handle notification click events
+- [ ] Test service worker registration
+
+### Phase 2: Frontend Subscription Logic
+- [ ] Check browser support for notifications
+- [ ] Request notification permission on login
+- [ ] Subscribe to push notifications
+- [ ] Store subscription endpoint locally
+
+### Phase 3: Database Setup
+- [ ] Create pushSubscriptions table schema
+- [ ] Add userId, endpoint, keys fields
+- [ ] Create database helper functions
+- [ ] Push schema changes to database
+
+### Phase 4: Backend Push Service
+- [ ] Create pushNotifications.ts service
+- [ ] Implement send notification function
+- [ ] Handle Web Push API integration
+- [ ] Add error handling and logging
+
+### Phase 5: tRPC Procedures
+- [ ] Create subscription management procedures
+- [ ] Add subscribe/unsubscribe endpoints
+- [ ] Create notification sending procedures
+- [ ] Add audit logging for notifications
+
+### Phase 6: Event Triggers
+- [ ] Send notification on new appointment
+- [ ] Send notification on quotation sent
+- [ ] Send notification on task assigned
+- [ ] Send notification on system alerts
+
+### Phase 7: User Settings
+- [ ] Add notification toggle in user settings
+- [ ] Persist notification preferences
+- [ ] Respect user preferences before sending
+
+### Phase 8: Testing
+- [ ] Test on iPhone Safari
+- [ ] Test on Android Chrome
+- [ ] Test on Desktop Chrome
+- [ ] Verify notification delivery

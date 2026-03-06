@@ -4855,3 +4855,13 @@ Listo para pasar a Fase 7.2 (Intelligent Alerts) cuando sea requerido.
 - [ ] Crear tests para Zona Crítica
 - [ ] Crear tests para filtrado de datos operacionales
 - [ ] Verificar que datos del sistema no aparezcan en listas normales
+
+
+## Bug Fix: User Deletion Returns HTML Instead of JSON
+
+- [x] Investigate deleteUser endpoint returning HTML instead of JSON
+- [x] Fix deleteUser to return proper JSON responses (fixed vite.ts middleware)
+- [x] Verify permission handling (admin/super_admin)
+- [x] Ensure error responses are JSON structured
+- [x] Create tests for deleteUser JSON responses (12 tests passing)
+- [ ] Test user deletion from admin panel

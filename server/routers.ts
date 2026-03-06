@@ -21,8 +21,10 @@ import { systemRouter } from "./routers/system";
 import { paymentsRouter } from "./routers/payments";
 import { financialSettingsRouter } from "./routers/financialSettings";
 import { dashboardRouter } from "./routers/dashboard";
+import { dataProtectionRouter } from "./routers/dataProtection";
 
 export const appRouter = router({
+  dataProtection: dataProtectionRouter,
   system: systemRouter,
   payments: paymentsRouter,
   financialSettings: financialSettingsRouter,

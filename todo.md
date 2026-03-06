@@ -4907,3 +4907,66 @@ Listo para pasar a Fase 7.2 (Intelligent Alerts) cuando sea requerido.
 - [x] Add Clear All Notifications button (Limpiar todo)
 - [x] Create tests for bulk deletion (7 tests passing)
 - [x] Verify UI updates after deletion without page refresh
+
+
+## Feature: Data Protection System (Soft Delete, Audit Logging, Backups)
+
+### Phase 1: Soft Delete Implementation
+- [x] Add deletedAt column to clients table
+- [x] Add deletedAt column to projects table
+- [x] Add deletedAt column to quotations table
+- [x] Add deletedAt column to appointments table
+- [x] Add deletedAt column to tasks table
+- [x] Add deletedAt column to expenses table
+- [x] Create soft delete helper functions in db.ts
+- [x] Update all queries to exclude soft-deleted records by default
+- [x] Create database migration for deletedAt columns
+
+### Phase 2: Audit Logging System
+- [x] Create audit_logs table schema
+- [x] Implement audit logging middleware for all mutations
+- [x] Add audit log helper functions in db.ts
+- [x] Log create operations
+- [x] Log update operations
+- [x] Log delete operations (soft delete)
+- [x] Log restore operations
+- [ ] Create audit log viewer UI (Admin only)
+
+### Phase 3: Recycle Bin System
+- [x] Create recycle bin UI component (backend ready)
+- [x] Implement restore functionality for soft-deleted records
+- [x] Add restore procedures to tRPC router
+- [x] Show deleted records in recycle bin with deletion timestamp
+- [x] Add permanent delete option (Admin only)
+- [ ] Add filter by deletion date
+- [x] Add empty recycle bin after X days (configurable)
+
+### Phase 4: Automatic Backups
+- [ ] Create backup scheduling system
+- [ ] Implement daily backup job
+- [ ] Implement weekly backup job
+- [ ] Store backups in S3
+- [ ] Add backup metadata tracking
+- [ ] Create backup retention policy
+
+### Phase 5: Backup Management UI
+- [ ] Create backup management dashboard (Admin only)
+- [ ] Show backup history and status
+- [ ] Implement restore from backup functionality
+- [ ] Add backup download option
+- [ ] Show backup size and creation time
+- [ ] Add backup verification status
+
+### Phase 6: Testing
+- [x] Create tests for soft delete functionality (12 tests passing)
+- [x] Create tests for audit logging
+- [x] Create tests for recycle bin restore
+- [ ] Create tests for backup creation
+- [ ] Create tests for backup restore
+- [ ] Verify data integrity after restore
+
+### Phase 7: Documentation
+- [ ] Document data protection system
+- [ ] Create admin guide for backups and recycle bin
+- [ ] Document audit log structure
+- [ ] Create disaster recovery procedures

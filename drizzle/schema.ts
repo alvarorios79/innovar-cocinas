@@ -95,24 +95,25 @@ export const colombianHolidays = mysqlTable("colombianHolidays", {
 	index("colombianHolidays_date_idx").on(table.date),
 ]);
 
-export const expenses = mysqlTable("expenses", {
-	id: int().autoincrement().notNull(),
-	expenseType: mysqlEnum(['materiales_proyecto','gasto_operativo']).notNull(),
-	projectId: int().references(() => projects.id, { onDelete: "set null" } ),
-	projectClientName: varchar({ length: 255 }),
-	operativeCategory: mysqlEnum(['arriendo','energia','agua','internet','mantenimiento','herramientas','jardineria','reparaciones','transporte','papeleria','aseo','otro']),
-	description: text().notNull(),
-	amount: decimal({ precision: 12, scale: 2 }).notNull(),
-	expenseDate: timestamp({ mode: 'string' }).notNull(),
-	supportUrl: text(),
-		supportFileName: varchar({ length: 255 }),
-		receiptUrl: text(),
-		createdBy: int().notNull().references(() => users.id),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
-	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
-	generalCategory: mysqlEnum(['materiales','mano_de_obra','alquiler','servicios','transporte','mantenimiento','otros']).notNull(),
-	subcategory: varchar({ length: 255 }),
-},
+	export const expenses = mysqlTable("expenses", {
+		id: int().autoincrement().notNull(),
+		expenseType: mysqlEnum(['materiales_proyecto','gasto_operativo']).notNull(),
+		projectId: int().references(() => projects.id, { onDelete: "set null" } ),
+		projectClientName: varchar({ length: 255 }),
+		operativeCategory: mysqlEnum(['arriendo','energia','agua','internet','mantenimiento','herramientas','jardineria','reparaciones','transporte','papeleria','aseo','otro']),
+		description: text().notNull(),
+		amount: decimal({ precision: 12, scale: 2 }).notNull(),
+		expenseDate: timestamp({ mode: 'string' }).notNull(),
+		supportUrl: text(),
+			supportFileName: varchar({ length: 255 }),
+			receiptUrl: text(),
+			createdBy: int().notNull().references(() => users.id),
+		createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+		updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+		generalCategory: mysqlEnum(['materiales','mano_de_obra','alquiler','servicios','transporte','mantenimiento','otros']).notNull(),
+		subcategory: varchar({ length: 255 }),
+		deletedAt: timestamp({ mode: 'string' }),
+	},
 (table) => [
 	index("expenses_projectId_idx").on(table.projectId),
 	index("expenses_expenseDate_idx").on(table.expenseDate),
@@ -614,3 +615,28 @@ export const financialSettings = mysqlTable("financialSettings", {
 
 export type InsertFinancialSettings = typeof financialSettings.$inferInsert;
 export type SelectFinancialSettings = typeof financialSettings.$inferSelect;
+
+// Audit logging table for tracking all data changes
+export const auditLogs = mysqlTable("auditLogs", {
+	id: int().autoincrement().notNull().primaryKey(),
+	userId: int().notNull().references(() => users.id),
+	action: mysqlEnum(['create', 'update', 'delete', 'restore']).notNull(),
+	tableName: varchar({ length: 100 }).notNull(),
+	recordId: int().notNull(),
+	changes: json(), // Store before/after values for updates
+	changesSummary: text(), // Human-readable summary of changes
+	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	ipAddress: varchar({ length: 45 }),
+	userAgent: text(),
+},
+(table) => [
+	index("auditLogs_userId_idx").on(table.userId),
+	index("auditLogs_tableName_idx").on(table.tableName),
+	index("auditLogs_recordId_idx").on(table.recordId),
+	index("auditLogs_action_idx").on(table.action),
+	index("auditLogs_createdAt_idx").on(table.createdAt),
+	index("auditLogs_tableName_recordId_idx").on(table.tableName, table.recordId),
+]);
+
+export type InsertAuditLog = typeof auditLogs.$inferInsert;
+export type SelectAuditLog = typeof auditLogs.$inferSelect;

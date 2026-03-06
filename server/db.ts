@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { eq, desc, and, or, gte, lte, gt, between, sql, inArray, isNull } from "drizzle-orm";
+import { eq, desc, and, or, gte, lte, gt, between, sql, inArray, isNull, isNotNull } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 // @ts-ignore
 import { 
@@ -53,7 +53,9 @@ import {
   financialAlerts,
   InsertFinancialAlert,
   financialSettings,
-  InsertFinancialSettings
+  InsertFinancialSettings,
+  auditLogs,
+  InsertAuditLog
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 import { triggerAlertEvaluation } from './services/financialAlertMonitor';
@@ -3245,4 +3247,393 @@ function generateEmptyCashFlowMonths(now: Date) {
   }
 
   return months;
+}
+
+
+// ============ SOFT DELETE & AUDIT LOGGING ============
+
+/**
+ * Log an action to the audit trail
+ */
+export async function logAuditAction(
+  userId: number,
+  action: 'create' | 'update' | 'delete' | 'restore',
+  tableName: string,
+  recordId: number,
+  changes?: any,
+  changesSummary?: string,
+  ipAddress?: string,
+  userAgent?: string
+) {
+  const db = await getDb();
+  if (!db) return;
+
+  try {
+    await db.insert(auditLogs).values({
+      userId,
+      action,
+      tableName,
+      recordId,
+      changes: changes ? JSON.stringify(changes) : null,
+      changesSummary,
+      ipAddress,
+      userAgent,
+    } as any);
+  } catch (error) {
+    console.error('[AuditLog] Error logging action:', error);
+    // Don't throw - audit logging should not break the main operation
+  }
+}
+
+/**
+ * Get audit logs for a specific record
+ */
+export async function getAuditLogsForRecord(tableName: string, recordId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(auditLogs)
+    .where(and(
+      eq(auditLogs.tableName, tableName),
+      eq(auditLogs.recordId, recordId)
+    ))
+    .orderBy(desc(auditLogs.createdAt));
+}
+
+/**
+ * Get audit logs for a user
+ */
+export async function getAuditLogsByUser(userId: number, limit = 100) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(auditLogs)
+    .where(eq(auditLogs.userId, userId))
+    .orderBy(desc(auditLogs.createdAt))
+    .limit(limit);
+}
+
+/**
+ * Soft delete a client
+ */
+export async function softDeleteClient(clientId: number, userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const now = new Date();
+  await db.update(clients)
+    .set({ deletedAt: now })
+    .where(eq(clients.id, clientId));
+
+  await logAuditAction(userId, 'delete', 'clients', clientId, null, `Cliente eliminado (soft delete)`);
+}
+
+/**
+ * Soft delete a project
+ */
+export async function softDeleteProject(projectId: number, userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const now = new Date();
+  await db.update(projects)
+    .set({ deletedAt: now })
+    .where(eq(projects.id, projectId));
+
+  await logAuditAction(userId, 'delete', 'projects', projectId, null, `Proyecto eliminado (soft delete)`);
+}
+
+/**
+ * Soft delete a quotation
+ */
+export async function softDeleteQuotation(quotationId: number, userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const now = new Date();
+  await db.update(quotations)
+    .set({ deletedAt: now })
+    .where(eq(quotations.id, quotationId));
+
+  await logAuditAction(userId, 'delete', 'quotations', quotationId, null, `Cotización eliminada (soft delete)`);
+}
+
+/**
+ * Soft delete an appointment
+ */
+export async function softDeleteAppointment(appointmentId: number, userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const now = new Date();
+  await db.update(appointments)
+    .set({ deletedAt: now })
+    .where(eq(appointments.id, appointmentId));
+
+  await logAuditAction(userId, 'delete', 'appointments', appointmentId, null, `Cita eliminada (soft delete)`);
+}
+
+/**
+ * Soft delete a task
+ */
+export async function softDeleteTask(taskId: number, userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const now = new Date();
+  await db.update(tasks)
+    .set({ deletedAt: now })
+    .where(eq(tasks.id, taskId));
+
+  await logAuditAction(userId, 'delete', 'tasks', taskId, null, `Tarea eliminada (soft delete)`);
+}
+
+/**
+ * Soft delete an expense
+ */
+export async function softDeleteExpense(expenseId: number, userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const now = new Date();
+  await db.update(expenses)
+    .set({ deletedAt: now })
+    .where(eq(expenses.id, expenseId));
+
+  await logAuditAction(userId, 'delete', 'expenses', expenseId, null, `Gasto eliminado (soft delete)`);
+}
+
+/**
+ * Restore a soft-deleted client
+ */
+export async function restoreClient(clientId: number, userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(clients)
+    .set({ deletedAt: null })
+    .where(eq(clients.id, clientId));
+
+  await logAuditAction(userId, 'restore', 'clients', clientId, null, `Cliente restaurado de papelera`);
+}
+
+/**
+ * Restore a soft-deleted project
+ */
+export async function restoreProject(projectId: number, userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(projects)
+    .set({ deletedAt: null })
+    .where(eq(projects.id, projectId));
+
+  await logAuditAction(userId, 'restore', 'projects', projectId, null, `Proyecto restaurado de papelera`);
+}
+
+/**
+ * Restore a soft-deleted quotation
+ */
+export async function restoreQuotation(quotationId: number, userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(quotations)
+    .set({ deletedAt: null })
+    .where(eq(quotations.id, quotationId));
+
+  await logAuditAction(userId, 'restore', 'quotations', quotationId, null, `Cotización restaurada de papelera`);
+}
+
+/**
+ * Restore a soft-deleted appointment
+ */
+export async function restoreAppointment(appointmentId: number, userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(appointments)
+    .set({ deletedAt: null })
+    .where(eq(appointments.id, appointmentId));
+
+  await logAuditAction(userId, 'restore', 'appointments', appointmentId, null, `Cita restaurada de papelera`);
+}
+
+/**
+ * Restore a soft-deleted task
+ */
+export async function restoreTask(taskId: number, userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(tasks)
+    .set({ deletedAt: null })
+    .where(eq(tasks.id, taskId));
+
+  await logAuditAction(userId, 'restore', 'tasks', taskId, null, `Tarea restaurada de papelera`);
+}
+
+/**
+ * Restore a soft-deleted expense
+ */
+export async function restoreExpense(expenseId: number, userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(expenses)
+    .set({ deletedAt: null })
+    .where(eq(expenses.id, expenseId));
+
+  await logAuditAction(userId, 'restore', 'expenses', expenseId, null, `Gasto restaurado de papelera`);
+}
+
+/**
+ * Get all soft-deleted clients for recycle bin
+ */
+export async function getDeletedClients(limit = 100) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(clients)
+    .where(isNotNull(clients.deletedAt))
+    .orderBy(desc(clients.deletedAt))
+    .limit(limit);
+}
+
+/**
+ * Get all soft-deleted projects for recycle bin
+ */
+export async function getDeletedProjects(limit = 100) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(projects)
+    .where(isNotNull(projects.deletedAt))
+    .orderBy(desc(projects.deletedAt))
+    .limit(limit);
+}
+
+/**
+ * Get all soft-deleted quotations for recycle bin
+ */
+export async function getDeletedQuotations(limit = 100) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(quotations)
+    .where(isNotNull(quotations.deletedAt))
+    .orderBy(desc(quotations.deletedAt))
+    .limit(limit);
+}
+
+/**
+ * Get all soft-deleted appointments for recycle bin
+ */
+export async function getDeletedAppointments(limit = 100) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(appointments)
+    .where(isNotNull(appointments.deletedAt))
+    .orderBy(desc(appointments.deletedAt))
+    .limit(limit);
+}
+
+/**
+ * Get all soft-deleted tasks for recycle bin
+ */
+export async function getDeletedTasks(limit = 100) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(tasks)
+    .where(isNotNull(tasks.deletedAt))
+    .orderBy(desc(tasks.deletedAt))
+    .limit(limit);
+}
+
+/**
+ * Get all soft-deleted expenses for recycle bin
+ */
+export async function getDeletedExpenses(limit = 100) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(expenses)
+    .where(isNotNull(expenses.deletedAt))
+    .orderBy(desc(expenses.deletedAt))
+    .limit(limit);
+}
+
+/**
+ * Permanently delete a soft-deleted record (admin only)
+ */
+export async function permanentlyDeleteRecord(tableName: string, recordId: number, userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  let result;
+  switch (tableName) {
+    case 'clients':
+      result = await db.delete(clients).where(eq(clients.id, recordId));
+      break;
+    case 'projects':
+      result = await db.delete(projects).where(eq(projects.id, recordId));
+      break;
+    case 'quotations':
+      result = await db.delete(quotations).where(eq(quotations.id, recordId));
+      break;
+    case 'appointments':
+      result = await db.delete(appointments).where(eq(appointments.id, recordId));
+      break;
+    case 'tasks':
+      result = await db.delete(tasks).where(eq(tasks.id, recordId));
+      break;
+    case 'expenses':
+      result = await db.delete(expenses).where(eq(expenses.id, recordId));
+      break;
+    default:
+      throw new Error(`Unknown table: ${tableName}`);
+  }
+
+  await logAuditAction(userId, 'delete', tableName, recordId, null, `Registro eliminado permanentemente de papelera`);
+  return result;
+}
+
+/**
+ * Empty recycle bin - permanently delete all soft-deleted records older than X days
+ */
+export async function emptyRecycleBin(daysOld: number = 30, userId?: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const cutoffDate = new Date();
+  cutoffDate.setDate(cutoffDate.getDate() - daysOld);
+
+  const tables = [
+    { name: 'clients', table: clients },
+    { name: 'projects', table: projects },
+    { name: 'quotations', table: quotations },
+    { name: 'appointments', table: appointments },
+    { name: 'tasks', table: tasks },
+    { name: 'expenses', table: expenses },
+  ];
+
+  let totalDeleted = 0;
+
+  for (const { name, table } of tables) {
+    const result = await db.delete(table as any).where(
+      and(
+        isNotNull((table as any).deletedAt),
+        lte((table as any).deletedAt, cutoffDate)
+      )
+    );
+    totalDeleted += (result as any).rowsAffected || 0;
+  }
+
+  if (userId) {
+    await logAuditAction(userId, 'delete', 'recycle_bin', 0, null, `Papelera vaciada - ${totalDeleted} registros eliminados permanentemente`);
+  }
+
+  return { totalDeleted };
 }

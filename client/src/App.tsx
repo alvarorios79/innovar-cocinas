@@ -24,6 +24,7 @@ import Accounting from "./pages/Accounting";
 import AppointmentsCalendar from "./pages/AppointmentsCalendar";
 import { CEODashboard } from "./pages/CEODashboard";
 import ProfitabilityDashboard from "./pages/ProfitabilityDashboard";
+import LimpiezaSistema from "./pages/LimpiezaSistema";
 
 function Router() {
   return (
@@ -47,6 +48,7 @@ function Router() {
       <Route path={"/accounting"} component={Accounting} />
       <Route path={"/ceo-dashboard"} component={CEODashboard} />
       <Route path={"/profitability-dashboard"} component={ProfitabilityDashboard} />
+      <Route path={"/limpieza-sistema"} component={LimpiezaSistema} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>

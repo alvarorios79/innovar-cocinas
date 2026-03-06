@@ -18,6 +18,7 @@ import { whatsappCloudRouter } from "./routers/whatsappCloud";
 import { expensesRouter } from "./routers/expenses";
 import { quotationsVersioningRouter } from "./routers/quotations-versioning";
 import { systemRouter } from "./routers/system";
+import { cleanupRouter } from "./routers/cleanup";
 import { paymentsRouter } from "./routers/payments";
 import { financialSettingsRouter } from "./routers/financialSettings";
 import { dashboardRouter } from "./routers/dashboard";
@@ -28,6 +29,7 @@ export const appRouter = router({
   backups: backupsRouter,
   dataProtection: dataProtectionRouter,
   system: systemRouter,
+  cleanup: cleanupRouter,
   payments: paymentsRouter,
   financialSettings: financialSettingsRouter,
   dashboard: dashboardRouter,

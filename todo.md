@@ -5053,3 +5053,38 @@ Listo para pasar a Fase 7.2 (Intelligent Alerts) cuando sea requerido.
 - [x] Update cleanupData procedure with correct deletion order
 - [x] Implement transaction-based cleanup with error handling
 - [x] Comprehensive deletion order: notifications → taskReminders → tasks → appointmentWorkTypes → quotationItems → appointments → project-related records → quotations → projects → client-related records → pushSubscriptions → clients → users
+
+
+## LIMPIEZA DE SISTEMA - Complete Module Implementation
+
+### Backend Implementation
+- [x] Create tRPC procedures for system data inspection (getSystemDataCounts, getSystemRecordsByTable)
+- [x] Create tRPC procedures for bulk deletion (deleteSystemRecords, deleteAllSystemData)
+- [x] Create audit logging table and procedures (cleanupAuditLog)
+- [x] Implement safe deletion with correct foreign key order
+- [x] Add comprehensive error handling and transaction support
+
+### Frontend Implementation
+- [x] Create LIMPIEZA DE SISTEMA page component
+- [x] Build summary dashboard showing record counts per table
+- [x] Implement record list view with pagination
+- [x] Create table filtering and record selection UI
+- [x] Build global cleanup preview and confirmation dialog
+- [x] Implement audit log viewer
+- [x] Add visual indicators for system vs manual data
+
+### Integration & Testing
+- [x] Test individual record deletion
+- [x] Test bulk record deletion
+- [x] Test global cleanup with confirmation
+- [x] Verify audit logging works correctly
+- [x] Test data integrity after cleanup operations
+- [x] Remove old "Zona Crítica" button from Admin panel
+- [x] Add LIMPIEZA DE SISTEMA to Admin navigation
+
+### Quality Assurance
+- [x] Verify no manual data is affected by cleanup
+- [x] Test with large datasets (1000+ records)
+- [x] Verify pagination works correctly
+- [x] Test error scenarios and recovery
+- [x] Performance testing for bulk operations

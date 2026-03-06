@@ -668,3 +668,18 @@ export const backupMetadata = mysqlTable("backupMetadata", {
 	index("backupMetadata_createdAt_idx").on(table.createdAt),
 	index("backupMetadata_expiresAt_idx").on(table.expiresAt),
 ]);
+
+export const cleanupAuditLog = mysqlTable("cleanupAuditLog", {
+	id: int().autoincrement().notNull(),
+	tableName: varchar({ length: 100 }).notNull(),
+	recordsDeleted: int().notNull(),
+	executedBy: int().notNull().references(() => users.id),
+	timestamp: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	cleanupSessionId: varchar({ length: 255 }),
+	details: json().$type<Record<string, any>>(),
+},
+(table) => [
+	index("cleanupAuditLog_executedBy_idx").on(table.executedBy),
+	index("cleanupAuditLog_timestamp_idx").on(table.timestamp),
+	index("cleanupAuditLog_cleanupSessionId_idx").on(table.cleanupSessionId),
+]);

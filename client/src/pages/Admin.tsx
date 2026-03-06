@@ -631,7 +631,7 @@ export default function Admin() {
                   className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-red-600 data-[state=active]:text-white hover:bg-red-100 transition-colors"
                 >
                   <Wrench className="h-4 w-4 mr-1" />
-                  Zona Crítica
+                  Limpieza
                 </TabsTrigger>
               </>
             )}
@@ -1874,11 +1874,16 @@ export default function Admin() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="rounded-lg border border-red-200 bg-red-50 p-4">
-                    <h3 className="font-semibold text-red-900 mb-2">Limpieza de Datos del Sistema</h3>
+                    <h3 className="font-semibold text-red-900 mb-2">🧹 LIMPIEZA DE SISTEMA</h3>
                     <p className="text-sm text-red-700 mb-4">
-                      Elimina todos los registros marcados como "system" (dataOrigin = 'system'). Esta acción es irreversible.
+                      Accede al módulo completo de limpieza de datos del sistema para inspeccionar, filtrar y eliminar registros de prueba de forma segura.
                     </p>
-                    <SystemCleanupButton />
+                    <Link href="/limpieza-sistema">
+                      <Button className="w-full bg-red-600 hover:bg-red-700 text-white">
+                        <Wrench className="h-4 w-4 mr-2" />
+                        Ir a LIMPIEZA DE SISTEMA
+                      </Button>
+                    </Link>
                   </div>
                 </CardContent>
               </Card>

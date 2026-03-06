@@ -32,6 +32,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { ExpenseImportModal } from "@/components/ExpenseImportModal";
+import { Upload } from "lucide-react";
 
 // Categorías operativas
 const OPERATIVE_CATEGORIES = [
@@ -76,10 +78,14 @@ export default function Accounting() {
   const [maxAmount, setMaxAmount] = useState("");
   const [editingId, setEditingId] = useState<number | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
+  const [importModalOpen, setImportModalOpen] = useState(false);
 
   // Queries
   const { data: projects } = trpc.projects.list.useQuery();
   const { data: expenses } = trpc.expenses.getAll.useQuery();
+
+  // Check if user has permission to import
+  const canImport = user?.role === "admin" || user?.role === "super_admin";
 
   // Mutations
   const createExpense = trpc.expenses.create.useMutation({
@@ -227,6 +233,11 @@ export default function Accounting() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
+      <ExpenseImportModal
+        open={importModalOpen}
+        onOpenChange={setImportModalOpen}
+        projects={projects || []}
+      />
       {/* Botón de navegación */}
       <div className="bg-white border-b shadow-sm">
         <div className="container max-w-6xl mx-auto px-4 py-3">
@@ -245,12 +256,23 @@ export default function Accounting() {
       {/* Header */}
       <div className="bg-white border-b shadow-sm">
         <div className="container max-w-6xl mx-auto px-4 py-6">
-          <div className="flex items-center gap-3">
-            <Calculator className="h-8 w-8 text-teal-600" />
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Contabilidad</h1>
-              <p className="text-gray-600">Registro de gastos del proyecto</p>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <Calculator className="h-8 w-8 text-teal-600" />
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">Contabilidad</h1>
+                <p className="text-gray-600">Registro de gastos del proyecto</p>
+              </div>
             </div>
+            {canImport && (
+              <Button
+                onClick={() => setImportModalOpen(true)}
+                className="bg-teal-600 hover:bg-teal-700 text-white"
+              >
+                <Upload className="h-4 w-4 mr-2" />
+                Importar gastos
+              </Button>
+            )}
           </div>
         </div>
       </div>

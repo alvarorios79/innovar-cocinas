@@ -4984,3 +4984,16 @@ Listo para pasar a Fase 7.2 (Intelligent Alerts) cuando sea requerido.
 - [x] Create backup management tRPC procedures (7 procedures)
 - [x] Create comprehensive backup/restore tests (11 tests)
 - [x] Verify operational data remains clean after restore (tested)
+
+
+## Feature: Scheduled Automatic Backups
+
+- [x] Create backup scheduling service with cron jobs (BackupScheduler class)
+- [x] Implement daily backup job at 02:00 AM (0 2 * * *)
+- [x] Implement weekly backup job on Sunday (0 3 * * 0)
+- [x] Implement retention policy (7 daily, 4 weekly)
+- [x] Create automatic cleanup of expired backups (0 4 * * *)
+- [x] Add backup job monitoring and logging (console + owner notifications)
+- [x] Add error handling and retry logic (try/catch with notifications)
+- [x] Create tests for scheduled backups (11 tests passing)
+- [x] Verify backups run automatically without manual intervention (initialized in server startup)

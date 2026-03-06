@@ -20,6 +20,7 @@ import { startAppointmentReminderService } from "../appointment-reminder-service
 import { startTeamWhatsAppService } from "../whatsapp-team-notifications";
 import { startPeriodicCleanup } from "../tmp-cleanup";
 import { startWhatsAppTokenMonitor } from "../whatsapp-token-monitor";
+import { backupScheduler } from "../services/backupScheduler";
 import { apiRateLimiter, authRateLimiter, uploadRateLimiter } from "../rate-limiter";
 import cors from "cors";
 
@@ -223,6 +224,9 @@ async function startServer() {
     
     // Iniciar monitoreo diario del token de WhatsApp
     startWhatsAppTokenMonitor();
+    
+    // Iniciar scheduler de backups automáticos
+    backupScheduler.initialize().catch(console.error);
   });
 }
 

@@ -25,6 +25,9 @@ export function CriticalZone() {
   const [selectedTab, setSelectedTab] = useState("overview");
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
+  // Query for system data counts
+  const systemDataCountsQuery = trpc.system.getSystemDataCounts.useQuery();
+  
   // Queries for system data
   const systemClientsQuery = trpc.system.getSystemClients.useQuery();
   const systemQuotationsQuery = trpc.system.getSystemQuotations.useQuery();
@@ -125,12 +128,14 @@ export function CriticalZone() {
     },
   });
 
-  const systemClientsCount = systemClientsQuery.data?.length ?? 0;
-  const systemQuotationsCount = systemQuotationsQuery.data?.length ?? 0;
-  const systemProjectsCount = systemProjectsQuery.data?.length ?? 0;
-  const systemAppointmentsCount = systemAppointmentsQuery.data?.length ?? 0;
+  // Use counts from query for faster preview
+  const systemClientsCount = Number(systemDataCountsQuery.data?.clients ?? 0);
+  const systemQuotationsCount = Number(systemDataCountsQuery.data?.quotations ?? 0);
+  const systemProjectsCount = Number(systemDataCountsQuery.data?.projects ?? 0);
+  const systemAppointmentsCount = Number(systemDataCountsQuery.data?.appointments ?? 0);
+  const systemTasksCount = Number(systemDataCountsQuery.data?.tasks ?? 0);
 
-  const totalSystemData = systemClientsCount + systemQuotationsCount + systemProjectsCount + systemAppointmentsCount;
+  const totalSystemData = systemClientsCount + systemQuotationsCount + systemProjectsCount + systemAppointmentsCount + systemTasksCount;
 
   return (
     <div className="space-y-6">
@@ -153,7 +158,7 @@ export function CriticalZone() {
             <CardTitle className="text-sm font-medium text-red-900">Clientes</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">{systemClientsCount}</div>
+            <div className="text-2xl font-bold text-red-600">{String(systemClientsCount)}</div>
             <p className="text-xs text-red-700 mt-1">del sistema</p>
           </CardContent>
         </Card>
@@ -163,7 +168,7 @@ export function CriticalZone() {
             <CardTitle className="text-sm font-medium text-red-900">Cotizaciones</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">{systemQuotationsCount}</div>
+            <div className="text-2xl font-bold text-red-600">{String(systemQuotationsCount)}</div>
             <p className="text-xs text-red-700 mt-1">del sistema</p>
           </CardContent>
         </Card>
@@ -173,7 +178,7 @@ export function CriticalZone() {
             <CardTitle className="text-sm font-medium text-red-900">Proyectos</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">{systemProjectsCount}</div>
+            <div className="text-2xl font-bold text-red-600">{String(systemProjectsCount)}</div>
             <p className="text-xs text-red-700 mt-1">del sistema</p>
           </CardContent>
         </Card>
@@ -183,7 +188,7 @@ export function CriticalZone() {
             <CardTitle className="text-sm font-medium text-red-900">Citas</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">{systemAppointmentsCount}</div>
+            <div className="text-2xl font-bold text-red-600">{String(systemAppointmentsCount)}</div>
             <p className="text-xs text-red-700 mt-1">del sistema</p>
           </CardContent>
         </Card>
@@ -196,16 +201,16 @@ export function CriticalZone() {
         <CardHeader>
           <CardTitle className="text-red-900">Gestión de Datos del Sistema</CardTitle>
           <CardDescription>
-            Total de registros del sistema: <span className="font-semibold text-red-600">{totalSystemData}</span>
+            Total de registros del sistema: <span className="font-semibold text-red-600">{String(totalSystemData)}</span>
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs value={selectedTab} onValueChange={setSelectedTab}>
             <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="clients">Clientes ({systemClientsCount})</TabsTrigger>
-              <TabsTrigger value="quotations">Cotizaciones ({systemQuotationsCount})</TabsTrigger>
-              <TabsTrigger value="projects">Proyectos ({systemProjectsCount})</TabsTrigger>
-              <TabsTrigger value="appointments">Citas ({systemAppointmentsCount})</TabsTrigger>
+              <TabsTrigger value="clients">Clientes ({String(systemClientsCount)})</TabsTrigger>
+              <TabsTrigger value="quotations">Cotizaciones ({String(systemQuotationsCount)})</TabsTrigger>
+              <TabsTrigger value="projects">Proyectos ({String(systemProjectsCount)})</TabsTrigger>
+              <TabsTrigger value="appointments">Citas ({String(systemAppointmentsCount)})</TabsTrigger>
             </TabsList>
 
             {/* Clientes */}
@@ -217,13 +222,13 @@ export function CriticalZone() {
               ) : (
                 <>
                   <div className="bg-gray-50 p-3 rounded text-sm">
-                    <p className="font-medium text-gray-900">{systemClientsCount} clientes del sistema encontrados</p>
+                    <p className="font-medium text-gray-900">{String(systemClientsCount)} clientes del sistema encontrados</p>
                     <p className="text-gray-600 text-xs mt-1">Estos clientes fueron generados automáticamente para pruebas</p>
                   </div>
                   {confirmDelete === "clients" ? (
                     <div className="bg-red-50 border border-red-200 p-4 rounded space-y-3">
                       <p className="text-sm font-medium text-red-900">
-                        ¿Confirmas que deseas eliminar {systemClientsCount} clientes del sistema?
+                        ¿Confirmas que deseas eliminar {String(systemClientsCount)} clientes del sistema?
                       </p>
                       <div className="flex gap-2">
                         <Button
@@ -266,13 +271,13 @@ export function CriticalZone() {
               ) : (
                 <>
                   <div className="bg-gray-50 p-3 rounded text-sm">
-                    <p className="font-medium text-gray-900">{systemQuotationsCount} cotizaciones del sistema encontradas</p>
+                    <p className="font-medium text-gray-900">{String(systemQuotationsCount)} cotizaciones del sistema encontradas</p>
                     <p className="text-gray-600 text-xs mt-1">Estas cotizaciones fueron generadas automáticamente para pruebas</p>
                   </div>
                   {confirmDelete === "quotations" ? (
                     <div className="bg-red-50 border border-red-200 p-4 rounded space-y-3">
                       <p className="text-sm font-medium text-red-900">
-                        ¿Confirmas que deseas eliminar {systemQuotationsCount} cotizaciones del sistema?
+                        ¿Confirmas que deseas eliminar {String(systemQuotationsCount)} cotizaciones del sistema?
                       </p>
                       <div className="flex gap-2">
                         <Button
@@ -315,13 +320,13 @@ export function CriticalZone() {
               ) : (
                 <>
                   <div className="bg-gray-50 p-3 rounded text-sm">
-                    <p className="font-medium text-gray-900">{systemProjectsCount} proyectos del sistema encontrados</p>
+                    <p className="font-medium text-gray-900">{String(systemProjectsCount)} proyectos del sistema encontrados</p>
                     <p className="text-gray-600 text-xs mt-1">Estos proyectos fueron generados automáticamente para pruebas</p>
                   </div>
                   {confirmDelete === "projects" ? (
                     <div className="bg-red-50 border border-red-200 p-4 rounded space-y-3">
                       <p className="text-sm font-medium text-red-900">
-                        ¿Confirmas que deseas eliminar {systemProjectsCount} proyectos del sistema?
+                        ¿Confirmas que deseas eliminar {String(systemProjectsCount)} proyectos del sistema?
                       </p>
                       <div className="flex gap-2">
                         <Button
@@ -364,13 +369,13 @@ export function CriticalZone() {
               ) : (
                 <>
                   <div className="bg-gray-50 p-3 rounded text-sm">
-                    <p className="font-medium text-gray-900">{systemAppointmentsCount} citas del sistema encontradas</p>
+                    <p className="font-medium text-gray-900">{String(systemAppointmentsCount)} citas del sistema encontradas</p>
                     <p className="text-gray-600 text-xs mt-1">Estas citas fueron generadas automáticamente para pruebas</p>
                   </div>
                   {confirmDelete === "appointments" ? (
                     <div className="bg-red-50 border border-red-200 p-4 rounded space-y-3">
                       <p className="text-sm font-medium text-red-900">
-                        ¿Confirmas que deseas eliminar {systemAppointmentsCount} citas del sistema?
+                        ¿Confirmas que deseas eliminar {String(systemAppointmentsCount)} citas del sistema?
                       </p>
                       <div className="flex gap-2">
                         <Button
@@ -445,15 +450,42 @@ export function CriticalZone() {
               </div>
             </div>
           ) : (
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={() => setConfirmDelete("cleanup")}
-              disabled={totalSystemData === 0}
-            >
-              <Trash2 className="w-4 h-4 mr-2" />
-              Ejecutar Limpieza del Sistema
-            </Button>
+            <div className="space-y-3">
+              <div className="bg-white p-4 rounded border border-red-200 space-y-2">
+                <p className="text-sm font-medium text-gray-900">Vista Previa de Datos a Eliminar:</p>
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-2 text-sm">
+                  <div className="bg-red-50 p-2 rounded">
+                    <p className="text-xs text-gray-600">Clientes</p>
+                    <p className="font-semibold text-red-600">{String(systemClientsCount)}</p>
+                  </div>
+                  <div className="bg-red-50 p-2 rounded">
+                    <p className="text-xs text-gray-600">Cotizaciones</p>
+                    <p className="font-semibold text-red-600">{String(systemQuotationsCount)}</p>
+                  </div>
+                  <div className="bg-red-50 p-2 rounded">
+                    <p className="text-xs text-gray-600">Proyectos</p>
+                    <p className="font-semibold text-red-600">{String(systemProjectsCount)}</p>
+                  </div>
+                  <div className="bg-red-50 p-2 rounded">
+                    <p className="text-xs text-gray-600">Citas</p>
+                    <p className="font-semibold text-red-600">{String(systemAppointmentsCount)}</p>
+                  </div>
+                  <div className="bg-red-50 p-2 rounded">
+                    <p className="text-xs text-gray-600">Total</p>
+                    <p className="font-semibold text-red-600">{String(totalSystemData)}</p>
+                  </div>
+                </div>
+              </div>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => setConfirmDelete("cleanup")}
+                disabled={totalSystemData === 0}
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Ejecutar Limpieza del Sistema
+              </Button>
+            </div>
           )}
         </CardContent>
       </Card>
@@ -464,6 +496,7 @@ export function CriticalZone() {
           variant="outline"
           size="sm"
           onClick={() => {
+            systemDataCountsQuery.refetch();
             systemClientsQuery.refetch();
             systemQuotationsQuery.refetch();
             systemProjectsQuery.refetch();

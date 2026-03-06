@@ -1,7 +1,7 @@
 import { router, protectedProcedure } from "../_core/trpc";
 import { TRPCError } from "@trpc/server";
 import { getDb } from "../db";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { 
   users, 
   clients, 
@@ -17,7 +17,98 @@ import {
  * Only accessible to super_admin role
  */
 
+/**
+ * Get counts of all system data without deleting
+ */
+export const getSystemDataCounts = protectedProcedure.query(async ({ ctx }) => {
+  if (ctx.user.role !== "super_admin") {
+    throw new TRPCError({ code: "FORBIDDEN", message: "Solo super administradores pueden acceder a la Zona Crítica" });
+  }
+  
+  const db = await getDb();
+  if (!db) {
+    return {
+      clients: 0,
+      quotations: 0,
+      projects: 0,
+      appointments: 0,
+      tasks: 0,
+    };
+  }
+  
+  try {
+    const [clientsData, quotationsData, projectsData, appointmentsData] = await Promise.all([
+      db.select({ count: sql`COUNT(*) as count` }).from(clients).where(eq(clients.dataOrigin, "system")),
+      db.select({ count: sql`COUNT(*) as count` }).from(quotations).where(eq(quotations.dataOrigin, "system")),
+      db.select({ count: sql`COUNT(*) as count` }).from(projects).where(eq(projects.dataOrigin, "system")),
+      db.select({ count: sql`COUNT(*) as count` }).from(appointments).where(eq(appointments.dataOrigin, "system")),
+    ]);
+    
+    return {
+      clients: clientsData[0]?.count || 0,
+      quotations: quotationsData[0]?.count || 0,
+      projects: projectsData[0]?.count || 0,
+      appointments: appointmentsData[0]?.count || 0,
+      tasks: 0, // tasks table doesn't have dataOrigin
+    };
+  } catch (error) {
+    console.error("[getSystemDataCounts] Error:", error);
+    return {
+      clients: 0,
+      quotations: 0,
+      projects: 0,
+      appointments: 0,
+      tasks: 0,
+    };
+  }
+});
+
 export const systemRouter = router({
+  /**
+   * Get counts of all system data without deleting
+   */
+  getSystemDataCounts: protectedProcedure.query(async ({ ctx }) => {
+    if (ctx.user.role !== "super_admin") {
+      throw new TRPCError({ code: "FORBIDDEN", message: "Solo super administradores pueden acceder a la Zona Crítica" });
+    }
+    
+    const db = await getDb();
+    if (!db) {
+      return {
+        clients: 0,
+        quotations: 0,
+        projects: 0,
+        appointments: 0,
+        tasks: 0,
+      };
+    }
+    
+    try {
+      const [clientsData, quotationsData, projectsData, appointmentsData] = await Promise.all([
+        db.select({ count: sql`COUNT(*) as count` }).from(clients).where(eq(clients.dataOrigin, "system")),
+        db.select({ count: sql`COUNT(*) as count` }).from(quotations).where(eq(quotations.dataOrigin, "system")),
+        db.select({ count: sql`COUNT(*) as count` }).from(projects).where(eq(projects.dataOrigin, "system")),
+        db.select({ count: sql`COUNT(*) as count` }).from(appointments).where(eq(appointments.dataOrigin, "system")),
+      ]);
+      
+      return {
+        clients: clientsData[0]?.count || 0,
+        quotations: quotationsData[0]?.count || 0,
+        projects: projectsData[0]?.count || 0,
+        appointments: appointmentsData[0]?.count || 0,
+        tasks: 0, // tasks table doesn't have dataOrigin
+      };
+    } catch (error) {
+      console.error("[getSystemDataCounts] Error:", error);
+      return {
+        clients: 0,
+        quotations: 0,
+        projects: 0,
+        appointments: 0,
+        tasks: 0,
+      };
+    }
+  }),
   /**
    * Get all system clients
    */

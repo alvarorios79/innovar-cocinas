@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { ExpenseImportModal } from "@/components/ExpenseImportModal";
+import { ReceiptUpload } from "@/components/ReceiptUpload";
 import { Upload } from "lucide-react";
 
 // Categorías operativas
@@ -79,6 +80,8 @@ export default function Accounting() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
   const [importModalOpen, setImportModalOpen] = useState(false);
+  const [receiptUrl, setReceiptUrl] = useState<string>("");
+  const [receiptFileName, setReceiptFileName] = useState<string>("");
 
   // Queries
   const { data: projects } = trpc.projects.list.useQuery();
@@ -97,6 +100,8 @@ export default function Accounting() {
       setAmount("");
       setExpenseDate(new Date().toISOString().split("T")[0]);
       setEditingId(null);
+      setReceiptUrl("");
+      setReceiptFileName("");
       // Mantener tipo, proyecto/categoría y fecha
     },
     onError: (error) => {
@@ -112,6 +117,8 @@ export default function Accounting() {
       setAmount("");
       setExpenseDate(new Date().toISOString().split("T")[0]);
       setEditingId(null);
+      setReceiptUrl("");
+      setReceiptFileName("");
     },
     onError: (error) => {
       toast.error(`Error: ${error.message}`);
@@ -188,6 +195,7 @@ export default function Accounting() {
           expenseType,
           operativeCategory: expenseType === "gasto_operativo" ? (operativeCategory as any) : undefined,
           generalCategory: expenseType === "materiales_proyecto" ? "materiales" : "servicios",
+          receiptUrl: receiptUrl || undefined,
         });
       } else {
         await createExpense.mutateAsync({
@@ -198,6 +206,7 @@ export default function Accounting() {
           amount: parseFloat(amount),
           expenseDate,
           generalCategory: expenseType === "materiales_proyecto" ? "materiales" : "servicios",
+          receiptUrl: receiptUrl || undefined,
         });
       }
     } finally {
@@ -213,6 +222,8 @@ export default function Accounting() {
     setDescription(expense.description);
     setAmount(expense.amount.toString());
     setExpenseDate(new Date(expense.expenseDate).toISOString().split("T")[0]);
+    setReceiptUrl(expense.receiptUrl || "");
+    setReceiptFileName("");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -223,6 +234,8 @@ export default function Accounting() {
     setExpenseDate(new Date().toISOString().split("T")[0]);
     setProjectId("");
     setOperativeCategory("");
+    setReceiptUrl("");
+    setReceiptFileName("");
   };
 
   const handleDeleteExpense = async (id: number) => {
@@ -392,6 +405,16 @@ export default function Accounting() {
                   />
               </div>
 
+              {/* SECCIÓN 3.5: Comprobante */}
+              <ReceiptUpload
+                onUploadComplete={(url, fileName) => {
+                  setReceiptUrl(url);
+                  setReceiptFileName(fileName);
+                }}
+                currentReceiptUrl={receiptUrl}
+                currentFileName={receiptFileName}
+              />
+
               {/* SECCIÓN 4: Botón */}
               <div className="flex justify-end gap-3 pt-4">
                 {editingId && (
@@ -494,6 +517,7 @@ export default function Accounting() {
                     <th className="text-left py-3 px-4 font-semibold">Descripción</th>
                     <th className="text-left py-3 px-4 font-semibold">Tipo</th>
                     <th className="text-right py-3 px-4 font-semibold">Monto</th>
+                    <th className="text-center py-3 px-4 font-semibold">Comprobante</th>
                     {canEditDelete && <th className="text-center py-3 px-4 font-semibold">Acciones</th>}
                   </tr>
                 </thead>
@@ -511,6 +535,22 @@ export default function Accounting() {
                       </td>
                       <td className="py-3 px-4 text-right font-semibold">
                         ${expense.amount.toLocaleString()}
+                      </td>
+                      <td className="py-3 px-4 text-center">
+                        {expense.receiptUrl ? (
+                          <a
+                            href={expense.receiptUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 hover:underline"
+                            title="Ver comprobante"
+                          >
+                            <span className="text-lg">📎</span>
+                            <span className="hidden md:inline text-xs">Ver</span>
+                          </a>
+                        ) : (
+                          <span className="text-gray-400 text-xs">-</span>
+                        )}
                       </td>
                       {canEditDelete && (
                         <td className="py-3 px-4 text-center">

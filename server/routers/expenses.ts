@@ -35,6 +35,7 @@ export const expensesRouter = router({
         expenseDate: z.string(), // ISO date string
         supportUrl: z.string().optional(),
         supportFileName: z.string().optional(),
+        receiptUrl: z.string().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         // Solo admin, super_admin y comercial pueden registrar gastos
@@ -74,6 +75,7 @@ export const expensesRouter = router({
           expenseDate: new Date(input.expenseDate),
           supportUrl: input.supportUrl || null,
           supportFileName: input.supportFileName || null,
+          receiptUrl: input.receiptUrl || null,
           createdBy: ctx.user.id,
         });
 
@@ -203,6 +205,7 @@ export const expensesRouter = router({
         expenseDate: z.string().optional(),
         supportUrl: z.string().optional(),
         supportFileName: z.string().optional(),
+        receiptUrl: z.string().optional(),
         expenseType: z.enum(["materiales_proyecto", "gasto_operativo"]).optional(),
         generalCategory: z.string().optional(),
         operativeCategory: z.string().optional(),
@@ -225,6 +228,7 @@ export const expensesRouter = router({
         if (data.expenseDate) updateData.expenseDate = new Date(data.expenseDate);
         if (data.supportUrl !== undefined) updateData.supportUrl = data.supportUrl;
         if (data.supportFileName !== undefined) updateData.supportFileName = data.supportFileName;
+        if (data.receiptUrl !== undefined) updateData.receiptUrl = data.receiptUrl;
         if (data.expenseType) updateData.expenseType = data.expenseType;
         if (data.generalCategory) updateData.generalCategory = data.generalCategory;
         if (data.operativeCategory) updateData.operativeCategory = data.operativeCategory;

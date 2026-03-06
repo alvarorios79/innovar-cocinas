@@ -4807,3 +4807,19 @@ Listo para pasar a Fase 7.2 (Intelligent Alerts) cuando sea requerido.
 - [x] Validar flujo en laptop, iPhone e iPad
 - [x] Confirmar que el enlace de galería funciona correctamente
 - [x] Confirmar que la aprobación web sigue intacta
+
+
+## Adjuntar Comprobantes en Gastos
+
+- [x] Agregar columna receiptUrl a tabla expenses en schema
+- [x] Crear y ejecutar migración de base de datos para receiptUrl
+- [x] Agregar input de carga de archivo en formulario de gastos
+- [x] Implementar subida de archivo a S3 (PDF, JPG, PNG)
+- [x] Actualizar mutación createExpense para incluir receiptUrl
+- [x] Actualizar mutación updateExpense para permitir reemplazar comprobante
+- [x] Agregar columna "Comprobante" en tabla de historial de gastos
+- [x] Implementar icono 📎 Ver comprobante con enlace a archivo
+- [x] Agregar funcionalidad de apertura en nueva pestaña
+- [x] Probar en desktop, tablet y móvil
+- [x] Verificar permisos (solo admin y super_admin)
+- [x] Crear tests vitest para funcionalidad de comprobantes (6 tests pasando)

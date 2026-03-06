@@ -5045,3 +5045,11 @@ Listo para pasar a Fase 7.2 (Intelligent Alerts) cuando sea requerido.
 - [x] Update test users to dataOrigin='system' (1,844 users updated)
 - [x] Verify counts before and after update (verified)
 - [x] Test System Cleanup removes all test users (ready for cleanup)
+
+
+## Bug Fix: System Cleanup Failing with Foreign Key Constraints
+
+- [x] Analyze foreign key dependencies between tables
+- [x] Update cleanupData procedure with correct deletion order
+- [x] Implement transaction-based cleanup with error handling
+- [x] Comprehensive deletion order: notifications → taskReminders → tasks → appointmentWorkTypes → quotationItems → appointments → project-related records → quotations → projects → client-related records → pushSubscriptions → clients → users

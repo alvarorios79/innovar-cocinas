@@ -589,7 +589,7 @@ export async function getAllUsers() {
   }
 
   try {
-    const allUsers = await db.select().from(users).where(isNull(users.deletedAt));
+    const allUsers = await db.select().from(users).where(and(isNull(users.deletedAt), eq(users.dataOrigin, 'manual')));
     return allUsers;
   } catch (error) {
     console.error("[Database] Failed to get users:", error);
@@ -2351,7 +2351,7 @@ export async function getAllTasksPaginated(params: PaginationParams & { status?:
   const limit = Math.min(100, Math.max(1, params.limit || 50));
   const offset = (page - 1) * limit;
 
-  const conditions: any[] = [isNull(tasks.deletedAt), eq(tasks.dataOrigin, 'manual')];
+  const conditions: any[] = [isNull(tasks.deletedAt)];
   if (params.status) {
     conditions.push(eq(tasks.status, params.status as any));
   }

@@ -1,0 +1,410 @@
+{
+  "query": "SELECT id, name, email, role, dataOrigin, createdAt FROM users ORDER BY createdAt DESC LIMIT 50",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT id, name, email, role, dataOrigin, createdAt FROM users ORDER BY createdAt DESC LIMIT 50",
+  "rows": [
+    {
+      "id": "13381221",
+      "name": "Admin Test Items",
+      "email": "admin-items-test@test.com",
+      "role": "admin",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:48:42"
+    },
+    {
+      "id": "13381220",
+      "name": "Admin Test",
+      "email": "admin-quot-test@test.com",
+      "role": "admin",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:48:42"
+    },
+    {
+      "id": "13381219",
+      "name": "Super Admin Test",
+      "email": "superadmin-reset-1772826521858@test.com",
+      "role": "super_admin",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:48:41"
+    },
+    {
+      "id": "13381213",
+      "name": "Test Password User",
+      "email": "password-user-1772826518796@example.com",
+      "role": "user",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:48:39"
+    },
+    {
+      "id": "13381214",
+      "name": "Test Admin",
+      "email": "admin-update-test@test.com",
+      "role": "admin",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:48:39"
+    },
+    {
+      "id": "13381215",
+      "name": "Test User",
+      "email": "admin-created-1772826519231@example.com",
+      "role": "user",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:48:39"
+    },
+    {
+      "id": "13381211",
+      "name": "New Admin",
+      "email": "newadmin-1772826518999@test.com",
+      "role": "admin",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:48:39"
+    },
+    {
+      "id": "13381218",
+      "name": "Usuario Existente",
+      "email": "test-1772826519979@example.com",
+      "role": "user",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:48:39"
+    },
+    {
+      "id": "13381216",
+      "name": "Admin Test Edit",
+      "email": "admin-edit-test@test.com",
+      "role": "admin",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:48:39"
+    },
+    {
+      "id": "13381212",
+      "name": "First User",
+      "email": "duplicate-1772826519026@test.com",
+      "role": "user",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:48:39"
+    },
+    {
+      "id": "13381217",
+      "name": "Cliente Test Auto-registro",
+      "email": "test-1772826519514@example.com",
+      "role": "user",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:48:39"
+    },
+    {
+      "id": "13381210",
+      "name": "New User",
+      "email": "newuser-1772826518848@test.com",
+      "role": "user",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:48:38"
+    },
+    {
+      "id": "13381209",
+      "name": "Test User",
+      "email": "test-1772826517532@example.com",
+      "role": "user",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:48:38"
+    },
+    {
+      "id": "13381208",
+      "name": "Test User",
+      "email": "test-1772826515600@example.com",
+      "role": "user",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:48:36"
+    },
+    {
+      "id": "13381207",
+      "name": "Test User Design",
+      "email": "test-design-1772826515588@test.com",
+      "role": "user",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:48:35"
+    },
+    {
+      "id": "13381206",
+      "name": "Test User QVS2",
+      "email": "user-qvs2-1772826515381@example.com",
+      "role": "admin",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:48:35"
+    },
+    {
+      "id": "13381204",
+      "name": "Admin Test Fixed Costs",
+      "email": "admin-fixedcosts-test@test.com",
+      "role": "admin",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:48:34"
+    },
+    {
+      "id": "13381203",
+      "name": "Admin Test Fixed Costs",
+      "email": "admin-fixedcosts-test@test.com",
+      "role": "admin",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:48:34"
+    },
+    {
+      "id": "13381205",
+      "name": "Admin Test Fixed Costs",
+      "email": "admin-fixedcosts-test@test.com",
+      "role": "admin",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:48:34"
+    },
+    {
+      "id": "13381197",
+      "name": "User Test",
+      "email": "user-bulk-1772826510655@test.com",
+      "role": "user",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:48:30"
+    },
+    {
+      "id": "13381195",
+      "name": "Admin Test",
+      "email": "admin-bulk-1772826509878@test.com",
+      "role": "admin",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:48:29"
+    },
+    {
+      "id": "13381168",
+      "name": "User To Promote",
+      "email": "user-promote-1772826509001@test.com",
+      "role": "admin",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:48:29"
+    },
+    {
+      "id": "13381143",
+      "name": "Test Manual User",
+      "email": "test-manual-1772826508054@example.com",
+      "role": "user",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:48:28"
+    },
+    {
+      "id": "13381154",
+      "name": "Admin To Delete",
+      "email": "admin-to-delete-1772826508669@test.com",
+      "role": "admin",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:48:28"
+    },
+    {
+      "id": "13381146",
+      "name": "Manual Quotation User",
+      "email": "manual-quot-1772826508364@example.com",
+      "role": "user",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:48:28"
+    },
+    {
+      "id": "13381144",
+      "name": "Manual Mix User",
+      "email": "manual-mix-1772826508180@example.com",
+      "role": "user",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:48:28"
+    },
+    {
+      "id": "13381152",
+      "name": "New Super Admin",
+      "email": "newsuperadmin-1772826508610@test.com",
+      "role": "super_admin",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:48:28"
+    },
+    {
+      "id": "13381165",
+      "name": "Admin Role Protected",
+      "email": "admin-role-protected-1772826508897@test.com",
+      "role": "admin",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:48:28"
+    },
+    {
+      "id": "13381159",
+      "name": "User To Delete",
+      "email": "user-to-delete-1772826508791@test.com",
+      "role": "user",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:48:28"
+    },
+    {
+      "id": "13381162",
+      "name": "Target User",
+      "email": "target-1772826508853@test.com",
+      "role": "user",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:48:28"
+    },
+    {
+      "id": "13381166",
+      "name": "User No Promote",
+      "email": "user-no-promote-1772826508951@test.com",
+      "role": "user",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:48:28"
+    },
+    {
+      "id": "13381145",
+      "name": "System Mix User",
+      "email": "system-mix-1772826508190@example.com",
+      "role": "user",
+      "dataOrigin": "system",
+      "createdAt": "2026-03-06 19:48:28"
+    },
+    {
+      "id": "13381158",
+      "name": "Protected Admin",
+      "email": "admin-protected-1772826508733@test.com",
+      "role": "admin",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:48:28"
+    },
+    {
+      "id": "13381150",
+      "name": "New Admin",
+      "email": "newadmin-1772826508470@test.com",
+      "role": "admin",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:48:28"
+    },
+    {
+      "id": "13381153",
+      "name": "Regular User",
+      "email": "regularuser-1772826508639@test.com",
+      "role": "user",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:48:28"
+    },
+    {
+      "id": "13381142",
+      "name": "Test System User",
+      "email": "test-system-1772826507750@example.com",
+      "role": "user",
+      "dataOrigin": "system",
+      "createdAt": "2026-03-06 19:48:27"
+    },
+    {
+      "id": "13381134",
+      "name": "Super Admin Test",
+      "email": "superadmin-reset-1772826473972@test.com",
+      "role": "super_admin",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:47:54"
+    },
+    {
+      "id": "13381135",
+      "name": "Admin Test",
+      "email": "admin-quot-test@test.com",
+      "role": "admin",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:47:54"
+    },
+    {
+      "id": "13381136",
+      "name": "Admin Test Items",
+      "email": "admin-items-test@test.com",
+      "role": "admin",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:47:54"
+    },
+    {
+      "id": "13381130",
+      "name": "Test User",
+      "email": "admin-created-1772826472107@example.com",
+      "role": "user",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:47:52"
+    },
+    {
+      "id": "13381132",
+      "name": "Cliente Test Auto-registro",
+      "email": "test-1772826472377@example.com",
+      "role": "user",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:47:52"
+    },
+    {
+      "id": "13381129",
+      "name": "Test Admin",
+      "email": "admin-update-test@test.com",
+      "role": "admin",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:47:52"
+    },
+    {
+      "id": "13381131",
+      "name": "Admin Test Edit",
+      "email": "admin-edit-test@test.com",
+      "role": "admin",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:47:52"
+    },
+    {
+      "id": "13381128",
+      "name": "Test Password User",
+      "email": "password-user-1772826471719@example.com",
+      "role": "user",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:47:52"
+    },
+    {
+      "id": "13381133",
+      "name": "Usuario Existente",
+      "email": "test-1772826472865@example.com",
+      "role": "user",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:47:52"
+    },
+    {
+      "id": "13381125",
+      "name": "New User",
+      "email": "newuser-1772826471591@test.com",
+      "role": "user",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:47:51"
+    },
+    {
+      "id": "13381127",
+      "name": "First User",
+      "email": "duplicate-1772826471771@test.com",
+      "role": "user",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:47:51"
+    },
+    {
+      "id": "13381126",
+      "name": "New Admin",
+      "email": "newadmin-1772826471740@test.com",
+      "role": "admin",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:47:51"
+    },
+    {
+      "id": "13381124",
+      "name": "Test User",
+      "email": "test-1772826470348@example.com",
+      "role": "user",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:47:50"
+    },
+    {
+      "id": "13381121",
+      "name": "Test User",
+      "email": "test-1772826468299@example.com",
+      "role": "user",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:47:48"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\temail\trole\tdataOrigin\tcreatedAt\n13381221\tAdmin Test Items\tadmin-items-test@test.com\tadmin\tmanual\t2026-03-06 19:48:42\n13381220\tAdmin Test\tadmin-quot-test@test.com\tadmin\tmanual\t2026-03-06 19:48:42\n13381219\tSuper Admin Test\tsuperadmin-reset-1772826521858@test.com\tsuper_admin\tmanual\t2026-03-06 19:48:41\n13381213\tTest Password User\tpassword-user-1772826518796@example.com\tuser\tmanual\t2026-03-06 19:48:39\n13381214\tTest Admin\tadmin-update-test@test.com\tadmin\tmanual\t2026-03-06 19:48:39\n13381215\tTest User\tadmin-created-1772826519231@example.com\tuser\tmanual\t2026-03-06 19:48:39\n13381211\tNew Admin\tnewadmin-1772826518999@test.com\tadmin\tmanual\t2026-03-06 19:48:39\n13381218\tUsuario Existente\ttest-1772826519979@example.com\tuser\tmanual\t2026-03-06 19:48:39\n13381216\tAdmin Test Edit\tadmin-edit-test@test.com\tadmin\tmanual\t2026-03-06 19:48:39\n13381212\tFirst User\tduplicate-1772826519026@test.com\tuser\tmanual\t2026-03-06 19:48:39\n13381217\tCliente Test Auto-registro\ttest-1772826519514@example.com\tuser\tmanual\t2026-03-06 19:48:39\n13381210\tNew User\tnewuser-1772826518848@test.com\tuser\tmanual\t2026-03-06 19:48:38\n13381209\tTest User\ttest-1772826517532@example.com\tuser\tmanual\t2026-03-06 19:48:38\n13381208\tTest User\ttest-1772826515600@example.com\tuser\tmanual\t2026-03-06 19:48:36\n13381207\tTest User Design\ttest-design-1772826515588@test.com\tuser\tmanual\t2026-03-06 19:48:35\n13381206\tTest User QVS2\tuser-qvs2-1772826515381@example.com\tadmin\tmanual\t2026-03-06 19:48:35\n13381204\tAdmin Test Fixed Costs\tadmin-fixedcosts-test@test.com\tadmin\tmanual\t2026-03-06 19:48:34\n13381203\tAdmin Test Fixed Costs\tadmin-fixedcosts-test@test.com\tadmin\tmanual\t2026-03-06 19:48:34\n13381205\tAdmin Test Fixed Costs\tadmin-fixedcosts-test@test.com\tadmin\tmanual\t2026-03-06 19:48:34\n13381197\tUser Test\tuser-bulk-1772826510655@test.com\tuser\tmanual\t2026-03-06 19:48:30\n13381195\tAdmin Test\tadmin-bulk-1772826509878@test.com\tadmin\tmanual\t2026-03-06 19:48:29\n13381168\tUser To Promote\tuser-promote-1772826509001@test.com\tadmin\tmanual\t2026-03-06 19:48:29\n13381143\tTest Manual User\ttest-manual-1772826508054@example.com\tuser\tmanual\t2026-03-06 19:48:28\n13381154\tAdmin To Delete\tadmin-to-delete-1772826508669@test.com\tadmin\tmanual\t2026-03-06 19:48:28\n13381146\tManual Quotation User\tmanual-quot-1772826508364@example.com\tuser\tmanual\t2026-03-06 19:48:28\n13381144\tManual Mix User\tmanual-mix-1772826508180@example.com\tuser\tmanual\t2026-03-06 19:48:28\n13381152\tNew Super Admin\tnewsuperadmin-1772826508610@test.com\tsuper_admin\tmanual\t2026-03-06 19:48:28\n13381165\tAdmin Role Protected\tadmin-role-protected-1772826508897@test.com\tadmin\tmanual\t2026-03-06 19:48:28\n13381159\tUser To Delete\tuser-to-delete-1772826508791@test.com\tuser\tmanual\t2026-03-06 19:48:28\n13381162\tTarget User\ttarget-1772826508853@test.com\tuser\tmanual\t2026-03-06 19:48:28\n13381166\tUser No Promote\tuser-no-promote-1772826508951@test.com\tuser\tmanual\t2026-03-06 19:48:28\n13381145\tSystem Mix User\tsystem-mix-1772826508190@example.com\tuser\tsystem\t2026-03-06 19:48:28\n13381158\tProtected Admin\tadmin-protected-1772826508733@test.com\tadmin\tmanual\t2026-03-06 19:48:28\n13381150\tNew Admin\tnewadmin-1772826508470@test.com\tadmin\tmanual\t2026-03-06 19:48:28\n13381153\tRegular User\tregularuser-1772826508639@test.com\tuser\tmanual\t2026-03-06 19:48:28\n13381142\tTest System User\ttest-system-1772826507750@example.com\tuser\tsystem\t2026-03-06 19:48:27\n13381134\tSuper Admin Test\tsuperadmin-reset-1772826473972@test.com\tsuper_admin\tmanual\t2026-03-06 19:47:54\n13381135\tAdmin Test\tadmin-quot-test@test.com\tadmin\tmanual\t2026-03-06 19:47:54\n13381136\tAdmin Test Items\tadmin-items-test@test.com\tadmin\tmanual\t2026-03-06 19:47:54\n13381130\tTest User\tadmin-created-1772826472107@example.com\tuser\tmanual\t2026-03-06 19:47:52\n13381132\tCliente Test Auto-registro\ttest-1772826472377@example.com\tuser\tmanual\t2026-03-06 19:47:52\n13381129\tTest Admin\tadmin-update-test@test.com\tadmin\tmanual\t2026-03-06 19:47:52\n13381131\tAdmin Test Edit\tadmin-edit-test@test.com\tadmin\tmanual\t2026-03-06 19:47:52\n13381128\tTest Password User\tpassword-user-1772826471719@example.com\tuser\tmanual\t2026-03-06 19:47:52\n13381133\tUsuario Existente\ttest-1772826472865@example.com\tuser\tmanual\t2026-03-06 19:47:52\n13381125\tNew User\tnewuser-1772826471591@test.com\tuser\tmanual\t2026-03-06 19:47:51\n13381127\tFirst User\tduplicate-1772826471771@test.com\tuser\tmanual\t2026-03-06 19:47:51\n13381126\tNew Admin\tnewadmin-1772826471740@test.com\tadmin\tmanual\t2026-03-06 19:47:51\n13381124\tTest User\ttest-1772826470348@example.com\tuser\tmanual\t2026-03-06 19:47:50\n13381121\tTest User\ttest-1772826468299@example.com\tuser\tmanual\t2026-03-06 19:47:48\n",
+  "stderr": "",
+  "execution_time_ms": 67
+}

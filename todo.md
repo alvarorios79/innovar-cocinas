@@ -5026,3 +5026,14 @@ Listo para pasar a Fase 7.2 (Intelligent Alerts) cuando sea requerido.
 - [x] Create comprehensive dataOrigin separation tests
 - [x] Execute validation tests
 - [x] Generate final dataOrigin separation report
+
+
+## Feature: User DataOrigin Separation
+
+- [x] Verify dataOrigin column on users table (verified - column exists)
+- [x] Identify and mark test users with dataOrigin='system' (identified via SQL query)
+- [x] Update Admin panel to filter users by dataOrigin='manual' (updated getAllUsers function)
+- [x] Add users to Zona Crítica cleanup system (added getSystemUsers and deleteSystemUsers procedures)
+- [x] Implement hard delete for test users in Zona Crítica (hard delete implemented in cleanupData)
+- [ ] Create tests for user dataOrigin separation
+- [x] Verify implementation and deliver results

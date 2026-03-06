@@ -7,7 +7,8 @@ import {
   clients, 
   projects, 
   quotations, 
-  appointments
+  appointments,
+  tasks
 } from "../../drizzle/schema";
 
 /**
@@ -79,6 +80,7 @@ export const systemRouter = router({
         quotations: 0,
         projects: 0,
         appointments: 0,
+        users: 0,
         tasks: 0,
       };
     }
@@ -91,11 +93,16 @@ export const systemRouter = router({
         db.select({ count: sql`COUNT(*) as count` }).from(appointments).where(eq(appointments.dataOrigin, "system")),
       ]);
       
+      const [usersData] = await Promise.all([
+        db.select({ count: sql`COUNT(*) as count` }).from(users).where(eq(users.dataOrigin, "system")),
+      ]);
+      
       return {
         clients: clientsData[0]?.count || 0,
         quotations: quotationsData[0]?.count || 0,
         projects: projectsData[0]?.count || 0,
         appointments: appointmentsData[0]?.count || 0,
+        users: usersData[0]?.count || 0,
         tasks: 0, // tasks table doesn't have dataOrigin
       };
     } catch (error) {
@@ -105,6 +112,7 @@ export const systemRouter = router({
         quotations: 0,
         projects: 0,
         appointments: 0,
+        users: 0,
         tasks: 0,
       };
     }
@@ -225,6 +233,36 @@ export const systemRouter = router({
       success: true,
       message: "Citas del sistema eliminadas correctamente",
       deletedRecords: { appointments: result },
+      totalDeleted: result,
+    };
+  }),
+
+  /**
+   * Get all system users
+   */
+  getSystemUsers: protectedProcedure.query(async ({ ctx }) => {
+    if (ctx.user.role !== "super_admin") {
+      throw new TRPCError({ code: "FORBIDDEN", message: "Solo super administradores pueden acceder a la Zona Crítica" });
+    }
+    const db = await getDb();
+    if (!db) return [];
+    return await db.select().from(users).where(eq(users.dataOrigin, "system"));
+  }),
+
+  /**
+   * Delete all system users
+   */
+  deleteSystemUsers: protectedProcedure.mutation(async ({ ctx }) => {
+    if (ctx.user.role !== "super_admin") {
+      throw new TRPCError({ code: "FORBIDDEN", message: "Solo super administradores pueden acceder a la Zona Crítica" });
+    }
+    const db = await getDb();
+    if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
+    const result = await db.delete(users).where(eq(users.dataOrigin, "system"));
+    return {
+      success: true,
+      message: "Usuarios del sistema eliminados correctamente",
+      deletedRecords: { users: result },
       totalDeleted: result,
     };
   }),

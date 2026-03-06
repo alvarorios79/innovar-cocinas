@@ -4865,3 +4865,12 @@ Listo para pasar a Fase 7.2 (Intelligent Alerts) cuando sea requerido.
 - [x] Ensure error responses are JSON structured
 - [x] Create tests for deleteUser JSON responses (12 tests passing)
 - [ ] Test user deletion from admin panel
+
+
+## Audit: System Data Generation (dataOrigin="system")
+
+- [x] Scan codebase for all dataOrigin="system" creations
+- [x] Identify modules generating system data by table
+- [x] Check test data generators and seed scripts
+- [x] Verify production environment protection
+- [x] Generate comprehensive audit report (SYSTEM_DATA_AUDIT.md)

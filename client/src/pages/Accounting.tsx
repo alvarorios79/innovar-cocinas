@@ -63,6 +63,7 @@ type ExpenseType = "materiales_proyecto" | "gasto_operativo";
 
 export default function Accounting() {
   const { user } = useAuth();
+  const utils = trpc.useUtils();
   const [expenseType, setExpenseType] = useState<ExpenseType>("materiales_proyecto");
   const [projectId, setProjectId] = useState<string>("");
   const [operativeCategory, setOperativeCategory] = useState<string>("");
@@ -84,6 +85,7 @@ export default function Accounting() {
   const createExpense = trpc.expenses.create.useMutation({
     onSuccess: () => {
       toast.success("✅ Gasto registrado correctamente");
+      utils.expenses.getAll.invalidate();
       // Autolimpieza inteligente
       setDescription("");
       setAmount("");
@@ -99,6 +101,7 @@ export default function Accounting() {
   const updateExpense = trpc.expenses.update.useMutation({
     onSuccess: () => {
       toast.success("✅ Gasto actualizado correctamente");
+      utils.expenses.getAll.invalidate();
       setDescription("");
       setAmount("");
       setExpenseDate(new Date().toISOString().split("T")[0]);
@@ -112,6 +115,7 @@ export default function Accounting() {
   const deleteExpense = trpc.expenses.delete.useMutation({
     onSuccess: () => {
       toast.success("✅ Gasto eliminado correctamente");
+      utils.expenses.getAll.invalidate();
       setDeleteConfirmId(null);
     },
     onError: (error) => {

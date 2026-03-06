@@ -1,0 +1,9 @@
+{
+  "query": "UPDATE users SET dataOrigin = 'system' WHERE \n  email LIKE '%test%' OR \n  email LIKE '%example.com%' OR \n  email LIKE '%bulk%' OR \n  email LIKE '%qvs2%' OR \n  name LIKE '%test%' OR \n  name LIKE '%manual%';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute UPDATE users SET dataOrigin = 'system' WHERE \n  email LIKE '%test%' OR \n  email LIKE '%example.com%' OR \n  email LIKE '%bulk%' OR \n  email LIKE '%qvs2%' OR \n  name LIKE '%test%' OR \n  name LIKE '%manual%';",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 112
+}

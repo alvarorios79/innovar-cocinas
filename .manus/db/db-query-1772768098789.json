@@ -1,0 +1,31 @@
+{
+  "query": "\n-- Clientes por origen\nSELECT dataOrigin, COUNT(*) as cantidad FROM clients GROUP BY dataOrigin;\n\n-- Citas por origen\nSELECT dataOrigin, COUNT(*) as cantidad FROM appointments GROUP BY dataOrigin;\n\n-- Asesoramientos\nSELECT COUNT(*) as total FROM advisoryRequests;\n\n-- Cotizaciones\nSELECT COUNT(*) as total FROM quotations;\n\n-- Proyectos\nSELECT COUNT(*) as total FROM projects;\n\n-- Tareas\nSELECT COUNT(*) as total FROM tasks;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute \n-- Clientes por origen\nSELECT dataOrigin, COUNT(*) as cantidad FROM clients GROUP BY dataOrigin;\n\n-- Citas por origen\nSELECT dataOrigin, COUNT(*) as cantidad FROM appointments GROUP BY dataOrigin;\n\n-- Asesoramientos\nSELECT COUNT(*) as total FROM advisoryRequests;\n\n-- Cotizaciones\nSELECT COUNT(*) as total FROM quotations;\n\n-- Proyectos\nSELECT COUNT(*) as total FROM projects;\n\n-- Tareas\nSELECT COUNT(*) as total FROM tasks;\n",
+  "rows": [
+    {
+      "dataOrigin": "manual",
+      "cantidad": "1237"
+    },
+    {
+      "dataOrigin": "dataOrigin",
+      "cantidad": "cantidad"
+    },
+    {
+      "dataOrigin": "manual",
+      "cantidad": "502"
+    }
+  ],
+  "messages": [
+    "total",
+    "15",
+    "total",
+    "785",
+    "total",
+    "99",
+    "total",
+    "533"
+  ],
+  "stdout": "dataOrigin\tcantidad\nmanual\t1237\ndataOrigin\tcantidad\nmanual\t502\ntotal\n15\ntotal\n785\ntotal\n99\ntotal\n533\n",
+  "stderr": "",
+  "execution_time_ms": 85
+}

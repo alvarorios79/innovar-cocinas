@@ -1,0 +1,9 @@
+{
+  "query": "\nUPDATE users SET passwordHash = '$2b$12$Qnb8Z2b8hnzZrAqz0baAo..aLiWA.NiqHQb.Wja.4IoJlFbH4a1K2' WHERE email = 'mcfy8jgnym@privaterelay.appleid.com';\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute \nUPDATE users SET passwordHash = '$2b$12$Qnb8Z2b8hnzZrAqz0baAo..aLiWA.NiqHQb.Wja.4IoJlFbH4a1K2' WHERE email = 'mcfy8jgnym@privaterelay.appleid.com';\n",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 60
+}

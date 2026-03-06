@@ -1,0 +1,15 @@
+{
+  "query": "\nSELECT \n  COUNT(*) as total_quotations,\n  SUM(CASE WHEN total = 0 OR total IS NULL THEN 1 ELSE 0 END) as with_zero_total,\n  SUM(CASE WHEN total > 0 THEN 1 ELSE 0 END) as with_positive_total\nFROM quotations;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute \nSELECT \n  COUNT(*) as total_quotations,\n  SUM(CASE WHEN total = 0 OR total IS NULL THEN 1 ELSE 0 END) as with_zero_total,\n  SUM(CASE WHEN total > 0 THEN 1 ELSE 0 END) as with_positive_total\nFROM quotations;\n",
+  "rows": [
+    {
+      "total_quotations": "999",
+      "with_zero_total": "999",
+      "with_positive_total": "0"
+    }
+  ],
+  "messages": [],
+  "stdout": "total_quotations\twith_zero_total\twith_positive_total\n999\t999\t0\n",
+  "stderr": "",
+  "execution_time_ms": 51
+}

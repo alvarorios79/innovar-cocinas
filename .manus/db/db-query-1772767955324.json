@@ -1,0 +1,30 @@
+{
+  "query": "\n-- Análisis de Usuarios\nSELECT \n  'USUARIOS' as tabla,\n  COUNT(*) as total,\n  COUNT(CASE WHEN role IN ('admin', 'super_admin') THEN 1 END) as admins,\n  COUNT(CASE WHEN role = 'user' THEN 1 END) as usuarios_regulares,\n  COUNT(CASE WHEN role IN ('diseñador', 'jefe_taller', 'operario', 'comercial') THEN 1 END) as equipo\nFROM users;\n\n-- Análisis de Clientes\nSELECT \n  'CLIENTES' as tabla,\n  COUNT(*) as total,\n  COUNT(CASE WHEN name LIKE '%Test%' OR name LIKE '%Demo%' OR name LIKE '%test%' THEN 1 END) as potencial_test\nFROM clients;\n\n-- Análisis de Proyectos\nSELECT \n  'PROYECTOS' as tabla,\n  COUNT(*) as total,\n  COUNT(CASE WHEN status = 'pendiente' THEN 1 END) as pendientes,\n  COUNT(CASE WHEN status IN ('entregado', 'listo_instalacion') THEN 1 END) as completados\nFROM projects;\n\n-- Análisis de Citas\nSELECT \n  'CITAS' as tabla,\n  COUNT(*) as total,\n  COUNT(CASE WHEN status = 'pendiente' THEN 1 END) as pendientes,\n  COUNT(CASE WHEN status IN ('completada', 'cancelada') THEN 1 END) as finalizadas\nFROM appointments;\n\n-- Análisis de Cotizaciones\nSELECT \n  'COTIZACIONES' as tabla,\n  COUNT(*) as total,\n  COUNT(CASE WHEN status = 'borrador' THEN 1 END) as borradores,\n  COUNT(CASE WHEN status IN ('enviada', 'aprobada') THEN 1 END) as enviadas_aprobadas\nFROM quotations;\n\n-- Análisis de Gastos\nSELECT \n  'GASTOS' as tabla,\n  COUNT(*) as total,\n  COUNT(CASE WHEN expenseType = 'materiales_proyecto' THEN 1 END) as materiales,\n  COUNT(CASE WHEN expenseType = 'gasto_operativo' THEN 1 END) as operativos\nFROM expenses;\n\n-- Análisis de Tareas\nSELECT \n  'TAREAS' as tabla,\n  COUNT(*) as total,\n  COUNT(CASE WHEN status = 'pendiente' THEN 1 END) as pendientes,\n  COUNT(CASE WHEN status = 'completada' THEN 1 END) as completadas\nFROM tasks;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute \n-- Análisis de Usuarios\nSELECT \n  'USUARIOS' as tabla,\n  COUNT(*) as total,\n  COUNT(CASE WHEN role IN ('admin', 'super_admin') THEN 1 END) as admins,\n  COUNT(CASE WHEN role = 'user' THEN 1 END) as usuarios_regulares,\n  COUNT(CASE WHEN role IN ('diseñador', 'jefe_taller', 'operario', 'comercial') THEN 1 END) as equipo\nFROM users;\n\n-- Análisis de Clientes\nSELECT \n  'CLIENTES' as tabla,\n  COUNT(*) as total,\n  COUNT(CASE WHEN name LIKE '%Test%' OR name LIKE '%Demo%' OR name LIKE '%test%' THEN 1 END) as potencial_test\nFROM clients;\n\n-- Análisis de Proyectos\nSELECT \n  'PROYECTOS' as tabla,\n  COUNT(*) as total,\n  COUNT(CASE WHEN status = 'pendiente' THEN 1 END) as pendientes,\n  COUNT(CASE WHEN status IN ('entregado', 'listo_instalacion') THEN 1 END) as completados\nFROM projects;\n\n-- Análisis de Citas\nSELECT \n  'CITAS' as tabla,\n  COUNT(*) as total,\n  COUNT(CASE WHEN status = 'pendiente' THEN 1 END) as pendientes,\n  COUNT(CASE WHEN status IN ('completada', 'cancelada') THEN 1 END) as finalizadas\nFROM appointments;\n\n-- Análisis de Cotizaciones\nSELECT \n  'COTIZACIONES' as tabla,\n  COUNT(*) as total,\n  COUNT(CASE WHEN status = 'borrador' THEN 1 END) as borradores,\n  COUNT(CASE WHEN status IN ('enviada', 'aprobada') THEN 1 END) as enviadas_aprobadas\nFROM quotations;\n\n-- Análisis de Gastos\nSELECT \n  'GASTOS' as tabla,\n  COUNT(*) as total,\n  COUNT(CASE WHEN expenseType = 'materiales_proyecto' THEN 1 END) as materiales,\n  COUNT(CASE WHEN expenseType = 'gasto_operativo' THEN 1 END) as operativos\nFROM expenses;\n\n-- Análisis de Tareas\nSELECT \n  'TAREAS' as tabla,\n  COUNT(*) as total,\n  COUNT(CASE WHEN status = 'pendiente' THEN 1 END) as pendientes,\n  COUNT(CASE WHEN status = 'completada' THEN 1 END) as completadas\nFROM tasks;\n",
+  "rows": [
+    {
+      "tabla": "USUARIOS",
+      "total": "1033",
+      "admins": "506",
+      "usuarios_regulares": "524",
+      "equipo": "2"
+    }
+  ],
+  "messages": [
+    "tabla\ttotal\tpotencial_test",
+    "CLIENTES\t1237\t1107",
+    "tabla\ttotal\tpendientes\tcompletados",
+    "PROYECTOS\t99\t0\t8",
+    "tabla\ttotal\tpendientes\tfinalizadas",
+    "CITAS\t502\t498\t3",
+    "tabla\ttotal\tborradores\tenviadas_aprobadas",
+    "COTIZACIONES\t785\t0\t0",
+    "tabla\ttotal\tmateriales\toperativos",
+    "GASTOS\t0\t0\t0",
+    "tabla\ttotal\tpendientes\tcompletadas",
+    "TAREAS\t533\t521\t8"
+  ],
+  "stdout": "tabla\ttotal\tadmins\tusuarios_regulares\tequipo\nUSUARIOS\t1033\t506\t524\t2\ntabla\ttotal\tpotencial_test\nCLIENTES\t1237\t1107\ntabla\ttotal\tpendientes\tcompletados\nPROYECTOS\t99\t0\t8\ntabla\ttotal\tpendientes\tfinalizadas\nCITAS\t502\t498\t3\ntabla\ttotal\tborradores\tenviadas_aprobadas\nCOTIZACIONES\t785\t0\t0\ntabla\ttotal\tmateriales\toperativos\nGASTOS\t0\t0\t0\ntabla\ttotal\tpendientes\tcompletadas\nTAREAS\t533\t521\t8\n",
+  "stderr": "",
+  "execution_time_ms": 99
+}

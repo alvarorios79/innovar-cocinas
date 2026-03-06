@@ -7,7 +7,8 @@ import {
   clients, 
   projects, 
   quotations, 
-  appointments
+  appointments,
+  tasks
 } from "../../drizzle/schema";
 
 /**
@@ -18,6 +19,126 @@ import {
  */
 
 export const systemRouter = router({
+  /**
+   * Get all system clients
+   */
+  getSystemClients: protectedProcedure.query(async ({ ctx }) => {
+    if (ctx.user.role !== "super_admin") {
+      throw new TRPCError({ code: "FORBIDDEN", message: "Solo super administradores pueden acceder a la Zona Crítica" });
+    }
+    const db = await getDb();
+    if (!db) return [];
+    return await db.select().from(clients).where(eq(clients.dataOrigin, "system"));
+  }),
+
+  /**
+   * Get all system quotations
+   */
+  getSystemQuotations: protectedProcedure.query(async ({ ctx }) => {
+    if (ctx.user.role !== "super_admin") {
+      throw new TRPCError({ code: "FORBIDDEN", message: "Solo super administradores pueden acceder a la Zona Crítica" });
+    }
+    const db = await getDb();
+    if (!db) return [];
+    return await db.select().from(quotations).where(eq(quotations.dataOrigin, "system"));
+  }),
+
+  /**
+   * Get all system projects
+   */
+  getSystemProjects: protectedProcedure.query(async ({ ctx }) => {
+    if (ctx.user.role !== "super_admin") {
+      throw new TRPCError({ code: "FORBIDDEN", message: "Solo super administradores pueden acceder a la Zona Crítica" });
+    }
+    const db = await getDb();
+    if (!db) return [];
+    return await db.select().from(projects).where(eq(projects.dataOrigin, "system"));
+  }),
+
+  /**
+   * Get all system appointments
+   */
+  getSystemAppointments: protectedProcedure.query(async ({ ctx }) => {
+    if (ctx.user.role !== "super_admin") {
+      throw new TRPCError({ code: "FORBIDDEN", message: "Solo super administradores pueden acceder a la Zona Crítica" });
+    }
+    const db = await getDb();
+    if (!db) return [];
+    return await db.select().from(appointments).where(eq(appointments.dataOrigin, "system"));
+  }),
+
+  /**
+   * Delete all system clients
+   */
+  deleteSystemClients: protectedProcedure.mutation(async ({ ctx }) => {
+    if (ctx.user.role !== "super_admin") {
+      throw new TRPCError({ code: "FORBIDDEN", message: "Solo super administradores pueden acceder a la Zona Crítica" });
+    }
+    const db = await getDb();
+    if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
+    const result = await db.delete(clients).where(eq(clients.dataOrigin, "system"));
+    return {
+      success: true,
+      message: "Clientes del sistema eliminados correctamente",
+      deletedRecords: { clients: result },
+      totalDeleted: result,
+    };
+  }),
+
+  /**
+   * Delete all system quotations
+   */
+  deleteSystemQuotations: protectedProcedure.mutation(async ({ ctx }) => {
+    if (ctx.user.role !== "super_admin") {
+      throw new TRPCError({ code: "FORBIDDEN", message: "Solo super administradores pueden acceder a la Zona Crítica" });
+    }
+    const db = await getDb();
+    if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
+    const result = await db.delete(quotations).where(eq(quotations.dataOrigin, "system"));
+    return {
+      success: true,
+      message: "Cotizaciones del sistema eliminadas correctamente",
+      deletedRecords: { quotations: result },
+      totalDeleted: result,
+    };
+  }),
+
+  /**
+   * Delete all system projects
+   */
+  deleteSystemProjects: protectedProcedure.mutation(async ({ ctx }) => {
+    if (ctx.user.role !== "super_admin") {
+      throw new TRPCError({ code: "FORBIDDEN", message: "Solo super administradores pueden acceder a la Zona Crítica" });
+    }
+    const db = await getDb();
+    if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
+    const result = await db.delete(projects).where(eq(projects.dataOrigin, "system"));
+    return {
+      success: true,
+      message: "Proyectos del sistema eliminados correctamente",
+      deletedRecords: { projects: result },
+      totalDeleted: result,
+    };
+  }),
+
+  /**
+   * Delete all system appointments
+   */
+  deleteSystemAppointments: protectedProcedure.mutation(async ({ ctx }) => {
+    if (ctx.user.role !== "super_admin") {
+      throw new TRPCError({ code: "FORBIDDEN", message: "Solo super administradores pueden acceder a la Zona Crítica" });
+    }
+    const db = await getDb();
+    if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
+    const result = await db.delete(appointments).where(eq(appointments.dataOrigin, "system"));
+    return {
+      success: true,
+      message: "Citas del sistema eliminadas correctamente",
+      deletedRecords: { appointments: result },
+      totalDeleted: result,
+    };
+  }),
+
   /**
    * cleanupData
    * 

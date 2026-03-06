@@ -236,7 +236,7 @@ export async function getAllClients() {
   const db = await getDb();
   if (!db) return [];
 
-  return await db.select().from(clients).where(isNull(clients.deletedAt)).orderBy(desc(clients.createdAt));
+  return await db.select().from(clients).where(and(isNull(clients.deletedAt), eq(clients.dataOrigin, 'manual'))).orderBy(desc(clients.createdAt));
 }
 
 export async function updateClient(id: number, data: Partial<InsertClient>) {
@@ -300,7 +300,7 @@ export async function getAppointmentsByClientId(clientId: number) {
   const db = await getDb();
   if (!db) return [];
 
-  const appointmentsList = await db.select().from(appointments).where(and(eq(appointments.clientId, clientId), isNull(appointments.deletedAt))).orderBy(desc(appointments.scheduledDate));
+  const appointmentsList = await db.select().from(appointments).where(and(eq(appointments.clientId, clientId), isNull(appointments.deletedAt), eq(appointments.dataOrigin, 'manual'))).orderBy(desc(appointments.scheduledDate));
   
   // Para cada cita, obtener sus workTypes
   const appointmentsWithWorkTypes = await Promise.all(
@@ -320,7 +320,7 @@ export async function getAllAppointments() {
   const db = await getDb();
   if (!db) return [];
 
-  const appointmentsList = await db.select().from(appointments).where(isNull(appointments.deletedAt)).orderBy(desc(appointments.createdAt));
+  const appointmentsList = await db.select().from(appointments).where(and(isNull(appointments.deletedAt), eq(appointments.dataOrigin, 'manual'))).orderBy(desc(appointments.createdAt));
   
   // Para cada cita, obtener sus workTypes
   const appointmentsWithWorkTypes = await Promise.all(
@@ -494,7 +494,7 @@ export async function getAllQuotations() {
   const db = await getDb();
   if (!db) return [];
 
-  return await db.select().from(quotations).where(isNull(quotations.deletedAt)).orderBy(desc(quotations.createdAt));
+  return await db.select().from(quotations).where(and(isNull(quotations.deletedAt), eq(quotations.dataOrigin, 'manual'))).orderBy(desc(quotations.createdAt));
 }
 
 export async function updateQuotation(id: number, data: Partial<InsertQuotation>) {
@@ -750,7 +750,7 @@ export async function getAllProjects() {
   const db = await getDb();
   if (!db) return [];
 
-  return await db.select().from(projects).where(isNull(projects.deletedAt)).orderBy(desc(projects.createdAt));
+  return await db.select().from(projects).where(and(isNull(projects.deletedAt), eq(projects.dataOrigin, 'manual'))).orderBy(desc(projects.createdAt));
 }
 
 export async function getProjectByQuotationId(quotationId: number) {
@@ -766,7 +766,7 @@ export async function getProjectsByStatus(status: string) {
   if (!db) return [];
 
   return await db.select().from(projects)
-    .where(and(eq(projects.status, status as any), isNull(projects.deletedAt)))
+    .where(and(eq(projects.status, status as any), isNull(projects.deletedAt), eq(projects.dataOrigin, 'manual')))
     .orderBy(desc(projects.createdAt));
 }
 
@@ -775,7 +775,7 @@ export async function getProjectsByClientId(clientId: number) {
   if (!db) return [];
 
   return await db.select().from(projects)
-    .where(and(eq(projects.clientId, clientId), isNull(projects.deletedAt)))
+    .where(and(eq(projects.clientId, clientId), isNull(projects.deletedAt), eq(projects.dataOrigin, 'manual')))
     .orderBy(desc(projects.createdAt));
 }
 
@@ -784,7 +784,7 @@ export async function getProjectsByDesignerId(designerId: number) {
   if (!db) return [];
 
   return await db.select().from(projects)
-    .where(and(eq(projects.designerId, designerId), isNull(projects.deletedAt)))
+    .where(and(eq(projects.designerId, designerId), isNull(projects.deletedAt), eq(projects.dataOrigin, 'manual')))
     .orderBy(desc(projects.createdAt));
 }
 

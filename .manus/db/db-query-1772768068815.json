@@ -1,0 +1,1156 @@
+{
+  "query": "\n-- Usuarios con contraseña (registrados orgánicamente)\nSELECT id, email, name, role FROM users WHERE passwordHash IS NOT NULL ORDER BY email;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute \n-- Usuarios con contraseña (registrados orgánicamente)\nSELECT id, email, name, role FROM users WHERE passwordHash IS NOT NULL ORDER BY email;\n",
+  "rows": [
+    {
+      "id": "10530057",
+      "email": "admin-created-1772072395450@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "10530137",
+      "email": "admin-created-1772072940731@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "10530177",
+      "email": "admin-created-1772072959649@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "10980375",
+      "email": "admin-created-1772318304589@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "10980415",
+      "email": "admin-created-1772318325946@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "10980456",
+      "email": "admin-created-1772318355056@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "10980611",
+      "email": "admin-created-1772321158857@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "10980650",
+      "email": "admin-created-1772321179175@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "11130086",
+      "email": "admin-created-1772386138287@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "12330073",
+      "email": "admin-created-1772645013805@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "12330110",
+      "email": "admin-created-1772645065574@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "12330149",
+      "email": "admin-created-1772645084940@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "12330192",
+      "email": "admin-created-1772645118891@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "12360044",
+      "email": "admin-created-1772647382085@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "12360083",
+      "email": "admin-created-1772647409195@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "12360125",
+      "email": "admin-created-1772647435644@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "12360163",
+      "email": "admin-created-1772647476141@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "12390035",
+      "email": "admin-created-1772649402126@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "13170172",
+      "email": "admin-created-1772766861419@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "13170225",
+      "email": "admin-created-1772766982045@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "13170269",
+      "email": "admin-created-1772767014694@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "13170313",
+      "email": "admin-created-1772767057178@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "13170356",
+      "email": "admin-created-1772767134415@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "13170399",
+      "email": "admin-created-1772767156468@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "12330074",
+      "email": "admin-update-test@test.com",
+      "name": "Test Admin",
+      "role": "admin"
+    },
+    {
+      "id": "13170268",
+      "email": "admin-update-test@test.com",
+      "name": "Test Admin",
+      "role": "admin"
+    },
+    {
+      "id": "13170361",
+      "email": "admin-update-test@test.com",
+      "name": "Test Admin",
+      "role": "admin"
+    },
+    {
+      "id": "12330194",
+      "email": "admin-update-test@test.com",
+      "name": "Test Admin",
+      "role": "admin"
+    },
+    {
+      "id": "11130091",
+      "email": "admin-update-test@test.com",
+      "name": "Test Admin",
+      "role": "admin"
+    },
+    {
+      "id": "10530133",
+      "email": "admin-update-test@test.com",
+      "name": "Test Admin",
+      "role": "admin"
+    },
+    {
+      "id": "12360164",
+      "email": "admin-update-test@test.com",
+      "name": "Test Admin",
+      "role": "admin"
+    },
+    {
+      "id": "12390033",
+      "email": "admin-update-test@test.com",
+      "name": "Test Admin",
+      "role": "admin"
+    },
+    {
+      "id": "12360043",
+      "email": "admin-update-test@test.com",
+      "name": "Test Admin",
+      "role": "admin"
+    },
+    {
+      "id": "13170397",
+      "email": "admin-update-test@test.com",
+      "name": "Test Admin",
+      "role": "admin"
+    },
+    {
+      "id": "9390012",
+      "email": "admin-update-test@test.com",
+      "name": "Test Admin",
+      "role": "admin"
+    },
+    {
+      "id": "12330151",
+      "email": "admin-update-test@test.com",
+      "name": "Test Admin",
+      "role": "admin"
+    },
+    {
+      "id": "10530172",
+      "email": "admin-update-test@test.com",
+      "name": "Test Admin",
+      "role": "admin"
+    },
+    {
+      "id": "10980412",
+      "email": "admin-update-test@test.com",
+      "name": "Test Admin",
+      "role": "admin"
+    },
+    {
+      "id": "13170311",
+      "email": "admin-update-test@test.com",
+      "name": "Test Admin",
+      "role": "admin"
+    },
+    {
+      "id": "10980607",
+      "email": "admin-update-test@test.com",
+      "name": "Test Admin",
+      "role": "admin"
+    },
+    {
+      "id": "10980647",
+      "email": "admin-update-test@test.com",
+      "name": "Test Admin",
+      "role": "admin"
+    },
+    {
+      "id": "12360123",
+      "email": "admin-update-test@test.com",
+      "name": "Test Admin",
+      "role": "admin"
+    },
+    {
+      "id": "12360084",
+      "email": "admin-update-test@test.com",
+      "name": "Test Admin",
+      "role": "admin"
+    },
+    {
+      "id": "13170176",
+      "email": "admin-update-test@test.com",
+      "name": "Test Admin",
+      "role": "admin"
+    },
+    {
+      "id": "12330137",
+      "email": "admin-update-test@test.com",
+      "name": "Test Admin",
+      "role": "admin"
+    },
+    {
+      "id": "10530061",
+      "email": "admin-update-test@test.com",
+      "name": "Test Admin",
+      "role": "admin"
+    },
+    {
+      "id": "10980373",
+      "email": "admin-update-test@test.com",
+      "name": "Test Admin",
+      "role": "admin"
+    },
+    {
+      "id": "10980452",
+      "email": "admin-update-test@test.com",
+      "name": "Test Admin",
+      "role": "admin"
+    },
+    {
+      "id": "13170227",
+      "email": "admin-update-test@test.com",
+      "name": "Test Admin",
+      "role": "admin"
+    },
+    {
+      "id": "9390011",
+      "email": "admin@test.com",
+      "name": "Test Admin",
+      "role": "admin"
+    },
+    {
+      "id": "271067",
+      "email": "albetan1530@gmail.com",
+      "name": "Carlos Albeiro Betancurt ",
+      "role": "user"
+    },
+    {
+      "id": "30257",
+      "email": "alejoile300@gmail.com",
+      "name": "Alejo Gutiérrez",
+      "role": "disenador"
+    },
+    {
+      "id": "2220036",
+      "email": "alvarorios79@gmail.com",
+      "name": "Ruth Naranjo",
+      "role": "user"
+    },
+    {
+      "id": "840718",
+      "email": "alvarorios79@hotmail.com",
+      "name": "Alvaro Pruebas",
+      "role": "user"
+    },
+    {
+      "id": "8580027",
+      "email": "cliente-bulk@test.com",
+      "name": "Cliente Test Bulk",
+      "role": "user"
+    },
+    {
+      "id": "10890085",
+      "email": "cliente-bulk@test.com",
+      "name": "Cliente Test Bulk",
+      "role": "user"
+    },
+    {
+      "id": "8880012",
+      "email": "cliente-bulk@test.com",
+      "name": "Cliente Test Bulk",
+      "role": "user"
+    },
+    {
+      "id": "13080023",
+      "email": "j.o.gordo6958@gmail.com",
+      "name": "Orlando Ramirez Primacho",
+      "role": "user"
+    },
+    {
+      "id": "840290",
+      "email": "jefe.taller@innovar.temp",
+      "name": "Luis Cardoso",
+      "role": "jefe_taller"
+    },
+    {
+      "id": "5850077",
+      "email": "joanfgv@gmail.com",
+      "name": "Joan Gutiérrez ",
+      "role": "user"
+    },
+    {
+      "id": "30390",
+      "email": "martha79s@hotmail.com",
+      "name": "Martha Serna",
+      "role": "admin"
+    },
+    {
+      "id": "1",
+      "email": "mcfy8jgnym@privaterelay.appleid.com",
+      "name": "Alvaro Rios",
+      "role": "super_admin"
+    },
+    {
+      "id": "7230187",
+      "email": "niyiamezquita@gmail.com",
+      "name": "Niyired Amezquita",
+      "role": "user"
+    },
+    {
+      "id": "840301",
+      "email": "operario@innovar.temp",
+      "name": "Daniel Beltran",
+      "role": "operario"
+    },
+    {
+      "id": "10530056",
+      "email": "password-user-1772072394743@example.com",
+      "name": "Test Password User",
+      "role": "user"
+    },
+    {
+      "id": "10530134",
+      "email": "password-user-1772072940339@example.com",
+      "name": "Test Password User",
+      "role": "user"
+    },
+    {
+      "id": "10530174",
+      "email": "password-user-1772072959192@example.com",
+      "name": "Test Password User",
+      "role": "user"
+    },
+    {
+      "id": "10980372",
+      "email": "password-user-1772318304161@example.com",
+      "name": "Test Password User",
+      "role": "user"
+    },
+    {
+      "id": "10980413",
+      "email": "password-user-1772318325527@example.com",
+      "name": "Test Password User",
+      "role": "user"
+    },
+    {
+      "id": "10980453",
+      "email": "password-user-1772318354633@example.com",
+      "name": "Test Password User",
+      "role": "user"
+    },
+    {
+      "id": "10980608",
+      "email": "password-user-1772321158363@example.com",
+      "name": "Test Password User",
+      "role": "user"
+    },
+    {
+      "id": "10980648",
+      "email": "password-user-1772321178769@example.com",
+      "name": "Test Password User",
+      "role": "user"
+    },
+    {
+      "id": "11130085",
+      "email": "password-user-1772386137595@example.com",
+      "name": "Test Password User",
+      "role": "user"
+    },
+    {
+      "id": "12330072",
+      "email": "password-user-1772645013376@example.com",
+      "name": "Test Password User",
+      "role": "user"
+    },
+    {
+      "id": "12330109",
+      "email": "password-user-1772645065110@example.com",
+      "name": "Test Password User",
+      "role": "user"
+    },
+    {
+      "id": "12330146",
+      "email": "password-user-1772645084492@example.com",
+      "name": "Test Password User",
+      "role": "user"
+    },
+    {
+      "id": "12330190",
+      "email": "password-user-1772645118424@example.com",
+      "name": "Test Password User",
+      "role": "user"
+    },
+    {
+      "id": "12360042",
+      "email": "password-user-1772647381617@example.com",
+      "name": "Test Password User",
+      "role": "user"
+    },
+    {
+      "id": "12360082",
+      "email": "password-user-1772647408753@example.com",
+      "name": "Test Password User",
+      "role": "user"
+    },
+    {
+      "id": "12360122",
+      "email": "password-user-1772647435169@example.com",
+      "name": "Test Password User",
+      "role": "user"
+    },
+    {
+      "id": "12360162",
+      "email": "password-user-1772647475733@example.com",
+      "name": "Test Password User",
+      "role": "user"
+    },
+    {
+      "id": "12390034",
+      "email": "password-user-1772649401727@example.com",
+      "name": "Test Password User",
+      "role": "user"
+    },
+    {
+      "id": "13170171",
+      "email": "password-user-1772766861037@example.com",
+      "name": "Test Password User",
+      "role": "user"
+    },
+    {
+      "id": "13170224",
+      "email": "password-user-1772766981653@example.com",
+      "name": "Test Password User",
+      "role": "user"
+    },
+    {
+      "id": "13170267",
+      "email": "password-user-1772767014292@example.com",
+      "name": "Test Password User",
+      "role": "user"
+    },
+    {
+      "id": "13170312",
+      "email": "password-user-1772767056701@example.com",
+      "name": "Test Password User",
+      "role": "user"
+    },
+    {
+      "id": "13170355",
+      "email": "password-user-1772767134034@example.com",
+      "name": "Test Password User",
+      "role": "user"
+    },
+    {
+      "id": "13170398",
+      "email": "password-user-1772767156048@example.com",
+      "name": "Test Password User",
+      "role": "user"
+    },
+    {
+      "id": "8580046",
+      "email": "test-1771708324325@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "8580054",
+      "email": "test-1771708328280@example.com",
+      "name": "Cliente Test Auto-registro",
+      "role": "user"
+    },
+    {
+      "id": "8580087",
+      "email": "test-1771708357992@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "10530054",
+      "email": "test-1772072386540@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "10530055",
+      "email": "test-1772072391574@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "10530063",
+      "email": "test-1772072398236@example.com",
+      "name": "Cliente Test Auto-registro",
+      "role": "user"
+    },
+    {
+      "id": "10530127",
+      "email": "test-1772072937331@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "10530128",
+      "email": "test-1772072939061@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "10530135",
+      "email": "test-1772072940394@example.com",
+      "name": "Cliente Test Auto-registro",
+      "role": "user"
+    },
+    {
+      "id": "10530167",
+      "email": "test-1772072956181@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "10530168",
+      "email": "test-1772072957857@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "10530175",
+      "email": "test-1772072959242@example.com",
+      "name": "Cliente Test Auto-registro",
+      "role": "user"
+    },
+    {
+      "id": "10980367",
+      "email": "test-1772318301537@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "10980368",
+      "email": "test-1772318302660@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "10980376",
+      "email": "test-1772318304611@example.com",
+      "name": "Cliente Test Auto-registro",
+      "role": "user"
+    },
+    {
+      "id": "10980407",
+      "email": "test-1772318322685@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "10980408",
+      "email": "test-1772318324205@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "10980416",
+      "email": "test-1772318326092@example.com",
+      "name": "Cliente Test Auto-registro",
+      "role": "user"
+    },
+    {
+      "id": "10980447",
+      "email": "test-1772318352163@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "10980448",
+      "email": "test-1772318353300@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "10980455",
+      "email": "test-1772318354941@example.com",
+      "name": "Cliente Test Auto-registro",
+      "role": "user"
+    },
+    {
+      "id": "10980602",
+      "email": "test-1772321155327@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "10980603",
+      "email": "test-1772321156873@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "10980610",
+      "email": "test-1772321158757@example.com",
+      "name": "Cliente Test Auto-registro",
+      "role": "user"
+    },
+    {
+      "id": "10980642",
+      "email": "test-1772321175645@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "10980643",
+      "email": "test-1772321177383@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "10980651",
+      "email": "test-1772321179295@example.com",
+      "name": "Cliente Test Auto-registro",
+      "role": "user"
+    },
+    {
+      "id": "11130056",
+      "email": "test-1772386079451@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "11130083",
+      "email": "test-1772386115062@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "11130084",
+      "email": "test-1772386127367@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "11130092",
+      "email": "test-1772386146827@example.com",
+      "name": "Cliente Test Auto-registro",
+      "role": "user"
+    },
+    {
+      "id": "12330067",
+      "email": "test-1772645008750@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "12330068",
+      "email": "test-1772645011882@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "12330076",
+      "email": "test-1772645014607@example.com",
+      "name": "Cliente Test Auto-registro",
+      "role": "user"
+    },
+    {
+      "id": "12330107",
+      "email": "test-1772645059098@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "12330108",
+      "email": "test-1772645063648@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "12330145",
+      "email": "test-1772645078631@example.com",
+      "name": "Cliente Test Auto-registro",
+      "role": "user"
+    },
+    {
+      "id": "12330142",
+      "email": "test-1772645080015@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "12330143",
+      "email": "test-1772645082911@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "12330153",
+      "email": "test-1772645086350@example.com",
+      "name": "Cliente Test Auto-registro",
+      "role": "user"
+    },
+    {
+      "id": "12330188",
+      "email": "test-1772645114179@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "12330189",
+      "email": "test-1772645116813@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "12360037",
+      "email": "test-1772647378723@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "12360038",
+      "email": "test-1772647380320@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "12360046",
+      "email": "test-1772647382569@example.com",
+      "name": "Cliente Test Auto-registro",
+      "role": "user"
+    },
+    {
+      "id": "12360077",
+      "email": "test-1772647405941@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "12360078",
+      "email": "test-1772647407373@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "12360086",
+      "email": "test-1772647409700@example.com",
+      "name": "Cliente Test Auto-registro",
+      "role": "user"
+    },
+    {
+      "id": "12360117",
+      "email": "test-1772647432116@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "12360118",
+      "email": "test-1772647433758@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "12360126",
+      "email": "test-1772647435800@example.com",
+      "name": "Cliente Test Auto-registro",
+      "role": "user"
+    },
+    {
+      "id": "12360157",
+      "email": "test-1772647472957@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "12360158",
+      "email": "test-1772647474500@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "12360166",
+      "email": "test-1772647476774@example.com",
+      "name": "Cliente Test Auto-registro",
+      "role": "user"
+    },
+    {
+      "id": "12390028",
+      "email": "test-1772649398916@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "12390029",
+      "email": "test-1772649400328@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "12390037",
+      "email": "test-1772649402066@example.com",
+      "name": "Cliente Test Auto-registro",
+      "role": "user"
+    },
+    {
+      "id": "13170169",
+      "email": "test-1772766849186@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "13170170",
+      "email": "test-1772766859746@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "13170178",
+      "email": "test-1772766865770@example.com",
+      "name": "Cliente Test Auto-registro",
+      "role": "user"
+    },
+    {
+      "id": "13170219",
+      "email": "test-1772766979992@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "13170220",
+      "email": "test-1772766980401@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "13170228",
+      "email": "test-1772766982583@example.com",
+      "name": "Cliente Test Auto-registro",
+      "role": "user"
+    },
+    {
+      "id": "13170262",
+      "email": "test-1772767011935@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "13170263",
+      "email": "test-1772767013018@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "13170271",
+      "email": "test-1772767015242@example.com",
+      "name": "Cliente Test Auto-registro",
+      "role": "user"
+    },
+    {
+      "id": "13170306",
+      "email": "test-1772767053969@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "13170307",
+      "email": "test-1772767055190@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "13170315",
+      "email": "test-1772767057848@example.com",
+      "name": "Cliente Test Auto-registro",
+      "role": "user"
+    },
+    {
+      "id": "13170353",
+      "email": "test-1772767123074@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "13170354",
+      "email": "test-1772767132809@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "13170362",
+      "email": "test-1772767138864@example.com",
+      "name": "Cliente Test Auto-registro",
+      "role": "user"
+    },
+    {
+      "id": "13170392",
+      "email": "test-1772767152871@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "13170393",
+      "email": "test-1772767154594@example.com",
+      "name": "Test User",
+      "role": "user"
+    },
+    {
+      "id": "13170401",
+      "email": "test-1772767156828@example.com",
+      "name": "Cliente Test Auto-registro",
+      "role": "user"
+    },
+    {
+      "id": "10530052",
+      "email": "test-design-1772072385079@test.com",
+      "name": "Test User Design",
+      "role": "user"
+    },
+    {
+      "id": "10530126",
+      "email": "test-design-1772072937345@test.com",
+      "name": "Test User Design",
+      "role": "user"
+    },
+    {
+      "id": "10530166",
+      "email": "test-design-1772072956162@test.com",
+      "name": "Test User Design",
+      "role": "user"
+    },
+    {
+      "id": "10980330",
+      "email": "test-design-1772317238639@test.com",
+      "name": "Test User Design",
+      "role": "user"
+    },
+    {
+      "id": "10980366",
+      "email": "test-design-1772318300536@test.com",
+      "name": "Test User Design",
+      "role": "user"
+    },
+    {
+      "id": "10980406",
+      "email": "test-design-1772318322631@test.com",
+      "name": "Test User Design",
+      "role": "user"
+    },
+    {
+      "id": "10980446",
+      "email": "test-design-1772318351436@test.com",
+      "name": "Test User Design",
+      "role": "user"
+    },
+    {
+      "id": "10980601",
+      "email": "test-design-1772321155079@test.com",
+      "name": "Test User Design",
+      "role": "user"
+    },
+    {
+      "id": "10980641",
+      "email": "test-design-1772321175588@test.com",
+      "name": "Test User Design",
+      "role": "user"
+    },
+    {
+      "id": "11130054",
+      "email": "test-design-1772386078942@test.com",
+      "name": "Test User Design",
+      "role": "user"
+    },
+    {
+      "id": "11130081",
+      "email": "test-design-1772386112123@test.com",
+      "name": "Test User Design",
+      "role": "user"
+    },
+    {
+      "id": "12330065",
+      "email": "test-design-1772645007675@test.com",
+      "name": "Test User Design",
+      "role": "user"
+    },
+    {
+      "id": "12330104",
+      "email": "test-design-1772645051342@test.com",
+      "name": "Test User Design",
+      "role": "user"
+    },
+    {
+      "id": "12330140",
+      "email": "test-design-1772645078851@test.com",
+      "name": "Test User Design",
+      "role": "user"
+    },
+    {
+      "id": "12330185",
+      "email": "test-design-1772645113236@test.com",
+      "name": "Test User Design",
+      "role": "user"
+    },
+    {
+      "id": "12360036",
+      "email": "test-design-1772647378658@test.com",
+      "name": "Test User Design",
+      "role": "user"
+    },
+    {
+      "id": "12360076",
+      "email": "test-design-1772647405788@test.com",
+      "name": "Test User Design",
+      "role": "user"
+    },
+    {
+      "id": "12360116",
+      "email": "test-design-1772647432199@test.com",
+      "name": "Test User Design",
+      "role": "user"
+    },
+    {
+      "id": "12360156",
+      "email": "test-design-1772647473196@test.com",
+      "name": "Test User Design",
+      "role": "user"
+    },
+    {
+      "id": "12390027",
+      "email": "test-design-1772649398835@test.com",
+      "name": "Test User Design",
+      "role": "user"
+    },
+    {
+      "id": "13170165",
+      "email": "test-design-1772766840562@test.com",
+      "name": "Test User Design",
+      "role": "user"
+    },
+    {
+      "id": "13170217",
+      "email": "test-design-1772766978891@test.com",
+      "name": "Test User Design",
+      "role": "user"
+    },
+    {
+      "id": "13170261",
+      "email": "test-design-1772767011492@test.com",
+      "name": "Test User Design",
+      "role": "user"
+    },
+    {
+      "id": "13170304",
+      "email": "test-design-1772767053295@test.com",
+      "name": "Test User Design",
+      "role": "user"
+    },
+    {
+      "id": "13170350",
+      "email": "test-design-1772767119383@test.com",
+      "name": "Test User Design",
+      "role": "user"
+    },
+    {
+      "id": "13170391",
+      "email": "test-design-1772767153009@test.com",
+      "name": "Test User Design",
+      "role": "user"
+    },
+    {
+      "id": "8580037",
+      "email": "test@advisory.com",
+      "name": "Test Client Advisory",
+      "role": "user"
+    },
+    {
+      "id": "8880023",
+      "email": "test@cotizacion.com",
+      "name": "Cliente Test Cotización",
+      "role": "user"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\temail\tname\trole\n10530057\tadmin-created-1772072395450@example.com\tTest User\tuser\n10530137\tadmin-created-1772072940731@example.com\tTest User\tuser\n10530177\tadmin-created-1772072959649@example.com\tTest User\tuser\n10980375\tadmin-created-1772318304589@example.com\tTest User\tuser\n10980415\tadmin-created-1772318325946@example.com\tTest User\tuser\n10980456\tadmin-created-1772318355056@example.com\tTest User\tuser\n10980611\tadmin-created-1772321158857@example.com\tTest User\tuser\n10980650\tadmin-created-1772321179175@example.com\tTest User\tuser\n11130086\tadmin-created-1772386138287@example.com\tTest User\tuser\n12330073\tadmin-created-1772645013805@example.com\tTest User\tuser\n12330110\tadmin-created-1772645065574@example.com\tTest User\tuser\n12330149\tadmin-created-1772645084940@example.com\tTest User\tuser\n12330192\tadmin-created-1772645118891@example.com\tTest User\tuser\n12360044\tadmin-created-1772647382085@example.com\tTest User\tuser\n12360083\tadmin-created-1772647409195@example.com\tTest User\tuser\n12360125\tadmin-created-1772647435644@example.com\tTest User\tuser\n12360163\tadmin-created-1772647476141@example.com\tTest User\tuser\n12390035\tadmin-created-1772649402126@example.com\tTest User\tuser\n13170172\tadmin-created-1772766861419@example.com\tTest User\tuser\n13170225\tadmin-created-1772766982045@example.com\tTest User\tuser\n13170269\tadmin-created-1772767014694@example.com\tTest User\tuser\n13170313\tadmin-created-1772767057178@example.com\tTest User\tuser\n13170356\tadmin-created-1772767134415@example.com\tTest User\tuser\n13170399\tadmin-created-1772767156468@example.com\tTest User\tuser\n12330074\tadmin-update-test@test.com\tTest Admin\tadmin\n13170268\tadmin-update-test@test.com\tTest Admin\tadmin\n13170361\tadmin-update-test@test.com\tTest Admin\tadmin\n12330194\tadmin-update-test@test.com\tTest Admin\tadmin\n11130091\tadmin-update-test@test.com\tTest Admin\tadmin\n10530133\tadmin-update-test@test.com\tTest Admin\tadmin\n12360164\tadmin-update-test@test.com\tTest Admin\tadmin\n12390033\tadmin-update-test@test.com\tTest Admin\tadmin\n12360043\tadmin-update-test@test.com\tTest Admin\tadmin\n13170397\tadmin-update-test@test.com\tTest Admin\tadmin\n9390012\tadmin-update-test@test.com\tTest Admin\tadmin\n12330151\tadmin-update-test@test.com\tTest Admin\tadmin\n10530172\tadmin-update-test@test.com\tTest Admin\tadmin\n10980412\tadmin-update-test@test.com\tTest Admin\tadmin\n13170311\tadmin-update-test@test.com\tTest Admin\tadmin\n10980607\tadmin-update-test@test.com\tTest Admin\tadmin\n10980647\tadmin-update-test@test.com\tTest Admin\tadmin\n12360123\tadmin-update-test@test.com\tTest Admin\tadmin\n12360084\tadmin-update-test@test.com\tTest Admin\tadmin\n13170176\tadmin-update-test@test.com\tTest Admin\tadmin\n12330137\tadmin-update-test@test.com\tTest Admin\tadmin\n10530061\tadmin-update-test@test.com\tTest Admin\tadmin\n10980373\tadmin-update-test@test.com\tTest Admin\tadmin\n10980452\tadmin-update-test@test.com\tTest Admin\tadmin\n13170227\tadmin-update-test@test.com\tTest Admin\tadmin\n9390011\tadmin@test.com\tTest Admin\tadmin\n271067\talbetan1530@gmail.com\tCarlos Albeiro Betancurt \tuser\n30257\talejoile300@gmail.com\tAlejo Gutiérrez\tdisenador\n2220036\talvarorios79@gmail.com\tRuth Naranjo\tuser\n840718\talvarorios79@hotmail.com\tAlvaro Pruebas\tuser\n8580027\tcliente-bulk@test.com\tCliente Test Bulk\tuser\n10890085\tcliente-bulk@test.com\tCliente Test Bulk\tuser\n8880012\tcliente-bulk@test.com\tCliente Test Bulk\tuser\n13080023\tj.o.gordo6958@gmail.com\tOrlando Ramirez Primacho\tuser\n840290\tjefe.taller@innovar.temp\tLuis Cardoso\tjefe_taller\n5850077\tjoanfgv@gmail.com\tJoan Gutiérrez \tuser\n30390\tmartha79s@hotmail.com\tMartha Serna\tadmin\n1\tmcfy8jgnym@privaterelay.appleid.com\tAlvaro Rios\tsuper_admin\n7230187\tniyiamezquita@gmail.com\tNiyired Amezquita\tuser\n840301\toperario@innovar.temp\tDaniel Beltran\toperario\n10530056\tpassword-user-1772072394743@example.com\tTest Password User\tuser\n10530134\tpassword-user-1772072940339@example.com\tTest Password User\tuser\n10530174\tpassword-user-1772072959192@example.com\tTest Password User\tuser\n10980372\tpassword-user-1772318304161@example.com\tTest Password User\tuser\n10980413\tpassword-user-1772318325527@example.com\tTest Password User\tuser\n10980453\tpassword-user-1772318354633@example.com\tTest Password User\tuser\n10980608\tpassword-user-1772321158363@example.com\tTest Password User\tuser\n10980648\tpassword-user-1772321178769@example.com\tTest Password User\tuser\n11130085\tpassword-user-1772386137595@example.com\tTest Password User\tuser\n12330072\tpassword-user-1772645013376@example.com\tTest Password User\tuser\n12330109\tpassword-user-1772645065110@example.com\tTest Password User\tuser\n12330146\tpassword-user-1772645084492@example.com\tTest Password User\tuser\n12330190\tpassword-user-1772645118424@example.com\tTest Password User\tuser\n12360042\tpassword-user-1772647381617@example.com\tTest Password User\tuser\n12360082\tpassword-user-1772647408753@example.com\tTest Password User\tuser\n12360122\tpassword-user-1772647435169@example.com\tTest Password User\tuser\n12360162\tpassword-user-1772647475733@example.com\tTest Password User\tuser\n12390034\tpassword-user-1772649401727@example.com\tTest Password User\tuser\n13170171\tpassword-user-1772766861037@example.com\tTest Password User\tuser\n13170224\tpassword-user-1772766981653@example.com\tTest Password User\tuser\n13170267\tpassword-user-1772767014292@example.com\tTest Password User\tuser\n13170312\tpassword-user-1772767056701@example.com\tTest Password User\tuser\n13170355\tpassword-user-1772767134034@example.com\tTest Password User\tuser\n13170398\tpassword-user-1772767156048@example.com\tTest Password User\tuser\n8580046\ttest-1771708324325@example.com\tTest User\tuser\n8580054\ttest-1771708328280@example.com\tCliente Test Auto-registro\tuser\n8580087\ttest-1771708357992@example.com\tTest User\tuser\n10530054\ttest-1772072386540@example.com\tTest User\tuser\n10530055\ttest-1772072391574@example.com\tTest User\tuser\n10530063\ttest-1772072398236@example.com\tCliente Test Auto-registro\tuser\n10530127\ttest-1772072937331@example.com\tTest User\tuser\n10530128\ttest-1772072939061@example.com\tTest User\tuser\n10530135\ttest-1772072940394@example.com\tCliente Test Auto-registro\tuser\n10530167\ttest-1772072956181@example.com\tTest User\tuser\n10530168\ttest-1772072957857@example.com\tTest User\tuser\n10530175\ttest-1772072959242@example.com\tCliente Test Auto-registro\tuser\n10980367\ttest-1772318301537@example.com\tTest User\tuser\n10980368\ttest-1772318302660@example.com\tTest User\tuser\n10980376\ttest-1772318304611@example.com\tCliente Test Auto-registro\tuser\n10980407\ttest-1772318322685@example.com\tTest User\tuser\n10980408\ttest-1772318324205@example.com\tTest User\tuser\n10980416\ttest-1772318326092@example.com\tCliente Test Auto-registro\tuser\n10980447\ttest-1772318352163@example.com\tTest User\tuser\n10980448\ttest-1772318353300@example.com\tTest User\tuser\n10980455\ttest-1772318354941@example.com\tCliente Test Auto-registro\tuser\n10980602\ttest-1772321155327@example.com\tTest User\tuser\n10980603\ttest-1772321156873@example.com\tTest User\tuser\n10980610\ttest-1772321158757@example.com\tCliente Test Auto-registro\tuser\n10980642\ttest-1772321175645@example.com\tTest User\tuser\n10980643\ttest-1772321177383@example.com\tTest User\tuser\n10980651\ttest-1772321179295@example.com\tCliente Test Auto-registro\tuser\n11130056\ttest-1772386079451@example.com\tTest User\tuser\n11130083\ttest-1772386115062@example.com\tTest User\tuser\n11130084\ttest-1772386127367@example.com\tTest User\tuser\n11130092\ttest-1772386146827@example.com\tCliente Test Auto-registro\tuser\n12330067\ttest-1772645008750@example.com\tTest User\tuser\n12330068\ttest-1772645011882@example.com\tTest User\tuser\n12330076\ttest-1772645014607@example.com\tCliente Test Auto-registro\tuser\n12330107\ttest-1772645059098@example.com\tTest User\tuser\n12330108\ttest-1772645063648@example.com\tTest User\tuser\n12330145\ttest-1772645078631@example.com\tCliente Test Auto-registro\tuser\n12330142\ttest-1772645080015@example.com\tTest User\tuser\n12330143\ttest-1772645082911@example.com\tTest User\tuser\n12330153\ttest-1772645086350@example.com\tCliente Test Auto-registro\tuser\n12330188\ttest-1772645114179@example.com\tTest User\tuser\n12330189\ttest-1772645116813@example.com\tTest User\tuser\n12360037\ttest-1772647378723@example.com\tTest User\tuser\n12360038\ttest-1772647380320@example.com\tTest User\tuser\n12360046\ttest-1772647382569@example.com\tCliente Test Auto-registro\tuser\n12360077\ttest-1772647405941@example.com\tTest User\tuser\n12360078\ttest-1772647407373@example.com\tTest User\tuser\n12360086\ttest-1772647409700@example.com\tCliente Test Auto-registro\tuser\n12360117\ttest-1772647432116@example.com\tTest User\tuser\n12360118\ttest-1772647433758@example.com\tTest User\tuser\n12360126\ttest-1772647435800@example.com\tCliente Test Auto-registro\tuser\n12360157\ttest-1772647472957@example.com\tTest User\tuser\n12360158\ttest-1772647474500@example.com\tTest User\tuser\n12360166\ttest-1772647476774@example.com\tCliente Test Auto-registro\tuser\n12390028\ttest-1772649398916@example.com\tTest User\tuser\n12390029\ttest-1772649400328@example.com\tTest User\tuser\n12390037\ttest-1772649402066@example.com\tCliente Test Auto-registro\tuser\n13170169\ttest-1772766849186@example.com\tTest User\tuser\n13170170\ttest-1772766859746@example.com\tTest User\tuser\n13170178\ttest-1772766865770@example.com\tCliente Test Auto-registro\tuser\n13170219\ttest-1772766979992@example.com\tTest User\tuser\n13170220\ttest-1772766980401@example.com\tTest User\tuser\n13170228\ttest-1772766982583@example.com\tCliente Test Auto-registro\tuser\n13170262\ttest-1772767011935@example.com\tTest User\tuser\n13170263\ttest-1772767013018@example.com\tTest User\tuser\n13170271\ttest-1772767015242@example.com\tCliente Test Auto-registro\tuser\n13170306\ttest-1772767053969@example.com\tTest User\tuser\n13170307\ttest-1772767055190@example.com\tTest User\tuser\n13170315\ttest-1772767057848@example.com\tCliente Test Auto-registro\tuser\n13170353\ttest-1772767123074@example.com\tTest User\tuser\n13170354\ttest-1772767132809@example.com\tTest User\tuser\n13170362\ttest-1772767138864@example.com\tCliente Test Auto-registro\tuser\n13170392\ttest-1772767152871@example.com\tTest User\tuser\n13170393\ttest-1772767154594@example.com\tTest User\tuser\n13170401\ttest-1772767156828@example.com\tCliente Test Auto-registro\tuser\n10530052\ttest-design-1772072385079@test.com\tTest User Design\tuser\n10530126\ttest-design-1772072937345@test.com\tTest User Design\tuser\n10530166\ttest-design-1772072956162@test.com\tTest User Design\tuser\n10980330\ttest-design-1772317238639@test.com\tTest User Design\tuser\n10980366\ttest-design-1772318300536@test.com\tTest User Design\tuser\n10980406\ttest-design-1772318322631@test.com\tTest User Design\tuser\n10980446\ttest-design-1772318351436@test.com\tTest User Design\tuser\n10980601\ttest-design-1772321155079@test.com\tTest User Design\tuser\n10980641\ttest-design-1772321175588@test.com\tTest User Design\tuser\n11130054\ttest-design-1772386078942@test.com\tTest User Design\tuser\n11130081\ttest-design-1772386112123@test.com\tTest User Design\tuser\n12330065\ttest-design-1772645007675@test.com\tTest User Design\tuser\n12330104\ttest-design-1772645051342@test.com\tTest User Design\tuser\n12330140\ttest-design-1772645078851@test.com\tTest User Design\tuser\n12330185\ttest-design-1772645113236@test.com\tTest User Design\tuser\n12360036\ttest-design-1772647378658@test.com\tTest User Design\tuser\n12360076\ttest-design-1772647405788@test.com\tTest User Design\tuser\n12360116\ttest-design-1772647432199@test.com\tTest User Design\tuser\n12360156\ttest-design-1772647473196@test.com\tTest User Design\tuser\n12390027\ttest-design-1772649398835@test.com\tTest User Design\tuser\n13170165\ttest-design-1772766840562@test.com\tTest User Design\tuser\n13170217\ttest-design-1772766978891@test.com\tTest User Design\tuser\n13170261\ttest-design-1772767011492@test.com\tTest User Design\tuser\n13170304\ttest-design-1772767053295@test.com\tTest User Design\tuser\n13170350\ttest-design-1772767119383@test.com\tTest User Design\tuser\n13170391\ttest-design-1772767153009@test.com\tTest User Design\tuser\n8580037\ttest@advisory.com\tTest Client Advisory\tuser\n8880023\ttest@cotizacion.com\tCliente Test Cotización\tuser\n",
+  "stderr": "",
+  "execution_time_ms": 66
+}

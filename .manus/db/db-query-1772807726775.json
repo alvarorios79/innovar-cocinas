@@ -1,0 +1,13 @@
+{
+  "query": "\nSELECT COUNT(*) as total_quotations FROM quotations;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute \nSELECT COUNT(*) as total_quotations FROM quotations;\n",
+  "rows": [
+    {
+      "total_quotations": "0"
+    }
+  ],
+  "messages": [],
+  "stdout": "total_quotations\n0\n",
+  "stderr": "",
+  "execution_time_ms": 53
+}

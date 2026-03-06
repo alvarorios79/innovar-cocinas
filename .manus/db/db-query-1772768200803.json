@@ -1,0 +1,42 @@
+{
+  "query": "\nSELECT 'Clientes' as tabla, COUNT(*) as cantidad FROM clients\nUNION ALL\nSELECT 'Citas', COUNT(*) FROM appointments\nUNION ALL\nSELECT 'Asesoramientos', COUNT(*) FROM advisoryRequests\nUNION ALL\nSELECT 'Cotizaciones', COUNT(*) FROM quotations\nUNION ALL\nSELECT 'Proyectos', COUNT(*) FROM projects\nUNION ALL\nSELECT 'Tareas', COUNT(*) FROM tasks\nUNION ALL\nSELECT 'Recordatorios', COUNT(*) FROM reminders\nUNION ALL\nSELECT 'Usuarios', COUNT(*) FROM users;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute \nSELECT 'Clientes' as tabla, COUNT(*) as cantidad FROM clients\nUNION ALL\nSELECT 'Citas', COUNT(*) FROM appointments\nUNION ALL\nSELECT 'Asesoramientos', COUNT(*) FROM advisoryRequests\nUNION ALL\nSELECT 'Cotizaciones', COUNT(*) FROM quotations\nUNION ALL\nSELECT 'Proyectos', COUNT(*) FROM projects\nUNION ALL\nSELECT 'Tareas', COUNT(*) FROM tasks\nUNION ALL\nSELECT 'Recordatorios', COUNT(*) FROM reminders\nUNION ALL\nSELECT 'Usuarios', COUNT(*) FROM users;\n",
+  "rows": [
+    {
+      "tabla": "Proyectos",
+      "cantidad": "0"
+    },
+    {
+      "tabla": "Asesoramientos",
+      "cantidad": "0"
+    },
+    {
+      "tabla": "Cotizaciones",
+      "cantidad": "0"
+    },
+    {
+      "tabla": "Citas",
+      "cantidad": "502"
+    },
+    {
+      "tabla": "Recordatorios",
+      "cantidad": "0"
+    },
+    {
+      "tabla": "Clientes",
+      "cantidad": "1237"
+    },
+    {
+      "tabla": "Tareas",
+      "cantidad": "0"
+    },
+    {
+      "tabla": "Usuarios",
+      "cantidad": "1033"
+    }
+  ],
+  "messages": [],
+  "stdout": "tabla\tcantidad\nProyectos\t0\nAsesoramientos\t0\nCotizaciones\t0\nCitas\t502\nRecordatorios\t0\nClientes\t1237\nTareas\t0\nUsuarios\t1033\n",
+  "stderr": "",
+  "execution_time_ms": 56
+}

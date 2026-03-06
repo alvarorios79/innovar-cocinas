@@ -1,0 +1,42 @@
+{
+  "query": "\nSELECT 'Clientes - Manual' as tipo, COUNT(*) as cantidad FROM clients WHERE dataOrigin = 'manual'\nUNION ALL\nSELECT 'Clientes - Sistema', COUNT(*) FROM clients WHERE dataOrigin = 'system'\nUNION ALL\nSELECT 'Citas - Manual', COUNT(*) FROM appointments WHERE dataOrigin = 'manual'\nUNION ALL\nSELECT 'Citas - Sistema', COUNT(*) FROM appointments WHERE dataOrigin = 'system'\nUNION ALL\nSELECT 'Asesoramientos', COUNT(*) FROM advisoryRequests\nUNION ALL\nSELECT 'Cotizaciones', COUNT(*) FROM quotations\nUNION ALL\nSELECT 'Proyectos', COUNT(*) FROM projects\nUNION ALL\nSELECT 'Tareas', COUNT(*) FROM tasks;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute \nSELECT 'Clientes - Manual' as tipo, COUNT(*) as cantidad FROM clients WHERE dataOrigin = 'manual'\nUNION ALL\nSELECT 'Clientes - Sistema', COUNT(*) FROM clients WHERE dataOrigin = 'system'\nUNION ALL\nSELECT 'Citas - Manual', COUNT(*) FROM appointments WHERE dataOrigin = 'manual'\nUNION ALL\nSELECT 'Citas - Sistema', COUNT(*) FROM appointments WHERE dataOrigin = 'system'\nUNION ALL\nSELECT 'Asesoramientos', COUNT(*) FROM advisoryRequests\nUNION ALL\nSELECT 'Cotizaciones', COUNT(*) FROM quotations\nUNION ALL\nSELECT 'Proyectos', COUNT(*) FROM projects\nUNION ALL\nSELECT 'Tareas', COUNT(*) FROM tasks;\n",
+  "rows": [
+    {
+      "tipo": "Citas - Sistema",
+      "cantidad": "0"
+    },
+    {
+      "tipo": "Citas - Manual",
+      "cantidad": "502"
+    },
+    {
+      "tipo": "Asesoramientos",
+      "cantidad": "15"
+    },
+    {
+      "tipo": "Clientes - Sistema",
+      "cantidad": "0"
+    },
+    {
+      "tipo": "Clientes - Manual",
+      "cantidad": "1237"
+    },
+    {
+      "tipo": "Proyectos",
+      "cantidad": "99"
+    },
+    {
+      "tipo": "Cotizaciones",
+      "cantidad": "785"
+    },
+    {
+      "tipo": "Tareas",
+      "cantidad": "533"
+    }
+  ],
+  "messages": [],
+  "stdout": "tipo\tcantidad\nCitas - Sistema\t0\nCitas - Manual\t502\nAsesoramientos\t15\nClientes - Sistema\t0\nClientes - Manual\t1237\nProyectos\t99\nCotizaciones\t785\nTareas\t533\n",
+  "stderr": "",
+  "execution_time_ms": 59
+}

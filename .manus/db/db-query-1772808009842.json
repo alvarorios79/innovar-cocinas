@@ -1,0 +1,13 @@
+{
+  "query": "\nSELECT COUNT(*) as total_appointments FROM appointments;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute \nSELECT COUNT(*) as total_appointments FROM appointments;\n",
+  "rows": [
+    {
+      "total_appointments": "0"
+    }
+  ],
+  "messages": [],
+  "stdout": "total_appointments\n0\n",
+  "stderr": "",
+  "execution_time_ms": 49
+}

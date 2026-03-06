@@ -1,0 +1,8 @@
+{
+  "query": "\nSELECT \n  COUNT(*) as total_quotations,\n  SUM(CASE WHEN totalAmount = 0 OR totalAmount IS NULL THEN 1 ELSE 0 END) as with_zero_total,\n  SUM(CASE WHEN totalAmount > 0 THEN 1 ELSE 0 END) as with_positive_total,\n  SUM(CASE WHEN dataOrigin = 'system' THEN 1 ELSE 0 END) as system_origin,\n  SUM(CASE WHEN dataOrigin = 'manual' THEN 1 ELSE 0 END) as manual_origin\nFROM quotations;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute \nSELECT \n  COUNT(*) as total_quotations,\n  SUM(CASE WHEN totalAmount = 0 OR totalAmount IS NULL THEN 1 ELSE 0 END) as with_zero_total,\n  SUM(CASE WHEN totalAmount > 0 THEN 1 ELSE 0 END) as with_positive_total,\n  SUM(CASE WHEN dataOrigin = 'system' THEN 1 ELSE 0 END) as system_origin,\n  SUM(CASE WHEN dataOrigin = 'manual' THEN 1 ELSE 0 END) as manual_origin\nFROM quotations;\n",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1054 (42S22) at line 2: Unknown column 'totalamount' in ''"
+  ]
+}

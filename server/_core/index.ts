@@ -21,6 +21,7 @@ import { startTeamWhatsAppService } from "../whatsapp-team-notifications";
 import { startPeriodicCleanup } from "../tmp-cleanup";
 import { startWhatsAppTokenMonitor } from "../whatsapp-token-monitor";
 import { apiRateLimiter, authRateLimiter, uploadRateLimiter } from "../rate-limiter";
+import cors from "cors";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -49,6 +50,15 @@ async function startServer() {
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
   // Trust proxy para obtener IP real detrás de reverse proxy
   app.set('trust proxy', 1);
+  
+  // CORS configuration
+  app.use(cors({
+    origin: true,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  }));
+  
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);
   // Rate limiting para endpoints de autenticación

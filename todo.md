@@ -4823,3 +4823,35 @@ Listo para pasar a Fase 7.2 (Intelligent Alerts) cuando sea requerido.
 - [x] Probar en desktop, tablet y móvil
 - [x] Verificar permisos (solo admin y super_admin)
 - [x] Crear tests vitest para funcionalidad de comprobantes (6 tests pasando)
+
+
+## Separación de Datos por Origen (dataOrigin)
+
+### Backend - Filtrado por dataOrigin
+- [x] Actualizar db.ts para filtrar clientes por dataOrigin = 'manual'
+- [x] Actualizar db.ts para filtrar cotizaciones por dataOrigin = 'manual'
+- [x] Actualizar db.ts para filtrar proyectos por dataOrigin = 'manual'
+- [x] Actualizar db.ts para filtrar citas por dataOrigin = 'manual'
+- [x] Actualizar db.ts para NO filtrar tareas (tabla no tiene dataOrigin)
+- [x] Crear procedimientos en routers para obtener datos del sistema (dataOrigin = 'system')
+- [ ] Crear tests para validar filtrado por dataOrigin
+
+### Frontend - Zona Crítica
+- [x] Crear componente CriticalZone.tsx para gestión de datos del sistema
+- [ ] Agregar sección "Zona Crítica" al Panel Admin
+- [x] Implementar lista de datos del sistema (clientes, cotizaciones, proyectos, citas)
+- [x] Agregar funcionalidad de eliminación masiva en Zona Crítica
+- [x] Agregar confirmación visual antes de eliminar datos del sistema
+- [x] Estilizar Zona Crítica con colores de advertencia (rojo/naranja)
+
+### Frontend - Módulos Operacionales
+- [ ] Actualizar Clients.tsx para mostrar solo dataOrigin = 'manual'
+- [ ] Actualizar Quotations.tsx para mostrar solo dataOrigin = 'manual'
+- [ ] Actualizar Projects.tsx para mostrar solo dataOrigin = 'manual'
+- [ ] Actualizar Appointments.tsx para mostrar solo dataOrigin = 'manual'
+- [ ] Actualizar Tasks.tsx (no requiere filtrado, tabla no tiene dataOrigin)
+
+### Testing
+- [ ] Crear tests para Zona Crítica
+- [ ] Crear tests para filtrado de datos operacionales
+- [ ] Verificar que datos del sistema no aparezcan en listas normales

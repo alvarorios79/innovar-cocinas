@@ -1,0 +1,17 @@
+{
+  "query": "\nSELECT id, email, name, role, passwordHash FROM users WHERE email = 'mcfy8jgnym@privaterelay.appleid.com' LIMIT 1;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute \nSELECT id, email, name, role, passwordHash FROM users WHERE email = 'mcfy8jgnym@privaterelay.appleid.com' LIMIT 1;\n",
+  "rows": [
+    {
+      "id": "1",
+      "email": "mcfy8jgnym@privaterelay.appleid.com",
+      "name": "Alvaro Rios",
+      "role": "super_admin",
+      "passwordHash": "$2b$10$6zCJO17BIE9cYvGyGxFBJOR1vfBQXuER1Z0uFTWLpFAAoY2i5zKDe"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\temail\tname\trole\tpasswordHash\n1\tmcfy8jgnym@privaterelay.appleid.com\tAlvaro Rios\tsuper_admin\t$2b$10$6zCJO17BIE9cYvGyGxFBJOR1vfBQXuER1Z0uFTWLpFAAoY2i5zKDe\n",
+  "stderr": "",
+  "execution_time_ms": 78
+}

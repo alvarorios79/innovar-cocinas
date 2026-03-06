@@ -1,0 +1,9 @@
+{
+  "query": "\nSELECT \n  quotationNumber,\n  clientId,\n  total,\n  status,\n  createdAt,\n  subtotal,\n  transportCost\nFROM quotations\nWHERE total > 0\nORDER BY total DESC\nLIMIT 50;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute \nSELECT \n  quotationNumber,\n  clientId,\n  total,\n  status,\n  createdAt,\n  subtotal,\n  transportCost\nFROM quotations\nWHERE total > 0\nORDER BY total DESC\nLIMIT 50;\n",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 54
+}

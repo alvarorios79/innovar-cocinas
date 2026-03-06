@@ -1,0 +1,5005 @@
+{
+  "timestamp": "2026-03-06T04:13:04.391Z",
+  "totalProcessed": 999,
+  "restored": 0,
+  "duplicates": 989,
+  "errors": 10,
+  "incompleteData": 0,
+  "details": [
+    {
+      "quotationNumber": "COT-2026-001",
+      "status": "error",
+      "reason": "Error creando registro"
+    },
+    {
+      "quotationNumber": "COT-2026-002",
+      "status": "error",
+      "reason": "Error creando registro"
+    },
+    {
+      "quotationNumber": "COT-2026-003",
+      "status": "error",
+      "reason": "Error creando registro"
+    },
+    {
+      "quotationNumber": "COT-2026-004",
+      "status": "error",
+      "reason": "Error creando registro"
+    },
+    {
+      "quotationNumber": "COT-2026-005",
+      "status": "error",
+      "reason": "Error creando registro"
+    },
+    {
+      "quotationNumber": "COT-2026-006",
+      "status": "error",
+      "reason": "Error creando registro"
+    },
+    {
+      "quotationNumber": "COT-2026-007",
+      "status": "error",
+      "reason": "Error creando registro"
+    },
+    {
+      "quotationNumber": "COT-2026-008",
+      "status": "error",
+      "reason": "Error creando registro"
+    },
+    {
+      "quotationNumber": "COT-2026-009",
+      "status": "error",
+      "reason": "Error creando registro"
+    },
+    {
+      "quotationNumber": "COT-2026-010",
+      "status": "error",
+      "reason": "Error creando registro"
+    },
+    {
+      "quotationNumber": "COT-2026-011",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-012",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-013",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-014",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-015",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-016",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-017",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-018",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-019",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-020",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-021",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-022",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-023",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-024",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-025",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-026",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-027",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-028",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-029",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-030",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-031",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-032",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-033",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-034",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-035",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-036",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-037",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-038",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-039",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-040",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-041",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-042",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-043",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-044",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-045",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-046",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-047",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-048",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-049",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-050",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-051",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-052",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-053",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-054",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-055",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-056",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-057",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-058",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-059",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-060",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-061",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-062",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-063",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-064",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-065",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-066",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-067",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-068",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-069",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-070",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-071",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-072",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-073",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-074",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-075",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-076",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-077",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-078",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-079",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-080",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-081",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-082",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-083",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-084",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-085",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-086",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-087",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-088",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-089",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-090",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-091",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-092",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-093",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-094",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-095",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-096",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-097",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-098",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-099",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-100",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-101",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-102",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-103",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-104",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-105",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-106",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-107",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-108",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-109",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-110",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-111",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-112",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-113",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-114",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-115",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-116",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-117",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-118",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-119",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-120",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-121",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-122",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-123",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-124",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-125",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-126",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-127",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-128",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-129",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-130",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-131",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-132",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-133",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-134",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-135",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-136",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-137",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-138",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-139",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-140",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-141",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-142",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-143",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-144",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-145",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-146",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-147",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-148",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-149",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-150",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-151",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-152",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-153",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-154",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-155",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-156",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-157",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-158",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-159",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-160",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-161",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-162",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-163",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-164",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-165",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-166",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-167",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-168",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-169",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-170",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-171",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-172",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-173",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-174",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-175",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-176",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-177",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-178",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-179",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-180",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-181",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-182",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-183",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-184",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-185",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-186",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-187",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-188",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-189",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-190",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-191",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-192",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-193",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-194",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-195",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-196",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-197",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-198",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-199",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-200",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-201",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-202",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-203",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-204",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-205",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-206",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-207",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-208",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-209",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-210",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-211",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-212",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-213",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-214",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-215",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-216",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-217",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-218",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-219",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-220",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-221",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-222",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-223",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-224",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-225",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-226",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-227",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-228",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-229",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-230",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-231",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-232",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-233",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-234",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-235",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-236",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-237",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-238",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-239",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-240",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-241",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-242",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-243",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-244",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-245",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-246",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-247",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-248",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-249",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-250",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-251",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-252",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-253",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-254",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-255",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-256",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-257",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-258",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-259",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-260",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-261",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-262",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-263",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-264",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-265",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-266",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-267",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-268",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-269",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-270",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-271",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-272",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-273",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-274",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-275",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-276",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-277",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-278",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-279",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-280",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-281",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-282",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-283",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-284",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-285",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-286",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-287",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-288",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-289",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-290",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-291",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-292",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-293",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-294",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-295",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-296",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-297",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-298",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-299",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-300",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-301",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-302",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-303",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-304",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-305",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-306",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-307",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-308",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-309",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-310",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-311",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-312",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-313",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-314",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-315",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-316",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-317",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-318",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-319",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-320",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-321",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-322",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-323",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-324",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-325",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-326",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-327",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-328",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-329",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-330",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-331",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-332",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-333",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-334",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-335",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-336",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-337",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-338",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-339",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-340",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-341",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-342",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-343",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-344",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-345",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-346",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-347",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-348",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-349",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-350",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-351",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-352",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-353",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-354",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-355",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-356",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-357",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-358",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-359",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-360",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-361",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-362",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-363",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-364",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-365",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-366",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-367",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-368",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-369",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-370",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-371",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-372",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-373",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-374",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-375",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-376",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-377",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-378",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-379",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-380",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-381",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-382",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-383",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-384",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-385",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-386",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-387",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-388",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-389",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-390",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-391",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-392",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-393",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-394",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-395",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-396",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-397",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-398",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-399",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-400",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-401",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-402",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-403",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-404",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-405",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-406",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-407",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-408",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-409",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-410",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-411",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-412",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-413",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-414",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-415",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-416",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-417",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-418",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-419",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-420",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-421",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-422",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-423",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-424",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-425",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-426",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-427",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-428",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-429",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-430",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-431",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-432",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-433",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-434",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-435",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-436",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-437",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-438",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-439",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-440",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-441",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-442",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-443",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-444",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-445",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-446",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-447",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-448",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-449",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-450",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-451",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-452",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-453",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-454",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-455",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-456",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-457",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-458",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-459",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-460",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-461",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-462",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-463",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-464",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-465",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-466",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-467",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-468",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-469",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-470",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-471",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-472",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-473",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-474",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-475",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-476",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-477",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-478",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-479",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-480",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-481",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-482",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-483",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-484",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-485",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-486",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-487",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-488",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-489",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-490",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-491",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-492",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-493",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-494",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-495",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-496",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-497",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-498",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-499",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-500",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-501",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-502",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-503",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-504",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-505",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-506",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-507",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-508",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-509",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-510",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-511",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-512",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-513",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-514",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-515",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-516",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-517",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-518",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-519",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-520",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-521",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-522",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-523",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-524",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-525",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-526",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-527",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-528",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-529",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-530",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-531",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-532",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-533",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-534",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-535",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-536",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-537",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-538",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-539",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-540",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-541",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-542",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-543",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-544",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-545",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-546",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-547",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-548",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-549",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-550",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-551",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-552",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-553",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-554",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-555",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-556",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-557",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-558",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-559",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-560",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-561",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-562",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-563",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-564",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-565",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-566",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-567",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-568",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-569",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-570",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-571",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-572",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-573",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-574",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-575",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-576",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-577",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-578",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-579",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-580",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-581",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-582",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-583",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-584",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-585",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-586",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-587",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-588",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-589",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-590",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-591",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-592",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-593",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-594",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-595",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-596",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-597",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-598",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-599",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-600",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-601",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-602",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-603",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-604",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-605",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-606",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-607",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-608",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-609",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-610",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-611",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-612",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-613",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-614",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-615",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-616",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-617",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-618",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-619",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-620",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-621",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-622",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-623",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-624",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-625",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-626",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-627",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-628",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-629",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-630",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-631",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-632",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-633",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-634",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-635",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-636",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-637",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-638",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-639",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-640",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-641",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-642",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-643",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-644",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-645",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-646",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-647",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-648",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-649",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-650",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-651",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-652",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-653",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-654",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-655",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-656",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-657",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-658",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-659",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-660",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-661",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-662",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-663",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-664",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-665",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-666",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-667",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-668",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-669",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-670",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-671",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-672",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-673",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-674",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-675",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-676",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-677",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-678",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-679",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-680",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-681",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-682",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-683",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-684",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-685",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-686",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-687",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-688",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-689",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-690",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-691",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-692",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-693",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-694",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-695",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-696",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-697",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-698",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-699",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-700",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-701",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-702",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-703",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-704",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-705",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-706",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-707",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-708",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-709",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-710",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-711",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-712",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-713",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-714",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-715",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-716",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-717",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-718",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-719",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-720",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-721",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-722",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-723",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-724",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-725",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-726",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-727",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-728",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-729",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-730",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-731",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-732",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-733",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-734",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-735",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-736",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-737",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-738",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-739",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-740",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-741",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-742",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-743",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-744",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-745",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-746",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-747",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-748",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-749",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-750",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-751",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-752",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-753",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-754",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-755",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-756",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-757",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-758",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-759",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-760",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-761",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-762",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-763",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-764",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-765",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-766",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-767",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-768",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-769",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-770",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-771",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-772",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-773",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-774",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-775",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-776",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-777",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-778",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-779",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-780",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-781",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-782",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-783",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-784",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-785",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-786",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-787",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-788",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-789",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-790",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-791",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-792",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-793",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-794",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-795",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-796",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-797",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-798",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-799",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-800",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-801",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-802",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-803",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-804",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-805",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-806",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-807",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-808",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-809",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-810",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-811",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-812",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-813",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-814",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-815",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-816",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-817",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-818",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-819",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-820",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-821",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-822",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-823",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-824",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-825",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-826",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-827",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-828",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-829",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-830",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-831",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-832",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-833",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-834",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-835",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-836",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-837",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-838",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-839",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-840",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-841",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-842",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-843",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-844",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-845",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-846",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-847",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-848",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-849",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-850",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-851",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-852",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-853",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-854",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-855",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-856",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-857",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-858",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-859",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-860",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-861",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-862",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-863",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-864",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-865",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-866",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-867",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-868",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-869",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-870",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-871",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-872",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-873",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-874",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-875",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-876",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-877",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-878",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-879",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-880",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-881",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-882",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-883",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-884",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-885",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-886",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-887",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-888",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-889",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-890",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-891",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-892",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-893",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-894",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-895",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-896",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-897",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-898",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-899",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-900",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-901",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-902",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-903",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-904",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-905",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-906",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-907",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-908",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-909",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-910",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-911",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-912",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-913",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-914",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-915",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-916",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-917",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-918",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-919",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-920",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-921",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-922",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-923",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-924",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-925",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-926",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-927",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-928",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-929",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-930",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-931",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-932",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-933",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-934",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-935",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-936",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-937",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-938",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-939",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-940",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-941",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-942",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-943",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-944",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-945",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-946",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-947",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-948",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-949",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-950",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-951",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-952",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-953",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-954",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-955",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-956",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-957",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-958",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-959",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-960",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-961",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-962",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-963",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-964",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-965",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-966",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-967",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-968",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-969",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-970",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-971",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-972",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-973",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-974",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-975",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-976",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-977",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-978",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-979",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-980",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-981",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-982",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-983",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-984",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-985",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-986",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-987",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-988",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-989",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-990",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-991",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-992",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-993",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-994",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-995",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-996",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-997",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-998",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    },
+    {
+      "quotationNumber": "COT-2026-999",
+      "status": "duplicate",
+      "reason": "Ya existe en la base de datos"
+    }
+  ]
+}

@@ -104,6 +104,27 @@ export function CriticalZone() {
     },
   });
 
+  const cleanupSystemDataMutation = trpc.system.cleanupData.useMutation({
+    onSuccess: (data) => {
+      toast({
+        title: "Éxito",
+        description: data.message,
+      });
+      systemClientsQuery.refetch();
+      systemQuotationsQuery.refetch();
+      systemProjectsQuery.refetch();
+      systemAppointmentsQuery.refetch();
+      setConfirmDelete(null);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error?.message || "Error durante la limpieza",
+        variant: "destructive",
+      });
+    },
+  });
+
   const systemClientsCount = systemClientsQuery.data?.length ?? 0;
   const systemQuotationsCount = systemQuotationsQuery.data?.length ?? 0;
   const systemProjectsCount = systemProjectsQuery.data?.length ?? 0;
@@ -385,6 +406,55 @@ export function CriticalZone() {
 
 
           </Tabs>
+        </CardContent>
+      </Card>
+
+      {/* System Cleanup Section */}
+      <Card className="border-red-300 bg-red-50">
+        <CardHeader>
+          <CardTitle className="text-red-900">Limpieza Completa del Sistema</CardTitle>
+          <CardDescription className="text-red-800">
+            Elimina todos los datos del sistema (dataOrigin = 'system') de una vez
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {confirmDelete === "cleanup" ? (
+            <div className="bg-red-100 border border-red-300 p-4 rounded space-y-3">
+              <p className="text-sm font-medium text-red-900">
+                ⚠️ ¿Confirmas que deseas ejecutar la limpieza completa del sistema?
+              </p>
+              <p className="text-xs text-red-800">
+                Se eliminarán {totalSystemData} registros del sistema en total.
+              </p>
+              <div className="flex gap-2">
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => cleanupSystemDataMutation.mutate()}
+                  disabled={cleanupSystemDataMutation.isPending}
+                >
+                  {cleanupSystemDataMutation.isPending ? "Limpiando..." : "Sí, ejecutar limpieza"}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setConfirmDelete(null)}
+                >
+                  Cancelar
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => setConfirmDelete("cleanup")}
+              disabled={totalSystemData === 0}
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Ejecutar Limpieza del Sistema
+            </Button>
+          )}
         </CardContent>
       </Card>
 

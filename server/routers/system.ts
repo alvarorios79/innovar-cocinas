@@ -7,8 +7,7 @@ import {
   clients, 
   projects, 
   quotations, 
-  appointments,
-  tasks
+  appointments
 } from "../../drizzle/schema";
 
 /**
@@ -227,7 +226,7 @@ export const systemRouter = router({
 
       return {
         success: true,
-        message: "System cleanup completed successfully",
+        message: "Limpieza del sistema completada correctamente",
         deletedRecords: {
           appointmentsDeleted,
           quotationsDeleted,

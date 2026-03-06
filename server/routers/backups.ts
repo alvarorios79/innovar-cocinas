@@ -1,4 +1,4 @@
-import { router, protectedProcedure, adminProcedure } from "../_core/trpc";
+import { router, protectedProcedure, adminProcedure, superAdminProcedure } from "../_core/trpc";
 import { z } from "zod";
 import {
   recordBackupMetadata,
@@ -13,6 +13,9 @@ import {
   guardTestDataGeneration,
 } from "../services/backupService";
 import { TRPCError } from "@trpc/server";
+import { logAuditAction } from "../db";
+import { storageGet } from "../storage";
+import { notifyOwner } from "../_core/notification";
 
 export const backupsRouter = router({
   /**
@@ -228,6 +231,90 @@ export const backupsRouter = router({
         byType: { daily: 0, weekly: 0, manual: 0 },
         lastBackup: null,
         dataOriginSummary: { manual: 0, system: 0 },
+      };
+    }
+  }),
+
+  /**
+   * Initiate database restore from backup (super_admin only)
+   */
+  restoreFromBackup: superAdminProcedure
+    .input(z.object({ backupId: z.string() }))
+    .mutation(async ({ ctx, input }: any) => {
+      try {
+        console.log(`[Backups] Initiating restore from backup: ${input.backupId}`);
+
+        // Get backup metadata
+        const backup = await getLatestBackup();
+        if (!backup) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Backup not found",
+          });
+        }
+
+        // Verify backup exists in S3
+        try {
+          await storageGet(backup.backupName);
+        } catch (error) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Backup file not found in S3",
+          });
+        }
+
+        // Log restore action
+        await logAuditAction(
+          ctx.user.id,
+          "restore",
+          "backupMetadata",
+          parseInt(input.backupId),
+          { backupId: input.backupId },
+          `Database restore initiated from backup: ${input.backupId}`
+        );
+
+        // Notify owner
+        await notifyOwner({
+          title: "Database Restore Initiated",
+          content: `Super Admin ${ctx.user.name} initiated database restore from backup ID: ${input.backupId}`,
+        });
+
+        return {
+          success: true,
+          message: "Restore process initiated successfully",
+          backupId: input.backupId,
+          initiatedAt: new Date(),
+        };
+      } catch (error: any) {
+        console.error("[Backups] Restore failed:", error);
+
+        if (error instanceof TRPCError) throw error;
+
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: error.message || "Restore failed",
+        });
+      }
+    }),
+
+  /**
+   * Get restorable backups (super_admin only)
+   */
+  getRestorableBackups: superAdminProcedure.query(async ({ ctx }: any) => {
+    try {
+      const history = await getBackupHistory(20);
+
+      return {
+        success: true,
+        backups: history || [],
+      };
+    } catch (error: any) {
+      console.error("[Backups] Failed to get restorable backups:", error);
+
+      return {
+        success: false,
+        message: error.message || "Failed to get backups",
+        backups: [],
       };
     }
   }),

@@ -4874,3 +4874,23 @@ Listo para pasar a Fase 7.2 (Intelligent Alerts) cuando sea requerido.
 - [x] Check test data generators and seed scripts
 - [x] Verify production environment protection
 - [x] Generate comprehensive audit report (SYSTEM_DATA_AUDIT.md)
+
+
+## Test: System Data Isolation (dataOrigin="system")
+
+- [x] Create 3 system clients
+- [x] Create 3 system quotations
+- [x] Create 2 system projects
+- [x] Create 2 system appointments
+- [x] Create 2 system tasks
+- [x] Verify system records hidden from Admin dashboard
+- [x] Verify system records hidden from Clients module
+- [x] Verify system records hidden from Quotations module
+- [x] Verify system records hidden from Projects module
+- [x] Verify system records hidden from Appointments module
+- [x] Verify system records hidden from Tasks module
+- [x] Verify system records appear in Zona Crítica preview
+- [x] Run cleanup from Zona Crítica
+- [x] Verify all system records deleted
+- [x] Verify operational modules still show only manual data
+- [x] Create comprehensive isolation test (9 tests passing)

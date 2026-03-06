@@ -4894,3 +4894,16 @@ Listo para pasar a Fase 7.2 (Intelligent Alerts) cuando sea requerido.
 - [x] Verify all system records deleted
 - [x] Verify operational modules still show only manual data
 - [x] Create comprehensive isolation test (9 tests passing)
+
+
+## Feature: Bulk Notification Deletion
+
+- [x] Locate notifications panel component
+- [x] Create backend procedure for bulk deletion (deleteBulk, deleteAll)
+- [x] Add checkbox UI to each notification
+- [x] Add Select All checkbox
+- [x] Add Delete Selected button with bulk action toolbar
+- [x] Implement confirmation modal with AlertDialog
+- [x] Add Clear All Notifications button (Limpiar todo)
+- [x] Create tests for bulk deletion (7 tests passing)
+- [x] Verify UI updates after deletion without page refresh

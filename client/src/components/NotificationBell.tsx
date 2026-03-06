@@ -11,6 +11,14 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { cn } from "@/lib/utils";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 // Función para solicitar permiso de notificaciones y suscribirse
 async function subscribeToPush(vapidPublicKey: string): Promise<PushSubscription | null> {
@@ -90,6 +98,9 @@ export function NotificationBell() {
   const [, setLocation] = useLocation();
   const [open, setOpen] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteType, setDeleteType] = useState<"selected" | "all">("selected");
 
   // Queries
   const { data: unreadData, refetch: refetchUnread } = trpc.notifications.getUnreadCount.useQuery(
@@ -122,6 +133,20 @@ export function NotificationBell() {
   });
   const deleteMutation = trpc.notifications.delete.useMutation({
     onSuccess: () => {
+      refetchUnread();
+      refetchNotifications();
+    },
+  });
+  const deleteBulkMutation = trpc.notifications.deleteBulk.useMutation({
+    onSuccess: () => {
+      setSelectedIds(new Set());
+      refetchUnread();
+      refetchNotifications();
+    },
+  });
+  const deleteAllMutation = trpc.notifications.deleteAll.useMutation({
+    onSuccess: () => {
+      setSelectedIds(new Set());
       refetchUnread();
       refetchNotifications();
     },
@@ -171,155 +196,284 @@ export function NotificationBell() {
   }, [user]);
 
   const unreadCount = unreadData?.count || 0;
+  const allSelected = notifications && notifications.length > 0 && selectedIds.size === notifications.length;
+
+  const handleSelectAll = () => {
+    if (!notifications) return;
+    if (allSelected) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(notifications.map(n => n.id)));
+    }
+  };
+
+  const handleSelectNotification = (id: number) => {
+    const newSelected = new Set(selectedIds);
+    if (newSelected.has(id)) {
+      newSelected.delete(id);
+    } else {
+      newSelected.add(id);
+    }
+    setSelectedIds(newSelected);
+  };
+
+  const handleDeleteSelected = () => {
+    if (selectedIds.size === 0) return;
+    setDeleteType("selected");
+    setShowDeleteConfirm(true);
+  };
+
+  const handleDeleteAll = () => {
+    setDeleteType("all");
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDelete = () => {
+    if (deleteType === "selected") {
+      deleteBulkMutation.mutate({ ids: Array.from(selectedIds) });
+    } else {
+      deleteAllMutation.mutate();
+    }
+    setShowDeleteConfirm(false);
+  };
 
   if (!user) return null;
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative">
-          <Bell className="h-5 w-5" />
-          {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center font-medium">
-              {unreadCount > 99 ? "99+" : unreadCount}
-            </span>
-          )}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-80 p-0" align="end">
-        <div className="flex items-center justify-between p-4 border-b">
-          <h3 className="font-semibold">Notificaciones</h3>
-          {unreadCount > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => markAllAsReadMutation.mutate()}
-              disabled={markAllAsReadMutation.isPending}
-            >
-              <CheckCheck className="h-4 w-4 mr-1" />
-              Marcar todas
-            </Button>
-          )}
-        </div>
-
-        <ScrollArea className="h-[400px]">
-          {!notifications || notifications.length === 0 ? (
-            <div className="p-8 text-center text-muted-foreground">
-              <Bell className="h-12 w-12 mx-auto mb-3 opacity-50" />
-              <p>No tienes notificaciones</p>
-            </div>
-          ) : (
-            <div className="divide-y">
-              {notifications.map((notification) => (
-                <div
-                  key={notification.id}
-                  className={cn(
-                    "p-4 hover:bg-muted/50 transition-colors cursor-pointer relative group",
-                    !notification.read && "bg-muted/30"
-                  )}
-                  onClick={() => {
-                    if (!notification.read) {
-                      markAsReadMutation.mutate({ id: notification.id });
-                    }
-                    // Navegar según el tipo de notificación y rol del usuario
-                    const isClient = user?.role === "user";
-                    if (notification.type === "tarea") {
-                      setOpen(false);
-                      setLocation("/tasks");
-                    } else if (notification.type === "proyecto") {
-                      setOpen(false);
-                      if (isClient && notification.referenceId) {
-                        setLocation(`/portal?project=${notification.referenceId}`);
-                      } else if (notification.referenceId) {
-                        setLocation("/projects");
-                      }
-                    } else if (notification.type === "cita") {
-                      setOpen(false);
-                      if (isClient) {
-                        setLocation("/portal");
-                      } else {
-                        setLocation("/appointments-calendar");
-                      }
-                    } else if (notification.type === "cotizacion") {
-                      setOpen(false);
-                      if (isClient) {
-                        setLocation("/portal");
-                      } else {
-                        setLocation("/admin");
-                      }
-                    }
-                  }}
+    <>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button variant="ghost" size="icon" className="relative">
+            <Bell className="h-5 w-5" />
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center font-medium">
+                {unreadCount > 99 ? "99+" : unreadCount}
+              </span>
+            )}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-80 p-0" align="end">
+          <div className="flex items-center justify-between p-4 border-b">
+            <h3 className="font-semibold">Notificaciones</h3>
+            <div className="flex gap-2">
+              {unreadCount > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => markAllAsReadMutation.mutate()}
+                  disabled={markAllAsReadMutation.isPending}
                 >
-                  <div className="flex gap-3">
-                    <div
-                      className={cn(
-                        "w-2 h-2 rounded-full mt-2 flex-shrink-0",
-                        getNotificationColor(notification.type)
-                      )}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm truncate">
-                        {notification.title}
-                      </p>
-                      <p className="text-sm text-muted-foreground line-clamp-2">
-                        {notification.body}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {formatRelativeTime(new Date(notification.createdAt))}
-                      </p>
-                    </div>
-                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      {!notification.read && (
+                  <CheckCheck className="h-4 w-4 mr-1" />
+                  Marcar todas
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {/* Bulk actions toolbar */}
+          {selectedIds.size > 0 && (
+            <div className="p-3 border-b bg-muted/50 flex items-center justify-between">
+              <span className="text-sm font-medium">{selectedIds.size} seleccionada{selectedIds.size !== 1 ? "s" : ""}</span>
+              <div className="flex gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleDeleteSelected}
+                  disabled={deleteBulkMutation.isPending}
+                  className="text-destructive hover:text-destructive"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Select All checkbox */}
+          {notifications && notifications.length > 0 && (
+            <div className="px-4 py-2 border-b flex items-center gap-2 hover:bg-muted/50">
+              <input
+                type="checkbox"
+                checked={allSelected}
+                onChange={handleSelectAll}
+                className="rounded border border-input"
+              />
+              <span className="text-sm text-muted-foreground">Seleccionar todas</span>
+            </div>
+          )}
+
+          <ScrollArea className="h-[400px]">
+            {!notifications || notifications.length === 0 ? (
+              <div className="p-8 text-center text-muted-foreground">
+                <Bell className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                <p>No tienes notificaciones</p>
+              </div>
+            ) : (
+              <div className="divide-y">
+                {notifications.map((notification) => (
+                  <div
+                    key={notification.id}
+                    className={cn(
+                      "p-4 hover:bg-muted/50 transition-colors relative group",
+                      !notification.read && "bg-muted/30",
+                      selectedIds.has(notification.id) && "bg-muted"
+                    )}
+                  >
+                    <div className="flex gap-3">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.has(notification.id)}
+                        onChange={() => handleSelectNotification(notification.id)}
+                        className="mt-2 rounded border border-input"
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                      <div
+                        className="flex-1 min-w-0 cursor-pointer"
+                        onClick={() => {
+                          if (!notification.read) {
+                            markAsReadMutation.mutate({ id: notification.id });
+                          }
+                          // Navegar según el tipo de notificación y rol del usuario
+                          const isClient = user?.role === "user";
+                          if (notification.type === "tarea") {
+                            setOpen(false);
+                            setLocation("/tasks");
+                          } else if (notification.type === "proyecto") {
+                            setOpen(false);
+                            if (isClient && notification.referenceId) {
+                              setLocation(`/portal?project=${notification.referenceId}`);
+                            } else if (notification.referenceId) {
+                              setLocation("/projects");
+                            }
+                          } else if (notification.type === "cita") {
+                            setOpen(false);
+                            if (isClient) {
+                              setLocation("/portal");
+                            } else {
+                              setLocation("/appointments-calendar");
+                            }
+                          } else if (notification.type === "cotizacion") {
+                            setOpen(false);
+                            if (isClient) {
+                              setLocation("/portal");
+                            } else {
+                              setLocation("/admin");
+                            }
+                          }
+                        }}
+                      >
+                        <div className="flex gap-3">
+                          <div
+                            className={cn(
+                              "w-2 h-2 rounded-full mt-2 flex-shrink-0",
+                              getNotificationColor(notification.type)
+                            )}
+                          />
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-sm truncate">
+                              {notification.title}
+                            </p>
+                            <p className="text-sm text-muted-foreground line-clamp-2">
+                              {notification.body}
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {formatRelativeTime(new Date(notification.createdAt))}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        {!notification.read && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              markAsReadMutation.mutate({ id: notification.id });
+                            }}
+                          >
+                            <Check className="h-4 w-4" />
+                          </Button>
+                        )}
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-7 w-7"
+                          className="h-7 w-7 text-destructive"
                           onClick={(e) => {
                             e.stopPropagation();
-                            markAsReadMutation.mutate({ id: notification.id });
+                            deleteMutation.mutate({ id: notification.id });
                           }}
                         >
-                          <Check className="h-4 w-4" />
+                          <Trash2 className="h-4 w-4" />
                         </Button>
-                      )}
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 text-destructive"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          deleteMutation.mutate({ id: notification.id });
-                        }}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
+            )}
+          </ScrollArea>
+
+          {/* Footer with Clear All button */}
+          {notifications && notifications.length > 0 && (
+            <div className="p-3 border-t flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1"
+                onClick={handleDeleteAll}
+                disabled={deleteAllMutation.isPending}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Limpiar todo
+              </Button>
             </div>
           )}
-        </ScrollArea>
 
-        {/* Prompt para habilitar notificaciones */}
-        {"Notification" in window && Notification.permission === "default" && (
-          <div className="p-3 border-t bg-muted/50">
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-full"
-              onClick={async () => {
-                if (vapidData?.publicKey) {
-                  await subscribeToPush(vapidData.publicKey);
-                }
-              }}
+          {/* Prompt para habilitar notificaciones */}
+          {"Notification" in window && Notification.permission === "default" && (
+            <div className="p-3 border-t bg-muted/50">
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full"
+                onClick={async () => {
+                  if (vapidData?.publicKey) {
+                    await subscribeToPush(vapidData.publicKey);
+                  }
+                }}
+              >
+                <Bell className="h-4 w-4 mr-2" />
+                Activar notificaciones push
+              </Button>
+            </div>
+          )}
+        </PopoverContent>
+      </Popover>
+
+      {/* Confirmation Dialog */}
+      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <AlertDialogContent>
+          <AlertDialogTitle>
+            {deleteType === "selected" ? "Eliminar notificaciones seleccionadas" : "Limpiar todas las notificaciones"}
+          </AlertDialogTitle>
+          <AlertDialogDescription>
+            {deleteType === "selected"
+              ? `¿Estás seguro de que deseas eliminar ${selectedIds.size} notificación${selectedIds.size !== 1 ? "es" : ""}? Esta acción no se puede deshacer.`
+              : "¿Estás seguro de que deseas eliminar todas tus notificaciones? Esta acción no se puede deshacer."}
+          </AlertDialogDescription>
+          <div className="flex gap-3 justify-end">
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={deleteType === "selected" ? deleteBulkMutation.isPending : deleteAllMutation.isPending}
             >
-              <Bell className="h-4 w-4 mr-2" />
-              Activar notificaciones push
-            </Button>
+              Eliminar
+            </AlertDialogAction>
           </div>
-        )}
-      </PopoverContent>
-    </Popover>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }

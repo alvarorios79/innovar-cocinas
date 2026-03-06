@@ -1298,6 +1298,24 @@ export async function deleteNotification(id: number) {
   await db.delete(notifications).where(eq(notifications.id, id));
 }
 
+export async function deleteNotificationsByIds(ids: number[]) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  if (ids.length === 0) return { deletedCount: 0 };
+
+  const result = await db.delete(notifications).where(inArray(notifications.id, ids));
+  return { deletedCount: ids.length };
+}
+
+export async function deleteAllNotificationsByUserId(userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.delete(notifications).where(eq(notifications.userId, userId));
+  return { deletedCount: result.rowsAffected || 0 };
+}
+
 export async function updateNotificationPushSent(id: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");

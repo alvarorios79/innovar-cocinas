@@ -88,6 +88,22 @@ export const notificationsRouter = router({
         return { success: true };
       }),
 
+    // Eliminar múltiples notificaciones
+    deleteBulk: protectedProcedure
+      .input(z.object({ ids: z.array(z.number()).min(1) }))
+      .mutation(async ({ input }) => {
+        const result = await db.deleteNotificationsByIds(input.ids);
+        return { success: true, deletedCount: result.deletedCount };
+      }),
+
+    // Eliminar todas las notificaciones del usuario
+    deleteAll: protectedProcedure
+      .mutation(async ({ ctx }) => {
+        const result = await db.deleteAllNotificationsByUserId(ctx.user.id);
+        return { success: true, deletedCount: result.deletedCount };
+      }),
+
+
     // Enviar notificación de prueba (solo admin)
     sendTest: protectedProcedure
       .mutation(async ({ ctx }) => {

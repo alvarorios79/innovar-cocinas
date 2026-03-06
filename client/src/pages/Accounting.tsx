@@ -17,9 +17,21 @@ import {
   Filter,
   X,
   ArrowLeft,
+  Edit2,
+  Trash2,
 } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { Link } from "wouter";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useAuth } from "@/_core/hooks/useAuth";
 
 // Categorías operativas
 const OPERATIVE_CATEGORIES = [
@@ -50,6 +62,7 @@ const GENERAL_CATEGORIES = [
 type ExpenseType = "materiales_proyecto" | "gasto_operativo";
 
 export default function Accounting() {
+  const { user } = useAuth();
   const [expenseType, setExpenseType] = useState<ExpenseType>("materiales_proyecto");
   const [projectId, setProjectId] = useState<string>("");
   const [operativeCategory, setOperativeCategory] = useState<string>("");
@@ -60,6 +73,8 @@ export default function Accounting() {
   const [filterType, setFilterType] = useState<"all" | ExpenseType>("all");
   const [minAmount, setMinAmount] = useState("");
   const [maxAmount, setMaxAmount] = useState("");
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
 
   // Queries
   const { data: projects } = trpc.projects.list.useQuery();
@@ -73,7 +88,31 @@ export default function Accounting() {
       setDescription("");
       setAmount("");
       setExpenseDate(new Date().toISOString().split("T")[0]);
+      setEditingId(null);
       // Mantener tipo, proyecto/categoría y fecha
+    },
+    onError: (error) => {
+      toast.error(`Error: ${error.message}`);
+    },
+  });
+
+  const updateExpense = trpc.expenses.update.useMutation({
+    onSuccess: () => {
+      toast.success("✅ Gasto actualizado correctamente");
+      setDescription("");
+      setAmount("");
+      setExpenseDate(new Date().toISOString().split("T")[0]);
+      setEditingId(null);
+    },
+    onError: (error) => {
+      toast.error(`Error: ${error.message}`);
+    },
+  });
+
+  const deleteExpense = trpc.expenses.delete.useMutation({
+    onSuccess: () => {
+      toast.success("✅ Gasto eliminado correctamente");
+      setDeleteConfirmId(null);
     },
     onError: (error) => {
       toast.error(`Error: ${error.message}`);
@@ -130,19 +169,57 @@ export default function Accounting() {
     setIsSubmitting(true);
 
     try {
-      await createExpense.mutateAsync({
-        expenseType,
-        projectId: expenseType === "materiales_proyecto" ? parseInt(projectId) : undefined,
-        operativeCategory: expenseType === "gasto_operativo" ? (operativeCategory as any) : undefined,
-        description: description.trim(),
-        amount: parseFloat(amount),
-        expenseDate,
-        generalCategory: expenseType === "materiales_proyecto" ? "materiales" : "servicios",
-      });
+      if (editingId) {
+        await updateExpense.mutateAsync({
+          id: editingId,
+          description: description.trim(),
+          amount: parseFloat(amount),
+          expenseDate,
+          expenseType,
+          operativeCategory: expenseType === "gasto_operativo" ? (operativeCategory as any) : undefined,
+          generalCategory: expenseType === "materiales_proyecto" ? "materiales" : "servicios",
+        });
+      } else {
+        await createExpense.mutateAsync({
+          expenseType,
+          projectId: expenseType === "materiales_proyecto" ? parseInt(projectId) : undefined,
+          operativeCategory: expenseType === "gasto_operativo" ? (operativeCategory as any) : undefined,
+          description: description.trim(),
+          amount: parseFloat(amount),
+          expenseDate,
+          generalCategory: expenseType === "materiales_proyecto" ? "materiales" : "servicios",
+        });
+      }
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  const handleEditExpense = (expense: any) => {
+    setEditingId(expense.id);
+    setExpenseType(expense.expenseType);
+    setProjectId(expense.projectId?.toString() || "");
+    setOperativeCategory(expense.operativeCategory || "");
+    setDescription(expense.description);
+    setAmount(expense.amount.toString());
+    setExpenseDate(new Date(expense.expenseDate).toISOString().split("T")[0]);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setDescription("");
+    setAmount("");
+    setExpenseDate(new Date().toISOString().split("T")[0]);
+    setProjectId("");
+    setOperativeCategory("");
+  };
+
+  const handleDeleteExpense = async (id: number) => {
+    await deleteExpense.mutateAsync(id);
+  };
+
+  const canEditDelete = user && ["admin", "super_admin"].includes(user.role);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
@@ -178,8 +255,10 @@ export default function Accounting() {
         {/* Formulario Simple */}
         <Card className="mb-8 shadow-lg">
           <CardHeader>
-            <CardTitle>Registrar Gasto</CardTitle>
-            <CardDescription>Completa el formulario para registrar un nuevo gasto</CardDescription>
+            <CardTitle>{editingId ? "Actualizar Gasto" : "Registrar Gasto"}</CardTitle>
+            <CardDescription>
+              {editingId ? "Modifica los datos del gasto" : "Completa el formulario para registrar un nuevo gasto"}
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -288,13 +367,23 @@ export default function Accounting() {
               </div>
 
               {/* SECCIÓN 4: Botón */}
-              <div className="flex justify-end pt-4">
+              <div className="flex justify-end gap-3 pt-4">
+                {editingId && (
+                  <Button
+                    type="button"
+                    onClick={handleCancelEdit}
+                    variant="outline"
+                    className="h-12 px-8 text-base font-semibold"
+                  >
+                    Cancelar
+                  </Button>
+                )}
                 <Button
                   type="submit"
                   disabled={isSubmitting}
                   className="h-12 px-8 text-base font-semibold bg-green-600 hover:bg-green-700 text-white"
                 >
-                  {isSubmitting ? "Guardando..." : "Guardar Gasto"}
+                  {editingId ? "Actualizar gasto" : "Guardar gasto"}
                 </Button>
               </div>
             </form>
@@ -379,6 +468,7 @@ export default function Accounting() {
                     <th className="text-left py-3 px-4 font-semibold">Descripción</th>
                     <th className="text-left py-3 px-4 font-semibold">Tipo</th>
                     <th className="text-right py-3 px-4 font-semibold">Monto</th>
+                    {canEditDelete && <th className="text-center py-3 px-4 font-semibold">Acciones</th>}
                   </tr>
                 </thead>
                 <tbody>
@@ -396,6 +486,32 @@ export default function Accounting() {
                       <td className="py-3 px-4 text-right font-semibold">
                         ${expense.amount.toLocaleString()}
                       </td>
+                      {canEditDelete && (
+                        <td className="py-3 px-4 text-center">
+                          <div className="flex justify-center gap-2">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleEditExpense(expense)}
+                              className="h-8 w-8 p-0 md:h-auto md:w-auto md:px-2"
+                              title="Editar"
+                            >
+                              <Edit2 className="h-4 w-4 md:mr-1" />
+                              <span className="hidden md:inline">Editar</span>
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => setDeleteConfirmId(expense.id)}
+                              className="h-8 w-8 p-0 md:h-auto md:w-auto md:px-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                              title="Eliminar"
+                            >
+                              <Trash2 className="h-4 w-4 md:mr-1" />
+                              <span className="hidden md:inline">Eliminar</span>
+                            </Button>
+                          </div>
+                        </td>
+                      )}
                     </tr>
                   ))}
                 </tbody>
@@ -409,6 +525,27 @@ export default function Accounting() {
             )}
           </CardContent>
         </Card>
+
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog open={deleteConfirmId !== null} onOpenChange={(open) => !open && setDeleteConfirmId(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Eliminar Gasto</AlertDialogTitle>
+              <AlertDialogDescription>
+                ¿Seguro que deseas eliminar este gasto? Esta acción no se puede deshacer.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <div className="flex justify-end gap-3">
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => deleteConfirmId && handleDeleteExpense(deleteConfirmId)}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                Eliminar
+              </AlertDialogAction>
+            </div>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );

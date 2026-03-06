@@ -7,7 +7,7 @@
 
 // Variables de entorno necesarias (se configuran en el panel de administración)
 // NOTA: Se leen dinámicamente para permitir cambios sin reiniciar el servidor
-const WHATSAPP_API_VERSION = "v21.0";
+const WHATSAPP_API_VERSION = "v19.0";
 
 // Funciones para obtener valores dinámicamente
 function getWhatsAppAccessToken(): string {

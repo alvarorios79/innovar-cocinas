@@ -2040,7 +2040,7 @@ export async function getAllExpenses() {
   const db = await getDb();
   if (!db) return [];
 
-  return await db.select().from(expenses).orderBy(desc(expenses.expenseDate));
+  return await db.select().from(expenses).where(and(isNull(expenses.deletedAt), eq(expenses.dataOrigin, 'manual'))).orderBy(desc(expenses.expenseDate));
 }
 
 export async function getExpensesByType(expenseType: "materiales_proyecto" | "gasto_operativo") {
@@ -2351,7 +2351,7 @@ export async function getAllTasksPaginated(params: PaginationParams & { status?:
   const limit = Math.min(100, Math.max(1, params.limit || 50));
   const offset = (page - 1) * limit;
 
-  const conditions: any[] = [isNull(tasks.deletedAt)];
+  const conditions: any[] = [isNull(tasks.deletedAt), eq(tasks.dataOrigin, 'manual')];
   if (params.status) {
     conditions.push(eq(tasks.status, params.status as any));
   }
@@ -2376,12 +2376,12 @@ export async function getAllExpensesPaginated(params: PaginationParams & { expen
   const limit = Math.min(100, Math.max(1, params.limit || 50));
   const offset = (page - 1) * limit;
 
-  const conditions: any[] = [];
+  const conditions: any[] = [isNull(expenses.deletedAt), eq(expenses.dataOrigin, 'manual')];
   if (params.expenseType) {
     conditions.push(eq(expenses.expenseType, params.expenseType as any));
   }
 
-  const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+  const whereClause = and(...conditions);
 
   const [countResult, data] = await Promise.all([
     db.select({ count: sql<number>`count(*)` }).from(expenses).where(whereClause),

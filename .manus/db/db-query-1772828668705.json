@@ -1,0 +1,38 @@
+{
+  "query": "SELECT t.TABLE_NAME, IF(c.COLUMN_NAME IS NULL, 'MISSING', 'EXISTS') as dataOrigin_status FROM INFORMATION_SCHEMA.TABLES t LEFT JOIN INFORMATION_SCHEMA.COLUMNS c ON t.TABLE_SCHEMA=c.TABLE_SCHEMA AND t.TABLE_NAME=c.TABLE_NAME AND c.COLUMN_NAME='dataOrigin' WHERE t.TABLE_SCHEMA=DATABASE() AND t.TABLE_NAME IN ('clients', 'projects', 'quotations', 'appointments', 'tasks', 'notifications', 'expenses') ORDER BY t.TABLE_NAME;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT t.TABLE_NAME, IF(c.COLUMN_NAME IS NULL, 'MISSING', 'EXISTS') as dataOrigin_status FROM INFORMATION_SCHEMA.TABLES t LEFT JOIN INFORMATION_SCHEMA.COLUMNS c ON t.TABLE_SCHEMA=c.TABLE_SCHEMA AND t.TABLE_NAME=c.TABLE_NAME AND c.COLUMN_NAME='dataOrigin' WHERE t.TABLE_SCHEMA=DATABASE() AND t.TABLE_NAME IN ('clients', 'projects', 'quotations', 'appointments', 'tasks', 'notifications', 'expenses') ORDER BY t.TABLE_NAME;",
+  "rows": [
+    {
+      "TABLE_NAME": "appointments",
+      "dataOrigin_status": "EXISTS"
+    },
+    {
+      "TABLE_NAME": "clients",
+      "dataOrigin_status": "EXISTS"
+    },
+    {
+      "TABLE_NAME": "expenses",
+      "dataOrigin_status": "MISSING"
+    },
+    {
+      "TABLE_NAME": "notifications",
+      "dataOrigin_status": "MISSING"
+    },
+    {
+      "TABLE_NAME": "projects",
+      "dataOrigin_status": "EXISTS"
+    },
+    {
+      "TABLE_NAME": "quotations",
+      "dataOrigin_status": "EXISTS"
+    },
+    {
+      "TABLE_NAME": "tasks",
+      "dataOrigin_status": "MISSING"
+    }
+  ],
+  "messages": [],
+  "stdout": "TABLE_NAME\tdataOrigin_status\nappointments\tEXISTS\nclients\tEXISTS\nexpenses\tMISSING\nnotifications\tMISSING\nprojects\tEXISTS\nquotations\tEXISTS\ntasks\tMISSING\n",
+  "stderr": "",
+  "execution_time_ms": 57
+}

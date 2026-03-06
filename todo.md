@@ -5008,3 +5008,21 @@ Listo para pasar a Fase 7.2 (Intelligent Alerts) cuando sea requerido.
 - [x] Implement audit logging for restore operations
 - [ ] Create comprehensive tests for restore functionality
 - [x] Verify implementation and deliver results
+
+
+## Audit: Structural dataOrigin Separation
+
+- [x] Verify dataOrigin column on all critical tables
+- [x] Audit and fix CEO Dashboard queries
+- [x] Audit and fix Clients module queries
+- [x] Audit and fix Projects module queries
+- [x] Audit and fix Quotations module queries
+- [x] Audit and fix Appointments module queries
+- [x] Audit and fix Tasks module queries
+- [x] Audit and fix Accounting module queries
+- [x] Audit and fix Notifications module queries
+- [x] Verify Zona Crítica queries filter dataOrigin='system'
+- [x] Verify data creation functions enforce correct dataOrigin
+- [x] Create comprehensive dataOrigin separation tests
+- [x] Execute validation tests
+- [x] Generate final dataOrigin separation report

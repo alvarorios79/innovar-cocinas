@@ -1,0 +1,31 @@
+{
+  "query": "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME IN ('clients', 'projects', 'quotations', 'appointments', 'tasks', 'notifications', 'expenses') ORDER BY TABLE_NAME;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME IN ('clients', 'projects', 'quotations', 'appointments', 'tasks', 'notifications', 'expenses') ORDER BY TABLE_NAME;",
+  "rows": [
+    {
+      "TABLE_NAME": "appointments"
+    },
+    {
+      "TABLE_NAME": "clients"
+    },
+    {
+      "TABLE_NAME": "expenses"
+    },
+    {
+      "TABLE_NAME": "notifications"
+    },
+    {
+      "TABLE_NAME": "projects"
+    },
+    {
+      "TABLE_NAME": "quotations"
+    },
+    {
+      "TABLE_NAME": "tasks"
+    }
+  ],
+  "messages": [],
+  "stdout": "TABLE_NAME\nappointments\nclients\nexpenses\nnotifications\nprojects\nquotations\ntasks\n",
+  "stderr": "",
+  "execution_time_ms": 55
+}

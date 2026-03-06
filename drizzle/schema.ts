@@ -541,10 +541,11 @@ export const tasks = mysqlTable("tasks", {
 	lastReminderSentBy: int(),
 	reminderCount: int().default(0).notNull(),
 	deletedAt: timestamp({ mode: 'string' }),
-},
-(table) => [
-	index("tasks_assignedTo_idx").on(table.assignedTo),
-	index("tasks_status_idx").on(table.status),
+	dataOrigin: mysqlEnum(['manual', 'system']).default('manual').notNull(),
+	},
+	(table) => [
+		index("tasks_assignedTo_idx").on(table.assignedTo),
+		index("tasks_status_idx").on(table.status),
 	index("tasks_dueDate_idx").on(table.dueDate),
 	index("tasks_projectId_idx").on(table.projectId),
 	index("tasks_assigned_status_idx").on(table.assignedTo, table.status),

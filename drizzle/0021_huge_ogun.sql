@@ -1,0 +1,1 @@
+ALTER TABLE `tasks` ADD `dataOrigin` enum('manual','system') DEFAULT 'manual' NOT NULL;

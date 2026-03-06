@@ -5149,3 +5149,16 @@ Listo para pasar a Fase 7.2 (Intelligent Alerts) cuando sea requerido.
 - [x] Verify LIMPIEZA DE SISTEMA still works correctly
 - [x] Document data origin separation rules
 - [x] Create developer guide for data origin handling
+
+
+## Test Records Creation
+
+- [x] Add dataOrigin column to tasks table schema
+- [x] Create migration script to add dataOrigin column to tasks
+- [x] Create test records generation script (create-test-records.mjs)
+- [x] Generate test user with dataOrigin = 'system'
+- [x] Generate test client with dataOrigin = 'system'
+- [x] Generate test project with dataOrigin = 'system'
+- [x] Generate test quotation with dataOrigin = 'system'
+- [x] Generate test task with dataOrigin = 'system'
+- [x] Generate test appointment with dataOrigin = 'system'

@@ -89,6 +89,17 @@ export async function getDb() {
 }
 
 /**
+ * Enforce dataOrigin separation: automatically set to 'system' if not specified.
+ * This ensures test data is never mixed with operational data.
+ */
+export function enforceDataOrigin<T extends { dataOrigin?: string }>(data: T): T & { dataOrigin: string } {
+  return {
+    ...data,
+    dataOrigin: data.dataOrigin || 'system'
+  };
+}
+
+/**
  * Ejecuta una función dentro de una transacción de base de datos.
  * Si la función lanza un error, la transacción se revierte automáticamente.
  * Si completa sin error, la transacción se confirma.
@@ -417,7 +428,7 @@ export async function getAllAdvisoryRequests() {
   const db = await getDb();
   if (!db) return [];
 
-  return await db.select().from(advisoryRequests).orderBy(desc(advisoryRequests.createdAt));
+  return await db.select().from(advisoryRequests).where(and(isNull(advisoryRequests.deletedAt), eq(advisoryRequests.dataOrigin, 'manual'))).orderBy(desc(advisoryRequests.createdAt));
 }
 
 export async function updateAdvisoryRequest(id: number, data: Partial<InsertAdvisoryRequest>) {
@@ -1002,7 +1013,7 @@ export async function getAllTasks() {
   const db = await getDb();
   if (!db) return [];
 
-  return await db.select().from(tasks).where(isNull(tasks.deletedAt)).orderBy(desc(tasks.createdAt));
+  return await db.select().from(tasks).where(and(isNull(tasks.deletedAt), eq(tasks.dataOrigin, 'manual'))).orderBy(desc(tasks.createdAt));
 }
 
 export async function updateTask(id: number, data: Partial<InsertTask>) {
@@ -2231,7 +2242,7 @@ export async function getAllClientsPaginated(params: PaginationParams = {}): Pro
   const limit = Math.min(100, Math.max(1, params.limit || 50));
   const offset = (page - 1) * limit;
 
-  const conditions = [isNull(clients.deletedAt)];
+  const conditions = [isNull(clients.deletedAt), eq(clients.dataOrigin, 'manual')];
   if (params.search) {
     const searchTerm = `%${params.search}%`;
     conditions.push(sql`(${clients.name} LIKE ${searchTerm} OR ${clients.email} LIKE ${searchTerm} OR ${clients.whatsappPhone} LIKE ${searchTerm})`);
@@ -2254,7 +2265,7 @@ export async function getAllAppointmentsPaginated(params: PaginationParams & { s
   const limit = Math.min(100, Math.max(1, params.limit || 50));
   const offset = (page - 1) * limit;
 
-  const conditions: any[] = [isNull(appointments.deletedAt)];
+  const conditions: any[] = [isNull(appointments.deletedAt), eq(appointments.dataOrigin, 'manual')];
   if (params.status) {
     conditions.push(eq(appointments.status, params.status as any));
   }
@@ -2284,7 +2295,7 @@ export async function getAllQuotationsPaginated(params: PaginationParams & { sta
   const limit = Math.min(100, Math.max(1, params.limit || 50));
   const offset = (page - 1) * limit;
 
-  const conditions: any[] = [isNull(quotations.deletedAt), eq(quotations.isArchived, 0)];
+  const conditions: any[] = [isNull(quotations.deletedAt), eq(quotations.isArchived, 0), eq(quotations.dataOrigin, 'manual')];
   if (params.status) {
     conditions.push(eq(quotations.status, params.status as any));
   }
@@ -2306,7 +2317,7 @@ export async function getAllProjectsPaginated(params: PaginationParams & { statu
   const limit = Math.min(100, Math.max(1, params.limit || 50));
   const offset = (page - 1) * limit;
 
-  const conditions: any[] = [isNull(projects.deletedAt)];
+  const conditions: any[] = [isNull(projects.deletedAt), eq(projects.dataOrigin, 'manual')];
   if (params.status) {
     conditions.push(eq(projects.status, params.status as any));
   }
@@ -2351,7 +2362,7 @@ export async function getAllTasksPaginated(params: PaginationParams & { status?:
   const limit = Math.min(100, Math.max(1, params.limit || 50));
   const offset = (page - 1) * limit;
 
-  const conditions: any[] = [isNull(tasks.deletedAt)];
+  const conditions: any[] = [isNull(tasks.deletedAt), eq(tasks.dataOrigin, 'manual')];
   if (params.status) {
     conditions.push(eq(tasks.status, params.status as any));
   }

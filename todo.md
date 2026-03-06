@@ -5088,3 +5088,64 @@ Listo para pasar a Fase 7.2 (Intelligent Alerts) cuando sea requerido.
 - [x] Verify pagination works correctly
 - [x] Test error scenarios and recovery
 - [x] Performance testing for bulk operations
+
+
+## Data Origin Separation - Enforce Strict Separation Between Operational and Test Data
+
+### Phase 1: Audit and Map Operational Queries
+- [x] Audit all dashboard queries in Admin.tsx (projects, quotations, appointments, tasks, clients, users)
+- [x] Audit all dashboard queries in Projects.tsx
+- [x] Audit all dashboard queries in Portal.tsx (client portal)
+- [x] Audit all dashboard queries in Tasks.tsx
+- [x] Audit all dashboard queries in Appointments.tsx
+- [x] Audit all dashboard queries in Quotations.tsx
+- [x] Document all queries that need dataOrigin filter added
+- [x] Create mapping of queries to update
+
+### Phase 2: Update Backend Procedures
+- [x] Add dataOrigin = 'manual' filter to projects.getAll procedure
+- [x] Add dataOrigin = 'manual' filter to quotations.getAll procedure
+- [x] Add dataOrigin = 'manual' filter to appointments.getAll procedure
+- [x] Add dataOrigin = 'manual' filter to tasks.getAll procedure
+- [x] Add dataOrigin = 'manual' filter to clients.getAll procedure
+- [x] Add dataOrigin = 'manual' filter to users.getAll procedure
+- [x] Add dataOrigin = 'manual' filter to notifications.getAll procedure
+- [x] Add dataOrigin = 'manual' filter to expenses.getAll procedure
+- [x] Update all count procedures to filter by dataOrigin = 'manual'
+- [x] Update all dashboard summary procedures
+
+### Phase 3: Automatic dataOrigin Assignment
+- [x] Add middleware to automatically set dataOrigin = 'system' if not specified
+- [x] Update all create procedures to validate and enforce dataOrigin
+- [x] Add validation to prevent manual creation of 'system' records
+- [x] Create helper function for safe record creation
+
+### Phase 4: Audit Data Generators
+- [x] Review all test data generator scripts
+- [x] Ensure all generators explicitly set dataOrigin = 'system'
+- [x] Update seed scripts to use dataOrigin = 'system'
+- [x] Verify no generators are creating records without dataOrigin
+
+### Phase 5: Verify Operational Dashboards
+- [x] Test Admin dashboard shows only manual data
+- [x] Test Projects dashboard shows only manual data
+- [x] Test Portal shows only manual data
+- [x] Test Tasks dashboard shows only manual data
+- [x] Test Appointments dashboard shows only manual data
+- [x] Test Quotations dashboard shows only manual data
+- [x] Verify all counters exclude system data
+- [x] Verify all charts exclude system data
+
+### Phase 6: Add Validation Tests
+- [x] Create test to verify operational queries filter by dataOrigin
+- [x] Create test to verify system data never appears in dashboards
+- [x] Create test to verify automatic dataOrigin assignment
+- [x] Create test to verify manual data is never marked as 'system'
+- [x] Create test for data separation integrity
+
+### Phase 7: Final Verification
+- [x] Run all tests and verify separation is maintained
+- [x] Manual testing in all dashboards
+- [x] Verify LIMPIEZA DE SISTEMA still works correctly
+- [x] Document data origin separation rules
+- [x] Create developer guide for data origin handling

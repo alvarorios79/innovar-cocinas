@@ -134,6 +134,13 @@
       "when": 1772823463158,
       "tag": "0018_sticky_serpent_society",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "5",
+      "when": 1772825177965,
+      "tag": "0019_hard_peter_parker",
+      "breakpoints": true
     }
   ]
 }

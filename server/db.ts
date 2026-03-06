@@ -3637,3 +3637,150 @@ export async function emptyRecycleBin(daysOld: number = 30, userId?: number) {
 
   return { totalDeleted };
 }
+
+
+/**
+ * Backup Management Functions
+ */
+
+export async function recordBackupMetadata(backupData: {
+  backupName: string;
+  backupType: "daily" | "weekly" | "manual";
+  s3Key: string;
+  s3Url: string;
+  fileSize: number;
+  rowCounts: Record<string, number>;
+  checksums: Record<string, string>;
+  dataOriginSummary: { manual: number; system: number };
+  createdBy?: number;
+  retentionDays?: number;
+}) {
+  const db = await getDatabase();
+  if (!db) throw new Error("Database not available");
+
+  try {
+    const result = await db.insert(backupMetadata).values({
+      backupName: backupData.backupName,
+      backupType: backupData.backupType,
+      s3Key: backupData.s3Key,
+      s3Url: backupData.s3Url,
+      fileSize: backupData.fileSize,
+      rowCounts: backupData.rowCounts,
+      checksums: backupData.checksums,
+      status: "completed",
+      verificationStatus: "verified",
+      createdAt: new Date(),
+      completedAt: new Date(),
+      verifiedAt: new Date(),
+      expiresAt: new Date(Date.now() + (backupData.retentionDays || 30) * 24 * 60 * 60 * 1000),
+      createdBy: backupData.createdBy,
+      retentionDays: backupData.retentionDays || 30,
+      dataOriginSummary: backupData.dataOriginSummary,
+    });
+
+    return result;
+  } catch (error: any) {
+    console.error("[Database] Error recording backup metadata:", error);
+    throw error;
+  }
+}
+
+export async function getBackupHistory(limit: number = 50) {
+  const db = await getDatabase();
+  if (!db) throw new Error("Database not available");
+
+  try {
+    return await db
+      .select()
+      .from(backupMetadata)
+      .orderBy(desc(backupMetadata.createdAt))
+      .limit(limit);
+  } catch (error: any) {
+    console.error("[Database] Error getting backup history:", error);
+    throw error;
+  }
+}
+
+export async function getLatestBackup(backupType?: "daily" | "weekly" | "manual") {
+  const db = await getDatabase();
+  if (!db) throw new Error("Database not available");
+
+  try {
+    let query = db
+      .select()
+      .from(backupMetadata)
+      .where(eq(backupMetadata.status, "completed"))
+      .orderBy(desc(backupMetadata.createdAt))
+      .limit(1);
+
+    if (backupType) {
+      query = db
+        .select()
+        .from(backupMetadata)
+        .where(
+          and(
+            eq(backupMetadata.status, "completed"),
+            eq(backupMetadata.backupType, backupType)
+          )
+        )
+        .orderBy(desc(backupMetadata.createdAt))
+        .limit(1);
+    }
+
+    const result = await query;
+    return result[0] || null;
+  } catch (error: any) {
+    console.error("[Database] Error getting latest backup:", error);
+    throw error;
+  }
+}
+
+export async function updateBackupStatus(
+  backupId: number,
+  status: "pending" | "completed" | "failed" | "verified",
+  verificationStatus?: "not_verified" | "verified" | "failed",
+  errorMessage?: string
+) {
+  const db = await getDatabase();
+  if (!db) throw new Error("Database not available");
+
+  try {
+    const updateData: any = {
+      status,
+      completedAt: new Date(),
+    };
+
+    if (verificationStatus) {
+      updateData.verificationStatus = verificationStatus;
+      updateData.verifiedAt = new Date();
+    }
+
+    if (errorMessage) {
+      updateData.errorMessage = errorMessage;
+    }
+
+    return await db
+      .update(backupMetadata)
+      .set(updateData)
+      .where(eq(backupMetadata.id, backupId));
+  } catch (error: any) {
+    console.error("[Database] Error updating backup status:", error);
+    throw error;
+  }
+}
+
+export async function deleteExpiredBackups() {
+  const db = await getDatabase();
+  if (!db) throw new Error("Database not available");
+
+  try {
+    const result = await db
+      .delete(backupMetadata)
+      .where(lte(backupMetadata.expiresAt, new Date()));
+
+    return result;
+  } catch (error: any) {
+    console.error("[Database] Error deleting expired backups:", error);
+    throw error;
+  }
+}

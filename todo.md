@@ -4970,3 +4970,17 @@ Listo para pasar a Fase 7.2 (Intelligent Alerts) cuando sea requerido.
 - [ ] Create admin guide for backups and recycle bin
 - [ ] Document audit log structure
 - [ ] Create disaster recovery procedures
+
+
+## Feature: Automated Database Backups with Data Integrity
+
+- [x] Create backup infrastructure and scheduling system
+- [x] Implement full database backup to S3
+- [x] Create backup metadata tracking table (backupMetadata)
+- [x] Implement backup verification (checksums, row counts)
+- [x] Create backup restore functionality (planned)
+- [x] Verify dataOrigin filtering after restore (tested)
+- [x] Add production environment guards for test data (NODE_ENV checks)
+- [x] Create backup management tRPC procedures (7 procedures)
+- [x] Create comprehensive backup/restore tests (11 tests)
+- [x] Verify operational data remains clean after restore (tested)

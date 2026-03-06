@@ -640,3 +640,31 @@ export const auditLogs = mysqlTable("auditLogs", {
 
 export type InsertAuditLog = typeof auditLogs.$inferInsert;
 export type SelectAuditLog = typeof auditLogs.$inferSelect;
+
+
+export const backupMetadata = mysqlTable("backupMetadata", {
+	id: int().autoincrement().notNull(),
+	backupName: varchar({ length: 255 }).notNull(),
+	backupType: mysqlEnum(['daily', 'weekly', 'manual']).notNull(),
+	s3Key: varchar({ length: 500 }).notNull(),
+	s3Url: text().notNull(),
+	fileSize: bigint({ mode: 'number' }),
+	rowCounts: json().$type<Record<string, number>>(),
+	checksums: json().$type<Record<string, string>>(),
+	status: mysqlEnum(['pending', 'completed', 'failed', 'verified']).default('pending').notNull(),
+	verificationStatus: mysqlEnum(['not_verified', 'verified', 'failed']).default('not_verified').notNull(),
+	errorMessage: text(),
+	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	completedAt: timestamp({ mode: 'string' }),
+	verifiedAt: timestamp({ mode: 'string' }),
+	expiresAt: timestamp({ mode: 'string' }),
+	createdBy: int().references(() => users.id),
+	retentionDays: int().default(30).notNull(),
+	dataOriginSummary: json().$type<{ manual: number; system: number }>(),
+},
+(table) => [
+	index("backupMetadata_status_idx").on(table.status),
+	index("backupMetadata_backupType_idx").on(table.backupType),
+	index("backupMetadata_createdAt_idx").on(table.createdAt),
+	index("backupMetadata_expiresAt_idx").on(table.expiresAt),
+]);

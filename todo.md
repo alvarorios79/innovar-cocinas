@@ -5230,3 +5230,11 @@ Listo para pasar a Fase 7.2 (Intelligent Alerts) cuando sea requerido.
 - [x] Remove disabled conditions preventing dialog from opening
 - [x] Move validation logic to dialog submission
 - [x] Test upload workflow with operario role
+
+
+## Enable Quick Photo Upload Icons in Each Production Stage
+
+- [x] Locate the disabled photo upload icon in each stage section (Corte, Enchape, Ensamble, Instalación, Entrega)
+- [x] Enable the camera icon and make it clickable
+- [x] Create quick upload dialog that auto-selects the stage
+- [x] Test upload from each stage icon

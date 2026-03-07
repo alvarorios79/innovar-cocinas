@@ -813,7 +813,16 @@ function ProjectPhotoCard({
                   return (
                     <div key={stage}>
                       <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                        <Camera className="h-4 w-4" />
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onUploadPhoto(project.id);
+                          }}
+                          className="p-1 hover:bg-blue-100 rounded transition-colors text-blue-600 hover:text-blue-700 cursor-pointer"
+                          title="Subir foto para esta etapa"
+                        >
+                          <Camera className="h-4 w-4" />
+                        </button>
                         {stageLabels[stage]} ({(stagePhotoList as any[]).length})
                       </h4>
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">

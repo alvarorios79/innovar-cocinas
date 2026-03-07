@@ -830,18 +830,7 @@ function ProjectPhotoCard({
                       {(stagePhotoList as any[]).length === 0 ? (
                         <div className="flex flex-col items-center justify-center p-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
                           <Camera className="h-8 w-8 text-gray-400 mb-2" />
-                          <p className="text-sm text-gray-500 mb-3">Sin fotos de renders aun</p>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onUploadPhoto(project.id);
-                            }}
-                            className="text-blue-600 border-blue-600 hover:bg-blue-50"
-                          >
-                            Subir Renders
-                          </Button>
+                          <p className="text-sm text-gray-500">Sin fotos de renders disponibles</p>
                         </div>
                       ) : (
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">

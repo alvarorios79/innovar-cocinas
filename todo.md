@@ -5238,3 +5238,10 @@ Listo para pasar a Fase 7.2 (Intelligent Alerts) cuando sea requerido.
 - [x] Enable the camera icon and make it clickable
 - [x] Create quick upload dialog that auto-selects the stage
 - [x] Test upload from each stage icon
+
+
+## Enable Renders Section for Operarios
+
+- [x] Locate where Renders section is hidden from operarios
+- [x] Enable Renders section visibility for operario role
+- [x] Test that operarios can view renders and designs

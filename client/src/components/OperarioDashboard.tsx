@@ -594,6 +594,7 @@ export function OperarioDashboard() {
                   <SelectValue placeholder="Selecciona una etapa" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="diseno">🎨 Renders y Diseños</SelectItem>
                   <SelectItem value="corte">Corte</SelectItem>
                   <SelectItem value="enchape">Enchape</SelectItem>
                   <SelectItem value="ensamble">Ensamble / Armado</SelectItem>

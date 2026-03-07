@@ -5222,3 +5222,11 @@ Listo para pasar a Fase 7.2 (Intelligent Alerts) cuando sea requerido.
 - [ ] Test on Android Chrome
 - [ ] Test on Desktop Chrome
 - [ ] Verify notification delivery
+
+
+## Photo Upload Button Fix - Operario Panel
+
+- [x] Inspect OperarioDashboard and identify upload button restrictions
+- [x] Remove disabled conditions preventing dialog from opening
+- [x] Move validation logic to dialog submission
+- [x] Test upload workflow with operario role

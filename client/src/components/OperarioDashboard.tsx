@@ -588,9 +588,9 @@ export function OperarioDashboard() {
           <div className="space-y-4 py-4">
             {/* Selector de etapa */}
             <div className="space-y-2">
-              <Label>Etapa de Producción</Label>
+              <Label className="font-semibold">Etapa de Producción *</Label>
               <Select value={uploadStage} onValueChange={setUploadStage}>
-                <SelectTrigger>
+                <SelectTrigger className={!uploadStage ? "border-red-300" : ""}>
                   <SelectValue placeholder="Selecciona una etapa" />
                 </SelectTrigger>
                 <SelectContent>
@@ -600,11 +600,12 @@ export function OperarioDashboard() {
                   <SelectItem value="final">Fotos Finales</SelectItem>
                 </SelectContent>
               </Select>
+              {!uploadStage && <p className="text-xs text-red-500">Selecciona una etapa para continuar</p>}
             </div>
 
             {/* Selector de archivo */}
             <div className="space-y-2">
-              <Label>Foto</Label>
+              <Label className="font-semibold">Foto *</Label>
               <input
                 ref={fileInputRef}
                 type="file"
@@ -615,12 +616,13 @@ export function OperarioDashboard() {
               <Button
                 type="button"
                 variant="outline"
-                className="w-full"
+                className={`w-full ${ !selectedFile ? "border-red-300" : ""}`}
                 onClick={() => fileInputRef.current?.click()}
               >
                 <Camera className="h-4 w-4 mr-2" />
                 {selectedFile ? selectedFile.name : "Seleccionar foto"}
               </Button>
+              {!selectedFile && <p className="text-xs text-red-500">Selecciona una foto para continuar</p>}
             </div>
 
             {/* Preview de la imagen */}
@@ -843,14 +845,14 @@ function ProjectPhotoCard({
             <div className="mt-4 pt-4 border-t flex flex-col gap-2">
               <Button 
                 size="sm" 
-                className="w-full bg-blue-500 hover:bg-blue-600"
+                className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold"
                 onClick={(e) => {
                   e.stopPropagation();
                   onUploadPhoto(project.id);
                 }}
               >
                 <Upload className="h-4 w-4 mr-2" />
-                Subir Foto
+                Subir Foto de Producción
               </Button>
               <Link href="/projects">
                 <Button variant="outline" size="sm" className="w-full">

@@ -809,7 +809,8 @@ function ProjectPhotoCard({
             ) : (
               <div className="space-y-4">
                 {Object.entries(stagePhotos).map(([stage, stagePhotoList]) => {
-                  if ((stagePhotoList as any[]).length === 0) return null;
+                  // Mostrar siempre la sección de diseños/renders aunque esté vacía
+                  if ((stagePhotoList as any[]).length === 0 && stage !== 'disenos') return null;
                   
                   return (
                     <div key={stage}>
@@ -826,6 +827,23 @@ function ProjectPhotoCard({
                         </button>
                         {stageLabels[stage]} ({(stagePhotoList as any[]).length})
                       </h4>
+                      {(stagePhotoList as any[]).length === 0 ? (
+                        <div className="flex flex-col items-center justify-center p-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                          <Camera className="h-8 w-8 text-gray-400 mb-2" />
+                          <p className="text-sm text-gray-500 mb-3">Sin fotos de renders aun</p>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onUploadPhoto(project.id);
+                            }}
+                            className="text-blue-600 border-blue-600 hover:bg-blue-50"
+                          >
+                            Subir Renders
+                          </Button>
+                        </div>
+                      ) : (
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                         {(stagePhotoList as any[]).slice(0, 8).map((photo: any) => (
                           <div 
@@ -845,6 +863,7 @@ function ProjectPhotoCard({
                           </div>
                         ))}
                       </div>
+                      )}
                     </div>
                   );
                 })}

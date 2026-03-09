@@ -5245,3 +5245,24 @@ Listo para pasar a Fase 7.2 (Intelligent Alerts) cuando sea requerido.
 - [x] Locate where Renders section is hidden from operarios
 - [x] Enable Renders section visibility for operario role
 - [x] Test that operarios can view renders and designs
+
+
+## Restricción de Eliminación de Fotos
+
+- [ ] Revisar lógica de eliminación de fotos en OperarioDashboard
+- [ ] Agregar validación para permitir eliminar solo fotos propias
+- [ ] Remover botón de eliminar de fotos de renders
+- [ ] Probar que solo se pueden eliminar fotos propias
+
+
+## Actualización Módulo Pagos a Movimientos Financieros
+
+- [ ] Agregar campo movementType a tabla de pagos
+- [ ] Actualizar procedimientos tRPC para soportar tipos de movimiento (pago, descuento, recargo)
+- [ ] Cambiar nombre "Pagos" a "Movimientos" en interfaz
+- [ ] Cambiar botón "Registrar Pago" a "Registrar Movimiento"
+- [ ] Crear selector de tipo de movimiento en formulario
+- [ ] Actualizar cálculo de saldo pendiente con descuentos y recargos
+- [ ] Actualizar historial para mostrar tipos de movimiento
+- [ ] Migrar pagos existentes a movementType = payment
+- [ ] Probar compatibilidad con pagos existentes

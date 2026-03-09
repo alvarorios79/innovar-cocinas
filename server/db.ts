@@ -2976,6 +2976,51 @@ export async function getTotalPaidByProjectId(projectId: number) {
 }
 
 /**
+ * Calculate project balance using financial movements
+ * Balance = Total Project + Surcharges - Discounts - Payments
+ */
+export async function calculateProjectBalance(projectId: number) {
+  const db = await getDb();
+  if (!db) return { totalProject: 0, payments: 0, discounts: 0, surcharges: 0, balance: 0 };
+
+  // Get project total
+  const projectResult = await db.select({ total: projects.total }).from(projects).where(eq(projects.id, projectId)).limit(1);
+  const totalProject = projectResult && projectResult.length > 0 ? Number(projectResult[0].total) || 0 : 0;
+
+  // Get payment movements (movementType = 'payment')
+  const paymentResult = await db.select({
+    total: sql<number>`COALESCE(SUM(amount), 0)`
+  }).from(payments)
+    .where(and(eq(payments.projectId, projectId), eq(payments.movementType, 'payment')));
+  const totalPayments = paymentResult && paymentResult.length > 0 ? Number(paymentResult[0].total) || 0 : 0;
+
+  // Get discount movements (movementType = 'discount')
+  const discountResult = await db.select({
+    total: sql<number>`COALESCE(SUM(amount), 0)`
+  }).from(payments)
+    .where(and(eq(payments.projectId, projectId), eq(payments.movementType, 'discount')));
+  const totalDiscounts = discountResult && discountResult.length > 0 ? Number(discountResult[0].total) || 0 : 0;
+
+  // Get surcharge movements (movementType = 'surcharge')
+  const surchargeResult = await db.select({
+    total: sql<number>`COALESCE(SUM(amount), 0)`
+  }).from(payments)
+    .where(and(eq(payments.projectId, projectId), eq(payments.movementType, 'surcharge')));
+  const totalSurcharges = surchargeResult && surchargeResult.length > 0 ? Number(surchargeResult[0].total) || 0 : 0;
+
+  // Calculate balance: Total + Surcharges - Discounts - Payments
+  const balance = totalProject + totalSurcharges - totalDiscounts - totalPayments;
+
+  return {
+    totalProject,
+    payments: totalPayments,
+    discounts: totalDiscounts,
+    surcharges: totalSurcharges,
+    balance
+  };
+}
+
+/**
  * Delete a payment by ID
  */
 export async function deletePayment(id: number) {

@@ -15,6 +15,7 @@ export const paymentsRouter = router({
         type: z.enum(["advance", "final", "partial", "other"]),
         receivedAt: z.date(),
         method: z.string().optional(),
+        movementType: z.enum(["payment", "discount", "surcharge"]).optional(),
         notes: z.string().optional(),
       })
     )
@@ -35,6 +36,7 @@ export const paymentsRouter = router({
         type: input.type,
         receivedAt: input.receivedAt,
         method: input.method || null,
+        movementType: input.movementType || "payment",
         notes: input.notes || null,
         registeredBy: ctx.user.id,
       });

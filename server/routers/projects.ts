@@ -186,7 +186,7 @@ export const projectsRouter = router({
         }
 
         // Optimización: ejecutar consultas en paralelo
-        const [client, photosRaw, details, history, projectTasks, quotation, payments, clientAppointments, clientRevisions, totalPaidFromPayments] = await Promise.all([
+        const [client, photosRaw, details, history, projectTasks, quotation, payments, clientAppointments, clientRevisions, totalPaidFromPayments, projectBalance] = await Promise.all([
           db.getClientById(project.clientId),
           db.getProjectPhotosByProjectId(input.id),
           db.getProjectDetailsByProjectId(input.id),
@@ -197,6 +197,7 @@ export const projectsRouter = router({
           db.getAppointmentsByClientId(project.clientId),
           db.getClientRevisionsByProjectId(input.id),
           db.getTotalPaidByProjectId(input.id),
+          db.calculateProjectBalance(input.id),
         ]);
         const totalPaid = totalPaidFromPayments || (payments.reduce((sum: number, p: any) => sum + Number(p.amount), 0));
         
@@ -365,6 +366,12 @@ export const projectsRouter = router({
             paymentProgress: totalAmount > 0 ? Math.round((actualPaid / totalAmount) * 100) : 0,
             totalPaid: totalPaidFromPayments,
             balance: totalAmount - totalPaidFromPayments,
+            // Dynamic balance with movements
+            dynamicBalance: projectBalance?.balance || 0,
+            totalProjectAmount: projectBalance?.totalProject || 0,
+            totalPayments: projectBalance?.payments || 0,
+            totalDiscounts: projectBalance?.discounts || 0,
+            totalSurcharges: projectBalance?.surcharges || 0,
           },
         };
         

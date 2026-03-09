@@ -1,0 +1,80 @@
+{
+  "query": "SELECT id, name, dataOrigin, deletedAt, isArchived FROM projects LIMIT 10;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT id, name, dataOrigin, deletedAt, isArchived FROM projects LIMIT 10;",
+  "rows": [
+    {
+      "id": "2100002",
+      "name": "Test Manual Project",
+      "dataOrigin": "manual",
+      "deletedAt": "2026-03-06 17:33:49",
+      "isArchived": "0"
+    },
+    {
+      "id": "2100003",
+      "name": "Manual Mix Project",
+      "dataOrigin": "manual",
+      "deletedAt": "2026-03-06 17:33:49",
+      "isArchived": "0"
+    },
+    {
+      "id": "2100007",
+      "name": "Test Manual Project",
+      "dataOrigin": "manual",
+      "deletedAt": "2026-03-06 17:33:49",
+      "isArchived": "0"
+    },
+    {
+      "id": "2100008",
+      "name": "Manual Mix Project",
+      "dataOrigin": "manual",
+      "deletedAt": "2026-03-06 17:33:48",
+      "isArchived": "0"
+    },
+    {
+      "id": "2100011",
+      "name": "Test Manual Project",
+      "dataOrigin": "manual",
+      "deletedAt": "2026-03-06 17:33:48",
+      "isArchived": "0"
+    },
+    {
+      "id": "2100012",
+      "name": "Manual Mix Project",
+      "dataOrigin": "manual",
+      "deletedAt": "2026-03-06 17:33:48",
+      "isArchived": "0"
+    },
+    {
+      "id": "2100016",
+      "name": "Test Manual Project",
+      "dataOrigin": "manual",
+      "deletedAt": "2026-03-06 17:33:48",
+      "isArchived": "0"
+    },
+    {
+      "id": "2100017",
+      "name": "Manual Mix Project",
+      "dataOrigin": "manual",
+      "deletedAt": "2026-03-06 17:33:48",
+      "isArchived": "0"
+    },
+    {
+      "id": "2100020",
+      "name": "Test Manual Project",
+      "dataOrigin": "manual",
+      "deletedAt": "2026-03-06 17:33:48",
+      "isArchived": "0"
+    },
+    {
+      "id": "2100021",
+      "name": "Manual Mix Project",
+      "dataOrigin": "manual",
+      "deletedAt": "2026-03-06 17:33:48",
+      "isArchived": "0"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\tdataOrigin\tdeletedAt\tisArchived\n2100002\tTest Manual Project\tmanual\t2026-03-06 17:33:49\t0\n2100003\tManual Mix Project\tmanual\t2026-03-06 17:33:49\t0\n2100007\tTest Manual Project\tmanual\t2026-03-06 17:33:49\t0\n2100008\tManual Mix Project\tmanual\t2026-03-06 17:33:48\t0\n2100011\tTest Manual Project\tmanual\t2026-03-06 17:33:48\t0\n2100012\tManual Mix Project\tmanual\t2026-03-06 17:33:48\t0\n2100016\tTest Manual Project\tmanual\t2026-03-06 17:33:48\t0\n2100017\tManual Mix Project\tmanual\t2026-03-06 17:33:48\t0\n2100020\tTest Manual Project\tmanual\t2026-03-06 17:33:48\t0\n2100021\tManual Mix Project\tmanual\t2026-03-06 17:33:48\t0\n",
+  "stderr": "",
+  "execution_time_ms": 60
+}

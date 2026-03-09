@@ -755,7 +755,12 @@ export async function getProjectById(id: number) {
   const db = await getDb();
   if (!db) return undefined;
 
+  console.log("[DEBUG db.getProjectById] Buscando proyecto con ID:", id);
   const result = await db.select().from(projects).where(and(eq(projects.id, id), isNull(projects.deletedAt), eq(projects.dataOrigin, 'manual'))).limit(1);
+  console.log("[DEBUG db.getProjectById] Resultado:", result.length > 0 ? `Encontrado ${result[0].id}` : "No encontrado");
+  if (result.length > 0) {
+    console.log("[DEBUG db.getProjectById] dataOrigin:", result[0].dataOrigin, "deletedAt:", result[0].deletedAt);
+  }
   return result.length > 0 ? result[0] : undefined;
 }
 
@@ -2984,7 +2989,7 @@ export async function calculateProjectBalance(projectId: number) {
   if (!db) return { totalProject: 0, payments: 0, discounts: 0, surcharges: 0, balance: 0 };
 
   // Get project total
-  const projectResult = await db.select({ total: projects.total }).from(projects).where(eq(projects.id, projectId)).limit(1);
+  const projectResult = await db.select({ total: projects.totalAmount }).from(projects).where(eq(projects.id, projectId)).limit(1);
   const totalProject = projectResult && projectResult.length > 0 ? Number(projectResult[0].total) || 0 : 0;
 
   // Get payment movements (movementType = 'payment')

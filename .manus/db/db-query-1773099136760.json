@@ -1,0 +1,18 @@
+{
+  "query": "SELECT \n  id, \n  totalAmount,\n  (SELECT COALESCE(SUM(amount), 0) FROM payments WHERE projectId = projects.id AND movementType = 'payment') as totalPayments,\n  (SELECT COALESCE(SUM(amount), 0) FROM payments WHERE projectId = projects.id AND movementType = 'discount') as totalDiscounts,\n  (SELECT COALESCE(SUM(amount), 0) FROM payments WHERE projectId = projects.id AND movementType = 'surcharge') as totalSurcharges,\n  (CAST(totalAmount AS DECIMAL(12,2)) + (SELECT COALESCE(SUM(amount), 0) FROM payments WHERE projectId = projects.id AND movementType = 'surcharge') - (SELECT COALESCE(SUM(amount), 0) FROM payments WHERE projectId = projects.id AND movementType = 'discount') - (SELECT COALESCE(SUM(amount), 0) FROM payments WHERE projectId = projects.id AND movementType = 'payment')) as calculatedBalance\nFROM projects \nWHERE id = 2130117;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT \n  id, \n  totalAmount,\n  (SELECT COALESCE(SUM(amount), 0) FROM payments WHERE projectId = projects.id AND movementType = 'payment') as totalPayments,\n  (SELECT COALESCE(SUM(amount), 0) FROM payments WHERE projectId = projects.id AND movementType = 'discount') as totalDiscounts,\n  (SELECT COALESCE(SUM(amount), 0) FROM payments WHERE projectId = projects.id AND movementType = 'surcharge') as totalSurcharges,\n  (CAST(totalAmount AS DECIMAL(12,2)) + (SELECT COALESCE(SUM(amount), 0) FROM payments WHERE projectId = projects.id AND movementType = 'surcharge') - (SELECT COALESCE(SUM(amount), 0) FROM payments WHERE projectId = projects.id AND movementType = 'discount') - (SELECT COALESCE(SUM(amount), 0) FROM payments WHERE projectId = projects.id AND movementType = 'payment')) as calculatedBalance\nFROM projects \nWHERE id = 2130117;",
+  "rows": [
+    {
+      "id": "2130117",
+      "totalAmount": "16650000.00",
+      "totalPayments": "9990000.00",
+      "totalDiscounts": "0",
+      "totalSurcharges": "0",
+      "calculatedBalance": "6660000.00"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\ttotalAmount\ttotalPayments\ttotalDiscounts\ttotalSurcharges\tcalculatedBalance\n2130117\t16650000.00\t9990000.00\t0\t0\t6660000.00\n",
+  "stderr": "",
+  "execution_time_ms": 62
+}

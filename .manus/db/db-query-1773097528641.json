@@ -1,0 +1,40 @@
+{
+  "query": "SELECT id, name, dataOrigin, deletedAt FROM projects WHERE deletedAt IS NULL AND dataOrigin = 'manual' LIMIT 5;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT id, name, dataOrigin, deletedAt FROM projects WHERE deletedAt IS NULL AND dataOrigin = 'manual' LIMIT 5;",
+  "rows": [
+    {
+      "id": "2130105",
+      "name": "COT-2026-1772833387888-6786153 - Sras. Maria Clara & Ana milena",
+      "dataOrigin": "manual",
+      "deletedAt": "NULL"
+    },
+    {
+      "id": "2130106",
+      "name": "COT-2026-1772833387889-1121614 - Sras. Maria Clara & Ana milena",
+      "dataOrigin": "manual",
+      "deletedAt": "NULL"
+    },
+    {
+      "id": "2130107",
+      "name": "COT-2026-1772833387890-1825427 - Diana Ortiz",
+      "dataOrigin": "manual",
+      "deletedAt": "NULL"
+    },
+    {
+      "id": "2130108",
+      "name": "COT-2026-1772833387891-2667628 - Felipe Quintero",
+      "dataOrigin": "manual",
+      "deletedAt": "NULL"
+    },
+    {
+      "id": "2130109",
+      "name": "COT-2026-1772833387892-4673628 - Ruth Naranjo",
+      "dataOrigin": "manual",
+      "deletedAt": "NULL"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\tdataOrigin\tdeletedAt\n2130105\tCOT-2026-1772833387888-6786153 - Sras. Maria Clara & Ana milena\tmanual\tNULL\n2130106\tCOT-2026-1772833387889-1121614 - Sras. Maria Clara & Ana milena\tmanual\tNULL\n2130107\tCOT-2026-1772833387890-1825427 - Diana Ortiz\tmanual\tNULL\n2130108\tCOT-2026-1772833387891-2667628 - Felipe Quintero\tmanual\tNULL\n2130109\tCOT-2026-1772833387892-4673628 - Ruth Naranjo\tmanual\tNULL\n",
+  "stderr": "",
+  "execution_time_ms": 60
+}

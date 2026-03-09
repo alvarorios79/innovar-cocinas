@@ -1,0 +1,17 @@
+{
+  "query": "SELECT id, name, dataOrigin, deletedAt, status FROM projects LIMIT 1;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT id, name, dataOrigin, deletedAt, status FROM projects LIMIT 1;",
+  "rows": [
+    {
+      "id": "2100002",
+      "name": "Test Manual Project",
+      "dataOrigin": "manual",
+      "deletedAt": "2026-03-06 17:33:49",
+      "status": "contacto"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\tdataOrigin\tdeletedAt\tstatus\n2100002\tTest Manual Project\tmanual\t2026-03-06 17:33:49\tcontacto\n",
+  "stderr": "",
+  "execution_time_ms": 61
+}

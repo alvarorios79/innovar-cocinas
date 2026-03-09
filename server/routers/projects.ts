@@ -180,8 +180,11 @@ export const projectsRouter = router({
     getById: protectedProcedure
       .input(z.object({ id: z.number() }))
       .query(async ({ ctx, input }) => {
+        console.log("[DEBUG getById] ID recibido:", input.id, "tipo:", typeof input.id);
         const project = await db.getProjectById(input.id);
+        console.log("[DEBUG getById] Proyecto encontrado:", project ? `ID ${project.id}` : "NULL");
         if (!project) {
+          console.log("[DEBUG getById] ERROR: Proyecto no encontrado para ID", input.id);
           throw new TRPCError({ code: "NOT_FOUND", message: "Proyecto no encontrado" });
         }
 

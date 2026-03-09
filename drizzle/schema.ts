@@ -565,7 +565,6 @@ export const tasks = mysqlTable("tasks", {
 		projectId: int().notNull().references(() => projects.id, { onDelete: "cascade" }),
 		amount: decimal({ precision: 12, scale: 2 }).notNull(),
 		type: mysqlEnum(['advance','final','partial','other']).notNull(),
-		movementType: mysqlEnum(['payment','discount','surcharge']).default('payment').notNull(),
 		receivedAt: timestamp({ mode: 'string' }).notNull(),
 		method: varchar({ length: 100 }),
 		notes: text(),

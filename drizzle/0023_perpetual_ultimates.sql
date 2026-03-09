@@ -1,1 +1,0 @@
-ALTER TABLE `payments` ADD `movementType` enum('payment','discount','surcharge') DEFAULT 'payment' NOT NULL;

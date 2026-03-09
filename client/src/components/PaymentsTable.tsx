@@ -14,6 +14,7 @@ interface Payment {
   notes?: string | null;
   registeredBy: number | null;
   createdAt: Date | string;
+  movementType?: string;
   user?: { id: number; name: string };
 }
 
@@ -37,6 +38,24 @@ const methodLabels: Record<string, string> = {
   cash: "Efectivo",
   check: "Cheque",
   other: "Otro",
+};
+
+const movementTypeLabels: Record<string, string> = {
+  payment: "Pago",
+  discount: "Descuento",
+  surcharge: "Recargo",
+};
+
+const movementTypeColors: Record<string, { bg: string; text: string }> = {
+  payment: { bg: "bg-blue-100", text: "text-blue-700" },
+  discount: { bg: "bg-green-100", text: "text-green-700" },
+  surcharge: { bg: "bg-orange-100", text: "text-orange-700" },
+};
+
+const movementTypeDarkColors: Record<string, { bg: string; text: string }> = {
+  payment: { bg: "dark:bg-blue-900", text: "dark:text-blue-300" },
+  discount: { bg: "dark:bg-green-900", text: "dark:text-green-300" },
+  surcharge: { bg: "dark:bg-orange-900", text: "dark:text-orange-300" },
 };
 
 function formatCurrency(value: number): string {
@@ -93,7 +112,7 @@ export function PaymentsTable({
     <>
       <Card>
         <CardHeader className="py-3 bg-emerald-50 dark:bg-emerald-950">
-          <CardTitle className="text-sm">Historial de Pagos</CardTitle>
+          <CardTitle className="text-sm">Historial de Movimientos</CardTitle>
         </CardHeader>
         <CardContent className="pt-4">
           <div className="overflow-x-auto">
@@ -101,7 +120,8 @@ export function PaymentsTable({
               <thead>
                 <tr className="border-b">
                   <th className="text-left py-2 px-2">Fecha</th>
-                  <th className="text-left py-2 px-2">Tipo</th>
+                  <th className="text-left py-2 px-2">Tipo Movimiento</th>
+                  <th className="text-left py-2 px-2">Tipo Pago</th>
                   <th className="text-right py-2 px-2">Monto</th>
                   <th className="text-left py-2 px-2">Método</th>
                   <th className="text-left py-2 px-2">Registrado Por</th>
@@ -112,6 +132,15 @@ export function PaymentsTable({
                 {sortedPayments.map((payment) => (
                   <tr key={payment.id} className="border-b hover:bg-muted/50">
                     <td className="py-3 px-2">{formatDate(typeof payment.receivedAt === 'string' ? new Date(payment.receivedAt) : payment.receivedAt)}</td>
+                    <td className="py-3 px-2">
+                      {payment.movementType ? (
+                        <span className={`inline-block px-2 py-1 rounded-full text-xs ${movementTypeColors[payment.movementType]?.bg || 'bg-gray-100'} ${movementTypeColors[payment.movementType]?.text || 'text-gray-700'} ${movementTypeDarkColors[payment.movementType]?.bg || ''} ${movementTypeDarkColors[payment.movementType]?.text || ''}`}>
+                          {movementTypeLabels[payment.movementType] || payment.movementType}
+                        </span>
+                      ) : (
+                        <span className="inline-block px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300">Pago</span>
+                      )}
+                    </td>
                     <td className="py-3 px-2">
                       <span className="inline-block px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300">
                         {typeLabels[payment.type] || payment.type}

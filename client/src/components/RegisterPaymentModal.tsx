@@ -14,6 +14,7 @@ interface RegisterPaymentModalProps {
     type: "advance" | "final" | "partial" | "other";
     receivedAt: Date;
     method: "transfer" | "cash" | "check" | "other";
+    movementType: "payment" | "discount" | "surcharge";
     notes?: string;
   }) => Promise<void>;
   isLoading?: boolean;
@@ -28,6 +29,7 @@ export function RegisterPaymentModal({
   const [amount, setAmount] = useState("");
   const [type, setType] = useState<"advance" | "final" | "partial" | "other">("advance");
   const [method, setMethod] = useState<"transfer" | "cash" | "check" | "other">("transfer");
+  const [movementType, setMovementType] = useState<"payment" | "discount" | "surcharge">("payment");
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [notes, setNotes] = useState("");
 
@@ -47,6 +49,7 @@ export function RegisterPaymentModal({
       type,
       receivedAt: new Date(date),
       method,
+      movementType,
       notes: notes || undefined,
     });
 
@@ -54,6 +57,7 @@ export function RegisterPaymentModal({
     setAmount("");
     setType("advance");
     setMethod("transfer");
+    setMovementType("payment");
     setDate(new Date().toISOString().split("T")[0]);
     setNotes("");
   };
@@ -62,9 +66,9 @@ export function RegisterPaymentModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Registrar Pago</DialogTitle>
+          <DialogTitle>Registrar Movimiento</DialogTitle>
           <DialogDescription>
-            Agrega un nuevo pago al proyecto
+            Agrega un nuevo movimiento financiero al proyecto
           </DialogDescription>
         </DialogHeader>
 
@@ -81,6 +85,21 @@ export function RegisterPaymentModal({
               min="0"
               step="100"
             />
+          </div>
+
+          {/* Tipo de Movimiento */}
+          <div>
+            <Label htmlFor="movementType">Tipo de Movimiento *</Label>
+            <Select value={movementType} onValueChange={(v) => setMovementType(v as any)}>
+              <SelectTrigger id="movementType">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="payment">Pago</SelectItem>
+                <SelectItem value="discount">Descuento</SelectItem>
+                <SelectItem value="surcharge">Recargo</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Tipo de Pago */}

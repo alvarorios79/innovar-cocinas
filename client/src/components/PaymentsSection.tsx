@@ -80,7 +80,7 @@ export function PaymentsSection({
           className="w-full bg-emerald-500 hover:bg-emerald-600"
         >
           <Plus className="h-4 w-4 mr-2" />
-          Registrar Pago
+          Registrar Movimiento
         </Button>
       )}
 

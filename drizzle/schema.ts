@@ -570,6 +570,7 @@ export const tasks = mysqlTable("tasks", {
 		notes: text(),
 		registeredBy: int().references(() => users.id),
 		createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+		movementType: mysqlEnum(['payment','discount','surcharge']).default('payment').notNull(),
 	},
 	(table) => [
 		index("payments_projectId_idx").on(table.projectId),

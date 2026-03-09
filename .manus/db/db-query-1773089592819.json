@@ -1,0 +1,9 @@
+{
+  "query": "ALTER TABLE payments ADD COLUMN movementType VARCHAR(20) DEFAULT 'payment' NOT NULL;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute ALTER TABLE payments ADD COLUMN movementType VARCHAR(20) DEFAULT 'payment' NOT NULL;",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 269
+}

@@ -1,0 +1,14 @@
+{
+  "query": "SELECT COUNT(*) as total_payments, COUNT(CASE WHEN movementType = 'payment' THEN 1 END) as payment_type FROM payments;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT COUNT(*) as total_payments, COUNT(CASE WHEN movementType = 'payment' THEN 1 END) as payment_type FROM payments;",
+  "rows": [
+    {
+      "total_payments": "14",
+      "payment_type": "14"
+    }
+  ],
+  "messages": [],
+  "stdout": "total_payments\tpayment_type\n14\t14\n",
+  "stderr": "",
+  "execution_time_ms": 58
+}

@@ -1,0 +1,35 @@
+{
+  "query": "SELECT p.id, p.name, COUNT(pay.id) as payment_count FROM projects p LEFT JOIN payments pay ON p.id = pay.projectId WHERE p.dataOrigin = 'manual' GROUP BY p.id, p.name LIMIT 5;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT p.id, p.name, COUNT(pay.id) as payment_count FROM projects p LEFT JOIN payments pay ON p.id = pay.projectId WHERE p.dataOrigin = 'manual' GROUP BY p.id, p.name LIMIT 5;",
+  "rows": [
+    {
+      "id": "2100038",
+      "name": "Manual Mix Project",
+      "payment_count": "0"
+    },
+    {
+      "id": "2100069",
+      "name": "Manual Mix Project",
+      "payment_count": "0"
+    },
+    {
+      "id": "2130010",
+      "name": "Manual Mix Project",
+      "payment_count": "0"
+    },
+    {
+      "id": "2130017",
+      "name": "Manual Mix Project",
+      "payment_count": "0"
+    },
+    {
+      "id": "2130058",
+      "name": "Manual Mix Project",
+      "payment_count": "0"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\tpayment_count\n2100038\tManual Mix Project\t0\n2100069\tManual Mix Project\t0\n2130010\tManual Mix Project\t0\n2130017\tManual Mix Project\t0\n2130058\tManual Mix Project\t0\n",
+  "stderr": "",
+  "execution_time_ms": 54
+}

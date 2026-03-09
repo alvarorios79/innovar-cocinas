@@ -1,0 +1,13 @@
+{
+  "query": "SELECT COUNT(*) as total_payments FROM payments WHERE projectId IN (SELECT id FROM projects WHERE dataOrigin='manual' AND deletedAt IS NULL LIMIT 3);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT COUNT(*) as total_payments FROM payments WHERE projectId IN (SELECT id FROM projects WHERE dataOrigin='manual' AND deletedAt IS NULL LIMIT 3);",
+  "rows": [
+    {
+      "total_payments": "3"
+    }
+  ],
+  "messages": [],
+  "stdout": "total_payments\n3\n",
+  "stderr": "",
+  "execution_time_ms": 56
+}

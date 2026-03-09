@@ -755,7 +755,7 @@ export async function getProjectById(id: number) {
   const db = await getDb();
   if (!db) return undefined;
 
-  const result = await db.select().from(projects).where(eq(projects.id, id)).limit(1);
+  const result = await db.select().from(projects).where(and(eq(projects.id, id), isNull(projects.deletedAt), eq(projects.dataOrigin, 'manual'))).limit(1);
   return result.length > 0 ? result[0] : undefined;
 }
 

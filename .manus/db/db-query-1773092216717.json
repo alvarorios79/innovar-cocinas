@@ -1,0 +1,45 @@
+{
+  "query": "SELECT id, projectId, amount, movementType, createdAt FROM payments LIMIT 5;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT id, projectId, amount, movementType, createdAt FROM payments LIMIT 5;",
+  "rows": [
+    {
+      "id": "210001",
+      "projectId": "2130105",
+      "amount": "15435600.00",
+      "movementType": "payment",
+      "createdAt": "2026-03-06 23:46:40"
+    },
+    {
+      "id": "210002",
+      "projectId": "2130106",
+      "amount": "6438000.00",
+      "movementType": "payment",
+      "createdAt": "2026-03-06 23:50:20"
+    },
+    {
+      "id": "210003",
+      "projectId": "2130107",
+      "amount": "29962800.00",
+      "movementType": "payment",
+      "createdAt": "2026-03-06 23:53:10"
+    },
+    {
+      "id": "210004",
+      "projectId": "2130108",
+      "amount": "4765800.00",
+      "movementType": "payment",
+      "createdAt": "2026-03-06 23:56:59"
+    },
+    {
+      "id": "210005",
+      "projectId": "2130109",
+      "amount": "15729600.00",
+      "movementType": "payment",
+      "createdAt": "2026-03-07 00:01:42"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tprojectId\tamount\tmovementType\tcreatedAt\n210001\t2130105\t15435600.00\tpayment\t2026-03-06 23:46:40\n210002\t2130106\t6438000.00\tpayment\t2026-03-06 23:50:20\n210003\t2130107\t29962800.00\tpayment\t2026-03-06 23:53:10\n210004\t2130108\t4765800.00\tpayment\t2026-03-06 23:56:59\n210005\t2130109\t15729600.00\tpayment\t2026-03-07 00:01:42\n",
+  "stderr": "",
+  "execution_time_ms": 84
+}

@@ -14,6 +14,7 @@ interface PaymentsSectionProps {
   totalPaid: number;
   balance: number;
   isAdmin?: boolean;
+  onBalanceUpdate?: () => void;
 }
 
 export function PaymentsSection({
@@ -22,6 +23,7 @@ export function PaymentsSection({
   totalPaid,
   balance,
   isAdmin = false,
+  onBalanceUpdate,
 }: PaymentsSectionProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -34,30 +36,45 @@ export function PaymentsSection({
   // Mutations
   const createPaymentMutation = trpc.payments.create.useMutation({
     onSuccess: () => {
-      toast.success("Pago registrado correctamente");
+      toast.success("Movimiento registrado correctamente");
       setIsModalOpen(false);
       refetch();
+      // Notificar al padre para refrescar el saldo dinámico
+      if (onBalanceUpdate) {
+        onBalanceUpdate();
+      }
     },
     onError: (error) => {
-      toast.error(error.message || "Error al registrar pago");
+      toast.error(error.message || "Error al registrar movimiento");
     },
   });
 
   const deletePaymentMutation = trpc.payments.delete.useMutation({
     onSuccess: () => {
-      toast.success("Pago eliminado correctamente");
+      toast.success("Movimiento eliminado correctamente");
       refetch();
+      // Notificar al padre para refrescar el saldo dinámico
+      if (onBalanceUpdate) {
+        onBalanceUpdate();
+      }
     },
     onError: (error) => {
-      toast.error(error.message || "Error al eliminar pago");
+      toast.error(error.message || "Error al eliminar movimiento");
     },
   });
 
   const handleCreatePayment = async (paymentData: any) => {
-    await createPaymentMutation.mutateAsync({
+    // Asegurar que movementType se incluye en el payload
+    const payload = {
       projectId,
-      ...paymentData,
-    });
+      amount: paymentData.amount,
+      type: paymentData.type,
+      receivedAt: paymentData.receivedAt,
+      method: paymentData.method,
+      movementType: paymentData.movementType || 'payment', // Fallback a 'payment'
+      notes: paymentData.notes,
+    };
+    await createPaymentMutation.mutateAsync(payload);
   };
 
   const handleDeletePayment = async (paymentId: number) => {
@@ -84,7 +101,7 @@ export function PaymentsSection({
         </Button>
       )}
 
-      {/* Tabla de Pagos */}
+      {/* Tabla de Movimientos */}
       <PaymentsTable
         payments={payments}
         isLoading={isLoading}
@@ -93,7 +110,7 @@ export function PaymentsSection({
         isDeleting={deletePaymentMutation.isPending}
       />
 
-      {/* Modal de Registro */}
+      {/* Modal de Registro de Movimiento */}
       <RegisterPaymentModal
         open={isModalOpen}
         onOpenChange={setIsModalOpen}

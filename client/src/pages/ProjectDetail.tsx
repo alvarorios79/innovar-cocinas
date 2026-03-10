@@ -1553,7 +1553,10 @@ export default function ProjectDetail() {
                 projectId={projectId}
                 totalAmount={(projectDetail as any).financialInfo?.totalAmount || 0}
                 totalPaid={(projectDetail as any).financialInfo?.totalPaid || 0}
-                balance={(projectDetail as any).financialInfo?.balance || 0}
+                balance={(projectDetail as any).financialInfo?.dynamicBalance || 0}
+                discounts={(projectDetail as any).financialInfo?.totalDiscounts || 0}
+                surcharges={(projectDetail as any).financialInfo?.totalSurcharges || 0}
+                totalCobrado={(projectDetail as any).financialInfo?.totalCobrado || 0}
                 isAdmin={user?.role === "admin" || user?.role === "super_admin"}
               />
             </TabsContent>

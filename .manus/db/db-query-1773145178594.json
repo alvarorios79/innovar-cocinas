@@ -1,0 +1,17 @@
+{
+  "query": "SELECT id, projectId, amount, movementType, receivedAt FROM payments WHERE projectId = 2130117 AND movementType = 'payment' ORDER BY receivedAt DESC;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT id, projectId, amount, movementType, receivedAt FROM payments WHERE projectId = 2130117 AND movementType = 'payment' ORDER BY receivedAt DESC;",
+  "rows": [
+    {
+      "id": "210013",
+      "projectId": "2130117",
+      "amount": "9990000.00",
+      "movementType": "payment",
+      "receivedAt": "2026-03-07 01:14:47"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tprojectId\tamount\tmovementType\treceivedAt\n210013\t2130117\t9990000.00\tpayment\t2026-03-07 01:14:47\n",
+  "stderr": "",
+  "execution_time_ms": 92
+}

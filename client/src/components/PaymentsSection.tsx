@@ -15,6 +15,7 @@ interface PaymentsSectionProps {
   balance: number;
   discounts?: number;
   surcharges?: number;
+  totalCobrado?: number;
   isAdmin?: boolean;
   onBalanceUpdate?: () => void;
 }
@@ -26,6 +27,7 @@ export function PaymentsSection({
   balance,
   discounts = 0,
   surcharges = 0,
+  totalCobrado = 0,
   isAdmin = false,
   onBalanceUpdate,
 }: PaymentsSectionProps) {
@@ -94,6 +96,7 @@ export function PaymentsSection({
         balance={balance}
         discounts={discounts}
         surcharges={surcharges}
+        totalCobrado={totalCobrado}
       />
 
       {/* Botón de Registro */}

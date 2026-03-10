@@ -359,24 +359,33 @@ export const projectsRouter = router({
           payments,
           clientRevisions,
           financialInfo: {
-            totalAmount,
-            advanceAmount,
-            advancePercentage: 60,
-            actualPaid,
-            remainingAmount,
-            remainingPercentage: totalAmount > 0 ? Math.round((remainingAmount / totalAmount) * 100) : 40,
-            isPaid: remainingAmount <= 0,
-            paymentProgress: totalAmount > 0 ? Math.round((actualPaid / totalAmount) * 100) : 0,
-            totalPaid: totalPaidFromPayments,
-            balance: totalAmount - totalPaidFromPayments,
-            // Dynamic balance with movements
-            dynamicBalance: projectBalance?.balance || 0,
+            // Base project amount
+            totalAmount: projectBalance?.totalProject || 0,
+            
+            // Financial movements (EXCLUSIVELY from movements table)
+            totalCobrado: projectBalance?.payments || 0,           // Total collected (payments only)
+            totalPaid: projectBalance?.payments || 0,              // Same as totalCobrado
+            totalDiscounts: projectBalance?.discounts || 0,        // Total discounts applied
+            totalSurcharges: projectBalance?.surcharges || 0,      // Total surcharges applied
+            
+            // Calculated values based on movements
+            adjustedTotal: projectBalance?.adjustedTotal || 0,     // Base + Surcharges - Discounts
+            balance: projectBalance?.balance || 0,                 // Adjusted Total - Payments (remaining to collect)
+            dynamicBalance: projectBalance?.balance || 0,          // Same as balance (for compatibility)
+            
+            // Percentages based on adjusted total
+            advanceAmount: projectBalance?.payments || 0,
+            advancePercentage: (projectBalance?.adjustedTotal || 0) > 0 ? Math.round(((projectBalance?.payments || 0) / (projectBalance?.adjustedTotal || 0)) * 100) : 0,
+            actualPaid: projectBalance?.payments || 0,
+            remainingAmount: projectBalance?.balance || 0,
+            remainingPercentage: (projectBalance?.adjustedTotal || 0) > 0 ? Math.round(((projectBalance?.balance || 0) / (projectBalance?.adjustedTotal || 0)) * 100) : 0,
+            isPaid: (projectBalance?.balance || 0) <= 0,
+            paymentProgress: (projectBalance?.adjustedTotal || 0) > 0 ? Math.round(((projectBalance?.payments || 0) / (projectBalance?.adjustedTotal || 0)) * 100) : 0,
+            
+            // Additional info for UI
             totalProjectAmount: projectBalance?.totalProject || 0,
             totalPayments: projectBalance?.payments || 0,
-            totalCobrado: projectBalance?.payments || 0,
-            totalDiscounts: projectBalance?.discounts || 0,
-            totalSurcharges: projectBalance?.surcharges || 0,
-          },
+          }
         };
         
 

@@ -2981,14 +2981,14 @@ export async function getTotalPaidByProjectId(projectId: number) {
 }
 
 /**
- * Calculate project balance using financial movements
- * Balance = Total Project + Surcharges - Discounts - Payments
+ * Calculate project balance based EXCLUSIVELY on financial movements
+ * This function calculates all financial information from the payments table only
  */
 export async function calculateProjectBalance(projectId: number) {
   const db = await getDb();
-  if (!db) return { totalProject: 0, payments: 0, discounts: 0, surcharges: 0, balance: 0 };
+  if (!db) throw new Error("Database not available");
 
-  // Get project total
+  // Get project total (base amount)
   const projectResult = await db.select({ total: projects.totalAmount }).from(projects).where(eq(projects.id, projectId)).limit(1);
   const totalProject = projectResult && projectResult.length > 0 ? Number(projectResult[0].total) || 0 : 0;
 
@@ -3013,15 +3013,19 @@ export async function calculateProjectBalance(projectId: number) {
     .where(and(eq(payments.projectId, projectId), eq(payments.movementType, 'surcharge')));
   const totalSurcharges = surchargeResult && surchargeResult.length > 0 ? Number(surchargeResult[0].total) || 0 : 0;
 
-  // Calculate balance: Total + Surcharges - Discounts - Payments
-  const balance = totalProject + totalSurcharges - totalDiscounts - totalPayments;
+  // Calculate adjusted total: Base amount + Surcharges - Discounts
+  const adjustedTotal = totalProject + totalSurcharges - totalDiscounts;
+
+  // Calculate remaining balance: Adjusted Total - Payments
+  const balance = adjustedTotal - totalPayments;
 
   return {
-    totalProject,
-    payments: totalPayments,
-    discounts: totalDiscounts,
-    surcharges: totalSurcharges,
-    balance
+    totalProject,           // Base project amount
+    payments: totalPayments,        // Total amount collected (payments only)
+    discounts: totalDiscounts,      // Total discounts applied
+    surcharges: totalSurcharges,    // Total surcharges applied
+    adjustedTotal,          // totalProject + surcharges - discounts
+    balance                 // Remaining balance to collect
   };
 }
 

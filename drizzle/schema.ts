@@ -44,7 +44,7 @@ export const appointments = mysqlTable("appointments", {
 		createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
 		updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 		deletedAt: timestamp({ mode: 'string' }),
-		dataOrigin: mysqlEnum(['manual', 'system']).default('manual').notNull(),
+		dataOrigin: mysqlEnum(['manual', 'system', 'test']).default('manual').notNull(),
 	},
 (table) => [
 	index("appointments_clientId_idx").on(table.clientId),
@@ -77,7 +77,7 @@ export const clientRevisionHistory = mysqlTable("client_revision_history", {
 		updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 		internalManagement: tinyint().default(0).notNull(),
 		deletedAt: timestamp({ mode: 'string' }),
-		dataOrigin: mysqlEnum(['manual', 'system']).default('manual').notNull(),
+		dataOrigin: mysqlEnum(['manual', 'system', 'test']).default('manual').notNull(),
 	},
 (table) => [
 	index("clients_userId_idx").on(table.userId),
@@ -401,7 +401,7 @@ export const projects = mysqlTable("projects", {
 		changesRequestedAt: timestamp({ mode: 'string' }),
 		deletedAt: timestamp({ mode: 'string' }),
 		currentApprovedQuotationId: int(),
-		dataOrigin: mysqlEnum(['manual', 'system']).default('manual').notNull(),
+		dataOrigin: mysqlEnum(['manual', 'system', 'test']).default('manual').notNull(),
 		isArchived: tinyint().default(0).notNull(),
 		skipDesignProcess: tinyint().default(0).notNull(),
 	},
@@ -495,7 +495,7 @@ export const quotations = mysqlTable("quotations", {
 		clientResponseAt: timestamp({ mode: 'string' }),
 		whatsappApiSentAt: timestamp({ mode: 'string' }),
 		deletedAt: timestamp({ mode: 'string' }),
-		dataOrigin: mysqlEnum(['manual', 'system']).default('manual').notNull(),
+		dataOrigin: mysqlEnum(['manual', 'system', 'test']).default('manual').notNull(),
 		isArchived: tinyint().default(0).notNull(),
 		},
 	(table) => [
@@ -592,7 +592,7 @@ export const tasks = mysqlTable("tasks", {
 		passwordResetToken: varchar({ length: 100 }),
 		passwordResetExpires: timestamp({ mode: 'string' }),
 			birthDate: timestamp({ mode: 'string' }),
-		dataOrigin: mysqlEnum(['manual', 'system']).default('manual').notNull(),
+		dataOrigin: mysqlEnum(['manual', 'system', 'test']).default('manual').notNull(),
 		deletedAt: timestamp({ mode: 'string' }),
 	},
 (table) => [

@@ -330,11 +330,16 @@ export const systemRouter = router({
       // Deletion order respects foreign key constraints
       await db.transaction(async (tx) => {
         console.log("[Cleanup] Starting system data cleanup transaction...");
+        console.log("[Cleanup] Will delete records with dataOrigin IN ('system', 'test')");
+        
+        // Count records before deletion
+        const countBefore = await db.select({ count: sql`COUNT(*)` }).from(users).where(inArray(users.dataOrigin, ["system", "test"]));
+        console.log("[Cleanup] Users to delete:", countBefore[0]?.count || 0);
 
         // 1. Delete notifications (references users)
         try {
           const notifResult = await tx.delete(notifications).where(
-            sql`${notifications.userId} IN (SELECT id FROM users WHERE dataOrigin = 'system')`
+            sql`${notifications.userId} IN (SELECT id FROM users WHERE dataOrigin IN ('system', 'test'))`
           );
           deletedCounts.notifications = Array.isArray(notifResult) ? notifResult.length : (notifResult as any)?.affectedRows || 0;
           console.log("[Cleanup] Deleted notifications:", deletedCounts.notifications);
@@ -346,7 +351,7 @@ export const systemRouter = router({
         // 2. Delete taskReminders (references tasks, users)
         try {
           const taskRemResult = await tx.delete(taskReminders).where(
-            sql`${taskReminders.taskId} IN (SELECT id FROM tasks WHERE projectId IN (SELECT id FROM projects WHERE dataOrigin = 'system'))`
+            sql`${taskReminders.taskId} IN (SELECT id FROM tasks WHERE projectId IN (SELECT id FROM projects WHERE dataOrigin IN ('system', 'test')))`
           );
           deletedCounts.taskReminders = Array.isArray(taskRemResult) ? taskRemResult.length : (taskRemResult as any)?.affectedRows || 0;
           console.log("[Cleanup] Deleted taskReminders:", deletedCounts.taskReminders);
@@ -358,7 +363,7 @@ export const systemRouter = router({
         // 3. Delete tasks (references users, projects)
         try {
           const taskResult = await tx.delete(tasks).where(
-            sql`${tasks.projectId} IN (SELECT id FROM projects WHERE dataOrigin = 'system')`
+            sql`${tasks.projectId} IN (SELECT id FROM projects WHERE dataOrigin IN ('system', 'test'))`
           );
           deletedCounts.tasks = Array.isArray(taskResult) ? taskResult.length : (taskResult as any)?.affectedRows || 0;
           console.log("[Cleanup] Deleted tasks:", deletedCounts.tasks);
@@ -370,7 +375,7 @@ export const systemRouter = router({
         // 4. Delete appointmentWorkTypes (references appointments)
         try {
           const aptWTResult = await tx.delete(appointmentWorkTypes).where(
-            sql`${appointmentWorkTypes.appointmentId} IN (SELECT id FROM appointments WHERE dataOrigin = 'system')`
+            sql`${appointmentWorkTypes.appointmentId} IN (SELECT id FROM appointments WHERE dataOrigin IN ('system', 'test'))`
           );
           deletedCounts.appointmentWorkTypes = Array.isArray(aptWTResult) ? aptWTResult.length : (aptWTResult as any)?.affectedRows || 0;
           console.log("[Cleanup] Deleted appointmentWorkTypes:", deletedCounts.appointmentWorkTypes);
@@ -382,7 +387,7 @@ export const systemRouter = router({
         // 5. Delete quotationItems (references quotations)
         try {
           const quotItemResult = await tx.delete(quotationItems).where(
-            sql`${quotationItems.quotationId} IN (SELECT id FROM quotations WHERE dataOrigin = 'system')`
+            sql`${quotationItems.quotationId} IN (SELECT id FROM quotations WHERE dataOrigin IN ('system', 'test'))`
           );
           deletedCounts.quotationItems = Array.isArray(quotItemResult) ? quotItemResult.length : (quotItemResult as any)?.affectedRows || 0;
           console.log("[Cleanup] Deleted quotationItems:", deletedCounts.quotationItems);
@@ -393,7 +398,7 @@ export const systemRouter = router({
 
         // 6. Delete appointments (references clients)
         try {
-          const aptResult = await tx.delete(appointments).where(eq(appointments.dataOrigin, "system"));
+          const aptResult = await tx.delete(appointments).where(inArray(appointments.dataOrigin, ["system", "test"]));
           deletedCounts.appointments = Array.isArray(aptResult) ? aptResult.length : (aptResult as any)?.affectedRows || 0;
           console.log("[Cleanup] Deleted appointments:", deletedCounts.appointments);
         } catch (e) {
@@ -404,7 +409,7 @@ export const systemRouter = router({
         // 7. Delete project-related records (all reference projects)
         try {
           const projPhotoResult = await tx.delete(projectPhotos).where(
-            sql`${projectPhotos.projectId} IN (SELECT id FROM projects WHERE dataOrigin = 'system')`
+            sql`${projectPhotos.projectId} IN (SELECT id FROM projects WHERE dataOrigin IN ('system', 'test'))`
           );
           deletedCounts.projectPhotos = Array.isArray(projPhotoResult) ? projPhotoResult.length : (projPhotoResult as any)?.affectedRows || 0;
           console.log("[Cleanup] Deleted projectPhotos:", deletedCounts.projectPhotos);
@@ -415,7 +420,7 @@ export const systemRouter = router({
 
         try {
           const projStatusResult = await tx.delete(projectStatusHistory).where(
-            sql`${projectStatusHistory.projectId} IN (SELECT id FROM projects WHERE dataOrigin = 'system')`
+            sql`${projectStatusHistory.projectId} IN (SELECT id FROM projects WHERE dataOrigin IN ('system', 'test'))`
           );
           deletedCounts.projectStatusHistory = Array.isArray(projStatusResult) ? projStatusResult.length : (projStatusResult as any)?.affectedRows || 0;
           console.log("[Cleanup] Deleted projectStatusHistory:", deletedCounts.projectStatusHistory);
@@ -426,7 +431,7 @@ export const systemRouter = router({
 
         try {
           const projDetailResult = await tx.delete(projectDetails).where(
-            sql`${projectDetails.projectId} IN (SELECT id FROM projects WHERE dataOrigin = 'system')`
+            sql`${projectDetails.projectId} IN (SELECT id FROM projects WHERE dataOrigin IN ('system', 'test'))`
           );
           deletedCounts.projectDetails = Array.isArray(projDetailResult) ? projDetailResult.length : (projDetailResult as any)?.affectedRows || 0;
           console.log("[Cleanup] Deleted projectDetails:", deletedCounts.projectDetails);
@@ -437,7 +442,7 @@ export const systemRouter = router({
 
         try {
           const projMatResult = await tx.delete(projectMaterials).where(
-            sql`${projectMaterials.projectId} IN (SELECT id FROM projects WHERE dataOrigin = 'system')`
+            sql`${projectMaterials.projectId} IN (SELECT id FROM projects WHERE dataOrigin IN ('system', 'test'))`
           );
           deletedCounts.projectMaterials = Array.isArray(projMatResult) ? projMatResult.length : (projMatResult as any)?.affectedRows || 0;
           console.log("[Cleanup] Deleted projectMaterials:", deletedCounts.projectMaterials);
@@ -448,7 +453,7 @@ export const systemRouter = router({
 
         try {
           const projHWResult = await tx.delete(projectHardwareSelections).where(
-            sql`${projectHardwareSelections.projectId} IN (SELECT id FROM projects WHERE dataOrigin = 'system')`
+            sql`${projectHardwareSelections.projectId} IN (SELECT id FROM projects WHERE dataOrigin IN ('system', 'test'))`
           );
           deletedCounts.projectHardwareSelections = Array.isArray(projHWResult) ? projHWResult.length : (projHWResult as any)?.affectedRows || 0;
           console.log("[Cleanup] Deleted projectHardwareSelections:", deletedCounts.projectHardwareSelections);
@@ -459,7 +464,7 @@ export const systemRouter = router({
 
         try {
           const clientRevResult = await tx.delete(clientRevisionHistory).where(
-            sql`${clientRevisionHistory.projectId} IN (SELECT id FROM projects WHERE dataOrigin = 'system')`
+            sql`${clientRevisionHistory.projectId} IN (SELECT id FROM projects WHERE dataOrigin IN ('system', 'test'))`
           );
           deletedCounts.clientRevisionHistory = Array.isArray(clientRevResult) ? clientRevResult.length : (clientRevResult as any)?.affectedRows || 0;
           console.log("[Cleanup] Deleted clientRevisionHistory:", deletedCounts.clientRevisionHistory);
@@ -470,7 +475,7 @@ export const systemRouter = router({
 
         try {
           const reminderResult = await tx.delete(reminders).where(
-            sql`${reminders.projectId} IN (SELECT id FROM projects WHERE dataOrigin = 'system')`
+            sql`${reminders.projectId} IN (SELECT id FROM projects WHERE dataOrigin IN ('system', 'test'))`
           );
           deletedCounts.reminders = Array.isArray(reminderResult) ? reminderResult.length : (reminderResult as any)?.affectedRows || 0;
           console.log("[Cleanup] Deleted reminders:", deletedCounts.reminders);
@@ -481,7 +486,7 @@ export const systemRouter = router({
 
         try {
           const paymentResult = await tx.delete(payments).where(
-            sql`${payments.projectId} IN (SELECT id FROM projects WHERE dataOrigin = 'system')`
+            sql`${payments.projectId} IN (SELECT id FROM projects WHERE dataOrigin IN ('system', 'test'))`
           );
           deletedCounts.payments = Array.isArray(paymentResult) ? paymentResult.length : (paymentResult as any)?.affectedRows || 0;
           console.log("[Cleanup] Deleted payments:", deletedCounts.payments);
@@ -492,7 +497,7 @@ export const systemRouter = router({
 
         try {
           const expenseResult = await tx.delete(expenses).where(
-            sql`${expenses.projectId} IN (SELECT id FROM projects WHERE dataOrigin = 'system')`
+            sql`${expenses.projectId} IN (SELECT id FROM projects WHERE dataOrigin IN ('system', 'test'))`
           );
           deletedCounts.expenses = Array.isArray(expenseResult) ? expenseResult.length : (expenseResult as any)?.affectedRows || 0;
           console.log("[Cleanup] Deleted expenses:", deletedCounts.expenses);
@@ -503,7 +508,7 @@ export const systemRouter = router({
 
         // 8. Delete quotations (references clients)
         try {
-          const quotResult = await tx.delete(quotations).where(eq(quotations.dataOrigin, "system"));
+          const quotResult = await tx.delete(quotations).where(inArray(quotations.dataOrigin, ["system", "test"]));
           deletedCounts.quotations = Array.isArray(quotResult) ? quotResult.length : (quotResult as any)?.affectedRows || 0;
           console.log("[Cleanup] Deleted quotations:", deletedCounts.quotations);
         } catch (e) {
@@ -513,7 +518,7 @@ export const systemRouter = router({
 
         // 9. Delete projects (references clients)
         try {
-          const projResult = await tx.delete(projects).where(eq(projects.dataOrigin, "system"));
+          const projResult = await tx.delete(projects).where(inArray(projects.dataOrigin, ["system", "test"]));
           deletedCounts.projects = Array.isArray(projResult) ? projResult.length : (projResult as any)?.affectedRows || 0;
           console.log("[Cleanup] Deleted projects:", deletedCounts.projects);
         } catch (e) {
@@ -524,7 +529,7 @@ export const systemRouter = router({
         // 10. Delete client-related records
         try {
           const priorEstResult = await tx.delete(priorEstimates).where(
-            sql`${priorEstimates.clientId} IN (SELECT id FROM clients WHERE dataOrigin = 'system')`
+            sql`${priorEstimates.clientId} IN (SELECT id FROM clients WHERE dataOrigin IN ('system', 'test'))`
           );
           deletedCounts.priorEstimates = Array.isArray(priorEstResult) ? priorEstResult.length : (priorEstResult as any)?.affectedRows || 0;
           console.log("[Cleanup] Deleted priorEstimates:", deletedCounts.priorEstimates);
@@ -535,7 +540,7 @@ export const systemRouter = router({
 
         try {
           const advisoryResult = await tx.delete(advisoryRequests).where(
-            sql`${advisoryRequests.clientId} IN (SELECT id FROM clients WHERE dataOrigin = 'system')`
+            sql`${advisoryRequests.clientId} IN (SELECT id FROM clients WHERE dataOrigin IN ('system', 'test'))`
           );
           deletedCounts.advisoryRequests = Array.isArray(advisoryResult) ? advisoryResult.length : (advisoryResult as any)?.affectedRows || 0;
           console.log("[Cleanup] Deleted advisoryRequests:", deletedCounts.advisoryRequests);
@@ -547,7 +552,7 @@ export const systemRouter = router({
         // 11. Delete pushSubscriptions (references users)
         try {
           const pushResult = await tx.delete(pushSubscriptions).where(
-            sql`${pushSubscriptions.userId} IN (SELECT id FROM users WHERE dataOrigin = 'system')`
+            sql`${pushSubscriptions.userId} IN (SELECT id FROM users WHERE dataOrigin IN ('system', 'test'))`
           );
           deletedCounts.pushSubscriptions = Array.isArray(pushResult) ? pushResult.length : (pushResult as any)?.affectedRows || 0;
           console.log("[Cleanup] Deleted pushSubscriptions:", deletedCounts.pushSubscriptions);
@@ -558,7 +563,7 @@ export const systemRouter = router({
 
         // 12. Delete clients (references users)
         try {
-          const clientResult = await tx.delete(clients).where(eq(clients.dataOrigin, "system"));
+          const clientResult = await tx.delete(clients).where(inArray(clients.dataOrigin, ["system", "test"]));
           deletedCounts.clients = Array.isArray(clientResult) ? clientResult.length : (clientResult as any)?.affectedRows || 0;
           console.log("[Cleanup] Deleted clients:", deletedCounts.clients);
         } catch (e) {
@@ -568,7 +573,7 @@ export const systemRouter = router({
 
         // 13. Delete users (final step)
         try {
-          const userResult = await tx.delete(users).where(eq(users.dataOrigin, "system"));
+          const userResult = await tx.delete(users).where(inArray(users.dataOrigin, ["system", "test"]));
           deletedCounts.users = Array.isArray(userResult) ? userResult.length : (userResult as any)?.affectedRows || 0;
           console.log("[Cleanup] Deleted users:", deletedCounts.users);
         } catch (e) {

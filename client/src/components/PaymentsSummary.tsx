@@ -7,6 +7,7 @@ interface PaymentsSummaryProps {
   balance: number;
   discounts?: number;
   surcharges?: number;
+  totalCobrado?: number;
 }
 
 function formatCurrency(value: number): string {
@@ -28,12 +29,12 @@ function getBalanceColor(balance: number): { bg: string; text: string; icon: any
   }
 }
 
-export function PaymentsSummary({ totalAmount, totalPaid, balance, discounts = 0, surcharges = 0 }: PaymentsSummaryProps) {
+export function PaymentsSummary({ totalAmount, totalPaid, balance, discounts = 0, surcharges = 0, totalCobrado = 0 }: PaymentsSummaryProps) {
   const balanceColor = getBalanceColor(balance);
   const BalanceIcon = balanceColor.icon;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
       {/* Total del Proyecto */}
       <Card>
         <CardHeader className="py-3 bg-blue-50 dark:bg-blue-950">
@@ -45,6 +46,24 @@ export function PaymentsSummary({ totalAmount, totalPaid, balance, discounts = 0
         <CardContent className="pt-4">
           <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
             {formatCurrency(totalAmount)}
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* Total Cobrado */}
+      <Card>
+        <CardHeader className="py-3 bg-green-50 dark:bg-green-950">
+          <CardTitle className="text-sm flex items-center gap-2">
+            <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
+            Total Cobrado
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="pt-4">
+          <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+            {formatCurrency(totalCobrado || 0)}
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">
+            {totalAmount > 0 ? `${Math.round(((totalCobrado || 0) / totalAmount) * 100)}%` : "0%"}
           </p>
         </CardContent>
       </Card>

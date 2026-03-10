@@ -373,6 +373,7 @@ export const projectsRouter = router({
             dynamicBalance: projectBalance?.balance || 0,
             totalProjectAmount: projectBalance?.totalProject || 0,
             totalPayments: projectBalance?.payments || 0,
+            totalCobrado: projectBalance?.payments || 0,
             totalDiscounts: projectBalance?.discounts || 0,
             totalSurcharges: projectBalance?.surcharges || 0,
           },

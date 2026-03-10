@@ -1536,6 +1536,14 @@ export function ProjectInlineDetail({
                     </p>
                   </div>
                   
+                  {/* Total Cobrado */}
+                  <div className="text-center p-3 bg-green-100/50 rounded-lg">
+                    <p className="text-xs text-green-700 mb-1">Total Cobrado</p>
+                    <p className="text-lg font-bold text-green-700">
+                      {new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format((projectDetail as any).financialInfo.totalCobrado || 0)}
+                    </p>
+                  </div>
+                  
                   {/* Adelanto Pagado */}
                   <div className="text-center p-3 bg-green-100/50 rounded-lg">
                     <p className="text-xs text-green-700 mb-1">Adelanto Pagado (60%)</p>

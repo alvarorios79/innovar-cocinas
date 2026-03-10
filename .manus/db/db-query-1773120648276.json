@@ -1,0 +1,17 @@
+{
+  "query": "SELECT p.id, p.totalAmount, \n       SUM(CASE WHEN pay.movementType = 'payment' THEN pay.amount ELSE 0 END) as totalCobrado,\n       SUM(CASE WHEN pay.movementType = 'discount' THEN pay.amount ELSE 0 END) as totalDiscounts,\n       SUM(CASE WHEN pay.movementType = 'surcharge' THEN pay.amount ELSE 0 END) as totalSurcharges\nFROM projects p\nLEFT JOIN payments pay ON p.id = pay.projectId\nWHERE p.id = 2130117\nGROUP BY p.id, p.totalAmount",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT p.id, p.totalAmount, \n       SUM(CASE WHEN pay.movementType = 'payment' THEN pay.amount ELSE 0 END) as totalCobrado,\n       SUM(CASE WHEN pay.movementType = 'discount' THEN pay.amount ELSE 0 END) as totalDiscounts,\n       SUM(CASE WHEN pay.movementType = 'surcharge' THEN pay.amount ELSE 0 END) as totalSurcharges\nFROM projects p\nLEFT JOIN payments pay ON p.id = pay.projectId\nWHERE p.id = 2130117\nGROUP BY p.id, p.totalAmount",
+  "rows": [
+    {
+      "id": "2130117",
+      "totalAmount": "16650000.00",
+      "totalCobrado": "9990000.00",
+      "totalDiscounts": "320000.00",
+      "totalSurcharges": "0.00"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\ttotalAmount\ttotalCobrado\ttotalDiscounts\ttotalSurcharges\n2130117\t16650000.00\t9990000.00\t320000.00\t0.00\n",
+  "stderr": "",
+  "execution_time_ms": 101
+}

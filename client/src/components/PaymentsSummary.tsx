@@ -5,6 +5,8 @@ interface PaymentsSummaryProps {
   totalAmount: number;
   totalPaid: number;
   balance: number;
+  discounts?: number;
+  surcharges?: number;
 }
 
 function formatCurrency(value: number): string {
@@ -26,12 +28,12 @@ function getBalanceColor(balance: number): { bg: string; text: string; icon: any
   }
 }
 
-export function PaymentsSummary({ totalAmount, totalPaid, balance }: PaymentsSummaryProps) {
+export function PaymentsSummary({ totalAmount, totalPaid, balance, discounts = 0, surcharges = 0 }: PaymentsSummaryProps) {
   const balanceColor = getBalanceColor(balance);
   const BalanceIcon = balanceColor.icon;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
       {/* Total del Proyecto */}
       <Card>
         <CardHeader className="py-3 bg-blue-50 dark:bg-blue-950">
@@ -61,6 +63,42 @@ export function PaymentsSummary({ totalAmount, totalPaid, balance }: PaymentsSum
           </p>
           <p className="text-xs text-muted-foreground mt-1">
             {totalAmount > 0 ? `${Math.round((totalPaid / totalAmount) * 100)}%` : "0%"}
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* Descuentos */}
+      <Card>
+        <CardHeader className="py-3 bg-purple-50 dark:bg-purple-950">
+          <CardTitle className="text-sm flex items-center gap-2">
+            <AlertCircle className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+            Descuentos
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="pt-4">
+          <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+            -{formatCurrency(discounts)}
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">
+            Aplicados
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* Recargos */}
+      <Card>
+        <CardHeader className="py-3 bg-orange-50 dark:bg-orange-950">
+          <CardTitle className="text-sm flex items-center gap-2">
+            <AlertCircle className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+            Recargos
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="pt-4">
+          <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
+            +{formatCurrency(surcharges)}
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">
+            Adicionales
           </p>
         </CardContent>
       </Card>

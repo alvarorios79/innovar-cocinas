@@ -1549,32 +1549,48 @@ export function ProjectInlineDetail({
                     )}
                   </div>
                   
-                  {/* Saldo Pendiente */}
-                  <div className={`text-center p-3 rounded-lg ${
-                    (projectDetail as any).financialInfo.remainingAmount > 0
-                      ? "bg-red-100/50"
-                      : "bg-green-100/50"
-                  }`}>
-                    <p className={`text-xs mb-1 ${
-                      (projectDetail as any).financialInfo.remainingAmount > 0
-                        ? "text-red-700"
-                        : "text-green-700"
-                    }`}>
-                      {(projectDetail as any).financialInfo.remainingAmount > 0 ? "Saldo Pendiente (40%)" : "Pagado Completamente"}
-                    </p>
-                    <p className={`text-xl font-bold ${
-                      (projectDetail as any).financialInfo.remainingAmount > 0
-                        ? "text-red-700"
-                        : "text-green-700"
-                    }`}>
-                      {(projectDetail as any).financialInfo.remainingAmount > 0
-                        ? new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format((projectDetail as any).financialInfo.remainingAmount)
-                        : "✓ Completado"
-                      }
-                    </p>
-                    {projectDetail.status === "entregado" && (projectDetail as any).financialInfo.remainingAmount > 0 && (
-                      <p className="text-xs text-red-600 mt-1 font-medium">
-                        ⚠️ Pendiente de cobro
+                   {/* Descuentos */}
+                   <div className="text-center p-3 bg-purple-100/50 rounded-lg">
+                     <p className="text-xs text-purple-700 mb-1">Descuentos</p>
+                     <p className="text-lg font-bold text-purple-700">
+                       -{new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format((projectDetail as any).financialInfo.totalDiscounts || 0)}
+                     </p>
+                   </div>
+                   
+                   {/* Recargos */}
+                   <div className="text-center p-3 bg-orange-100/50 rounded-lg">
+                     <p className="text-xs text-orange-700 mb-1">Recargos</p>
+                     <p className="text-lg font-bold text-orange-700">
+                       +{new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format((projectDetail as any).financialInfo.totalSurcharges || 0)}
+                     </p>
+                   </div>
+                   
+                   {/* Saldo Pendiente */}
+                   <div className={`text-center p-3 rounded-lg ${
+                     (projectDetail as any).financialInfo.remainingAmount > 0
+                       ? "bg-red-100/50"
+                       : "bg-green-100/50"
+                   }`}>
+                     <p className={`text-xs mb-1 ${
+                       (projectDetail as any).financialInfo.remainingAmount > 0
+                         ? "text-red-700"
+                         : "text-green-700"
+                     }`}>
+                       {(projectDetail as any).financialInfo.remainingAmount > 0 ? "Saldo Pendiente (40%)" : "Pagado Completamente"}
+                     </p>
+                     <p className={`text-xl font-bold ${
+                       (projectDetail as any).financialInfo.remainingAmount > 0
+                         ? "text-red-700"
+                         : "text-green-700"
+                     }`}>
+                       {(projectDetail as any).financialInfo.remainingAmount > 0
+                         ? new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format((projectDetail as any).financialInfo.remainingAmount)
+                         : "✓ Completado"
+                       }
+                     </p>
+                     {projectDetail.status === "entregado" && (projectDetail as any).financialInfo.remainingAmount > 0 && (
+                       <p className="text-xs text-red-600 mt-1 font-medium">
+                         ⚠️ Pendiente de cobro
                       </p>
                     )}
                   </div>

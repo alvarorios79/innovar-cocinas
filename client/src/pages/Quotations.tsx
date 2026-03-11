@@ -233,7 +233,7 @@ export default function Quotations() {
       setShowCreateDialog(false);
       resetForm();
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast.error(error.message || "Error al crear cotización");
     },
   });
@@ -268,18 +268,18 @@ export default function Quotations() {
   });
 
   const toggleLock = trpc.quotations.toggleLock.useMutation({
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       utils.quotations.list.invalidate();
       utils.quotations.listPaginatedGrouped.invalidate();
       toast.success(data.message);
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast.error(error.message);
     },
   });
 
   const generatePDF = trpc.quotations.generatePDF.useMutation({
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       // Detectar si es iOS
       const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
       
@@ -297,7 +297,7 @@ export default function Quotations() {
       }
       toast.success("PDF generado exitosamente");
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast.error(error.message || "Error al generar PDF");
     },
   });
@@ -308,7 +308,7 @@ export default function Quotations() {
       utils.quotations.listPaginatedGrouped.invalidate();
       toast.success("Cotizacion enviada por WhatsApp");
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast.error(error.message || "Error al enviar por WhatsApp");
     },
   });
@@ -316,22 +316,22 @@ export default function Quotations() {
   const sendByEmail = trpc.quotations.sendByEmail.useMutation();
 
   const previewPDF = trpc.quotations.previewPDF.useMutation({
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       const previewUrl = `${data.downloadUrl}?preview=true`;
       setPreviewBeforeSaveUrl(previewUrl);
       setPreviewBeforeSaveOpen(true);
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast.error(error.message || "Error al generar vista previa");
     },
   });
 
   const createProjectFromQuotation = trpc.quotations.createProject.useMutation({
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       toast.success(`Proyecto #${data.projectId} creado exitosamente`);
       utils.quotations.list.invalidate();
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast.error(error.message || "Error al crear el proyecto");
     },
   });
@@ -349,7 +349,7 @@ export default function Quotations() {
 
   // Mutación para crear nueva versión de cotización
   const createVersion = trpc.quotationsVersioning.createVersion.useMutation({
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       toast.success(`Nueva versión creada exitosamente`);
       utils.quotations.list.invalidate();
       utils.quotations.listPaginatedGrouped.invalidate();
@@ -504,7 +504,7 @@ export default function Quotations() {
 
     try {
       // Cargar items de la cotización usando el endpoint getById
-      const quotationData: any = await new Promise((resolve, reject) => {
+      const quotationData: any = await new Promise((resolve: any, reject: any) => {
         utils.client.quotations.getById.query({ id: quotationId })
           .then(resolve)
           .catch(reject);
@@ -759,9 +759,9 @@ export default function Quotations() {
       toast.error("Debe haber al menos un ítem");
       return;
     }
-    const newItems = items.filter((_, i) => i !== index);
+    const newItems = items.filter((_: any, i: any) => i !== index);
     // Renumerar items
-    newItems.forEach((item, i) => {
+    newItems.forEach((item: any, i: any) => {
       item.itemNumber = i + 1;
     });
     setItems(newItems);
@@ -840,7 +840,7 @@ export default function Quotations() {
       return;
     }
 
-    const total = item.hardwareSelections.reduce((sum, selection) => sum + selection.subtotal, 0);
+    const total = item.hardwareSelections.reduce((sum: any, selection: any) => sum + selection.subtotal, 0);
     updateItem(index, "totalPrice", total);
   };
 
@@ -1034,7 +1034,7 @@ export default function Quotations() {
   };
 
   const calculateTotal = () => {
-    return items.reduce((sum, item) => sum + item.totalPrice, 0);
+    return items.reduce((sum: any, item: any) => sum + item.totalPrice, 0);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -1045,7 +1045,7 @@ export default function Quotations() {
       return;
     }
 
-    if (items.some((item) => !item.itemType)) {
+    if (items.some((item: any) => !item.itemType)) {
       toast.error("Selecciona el tipo de producto para todos los items");
       return;
     }
@@ -1160,7 +1160,7 @@ export default function Quotations() {
     }
 
     // Recalcular totales de items de cocina antes de enviar
-    const itemsWithUpdatedPrices = items.map((item, index) => {
+    const itemsWithUpdatedPrices = items.map((item: any, index: any) => {
       if (item.itemType === "cocina" && item.kitchenConfig) {
         // Asegurar que campos requeridos tengan valores para items de cocina
         const description = item.description || "Cocina integral";
@@ -1321,7 +1321,7 @@ export default function Quotations() {
         const getTipoTexto = (tipo: string) => tipo === "meson" ? "Mesón" : tipo === "isla" ? "Isla" : "Barra";
         const getMaterialTexto = (material: string) => material === "quarzo" ? "Quarzo" : "Sinterizado";
         
-        const descriptions = config.mesones.map((meson, idx) => {
+        const descriptions = config.mesones.map((meson: any, idx: any) => {
           const parts: string[] = [`${getTipoTexto(meson.tipo)} en ${getMaterialTexto(meson.material)} ${meson.metrosLineales}ML x ${meson.fondo}cm`];
           if (meson.tipo === "isla" && meson.incluyeLaterales) parts.push("con laterales");
           if (meson.tipo === "barra" && meson.alturaLateral > 0) parts.push(`lateral ${meson.alturaLateral}cm`);
@@ -1340,8 +1340,8 @@ export default function Quotations() {
       // Para herrajes: generar descripción automática y cantidad basada en selecciones
       if (item.itemType === "herrajes" && item.hardwareSelections && item.hardwareSelections.length > 0) {
         const description = item.hardwareSelections.map(s => `${s.name} x${s.quantity}`).join(", ");
-        const totalQuantity = item.hardwareSelections.reduce((sum, s) => sum + s.quantity, 0);
-        let totalPrice = item.hardwareSelections.reduce((sum, s) => sum + s.subtotal, 0);
+        const totalQuantity = item.hardwareSelections.reduce((sum: any, s: any) => sum + s.quantity, 0);
+        let totalPrice = item.hardwareSelections.reduce((sum: any, s: any) => sum + s.subtotal, 0);
         // Incluir transporte si está marcado (usar el monto editable)
         if (item.includesFixedCosts) {
           totalPrice += (item.fixedCostsAmount || 600000);
@@ -1362,7 +1362,7 @@ export default function Quotations() {
         
         // Puertas de aluminio
         if (config.aluminumGlassDoors && config.aluminumGlassDoors.length > 0) {
-          const totalSqm = config.aluminumGlassDoors.reduce((sum, d) => sum + (d.height * d.width), 0);
+          const totalSqm = config.aluminumGlassDoors.reduce((sum: any, d: any) => sum + (d.height * d.width), 0);
           parts.push(`Puertas aluminio+vidrio: ${config.aluminumGlassDoors.length} puerta(s) (${totalSqm.toFixed(2)} m²)`);
         }
         
@@ -1470,7 +1470,7 @@ export default function Quotations() {
               <Input
                 placeholder="Nombre del cliente..."
                 value={filterClient}
-                onChange={(e) => setFilterClient(e.target.value)}
+                onChange={(e: any) => setFilterClient(e.target.value)}
                 className="h-9"
               />
             </div>
@@ -1555,26 +1555,26 @@ export default function Quotations() {
               group={group}
               client={group.client}
               archiveTab={archiveTab}
-              onEdit={(quotation) => handleEdit(quotation.id)}
-              onViewPDF={(quotation) => handlePreviewClick(quotation.id, `${group.quotationNumber} - ${group.client?.name || 'Cliente'}`)}
-              onSend={(quotation) => handleEmailClick(quotation.id, group.client?.email || "", group.quotationNumber, group.client?.name || "Cliente")}
-              onCreateVersion={(quotation) => {
+              onEdit={(quotation: any) => handleEdit(quotation.id)}
+              onViewPDF={(quotation: any) => handlePreviewClick(quotation.id, `${group.quotationNumber} - ${group.client?.name || 'Cliente'}`)}
+              onSend={(quotation: any) => handleEmailClick(quotation.id, group.client?.email || "", group.quotationNumber, group.client?.name || "Cliente")}
+              onCreateVersion={(quotation: any) => {
                 if (window.confirm(`¿Crear nueva versión de la cotización ${group.quotationNumber}?`)) {
                   createVersion.mutate({ quotationId: quotation.id });
                 }
               }}
-              onCreateProject={(quotation) => {
+              onCreateProject={(quotation: any) => {
                 setPendingQuotationForProject(quotation);
                 setInitialPaymentModalOpen(true);
               }}
-              onEditPDF={(quotation) => handleOpenPdfEditor(quotation.id)}
-              onToggleLock={(quotation) => {
+              onEditPDF={(quotation: any) => handleOpenPdfEditor(quotation.id)}
+              onToggleLock={(quotation: any) => {
                 toggleLock.mutate({ id: quotation.id });
               }}
               onArchive={() => {
                 utils.quotations.listPaginatedGrouped.invalidate();
               }}
-              onDelete={(quotation) => {
+              onDelete={(quotation: any) => {
                 if (window.confirm(`¿Eliminar la cotización ${group.quotationNumber}?\n\nEsta acción no se puede deshacer.`)) {
                   deleteQuotation.mutate({ id: quotation.id });
                 }
@@ -1752,7 +1752,7 @@ export default function Quotations() {
                   <div className="flex gap-2">
                     <Select
                       value={selectedClient?.toString() || ""}
-                      onValueChange={(value) => setSelectedClient(parseInt(value))}
+                      onValueChange={(value: any) => setSelectedClient(parseInt(value))}
                     >
                       <SelectTrigger className="flex-1 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 hover:border-[oklch(0.72_0.14_180)] transition-colors">
                         <SelectValue placeholder="Seleccionar cliente" />
@@ -1771,7 +1771,7 @@ export default function Quotations() {
                           <UserPlus className="h-4 w-4" />
                         </Button>
                       }
-                      onClientCreated={(client) => {
+                      onClientCreated={(client: any) => {
                         utils.clients.list.invalidate();
                         setSelectedClient(client.id);
                       }}
@@ -1892,7 +1892,7 @@ export default function Quotations() {
               </div>
 
               <div className="space-y-3 sm:space-y-4">
-                {items.map((item, index) => (
+                {items.map((item: any, index: any) => (
                   <div key={index} className="bg-white dark:bg-slate-800 rounded-lg sm:rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
                     {/* Header del Item */}
                     <div className="bg-gradient-to-r from-slate-100 to-slate-50 dark:from-slate-700 dark:to-slate-800 px-3 sm:px-4 py-2 sm:py-3 flex justify-between items-center border-b border-slate-200 dark:border-slate-600">
@@ -1937,7 +1937,7 @@ export default function Quotations() {
                           </Label>
                           <Select 
                             value={item.itemType} 
-                            onValueChange={(value) => {
+                            onValueChange={(value: any) => {
                               updateItem(index, "itemType", value);
                             }}
                           >
@@ -1986,7 +1986,7 @@ export default function Quotations() {
                               <Label className="text-sm font-medium text-slate-600 dark:text-slate-300">Forma de la Cocina</Label>
                               <Select 
                                 value={item.kitchenConfig?.shape || ""} 
-                                onValueChange={(value) => updateKitchenConfig(index, "shape", value)}
+                                onValueChange={(value: any) => updateKitchenConfig(index, "shape", value)}
                               >
                                 <SelectTrigger className="bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 hover:border-orange-400 transition-colors">
                                   <SelectValue placeholder="Selecciona la forma" />
@@ -2015,7 +2015,7 @@ export default function Quotations() {
                                 type="number"
                                 step="0.01"
                                 value={item.kitchenConfig?.totalMeters || ""}
-                                onChange={(e) => updateKitchenConfig(index, "totalMeters", parseFloat(e.target.value) || 0)}
+                                onChange={(e: any) => updateKitchenConfig(index, "totalMeters", parseFloat(e.target.value) || 0)}
                                 placeholder="Ej: 5.00"
                                 className="bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 hover:border-orange-400 transition-colors"
                               />
@@ -2030,7 +2030,7 @@ export default function Quotations() {
                                     type="checkbox"
                                     id={`includeUpperModule-${index}`}
                                     checked={item.kitchenConfig?.includeUpperModule || false}
-                                    onChange={(e) => updateKitchenConfig(index, "includeUpperModule", e.target.checked)}
+                                    onChange={(e: any) => updateKitchenConfig(index, "includeUpperModule", e.target.checked)}
                                     className="h-4 w-4"
                                   />
                                   <Label htmlFor={`includeUpperModule-${index}`} className="text-sm font-medium cursor-pointer">
@@ -2046,7 +2046,7 @@ export default function Quotations() {
                                       min="0"
                                       placeholder="Ej: 3.50"
                                       value={item.kitchenConfig?.upperModuleMeters || ''}
-                                      onChange={(e) => updateKitchenConfig(index, "upperModuleMeters", parseFloat(e.target.value) || 0)}
+                                      onChange={(e: any) => updateKitchenConfig(index, "upperModuleMeters", parseFloat(e.target.value) || 0)}
                                       className="mt-1"
                                     />
                                     <p className="text-xs text-amber-700 mt-1">Ingrese los metros lineales del módulo superior (puede ser diferente al frente)</p>
@@ -2073,7 +2073,7 @@ export default function Quotations() {
                                         min="0"
                                         placeholder="Cantidad"
                                         value={item.kitchenConfig?.doorsAndCovers?.upperDoors70 || ''}
-                                        onChange={(e) => {
+                                        onChange={(e: any) => {
                                           const current = item.kitchenConfig?.doorsAndCovers || {};
                                           updateKitchenConfig(index, "doorsAndCovers", { ...current, upperDoors70: parseInt(e.target.value) || 0 });
                                         }}
@@ -2086,7 +2086,7 @@ export default function Quotations() {
                                         min="0"
                                         placeholder="Cantidad"
                                         value={item.kitchenConfig?.doorsAndCovers?.upperDoors90 || ''}
-                                        onChange={(e) => {
+                                        onChange={(e: any) => {
                                           const current = item.kitchenConfig?.doorsAndCovers || {};
                                           updateKitchenConfig(index, "doorsAndCovers", { ...current, upperDoors90: parseInt(e.target.value) || 0 });
                                         }}
@@ -2099,7 +2099,7 @@ export default function Quotations() {
                                         min="0"
                                         placeholder="Cantidad"
                                         value={item.kitchenConfig?.doorsAndCovers?.upperDoors100 || ''}
-                                        onChange={(e) => {
+                                        onChange={(e: any) => {
                                           const current = item.kitchenConfig?.doorsAndCovers || {};
                                           updateKitchenConfig(index, "doorsAndCovers", { ...current, upperDoors100: parseInt(e.target.value) || 0 });
                                         }}
@@ -2119,7 +2119,7 @@ export default function Quotations() {
                                         min="0"
                                         placeholder="Cantidad"
                                         value={item.kitchenConfig?.doorsAndCovers?.lowerDoors || ''}
-                                        onChange={(e) => {
+                                        onChange={(e: any) => {
                                           const current = item.kitchenConfig?.doorsAndCovers || {};
                                           updateKitchenConfig(index, "doorsAndCovers", { ...current, lowerDoors: parseInt(e.target.value) || 0 });
                                         }}
@@ -2132,7 +2132,7 @@ export default function Quotations() {
                                         min="0"
                                         placeholder="Cantidad"
                                         value={item.kitchenConfig?.doorsAndCovers?.pantryDoors || ''}
-                                        onChange={(e) => {
+                                        onChange={(e: any) => {
                                           const current = item.kitchenConfig?.doorsAndCovers || {};
                                           updateKitchenConfig(index, "doorsAndCovers", { ...current, pantryDoors: parseInt(e.target.value) || 0 });
                                         }}
@@ -2152,7 +2152,7 @@ export default function Quotations() {
                                         min="0"
                                         placeholder="Cantidad"
                                         value={item.kitchenConfig?.doorsAndCovers?.drawerCovers || ''}
-                                        onChange={(e) => {
+                                        onChange={(e: any) => {
                                           const current = item.kitchenConfig?.doorsAndCovers || {};
                                           updateKitchenConfig(index, "doorsAndCovers", { ...current, drawerCovers: parseInt(e.target.value) || 0 });
                                         }}
@@ -2165,7 +2165,7 @@ export default function Quotations() {
                                         min="0"
                                         placeholder="Cantidad"
                                         value={item.kitchenConfig?.doorsAndCovers?.smallCovers || ''}
-                                        onChange={(e) => {
+                                        onChange={(e: any) => {
                                           const current = item.kitchenConfig?.doorsAndCovers || {};
                                           updateKitchenConfig(index, "doorsAndCovers", { ...current, smallCovers: parseInt(e.target.value) || 0 });
                                         }}
@@ -2208,7 +2208,7 @@ export default function Quotations() {
                                     type="checkbox"
                                     id={`nichoNevecon-${index}`}
                                     checked={item.kitchenConfig?.specialModules.nichoNevecon || false}
-                                    onChange={(e) => {
+                                    onChange={(e: any) => {
                                       updateKitchenConfig(index, "specialModules.nichoNevecon", e.target.checked);
                                     }}
                                     className="h-4 w-4 mt-0.5"
@@ -2222,7 +2222,7 @@ export default function Quotations() {
                                     type="checkbox"
                                     id={`nichoNevera-${index}`}
                                     checked={item.kitchenConfig?.specialModules.nichoNevera || false}
-                                    onChange={(e) => {
+                                    onChange={(e: any) => {
                                       updateKitchenConfig(index, "specialModules.nichoNevera", e.target.checked);
                                     }}
                                     className="h-4 w-4 mt-0.5"
@@ -2236,7 +2236,7 @@ export default function Quotations() {
                                     type="checkbox"
                                     id={`alacenaEntrepanos-${index}`}
                                     checked={item.kitchenConfig?.specialModules.alacenaEntrepanos || false}
-                                    onChange={(e) => {
+                                    onChange={(e: any) => {
                                       updateKitchenConfig(index, "specialModules.alacenaEntrepanos", e.target.checked);
                                     }}
                                     className="h-4 w-4 mt-0.5"
@@ -2250,7 +2250,7 @@ export default function Quotations() {
                                     type="checkbox"
                                     id={`alacenaHerraje-${index}`}
                                     checked={item.kitchenConfig?.specialModules.alacenaHerraje || false}
-                                    onChange={(e) => {
+                                    onChange={(e: any) => {
                                       updateKitchenConfig(index, "specialModules.alacenaHerraje", e.target.checked);
                                     }}
                                     className="h-4 w-4 mt-0.5"
@@ -2264,7 +2264,7 @@ export default function Quotations() {
                                     type="checkbox"
                                     id={`torreHornos-${index}`}
                                     checked={item.kitchenConfig?.specialModules.torreHornos || false}
-                                    onChange={(e) => {
+                                    onChange={(e: any) => {
                                       updateKitchenConfig(index, "specialModules.torreHornos", e.target.checked);
                                     }}
                                     className="h-4 w-4 mt-0.5"
@@ -2335,7 +2335,7 @@ export default function Quotations() {
                                   <Label>Tipo de Mesón *</Label>
                                   <Select 
                                     value={item.kitchenConfig?.countertop.type || ""} 
-                                    onValueChange={(value) => updateKitchenConfig(index, "countertop.type", value)}
+                                    onValueChange={(value: any) => updateKitchenConfig(index, "countertop.type", value)}
                                   >
                                     <SelectTrigger>
                                       <SelectValue placeholder="Selecciona tipo" />
@@ -2350,7 +2350,7 @@ export default function Quotations() {
                                   <Label>Recargo por Fondo</Label>
                                   <Select 
                                     value={item.kitchenConfig?.countertop.depthSurcharge || "none"} 
-                                    onValueChange={(value) => updateKitchenConfig(index, "countertop.depthSurcharge", value)}
+                                    onValueChange={(value: any) => updateKitchenConfig(index, "countertop.depthSurcharge", value)}
                                   >
                                     <SelectTrigger>
                                       <SelectValue />
@@ -2374,7 +2374,7 @@ export default function Quotations() {
                                   type="checkbox"
                                   id={`islandEnabled-${index}`}
                                   checked={item.kitchenConfig?.island.enabled || false}
-                                  onChange={(e) => updateKitchenConfig(index, "island.enabled", e.target.checked)}
+                                  onChange={(e: any) => updateKitchenConfig(index, "island.enabled", e.target.checked)}
                                   className="h-4 w-4 accent-blue-500"
                                 />
                                 <Label htmlFor={`islandEnabled-${index}`} className="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 cursor-pointer flex items-center gap-2">
@@ -2392,7 +2392,7 @@ export default function Quotations() {
                                         type="number"
                                         step="0.01"
                                         value={item.kitchenConfig?.island.meters || ""}
-                                        onChange={(e) => updateKitchenConfig(index, "island.meters", parseFloat(e.target.value) || 0)}
+                                        onChange={(e: any) => updateKitchenConfig(index, "island.meters", parseFloat(e.target.value) || 0)}
                                         placeholder="0.00"
                                       />
                                     </div>
@@ -2400,7 +2400,7 @@ export default function Quotations() {
                                       <Label>Tipo de mesón</Label>
                                       <Select 
                                         value={item.kitchenConfig?.island.countertopType || ""} 
-                                        onValueChange={(value) => updateKitchenConfig(index, "island.countertopType", value)}
+                                        onValueChange={(value: any) => updateKitchenConfig(index, "island.countertopType", value)}
                                       >
                                         <SelectTrigger>
                                           <SelectValue placeholder="Tipo" />
@@ -2417,7 +2417,7 @@ export default function Quotations() {
                                       type="checkbox"
                                       id={`islandLaterals-${index}`}
                                       checked={item.kitchenConfig?.island.hasLaterals || false}
-                                      onChange={(e) => updateKitchenConfig(index, "island.hasLaterals", e.target.checked)}
+                                      onChange={(e: any) => updateKitchenConfig(index, "island.hasLaterals", e.target.checked)}
                                       className="h-4 w-4"
                                     />
                                     <Label htmlFor={`islandLaterals-${index}`} className="text-sm font-normal cursor-pointer">
@@ -2437,7 +2437,7 @@ export default function Quotations() {
                                   type="checkbox"
                                   id={`barEnabled-${index}`}
                                   checked={item.kitchenConfig?.bar.enabled || false}
-                                  onChange={(e) => updateKitchenConfig(index, "bar.enabled", e.target.checked)}
+                                  onChange={(e: any) => updateKitchenConfig(index, "bar.enabled", e.target.checked)}
                                   className="h-4 w-4 accent-purple-500"
                                 />
                                 <Label htmlFor={`barEnabled-${index}`} className="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 cursor-pointer flex items-center gap-2">
@@ -2455,7 +2455,7 @@ export default function Quotations() {
                                         type="number"
                                         step="0.01"
                                         value={item.kitchenConfig?.bar.meters || ""}
-                                        onChange={(e) => updateKitchenConfig(index, "bar.meters", parseFloat(e.target.value) || 0)}
+                                        onChange={(e: any) => updateKitchenConfig(index, "bar.meters", parseFloat(e.target.value) || 0)}
                                         placeholder="0.00"
                                       />
                                     </div>
@@ -2463,7 +2463,7 @@ export default function Quotations() {
                                       <Label>Tipo de mesón</Label>
                                       <Select 
                                         value={item.kitchenConfig?.bar.countertopType || ""} 
-                                        onValueChange={(value) => updateKitchenConfig(index, "bar.countertopType", value)}
+                                        onValueChange={(value: any) => updateKitchenConfig(index, "bar.countertopType", value)}
                                       >
                                         <SelectTrigger>
                                           <SelectValue placeholder="Tipo" />
@@ -2480,7 +2480,7 @@ export default function Quotations() {
                                       type="checkbox"
                                       id={`barLateral-${index}`}
                                       checked={item.kitchenConfig?.bar.hasLateral || false}
-                                      onChange={(e) => updateKitchenConfig(index, "bar.hasLateral", e.target.checked)}
+                                      onChange={(e: any) => updateKitchenConfig(index, "bar.hasLateral", e.target.checked)}
                                       className="h-4 w-4"
                                     />
                                     <Label htmlFor={`barLateral-${index}`} className="text-sm font-normal cursor-pointer">
@@ -2503,7 +2503,7 @@ export default function Quotations() {
                                 type="number"
                                 step="0.01"
                                 value={item.kitchenConfig?.ledLighting || ""}
-                                onChange={(e) => updateKitchenConfig(index, "ledLighting", parseFloat(e.target.value) || 0)}
+                                onChange={(e: any) => updateKitchenConfig(index, "ledLighting", parseFloat(e.target.value) || 0)}
                                 placeholder="Dejar en 0 si no lleva LED"
                                 className="bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600"
                               />
@@ -2517,7 +2517,7 @@ export default function Quotations() {
                                   type="checkbox"
                                   id={`paintedDoors-${index}`}
                                   checked={item.kitchenConfig?.paintedDoors?.enabled || false}
-                                  onChange={(e) => {
+                                  onChange={(e: any) => {
                                     updateKitchenConfig(index, "paintedDoors.enabled", e.target.checked);
                                     calculateKitchenTotal(index);
                                   }}
@@ -2536,7 +2536,7 @@ export default function Quotations() {
                                       type="number"
                                       min="0"
                                       value={item.kitchenConfig?.paintedDoors?.upperQty || ""}
-                                      onChange={(e) => {
+                                      onChange={(e: any) => {
                                         updateKitchenConfig(index, "paintedDoors.upperQty", parseInt(e.target.value) || 0);
                                         calculateKitchenTotal(index);
                                       }}
@@ -2550,7 +2550,7 @@ export default function Quotations() {
                                       type="number"
                                       min="0"
                                       value={item.kitchenConfig?.paintedDoors?.lowerQty || ""}
-                                      onChange={(e) => {
+                                      onChange={(e: any) => {
                                         updateKitchenConfig(index, "paintedDoors.lowerQty", parseInt(e.target.value) || 0);
                                         calculateKitchenTotal(index);
                                       }}
@@ -2564,7 +2564,7 @@ export default function Quotations() {
                                       type="number"
                                       min="0"
                                       value={item.kitchenConfig?.paintedDoors?.pantryQty || ""}
-                                      onChange={(e) => {
+                                      onChange={(e: any) => {
                                         updateKitchenConfig(index, "paintedDoors.pantryQty", parseInt(e.target.value) || 0);
                                         calculateKitchenTotal(index);
                                       }}
@@ -2578,7 +2578,7 @@ export default function Quotations() {
                                       type="number"
                                       min="0"
                                       value={item.kitchenConfig?.paintedDoors?.drawerQty || ""}
-                                      onChange={(e) => {
+                                      onChange={(e: any) => {
                                         updateKitchenConfig(index, "paintedDoors.drawerQty", parseInt(e.target.value) || 0);
                                         calculateKitchenTotal(index);
                                       }}
@@ -2592,7 +2592,7 @@ export default function Quotations() {
                                       type="number"
                                       min="0"
                                       value={item.kitchenConfig?.paintedDoors?.spiceQty || ""}
-                                      onChange={(e) => {
+                                      onChange={(e: any) => {
                                         updateKitchenConfig(index, "paintedDoors.spiceQty", parseInt(e.target.value) || 0);
                                         calculateKitchenTotal(index);
                                       }}
@@ -2606,7 +2606,7 @@ export default function Quotations() {
                                       type="number"
                                       min="0"
                                       value={item.kitchenConfig?.paintedDoors?.golaQty || ""}
-                                      onChange={(e) => {
+                                      onChange={(e: any) => {
                                         updateKitchenConfig(index, "paintedDoors.golaQty", parseInt(e.target.value) || 0);
                                         calculateKitchenTotal(index);
                                       }}
@@ -2625,7 +2625,7 @@ export default function Quotations() {
                                   type="checkbox"
                                   id={`specialFinishes-${index}`}
                                   checked={item.kitchenConfig?.specialFinishes?.enabled || false}
-                                  onChange={(e) => {
+                                  onChange={(e: any) => {
                                     updateKitchenConfig(index, "specialFinishes.enabled", e.target.checked);
                                     calculateKitchenTotal(index);
                                   }}
@@ -2649,7 +2649,7 @@ export default function Quotations() {
                                     </p>
                                     
                                     {/* Lista de puertas */}
-                                    {(item.kitchenConfig?.specialFinishes?.aluminumGlassDoors || []).map((door, doorIdx) => (
+                                    {(item.kitchenConfig?.specialFinishes?.aluminumGlassDoors || []).map((door: any, doorIdx: any) => (
                                       <div key={door.id} className="flex items-center gap-2 bg-white dark:bg-slate-700 p-2 rounded border">
                                         <span className="text-xs font-medium text-purple-600">#{doorIdx + 1}</span>
                                         <div className="flex-1 grid grid-cols-2 gap-2">
@@ -2660,7 +2660,7 @@ export default function Quotations() {
                                               step="0.01"
                                               min="0"
                                               value={door.height || ""}
-                                              onChange={(e) => {
+                                              onChange={(e: any) => {
                                                 const newDoors = [...(item.kitchenConfig?.specialFinishes?.aluminumGlassDoors || [])];
                                                 const height = parseFloat(e.target.value) || 0;
                                                 const width = newDoors[doorIdx].width;
@@ -2684,7 +2684,7 @@ export default function Quotations() {
                                               step="0.01"
                                               min="0"
                                               value={door.width || ""}
-                                              onChange={(e) => {
+                                              onChange={(e: any) => {
                                                 const newDoors = [...(item.kitchenConfig?.specialFinishes?.aluminumGlassDoors || [])];
                                                 const width = parseFloat(e.target.value) || 0;
                                                 const height = newDoors[doorIdx].height;
@@ -2712,7 +2712,7 @@ export default function Quotations() {
                                           variant="ghost"
                                           size="sm"
                                           onClick={() => {
-                                            const newDoors = (item.kitchenConfig?.specialFinishes?.aluminumGlassDoors || []).filter((_, i) => i !== doorIdx);
+                                            const newDoors = (item.kitchenConfig?.specialFinishes?.aluminumGlassDoors || []).filter((_: any, i: any) => i !== doorIdx);
                                             updateKitchenConfig(index, "specialFinishes.aluminumGlassDoors", newDoors);
                                             calculateKitchenTotal(index);
                                           }}
@@ -2751,7 +2751,7 @@ export default function Quotations() {
                                         type="checkbox"
                                         id={`specialLed-${index}`}
                                         checked={item.kitchenConfig?.specialFinishes?.ledLighting?.enabled || false}
-                                        onChange={(e) => {
+                                        onChange={(e: any) => {
                                           updateKitchenConfig(index, "specialFinishes.ledLighting.enabled", e.target.checked);
                                           calculateKitchenTotal(index);
                                         }}
@@ -2770,7 +2770,7 @@ export default function Quotations() {
                                           step="0.01"
                                           min="0"
                                           value={item.kitchenConfig?.specialFinishes?.ledLighting?.meters || ""}
-                                          onChange={(e) => {
+                                          onChange={(e: any) => {
                                             updateKitchenConfig(index, "specialFinishes.ledLighting.meters", parseFloat(e.target.value) || 0);
                                             calculateKitchenTotal(index);
                                           }}
@@ -2794,7 +2794,7 @@ export default function Quotations() {
                                   type="checkbox"
                                   id={`fixedCosts-${index}`}
                                   checked={item.includesFixedCosts || false}
-                                  onChange={(e) => {
+                                  onChange={(e: any) => {
                                     const newItems = [...items];
                                     const fixedAmount = newItems[index].fixedCostsAmount ?? 600000;
                                     
@@ -2825,7 +2825,7 @@ export default function Quotations() {
                                   <Input
                                     type="number"
                                     value={item.fixedCostsAmount ?? 600000}
-                                    onChange={(e) => {
+                                    onChange={(e: any) => {
                                       const newItems = [...items];
                                       const oldAmount = newItems[index].fixedCostsAmount ?? 600000;
                                       const newAmount = e.target.value === '' ? 0 : parseFloat(e.target.value);
@@ -2861,7 +2861,7 @@ export default function Quotations() {
                             selectedHardware={item.hardwareSelections || []}
                             onHardwareChange={(selections: HardwareSelection[]) => {
                               // Calcular el total directamente con las nuevas selecciones
-                              let total = selections.reduce((sum, s) => sum + s.subtotal, 0);
+                              let total = selections.reduce((sum: any, s: any) => sum + s.subtotal, 0);
                               // Incluir transporte si está marcado (usar monto editable)
                               if (items[index].includesFixedCosts) {
                                 total += (items[index].fixedCostsAmount || 600000);
@@ -2883,9 +2883,9 @@ export default function Quotations() {
                               type="checkbox"
                               id={`fixedCosts-herrajes-${index}`}
                               checked={item.includesFixedCosts || false}
-                              onChange={(e) => {
+                              onChange={(e: any) => {
                                 const newItems = [...items];
-                                const hardwareTotal = (newItems[index].hardwareSelections || []).reduce((sum, s) => sum + s.subtotal, 0);
+                                const hardwareTotal = (newItems[index].hardwareSelections || []).reduce((sum: any, s: any) => sum + s.subtotal, 0);
                                 const fixedAmount = newItems[index].fixedCostsAmount ?? 600000;
                                 
                                 if (e.target.checked) {
@@ -2910,9 +2910,9 @@ export default function Quotations() {
                               <Input
                                 type="number"
                                 value={item.fixedCostsAmount ?? 600000}
-                                onChange={(e) => {
+                                onChange={(e: any) => {
                                   const newItems = [...items];
-                                  const hardwareTotal = (newItems[index].hardwareSelections || []).reduce((sum, s) => sum + s.subtotal, 0);
+                                  const hardwareTotal = (newItems[index].hardwareSelections || []).reduce((sum: any, s: any) => sum + s.subtotal, 0);
                                   const newAmount = e.target.value === '' ? 0 : parseFloat(e.target.value);
                                   newItems[index].totalPrice = hardwareTotal + newAmount;
                                   newItems[index].fixedCostsAmount = newAmount;
@@ -2959,7 +2959,7 @@ export default function Quotations() {
                                         step="0.01"
                                         placeholder="Alto (m)"
                                         value={door.height || ''}
-                                        onChange={(e) => {
+                                        onChange={(e: any) => {
                                           const newItems = [...items];
                                           const doors = [...(newItems[index].acabadosConfig?.aluminumGlassDoors || [])];
                                           doors[doorIdx] = { ...doors[doorIdx], height: parseFloat(e.target.value) || 0 };
@@ -2976,7 +2976,7 @@ export default function Quotations() {
                                         step="0.01"
                                         placeholder="Ancho (m)"
                                         value={door.width || ''}
-                                        onChange={(e) => {
+                                        onChange={(e: any) => {
                                           const newItems = [...items];
                                           const doors = [...(newItems[index].acabadosConfig?.aluminumGlassDoors || [])];
                                           doors[doorIdx] = { ...doors[doorIdx], width: parseFloat(e.target.value) || 0 };
@@ -3035,7 +3035,7 @@ export default function Quotations() {
                                   type="checkbox"
                                   id={`acabados-led-${index}`}
                                   checked={item.acabadosConfig?.ledLighting?.enabled || false}
-                                  onChange={(e) => {
+                                  onChange={(e: any) => {
                                     const newItems = [...items];
                                     newItems[index].acabadosConfig = {
                                       ...newItems[index].acabadosConfig,
@@ -3063,7 +3063,7 @@ export default function Quotations() {
                                     type="number"
                                     step="0.01"
                                     value={item.acabadosConfig?.ledLighting?.meters || ''}
-                                    onChange={(e) => {
+                                    onChange={(e: any) => {
                                       const newItems = [...items];
                                       newItems[index].acabadosConfig = {
                                         ...newItems[index].acabadosConfig,
@@ -3089,7 +3089,7 @@ export default function Quotations() {
                                 type="checkbox"
                                 id={`fixedCosts-acabados-${index}`}
                                 checked={item.includesFixedCosts || false}
-                                onChange={(e) => {
+                                onChange={(e: any) => {
                                   const newItems = [...items];
                                   newItems[index].includesFixedCosts = e.target.checked;
                                   if (e.target.checked && newItems[index].fixedCostsAmount === undefined) {
@@ -3108,7 +3108,7 @@ export default function Quotations() {
                                 <Input
                                   type="number"
                                   value={item.fixedCostsAmount ?? 600000}
-                                  onChange={(e) => {
+                                  onChange={(e: any) => {
                                     const newItems = [...items];
                                     newItems[index].fixedCostsAmount = e.target.value === '' ? 0 : parseFloat(e.target.value);
                                     newItems[index].totalPrice = calculateAcabadosTotal(newItems[index]);
@@ -3157,7 +3157,7 @@ export default function Quotations() {
                                 type="checkbox"
                                 id={`fixedCosts-closet-${index}`}
                                 checked={item.includesFixedCosts || false}
-                                onChange={(e) => {
+                                onChange={(e: any) => {
                                   const newItems = [...items];
                                   const closetTotal = newItems[index].closetConfig?.subtotal || 0;
                                   const fixedAmount = newItems[index].fixedCostsAmount ?? 600000;
@@ -3183,7 +3183,7 @@ export default function Quotations() {
                                 <Input
                                   type="number"
                                   value={item.fixedCostsAmount ?? 600000}
-                                  onChange={(e) => {
+                                  onChange={(e: any) => {
                                     const newItems = [...items];
                                     const closetTotal = newItems[index].closetConfig?.subtotal || 0;
                                     const newAmount = e.target.value === '' ? 0 : parseFloat(e.target.value);
@@ -3227,7 +3227,7 @@ export default function Quotations() {
                                 type="checkbox"
                                 id={`fixedCosts-puerta-${index}`}
                                 checked={item.includesFixedCosts || false}
-                                onChange={(e) => {
+                                onChange={(e: any) => {
                                   const newItems = [...items];
                                   const doorTotal = newItems[index].doorConfig?.subtotal || 0;
                                   const fixedAmount = newItems[index].fixedCostsAmount ?? 600000;
@@ -3253,7 +3253,7 @@ export default function Quotations() {
                                 <Input
                                   type="number"
                                   value={item.fixedCostsAmount ?? 600000}
-                                  onChange={(e) => {
+                                  onChange={(e: any) => {
                                     const newItems = [...items];
                                     const doorTotal = newItems[index].doorConfig?.subtotal || 0;
                                     const newAmount = e.target.value === '' ? 0 : parseFloat(e.target.value);
@@ -3313,7 +3313,7 @@ export default function Quotations() {
                               <Label>Descripción *</Label>
                               <Textarea
                                 value={item.description}
-                                onChange={(e) =>
+                                onChange={(e: any) =>
                                   updateItem(index, "description", e.target.value)
                                 }
                                 placeholder="Descripción detallada del ítem..."
@@ -3326,7 +3326,7 @@ export default function Quotations() {
                                 <Label>Cantidad *</Label>
                                 <Input
                                   value={item.quantity}
-                                  onChange={(e) =>
+                                  onChange={(e: any) =>
                                     updateItem(index, "quantity", e.target.value)
                                   }
                                   placeholder="Ej: 5ml, 2 unidades"
@@ -3337,7 +3337,7 @@ export default function Quotations() {
                                 <Label>Precio Unitario</Label>
                                 <Input
                                   value={item.unitPrice || ""}
-                                  onChange={(e) =>
+                                  onChange={(e: any) =>
                                     updateItem(index, "unitPrice", e.target.value)
                                   }
                                   placeholder="Opcional"
@@ -3349,7 +3349,7 @@ export default function Quotations() {
                                 <Input
                                   type="number"
                                   value={item.totalPrice}
-                                  onChange={(e) =>
+                                  onChange={(e: any) =>
                                     updateItem(
                                       index,
                                       "totalPrice",
@@ -3366,7 +3366,7 @@ export default function Quotations() {
                                 type="checkbox"
                                 id={`fixedCosts-${index}`}
                                 checked={item.includesFixedCosts || false}
-                                onChange={(e) => {
+                                onChange={(e: any) => {
                                   const newItems = [...items];
                                   const currentTotal = newItems[index].totalPrice;
                                   const wasChecked = newItems[index].includesFixedCosts || false;
@@ -3390,7 +3390,7 @@ export default function Quotations() {
                                 <Input
                                   type="number"
                                   value={item.fixedCostsAmount ?? 600000}
-                                  onChange={(e) => {
+                                  onChange={(e: any) => {
                                     const newItems = [...items];
                                     const oldAmount = newItems[index].fixedCostsAmount ?? 600000;
                                     const newAmount = e.target.value === '' ? 0 : parseFloat(e.target.value);
@@ -3434,7 +3434,7 @@ export default function Quotations() {
                         max="100"
                         step="0.5"
                         value={discountPercent}
-                        onChange={(e) => setDiscountPercent(Math.min(100, Math.max(0, parseFloat(e.target.value) || 0)))}
+                        onChange={(e: any) => setDiscountPercent(Math.min(100, Math.max(0, parseFloat(e.target.value) || 0)))}
                         className="w-16 sm:w-20 h-8 text-center bg-white/20 border-white/30 text-white placeholder:text-white/50 text-sm"
                       />
                       <span className="text-white/90 text-sm">%</span>
@@ -3529,7 +3529,7 @@ export default function Quotations() {
         quotationNumber={pdfEditorQuotationNumber}
       />
 
-      <Dialog open={lockConfirmDialog.open} onOpenChange={(open) => setLockConfirmDialog({ ...lockConfirmDialog, open })}>
+      <Dialog open={lockConfirmDialog.open} onOpenChange={(open: any) => setLockConfirmDialog({ ...lockConfirmDialog, open })}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>

@@ -139,7 +139,7 @@ export const remindersRouter = router({
         
         // Enriquecer con información del proyecto y cliente
         const enrichedReminders = await Promise.all(
-          reminders.map(async (reminder: any) => {
+          reminders.map(async (reminder: any): Promise<any> => {
     // @ts-ignore
             const project = await db.getProjectById(reminder.projectId);
             let client = null;
@@ -212,20 +212,20 @@ export const remindersRouter = router({
         const reminders = await db.getRemindersByUserId(ctx.user.id);
         const now = new Date();
         
-        const pending = reminders.filter((r: any) => r.status === "pendiente" || r.status === "enviado");
-        const overdue = pending.filter((r: any) => new Date(r.dueDate) <= now);
-        const upcoming = pending.filter((r: any) => new Date(r.dueDate) > now);
+        const pending = reminders.filter((r: any): boolean => r.status === "pendiente" || r.status === "enviado");
+        const overdue = pending.filter((r: any): boolean => new Date(r.dueDate) <= now);
+        const upcoming = pending.filter((r: any): boolean => new Date(r.dueDate) > now);
         
         return {
           total: pending.length,
           overdue: overdue.length,
           upcoming: upcoming.length,
           byType: {
-            cotizacion_sin_respuesta: pending.filter((r: any) => r.type === "cotizacion_sin_respuesta").length,
-            diseno_pendiente: pending.filter((r: any) => r.type === "diseno_pendiente").length,
-            aprobacion_pendiente: pending.filter((r: any) => r.type === "aprobacion_pendiente").length,
-            produccion_retrasada: pending.filter((r: any) => r.type === "produccion_retrasada").length,
-            instalacion_proxima: pending.filter((r: any) => r.type === "instalacion_proxima").length,
+            cotizacion_sin_respuesta: pending.filter((r: any): boolean => r.type === "cotizacion_sin_respuesta").length,
+            diseno_pendiente: pending.filter((r: any): boolean => r.type === "diseno_pendiente").length,
+            aprobacion_pendiente: pending.filter((r: any): boolean => r.type === "aprobacion_pendiente").length,
+            produccion_retrasada: pending.filter((r: any): boolean => r.type === "produccion_retrasada").length,
+            instalacion_proxima: pending.filter((r: any): boolean => r.type === "instalacion_proxima").length,
           },
         };
       }),

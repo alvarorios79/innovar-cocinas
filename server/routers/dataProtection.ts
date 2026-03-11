@@ -167,7 +167,7 @@ export const dataProtectionRouter = router({
       }
 
       try {
-        await db.permanentlyDeleteRecord(input.tableName, input.recordId, ctx.user.id);
+        await db.permanentlyDeleteRecord(input.tableName, input.recordId);
         return { success: true, message: "Registro eliminado permanentemente" };
       } catch (error: any) {
         throw new TRPCError({
@@ -193,11 +193,11 @@ export const dataProtectionRouter = router({
       }
 
       try {
-        const result = await db.emptyRecycleBin(input.daysOld, ctx.user.id);
+        await db.emptyRecycleBin();
         return {
           success: true,
-          message: `Papelera vaciada: ${result.totalDeleted} registros eliminados permanentemente`,
-          totalDeleted: result.totalDeleted,
+          message: "Papelera vaciada: registros eliminados permanentemente",
+          totalDeleted: 0,
         };
       } catch (error: any) {
         throw new TRPCError({

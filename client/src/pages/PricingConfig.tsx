@@ -183,7 +183,7 @@ export default function PricingConfig() {
       setReason("");
       setDescriptionTemplate("");
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast.error(error.message);
     },
   });
@@ -341,7 +341,7 @@ export default function PricingConfig() {
                 type="text"
                 placeholder="Buscar por nombre o código (ej: mesón, COCINA_ML_L, pintado...)"
                 value={searchQuery}
-                onChange={(e) => {
+                onChange={(e: any) => {
                   setSearchQuery(e.target.value);
                   setIsSearching(e.target.value.trim().length > 0);
                 }}
@@ -382,7 +382,7 @@ export default function PricingConfig() {
               </div>
               <CardContent className="p-2">
                 <div className="space-y-1">
-                  {categories.map((cat) => {
+                  {categories.map((cat: any) => {
                     const config = categoryConfig[cat];
                     const isActive = activeCategory === cat;
                     const itemCount = pricingByCategory[cat]?.length || 0;
@@ -642,7 +642,7 @@ export default function PricingConfig() {
                     min="0"
                     step={editingItem.unit === "%" ? "0.1" : "1000"}
                     value={newValue}
-                    onChange={(e) => setNewValue(e.target.value)}
+                    onChange={(e: any) => setNewValue(e.target.value)}
                     className="mt-2 text-lg font-semibold"
                     placeholder={editingItem.unit === "%" ? "Ej: 30" : "Ej: 2500000"}
                   />
@@ -655,7 +655,7 @@ export default function PricingConfig() {
                   <Textarea
                     id="reason"
                     value={reason}
-                    onChange={(e) => setReason(e.target.value)}
+                    onChange={(e: any) => setReason(e.target.value)}
                     placeholder="Ej: Ajuste por inflacion, Promocion temporal, Actualizacion de costos..."
                     className="mt-2"
                     rows={2}
@@ -669,7 +669,7 @@ export default function PricingConfig() {
                   <Textarea
                     id="descriptionTemplate"
                     value={descriptionTemplate}
-                    onChange={(e) => setDescriptionTemplate(e.target.value)}
+                    onChange={(e: any) => setDescriptionTemplate(e.target.value)}
                     placeholder="Descripcion tecnica que se autocompletara en cotizaciones..."
                     className="mt-2"
                     rows={4}

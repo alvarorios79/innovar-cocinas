@@ -115,11 +115,11 @@ export const expensesRouter = router({
         const userIdsSet = new Set<number>();
         expenses.forEach((e: any) => userIdsSet.add(e.createdBy));
         const userIds: number[] = [];
-        userIdsSet.forEach(id => userIds.push(id));
+        userIdsSet.forEach((id: any) => userIds.push(id));
         const allUsers = await db.getAllUsers();
-        const userMap = new Map(allUsers.map(u => [u.id, u]));
+        const userMap = new Map(allUsers.map((u: any): [number, any] => [u.id, u]));
 
-        return expenses.map((expense: any) => ({
+        return expenses.map((expense: any): any => ({
           ...expense,
           amount: parseFloat(expense.amount as string),
           createdByUser: userMap.get(expense.createdBy) || null,
@@ -273,15 +273,15 @@ export const expensesRouter = router({
             ...t,
             total: parseFloat(t.total),
           })),
-          byCategory: byCategory.map((c: any) => ({
+          byCategory: byCategory.map((c: any): any => ({
             ...c,
             total: parseFloat(c.total),
           })),
-          byProject: byProject.map((p: any) => ({
+          byProject: byProject.map((p: any): any => ({
             ...p,
             total: parseFloat(p.total),
           })),
-          byGeneralCategory: byGeneralCategory.map((g: any) => ({
+          byGeneralCategory: byGeneralCategory.map((g: any): any => ({
             ...g,
             total: parseFloat(g.total),
           })),

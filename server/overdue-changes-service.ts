@@ -48,7 +48,7 @@ export async function checkOverdueChanges(): Promise<{
     // Obtener todos los proyectos en estado "en_diseno" con cambios solicitados
     const allProjects = await db.getAllProjects();
     const projectsWithChanges = allProjects.filter(
-      (p) => p.status === "en_diseno" && p.changesRequestedAt
+      (p: any) => p.status === "en_diseno" && p.changesRequestedAt
     );
 
     checked = projectsWithChanges.length;
@@ -153,7 +153,7 @@ export async function checkOverdueChanges(): Promise<{
 export function startOverdueChangesService(): void {
   // Verificación inicial después de 1 minuto
   setTimeout(() => {
-    checkOverdueChanges().then((result) => {
+    checkOverdueChanges().then((result: any) => {
       console.log(
         `[OverdueChanges] Verificación inicial: ${result.checked} proyectos, ${result.overdue} vencidos, ${result.notified} notificados`
       );
@@ -162,7 +162,7 @@ export function startOverdueChangesService(): void {
 
   // Verificación periódica cada 4 horas
   setInterval(() => {
-    checkOverdueChanges().then((result) => {
+    checkOverdueChanges().then((result: any) => {
       if (result.overdue > 0) {
         console.log(
           `[OverdueChanges] Verificación periódica: ${result.overdue} proyectos vencidos, ${result.notified} notificados`

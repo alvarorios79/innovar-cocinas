@@ -371,7 +371,7 @@ export async function getAllQuotations() {
   const db = await getDb();
   if (!db) return [];
 
-  return await db.select().from(quotations).where(eq(quotations.dataOrigin, 'manual')).orderBy(desc(quotations.createdAt));
+  return await db.select().from(quotations).where(and(isNull(quotations.deletedAt), eq(quotations.dataOrigin, 'manual'))).orderBy(desc(quotations.createdAt));
 }
 
 export async function getLatestApprovedQuotationVersion(quotationId: number) {

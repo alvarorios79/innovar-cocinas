@@ -21,6 +21,8 @@ interface QuotationData {
   quotationNumber: string;
   date: string;
   clientName: string;
+  clientPhone?: string;
+  clientAddress?: string;
   vendorName: string;
   productType: string;
   validUntil: string;
@@ -80,7 +82,8 @@ export async function generateQuotationPDF(
         align: "right",
         width: 200,
       });
-      doc.text(`${data.quotationNumber}`, 350, 53, {
+      doc.fontSize(9).fillColor(turquoise).font("Helvetica-Bold");
+      doc.text(`${data.quotationNumber}`, 350, 55, {
         align: "right",
         width: 200,
       });
@@ -88,15 +91,15 @@ export async function generateQuotationPDF(
       // Numero de version si aplica
       let versionY = 68;
       if (data.versionNumber && data.versionNumber > 1) {
-        doc.fontSize(9).fillColor(darkGray).font("Helvetica");
+        doc.fontSize(8).fillColor(darkGray).font("Helvetica");
         doc.text(`Version: v${data.versionNumber}`, 350, versionY, { align: "right", width: 200 });
-        versionY += 12;
+        versionY += 11;
         
         // Referencia a cotizacion base si es version adicional
         if (data.baseQuotationNumber) {
-          doc.fontSize(8).fillColor("#9CA3AF").font("Helvetica");
+          doc.fontSize(7).fillColor("#9CA3AF").font("Helvetica");
           doc.text(`(Base: COT-${data.baseQuotationNumber})`, 350, versionY, { align: "right", width: 200 });
-          versionY += 12;
+          versionY += 11;
         }
       }
       
@@ -120,11 +123,15 @@ export async function generateQuotationPDF(
         .fillColor("white")
         .font("Helvetica-Bold")
         .text("CLIENTE", 60, clientY + 8);
+      // Nombre + teléfono + dirección en el mismo renglón
+      const clientInfoParts = [data.clientName];
+      if (data.clientPhone) clientInfoParts.push(`Tel: ${data.clientPhone}`);
+      if (data.clientAddress) clientInfoParts.push(`Dirección: ${data.clientAddress}`);
       doc
         .fontSize(10)
         .fillColor(darkGray)
         .font("Helvetica")
-        .text(data.clientName, 50, clientY + 35);
+        .text(clientInfoParts.join("    "), 50, clientY + 35);
 
       // Información del proyecto
       const infoY = clientY + 60;

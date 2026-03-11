@@ -4,6 +4,8 @@ interface QuotationPDFData {
   quotationNumber: string;
   date: string;
   clientName: string;
+  clientPhone?: string;
+  clientAddress?: string;
   vendorName: string;
   productType: string;
   validUntil: string;

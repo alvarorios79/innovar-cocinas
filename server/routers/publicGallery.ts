@@ -38,10 +38,10 @@ export const publicGalleryRouter = router({
         let photos = allPhotos;
         
         if (input.type) {
-          photos = allPhotos.filter(p => p.subcategory === input.type);
+          photos = allPhotos.filter((p: any) => p.subcategory === input.type);
         } else {
           // Por defecto, mostrar modelado y renders
-          photos = allPhotos.filter(p => p.subcategory === "modelado_3d" || p.subcategory === "renders");
+          photos = allPhotos.filter((p: any) => p.subcategory === "modelado_3d" || p.subcategory === "renders");
         }
 
         return {
@@ -53,15 +53,15 @@ export const publicGalleryRouter = router({
           client: client ? {
             name: client.name,
           } : null,
-          photos: photos.map(p => ({
+          photos: photos.map((p: any) => ({
             id: p.id,
             photoUrl: p.photoUrl,
             subcategory: p.subcategory,
             description: p.description,
             createdAt: p.createdAt,
           })),
-          totalModelado: allPhotos.filter(p => p.subcategory === "modelado_3d").length,
-          totalRenders: allPhotos.filter(p => p.subcategory === "renders").length,
+          totalModelado: allPhotos.filter((p: any) => p.subcategory === "modelado_3d").length,
+          totalRenders: allPhotos.filter((p: any) => p.subcategory === "renders").length,
         };
       }),
 
@@ -84,7 +84,7 @@ export const publicGalleryRouter = router({
         // Guardar la aprobación según el tipo
         if (input.type === "modelado_3d") {
           await db.updateProject(input.projectId, {
-            modeladoApprovedAt: now,
+            modeladoApprovedAt: now.toISOString(),
             modeladoApprovedBy: input.clientName,
           });
         } else {
@@ -93,12 +93,12 @@ export const publicGalleryRouter = router({
           const fechaDefinitiva = await calculateEstimatedDeliveryDate(now);
           
           await db.updateProject(input.projectId, {
-            rendersApprovedAt: now,
+            rendersApprovedAt: now.toISOString(),
             rendersApprovedBy: input.clientName,
             status: "aprobacion_final",
-            clientApprovedAt: now,
-            estimatedInstallDate: fechaDefinitiva,
-            isInstallDateOfficial: true,
+            clientApprovedAt: now.toISOString(),
+            estimatedInstallDate: fechaDefinitiva instanceof Date ? fechaDefinitiva.toISOString() : fechaDefinitiva,
+            isInstallDateOfficial: 1,
           });
         }
 
@@ -121,7 +121,7 @@ export const publicGalleryRouter = router({
             priority: "alta",
             assignedTo: assignTo,
             assignedBy: assignTo, // Auto-asignada por el sistema
-            dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000), // Mañana
+            dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // Mañana
           });
         }
 
@@ -192,7 +192,7 @@ export const publicGalleryRouter = router({
                 priority: "alta",
                 assignedTo: jefe.id,
                 assignedBy: jefe.id, // Auto-asignada por el sistema
-                dueDate: new Date(Date.now() + 48 * 60 * 60 * 1000), // 48 horas
+                dueDate: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(), // 48 horas
               });
             }
           }
@@ -261,7 +261,7 @@ export const publicGalleryRouter = router({
             await db.updateProject(input.projectId, {
               status: "en_diseno",
               clientApprovalNotes: input.changes,
-              changesRequestedAt: new Date(),
+              changesRequestedAt: new Date().toISOString(),
             });
           }
 
@@ -273,7 +273,7 @@ export const publicGalleryRouter = router({
               priority: "alta",
               assignedTo: assignTo,
               assignedBy: assignTo,
-              dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000),
+              dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
             });
           }
         });
@@ -598,7 +598,7 @@ export const publicGalleryRouter = router({
         }
 
         // Verificar que hay modelado para enviar
-        const photos = await db.getProjectPhotosByProjectId(input.projectId);
+        const photos = await db.getProjectPhotos(input.projectId);
         const modeladoPhotos = photos.filter((p: any) => p.subcategory === "modelado_3d");
         if (modeladoPhotos.length === 0) {
           throw new TRPCError({ code: "BAD_REQUEST", message: "No hay modelado para enviar" });
@@ -683,7 +683,7 @@ export const publicGalleryRouter = router({
         }
 
         // Verificar que hay renders para enviar
-        const photos = await db.getProjectPhotosByProjectId(input.projectId);
+        const photos = await db.getProjectPhotos(input.projectId);
         const renderPhotos = photos.filter((p: any) => p.subcategory === "renders");
         if (renderPhotos.length === 0) {
           throw new TRPCError({ code: "BAD_REQUEST", message: "No hay renders para enviar" });

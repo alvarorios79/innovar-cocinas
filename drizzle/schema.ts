@@ -463,7 +463,7 @@ export const quotationItems = mysqlTable("quotationItems", {
 
 export const quotations = mysqlTable("quotations", {
 	id: int().autoincrement().notNull(),
-	quotationNumber: varchar({ length: 50 }).notNull(),
+	quotationNumber: varchar({ length: 50 }).default('').notNull(),
 	clientId: int().notNull().references(() => clients.id, { onDelete: "cascade" } ),
 	vendorName: varchar({ length: 255 }).notNull(),
 	productType: mysqlEnum(['cocina','closet','puerta','centro_tv','herrajes','mesones','acabados_especiales','otro']).default('otro').notNull(),
@@ -516,6 +516,8 @@ export const reminders = mysqlTable("reminders", {
 	status: mysqlEnum(['pendiente','enviado','completado','cancelado']).default('pendiente').notNull(),
 	message: text(),
 	sentAt: timestamp({ mode: 'string' }),
+	scheduledFor: timestamp({ mode: 'string' }),
+	sent: tinyint().default(0).notNull(),
 	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
 },
 (table) => [
@@ -594,6 +596,7 @@ export const tasks = mysqlTable("tasks", {
 			birthDate: timestamp({ mode: 'string' }),
 		dataOrigin: mysqlEnum(['manual', 'system', 'test']).default('manual').notNull(),
 		deletedAt: timestamp({ mode: 'string' }),
+		isTeamMember: tinyint().default(0).notNull(),
 	},
 (table) => [
 	index("users_openId_unique").on(table.openId),

@@ -387,6 +387,26 @@ export async function getAllQuotations() {
   return await db.select().from(quotations).where(and(isNull(quotations.deletedAt), eq(quotations.dataOrigin, 'manual'), eq(quotations.isArchived, 0))).orderBy(desc(quotations.createdAt));
 }
 
+export async function getAllQuotationsPaginated(options?: { page?: number; limit?: number; status?: string }) {
+  const db = await getDb();
+  if (!db) return { data: [], total: 0, page: 1, limit: 50 };
+  const page = options?.page || 1;
+  const limit = options?.limit || 50;
+  const offset = (page - 1) * limit;
+  let query = db.select().from(quotations).where(
+    and(
+      isNull(quotations.deletedAt),
+      eq(quotations.dataOrigin, 'manual'),
+      eq(quotations.isArchived, 0),
+      options?.status ? eq(quotations.status, options.status as any) : undefined
+    )
+  ).$dynamic();
+  const allRows = await query.orderBy(desc(quotations.createdAt));
+  const total = allRows.length;
+  const data = allRows.slice(offset, offset + limit);
+  return { data, total, page, limit };
+}
+
 export async function getLatestApprovedQuotationVersion(quotationId: number) {
   const db = await getDb();
   if (!db) return undefined;
@@ -394,10 +414,10 @@ export async function getLatestApprovedQuotationVersion(quotationId: number) {
   const result = await db.select().from(quotations)
     .where(and(
       eq(quotations.quotationNumber, (await db.select().from(quotations).where(eq(quotations.id, quotationId)).limit(1))[0]?.quotationNumber || ''),
-      eq(quotations.status, 'aprobada'),
+      eq(quotations.status, 'approved'),
       eq(quotations.dataOrigin, 'manual')
     ))
-    .orderBy(desc(quotations.version))
+    .orderBy(desc(quotations.versionNumber))
     .limit(1);
 
   return result.length > 0 ? result[0] : undefined;
@@ -952,8 +972,9 @@ export async function cleanupTestData() {
   for (const { table, name } of tables) {
     try {
       const result = await db.delete(table).where(inArray(table.dataOrigin, ['test', 'system']));
-      console.log(`[Cleanup] Deleted ${result.rowsAffected} records from ${name}`);
-      deletedCount += result.rowsAffected || 0;
+      const affected = (result as any)?.affectedRows ?? (result as any)?.rowsAffected ?? 0;
+      console.log(`[Cleanup] Deleted ${affected} records from ${name}`);
+      deletedCount += affected;
     } catch (error) {
       console.error(`[Cleanup] Error deleting from ${name}:`, error);
     }
@@ -988,7 +1009,7 @@ export async function countTestData() {
   return counts;
 }
 
-export async function withTransaction<T>(callback: () => Promise<T>): Promise<T> {
+export async function withTransaction<T>(callback: ((tx?: any) => Promise<T>) | (() => Promise<T>)): Promise<T> {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
@@ -1110,10 +1131,10 @@ export async function createUserExtended(data: {
     name: data.name,
     email: data.email,
     openId: data.openId || '',
-    password: data.password || '',
-    role: data.role || 'user',
+    passwordHash: data.password ? data.password : undefined,
+    role: (data.role || 'user') as any,
     isTeamMember: data.isTeamMember || 0,
-    dataOrigin: data.dataOrigin || 'manual',
+    dataOrigin: (data.dataOrigin || 'manual') as any,
     createdAt: new Date().toISOString(),
   });
   return result[0].insertId;
@@ -1198,7 +1219,7 @@ export async function updateUserPassword(userId: number, passwordHash: string) {
   if (!db) throw new Error("Database not available");
 
   await db.update(users).set({
-    password: passwordHash
+    passwordHash: passwordHash
   }).where(eq(users.id, userId));
 }
 
@@ -1248,7 +1269,7 @@ export async function getAllQuotationsGroupedByBase(options?: { page?: number; l
       groupedMap.set(baseNumber, {
         baseQuotationId: quot.id,
         quotationNumber: baseNumber,
-        client: quot.client || null,
+        client: (quot as any).client || null,
         status: quot.status,
         createdAt: quot.createdAt,
         activeVersion: quot, // La versión más reciente (primera en el orden)
@@ -1456,7 +1477,7 @@ export async function getMonthlyProjectsCount() {
     if (monthlyPayments.length === 0) return 0;
 
     // Obtener IDs únicos de proyectos
-    const projectIds = [...new Set(monthlyPayments.map(p => p.projectId))];
+    const projectIds = Array.from(new Set(monthlyPayments.map(p => p.projectId)));
 
     // Verificar que los proyectos existan y sean válidos
     const validProjects = await db.select({
@@ -1716,4 +1737,48 @@ export async function getAllTasksPaginatedResult(options?: {
   const data = allTasks.slice(offset, offset + limit);
 
   return { data, total, page, limit };
+}
+
+// Alias for getProjectPhotos (backward compatibility)
+export async function getProjectPhotosByProjectId(projectId: number) {
+  return getProjectPhotos(projectId);
+}
+
+// Create a client revision history entry
+export async function createClientRevision(revision: InsertClientRevisionHistory) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(clientRevisionHistory).values(revision);
+  return result[0].insertId;
+}
+
+// Add a hardware selection to a project
+export async function addProjectHardwareSelection(
+  projectId: number,
+  hardwareId: number,
+  selectedOption: string | null,
+  notes: string | null,
+  createdBy: number
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(projectHardwareSelections).values({
+    projectId,
+    hardwareId,
+    selectedOption,
+    notes,
+    createdBy,
+  });
+  return result[0].insertId;
+}
+
+// Remove a hardware selection from a project
+export async function removeProjectHardwareSelection(projectId: number, hardwareId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(projectHardwareSelections)
+    .where(and(
+      eq(projectHardwareSelections.projectId, projectId),
+      eq(projectHardwareSelections.hardwareId, hardwareId)
+    ));
 }

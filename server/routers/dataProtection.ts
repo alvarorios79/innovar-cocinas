@@ -72,6 +72,20 @@ export const dataProtectionRouter = router({
       }
     }),
 
+  restoreClient: protectedProcedure
+    .input(z.object({ clientId: z.number() }))
+    .mutation(async ({ input, ctx }) => {
+      try {
+        await db.restoreClient(input.clientId, ctx.user.id);
+        return { success: true, message: "Cliente restaurado exitosamente" };
+      } catch (error: any) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: error.message || "Error al restaurar cliente",
+        });
+      }
+    }),
+
   restoreQuotation: protectedProcedure
     .input(z.object({ quotationId: z.number() }))
     .mutation(async ({ input, ctx }) => {

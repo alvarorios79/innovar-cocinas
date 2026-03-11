@@ -2342,3 +2342,70 @@ export async function restoreExpense(expenseId: number, userId?: number) {
     });
   }
 }
+
+// ============ GET DELETED RECORDS ============
+
+// Get all deleted tasks
+export async function getDeletedTasks() {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  return await db.select()
+    .from(tasks)
+    .where(isNotNull(tasks.deletedAt))
+    .orderBy(desc(tasks.deletedAt));
+}
+
+// Get all deleted expenses
+export async function getDeletedExpenses() {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  return await db.select()
+    .from(expenses)
+    .where(isNotNull(expenses.deletedAt))
+    .orderBy(desc(expenses.deletedAt));
+}
+
+// Get all deleted quotations
+export async function getDeletedQuotations() {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  return await db.select()
+    .from(quotations)
+    .where(isNotNull(quotations.deletedAt))
+    .orderBy(desc(quotations.deletedAt));
+}
+
+// Get all deleted appointments
+export async function getDeletedAppointments() {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  return await db.select()
+    .from(appointments)
+    .where(isNotNull(appointments.deletedAt))
+    .orderBy(desc(appointments.deletedAt));
+}
+
+// Restore a client from recycle bin
+export async function restoreClient(clientId: number, userId?: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.update(clients)
+    .set({ deletedAt: null })
+    .where(eq(clients.id, clientId));
+  
+  // Log to audit log if userId provided
+  if (userId) {
+    await db.insert(auditLogs).values({
+      userId,
+      action: "restore",
+      recordType: "clients",
+      recordId: clientId,
+      timestamp: new Date().toISOString(),
+    });
+  }
+}

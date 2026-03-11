@@ -1206,10 +1206,6 @@ export async function getAllQuotationsGroupedByBase(options?: { page?: number; l
   const db = await getDb();
   if (!db) return { quotations: [], total: 0 };
 
-  const page = options?.page || 1;
-  const limit = options?.limit || 50;
-  const offset = (page - 1) * limit;
-
   // Obtener todas las cotizaciones con filtros
   let whereConditions = and(isNull(quotations.deletedAt), eq(quotations.dataOrigin, 'manual'));
   
@@ -1221,28 +1217,60 @@ export async function getAllQuotationsGroupedByBase(options?: { page?: number; l
     whereConditions = and(whereConditions, eq(quotations.isArchived, options.archived ? 1 : 0));
   }
 
-  // Obtener todas las cotizaciones ordenadas por número y fecha
+  // Obtener todas las cotizaciones ordenadas por número y fecha (más recientes primero)
   const allQuotations = await db.select().from(quotations)
     .where(whereConditions)
     .orderBy(desc(quotations.quotationNumber), desc(quotations.createdAt));
 
-  // Agrupar por número base (sin versión) y obtener la más reciente
+  // Agrupar por número base y construir estructura esperada por el frontend
   const groupedMap = new Map<string, any>();
   
   for (const quot of allQuotations) {
-    const baseNumber = quot.quotationNumber.split('-')[0]; // Obtener número base
+    const baseNumber = quot.quotationNumber.split('-')[0]; // Obtener número base (ej: "2024-001")
+    
     if (!groupedMap.has(baseNumber)) {
-      groupedMap.set(baseNumber, quot);
+      // Primera vez que vemos este número base - esta es la versión más reciente
+      groupedMap.set(baseNumber, {
+        baseQuotationId: quot.id,
+        quotationNumber: baseNumber,
+        client: quot.client || null,
+        status: quot.status,
+        createdAt: quot.createdAt,
+        activeVersion: quot, // La versión más reciente (primera en el orden)
+        versions: [quot],
+      });
+    } else {
+      // Versiones anteriores del mismo número base
+      const group = groupedMap.get(baseNumber);
+      if (group.versions) {
+        group.versions.push(quot);
+      } else {
+        group.versions = [quot];
+      }
     }
   }
 
-  const grouped = Array.from(groupedMap.values());
+  // Convertir a array y validar estructura
+  const grouped = Array.from(groupedMap.values()).map(group => ({
+    baseQuotationId: group.baseQuotationId ?? null,
+    quotationNumber: group.quotationNumber ?? '',
+    client: group.client ?? null,
+    status: group.status ?? 'pendiente',
+    createdAt: group.createdAt ?? new Date(),
+    activeVersion: group.activeVersion ?? null,
+    versions: group.versions ?? [],
+  }));
+
   const total = grouped.length;
   
-  // Aplicar paginación
+  // Aplicar paginación DESPUÉS de agrupar
+  const page = options?.page || 1;
+  const limit = options?.limit || 50;
+  const offset = (page - 1) * limit;
   const paginatedQuotations = grouped.slice(offset, offset + limit);
 
-  return { quotations: paginatedQuotations, total };
+  const groupedQuotations = paginatedQuotations ?? [];
+  return { quotations: groupedQuotations, total };
 }
 
 

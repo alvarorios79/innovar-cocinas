@@ -39,7 +39,8 @@ export const tasksRouter = router({
           ...input,
           assignedBy: ctx.user.id,
           status: "pendiente",
-        });
+          dataOrigin: "manual",
+        } as any);
 
         // Crear notificación para el usuario asignado
         const priorityLabels: Record<string, string> = {

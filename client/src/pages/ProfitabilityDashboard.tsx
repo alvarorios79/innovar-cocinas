@@ -26,6 +26,7 @@ export default function ProfitabilityDashboard() {
     margen: 0,
     rentabilidadPromedio: 0,
     totalProyectos: 0,
+    ingresoPromedioPorProyecto: 0,
   });
 
   // Obtener datos financieros del backend
@@ -47,12 +48,16 @@ export default function ProfitabilityDashboard() {
     const gastos = dashboardData.totalExpenses || 0;
     const margen = dashboardData.balance || 0;
 
+    // Calcular ingreso promedio por proyecto
+    const ingresoPromedioPorProyecto = monthlyProjectsCount > 0 ? ingresos / monthlyProjectsCount : 0;
+
     setCurrentMonthMetrics({
       ingresos,
       gastos,
       margen,
       rentabilidadPromedio: ingresos > 0 ? (margen / ingresos) * 100 : 0,
       totalProyectos: monthlyProjectsCount, // Dato real del backend
+      ingresoPromedioPorProyecto, // Cálculo: ingresos / proyectos
     });
 
     // Calcular últimos 6 meses (datos agregados)
@@ -223,6 +228,24 @@ export default function ProfitabilityDashboard() {
             </div>
             <p className="text-xs text-slate-500 mt-1">
               Proyectos creados
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Ingreso Promedio por Proyecto */}
+        <Card className="border-0 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 bg-white dark:bg-slate-900 border-l-4 border-l-indigo-500">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <DollarSign className="h-4 w-4 text-indigo-500" />
+              Ingreso Promedio
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-indigo-600">
+              {formatPrice(currentMonthMetrics.ingresoPromedioPorProyecto)}
+            </div>
+            <p className="text-xs text-slate-500 mt-1">
+              Por proyecto
             </p>
           </CardContent>
         </Card>

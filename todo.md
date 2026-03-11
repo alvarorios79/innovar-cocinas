@@ -5265,3 +5265,10 @@ Listo para pasar a Fase 7.2 (Intelligent Alerts) cuando sea requerido.
 - [x] Crear endpoint getMonthlyProjectsCount en dashboard router
 - [x] Actualizar ProfitabilityDashboard.tsx para usar el dato real
 - [x] Probar el indicador con datos reales
+
+
+## Indicador "Ingreso Promedio por Proyecto" en Dashboard de Rentabilidad
+
+- [x] Actualizar ProfitabilityDashboard.tsx para calcular ingreso promedio
+- [x] Agregar tarjeta visual para mostrar el indicador
+- [x] Probar el indicador con datos reales

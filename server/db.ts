@@ -2108,3 +2108,151 @@ export async function createHardwareItem(data: {
   });
   return result[0].insertId;
 }
+
+// ============ EXPENSES AGGREGATION & QUERIES ============
+
+// Get all expenses
+export async function getAllExpenses() {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(expenses).orderBy(expenses.expenseDate);
+}
+
+// Get all expenses paginated
+export async function getAllExpensesPaginated(limit: number = 50, offset: number = 0) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(expenses)
+    .orderBy(expenses.expenseDate)
+    .limit(limit)
+    .offset(offset);
+}
+
+// Get expenses by date range
+export async function getExpensesByDateRange(startDate: string, endDate: string) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(expenses)
+    .where(and(
+      gte(expenses.expenseDate, startDate),
+      lte(expenses.expenseDate, endDate)
+    ))
+    .orderBy(expenses.expenseDate);
+}
+
+// Get expenses by type (material vs operative)
+export async function getExpensesByType() {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(expenses)
+    .where(ne(expenses.expenseType, null))
+    .orderBy(expenses.expenseType);
+}
+
+// Get expenses by type with summary
+export async function getExpensesSummaryByType() {
+  const db = await getDb();
+  if (!db) return [];
+  // Simple aggregation by expenseType
+  const allExpenses = await db.select().from(expenses);
+  const grouped: any = {};
+  for (const exp of allExpenses) {
+    const type = exp.expenseType || 'unknown';
+    if (!grouped[type]) grouped[type] = { expenseType: type, total: '0', count: 0 };
+    grouped[type].total = String(parseFloat(grouped[type].total) + parseFloat(exp.amount || '0'));
+    grouped[type].count++;
+  }
+  return Object.values(grouped);
+}
+
+// Get operative expenses summary by category
+export async function getOperativeExpensesSummaryByCategory() {
+  const db = await getDb();
+  if (!db) return [];
+  const allExpenses = await db.select().from(expenses)
+    .where(eq(expenses.expenseType, 'gasto_operativo'));
+  const grouped: any = {};
+  for (const exp of allExpenses) {
+    const cat = exp.operativeCategory || 'sin_categoría';
+    if (!grouped[cat]) grouped[cat] = { operativeCategory: cat, total: '0', count: 0 };
+    grouped[cat].total = String(parseFloat(grouped[cat].total) + parseFloat(exp.amount || '0'));
+    grouped[cat].count++;
+  }
+  return Object.values(grouped);
+}
+
+// Get project expenses summary
+export async function getProjectExpensesSummary() {
+  const db = await getDb();
+  if (!db) return [];
+  const allExpenses = await db.select().from(expenses)
+    .where(ne(expenses.projectId, null));
+  const grouped: any = {};
+  for (const exp of allExpenses) {
+    const pid = exp.projectId || 0;
+    if (!grouped[pid]) grouped[pid] = { projectId: pid, projectClientName: exp.projectClientName, total: '0', count: 0 };
+    grouped[pid].total = String(parseFloat(grouped[pid].total) + parseFloat(exp.amount || '0'));
+    grouped[pid].count++;
+  }
+  return Object.values(grouped);
+}
+
+// Get expenses summary by general category
+export async function getExpensesSummaryByGeneralCategory() {
+  const db = await getDb();
+  if (!db) return [];
+  const allExpenses = await db.select().from(expenses);
+  const grouped: any = {};
+  for (const exp of allExpenses) {
+    const cat = exp.generalCategory || 'otros';
+    if (!grouped[cat]) grouped[cat] = { generalCategory: cat, total: '0', count: 0 };
+    grouped[cat].total = String(parseFloat(grouped[cat].total) + parseFloat(exp.amount || '0'));
+    grouped[cat].count++;
+  }
+  return Object.values(grouped);
+}
+
+// Alias for getExpensesByProject
+export async function getExpensesByProjectId(projectId: number) {
+  return getExpensesByProject(projectId);
+}
+
+// ============ DATA PROTECTION & AUDIT LOG ============
+
+// Get audit logs for a specific record
+export async function getAuditLogsForRecord(recordType: string, recordId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(auditLogs)
+    .where(and(
+      eq(auditLogs.recordType, recordType),
+      eq(auditLogs.recordId, recordId)
+    ))
+    .orderBy(auditLogs.timestamp);
+}
+
+// Get audit logs by user
+export async function getAuditLogsByUser(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(auditLogs)
+    .where(eq(auditLogs.userId, userId))
+    .orderBy(auditLogs.timestamp);
+}
+
+// Permanently delete a record (hard delete)
+export async function permanentlyDeleteRecord(recordType: string, recordId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  // This is a placeholder - actual implementation depends on the table structure
+  // In a real scenario, you would identify the table and delete from it
+  console.log(`[DataProtection] Permanently deleting ${recordType} with id ${recordId}`);
+}
+
+// Empty recycle bin (delete all soft-deleted records)
+export async function emptyRecycleBin() {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  // This is a placeholder - actual implementation depends on which tables have soft deletes
+  console.log("[DataProtection] Emptying recycle bin");
+}

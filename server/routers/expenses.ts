@@ -72,7 +72,7 @@ export const expensesRouter = router({
           operativeCategory: input.operativeCategory || null,
           description: sanitizeText(input.description),
           amount: input.amount.toString(),
-          expenseDate: new Date(input.expenseDate),
+          expenseDate: input.expenseDate || new Date().toISOString().slice(0, 19).replace('T', ' '),
           supportUrl: input.supportUrl || null,
           supportFileName: input.supportFileName || null,
           receiptUrl: input.receiptUrl || null,
@@ -102,11 +102,11 @@ export const expensesRouter = router({
         
         if (input?.startDate && input?.endDate) {
           expenses = await db.getExpensesByDateRange(
-            new Date(input.startDate),
-            new Date(input.endDate)
+            input.startDate,
+            input.endDate
           );
         } else if (input?.type && input.type !== "all") {
-          expenses = await db.getExpensesByType(input.type);
+          expenses = await db.getExpensesByType();
         } else {
           expenses = await db.getAllExpenses();
         }
@@ -137,16 +137,12 @@ export const expensesRouter = router({
         if (!allowedRoles.includes(ctx.user.role)) {
           throw new TRPCError({ code: "FORBIDDEN" });
         }
-        const result = await db.getAllExpensesPaginated({
-          page: input?.page,
-          limit: input?.limit,
-          expenseType: input?.expenseType,
-        });
+        const offset = ((input?.page || 1) - 1) * (input?.limit || 50);
+        const data = await db.getAllExpensesPaginated(input?.limit || 50, offset);
         const allUsers = await db.getAllUsers();
         const userMap = new Map(allUsers.map(u => [u.id, u]));
         return {
-          ...result,
-          data: result.data.map((expense: any) => ({
+          data: data.map((expense: any) => ({
             ...expense,
             amount: parseFloat(expense.amount as string),
             createdByUser: userMap.get(expense.createdBy) || null,

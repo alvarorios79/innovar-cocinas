@@ -55,9 +55,6 @@ export const quotationsRouter = router({
           throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para crear cotizaciones" });
         }
 
-        // Obtener siguiente número de cotización
-        const quotationNumber = await db.getNextQuotationNumber();
-
         // Calcular subtotal (suma de todos los items)
         const subtotal = input.items.reduce((sum, item) => sum + item.totalPrice, 0);
         
@@ -77,7 +74,6 @@ export const quotationsRouter = router({
         // Crear cotización con items en transacción
         const quotationId = await withTransaction(async (tx) => {
           const qId = await db.createQuotation({
-            quotationNumber,
             clientId: input.clientId,
             vendorName: input.vendorName,
             productType,
@@ -114,7 +110,7 @@ export const quotationsRouter = router({
           return qId;
         });
 
-        return { success: true, quotationId, quotationNumber };
+        return { success: true, quotationId };
       }),
 
     // Actualizar cotización existente - AHORA CREA NUEVA VERSIÓN

@@ -1213,14 +1213,13 @@ export async function getAllQuotationsGroupedByBase(options?: { page?: number; l
     whereConditions = and(whereConditions, eq(quotations.status, options.status as any));
   }
 
-  // Solo filtrar por isArchived si se solicita específicamente las archivadas
-  // Si archived === false (pestaña Activas), mostrar TODAS las cotizaciones
-  // Si archived === true (pestaña Archivadas), mostrar solo las archivadas
+  // Filtrar por isArchived según el parámetro archived
+  // archived === true (pestaña Archivadas) → mostrar solo archivadas (isArchived = 1)
+  // archived === false (pestaña Activas) → mostrar solo activas (isArchived = 0)
   if (options?.archived === true) {
     whereConditions = and(whereConditions, eq(quotations.isArchived, 1));
   } else if (options?.archived === false) {
-    // No filtrar por isArchived cuando se solicita "activas" - mostrar todas
-    // Esto es para mantener compatibilidad con cotizaciones antiguas
+    whereConditions = and(whereConditions, eq(quotations.isArchived, 0));
   }
 
   // Obtener todas las cotizaciones ordenadas por número y fecha (más recientes primero)

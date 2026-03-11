@@ -5272,3 +5272,17 @@ Listo para pasar a Fase 7.2 (Intelligent Alerts) cuando sea requerido.
 - [x] Actualizar ProfitabilityDashboard.tsx para calcular ingreso promedio
 - [x] Agregar tarjeta visual para mostrar el indicador
 - [x] Probar el indicador con datos reales
+
+
+## Indicador "Cartera Pendiente por Proyecto" en Dashboard de Rentabilidad
+
+- [x] Actualizar ProfitabilityDashboard.tsx para calcular cartera pendiente por proyecto
+- [x] Agregar tarjeta visual para mostrar el indicador
+- [x] Probar el indicador con datos reales
+
+
+## Indicador "Cartera Pendiente por Proyecto" en Dashboard de Rentabilidad
+
+- [x] Actualizar ProfitabilityDashboard.tsx para calcular cartera pendiente por proyecto
+- [x] Agregar tarjeta visual para mostrar el indicador
+- [x] Probar el indicador con datos reales

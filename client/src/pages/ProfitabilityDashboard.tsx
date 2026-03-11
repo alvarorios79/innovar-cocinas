@@ -27,6 +27,7 @@ export default function ProfitabilityDashboard() {
     rentabilidadPromedio: 0,
     totalProyectos: 0,
     ingresoPromedioPorProyecto: 0,
+    carteraPendientePorProyecto: 0,
   });
 
   // Obtener datos financieros del backend
@@ -34,6 +35,9 @@ export default function ProfitabilityDashboard() {
   
   // Obtener número de proyectos con pagos en el mes actual
   const { data: monthlyProjectsCount = 0 } = trpc.dashboard.getMonthlyProjectsCount.useQuery();
+
+  // Obtener métricas CEO que incluyen porCobrar
+  const { data: ceoMetrics } = trpc.dashboard.getCEOMetrics.useQuery();
 
   // Calcular métricas cuando cambian los datos del dashboard
   useEffect(() => {
@@ -51,6 +55,10 @@ export default function ProfitabilityDashboard() {
     // Calcular ingreso promedio por proyecto
     const ingresoPromedioPorProyecto = monthlyProjectsCount > 0 ? ingresos / monthlyProjectsCount : 0;
 
+    // Calcular cartera pendiente por proyecto
+    const porCobrar = ceoMetrics?.porCobrar || 0;
+    const carteraPendientePorProyecto = monthlyProjectsCount > 0 ? porCobrar / monthlyProjectsCount : 0;
+
     setCurrentMonthMetrics({
       ingresos,
       gastos,
@@ -58,6 +66,7 @@ export default function ProfitabilityDashboard() {
       rentabilidadPromedio: ingresos > 0 ? (margen / ingresos) * 100 : 0,
       totalProyectos: monthlyProjectsCount, // Dato real del backend
       ingresoPromedioPorProyecto, // Cálculo: ingresos / proyectos
+      carteraPendientePorProyecto, // Cálculo: porCobrar / proyectos
     });
 
     // Calcular últimos 6 meses (datos agregados)
@@ -82,7 +91,7 @@ export default function ProfitabilityDashboard() {
     }
 
     setMonthlyData(last6Months);
-  }, [dashboardData, monthlyProjectsCount]);
+  }, [dashboardData, monthlyProjectsCount, ceoMetrics]);
 
   if (loading) {
     return (
@@ -246,6 +255,24 @@ export default function ProfitabilityDashboard() {
             </div>
             <p className="text-xs text-slate-500 mt-1">
               Por proyecto
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Cartera Pendiente por Proyecto */}
+        <Card className="border-0 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 bg-white dark:bg-slate-900 border-l-4 border-l-orange-500">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <DollarSign className="h-4 w-4 text-orange-500" />
+              Cartera Pendiente
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-orange-600">
+              {formatPrice(currentMonthMetrics.carteraPendientePorProyecto)}
+            </div>
+            <p className="text-xs text-slate-500 mt-1">
+              Por cobrar por proyecto
             </p>
           </CardContent>
         </Card>

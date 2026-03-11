@@ -144,6 +144,20 @@ export async function updateUser(id: number, data: Partial<InsertUser>) {
   await db.update(users).set(data).where(eq(users.id, id));
 }
 
+export async function updateUserBirthDate(id: number, birthDate: string | null) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(users).set({ birthDate }).where(eq(users.id, id));
+}
+
+export async function updateUserPhone(id: number, phone: string | null) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(users).set({ phone }).where(eq(users.id, id));
+}
+
 export async function deleteUser(id: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
@@ -1541,4 +1555,128 @@ export async function updateFinancialAlert(
       lastMessageSentAt: data.lastMessageSentAt,
     });
   }
+}
+
+// ============ USER MANAGEMENT HELPERS ============
+
+/**
+ * Actualiza el rol de un usuario.
+ */
+export async function updateUserRole(id: number, role: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(users).set({ role }).where(eq(users.id, id));
+}
+
+/**
+ * Obtiene citas de un cliente por su ID (alias de getAppointmentsByClient).
+ */
+export async function getAppointmentsByClientId(clientId: number) {
+  return getAppointmentsByClient(clientId);
+}
+
+/**
+ * Obtiene cotizaciones de un cliente por su ID (alias de getQuotationsByClient).
+ */
+export async function getQuotationsByClientId(clientId: number) {
+  return getQuotationsByClient(clientId);
+}
+
+/**
+ * Obtiene proyectos de un cliente por su ID.
+ */
+export async function getProjectsByClientId(clientId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(projects).where(
+    and(eq(projects.clientId, clientId), isNull(projects.deletedAt))
+  );
+}
+
+/**
+ * Elimina todas las fotos de un proyecto.
+ */
+export async function deleteProjectPhotos(projectId: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(projectPhotos).where(eq(projectPhotos.projectId, projectId));
+}
+
+/**
+ * Elimina todas las tareas de un proyecto.
+ */
+export async function deleteProjectTasks(projectId: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(tasks).where(eq(tasks.projectId, projectId));
+}
+
+/**
+ * Elimina todo el historial de estados de un proyecto.
+ */
+export async function deleteProjectStatusHistory(projectId: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(projectStatusHistory).where(eq(projectStatusHistory.projectId, projectId));
+}
+
+/**
+ * Elimina todos los materiales de un proyecto.
+ */
+export async function deleteProjectMaterials(projectId: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(projectMaterials).where(eq(projectMaterials.projectId, projectId));
+}
+
+/**
+ * Elimina todos los estimados previos de un cliente.
+ */
+export async function deletePriorEstimatesByClientId(clientId: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(priorEstimates).where(eq(priorEstimates.clientId, clientId));
+}
+
+/**
+ * Elimina todas las solicitudes de asesoría de un cliente.
+ */
+export async function deleteAdvisoryRequestsByClientId(clientId: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(advisoryRequests).where(eq(advisoryRequests.clientId, clientId));
+}
+
+/**
+ * Verifica si un usuario tiene dependencias en datos reales (no de prueba).
+ * Devuelve hasRealDependencies: true si el usuario está asociado a proyectos o clientes reales.
+ */
+export async function checkUserDependencies(userId: number): Promise<{ hasRealDependencies: boolean }> {
+  const db = await getDb();
+  if (!db) return { hasRealDependencies: false };
+
+  // Verificar si el usuario creó proyectos activos
+  const userProjects = await db.select().from(projects).where(
+    and(eq(projects.createdBy, userId), isNull(projects.deletedAt))
+  ).limit(1);
+
+  return { hasRealDependencies: userProjects.length > 0 };
+}
+
+/**
+ * Elimina todas las suscripciones push de un usuario.
+ */
+export async function deletePushSubscriptionsByUserId(userId: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(pushSubscriptions).where(eq(pushSubscriptions.userId, userId));
+}
+
+/**
+ * Elimina todas las notificaciones de un usuario.
+ */
+export async function deleteNotificationsByUserId(userId: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(notifications).where(eq(notifications.userId, userId));
 }

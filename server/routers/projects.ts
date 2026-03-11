@@ -146,13 +146,15 @@ export const projectsRouter = router({
       }).optional())
       .query(async ({ ctx, input }) => {
         const role = ctx.user.role;
+        const page = input?.page || 1;
+        const limit = input?.limit || 50;
         const result = await db.getAllProjectsPaginated({
-          page: input?.page,
-          limit: input?.limit,
+          page,
+          limit,
           status: input?.status,
           archived: input?.archived,
         });
-        let filteredData = result.data;
+        let filteredData = result.projects;
         if (role === "disenador") {
           filteredData = filteredData.filter(p => 
             ["adelanto_recibido", "en_diseno", "pendiente_modelado", "pendiente_render", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "entregado"].includes(p.status)
@@ -171,8 +173,10 @@ export const projectsRouter = router({
         const allClients = await db.getAllClients();
         const clientMap = new Map(allClients.map(c => [c.id, c]));
         return {
-          ...result,
           data: filteredData.map(p => ({ ...p, client: clientMap.get(p.clientId) })),
+          total: result.total,
+          page,
+          limit,
         };
       }),
 

@@ -1,0 +1,110 @@
+{
+  "query": "SELECT id, name, dataOrigin FROM projects LIMIT 20;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT id, name, dataOrigin FROM projects LIMIT 20;",
+  "rows": [
+    {
+      "id": "2100002",
+      "name": "Test Manual Project",
+      "dataOrigin": "manual"
+    },
+    {
+      "id": "2100003",
+      "name": "Manual Mix Project",
+      "dataOrigin": "manual"
+    },
+    {
+      "id": "2100007",
+      "name": "Test Manual Project",
+      "dataOrigin": "manual"
+    },
+    {
+      "id": "2100008",
+      "name": "Manual Mix Project",
+      "dataOrigin": "manual"
+    },
+    {
+      "id": "2100011",
+      "name": "Test Manual Project",
+      "dataOrigin": "manual"
+    },
+    {
+      "id": "2100012",
+      "name": "Manual Mix Project",
+      "dataOrigin": "manual"
+    },
+    {
+      "id": "2100016",
+      "name": "Test Manual Project",
+      "dataOrigin": "manual"
+    },
+    {
+      "id": "2100017",
+      "name": "Manual Mix Project",
+      "dataOrigin": "manual"
+    },
+    {
+      "id": "2100020",
+      "name": "Test Manual Project",
+      "dataOrigin": "manual"
+    },
+    {
+      "id": "2100021",
+      "name": "Manual Mix Project",
+      "dataOrigin": "manual"
+    },
+    {
+      "id": "2100027",
+      "name": "Test Manual Project",
+      "dataOrigin": "manual"
+    },
+    {
+      "id": "2100028",
+      "name": "Manual Mix Project",
+      "dataOrigin": "manual"
+    },
+    {
+      "id": "2100032",
+      "name": "Test Manual Project",
+      "dataOrigin": "manual"
+    },
+    {
+      "id": "2100033",
+      "name": "Manual Mix Project",
+      "dataOrigin": "manual"
+    },
+    {
+      "id": "2100037",
+      "name": "Test Manual Project",
+      "dataOrigin": "manual"
+    },
+    {
+      "id": "2100038",
+      "name": "Manual Mix Project",
+      "dataOrigin": "manual"
+    },
+    {
+      "id": "2100042",
+      "name": "Test Manual Project",
+      "dataOrigin": "manual"
+    },
+    {
+      "id": "2100043",
+      "name": "Manual Mix Project",
+      "dataOrigin": "manual"
+    },
+    {
+      "id": "2100047",
+      "name": "Test Manual Project",
+      "dataOrigin": "manual"
+    },
+    {
+      "id": "2100048",
+      "name": "Manual Mix Project",
+      "dataOrigin": "manual"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\tdataOrigin\n2100002\tTest Manual Project\tmanual\n2100003\tManual Mix Project\tmanual\n2100007\tTest Manual Project\tmanual\n2100008\tManual Mix Project\tmanual\n2100011\tTest Manual Project\tmanual\n2100012\tManual Mix Project\tmanual\n2100016\tTest Manual Project\tmanual\n2100017\tManual Mix Project\tmanual\n2100020\tTest Manual Project\tmanual\n2100021\tManual Mix Project\tmanual\n2100027\tTest Manual Project\tmanual\n2100028\tManual Mix Project\tmanual\n2100032\tTest Manual Project\tmanual\n2100033\tManual Mix Project\tmanual\n2100037\tTest Manual Project\tmanual\n2100038\tManual Mix Project\tmanual\n2100042\tTest Manual Project\tmanual\n2100043\tManual Mix Project\tmanual\n2100047\tTest Manual Project\tmanual\n2100048\tManual Mix Project\tmanual\n",
+  "stderr": "",
+  "execution_time_ms": 53
+}

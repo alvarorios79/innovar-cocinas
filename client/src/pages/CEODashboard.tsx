@@ -1,10 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { AlertCircle, TrendingUp, DollarSign, AlertTriangle, Clock, Bug } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useAuth } from "@/_core/hooks/useAuth";
+import { AlertCircle, TrendingUp, DollarSign, TrendingDown } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import {
   ResponsiveContainer,
@@ -28,8 +25,6 @@ const formatCurrency = (value: number) => {
 
 export function CEODashboard() {
   const { data: dashboardData, isLoading, error } = trpc.dashboard.getGlobalDashboard.useQuery();
-  const { user } = useAuth();
-  const debugWhatsapp = trpc.quotationsDebug.sendByWhatsAppDebug.useMutation();
 
   // DEBUG LOGS
   useEffect(() => {
@@ -37,19 +32,6 @@ export function CEODashboard() {
     console.log("Dashboard error:", error);
     console.log("Dashboard loading:", isLoading);
   }, [dashboardData, error, isLoading]);
-
-  // Manejar respuesta de debug
-  useEffect(() => {
-    if (debugWhatsapp.data) {
-      console.log("[WHATSAPP DEBUG] RESULTADO COMPLETO:", debugWhatsapp.data);
-    }
-  }, [debugWhatsapp.data]);
-
-  useEffect(() => {
-    if (debugWhatsapp.error) {
-      console.error("[WHATSAPP DEBUG] ERROR:", debugWhatsapp.error);
-    }
-  }, [debugWhatsapp.error]);
 
   if (isLoading) {
     return (
@@ -61,8 +43,6 @@ export function CEODashboard() {
       </div>
     );
   }
-
-
 
   if (error || !dashboardData) {
     return (
@@ -88,21 +68,18 @@ export function CEODashboard() {
     );
   }
 
-  const getRentabilidadColor = (rentabilidad: number) => {
-    if (rentabilidad >= 20) return "bg-green-100 text-green-800";
-    if (rentabilidad >= 15) return "bg-blue-100 text-blue-800";
-    if (rentabilidad >= 10) return "bg-yellow-100 text-yellow-800";
-    if (rentabilidad >= 5) return "bg-orange-100 text-orange-800";
-    return "bg-red-100 text-red-800";
-  };
+  // Usar solo los campos disponibles del backend
+  const totalIngresos = Number(dashboardData?.totalRevenue) || 0;
+  const totalGastos = Number(dashboardData?.totalExpenses) || 0;
+  const margenGlobal = Number(dashboardData?.balance) || 0;
+  
+  // Calcular rentabilidad
+  const rentabilidadPromedio = totalIngresos > 0 
+    ? ((margenGlobal / totalIngresos) * 100)
+    : 0;
 
-  const getRentabilidadBadge = (rentabilidad: number) => {
-    if (rentabilidad >= 20) return "✓ Excelente";
-    if (rentabilidad >= 15) return "✓ Bueno";
-    if (rentabilidad >= 10) return "⚠ Moderado";
-    if (rentabilidad >= 5) return "⚠ Bajo";
-    return "🚨 Crítico";
-  };
+  // Datos de flujo de caja del backend
+  const cashFlowData = dashboardData?.cashFlow || [];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-6">
@@ -111,85 +88,49 @@ export function CEODashboard() {
           title="Panel Financiero CEO"
           subtitle="Control total del negocio - Métricas en tiempo real"
           showBack={false}
-          actions={
-            user?.role === 'super_admin' && (
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={() => {
-                  debugWhatsapp.mutate({ quotationId: 1 });
-                }}
-                disabled={debugWhatsapp.isPending}
-                className="gap-2"
-              >
-                <Bug className="h-4 w-4" />
-                {debugWhatsapp.isPending ? "Enviando..." : "DEBUG WHATSAPP"}
-              </Button>
-            )
-          }
         />
 
         {/* KPI Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
           {/* Total Ingresos */}
           <Card className="border-0 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 bg-white dark:bg-slate-900">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <DollarSign className="h-4 w-4 text-green-600" />
+                <TrendingUp className="h-4 w-4 text-green-600" />
                 Total Ingresos
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold text-green-600">{formatCurrency(dashboardData.totalIngresos)}</p>
-              <p className="text-xs text-gray-500 mt-1">{dashboardData.totalProyectos} proyectos</p>
+              <p className="text-2xl font-bold text-green-600">{formatCurrency(totalIngresos)}</p>
+              <p className="text-xs text-gray-500 mt-1">Ingresos totales registrados</p>
             </CardContent>
           </Card>
 
-          {/* Total Pagos */}
+          {/* Total Gastos */}
           <Card className="border-0 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 bg-white dark:bg-slate-900">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <TrendingUp className="h-4 w-4 text-blue-600" />
-                Total Pagado
+                <TrendingDown className="h-4 w-4 text-red-600" />
+                Total Gastos
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold text-blue-600">{formatCurrency(dashboardData.totalPagosRecibidos)}</p>
-              <p className="text-xs text-gray-500 mt-1">
-                {dashboardData.totalIngresos > 0
-                  ? `${Math.round((dashboardData.totalPagosRecibidos / dashboardData.totalIngresos) * 100)}% cobrado`
-                  : "0% cobrado"}
-              </p>
+              <p className="text-2xl font-bold text-red-600">{formatCurrency(totalGastos)}</p>
+              <p className="text-xs text-gray-500 mt-1">Gastos totales registrados</p>
             </CardContent>
           </Card>
 
           {/* Margen Global */}
-          <Card className={`border-0 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 ${getRentabilidadColor(dashboardData.rentabilidadPromedio)}`}>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <AlertTriangle className="h-4 w-4" />
-                Margen Global
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold">{formatCurrency(dashboardData.margenGlobal)}</p>
-              <p className="text-xs mt-1">{dashboardData.rentabilidadPromedio.toFixed(2)}% rentabilidad</p>
-            </CardContent>
-          </Card>
-
-          {/* Proyectos en Riesgo */}
-          <Card className={`border-0 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 ${dashboardData.proyectosEnRiesgo > 0 ? "bg-red-50" : "bg-green-50"}`}>
+          <Card className="border-0 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 bg-white dark:bg-slate-900">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <Clock className="h-4 w-4 text-red-600" />
-                Proyectos en Riesgo
+                <DollarSign className="h-4 w-4 text-blue-600" />
+                Margen Neto
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className={`text-2xl font-bold ${dashboardData.proyectosEnRiesgo > 0 ? "text-red-600" : "text-green-600"}`}>
-                {dashboardData.proyectosEnRiesgo}
-              </p>
-              <p className="text-xs text-gray-500 mt-1">Rentabilidad &lt; 15%</p>
+              <p className="text-2xl font-bold text-blue-600">{formatCurrency(margenGlobal)}</p>
+              <p className="text-xs text-gray-500 mt-1">{rentabilidadPromedio.toFixed(1)}% rentabilidad</p>
             </CardContent>
           </Card>
         </div>
@@ -197,66 +138,63 @@ export function CEODashboard() {
         {/* Financial Summary */}
         <Card className="border-0 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 bg-white dark:bg-slate-900 mb-8">
           <CardHeader>
-            <CardTitle className="text-2xl font-semibold tracking-tight">Resumen Financiero Detallado</CardTitle>
-            <CardDescription>Desglose completo de ingresos y gastos</CardDescription>
+            <CardTitle className="text-2xl font-semibold tracking-tight">Resumen Financiero</CardTitle>
+            <CardDescription>Desglose de ingresos, gastos y margen neto</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Left Column */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Ingresos */}
               <div className="space-y-4">
+                <h3 className="text-sm font-semibold text-gray-700">Ingresos</h3>
                 <div className="flex justify-between items-center pb-3 border-b">
                   <span className="text-sm text-gray-600">Total Ingresos</span>
-                  <span className="font-bold text-green-600">{formatCurrency(dashboardData.totalIngresos)}</span>
-                </div>
-                <div className="flex justify-between items-center pb-3 border-b">
-                  <span className="text-sm text-gray-600">Total Pagado</span>
-                  <span className="font-bold text-blue-600">{formatCurrency(dashboardData.totalPagosRecibidos)}</span>
-                </div>
-                <div className="flex justify-between items-center pb-3 border-b">
-                  <span className="text-sm text-gray-600">Saldo Pendiente</span>
-                  <span className="font-bold text-orange-600">
-                    {formatCurrency(dashboardData.totalIngresos - dashboardData.totalPagosRecibidos)}
-                  </span>
+                  <span className="font-bold text-green-600">{formatCurrency(totalIngresos)}</span>
                 </div>
               </div>
 
-              {/* Right Column */}
+              {/* Gastos */}
               <div className="space-y-4">
-                <div className="flex justify-between items-center pb-3 border-b">
-                  <span className="text-sm text-gray-600">Gastos Proyectos</span>
-                  <span className="font-bold text-red-600">-{formatCurrency(dashboardData.totalGastosProyectos)}</span>
-                </div>
-                <div className="flex justify-between items-center pb-3 border-b">
-                  <span className="text-sm text-gray-600">Gastos Operativos</span>
-                  <span className="font-bold text-orange-600">-{formatCurrency(dashboardData.totalGastosOperativos)}</span>
-                </div>
+                <h3 className="text-sm font-semibold text-gray-700">Gastos</h3>
                 <div className="flex justify-between items-center pb-3 border-b">
                   <span className="text-sm text-gray-600">Total Gastos</span>
-                  <span className="font-bold text-red-600">
-                    -{formatCurrency(dashboardData.totalGastosProyectos + dashboardData.totalGastosOperativos)}
-                  </span>
+                  <span className="font-bold text-red-600">{formatCurrency(totalGastos)}</span>
+                </div>
+              </div>
+
+              {/* Margen */}
+              <div className="space-y-4">
+                <h3 className="text-sm font-semibold text-gray-700">Margen</h3>
+                <div className="flex justify-between items-center pb-3 border-b">
+                  <span className="text-sm text-gray-600">Margen Neto</span>
+                  <span className="font-bold text-blue-600">{formatCurrency(margenGlobal)}</span>
                 </div>
               </div>
             </div>
 
             {/* Summary Row */}
             <div className="mt-6 pt-6 border-t-2 space-y-3">
-              <div className="flex justify-between items-center bg-blue-50 p-3 rounded-lg">
-                <span className="text-sm font-medium text-gray-700">Margen Global</span>
-                <span className="font-bold text-lg text-blue-600">
-                  {formatCurrency(dashboardData.margenGlobal)}
+              <div className="flex justify-between items-center bg-green-50 p-3 rounded-lg">
+                <span className="text-sm font-medium text-gray-700">Ingresos Totales</span>
+                <span className="font-bold text-lg text-green-600">
+                  {formatCurrency(totalIngresos)}
                 </span>
               </div>
-              <div className="flex justify-between items-center bg-green-50 p-3 rounded-lg">
-                <span className="text-sm font-medium text-gray-700">Rentabilidad Promedio</span>
-                <Badge className={`${getRentabilidadColor(dashboardData.rentabilidadPromedio)}`}>
-                  {getRentabilidadBadge(dashboardData.rentabilidadPromedio)}
-                </Badge>
+              <div className="flex justify-between items-center bg-red-50 p-3 rounded-lg">
+                <span className="text-sm font-medium text-gray-700">Gastos Totales</span>
+                <span className="font-bold text-lg text-red-600">
+                  {formatCurrency(totalGastos)}
+                </span>
+              </div>
+              <div className="flex justify-between items-center bg-blue-50 p-3 rounded-lg">
+                <span className="text-sm font-medium text-gray-700">Margen Neto (Ingresos - Gastos)</span>
+                <span className="font-bold text-lg text-blue-600">
+                  {formatCurrency(margenGlobal)}
+                </span>
               </div>
               <div className="flex justify-between items-center bg-purple-50 p-3 rounded-lg">
-                <span className="text-sm font-medium text-gray-700">Margen Neto (después de gastos operativos)</span>
+                <span className="text-sm font-medium text-gray-700">Rentabilidad</span>
                 <span className="font-bold text-lg text-purple-600">
-                  {formatCurrency(dashboardData.margenGlobal - dashboardData.totalGastosOperativos)}
+                  {rentabilidadPromedio.toFixed(1)}%
                 </span>
               </div>
             </div>
@@ -264,7 +202,7 @@ export function CEODashboard() {
         </Card>
 
         {/* Flujo de Caja - Últimos 6 Meses */}
-        {dashboardData?.cashFlow && dashboardData.cashFlow.length > 0 && (
+        {cashFlowData && cashFlowData.length > 0 && (
           <Card className="border-0 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 bg-white dark:bg-slate-900 mb-8">
             <CardHeader>
               <CardTitle className="text-2xl font-semibold tracking-tight">Flujo de Caja - Últimos 6 Meses</CardTitle>
@@ -272,7 +210,7 @@ export function CEODashboard() {
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={dashboardData.cashFlow}>
+                <BarChart data={cashFlowData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="label" />
                   <YAxis />
@@ -293,8 +231,8 @@ export function CEODashboard() {
           </CardHeader>
           <CardContent className="text-sm text-blue-800">
             <p>
-              Este dashboard muestra métricas financieras en tiempo real. Los datos se actualizan automáticamente.
-              Todos los cálculos se basan en proyectos activos, pagos registrados y gastos contabilizados.
+              Este dashboard muestra métricas financieras en tiempo real basadas en ingresos registrados en pagos y gastos contabilizados.
+              Los datos se actualizan automáticamente. Todos los cálculos se basan en datos reales del sistema.
             </p>
           </CardContent>
         </Card>

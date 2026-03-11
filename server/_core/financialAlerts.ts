@@ -3,20 +3,36 @@
  * Handles detection and formatting of financial alert messages
  */
 
+/**
+ * FinancialMetrics Interface - Datos financieros reales del sistema
+ * Basado en: payments, expenses, projects
+ */
 export interface FinancialMetrics {
-  totalIngresos: number;
-  totalPagosRecibidos: number;
-  totalGastosProyectos: number;
-  totalGastosOperativos: number;
-  margenGlobal: number;
-  rentabilidadPromedio: number;
-  proyectosEnRiesgo: number;
-  proyectosConSaldoVencido: number;
-  totalProyectos: number;
-  outstandingRatio: number;
-  collectionRate: number;
-  deliveredWithOutstanding: number;
-  lowProfitProjectsCount: number;
+  // Ingresos
+  totalIngresos: number;           // SUM(payments.amount) WHERE movementType = 'payment'
+  totalPagosRecibidos: number;     // Alias para totalIngresos
+  
+  // Gastos
+  totalGastosProyectos: number;    // SUM(expenses.amount) WHERE expenseType = 'materiales_proyecto'
+  totalGastosOperativos: number;   // SUM(expenses.amount) WHERE expenseType = 'gasto_operativo'
+  
+  // Cálculos derivados
+  margenGlobal: number;            // totalIngresos - (totalGastosProyectos + totalGastosOperativos)
+  rentabilidadPromedio: number;    // (margenGlobal / totalIngresos) * 100
+  
+  // Cartera
+  proyectosEnRiesgo: number;       // Proyectos con saldo vencido
+  proyectosConSaldoVencido: number; // Alias para proyectosEnRiesgo
+  totalProyectos: number;          // COUNT(projects) WHERE deletedAt IS NULL
+  
+  // Ratios
+  outstandingRatio: number;        // (totalVendido - totalIngresos) / totalVendido * 100
+  collectionRate: number;          // (totalIngresos / totalVendido) * 100
+  
+  // Alertas
+  deliveredWithOutstanding: number; // COUNT(projects) WHERE status = 'entregado' AND saldoPendiente > 0
+  lowProfitProjectsCount: number;   // COUNT(projects) WHERE rentabilidad < 15%
+  
   alerts: {
     highOutstanding: boolean;
     lowCollectionRate: boolean;

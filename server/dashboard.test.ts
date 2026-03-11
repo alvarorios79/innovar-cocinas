@@ -11,13 +11,13 @@ describe('getGlobalFinancialDashboard', () => {
       console.log('========================');
       
       expect(result).toBeDefined();
-      expect(result).toHaveProperty('totalIngresos');
-      expect(result).toHaveProperty('totalPagosRecibidos');
-      expect(result).toHaveProperty('carteraPendiente');
+      expect(result).toHaveProperty('totalRevenue');
+      expect(result).toHaveProperty('totalExpenses');
+      expect(result).toHaveProperty('balance');
       
-      console.log('Total Ingresos:', result.totalIngresos);
-      console.log('Total Pagos Recibidos:', result.totalPagosRecibidos);
-      console.log('Cartera Pendiente:', result.carteraPendiente);
+      console.log('Total Revenue:', result.totalRevenue);
+      console.log('Total Expenses:', result.totalExpenses);
+      console.log('Balance:', result.balance);
       
     } catch (error) {
       console.error('Error executing test:', error);

@@ -1,5 +1,5 @@
 import { router, protectedProcedure } from "../_core/trpc";
-import { getGlobalFinancialDashboard, getCashFlowData } from "../db";
+import { getGlobalFinancialDashboard, getCashFlowData, getCEOFinancialMetrics } from "../db";
 
 // Tipo para los datos financieros del dashboard
 interface DashboardFinancialData {
@@ -7,6 +7,16 @@ interface DashboardFinancialData {
   totalExpenses: number;
   balance: number;
   cashFlow: any[];
+}
+
+// Tipo para las métricas del Panel CEO
+interface CEOFinancialMetrics {
+  ingresosRecibidos: number;
+  totalVendido: number;
+  porCobrar: number;
+  gastos: number;
+  margen: number;
+  rentabilidad: number;
 }
 
 export const dashboardRouter = router({
@@ -25,5 +35,17 @@ export const dashboardRouter = router({
         ...financialData,
         cashFlow: cashFlowData,
       };
+    }),
+
+  getCEOMetrics: protectedProcedure
+    .query(async ({ ctx }): Promise<CEOFinancialMetrics> => {
+      // Verificar permisos
+      if (ctx.user.role !== "super_admin" && ctx.user.role !== "admin") {
+        throw new Error("FORBIDDEN");
+      }
+
+      // Obtener métricas del Panel CEO
+      const metrics = await getCEOFinancialMetrics();
+      return metrics;
     }),
 });

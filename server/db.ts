@@ -1311,3 +1311,90 @@ export async function getAllTasks(options?: { status?: string }): Promise<any[]>
 
   return tasksList ?? [];
 }
+
+
+/**
+ * getCEOFinancialMetrics()
+ * 
+ * Calcula métricas financieras reales para el Panel CEO
+ * Usa SQL aggregates para máxima eficiencia
+ * 
+ * Métricas calculadas:
+ * - ingresosRecibidos: SUM(payments.amount) WHERE movementType = 'payment'
+ * - totalVendido: SUM(projects.totalAmount) WHERE deletedAt IS NULL AND dataOrigin = 'manual'
+ * - porCobrar: totalVendido - ingresosRecibidos
+ * - gastos: SUM(expenses.amount)
+ * - margen: ingresosRecibidos - gastos
+ * - rentabilidad: (margen / ingresosRecibidos) * 100
+ */
+export async function getCEOFinancialMetrics() {
+  const db = await getDb();
+  if (!db) {
+    return {
+      ingresosRecibidos: 0,
+      totalVendido: 0,
+      porCobrar: 0,
+      gastos: 0,
+      margen: 0,
+      rentabilidad: 0
+    };
+  }
+
+  try {
+    // 1️⃣ INGRESOS RECIBIDOS
+    // SUM(payments.amount) WHERE movementType = 'payment'
+    const paymentsResult = await db.select({
+      total: sql<number>`SUM(CAST(payments.amount AS DECIMAL(12,2)))`
+    }).from(payments)
+      .where(eq(payments.movementType, 'payment'));
+    
+    const ingresosRecibidos = parseFloat(paymentsResult[0]?.total?.toString() || '0');
+
+    // 2️⃣ TOTAL VENDIDO
+    // SUM(projects.totalAmount) WHERE deletedAt IS NULL AND dataOrigin = 'manual'
+    // NO filtrar por status de proyecto
+    const projectsResult = await db.select({
+      total: sql<number>`SUM(CAST(projects.totalAmount AS DECIMAL(12,2)))`
+    }).from(projects)
+      .where(and(
+        isNull(projects.deletedAt),
+        eq(projects.dataOrigin, 'manual')
+      ));
+    
+    const totalVendido = parseFloat(projectsResult[0]?.total?.toString() || '0');
+
+    // 3️⃣ GASTOS
+    // SUM(expenses.amount)
+    const expensesResult = await db.select({
+      total: sql<number>`SUM(CAST(expenses.amount AS DECIMAL(12,2)))`
+    }).from(expenses);
+    
+    const gastos = parseFloat(expensesResult[0]?.total?.toString() || '0');
+
+    // 4️⃣ CÁLCULOS DERIVADOS
+    const porCobrar = totalVendido - ingresosRecibidos;
+    const margen = ingresosRecibidos - gastos;
+    const rentabilidad = ingresosRecibidos > 0 
+      ? ((margen / ingresosRecibidos) * 100)
+      : 0;
+
+    return {
+      ingresosRecibidos,
+      totalVendido,
+      porCobrar,
+      gastos,
+      margen,
+      rentabilidad
+    };
+  } catch (error) {
+    console.error("[getCEOFinancialMetrics] Error:", error);
+    return {
+      ingresosRecibidos: 0,
+      totalVendido: 0,
+      porCobrar: 0,
+      gastos: 0,
+      margen: 0,
+      rentabilidad: 0
+    };
+  }
+}

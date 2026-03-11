@@ -1461,3 +1461,41 @@ export async function getMonthlyProjectsCount() {
     return 0;
   }
 }
+
+// ============ TASK REMINDER HISTORY ============
+
+/**
+ * Actualiza el historial de recordatorios de una tarea.
+ * Incrementa reminderCount, actualiza lastReminderSentAt y lastReminderSentBy.
+ * userId = 0 indica que fue enviado automáticamente por el sistema.
+ */
+export async function updateTaskReminderHistory(taskId: number, userId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+
+  await db.update(tasks)
+    .set({
+      lastReminderSentAt: new Date().toISOString().slice(0, 19).replace('T', ' '),
+      lastReminderSentBy: userId || null,
+      reminderCount: sql`COALESCE(${tasks.reminderCount}, 0) + 1`,
+    })
+    .where(eq(tasks.id, taskId));
+}
+
+// ============ USERS BY ROLE ============
+
+/**
+ * Obtiene todos los usuarios activos con un rol específico.
+ * Útil para enviar notificaciones a admins, diseñadores, etc.
+ */
+export async function getUsersByRole(role: string) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(users)
+    .where(and(
+      isNull(users.deletedAt),
+      eq(users.role, role as any)
+    ))
+    .orderBy(desc(users.createdAt));
+}

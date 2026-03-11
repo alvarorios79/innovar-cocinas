@@ -1,0 +1,1 @@
+ALTER TABLE `hardwareCatalog` ADD `unit` varchar(50) DEFAULT 'unidad' NOT NULL;

@@ -1827,7 +1827,7 @@ export async function getProjectHardwareSelections(projectId: number) {
     hardwareName: hardwareCatalog.name,
     hardwareCategory: hardwareCatalog.category,
     hardwarePrice: hardwareCatalog.price,
-    // hardwareUnit: hardwareCatalog.unit, // Field not in schema
+    hardwareUnit: hardwareCatalog.unit,
   })
   .from(projectHardwareSelections)
   .leftJoin(hardwareCatalog, eq(projectHardwareSelections.hardwareId, hardwareCatalog.id))
@@ -1971,4 +1971,140 @@ export async function getRemindersByUserId(userId: number) {
   return await db.select().from(reminders)
     .where(eq(reminders.assignedTo, userId))
     .orderBy(desc(reminders.createdAt));
+}
+
+// ============ NOTIFICATIONS EXTENDED ============
+
+// Get notifications by user ID (alias of getNotificationsByUser)
+export async function getNotificationsByUserId(userId: number) {
+  return getNotificationsByUser(userId);
+}
+
+// Mark all notifications as read for a user
+export async function markAllNotificationsAsRead(userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(notifications).set({ read: 1 }).where(
+    and(eq(notifications.userId, userId), eq(notifications.read, 0))
+  );
+}
+
+// Delete notifications by array of IDs
+export async function deleteNotificationsByIds(ids: number[]) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  if (ids.length === 0) return;
+  await db.delete(notifications).where(inArray(notifications.id, ids));
+}
+
+// Delete all notifications for a user (alias with clearer name)
+export async function deleteAllNotificationsByUserId(userId: number) {
+  return deleteNotificationsByUserId(userId);
+}
+
+// Update notification to mark push as sent
+export async function updateNotificationPushSent(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(notifications).set({ sentPush: 1 }).where(eq(notifications.id, id));
+}
+
+// Get reminders by project ID (alias of getRemindersByProject)
+export async function getRemindersByProjectId(projectId: number) {
+  return getRemindersByProject(projectId);
+}
+
+// ============ PUSH SUBSCRIPTIONS EXTENDED ============
+
+// Create a push subscription
+export async function createPushSubscription(data: InsertPushSubscription) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(pushSubscriptions).values(data);
+  return result[0].insertId;
+}
+
+// Get push subscriptions by user ID
+export async function getPushSubscriptionsByUserId(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(pushSubscriptions)
+    .where(and(eq(pushSubscriptions.userId, userId), eq(pushSubscriptions.isActive, 1)));
+}
+
+// Delete a single push subscription by ID
+export async function deletePushSubscription(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(pushSubscriptions).where(eq(pushSubscriptions.id, id));
+}
+
+// ============ HARDWARE CATALOG CRUD ============
+
+// Update a hardware catalog item
+export async function updateHardwareItem(id: number, data: Partial<{
+  name: string;
+  description: string | null;
+  options: string | null;
+  photoUrl: string | null;
+  sortOrder: number;
+  active: boolean | number;
+  price: string | number;
+  unit: string;
+  category: "cocinas" | "closets" | "puertas";
+}>) {
+  const { active: rawActive, price: rawPrice, ...rest } = data as any;
+  const normalizedData: any = { ...rest };
+  if (rawActive !== undefined) normalizedData.active = typeof rawActive === 'boolean' ? (rawActive ? 1 : 0) : rawActive;
+  if (rawPrice !== undefined) normalizedData.price = String(rawPrice);
+  data = normalizedData;
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(hardwareCatalog).set({ ...data, updatedAt: new Date().toISOString().slice(0, 19).replace("T", " ") }).where(eq(hardwareCatalog.id, id));
+}
+
+// Delete a hardware catalog item (soft delete via active=0)
+export async function deleteHardwareItem(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(hardwareCatalog).set({ active: 0, updatedAt: new Date().toISOString().slice(0, 19).replace("T", " ") }).where(eq(hardwareCatalog.id, id));
+}
+
+// Get hardware catalog items, optionally filtered by category
+export async function getHardwareCatalog(category?: "cocinas" | "closets" | "puertas") {
+  const db = await getDb();
+  if (!db) return [];
+  if (category) {
+    return await db.select().from(hardwareCatalog)
+      .where(and(eq(hardwareCatalog.category, category), eq(hardwareCatalog.active, 1)))
+      .orderBy(hardwareCatalog.sortOrder);
+  }
+  return await db.select().from(hardwareCatalog)
+    .where(eq(hardwareCatalog.active, 1))
+    .orderBy(hardwareCatalog.sortOrder);
+}
+
+// Create a new hardware catalog item
+export async function createHardwareItem(data: {
+  category: "cocinas" | "closets" | "puertas";
+  name: string;
+  description?: string;
+  options?: string;
+  price?: number;
+  photoUrl?: string;
+  sortOrder?: number;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(hardwareCatalog).values({
+    category: data.category,
+    name: data.name,
+    description: data.description || null,
+    options: data.options || null,
+    price: data.price !== undefined ? String(data.price) : "0",
+    photoUrl: data.photoUrl || null,
+    sortOrder: data.sortOrder || 0,
+    active: 1,
+  });
+  return result[0].insertId;
 }

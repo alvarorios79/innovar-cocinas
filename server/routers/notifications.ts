@@ -36,7 +36,7 @@ export const notificationsRouter = router({
         const subscriptionId = await db.createPushSubscription({
           userId: ctx.user.id,
           endpoint: input.endpoint,
-          p256dh: input.p256dh,
+          p256Dh: input.p256dh,
           auth: input.auth,
           userAgent: input.userAgent,
         });
@@ -47,7 +47,15 @@ export const notificationsRouter = router({
     unsubscribe: protectedProcedure
       .input(z.object({ endpoint: z.string() }))
       .mutation(async ({ input }) => {
-        await db.deletePushSubscription(input.endpoint);
+        const subs = await db.getPushSubscriptionsByUserId(0);
+        // deletePushSubscription takes id, find by endpoint first
+        const { getDb } = await import("../db");
+        const dbConn = await getDb();
+        if (dbConn) {
+          const { pushSubscriptions } = await import("../../drizzle/schema");
+          const { eq } = await import("drizzle-orm");
+          await dbConn.delete(pushSubscriptions).where(eq(pushSubscriptions.endpoint, input.endpoint));
+        }
         return { success: true };
       }),
 
@@ -55,7 +63,7 @@ export const notificationsRouter = router({
     getMyNotifications: protectedProcedure
       .input(z.object({ limit: z.number().optional() }).optional())
       .query(async ({ ctx, input }) => {
-        return await db.getNotificationsByUserId(ctx.user.id, input?.limit || 50);
+        return await db.getNotificationsByUserId(ctx.user.id);
       }),
 
     // Obtener contador de no leídas
@@ -92,15 +100,15 @@ export const notificationsRouter = router({
     deleteBulk: protectedProcedure
       .input(z.object({ ids: z.array(z.number()).min(1) }))
       .mutation(async ({ input }) => {
-        const result = await db.deleteNotificationsByIds(input.ids);
-        return { success: true, deletedCount: result.deletedCount };
+        await db.deleteNotificationsByIds(input.ids);
+        return { success: true, deletedCount: input.ids.length };
       }),
 
     // Eliminar todas las notificaciones del usuario
     deleteAll: protectedProcedure
       .mutation(async ({ ctx }) => {
-        const result = await db.deleteAllNotificationsByUserId(ctx.user.id);
-        return { success: true, deletedCount: result.deletedCount };
+        await db.deleteAllNotificationsByUserId(ctx.user.id);
+        return { success: true };
       }),
 
 

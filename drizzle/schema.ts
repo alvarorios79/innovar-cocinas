@@ -132,6 +132,7 @@ export const hardwareCatalog = mysqlTable("hardwareCatalog", {
 	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 	price: decimal({ precision: 12, scale: 2 }).default('0').notNull(),
+	unit: varchar({ length: 50 }).default('unidad').notNull(),
 },
 (table) => [
 	index("hardwareCatalog_category_idx").on(table.category),

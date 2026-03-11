@@ -138,7 +138,7 @@ export const tasksRouter = router({
     // Obtener mis tareas
     getMyTasks: protectedProcedure
       .query(async ({ ctx }) => {
-        const tasksList = await db.getTasksByAssignedTo(ctx.user.id);
+        const tasksList = await db.getTasksByAssignee(ctx.user.id);
         
         // Obtener info de proyectos asociados
         const projectIds = Array.from(new Set(tasksList.filter(t => t.projectId).map(t => t.projectId!)));
@@ -213,7 +213,7 @@ export const tasksRouter = router({
         if (!canViewAll.includes(ctx.user.role) && !canViewFiltered.includes(ctx.user.role)) {
           throw new TRPCError({ code: "FORBIDDEN" });
         }
-        const result = await db.getAllTasksPaginated({
+        const result = await db.getAllTasksPaginatedResult({
           page: input?.page,
           limit: input?.limit,
           status: input?.status,
@@ -244,7 +244,7 @@ export const tasksRouter = router({
     getByProject: protectedProcedure
       .input(z.object({ projectId: z.number() }))
       .query(async ({ input }) => {
-        return await db.getTasksByProjectId(input.projectId);
+        return await db.getTasksByProject(input.projectId);
       }),
 
     // Actualizar estado de tarea

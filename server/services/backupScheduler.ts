@@ -124,13 +124,8 @@ class BackupScheduler {
         backupName: result.backupName,
         backupType: "daily",
         s3Key: result.s3Key,
-        s3Url: result.s3Url,
-        fileSize: result.fileSize,
-        rowCounts: result.rowCounts,
-        checksums: result.checksums,
-        dataOriginSummary: result.dataOriginSummary,
-        createdBy: 0, // System-generated backup
-        retentionDays: 7,
+        size: result.fileSize,
+        status: "success",
       });
 
       console.log(
@@ -171,13 +166,8 @@ class BackupScheduler {
         backupName: result.backupName,
         backupType: "weekly",
         s3Key: result.s3Key,
-        s3Url: result.s3Url,
-        fileSize: result.fileSize,
-        rowCounts: result.rowCounts,
-        checksums: result.checksums,
-        dataOriginSummary: result.dataOriginSummary,
-        createdBy: 0, // System-generated backup
-        retentionDays: 28,
+        size: result.fileSize,
+        status: "success",
       });
 
       console.log(

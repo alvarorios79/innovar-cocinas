@@ -1680,3 +1680,40 @@ export async function deleteNotificationsByUserId(userId: number) {
   if (!db) return;
   await db.delete(notifications).where(eq(notifications.userId, userId));
 }
+
+// ============ TASKS PAGINATION ALIAS ============
+
+/**
+ * Alias paginado de getAllTasks para el router de tareas.
+ */
+export async function getAllTasksPaginatedResult(options?: {
+  page?: number;
+  limit?: number;
+  status?: string;
+  assignedTo?: number;
+}): Promise<{ data: any[]; total: number; page: number; limit: number }> {
+  const db = await getDb();
+  if (!db) return { data: [], total: 0, page: 1, limit: 50 };
+
+  const page = options?.page ?? 1;
+  const limit = options?.limit ?? 50;
+
+  let whereConditions = and(isNull(tasks.deletedAt), eq(tasks.dataOrigin, 'manual'));
+
+  if (options?.status) {
+    whereConditions = and(whereConditions, eq(tasks.status, options.status as any));
+  }
+  if (options?.assignedTo) {
+    whereConditions = and(whereConditions, eq(tasks.assignedTo, options.assignedTo));
+  }
+
+  const allTasks = await db.select().from(tasks)
+    .where(whereConditions)
+    .orderBy(desc(tasks.createdAt));
+
+  const total = allTasks.length;
+  const offset = (page - 1) * limit;
+  const data = allTasks.slice(offset, offset + limit);
+
+  return { data, total, page, limit };
+}

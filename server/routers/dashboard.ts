@@ -1,5 +1,5 @@
 import { router, protectedProcedure } from "../_core/trpc";
-import { getGlobalFinancialDashboard, getCashFlowData, getCEOFinancialMetrics } from "../db";
+import { getGlobalFinancialDashboard, getCashFlowData, getCEOFinancialMetrics, getMonthlyProjectsCount } from "../db";
 
 // Tipo para los datos financieros del dashboard
 interface DashboardFinancialData {
@@ -47,5 +47,17 @@ export const dashboardRouter = router({
       // Obtener métricas del Panel CEO
       const metrics = await getCEOFinancialMetrics();
       return metrics;
+    }),
+
+  getMonthlyProjectsCount: protectedProcedure
+    .query(async ({ ctx }): Promise<number> => {
+      // Verificar permisos
+      if (ctx.user.role !== "super_admin" && ctx.user.role !== "admin") {
+        throw new Error("FORBIDDEN");
+      }
+
+      // Obtener número de proyectos con pagos en el mes actual
+      const count = await getMonthlyProjectsCount();
+      return count;
     }),
 });

@@ -30,6 +30,9 @@ export default function ProfitabilityDashboard() {
 
   // Obtener datos financieros del backend
   const { data: dashboardData, isLoading } = trpc.dashboard.getGlobalDashboard.useQuery();
+  
+  // Obtener número de proyectos con pagos en el mes actual
+  const { data: monthlyProjectsCount = 0 } = trpc.dashboard.getMonthlyProjectsCount.useQuery();
 
   // Calcular métricas cuando cambian los datos del dashboard
   useEffect(() => {
@@ -49,7 +52,7 @@ export default function ProfitabilityDashboard() {
       gastos,
       margen,
       rentabilidadPromedio: ingresos > 0 ? (margen / ingresos) * 100 : 0,
-      totalProyectos: 0, // No disponible en datos actuales
+      totalProyectos: monthlyProjectsCount, // Dato real del backend
     });
 
     // Calcular últimos 6 meses (datos agregados)
@@ -68,13 +71,13 @@ export default function ProfitabilityDashboard() {
         ingresos: i === 0 ? ingresos : 0,
         gastos: i === 0 ? gastos : 0,
         margen: i === 0 ? margen : 0,
-        proyectos: 0,
+        proyectos: i === 0 ? monthlyProjectsCount : 0,
         rentabilidadPromedio: i === 0 ? (ingresos > 0 ? (margen / ingresos) * 100 : 0) : 0,
       });
     }
 
     setMonthlyData(last6Months);
-  }, [dashboardData]);
+  }, [dashboardData, monthlyProjectsCount]);
 
   if (loading) {
     return (

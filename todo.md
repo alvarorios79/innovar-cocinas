@@ -5257,3 +5257,11 @@ Listo para pasar a Fase 7.2 (Intelligent Alerts) cuando sea requerido.
 - [x] Implementar cálculo correcto de rentabilidad: (balance / totalRevenue) * 100
 - [x] Verificar que el Panel CEO muestra datos correctos: $116.012.200 ingresos, $0 gastos, 100% rentabilidad
 - [x] Verificar que el gráfico de flujo de caja funciona correctamente
+
+
+## Indicador Real "Proyectos del Mes" en Dashboard de Rentabilidad
+
+- [x] Crear función getMonthlyProjectsCount() en server/db.ts
+- [x] Crear endpoint getMonthlyProjectsCount en dashboard router
+- [x] Actualizar ProfitabilityDashboard.tsx para usar el dato real
+- [x] Probar el indicador con datos reales

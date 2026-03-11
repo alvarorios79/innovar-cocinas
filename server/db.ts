@@ -1398,3 +1398,62 @@ export async function getCEOFinancialMetrics() {
     };
   }
 }
+
+
+/**
+ * getMonthlyProjectsCount()
+ * 
+ * Calcula el número de proyectos que recibieron al menos un pago en el mes actual
+ * 
+ * Lógica:
+ * - COUNT(DISTINCT payments.projectId)
+ * - WHERE payments.movementType = 'payment'
+ * - AND payments.deletedAt IS NULL
+ * - AND payments.createdAt BETWEEN startOfMonth AND endOfMonth
+ * - AND projects.deletedAt IS NULL
+ * - AND projects.dataOrigin = 'manual'
+ * 
+ * Retorna: número de proyectos con al menos un pago en el mes actual
+ */
+export async function getMonthlyProjectsCount() {
+  const db = await getDb();
+  if (!db) return 0;
+
+  try {
+    const now = new Date();
+    
+    // Calcular rango del mes actual (sin usar MONTH() para preservar índices)
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+
+    // Obtener todos los pagos del mes actual que sean 'payment'
+    const monthlyPayments = await db.select({
+      projectId: payments.projectId
+    }).from(payments)
+      .where(and(
+        eq(payments.movementType, 'payment'),
+        gte(payments.createdAt, startOfMonth),
+        lte(payments.createdAt, endOfMonth)
+      ));
+
+    if (monthlyPayments.length === 0) return 0;
+
+    // Obtener IDs únicos de proyectos
+    const projectIds = [...new Set(monthlyPayments.map(p => p.projectId))];
+
+    // Verificar que los proyectos existan y sean válidos
+    const validProjects = await db.select({
+      id: projects.id
+    }).from(projects)
+      .where(and(
+        inArray(projects.id, projectIds),
+        isNull(projects.deletedAt),
+        eq(projects.dataOrigin, 'manual')
+      ));
+
+    return validProjects.length;
+  } catch (error) {
+    console.error("[getMonthlyProjectsCount] Error:", error);
+    return 0;
+  }
+}

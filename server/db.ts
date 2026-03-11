@@ -2256,3 +2256,45 @@ export async function emptyRecycleBin() {
   // This is a placeholder - actual implementation depends on which tables have soft deletes
   console.log("[DataProtection] Emptying recycle bin");
 }
+
+// ============ RESTORE FUNCTIONS ============
+
+// Restore a quotation from recycle bin
+export async function restoreQuotation(quotationId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.update(quotations)
+    .set({ deletedAt: null })
+    .where(eq(quotations.id, quotationId));
+}
+
+// Restore an appointment from recycle bin
+export async function restoreAppointment(appointmentId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.update(appointments)
+    .set({ deletedAt: null })
+    .where(eq(appointments.id, appointmentId));
+}
+
+// Restore a task from recycle bin
+export async function restoreTask(taskId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.update(tasks)
+    .set({ deletedAt: null })
+    .where(eq(tasks.id, taskId));
+}
+
+// Restore an expense from recycle bin
+export async function restoreExpense(expenseId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.update(expenses)
+    .set({ deletedAt: null })
+    .where(eq(expenses.id, expenseId));
+}

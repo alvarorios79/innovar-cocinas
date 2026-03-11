@@ -140,14 +140,14 @@ export const dataProtectionRouter = router({
       // Only admins can view full audit logs
       if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
         // Regular users can only see audit logs for their own actions
-        return await db.getAuditLogsByUser(ctx.user.id, input.limit);
+        return await db.getAuditLogsByUser(ctx.user.id);
       }
 
       if (input.tableName && input.recordId) {
         return await db.getAuditLogsForRecord(input.tableName, input.recordId);
       }
 
-      return await db.getAuditLogsByUser(ctx.user.id, input.limit);
+      return await db.getAuditLogsByUser(ctx.user.id);
     }),
 
   // ============ ADMIN ONLY - PERMANENT DELETE ============

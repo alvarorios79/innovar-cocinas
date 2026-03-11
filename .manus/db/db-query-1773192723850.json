@@ -1,0 +1,55 @@
+{
+  "query": "SELECT DISTINCT quotationNumber \nFROM quotations \nWHERE deletedAt IS NULL AND dataOrigin = 'manual'\nORDER BY quotationNumber DESC\nLIMIT 30",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT DISTINCT quotationNumber \nFROM quotations \nWHERE deletedAt IS NULL AND dataOrigin = 'manual'\nORDER BY quotationNumber DESC\nLIMIT 30",
+  "rows": [
+    {
+      "quotationNumber": "COT-2026-1772833387901-4386134-v2"
+    },
+    {
+      "quotationNumber": "COT-2026-1772833387901-4386134"
+    },
+    {
+      "quotationNumber": "COT-2026-1772833387900-2643089"
+    },
+    {
+      "quotationNumber": "COT-2026-1772833387899-2437183"
+    },
+    {
+      "quotationNumber": "COT-2026-1772833387898-7036206"
+    },
+    {
+      "quotationNumber": "COT-2026-1772833387897-0178652"
+    },
+    {
+      "quotationNumber": "COT-2026-1772833387896-9276683"
+    },
+    {
+      "quotationNumber": "COT-2026-1772833387895-6830938"
+    },
+    {
+      "quotationNumber": "COT-2026-1772833387894-8915020"
+    },
+    {
+      "quotationNumber": "COT-2026-1772833387893-4870273"
+    },
+    {
+      "quotationNumber": "COT-2026-1772833387892-4673628"
+    },
+    {
+      "quotationNumber": "COT-2026-1772833387891-2667628"
+    },
+    {
+      "quotationNumber": "COT-2026-1772833387890-1825427"
+    },
+    {
+      "quotationNumber": "COT-2026-1772833387889-1121614"
+    },
+    {
+      "quotationNumber": "COT-2026-1772833387888-6786153"
+    }
+  ],
+  "messages": [],
+  "stdout": "quotationNumber\nCOT-2026-1772833387901-4386134-v2\nCOT-2026-1772833387901-4386134\nCOT-2026-1772833387900-2643089\nCOT-2026-1772833387899-2437183\nCOT-2026-1772833387898-7036206\nCOT-2026-1772833387897-0178652\nCOT-2026-1772833387896-9276683\nCOT-2026-1772833387895-6830938\nCOT-2026-1772833387894-8915020\nCOT-2026-1772833387893-4870273\nCOT-2026-1772833387892-4673628\nCOT-2026-1772833387891-2667628\nCOT-2026-1772833387890-1825427\nCOT-2026-1772833387889-1121614\nCOT-2026-1772833387888-6786153\n",
+  "stderr": "",
+  "execution_time_ms": 103
+}

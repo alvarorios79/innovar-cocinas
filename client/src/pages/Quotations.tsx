@@ -1543,6 +1543,12 @@ export default function Quotations() {
         </Card>
       ) : (
         <div className="grid gap-4">
+          {(() => {
+            console.log("[DIAGNOSTICO] quotations.length:", quotations.length);
+            console.log("[DIAGNOSTICO] filteredQuotations.length:", filteredQuotations.length);
+            console.log("[DIAGNOSTICO] filteredQuotations:", filteredQuotations);
+            return null;
+          })()}
           {filteredQuotations.map((group: any) => (
             <QuotationGroupCard
               key={group.baseQuotationId}

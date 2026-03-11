@@ -1,0 +1,90 @@
+{
+  "query": "SELECT SUBSTRING_INDEX(quotationNumber, '-v', 1) AS base, COUNT(*) as versions FROM quotations GROUP BY base ORDER BY versions DESC LIMIT 20;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT SUBSTRING_INDEX(quotationNumber, '-v', 1) AS base, COUNT(*) as versions FROM quotations GROUP BY base ORDER BY versions DESC LIMIT 20;",
+  "rows": [
+    {
+      "base": "COT-QVS2-1772816017605",
+      "versions": "3"
+    },
+    {
+      "base": "COT-QVS2-1772826515393",
+      "versions": "3"
+    },
+    {
+      "base": "COT-QVS2-1772825755687",
+      "versions": "3"
+    },
+    {
+      "base": "COT-QVS2-1772823611257",
+      "versions": "3"
+    },
+    {
+      "base": "COT-QVS2-1772825535596",
+      "versions": "3"
+    },
+    {
+      "base": "COT-QVS2-1772817813097",
+      "versions": "3"
+    },
+    {
+      "base": "COT-QVS2-1772825506301",
+      "versions": "3"
+    },
+    {
+      "base": "QT-VER-001",
+      "versions": "3"
+    },
+    {
+      "base": "COT-QVS2-1772816102312",
+      "versions": "3"
+    },
+    {
+      "base": "COT-QVS2-1772833387887",
+      "versions": "3"
+    },
+    {
+      "base": "COT-QVS2-1772825661252",
+      "versions": "3"
+    },
+    {
+      "base": "COT-QVS2-1772823656891",
+      "versions": "3"
+    },
+    {
+      "base": "COT-QVS2-1772817710954",
+      "versions": "3"
+    },
+    {
+      "base": "COT-QVS2-1772817677537",
+      "versions": "3"
+    },
+    {
+      "base": "COT-QVS2-1772817644153",
+      "versions": "3"
+    },
+    {
+      "base": "COT-QVS2-1772823683146",
+      "versions": "3"
+    },
+    {
+      "base": "COT-QVS2-1772816169244",
+      "versions": "3"
+    },
+    {
+      "base": "COT-QVS2-1772817604968",
+      "versions": "3"
+    },
+    {
+      "base": "COT-QVS2-1772811372731",
+      "versions": "3"
+    },
+    {
+      "base": "COT-QVS2-1772817769027",
+      "versions": "3"
+    }
+  ],
+  "messages": [],
+  "stdout": "base\tversions\nCOT-QVS2-1772816017605\t3\nCOT-QVS2-1772826515393\t3\nCOT-QVS2-1772825755687\t3\nCOT-QVS2-1772823611257\t3\nCOT-QVS2-1772825535596\t3\nCOT-QVS2-1772817813097\t3\nCOT-QVS2-1772825506301\t3\nQT-VER-001\t3\nCOT-QVS2-1772816102312\t3\nCOT-QVS2-1772833387887\t3\nCOT-QVS2-1772825661252\t3\nCOT-QVS2-1772823656891\t3\nCOT-QVS2-1772817710954\t3\nCOT-QVS2-1772817677537\t3\nCOT-QVS2-1772817644153\t3\nCOT-QVS2-1772823683146\t3\nCOT-QVS2-1772816169244\t3\nCOT-QVS2-1772817604968\t3\nCOT-QVS2-1772811372731\t3\nCOT-QVS2-1772817769027\t3\n",
+  "stderr": "",
+  "execution_time_ms": 58
+}

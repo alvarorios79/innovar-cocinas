@@ -1,0 +1,260 @@
+{
+  "query": "SELECT quotationNumber, dataOrigin, createdAt FROM quotations ORDER BY createdAt DESC LIMIT 50;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT quotationNumber, dataOrigin, createdAt FROM quotations ORDER BY createdAt DESC LIMIT 50;",
+  "rows": [
+    {
+      "quotationNumber": "COT-2026-1772833387901-4386134-v2",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-09 17:20:35"
+    },
+    {
+      "quotationNumber": "COT-2026-1772833387901-4386134",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-08 02:25:14"
+    },
+    {
+      "quotationNumber": "COT-2026-1772833387900-2643089",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-07 01:14:32"
+    },
+    {
+      "quotationNumber": "COT-2026-1772833387899-2437183",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-07 00:44:32"
+    },
+    {
+      "quotationNumber": "COT-2026-1772833387898-7036206",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-07 00:40:37"
+    },
+    {
+      "quotationNumber": "COT-2026-1772833387897-0178652",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-07 00:36:50"
+    },
+    {
+      "quotationNumber": "COT-2026-1772833387896-9276683",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-07 00:23:49"
+    },
+    {
+      "quotationNumber": "COT-2026-1772833387895-6830938",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-07 00:17:36"
+    },
+    {
+      "quotationNumber": "COT-2026-1772833387894-8915020",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-07 00:11:08"
+    },
+    {
+      "quotationNumber": "COT-2026-1772833387893-4870273",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-07 00:04:04"
+    },
+    {
+      "quotationNumber": "COT-2026-1772833387892-4673628",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-07 00:01:24"
+    },
+    {
+      "quotationNumber": "COT-2026-1772833387891-2667628",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 23:56:52"
+    },
+    {
+      "quotationNumber": "COT-2026-1772833387890-1825427",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 23:53:01"
+    },
+    {
+      "quotationNumber": "COT-2026-1772833387889-1121614",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 23:49:21"
+    },
+    {
+      "quotationNumber": "COT-2026-1772833387888-6786153",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 23:45:56"
+    },
+    {
+      "quotationNumber": "COT-QVS2-1772833387887-v4",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 21:43:08"
+    },
+    {
+      "quotationNumber": "COT-QVS2-1772833387887-v5",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 21:43:08"
+    },
+    {
+      "quotationNumber": "COT-QVS2-1772833387887",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 21:43:07"
+    },
+    {
+      "quotationNumber": "COT-2026-NaN-6031878",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 21:43:06"
+    },
+    {
+      "quotationNumber": "COT-2026-NaN-5712919",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 21:43:05"
+    },
+    {
+      "quotationNumber": "COT-2026-NaN-5907471",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 21:43:05"
+    },
+    {
+      "quotationNumber": "COT-2026-NaN-1089127",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 21:43:01"
+    },
+    {
+      "quotationNumber": "COT-2026-NaN-1165952",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 21:43:01"
+    },
+    {
+      "quotationNumber": "COT-2026-NaN-7966744",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 21:42:57"
+    },
+    {
+      "quotationNumber": "COT-2026-NaN-7865843",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 21:42:57"
+    },
+    {
+      "quotationNumber": "COT-2026-NaN-7924421",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 21:42:57"
+    },
+    {
+      "quotationNumber": "MANUAL-1772833369140",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 21:42:49"
+    },
+    {
+      "quotationNumber": "MANUAL-1772833349106",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 21:42:29"
+    },
+    {
+      "quotationNumber": "COT-2026-1772826515396",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:48:42"
+    },
+    {
+      "quotationNumber": "COT-2026-1772826515395",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:48:42"
+    },
+    {
+      "quotationNumber": "COT-2026-1772826515394-9845005",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:48:39"
+    },
+    {
+      "quotationNumber": "COT-QVS2-1772826515393-v5",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:48:35"
+    },
+    {
+      "quotationNumber": "COT-QVS2-1772826515393-v4",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:48:35"
+    },
+    {
+      "quotationNumber": "COT-QVS2-1772826515393",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:48:35"
+    },
+    {
+      "quotationNumber": "COT-2026-NaN-4542288",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:48:34"
+    },
+    {
+      "quotationNumber": "COT-2026-NaN-4264550",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:48:34"
+    },
+    {
+      "quotationNumber": "COT-2026-NaN-4426120",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:48:34"
+    },
+    {
+      "quotationNumber": "COT-2026-NaN-2227216",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:48:32"
+    },
+    {
+      "quotationNumber": "COT-2026-NaN-2290515",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:48:32"
+    },
+    {
+      "quotationNumber": "COT-2026-NaN-0522955",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:48:30"
+    },
+    {
+      "quotationNumber": "COT-2026-NaN-0484689",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:48:30"
+    },
+    {
+      "quotationNumber": "COT-2026-NaN-0557368",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:48:30"
+    },
+    {
+      "quotationNumber": "MANUAL-1772826508387",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:48:28"
+    },
+    {
+      "quotationNumber": "COT-2026-1772826468083",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:47:54"
+    },
+    {
+      "quotationNumber": "COT-2026-1772826468084",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:47:54"
+    },
+    {
+      "quotationNumber": "COT-2026-1772826468082-2577803",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:47:52"
+    },
+    {
+      "quotationNumber": "COT-QVS2-1772826468081-v4",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:47:48"
+    },
+    {
+      "quotationNumber": "COT-QVS2-1772826468081",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:47:48"
+    },
+    {
+      "quotationNumber": "COT-QVS2-1772826468081-v5",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:47:48"
+    },
+    {
+      "quotationNumber": "COT-2026-NaN-7049097",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-06 19:47:47"
+    }
+  ],
+  "messages": [],
+  "stdout": "quotationNumber\tdataOrigin\tcreatedAt\nCOT-2026-1772833387901-4386134-v2\tmanual\t2026-03-09 17:20:35\nCOT-2026-1772833387901-4386134\tmanual\t2026-03-08 02:25:14\nCOT-2026-1772833387900-2643089\tmanual\t2026-03-07 01:14:32\nCOT-2026-1772833387899-2437183\tmanual\t2026-03-07 00:44:32\nCOT-2026-1772833387898-7036206\tmanual\t2026-03-07 00:40:37\nCOT-2026-1772833387897-0178652\tmanual\t2026-03-07 00:36:50\nCOT-2026-1772833387896-9276683\tmanual\t2026-03-07 00:23:49\nCOT-2026-1772833387895-6830938\tmanual\t2026-03-07 00:17:36\nCOT-2026-1772833387894-8915020\tmanual\t2026-03-07 00:11:08\nCOT-2026-1772833387893-4870273\tmanual\t2026-03-07 00:04:04\nCOT-2026-1772833387892-4673628\tmanual\t2026-03-07 00:01:24\nCOT-2026-1772833387891-2667628\tmanual\t2026-03-06 23:56:52\nCOT-2026-1772833387890-1825427\tmanual\t2026-03-06 23:53:01\nCOT-2026-1772833387889-1121614\tmanual\t2026-03-06 23:49:21\nCOT-2026-1772833387888-6786153\tmanual\t2026-03-06 23:45:56\nCOT-QVS2-1772833387887-v4\tmanual\t2026-03-06 21:43:08\nCOT-QVS2-1772833387887-v5\tmanual\t2026-03-06 21:43:08\nCOT-QVS2-1772833387887\tmanual\t2026-03-06 21:43:07\nCOT-2026-NaN-6031878\tmanual\t2026-03-06 21:43:06\nCOT-2026-NaN-5712919\tmanual\t2026-03-06 21:43:05\nCOT-2026-NaN-5907471\tmanual\t2026-03-06 21:43:05\nCOT-2026-NaN-1089127\tmanual\t2026-03-06 21:43:01\nCOT-2026-NaN-1165952\tmanual\t2026-03-06 21:43:01\nCOT-2026-NaN-7966744\tmanual\t2026-03-06 21:42:57\nCOT-2026-NaN-7865843\tmanual\t2026-03-06 21:42:57\nCOT-2026-NaN-7924421\tmanual\t2026-03-06 21:42:57\nMANUAL-1772833369140\tmanual\t2026-03-06 21:42:49\nMANUAL-1772833349106\tmanual\t2026-03-06 21:42:29\nCOT-2026-1772826515396\tmanual\t2026-03-06 19:48:42\nCOT-2026-1772826515395\tmanual\t2026-03-06 19:48:42\nCOT-2026-1772826515394-9845005\tmanual\t2026-03-06 19:48:39\nCOT-QVS2-1772826515393-v5\tmanual\t2026-03-06 19:48:35\nCOT-QVS2-1772826515393-v4\tmanual\t2026-03-06 19:48:35\nCOT-QVS2-1772826515393\tmanual\t2026-03-06 19:48:35\nCOT-2026-NaN-4542288\tmanual\t2026-03-06 19:48:34\nCOT-2026-NaN-4264550\tmanual\t2026-03-06 19:48:34\nCOT-2026-NaN-4426120\tmanual\t2026-03-06 19:48:34\nCOT-2026-NaN-2227216\tmanual\t2026-03-06 19:48:32\nCOT-2026-NaN-2290515\tmanual\t2026-03-06 19:48:32\nCOT-2026-NaN-0522955\tmanual\t2026-03-06 19:48:30\nCOT-2026-NaN-0484689\tmanual\t2026-03-06 19:48:30\nCOT-2026-NaN-0557368\tmanual\t2026-03-06 19:48:30\nMANUAL-1772826508387\tmanual\t2026-03-06 19:48:28\nCOT-2026-1772826468083\tmanual\t2026-03-06 19:47:54\nCOT-2026-1772826468084\tmanual\t2026-03-06 19:47:54\nCOT-2026-1772826468082-2577803\tmanual\t2026-03-06 19:47:52\nCOT-QVS2-1772826468081-v4\tmanual\t2026-03-06 19:47:48\nCOT-QVS2-1772826468081\tmanual\t2026-03-06 19:47:48\nCOT-QVS2-1772826468081-v5\tmanual\t2026-03-06 19:47:48\nCOT-2026-NaN-7049097\tmanual\t2026-03-06 19:47:47\n",
+  "stderr": "",
+  "execution_time_ms": 145
+}

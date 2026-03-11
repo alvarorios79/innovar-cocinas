@@ -1,0 +1,16 @@
+{
+  "query": "SELECT \n  COUNT(*) as total,\n  SUM(CASE WHEN isArchived = 0 THEN 1 ELSE 0 END) as not_archived,\n  SUM(CASE WHEN isArchived = 1 THEN 1 ELSE 0 END) as archived,\n  SUM(CASE WHEN isArchived IS NULL THEN 1 ELSE 0 END) as null_archived\nFROM quotations \nWHERE deletedAt IS NULL AND dataOrigin = 'manual'",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT \n  COUNT(*) as total,\n  SUM(CASE WHEN isArchived = 0 THEN 1 ELSE 0 END) as not_archived,\n  SUM(CASE WHEN isArchived = 1 THEN 1 ELSE 0 END) as archived,\n  SUM(CASE WHEN isArchived IS NULL THEN 1 ELSE 0 END) as null_archived\nFROM quotations \nWHERE deletedAt IS NULL AND dataOrigin = 'manual'",
+  "rows": [
+    {
+      "total": "15",
+      "not_archived": "15",
+      "archived": "0",
+      "null_archived": "0"
+    }
+  ],
+  "messages": [],
+  "stdout": "total\tnot_archived\tarchived\tnull_archived\n15\t15\t0\t0\n",
+  "stderr": "",
+  "execution_time_ms": 61
+}

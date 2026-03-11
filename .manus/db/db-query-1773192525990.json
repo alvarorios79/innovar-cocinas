@@ -1,0 +1,15 @@
+{
+  "query": "SELECT COUNT(*) as total, \n       SUM(CASE WHEN quotationNumber LIKE '%-v%' THEN 1 ELSE 0 END) as con_version,\n       SUM(CASE WHEN quotationNumber NOT LIKE '%-v%' THEN 1 ELSE 0 END) as sin_version\nFROM quotations \nWHERE deletedAt IS NULL AND dataOrigin = 'manual'",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT COUNT(*) as total, \n       SUM(CASE WHEN quotationNumber LIKE '%-v%' THEN 1 ELSE 0 END) as con_version,\n       SUM(CASE WHEN quotationNumber NOT LIKE '%-v%' THEN 1 ELSE 0 END) as sin_version\nFROM quotations \nWHERE deletedAt IS NULL AND dataOrigin = 'manual'",
+  "rows": [
+    {
+      "total": "15",
+      "con_version": "1",
+      "sin_version": "14"
+    }
+  ],
+  "messages": [],
+  "stdout": "total\tcon_version\tsin_version\n15\t1\t14\n",
+  "stderr": "",
+  "execution_time_ms": 58
+}

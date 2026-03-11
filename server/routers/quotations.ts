@@ -292,17 +292,30 @@ export const quotationsRouter = router({
           status: input?.status,
           archived: input?.archived,
         });
-        const [allClients, allProjects] = await Promise.all([
-          db.getAllClients(),
-          db.getAllProjects(),
-        ]);
+        
+        // Obtener todos los clientes para mapear
+        const allClients = await db.getAllClients();
         const clientMap = new Map(allClients.map(c => [c.id, c]));
-        const projectMap = new Map(allProjects.filter(p => p.quotationId).map(p => [p.quotationId, p.id]));
-        return {
-          data: result.quotations.map((group: any) => ({
+        
+        // Mapear los clientes en los grupos
+        const dataWithClients = result.quotations.map((group: any) => {
+          // Obtener el clientId del activeVersion (que es la cotizacion actual)
+          const clientId = group.activeVersion?.clientId;
+          return {
             ...group,
-            client: clientMap.get(group.clientId),
-          })),
+            client: clientId ? clientMap.get(clientId) : null,
+          };
+        });
+        
+        console.log("[DIAGNOSTICO] listPaginatedGrouped result:", {
+          quotationsCount: result.quotations.length,
+          total: result.total,
+          dataWithClientsCount: dataWithClients.length,
+          firstQuotation: dataWithClients[0],
+        });
+        
+        return {
+          data: dataWithClients,
           total: result.total,
           page,
           limit,

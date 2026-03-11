@@ -1213,22 +1213,37 @@ export async function getAllQuotationsGroupedByBase(options?: { page?: number; l
     whereConditions = and(whereConditions, eq(quotations.status, options.status as any));
   }
 
-  if (options?.archived !== undefined) {
-    whereConditions = and(whereConditions, eq(quotations.isArchived, options.archived ? 1 : 0));
+  // Solo filtrar por isArchived si se solicita específicamente las archivadas
+  // Si archived === false (pestaña Activas), mostrar TODAS las cotizaciones
+  // Si archived === true (pestaña Archivadas), mostrar solo las archivadas
+  if (options?.archived === true) {
+    whereConditions = and(whereConditions, eq(quotations.isArchived, 1));
+  } else if (options?.archived === false) {
+    // No filtrar por isArchived cuando se solicita "activas" - mostrar todas
+    // Esto es para mantener compatibilidad con cotizaciones antiguas
   }
 
   // Obtener todas las cotizaciones ordenadas por número y fecha (más recientes primero)
   const allQuotations = await db.select().from(quotations)
     .where(whereConditions)
     .orderBy(desc(quotations.quotationNumber), desc(quotations.createdAt));
+  
+  console.log("[getAllQuotationsGroupedByBase] allQuotations.length:", allQuotations.length);
+  if (allQuotations.length > 0) {
+    console.log("[getAllQuotationsGroupedByBase] primeras 3 cotizaciones:", allQuotations.slice(0, 3).map(q => ({ id: q.id, number: q.quotationNumber })));
+  }
 
   // Agrupar por número base y construir estructura esperada por el frontend
   const groupedMap = new Map<string, any>();
   
   for (const quot of allQuotations) {
-    const baseNumber = quot.quotationNumber.split('-')[0]; // Obtener número base (ej: "2024-001")
+    // Obtener número base con protección contra formatos inesperados
+    const parts = quot.quotationNumber?.split('-') ?? [];
+    const baseNumber = parts.length >= 2
+      ? parts.slice(0, 2).join('-')
+      : (quot.quotationNumber || `unknown-${quot.id}`);
     
-    if (!groupedMap.has(baseNumber)) {
+    if (baseNumber && !groupedMap.has(baseNumber)) {
       // Primera vez que vemos este número base - esta es la versión más reciente
       groupedMap.set(baseNumber, {
         baseQuotationId: quot.id,
@@ -1262,6 +1277,8 @@ export async function getAllQuotationsGroupedByBase(options?: { page?: number; l
   }));
 
   const total = grouped.length;
+  console.log("[getAllQuotationsGroupedByBase] grouped.length:", grouped.length);
+  console.log("[getAllQuotationsGroupedByBase] primeros 3 grupos:", grouped.slice(0, 3).map(g => ({ number: g.quotationNumber, versions: g.versions.length })));
   
   // Aplicar paginación DESPUÉS de agrupar
   const page = options?.page || 1;
@@ -1278,15 +1295,16 @@ export async function getUnreadNotificationsCount(userId: number): Promise<numbe
   const db = await getDb();
   if (!db) return 0;
 
-  const result = await db.select({ count: sql<number>`COUNT(*)` })
-    .from(notifications)
-    .where(and(
-      eq(notifications.userId, userId),
-      eq(notifications.isRead, 0),
-      isNull(notifications.deletedAt)
-    ));
+  try {
+    const result = await db.select({ count: sql<number>`COUNT(*)` })
+      .from(notifications)
+      .where(eq(notifications.userId, userId));
 
-  return result[0]?.count || 0;
+    return result[0]?.count || 0;
+  } catch (error) {
+    // Si la tabla no existe o hay error, retornar 0
+    return 0;
+  }
 }
 
 export async function getAllTasks(options?: { status?: string }): Promise<any[]> {

@@ -1247,7 +1247,7 @@ export default function Portal() {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {estimates.map((est) => (
+                    {estimates.map((est: any) => (
                       <div key={est.id} className="border rounded-lg p-4 space-y-2">
                         <h3 className="font-semibold">{getWorkTypeLabel(est.workType)}</h3>
                         {est.kitchenShape && (

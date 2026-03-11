@@ -67,7 +67,7 @@ export const pricingRouter = router({
         if (ctx.user.role !== "super_admin") {
           throw new TRPCError({ code: "FORBIDDEN", message: "Solo el super administrador puede modificar precios" });
         }
-        await db.updatePricingConfig(input.id, input.value, ctx.user.id, input.reason, input.descriptionTemplate);
+        await db.updatePricingConfigWithHistory(input.id, input.value, ctx.user.id, input.reason, input.descriptionTemplate);
         return { success: true };
       }),
 
@@ -86,7 +86,7 @@ export const pricingRouter = router({
         if (ctx.user.role !== "super_admin") {
           throw new TRPCError({ code: "FORBIDDEN", message: "Solo el super administrador puede crear precios" });
         }
-        const id = await db.createPricingConfig(input);
+        const id = await db.createPricingConfig({ ...input, value: input.value.toString(), category: input.category as any });
         return { success: true, id };
       }),
 

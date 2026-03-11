@@ -189,7 +189,7 @@ export default function PricingConfig() {
   });
 
   // Agrupar precios por categoría
-  const pricingByCategory = allPricing?.reduce((acc, item) => {
+  const pricingByCategory = allPricing?.reduce((acc: any, item: any) => {
     if (!acc[item.category]) {
       acc[item.category] = [];
     }
@@ -250,7 +250,7 @@ export default function PricingConfig() {
 
   // Filtrar precios por búsqueda
   const searchResults = searchQuery.trim() 
-    ? allPricing?.filter(item => {
+    ? allPricing?.filter((item: any) => {
         const query = searchQuery.toLowerCase();
         return (
           item.name.toLowerCase().includes(query) ||
@@ -261,7 +261,7 @@ export default function PricingConfig() {
     : [];
 
   // Agrupar resultados de búsqueda por categoría
-  const searchResultsByCategory = searchResults.reduce((acc, item) => {
+  const searchResultsByCategory = searchResults.reduce((acc: any, item: any) => {
     if (!acc[item.category]) {
       acc[item.category] = [];
     }
@@ -446,7 +446,7 @@ export default function PricingConfig() {
                         </div>
                         <CardContent className={`p-4 ${catConfig.bgLight}`}>
                           <div className="grid gap-3 sm:grid-cols-2">
-                            {items.map((item) => (
+                            {items.map((item: any) => (
                               <div
                                 key={item.id}
                                 className={`group relative bg-white rounded-xl border-2 ${catConfig.borderColor} p-4 shadow-sm hover:shadow-md transition-all duration-200`}
@@ -460,7 +460,7 @@ export default function PricingConfig() {
                                 <div className="flex items-start justify-between gap-3">
                                   <div className="flex-1 min-w-0">
                                     <h3 className="font-semibold text-gray-900 truncate pr-8">
-                                      {item.name.split(new RegExp(`(${searchQuery})`, 'gi')).map((part, i) => 
+                                      {item.name.split(new RegExp(`(${searchQuery})`, 'gi')).map((part: any, i: any) => 
                                         part.toLowerCase() === searchQuery.toLowerCase() 
                                           ? <mark key={i} className="bg-yellow-200 px-0.5 rounded">{part}</mark>
                                           : part
@@ -470,7 +470,7 @@ export default function PricingConfig() {
                                       <p className="text-xs text-gray-500 mt-1 line-clamp-2">{item.description}</p>
                                     )}
                                     <p className="text-xs text-gray-400 mt-2 font-mono">
-                                      {item.code.split(new RegExp(`(${searchQuery})`, 'gi')).map((part, i) => 
+                                      {item.code.split(new RegExp(`(${searchQuery})`, 'gi')).map((part: any, i: any) => 
                                         part.toLowerCase() === searchQuery.toLowerCase() 
                                           ? <mark key={i} className="bg-yellow-200 px-0.5 rounded">{part}</mark>
                                           : part
@@ -542,7 +542,7 @@ export default function PricingConfig() {
               <CardContent className={`p-4 ${activeConfig.bgLight}`}>
                 {activePricing.length > 0 ? (
                   <div className="grid gap-3 sm:grid-cols-2">
-                    {activePricing.map((item) => (
+                    {activePricing.map((item: any) => (
                       <div
                         key={item.id}
                         className={`group relative bg-white rounded-xl border-2 ${activeConfig.borderColor} p-4 shadow-sm hover:shadow-md transition-all duration-200`}

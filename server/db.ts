@@ -971,7 +971,7 @@ export async function cleanupTestData() {
   let deletedCount = 0;
   for (const { table, name } of tables) {
     try {
-      const result = await db.delete(table).where(inArray(table.dataOrigin, ['test', 'system']));
+      const result = await db.delete(table).where(inArray((table as any).dataOrigin, ['test', 'system']));
       const affected = (result as any)?.affectedRows ?? (result as any)?.rowsAffected ?? 0;
       console.log(`[Cleanup] Deleted ${affected} records from ${name}`);
       deletedCount += affected;
@@ -1461,8 +1461,8 @@ export async function getMonthlyProjectsCount() {
     const now = new Date();
     
     // Calcular rango del mes actual (sin usar MONTH() para preservar índices)
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 19).replace('T', ' ');
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999).toISOString().slice(0, 19).replace('T', ' ');
 
     // Obtener todos los pagos del mes actual que sean 'payment'
     const monthlyPayments = await db.select({
@@ -1586,7 +1586,7 @@ export async function updateFinancialAlert(
 export async function updateUserRole(id: number, role: string) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  await db.update(users).set({ role }).where(eq(users.id, id));
+  await db.update(users).set({ role: role as any }).where(eq(users.id, id));
 }
 
 /**
@@ -1781,4 +1781,194 @@ export async function removeProjectHardwareSelection(projectId: number, hardware
       eq(projectHardwareSelections.projectId, projectId),
       eq(projectHardwareSelections.hardwareId, hardwareId)
     ));
+}
+
+// Save (upsert) project materials - creates or updates the materials record for a project
+export async function saveProjectMaterials(projectId: number, data: Partial<{
+  woodType: string;
+  woodColor: string;
+  woodPhotoUrl: string;
+  countertopType: string;
+  countertopName: string;
+  countertopPhotoUrl: string;
+  sinkMeasure: string;
+  sinkPhotoUrl: string;
+  notes: string;
+}>, createdBy: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  // Check if a record already exists for this project
+  const existing = await db.select().from(projectMaterials).where(eq(projectMaterials.projectId, projectId)).limit(1);
+  if (existing.length > 0) {
+    // Update existing record
+    await db.update(projectMaterials).set(data as any).where(eq(projectMaterials.projectId, projectId));
+    return existing[0].id;
+  } else {
+    // Create new record
+    const result = await db.insert(projectMaterials).values({ projectId, createdBy, ...data } as any);
+    return result[0].insertId;
+  }
+}
+
+// Get all hardware selections for a project with hardware catalog details
+export async function getProjectHardwareSelections(projectId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select({
+    id: projectHardwareSelections.id,
+    projectId: projectHardwareSelections.projectId,
+    hardwareId: projectHardwareSelections.hardwareId,
+    selectedOption: projectHardwareSelections.selectedOption,
+    notes: projectHardwareSelections.notes,
+    createdBy: projectHardwareSelections.createdBy,
+    createdAt: projectHardwareSelections.createdAt,
+    quantity: projectHardwareSelections.quantity,
+    priceAtQuotation: projectHardwareSelections.priceAtQuotation,
+    hardwareName: hardwareCatalog.name,
+    hardwareCategory: hardwareCatalog.category,
+    hardwarePrice: hardwareCatalog.price,
+    // hardwareUnit: hardwareCatalog.unit, // Field not in schema
+  })
+  .from(projectHardwareSelections)
+  .leftJoin(hardwareCatalog, eq(projectHardwareSelections.hardwareId, hardwareCatalog.id))
+  .where(eq(projectHardwareSelections.projectId, projectId));
+}
+
+// Get project photos filtered by category
+export async function getProjectPhotosByCategory(projectId: number, category: string) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(projectPhotos)
+    .where(and(
+      eq(projectPhotos.projectId, projectId),
+      eq(projectPhotos.category, category as any)
+    ))
+    .orderBy(desc(projectPhotos.createdAt));
+}
+
+// Get project photos filtered by stage
+export async function getProjectPhotosByStage(projectId: number, stage: string) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(projectPhotos)
+    .where(and(
+      eq(projectPhotos.projectId, projectId),
+      eq(projectPhotos.stage, stage as any)
+    ))
+    .orderBy(desc(projectPhotos.createdAt));
+}
+
+// Get a single project photo by id
+export async function getProjectPhotoById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(projectPhotos).where(eq(projectPhotos.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+// Get all project details by projectId (returns array, not single record)
+export async function getProjectDetailsByProjectId(projectId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(projectDetails)
+    .where(eq(projectDetails.projectId, projectId))
+    .orderBy(desc(projectDetails.createdAt));
+}
+
+// Delete a project detail by id
+export async function deleteProjectDetail(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(projectDetails).where(eq(projectDetails.id, id));
+}
+
+// ============ PRICING CONFIG EXTENDED ============
+
+// Get all pricing configs (full list)
+export async function getAllPricingConfig() {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(pricingConfig).where(eq(pricingConfig.active, 1)).orderBy(pricingConfig.category, pricingConfig.sortOrder);
+}
+
+// Get pricing configs by category
+export async function getPricingByCategory(category: string) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(pricingConfig)
+    .where(and(eq(pricingConfig.category, category as any), eq(pricingConfig.active, 1)))
+    .orderBy(pricingConfig.sortOrder);
+}
+
+// Get a single pricing config by code
+export async function getPricingByCode(code: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(pricingConfig)
+    .where(and(eq(pricingConfig.code, code), eq(pricingConfig.active, 1)))
+    .limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+// Update a pricing config value with history tracking
+export async function updatePricingConfigWithHistory(id: number, newValue: number, changedBy: number, reason?: string, descriptionTemplate?: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  // Get current value for history
+  const current = await db.select().from(pricingConfig).where(eq(pricingConfig.id, id)).limit(1);
+  if (current.length === 0) throw new Error("Pricing config not found");
+  const previousValue = current[0].value;
+  // Update config
+  const updateData: any = { value: newValue.toString(), updatedBy: changedBy };
+  if (descriptionTemplate !== undefined) updateData.descriptionTemplate = descriptionTemplate;
+  await db.update(pricingConfig).set(updateData).where(eq(pricingConfig.id, id));
+  // Record history
+  await db.insert(pricingHistory).values({
+    pricingConfigId: id,
+    previousValue: previousValue,
+    newValue: newValue.toString(),
+    changedBy,
+    reason: reason || null,
+  });
+}
+
+// Get pricing history for a specific config
+export async function getPricingHistory(pricingConfigId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(pricingHistory)
+    .where(eq(pricingHistory.pricingConfigId, pricingConfigId))
+    .orderBy(desc(pricingHistory.createdAt));
+}
+
+// Get all pricing history with limit
+export async function getAllPricingHistory(limit: number = 50) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(pricingHistory)
+    .orderBy(desc(pricingHistory.createdAt))
+    .limit(limit);
+}
+
+// Soft delete a pricing config
+export async function deletePricingConfig(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(pricingConfig).set({ active: 0 }).where(eq(pricingConfig.id, id));
+}
+
+// Update reminder status (completado, cancelado, pendiente, enviado)
+export async function updateReminderStatus(id: number, status: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(reminders).set({ status: status as any }).where(eq(reminders.id, id));
+}
+
+// Get reminders by user ID (assigned to a specific user)
+export async function getRemindersByUserId(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(reminders)
+    .where(eq(reminders.assignedTo, userId))
+    .orderBy(desc(reminders.createdAt));
 }

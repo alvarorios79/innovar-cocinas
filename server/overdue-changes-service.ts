@@ -99,7 +99,7 @@ export async function checkOverdueChanges(): Promise<{
             // También crear una tarea urgente si no existe una similar
             const existingTasks = await db.getTasksByProjectId(project.id);
             const hasOverdueTask = existingTasks.some(
-              (t) => t.title.includes("URGENTE") && t.title.includes("48h") && t.status !== "completada"
+              (t: any) => t.title.includes("URGENTE") && t.title.includes("48h") && t.status !== "completada"
             );
 
             if (!hasOverdueTask && allAdmins.length > 0) {

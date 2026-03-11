@@ -337,7 +337,7 @@ export async function generateProjectReportHTML(projectId: number): Promise<stri
     ${details.length > 0 ? `
     <div class="section">
       <h2 class="section-title">Detalles del Proyecto</h2>
-      ${details.map(detail => `
+      ${details.map((detail: any) => `
         <div class="detail-item">
           <div class="detail-type">${detail.type === "medida_especial" ? "Medida Especial" : detail.type === "nota_importante" ? "Nota Importante" : "Foto de Referencia"}</div>
           <div class="detail-title">${detail.title}</div>
@@ -351,7 +351,7 @@ export async function generateProjectReportHTML(projectId: number): Promise<stri
     <div class="section">
       <h2 class="section-title">Historial del Proyecto</h2>
       <div class="timeline">
-        ${history.map(h => `
+        ${history.map((h: any) => `
           <div class="timeline-item">
             <div class="timeline-date">${formatDate(h.createdAt)}</div>
             <div class="timeline-status">${h.fromStatus ? `${statusLabels[h.fromStatus] || h.fromStatus} → ` : ""}${statusLabels[h.toStatus] || h.toStatus}</div>

@@ -268,7 +268,7 @@ export default function Admin() {
     if (selectedAppointments.length === appointments.length) {
       setSelectedAppointments([]);
     } else {
-      setSelectedAppointments(appointments.map(a => a.id));
+      setSelectedAppointments(appointments.map((a: any) => a.id));
     }
   };
 
@@ -519,7 +519,7 @@ export default function Admin() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-blue-700">
-                {appointments.filter((a) => a.status === "pendiente").length}
+                {appointments.filter((a: any) => a.status === "pendiente").length}
               </div>
             </CardContent>
           </Card>
@@ -683,7 +683,7 @@ export default function Admin() {
                       </span>
                     </div>
                     
-                    {appointments.map((apt) => (
+                    {appointments.map((apt: any) => (
                       <div key={apt.id} className="border rounded-lg p-3 sm:p-4 space-y-2">
                         <div className="flex items-start gap-3">
                           {/* Checkbox individual */}
@@ -1087,7 +1087,7 @@ export default function Admin() {
                     
                     {(() => {
                       // Filtrar clientes
-                      const filteredClients = clients.filter(client => {
+                      const filteredClients = clients.filter((client: any) => {
                         const query = clientSearchQuery.toLowerCase();
                         return (
                           client.name.toLowerCase().includes(query) ||

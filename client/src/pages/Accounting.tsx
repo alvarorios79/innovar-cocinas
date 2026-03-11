@@ -142,17 +142,17 @@ export default function Accounting() {
     let filtered = expenses;
 
     if (filterType !== "all") {
-      filtered = filtered.filter(e => e.expenseType === filterType);
+      filtered = filtered.filter((e: any) => e.expenseType === filterType);
     }
 
     if (minAmount) {
       const min = parseFloat(minAmount);
-      filtered = filtered.filter(e => e.amount >= min);
+      filtered = filtered.filter((e: any) => e.amount >= min);
     }
 
     if (maxAmount) {
       const max = parseFloat(maxAmount);
-      filtered = filtered.filter(e => e.amount <= max);
+      filtered = filtered.filter((e: any) => e.amount <= max);
     }
 
     return filtered;

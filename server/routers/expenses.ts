@@ -113,13 +113,13 @@ export const expensesRouter = router({
 
         // Obtener información de usuarios que crearon los gastos
         const userIdsSet = new Set<number>();
-        expenses.forEach(e => userIdsSet.add(e.createdBy));
+        expenses.forEach((e: any) => userIdsSet.add(e.createdBy));
         const userIds: number[] = [];
         userIdsSet.forEach(id => userIds.push(id));
         const allUsers = await db.getAllUsers();
         const userMap = new Map(allUsers.map(u => [u.id, u]));
 
-        return expenses.map(expense => ({
+        return expenses.map((expense: any) => ({
           ...expense,
           amount: parseFloat(expense.amount as string),
           createdByUser: userMap.get(expense.createdBy) || null,
@@ -146,7 +146,7 @@ export const expensesRouter = router({
         const userMap = new Map(allUsers.map(u => [u.id, u]));
         return {
           ...result,
-          data: result.data.map(expense => ({
+          data: result.data.map((expense: any) => ({
             ...expense,
             amount: parseFloat(expense.amount as string),
             createdByUser: userMap.get(expense.createdBy) || null,
@@ -190,7 +190,7 @@ export const expensesRouter = router({
         }
 
         const expenses = await db.getExpensesByProjectId(input);
-        return expenses.map(e => ({
+        return expenses.map((e: any) => ({
           ...e,
           amount: parseFloat(e.amount as string),
         }));
@@ -273,19 +273,19 @@ export const expensesRouter = router({
         ]);
 
         return {
-          byType: byType.map(t => ({
+          byType: byType.map((t: any) => ({
             ...t,
             total: parseFloat(t.total),
           })),
-          byCategory: byCategory.map(c => ({
+          byCategory: byCategory.map((c: any) => ({
             ...c,
             total: parseFloat(c.total),
           })),
-          byProject: byProject.map(p => ({
+          byProject: byProject.map((p: any) => ({
             ...p,
             total: parseFloat(p.total),
           })),
-          byGeneralCategory: byGeneralCategory.map(g => ({
+          byGeneralCategory: byGeneralCategory.map((g: any) => ({
             ...g,
             total: parseFloat(g.total),
           })),

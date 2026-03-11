@@ -131,7 +131,7 @@ export const remindersRouter = router({
         
         // Enriquecer con información del proyecto y cliente
         const enrichedReminders = await Promise.all(
-          reminders.map(async (reminder) => {
+          reminders.map(async (reminder: any) => {
     // @ts-ignore
             const project = await db.getProjectById(reminder.projectId);
             let client = null;
@@ -170,7 +170,7 @@ export const remindersRouter = router({
       .mutation(async ({ ctx, input }) => {
         // Verificar que el recordatorio pertenece al usuario o es admin
         const reminders = await db.getRemindersByUserId(ctx.user.id);
-        const reminder = reminders.find(r => r.id === input.reminderId);
+        const reminder = reminders.find((r: any) => r.id === input.reminderId);
         
         if (!reminder && ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "comercial") {
           throw new TRPCError({ 
@@ -204,20 +204,20 @@ export const remindersRouter = router({
         const reminders = await db.getRemindersByUserId(ctx.user.id);
         const now = new Date();
         
-        const pending = reminders.filter(r => r.status === "pendiente" || r.status === "enviado");
-        const overdue = pending.filter(r => new Date(r.dueDate) <= now);
-        const upcoming = pending.filter(r => new Date(r.dueDate) > now);
+        const pending = reminders.filter((r: any) => r.status === "pendiente" || r.status === "enviado");
+        const overdue = pending.filter((r: any) => new Date(r.dueDate) <= now);
+        const upcoming = pending.filter((r: any) => new Date(r.dueDate) > now);
         
         return {
           total: pending.length,
           overdue: overdue.length,
           upcoming: upcoming.length,
           byType: {
-            cotizacion_sin_respuesta: pending.filter(r => r.type === "cotizacion_sin_respuesta").length,
-            diseno_pendiente: pending.filter(r => r.type === "diseno_pendiente").length,
-            aprobacion_pendiente: pending.filter(r => r.type === "aprobacion_pendiente").length,
-            produccion_retrasada: pending.filter(r => r.type === "produccion_retrasada").length,
-            instalacion_proxima: pending.filter(r => r.type === "instalacion_proxima").length,
+            cotizacion_sin_respuesta: pending.filter((r: any) => r.type === "cotizacion_sin_respuesta").length,
+            diseno_pendiente: pending.filter((r: any) => r.type === "diseno_pendiente").length,
+            aprobacion_pendiente: pending.filter((r: any) => r.type === "aprobacion_pendiente").length,
+            produccion_retrasada: pending.filter((r: any) => r.type === "produccion_retrasada").length,
+            instalacion_proxima: pending.filter((r: any) => r.type === "instalacion_proxima").length,
           },
         };
       }),

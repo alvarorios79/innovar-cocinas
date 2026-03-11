@@ -203,7 +203,7 @@ export function NotificationBell() {
     if (allSelected) {
       setSelectedIds(new Set());
     } else {
-      setSelectedIds(new Set(notifications.map(n => n.id)));
+      setSelectedIds(new Set(notifications.map((n: any) => n.id)));
     }
   };
 
@@ -309,7 +309,7 @@ export function NotificationBell() {
               </div>
             ) : (
               <div className="divide-y">
-                {notifications.map((notification) => (
+                {notifications.map((notification: any) => (
                   <div
                     key={notification.id}
                     className={cn(

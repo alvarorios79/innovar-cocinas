@@ -525,7 +525,7 @@ export const appointmentsRouter = router({
         const clientMap = new Map(allClients.map(c => [c.id, c]));
         return {
           ...result,
-          data: result.data.map(apt => ({ ...apt, client: clientMap.get(apt.clientId) })),
+          data: result.data.map((apt: any) => ({ ...apt, client: clientMap.get(apt.clientId) })),
         };
       }),
 
@@ -602,7 +602,7 @@ export const appointmentsRouter = router({
         const appointments = await db.getAppointmentsByDate(date);
         
         // Retornar solo las horas ocupadas (formato HH:mm)
-        return appointments.map(apt => {
+        return appointments.map((apt: any) => {
           if (!apt.scheduledDate) return null;
     // @ts-ignore
           const hours = apt.scheduledDate.getHours().toString().padStart(2, '0');

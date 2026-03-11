@@ -822,7 +822,7 @@ export default function Quotations() {
       
       const code = shapeToCode[value];
       if (code && allPricing) {
-        const pricingItem = allPricing.find(p => p.code === code);
+        const pricingItem = allPricing.find((p: any) => p.code === code);
         if (pricingItem && pricingItem.descriptionTemplate) {
           newItems[index].description = pricingItem.descriptionTemplate;
         }

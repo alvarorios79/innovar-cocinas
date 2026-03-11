@@ -104,7 +104,7 @@ export function HardwareSelector({ projectId, readOnly = false, showOnlySelected
     }
   };
 
-  const filteredCatalog = catalog?.filter(item => item.category === activeTab) || [];
+  const filteredCatalog = catalog?.filter((item: any) => item.category === activeTab) || [];
   const selectedCount = {
     cocinas: selections?.filter(s => s.hardware.category === "cocinas").length || 0,
     closets: selections?.filter(s => s.hardware.category === "closets").length || 0,
@@ -158,8 +158,8 @@ export function HardwareSelector({ projectId, readOnly = false, showOnlySelected
         {["cocinas", "closets", "puertas"].map((category) => {
           // Si showOnlySelected, filtrar solo los herrajes seleccionados
           const itemsToShow = showOnlySelected 
-            ? catalog?.filter(item => item.category === category && isSelected(item.id))
-            : catalog?.filter(item => item.category === category);
+            ? catalog?.filter((item: any) => item.category === category && isSelected(item.id))
+            : catalog?.filter((item: any) => item.category === category);
           
           return (
           <TabsContent key={category} value={category} className="mt-4">
@@ -169,7 +169,7 @@ export function HardwareSelector({ projectId, readOnly = false, showOnlySelected
               </div>
             ) : (
             <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4">
-              {itemsToShow?.map((hardware) => {
+              {itemsToShow?.map((hardware: any) => {
                 const selected = isSelected(hardware.id);
                 const selection = getSelection(hardware.id);
 

@@ -34,7 +34,7 @@ export const paymentsRouter = router({
         projectId: input.projectId,
         amount: input.amount.toString(),
         type: input.type,
-        receivedAt: input.receivedAt,
+        receivedAt: input.receivedAt instanceof Date ? input.receivedAt.toISOString().slice(0, 19).replace('T', ' ') : input.receivedAt,
         method: input.method || null,
         movementType: input.movementType || "payment",
         notes: input.notes || null,

@@ -1200,3 +1200,80 @@ export async function logAuditAction(action: string, details: any) {
   console.log("[Audit] Action:", action, "Details:", details);
   return { success: true };
 }
+
+
+export async function getAllQuotationsGroupedByBase(options?: { page?: number; limit?: number; status?: string; archived?: boolean }) {
+  const db = await getDb();
+  if (!db) return { quotations: [], total: 0 };
+
+  const page = options?.page || 1;
+  const limit = options?.limit || 50;
+  const offset = (page - 1) * limit;
+
+  // Obtener todas las cotizaciones con filtros
+  let whereConditions = and(isNull(quotations.deletedAt), eq(quotations.dataOrigin, 'manual'));
+  
+  if (options?.status) {
+    whereConditions = and(whereConditions, eq(quotations.status, options.status as any));
+  }
+
+  if (options?.archived !== undefined) {
+    whereConditions = and(whereConditions, eq(quotations.isArchived, options.archived ? 1 : 0));
+  }
+
+  // Obtener todas las cotizaciones ordenadas por número y fecha
+  const allQuotations = await db.select().from(quotations)
+    .where(whereConditions)
+    .orderBy(desc(quotations.quotationNumber), desc(quotations.createdAt));
+
+  // Agrupar por número base (sin versión) y obtener la más reciente
+  const groupedMap = new Map<string, any>();
+  
+  for (const quot of allQuotations) {
+    const baseNumber = quot.quotationNumber.split('-')[0]; // Obtener número base
+    if (!groupedMap.has(baseNumber)) {
+      groupedMap.set(baseNumber, quot);
+    }
+  }
+
+  const grouped = Array.from(groupedMap.values());
+  const total = grouped.length;
+  
+  // Aplicar paginación
+  const paginatedQuotations = grouped.slice(offset, offset + limit);
+
+  return { quotations: paginatedQuotations, total };
+}
+
+
+export async function getUnreadNotificationsCount(userId: number): Promise<number> {
+  const db = await getDb();
+  if (!db) return 0;
+
+  const result = await db.select({ count: sql<number>`COUNT(*)` })
+    .from(notifications)
+    .where(and(
+      eq(notifications.userId, userId),
+      eq(notifications.isRead, 0),
+      isNull(notifications.deletedAt)
+    ));
+
+  return result[0]?.count || 0;
+}
+
+export async function getAllTasks(options?: { status?: string }): Promise<any[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  let whereConditions = and(isNull(tasks.deletedAt), eq(tasks.dataOrigin, 'manual'));
+
+  if (options?.status) {
+    whereConditions = and(whereConditions, eq(tasks.status, options.status as any));
+  }
+
+  const tasksList = await db.select().from(tasks)
+    .where(whereConditions)
+    .orderBy(desc(tasks.createdAt));
+
+  return tasksList ?? [];
+}

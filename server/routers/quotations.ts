@@ -284,9 +284,11 @@ export const quotationsRouter = router({
         if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "comercial") {
           throw new TRPCError({ code: "FORBIDDEN" });
         }
+        const page = input?.page || 1;
+        const limit = input?.limit || 50;
         const result = await db.getAllQuotationsGroupedByBase({
-          page: input?.page,
-          limit: input?.limit,
+          page,
+          limit,
           status: input?.status,
           archived: input?.archived,
         });
@@ -297,13 +299,13 @@ export const quotationsRouter = router({
         const clientMap = new Map(allClients.map(c => [c.id, c]));
         const projectMap = new Map(allProjects.filter(p => p.quotationId).map(p => [p.quotationId, p.id]));
         return {
-          ...result,
-          data: result.data.map((group: any) => ({
+          data: result.quotations.map((group: any) => ({
             ...group,
             client: clientMap.get(group.clientId),
-            activeVersion: { ...group.activeVersion, projectId: projectMap.get(group.activeVersion.id) || null },
-            versions: group.versions.map((v: any) => ({ ...v, projectId: projectMap.get(v.id) || null })),
           })),
+          total: result.total,
+          page,
+          limit,
         };
       }),
 

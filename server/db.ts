@@ -1227,25 +1227,13 @@ export async function getAllQuotationsGroupedByBase(options?: { page?: number; l
   const allQuotations = await db.select().from(quotations)
     .where(whereConditions)
     .orderBy(desc(quotations.quotationNumber), desc(quotations.createdAt));
-  
-  console.log("[getAllQuotationsGroupedByBase] allQuotations.length:", allQuotations.length);
-  if (allQuotations.length > 0) {
-    console.log("[getAllQuotationsGroupedByBase] primeras 3 cotizaciones:", allQuotations.slice(0, 3).map(q => ({ id: q.id, number: q.quotationNumber })));
-  }
 
   // Agrupar por número base y construir estructura esperada por el frontend
   const groupedMap = new Map<string, any>();
   
-  let logCounter = 0;
   for (const quot of allQuotations) {
     // Obtener número base eliminando solo la parte de versión "-v{n}" si existe
     const baseNumber = quot.quotationNumber?.replace(/-v\d+$/, '') ?? `unknown-${quot.id}`;
-    
-    // Log de diagnóstico para las primeras 5 cotizaciones
-    if (logCounter < 5) {
-      console.log(`[getAllQuotationsGroupedByBase] quot #${logCounter}: quotationNumber="${quot.quotationNumber}", baseNumber="${baseNumber}"`);
-      logCounter++;
-    }
     
     if (baseNumber && !groupedMap.has(baseNumber)) {
       // Primera vez que vemos este número base - esta es la versión más reciente
@@ -1268,8 +1256,6 @@ export async function getAllQuotationsGroupedByBase(options?: { page?: number; l
       }
     }
   }
-  
-  console.log("[getAllQuotationsGroupedByBase] groupedMap.size:", groupedMap.size);
 
   // Convertir a array y validar estructura
   const grouped = Array.from(groupedMap.values()).map(group => ({
@@ -1283,16 +1269,12 @@ export async function getAllQuotationsGroupedByBase(options?: { page?: number; l
   }));
 
   const total = grouped.length;
-  console.log("[getAllQuotationsGroupedByBase] grouped.length:", grouped.length);
-  console.log("[getAllQuotationsGroupedByBase] primeros 3 grupos:", grouped.slice(0, 3).map(g => ({ number: g.quotationNumber, versions: g.versions.length })));
   
   // Aplicar paginación DESPUÉS de agrupar
   const page = options?.page || 1;
   const limit = options?.limit || 50;
   const offset = (page - 1) * limit;
   const paginatedQuotations = grouped.slice(offset, offset + limit);
-  
-  console.log("[getAllQuotationsGroupedByBase] PAGINACION:", { page, limit, offset, totalGroups: grouped.length, paginatedCount: paginatedQuotations.length });
 
   const groupedQuotations = paginatedQuotations ?? [];
   return { quotations: groupedQuotations, total };

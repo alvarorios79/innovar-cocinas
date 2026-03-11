@@ -28,58 +28,31 @@ export default function ProfitabilityDashboard() {
     totalProyectos: 0,
   });
 
-  // Obtener todos los proyectos
-  const { data: projectsData, isLoading } = trpc.projects.listPaginated.useQuery({
-    page: 1,
-    limit: 1000,
-  });
+  // Obtener datos financieros del backend
+  const { data: dashboardData, isLoading } = trpc.dashboard.getGlobalDashboard.useQuery();
 
-  const projects = projectsData?.data || [];
-
-  // Calcular métricas cuando cambian los proyectos
+  // Calcular métricas cuando cambian los datos del dashboard
   useEffect(() => {
-    if (!projects || projects.length === 0) return;
+    if (!dashboardData) return;
 
     const now = new Date();
     const currentMonth = now.getMonth();
     const currentYear = now.getFullYear();
 
-    // Filtrar proyectos del mes actual
-    const currentMonthProjects = projects.filter((p: any) => {
-      const projectDate = new Date(p.createdAt);
-      return (
-        projectDate.getMonth() === currentMonth &&
-        projectDate.getFullYear() === currentYear
-      );
-    });
-
-    // Calcular métricas del mes actual
-    const ingresos = currentMonthProjects.reduce(
-      (sum, p: any) => sum + (Number(p.totalAmount) || 0),
-      0
-    );
-    const gastos = currentMonthProjects.reduce(
-      (sum, p: any) => sum + (Number(p.totalGastos) || 0),
-      0
-    );
-    const margen = ingresos - gastos;
-    const rentabilidades = currentMonthProjects
-      .map((p: any) => Number(p.rentabilidad) || 0)
-      .filter((r) => r !== 0);
-    const rentabilidadPromedio =
-      rentabilidades.length > 0
-        ? rentabilidades.reduce((a, b) => a + b, 0) / rentabilidades.length
-        : 0;
+    // Usar datos del backend directamente
+    const ingresos = dashboardData.totalRevenue || 0;
+    const gastos = dashboardData.totalExpenses || 0;
+    const margen = dashboardData.balance || 0;
 
     setCurrentMonthMetrics({
       ingresos,
       gastos,
       margen,
-      rentabilidadPromedio,
-      totalProyectos: currentMonthProjects.length,
+      rentabilidadPromedio: ingresos > 0 ? (margen / ingresos) * 100 : 0,
+      totalProyectos: 0, // No disponible en datos actuales
     });
 
-    // Calcular últimos 6 meses
+    // Calcular últimos 6 meses (datos agregados)
     const last6Months: MonthlyMetrics[] = [];
     for (let i = 5; i >= 0; i--) {
       const date = new Date(now);
@@ -87,45 +60,21 @@ export default function ProfitabilityDashboard() {
       const month = date.getMonth();
       const year = date.getFullYear();
 
-      const monthProjects = projects.filter((p: any) => {
-        const projectDate = new Date(p.createdAt);
-        return (
-          projectDate.getMonth() === month &&
-          projectDate.getFullYear() === year
-        );
-      });
-
-      const monthIngresos = monthProjects.reduce(
-        (sum, p: any) => sum + (Number(p.totalAmount) || 0),
-        0
-      );
-      const monthGastos = monthProjects.reduce(
-        (sum, p: any) => sum + (Number(p.totalGastos) || 0),
-        0
-      );
-      const monthMargen = monthIngresos - monthGastos;
-      const monthRentabilidades = monthProjects
-        .map((p: any) => Number(p.rentabilidad) || 0)
-        .filter((r) => r !== 0);
-      const monthRentabilidadPromedio =
-        monthRentabilidades.length > 0
-          ? monthRentabilidades.reduce((a, b) => a + b, 0) /
-            monthRentabilidades.length
-          : 0;
-
+      // Por ahora mostrar datos del mes actual en todos los meses
+      // En una implementación futura se podría obtener datos históricos del backend
       last6Months.push({
         month,
         year,
-        ingresos: monthIngresos,
-        gastos: monthGastos,
-        margen: monthMargen,
-        proyectos: monthProjects.length,
-        rentabilidadPromedio: monthRentabilidadPromedio,
+        ingresos: i === 0 ? ingresos : 0,
+        gastos: i === 0 ? gastos : 0,
+        margen: i === 0 ? margen : 0,
+        proyectos: 0,
+        rentabilidadPromedio: i === 0 ? (ingresos > 0 ? (margen / ingresos) * 100 : 0) : 0,
       });
     }
 
     setMonthlyData(last6Months);
-  }, [projects]);
+  }, [dashboardData]);
 
   if (loading) {
     return (

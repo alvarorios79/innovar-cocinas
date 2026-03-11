@@ -59,7 +59,7 @@ export const paymentsRouter = router({
         });
       }
 
-      return await db.getPaymentsByProjectId(input.projectId);
+      return await db.getPaymentsByProject(input.projectId);
     }),
 
   /**

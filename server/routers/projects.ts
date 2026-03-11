@@ -204,7 +204,7 @@ export const projectsRouter = router({
           db.getAppointmentsByClient(project.clientId),
           Promise.resolve([]),
           Promise.resolve(0),
-          Promise.resolve(0),
+          db.calculateProjectBalance(input.id),
         ]);
         const totalPaid = totalPaidFromPayments || (payments.reduce((sum: number, p: any) => sum + Number(p.amount), 0));
         
@@ -363,32 +363,38 @@ export const projectsRouter = router({
           payments,
           clientRevisions,
           financialInfo: {
-            // Base project amount
-            totalAmount: projectBalance?.totalProject || 0,
+            // Mapeo directo desde calculateProjectBalance
+            totalAmount: projectBalance?.totalAmount || 0,
+            totalCobrado: projectBalance?.totalCobrado || 0,
+            totalPaid: projectBalance?.totalCobrado || 0,
+            totalDiscounts: projectBalance?.totalDiscounts || 0,
+            totalSurcharges: projectBalance?.totalSurcharges || 0,
+            balance: projectBalance?.dynamicBalance || 0,
+            dynamicBalance: projectBalance?.dynamicBalance || 0,
             
-            // Financial movements (EXCLUSIVELY from movements table)
-            totalCobrado: projectBalance?.payments || 0,           // Total collected (payments only)
-            totalPaid: projectBalance?.payments || 0,              // Same as totalCobrado
-            totalDiscounts: projectBalance?.discounts || 0,        // Total discounts applied
-            totalSurcharges: projectBalance?.surcharges || 0,      // Total surcharges applied
+            // Calculated fields for UI
+            adjustedTotal: (projectBalance?.totalAmount || 0) + (projectBalance?.totalSurcharges || 0) - (projectBalance?.totalDiscounts || 0),
+            advanceAmount: projectBalance?.totalCobrado || 0,
+            actualPaid: projectBalance?.totalCobrado || 0,
+            remainingAmount: projectBalance?.dynamicBalance || 0,
             
-            // Calculated values based on movements
-            adjustedTotal: projectBalance?.adjustedTotal || 0,     // Base + Surcharges - Discounts
-            balance: projectBalance?.balance || 0,                 // Adjusted Total - Payments (remaining to collect)
-            dynamicBalance: projectBalance?.balance || 0,          // Same as balance (for compatibility)
+            // Percentages
+            advancePercentage: ((projectBalance?.totalAmount || 0) + (projectBalance?.totalSurcharges || 0) - (projectBalance?.totalDiscounts || 0)) > 0
+              ? Math.round(((projectBalance?.totalCobrado || 0) / ((projectBalance?.totalAmount || 0) + (projectBalance?.totalSurcharges || 0) - (projectBalance?.totalDiscounts || 0))) * 100)
+              : 0,
+            remainingPercentage: ((projectBalance?.totalAmount || 0) + (projectBalance?.totalSurcharges || 0) - (projectBalance?.totalDiscounts || 0)) > 0
+              ? Math.round(((projectBalance?.dynamicBalance || 0) / ((projectBalance?.totalAmount || 0) + (projectBalance?.totalSurcharges || 0) - (projectBalance?.totalDiscounts || 0))) * 100)
+              : 0,
+            paymentProgress: ((projectBalance?.totalAmount || 0) + (projectBalance?.totalSurcharges || 0) - (projectBalance?.totalDiscounts || 0)) > 0
+              ? Math.round(((projectBalance?.totalCobrado || 0) / ((projectBalance?.totalAmount || 0) + (projectBalance?.totalSurcharges || 0) - (projectBalance?.totalDiscounts || 0))) * 100)
+              : 0,
             
-            // Percentages based on adjusted total
-            advanceAmount: projectBalance?.payments || 0,
-            advancePercentage: (projectBalance?.adjustedTotal || 0) > 0 ? Math.round(((projectBalance?.payments || 0) / (projectBalance?.adjustedTotal || 0)) * 100) : 0,
-            actualPaid: projectBalance?.payments || 0,
-            remainingAmount: projectBalance?.balance || 0,
-            remainingPercentage: (projectBalance?.adjustedTotal || 0) > 0 ? Math.round(((projectBalance?.balance || 0) / (projectBalance?.adjustedTotal || 0)) * 100) : 0,
-            isPaid: (projectBalance?.balance || 0) <= 0,
-            paymentProgress: (projectBalance?.adjustedTotal || 0) > 0 ? Math.round(((projectBalance?.payments || 0) / (projectBalance?.adjustedTotal || 0)) * 100) : 0,
+            // Status
+            isPaid: (projectBalance?.dynamicBalance || 0) <= 0,
             
             // Additional info for UI
-            totalProjectAmount: projectBalance?.totalProject || 0,
-            totalPayments: projectBalance?.payments || 0,
+            totalProjectAmount: projectBalance?.totalAmount || 0,
+            totalPayments: projectBalance?.totalCobrado || 0,
           }
         };
         

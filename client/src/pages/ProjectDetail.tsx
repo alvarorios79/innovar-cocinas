@@ -138,7 +138,12 @@ export default function ProjectDetail() {
 
   const { data: projectDetail, isLoading, error } = trpc.projects.getById.useQuery(
     { id: projectId },
-    { enabled: !!projectId }
+    {
+      enabled: !!projectId,
+      staleTime: 0,
+      refetchOnMount: true,
+      refetchOnWindowFocus: true,
+    }
   );
 
   const uploadPhoto = trpc.projectPhotos.upload.useMutation({

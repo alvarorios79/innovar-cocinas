@@ -56,12 +56,13 @@ export function ClientMaterialsView({ projectId }: ClientMaterialsViewProps) {
   }
 
   // Group hardware by category
-  const hardwareByCategory = selections?.reduce((acc, selection) => {
+  type SelectionItem = NonNullable<typeof selections>[number];
+  const hardwareByCategory = selections?.reduce((acc: Record<string, SelectionItem[]>, selection: SelectionItem) => {
     const category = selection.hardware.category;
     if (!acc[category]) acc[category] = [];
     acc[category].push(selection);
     return acc;
-  }, {} as Record<string, typeof selections>);
+  }, {} as Record<string, SelectionItem[]>);
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -163,7 +164,7 @@ export function ClientMaterialsView({ projectId }: ClientMaterialsViewProps) {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            {Object.entries(hardwareByCategory || {}).map(([category, items]) => (
+            {(Object.entries(hardwareByCategory || {}) as [string, SelectionItem[]][]).map(([category, items]) => (
               <div key={category} className="space-y-3">
                 <h4 className="font-medium flex items-center gap-2 text-sm text-muted-foreground">
                   {getCategoryIcon(category)}

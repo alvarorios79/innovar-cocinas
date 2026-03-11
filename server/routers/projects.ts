@@ -1850,7 +1850,8 @@ export const projectMaterialsRouter = router({
     get: protectedProcedure
       .input(z.object({ projectId: z.number() }))
       .query(async ({ input }) => {
-        return await db.getProjectMaterials(input.projectId);
+        const results = await db.getProjectMaterials(input.projectId);
+        return results.length > 0 ? results[0] : null;
       }),
 
     uploadPhoto: protectedProcedure

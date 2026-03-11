@@ -5,40 +5,12 @@
 
 /**
  * FinancialMetrics Interface - Datos financieros reales del sistema
- * Basado en: payments, expenses, projects
+ * Basado en: getGlobalFinancialDashboard() que devuelve { totalRevenue, totalExpenses, balance }
  */
 export interface FinancialMetrics {
-  // Ingresos
-  totalIngresos: number;           // SUM(payments.amount) WHERE movementType = 'payment'
-  totalPagosRecibidos: number;     // Alias para totalIngresos
-  
-  // Gastos
-  totalGastosProyectos: number;    // SUM(expenses.amount) WHERE expenseType = 'materiales_proyecto'
-  totalGastosOperativos: number;   // SUM(expenses.amount) WHERE expenseType = 'gasto_operativo'
-  
-  // Cálculos derivados
-  margenGlobal: number;            // totalIngresos - (totalGastosProyectos + totalGastosOperativos)
-  rentabilidadPromedio: number;    // (margenGlobal / totalIngresos) * 100
-  
-  // Cartera
-  proyectosEnRiesgo: number;       // Proyectos con saldo vencido
-  proyectosConSaldoVencido: number; // Alias para proyectosEnRiesgo
-  totalProyectos: number;          // COUNT(projects) WHERE deletedAt IS NULL
-  
-  // Ratios
-  outstandingRatio: number;        // (totalVendido - totalIngresos) / totalVendido * 100
-  collectionRate: number;          // (totalIngresos / totalVendido) * 100
-  
-  // Alertas
-  deliveredWithOutstanding: number; // COUNT(projects) WHERE status = 'entregado' AND saldoPendiente > 0
-  lowProfitProjectsCount: number;   // COUNT(projects) WHERE rentabilidad < 15%
-  
-  alerts: {
-    highOutstanding: boolean;
-    lowCollectionRate: boolean;
-    deliveredWithOutstanding: boolean;
-    lowProfitProjectsCount: boolean;
-  };
+  totalRevenue: number;    // SUM(payments.amount) WHERE movementType = 'payment'
+  totalExpenses: number;   // SUM(expenses.amount)
+  balance: number;         // totalRevenue - totalExpenses
 }
 
 /**
@@ -64,13 +36,16 @@ export function formatPercentage(percentage: number): string {
  * Generate WhatsApp message for deliveredWithOutstanding alert
  */
 export function generateDeliveredWithOutstandingMessage(metrics: FinancialMetrics): string {
-  const totalOutstandingBalance = metrics.totalIngresos - metrics.totalPagosRecibidos;
+  const outstandingRatio = metrics.totalRevenue > 0
+    ? ((metrics.totalRevenue - metrics.balance) / metrics.totalRevenue * 100)
+    : 0;
   return `⚠ ALERTA FINANCIERA – INNOVAR
 
-Cartera pendiente: ${formatCurrency(totalOutstandingBalance)}
-Representa: ${formatPercentage(metrics.outstandingRatio)}%
+Cartera pendiente: ${formatCurrency(metrics.totalRevenue - metrics.balance)}
+Representa: ${formatPercentage(outstandingRatio)} del total facturado
 
-Proyectos entregados con saldo: ${metrics.deliveredWithOutstanding}
+Ingresos recibidos: ${formatCurrency(metrics.totalRevenue)}
+Gastos totales: ${formatCurrency(metrics.totalExpenses)}
 
 Revise el Panel CEO.`;
 }
@@ -79,12 +54,16 @@ Revise el Panel CEO.`;
  * Generate WhatsApp message for lowCollectionRate alert
  */
 export function generateLowCollectionRateMessage(metrics: FinancialMetrics): string {
+  const collectionRate = metrics.totalRevenue > 0
+    ? (metrics.balance / metrics.totalRevenue * 100)
+    : 0;
   return `⚠ ALERTA FINANCIERA – INNOVAR
 
-Tasa de cobranza actual: ${formatPercentage(metrics.collectionRate)}%
+Margen neto actual: ${formatPercentage(collectionRate)}
 
-Total facturado: ${formatCurrency(metrics.totalIngresos)}
-Total cobrado: ${formatCurrency(metrics.totalPagosRecibidos)}
+Total ingresos: ${formatCurrency(metrics.totalRevenue)}
+Total gastos: ${formatCurrency(metrics.totalExpenses)}
+Balance: ${formatCurrency(metrics.balance)}
 
 Revise el Panel CEO.`;
 }
@@ -103,13 +82,21 @@ export function determineActiveAlerts(
   deliveredWithOutstanding: boolean;
   lowCollectionRate: boolean;
 } {
-  // Use provided thresholds or defaults
-  const outstandingThreshold = thresholds?.outstandingThresholdPercent ?? 40;
   const collectionThreshold = thresholds?.collectionThresholdPercent ?? 70;
 
+  // Tasa de margen: balance / totalRevenue * 100
+  const marginRate = metrics.totalRevenue > 0
+    ? (metrics.balance / metrics.totalRevenue * 100)
+    : 0;
+
+  // Ratio de cartera pendiente: (ingresos - gastos - balance) / ingresos
+  const outstandingRatio = metrics.totalRevenue > 0
+    ? ((metrics.totalRevenue - metrics.balance) / metrics.totalRevenue * 100)
+    : 0;
+
   return {
-    deliveredWithOutstanding: metrics.deliveredWithOutstanding > 0,
-    lowCollectionRate: metrics.collectionRate < collectionThreshold,
+    deliveredWithOutstanding: outstandingRatio > (thresholds?.outstandingThresholdPercent ?? 40),
+    lowCollectionRate: marginRate < collectionThreshold,
   };
 }
 

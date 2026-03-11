@@ -50,7 +50,6 @@ import {
   clientRevisionHistory,
   InsertClientRevisionHistory,
   financialAlerts,
-  InsertFinancialAlert,
   financialSettings,
   InsertFinancialSettings,
   auditLogs,
@@ -1498,4 +1497,48 @@ export async function getUsersByRole(role: string) {
       eq(users.role, role as any)
     ))
     .orderBy(desc(users.createdAt));
+}
+
+// ============ FINANCIAL ALERTS ============
+
+/**
+ * Obtiene una alerta financiera por su tipo.
+ */
+export async function getFinancialAlertByType(alertType: 'deliveredWithOutstanding' | 'lowCollectionRate') {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db.select().from(financialAlerts)
+    .where(eq(financialAlerts.alertType, alertType))
+    .limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+/**
+ * Actualiza o crea una alerta financiera por su tipo.
+ */
+export async function updateFinancialAlert(
+  alertType: 'deliveredWithOutstanding' | 'lowCollectionRate',
+  data: {
+    isActive?: number;
+    lastTriggeredAt?: string;
+    lastMessageSentAt?: string;
+  }
+) {
+  const db = await getDb();
+  if (!db) return;
+
+  const existing = await getFinancialAlertByType(alertType);
+  if (existing) {
+    await db.update(financialAlerts)
+      .set(data)
+      .where(eq(financialAlerts.alertType, alertType));
+  } else {
+    await db.insert(financialAlerts).values({
+      alertType,
+      isActive: data.isActive ?? 0,
+      lastTriggeredAt: data.lastTriggeredAt,
+      lastMessageSentAt: data.lastMessageSentAt,
+    });
+  }
 }

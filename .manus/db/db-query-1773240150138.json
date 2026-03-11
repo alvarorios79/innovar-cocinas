@@ -1,0 +1,80 @@
+{
+  "query": "SELECT id, name, clientId, status, createdAt FROM projects WHERE deletedAt IS NULL ORDER BY id LIMIT 10;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT id, name, clientId, status, createdAt FROM projects WHERE deletedAt IS NULL ORDER BY id LIMIT 10;",
+  "rows": [
+    {
+      "id": "2130105",
+      "name": "COT-2026-1772833387888-6786153 - Sras. Maria Clara & Ana milena",
+      "clientId": "2490001",
+      "status": "entregado",
+      "createdAt": "2026-03-06 23:46:40"
+    },
+    {
+      "id": "2130106",
+      "name": "COT-2026-1772833387889-1121614 - Sras. Maria Clara & Ana milena",
+      "clientId": "2490001",
+      "status": "corte",
+      "createdAt": "2026-03-06 23:50:20"
+    },
+    {
+      "id": "2130107",
+      "name": "COT-2026-1772833387890-1825427 - Diana Ortiz",
+      "clientId": "2460001",
+      "status": "listo_instalacion",
+      "createdAt": "2026-03-06 23:53:10"
+    },
+    {
+      "id": "2130108",
+      "name": "COT-2026-1772833387891-2667628 - Felipe Quintero",
+      "clientId": "2490002",
+      "status": "entregado",
+      "createdAt": "2026-03-06 23:56:59"
+    },
+    {
+      "id": "2130109",
+      "name": "COT-2026-1772833387892-4673628 - Ruth Naranjo",
+      "clientId": "720001",
+      "status": "entregado",
+      "createdAt": "2026-03-07 00:01:42"
+    },
+    {
+      "id": "2130110",
+      "name": "COT-2026-1772833387893-4870273 - Henry Morales",
+      "clientId": "1590001",
+      "status": "entregado",
+      "createdAt": "2026-03-07 00:04:12"
+    },
+    {
+      "id": "2130111",
+      "name": "COT-2026-1772833387894-8915020 - Orlando Primacho",
+      "clientId": "810001",
+      "status": "entregado",
+      "createdAt": "2026-03-07 00:11:36"
+    },
+    {
+      "id": "2130112",
+      "name": "COT-2026-1772833387895-6830938 - Beatriz Paris",
+      "clientId": "1680002",
+      "status": "entregado",
+      "createdAt": "2026-03-07 00:17:43"
+    },
+    {
+      "id": "2130113",
+      "name": "COT-2026-1772833387896-9276683 - Sr. Harold",
+      "clientId": "2520001",
+      "status": "despiece",
+      "createdAt": "2026-03-07 00:24:16"
+    },
+    {
+      "id": "2130114",
+      "name": "COT-2026-1772833387897-0178652 - Oscar Urriago",
+      "clientId": "1680001",
+      "status": "despiece",
+      "createdAt": "2026-03-07 00:37:05"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\tclientId\tstatus\tcreatedAt\n2130105\tCOT-2026-1772833387888-6786153 - Sras. Maria Clara & Ana milena\t2490001\tentregado\t2026-03-06 23:46:40\n2130106\tCOT-2026-1772833387889-1121614 - Sras. Maria Clara & Ana milena\t2490001\tcorte\t2026-03-06 23:50:20\n2130107\tCOT-2026-1772833387890-1825427 - Diana Ortiz\t2460001\tlisto_instalacion\t2026-03-06 23:53:10\n2130108\tCOT-2026-1772833387891-2667628 - Felipe Quintero\t2490002\tentregado\t2026-03-06 23:56:59\n2130109\tCOT-2026-1772833387892-4673628 - Ruth Naranjo\t720001\tentregado\t2026-03-07 00:01:42\n2130110\tCOT-2026-1772833387893-4870273 - Henry Morales\t1590001\tentregado\t2026-03-07 00:04:12\n2130111\tCOT-2026-1772833387894-8915020 - Orlando Primacho\t810001\tentregado\t2026-03-07 00:11:36\n2130112\tCOT-2026-1772833387895-6830938 - Beatriz Paris\t1680002\tentregado\t2026-03-07 00:17:43\n2130113\tCOT-2026-1772833387896-9276683 - Sr. Harold\t2520001\tdespiece\t2026-03-07 00:24:16\n2130114\tCOT-2026-1772833387897-0178652 - Oscar Urriago\t1680001\tdespiece\t2026-03-07 00:37:05\n",
+  "stderr": "",
+  "execution_time_ms": 129
+}

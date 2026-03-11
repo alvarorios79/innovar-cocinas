@@ -136,9 +136,9 @@ export default function ProjectDetail() {
   // Diálogo para enviar directo a taller (saltar diseño)
   const [showDirectToWorkshopDialog, setShowDirectToWorkshopDialog] = useState(false);
 
-  const { data: projectDetail, isLoading } = trpc.projects.getById.useQuery(
+  const { data: projectDetail, isLoading, error } = trpc.projects.getById.useQuery(
     { id: projectId },
-    { enabled: projectId > 0 }
+    { enabled: !!projectId }
   );
 
   const uploadPhoto = trpc.projectPhotos.upload.useMutation({
@@ -515,6 +515,8 @@ export default function ProjectDetail() {
         
         <div className="container py-8">
           <p>Proyecto no encontrado.</p>
+          {error && <p className="text-red-500 mt-2">Error: {error.message}</p>}
+          <p className="text-sm text-gray-500 mt-2">ID: {projectId} | Loading: {isLoading}</p>
           <Button onClick={() => window.history.back()} className="mt-4">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Volver a Proyectos

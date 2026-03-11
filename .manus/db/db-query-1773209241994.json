@@ -1,0 +1,17 @@
+{
+  "query": "SELECT id, name, status, dataOrigin, deletedAt FROM projects WHERE id = 2130117",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT id, name, status, dataOrigin, deletedAt FROM projects WHERE id = 2130117",
+  "rows": [
+    {
+      "id": "2130117",
+      "name": "COT-2026-1772833387900-2643089 - Carolina Diaz",
+      "status": "despiece",
+      "dataOrigin": "manual",
+      "deletedAt": "NULL"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\tstatus\tdataOrigin\tdeletedAt\n2130117\tCOT-2026-1772833387900-2643089 - Carolina Diaz\tdespiece\tmanual\tNULL\n",
+  "stderr": "",
+  "execution_time_ms": 57
+}

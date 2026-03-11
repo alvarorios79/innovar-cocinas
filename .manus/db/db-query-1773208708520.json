@@ -1,0 +1,75 @@
+{
+  "query": "SELECT id, name, dataOrigin FROM projects WHERE deletedAt IS NULL LIMIT 20",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT id, name, dataOrigin FROM projects WHERE deletedAt IS NULL LIMIT 20",
+  "rows": [
+    {
+      "id": "2130105",
+      "name": "COT-2026-1772833387888-6786153 - Sras. Maria Clara & Ana milena",
+      "dataOrigin": "manual"
+    },
+    {
+      "id": "2130106",
+      "name": "COT-2026-1772833387889-1121614 - Sras. Maria Clara & Ana milena",
+      "dataOrigin": "manual"
+    },
+    {
+      "id": "2130107",
+      "name": "COT-2026-1772833387890-1825427 - Diana Ortiz",
+      "dataOrigin": "manual"
+    },
+    {
+      "id": "2130108",
+      "name": "COT-2026-1772833387891-2667628 - Felipe Quintero",
+      "dataOrigin": "manual"
+    },
+    {
+      "id": "2130109",
+      "name": "COT-2026-1772833387892-4673628 - Ruth Naranjo",
+      "dataOrigin": "manual"
+    },
+    {
+      "id": "2130110",
+      "name": "COT-2026-1772833387893-4870273 - Henry Morales",
+      "dataOrigin": "manual"
+    },
+    {
+      "id": "2130111",
+      "name": "COT-2026-1772833387894-8915020 - Orlando Primacho",
+      "dataOrigin": "manual"
+    },
+    {
+      "id": "2130112",
+      "name": "COT-2026-1772833387895-6830938 - Beatriz Paris",
+      "dataOrigin": "manual"
+    },
+    {
+      "id": "2130113",
+      "name": "COT-2026-1772833387896-9276683 - Sr. Harold",
+      "dataOrigin": "manual"
+    },
+    {
+      "id": "2130114",
+      "name": "COT-2026-1772833387897-0178652 - Oscar Urriago",
+      "dataOrigin": "manual"
+    },
+    {
+      "id": "2130115",
+      "name": "COT-2026-1772833387898-7036206 - Alfredo Bolaños",
+      "dataOrigin": "manual"
+    },
+    {
+      "id": "2130116",
+      "name": "COT-2026-1772833387899-2437183 - Juan Pablo González",
+      "dataOrigin": "manual"
+    },
+    {
+      "id": "2130117",
+      "name": "COT-2026-1772833387900-2643089 - Carolina Diaz",
+      "dataOrigin": "manual"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\tdataOrigin\n2130105\tCOT-2026-1772833387888-6786153 - Sras. Maria Clara & Ana milena\tmanual\n2130106\tCOT-2026-1772833387889-1121614 - Sras. Maria Clara & Ana milena\tmanual\n2130107\tCOT-2026-1772833387890-1825427 - Diana Ortiz\tmanual\n2130108\tCOT-2026-1772833387891-2667628 - Felipe Quintero\tmanual\n2130109\tCOT-2026-1772833387892-4673628 - Ruth Naranjo\tmanual\n2130110\tCOT-2026-1772833387893-4870273 - Henry Morales\tmanual\n2130111\tCOT-2026-1772833387894-8915020 - Orlando Primacho\tmanual\n2130112\tCOT-2026-1772833387895-6830938 - Beatriz Paris\tmanual\n2130113\tCOT-2026-1772833387896-9276683 - Sr. Harold\tmanual\n2130114\tCOT-2026-1772833387897-0178652 - Oscar Urriago\tmanual\n2130115\tCOT-2026-1772833387898-7036206 - Alfredo Bolaños\tmanual\n2130116\tCOT-2026-1772833387899-2437183 - Juan Pablo González\tmanual\n2130117\tCOT-2026-1772833387900-2643089 - Carolina Diaz\tmanual\n",
+  "stderr": "",
+  "execution_time_ms": 129
+}

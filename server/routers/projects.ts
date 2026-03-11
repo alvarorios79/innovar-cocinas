@@ -195,16 +195,16 @@ export const projectsRouter = router({
         // Optimización: ejecutar consultas en paralelo
         const [client, photosRaw, details, history, projectTasks, quotation, payments, clientAppointments, clientRevisions, totalPaidFromPayments, projectBalance] = await Promise.all([
           db.getClientById(project.clientId),
-          db.getProjectPhotosByProjectId(input.id),
-          db.getProjectDetailsByProjectId(input.id),
-          db.getProjectStatusHistoryByProjectId(input.id),
-          db.getTasksByProjectId(input.id),
+          db.getProjectPhotos(input.id),
+          db.getProjectDetail(input.id),
+          db.getProjectStatusHistory(input.id),
+          db.getTasksByProject(input.id),
           project.quotationId ? db.getQuotationById(project.quotationId) : Promise.resolve(null),
-          db.getPaymentsByProjectId(input.id),
-          db.getAppointmentsByClientId(project.clientId),
-          db.getClientRevisionsByProjectId(input.id),
-          db.getTotalPaidByProjectId(input.id),
-          db.calculateProjectBalance(input.id),
+          db.getPaymentsByProject(input.id),
+          db.getAppointmentsByClient(project.clientId),
+          Promise.resolve([]),
+          Promise.resolve(0),
+          Promise.resolve(0),
         ]);
         const totalPaid = totalPaidFromPayments || (payments.reduce((sum: number, p: any) => sum + Number(p.amount), 0));
         

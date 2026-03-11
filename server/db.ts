@@ -486,7 +486,11 @@ export async function getProjectById(id: number) {
   if (!db) return undefined;
 
   console.log("[DEBUG db.getProjectById] Buscando proyecto con ID:", id);
-  const result = await db.select().from(projects).where(and(eq(projects.id, id), isNull(projects.deletedAt), eq(projects.dataOrigin, 'manual'))).limit(1);
+  const result = await db.select().from(projects).where(and(
+    eq(projects.id, id), 
+    isNull(projects.deletedAt), 
+    or(eq(projects.dataOrigin, 'manual'), isNull(projects.dataOrigin))
+  )).limit(1);
   console.log("[DEBUG db.getProjectById] Resultado:", result.length > 0 ? `Encontrado ${result[0].id}` : "No encontrado");
   if (result.length > 0) {
     console.log("[DEBUG db.getProjectById] dataOrigin:", result[0].dataOrigin, "deletedAt:", result[0].deletedAt);

@@ -1206,23 +1206,15 @@ export async function getAllQuotationsGroupedByBase(options?: { page?: number; l
   const db = await getDb();
   if (!db) return { quotations: [], total: 0 };
 
-  // Obtener todas las cotizaciones con filtros
+  // Obtener todas las cotizaciones con filtros (SIN filtrar por isArchived aún)
   let whereConditions = and(isNull(quotations.deletedAt), eq(quotations.dataOrigin, 'manual'));
   
   if (options?.status) {
     whereConditions = and(whereConditions, eq(quotations.status, options.status as any));
   }
 
-  // Filtrar por isArchived según el parámetro archived
-  // archived === true (pestaña Archivadas) → mostrar solo archivadas (isArchived = 1)
-  // archived === false (pestaña Activas) → mostrar solo activas (isArchived = 0)
-  if (options?.archived === true) {
-    whereConditions = and(whereConditions, eq(quotations.isArchived, 1));
-  } else if (options?.archived === false) {
-    whereConditions = and(whereConditions, eq(quotations.isArchived, 0));
-  }
-
   // Obtener todas las cotizaciones ordenadas por número y fecha (más recientes primero)
+  // El filtro archived se aplicará DESPUÉS de agrupar, basándose en activeVersion.isArchived
   const allQuotations = await db.select().from(quotations)
     .where(whereConditions)
     .orderBy(desc(quotations.quotationNumber), desc(quotations.createdAt));
@@ -1257,7 +1249,7 @@ export async function getAllQuotationsGroupedByBase(options?: { page?: number; l
   }
 
   // Convertir a array y validar estructura
-  const grouped = Array.from(groupedMap.values()).map(group => ({
+  let grouped = Array.from(groupedMap.values()).map(group => ({
     baseQuotationId: group.baseQuotationId ?? null,
     quotationNumber: group.quotationNumber ?? '',
     client: group.client ?? null,
@@ -1266,6 +1258,13 @@ export async function getAllQuotationsGroupedByBase(options?: { page?: number; l
     activeVersion: group.activeVersion ?? null,
     versions: group.versions ?? [],
   }));
+
+  // Aplicar filtro archived DESPUÉS de agrupar, basándose en activeVersion.isArchived
+  if (options?.archived === true) {
+    grouped = grouped.filter(g => g.activeVersion?.isArchived === 1);
+  } else if (options?.archived === false) {
+    grouped = grouped.filter(g => g.activeVersion?.isArchived === 0);
+  }
 
   const total = grouped.length;
   

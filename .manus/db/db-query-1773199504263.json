@@ -1,0 +1,22 @@
+{
+  "query": "SELECT id, quotationNumber, isArchived, createdAt FROM quotations WHERE quotationNumber LIKE 'COT-2026-1772833387901-4386134%' ORDER BY createdAt DESC;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT id, quotationNumber, isArchived, createdAt FROM quotations WHERE quotationNumber LIKE 'COT-2026-1772833387901-4386134%' ORDER BY createdAt DESC;",
+  "rows": [
+    {
+      "id": "2730001",
+      "quotationNumber": "COT-2026-1772833387901-4386134-v2",
+      "isArchived": "1",
+      "createdAt": "2026-03-09 17:20:35"
+    },
+    {
+      "id": "2700001",
+      "quotationNumber": "COT-2026-1772833387901-4386134",
+      "isArchived": "0",
+      "createdAt": "2026-03-08 02:25:14"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tquotationNumber\tisArchived\tcreatedAt\n2730001\tCOT-2026-1772833387901-4386134-v2\t1\t2026-03-09 17:20:35\n2700001\tCOT-2026-1772833387901-4386134\t0\t2026-03-08 02:25:14\n",
+  "stderr": "",
+  "execution_time_ms": 51
+}

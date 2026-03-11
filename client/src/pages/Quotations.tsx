@@ -1339,6 +1339,7 @@ export default function Quotations() {
       }
       // Para herrajes: generar descripción automática y cantidad basada en selecciones
       if (item.itemType === "herrajes" && item.hardwareSelections && item.hardwareSelections.length > 0) {
+        // @ts-ignore
         const description = item.hardwareSelections.map(s => `${s.name} x${s.quantity}`).join(", ");
         const totalQuantity = item.hardwareSelections.reduce((sum: any, s: any) => sum + s.quantity, 0);
         let totalPrice = item.hardwareSelections.reduce((sum: any, s: any) => sum + s.subtotal, 0);

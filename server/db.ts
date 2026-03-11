@@ -2260,41 +2260,85 @@ export async function emptyRecycleBin() {
 // ============ RESTORE FUNCTIONS ============
 
 // Restore a quotation from recycle bin
-export async function restoreQuotation(quotationId: number) {
+export async function restoreQuotation(quotationId: number, userId?: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   
   await db.update(quotations)
     .set({ deletedAt: null })
     .where(eq(quotations.id, quotationId));
+  
+  // Log to audit log if userId provided
+  if (userId) {
+    await db.insert(auditLogs).values({
+      userId,
+      action: "restore",
+      recordType: "quotations",
+      recordId: quotationId,
+      timestamp: new Date().toISOString(),
+    });
+  }
 }
 
 // Restore an appointment from recycle bin
-export async function restoreAppointment(appointmentId: number) {
+export async function restoreAppointment(appointmentId: number, userId?: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   
   await db.update(appointments)
     .set({ deletedAt: null })
     .where(eq(appointments.id, appointmentId));
+  
+  // Log to audit log if userId provided
+  if (userId) {
+    await db.insert(auditLogs).values({
+      userId,
+      action: "restore",
+      recordType: "appointments",
+      recordId: appointmentId,
+      timestamp: new Date().toISOString(),
+    });
+  }
 }
 
 // Restore a task from recycle bin
-export async function restoreTask(taskId: number) {
+export async function restoreTask(taskId: number, userId?: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   
   await db.update(tasks)
     .set({ deletedAt: null })
     .where(eq(tasks.id, taskId));
+  
+  // Log to audit log if userId provided
+  if (userId) {
+    await db.insert(auditLogs).values({
+      userId,
+      action: "restore",
+      recordType: "tasks",
+      recordId: taskId,
+      timestamp: new Date().toISOString(),
+    });
+  }
 }
 
 // Restore an expense from recycle bin
-export async function restoreExpense(expenseId: number) {
+export async function restoreExpense(expenseId: number, userId?: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   
   await db.update(expenses)
     .set({ deletedAt: null })
     .where(eq(expenses.id, expenseId));
+  
+  // Log to audit log if userId provided
+  if (userId) {
+    await db.insert(auditLogs).values({
+      userId,
+      action: "restore",
+      recordType: "expenses",
+      recordId: expenseId,
+      timestamp: new Date().toISOString(),
+    });
+  }
 }

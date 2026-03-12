@@ -1,4 +1,4 @@
-import { eq, desc, and, or, gte, lte, gt, between, sql, inArray, isNull, isNotNull } from "drizzle-orm";
+import { eq, desc, and, or, gte, lte, gt, between, sql, inArray, isNull, isNotNull, asc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 // @ts-ignore
 import { 
@@ -235,6 +235,57 @@ export async function getAllAppointments() {
   if (!db) return [];
 
   return await db.select().from(appointments).where(and(isNull(appointments.deletedAt), eq(appointments.dataOrigin, 'manual'))).orderBy(desc(appointments.createdAt));
+}
+
+export async function getAllAppointmentsPaginated(options?: { page?: number; limit?: number; status?: string }) {
+  const db = await getDb();
+  if (!db) return { appointments: [], total: 0, page: 1, limit: 50 };
+
+  const limit = options?.limit || 50;
+  const page = options?.page || 1;
+  const offset = (page - 1) * limit;
+  const status = options?.status;
+
+  let whereConditions = and(isNull(appointments.deletedAt), eq(appointments.dataOrigin, 'manual'));
+  
+  if (status) {
+    whereConditions = and(whereConditions, eq(appointments.status, status));
+  }
+
+  const data = await db.select()
+    .from(appointments)
+    .where(whereConditions)
+    .limit(limit)
+    .offset(offset)
+    .orderBy(desc(appointments.createdAt));
+
+  const countResult = await db.select({ count: sql<number>`count(*)` })
+    .from(appointments)
+    .where(whereConditions);
+
+  const total = countResult[0]?.count || 0;
+
+  return { appointments: data, total, page, limit };
+}
+
+export async function getAppointmentsByDate(date: Date) {
+  const db = await getDb();
+  if (!db) return [];
+
+  const startOfDay = new Date(date);
+  startOfDay.setHours(0, 0, 0, 0);
+  const endOfDay = new Date(date);
+  endOfDay.setHours(23, 59, 59, 999);
+
+  return await db.select()
+    .from(appointments)
+    .where(and(
+      isNull(appointments.deletedAt),
+      eq(appointments.dataOrigin, 'manual'),
+      gte(appointments.scheduledDate, startOfDay.toISOString()),
+      lte(appointments.scheduledDate, endOfDay.toISOString())
+    ))
+    .orderBy(asc(appointments.scheduledDate));
 }
 
 export async function getAppointmentsByClient(clientId: number) {
@@ -2465,14 +2516,40 @@ export async function deleteAdvisoryRequest(requestId: number) {
 // Get all deleted quotations
 
 // Get all clients with pagination
-export async function getAllClientsPaginated(limit: number = 50, offset: number = 0) {
+export async function getAllClientsPaginated(options?: { page?: number; limit?: number; search?: string }) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   
-  return await db.select()
+  const limit = options?.limit || 50;
+  const page = options?.page || 1;
+  const offset = (page - 1) * limit;
+  const search = options?.search?.toLowerCase() || "";
+  
+  let whereConditions = isNull(clients.deletedAt);
+  
+  if (search) {
+    whereConditions = and(
+      whereConditions,
+      or(
+        like(clients.name, `%${search}%`),
+        like(clients.email, `%${search}%`),
+        like(clients.phone, `%${search}%`)
+      )
+    );
+  }
+  
+  const data = await db.select()
     .from(clients)
-    .where(isNull(clients.deletedAt))
+    .where(whereConditions)
     .limit(limit)
     .offset(offset)
     .orderBy(desc(clients.createdAt));
+  
+  const countResult = await db.select({ count: sql<number>`count(*)` })
+    .from(clients)
+    .where(whereConditions);
+  
+  const total = countResult[0]?.count || 0;
+  
+  return { clients: data, total, page, limit };
 }

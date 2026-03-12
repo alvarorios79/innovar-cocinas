@@ -566,7 +566,7 @@ export const appointmentsRouter = router({
         const [year, month, day] = input.scheduledDateStr.split('-').map(Number);
         const [hours, minutes] = input.scheduledTimeStr.split(':').map(Number);
         const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}T${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00-05:00`;
-        const scheduledDate = new Date(dateStr);
+        const scheduledDate = new Date(dateStr).toISOString();
         
         await db.updateAppointment(input.id, { scheduledDate });
 
@@ -576,8 +576,9 @@ export const appointmentsRouter = router({
           if (appointment) {
             const client = await db.getClientById(appointment.clientId);
             if (client?.userId) {
-              const dateFormatted = scheduledDate.toLocaleDateString('es-CO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'America/Bogota' });
-              const timeFormatted = scheduledDate.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'America/Bogota' });
+              const scheduledDateObj = new Date(scheduledDate);
+              const dateFormatted = scheduledDateObj.toLocaleDateString('es-CO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'America/Bogota' });
+              const timeFormatted = scheduledDateObj.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'America/Bogota' });
               await db.createNotification({
                 userId: client.userId,
                 type: 'cita',

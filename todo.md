@@ -5302,3 +5302,10 @@ Listo para pasar a Fase 7.2 (Intelligent Alerts) cuando sea requerido.
 - [x] Users: Corregir getTeamMembers para filtrar por rol en lugar de isTeamMember inexistente
 - [x] Portal: Enriquecer getAppointmentsByClient para incluir workTypes como array anidado
 - [x] Notifications: Agregar función deleteAllNotificationsByUserId en db.ts
+
+## Funciones faltantes en db.ts — 12 de Marzo de 2026
+
+- [x] Agregar updateUserBirthDate en db.ts (ya existía, se corrigió import duplicado que la ocultaba)
+- [x] Agregar updateUserPhone en db.ts (ya existía, se corrigió import duplicado que la ocultaba)
+- [x] Agregar getFinancialAlertByType en db.ts (ya existía, se corrigió import duplicado que la ocultaba)
+- [x] Agregar updateFinancialAlert en db.ts (ya existía, se corrigió import duplicado que la ocultaba)

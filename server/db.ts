@@ -1118,8 +1118,6 @@ export async function withTransaction<T>(callback: () => Promise<T>): Promise<T>
   });
 }
 
-import { asc } from "drizzle-orm";
-
 // ============ MISSING FUNCTIONS ============
 
 export async function upsertUser(user: any) {

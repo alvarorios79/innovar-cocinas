@@ -37,7 +37,7 @@ export function MobileBottomNavigation() {
     { icon: Home, label: "Inicio", path: "/" },
     { icon: FolderOpen, label: "Proyectos", path: "/projects" },
     { icon: FileText, label: "Cotizaciones", path: "/quotations" },
-    { icon: Users, label: "Clientes", path: "/clients" },
+    { icon: Users, label: "Clientes", path: "/admin" },
     { icon: Menu, label: "Menú", path: "/menu" },
   ];
 

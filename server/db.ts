@@ -2461,3 +2461,5 @@ export async function deleteAdvisoryRequest(requestId: number) {
   return await db.delete(advisoryRequests)
     .where(eq(advisoryRequests.id, requestId));
 }
+
+// Get all deleted quotations

@@ -7,27 +7,23 @@ export const dataProtectionRouter = router({
   // ============ RECYCLE BIN - GET DELETED RECORDS ============
 
   getDeletedClients: protectedProcedure
-    .input(z.object({ limit: z.number().default(100) }))
-    .query(async ({ input }) => {
-      return await db.getDeletedClients(input.limit);
+    .query(async () => {
+      return await db.getDeletedClients();
     }),
 
   getDeletedProjects: protectedProcedure
-    .input(z.object({ limit: z.number().default(100) }))
-    .query(async ({ input }) => {
-      return await db.getDeletedProjects(input.limit);
+    .query(async () => {
+      return await db.getDeletedProjects();
     }),
 
   getDeletedQuotations: protectedProcedure
-    .input(z.object({ limit: z.number().default(100) }))
-    .query(async ({ input }) => {
-      return await db.getDeletedQuotations(input.limit);
+    .query(async () => {
+      return await db.getDeletedQuotations();
     }),
 
   getDeletedAppointments: protectedProcedure
-    .input(z.object({ limit: z.number().default(100) }))
-    .query(async ({ input }) => {
-      return await db.getDeletedAppointments(input.limit);
+    .query(async () => {
+      return await db.getDeletedAppointments();
     }),
 
   getDeletedTasks: protectedProcedure

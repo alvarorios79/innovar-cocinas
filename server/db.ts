@@ -1653,3 +1653,110 @@ export async function updateFinancialAlert(
     });
   }
 }
+
+// ============ USER PROFILE UPDATES ============
+
+export async function updateUserBirthDate(userId: number, birthDate: string | null) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(users)
+    .set({ birthDate: birthDate ?? undefined })
+    .where(eq(users.id, userId));
+}
+
+export async function updateUserPhone(userId: number, phone: string | null) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(users)
+    .set({ phone: phone ?? undefined })
+    .where(eq(users.id, userId));
+}
+
+// ============ USER MANAGEMENT - FUNCIONES FALTANTES ============
+
+export async function updateUserRole(userId: number, newRole: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(users).set({ role: newRole as any }).where(eq(users.id, userId));
+}
+
+export async function getAppointmentsByClientId(clientId: number) {
+  return getAppointmentsByClient(clientId);
+}
+
+export async function getQuotationsByClientId(clientId: number) {
+  return getQuotationsByClient(clientId);
+}
+
+export async function getProjectsByClientId(clientId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(projects).where(eq(projects.clientId, clientId));
+}
+
+export async function deleteProjectPhotos(projectId: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(projectPhotos).where(eq(projectPhotos.projectId, projectId));
+}
+
+export async function deleteProjectTasks(projectId: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(tasks).where(eq(tasks.projectId, projectId));
+}
+
+export async function deleteProjectStatusHistory(projectId: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(projectStatusHistory).where(eq(projectStatusHistory.projectId, projectId));
+}
+
+export async function deleteProjectMaterials(projectId: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(projectMaterials).where(eq(projectMaterials.projectId, projectId));
+}
+
+export async function deletePriorEstimatesByClientId(clientId: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(priorEstimates).where(eq(priorEstimates.clientId, clientId));
+}
+
+export async function deleteAdvisoryRequestsByClientId(clientId: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(advisoryRequests).where(eq(advisoryRequests.clientId, clientId));
+}
+
+export async function checkUserDependencies(userId: number) {
+  const db = await getDb();
+  if (!db) return { hasRealDependencies: false };
+  // Verificar si el usuario tiene proyectos activos asignados
+  const assignedProjects = await db.select({ id: projects.id })
+    .from(projects)
+    .where(eq(projects.assignedTo, userId))
+    .limit(1);
+  return { hasRealDependencies: assignedProjects.length > 0 };
+}
+
+export async function deletePushSubscriptionsByUserId(userId: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(pushSubscriptions).where(eq(pushSubscriptions.userId, userId));
+}
+
+export async function deleteNotificationsByUserId(userId: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(notifications).where(eq(notifications.userId, userId));
+}
+
+export async function getPushSubscriptionsByUserId(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(pushSubscriptions).where(eq(pushSubscriptions.userId, userId));
+}

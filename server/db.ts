@@ -1713,6 +1713,15 @@ export async function deletePriorEstimatesByClientId(clientId: number) {
 /**
  * Elimina todas las solicitudes de asesoría de un cliente.
  */
+export async function getAdvisoryRequestsByClientId(clientId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select()
+    .from(advisoryRequests)
+    .where(and(eq(advisoryRequests.clientId, clientId), isNull(advisoryRequests.deletedAt)))
+    .orderBy(desc(advisoryRequests.createdAt));
+}
+
 export async function deleteAdvisoryRequestsByClientId(clientId: number) {
   const db = await getDb();
   if (!db) return;
@@ -2061,6 +2070,18 @@ export async function updateNotificationPushSent(id: number) {
 }
 
 // Get reminders by project ID (alias of getRemindersByProject)
+export async function cancelProjectReminders(projectId: number) {
+  const db = await getDb();
+  if (!db) return;
+  
+  await db.update(reminders)
+    .set({ status: 'cancelled', updatedAt: new Date().toISOString() })
+    .where(and(
+      eq(reminders.projectId, projectId),
+      eq(reminders.status, 'pending')
+    ));
+}
+
 export async function getRemindersByProjectId(projectId: number) {
   return getRemindersByProject(projectId);
 }

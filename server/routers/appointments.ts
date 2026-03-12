@@ -50,7 +50,7 @@ export const appointmentsRouter = router({
 
         const appointmentId = await db.createAppointment({
           clientId: input.clientId,
-          scheduledDate,
+          scheduledDate: scheduledDate?.toISOString(),
           notes: input.notes ? sanitizeText(input.notes) : undefined,
         });
 
@@ -95,7 +95,7 @@ export const appointmentsRouter = router({
                   name: client.name,
                   email: client.email,
                   role: "user",
-                  passwordHash: hashedPassword,
+                  password: hashedPassword,
                 });
                 
                 // Asociar cliente con usuario
@@ -243,7 +243,7 @@ export const appointmentsRouter = router({
 
         const newDate = new Date(input.scheduledDate);
         await db.updateAppointment(input.id, {
-          scheduledDate: newDate,
+          scheduledDate: newDate.toISOString(),
         });
 
         // Notificación en campanilla para el cliente

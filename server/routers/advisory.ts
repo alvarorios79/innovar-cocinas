@@ -152,7 +152,7 @@ export const estimatesRouter = router({
         const client = await db.getClientByUserId(ctx.user.id);
         if (!client) return [];
         
-        return await db.getPriorEstimatesByClientId(client.id);
+        return await db.getPriorEstimatesByClient(client.id);
       }),
 });
 

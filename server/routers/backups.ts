@@ -248,13 +248,15 @@ export const backupsRouter = router({
         }
 
         // Verify backup exists in S3
-        try {
-          await storageGet(backup.s3Key);
-        } catch (error) {
-          throw new TRPCError({
-            code: "INTERNAL_SERVER_ERROR",
-            message: "Backup file not found in S3",
-          });
+        if (backup.s3Key) {
+          try {
+            await storageGet(backup.s3Key);
+          } catch (error) {
+            throw new TRPCError({
+              code: "INTERNAL_SERVER_ERROR",
+              message: "Backup file not found in S3",
+            });
+          }
         }
 
         // Log restore action

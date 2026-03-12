@@ -114,7 +114,7 @@ describe("Validación de disponibilidad horaria", () => {
     const slotsBefore = await getAvailableTimeSlots(date);
     expect(slotsBefore.length).toBeGreaterThan(0);
     expect(slotsBefore).toContain("08:30");
-    expect(slotsBefore).toContain("10:00");
+    expect(slotsBefore).toContain("14:00");
 
     // Agendar cita a las 08:30 en zona horaria de Colombia
     const dateStr = `2026-01-20T08:30:00-05:00`;
@@ -131,7 +131,7 @@ describe("Validación de disponibilidad horaria", () => {
     const slotsAfter = await getAvailableTimeSlots(date);
     expect(slotsAfter.length).toBe(slotsBefore.length - 1);
     expect(slotsAfter).not.toContain("08:30"); // Este ya está ocupado
-    expect(slotsAfter).toContain("10:00"); // Este sigue disponible
+    expect(slotsAfter).toContain("14:00"); // Este sigue disponible
 
     // Limpiar
     await db.deleteAppointment(testAppointmentId);

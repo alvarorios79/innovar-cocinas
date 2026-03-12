@@ -1427,9 +1427,11 @@ export async function getAllQuotationsGroupedByBase(options?: { page?: number; l
   }));
 
   // Aplicar filtro archived DESPUÉS de agrupar, basándose en activeVersion.isArchived
+  // Por defecto, devolver solo cotizaciones activas (no archivadas)
   if (options?.archived === true) {
     grouped = grouped.filter(g => g.activeVersion?.isArchived === 1);
-  } else if (options?.archived === false) {
+  } else {
+    // Si archived es false o undefined, devolver solo activas
     grouped = grouped.filter(g => g.activeVersion?.isArchived === 0);
   }
 

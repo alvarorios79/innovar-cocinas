@@ -46,17 +46,20 @@ describe("Clients API", () => {
   it("should create or get client by WhatsApp", async () => {
     const ctx = createPublicContext();
     const caller = appRouter.createCaller(ctx);
+    
+    // Usar teléfono único para evitar conflictos
+    const uniquePhone = `300${Date.now().toString().slice(-7)}`;
 
     const result = await caller.clients.getOrCreateByWhatsApp({
       name: "Test Client",
       email: "test@example.com",
-      whatsappPhone: "3001234567",
+      whatsappPhone: uniquePhone,
       address: "Test Address",
     });
 
     expect(result).toBeDefined();
     expect(result?.name).toBe("Test Client");
-    expect(result?.whatsappPhone).toBe("3001234567");
+    expect(result?.whatsappPhone).toBe(uniquePhone);
   });
 });
 

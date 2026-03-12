@@ -9,8 +9,9 @@ export async function generateProjectReportHTML(projectId: number): Promise<stri
 
   // Obtener datos relacionados
   const photos = await db.getProjectPhotos(projectId);
-  const details = await db.getProjectDetail(projectId);
-  const history = await db.getProjectStatusHistoryByProjectId(projectId);
+  const detailRaw = await db.getProjectDetail(projectId);
+  const details = detailRaw ? [detailRaw] : [];
+  const history = await db.getProjectStatusHistory(projectId);
 
   // Obtener cliente
   let clientName = "No asignado";

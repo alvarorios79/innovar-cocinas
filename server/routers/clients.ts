@@ -150,7 +150,7 @@ export const clientsRouter = router({
             name: sanitizeText(input.name),
             email: sanitizeEmail(input.email),
             role: "user",
-            passwordHash,
+            password: passwordHash,
           });
           userEmail = input.email;
         }
@@ -163,7 +163,7 @@ export const clientsRouter = router({
             email: input.email && input.email.trim() !== "" ? sanitizeEmail(input.email) : undefined,
             whatsappPhone: sanitizePhone(input.whatsappPhone),
             address: input.address ? sanitizeText(input.address) : undefined,
-            internalManagement: input.internalManagement,
+            internalManagement: input.internalManagement ? 1 : 0,
           });
           return cid;
         });

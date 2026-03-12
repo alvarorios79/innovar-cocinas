@@ -45,7 +45,7 @@ export const quotationsVersioningRouter = router({
           // PHASE 2: Sync projects.totalAmount with new quotation.total
           await updateProject(project.id, {
             quotationId: newQuotationId,
-            totalAmount: Number(newQuotation.total) || 0,
+            totalAmount: (Number(newQuotation.total) || 0).toString(),
           });
         } else if (!project) {
           // Buscar si el proyecto está asociado a la cotización base
@@ -56,7 +56,7 @@ export const quotationsVersioningRouter = router({
               // PHASE 2: Sync projects.totalAmount with new quotation.total
               await updateProject(baseProject.id, {
                 quotationId: newQuotationId,
-                totalAmount: Number(newQuotation.total) || 0,
+                totalAmount: (Number(newQuotation.total) || 0).toString(),
               });
             }
           }

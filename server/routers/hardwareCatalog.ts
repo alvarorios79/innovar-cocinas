@@ -39,7 +39,10 @@ export const hardwareCatalogRouter = router({
         if (ctx.user.role !== "super_admin" && ctx.user.role !== "admin" && ctx.user.role !== "comercial") {
           throw new TRPCError({ code: "FORBIDDEN", message: "Solo administradores pueden gestionar el catálogo" });
         }
-        const id = await db.createHardwareItem(input);
+        const id = await db.createHardwareItem({
+          ...input,
+          price: input.price !== undefined ? input.price.toString() : undefined,
+        } as any);
         return { success: true, id };
       }),
 
@@ -58,8 +61,12 @@ export const hardwareCatalogRouter = router({
         if (ctx.user.role !== "super_admin" && ctx.user.role !== "admin" && ctx.user.role !== "comercial") {
           throw new TRPCError({ code: "FORBIDDEN", message: "Solo administradores pueden gestionar el catálogo" });
         }
-        const { id, ...data } = input;
-        await db.updateHardwareItem(id, data);
+        const { id, active, price, ...rest } = input;
+        await db.updateHardwareItem(id, {
+          ...rest,
+          ...(price !== undefined ? { price: price.toString() } : {}),
+          ...(active !== undefined ? { active: active ? 1 : 0 } : {}),
+        } as any);
         return { success: true };
       }),
 

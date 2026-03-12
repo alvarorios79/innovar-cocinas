@@ -87,7 +87,7 @@ async function getHolidaysSet(): Promise<Set<string>> {
   
   // Intentar cargar de la base de datos
   try {
-    const dbHolidays = await db.getColombianHolidays(currentYear, currentYear + 1);
+    const dbHolidays = await db.getColombianHolidays(currentYear);
     if (dbHolidays.length > 0) {
     // @ts-ignore
       holidaysCache = new Set(dbHolidays.map((h: { date: Date }) => formatDateKey(new Date(h.date))));
@@ -280,7 +280,7 @@ export async function initializeHolidays(): Promise<void> {
   const currentYear = new Date().getFullYear();
   
   // Verificar si ya hay festivos cargados
-  const existingHolidays = await db.getColombianHolidays(currentYear, currentYear);
+  const existingHolidays = await db.getColombianHolidays(currentYear);
   if (existingHolidays.length > 0) {
     return; // Ya están cargados
   }
@@ -292,7 +292,7 @@ export async function initializeHolidays(): Promise<void> {
     
     if (year >= currentYear) {
       await db.createColombianHoliday({
-        date,
+        date: date.toISOString(),
         name: holiday.name,
         year,
       });

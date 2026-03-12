@@ -101,11 +101,10 @@ export function enforceDataOrigin<T extends { dataOrigin?: string }>(data: T): T
 
 // ============ USERS ============
 
-export async function createUser(user: InsertUser) {
+export async function createUser(user: Omit<InsertUser, 'openId'> & { openId?: string }) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-
-  const result = await db.insert(users).values(user);
+  const result = await db.insert(users).values({ openId: '', ...user });
   return result[0].insertId;
 }
 
@@ -379,7 +378,7 @@ export async function updatePriorEstimate(id: number, data: Partial<InsertPriorE
 
 // ============ QUOTATIONS ============
 
-export async function createQuotation(quotation: InsertQuotation, dataOrigin: "manual" | "system" | "test" = "manual") {
+export async function createQuotation(quotation: Omit<InsertQuotation, 'quotationNumber'> & { quotationNumber?: string }, dataOrigin: "manual" | "system" | "test" = "manual") {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
@@ -394,7 +393,7 @@ export async function createQuotation(quotation: InsertQuotation, dataOrigin: "m
     };
   }
 
-  const result = await db.insert(quotations).values({ ...finalQuotation, dataOrigin });
+  const result = await db.insert(quotations).values({ ...finalQuotation, dataOrigin } as any);
   return result[0].insertId;
 }
 
@@ -427,10 +426,10 @@ export async function getLatestApprovedQuotationVersion(quotationId: number) {
   const result = await db.select().from(quotations)
     .where(and(
       eq(quotations.quotationNumber, (await db.select().from(quotations).where(eq(quotations.id, quotationId)).limit(1))[0]?.quotationNumber || ''),
-      eq(quotations.status, 'aprobada'),
+      eq(quotations.status, 'approved'),
       eq(quotations.dataOrigin, 'manual')
     ))
-    .orderBy(desc(quotations.version))
+    .orderBy(desc(quotations.versionNumber))
     .limit(1);
 
   return result.length > 0 ? result[0] : undefined;
@@ -1072,9 +1071,10 @@ export async function cleanupTestData() {
   let deletedCount = 0;
   for (const { table, name } of tables) {
     try {
-      const result = await db.delete(table).where(inArray(table.dataOrigin, ['test', 'system']));
-      console.log(`[Cleanup] Deleted ${result.rowsAffected} records from ${name}`);
-      deletedCount += result.rowsAffected || 0;
+      const result = await db.delete(table).where(inArray((table as any).dataOrigin, ['test', 'system']));
+      const affected = (result as any)[0]?.affectedRows ?? (result as any).rowsAffected ?? 0;
+      console.log(`[Cleanup] Deleted ${affected} records from ${name}`);
+      deletedCount += affected;
     } catch (error) {
       console.error(`[Cleanup] Error deleting from ${name}:`, error);
     }
@@ -1109,7 +1109,7 @@ export async function countTestData() {
   return counts;
 }
 
-export async function withTransaction<T>(callback: () => Promise<T>): Promise<T> {
+export async function withTransaction<T>(callback: (tx?: any) => Promise<T>): Promise<T> {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
@@ -1229,10 +1229,9 @@ export async function createUserExtended(data: {
     name: data.name,
     email: data.email,
     openId: data.openId || '',
-    password: data.password || '',
-    role: data.role || 'user',
-    isTeamMember: data.isTeamMember || 0,
-    dataOrigin: data.dataOrigin || 'manual',
+    passwordHash: data.password || '',
+    role: (data.role || 'user') as any,
+    dataOrigin: (data.dataOrigin || 'manual') as any,
     createdAt: new Date().toISOString(),
   });
   return result[0].insertId;
@@ -1260,8 +1259,15 @@ export async function recordBackupMetadata(data: {
   backupName: string;
   backupType: string;
   s3Key: string;
+  s3Url?: string;
   status?: string;
   size?: number;
+  fileSize?: number;
+  rowCounts?: Record<string, number>;
+  checksums?: Record<string, string>;
+  dataOriginSummary?: Record<string, number>;
+  createdBy?: number;
+  retentionDays?: number;
   createdAt?: Date;
 }) {
   // Placeholder implementation for backup metadata recording
@@ -1317,7 +1323,7 @@ export async function updateUserPassword(userId: number, passwordHash: string) {
   if (!db) throw new Error("Database not available");
 
   await db.update(users).set({
-    password: passwordHash
+    passwordHash: passwordHash
   }).where(eq(users.id, userId));
 }
 
@@ -1367,7 +1373,7 @@ export async function getAllQuotationsGroupedByBase(options?: { page?: number; l
       groupedMap.set(baseNumber, {
         baseQuotationId: quot.id,
         quotationNumber: baseNumber,
-        client: quot.client || null,
+        client: (quot as any).client || null,
         status: quot.status,
         createdAt: quot.createdAt,
         activeVersion: quot, // La versión más reciente (primera en el orden)
@@ -1568,14 +1574,14 @@ export async function getMonthlyProjectsCount() {
     }).from(payments)
       .where(and(
         eq(payments.movementType, 'payment'),
-        gte(payments.createdAt, startOfMonth),
-        lte(payments.createdAt, endOfMonth)
+        gte(payments.createdAt, startOfMonth.toISOString()),
+        lte(payments.createdAt, endOfMonth.toISOString())
       ));
 
     if (monthlyPayments.length === 0) return 0;
 
     // Obtener IDs únicos de proyectos
-    const projectIds = [...new Set(monthlyPayments.map(p => p.projectId))];
+    const projectIds = Array.from(new Set(monthlyPayments.map(p => p.projectId)));
 
     // Verificar que los proyectos existan y sean válidos
     const validProjects = await db.select({
@@ -1822,5 +1828,517 @@ export async function deleteAllNotificationsByUserId(userId: number) {
   if (!db) throw new Error("Database not available");
 
   const result = await db.delete(notifications).where(eq(notifications.userId, userId));
-  return { deletedCount: result.rowsAffected ?? 0 };
+  const affected = (result as any)[0]?.affectedRows ?? (result as any).rowsAffected ?? 0;
+  return { deletedCount: affected };
+}
+
+// ============ ALIAS Y FUNCIONES FALTANTES EN ROUTERS ============
+
+export async function getProjectPhotosByProjectId(projectId: number) {
+  return getProjectPhotos(projectId);
+}
+
+export async function getProjectPhotosByCategory(projectId: number, category: string) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(projectPhotos)
+    .where(and(eq(projectPhotos.projectId, projectId), eq(projectPhotos.category, category as any)))
+    .orderBy(desc(projectPhotos.createdAt));
+}
+
+export async function getProjectPhotosByStage(projectId: number, stage: string) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(projectPhotos)
+    .where(and(eq(projectPhotos.projectId, projectId), eq(projectPhotos.stage, stage as any)))
+    .orderBy(desc(projectPhotos.createdAt));
+}
+
+export async function getProjectPhotoById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(projectPhotos).where(eq(projectPhotos.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getProjectDetailsByProjectId(projectId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(projectDetails).where(eq(projectDetails.projectId, projectId)).orderBy(desc(projectDetails.createdAt));
+}
+
+export async function deleteProjectDetail(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(projectDetails).where(eq(projectDetails.id, id));
+}
+
+export async function saveProjectMaterials(projectId: number, data: any, userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const existing = await db.select().from(projectMaterials).where(eq(projectMaterials.projectId, projectId)).limit(1);
+  if (existing.length > 0) {
+    await db.update(projectMaterials).set({ ...data, updatedAt: new Date().toISOString() }).where(eq(projectMaterials.projectId, projectId));
+    return existing[0].id;
+  } else {
+    const result = await db.insert(projectMaterials).values({ projectId, ...data, createdBy: userId });
+    return result[0].insertId;
+  }
+}
+
+export async function getProjectHardwareSelections(projectId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  const rows = await db.select().from(projectHardwareSelections)
+    .where(eq(projectHardwareSelections.projectId, projectId));
+  // Enriquecer con datos del catálogo de hardware
+  const hardwareIds = Array.from(new Set(rows.map(r => r.hardwareId)));
+  const hardwareItems = hardwareIds.length > 0
+    ? await db.select().from(hardwareCatalog).where(inArray(hardwareCatalog.id, hardwareIds))
+    : [];
+  const hardwareMap = new Map(hardwareItems.map(h => [h.id, h]));
+  return rows.map(r => ({ ...r, hardware: hardwareMap.get(r.hardwareId) ?? null }));
+}
+
+export async function addProjectHardwareSelection(projectId: number, hardwareId: number, selectedOption?: string, notes?: string, createdBy?: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(projectHardwareSelections).values({
+    projectId,
+    hardwareId,
+    selectedOption: selectedOption ?? null,
+    notes: notes ?? null,
+    createdBy: createdBy ?? 0,
+  });
+  return result[0].insertId;
+}
+
+export async function removeProjectHardwareSelection(projectId: number, hardwareId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(projectHardwareSelections)
+    .where(and(eq(projectHardwareSelections.projectId, projectId), eq(projectHardwareSelections.hardwareId, hardwareId)));
+}
+
+// ============ ALIAS REMINDERS (usados en notifications.ts) ============
+
+export async function getRemindersByProjectId(projectId: number) {
+  return getRemindersByProject(projectId);
+}
+
+export async function getRemindersByUserId(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(reminders).where(eq(reminders.assignedTo, userId)).orderBy(desc(reminders.createdAt));
+}
+
+export async function updateReminderStatus(id: number, status: 'pendiente' | 'enviado' | 'completado' | 'cancelado') {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(reminders).set({ status }).where(eq(reminders.id, id));
+}
+
+// ============ ALIAS QUOTATIONS PAGINATED ============
+
+export async function getAllQuotationsPaginated(params: {
+  page?: number;
+  limit?: number;
+  status?: string;
+  search?: string;
+}) {
+  const db = await getDb();
+  if (!db) return { items: [], total: 0 };
+  const limit = params.limit ?? 20;
+  const offset = ((params.page ?? 1) - 1) * limit;
+  let query = db.select().from(quotations).orderBy(desc(quotations.createdAt));
+  const allRows = await query;
+  const filtered = allRows.filter(q => {
+    if (params.status && q.status !== params.status) return false;
+    return true;
+  });
+  return {
+    items: filtered.slice(offset, offset + limit),
+    total: filtered.length,
+  };
+}
+
+// ============ FUNCIONES FALTANTES EXPENSES ============
+
+export async function getAllExpenses() {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(expenses).where(isNull(expenses.deletedAt)).orderBy(desc(expenses.createdAt));
+}
+
+export async function getExpensesByType(type: string) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(expenses)
+    .where(and(isNull(expenses.deletedAt), eq(expenses.expenseType, type as any)))
+    .orderBy(desc(expenses.createdAt));
+}
+
+export async function getExpensesByDateRange(startDate: Date, endDate: Date) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(expenses)
+    .where(and(
+      isNull(expenses.deletedAt),
+      gte(expenses.expenseDate, startDate.toISOString()),
+      lte(expenses.expenseDate, endDate.toISOString())
+    ))
+    .orderBy(desc(expenses.createdAt));
+}
+
+export async function getExpensesByProjectId(projectId: number) {
+  return getExpensesByProject(projectId);
+}
+
+export async function getAllExpensesPaginated(params: { page?: number; limit?: number; expenseType?: string }) {
+  const db = await getDb();
+  if (!db) return { data: [], total: 0 };
+  const limit = params.limit ?? 50;
+  const offset = ((params.page ?? 1) - 1) * limit;
+  let allRows = await db.select().from(expenses).where(isNull(expenses.deletedAt)).orderBy(desc(expenses.createdAt));
+  if (params.expenseType && params.expenseType !== 'all') {
+    allRows = allRows.filter(e => e.expenseType === params.expenseType);
+  }
+  return { data: allRows.slice(offset, offset + limit), total: allRows.length };
+}
+
+export async function getExpensesSummaryByType() {
+  const db = await getDb();
+  if (!db) return [];
+  const rows = await db.select().from(expenses).where(isNull(expenses.deletedAt));
+  const map = new Map<string, number>();
+  rows.forEach(e => {
+    const key = e.expenseType;
+    map.set(key, (map.get(key) ?? 0) + parseFloat(e.amount as string));
+  });
+  return Array.from(map.entries()).map(([type, total]) => ({ type, total: total.toString() }));
+}
+
+export async function getOperativeExpensesSummaryByCategory() {
+  const db = await getDb();
+  if (!db) return [];
+  const rows = await db.select().from(expenses).where(and(isNull(expenses.deletedAt), eq(expenses.expenseType, 'gasto_operativo')));
+  const map = new Map<string, number>();
+  rows.forEach(e => {
+    const key = e.operativeCategory ?? 'otro';
+    map.set(key, (map.get(key) ?? 0) + parseFloat(e.amount as string));
+  });
+  return Array.from(map.entries()).map(([category, total]) => ({ category, total: total.toString() }));
+}
+
+export async function getProjectExpensesSummary() {
+  const db = await getDb();
+  if (!db) return [];
+  const rows = await db.select().from(expenses).where(and(isNull(expenses.deletedAt), eq(expenses.expenseType, 'materiales_proyecto')));
+  const map = new Map<string, number>();
+  rows.forEach(e => {
+    const key = e.projectClientName ?? 'Sin proyecto';
+    map.set(key, (map.get(key) ?? 0) + parseFloat(e.amount as string));
+  });
+  return Array.from(map.entries()).map(([project, total]) => ({ project, total: total.toString() }));
+}
+
+export async function getExpensesSummaryByGeneralCategory() {
+  const db = await getDb();
+  if (!db) return [];
+  const rows = await db.select().from(expenses).where(isNull(expenses.deletedAt));
+  const map = new Map<string, number>();
+  rows.forEach(e => {
+    const key = e.generalCategory ?? 'otros';
+    map.set(key, (map.get(key) ?? 0) + parseFloat(e.amount as string));
+  });
+  return Array.from(map.entries()).map(([category, total]) => ({ category, total: total.toString() }));
+}
+
+// ============ FUNCIONES FALTANTES DATA PROTECTION (soft-delete) ============
+
+export async function getDeletedClients(limit: number = 100) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(clients).where(isNotNull(clients.deletedAt)).orderBy(desc(clients.deletedAt)).limit(limit);
+}
+
+export async function getDeletedProjects(limit: number = 100) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(projects).where(isNotNull(projects.deletedAt)).orderBy(desc(projects.deletedAt)).limit(limit);
+}
+
+export async function getDeletedQuotations(limit: number = 100) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(quotations).where(isNotNull(quotations.deletedAt)).orderBy(desc(quotations.deletedAt)).limit(limit);
+}
+
+export async function getDeletedAppointments(limit: number = 100) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(appointments).where(isNotNull(appointments.deletedAt)).orderBy(desc(appointments.deletedAt)).limit(limit);
+}
+
+export async function getDeletedTasks(limit: number = 100) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(tasks).where(isNotNull(tasks.deletedAt)).orderBy(desc(tasks.deletedAt)).limit(limit);
+}
+
+export async function getDeletedExpenses(limit: number = 100) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(expenses).where(isNotNull(expenses.deletedAt)).orderBy(desc(expenses.deletedAt)).limit(limit);
+}
+
+export async function restoreClient(id: number, _userId?: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(clients).set({ deletedAt: null }).where(eq(clients.id, id));
+}
+
+export async function restoreProject(id: number, _userId?: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(projects).set({ deletedAt: null }).where(eq(projects.id, id));
+}
+
+export async function restoreQuotation(id: number, _userId?: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(quotations).set({ deletedAt: null }).where(eq(quotations.id, id));
+}
+
+export async function restoreAppointment(id: number, _userId?: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(appointments).set({ deletedAt: null }).where(eq(appointments.id, id));
+}
+
+export async function restoreTask(id: number, _userId?: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(tasks).set({ deletedAt: null }).where(eq(tasks.id, id));
+}
+
+export async function restoreExpense(id: number, _userId?: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(expenses).set({ deletedAt: null }).where(eq(expenses.id, id));
+}
+
+export async function getAuditLogsByUser(userId: number, limit: number = 100) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(auditLogs).where(eq(auditLogs.userId, userId)).orderBy(desc(auditLogs.createdAt)).limit(limit);
+}
+
+export async function getAuditLogsForRecord(tableName: string, recordId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(auditLogs)
+    .where(and(eq(auditLogs.tableName, tableName), eq(auditLogs.recordId, recordId)))
+    .orderBy(desc(auditLogs.createdAt));
+}
+
+export async function permanentlyDeleteRecord(tableName: string, id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  // Solo permite borrado permanente de registros ya en papelera
+  switch (tableName) {
+    case 'clients': await db.delete(clients).where(and(eq(clients.id, id), isNotNull(clients.deletedAt))); break;
+    case 'projects': await db.delete(projects).where(and(eq(projects.id, id), isNotNull(projects.deletedAt))); break;
+    case 'quotations': await db.delete(quotations).where(and(eq(quotations.id, id), isNotNull(quotations.deletedAt))); break;
+    case 'appointments': await db.delete(appointments).where(and(eq(appointments.id, id), isNotNull(appointments.deletedAt))); break;
+    case 'tasks': await db.delete(tasks).where(and(eq(tasks.id, id), isNotNull(tasks.deletedAt))); break;
+    case 'expenses': await db.delete(expenses).where(and(eq(expenses.id, id), isNotNull(expenses.deletedAt))); break;
+    default: throw new Error(`Tabla no permitida para borrado permanente: ${tableName}`);
+  }
+}
+
+export async function emptyRecycleBin() {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await Promise.all([
+    db.delete(clients).where(isNotNull(clients.deletedAt)),
+    db.delete(projects).where(isNotNull(projects.deletedAt)),
+    db.delete(quotations).where(isNotNull(quotations.deletedAt)),
+    db.delete(appointments).where(isNotNull(appointments.deletedAt)),
+    db.delete(tasks).where(isNotNull(tasks.deletedAt)),
+    db.delete(expenses).where(isNotNull(expenses.deletedAt)),
+  ]);
+}
+
+// ============ FUNCIONES FALTANTES PUBLIC GALLERY ============
+
+export async function createClientRevision(data: any) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(clientRevisionHistory).values(data);
+  return result[0].insertId;
+}
+
+// ============ FUNCIONES FALTANTES APPOINTMENTS ============
+
+export async function getAllAppointmentsPaginated(options?: { page?: number; limit?: number; status?: string }) {
+  const db = await getDb();
+  if (!db) return { data: [], total: 0, page: 1, limit: 50 };
+  const page = options?.page ?? 1;
+  const limit = options?.limit ?? 50;
+  const offset = (page - 1) * limit;
+  const whereConditions = options?.status
+    ? and(isNull(appointments.deletedAt), eq(appointments.status, options.status as any))
+    : isNull(appointments.deletedAt);
+  const [rows, countRows] = await Promise.all([
+    db.select().from(appointments)
+      .where(whereConditions)
+      .orderBy(desc(appointments.createdAt))
+      .limit(limit)
+      .offset(offset),
+    db.select({ count: sql<number>`COUNT(*)` }).from(appointments).where(whereConditions),
+  ]);
+  return {
+    data: rows,
+    total: Number(countRows[0]?.count ?? 0),
+    page,
+    limit,
+  };
+}
+
+export async function getAppointmentsByDate(date: Date) {
+  const db = await getDb();
+  if (!db) return [];
+  // Buscar citas del día dado (comparando por prefijo de fecha)
+  const dateStr = date.toISOString().split('T')[0]; // "YYYY-MM-DD"
+  return await db.select().from(appointments)
+    .where(and(
+      isNull(appointments.deletedAt),
+      like(appointments.scheduledDate, `${dateStr}%`)
+    ))
+    .orderBy(appointments.scheduledDate);
+}
+
+// ============ HARDWARE CATALOG ============
+export async function getHardwareCatalog(category?: string) {
+  const db = await getDb();
+  if (!db) return [];
+  const query = db.select().from(hardwareCatalog);
+  if (category) {
+    return await query.where(eq(hardwareCatalog.category, category as any)).orderBy(asc(hardwareCatalog.sortOrder));
+  }
+  return await query.orderBy(asc(hardwareCatalog.sortOrder));
+}
+export async function createHardwareItem(data: typeof hardwareCatalog.$inferInsert) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(hardwareCatalog).values(data);
+  return result[0].insertId;
+}
+export async function updateHardwareItem(id: number, data: Partial<typeof hardwareCatalog.$inferInsert>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(hardwareCatalog).set(data).where(eq(hardwareCatalog.id, id));
+}
+export async function deleteHardwareItem(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(hardwareCatalog).where(eq(hardwareCatalog.id, id));
+}
+
+// ============ PUSH SUBSCRIPTIONS ============
+export async function createPushSubscription(data: {
+  userId: number;
+  endpoint: string;
+  p256dh: string;
+  auth: string;
+  userAgent?: string;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(pushSubscriptions).values({
+    userId: data.userId,
+    endpoint: data.endpoint,
+    p256Dh: data.p256dh,
+    auth: data.auth,
+    userAgent: data.userAgent ?? null,
+  });
+  return result[0].insertId;
+}
+export async function deletePushSubscription(endpoint: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(pushSubscriptions).where(eq(pushSubscriptions.endpoint, endpoint));
+}
+
+// ============ NOTIFICATIONS ALIASES ============
+export async function getNotificationsByUserId(userId: number, limit: number = 50) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(notifications)
+    .where(eq(notifications.userId, userId))
+    .orderBy(desc(notifications.createdAt))
+    .limit(limit);
+}
+export async function markAllNotificationsAsRead(userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(notifications).set({ read: 1 }).where(eq(notifications.userId, userId));
+}
+export async function deleteNotificationsByIds(ids: number[]) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  if (ids.length === 0) return { deletedCount: 0 };
+  await db.delete(notifications).where(inArray(notifications.id, ids));
+  return { deletedCount: ids.length };
+}
+
+// ============ ADVISORY ALIASES ============
+export async function getAdvisoryRequestsByClientId(clientId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(advisoryRequests)
+    .where(eq(advisoryRequests.clientId, clientId))
+    .orderBy(desc(advisoryRequests.createdAt));
+}
+export async function deleteAdvisoryRequest(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(advisoryRequests).where(eq(advisoryRequests.id, id));
+}
+export async function getPriorEstimatesByClientId(clientId: number) {
+  return getPriorEstimatesByClient(clientId);
+}
+
+// ============ COLOMBIAN HOLIDAYS ============
+export async function getColombianHolidays(year?: number) {
+  const db = await getDb();
+  if (!db) return [];
+  if (year !== undefined) {
+    return await db.select().from(colombianHolidays)
+      .where(eq(colombianHolidays.year, year))
+      .orderBy(asc(colombianHolidays.date));
+  }
+  return await db.select().from(colombianHolidays).orderBy(asc(colombianHolidays.date));
+}
+export async function createColombianHoliday(data: InsertColombianHoliday) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(colombianHolidays).values(data);
+  return result[0].insertId;
+}
+
+// ============ REMINDERS ALIASES ============
+export async function cancelProjectReminders(projectId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(reminders)
+    .set({ status: 'cancelled' } as any)
+    .where(eq(reminders.projectId as any, projectId));
+}
+
+export async function updateNotificationPushSent(notificationId: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(notifications).set({ sentPush: 1 }).where(eq(notifications.id, notificationId));
 }

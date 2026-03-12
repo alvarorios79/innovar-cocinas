@@ -45,12 +45,12 @@ export const appointmentsRouter = router({
           const [hours, minutes] = input.scheduledTimeStr.split(':').map(Number);
           // Crear fecha en UTC y luego ajustar a Colombia (UTC-5)
           const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}T${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00-05:00`;
-          scheduledDate = new Date(dateStr);
+          scheduledDate = new Date(dateStr).toISOString() as any;
         }
 
         const appointmentId = await db.createAppointment({
           clientId: input.clientId,
-          scheduledDate,
+          scheduledDate: scheduledDate as any,
           notes: input.notes ? sanitizeText(input.notes) : undefined,
         });
 
@@ -95,7 +95,7 @@ export const appointmentsRouter = router({
                   name: client.name,
                   email: client.email,
                   role: "user",
-                  passwordHash: hashedPassword,
+                  password: hashedPassword,
                 });
                 
                 // Asociar cliente con usuario
@@ -243,7 +243,7 @@ export const appointmentsRouter = router({
 
         const newDate = new Date(input.scheduledDate);
         await db.updateAppointment(input.id, {
-          scheduledDate: newDate,
+          scheduledDate: newDate.toISOString(),
         });
 
         // Notificación en campanilla para el cliente
@@ -567,7 +567,7 @@ export const appointmentsRouter = router({
         const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}T${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00-05:00`;
         const scheduledDate = new Date(dateStr);
         
-        await db.updateAppointment(input.id, { scheduledDate });
+        await db.updateAppointment(input.id, { scheduledDate: scheduledDate.toISOString() });
 
         // Notificación en campanilla para el cliente
         try {

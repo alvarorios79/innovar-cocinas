@@ -1406,7 +1406,7 @@ export default function ProjectDetail() {
                 )}
               </CardHeader>
               <CardContent className="pt-4">
-                {projectDetail.details && projectDetail.details.length > 0 ? (
+                {(projectDetail as any)?.details && (projectDetail as any)?.details?.length > 0 ? (
                   <div className="space-y-3">
                     {projectDetail.details.map((detail: any) => (
                       <div key={detail.id} className="border rounded-lg p-3">

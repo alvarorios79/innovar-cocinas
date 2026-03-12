@@ -57,10 +57,9 @@ export const projectsRouter = router({
           workType: input.workType,
           initialMeasurements: input.initialMeasurements,
           status: "cotizacion_enviada",
-          quotationSentAt: new Date(),
           createdBy: ctx.user.id,
-          tentativeInstallDate: tentativeDate,
-          isInstallDateOfficial: false,
+          tentativeInstallDate: tentativeDate instanceof Date ? tentativeDate.toISOString() : tentativeDate,
+          isInstallDateOfficial: 0,
           designerId: autoAssignedDesignerId,
         });
 
@@ -196,7 +195,7 @@ export const projectsRouter = router({
         const [client, photosRaw, details, history, projectTasks, quotation, payments, clientAppointments, clientRevisions, totalPaidFromPayments, projectBalance] = await Promise.all([
           db.getClientById(project.clientId),
           db.getProjectPhotos(input.id),
-          db.getProjectDetail(input.id),
+          db.getProjectDetailsByProjectId(input.id),
           db.getProjectStatusHistory(input.id),
           db.getTasksByProject(input.id),
           project.quotationId ? db.getQuotationById(project.quotationId) : Promise.resolve(null),
@@ -343,7 +342,7 @@ export const projectsRouter = router({
             previousStatus: h.fromStatus,
             newStatus: h.toStatus,
             notes: h.notes,
-            changedBy: h.changedByUser?.name || null,
+            changedBy: (h as any).changedByUser?.name || null,
             createdAt: new Date(h.createdAt),
           });
         }
@@ -621,7 +620,7 @@ export const projectsRouter = router({
           updateData.clientApprovedAt = new Date();
           // Calcular fecha estimada de instalación (25 días hábiles)
           updateData.estimatedInstallDate = await calculateEstimatedDeliveryDate(new Date());
-          updateData.isInstallDateOfficial = true; // Marcar como fecha oficial
+          updateData.isInstallDateOfficial = 1; // Marcar como fecha oficial
           if (input.selectedColors) {
             updateData.selectedColors = input.selectedColors;
           }
@@ -804,7 +803,7 @@ export const projectsRouter = router({
                       name: clientData.name,
                       email: clientData.email,
                       role: "user",
-                      passwordHash: hashedPassword,
+                      password: hashedPassword,
                     });
                     
                     // Asociar cliente con nuevo usuario
@@ -1158,7 +1157,7 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
             updateData.rendersApprovedBy = ctx.user.id;
             // Calcular fecha oficial de instalación (25 días hábiles desde la aprobación)
             updateData.estimatedInstallDate = await calculateEstimatedDeliveryDate(new Date());
-            updateData.isInstallDateOfficial = true;
+            updateData.isInstallDateOfficial = 1;
           }
           
           await db.updateProject(input.projectId, updateData);
@@ -1175,7 +1174,7 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
           await db.updateProject(input.projectId, {
             status: "en_diseno",
             clientApprovalNotes: input.notes,
-            changesRequestedAt: new Date(), // Guardar fecha de solicitud de cambios
+            changesRequestedAt: new Date().toISOString(), // Guardar fecha de solicitud de cambios
           });
 
           await db.createProjectStatusHistory({
@@ -1228,7 +1227,7 @@ ${input.notes || "No se especificaron detalles"}
               priority: "alta",
               assignedTo: designer.id,
               assignedBy: ctx.user.id,
-              dueDate: new Date(Date.now() + 48 * 60 * 60 * 1000), // 48 horas
+              dueDate: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(), // 48 horas
             });
             
             // 2. Crear notificación interna para el diseñador
@@ -1297,7 +1296,7 @@ ${input.notes || "No se especificaron detalles"}
         }
 
         await db.updateProject(input.projectId, {
-          design3dFiles: input.design3dFiles,
+          design3DFiles: input.design3dFiles,
           despieceFiles: input.despieceFiles,
           designerId: ctx.user.id,
         });
@@ -1319,7 +1318,10 @@ ${input.notes || "No se especificaron detalles"}
           throw new TRPCError({ code: "FORBIDDEN", message: "Solo administradores o jefe de taller pueden editar proyectos" });
         }
 
-        const { id, ...data } = input;
+        const { id, estimatedInstallDate, scheduledInstallDate, ...rest } = input;
+        const data: any = { ...rest };
+        if (estimatedInstallDate) data.estimatedInstallDate = estimatedInstallDate.toISOString();
+        if (scheduledInstallDate) data.scheduledInstallDate = scheduledInstallDate.toISOString();
         await db.updateProject(id, data);
         return { success: true };
       }),
@@ -1354,7 +1356,7 @@ ${input.notes || "No se especificaron detalles"}
           });
 
           await db.updateProject(input.projectId, {
-            estimatedInstallDate: input.estimatedInstallDate,
+            estimatedInstallDate: input.estimatedInstallDate.toISOString(),
           });
         });
 
@@ -1459,7 +1461,7 @@ ${input.notes || "No se especificaron detalles"}
           }
 
           // 4. Actualizar estado
-          await db.updateProject(input.id, { status: previousStatus });
+          await db.updateProject(input.id, { status: previousStatus as any });
 
           // 5. Log de auditoria (opcional para auditoría futura)
 

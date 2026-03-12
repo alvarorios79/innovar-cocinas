@@ -78,7 +78,7 @@ export const quotationsRouter = router({
             vendorName: input.vendorName,
             productType,
             status: "draft",
-            validUntil,
+            validUntil: validUntil.toISOString(),
             subtotal: subtotal.toString(),
             transportCost: transportCost.toString(),
             discountPercent: discountPercent.toString(),
@@ -96,8 +96,8 @@ export const quotationsRouter = router({
               quantity: item.quantity || "1",
               unitPrice: item.unitPrice || null,
               totalPrice: item.totalPrice.toString(),
-              includesFixedCosts: item.includesFixedCosts || false,
-              fixedCostsAmount: item.fixedCostsAmount || null,
+              includesFixedCosts: (item.includesFixedCosts ? 1 : 0) as any,
+              fixedCostsAmount: item.fixedCostsAmount != null ? item.fixedCostsAmount.toString() : null,
               kitchenConfig: item.kitchenConfig ? JSON.stringify(item.kitchenConfig) : null,
               hardwareSelections: item.hardwareSelections ? JSON.stringify(item.hardwareSelections) : null,
               closetConfig: item.closetConfig ? JSON.stringify(item.closetConfig) : null,
@@ -180,8 +180,8 @@ export const quotationsRouter = router({
                 quantity: item.quantity ?? "1",
                 unitPrice: item.unitPrice ?? null,
                 totalPrice: item.totalPrice.toString(),
-                includesFixedCosts: item.includesFixedCosts ?? false,
-                fixedCostsAmount: item.fixedCostsAmount ?? null,
+                includesFixedCosts: (item.includesFixedCosts ? 1 : 0) as any,
+                fixedCostsAmount: item.fixedCostsAmount != null ? item.fixedCostsAmount.toString() : null,
                 kitchenConfig: item.kitchenConfig ? JSON.stringify(item.kitchenConfig) : null,
                 hardwareSelections: item.hardwareSelections ? JSON.stringify(item.hardwareSelections) : null,
                 closetConfig: item.closetConfig ? JSON.stringify(item.closetConfig) : null,
@@ -265,7 +265,7 @@ export const quotationsRouter = router({
         const projectMap = new Map(allProjects.filter(p => p.quotationId).map(p => [p.quotationId, p.id]));
         return {
           ...result,
-          data: result.data.map(q => ({ ...q, client: clientMap.get(q.clientId), projectId: projectMap.get(q.id) || null })),
+          items: result.items.map((q: any) => ({ ...q, client: clientMap.get(q.clientId), projectId: projectMap.get(q.id) || null })),
         };
       }),
 
@@ -417,8 +417,8 @@ export const quotationsRouter = router({
         const now = new Date();
 
         await db.updateQuotation(input.id, {
-          isLocked: newLockedState,
-          lockedAt: newLockedState ? now : null,
+          isLocked: (newLockedState ? 1 : 0) as any,
+          lockedAt: newLockedState ? now.toISOString() : null,
           lockedBy: newLockedState ? ctx.user.id : null,
         });
 
@@ -1926,7 +1926,7 @@ export const quotationsRouter = router({
           fs.unlinkSync(result.pdfPath);
           
           // Actualizar estado a "sent"
-          await db.updateQuotation(input.id, { status: "sent", sentAt: new Date() });
+          await db.updateQuotation(input.id, { status: "sent", sentAt: new Date().toISOString() });
 
           // Enviar notificación WhatsApp al cliente (cotización lista)
           if (client.whatsappPhone) {
@@ -2114,7 +2114,7 @@ export const quotationsRouter = router({
         // Actualizar estado a "approved"
         await db.updateQuotation(input.id, {
           status: "approved",
-          approvedAt: new Date(),
+          approvedAt: new Date().toISOString(),
         });
         
         // Obtener datos del cliente para la notificación
@@ -2197,13 +2197,13 @@ export const quotationsRouter = router({
           name: projectName,
           workType: workType,
           status: "cotizacion_aprobada",
-          quotationApprovedAt: new Date(),
+          quotationApprovedAt: new Date().toISOString(),
           createdBy: ctx.user.id,
           advanceReceiptUrl: input.receiptUrl || null,
           advanceAmount: input.advanceAmount ? input.advanceAmount.toString() : null,
           quotationPdfUrl: quotationPdfUrl,
-          tentativeInstallDate: tentativeDate,
-          isInstallDateOfficial: false,
+          tentativeInstallDate: tentativeDate ? (tentativeDate instanceof Date ? tentativeDate.toISOString() : tentativeDate) : null,
+          isInstallDateOfficial: 0 as any,
           designerId: autoAssignedDesignerId,
         });
         
@@ -2536,10 +2536,10 @@ export const quotationsRouter = router({
           name: projectName,
           workType: workType,
           status: "cotizacion_aprobada",
-          quotationApprovedAt: new Date(),
+          quotationApprovedAt: new Date().toISOString(),
           createdBy: ctx.user.id,
-          tentativeInstallDate: tentativeDate,
-          isInstallDateOfficial: false,
+          tentativeInstallDate: tentativeDate ? (tentativeDate instanceof Date ? tentativeDate.toISOString() : tentativeDate) : null,
+          isInstallDateOfficial: 0 as any,
           totalAmount: quotation.total, // Precio total de la cotización
           designerId: autoAssignedDesignerId,
         });
@@ -2567,12 +2567,12 @@ export const quotationsRouter = router({
           // Crear pago inicial
           await db.createPayment({
             projectId: projectId,
-            amount: input.initialPayment.amount,
+            amount: input.initialPayment.amount.toString(),
             type: "advance",
             method: input.initialPayment.method,
             notes: input.initialPayment.notes || "Pago inicial registrado al crear proyecto",
             registeredBy: ctx.user.id,
-            receivedAt: new Date(),
+            receivedAt: new Date().toISOString(),
           });
         }
 

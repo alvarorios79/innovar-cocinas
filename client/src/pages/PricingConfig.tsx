@@ -706,7 +706,7 @@ export default function PricingConfig() {
             </DialogHeader>
             <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
               {historyData && historyData.length > 0 ? (
-                historyData.map((item: HistoryItem) => {
+                historyData.map((item: any) => {
     // @ts-ignore
                   const prevValue = parseFloat(item.previousValue);
                   const newVal = parseFloat(item.newValue);

@@ -67,7 +67,7 @@ export async function createProjectReminder(
     projectId,
     type,
     assignedTo: assignedToId,
-    dueDate,
+    dueDate: dueDate instanceof Date ? dueDate.toISOString() : dueDate,
     message,
     status: "pendiente",
   });

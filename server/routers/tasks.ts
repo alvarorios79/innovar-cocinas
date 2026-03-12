@@ -37,6 +37,7 @@ export const tasksRouter = router({
 
         const taskId = await db.createTask({
           ...input,
+          dueDate: input.dueDate ? input.dueDate.toISOString() : undefined,
           assignedBy: ctx.user.id,
           status: "pendiente",
         });

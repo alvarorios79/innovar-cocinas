@@ -115,7 +115,7 @@ export async function checkOverdueChanges(): Promise<{
                 priority: "alta",
                 assignedTo: allAdmins[0].id,
                 assignedBy: allAdmins[0].id,
-                dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000), // Mañana
+                dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // Mañana
               });
             }
 

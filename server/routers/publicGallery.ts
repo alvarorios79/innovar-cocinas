@@ -84,7 +84,7 @@ export const publicGalleryRouter = router({
         // Guardar la aprobación según el tipo
         if (input.type === "modelado_3d") {
           await db.updateProject(input.projectId, {
-            modeladoApprovedAt: now,
+            modeladoApprovedAt: now.toISOString(),
             modeladoApprovedBy: input.clientName,
           });
         } else {
@@ -93,12 +93,12 @@ export const publicGalleryRouter = router({
           const fechaDefinitiva = await calculateEstimatedDeliveryDate(now);
           
           await db.updateProject(input.projectId, {
-            rendersApprovedAt: now,
+            rendersApprovedAt: now.toISOString(),
             rendersApprovedBy: input.clientName,
             status: "aprobacion_final",
-            clientApprovedAt: now,
-            estimatedInstallDate: fechaDefinitiva,
-            isInstallDateOfficial: true,
+            clientApprovedAt: now.toISOString(),
+            estimatedInstallDate: fechaDefinitiva instanceof Date ? fechaDefinitiva.toISOString() : fechaDefinitiva,
+            isInstallDateOfficial: 1 as any,
           });
         }
 
@@ -121,7 +121,7 @@ export const publicGalleryRouter = router({
             priority: "alta",
             assignedTo: assignTo,
             assignedBy: assignTo, // Auto-asignada por el sistema
-            dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000), // Mañana
+            dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // Mañana
           });
         }
 
@@ -192,7 +192,7 @@ export const publicGalleryRouter = router({
                 priority: "alta",
                 assignedTo: jefe.id,
                 assignedBy: jefe.id, // Auto-asignada por el sistema
-                dueDate: new Date(Date.now() + 48 * 60 * 60 * 1000), // 48 horas
+                dueDate: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(), // 48 horas
               });
             }
           }
@@ -261,7 +261,7 @@ export const publicGalleryRouter = router({
             await db.updateProject(input.projectId, {
               status: "en_diseno",
               clientApprovalNotes: input.changes,
-              changesRequestedAt: new Date(),
+              changesRequestedAt: new Date().toISOString(),
             });
           }
 
@@ -273,7 +273,7 @@ export const publicGalleryRouter = router({
               priority: "alta",
               assignedTo: assignTo,
               assignedBy: assignTo,
-              dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000),
+              dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
             });
           }
         });

@@ -35,7 +35,9 @@ export const financialSettingsRouter = router({
       }
 
       try {
-        const updated = await updateFinancialSettings(input);
+        const current = await getFinancialSettings();
+        const settingsId = current?.id ?? 1;
+        const updated = await updateFinancialSettings(settingsId, input);
         return updated;
       } catch (error) {
         console.error("[financialSettings.update] Error:", error);

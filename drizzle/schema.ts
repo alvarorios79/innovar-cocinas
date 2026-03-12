@@ -696,3 +696,31 @@ export const cleanupAuditLog = mysqlTable("cleanupAuditLog", {
 ]);
 
 
+
+
+// ============ INSERT TYPES ============
+export type InsertUser = typeof users.$inferInsert;
+export type InsertClient = typeof clients.$inferInsert;
+export type InsertAppointment = typeof appointments.$inferInsert;
+export type InsertAppointmentWorkType = typeof appointmentWorkTypes.$inferInsert;
+export type InsertAdvisoryRequest = typeof advisoryRequests.$inferInsert;
+export type InsertPriorEstimate = typeof priorEstimates.$inferInsert;
+export type InsertQuotation = typeof quotations.$inferInsert;
+export type InsertQuotationItem = typeof quotationItems.$inferInsert;
+export type InsertColombianHoliday = typeof colombianHolidays.$inferInsert;
+export type InsertReminder = typeof reminders.$inferInsert;
+export type InsertProject = typeof projects.$inferInsert;
+export type InsertProjectPhoto = typeof projectPhotos.$inferInsert;
+export type InsertProjectDetail = typeof projectDetails.$inferInsert;
+export type InsertTask = typeof tasks.$inferInsert;
+export type InsertTaskReminder = typeof taskReminders.$inferInsert;
+export type InsertProjectStatusHistory = typeof projectStatusHistory.$inferInsert;
+export type InsertNotification = typeof notifications.$inferInsert;
+export type InsertPayment = typeof payments.$inferInsert;
+export type InsertPricingConfig = typeof pricingConfig.$inferInsert;
+export type InsertPricingHistory = typeof pricingHistory.$inferInsert;
+export type InsertExpense = typeof expenses.$inferInsert;
+export type InsertClientRevisionHistory = typeof clientRevisionHistory.$inferInsert;
+export type InsertFinancialAlert = typeof financialAlerts.$inferInsert;
+export type InsertBackupMetadata = typeof backupMetadata.$inferInsert;
+export type InsertCleanupAuditLog = typeof cleanupAuditLog.$inferInsert;

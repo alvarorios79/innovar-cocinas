@@ -127,8 +127,8 @@ export async function createAndSendNotification(
     type: notification.type,
     referenceId: notification.referenceId,
     referenceType: notification.referenceType,
-    read: false,
-    sentPush: false,
+    read: 0,
+    sentPush: 0,
   });
 
   // Enviar push

@@ -57,7 +57,7 @@ export function ClientMaterialsView({ projectId }: ClientMaterialsViewProps) {
 
   // Group hardware by category
   const hardwareByCategory = selections?.reduce((acc, selection) => {
-    const category = selection.hardware.category;
+    const category = selection.hardware?.category ?? 'otros';
     if (!acc[category]) acc[category] = [];
     acc[category].push(selection);
     return acc;
@@ -180,18 +180,18 @@ export function ClientMaterialsView({ projectId }: ClientMaterialsViewProps) {
                       <div 
                         className={cn(
                           "w-14 h-14 rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden",
-                          selection.hardware.photoUrl ? "bg-white cursor-pointer hover:opacity-90" : "bg-muted"
+                          selection.hardware?.photoUrl ? "bg-white cursor-pointer hover:opacity-90" : "bg-muted"
                         )}
                         onClick={() => {
-                          if (selection.hardware.photoUrl) {
+                          if (selection.hardware?.photoUrl) {
                             setPhotoPreview(selection.hardware.photoUrl);
                           }
                         }}
                       >
-                        {selection.hardware.photoUrl ? (
+                        {selection.hardware?.photoUrl ? (
                           <img 
                             src={selection.hardware.photoUrl} 
-                            alt={selection.hardware.name} 
+                            alt={selection.hardware?.name ?? ''} 
                             className="w-full h-full object-cover"
                           />
                         ) : (
@@ -201,8 +201,8 @@ export function ClientMaterialsView({ projectId }: ClientMaterialsViewProps) {
 
                       {/* Content */}
                       <div className="flex-1 min-w-0">
-                        <h5 className="font-medium text-sm">{selection.hardware.name}</h5>
-                        {selection.hardware.description && (
+                        <h5 className="font-medium text-sm">{selection.hardware?.name}</h5>
+                        {selection.hardware?.description && (
                           <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
                             {selection.hardware.description}
                           </p>

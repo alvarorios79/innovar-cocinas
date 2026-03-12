@@ -106,9 +106,9 @@ export function HardwareSelector({ projectId, readOnly = false, showOnlySelected
 
   const filteredCatalog = catalog?.filter(item => item.category === activeTab) || [];
   const selectedCount = {
-    cocinas: selections?.filter(s => s.hardware.category === "cocinas").length || 0,
-    closets: selections?.filter(s => s.hardware.category === "closets").length || 0,
-    puertas: selections?.filter(s => s.hardware.category === "puertas").length || 0,
+    cocinas: selections?.filter(s => s.hardware?.category === "cocinas").length || 0,
+    closets: selections?.filter(s => s.hardware?.category === "closets").length || 0,
+    puertas: selections?.filter(s => s.hardware?.category === "puertas").length || 0,
   };
 
   if (catalogLoading || selectionsLoading) {
@@ -337,8 +337,8 @@ export function HardwareSelector({ projectId, readOnly = false, showOnlySelected
                   className="flex items-center justify-between p-2 bg-muted/50 rounded-lg"
                 >
                   <div className="flex items-center gap-2">
-                    {getCategoryIcon(selection.hardware.category)}
-                    <span className="font-medium text-sm">{selection.hardware.name}</span>
+                    {getCategoryIcon(selection.hardware?.category ?? '')}
+                    <span className="font-medium text-sm">{selection.hardware?.name}</span>
                     {selection.selectedOption && (
                       <Badge variant="outline" className="text-xs">
                         {selection.selectedOption}

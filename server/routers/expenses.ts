@@ -72,7 +72,7 @@ export const expensesRouter = router({
           operativeCategory: input.operativeCategory || null,
           description: sanitizeText(input.description),
           amount: input.amount.toString(),
-          expenseDate: new Date(input.expenseDate),
+          expenseDate: new Date(input.expenseDate).toISOString(),
           supportUrl: input.supportUrl || null,
           supportFileName: input.supportFileName || null,
           receiptUrl: input.receiptUrl || null,

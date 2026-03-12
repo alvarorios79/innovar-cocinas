@@ -181,23 +181,10 @@ export function ClientMaterialsView({ projectId }: ClientMaterialsViewProps) {
                       <div 
                         className={cn(
                           "w-14 h-14 rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden",
-                          selection.hardware?.photoUrl ? "bg-white cursor-pointer hover:opacity-90" : "bg-muted"
+                          "bg-muted"
                         )}
-                        onClick={() => {
-                          if (selection.hardware?.photoUrl) {
-                            setPhotoPreview(selection.hardware.photoUrl);
-                          }
-                        }}
                       >
-                      {selection.hardware?.photoUrl ? (
-                        <img 
-                          src={selection.hardware.photoUrl} 
-                          alt={selection.hardware.name} 
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <ImageIcon className="h-5 w-5 text-muted-foreground" />
-                      )}
+                      <ImageIcon className="h-5 w-5 text-muted-foreground" />
                       </div>
 
                       {/* Content */}

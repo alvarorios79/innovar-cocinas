@@ -1,0 +1,220 @@
+{
+  "query": "SELECT category, code, name, value, unit FROM pricingConfig WHERE active = 1 ORDER BY category, sortOrder LIMIT 30;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT category, code, name, value, unit FROM pricingConfig WHERE active = 1 ORDER BY category, sortOrder LIMIT 30;",
+  "rows": [
+    {
+      "category": "cocina_base",
+      "code": "COCINA_ML_L",
+      "name": "Cocina Estándar",
+      "value": "900000.00",
+      "unit": "ml"
+    },
+    {
+      "category": "cocina_base",
+      "code": "COCINA_ML_U",
+      "name": "Cocina Premium",
+      "value": "1100000.00",
+      "unit": "ml"
+    },
+    {
+      "category": "cocina_base",
+      "code": "COCINA_ML_LINEAL",
+      "name": "Cocina Deluxe",
+      "value": "1300000.00",
+      "unit": "ml"
+    },
+    {
+      "category": "cocina_base",
+      "code": "COCINA_ML_FRENTE_PLL",
+      "name": "Frente PLL - Metro Lineal",
+      "value": "650000.00",
+      "unit": "ml"
+    },
+    {
+      "category": "cocina_base",
+      "code": "COCINA_ML_SOLO_MUEBLES",
+      "name": "Solo Muebles Inferiores - Metro Lineal",
+      "value": "900000.00",
+      "unit": "ml"
+    },
+    {
+      "category": "cocina_base",
+      "code": "MUEBLE_SUPERIOR_ML",
+      "name": "Mueble Superior - Metro Lineal",
+      "value": "900000.00",
+      "unit": "ml"
+    },
+    {
+      "category": "cocina_base",
+      "code": "MUEBLE_INFERIOR_ML",
+      "name": "Mueble Inferior - Metro Lineal",
+      "value": "900000.00",
+      "unit": "ml"
+    },
+    {
+      "category": "mesones",
+      "code": "MESON_GRANITO",
+      "name": "Mesón Granito",
+      "value": "450000.00",
+      "unit": "ml"
+    },
+    {
+      "category": "mesones",
+      "code": "MESON_CUARZO",
+      "name": "Mesón Cuarzo",
+      "value": "650000.00",
+      "unit": "ml"
+    },
+    {
+      "category": "mesones",
+      "code": "MESON_SINTERIZADO",
+      "name": "Mesón Sinterizado",
+      "value": "1100000.00",
+      "unit": "ml"
+    },
+    {
+      "category": "mesones",
+      "code": "MESON_ACERO",
+      "name": "Mesón Acero Inoxidable",
+      "value": "800000.00",
+      "unit": "ml"
+    },
+    {
+      "category": "mesones",
+      "code": "MESON_RECARGO_FONDO",
+      "name": "Recargo Fondo > 60cm",
+      "value": "30.00",
+      "unit": "%"
+    },
+    {
+      "category": "muebles_especiales",
+      "code": "NICHO_NEVECON",
+      "name": "Nicho Nevecón",
+      "value": "1200000.00",
+      "unit": "unidad"
+    },
+    {
+      "category": "muebles_especiales",
+      "code": "NICHO_NEVERA",
+      "name": "Nicho Nevera Estándar",
+      "value": "1200000.00",
+      "unit": "unidad"
+    },
+    {
+      "category": "muebles_especiales",
+      "code": "ALACENA_ENTREPANOS",
+      "name": "Alacena con Entrepaños",
+      "value": "1250000.00",
+      "unit": "unidad"
+    },
+    {
+      "category": "muebles_especiales",
+      "code": "ALACENA_HERRAJE",
+      "name": "Alacena con Herraje",
+      "value": "900000.00",
+      "unit": "unidad"
+    },
+    {
+      "category": "muebles_especiales",
+      "code": "TORRE_HORNOS",
+      "name": "Torre de Hornos",
+      "value": "1350000.00",
+      "unit": "unidad"
+    },
+    {
+      "category": "extras",
+      "code": "ISLA_ML",
+      "name": "Isla - Metro Lineal Mueble",
+      "value": "900000.00",
+      "unit": "ml"
+    },
+    {
+      "category": "extras",
+      "code": "ISLA_LATERAL",
+      "name": "Isla - Lateral",
+      "value": "350000.00",
+      "unit": "unidad"
+    },
+    {
+      "category": "extras",
+      "code": "BARRA_ML",
+      "name": "Barra - Metro Lineal Mueble",
+      "value": "900000.00",
+      "unit": "ml"
+    },
+    {
+      "category": "extras",
+      "code": "BARRA_LATERAL",
+      "name": "Barra - Lateral",
+      "value": "850000.00",
+      "unit": "unidad"
+    },
+    {
+      "category": "extras",
+      "code": "LUZ_LED_ML",
+      "name": "Luz LED - Metro Lineal",
+      "value": "180000.00",
+      "unit": "ml"
+    },
+    {
+      "category": "extras",
+      "code": "TRANSPORTE_IMPREVISTOS",
+      "name": "Transporte e Imprevistos",
+      "value": "600000.00",
+      "unit": "fijo"
+    },
+    {
+      "category": "extras",
+      "code": "PINTADO_SUPERIOR_70",
+      "name": "Pintado Puerta Superior hasta 70cm",
+      "value": "120000.00",
+      "unit": "unidad"
+    },
+    {
+      "category": "extras",
+      "code": "PINTADO_SUPERIOR_90",
+      "name": "Pintado Puerta Superior hasta 90cm",
+      "value": "150000.00",
+      "unit": "unidad"
+    },
+    {
+      "category": "extras",
+      "code": "PINTADO_SUPERIOR_100",
+      "name": "Pintado Puerta Superior más de 100cm",
+      "value": "180000.00",
+      "unit": "unidad"
+    },
+    {
+      "category": "extras",
+      "code": "PINTADO_INFERIOR",
+      "name": "Pintado Puerta Inferior",
+      "value": "150000.00",
+      "unit": "unidad"
+    },
+    {
+      "category": "extras",
+      "code": "PINTADO_ALACENA",
+      "name": "Pintado Puerta Alacena",
+      "value": "180000.00",
+      "unit": "unidad"
+    },
+    {
+      "category": "extras",
+      "code": "PINTADO_TAPA_CAJON",
+      "name": "Pintado Tapa de Cajón",
+      "value": "90000.00",
+      "unit": "unidad"
+    },
+    {
+      "category": "extras",
+      "code": "PINTADO_TAPA_PEQUENA",
+      "name": "Pintado Tapa Pequeña",
+      "value": "45000.00",
+      "unit": "unidad"
+    }
+  ],
+  "messages": [],
+  "stdout": "category\tcode\tname\tvalue\tunit\ncocina_base\tCOCINA_ML_L\tCocina Estándar\t900000.00\tml\ncocina_base\tCOCINA_ML_U\tCocina Premium\t1100000.00\tml\ncocina_base\tCOCINA_ML_LINEAL\tCocina Deluxe\t1300000.00\tml\ncocina_base\tCOCINA_ML_FRENTE_PLL\tFrente PLL - Metro Lineal\t650000.00\tml\ncocina_base\tCOCINA_ML_SOLO_MUEBLES\tSolo Muebles Inferiores - Metro Lineal\t900000.00\tml\ncocina_base\tMUEBLE_SUPERIOR_ML\tMueble Superior - Metro Lineal\t900000.00\tml\ncocina_base\tMUEBLE_INFERIOR_ML\tMueble Inferior - Metro Lineal\t900000.00\tml\nmesones\tMESON_GRANITO\tMesón Granito\t450000.00\tml\nmesones\tMESON_CUARZO\tMesón Cuarzo\t650000.00\tml\nmesones\tMESON_SINTERIZADO\tMesón Sinterizado\t1100000.00\tml\nmesones\tMESON_ACERO\tMesón Acero Inoxidable\t800000.00\tml\nmesones\tMESON_RECARGO_FONDO\tRecargo Fondo > 60cm\t30.00\t%\nmuebles_especiales\tNICHO_NEVECON\tNicho Nevecón\t1200000.00\tunidad\nmuebles_especiales\tNICHO_NEVERA\tNicho Nevera Estándar\t1200000.00\tunidad\nmuebles_especiales\tALACENA_ENTREPANOS\tAlacena con Entrepaños\t1250000.00\tunidad\nmuebles_especiales\tALACENA_HERRAJE\tAlacena con Herraje\t900000.00\tunidad\nmuebles_especiales\tTORRE_HORNOS\tTorre de Hornos\t1350000.00\tunidad\nextras\tISLA_ML\tIsla - Metro Lineal Mueble\t900000.00\tml\nextras\tISLA_LATERAL\tIsla - Lateral\t350000.00\tunidad\nextras\tBARRA_ML\tBarra - Metro Lineal Mueble\t900000.00\tml\nextras\tBARRA_LATERAL\tBarra - Lateral\t850000.00\tunidad\nextras\tLUZ_LED_ML\tLuz LED - Metro Lineal\t180000.00\tml\nextras\tTRANSPORTE_IMPREVISTOS\tTransporte e Imprevistos\t600000.00\tfijo\nextras\tPINTADO_SUPERIOR_70\tPintado Puerta Superior hasta 70cm\t120000.00\tunidad\nextras\tPINTADO_SUPERIOR_90\tPintado Puerta Superior hasta 90cm\t150000.00\tunidad\nextras\tPINTADO_SUPERIOR_100\tPintado Puerta Superior más de 100cm\t180000.00\tunidad\nextras\tPINTADO_INFERIOR\tPintado Puerta Inferior\t150000.00\tunidad\nextras\tPINTADO_ALACENA\tPintado Puerta Alacena\t180000.00\tunidad\nextras\tPINTADO_TAPA_CAJON\tPintado Tapa de Cajón\t90000.00\tunidad\nextras\tPINTADO_TAPA_PEQUENA\tPintado Tapa Pequeña\t45000.00\tunidad\n",
+  "stderr": "",
+  "execution_time_ms": 57
+}

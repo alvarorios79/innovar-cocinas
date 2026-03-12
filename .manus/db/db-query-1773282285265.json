@@ -1,0 +1,50 @@
+{
+  "query": "SELECT category, COUNT(*) as total FROM pricingConfig GROUP BY category ORDER BY category;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT category, COUNT(*) as total FROM pricingConfig GROUP BY category ORDER BY category;",
+  "rows": [
+    {
+      "category": "cocina_base",
+      "total": "7"
+    },
+    {
+      "category": "mesones",
+      "total": "5"
+    },
+    {
+      "category": "muebles_especiales",
+      "total": "5"
+    },
+    {
+      "category": "extras",
+      "total": "13"
+    },
+    {
+      "category": "puertas_tapas",
+      "total": "7"
+    },
+    {
+      "category": "closets",
+      "total": "3"
+    },
+    {
+      "category": "puertas_producto",
+      "total": "3"
+    },
+    {
+      "category": "centros_tv",
+      "total": "4"
+    },
+    {
+      "category": "otros",
+      "total": "4"
+    },
+    {
+      "category": "acabados_especiales",
+      "total": "3"
+    }
+  ],
+  "messages": [],
+  "stdout": "category\ttotal\ncocina_base\t7\nmesones\t5\nmuebles_especiales\t5\nextras\t13\npuertas_tapas\t7\nclosets\t3\npuertas_producto\t3\ncentros_tv\t4\notros\t4\nacabados_especiales\t3\n",
+  "stderr": "",
+  "execution_time_ms": 59
+}

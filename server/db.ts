@@ -32,6 +32,7 @@ import {
   InsertProjectDetail,
   tasks,
   InsertTask,
+  taskReminders,
   projectStatusHistory,
   InsertProjectStatusHistory,
   pushSubscriptions,
@@ -833,27 +834,115 @@ export async function calculateProjectBalance(projectId: number) {
 
 // ============ PRICING ============
 
-export async function createPricingConfig(config: InsertPricingConfig) {
+export async function createPricingConfig(config: any) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  const result = await db.insert(pricingConfig).values(config);
+  const result = await db.insert(pricingConfig).values({
+    category: config.category,
+    code: config.code,
+    name: config.name,
+    description: config.description,
+    descriptionTemplate: config.descriptionTemplate,
+    value: String(config.value),
+    unit: config.unit,
+    sortOrder: config.sortOrder ?? 0,
+  });
   return result[0].insertId;
 }
 
+export async function getAllPricingConfig() {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(pricingConfig)
+    .where(eq(pricingConfig.active, 1))
+    .orderBy(asc(pricingConfig.category), asc(pricingConfig.sortOrder));
+}
+
+export async function getPricingByCategory(category: string) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(pricingConfig)
+    .where(and(
+      eq(pricingConfig.category, category as any),
+      eq(pricingConfig.active, 1)
+    ))
+    .orderBy(asc(pricingConfig.sortOrder));
+}
+
+export async function getPricingByCode(code: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db.select().from(pricingConfig)
+    .where(and(
+      eq(pricingConfig.code, code),
+      eq(pricingConfig.active, 1)
+    ))
+    .limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function updatePricingConfig(id: number, value: number, updatedBy: number, reason?: string, descriptionTemplate?: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  // Get current value to record history
+  const current = await db.select().from(pricingConfig).where(eq(pricingConfig.id, id)).limit(1);
+  if (current.length === 0) throw new Error("Precio no encontrado");
+
+  const previousValue = current[0].value;
+
+  // Update the price
+  const updateData: any = { value: String(value), updatedBy };
+  if (descriptionTemplate !== undefined) updateData.descriptionTemplate = descriptionTemplate;
+  await db.update(pricingConfig).set(updateData).where(eq(pricingConfig.id, id));
+
+  // Record history
+  await db.insert(pricingHistory).values({
+    pricingConfigId: id,
+    previousValue: String(previousValue),
+    newValue: String(value),
+    changedBy: updatedBy,
+    reason: reason ?? null,
+  });
+}
+
+export async function deletePricingConfig(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  // Soft delete
+  await db.update(pricingConfig).set({ active: 0 } as any).where(eq(pricingConfig.id, id));
+}
+
+export async function getPricingHistory(pricingConfigId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(pricingHistory)
+    .where(eq(pricingHistory.pricingConfigId, pricingConfigId))
+    .orderBy(desc(pricingHistory.createdAt));
+}
+
+export async function getAllPricingHistory(limit: number = 50) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(pricingHistory)
+    .orderBy(desc(pricingHistory.createdAt))
+    .limit(limit);
+}
+
+// Legacy alias for backward compatibility
 export async function getPricingConfig() {
   const db = await getDb();
   if (!db) return undefined;
 
   const result = await db.select().from(pricingConfig).limit(1);
   return result.length > 0 ? result[0] : undefined;
-}
-
-export async function updatePricingConfig(id: number, data: Partial<InsertPricingConfig>) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-
-  await db.update(pricingConfig).set(data).where(eq(pricingConfig.id, id));
 }
 
 // ============ EXPENSES ============
@@ -1460,4 +1549,34 @@ export async function getMonthlyProjectsCount() {
     console.error("[getMonthlyProjectsCount] Error:", error);
     return 0;
   }
+}
+
+// Get users by role
+export async function getUsersByRole(role: string) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select()
+    .from(users)
+    .where(and(
+      eq(users.role, role as any),
+      isNull(users.deletedAt)
+    ))
+    .orderBy(asc(users.name));
+}
+
+// Update task reminder history (log that a reminder was sent for a task)
+export async function updateTaskReminderHistory(taskId: number, sentBy: number) {
+  const db = await getDb();
+  if (!db) return;
+  // Log the reminder in taskReminders table using system user (sentBy=0 means auto system)
+  // sentBy must reference a valid user, so we skip insert if sentBy is 0 (system)
+  if (sentBy > 0) {
+    await db.insert(taskReminders).values({
+      taskId,
+      sentBy,
+      sentTo: sentBy,
+    });
+  }
+  // For system-generated reminders (sentBy=0), just log to console
+  console.log(`[TaskReminders] Reminder logged for task ${taskId} by ${sentBy === 0 ? 'system' : `user ${sentBy}`}`);
 }

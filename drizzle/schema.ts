@@ -113,6 +113,7 @@ export const colombianHolidays = mysqlTable("colombianHolidays", {
 		generalCategory: mysqlEnum(['materiales','mano_de_obra','alquiler','servicios','transporte','mantenimiento','otros']).notNull(),
 		subcategory: varchar({ length: 255 }),
 		deletedAt: timestamp({ mode: 'string' }),
+		dataOrigin: mysqlEnum(['manual', 'system', 'test']).default('manual').notNull(),
 	},
 (table) => [
 	index("expenses_projectId_idx").on(table.projectId),

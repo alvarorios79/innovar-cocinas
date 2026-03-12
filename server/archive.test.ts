@@ -149,7 +149,7 @@ describe("Archive functionality", () => {
 
     // Verificar que aparece en resultados activos
     const activeResults = await db.getAllProjectsPaginated({
-      includeArchived: false,
+      archived: false,
     });
     const foundInActive = activeResults.data.some(
       (p) => p.id === testProjectId
@@ -158,7 +158,7 @@ describe("Archive functionality", () => {
 
     // Verificar que NO aparece en resultados archivados
     const archivedResults = await db.getAllProjectsPaginated({
-      includeArchived: true,
+      archived: true,
     });
     const foundInArchived = archivedResults.data.some(
       (p) => p.id === testProjectId

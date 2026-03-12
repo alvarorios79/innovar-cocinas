@@ -1,0 +1,1 @@
+ALTER TABLE `expenses` ADD `dataOrigin` enum('manual','system','test') DEFAULT 'manual' NOT NULL;

@@ -294,7 +294,7 @@ export const quotationsRouter = router({
         const clientMap = new Map(allClients.map(c => [c.id, c]));
         
         // Mapear los clientes en los grupos
-        const dataWithClients = result.quotations.map((group: any) => {
+        const dataWithClients = result.data.map((group: any) => {
           // Obtener el clientId del activeVersion (que es la cotizacion actual)
           const clientId = group.activeVersion?.clientId;
           return {
@@ -304,7 +304,7 @@ export const quotationsRouter = router({
         });
         
         console.log("[DIAGNOSTICO] listPaginatedGrouped result:", {
-          quotationsCount: result.quotations.length,
+          quotationsCount: result.data.length,
           total: result.total,
           dataWithClientsCount: dataWithClients.length,
           firstQuotation: dataWithClients[0],

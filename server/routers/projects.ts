@@ -153,7 +153,7 @@ export const projectsRouter = router({
           status: input?.status,
           archived: input?.archived,
         });
-        let filteredData = result.projects;
+        let filteredData: typeof result.data = result.data || [];
         if (role === "disenador") {
           filteredData = filteredData.filter(p => 
             ["adelanto_recibido", "en_diseno", "pendiente_modelado", "pendiente_render", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "entregado"].includes(p.status)

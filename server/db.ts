@@ -595,7 +595,7 @@ export async function getAllProjectsPaginated(options?: { page?: number; limit?:
   const countResult = await db.select({ count: sql<number>`COUNT(*)` }).from(projects).where(whereConditions);
   const total = countResult[0]?.count || 0;
 
-  return { projects: projectsList, total };
+  return { data: projectsList, total };
 }
 
 export async function updateProject(id: number, data: Partial<InsertProject>) {
@@ -1371,7 +1371,7 @@ export async function logAuditAction(action: string, details: any) {
 
 export async function getAllQuotationsGroupedByBase(options?: { page?: number; limit?: number; status?: string; archived?: boolean }) {
   const db = await getDb();
-  if (!db) return { quotations: [], total: 0 };
+  if (!db) return { data: [], total: 0 };
 
   // Obtener todas las cotizaciones con filtros (SIN filtrar por isArchived aún)
   let whereConditions = and(isNull(quotations.deletedAt), eq(quotations.dataOrigin, 'manual'));
@@ -1442,7 +1442,7 @@ export async function getAllQuotationsGroupedByBase(options?: { page?: number; l
   const paginatedQuotations = grouped.slice(offset, offset + limit);
 
   const groupedQuotations = paginatedQuotations ?? [];
-  return { quotations: groupedQuotations, total };
+  return { data: groupedQuotations, total };
 }
 
 

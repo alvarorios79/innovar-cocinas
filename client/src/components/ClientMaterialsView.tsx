@@ -43,7 +43,10 @@ export function ClientMaterialsView({ projectId }: ClientMaterialsViewProps) {
   }
 
   const hasMaterials = materials && (materials.woodType || materials.countertopType || materials.sinkMeasure);
-  const hasHardware = selections && selections.length > 0;
+  
+  // Filter out items without hardware first
+  const selectionsToDisplay = selections?.filter((s: any) => s.hardwareCategory) || [];
+  const hasHardware = selectionsToDisplay && selectionsToDisplay.length > 0;
 
   if (!hasMaterials && !hasHardware) {
     return (
@@ -57,7 +60,7 @@ export function ClientMaterialsView({ projectId }: ClientMaterialsViewProps) {
 
   // Group hardware by category
   type SelectionItem = NonNullable<typeof selections>[number];
-  const hardwareByCategory = selections?.reduce((acc: Record<string, SelectionItem[]>, selection: SelectionItem) => {
+  const hardwareByCategory = selectionsToDisplay.reduce((acc: Record<string, SelectionItem[]>, selection: SelectionItem) => {
     const category = selection.hardwareCategory || 'sin-categoria';
     if (!acc[category]) acc[category] = [];
     acc[category].push(selection);

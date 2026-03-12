@@ -1891,7 +1891,10 @@ export async function getProjectHardwareSelections(projectId: number) {
   })
   .from(projectHardwareSelections)
   .leftJoin(hardwareCatalog, eq(projectHardwareSelections.hardwareId, hardwareCatalog.id))
-  .where(eq(projectHardwareSelections.projectId, projectId));
+  .where(and(
+    eq(projectHardwareSelections.projectId, projectId),
+    isNotNull(hardwareCatalog.id)
+  ));
 }
 
 // Get project photos filtered by category

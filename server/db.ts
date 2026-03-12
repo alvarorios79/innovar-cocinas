@@ -1131,7 +1131,12 @@ export async function upsertUser(user: any) {
 
   const existing = await db.select().from(users).where(eq(users.openId, user.openId)).limit(1);
   if (existing.length > 0) {
-    await db.update(users).set(user).where(eq(users.openId, user.openId));
+    // Preservar el rol existente si no se proporciona uno nuevo
+    const updateData = { ...user };
+    if (!updateData.role && existing[0].role) {
+      updateData.role = existing[0].role;
+    }
+    await db.update(users).set(updateData).where(eq(users.openId, user.openId));
     return existing[0].id;
   } else {
     const result = await db.insert(users).values(user);

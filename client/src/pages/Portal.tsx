@@ -965,7 +965,7 @@ export default function Portal() {
                         <div className="flex items-start justify-between">
                           <div className="space-y-1 flex-1">
                             <div className="flex items-center gap-2">
-                              <h3 className="font-semibold">{getWorkTypeLabel(apt.workTypes)}</h3>
+                              <h3 className="font-semibold">{getWorkTypeLabel((apt as any)?.workTypes)}</h3>
                               {getStatusBadge(apt.status)}
                             </div>
                             <p className="text-sm">
@@ -1003,7 +1003,7 @@ export default function Portal() {
                                 <DialogHeader>
                                   <DialogTitle>Reagendar Cita</DialogTitle>
                                   <DialogDescription>
-                                    {getWorkTypeLabel(apt.workTypes)} - {formatDate(apt.scheduledDate)}
+                                    {getWorkTypeLabel((apt as any)?.workTypes)} - {formatDate(apt.scheduledDate)}
                                   </DialogDescription>
                                 </DialogHeader>
                                 <div className="space-y-4">
@@ -1060,7 +1060,7 @@ export default function Portal() {
                                 <DialogHeader>
                                   <DialogTitle className="text-red-600">❌ Cancelar Cita</DialogTitle>
                                   <DialogDescription>
-                                    {getWorkTypeLabel(apt.workTypes)} - {formatDate(apt.scheduledDate)}
+                                    {getWorkTypeLabel((apt as any)?.workTypes)} - {formatDate(apt.scheduledDate)}
                                   </DialogDescription>
                                 </DialogHeader>
                                 <div className="space-y-4">

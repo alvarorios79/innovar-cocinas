@@ -76,15 +76,15 @@ export default function Admin() {
 
   const utils = trpc.useUtils();
   const { data: appointmentsData, isLoading: loadingAppointments } = trpc.appointments.listPaginated.useQuery({ page: appointmentPage, limit: APPOINTMENTS_PER_PAGE });
-  const appointments = appointmentsData?.data || [];
+  const appointments = (appointmentsData as any)?.data || (appointmentsData as any)?.appointments || [];
   const totalAppointments = appointmentsData?.total || 0;
-  const totalAppointmentPages = appointmentsData?.totalPages || 0;
+  const totalAppointmentPages = appointmentsData ? Math.ceil((appointmentsData.total || 0) / APPOINTMENTS_PER_PAGE) : 0;
   const { data: advisoryRequests = [], isLoading: loadingAdvisory } = trpc.advisory.list.useQuery();
   const { data: quotations = [], isLoading: loadingQuotations } = trpc.quotations.list.useQuery();
   const { data: clientsData, isLoading: loadingClients } = trpc.clients.listPaginated.useQuery({ page: clientPage, limit: CLIENTS_PER_PAGE });
-  const clients = clientsData?.data || [];
+  const clients = (clientsData as any)?.clients || (clientsData as any)?.data || [];
   const totalClients = clientsData?.total || 0;
-  const totalClientPages = clientsData?.totalPages || 0;
+  const totalClientPages = clientsData ? Math.ceil((clientsData.total || 0) / CLIENTS_PER_PAGE) : 0;
   const { data: allUsers = [], isLoading: loadingUsers } = trpc.userManagement.listAll.useQuery();
 
   const updateAppointmentStatus = trpc.appointments.updateStatus.useMutation({

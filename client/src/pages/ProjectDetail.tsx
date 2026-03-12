@@ -1406,9 +1406,9 @@ export default function ProjectDetail() {
                 )}
               </CardHeader>
               <CardContent className="pt-4">
-                {projectDetail.details && projectDetail.details.length > 0 ? (
+                {projectDetail.details && (Array.isArray(projectDetail.details) ? projectDetail.details : [projectDetail.details]).length > 0 ? (
                   <div className="space-y-3">
-                    {projectDetail.details.map((detail: any) => (
+                    {(Array.isArray(projectDetail.details) ? projectDetail.details : [projectDetail.details]).map((detail: any) => (
                       <div key={detail.id} className="border rounded-lg p-3">
                         <div className="flex items-start justify-between">
                           <div>

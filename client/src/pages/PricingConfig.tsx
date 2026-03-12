@@ -427,7 +427,7 @@ export default function PricingConfig() {
             {isSearching && searchQuery.trim() ? (
               <div className="space-y-6">
                 {searchResults.length > 0 ? (
-                  Object.entries(searchResultsByCategory).map(([category, items]) => {
+                  (Object.entries(searchResultsByCategory) as [string, any[]][]).map(([category, items]) => {
                     const catConfig = categoryConfig[category];
                     return (
                       <Card key={category} className={`overflow-hidden border-2 ${catConfig.borderColor} shadow-lg`}>
@@ -707,7 +707,7 @@ export default function PricingConfig() {
             </DialogHeader>
             <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
               {historyData && historyData.length > 0 ? (
-                historyData.map((item: HistoryItem) => {
+                historyData.map((item: any) => {
     // @ts-ignore
                   const prevValue = parseFloat(item.previousValue);
                   const newVal = parseFloat(item.newValue);

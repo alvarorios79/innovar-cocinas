@@ -2577,3 +2577,27 @@ export async function getAllClientsPaginated(options?: { page?: number; limit?: 
   
   return { clients: data, total, page, limit };
 }
+
+export async function getColombianHolidays(fromYear: number, toYear: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select()
+    .from(colombianHolidays)
+    .where(and(
+      gte(colombianHolidays.year, fromYear),
+      lte(colombianHolidays.year, toYear)
+    ))
+    .orderBy(asc(colombianHolidays.date));
+}
+
+export async function createColombianHoliday(data: { date: Date | string; name: string; year: number }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const dateStr = data.date instanceof Date ? data.date.toISOString() : data.date;
+  const [result] = await db.insert(colombianHolidays).values({
+    date: dateStr,
+    name: data.name,
+    year: data.year,
+  });
+  return (result as any).insertId as number;
+}

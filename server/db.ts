@@ -1617,3 +1617,39 @@ export async function updateTaskReminderHistory(taskId: number, sentBy: number) 
   // For system-generated reminders (sentBy=0), just log to console
   console.log(`[TaskReminders] Reminder logged for task ${taskId} by ${sentBy === 0 ? 'system' : `user ${sentBy}`}`);
 }
+
+// ============ FINANCIAL ALERTS ============
+
+export async function getFinancialAlertByType(alertType: 'deliveredWithOutstanding' | 'lowCollectionRate') {
+  const db = await getDb();
+  if (!db) return null;
+
+  const rows = await db.select().from(financialAlerts)
+    .where(eq(financialAlerts.alertType, alertType))
+    .limit(1);
+
+  return rows[0] ?? null;
+}
+
+export async function updateFinancialAlert(
+  alertType: 'deliveredWithOutstanding' | 'lowCollectionRate',
+  data: { isActive?: number; lastTriggeredAt?: string; lastMessageSentAt?: string }
+) {
+  const db = await getDb();
+  if (!db) return;
+
+  // Upsert: update if exists, insert if not
+  const existing = await getFinancialAlertByType(alertType);
+  if (existing) {
+    await db.update(financialAlerts)
+      .set(data)
+      .where(eq(financialAlerts.alertType, alertType));
+  } else {
+    await db.insert(financialAlerts).values({
+      alertType,
+      isActive: data.isActive ?? 0,
+      lastTriggeredAt: data.lastTriggeredAt,
+      lastMessageSentAt: data.lastMessageSentAt,
+    });
+  }
+}

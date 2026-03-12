@@ -47,8 +47,33 @@ export async function evaluateFinancialAlerts(): Promise<void> {
       };
     }
 
+    // Adaptar el objeto del dashboard al tipo FinancialMetrics esperado
+    const adaptedMetrics: FinancialMetrics = {
+      totalIngresos: (metrics as any).totalRevenue ?? 0,
+      totalPagosRecibidos: (metrics as any).totalRevenue ?? 0,
+      totalGastosProyectos: (metrics as any).totalExpenses ?? 0,
+      totalGastosOperativos: 0,
+      margenGlobal: (metrics as any).balance ?? 0,
+      rentabilidadPromedio: (metrics as any).totalRevenue > 0
+        ? (((metrics as any).balance ?? 0) / (metrics as any).totalRevenue) * 100
+        : 0,
+      proyectosEnRiesgo: 0,
+      proyectosConSaldoVencido: 0,
+      totalProyectos: 0,
+      outstandingRatio: 0,
+      collectionRate: (metrics as any).totalRevenue > 0 ? 100 : 0,
+      deliveredWithOutstanding: 0,
+      lowProfitProjectsCount: 0,
+      alerts: {
+        highOutstanding: false,
+        lowCollectionRate: false,
+        deliveredWithOutstanding: false,
+        lowProfitProjectsCount: false,
+      },
+    };
+
     // Determine which alerts should be active
-    const currentAlerts = determineActiveAlerts(metrics, settings);
+    const currentAlerts = determineActiveAlerts(adaptedMetrics, settings);
 
     // Get super_admin user for WhatsApp notifications
     const superAdmins = await getUsersByRole('super_admin');
@@ -70,7 +95,7 @@ export async function evaluateFinancialAlerts(): Promise<void> {
       'deliveredWithOutstanding',
       currentAlerts.deliveredWithOutstanding,
       superAdminPhone,
-      () => generateDeliveredWithOutstandingMessage(metrics)
+      () => generateDeliveredWithOutstandingMessage(adaptedMetrics)
     );
 
     // Process lowCollectionRate alert
@@ -78,7 +103,7 @@ export async function evaluateFinancialAlerts(): Promise<void> {
       'lowCollectionRate',
       currentAlerts.lowCollectionRate,
       superAdminPhone,
-      () => generateLowCollectionRateMessage(metrics)
+      () => generateLowCollectionRateMessage(adaptedMetrics)
     );
   } catch (error) {
     console.error('[FinancialAlertMonitor] Error evaluating alerts:', error);

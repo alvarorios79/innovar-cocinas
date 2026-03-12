@@ -1,0 +1,310 @@
+{
+  "query": "SELECT q.id, q.clientId, c.name, q.createdAt FROM quotations q LEFT JOIN clients c ON q.clientId = c.id WHERE q.id NOT IN (SELECT DISTINCT quotationId FROM projects WHERE quotationId IS NOT NULL) LIMIT 50;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT q.id, q.clientId, c.name, q.createdAt FROM quotations q LEFT JOIN clients c ON q.clientId = c.id WHERE q.id NOT IN (SELECT DISTINCT quotationId FROM projects WHERE quotationId IS NOT NULL) LIMIT 50;",
+  "rows": [
+    {
+      "id": "2760002",
+      "clientId": "810002",
+      "name": "Jhonier Cardona",
+      "createdAt": "2026-03-11 18:21:57"
+    },
+    {
+      "id": "2730001",
+      "clientId": "2490001",
+      "name": "Sras. Maria Clara & Ana milena",
+      "createdAt": "2026-03-09 17:20:35"
+    },
+    {
+      "id": "2700001",
+      "clientId": "2490001",
+      "name": "Sras. Maria Clara & Ana milena",
+      "createdAt": "2026-03-08 02:25:14"
+    },
+    {
+      "id": "2790002",
+      "clientId": "2550001",
+      "name": "Lina Paez",
+      "createdAt": "2026-03-11 18:44:17"
+    },
+    {
+      "id": "2790001",
+      "clientId": "2550001",
+      "name": "Lina Paez",
+      "createdAt": "2026-03-11 18:41:12"
+    },
+    {
+      "id": "2820386",
+      "clientId": "2851060",
+      "name": "Test Client QVS2",
+      "createdAt": "2026-03-12 07:13:26"
+    },
+    {
+      "id": "2820385",
+      "clientId": "2851060",
+      "name": "Test Client QVS2",
+      "createdAt": "2026-03-12 07:13:26"
+    },
+    {
+      "id": "2820382",
+      "clientId": "2851060",
+      "name": "Test Client QVS2",
+      "createdAt": "2026-03-12 07:13:26"
+    },
+    {
+      "id": "2820412",
+      "clientId": "2851119",
+      "name": "Test Client QVS2",
+      "createdAt": "2026-03-12 07:18:39"
+    },
+    {
+      "id": "2820411",
+      "clientId": "2851119",
+      "name": "Test Client QVS2",
+      "createdAt": "2026-03-12 07:18:39"
+    },
+    {
+      "id": "2820408",
+      "clientId": "2851119",
+      "name": "Test Client QVS2",
+      "createdAt": "2026-03-12 07:18:39"
+    },
+    {
+      "id": "2880220",
+      "clientId": "2851168",
+      "name": "Test Client Quotation",
+      "createdAt": "2026-03-12 15:25:58"
+    },
+    {
+      "id": "2880194",
+      "clientId": "2851168",
+      "name": "Test Client Quotation",
+      "createdAt": "2026-03-12 15:25:17"
+    },
+    {
+      "id": "2880168",
+      "clientId": "2851168",
+      "name": "Test Client Quotation",
+      "createdAt": "2026-03-12 15:24:44"
+    },
+    {
+      "id": "2820438",
+      "clientId": "2851179",
+      "name": "Test Client QVS2",
+      "createdAt": "2026-03-12 07:21:43"
+    },
+    {
+      "id": "2820437",
+      "clientId": "2851179",
+      "name": "Test Client QVS2",
+      "createdAt": "2026-03-12 07:21:43"
+    },
+    {
+      "id": "2820434",
+      "clientId": "2851179",
+      "name": "Test Client QVS2",
+      "createdAt": "2026-03-12 07:21:42"
+    },
+    {
+      "id": "2820464",
+      "clientId": "2851238",
+      "name": "Test Client QVS2",
+      "createdAt": "2026-03-12 07:22:12"
+    },
+    {
+      "id": "2820463",
+      "clientId": "2851238",
+      "name": "Test Client QVS2",
+      "createdAt": "2026-03-12 07:22:12"
+    },
+    {
+      "id": "2820460",
+      "clientId": "2851238",
+      "name": "Test Client QVS2",
+      "createdAt": "2026-03-12 07:22:12"
+    },
+    {
+      "id": "2820490",
+      "clientId": "2851301",
+      "name": "Test Client QVS2",
+      "createdAt": "2026-03-12 07:22:36"
+    },
+    {
+      "id": "2820489",
+      "clientId": "2851301",
+      "name": "Test Client QVS2",
+      "createdAt": "2026-03-12 07:22:36"
+    },
+    {
+      "id": "2820486",
+      "clientId": "2851301",
+      "name": "Test Client QVS2",
+      "createdAt": "2026-03-12 07:22:36"
+    },
+    {
+      "id": "2820516",
+      "clientId": "2851356",
+      "name": "Test Client QVS2",
+      "createdAt": "2026-03-12 07:23:00"
+    },
+    {
+      "id": "2820515",
+      "clientId": "2851356",
+      "name": "Test Client QVS2",
+      "createdAt": "2026-03-12 07:23:00"
+    },
+    {
+      "id": "2820512",
+      "clientId": "2851356",
+      "name": "Test Client QVS2",
+      "createdAt": "2026-03-12 07:23:00"
+    },
+    {
+      "id": "2820542",
+      "clientId": "2851415",
+      "name": "Test Client QVS2",
+      "createdAt": "2026-03-12 07:23:27"
+    },
+    {
+      "id": "2820541",
+      "clientId": "2851415",
+      "name": "Test Client QVS2",
+      "createdAt": "2026-03-12 07:23:27"
+    },
+    {
+      "id": "2820538",
+      "clientId": "2851415",
+      "name": "Test Client QVS2",
+      "createdAt": "2026-03-12 07:23:27"
+    },
+    {
+      "id": "2850023",
+      "clientId": "2880041",
+      "name": "Test Client QVS2",
+      "createdAt": "2026-03-12 13:31:23"
+    },
+    {
+      "id": "2850022",
+      "clientId": "2880041",
+      "name": "Test Client QVS2",
+      "createdAt": "2026-03-12 13:31:23"
+    },
+    {
+      "id": "2850019",
+      "clientId": "2880041",
+      "name": "Test Client QVS2",
+      "createdAt": "2026-03-12 13:31:23"
+    },
+    {
+      "id": "2850049",
+      "clientId": "2880100",
+      "name": "Test Client QVS2",
+      "createdAt": "2026-03-12 13:43:06"
+    },
+    {
+      "id": "2850048",
+      "clientId": "2880100",
+      "name": "Test Client QVS2",
+      "createdAt": "2026-03-12 13:43:06"
+    },
+    {
+      "id": "2850045",
+      "clientId": "2880100",
+      "name": "Test Client QVS2",
+      "createdAt": "2026-03-12 13:43:06"
+    },
+    {
+      "id": "2850075",
+      "clientId": "2880159",
+      "name": "Test Client QVS2",
+      "createdAt": "2026-03-12 13:43:43"
+    },
+    {
+      "id": "2850074",
+      "clientId": "2880159",
+      "name": "Test Client QVS2",
+      "createdAt": "2026-03-12 13:43:43"
+    },
+    {
+      "id": "2850071",
+      "clientId": "2880159",
+      "name": "Test Client QVS2",
+      "createdAt": "2026-03-12 13:43:43"
+    },
+    {
+      "id": "2850098",
+      "clientId": "2880209",
+      "name": "Test Client QVS2",
+      "createdAt": "2026-03-12 13:44:19"
+    },
+    {
+      "id": "2850097",
+      "clientId": "2880209",
+      "name": "Test Client QVS2",
+      "createdAt": "2026-03-12 13:44:19"
+    },
+    {
+      "id": "2850094",
+      "clientId": "2880209",
+      "name": "Test Client QVS2",
+      "createdAt": "2026-03-12 13:44:19"
+    },
+    {
+      "id": "2850124",
+      "clientId": "2880265",
+      "name": "Test Client QVS2",
+      "createdAt": "2026-03-12 13:48:01"
+    },
+    {
+      "id": "2850123",
+      "clientId": "2880265",
+      "name": "Test Client QVS2",
+      "createdAt": "2026-03-12 13:48:01"
+    },
+    {
+      "id": "2850120",
+      "clientId": "2880265",
+      "name": "Test Client QVS2",
+      "createdAt": "2026-03-12 13:48:01"
+    },
+    {
+      "id": "2850150",
+      "clientId": "2880323",
+      "name": "Test Client QVS2",
+      "createdAt": "2026-03-12 13:48:33"
+    },
+    {
+      "id": "2850149",
+      "clientId": "2880323",
+      "name": "Test Client QVS2",
+      "createdAt": "2026-03-12 13:48:33"
+    },
+    {
+      "id": "2850146",
+      "clientId": "2880323",
+      "name": "Test Client QVS2",
+      "createdAt": "2026-03-12 13:48:33"
+    },
+    {
+      "id": "2850176",
+      "clientId": "2880382",
+      "name": "Test Client QVS2",
+      "createdAt": "2026-03-12 13:49:16"
+    },
+    {
+      "id": "2850175",
+      "clientId": "2880382",
+      "name": "Test Client QVS2",
+      "createdAt": "2026-03-12 13:49:16"
+    },
+    {
+      "id": "2850172",
+      "clientId": "2880382",
+      "name": "Test Client QVS2",
+      "createdAt": "2026-03-12 13:49:16"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tclientId\tname\tcreatedAt\n2760002\t810002\tJhonier Cardona\t2026-03-11 18:21:57\n2730001\t2490001\tSras. Maria Clara & Ana milena\t2026-03-09 17:20:35\n2700001\t2490001\tSras. Maria Clara & Ana milena\t2026-03-08 02:25:14\n2790002\t2550001\tLina Paez\t2026-03-11 18:44:17\n2790001\t2550001\tLina Paez\t2026-03-11 18:41:12\n2820386\t2851060\tTest Client QVS2\t2026-03-12 07:13:26\n2820385\t2851060\tTest Client QVS2\t2026-03-12 07:13:26\n2820382\t2851060\tTest Client QVS2\t2026-03-12 07:13:26\n2820412\t2851119\tTest Client QVS2\t2026-03-12 07:18:39\n2820411\t2851119\tTest Client QVS2\t2026-03-12 07:18:39\n2820408\t2851119\tTest Client QVS2\t2026-03-12 07:18:39\n2880220\t2851168\tTest Client Quotation\t2026-03-12 15:25:58\n2880194\t2851168\tTest Client Quotation\t2026-03-12 15:25:17\n2880168\t2851168\tTest Client Quotation\t2026-03-12 15:24:44\n2820438\t2851179\tTest Client QVS2\t2026-03-12 07:21:43\n2820437\t2851179\tTest Client QVS2\t2026-03-12 07:21:43\n2820434\t2851179\tTest Client QVS2\t2026-03-12 07:21:42\n2820464\t2851238\tTest Client QVS2\t2026-03-12 07:22:12\n2820463\t2851238\tTest Client QVS2\t2026-03-12 07:22:12\n2820460\t2851238\tTest Client QVS2\t2026-03-12 07:22:12\n2820490\t2851301\tTest Client QVS2\t2026-03-12 07:22:36\n2820489\t2851301\tTest Client QVS2\t2026-03-12 07:22:36\n2820486\t2851301\tTest Client QVS2\t2026-03-12 07:22:36\n2820516\t2851356\tTest Client QVS2\t2026-03-12 07:23:00\n2820515\t2851356\tTest Client QVS2\t2026-03-12 07:23:00\n2820512\t2851356\tTest Client QVS2\t2026-03-12 07:23:00\n2820542\t2851415\tTest Client QVS2\t2026-03-12 07:23:27\n2820541\t2851415\tTest Client QVS2\t2026-03-12 07:23:27\n2820538\t2851415\tTest Client QVS2\t2026-03-12 07:23:27\n2850023\t2880041\tTest Client QVS2\t2026-03-12 13:31:23\n2850022\t2880041\tTest Client QVS2\t2026-03-12 13:31:23\n2850019\t2880041\tTest Client QVS2\t2026-03-12 13:31:23\n2850049\t2880100\tTest Client QVS2\t2026-03-12 13:43:06\n2850048\t2880100\tTest Client QVS2\t2026-03-12 13:43:06\n2850045\t2880100\tTest Client QVS2\t2026-03-12 13:43:06\n2850075\t2880159\tTest Client QVS2\t2026-03-12 13:43:43\n2850074\t2880159\tTest Client QVS2\t2026-03-12 13:43:43\n2850071\t2880159\tTest Client QVS2\t2026-03-12 13:43:43\n2850098\t2880209\tTest Client QVS2\t2026-03-12 13:44:19\n2850097\t2880209\tTest Client QVS2\t2026-03-12 13:44:19\n2850094\t2880209\tTest Client QVS2\t2026-03-12 13:44:19\n2850124\t2880265\tTest Client QVS2\t2026-03-12 13:48:01\n2850123\t2880265\tTest Client QVS2\t2026-03-12 13:48:01\n2850120\t2880265\tTest Client QVS2\t2026-03-12 13:48:01\n2850150\t2880323\tTest Client QVS2\t2026-03-12 13:48:33\n2850149\t2880323\tTest Client QVS2\t2026-03-12 13:48:33\n2850146\t2880323\tTest Client QVS2\t2026-03-12 13:48:33\n2850176\t2880382\tTest Client QVS2\t2026-03-12 13:49:16\n2850175\t2880382\tTest Client QVS2\t2026-03-12 13:49:16\n2850172\t2880382\tTest Client QVS2\t2026-03-12 13:49:16\n",
+  "stderr": "",
+  "execution_time_ms": 64
+}

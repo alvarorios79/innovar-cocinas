@@ -1,0 +1,8 @@
+{
+  "query": "SELECT q.id, q.clientId, c.name as clientName, q.createdAt, COUNT(p.id) as projectCount FROM quotations q LEFT JOIN clients c ON q.clientId = c.id LEFT JOIN projects p ON q.id = p.quotationId GROUP BY q.id HAVING projectCount = 0 OR c.name LIKE '%Test%' OR c.name LIKE '%test%' OR c.name LIKE '%Prueba%' OR c.name LIKE '%prueba%' LIMIT 50;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT q.id, q.clientId, c.name as clientName, q.createdAt, COUNT(p.id) as projectCount FROM quotations q LEFT JOIN clients c ON q.clientId = c.id LEFT JOIN projects p ON q.id = p.quotationId GROUP BY q.id HAVING projectCount = 0 OR c.name LIKE '%Test%' OR c.name LIKE '%test%' OR c.name LIKE '%Prueba%' OR c.name LIKE '%prueba%' LIMIT 50;",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1055 (42000) at line 1: Expression #3 of SELECT list is not in GROUP BY clause and contains nonaggregated column 'XhEkCr8yXcaeDFyuQebdJQ.c.name' which is not functionally dependent on columns in GROUP BY clause; this is incompatible with sql_mode=only_full_group_by"
+  ]
+}

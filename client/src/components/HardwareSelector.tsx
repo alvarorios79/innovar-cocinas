@@ -106,9 +106,9 @@ export function HardwareSelector({ projectId, readOnly = false, showOnlySelected
 
   const filteredCatalog = catalog?.filter((item: any) => item.category === activeTab) || [];
   const selectedCount = {
-    cocinas: selections?.filter(s => s.hardware.category === "cocinas").length || 0,
-    closets: selections?.filter(s => s.hardware.category === "closets").length || 0,
-    puertas: selections?.filter(s => s.hardware.category === "puertas").length || 0,
+    cocinas: selections?.filter((s: any) => s?.hardwareCategory === "cocinas").length || 0,
+    closets: selections?.filter((s: any) => s?.hardwareCategory === "closets").length || 0,
+    puertas: selections?.filter((s: any) => s?.hardwareCategory === "puertas").length || 0,
   };
 
   if (catalogLoading || selectionsLoading) {

@@ -150,7 +150,7 @@ export const clientsRouter = router({
             name: sanitizeText(input.name),
             email: sanitizeEmail(input.email),
             role: "user",
-            passwordHash,
+            password: passwordHash,
           });
           userEmail = input.email;
         }

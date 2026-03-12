@@ -2463,3 +2463,16 @@ export async function deleteAdvisoryRequest(requestId: number) {
 }
 
 // Get all deleted quotations
+
+// Get all clients with pagination
+export async function getAllClientsPaginated(limit: number = 50, offset: number = 0) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  return await db.select()
+    .from(clients)
+    .where(isNull(clients.deletedAt))
+    .limit(limit)
+    .offset(offset)
+    .orderBy(desc(clients.createdAt));
+}

@@ -463,7 +463,7 @@ export default function Home() {
             </div>
             
             {/* Información de contacto cerca del logo */}
-            <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 md:gap-6 text-xs sm:text-sm text-muted-foreground mb-4 md:mb-8 px-4">
+            <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 md:gap-6 text-xs sm:text-sm text-muted-foreground mb-8 md:mb-12 px-4">
               <a href="tel:+573136802025" className="flex items-center gap-1 hover:text-primary transition-colors min-h-[44px]">
                 <Phone className="h-4 w-4 flex-shrink-0" />
                 <span className="whitespace-nowrap">313 680 2025</span>

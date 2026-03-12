@@ -42,7 +42,7 @@ export function MobileBottomNavigation() {
   ];
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-border md:hidden z-40 safe-area-inset-bottom shadow-lg">
+    <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-teal-600 to-teal-700 border-t border-teal-800 md:hidden z-40 safe-area-inset-bottom shadow-2xl">
       {/* Línea de indicador de carga */}
       {isAnimating && (
         <div className="absolute top-0 left-0 h-0.5 bg-gradient-to-r from-accent via-accent to-transparent animate-pulse" />
@@ -60,8 +60,8 @@ export function MobileBottomNavigation() {
               size="sm"
               className={`flex flex-col items-center gap-1 h-full rounded-none flex-1 transition-all duration-300 ease-in-out relative group ${
                 active
-                  ? "bg-accent/10 text-accent-foreground"
-                  : "text-muted-foreground hover:bg-accent/5"
+                  ? "bg-white/20 text-white font-semibold"
+                  : "text-white/70 hover:bg-white/10"
               }`}
               onClick={() => setLocation(item.path)}
               style={{

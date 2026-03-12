@@ -1,0 +1,8 @@
+{
+  "query": "SELECT COUNT(DISTINCT u.id) as users_with_projects FROM users u INNER JOIN projects p ON p.assignedTo = u.id WHERE u.role IN ('super_admin', 'admin', 'comercial', 'disenador', 'jefe_taller', 'operario') AND u.email NOT IN ('mcfy8jgnym@privaterelay.appleid.com', 'alejoile300@gmail.com', 'martha79s@hotmail.com', 'jefe.taller@innovar.temp', 'operario@innovar.temp');",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT COUNT(DISTINCT u.id) as users_with_projects FROM users u INNER JOIN projects p ON p.assignedTo = u.id WHERE u.role IN ('super_admin', 'admin', 'comercial', 'disenador', 'jefe_taller', 'operario') AND u.email NOT IN ('mcfy8jgnym@privaterelay.appleid.com', 'alejoile300@gmail.com', 'martha79s@hotmail.com', 'jefe.taller@innovar.temp', 'operario@innovar.temp');",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1054 (42S22) at line 1: Unknown column 'p.assignedto' in 'on clause'"
+  ]
+}

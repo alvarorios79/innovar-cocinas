@@ -1,0 +1,190 @@
+{
+  "query": "SELECT id, name, email, role FROM users WHERE role IN ('super_admin', 'admin', 'comercial', 'disenador', 'jefe_taller', 'operario') AND email NOT IN ('mcfy8jgnym@privaterelay.appleid.com', 'alejoile300@gmail.com', 'martha79s@hotmail.com', 'jefe.taller@innovar.temp', 'operario@innovar.temp') ORDER BY role, name LIMIT 30;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT id, name, email, role FROM users WHERE role IN ('super_admin', 'admin', 'comercial', 'disenador', 'jefe_taller', 'operario') AND email NOT IN ('mcfy8jgnym@privaterelay.appleid.com', 'alejoile300@gmail.com', 'martha79s@hotmail.com', 'jefe.taller@innovar.temp', 'operario@innovar.temp') ORDER BY role, name LIMIT 30;",
+  "rows": [
+    {
+      "id": "13170378",
+      "name": "Admin Role Protected",
+      "email": "admin-role-protected-1772767147880@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "13350629",
+      "name": "Admin Role Protected",
+      "email": "admin-role-protected-1772817672956@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "13350108",
+      "name": "Admin Role Protected",
+      "email": "admin-role-protected-1772812473547@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "13350710",
+      "name": "Admin Role Protected",
+      "email": "admin-role-protected-1772817764450@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "13170294",
+      "name": "Admin Role Protected",
+      "email": "admin-role-protected-1772767049250@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "13350547",
+      "name": "Admin Role Protected",
+      "email": "admin-role-protected-1772817596305@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "13170155",
+      "name": "Admin Role Protected",
+      "email": "admin-role-protected-1772766821004@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "10890106",
+      "name": "Admin Role Protected",
+      "email": "admin-role-protected-1772302816952@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "11130071",
+      "name": "Admin Role Protected",
+      "email": "admin-role-protected-1772386091084@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "13350669",
+      "name": "Admin Role Protected",
+      "email": "admin-role-protected-1772817706272@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "13350123",
+      "name": "Admin Role Protected",
+      "email": "admin-role-protected-1772812544730@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "10980589",
+      "name": "Admin Role Protected",
+      "email": "admin-role-protected-1772321150751@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "11130108",
+      "name": "Admin Role Protected",
+      "email": "admin-role-protected-1772386159900@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "10980314",
+      "name": "Admin Role Protected",
+      "email": "admin-role-protected-1772317192159@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "13350290",
+      "name": "Admin Role Protected",
+      "email": "admin-role-protected-1772815963691@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "10530115",
+      "name": "Admin Role Protected",
+      "email": "admin-role-protected-1772072933824@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "11130044",
+      "name": "Admin Role Protected",
+      "email": "admin-role-protected-1772386074539@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "10980355",
+      "name": "Admin Role Protected",
+      "email": "admin-role-protected-1772318296497@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "10980435",
+      "name": "Admin Role Protected",
+      "email": "admin-role-protected-1772318347379@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "10530042",
+      "name": "Admin Role Protected",
+      "email": "admin-role-protected-1772072379209@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "13350202",
+      "name": "Admin Role Protected",
+      "email": "admin-role-protected-1772814554829@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "8880015",
+      "name": "Admin Role Protected",
+      "email": "admin-role-protected-1771738812738@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "13350334",
+      "name": "Admin Role Protected",
+      "email": "admin-role-protected-1772816013253@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "10980395",
+      "name": "Admin Role Protected",
+      "email": "admin-role-protected-1772318318470@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "10530155",
+      "name": "Admin Role Protected",
+      "email": "admin-role-protected-1772072952681@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "10890082",
+      "name": "Admin Role Protected",
+      "email": "admin-role-protected-1772302717536@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "10980288",
+      "name": "Admin Role Protected",
+      "email": "admin-role-protected-1772317179674@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "9240053",
+      "name": "Admin Role Protected",
+      "email": "admin-role-protected-1771806214364@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "8880043",
+      "name": "Admin Role Protected",
+      "email": "admin-role-protected-1771738838610@test.com",
+      "role": "admin"
+    },
+    {
+      "id": "10980630",
+      "name": "Admin Role Protected",
+      "email": "admin-role-protected-1772321171393@test.com",
+      "role": "admin"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\temail\trole\n13170378\tAdmin Role Protected\tadmin-role-protected-1772767147880@test.com\tadmin\n13350629\tAdmin Role Protected\tadmin-role-protected-1772817672956@test.com\tadmin\n13350108\tAdmin Role Protected\tadmin-role-protected-1772812473547@test.com\tadmin\n13350710\tAdmin Role Protected\tadmin-role-protected-1772817764450@test.com\tadmin\n13170294\tAdmin Role Protected\tadmin-role-protected-1772767049250@test.com\tadmin\n13350547\tAdmin Role Protected\tadmin-role-protected-1772817596305@test.com\tadmin\n13170155\tAdmin Role Protected\tadmin-role-protected-1772766821004@test.com\tadmin\n10890106\tAdmin Role Protected\tadmin-role-protected-1772302816952@test.com\tadmin\n11130071\tAdmin Role Protected\tadmin-role-protected-1772386091084@test.com\tadmin\n13350669\tAdmin Role Protected\tadmin-role-protected-1772817706272@test.com\tadmin\n13350123\tAdmin Role Protected\tadmin-role-protected-1772812544730@test.com\tadmin\n10980589\tAdmin Role Protected\tadmin-role-protected-1772321150751@test.com\tadmin\n11130108\tAdmin Role Protected\tadmin-role-protected-1772386159900@test.com\tadmin\n10980314\tAdmin Role Protected\tadmin-role-protected-1772317192159@test.com\tadmin\n13350290\tAdmin Role Protected\tadmin-role-protected-1772815963691@test.com\tadmin\n10530115\tAdmin Role Protected\tadmin-role-protected-1772072933824@test.com\tadmin\n11130044\tAdmin Role Protected\tadmin-role-protected-1772386074539@test.com\tadmin\n10980355\tAdmin Role Protected\tadmin-role-protected-1772318296497@test.com\tadmin\n10980435\tAdmin Role Protected\tadmin-role-protected-1772318347379@test.com\tadmin\n10530042\tAdmin Role Protected\tadmin-role-protected-1772072379209@test.com\tadmin\n13350202\tAdmin Role Protected\tadmin-role-protected-1772814554829@test.com\tadmin\n8880015\tAdmin Role Protected\tadmin-role-protected-1771738812738@test.com\tadmin\n13350334\tAdmin Role Protected\tadmin-role-protected-1772816013253@test.com\tadmin\n10980395\tAdmin Role Protected\tadmin-role-protected-1772318318470@test.com\tadmin\n10530155\tAdmin Role Protected\tadmin-role-protected-1772072952681@test.com\tadmin\n10890082\tAdmin Role Protected\tadmin-role-protected-1772302717536@test.com\tadmin\n10980288\tAdmin Role Protected\tadmin-role-protected-1772317179674@test.com\tadmin\n9240053\tAdmin Role Protected\tadmin-role-protected-1771806214364@test.com\tadmin\n8880043\tAdmin Role Protected\tadmin-role-protected-1771738838610@test.com\tadmin\n10980630\tAdmin Role Protected\tadmin-role-protected-1772321171393@test.com\tadmin\n",
+  "stderr": "",
+  "execution_time_ms": 69
+}

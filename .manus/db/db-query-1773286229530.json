@@ -1,0 +1,9 @@
+{
+  "query": "ALTER TABLE pushSubscriptions ADD COLUMN IF NOT EXISTS isActive tinyint NOT NULL DEFAULT 1; ALTER TABLE pushSubscriptions ADD COLUMN IF NOT EXISTS lastUsedAt timestamp NULL; ALTER TABLE pushSubscriptions ADD COLUMN IF NOT EXISTS dataOrigin enum('manual','system') NOT NULL DEFAULT 'manual';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute ALTER TABLE pushSubscriptions ADD COLUMN IF NOT EXISTS isActive tinyint NOT NULL DEFAULT 1; ALTER TABLE pushSubscriptions ADD COLUMN IF NOT EXISTS lastUsedAt timestamp NULL; ALTER TABLE pushSubscriptions ADD COLUMN IF NOT EXISTS dataOrigin enum('manual','system') NOT NULL DEFAULT 'manual';",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 1528
+}

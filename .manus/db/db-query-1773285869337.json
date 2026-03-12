@@ -1,0 +1,60 @@
+{
+  "query": "SELECT t.id, t.title, t.status, t.assignedTo, t.assignedBy, u1.name as assignedToName, u1.email as assignedToEmail, u2.name as assignedByName FROM tasks t LEFT JOIN users u1 ON u1.id = t.assignedTo LEFT JOIN users u2 ON u2.id = t.assignedBy ORDER BY t.id DESC LIMIT 5;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT t.id, t.title, t.status, t.assignedTo, t.assignedBy, u1.name as assignedToName, u1.email as assignedToEmail, u2.name as assignedByName FROM tasks t LEFT JOIN users u1 ON u1.id = t.assignedTo LEFT JOIN users u2 ON u2.id = t.assignedBy ORDER BY t.id DESC LIMIT 5;",
+  "rows": [
+    {
+      "id": "2310001",
+      "title": "activacion de materiales ",
+      "status": "pendiente",
+      "assignedTo": "840290",
+      "assignedBy": "1",
+      "assignedToName": "Luis Cardoso",
+      "assignedToEmail": "jefe.taller@innovar.temp",
+      "assignedByName": "Alvaro Rios"
+    },
+    {
+      "id": "2280107",
+      "title": "Tarea prioridad media",
+      "status": "pendiente",
+      "assignedTo": "1",
+      "assignedBy": "1",
+      "assignedToName": "Alvaro Rios",
+      "assignedToEmail": "mcfy8jgnym@privaterelay.appleid.com",
+      "assignedByName": "Alvaro Rios"
+    },
+    {
+      "id": "2280106",
+      "title": "Tarea para verificar lista",
+      "status": "pendiente",
+      "assignedTo": "1",
+      "assignedBy": "1",
+      "assignedToName": "Alvaro Rios",
+      "assignedToEmail": "mcfy8jgnym@privaterelay.appleid.com",
+      "assignedByName": "Alvaro Rios"
+    },
+    {
+      "id": "2280105",
+      "title": "Tarea prioridad alta",
+      "status": "pendiente",
+      "assignedTo": "1",
+      "assignedBy": "1",
+      "assignedToName": "Alvaro Rios",
+      "assignedToEmail": "mcfy8jgnym@privaterelay.appleid.com",
+      "assignedByName": "Alvaro Rios"
+    },
+    {
+      "id": "2280104",
+      "title": "Tarea de prueba para notificación",
+      "status": "pendiente",
+      "assignedTo": "1",
+      "assignedBy": "1",
+      "assignedToName": "Alvaro Rios",
+      "assignedToEmail": "mcfy8jgnym@privaterelay.appleid.com",
+      "assignedByName": "Alvaro Rios"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\ttitle\tstatus\tassignedTo\tassignedBy\tassignedToName\tassignedToEmail\tassignedByName\n2310001\tactivacion de materiales \tpendiente\t840290\t1\tLuis Cardoso\tjefe.taller@innovar.temp\tAlvaro Rios\n2280107\tTarea prioridad media\tpendiente\t1\t1\tAlvaro Rios\tmcfy8jgnym@privaterelay.appleid.com\tAlvaro Rios\n2280106\tTarea para verificar lista\tpendiente\t1\t1\tAlvaro Rios\tmcfy8jgnym@privaterelay.appleid.com\tAlvaro Rios\n2280105\tTarea prioridad alta\tpendiente\t1\t1\tAlvaro Rios\tmcfy8jgnym@privaterelay.appleid.com\tAlvaro Rios\n2280104\tTarea de prueba para notificación\tpendiente\t1\t1\tAlvaro Rios\tmcfy8jgnym@privaterelay.appleid.com\tAlvaro Rios\n",
+  "stderr": "",
+  "execution_time_ms": 69
+}

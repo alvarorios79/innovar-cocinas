@@ -1735,12 +1735,12 @@ export async function deleteAdvisoryRequestsByClientId(clientId: number) {
 export async function checkUserDependencies(userId: number) {
   const db = await getDb();
   if (!db) return { hasRealDependencies: false };
-  // Verificar si el usuario tiene proyectos activos asignados
-  const assignedProjects = await db.select({ id: projects.id })
+  // Verificar si el usuario creó o tiene proyectos activos asociados
+  const createdProjects = await db.select({ id: projects.id })
     .from(projects)
-    .where(eq(projects.assignedTo, userId))
+    .where(and(eq(projects.createdBy, userId), isNull(projects.deletedAt)))
     .limit(1);
-  return { hasRealDependencies: assignedProjects.length > 0 };
+  return { hasRealDependencies: createdProjects.length > 0 };
 }
 
 export async function deletePushSubscriptionsByUserId(userId: number) {
@@ -1759,4 +1759,53 @@ export async function getPushSubscriptionsByUserId(userId: number) {
   const db = await getDb();
   if (!db) return [];
   return db.select().from(pushSubscriptions).where(eq(pushSubscriptions.userId, userId));
+}
+
+// Alias: getTasksByAssignedTo → getTasksByAssignee
+export async function getTasksByAssignedTo(userId: number) {
+  return getTasksByAssignee(userId);
+}
+
+// Alias: getTasksByProjectId → getTasksByProject
+export async function getTasksByProjectId(projectId: number) {
+  return getTasksByProject(projectId);
+}
+
+// getAllTasksPaginated: paginación para tareas con filtros opcionales
+export async function getAllTasksPaginated(options?: {
+  page?: number;
+  limit?: number;
+  status?: string;
+  assignedTo?: number;
+}) {
+  const db = await getDb();
+  if (!db) return { data: [], total: 0, page: 1, limit: 50, totalPages: 0 };
+
+  const page = options?.page ?? 1;
+  const limit = options?.limit ?? 50;
+  const offset = (page - 1) * limit;
+
+  const conditions: any[] = [isNull(tasks.deletedAt), eq(tasks.dataOrigin, 'manual')];
+  if (options?.status) {
+    conditions.push(eq(tasks.status, options.status as any));
+  }
+  if (options?.assignedTo) {
+    conditions.push(eq(tasks.assignedTo, options.assignedTo));
+  }
+
+  const whereClause = and(...conditions);
+
+  const [data, countResult] = await Promise.all([
+    db.select().from(tasks).where(whereClause).orderBy(desc(tasks.createdAt)).limit(limit).offset(offset),
+    db.select({ count: sql<number>`COUNT(*)` }).from(tasks).where(whereClause),
+  ]);
+
+  const total = Number(countResult[0]?.count ?? 0);
+  return {
+    data,
+    total,
+    page,
+    limit,
+    totalPages: Math.ceil(total / limit),
+  };
 }

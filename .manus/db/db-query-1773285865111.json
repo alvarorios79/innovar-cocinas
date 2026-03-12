@@ -1,0 +1,230 @@
+{
+  "query": "SELECT t.id, t.title, t.status, t.assignedTo, t.assignedBy, t.dueDate, t.projectId, u1.name as assignedToName, u2.name as assignedByName FROM tasks t LEFT JOIN users u1 ON u1.id = t.assignedTo LEFT JOIN users u2 ON u2.id = t.assignedBy ORDER BY t.id DESC LIMIT 20;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT t.id, t.title, t.status, t.assignedTo, t.assignedBy, t.dueDate, t.projectId, u1.name as assignedToName, u2.name as assignedByName FROM tasks t LEFT JOIN users u1 ON u1.id = t.assignedTo LEFT JOIN users u2 ON u2.id = t.assignedBy ORDER BY t.id DESC LIMIT 20;",
+  "rows": [
+    {
+      "id": "2310001",
+      "title": "activacion de materiales ",
+      "status": "pendiente",
+      "assignedTo": "840290",
+      "assignedBy": "1",
+      "dueDate": "2026-03-12 00:00:00",
+      "projectId": "NULL",
+      "assignedToName": "Luis Cardoso",
+      "assignedByName": "Alvaro Rios"
+    },
+    {
+      "id": "2280107",
+      "title": "Tarea prioridad media",
+      "status": "pendiente",
+      "assignedTo": "1",
+      "assignedBy": "1",
+      "dueDate": "NULL",
+      "projectId": "NULL",
+      "assignedToName": "Alvaro Rios",
+      "assignedByName": "Alvaro Rios"
+    },
+    {
+      "id": "2280106",
+      "title": "Tarea para verificar lista",
+      "status": "pendiente",
+      "assignedTo": "1",
+      "assignedBy": "1",
+      "dueDate": "NULL",
+      "projectId": "NULL",
+      "assignedToName": "Alvaro Rios",
+      "assignedByName": "Alvaro Rios"
+    },
+    {
+      "id": "2280105",
+      "title": "Tarea prioridad alta",
+      "status": "pendiente",
+      "assignedTo": "1",
+      "assignedBy": "1",
+      "dueDate": "NULL",
+      "projectId": "NULL",
+      "assignedToName": "Alvaro Rios",
+      "assignedByName": "Alvaro Rios"
+    },
+    {
+      "id": "2280104",
+      "title": "Tarea de prueba para notificación",
+      "status": "pendiente",
+      "assignedTo": "1",
+      "assignedBy": "1",
+      "dueDate": "NULL",
+      "projectId": "NULL",
+      "assignedToName": "Alvaro Rios",
+      "assignedByName": "Alvaro Rios"
+    },
+    {
+      "id": "2280103",
+      "title": "Tarea 3 para eliminación masiva",
+      "status": "pendiente",
+      "assignedTo": "13381783",
+      "assignedBy": "13381783",
+      "dueDate": "NULL",
+      "projectId": "NULL",
+      "assignedToName": "Admin Test",
+      "assignedByName": "Admin Test"
+    },
+    {
+      "id": "2280102",
+      "title": "Tarea 2 para eliminación masiva",
+      "status": "pendiente",
+      "assignedTo": "13381783",
+      "assignedBy": "13381783",
+      "dueDate": "NULL",
+      "projectId": "NULL",
+      "assignedToName": "Admin Test",
+      "assignedByName": "Admin Test"
+    },
+    {
+      "id": "2280101",
+      "title": "Tarea 1 para eliminación masiva",
+      "status": "pendiente",
+      "assignedTo": "13381783",
+      "assignedBy": "13381783",
+      "dueDate": "NULL",
+      "projectId": "NULL",
+      "assignedToName": "Admin Test",
+      "assignedByName": "Admin Test"
+    },
+    {
+      "id": "2280099",
+      "title": "Tarea para verificar lista",
+      "status": "pendiente",
+      "assignedTo": "1",
+      "assignedBy": "1",
+      "dueDate": "NULL",
+      "projectId": "NULL",
+      "assignedToName": "Alvaro Rios",
+      "assignedByName": "Alvaro Rios"
+    },
+    {
+      "id": "2280098",
+      "title": "Tarea con fecha límite",
+      "status": "pendiente",
+      "assignedTo": "1",
+      "assignedBy": "1",
+      "dueDate": "2026-03-13 14:48:40",
+      "projectId": "NULL",
+      "assignedToName": "Alvaro Rios",
+      "assignedByName": "Alvaro Rios"
+    },
+    {
+      "id": "2280097",
+      "title": "Tarea prioridad baja",
+      "status": "pendiente",
+      "assignedTo": "1",
+      "assignedBy": "1",
+      "dueDate": "NULL",
+      "projectId": "NULL",
+      "assignedToName": "Alvaro Rios",
+      "assignedByName": "Alvaro Rios"
+    },
+    {
+      "id": "2280096",
+      "title": "Tarea prioridad media",
+      "status": "pendiente",
+      "assignedTo": "1",
+      "assignedBy": "1",
+      "dueDate": "NULL",
+      "projectId": "NULL",
+      "assignedToName": "Alvaro Rios",
+      "assignedByName": "Alvaro Rios"
+    },
+    {
+      "id": "2280095",
+      "title": "Tarea prioridad alta",
+      "status": "pendiente",
+      "assignedTo": "1",
+      "assignedBy": "1",
+      "dueDate": "NULL",
+      "projectId": "NULL",
+      "assignedToName": "Alvaro Rios",
+      "assignedByName": "Alvaro Rios"
+    },
+    {
+      "id": "2280094",
+      "title": "Tarea de prueba para notificación",
+      "status": "pendiente",
+      "assignedTo": "1",
+      "assignedBy": "1",
+      "dueDate": "NULL",
+      "projectId": "NULL",
+      "assignedToName": "Alvaro Rios",
+      "assignedByName": "Alvaro Rios"
+    },
+    {
+      "id": "2280093",
+      "title": "Tarea 3 para eliminación masiva",
+      "status": "pendiente",
+      "assignedTo": "13381195",
+      "assignedBy": "13381195",
+      "dueDate": "NULL",
+      "projectId": "NULL",
+      "assignedToName": "Admin Test",
+      "assignedByName": "Admin Test"
+    },
+    {
+      "id": "2280092",
+      "title": "Tarea 2 para eliminación masiva",
+      "status": "pendiente",
+      "assignedTo": "13381195",
+      "assignedBy": "13381195",
+      "dueDate": "NULL",
+      "projectId": "NULL",
+      "assignedToName": "Admin Test",
+      "assignedByName": "Admin Test"
+    },
+    {
+      "id": "2280091",
+      "title": "Tarea 1 para eliminación masiva",
+      "status": "pendiente",
+      "assignedTo": "13381195",
+      "assignedBy": "13381195",
+      "dueDate": "NULL",
+      "projectId": "NULL",
+      "assignedToName": "Admin Test",
+      "assignedByName": "Admin Test"
+    },
+    {
+      "id": "2280090",
+      "title": "Tarea para verificar lista",
+      "status": "pendiente",
+      "assignedTo": "1",
+      "assignedBy": "1",
+      "dueDate": "NULL",
+      "projectId": "NULL",
+      "assignedToName": "Alvaro Rios",
+      "assignedByName": "Alvaro Rios"
+    },
+    {
+      "id": "2280089",
+      "title": "Tarea con fecha límite",
+      "status": "pendiente",
+      "assignedTo": "1",
+      "assignedBy": "1",
+      "dueDate": "2026-03-13 14:47:50",
+      "projectId": "NULL",
+      "assignedToName": "Alvaro Rios",
+      "assignedByName": "Alvaro Rios"
+    },
+    {
+      "id": "2280088",
+      "title": "Tarea prioridad baja",
+      "status": "pendiente",
+      "assignedTo": "1",
+      "assignedBy": "1",
+      "dueDate": "NULL",
+      "projectId": "NULL",
+      "assignedToName": "Alvaro Rios",
+      "assignedByName": "Alvaro Rios"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\ttitle\tstatus\tassignedTo\tassignedBy\tdueDate\tprojectId\tassignedToName\tassignedByName\n2310001\tactivacion de materiales \tpendiente\t840290\t1\t2026-03-12 00:00:00\tNULL\tLuis Cardoso\tAlvaro Rios\n2280107\tTarea prioridad media\tpendiente\t1\t1\tNULL\tNULL\tAlvaro Rios\tAlvaro Rios\n2280106\tTarea para verificar lista\tpendiente\t1\t1\tNULL\tNULL\tAlvaro Rios\tAlvaro Rios\n2280105\tTarea prioridad alta\tpendiente\t1\t1\tNULL\tNULL\tAlvaro Rios\tAlvaro Rios\n2280104\tTarea de prueba para notificación\tpendiente\t1\t1\tNULL\tNULL\tAlvaro Rios\tAlvaro Rios\n2280103\tTarea 3 para eliminación masiva\tpendiente\t13381783\t13381783\tNULL\tNULL\tAdmin Test\tAdmin Test\n2280102\tTarea 2 para eliminación masiva\tpendiente\t13381783\t13381783\tNULL\tNULL\tAdmin Test\tAdmin Test\n2280101\tTarea 1 para eliminación masiva\tpendiente\t13381783\t13381783\tNULL\tNULL\tAdmin Test\tAdmin Test\n2280099\tTarea para verificar lista\tpendiente\t1\t1\tNULL\tNULL\tAlvaro Rios\tAlvaro Rios\n2280098\tTarea con fecha límite\tpendiente\t1\t1\t2026-03-13 14:48:40\tNULL\tAlvaro Rios\tAlvaro Rios\n2280097\tTarea prioridad baja\tpendiente\t1\t1\tNULL\tNULL\tAlvaro Rios\tAlvaro Rios\n2280096\tTarea prioridad media\tpendiente\t1\t1\tNULL\tNULL\tAlvaro Rios\tAlvaro Rios\n2280095\tTarea prioridad alta\tpendiente\t1\t1\tNULL\tNULL\tAlvaro Rios\tAlvaro Rios\n2280094\tTarea de prueba para notificación\tpendiente\t1\t1\tNULL\tNULL\tAlvaro Rios\tAlvaro Rios\n2280093\tTarea 3 para eliminación masiva\tpendiente\t13381195\t13381195\tNULL\tNULL\tAdmin Test\tAdmin Test\n2280092\tTarea 2 para eliminación masiva\tpendiente\t13381195\t13381195\tNULL\tNULL\tAdmin Test\tAdmin Test\n2280091\tTarea 1 para eliminación masiva\tpendiente\t13381195\t13381195\tNULL\tNULL\tAdmin Test\tAdmin Test\n2280090\tTarea para verificar lista\tpendiente\t1\t1\tNULL\tNULL\tAlvaro Rios\tAlvaro Rios\n2280089\tTarea con fecha límite\tpendiente\t1\t1\t2026-03-13 14:47:50\tNULL\tAlvaro Rios\tAlvaro Rios\n2280088\tTarea prioridad baja\tpendiente\t1\t1\tNULL\tNULL\tAlvaro Rios\tAlvaro Rios\n",
+  "stderr": "",
+  "execution_time_ms": 68
+}

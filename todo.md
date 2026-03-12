@@ -5286,3 +5286,8 @@ Listo para pasar a Fase 7.2 (Intelligent Alerts) cuando sea requerido.
 - [x] Actualizar ProfitabilityDashboard.tsx para calcular cartera pendiente por proyecto
 - [x] Agregar tarjeta visual para mostrar el indicador
 - [x] Probar el indicador con datos reales
+
+## Bugs Reportados 2026-03-12
+
+- [x] BUG: Limpieza automática del sistema elimina 0 usuarios de prueba (la eliminación manual sí funciona)
+- [x] BUG: Módulo de Tareas del Equipo muestra 0 tareas (Pendientes: 0, En Progreso: 0) aunque el dashboard muestra 1 tarea

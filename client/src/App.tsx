@@ -5,6 +5,7 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { WhatsAppButton } from "./components/WhatsAppButton";
+import { MobileBottomNavigation } from "./components/navigation/MobileBottomNavigation";
 import Home from "./pages/Home";
 import Admin from "./pages/Admin";
 import Portal from "./pages/Portal";
@@ -63,6 +64,7 @@ function App() {
           <Toaster />
           <Router />
           <WhatsAppButton />
+          <MobileBottomNavigation />
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>

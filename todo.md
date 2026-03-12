@@ -5291,3 +5291,14 @@ Listo para pasar a Fase 7.2 (Intelligent Alerts) cuando sea requerido.
 
 - [x] BUG: Limpieza automática del sistema elimina 0 usuarios de prueba (la eliminación manual sí funciona)
 - [x] BUG: Módulo de Tareas del Equipo muestra 0 tareas (Pendientes: 0, En Progreso: 0) aunque el dashboard muestra 1 tarea
+
+
+## Correcciones Quirúrgicas — 12 de Marzo de 2026
+
+### Bugs Corregidos
+- [x] MaterialsForm: Cambiar router projectMaterials.get para retornar objeto único en lugar de array
+- [x] pdf-generator.ts: Corregir nombres de funciones (getProjectPhotosByProjectId → getProjectPhotos, getProjectDetailsByProjectId → getProjectDetail)
+- [x] Reminders: Corregir nombres de campos en getPendingReminders (scheduledFor → dueDate, sent → status)
+- [x] Users: Corregir getTeamMembers para filtrar por rol en lugar de isTeamMember inexistente
+- [x] Portal: Enriquecer getAppointmentsByClient para incluir workTypes como array anidado
+- [x] Notifications: Agregar función deleteAllNotificationsByUserId en db.ts

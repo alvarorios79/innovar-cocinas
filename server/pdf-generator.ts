@@ -8,8 +8,8 @@ export async function generateProjectReportHTML(projectId: number): Promise<stri
   }
 
   // Obtener datos relacionados
-  const photos = await db.getProjectPhotosByProjectId(projectId);
-  const details = await db.getProjectDetailsByProjectId(projectId);
+  const photos = await db.getProjectPhotos(projectId);
+  const details = await db.getProjectDetail(projectId);
   const history = await db.getProjectStatusHistoryByProjectId(projectId);
 
   // Obtener cliente

@@ -136,7 +136,7 @@ export async function getAllTeamMembers() {
   const db = await getDb();
   if (!db) return [];
 
-  return await db.select().from(users).where(and(isNull(users.deletedAt), eq(users.isTeamMember, 1))).orderBy(desc(users.createdAt));
+  return await db.select().from(users).where(and(isNull(users.deletedAt), ne(users.role, 'user'))).orderBy(desc(users.createdAt));
 }
 
 export async function updateUser(id: number, data: Partial<InsertUser>) {
@@ -266,7 +266,15 @@ export async function getAppointmentsByClient(clientId: number) {
   const db = await getDb();
   if (!db) return [];
 
-  return await db.select().from(appointments).where(and(eq(appointments.clientId, clientId), isNull(appointments.deletedAt), eq(appointments.dataOrigin, 'manual'))).orderBy(desc(appointments.createdAt));
+  const appts = await db.select().from(appointments).where(and(eq(appointments.clientId, clientId), isNull(appointments.deletedAt), eq(appointments.dataOrigin, 'manual'))).orderBy(desc(appointments.createdAt));
+  
+  // Enriquecer cada cita con sus workTypes
+  const enriched = await Promise.all(appts.map(async (apt) => {
+    const workTypes = await db.select().from(appointmentWorkTypes).where(eq(appointmentWorkTypes.appointmentId, apt.id));
+    return { ...apt, workTypes: workTypes.map(wt => wt.workType) };
+  }));
+  
+  return enriched;
 }
 
 export async function updateAppointment(id: number, data: Partial<InsertAppointment>) {
@@ -497,8 +505,8 @@ export async function getPendingReminders() {
 
   const now = new Date().toISOString();
   return await db.select().from(reminders).where(and(
-    lte(reminders.scheduledFor, now),
-    eq(reminders.sent, 0)
+    lte(reminders.dueDate, now),
+    eq(reminders.status, 'pendiente')
   )).orderBy(desc(reminders.createdAt));
 }
 
@@ -1808,4 +1816,13 @@ export async function getAllTasksPaginated(options?: {
     limit,
     totalPages: Math.ceil(total / limit),
   };
+}
+
+
+export async function deleteAllNotificationsByUserId(userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.delete(notifications).where(eq(notifications.userId, userId));
+  return { deletedCount: result.rowsAffected ?? 0 };
 }

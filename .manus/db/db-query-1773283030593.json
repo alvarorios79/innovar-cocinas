@@ -1,0 +1,31 @@
+{
+  "query": "SELECT COUNT(*) as total FROM clients; SELECT id, name, whatsappPhone, email FROM clients LIMIT 5;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT COUNT(*) as total FROM clients; SELECT id, name, whatsappPhone, email FROM clients LIMIT 5;",
+  "rows": [
+    {
+      "total": "1971"
+    },
+    {
+      "total": "id\tname\twhatsappPhone\temail"
+    },
+    {
+      "total": "90091\tCarlos Albeiro Betancurt \t3208515567\talbetan1530@gmail.com"
+    },
+    {
+      "total": "300053\tÁlvaro prueba \t3002826317\talvarorios79@hotmail.com"
+    },
+    {
+      "total": "720001\tRuth Naranjo\t3214479321\talvarorios79@gmail.com"
+    },
+    {
+      "total": "810001\tOrlando Primacho\t+18034673002\tNULL"
+    },
+    {
+      "total": "810002\tJhonier Cardona\t3206656740\tNULL"
+    }
+  ],
+  "messages": [],
+  "stdout": "total\n1971\nid\tname\twhatsappPhone\temail\n90091\tCarlos Albeiro Betancurt \t3208515567\talbetan1530@gmail.com\n300053\tÁlvaro prueba \t3002826317\talvarorios79@hotmail.com\n720001\tRuth Naranjo\t3214479321\talvarorios79@gmail.com\n810001\tOrlando Primacho\t+18034673002\tNULL\n810002\tJhonier Cardona\t3206656740\tNULL\n",
+  "stderr": "",
+  "execution_time_ms": 121
+}

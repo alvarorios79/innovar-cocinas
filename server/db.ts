@@ -1,4 +1,4 @@
-import { eq, desc, and, or, gte, lte, gt, between, sql, inArray, isNull, isNotNull } from "drizzle-orm";
+import { eq, desc, asc, and, or, gte, lte, gt, between, sql, inArray, isNull, isNotNull, like, ne } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 // @ts-ignore
 import { 
@@ -184,6 +184,43 @@ export async function getAllClients() {
   if (!db) return [];
 
   return await db.select().from(clients).where(and(isNull(clients.deletedAt), eq(clients.dataOrigin, 'manual'))).orderBy(desc(clients.createdAt));
+}
+
+export async function getAllClientsPaginated(options?: { page?: number; limit?: number; search?: string }) {
+  const db = await getDb();
+  if (!db) return { clients: [], total: 0, page: 1, limit: 50 };
+
+  const page = options?.page ?? 1;
+  const limit = options?.limit ?? 50;
+  const offset = (page - 1) * limit;
+  const search = options?.search?.trim();
+
+  const whereConditions = search
+    ? and(
+        isNull(clients.deletedAt),
+        or(
+          like(clients.name, `%${search}%`),
+          like(clients.whatsappPhone, `%${search}%`),
+          like(clients.email, `%${search}%`)
+        )
+      )
+    : isNull(clients.deletedAt);
+
+  const [rows, countRows] = await Promise.all([
+    db.select().from(clients)
+      .where(whereConditions)
+      .orderBy(desc(clients.createdAt))
+      .limit(limit)
+      .offset(offset),
+    db.select({ count: sql<number>`COUNT(*)` }).from(clients).where(whereConditions),
+  ]);
+
+  return {
+    clients: rows,
+    total: Number(countRows[0]?.count ?? 0),
+    page,
+    limit,
+  };
 }
 
 export async function updateClient(id: number, data: Partial<InsertClient>) {

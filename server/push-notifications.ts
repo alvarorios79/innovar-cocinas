@@ -77,7 +77,7 @@ export async function sendPushToUser(userId: number, payload: PushPayload): Prom
       
       // Si la suscripción ya no es válida, eliminarla
       if (error.statusCode === 404 || error.statusCode === 410) {
-        await db.deletePushSubscription(sub.id);
+        await db.deletePushSubscription(sub.endpoint);
       }
       failed++;
     }
@@ -127,8 +127,8 @@ export async function createAndSendNotification(
     type: notification.type,
     referenceId: notification.referenceId,
     referenceType: notification.referenceType,
-    read: 0,
-    sentPush: 0,
+    read: false,
+    sentPush: false,
   });
 
   // Enviar push

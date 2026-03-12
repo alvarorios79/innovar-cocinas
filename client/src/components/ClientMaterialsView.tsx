@@ -43,10 +43,7 @@ export function ClientMaterialsView({ projectId }: ClientMaterialsViewProps) {
   }
 
   const hasMaterials = materials && (materials.woodType || materials.countertopType || materials.sinkMeasure);
-  
-  // Filter out items without hardware first - handle undefined selections
-  const selectionsToDisplay = (Array.isArray(selections) ? selections : []).filter((s: any) => s && s.hardwareCategory);
-  const hasHardware = selectionsToDisplay.length > 0;
+  const hasHardware = selections && selections.length > 0;
 
   if (!hasMaterials && !hasHardware) {
     return (
@@ -59,13 +56,12 @@ export function ClientMaterialsView({ projectId }: ClientMaterialsViewProps) {
   }
 
   // Group hardware by category
-  type SelectionItem = NonNullable<typeof selections>[number];
-  const hardwareByCategory = selectionsToDisplay.reduce((acc: Record<string, SelectionItem[]>, selection: SelectionItem) => {
-    const category = selection.hardwareCategory || 'sin-categoria';
+  const hardwareByCategory = selections?.reduce((acc, selection) => {
+    const category = selection.hardware.category;
     if (!acc[category]) acc[category] = [];
     acc[category].push(selection);
     return acc;
-  }, {} as Record<string, SelectionItem[]>);
+  }, {} as Record<string, typeof selections>);
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -163,11 +159,11 @@ export function ClientMaterialsView({ projectId }: ClientMaterialsViewProps) {
             <CardTitle className="text-base sm:text-lg flex items-center gap-2">
               <Wrench className="h-5 w-5" />
               Herrajes Incluidos
-              <Badge variant="secondary" className="ml-2">{selectionsToDisplay.length}</Badge>
+              <Badge variant="secondary" className="ml-2">{selections.length}</Badge>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            {(Object.entries(hardwareByCategory || {}) as [string, SelectionItem[]][]).map(([category, items]) => (
+            {Object.entries(hardwareByCategory || {}).map(([category, items]) => (
               <div key={category} className="space-y-3">
                 <h4 className="font-medium flex items-center gap-2 text-sm text-muted-foreground">
                   {getCategoryIcon(category)}
@@ -184,18 +180,31 @@ export function ClientMaterialsView({ projectId }: ClientMaterialsViewProps) {
                       <div 
                         className={cn(
                           "w-14 h-14 rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden",
-                          "bg-muted"
+                          selection.hardware.photoUrl ? "bg-white cursor-pointer hover:opacity-90" : "bg-muted"
                         )}
+                        onClick={() => {
+                          if (selection.hardware.photoUrl) {
+                            setPhotoPreview(selection.hardware.photoUrl);
+                          }
+                        }}
                       >
-                      <ImageIcon className="h-5 w-5 text-muted-foreground" />
+                        {selection.hardware.photoUrl ? (
+                          <img 
+                            src={selection.hardware.photoUrl} 
+                            alt={selection.hardware.name} 
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <ImageIcon className="h-5 w-5 text-muted-foreground" />
+                        )}
                       </div>
 
                       {/* Content */}
                       <div className="flex-1 min-w-0">
-                        <h5 className="font-medium text-sm">{selection.hardwareName}</h5>
-                        {selection.hardwarePrice && (
-                          <p className="text-xs text-muted-foreground mt-0.5">
-                            ${selection.hardwarePrice}
+                        <h5 className="font-medium text-sm">{selection.hardware.name}</h5>
+                        {selection.hardware.description && (
+                          <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
+                            {selection.hardware.description}
                           </p>
                         )}
                         {selection.selectedOption && (

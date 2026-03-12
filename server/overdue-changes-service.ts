@@ -48,7 +48,7 @@ export async function checkOverdueChanges(): Promise<{
     // Obtener todos los proyectos en estado "en_diseno" con cambios solicitados
     const allProjects = await db.getAllProjects();
     const projectsWithChanges = allProjects.filter(
-      (p: any) => p.status === "en_diseno" && p.changesRequestedAt
+      (p) => p.status === "en_diseno" && p.changesRequestedAt
     );
 
     checked = projectsWithChanges.length;
@@ -97,9 +97,9 @@ export async function checkOverdueChanges(): Promise<{
             }
 
             // También crear una tarea urgente si no existe una similar
-            const existingTasks = await db.getTasksByProject(project.id);
+            const existingTasks = await db.getTasksByProjectId(project.id);
             const hasOverdueTask = existingTasks.some(
-              (t: any) => t.title.includes("URGENTE") && t.title.includes("48h") && t.status !== "completada"
+              (t) => t.title.includes("URGENTE") && t.title.includes("48h") && t.status !== "completada"
             );
 
             if (!hasOverdueTask && allAdmins.length > 0) {
@@ -115,7 +115,7 @@ export async function checkOverdueChanges(): Promise<{
                 priority: "alta",
                 assignedTo: allAdmins[0].id,
                 assignedBy: allAdmins[0].id,
-                dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // Mañana
+                dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000), // Mañana
               });
             }
 
@@ -153,7 +153,7 @@ export async function checkOverdueChanges(): Promise<{
 export function startOverdueChangesService(): void {
   // Verificación inicial después de 1 minuto
   setTimeout(() => {
-    checkOverdueChanges().then((result: any) => {
+    checkOverdueChanges().then((result) => {
       console.log(
         `[OverdueChanges] Verificación inicial: ${result.checked} proyectos, ${result.overdue} vencidos, ${result.notified} notificados`
       );
@@ -162,7 +162,7 @@ export function startOverdueChangesService(): void {
 
   // Verificación periódica cada 4 horas
   setInterval(() => {
-    checkOverdueChanges().then((result: any) => {
+    checkOverdueChanges().then((result) => {
       if (result.overdue > 0) {
         console.log(
           `[OverdueChanges] Verificación periódica: ${result.overdue} proyectos vencidos, ${result.notified} notificados`

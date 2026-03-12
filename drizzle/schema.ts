@@ -132,7 +132,6 @@ export const hardwareCatalog = mysqlTable("hardwareCatalog", {
 	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 	price: decimal({ precision: 12, scale: 2 }).default('0').notNull(),
-	unit: varchar({ length: 50 }).default('unidad').notNull(),
 },
 (table) => [
 	index("hardwareCatalog_category_idx").on(table.category),
@@ -464,7 +463,7 @@ export const quotationItems = mysqlTable("quotationItems", {
 
 export const quotations = mysqlTable("quotations", {
 	id: int().autoincrement().notNull(),
-	quotationNumber: varchar({ length: 50 }).default('').notNull(),
+	quotationNumber: varchar({ length: 50 }).notNull(),
 	clientId: int().notNull().references(() => clients.id, { onDelete: "cascade" } ),
 	vendorName: varchar({ length: 255 }).notNull(),
 	productType: mysqlEnum(['cocina','closet','puerta','centro_tv','herrajes','mesones','acabados_especiales','otro']).default('otro').notNull(),
@@ -517,8 +516,6 @@ export const reminders = mysqlTable("reminders", {
 	status: mysqlEnum(['pendiente','enviado','completado','cancelado']).default('pendiente').notNull(),
 	message: text(),
 	sentAt: timestamp({ mode: 'string' }),
-	scheduledFor: timestamp({ mode: 'string' }),
-	sent: tinyint().default(0).notNull(),
 	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
 },
 (table) => [
@@ -597,7 +594,6 @@ export const tasks = mysqlTable("tasks", {
 			birthDate: timestamp({ mode: 'string' }),
 		dataOrigin: mysqlEnum(['manual', 'system', 'test']).default('manual').notNull(),
 		deletedAt: timestamp({ mode: 'string' }),
-		isTeamMember: tinyint().default(0).notNull(),
 	},
 (table) => [
 	index("users_openId_unique").on(table.openId),
@@ -700,29 +696,3 @@ export const cleanupAuditLog = mysqlTable("cleanupAuditLog", {
 ]);
 
 
-
-// ============ INSERT/SELECT TYPE EXPORTS ============
-export type InsertUser = typeof users.$inferInsert;
-export type SelectUser = typeof users.$inferSelect;
-export type InsertClient = typeof clients.$inferInsert;
-export type SelectClient = typeof clients.$inferSelect;
-export type InsertAppointment = typeof appointments.$inferInsert;
-export type SelectAppointment = typeof appointments.$inferSelect;
-export type InsertAppointmentWorkType = typeof appointmentWorkTypes.$inferInsert;
-export type InsertAdvisoryRequest = typeof advisoryRequests.$inferInsert;
-export type InsertPriorEstimate = typeof priorEstimates.$inferInsert;
-export type InsertQuotation = typeof quotations.$inferInsert;
-export type InsertQuotationItem = typeof quotationItems.$inferInsert;
-export type InsertColombianHoliday = typeof colombianHolidays.$inferInsert;
-export type InsertReminder = typeof reminders.$inferInsert;
-export type InsertProject = typeof projects.$inferInsert;
-export type InsertProjectPhoto = typeof projectPhotos.$inferInsert;
-export type InsertProjectDetail = typeof projectDetails.$inferInsert;
-export type InsertTask = typeof tasks.$inferInsert;
-export type InsertProjectStatusHistory = typeof projectStatusHistory.$inferInsert;
-export type InsertNotification = typeof notifications.$inferInsert;
-export type InsertPayment = typeof payments.$inferInsert;
-export type InsertPricingConfig = typeof pricingConfig.$inferInsert;
-export type InsertPricingHistory = typeof pricingHistory.$inferInsert;
-export type InsertExpense = typeof expenses.$inferInsert;
-export type InsertClientRevisionHistory = typeof clientRevisionHistory.$inferInsert;

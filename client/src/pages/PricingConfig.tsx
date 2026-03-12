@@ -183,13 +183,13 @@ export default function PricingConfig() {
       setReason("");
       setDescriptionTemplate("");
     },
-    onError: (error: any) => {
+    onError: (error) => {
       toast.error(error.message);
     },
   });
 
   // Agrupar precios por categoría
-  const pricingByCategory = allPricing?.reduce((acc: any, item: any) => {
+  const pricingByCategory = allPricing?.reduce((acc, item) => {
     if (!acc[item.category]) {
       acc[item.category] = [];
     }
@@ -250,7 +250,7 @@ export default function PricingConfig() {
 
   // Filtrar precios por búsqueda
   const searchResults = searchQuery.trim() 
-    ? allPricing?.filter((item: any) => {
+    ? allPricing?.filter(item => {
         const query = searchQuery.toLowerCase();
         return (
           item.name.toLowerCase().includes(query) ||
@@ -261,7 +261,7 @@ export default function PricingConfig() {
     : [];
 
   // Agrupar resultados de búsqueda por categoría
-  const searchResultsByCategory = searchResults.reduce((acc: any, item: any) => {
+  const searchResultsByCategory = searchResults.reduce((acc, item) => {
     if (!acc[item.category]) {
       acc[item.category] = [];
     }
@@ -341,7 +341,7 @@ export default function PricingConfig() {
                 type="text"
                 placeholder="Buscar por nombre o código (ej: mesón, COCINA_ML_L, pintado...)"
                 value={searchQuery}
-                onChange={(e: any) => {
+                onChange={(e) => {
                   setSearchQuery(e.target.value);
                   setIsSearching(e.target.value.trim().length > 0);
                 }}
@@ -382,7 +382,7 @@ export default function PricingConfig() {
               </div>
               <CardContent className="p-2">
                 <div className="space-y-1">
-                  {categories.map((cat: any) => {
+                  {categories.map((cat) => {
                     const config = categoryConfig[cat];
                     const isActive = activeCategory === cat;
                     const itemCount = pricingByCategory[cat]?.length || 0;
@@ -427,7 +427,7 @@ export default function PricingConfig() {
             {isSearching && searchQuery.trim() ? (
               <div className="space-y-6">
                 {searchResults.length > 0 ? (
-                  (Object.entries(searchResultsByCategory) as [string, any[]][]).map(([category, items]) => {
+                  Object.entries(searchResultsByCategory).map(([category, items]) => {
                     const catConfig = categoryConfig[category];
                     return (
                       <Card key={category} className={`overflow-hidden border-2 ${catConfig.borderColor} shadow-lg`}>
@@ -446,7 +446,7 @@ export default function PricingConfig() {
                         </div>
                         <CardContent className={`p-4 ${catConfig.bgLight}`}>
                           <div className="grid gap-3 sm:grid-cols-2">
-                            {items.map((item: any) => (
+                            {items.map((item) => (
                               <div
                                 key={item.id}
                                 className={`group relative bg-white rounded-xl border-2 ${catConfig.borderColor} p-4 shadow-sm hover:shadow-md transition-all duration-200`}
@@ -460,7 +460,7 @@ export default function PricingConfig() {
                                 <div className="flex items-start justify-between gap-3">
                                   <div className="flex-1 min-w-0">
                                     <h3 className="font-semibold text-gray-900 truncate pr-8">
-                                      {item.name.split(new RegExp(`(${searchQuery})`, 'gi')).map((part: any, i: any) => 
+                                      {item.name.split(new RegExp(`(${searchQuery})`, 'gi')).map((part, i) => 
                                         part.toLowerCase() === searchQuery.toLowerCase() 
                                           ? <mark key={i} className="bg-yellow-200 px-0.5 rounded">{part}</mark>
                                           : part
@@ -470,7 +470,7 @@ export default function PricingConfig() {
                                       <p className="text-xs text-gray-500 mt-1 line-clamp-2">{item.description}</p>
                                     )}
                                     <p className="text-xs text-gray-400 mt-2 font-mono">
-                                      {item.code.split(new RegExp(`(${searchQuery})`, 'gi')).map((part: any, i: any) => 
+                                      {item.code.split(new RegExp(`(${searchQuery})`, 'gi')).map((part, i) => 
                                         part.toLowerCase() === searchQuery.toLowerCase() 
                                           ? <mark key={i} className="bg-yellow-200 px-0.5 rounded">{part}</mark>
                                           : part
@@ -542,8 +542,7 @@ export default function PricingConfig() {
               <CardContent className={`p-4 ${activeConfig.bgLight}`}>
                 {activePricing.length > 0 ? (
                   <div className="grid gap-3 sm:grid-cols-2">
-      {/* @ts-ignore */}
-                    {activePricing.map((item: any) => (
+                    {activePricing.map((item) => (
                       <div
                         key={item.id}
                         className={`group relative bg-white rounded-xl border-2 ${activeConfig.borderColor} p-4 shadow-sm hover:shadow-md transition-all duration-200`}
@@ -643,7 +642,7 @@ export default function PricingConfig() {
                     min="0"
                     step={editingItem.unit === "%" ? "0.1" : "1000"}
                     value={newValue}
-                    onChange={(e: any) => setNewValue(e.target.value)}
+                    onChange={(e) => setNewValue(e.target.value)}
                     className="mt-2 text-lg font-semibold"
                     placeholder={editingItem.unit === "%" ? "Ej: 30" : "Ej: 2500000"}
                   />
@@ -656,7 +655,7 @@ export default function PricingConfig() {
                   <Textarea
                     id="reason"
                     value={reason}
-                    onChange={(e: any) => setReason(e.target.value)}
+                    onChange={(e) => setReason(e.target.value)}
                     placeholder="Ej: Ajuste por inflacion, Promocion temporal, Actualizacion de costos..."
                     className="mt-2"
                     rows={2}
@@ -670,7 +669,7 @@ export default function PricingConfig() {
                   <Textarea
                     id="descriptionTemplate"
                     value={descriptionTemplate}
-                    onChange={(e: any) => setDescriptionTemplate(e.target.value)}
+                    onChange={(e) => setDescriptionTemplate(e.target.value)}
                     placeholder="Descripcion tecnica que se autocompletara en cotizaciones..."
                     className="mt-2"
                     rows={4}
@@ -707,7 +706,7 @@ export default function PricingConfig() {
             </DialogHeader>
             <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
               {historyData && historyData.length > 0 ? (
-                historyData.map((item: any) => {
+                historyData.map((item: HistoryItem) => {
     // @ts-ignore
                   const prevValue = parseFloat(item.previousValue);
                   const newVal = parseFloat(item.newValue);

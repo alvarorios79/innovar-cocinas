@@ -53,9 +53,13 @@ export const backupsRouter = router({
           backupName: backupResult.backupName,
           backupType: "manual",
           s3Key: backupResult.s3Key,
-          size: backupResult.fileSize,
-          status: "completed",
-          createdAt: new Date(),
+          s3Url: backupResult.s3Url,
+          fileSize: backupResult.fileSize,
+          rowCounts: backupResult.rowCounts,
+          checksums: backupResult.checksums,
+          dataOriginSummary: backupResult.dataOriginSummary,
+          createdBy: ctx.user.id,
+          retentionDays: input.retentionDays,
         });
 
         console.log("[Backups] Manual backup completed successfully");
@@ -212,6 +216,7 @@ export const backupsRouter = router({
           manual: history.filter((b: any) => b.backupType === "manual").length,
         },
         lastBackup: history[0] || null,
+        dataOriginSummary: history[0]?.dataOriginSummary || { manual: 0, system: 0 },
       };
 
       return stats;
@@ -225,6 +230,7 @@ export const backupsRouter = router({
         averageBackupSize: 0,
         byType: { daily: 0, weekly: 0, manual: 0 },
         lastBackup: null,
+        dataOriginSummary: { manual: 0, system: 0 },
       };
     }
   }),
@@ -248,21 +254,23 @@ export const backupsRouter = router({
         }
 
         // Verify backup exists in S3
-        if (backup.s3Key) {
-          try {
-            await storageGet(backup.s3Key);
-          } catch (error) {
-            throw new TRPCError({
-              code: "INTERNAL_SERVER_ERROR",
-              message: "Backup file not found in S3",
-            });
-          }
+        try {
+          await storageGet(backup.backupName);
+        } catch (error) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Backup file not found in S3",
+          });
         }
 
         // Log restore action
         await logAuditAction(
+          ctx.user.id,
           "restore",
-          { backupId: input.backupId, userId: ctx.user.id, message: `Database restore initiated from backup: ${input.backupId}` }
+          "backupMetadata",
+          parseInt(input.backupId),
+          { backupId: input.backupId },
+          `Database restore initiated from backup: ${input.backupId}`
         );
 
         // Notify owner

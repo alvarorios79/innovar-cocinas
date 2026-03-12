@@ -7,33 +7,39 @@ export const dataProtectionRouter = router({
   // ============ RECYCLE BIN - GET DELETED RECORDS ============
 
   getDeletedClients: protectedProcedure
-    .query(async () => {
-      return await db.getDeletedClients();
+    .input(z.object({ limit: z.number().default(100) }))
+    .query(async ({ input }) => {
+      return await db.getDeletedClients(input.limit);
     }),
 
   getDeletedProjects: protectedProcedure
-    .query(async () => {
-      return await db.getDeletedProjects();
+    .input(z.object({ limit: z.number().default(100) }))
+    .query(async ({ input }) => {
+      return await db.getDeletedProjects(input.limit);
     }),
 
   getDeletedQuotations: protectedProcedure
-    .query(async () => {
-      return await db.getDeletedQuotations();
+    .input(z.object({ limit: z.number().default(100) }))
+    .query(async ({ input }) => {
+      return await db.getDeletedQuotations(input.limit);
     }),
 
   getDeletedAppointments: protectedProcedure
-    .query(async () => {
-      return await db.getDeletedAppointments();
+    .input(z.object({ limit: z.number().default(100) }))
+    .query(async ({ input }) => {
+      return await db.getDeletedAppointments(input.limit);
     }),
 
   getDeletedTasks: protectedProcedure
-    .query(async () => {
-      return await db.getDeletedTasks();
+    .input(z.object({ limit: z.number().default(100) }))
+    .query(async ({ input }) => {
+      return await db.getDeletedTasks(input.limit);
     }),
 
   getDeletedExpenses: protectedProcedure
-    .query(async () => {
-      return await db.getDeletedExpenses();
+    .input(z.object({ limit: z.number().default(100) }))
+    .query(async ({ input }) => {
+      return await db.getDeletedExpenses(input.limit);
     }),
 
   // ============ RECYCLE BIN - RESTORE RECORDS ============
@@ -134,14 +140,14 @@ export const dataProtectionRouter = router({
       // Only admins can view full audit logs
       if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
         // Regular users can only see audit logs for their own actions
-        return await db.getAuditLogsByUser(ctx.user.id);
+        return await db.getAuditLogsByUser(ctx.user.id, input.limit);
       }
 
       if (input.tableName && input.recordId) {
         return await db.getAuditLogsForRecord(input.tableName, input.recordId);
       }
 
-      return await db.getAuditLogsByUser(ctx.user.id);
+      return await db.getAuditLogsByUser(ctx.user.id, input.limit);
     }),
 
   // ============ ADMIN ONLY - PERMANENT DELETE ============
@@ -161,7 +167,7 @@ export const dataProtectionRouter = router({
       }
 
       try {
-        await db.permanentlyDeleteRecord(input.tableName, input.recordId);
+        await db.permanentlyDeleteRecord(input.tableName, input.recordId, ctx.user.id);
         return { success: true, message: "Registro eliminado permanentemente" };
       } catch (error: any) {
         throw new TRPCError({
@@ -187,11 +193,11 @@ export const dataProtectionRouter = router({
       }
 
       try {
-        await db.emptyRecycleBin();
+        const result = await db.emptyRecycleBin(input.daysOld, ctx.user.id);
         return {
           success: true,
-          message: "Papelera vaciada: registros eliminados permanentemente",
-          totalDeleted: 0,
+          message: `Papelera vaciada: ${result.totalDeleted} registros eliminados permanentemente`,
+          totalDeleted: result.totalDeleted,
         };
       } catch (error: any) {
         throw new TRPCError({

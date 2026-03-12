@@ -1,1 +1,0 @@
-ALTER TABLE `quotations` MODIFY COLUMN `quotationNumber` varchar(50) NOT NULL DEFAULT '';

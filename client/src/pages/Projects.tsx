@@ -1899,7 +1899,7 @@ export default function Projects() {
                     </div>
                   )}
 
-                  {(Array.isArray(projectDetail.details) ? projectDetail.details : projectDetail.details ? [projectDetail.details] : []).length === 0 ? (
+                  {projectDetail.details?.length === 0 ? (
                     <Card>
                       <CardContent className="py-8 text-center">
                         <FileText className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
@@ -1907,7 +1907,7 @@ export default function Projects() {
                       </CardContent>
                     </Card>
                   ) : (
-                    (Array.isArray(projectDetail.details) ? projectDetail.details : projectDetail.details ? [projectDetail.details] : []).map((detail: any) => (
+                    projectDetail.details?.map((detail: any) => (
                       <Card key={detail.id}>
                         <CardHeader className="py-3">
                           <CardTitle className="text-sm">{detail.title}</CardTitle>

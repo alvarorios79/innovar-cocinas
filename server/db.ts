@@ -1,4 +1,4 @@
-import { eq, desc, and, or, gte, lte, gt, between, sql, inArray, isNull, isNotNull, asc, like, ne } from "drizzle-orm";
+import { eq, desc, and, or, gte, lte, gt, between, sql, inArray, isNull, isNotNull } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 // @ts-ignore
 import { 
@@ -50,6 +50,7 @@ import {
   clientRevisionHistory,
   InsertClientRevisionHistory,
   financialAlerts,
+  InsertFinancialAlert,
   financialSettings,
   InsertFinancialSettings,
   auditLogs,
@@ -144,20 +145,6 @@ export async function updateUser(id: number, data: Partial<InsertUser>) {
   await db.update(users).set(data).where(eq(users.id, id));
 }
 
-export async function updateUserBirthDate(id: number, birthDate: string | null) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-
-  await db.update(users).set({ birthDate }).where(eq(users.id, id));
-}
-
-export async function updateUserPhone(id: number, phone: string | null) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-
-  await db.update(users).set({ phone }).where(eq(users.id, id));
-}
-
 export async function deleteUser(id: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
@@ -235,57 +222,6 @@ export async function getAllAppointments() {
   if (!db) return [];
 
   return await db.select().from(appointments).where(and(isNull(appointments.deletedAt), eq(appointments.dataOrigin, 'manual'))).orderBy(desc(appointments.createdAt));
-}
-
-export async function getAllAppointmentsPaginated(options?: { page?: number; limit?: number; status?: string }) {
-  const db = await getDb();
-  if (!db) return { appointments: [], total: 0, page: 1, limit: 50 };
-
-  const limit = options?.limit || 50;
-  const page = options?.page || 1;
-  const offset = (page - 1) * limit;
-  const status = options?.status;
-
-  const baseCondition = and(isNull(appointments.deletedAt), eq(appointments.dataOrigin, 'manual'));
-  
-  const whereConditions = status
-    ? and(baseCondition, eq(appointments.status, status as any))!
-    : baseCondition;
-
-  const data = await db.select()
-    .from(appointments)
-    .where(whereConditions)
-    .limit(limit)
-    .offset(offset)
-    .orderBy(desc(appointments.createdAt));
-
-  const countResult = await db.select({ count: sql<number>`count(*)` })
-    .from(appointments)
-    .where(whereConditions);
-
-  const total = countResult[0]?.count || 0;
-
-  return { appointments: data, total, page, limit };
-}
-
-export async function getAppointmentsByDate(date: Date) {
-  const db = await getDb();
-  if (!db) return [];
-
-  const startOfDay = new Date(date);
-  startOfDay.setHours(0, 0, 0, 0);
-  const endOfDay = new Date(date);
-  endOfDay.setHours(23, 59, 59, 999);
-
-  return await db.select()
-    .from(appointments)
-    .where(and(
-      isNull(appointments.deletedAt),
-      eq(appointments.dataOrigin, 'manual'),
-      gte(appointments.scheduledDate, startOfDay.toISOString()),
-      lte(appointments.scheduledDate, endOfDay.toISOString())
-    ))
-    .orderBy(asc(appointments.scheduledDate));
 }
 
 export async function getAppointmentsByClient(clientId: number) {
@@ -438,26 +374,6 @@ export async function getAllQuotations() {
   return await db.select().from(quotations).where(and(isNull(quotations.deletedAt), eq(quotations.dataOrigin, 'manual'), eq(quotations.isArchived, 0))).orderBy(desc(quotations.createdAt));
 }
 
-export async function getAllQuotationsPaginated(options?: { page?: number; limit?: number; status?: string }) {
-  const db = await getDb();
-  if (!db) return { data: [], total: 0, page: 1, limit: 50 };
-  const page = options?.page || 1;
-  const limit = options?.limit || 50;
-  const offset = (page - 1) * limit;
-  let query = db.select().from(quotations).where(
-    and(
-      isNull(quotations.deletedAt),
-      eq(quotations.dataOrigin, 'manual'),
-      eq(quotations.isArchived, 0),
-      options?.status ? eq(quotations.status, options.status as any) : undefined
-    )
-  ).$dynamic();
-  const allRows = await query.orderBy(desc(quotations.createdAt));
-  const total = allRows.length;
-  const data = allRows.slice(offset, offset + limit);
-  return { data, total, page, limit };
-}
-
 export async function getLatestApprovedQuotationVersion(quotationId: number) {
   const db = await getDb();
   if (!db) return undefined;
@@ -465,10 +381,10 @@ export async function getLatestApprovedQuotationVersion(quotationId: number) {
   const result = await db.select().from(quotations)
     .where(and(
       eq(quotations.quotationNumber, (await db.select().from(quotations).where(eq(quotations.id, quotationId)).limit(1))[0]?.quotationNumber || ''),
-      eq(quotations.status, 'approved'),
+      eq(quotations.status, 'aprobada'),
       eq(quotations.dataOrigin, 'manual')
     ))
-    .orderBy(desc(quotations.versionNumber))
+    .orderBy(desc(quotations.version))
     .limit(1);
 
   return result.length > 0 ? result[0] : undefined;
@@ -1022,10 +938,9 @@ export async function cleanupTestData() {
   let deletedCount = 0;
   for (const { table, name } of tables) {
     try {
-      const result = await db.delete(table).where(inArray((table as any).dataOrigin, ['test', 'system']));
-      const affected = (result as any)?.affectedRows ?? (result as any)?.rowsAffected ?? 0;
-      console.log(`[Cleanup] Deleted ${affected} records from ${name}`);
-      deletedCount += affected;
+      const result = await db.delete(table).where(inArray(table.dataOrigin, ['test', 'system']));
+      console.log(`[Cleanup] Deleted ${result.rowsAffected} records from ${name}`);
+      deletedCount += result.rowsAffected || 0;
     } catch (error) {
       console.error(`[Cleanup] Error deleting from ${name}:`, error);
     }
@@ -1060,7 +975,7 @@ export async function countTestData() {
   return counts;
 }
 
-export async function withTransaction<T>(callback: ((tx?: any) => Promise<T>) | (() => Promise<T>)): Promise<T> {
+export async function withTransaction<T>(callback: () => Promise<T>): Promise<T> {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
@@ -1068,6 +983,8 @@ export async function withTransaction<T>(callback: ((tx?: any) => Promise<T>) | 
     return await callback();
   });
 }
+
+import { asc } from "drizzle-orm";
 
 // ============ MISSING FUNCTIONS ============
 
@@ -1180,10 +1097,10 @@ export async function createUserExtended(data: {
     name: data.name,
     email: data.email,
     openId: data.openId || '',
-    passwordHash: data.password ? data.password : undefined,
-    role: (data.role || 'user') as any,
+    password: data.password || '',
+    role: data.role || 'user',
     isTeamMember: data.isTeamMember || 0,
-    dataOrigin: (data.dataOrigin || 'manual') as any,
+    dataOrigin: data.dataOrigin || 'manual',
     createdAt: new Date().toISOString(),
   });
   return result[0].insertId;
@@ -1228,7 +1145,7 @@ export async function getBackupHistory(limit: number = 50) {
   return [];
 }
 
-export async function getLatestBackup(backupType?: string): Promise<{ id: string; s3Key: string | null; status: string; createdAt: string } | null> {
+export async function getLatestBackup(backupType?: string) {
   // Placeholder implementation for getting latest backup
   // This would typically query a backups table
   console.log("[Backup] Getting latest backup of type:", backupType);
@@ -1268,7 +1185,7 @@ export async function updateUserPassword(userId: number, passwordHash: string) {
   if (!db) throw new Error("Database not available");
 
   await db.update(users).set({
-    passwordHash: passwordHash
+    password: passwordHash
   }).where(eq(users.id, userId));
 }
 
@@ -1318,7 +1235,7 @@ export async function getAllQuotationsGroupedByBase(options?: { page?: number; l
       groupedMap.set(baseNumber, {
         baseQuotationId: quot.id,
         quotationNumber: baseNumber,
-        client: (quot as any).client || null,
+        client: quot.client || null,
         status: quot.status,
         createdAt: quot.createdAt,
         activeVersion: quot, // La versión más reciente (primera en el orden)
@@ -1510,8 +1427,8 @@ export async function getMonthlyProjectsCount() {
     const now = new Date();
     
     // Calcular rango del mes actual (sin usar MONTH() para preservar índices)
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 19).replace('T', ' ');
-    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999).toISOString().slice(0, 19).replace('T', ' ');
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
 
     // Obtener todos los pagos del mes actual que sean 'payment'
     const monthlyPayments = await db.select({
@@ -1526,7 +1443,7 @@ export async function getMonthlyProjectsCount() {
     if (monthlyPayments.length === 0) return 0;
 
     // Obtener IDs únicos de proyectos
-    const projectIds = Array.from(new Set(monthlyPayments.map(p => p.projectId)));
+    const projectIds = [...new Set(monthlyPayments.map(p => p.projectId))];
 
     // Verificar que los proyectos existan y sean válidos
     const validProjects = await db.select({
@@ -1543,1053 +1460,4 @@ export async function getMonthlyProjectsCount() {
     console.error("[getMonthlyProjectsCount] Error:", error);
     return 0;
   }
-}
-
-// ============ TASK REMINDER HISTORY ============
-
-/**
- * Actualiza el historial de recordatorios de una tarea.
- * Incrementa reminderCount, actualiza lastReminderSentAt y lastReminderSentBy.
- * userId = 0 indica que fue enviado automáticamente por el sistema.
- */
-export async function updateTaskReminderHistory(taskId: number, userId: number): Promise<void> {
-  const db = await getDb();
-  if (!db) return;
-
-  await db.update(tasks)
-    .set({
-      lastReminderSentAt: new Date().toISOString().slice(0, 19).replace('T', ' '),
-      lastReminderSentBy: userId || null,
-      reminderCount: sql`COALESCE(${tasks.reminderCount}, 0) + 1`,
-    })
-    .where(eq(tasks.id, taskId));
-}
-
-// ============ USERS BY ROLE ============
-
-/**
- * Obtiene todos los usuarios activos con un rol específico.
- * Útil para enviar notificaciones a admins, diseñadores, etc.
- */
-export async function getUsersByRole(role: string) {
-  const db = await getDb();
-  if (!db) return [];
-
-  return await db.select().from(users)
-    .where(and(
-      isNull(users.deletedAt),
-      eq(users.role, role as any)
-    ))
-    .orderBy(desc(users.createdAt));
-}
-
-// ============ FINANCIAL ALERTS ============
-
-/**
- * Obtiene una alerta financiera por su tipo.
- */
-export async function getFinancialAlertByType(alertType: 'deliveredWithOutstanding' | 'lowCollectionRate') {
-  const db = await getDb();
-  if (!db) return undefined;
-
-  const result = await db.select().from(financialAlerts)
-    .where(eq(financialAlerts.alertType, alertType))
-    .limit(1);
-  return result.length > 0 ? result[0] : undefined;
-}
-
-/**
- * Actualiza o crea una alerta financiera por su tipo.
- */
-export async function updateFinancialAlert(
-  alertType: 'deliveredWithOutstanding' | 'lowCollectionRate',
-  data: {
-    isActive?: number;
-    lastTriggeredAt?: string;
-    lastMessageSentAt?: string;
-  }
-) {
-  const db = await getDb();
-  if (!db) return;
-
-  const existing = await getFinancialAlertByType(alertType);
-  if (existing) {
-    await db.update(financialAlerts)
-      .set(data)
-      .where(eq(financialAlerts.alertType, alertType));
-  } else {
-    await db.insert(financialAlerts).values({
-      alertType,
-      isActive: data.isActive ?? 0,
-      lastTriggeredAt: data.lastTriggeredAt,
-      lastMessageSentAt: data.lastMessageSentAt,
-    });
-  }
-}
-
-// ============ USER MANAGEMENT HELPERS ============
-
-/**
- * Actualiza el rol de un usuario.
- */
-export async function updateUserRole(id: number, role: string) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  await db.update(users).set({ role: role as any }).where(eq(users.id, id));
-}
-
-/**
- * Obtiene citas de un cliente por su ID (alias de getAppointmentsByClient).
- */
-export async function getAppointmentsByClientId(clientId: number) {
-  return getAppointmentsByClient(clientId);
-}
-
-/**
- * Obtiene cotizaciones de un cliente por su ID (alias de getQuotationsByClient).
- */
-export async function getQuotationsByClientId(clientId: number) {
-  return getQuotationsByClient(clientId);
-}
-
-/**
- * Obtiene proyectos de un cliente por su ID.
- */
-export async function getProjectsByClientId(clientId: number) {
-  const db = await getDb();
-  if (!db) return [];
-  return await db.select().from(projects).where(
-    and(eq(projects.clientId, clientId), isNull(projects.deletedAt))
-  );
-}
-
-/**
- * Elimina todas las fotos de un proyecto.
- */
-export async function deleteProjectPhotos(projectId: number) {
-  const db = await getDb();
-  if (!db) return;
-  await db.delete(projectPhotos).where(eq(projectPhotos.projectId, projectId));
-}
-
-/**
- * Elimina todas las tareas de un proyecto.
- */
-export async function deleteProjectTasks(projectId: number) {
-  const db = await getDb();
-  if (!db) return;
-  await db.delete(tasks).where(eq(tasks.projectId, projectId));
-}
-
-/**
- * Elimina todo el historial de estados de un proyecto.
- */
-export async function deleteProjectStatusHistory(projectId: number) {
-  const db = await getDb();
-  if (!db) return;
-  await db.delete(projectStatusHistory).where(eq(projectStatusHistory.projectId, projectId));
-}
-
-/**
- * Elimina todos los materiales de un proyecto.
- */
-export async function deleteProjectMaterials(projectId: number) {
-  const db = await getDb();
-  if (!db) return;
-  await db.delete(projectMaterials).where(eq(projectMaterials.projectId, projectId));
-}
-
-/**
- * Elimina todos los estimados previos de un cliente.
- */
-export async function deletePriorEstimatesByClientId(clientId: number) {
-  const db = await getDb();
-  if (!db) return;
-  await db.delete(priorEstimates).where(eq(priorEstimates.clientId, clientId));
-}
-
-/**
- * Elimina todas las solicitudes de asesoría de un cliente.
- */
-export async function getAdvisoryRequestsByClientId(clientId: number) {
-  const db = await getDb();
-  if (!db) return [];
-  return await db.select()
-    .from(advisoryRequests)
-    .where(eq(advisoryRequests.clientId, clientId))
-    .orderBy(desc(advisoryRequests.createdAt));
-}
-
-export async function deleteAdvisoryRequestsByClientId(clientId: number) {
-  const db = await getDb();
-  if (!db) return;
-  await db.delete(advisoryRequests).where(eq(advisoryRequests.clientId, clientId));
-}
-
-/**
- * Verifica si un usuario tiene dependencias en datos reales (no de prueba).
- * Devuelve hasRealDependencies: true si el usuario está asociado a proyectos o clientes reales.
- */
-export async function checkUserDependencies(userId: number): Promise<{ hasRealDependencies: boolean }> {
-  const db = await getDb();
-  if (!db) return { hasRealDependencies: false };
-
-  // Verificar si el usuario creó proyectos activos
-  const userProjects = await db.select().from(projects).where(
-    and(eq(projects.createdBy, userId), isNull(projects.deletedAt))
-  ).limit(1);
-
-  return { hasRealDependencies: userProjects.length > 0 };
-}
-
-/**
- * Elimina todas las suscripciones push de un usuario.
- */
-export async function deletePushSubscriptionsByUserId(userId: number) {
-  const db = await getDb();
-  if (!db) return;
-  await db.delete(pushSubscriptions).where(eq(pushSubscriptions.userId, userId));
-}
-
-/**
- * Elimina todas las notificaciones de un usuario.
- */
-export async function deleteNotificationsByUserId(userId: number) {
-  const db = await getDb();
-  if (!db) return;
-  await db.delete(notifications).where(eq(notifications.userId, userId));
-}
-
-// ============ TASKS PAGINATION ALIAS ============
-
-/**
- * Alias paginado de getAllTasks para el router de tareas.
- */
-export async function getAllTasksPaginatedResult(options?: {
-  page?: number;
-  limit?: number;
-  status?: string;
-  assignedTo?: number;
-}): Promise<{ data: any[]; total: number; page: number; limit: number }> {
-  const db = await getDb();
-  if (!db) return { data: [], total: 0, page: 1, limit: 50 };
-
-  const page = options?.page ?? 1;
-  const limit = options?.limit ?? 50;
-
-  let whereConditions = and(isNull(tasks.deletedAt), eq(tasks.dataOrigin, 'manual'));
-
-  if (options?.status) {
-    whereConditions = and(whereConditions, eq(tasks.status, options.status as any));
-  }
-  if (options?.assignedTo) {
-    whereConditions = and(whereConditions, eq(tasks.assignedTo, options.assignedTo));
-  }
-
-  const allTasks = await db.select().from(tasks)
-    .where(whereConditions)
-    .orderBy(desc(tasks.createdAt));
-
-  const total = allTasks.length;
-  const offset = (page - 1) * limit;
-  const data = allTasks.slice(offset, offset + limit);
-
-  return { data, total, page, limit };
-}
-
-// Alias for getProjectPhotos (backward compatibility)
-export async function getProjectPhotosByProjectId(projectId: number) {
-  return getProjectPhotos(projectId);
-}
-
-// Create a client revision history entry
-export async function createClientRevision(revision: InsertClientRevisionHistory) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  const result = await db.insert(clientRevisionHistory).values(revision);
-  return result[0].insertId;
-}
-
-// Add a hardware selection to a project
-export async function addProjectHardwareSelection(
-  projectId: number,
-  hardwareId: number,
-  selectedOption: string | null,
-  notes: string | null,
-  createdBy: number
-) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  const result = await db.insert(projectHardwareSelections).values({
-    projectId,
-    hardwareId,
-    selectedOption,
-    notes,
-    createdBy,
-  });
-  return result[0].insertId;
-}
-
-// Remove a hardware selection from a project
-export async function removeProjectHardwareSelection(projectId: number, hardwareId: number) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  await db.delete(projectHardwareSelections)
-    .where(and(
-      eq(projectHardwareSelections.projectId, projectId),
-      eq(projectHardwareSelections.hardwareId, hardwareId)
-    ));
-}
-
-// Save (upsert) project materials - creates or updates the materials record for a project
-export async function saveProjectMaterials(projectId: number, data: Partial<{
-  woodType: string;
-  woodColor: string;
-  woodPhotoUrl: string;
-  countertopType: string;
-  countertopName: string;
-  countertopPhotoUrl: string;
-  sinkMeasure: string;
-  sinkPhotoUrl: string;
-  notes: string;
-}>, createdBy: number) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  // Check if a record already exists for this project
-  const existing = await db.select().from(projectMaterials).where(eq(projectMaterials.projectId, projectId)).limit(1);
-  if (existing.length > 0) {
-    // Update existing record
-    await db.update(projectMaterials).set(data as any).where(eq(projectMaterials.projectId, projectId));
-    return existing[0].id;
-  } else {
-    // Create new record
-    const result = await db.insert(projectMaterials).values({ projectId, createdBy, ...data } as any);
-    return result[0].insertId;
-  }
-}
-
-// Get all hardware selections for a project with hardware catalog details
-export async function getProjectHardwareSelections(projectId: number) {
-  const db = await getDb();
-  if (!db) return [];
-  return await db.select({
-    id: projectHardwareSelections.id,
-    projectId: projectHardwareSelections.projectId,
-    hardwareId: projectHardwareSelections.hardwareId,
-    selectedOption: projectHardwareSelections.selectedOption,
-    notes: projectHardwareSelections.notes,
-    createdBy: projectHardwareSelections.createdBy,
-    createdAt: projectHardwareSelections.createdAt,
-    quantity: projectHardwareSelections.quantity,
-    priceAtQuotation: projectHardwareSelections.priceAtQuotation,
-    hardwareName: hardwareCatalog.name,
-    hardwareCategory: hardwareCatalog.category,
-    hardwarePrice: hardwareCatalog.price,
-    hardwareUnit: hardwareCatalog.unit,
-  })
-  .from(projectHardwareSelections)
-  .leftJoin(hardwareCatalog, eq(projectHardwareSelections.hardwareId, hardwareCatalog.id))
-  .where(and(
-    eq(projectHardwareSelections.projectId, projectId),
-    isNotNull(hardwareCatalog.id)
-  ));
-}
-
-// Get project photos filtered by category
-export async function getProjectPhotosByCategory(projectId: number, category: string) {
-  const db = await getDb();
-  if (!db) return [];
-  return await db.select().from(projectPhotos)
-    .where(and(
-      eq(projectPhotos.projectId, projectId),
-      eq(projectPhotos.category, category as any)
-    ))
-    .orderBy(desc(projectPhotos.createdAt));
-}
-
-// Get project photos filtered by stage
-export async function getProjectPhotosByStage(projectId: number, stage: string) {
-  const db = await getDb();
-  if (!db) return [];
-  return await db.select().from(projectPhotos)
-    .where(and(
-      eq(projectPhotos.projectId, projectId),
-      eq(projectPhotos.stage, stage as any)
-    ))
-    .orderBy(desc(projectPhotos.createdAt));
-}
-
-// Get a single project photo by id
-export async function getProjectPhotoById(id: number) {
-  const db = await getDb();
-  if (!db) return undefined;
-  const result = await db.select().from(projectPhotos).where(eq(projectPhotos.id, id)).limit(1);
-  return result.length > 0 ? result[0] : undefined;
-}
-
-// Get all project details by projectId (returns array, not single record)
-export async function getProjectDetailsByProjectId(projectId: number) {
-  const db = await getDb();
-  if (!db) return [];
-  return await db.select().from(projectDetails)
-    .where(eq(projectDetails.projectId, projectId))
-    .orderBy(desc(projectDetails.createdAt));
-}
-
-// Delete a project detail by id
-export async function deleteProjectDetail(id: number) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  await db.delete(projectDetails).where(eq(projectDetails.id, id));
-}
-
-// ============ PRICING CONFIG EXTENDED ============
-
-// Get all pricing configs (full list)
-export async function getAllPricingConfig() {
-  const db = await getDb();
-  if (!db) return [];
-  return await db.select().from(pricingConfig).where(eq(pricingConfig.active, 1)).orderBy(pricingConfig.category, pricingConfig.sortOrder);
-}
-
-// Get pricing configs by category
-export async function getPricingByCategory(category: string) {
-  const db = await getDb();
-  if (!db) return [];
-  return await db.select().from(pricingConfig)
-    .where(and(eq(pricingConfig.category, category as any), eq(pricingConfig.active, 1)))
-    .orderBy(pricingConfig.sortOrder);
-}
-
-// Get a single pricing config by code
-export async function getPricingByCode(code: string) {
-  const db = await getDb();
-  if (!db) return undefined;
-  const result = await db.select().from(pricingConfig)
-    .where(and(eq(pricingConfig.code, code), eq(pricingConfig.active, 1)))
-    .limit(1);
-  return result.length > 0 ? result[0] : undefined;
-}
-
-// Update a pricing config value with history tracking
-export async function updatePricingConfigWithHistory(id: number, newValue: number, changedBy: number, reason?: string, descriptionTemplate?: string) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  // Get current value for history
-  const current = await db.select().from(pricingConfig).where(eq(pricingConfig.id, id)).limit(1);
-  if (current.length === 0) throw new Error("Pricing config not found");
-  const previousValue = current[0].value;
-  // Update config
-  const updateData: any = { value: newValue.toString(), updatedBy: changedBy };
-  if (descriptionTemplate !== undefined) updateData.descriptionTemplate = descriptionTemplate;
-  await db.update(pricingConfig).set(updateData).where(eq(pricingConfig.id, id));
-  // Record history
-  await db.insert(pricingHistory).values({
-    pricingConfigId: id,
-    previousValue: previousValue,
-    newValue: newValue.toString(),
-    changedBy,
-    reason: reason || null,
-  });
-}
-
-// Get pricing history for a specific config
-export async function getPricingHistory(pricingConfigId: number) {
-  const db = await getDb();
-  if (!db) return [];
-  return await db.select().from(pricingHistory)
-    .where(eq(pricingHistory.pricingConfigId, pricingConfigId))
-    .orderBy(desc(pricingHistory.createdAt));
-}
-
-// Get all pricing history with limit
-export async function getAllPricingHistory(limit: number = 50) {
-  const db = await getDb();
-  if (!db) return [];
-  return await db.select().from(pricingHistory)
-    .orderBy(desc(pricingHistory.createdAt))
-    .limit(limit);
-}
-
-// Soft delete a pricing config
-export async function deletePricingConfig(id: number) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  await db.update(pricingConfig).set({ active: 0 }).where(eq(pricingConfig.id, id));
-}
-
-// Update reminder status (completado, cancelado, pendiente, enviado)
-export async function updateReminderStatus(id: number, status: string) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  await db.update(reminders).set({ status: status as any }).where(eq(reminders.id, id));
-}
-
-// Get reminders by user ID (assigned to a specific user)
-export async function getRemindersByUserId(userId: number) {
-  const db = await getDb();
-  if (!db) return [];
-  return await db.select().from(reminders)
-    .where(eq(reminders.assignedTo, userId))
-    .orderBy(desc(reminders.createdAt));
-}
-
-// ============ NOTIFICATIONS EXTENDED ============
-
-// Get notifications by user ID (alias of getNotificationsByUser)
-export async function getNotificationsByUserId(userId: number) {
-  return getNotificationsByUser(userId);
-}
-
-// Mark all notifications as read for a user
-export async function markAllNotificationsAsRead(userId: number) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  await db.update(notifications).set({ read: 1 }).where(
-    and(eq(notifications.userId, userId), eq(notifications.read, 0))
-  );
-}
-
-// Delete notifications by array of IDs
-export async function deleteNotificationsByIds(ids: number[]) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  if (ids.length === 0) return;
-  await db.delete(notifications).where(inArray(notifications.id, ids));
-}
-
-// Delete all notifications for a user (alias with clearer name)
-export async function deleteAllNotificationsByUserId(userId: number) {
-  return deleteNotificationsByUserId(userId);
-}
-
-// Update notification to mark push as sent
-export async function updateNotificationPushSent(id: number) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  await db.update(notifications).set({ sentPush: 1 }).where(eq(notifications.id, id));
-}
-
-// Get reminders by project ID (alias of getRemindersByProject)
-export async function cancelProjectReminders(projectId: number) {
-  const db = await getDb();
-  if (!db) return;
-  
-  await db.update(reminders)
-    .set({ status: 'cancelado' })
-    .where(and(
-      eq(reminders.projectId, projectId),
-      eq(reminders.status, 'pendiente')
-    ));
-}
-
-export async function getRemindersByProjectId(projectId: number) {
-  return getRemindersByProject(projectId);
-}
-
-// ============ PUSH SUBSCRIPTIONS EXTENDED ============
-
-// Create a push subscription
-export async function createPushSubscription(data: InsertPushSubscription) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  const result = await db.insert(pushSubscriptions).values(data);
-  return result[0].insertId;
-}
-
-// Get push subscriptions by user ID
-export async function getPushSubscriptionsByUserId(userId: number) {
-  const db = await getDb();
-  if (!db) return [];
-  return await db.select().from(pushSubscriptions)
-    .where(and(eq(pushSubscriptions.userId, userId), eq(pushSubscriptions.isActive, 1)));
-}
-
-// Delete a single push subscription by ID
-export async function deletePushSubscription(id: number) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  await db.delete(pushSubscriptions).where(eq(pushSubscriptions.id, id));
-}
-
-// ============ HARDWARE CATALOG CRUD ============
-
-// Update a hardware catalog item
-export async function updateHardwareItem(id: number, data: Partial<{
-  name: string;
-  description: string | null;
-  options: string | null;
-  photoUrl: string | null;
-  sortOrder: number;
-  active: boolean | number;
-  price: string | number;
-  unit: string;
-  category: "cocinas" | "closets" | "puertas";
-}>) {
-  const { active: rawActive, price: rawPrice, ...rest } = data as any;
-  const normalizedData: any = { ...rest };
-  if (rawActive !== undefined) normalizedData.active = typeof rawActive === 'boolean' ? (rawActive ? 1 : 0) : rawActive;
-  if (rawPrice !== undefined) normalizedData.price = String(rawPrice);
-  data = normalizedData;
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  await db.update(hardwareCatalog).set({ ...(data as any), updatedAt: new Date().toISOString().slice(0, 19).replace("T", " ") }).where(eq(hardwareCatalog.id, id));
-}
-
-// Delete a hardware catalog item (soft delete via active=0)
-export async function deleteHardwareItem(id: number) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  await db.update(hardwareCatalog).set({ active: 0, updatedAt: new Date().toISOString().slice(0, 19).replace("T", " ") }).where(eq(hardwareCatalog.id, id));
-}
-
-// Get hardware catalog items, optionally filtered by category
-export async function getHardwareCatalog(category?: "cocinas" | "closets" | "puertas") {
-  const db = await getDb();
-  if (!db) return [];
-  if (category) {
-    return await db.select().from(hardwareCatalog)
-      .where(and(eq(hardwareCatalog.category, category), eq(hardwareCatalog.active, 1)))
-      .orderBy(hardwareCatalog.sortOrder);
-  }
-  return await db.select().from(hardwareCatalog)
-    .where(eq(hardwareCatalog.active, 1))
-    .orderBy(hardwareCatalog.sortOrder);
-}
-
-// Create a new hardware catalog item
-export async function createHardwareItem(data: {
-  category: "cocinas" | "closets" | "puertas";
-  name: string;
-  description?: string;
-  options?: string;
-  price?: number;
-  photoUrl?: string;
-  sortOrder?: number;
-}) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  const result = await db.insert(hardwareCatalog).values({
-    category: data.category,
-    name: data.name,
-    description: data.description || null,
-    options: data.options || null,
-    price: data.price !== undefined ? String(data.price) : "0",
-    photoUrl: data.photoUrl || null,
-    sortOrder: data.sortOrder || 0,
-    active: 1,
-  });
-  return result[0].insertId;
-}
-
-// ============ EXPENSES AGGREGATION & QUERIES ============
-
-// Get all expenses
-export async function getAllExpenses() {
-  const db = await getDb();
-  if (!db) return [];
-  return await db.select().from(expenses).orderBy(expenses.expenseDate);
-}
-
-// Get all expenses paginated
-export async function getAllExpensesPaginated(limit: number = 50, offset: number = 0) {
-  const db = await getDb();
-  if (!db) return [];
-  return await db.select().from(expenses)
-    .orderBy(expenses.expenseDate)
-    .limit(limit)
-    .offset(offset);
-}
-
-// Get expenses by date range
-export async function getExpensesByDateRange(startDate: string, endDate: string) {
-  const db = await getDb();
-  if (!db) return [];
-  return await db.select().from(expenses)
-    .where(and(
-      gte(expenses.expenseDate, startDate),
-      lte(expenses.expenseDate, endDate)
-    ))
-    .orderBy(expenses.expenseDate);
-}
-
-// Get expenses by type (material vs operative)
-export async function getExpensesByType() {
-  const db = await getDb();
-  if (!db) return [];
-  return await db.select().from(expenses)
-    .where(isNotNull(expenses.expenseType))
-    .orderBy(expenses.expenseType);
-}
-
-// Get expenses by type with summary
-export async function getExpensesSummaryByType() {
-  const db = await getDb();
-  if (!db) return [];
-  // Simple aggregation by expenseType
-  const allExpenses = await db.select().from(expenses);
-  const grouped: any = {};
-  for (const exp of allExpenses) {
-    const type = exp.expenseType || 'unknown';
-    if (!grouped[type]) grouped[type] = { expenseType: type, total: '0', count: 0 };
-    grouped[type].total = String(parseFloat(grouped[type].total) + parseFloat(exp.amount || '0'));
-    grouped[type].count++;
-  }
-  return Object.values(grouped);
-}
-
-// Get operative expenses summary by category
-export async function getOperativeExpensesSummaryByCategory() {
-  const db = await getDb();
-  if (!db) return [];
-  const allExpenses = await db.select().from(expenses)
-    .where(eq(expenses.expenseType, 'gasto_operativo'));
-  const grouped: any = {};
-  for (const exp of allExpenses) {
-    const cat = exp.operativeCategory || 'sin_categoría';
-    if (!grouped[cat]) grouped[cat] = { operativeCategory: cat, total: '0', count: 0 };
-    grouped[cat].total = String(parseFloat(grouped[cat].total) + parseFloat(exp.amount || '0'));
-    grouped[cat].count++;
-  }
-  return Object.values(grouped);
-}
-
-// Get project expenses summary
-export async function getProjectExpensesSummary() {
-  const db = await getDb();
-  if (!db) return [];
-  const allExpenses = await db.select().from(expenses)
-    .where(isNotNull(expenses.projectId));
-  const grouped: any = {};
-  for (const exp of allExpenses) {
-    const pid = exp.projectId || 0;
-    if (!grouped[pid]) grouped[pid] = { projectId: pid, projectClientName: exp.projectClientName, total: '0', count: 0 };
-    grouped[pid].total = String(parseFloat(grouped[pid].total) + parseFloat(exp.amount || '0'));
-    grouped[pid].count++;
-  }
-  return Object.values(grouped);
-}
-
-// Get expenses summary by general category
-export async function getExpensesSummaryByGeneralCategory() {
-  const db = await getDb();
-  if (!db) return [];
-  const allExpenses = await db.select().from(expenses);
-  const grouped: any = {};
-  for (const exp of allExpenses) {
-    const cat = exp.generalCategory || 'otros';
-    if (!grouped[cat]) grouped[cat] = { generalCategory: cat, total: '0', count: 0 };
-    grouped[cat].total = String(parseFloat(grouped[cat].total) + parseFloat(exp.amount || '0'));
-    grouped[cat].count++;
-  }
-  return Object.values(grouped);
-}
-
-// Alias for getExpensesByProject
-export async function getExpensesByProjectId(projectId: number) {
-  return getExpensesByProject(projectId);
-}
-
-// ============ DATA PROTECTION & AUDIT LOG ============
-
-// Get audit logs for a specific record
-export async function getAuditLogsForRecord(recordType: string, recordId: number) {
-  const db = await getDb();
-  if (!db) return [];
-  return await db.select().from(auditLogs)
-    .where(and(
-      eq(auditLogs.tableName, recordType),
-      eq(auditLogs.recordId, recordId)
-    ))
-    .orderBy(desc(auditLogs.createdAt));
-}
-
-// Get audit logs by user
-export async function getAuditLogsByUser(userId: number) {
-  const db = await getDb();
-  if (!db) return [];
-  return await db.select().from(auditLogs)
-    .where(eq(auditLogs.userId, userId))
-    .orderBy(desc(auditLogs.createdAt));
-}
-
-// Permanently delete a record (hard delete)
-export async function permanentlyDeleteRecord(recordType: string, recordId: number) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  // This is a placeholder - actual implementation depends on the table structure
-  // In a real scenario, you would identify the table and delete from it
-  console.log(`[DataProtection] Permanently deleting ${recordType} with id ${recordId}`);
-}
-
-// Empty recycle bin (delete all soft-deleted records)
-export async function emptyRecycleBin() {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  // This is a placeholder - actual implementation depends on which tables have soft deletes
-  console.log("[DataProtection] Emptying recycle bin");
-}
-
-// ============ RESTORE FUNCTIONS ============
-
-// Restore a quotation from recycle bin
-export async function restoreQuotation(quotationId: number, userId?: number) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  
-  await db.update(quotations)
-    .set({ deletedAt: null })
-    .where(eq(quotations.id, quotationId));
-  
-  // Log to audit log if userId provided
-  if (userId) {
-    await db.insert(auditLogs).values({
-      userId,
-      action: "restore",
-      tableName: "quotations",
-      recordId: quotationId,
-    });
-  }
-}
-
-// Restore an appointment from recycle bin
-export async function restoreAppointment(appointmentId: number, userId?: number) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  
-  await db.update(appointments)
-    .set({ deletedAt: null })
-    .where(eq(appointments.id, appointmentId));
-  
-  // Log to audit log if userId provided
-  if (userId) {
-    await db.insert(auditLogs).values({
-      userId,
-      action: "restore",
-      tableName: "appointments",
-      recordId: appointmentId,
-    });
-  }
-}
-
-// Restore a task from recycle bin
-export async function restoreTask(taskId: number, userId?: number) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  
-  await db.update(tasks)
-    .set({ deletedAt: null })
-    .where(eq(tasks.id, taskId));
-  
-  // Log to audit log if userId provided
-  if (userId) {
-    await db.insert(auditLogs).values({
-      userId,
-      action: "restore",
-      tableName: "tasks",
-      recordId: taskId,
-    });
-  }
-}
-
-// Restore an expense from recycle bin
-export async function restoreExpense(expenseId: number, userId?: number) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  
-  await db.update(expenses)
-    .set({ deletedAt: null })
-    .where(eq(expenses.id, expenseId));
-  
-  // Log to audit log if userId provided
-  if (userId) {
-    await db.insert(auditLogs).values({
-      userId,
-      action: "restore",
-      tableName: "expenses",
-      recordId: expenseId,
-    });
-  }
-}
-
-// ============ GET DELETED RECORDS ============
-
-// Get all deleted tasks
-export async function getDeletedTasks() {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  
-  return await db.select()
-    .from(tasks)
-    .where(isNotNull(tasks.deletedAt))
-    .orderBy(desc(tasks.deletedAt));
-}
-
-// Get all deleted expenses
-export async function getDeletedExpenses() {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  
-  return await db.select()
-    .from(expenses)
-    .where(isNotNull(expenses.deletedAt))
-    .orderBy(desc(expenses.deletedAt));
-}
-
-// Get all deleted quotations
-export async function getDeletedQuotations() {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  
-  return await db.select()
-    .from(quotations)
-    .where(isNotNull(quotations.deletedAt))
-    .orderBy(desc(quotations.deletedAt));
-}
-
-// Get all deleted appointments
-export async function getDeletedAppointments() {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  
-  return await db.select()
-    .from(appointments)
-    .where(isNotNull(appointments.deletedAt))
-    .orderBy(desc(appointments.deletedAt));
-}
-
-// Restore a client from recycle bin
-export async function restoreClient(clientId: number, userId?: number) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  
-  await db.update(clients)
-    .set({ deletedAt: null })
-    .where(eq(clients.id, clientId));
-  
-  // Log to audit log if userId provided
-  if (userId) {
-    await db.insert(auditLogs).values({
-      userId,
-      action: "restore",
-      tableName: "clients",
-      recordId: clientId,
-    });
-  }
-}
-
-// Restore a project from recycle bin
-export async function restoreProject(projectId: number, userId?: number) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  
-  await db.update(projects)
-    .set({ deletedAt: null })
-    .where(eq(projects.id, projectId));
-  
-  // Log to audit log if userId provided
-  if (userId) {
-    await db.insert(auditLogs).values({
-      userId,
-      action: "restore",
-      tableName: "projects",
-      recordId: projectId,
-    });
-  }
-}
-
-// Get all deleted clients
-export async function getDeletedClients() {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  
-  return await db.select()
-    .from(clients)
-    .where(isNotNull(clients.deletedAt))
-    .orderBy(desc(clients.deletedAt));
-}
-
-// Get all deleted projects
-export async function getDeletedProjects() {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  
-  return await db.select()
-    .from(projects)
-    .where(isNotNull(projects.deletedAt))
-    .orderBy(desc(projects.deletedAt));
-}
-
-// Delete an advisory request
-export async function deleteAdvisoryRequest(requestId: number) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  
-  return await db.delete(advisoryRequests)
-    .where(eq(advisoryRequests.id, requestId));
-}
-
-// Get all deleted quotations
-
-// Get all clients with pagination
-export async function getAllClientsPaginated(options?: { page?: number; limit?: number; search?: string }) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  
-  const limit = options?.limit || 50;
-  const page = options?.page || 1;
-  const offset = (page - 1) * limit;
-  const search = options?.search?.toLowerCase() || "";
-  
-  const baseCondition = isNull(clients.deletedAt);
-  
-  const whereConditions = search
-    ? and(
-        baseCondition,
-        or(
-          like(clients.name, `%${search}%`),
-          like(clients.email, `%${search}%`),
-          like(clients.whatsappPhone, `%${search}%`)
-        )
-      )!
-    : baseCondition;
-  
-  const data = await db.select()
-    .from(clients)
-    .where(whereConditions)
-    .limit(limit)
-    .offset(offset)
-    .orderBy(desc(clients.createdAt));
-  
-  const countResult = await db.select({ count: sql<number>`count(*)` })
-    .from(clients)
-    .where(whereConditions);
-  
-  const total = countResult[0]?.count || 0;
-  
-  return { clients: data, total, page, limit };
-}
-
-export async function getColombianHolidays(fromYear: number, toYear: number) {
-  const db = await getDb();
-  if (!db) return [];
-  return await db.select()
-    .from(colombianHolidays)
-    .where(and(
-      gte(colombianHolidays.year, fromYear),
-      lte(colombianHolidays.year, toYear)
-    ))
-    .orderBy(asc(colombianHolidays.date));
-}
-
-export async function createColombianHoliday(data: { date: Date | string; name: string; year: number }) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  const dateStr = data.date instanceof Date ? data.date.toISOString() : data.date;
-  const [result] = await db.insert(colombianHolidays).values({
-    date: dateStr,
-    name: data.name,
-    year: data.year,
-  });
-  return (result as any).insertId as number;
 }

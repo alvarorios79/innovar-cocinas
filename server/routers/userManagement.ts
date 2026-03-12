@@ -83,11 +83,11 @@ export const userManagementRouter = router({
           passwordHash = await hashPassword(input.password);
         }
 
-        await db.createUserExtended({
+        await db.createUser({
           name: sanitizeText(input.name),
           email: sanitizeEmail(input.email),
           role: input.role,
-          password: input.password,
+          passwordHash,
         });
         
         return { success: true };

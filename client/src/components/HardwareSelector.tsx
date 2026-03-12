@@ -104,11 +104,11 @@ export function HardwareSelector({ projectId, readOnly = false, showOnlySelected
     }
   };
 
-  const filteredCatalog = catalog?.filter((item: any) => item.category === activeTab) || [];
+  const filteredCatalog = catalog?.filter(item => item.category === activeTab) || [];
   const selectedCount = {
-    cocinas: selections?.filter((s: any) => s?.hardwareCategory === "cocinas").length || 0,
-    closets: selections?.filter((s: any) => s?.hardwareCategory === "closets").length || 0,
-    puertas: selections?.filter((s: any) => s?.hardwareCategory === "puertas").length || 0,
+    cocinas: selections?.filter(s => s.hardware.category === "cocinas").length || 0,
+    closets: selections?.filter(s => s.hardware.category === "closets").length || 0,
+    puertas: selections?.filter(s => s.hardware.category === "puertas").length || 0,
   };
 
   if (catalogLoading || selectionsLoading) {
@@ -158,8 +158,8 @@ export function HardwareSelector({ projectId, readOnly = false, showOnlySelected
         {["cocinas", "closets", "puertas"].map((category) => {
           // Si showOnlySelected, filtrar solo los herrajes seleccionados
           const itemsToShow = showOnlySelected 
-            ? catalog?.filter((item: any) => item.category === category && isSelected(item.id))
-            : catalog?.filter((item: any) => item.category === category);
+            ? catalog?.filter(item => item.category === category && isSelected(item.id))
+            : catalog?.filter(item => item.category === category);
           
           return (
           <TabsContent key={category} value={category} className="mt-4">
@@ -169,7 +169,7 @@ export function HardwareSelector({ projectId, readOnly = false, showOnlySelected
               </div>
             ) : (
             <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4">
-              {itemsToShow?.map((hardware: any) => {
+              {itemsToShow?.map((hardware) => {
                 const selected = isSelected(hardware.id);
                 const selection = getSelection(hardware.id);
 
@@ -337,8 +337,8 @@ export function HardwareSelector({ projectId, readOnly = false, showOnlySelected
                   className="flex items-center justify-between p-2 bg-muted/50 rounded-lg"
                 >
                   <div className="flex items-center gap-2">
-                    {getCategoryIcon((selection as any)?.hardwareCategory)}
-                    <span className="font-medium text-sm">{(selection as any)?.hardwareName}</span>
+                    {getCategoryIcon(selection.hardware.category)}
+                    <span className="font-medium text-sm">{selection.hardware.name}</span>
                     {selection.selectedOption && (
                       <Badge variant="outline" className="text-xs">
                         {selection.selectedOption}

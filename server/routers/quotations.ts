@@ -78,7 +78,7 @@ export const quotationsRouter = router({
             vendorName: input.vendorName,
             productType,
             status: "draft",
-            validUntil: validUntil.toISOString(),
+            validUntil,
             subtotal: subtotal.toString(),
             transportCost: transportCost.toString(),
             discountPercent: discountPercent.toString(),
@@ -96,8 +96,8 @@ export const quotationsRouter = router({
               quantity: item.quantity || "1",
               unitPrice: item.unitPrice || null,
               totalPrice: item.totalPrice.toString(),
-              includesFixedCosts: Number(item.includesFixedCosts || false),
-              fixedCostsAmount: item.fixedCostsAmount != null ? item.fixedCostsAmount.toString() : null,
+              includesFixedCosts: item.includesFixedCosts || false,
+              fixedCostsAmount: item.fixedCostsAmount || null,
               kitchenConfig: item.kitchenConfig ? JSON.stringify(item.kitchenConfig) : null,
               hardwareSelections: item.hardwareSelections ? JSON.stringify(item.hardwareSelections) : null,
               closetConfig: item.closetConfig ? JSON.stringify(item.closetConfig) : null,
@@ -180,8 +180,8 @@ export const quotationsRouter = router({
                 quantity: item.quantity ?? "1",
                 unitPrice: item.unitPrice ?? null,
                 totalPrice: item.totalPrice.toString(),
-                includesFixedCosts: Number(item.includesFixedCosts ?? false),
-                fixedCostsAmount: item.fixedCostsAmount != null ? item.fixedCostsAmount.toString() : null,
+                includesFixedCosts: item.includesFixedCosts ?? false,
+                fixedCostsAmount: item.fixedCostsAmount ?? null,
                 kitchenConfig: item.kitchenConfig ? JSON.stringify(item.kitchenConfig) : null,
                 hardwareSelections: item.hardwareSelections ? JSON.stringify(item.hardwareSelections) : null,
                 closetConfig: item.closetConfig ? JSON.stringify(item.closetConfig) : null,
@@ -417,8 +417,8 @@ export const quotationsRouter = router({
         const now = new Date();
 
         await db.updateQuotation(input.id, {
-          isLocked: Number(newLockedState),
-          lockedAt: newLockedState ? now.toISOString() : null,
+          isLocked: newLockedState,
+          lockedAt: newLockedState ? now : null,
           lockedBy: newLockedState ? ctx.user.id : null,
         });
 
@@ -1926,7 +1926,7 @@ export const quotationsRouter = router({
           fs.unlinkSync(result.pdfPath);
           
           // Actualizar estado a "sent"
-          await db.updateQuotation(input.id, { status: "sent", sentAt: new Date().toISOString() });
+          await db.updateQuotation(input.id, { status: "sent", sentAt: new Date() });
 
           // Enviar notificación WhatsApp al cliente (cotización lista)
           if (client.whatsappPhone) {
@@ -2114,7 +2114,7 @@ export const quotationsRouter = router({
         // Actualizar estado a "approved"
         await db.updateQuotation(input.id, {
           status: "approved",
-          approvedAt: new Date().toISOString(),
+          approvedAt: new Date(),
         });
         
         // Obtener datos del cliente para la notificación
@@ -2186,7 +2186,7 @@ export const quotationsRouter = router({
         const projectName = `${quotation.quotationNumber} - ${clientData?.name || "Cliente"}`;
         
         // Calcular fecha TENTATIVA de instalación: 25 días hábiles desde hoy
-        const tentativeDate = (await addBusinessDays(new Date(), 25)).toISOString();
+        const tentativeDate = await addBusinessDays(new Date(), 25);
         
         // Asignar automáticamente el diseñador con menos proyectos activos
         const autoAssignedDesignerId = await db.getDesignerWithLeastActiveProjects();
@@ -2197,13 +2197,13 @@ export const quotationsRouter = router({
           name: projectName,
           workType: workType,
           status: "cotizacion_aprobada",
-          quotationApprovedAt: new Date().toISOString(),
+          quotationApprovedAt: new Date(),
           createdBy: ctx.user.id,
           advanceReceiptUrl: input.receiptUrl || null,
           advanceAmount: input.advanceAmount ? input.advanceAmount.toString() : null,
           quotationPdfUrl: quotationPdfUrl,
           tentativeInstallDate: tentativeDate,
-          isInstallDateOfficial: 0,
+          isInstallDateOfficial: false,
           designerId: autoAssignedDesignerId,
         });
         
@@ -2524,7 +2524,7 @@ export const quotationsRouter = router({
         const projectName = `${quotation.quotationNumber} - ${clientData?.name || "Cliente"}`;
         
         // Calcular fecha TENTATIVA de instalación: 25 días hábiles desde hoy
-        const tentativeDate = (await addBusinessDays(new Date(), 25)).toISOString();
+        const tentativeDate = await addBusinessDays(new Date(), 25);
         
         // Asignar automáticamente el diseñador con menos proyectos activos
         const autoAssignedDesignerId = await db.getDesignerWithLeastActiveProjects();
@@ -2536,11 +2536,11 @@ export const quotationsRouter = router({
           name: projectName,
           workType: workType,
           status: "cotizacion_aprobada",
-          quotationApprovedAt: new Date().toISOString(),
+          quotationApprovedAt: new Date(),
           createdBy: ctx.user.id,
           tentativeInstallDate: tentativeDate,
-          isInstallDateOfficial: 0,
-          totalAmount: String(quotation.total ?? '0'), // Precio total de la cotización
+          isInstallDateOfficial: false,
+          totalAmount: quotation.total, // Precio total de la cotización
           designerId: autoAssignedDesignerId,
         });
         
@@ -2567,12 +2567,12 @@ export const quotationsRouter = router({
           // Crear pago inicial
           await db.createPayment({
             projectId: projectId,
-            amount: String(input.initialPayment.amount),
+            amount: input.initialPayment.amount,
             type: "advance",
             method: input.initialPayment.method,
             notes: input.initialPayment.notes || "Pago inicial registrado al crear proyecto",
             registeredBy: ctx.user.id,
-            receivedAt: new Date().toISOString(),
+            receivedAt: new Date(),
           });
         }
 

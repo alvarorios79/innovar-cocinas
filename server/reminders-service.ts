@@ -67,7 +67,7 @@ export async function createProjectReminder(
     projectId,
     type,
     assignedTo: assignedToId,
-    dueDate: dueDate instanceof Date ? dueDate.toISOString() : dueDate,
+    dueDate,
     message,
     status: "pendiente",
   });
@@ -240,8 +240,7 @@ export async function processPendingReminders(): Promise<{
  */
 export async function getUserPendingReminders(userId: number) {
   const reminders = await db.getRemindersByUserId(userId);
-  // @ts-ignore
-  return reminders.filter((r: any) => r.status === "pendiente" || r.status === "enviado");
+  return reminders.filter(r => r.status === "pendiente" || r.status === "enviado");
 }
 
 /**
@@ -252,14 +251,10 @@ export async function getProjectRemindersStatus(projectId: number) {
   
   return {
     total: reminders.length,
-  // @ts-ignore
-    pending: reminders.filter((r: any) => r.status === "pendiente").length,
-  // @ts-ignore
-    sent: reminders.filter((r: any) => r.status === "enviado").length,
-  // @ts-ignore
-    completed: reminders.filter((r: any) => r.status === "completado").length,
-  // @ts-ignore
-    reminders: reminders.map((r: any) => ({
+    pending: reminders.filter(r => r.status === "pendiente").length,
+    sent: reminders.filter(r => r.status === "enviado").length,
+    completed: reminders.filter(r => r.status === "completado").length,
+    reminders: reminders.map(r => ({
       id: r.id,
       type: r.type,
       status: r.status,

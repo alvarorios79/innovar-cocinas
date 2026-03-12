@@ -150,7 +150,7 @@ export const clientsRouter = router({
             name: sanitizeText(input.name),
             email: sanitizeEmail(input.email),
             role: "user",
-            password: passwordHash,
+            passwordHash,
           });
           userEmail = input.email;
         }
@@ -163,7 +163,7 @@ export const clientsRouter = router({
             email: input.email && input.email.trim() !== "" ? sanitizeEmail(input.email) : undefined,
             whatsappPhone: sanitizePhone(input.whatsappPhone),
             address: input.address ? sanitizeText(input.address) : undefined,
-            internalManagement: input.internalManagement ? 1 : 0,
+            internalManagement: input.internalManagement,
           });
           return cid;
         });
@@ -222,7 +222,10 @@ export const clientsRouter = router({
           }
           
           // 2. Eliminar asesorías del cliente
-          await db.deleteAdvisoryRequestsByClientId(input.id);
+          const advisoryRequests = await db.getAdvisoryRequestsByClientId(input.id);
+          for (const advisory of advisoryRequests) {
+            await db.deleteAdvisoryRequest(advisory.id);
+          }
           
           // 3. Eliminar cotizaciones del cliente
           const quotations = await db.getQuotationsByClientId(input.id);

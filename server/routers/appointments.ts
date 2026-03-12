@@ -50,7 +50,7 @@ export const appointmentsRouter = router({
 
         const appointmentId = await db.createAppointment({
           clientId: input.clientId,
-          scheduledDate: scheduledDate?.toISOString(),
+          scheduledDate,
           notes: input.notes ? sanitizeText(input.notes) : undefined,
         });
 
@@ -95,7 +95,7 @@ export const appointmentsRouter = router({
                   name: client.name,
                   email: client.email,
                   role: "user",
-                  password: hashedPassword,
+                  passwordHash: hashedPassword,
                 });
                 
                 // Asociar cliente con usuario
@@ -243,7 +243,7 @@ export const appointmentsRouter = router({
 
         const newDate = new Date(input.scheduledDate);
         await db.updateAppointment(input.id, {
-          scheduledDate: newDate.toISOString(),
+          scheduledDate: newDate,
         });
 
         // Notificación en campanilla para el cliente
@@ -525,8 +525,7 @@ export const appointmentsRouter = router({
         const clientMap = new Map(allClients.map(c => [c.id, c]));
         return {
           ...result,
-    // @ts-ignore
-          data: result.data.map((apt: any) => ({ ...apt, client: clientMap.get(apt.clientId) })),
+          data: result.data.map(apt => ({ ...apt, client: clientMap.get(apt.clientId) })),
         };
       }),
 
@@ -566,7 +565,7 @@ export const appointmentsRouter = router({
         const [year, month, day] = input.scheduledDateStr.split('-').map(Number);
         const [hours, minutes] = input.scheduledTimeStr.split(':').map(Number);
         const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}T${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00-05:00`;
-        const scheduledDate = new Date(dateStr).toISOString();
+        const scheduledDate = new Date(dateStr);
         
         await db.updateAppointment(input.id, { scheduledDate });
 
@@ -576,9 +575,8 @@ export const appointmentsRouter = router({
           if (appointment) {
             const client = await db.getClientById(appointment.clientId);
             if (client?.userId) {
-              const scheduledDateObj = new Date(scheduledDate);
-              const dateFormatted = scheduledDateObj.toLocaleDateString('es-CO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'America/Bogota' });
-              const timeFormatted = scheduledDateObj.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'America/Bogota' });
+              const dateFormatted = scheduledDate.toLocaleDateString('es-CO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'America/Bogota' });
+              const timeFormatted = scheduledDate.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'America/Bogota' });
               await db.createNotification({
                 userId: client.userId,
                 type: 'cita',
@@ -604,8 +602,7 @@ export const appointmentsRouter = router({
         const appointments = await db.getAppointmentsByDate(date);
         
         // Retornar solo las horas ocupadas (formato HH:mm)
-    // @ts-ignore
-        return appointments.map((apt: any) => {
+        return appointments.map(apt => {
           if (!apt.scheduledDate) return null;
     // @ts-ignore
           const hours = apt.scheduledDate.getHours().toString().padStart(2, '0');

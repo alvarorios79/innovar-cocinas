@@ -72,7 +72,7 @@ export const expensesRouter = router({
           operativeCategory: input.operativeCategory || null,
           description: sanitizeText(input.description),
           amount: input.amount.toString(),
-          expenseDate: input.expenseDate || new Date().toISOString().slice(0, 19).replace('T', ' '),
+          expenseDate: new Date(input.expenseDate),
           supportUrl: input.supportUrl || null,
           supportFileName: input.supportFileName || null,
           receiptUrl: input.receiptUrl || null,
@@ -102,26 +102,24 @@ export const expensesRouter = router({
         
         if (input?.startDate && input?.endDate) {
           expenses = await db.getExpensesByDateRange(
-            input.startDate,
-            input.endDate
+            new Date(input.startDate),
+            new Date(input.endDate)
           );
         } else if (input?.type && input.type !== "all") {
-          expenses = await db.getExpensesByType();
+          expenses = await db.getExpensesByType(input.type);
         } else {
           expenses = await db.getAllExpenses();
         }
 
         // Obtener información de usuarios que crearon los gastos
         const userIdsSet = new Set<number>();
-    // @ts-ignore
-        expenses.forEach((e: any) => userIdsSet.add(e.createdBy));
+        expenses.forEach(e => userIdsSet.add(e.createdBy));
         const userIds: number[] = [];
-        userIdsSet.forEach((id: any) => userIds.push(id));
+        userIdsSet.forEach(id => userIds.push(id));
         const allUsers = await db.getAllUsers();
-        const userMap = new Map(allUsers.map((u: any): [number, any] => [u.id, u]));
+        const userMap = new Map(allUsers.map(u => [u.id, u]));
 
-    // @ts-ignore
-        return expenses.map((expense: any): any => ({
+        return expenses.map(expense => ({
           ...expense,
           amount: parseFloat(expense.amount as string),
           createdByUser: userMap.get(expense.createdBy) || null,
@@ -139,16 +137,19 @@ export const expensesRouter = router({
         if (!allowedRoles.includes(ctx.user.role)) {
           throw new TRPCError({ code: "FORBIDDEN" });
         }
-        const offset = ((input?.page || 1) - 1) * (input?.limit || 50);
-        const data = await db.getAllExpensesPaginated(input?.limit || 50, offset);
+        const result = await db.getAllExpensesPaginated({
+          page: input?.page,
+          limit: input?.limit,
+          expenseType: input?.expenseType,
+        });
         const allUsers = await db.getAllUsers();
         const userMap = new Map(allUsers.map(u => [u.id, u]));
         return {
-          data: data.map((expense: any) => ({
+          ...result,
+          data: result.data.map(expense => ({
             ...expense,
             amount: parseFloat(expense.amount as string),
             createdByUser: userMap.get(expense.createdBy) || null,
-    // @ts-ignore
           })),
         };
       }),
@@ -189,11 +190,10 @@ export const expensesRouter = router({
         }
 
         const expenses = await db.getExpensesByProjectId(input);
-        return expenses.map((e: any) => ({
+        return expenses.map(e => ({
           ...e,
           amount: parseFloat(e.amount as string),
         }));
-    // @ts-ignore
       }),
 
     // Actualizar gasto
@@ -273,26 +273,22 @@ export const expensesRouter = router({
         ]);
 
         return {
-          byType: byType.map((t: any) => ({
+          byType: byType.map(t => ({
             ...t,
             total: parseFloat(t.total),
           })),
-    // @ts-ignore
-          byCategory: byCategory.map((c: any): any => ({
+          byCategory: byCategory.map(c => ({
             ...c,
             total: parseFloat(c.total),
           })),
-    // @ts-ignore
-          byProject: byProject.map((p: any): any => ({
+          byProject: byProject.map(p => ({
             ...p,
             total: parseFloat(p.total),
           })),
-    // @ts-ignore
-          byGeneralCategory: byGeneralCategory.map((g: any): any => ({
+          byGeneralCategory: byGeneralCategory.map(g => ({
             ...g,
             total: parseFloat(g.total),
           })),
-    // @ts-ignore
         };
       }),
 

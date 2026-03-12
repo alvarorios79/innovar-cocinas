@@ -57,10 +57,10 @@ export const projectsRouter = router({
           workType: input.workType,
           initialMeasurements: input.initialMeasurements,
           status: "cotizacion_enviada",
-          // quotationSentAt: new Date().toISOString(), // Field not in schema
+          quotationSentAt: new Date(),
           createdBy: ctx.user.id,
-          tentativeInstallDate: tentativeDate ? new Date(tentativeDate).toISOString() : undefined,
-          isInstallDateOfficial: 0,
+          tentativeInstallDate: tentativeDate,
+          isInstallDateOfficial: false,
           designerId: autoAssignedDesignerId,
         });
 
@@ -343,7 +343,7 @@ export const projectsRouter = router({
             previousStatus: h.fromStatus,
             newStatus: h.toStatus,
             notes: h.notes,
-            changedBy: (h as any).changedByUser?.name || null,
+            changedBy: h.changedByUser?.name || null,
             createdAt: new Date(h.createdAt),
           });
         }
@@ -804,7 +804,7 @@ export const projectsRouter = router({
                       name: clientData.name,
                       email: clientData.email,
                       role: "user",
-                      password: hashedPassword,
+                      passwordHash: hashedPassword,
                     });
                     
                     // Asociar cliente con nuevo usuario
@@ -1175,7 +1175,7 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
           await db.updateProject(input.projectId, {
             status: "en_diseno",
             clientApprovalNotes: input.notes,
-            changesRequestedAt: new Date().toISOString(), // Guardar fecha de solicitud de cambios
+            changesRequestedAt: new Date(), // Guardar fecha de solicitud de cambios
           });
 
           await db.createProjectStatusHistory({
@@ -1228,7 +1228,7 @@ ${input.notes || "No se especificaron detalles"}
               priority: "alta",
               assignedTo: designer.id,
               assignedBy: ctx.user.id,
-              dueDate: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(), // 48 horas
+              dueDate: new Date(Date.now() + 48 * 60 * 60 * 1000), // 48 horas
             });
             
             // 2. Crear notificación interna para el diseñador
@@ -1297,7 +1297,7 @@ ${input.notes || "No se especificaron detalles"}
         }
 
         await db.updateProject(input.projectId, {
-          design3DFiles: input.design3dFiles,
+          design3dFiles: input.design3dFiles,
           despieceFiles: input.despieceFiles,
           designerId: ctx.user.id,
         });
@@ -1319,10 +1319,7 @@ ${input.notes || "No se especificaron detalles"}
           throw new TRPCError({ code: "FORBIDDEN", message: "Solo administradores o jefe de taller pueden editar proyectos" });
         }
 
-        const { id, estimatedInstallDate, scheduledInstallDate, ...rest } = input;
-        const data: any = { ...rest };
-        if (estimatedInstallDate) data.estimatedInstallDate = new Date(estimatedInstallDate).toISOString();
-        if (scheduledInstallDate) data.scheduledInstallDate = new Date(scheduledInstallDate).toISOString();
+        const { id, ...data } = input;
         await db.updateProject(id, data);
         return { success: true };
       }),
@@ -1357,7 +1354,7 @@ ${input.notes || "No se especificaron detalles"}
           });
 
           await db.updateProject(input.projectId, {
-            estimatedInstallDate: input.estimatedInstallDate ? new Date(input.estimatedInstallDate).toISOString() : undefined,
+            estimatedInstallDate: input.estimatedInstallDate,
           });
         });
 
@@ -1462,7 +1459,7 @@ ${input.notes || "No se especificaron detalles"}
           }
 
           // 4. Actualizar estado
-          await db.updateProject(input.id, { status: previousStatus as any });
+          await db.updateProject(input.id, { status: previousStatus });
 
           // 5. Log de auditoria (opcional para auditoría futura)
 
@@ -1853,8 +1850,7 @@ export const projectMaterialsRouter = router({
     get: protectedProcedure
       .input(z.object({ projectId: z.number() }))
       .query(async ({ input }) => {
-        const results = await db.getProjectMaterials(input.projectId);
-        return results.length > 0 ? results[0] : null;
+        return await db.getProjectMaterials(input.projectId);
       }),
 
     uploadPhoto: protectedProcedure
@@ -1932,7 +1928,7 @@ export const projectMaterialsRouter = router({
         if (!allowedRoles.includes(ctx.user.role)) {
           throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para seleccionar herrajes" });
         }
-        const id = await db.addProjectHardwareSelection(input.projectId, input.hardwareId, input.selectedOption ?? null, input.notes ?? null, ctx.user.id);
+        const id = await db.addProjectHardwareSelection(input.projectId, input.hardwareId, input.selectedOption, input.notes, ctx.user.id);
         return { success: true, id };
       }),
 

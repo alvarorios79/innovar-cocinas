@@ -100,7 +100,7 @@ export const authRouter = router({
             name: sanitizeText(input.name),
             email: sanitizeEmail(input.email),
             role: "user",
-            password: passwordHash,
+            passwordHash,
           });
 
           await db.createClient({

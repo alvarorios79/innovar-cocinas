@@ -36,7 +36,7 @@ export const notificationsRouter = router({
         const subscriptionId = await db.createPushSubscription({
           userId: ctx.user.id,
           endpoint: input.endpoint,
-          p256Dh: input.p256dh,
+          p256dh: input.p256dh,
           auth: input.auth,
           userAgent: input.userAgent,
         });
@@ -47,15 +47,7 @@ export const notificationsRouter = router({
     unsubscribe: protectedProcedure
       .input(z.object({ endpoint: z.string() }))
       .mutation(async ({ input }) => {
-        const subs = await db.getPushSubscriptionsByUserId(0);
-        // deletePushSubscription takes id, find by endpoint first
-        const { getDb } = await import("../db");
-        const dbConn = await getDb();
-        if (dbConn) {
-          const { pushSubscriptions } = await import("../../drizzle/schema");
-          const { eq } = await import("drizzle-orm");
-          await dbConn.delete(pushSubscriptions).where(eq(pushSubscriptions.endpoint, input.endpoint));
-        }
+        await db.deletePushSubscription(input.endpoint);
         return { success: true };
       }),
 
@@ -63,7 +55,7 @@ export const notificationsRouter = router({
     getMyNotifications: protectedProcedure
       .input(z.object({ limit: z.number().optional() }).optional())
       .query(async ({ ctx, input }) => {
-        return await db.getNotificationsByUserId(ctx.user.id);
+        return await db.getNotificationsByUserId(ctx.user.id, input?.limit || 50);
       }),
 
     // Obtener contador de no leídas
@@ -100,15 +92,15 @@ export const notificationsRouter = router({
     deleteBulk: protectedProcedure
       .input(z.object({ ids: z.array(z.number()).min(1) }))
       .mutation(async ({ input }) => {
-        await db.deleteNotificationsByIds(input.ids);
-        return { success: true, deletedCount: input.ids.length };
+        const result = await db.deleteNotificationsByIds(input.ids);
+        return { success: true, deletedCount: result.deletedCount };
       }),
 
     // Eliminar todas las notificaciones del usuario
     deleteAll: protectedProcedure
       .mutation(async ({ ctx }) => {
-        await db.deleteAllNotificationsByUserId(ctx.user.id);
-        return { success: true };
+        const result = await db.deleteAllNotificationsByUserId(ctx.user.id);
+        return { success: true, deletedCount: result.deletedCount };
       }),
 
 
@@ -131,7 +123,6 @@ export const notificationsRouter = router({
       }),
 });
 
-    // @ts-ignore
 export const remindersRouter = router({
     // Obtener mis recordatorios
     getMyReminders: protectedProcedure
@@ -140,7 +131,7 @@ export const remindersRouter = router({
         
         // Enriquecer con información del proyecto y cliente
         const enrichedReminders = await Promise.all(
-          reminders.map(async (reminder: any): Promise<any> => {
+          reminders.map(async (reminder) => {
     // @ts-ignore
             const project = await db.getProjectById(reminder.projectId);
             let client = null;
@@ -171,7 +162,6 @@ export const remindersRouter = router({
       .input(z.object({ projectId: z.number() }))
       .query(async ({ input }) => {
         return await db.getRemindersByProjectId(input.projectId);
-    // @ts-ignore
       }),
 
     // Marcar recordatorio como completado
@@ -180,7 +170,7 @@ export const remindersRouter = router({
       .mutation(async ({ ctx, input }) => {
         // Verificar que el recordatorio pertenece al usuario o es admin
         const reminders = await db.getRemindersByUserId(ctx.user.id);
-        const reminder = reminders.find((r: any) => r.id === input.reminderId);
+        const reminder = reminders.find(r => r.id === input.reminderId);
         
         if (!reminder && ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "comercial") {
           throw new TRPCError({ 
@@ -206,36 +196,28 @@ export const remindersRouter = router({
         
         await db.updateReminderStatus(input.reminderId, "cancelado");
         return { success: true };
-    // @ts-ignore
       }),
-    // @ts-ignore
 
-    // @ts-ignore
     // Obtener resumen de recordatorios (para dashboard)
     getSummary: protectedProcedure
       .query(async ({ ctx }) => {
         const reminders = await db.getRemindersByUserId(ctx.user.id);
         const now = new Date();
         
-        const pending = reminders.filter((r: any): boolean => r.status === "pendiente" || r.status === "enviado");
-    // @ts-ignore
-        const overdue = pending.filter((r: any): boolean => new Date(r.dueDate) <= now);
-    // @ts-ignore
-        const upcoming = pending.filter((r: any): boolean => new Date(r.dueDate) > now);
-    // @ts-ignore
+        const pending = reminders.filter(r => r.status === "pendiente" || r.status === "enviado");
+        const overdue = pending.filter(r => new Date(r.dueDate) <= now);
+        const upcoming = pending.filter(r => new Date(r.dueDate) > now);
         
-    // @ts-ignore
         return {
-    // @ts-ignore
           total: pending.length,
           overdue: overdue.length,
           upcoming: upcoming.length,
           byType: {
-            cotizacion_sin_respuesta: pending.filter((r: any): boolean => r.type === "cotizacion_sin_respuesta").length,
-            diseno_pendiente: pending.filter((r: any): boolean => r.type === "diseno_pendiente").length,
-            aprobacion_pendiente: pending.filter((r: any): boolean => r.type === "aprobacion_pendiente").length,
-            produccion_retrasada: pending.filter((r: any): boolean => r.type === "produccion_retrasada").length,
-            instalacion_proxima: pending.filter((r: any): boolean => r.type === "instalacion_proxima").length,
+            cotizacion_sin_respuesta: pending.filter(r => r.type === "cotizacion_sin_respuesta").length,
+            diseno_pendiente: pending.filter(r => r.type === "diseno_pendiente").length,
+            aprobacion_pendiente: pending.filter(r => r.type === "aprobacion_pendiente").length,
+            produccion_retrasada: pending.filter(r => r.type === "produccion_retrasada").length,
+            instalacion_proxima: pending.filter(r => r.type === "instalacion_proxima").length,
           },
         };
       }),

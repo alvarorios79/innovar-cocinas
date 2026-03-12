@@ -1,0 +1,145 @@
+{
+  "query": "SELECT name, email, dataOrigin FROM clients WHERE deletedAt IS NULL ORDER BY name;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT name, email, dataOrigin FROM clients WHERE deletedAt IS NULL ORDER BY name;",
+  "rows": [
+    {
+      "name": "Alfredo Bolaños",
+      "email": "NULL",
+      "dataOrigin": "manual"
+    },
+    {
+      "name": "Andres Salazar",
+      "email": "NULL",
+      "dataOrigin": "manual"
+    },
+    {
+      "name": "Beatriz Paris",
+      "email": "NULL",
+      "dataOrigin": "manual"
+    },
+    {
+      "name": "Carlos Albeiro Betancurt ",
+      "email": "albetan1530@gmail.com",
+      "dataOrigin": "manual"
+    },
+    {
+      "name": "Carolina Diaz",
+      "email": "NULL",
+      "dataOrigin": "manual"
+    },
+    {
+      "name": "DataOrigin System Test Client",
+      "email": "system-test-1773298219673@example.com",
+      "dataOrigin": "system"
+    },
+    {
+      "name": "Diana Ortiz",
+      "email": "NULL",
+      "dataOrigin": "manual"
+    },
+    {
+      "name": "Felipe Quintero",
+      "email": "NULL",
+      "dataOrigin": "manual"
+    },
+    {
+      "name": "Gustavo Rodriguez - Subway",
+      "email": "NULL",
+      "dataOrigin": "manual"
+    },
+    {
+      "name": "Henry Morales",
+      "email": "NULL",
+      "dataOrigin": "manual"
+    },
+    {
+      "name": "Jhonier Cardona",
+      "email": "NULL",
+      "dataOrigin": "manual"
+    },
+    {
+      "name": "Joan Gutiérrez ",
+      "email": "joanfgv@gmail.com",
+      "dataOrigin": "manual"
+    },
+    {
+      "name": "Juan Pablo González",
+      "email": "NULL",
+      "dataOrigin": "manual"
+    },
+    {
+      "name": "Julio Cesar Perez Gutierrez",
+      "email": "NULL",
+      "dataOrigin": "manual"
+    },
+    {
+      "name": "Karolina Torres",
+      "email": "NULL",
+      "dataOrigin": "manual"
+    },
+    {
+      "name": "Lina Paez",
+      "email": "NULL",
+      "dataOrigin": "manual"
+    },
+    {
+      "name": "Manuel Velasquez",
+      "email": "NULL",
+      "dataOrigin": "manual"
+    },
+    {
+      "name": "Nery Benjumea",
+      "email": "NULL",
+      "dataOrigin": "manual"
+    },
+    {
+      "name": "Niyired Amezquita",
+      "email": "niyiamezquita@gmail.com",
+      "dataOrigin": "manual"
+    },
+    {
+      "name": "Orlando Primacho",
+      "email": "NULL",
+      "dataOrigin": "manual"
+    },
+    {
+      "name": "Oscar Urriago",
+      "email": "NULL",
+      "dataOrigin": "manual"
+    },
+    {
+      "name": "Prueba cotizacion/Proyecto",
+      "email": "alvarorios79@hotmail.com",
+      "dataOrigin": "manual"
+    },
+    {
+      "name": "Ruth Naranjo",
+      "email": "alvarorios79@gmail.com",
+      "dataOrigin": "manual"
+    },
+    {
+      "name": "Sr. Harold",
+      "email": "NULL",
+      "dataOrigin": "manual"
+    },
+    {
+      "name": "Sr. Luis - Estefania",
+      "email": "NULL",
+      "dataOrigin": "manual"
+    },
+    {
+      "name": "Sras. Maria Clara & Ana milena",
+      "email": "NULL",
+      "dataOrigin": "manual"
+    },
+    {
+      "name": "Álvaro prueba ",
+      "email": "alvarorios79@hotmail.com",
+      "dataOrigin": "manual"
+    }
+  ],
+  "messages": [],
+  "stdout": "name\temail\tdataOrigin\nAlfredo Bolaños\tNULL\tmanual\nAndres Salazar\tNULL\tmanual\nBeatriz Paris\tNULL\tmanual\nCarlos Albeiro Betancurt \talbetan1530@gmail.com\tmanual\nCarolina Diaz\tNULL\tmanual\nDataOrigin System Test Client\tsystem-test-1773298219673@example.com\tsystem\nDiana Ortiz\tNULL\tmanual\nFelipe Quintero\tNULL\tmanual\nGustavo Rodriguez - Subway\tNULL\tmanual\nHenry Morales\tNULL\tmanual\nJhonier Cardona\tNULL\tmanual\nJoan Gutiérrez \tjoanfgv@gmail.com\tmanual\nJuan Pablo González\tNULL\tmanual\nJulio Cesar Perez Gutierrez\tNULL\tmanual\nKarolina Torres\tNULL\tmanual\nLina Paez\tNULL\tmanual\nManuel Velasquez\tNULL\tmanual\nNery Benjumea\tNULL\tmanual\nNiyired Amezquita\tniyiamezquita@gmail.com\tmanual\nOrlando Primacho\tNULL\tmanual\nOscar Urriago\tNULL\tmanual\nPrueba cotizacion/Proyecto\talvarorios79@hotmail.com\tmanual\nRuth Naranjo\talvarorios79@gmail.com\tmanual\nSr. Harold\tNULL\tmanual\nSr. Luis - Estefania\tNULL\tmanual\nSras. Maria Clara & Ana milena\tNULL\tmanual\nÁlvaro prueba \talvarorios79@hotmail.com\tmanual\n",
+  "stderr": "",
+  "execution_time_ms": 57
+}

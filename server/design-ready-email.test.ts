@@ -89,6 +89,7 @@ describe("Design Ready Email with Credentials", () => {
     // Crear un usuario de prueba
     const testEmail = `test-design-${Date.now()}@test.com`;
     const userId = await db.createUserExtended({
+      dataOrigin: 'system',
       name: "Test User Design",
       email: testEmail,
       role: "user",

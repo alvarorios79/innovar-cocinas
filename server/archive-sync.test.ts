@@ -1,49 +1,53 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import * as db from './db';
 import { getDb } from './db';
-import { projects, clients } from '../drizzle/schema';
+import { projects } from '../drizzle/schema';
 import { eq } from 'drizzle-orm';
 
 describe('Archive Sync: isArchived ↔ status', () => {
   let testProjectId: number;
   let testClientId: number;
+  let testUserId: number;
   let database: any;
 
   beforeAll(async () => {
     database = await getDb();
     if (!database) throw new Error('Database not available');
 
-    // Crear cliente de prueba
-    const clientResult = await database
-      .insert(clients)
-      .values({
-        name: 'Test Client Archive Sync',
-        email: 'test-archive-sync@example.com',
-        phone: '3001234567',
-        createdAt: new Date(),
-      })
-      .returning({ id: clients.id });
-    testClientId = clientResult[0].id;
+    // Crear usuario de prueba
+    testUserId = await db.createUserExtended({
+      dataOrigin: 'system',
+      name: 'Admin Test Archive Sync',
+      email: 'admin-archive-sync-test@test.com',
+      role: 'admin',
+    });
 
-    // Crear proyecto de prueba
-    const result = await database
-      .insert(projects)
-      .values({
-        clientId: testClientId,
-        name: 'Test Project Archive Sync',
-        status: 'listo_instalacion',
-        workType: 'cocina',
-        isArchived: 0,
-        createdAt: new Date(),
-      })
-      .returning({ id: projects.id });
-    testProjectId = result[0].id;
+    // Crear cliente de prueba usando db.createClient (usa insertId, no .returning())
+    testClientId = await db.createClient({
+      dataOrigin: 'system',
+      name: 'Test Client Archive Sync',
+      email: 'test-archive-sync@example.com',
+      whatsappPhone: '3001234567',
+    });
+
+    // Crear proyecto de prueba usando db.createProject
+    testProjectId = await db.createProject({
+      dataOrigin: 'system',
+      clientId: testClientId,
+      name: 'Test Project Archive Sync',
+      status: 'listo_instalacion',
+      workType: 'cocina',
+      isArchived: 0,
+      createdBy: testUserId,
+    });
   });
 
   afterAll(async () => {
     if (!database) return;
     // Limpiar
-    await database.delete(projects).where(eq(projects.id, testProjectId));
-    await database.delete(clients).where(eq(clients.id, testClientId));
+    await database.delete(projects).where(eq(projects.id, testProjectId)).catch(() => {});
+    await db.deleteClient(testClientId).catch(() => {});
+    await db.deleteUser(testUserId).catch(() => {});
   });
 
   it('Cuando status = "entregado", isArchived debe ser 1', async () => {

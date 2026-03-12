@@ -10,6 +10,7 @@ describe("Client-User Association", () => {
   beforeEach(async () => {
     // Crear un usuario de prueba único para cada test
     testUserId = await db.createUserExtended({
+      dataOrigin: 'system',
       name: "Usuario Prueba",
       email: `test-${Date.now()}-${Math.random()}@test.com`,
       role: "user",
@@ -78,6 +79,7 @@ describe("Client-User Association", () => {
 
     // Crear una cita directamente en la base de datos para evitar validaciones de disponibilidad
     const appointmentId = await db.createAppointment({
+      dataOrigin: 'system',
       clientId: client.id,
       workTypes: ["cocina"],
       scheduledDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000), // 90 días en el futuro
@@ -99,6 +101,7 @@ describe("Client-User Association", () => {
   it("debe asociar cliente existente con usuario si no tiene userId", async () => {
     // Crear un cliente sin userId (como si fuera creado por usuario no autenticado)
     const clientId = await db.createClient({
+      dataOrigin: 'system',
       name: "Cliente Sin Usuario",
       whatsappPhone: `301${Date.now().toString().slice(-7)}`,
       email: "sin.usuario@test.com",
@@ -130,6 +133,7 @@ describe("Client-User Association", () => {
 
     // Crear un proyecto para este cliente
     const projectId = await db.createProject({
+      dataOrigin: 'system',
       clientId: client.id,
       name: "Proyecto Prueba",
       workType: "cocina",
@@ -145,6 +149,7 @@ describe("Client-User Association", () => {
 
     // Crear una cotización para este cliente
     const quotationId = await db.createQuotation({
+      dataOrigin: 'system',
       clientId: client.id,
       vendorName: "Alvaro Gutierrez",
       productType: "cocina",

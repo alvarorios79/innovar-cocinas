@@ -1,0 +1,9 @@
+{
+  "query": "UPDATE projects SET deletedAt = NOW() WHERE id IN (2190148, 2190149, 2190150, 2190152, 2190153, 2190154) AND name NOT LIKE '%Sras%' AND name NOT LIKE '%Diana%' AND name NOT LIKE '%Harold%' AND name NOT LIKE '%Oscar%' AND name NOT LIKE '%Juan Pablo%' AND name NOT LIKE '%Carolina%';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute UPDATE projects SET deletedAt = NOW() WHERE id IN (2190148, 2190149, 2190150, 2190152, 2190153, 2190154) AND name NOT LIKE '%Sras%' AND name NOT LIKE '%Diana%' AND name NOT LIKE '%Harold%' AND name NOT LIKE '%Oscar%' AND name NOT LIKE '%Juan Pablo%' AND name NOT LIKE '%Carolina%';",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 64
+}

@@ -58,6 +58,7 @@ import {
   InsertAuditLog
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
+import { randomUUID } from 'crypto';
 import { triggerAlertEvaluation } from './services/financialAlertMonitor';
 import mysql from 'mysql2/promise';
 
@@ -104,7 +105,7 @@ export function enforceDataOrigin<T extends { dataOrigin?: string }>(data: T): T
 export async function createUser(user: Omit<InsertUser, 'openId'> & { openId?: string }) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  const result = await db.insert(users).values({ openId: '', ...user });
+  const result = await db.insert(users).values({ openId: user.openId || randomUUID(), ...user });
   return result[0].insertId;
 }
 
@@ -815,6 +816,10 @@ export async function getPaymentsByProject(projectId: number) {
   return await db.select().from(payments).where(eq(payments.projectId, projectId)).orderBy(desc(payments.createdAt));
 }
 
+export async function getPaymentsByProjectId(projectId: number) {
+  return getPaymentsByProject(projectId);
+}
+
 export async function updatePayment(id: number, data: Partial<InsertPayment>) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
@@ -1192,22 +1197,42 @@ export async function getCashFlowData() {
   const db = await getDb();
   if (!db) return [];
 
-  const allPayments = await db.select().from(payments).orderBy(desc(payments.createdAt));
-  
-  const cashFlow: any[] = [];
-  for (const payment of allPayments) {
-    const project = await db.select().from(projects).where(eq(projects.id, payment.projectId)).limit(1);
-    if (project.length > 0) {
-      cashFlow.push({
-        date: payment.createdAt,
-        amount: payment.amount,
-        type: payment.movementType,
-        projectName: project[0].name
-      });
-    }
+  const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+  const now = new Date();
+
+  // Build the last 6 months (oldest to newest)
+  const months: { month: string; year: number; monthIndex: number }[] = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.push({ month: monthNames[d.getMonth()], year: d.getFullYear(), monthIndex: d.getMonth() });
   }
 
-  return cashFlow;
+  // Fetch all payments and expenses in one pass
+  const allPayments = await db.select().from(payments);
+  const allExpenses = await db.select().from(expenses);
+
+  return months.map(({ month, year, monthIndex }) => {
+    let inflow = 0;
+    let outflow = 0;
+
+    for (const p of allPayments) {
+      if (!p.createdAt) continue;
+      const d = new Date(p.createdAt);
+      if (d.getFullYear() === year && d.getMonth() === monthIndex && p.movementType === 'payment') {
+        inflow += parseFloat(p.amount?.toString() || '0');
+      }
+    }
+
+    for (const e of allExpenses) {
+      if (!e.createdAt) continue;
+      const d = new Date(e.createdAt);
+      if (d.getFullYear() === year && d.getMonth() === monthIndex) {
+        outflow += parseFloat(e.amount?.toString() || '0');
+      }
+    }
+
+    return { month, inflow, outflow };
+  });
 }
 
 
@@ -1228,7 +1253,7 @@ export async function createUserExtended(data: {
   const result = await db.insert(users).values({
     name: data.name,
     email: data.email,
-    openId: data.openId || '',
+    openId: data.openId || randomUUID(),
     passwordHash: data.password || '',
     role: (data.role || 'user') as any,
     dataOrigin: (data.dataOrigin || 'manual') as any,
@@ -2160,14 +2185,49 @@ export async function permanentlyDeleteRecord(tableName: string, id: number) {
 export async function emptyRecycleBin() {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  await Promise.all([
-    db.delete(clients).where(isNotNull(clients.deletedAt)),
-    db.delete(projects).where(isNotNull(projects.deletedAt)),
-    db.delete(quotations).where(isNotNull(quotations.deletedAt)),
-    db.delete(appointments).where(isNotNull(appointments.deletedAt)),
-    db.delete(tasks).where(isNotNull(tasks.deletedAt)),
-    db.delete(expenses).where(isNotNull(expenses.deletedAt)),
-  ]);
+  // Respetar orden de foreign keys: primero hijos, luego padres
+  // 1. Eliminar items de cotizaciones (hijo de quotations)
+  const deletedQuotationIds = await db.select({ id: quotations.id }).from(quotations).where(isNotNull(quotations.deletedAt));
+  if (deletedQuotationIds.length > 0) {
+    const ids = deletedQuotationIds.map(q => q.id);
+    await db.delete(quotationItems).where(inArray(quotationItems.quotationId, ids));
+  }
+  // 2. Eliminar cotizaciones soft-deleted
+  await db.delete(quotations).where(isNotNull(quotations.deletedAt));
+  // 3. Eliminar hijos de projects soft-deleted
+  const deletedProjectIds = await db.select({ id: projects.id }).from(projects).where(isNotNull(projects.deletedAt));
+  if (deletedProjectIds.length > 0) {
+    const ids = deletedProjectIds.map(p => p.id);
+    await db.delete(expenses).where(and(inArray(expenses.projectId, ids), isNotNull(expenses.deletedAt)));
+    await db.delete(tasks).where(and(inArray(tasks.projectId, ids), isNotNull(tasks.deletedAt)));
+  }
+  // 4. Eliminar tasks y expenses soft-deleted sin proyecto
+  await db.delete(tasks).where(isNotNull(tasks.deletedAt));
+  await db.delete(expenses).where(isNotNull(expenses.deletedAt));
+  // 5. Eliminar projects soft-deleted (ANTES de clients porque projects tiene FK a clients)
+  await db.delete(projects).where(isNotNull(projects.deletedAt));
+  // 6. Eliminar hijos de clients soft-deleted (respetar FK: advisoryRequests, appointments, priorEstimates, quotations)
+  const deletedClientIds = await db.select({ id: clients.id }).from(clients).where(isNotNull(clients.deletedAt));
+  if (deletedClientIds.length > 0) {
+    const ids = deletedClientIds.map(c => c.id);
+    // Eliminar advisory requests de esos clientes
+    await db.delete(advisoryRequests).where(inArray(advisoryRequests.clientId, ids));
+    // Eliminar prior estimates de esos clientes
+    await db.delete(priorEstimates).where(inArray(priorEstimates.clientId, ids));
+    // Eliminar appointments de esos clientes
+    await db.delete(appointments).where(inArray(appointments.clientId, ids));
+    // Eliminar quotation items de cotizaciones de esos clientes
+    const clientQuotations = await db.select({ id: quotations.id }).from(quotations).where(inArray(quotations.clientId, ids));
+    if (clientQuotations.length > 0) {
+      await db.delete(quotationItems).where(inArray(quotationItems.quotationId, clientQuotations.map(q => q.id)));
+    }
+    // Eliminar quotations de esos clientes
+    await db.delete(quotations).where(inArray(quotations.clientId, ids));
+  }
+  // 7. Eliminar appointments soft-deleted sin cliente
+  await db.delete(appointments).where(isNotNull(appointments.deletedAt));
+  // 8. Finalmente eliminar clients soft-deleted
+  await db.delete(clients).where(isNotNull(clients.deletedAt));
 }
 
 // ============ FUNCIONES FALTANTES PUBLIC GALLERY ============
@@ -2229,6 +2289,10 @@ export async function getHardwareCatalog(category?: string) {
   }
   return await query.orderBy(asc(hardwareCatalog.sortOrder));
 }
+export async function getAllHardware() {
+  return getHardwareCatalog();
+}
+
 export async function createHardwareItem(data: typeof hardwareCatalog.$inferInsert) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
@@ -2333,7 +2397,7 @@ export async function cancelProjectReminders(projectId: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   await db.update(reminders)
-    .set({ status: 'cancelled' } as any)
+    .set({ status: 'cancelado' } as any)
     .where(eq(reminders.projectId as any, projectId));
 }
 

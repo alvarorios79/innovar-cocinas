@@ -1,0 +1,1122 @@
+{
+  "query": "SELECT \n  c.id,\n  c.name,\n  c.email,\n  c.dataOrigin,\n  COUNT(DISTINCT q.id) as cotizaciones,\n  COUNT(DISTINCT p.id) as proyectos\nFROM clients c\nLEFT JOIN quotations q ON q.clientId = c.id AND q.deletedAt IS NULL\nLEFT JOIN projects p ON p.clientId = c.id AND p.deletedAt IS NULL\nWHERE c.deletedAt IS NULL\nGROUP BY c.id, c.name, c.email, c.dataOrigin\nORDER BY (COUNT(DISTINCT q.id) + COUNT(DISTINCT p.id)) DESC, c.name ASC;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT \n  c.id,\n  c.name,\n  c.email,\n  c.dataOrigin,\n  COUNT(DISTINCT q.id) as cotizaciones,\n  COUNT(DISTINCT p.id) as proyectos\nFROM clients c\nLEFT JOIN quotations q ON q.clientId = c.id AND q.deletedAt IS NULL\nLEFT JOIN projects p ON p.clientId = c.id AND p.deletedAt IS NULL\nWHERE c.deletedAt IS NULL\nGROUP BY c.id, c.name, c.email, c.dataOrigin\nORDER BY (COUNT(DISTINCT q.id) + COUNT(DISTINCT p.id)) DESC, c.name ASC;",
+  "rows": [
+    {
+      "id": "2490001",
+      "name": "Sras. Maria Clara & Ana milena",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "cotizaciones": "4",
+      "proyectos": "2"
+    },
+    {
+      "id": "2280001",
+      "name": "Alfredo Bolaños",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "cotizaciones": "1",
+      "proyectos": "1"
+    },
+    {
+      "id": "1680002",
+      "name": "Beatriz Paris",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "cotizaciones": "1",
+      "proyectos": "1"
+    },
+    {
+      "id": "1560001",
+      "name": "Carolina Diaz",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "cotizaciones": "1",
+      "proyectos": "1"
+    },
+    {
+      "id": "2460001",
+      "name": "Diana Ortiz",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "cotizaciones": "1",
+      "proyectos": "1"
+    },
+    {
+      "id": "2490002",
+      "name": "Felipe Quintero",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "cotizaciones": "1",
+      "proyectos": "1"
+    },
+    {
+      "id": "1590001",
+      "name": "Henry Morales",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "cotizaciones": "1",
+      "proyectos": "1"
+    },
+    {
+      "id": "2250001",
+      "name": "Juan Pablo González",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "cotizaciones": "1",
+      "proyectos": "1"
+    },
+    {
+      "id": "2550001",
+      "name": "Lina Paez",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "cotizaciones": "2",
+      "proyectos": "0"
+    },
+    {
+      "id": "810001",
+      "name": "Orlando Primacho",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "cotizaciones": "1",
+      "proyectos": "1"
+    },
+    {
+      "id": "1680001",
+      "name": "Oscar Urriago",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "cotizaciones": "1",
+      "proyectos": "1"
+    },
+    {
+      "id": "720001",
+      "name": "Ruth Naranjo",
+      "email": "alvarorios79@gmail.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "1",
+      "proyectos": "1"
+    },
+    {
+      "id": "2520001",
+      "name": "Sr. Harold",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "cotizaciones": "1",
+      "proyectos": "1"
+    },
+    {
+      "id": "810002",
+      "name": "Jhonier Cardona",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "cotizaciones": "1",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850903",
+      "name": "Manual Mix Client",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "1"
+    },
+    {
+      "id": "2850962",
+      "name": "Manual Mix Client",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "1"
+    },
+    {
+      "id": "2850787",
+      "name": "Manual Mix Client",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "1"
+    },
+    {
+      "id": "2850845",
+      "name": "Manual Mix Client",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "1"
+    },
+    {
+      "id": "2850902",
+      "name": "Test Manual Client",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "1"
+    },
+    {
+      "id": "2850961",
+      "name": "Test Manual Client",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "1"
+    },
+    {
+      "id": "2850786",
+      "name": "Test Manual Client",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "1"
+    },
+    {
+      "id": "2850844",
+      "name": "Test Manual Client",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "1"
+    },
+    {
+      "id": "2820001",
+      "name": "Andres Salazar",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "90091",
+      "name": "Carlos Albeiro Betancurt ",
+      "email": "albetan1530@gmail.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850842",
+      "name": "Cliente Duplicado",
+      "email": "duplicado@test.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850891",
+      "name": "Cliente Test Auto-registro",
+      "email": "test-1773297819722@example.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2851008",
+      "name": "Cliente Test Auto-registro",
+      "email": "test-1773298218222@example.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850948",
+      "name": "Cliente Test Auto-registro",
+      "email": "test-1773298180403@example.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2851010",
+      "name": "Cliente Test Auto-registro",
+      "email": "test-1773298218671@example.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850949",
+      "name": "Cliente Test Auto-registro",
+      "email": "test-1773298180547@example.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850890",
+      "name": "Cliente Test Auto-registro",
+      "email": "test-1773297819559@example.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850831",
+      "name": "Cliente Test Auto-registro",
+      "email": "test-1773297790946@example.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850832",
+      "name": "Cliente Test Auto-registro",
+      "email": "test-1773297791100@example.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850833",
+      "name": "Cliente Test Auto-registro",
+      "email": "test-1773297791563@example.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850892",
+      "name": "Cliente Test Auto-registro",
+      "email": "test-1773297820189@example.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850951",
+      "name": "Cliente Test Auto-registro",
+      "email": "test-1773298181013@example.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2851007",
+      "name": "Cliente Test Auto-registro",
+      "email": "test-1773298218089@example.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2851018",
+      "name": "Cliente Test Autofill",
+      "email": "autofill@test.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850851",
+      "name": "Cliente Test Bulk",
+      "email": "cliente-bulk@test.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850968",
+      "name": "Cliente Test Bulk",
+      "email": "cliente-bulk@test.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850793",
+      "name": "Cliente Test Bulk",
+      "email": "cliente-bulk@test.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850909",
+      "name": "Cliente Test Bulk",
+      "email": "cliente-bulk@test.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850996",
+      "name": "Cliente Test Costos Fijos",
+      "email": "test.costos@example.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850997",
+      "name": "Cliente Test Costos Fijos",
+      "email": "test.costos@example.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850998",
+      "name": "Cliente Test Costos Fijos",
+      "email": "test.costos@example.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2851016",
+      "name": "Cliente Test Cotización",
+      "email": "test@cotizacion.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850776",
+      "name": "Cliente Test Cotización",
+      "email": "test@cotizacion.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850766",
+      "name": "Cliente Test Cotización",
+      "email": "test@cotizacion.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850941",
+      "name": "Cliente Test Horario",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2851000",
+      "name": "Cliente Test Horario",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850945",
+      "name": "Cliente Test Horario",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850944",
+      "name": "Cliente Test Horario",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850943",
+      "name": "Cliente Test Horario",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850823",
+      "name": "Cliente Test Horario",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850825",
+      "name": "Cliente Test Horario",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850826",
+      "name": "Cliente Test Horario",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850827",
+      "name": "Cliente Test Horario",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850999",
+      "name": "Cliente Test Horario",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850940",
+      "name": "Cliente Test Horario",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850824",
+      "name": "Cliente Test Horario",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2851002",
+      "name": "Cliente Test Horario",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2851003",
+      "name": "Cliente Test Horario",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2851004",
+      "name": "Cliente Test Horario",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850885",
+      "name": "Cliente Test Horario",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850884",
+      "name": "Cliente Test Horario",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850887",
+      "name": "Cliente Test Horario",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850882",
+      "name": "Cliente Test Horario",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850886",
+      "name": "Cliente Test Horario",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2851017",
+      "name": "Cliente Test Items",
+      "email": "test@items.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850955",
+      "name": "Cliente Timezone Test",
+      "email": "timezone@test.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850838",
+      "name": "Cliente Timezone Test",
+      "email": "timezone@test.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2851015",
+      "name": "Cliente Timezone Test",
+      "email": "timezone@test.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2851014",
+      "name": "Cliente Timezone Test",
+      "email": "timezone@test.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850895",
+      "name": "Cliente Timezone Test",
+      "email": "timezone@test.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850896",
+      "name": "Cliente Timezone Test",
+      "email": "timezone@test.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850837",
+      "name": "Cliente Timezone Test",
+      "email": "timezone@test.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850952",
+      "name": "Cliente Timezone Test",
+      "email": "timezone@test.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2851013",
+      "name": "DataOrigin System Test Client",
+      "email": "system-test-1773298219673@example.com",
+      "dataOrigin": "system",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850834",
+      "name": "DataOrigin Test Client",
+      "email": "test-1773297792226@example.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2851012",
+      "name": "DataOrigin Test Client",
+      "email": "test-1773298219654@example.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850893",
+      "name": "DataOrigin Test Client",
+      "email": "test-1773297820981@example.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850953",
+      "name": "DataOrigin Test Client",
+      "email": "test-1773298181910@example.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2490003",
+      "name": "Gustavo Rodriguez - Subway",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "1710001",
+      "name": "Joan Gutiérrez ",
+      "email": "joanfgv@gmail.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2340002",
+      "name": "Julio Cesar Perez Gutierrez",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "810004",
+      "name": "Karolina Torres",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850910",
+      "name": "Manual Client",
+      "email": "manual@test.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850853",
+      "name": "Manual Client",
+      "email": "manual@test.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850795",
+      "name": "Manual Client",
+      "email": "manual@test.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850970",
+      "name": "Manual Client",
+      "email": "manual@test.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850913",
+      "name": "Manual Client 0",
+      "email": "manual0@test.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850972",
+      "name": "Manual Client 0",
+      "email": "manual0@test.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850985",
+      "name": "Manual Client 0",
+      "email": "manual0@test.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850797",
+      "name": "Manual Client 0",
+      "email": "manual0@test.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850926",
+      "name": "Manual Client 0",
+      "email": "manual0@test.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850855",
+      "name": "Manual Client 0",
+      "email": "manual0@test.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850810",
+      "name": "Manual Client 0",
+      "email": "manual0@test.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850868",
+      "name": "Manual Client 0",
+      "email": "manual0@test.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850811",
+      "name": "Manual Client 1",
+      "email": "manual1@test.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850914",
+      "name": "Manual Client 1",
+      "email": "manual1@test.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850869",
+      "name": "Manual Client 1",
+      "email": "manual1@test.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850856",
+      "name": "Manual Client 1",
+      "email": "manual1@test.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850927",
+      "name": "Manual Client 1",
+      "email": "manual1@test.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850986",
+      "name": "Manual Client 1",
+      "email": "manual1@test.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850973",
+      "name": "Manual Client 1",
+      "email": "manual1@test.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850798",
+      "name": "Manual Client 1",
+      "email": "manual1@test.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850789",
+      "name": "Manual Quotation Client",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850847",
+      "name": "Manual Quotation Client",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850905",
+      "name": "Manual Quotation Client",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850964",
+      "name": "Manual Quotation Client",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "1800001",
+      "name": "Manuel Nope",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2340001",
+      "name": "Manuel Velasquez",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "810003",
+      "name": "Nery Benjumea",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2851006",
+      "name": "New Name Only",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "1950025",
+      "name": "Niyired Amezquita",
+      "email": "niyiamezquita@gmail.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "1950026",
+      "name": "Prueba cotizacion/Proyecto",
+      "email": "alvarorios79@hotmail.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2190001",
+      "name": "Sr. Luis - Estefania",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850988",
+      "name": "System Test Client 1773298209191",
+      "email": "system-test-1773298209191@example.com",
+      "dataOrigin": "system",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850812",
+      "name": "Test Client 1773297782699",
+      "email": "test-1773297782699@example.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850870",
+      "name": "Test Client 1773297810931",
+      "email": "test-1773297810931@example.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850928",
+      "name": "Test Client 1773298172373",
+      "email": "test-1773298172373@example.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850987",
+      "name": "Test Client 1773298209174",
+      "email": "test-1773298209174@example.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2851011",
+      "name": "Test Client Advisory",
+      "email": "test@advisory.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850995",
+      "name": "Test Client Archive",
+      "email": "test-archive@example.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2851009",
+      "name": "Test Client Archive Sync",
+      "email": "test-archive-sync@example.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850883",
+      "name": "Test Client QVS2",
+      "email": "test-qvs2-1773297814953@example.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850942",
+      "name": "Test Client QVS2",
+      "email": "test-qvs2-1773298175830@example.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2851001",
+      "name": "Test Client QVS2",
+      "email": "test-qvs2-1773298213146@example.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850828",
+      "name": "Test Client QVS2",
+      "email": "test-qvs2-1773297786590@example.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850877",
+      "name": "Test Client Quotation",
+      "email": "test-quotation@example.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850815",
+      "name": "Test Client Send 1773297783393",
+      "email": "test-send-1773297783393@example.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850878",
+      "name": "Test Client Send 1773297813038",
+      "email": "test-send-1773297813038@example.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850931",
+      "name": "Test Client Send 1773298173389",
+      "email": "test-send-1773298173389@example.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850990",
+      "name": "Test Client Send 1773298209920",
+      "email": "test-send-1773298209920@example.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850829",
+      "name": "Test User",
+      "email": "test-1773297786939@example.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850888",
+      "name": "Test User",
+      "email": "test-1773297815452@example.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2851005",
+      "name": "Test User",
+      "email": "test-1773298213605@example.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "2850946",
+      "name": "Test User",
+      "email": "test-1773298176373@example.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    },
+    {
+      "id": "300053",
+      "name": "Álvaro prueba ",
+      "email": "alvarorios79@hotmail.com",
+      "dataOrigin": "manual",
+      "cotizaciones": "0",
+      "proyectos": "0"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\temail\tdataOrigin\tcotizaciones\tproyectos\n2490001\tSras. Maria Clara & Ana milena\tNULL\tmanual\t4\t2\n2280001\tAlfredo Bolaños\tNULL\tmanual\t1\t1\n1680002\tBeatriz Paris\tNULL\tmanual\t1\t1\n1560001\tCarolina Diaz\tNULL\tmanual\t1\t1\n2460001\tDiana Ortiz\tNULL\tmanual\t1\t1\n2490002\tFelipe Quintero\tNULL\tmanual\t1\t1\n1590001\tHenry Morales\tNULL\tmanual\t1\t1\n2250001\tJuan Pablo González\tNULL\tmanual\t1\t1\n2550001\tLina Paez\tNULL\tmanual\t2\t0\n810001\tOrlando Primacho\tNULL\tmanual\t1\t1\n1680001\tOscar Urriago\tNULL\tmanual\t1\t1\n720001\tRuth Naranjo\talvarorios79@gmail.com\tmanual\t1\t1\n2520001\tSr. Harold\tNULL\tmanual\t1\t1\n810002\tJhonier Cardona\tNULL\tmanual\t1\t0\n2850903\tManual Mix Client\tNULL\tmanual\t0\t1\n2850962\tManual Mix Client\tNULL\tmanual\t0\t1\n2850787\tManual Mix Client\tNULL\tmanual\t0\t1\n2850845\tManual Mix Client\tNULL\tmanual\t0\t1\n2850902\tTest Manual Client\tNULL\tmanual\t0\t1\n2850961\tTest Manual Client\tNULL\tmanual\t0\t1\n2850786\tTest Manual Client\tNULL\tmanual\t0\t1\n2850844\tTest Manual Client\tNULL\tmanual\t0\t1\n2820001\tAndres Salazar\tNULL\tmanual\t0\t0\n90091\tCarlos Albeiro Betancurt \talbetan1530@gmail.com\tmanual\t0\t0\n2850842\tCliente Duplicado\tduplicado@test.com\tmanual\t0\t0\n2850891\tCliente Test Auto-registro\ttest-1773297819722@example.com\tmanual\t0\t0\n2851008\tCliente Test Auto-registro\ttest-1773298218222@example.com\tmanual\t0\t0\n2850948\tCliente Test Auto-registro\ttest-1773298180403@example.com\tmanual\t0\t0\n2851010\tCliente Test Auto-registro\ttest-1773298218671@example.com\tmanual\t0\t0\n2850949\tCliente Test Auto-registro\ttest-1773298180547@example.com\tmanual\t0\t0\n2850890\tCliente Test Auto-registro\ttest-1773297819559@example.com\tmanual\t0\t0\n2850831\tCliente Test Auto-registro\ttest-1773297790946@example.com\tmanual\t0\t0\n2850832\tCliente Test Auto-registro\ttest-1773297791100@example.com\tmanual\t0\t0\n2850833\tCliente Test Auto-registro\ttest-1773297791563@example.com\tmanual\t0\t0\n2850892\tCliente Test Auto-registro\ttest-1773297820189@example.com\tmanual\t0\t0\n2850951\tCliente Test Auto-registro\ttest-1773298181013@example.com\tmanual\t0\t0\n2851007\tCliente Test Auto-registro\ttest-1773298218089@example.com\tmanual\t0\t0\n2851018\tCliente Test Autofill\tautofill@test.com\tmanual\t0\t0\n2850851\tCliente Test Bulk\tcliente-bulk@test.com\tmanual\t0\t0\n2850968\tCliente Test Bulk\tcliente-bulk@test.com\tmanual\t0\t0\n2850793\tCliente Test Bulk\tcliente-bulk@test.com\tmanual\t0\t0\n2850909\tCliente Test Bulk\tcliente-bulk@test.com\tmanual\t0\t0\n2850996\tCliente Test Costos Fijos\ttest.costos@example.com\tmanual\t0\t0\n2850997\tCliente Test Costos Fijos\ttest.costos@example.com\tmanual\t0\t0\n2850998\tCliente Test Costos Fijos\ttest.costos@example.com\tmanual\t0\t0\n2851016\tCliente Test Cotización\ttest@cotizacion.com\tmanual\t0\t0\n2850776\tCliente Test Cotización\ttest@cotizacion.com\tmanual\t0\t0\n2850766\tCliente Test Cotización\ttest@cotizacion.com\tmanual\t0\t0\n2850941\tCliente Test Horario\tNULL\tmanual\t0\t0\n2851000\tCliente Test Horario\tNULL\tmanual\t0\t0\n2850945\tCliente Test Horario\tNULL\tmanual\t0\t0\n2850944\tCliente Test Horario\tNULL\tmanual\t0\t0\n2850943\tCliente Test Horario\tNULL\tmanual\t0\t0\n2850823\tCliente Test Horario\tNULL\tmanual\t0\t0\n2850825\tCliente Test Horario\tNULL\tmanual\t0\t0\n2850826\tCliente Test Horario\tNULL\tmanual\t0\t0\n2850827\tCliente Test Horario\tNULL\tmanual\t0\t0\n2850999\tCliente Test Horario\tNULL\tmanual\t0\t0\n2850940\tCliente Test Horario\tNULL\tmanual\t0\t0\n2850824\tCliente Test Horario\tNULL\tmanual\t0\t0\n2851002\tCliente Test Horario\tNULL\tmanual\t0\t0\n2851003\tCliente Test Horario\tNULL\tmanual\t0\t0\n2851004\tCliente Test Horario\tNULL\tmanual\t0\t0\n2850885\tCliente Test Horario\tNULL\tmanual\t0\t0\n2850884\tCliente Test Horario\tNULL\tmanual\t0\t0\n2850887\tCliente Test Horario\tNULL\tmanual\t0\t0\n2850882\tCliente Test Horario\tNULL\tmanual\t0\t0\n2850886\tCliente Test Horario\tNULL\tmanual\t0\t0\n2851017\tCliente Test Items\ttest@items.com\tmanual\t0\t0\n2850955\tCliente Timezone Test\ttimezone@test.com\tmanual\t0\t0\n2850838\tCliente Timezone Test\ttimezone@test.com\tmanual\t0\t0\n2851015\tCliente Timezone Test\ttimezone@test.com\tmanual\t0\t0\n2851014\tCliente Timezone Test\ttimezone@test.com\tmanual\t0\t0\n2850895\tCliente Timezone Test\ttimezone@test.com\tmanual\t0\t0\n2850896\tCliente Timezone Test\ttimezone@test.com\tmanual\t0\t0\n2850837\tCliente Timezone Test\ttimezone@test.com\tmanual\t0\t0\n2850952\tCliente Timezone Test\ttimezone@test.com\tmanual\t0\t0\n2851013\tDataOrigin System Test Client\tsystem-test-1773298219673@example.com\tsystem\t0\t0\n2850834\tDataOrigin Test Client\ttest-1773297792226@example.com\tmanual\t0\t0\n2851012\tDataOrigin Test Client\ttest-1773298219654@example.com\tmanual\t0\t0\n2850893\tDataOrigin Test Client\ttest-1773297820981@example.com\tmanual\t0\t0\n2850953\tDataOrigin Test Client\ttest-1773298181910@example.com\tmanual\t0\t0\n2490003\tGustavo Rodriguez - Subway\tNULL\tmanual\t0\t0\n1710001\tJoan Gutiérrez \tjoanfgv@gmail.com\tmanual\t0\t0\n2340002\tJulio Cesar Perez Gutierrez\tNULL\tmanual\t0\t0\n810004\tKarolina Torres\tNULL\tmanual\t0\t0\n2850910\tManual Client\tmanual@test.com\tmanual\t0\t0\n2850853\tManual Client\tmanual@test.com\tmanual\t0\t0\n2850795\tManual Client\tmanual@test.com\tmanual\t0\t0\n2850970\tManual Client\tmanual@test.com\tmanual\t0\t0\n2850913\tManual Client 0\tmanual0@test.com\tmanual\t0\t0\n2850972\tManual Client 0\tmanual0@test.com\tmanual\t0\t0\n2850985\tManual Client 0\tmanual0@test.com\tmanual\t0\t0\n2850797\tManual Client 0\tmanual0@test.com\tmanual\t0\t0\n2850926\tManual Client 0\tmanual0@test.com\tmanual\t0\t0\n2850855\tManual Client 0\tmanual0@test.com\tmanual\t0\t0\n2850810\tManual Client 0\tmanual0@test.com\tmanual\t0\t0\n2850868\tManual Client 0\tmanual0@test.com\tmanual\t0\t0\n2850811\tManual Client 1\tmanual1@test.com\tmanual\t0\t0\n2850914\tManual Client 1\tmanual1@test.com\tmanual\t0\t0\n2850869\tManual Client 1\tmanual1@test.com\tmanual\t0\t0\n2850856\tManual Client 1\tmanual1@test.com\tmanual\t0\t0\n2850927\tManual Client 1\tmanual1@test.com\tmanual\t0\t0\n2850986\tManual Client 1\tmanual1@test.com\tmanual\t0\t0\n2850973\tManual Client 1\tmanual1@test.com\tmanual\t0\t0\n2850798\tManual Client 1\tmanual1@test.com\tmanual\t0\t0\n2850789\tManual Quotation Client\tNULL\tmanual\t0\t0\n2850847\tManual Quotation Client\tNULL\tmanual\t0\t0\n2850905\tManual Quotation Client\tNULL\tmanual\t0\t0\n2850964\tManual Quotation Client\tNULL\tmanual\t0\t0\n1800001\tManuel Nope\tNULL\tmanual\t0\t0\n2340001\tManuel Velasquez\tNULL\tmanual\t0\t0\n810003\tNery Benjumea\tNULL\tmanual\t0\t0\n2851006\tNew Name Only\tNULL\tmanual\t0\t0\n1950025\tNiyired Amezquita\tniyiamezquita@gmail.com\tmanual\t0\t0\n1950026\tPrueba cotizacion/Proyecto\talvarorios79@hotmail.com\tmanual\t0\t0\n2190001\tSr. Luis - Estefania\tNULL\tmanual\t0\t0\n2850988\tSystem Test Client 1773298209191\tsystem-test-1773298209191@example.com\tsystem\t0\t0\n2850812\tTest Client 1773297782699\ttest-1773297782699@example.com\tmanual\t0\t0\n2850870\tTest Client 1773297810931\ttest-1773297810931@example.com\tmanual\t0\t0\n2850928\tTest Client 1773298172373\ttest-1773298172373@example.com\tmanual\t0\t0\n2850987\tTest Client 1773298209174\ttest-1773298209174@example.com\tmanual\t0\t0\n2851011\tTest Client Advisory\ttest@advisory.com\tmanual\t0\t0\n2850995\tTest Client Archive\ttest-archive@example.com\tmanual\t0\t0\n2851009\tTest Client Archive Sync\ttest-archive-sync@example.com\tmanual\t0\t0\n2850883\tTest Client QVS2\ttest-qvs2-1773297814953@example.com\tmanual\t0\t0\n2850942\tTest Client QVS2\ttest-qvs2-1773298175830@example.com\tmanual\t0\t0\n2851001\tTest Client QVS2\ttest-qvs2-1773298213146@example.com\tmanual\t0\t0\n2850828\tTest Client QVS2\ttest-qvs2-1773297786590@example.com\tmanual\t0\t0\n2850877\tTest Client Quotation\ttest-quotation@example.com\tmanual\t0\t0\n2850815\tTest Client Send 1773297783393\ttest-send-1773297783393@example.com\tmanual\t0\t0\n2850878\tTest Client Send 1773297813038\ttest-send-1773297813038@example.com\tmanual\t0\t0\n2850931\tTest Client Send 1773298173389\ttest-send-1773298173389@example.com\tmanual\t0\t0\n2850990\tTest Client Send 1773298209920\ttest-send-1773298209920@example.com\tmanual\t0\t0\n2850829\tTest User\ttest-1773297786939@example.com\tmanual\t0\t0\n2850888\tTest User\ttest-1773297815452@example.com\tmanual\t0\t0\n2851005\tTest User\ttest-1773298213605@example.com\tmanual\t0\t0\n2850946\tTest User\ttest-1773298176373@example.com\tmanual\t0\t0\n300053\tÁlvaro prueba \talvarorios79@hotmail.com\tmanual\t0\t0\n",
+  "stderr": "",
+  "execution_time_ms": 64
+}

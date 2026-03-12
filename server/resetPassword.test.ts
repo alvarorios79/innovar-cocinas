@@ -1,8 +1,6 @@
-import { describe, it, expect, beforeAll } from "vitest";
+import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { appRouter } from "./routers";
-import { getDb } from "./db";
-import { users } from "../drizzle/schema";
-import { eq } from "drizzle-orm";
+import * as dbModule from "./db";
 import type { TrpcContext } from "./_core/context";
 
 type AuthenticatedUser = NonNullable<TrpcContext["user"]>;
@@ -14,29 +12,29 @@ describe("userManagement.resetPassword", () => {
   const targetEmail = `target-reset-${Date.now()}@test.com`;
 
   beforeAll(async () => {
-    const db = await getDb();
-    if (!db) throw new Error("Database not available");
-
-    // Create super_admin user
-    const [superAdmin] = await db.insert(users).values({
-      openId: `superadmin-${Date.now()}`,
+    // Create super_admin user using createUserExtended (handles insertId correctly)
+    superAdminId = await dbModule.createUserExtended({
+      dataOrigin: 'system',
       name: "Super Admin Test",
       email: superAdminEmail,
       role: "super_admin",
-    }).$returningId();
-    superAdminId = superAdmin.id;
+    });
 
     // Create target user
-    const [targetUser] = await db.insert(users).values({
-      openId: `target-${Date.now()}`,
+    targetUserId = await dbModule.createUserExtended({
+      dataOrigin: 'system',
       name: "Target User",
       email: targetEmail,
       role: "user",
-    }).$returningId();
-    targetUserId = targetUser.id;
+    });
   });
 
-  function createSuperAdminContext(): { ctx: TrpcContext } {
+  afterAll(async () => {
+    await dbModule.deleteUser(superAdminId).catch(() => {});
+    await dbModule.deleteUser(targetUserId).catch(() => {});
+  });
+
+  function createSuperAdminContext(): TrpcContext {
     const superAdminUser: AuthenticatedUser = {
       id: superAdminId,
       openId: `superadmin-${Date.now()}`,
@@ -45,10 +43,10 @@ describe("userManagement.resetPassword", () => {
       role: "super_admin",
       createdAt: new Date(),
     };
-    return { ctx: { user: superAdminUser } };
+    return { user: superAdminUser };
   }
 
-  function createAdminContext(): { ctx: TrpcContext } {
+  function createAdminContext(): TrpcContext {
     const adminUser: AuthenticatedUser = {
       id: 999,
       openId: "admin-test",
@@ -57,11 +55,11 @@ describe("userManagement.resetPassword", () => {
       role: "admin",
       createdAt: new Date(),
     };
-    return { ctx: { user: adminUser } };
+    return { user: adminUser };
   }
 
   it("should allow super_admin to reset password", async () => {
-    const caller = appRouter.createCaller(createSuperAdminContext().ctx);
+    const caller = appRouter.createCaller(createSuperAdminContext());
     
     const result = await caller.userManagement.resetPassword({
       userId: targetUserId,
@@ -74,7 +72,7 @@ describe("userManagement.resetPassword", () => {
   });
 
   it("should not allow admin to reset password", async () => {
-    const caller = appRouter.createCaller(createAdminContext().ctx);
+    const caller = appRouter.createCaller(createAdminContext());
     
     await expect(
       caller.userManagement.resetPassword({
@@ -84,7 +82,7 @@ describe("userManagement.resetPassword", () => {
   });
 
   it("should not allow super_admin to reset their own password", async () => {
-    const caller = appRouter.createCaller(createSuperAdminContext().ctx);
+    const caller = appRouter.createCaller(createSuperAdminContext());
     
     await expect(
       caller.userManagement.resetPassword({
@@ -94,7 +92,7 @@ describe("userManagement.resetPassword", () => {
   });
 
   it("should return error for non-existent user", async () => {
-    const caller = appRouter.createCaller(createSuperAdminContext().ctx);
+    const caller = appRouter.createCaller(createSuperAdminContext());
     
     await expect(
       caller.userManagement.resetPassword({

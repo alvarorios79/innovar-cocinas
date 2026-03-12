@@ -1,0 +1,410 @@
+{
+  "query": "SELECT id, name, dataOrigin, status, isArchived, deletedAt FROM projects ORDER BY id LIMIT 50;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT id, name, dataOrigin, status, isArchived, deletedAt FROM projects ORDER BY id LIMIT 50;",
+  "rows": [
+    {
+      "id": "2130105",
+      "name": "COT-2026-1772833387888-6786153 - Sras. Maria Clara & Ana milena",
+      "dataOrigin": "manual",
+      "status": "entregado",
+      "isArchived": "1",
+      "deletedAt": "NULL"
+    },
+    {
+      "id": "2130106",
+      "name": "COT-2026-1772833387889-1121614 - Sras. Maria Clara & Ana milena",
+      "dataOrigin": "manual",
+      "status": "corte",
+      "isArchived": "0",
+      "deletedAt": "NULL"
+    },
+    {
+      "id": "2130107",
+      "name": "COT-2026-1772833387890-1825427 - Diana Ortiz",
+      "dataOrigin": "manual",
+      "status": "listo_instalacion",
+      "isArchived": "0",
+      "deletedAt": "NULL"
+    },
+    {
+      "id": "2130108",
+      "name": "COT-2026-1772833387891-2667628 - Felipe Quintero",
+      "dataOrigin": "manual",
+      "status": "entregado",
+      "isArchived": "1",
+      "deletedAt": "NULL"
+    },
+    {
+      "id": "2130109",
+      "name": "COT-2026-1772833387892-4673628 - Ruth Naranjo",
+      "dataOrigin": "manual",
+      "status": "entregado",
+      "isArchived": "1",
+      "deletedAt": "NULL"
+    },
+    {
+      "id": "2130110",
+      "name": "COT-2026-1772833387893-4870273 - Henry Morales",
+      "dataOrigin": "manual",
+      "status": "entregado",
+      "isArchived": "1",
+      "deletedAt": "NULL"
+    },
+    {
+      "id": "2130111",
+      "name": "COT-2026-1772833387894-8915020 - Orlando Primacho",
+      "dataOrigin": "manual",
+      "status": "entregado",
+      "isArchived": "1",
+      "deletedAt": "NULL"
+    },
+    {
+      "id": "2130112",
+      "name": "COT-2026-1772833387895-6830938 - Beatriz Paris",
+      "dataOrigin": "manual",
+      "status": "entregado",
+      "isArchived": "1",
+      "deletedAt": "NULL"
+    },
+    {
+      "id": "2130113",
+      "name": "COT-2026-1772833387896-9276683 - Sr. Harold",
+      "dataOrigin": "manual",
+      "status": "despiece",
+      "isArchived": "0",
+      "deletedAt": "NULL"
+    },
+    {
+      "id": "2130114",
+      "name": "COT-2026-1772833387897-0178652 - Oscar Urriago",
+      "dataOrigin": "manual",
+      "status": "ensamble",
+      "isArchived": "0",
+      "deletedAt": "NULL"
+    },
+    {
+      "id": "2130115",
+      "name": "COT-2026-1772833387898-7036206 - Alfredo Bolaños",
+      "dataOrigin": "manual",
+      "status": "entregado",
+      "isArchived": "1",
+      "deletedAt": "NULL"
+    },
+    {
+      "id": "2130116",
+      "name": "COT-2026-1772833387899-2437183 - Juan Pablo González",
+      "dataOrigin": "manual",
+      "status": "despiece",
+      "isArchived": "0",
+      "deletedAt": "NULL"
+    },
+    {
+      "id": "2130117",
+      "name": "COT-2026-1772833387900-2643089 - Carolina Diaz",
+      "dataOrigin": "manual",
+      "status": "despiece",
+      "isArchived": "0",
+      "deletedAt": "NULL"
+    },
+    {
+      "id": "2190002",
+      "name": "Test Manual Project",
+      "dataOrigin": "manual",
+      "status": "contacto",
+      "isArchived": "0",
+      "deletedAt": "NULL"
+    },
+    {
+      "id": "2190003",
+      "name": "Manual Mix Project",
+      "dataOrigin": "manual",
+      "status": "contacto",
+      "isArchived": "0",
+      "deletedAt": "NULL"
+    },
+    {
+      "id": "2190008",
+      "name": "Proyecto Test Movimientos",
+      "dataOrigin": "manual",
+      "status": "cotizacion_enviada",
+      "isArchived": "0",
+      "deletedAt": "NULL"
+    },
+    {
+      "id": "2190009",
+      "name": "Proyecto Test Default Movement",
+      "dataOrigin": "manual",
+      "status": "cotizacion_enviada",
+      "isArchived": "0",
+      "deletedAt": "NULL"
+    },
+    {
+      "id": "2190010",
+      "name": "Proyecto Test Sin Movimientos",
+      "dataOrigin": "manual",
+      "status": "cotizacion_enviada",
+      "isArchived": "0",
+      "deletedAt": "NULL"
+    },
+    {
+      "id": "2190011",
+      "name": "Proyecto Test Compatibilidad",
+      "dataOrigin": "manual",
+      "status": "cotizacion_enviada",
+      "isArchived": "0",
+      "deletedAt": "NULL"
+    },
+    {
+      "id": "2190013",
+      "name": "Test Manual Project",
+      "dataOrigin": "manual",
+      "status": "contacto",
+      "isArchived": "0",
+      "deletedAt": "NULL"
+    },
+    {
+      "id": "2190014",
+      "name": "Manual Mix Project",
+      "dataOrigin": "manual",
+      "status": "contacto",
+      "isArchived": "0",
+      "deletedAt": "NULL"
+    },
+    {
+      "id": "2190019",
+      "name": "Proyecto Test Movimientos",
+      "dataOrigin": "manual",
+      "status": "cotizacion_enviada",
+      "isArchived": "0",
+      "deletedAt": "NULL"
+    },
+    {
+      "id": "2190020",
+      "name": "Proyecto Test Default Movement",
+      "dataOrigin": "manual",
+      "status": "cotizacion_enviada",
+      "isArchived": "0",
+      "deletedAt": "NULL"
+    },
+    {
+      "id": "2190021",
+      "name": "Proyecto Test Sin Movimientos",
+      "dataOrigin": "manual",
+      "status": "cotizacion_enviada",
+      "isArchived": "0",
+      "deletedAt": "NULL"
+    },
+    {
+      "id": "2190022",
+      "name": "Proyecto Test Compatibilidad",
+      "dataOrigin": "manual",
+      "status": "cotizacion_enviada",
+      "isArchived": "0",
+      "deletedAt": "NULL"
+    },
+    {
+      "id": "2190024",
+      "name": "Test Manual Project",
+      "dataOrigin": "manual",
+      "status": "contacto",
+      "isArchived": "0",
+      "deletedAt": "NULL"
+    },
+    {
+      "id": "2190025",
+      "name": "Manual Mix Project",
+      "dataOrigin": "manual",
+      "status": "contacto",
+      "isArchived": "0",
+      "deletedAt": "NULL"
+    },
+    {
+      "id": "2190030",
+      "name": "Proyecto Test Movimientos",
+      "dataOrigin": "manual",
+      "status": "cotizacion_enviada",
+      "isArchived": "0",
+      "deletedAt": "NULL"
+    },
+    {
+      "id": "2190031",
+      "name": "Proyecto Test Default Movement",
+      "dataOrigin": "manual",
+      "status": "cotizacion_enviada",
+      "isArchived": "0",
+      "deletedAt": "NULL"
+    },
+    {
+      "id": "2190032",
+      "name": "Proyecto Test Sin Movimientos",
+      "dataOrigin": "manual",
+      "status": "cotizacion_enviada",
+      "isArchived": "0",
+      "deletedAt": "NULL"
+    },
+    {
+      "id": "2190033",
+      "name": "Proyecto Test Compatibilidad",
+      "dataOrigin": "manual",
+      "status": "cotizacion_enviada",
+      "isArchived": "0",
+      "deletedAt": "NULL"
+    },
+    {
+      "id": "2190035",
+      "name": "Test Manual Project",
+      "dataOrigin": "manual",
+      "status": "contacto",
+      "isArchived": "0",
+      "deletedAt": "NULL"
+    },
+    {
+      "id": "2190036",
+      "name": "Manual Mix Project",
+      "dataOrigin": "manual",
+      "status": "contacto",
+      "isArchived": "0",
+      "deletedAt": "NULL"
+    },
+    {
+      "id": "2190041",
+      "name": "Proyecto Test Movimientos",
+      "dataOrigin": "manual",
+      "status": "cotizacion_enviada",
+      "isArchived": "0",
+      "deletedAt": "NULL"
+    },
+    {
+      "id": "2190042",
+      "name": "Proyecto Test Default Movement",
+      "dataOrigin": "manual",
+      "status": "cotizacion_enviada",
+      "isArchived": "0",
+      "deletedAt": "NULL"
+    },
+    {
+      "id": "2190043",
+      "name": "Proyecto Test Sin Movimientos",
+      "dataOrigin": "manual",
+      "status": "cotizacion_enviada",
+      "isArchived": "0",
+      "deletedAt": "NULL"
+    },
+    {
+      "id": "2190044",
+      "name": "Proyecto Test Compatibilidad",
+      "dataOrigin": "manual",
+      "status": "cotizacion_enviada",
+      "isArchived": "0",
+      "deletedAt": "NULL"
+    },
+    {
+      "id": "2190046",
+      "name": "Test Manual Project",
+      "dataOrigin": "manual",
+      "status": "contacto",
+      "isArchived": "0",
+      "deletedAt": "NULL"
+    },
+    {
+      "id": "2190047",
+      "name": "Manual Mix Project",
+      "dataOrigin": "manual",
+      "status": "contacto",
+      "isArchived": "0",
+      "deletedAt": "NULL"
+    },
+    {
+      "id": "2190052",
+      "name": "Proyecto Test Movimientos",
+      "dataOrigin": "manual",
+      "status": "cotizacion_enviada",
+      "isArchived": "0",
+      "deletedAt": "NULL"
+    },
+    {
+      "id": "2190053",
+      "name": "Proyecto Test Default Movement",
+      "dataOrigin": "manual",
+      "status": "cotizacion_enviada",
+      "isArchived": "0",
+      "deletedAt": "NULL"
+    },
+    {
+      "id": "2190054",
+      "name": "Proyecto Test Sin Movimientos",
+      "dataOrigin": "manual",
+      "status": "cotizacion_enviada",
+      "isArchived": "0",
+      "deletedAt": "NULL"
+    },
+    {
+      "id": "2190055",
+      "name": "Proyecto Test Compatibilidad",
+      "dataOrigin": "manual",
+      "status": "cotizacion_enviada",
+      "isArchived": "0",
+      "deletedAt": "NULL"
+    },
+    {
+      "id": "2190057",
+      "name": "Test Manual Project",
+      "dataOrigin": "manual",
+      "status": "contacto",
+      "isArchived": "0",
+      "deletedAt": "NULL"
+    },
+    {
+      "id": "2190058",
+      "name": "Manual Mix Project",
+      "dataOrigin": "manual",
+      "status": "contacto",
+      "isArchived": "0",
+      "deletedAt": "NULL"
+    },
+    {
+      "id": "2190063",
+      "name": "Proyecto Test Movimientos",
+      "dataOrigin": "manual",
+      "status": "cotizacion_enviada",
+      "isArchived": "0",
+      "deletedAt": "NULL"
+    },
+    {
+      "id": "2190064",
+      "name": "Proyecto Test Default Movement",
+      "dataOrigin": "manual",
+      "status": "cotizacion_enviada",
+      "isArchived": "0",
+      "deletedAt": "NULL"
+    },
+    {
+      "id": "2190065",
+      "name": "Proyecto Test Sin Movimientos",
+      "dataOrigin": "manual",
+      "status": "cotizacion_enviada",
+      "isArchived": "0",
+      "deletedAt": "NULL"
+    },
+    {
+      "id": "2190066",
+      "name": "Proyecto Test Compatibilidad",
+      "dataOrigin": "manual",
+      "status": "cotizacion_enviada",
+      "isArchived": "0",
+      "deletedAt": "NULL"
+    },
+    {
+      "id": "2190068",
+      "name": "Test Manual Project",
+      "dataOrigin": "manual",
+      "status": "contacto",
+      "isArchived": "0",
+      "deletedAt": "NULL"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\tdataOrigin\tstatus\tisArchived\tdeletedAt\n2130105\tCOT-2026-1772833387888-6786153 - Sras. Maria Clara & Ana milena\tmanual\tentregado\t1\tNULL\n2130106\tCOT-2026-1772833387889-1121614 - Sras. Maria Clara & Ana milena\tmanual\tcorte\t0\tNULL\n2130107\tCOT-2026-1772833387890-1825427 - Diana Ortiz\tmanual\tlisto_instalacion\t0\tNULL\n2130108\tCOT-2026-1772833387891-2667628 - Felipe Quintero\tmanual\tentregado\t1\tNULL\n2130109\tCOT-2026-1772833387892-4673628 - Ruth Naranjo\tmanual\tentregado\t1\tNULL\n2130110\tCOT-2026-1772833387893-4870273 - Henry Morales\tmanual\tentregado\t1\tNULL\n2130111\tCOT-2026-1772833387894-8915020 - Orlando Primacho\tmanual\tentregado\t1\tNULL\n2130112\tCOT-2026-1772833387895-6830938 - Beatriz Paris\tmanual\tentregado\t1\tNULL\n2130113\tCOT-2026-1772833387896-9276683 - Sr. Harold\tmanual\tdespiece\t0\tNULL\n2130114\tCOT-2026-1772833387897-0178652 - Oscar Urriago\tmanual\tensamble\t0\tNULL\n2130115\tCOT-2026-1772833387898-7036206 - Alfredo Bolaños\tmanual\tentregado\t1\tNULL\n2130116\tCOT-2026-1772833387899-2437183 - Juan Pablo González\tmanual\tdespiece\t0\tNULL\n2130117\tCOT-2026-1772833387900-2643089 - Carolina Diaz\tmanual\tdespiece\t0\tNULL\n2190002\tTest Manual Project\tmanual\tcontacto\t0\tNULL\n2190003\tManual Mix Project\tmanual\tcontacto\t0\tNULL\n2190008\tProyecto Test Movimientos\tmanual\tcotizacion_enviada\t0\tNULL\n2190009\tProyecto Test Default Movement\tmanual\tcotizacion_enviada\t0\tNULL\n2190010\tProyecto Test Sin Movimientos\tmanual\tcotizacion_enviada\t0\tNULL\n2190011\tProyecto Test Compatibilidad\tmanual\tcotizacion_enviada\t0\tNULL\n2190013\tTest Manual Project\tmanual\tcontacto\t0\tNULL\n2190014\tManual Mix Project\tmanual\tcontacto\t0\tNULL\n2190019\tProyecto Test Movimientos\tmanual\tcotizacion_enviada\t0\tNULL\n2190020\tProyecto Test Default Movement\tmanual\tcotizacion_enviada\t0\tNULL\n2190021\tProyecto Test Sin Movimientos\tmanual\tcotizacion_enviada\t0\tNULL\n2190022\tProyecto Test Compatibilidad\tmanual\tcotizacion_enviada\t0\tNULL\n2190024\tTest Manual Project\tmanual\tcontacto\t0\tNULL\n2190025\tManual Mix Project\tmanual\tcontacto\t0\tNULL\n2190030\tProyecto Test Movimientos\tmanual\tcotizacion_enviada\t0\tNULL\n2190031\tProyecto Test Default Movement\tmanual\tcotizacion_enviada\t0\tNULL\n2190032\tProyecto Test Sin Movimientos\tmanual\tcotizacion_enviada\t0\tNULL\n2190033\tProyecto Test Compatibilidad\tmanual\tcotizacion_enviada\t0\tNULL\n2190035\tTest Manual Project\tmanual\tcontacto\t0\tNULL\n2190036\tManual Mix Project\tmanual\tcontacto\t0\tNULL\n2190041\tProyecto Test Movimientos\tmanual\tcotizacion_enviada\t0\tNULL\n2190042\tProyecto Test Default Movement\tmanual\tcotizacion_enviada\t0\tNULL\n2190043\tProyecto Test Sin Movimientos\tmanual\tcotizacion_enviada\t0\tNULL\n2190044\tProyecto Test Compatibilidad\tmanual\tcotizacion_enviada\t0\tNULL\n2190046\tTest Manual Project\tmanual\tcontacto\t0\tNULL\n2190047\tManual Mix Project\tmanual\tcontacto\t0\tNULL\n2190052\tProyecto Test Movimientos\tmanual\tcotizacion_enviada\t0\tNULL\n2190053\tProyecto Test Default Movement\tmanual\tcotizacion_enviada\t0\tNULL\n2190054\tProyecto Test Sin Movimientos\tmanual\tcotizacion_enviada\t0\tNULL\n2190055\tProyecto Test Compatibilidad\tmanual\tcotizacion_enviada\t0\tNULL\n2190057\tTest Manual Project\tmanual\tcontacto\t0\tNULL\n2190058\tManual Mix Project\tmanual\tcontacto\t0\tNULL\n2190063\tProyecto Test Movimientos\tmanual\tcotizacion_enviada\t0\tNULL\n2190064\tProyecto Test Default Movement\tmanual\tcotizacion_enviada\t0\tNULL\n2190065\tProyecto Test Sin Movimientos\tmanual\tcotizacion_enviada\t0\tNULL\n2190066\tProyecto Test Compatibilidad\tmanual\tcotizacion_enviada\t0\tNULL\n2190068\tTest Manual Project\tmanual\tcontacto\t0\tNULL\n",
+  "stderr": "",
+  "execution_time_ms": 53
+}

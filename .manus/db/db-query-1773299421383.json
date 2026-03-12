@@ -1,0 +1,14 @@
+{
+  "query": "-- Primero obtener el ID del cliente\nSELECT id, name FROM clients WHERE name LIKE '%Gustavo%' OR name LIKE '%Subway%';\n\n-- Buscar cotizaciones de ese cliente (incluyendo eliminadas)\nSELECT q.id, q.quotationNumber, q.status, q.deletedAt \nFROM quotations q\nJOIN clients c ON c.id = q.clientId\nWHERE c.name LIKE '%Gustavo%' OR c.name LIKE '%Subway%';\n\n-- Buscar proyectos de ese cliente (incluyendo eliminados)\nSELECT p.id, p.name, p.status, p.deletedAt \nFROM projects p\nJOIN clients c ON c.id = p.clientId\nWHERE c.name LIKE '%Gustavo%' OR c.name LIKE '%Subway%';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute -- Primero obtener el ID del cliente\nSELECT id, name FROM clients WHERE name LIKE '%Gustavo%' OR name LIKE '%Subway%';\n\n-- Buscar cotizaciones de ese cliente (incluyendo eliminadas)\nSELECT q.id, q.quotationNumber, q.status, q.deletedAt \nFROM quotations q\nJOIN clients c ON c.id = q.clientId\nWHERE c.name LIKE '%Gustavo%' OR c.name LIKE '%Subway%';\n\n-- Buscar proyectos de ese cliente (incluyendo eliminados)\nSELECT p.id, p.name, p.status, p.deletedAt \nFROM projects p\nJOIN clients c ON c.id = p.clientId\nWHERE c.name LIKE '%Gustavo%' OR c.name LIKE '%Subway%';",
+  "rows": [
+    {
+      "id": "2490003",
+      "name": "Gustavo Rodriguez - Subway"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\n2490003\tGustavo Rodriguez - Subway\n",
+  "stderr": "",
+  "execution_time_ms": 64
+}

@@ -9,6 +9,7 @@ describe("Bulk Delete Operations", () => {
   beforeAll(async () => {
     // Crear usuario de prueba con rol admin
     const userId = await db.createUserExtended({
+      dataOrigin: 'system',
       name: "Admin Test",
       email: `admin-bulk-${Date.now()}@test.com`,
       role: "admin",
@@ -18,6 +19,7 @@ describe("Bulk Delete Operations", () => {
 
     // Crear cliente de prueba
     const clientId = await db.createClient({
+      dataOrigin: 'system',
       name: "Cliente Test Bulk",
       whatsappPhone: "+573001234567",
       email: "cliente-bulk@test.com",
@@ -191,6 +193,7 @@ describe("Bulk Delete Operations", () => {
     it("should not allow non-admin users to delete appointments", async () => {
       // Crear usuario no-admin
       const userId = await db.createUserExtended({
+      dataOrigin: 'system',
         name: "User Test",
         email: `user-bulk-${Date.now()}@test.com`,
         role: "user",

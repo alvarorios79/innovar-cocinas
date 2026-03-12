@@ -1,0 +1,360 @@
+{
+  "query": "SELECT id, name, email, dataOrigin, createdAt FROM clients WHERE deletedAt IS NULL ORDER BY createdAt DESC LIMIT 50;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT id, name, email, dataOrigin, createdAt FROM clients WHERE deletedAt IS NULL ORDER BY createdAt DESC LIMIT 50;",
+  "rows": [
+    {
+      "id": "2851015",
+      "name": "Cliente Timezone Test",
+      "email": "timezone@test.com",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:50:20"
+    },
+    {
+      "id": "2851014",
+      "name": "Cliente Timezone Test",
+      "email": "timezone@test.com",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:50:20"
+    },
+    {
+      "id": "2851013",
+      "name": "DataOrigin System Test Client",
+      "email": "system-test-1773298219673@example.com",
+      "dataOrigin": "system",
+      "createdAt": "2026-03-12 06:50:19"
+    },
+    {
+      "id": "2851012",
+      "name": "DataOrigin Test Client",
+      "email": "test-1773298219654@example.com",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:50:19"
+    },
+    {
+      "id": "2851010",
+      "name": "Cliente Test Auto-registro",
+      "email": "test-1773298218671@example.com",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:50:18"
+    },
+    {
+      "id": "2851007",
+      "name": "Cliente Test Auto-registro",
+      "email": "test-1773298218089@example.com",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:50:18"
+    },
+    {
+      "id": "2851008",
+      "name": "Cliente Test Auto-registro",
+      "email": "test-1773298218222@example.com",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:50:18"
+    },
+    {
+      "id": "2851005",
+      "name": "Test User",
+      "email": "test-1773298213605@example.com",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:50:14"
+    },
+    {
+      "id": "2851001",
+      "name": "Test Client QVS2",
+      "email": "test-qvs2-1773298213146@example.com",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:50:13"
+    },
+    {
+      "id": "2851002",
+      "name": "Cliente Test Horario",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:50:13"
+    },
+    {
+      "id": "2851004",
+      "name": "Cliente Test Horario",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:50:13"
+    },
+    {
+      "id": "2851003",
+      "name": "Cliente Test Horario",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:50:13"
+    },
+    {
+      "id": "2850999",
+      "name": "Cliente Test Horario",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:50:13"
+    },
+    {
+      "id": "2851000",
+      "name": "Cliente Test Horario",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:50:13"
+    },
+    {
+      "id": "2850990",
+      "name": "Test Client Send 1773298209920",
+      "email": "test-send-1773298209920@example.com",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:50:09"
+    },
+    {
+      "id": "2850988",
+      "name": "System Test Client 1773298209191",
+      "email": "system-test-1773298209191@example.com",
+      "dataOrigin": "system",
+      "createdAt": "2026-03-12 06:50:09"
+    },
+    {
+      "id": "2850987",
+      "name": "Test Client 1773298209174",
+      "email": "test-1773298209174@example.com",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:50:09"
+    },
+    {
+      "id": "2850968",
+      "name": "Cliente Test Bulk",
+      "email": "cliente-bulk@test.com",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:50:07"
+    },
+    {
+      "id": "2850962",
+      "name": "Manual Mix Client",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:50:05"
+    },
+    {
+      "id": "2850961",
+      "name": "Test Manual Client",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:50:05"
+    },
+    {
+      "id": "2850964",
+      "name": "Manual Quotation Client",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:50:05"
+    },
+    {
+      "id": "2850953",
+      "name": "DataOrigin Test Client",
+      "email": "test-1773298181910@example.com",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:49:41"
+    },
+    {
+      "id": "2850955",
+      "name": "Cliente Timezone Test",
+      "email": "timezone@test.com",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:49:41"
+    },
+    {
+      "id": "2850952",
+      "name": "Cliente Timezone Test",
+      "email": "timezone@test.com",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:49:41"
+    },
+    {
+      "id": "2850951",
+      "name": "Cliente Test Auto-registro",
+      "email": "test-1773298181013@example.com",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:49:41"
+    },
+    {
+      "id": "2850949",
+      "name": "Cliente Test Auto-registro",
+      "email": "test-1773298180547@example.com",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:49:40"
+    },
+    {
+      "id": "2850948",
+      "name": "Cliente Test Auto-registro",
+      "email": "test-1773298180403@example.com",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:49:40"
+    },
+    {
+      "id": "2850944",
+      "name": "Cliente Test Horario",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:49:36"
+    },
+    {
+      "id": "2850945",
+      "name": "Cliente Test Horario",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:49:36"
+    },
+    {
+      "id": "2850946",
+      "name": "Test User",
+      "email": "test-1773298176373@example.com",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:49:36"
+    },
+    {
+      "id": "2850942",
+      "name": "Test Client QVS2",
+      "email": "test-qvs2-1773298175830@example.com",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:49:35"
+    },
+    {
+      "id": "2850943",
+      "name": "Cliente Test Horario",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:49:35"
+    },
+    {
+      "id": "2850941",
+      "name": "Cliente Test Horario",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:49:35"
+    },
+    {
+      "id": "2850940",
+      "name": "Cliente Test Horario",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:49:35"
+    },
+    {
+      "id": "2850931",
+      "name": "Test Client Send 1773298173389",
+      "email": "test-send-1773298173389@example.com",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:49:33"
+    },
+    {
+      "id": "2850928",
+      "name": "Test Client 1773298172373",
+      "email": "test-1773298172373@example.com",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:49:32"
+    },
+    {
+      "id": "2850909",
+      "name": "Cliente Test Bulk",
+      "email": "cliente-bulk@test.com",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:49:30"
+    },
+    {
+      "id": "2850903",
+      "name": "Manual Mix Client",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:49:28"
+    },
+    {
+      "id": "2850905",
+      "name": "Manual Quotation Client",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:49:28"
+    },
+    {
+      "id": "2850902",
+      "name": "Test Manual Client",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:49:28"
+    },
+    {
+      "id": "2850896",
+      "name": "Cliente Timezone Test",
+      "email": "timezone@test.com",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:43:41"
+    },
+    {
+      "id": "2850895",
+      "name": "Cliente Timezone Test",
+      "email": "timezone@test.com",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:43:41"
+    },
+    {
+      "id": "2850893",
+      "name": "DataOrigin Test Client",
+      "email": "test-1773297820981@example.com",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:43:40"
+    },
+    {
+      "id": "2850892",
+      "name": "Cliente Test Auto-registro",
+      "email": "test-1773297820189@example.com",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:43:40"
+    },
+    {
+      "id": "2850890",
+      "name": "Cliente Test Auto-registro",
+      "email": "test-1773297819559@example.com",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:43:39"
+    },
+    {
+      "id": "2850891",
+      "name": "Cliente Test Auto-registro",
+      "email": "test-1773297819722@example.com",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:43:39"
+    },
+    {
+      "id": "2850888",
+      "name": "Test User",
+      "email": "test-1773297815452@example.com",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:43:36"
+    },
+    {
+      "id": "2850887",
+      "name": "Cliente Test Horario",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:43:35"
+    },
+    {
+      "id": "2850883",
+      "name": "Test Client QVS2",
+      "email": "test-qvs2-1773297814953@example.com",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:43:35"
+    },
+    {
+      "id": "2850886",
+      "name": "Cliente Test Horario",
+      "email": "NULL",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:43:35"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\temail\tdataOrigin\tcreatedAt\n2851015\tCliente Timezone Test\ttimezone@test.com\tmanual\t2026-03-12 06:50:20\n2851014\tCliente Timezone Test\ttimezone@test.com\tmanual\t2026-03-12 06:50:20\n2851013\tDataOrigin System Test Client\tsystem-test-1773298219673@example.com\tsystem\t2026-03-12 06:50:19\n2851012\tDataOrigin Test Client\ttest-1773298219654@example.com\tmanual\t2026-03-12 06:50:19\n2851010\tCliente Test Auto-registro\ttest-1773298218671@example.com\tmanual\t2026-03-12 06:50:18\n2851007\tCliente Test Auto-registro\ttest-1773298218089@example.com\tmanual\t2026-03-12 06:50:18\n2851008\tCliente Test Auto-registro\ttest-1773298218222@example.com\tmanual\t2026-03-12 06:50:18\n2851005\tTest User\ttest-1773298213605@example.com\tmanual\t2026-03-12 06:50:14\n2851001\tTest Client QVS2\ttest-qvs2-1773298213146@example.com\tmanual\t2026-03-12 06:50:13\n2851002\tCliente Test Horario\tNULL\tmanual\t2026-03-12 06:50:13\n2851004\tCliente Test Horario\tNULL\tmanual\t2026-03-12 06:50:13\n2851003\tCliente Test Horario\tNULL\tmanual\t2026-03-12 06:50:13\n2850999\tCliente Test Horario\tNULL\tmanual\t2026-03-12 06:50:13\n2851000\tCliente Test Horario\tNULL\tmanual\t2026-03-12 06:50:13\n2850990\tTest Client Send 1773298209920\ttest-send-1773298209920@example.com\tmanual\t2026-03-12 06:50:09\n2850988\tSystem Test Client 1773298209191\tsystem-test-1773298209191@example.com\tsystem\t2026-03-12 06:50:09\n2850987\tTest Client 1773298209174\ttest-1773298209174@example.com\tmanual\t2026-03-12 06:50:09\n2850968\tCliente Test Bulk\tcliente-bulk@test.com\tmanual\t2026-03-12 06:50:07\n2850962\tManual Mix Client\tNULL\tmanual\t2026-03-12 06:50:05\n2850961\tTest Manual Client\tNULL\tmanual\t2026-03-12 06:50:05\n2850964\tManual Quotation Client\tNULL\tmanual\t2026-03-12 06:50:05\n2850953\tDataOrigin Test Client\ttest-1773298181910@example.com\tmanual\t2026-03-12 06:49:41\n2850955\tCliente Timezone Test\ttimezone@test.com\tmanual\t2026-03-12 06:49:41\n2850952\tCliente Timezone Test\ttimezone@test.com\tmanual\t2026-03-12 06:49:41\n2850951\tCliente Test Auto-registro\ttest-1773298181013@example.com\tmanual\t2026-03-12 06:49:41\n2850949\tCliente Test Auto-registro\ttest-1773298180547@example.com\tmanual\t2026-03-12 06:49:40\n2850948\tCliente Test Auto-registro\ttest-1773298180403@example.com\tmanual\t2026-03-12 06:49:40\n2850944\tCliente Test Horario\tNULL\tmanual\t2026-03-12 06:49:36\n2850945\tCliente Test Horario\tNULL\tmanual\t2026-03-12 06:49:36\n2850946\tTest User\ttest-1773298176373@example.com\tmanual\t2026-03-12 06:49:36\n2850942\tTest Client QVS2\ttest-qvs2-1773298175830@example.com\tmanual\t2026-03-12 06:49:35\n2850943\tCliente Test Horario\tNULL\tmanual\t2026-03-12 06:49:35\n2850941\tCliente Test Horario\tNULL\tmanual\t2026-03-12 06:49:35\n2850940\tCliente Test Horario\tNULL\tmanual\t2026-03-12 06:49:35\n2850931\tTest Client Send 1773298173389\ttest-send-1773298173389@example.com\tmanual\t2026-03-12 06:49:33\n2850928\tTest Client 1773298172373\ttest-1773298172373@example.com\tmanual\t2026-03-12 06:49:32\n2850909\tCliente Test Bulk\tcliente-bulk@test.com\tmanual\t2026-03-12 06:49:30\n2850903\tManual Mix Client\tNULL\tmanual\t2026-03-12 06:49:28\n2850905\tManual Quotation Client\tNULL\tmanual\t2026-03-12 06:49:28\n2850902\tTest Manual Client\tNULL\tmanual\t2026-03-12 06:49:28\n2850896\tCliente Timezone Test\ttimezone@test.com\tmanual\t2026-03-12 06:43:41\n2850895\tCliente Timezone Test\ttimezone@test.com\tmanual\t2026-03-12 06:43:41\n2850893\tDataOrigin Test Client\ttest-1773297820981@example.com\tmanual\t2026-03-12 06:43:40\n2850892\tCliente Test Auto-registro\ttest-1773297820189@example.com\tmanual\t2026-03-12 06:43:40\n2850890\tCliente Test Auto-registro\ttest-1773297819559@example.com\tmanual\t2026-03-12 06:43:39\n2850891\tCliente Test Auto-registro\ttest-1773297819722@example.com\tmanual\t2026-03-12 06:43:39\n2850888\tTest User\ttest-1773297815452@example.com\tmanual\t2026-03-12 06:43:36\n2850887\tCliente Test Horario\tNULL\tmanual\t2026-03-12 06:43:35\n2850883\tTest Client QVS2\ttest-qvs2-1773297814953@example.com\tmanual\t2026-03-12 06:43:35\n2850886\tCliente Test Horario\tNULL\tmanual\t2026-03-12 06:43:35\n",
+  "stderr": "",
+  "execution_time_ms": 57
+}

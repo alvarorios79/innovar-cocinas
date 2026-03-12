@@ -1,0 +1,24 @@
+{
+  "query": "\nSELECT \n  dataOrigin,\n  CASE WHEN deletedAt IS NOT NULL THEN 'eliminado' ELSE 'activo' END AS estado_borrado,\n  isArchived,\n  COUNT(*) AS total,\n  GROUP_CONCAT(SUBSTRING(name, 1, 30) ORDER BY id SEPARATOR ' | ') AS nombres_muestra\nFROM projects\nGROUP BY dataOrigin, estado_borrado, isArchived\nORDER BY dataOrigin, estado_borrado;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute \nSELECT \n  dataOrigin,\n  CASE WHEN deletedAt IS NOT NULL THEN 'eliminado' ELSE 'activo' END AS estado_borrado,\n  isArchived,\n  COUNT(*) AS total,\n  GROUP_CONCAT(SUBSTRING(name, 1, 30) ORDER BY id SEPARATOR ' | ') AS nombres_muestra\nFROM projects\nGROUP BY dataOrigin, estado_borrado, isArchived\nORDER BY dataOrigin, estado_borrado;\n",
+  "rows": [
+    {
+      "dataOrigin": "manual",
+      "estado_borrado": "activo",
+      "isArchived": "1",
+      "total": "7",
+      "nombres_muestra": "COT-2026-1772833387888-6786153 | COT-2026-1772833387891-2667628 | COT-2026-1772833387892-4673628 | COT-2026-1772833387893-4870273 | COT-2026-1772833387894-8915020 | COT-2026-1772833387895-6830938 | COT-2026-1772833387898-7036206"
+    },
+    {
+      "dataOrigin": "manual",
+      "estado_borrado": "activo",
+      "isArchived": "0",
+      "total": "92",
+      "nombres_muestra": "COT-2026-1772833387889-1121614 | COT-2026-1772833387890-1825427 | COT-2026-1772833387896-9276683 | COT-2026-1772833387897-0178652 | COT-2026-1772833387899-2437183 | COT-2026-1772833387900-2643089 | Test Manual Project | Manual Mix Project | Proyecto Test Movimientos | Proyecto Test Default Movement | Proyecto Test Sin Movimientos | Proyecto Test Compatibilidad | Test Manual Project | Manual Mix Project | Proyecto Test Movimientos | Proyecto Test Default Movement | Proyecto Test Sin Movimientos | Proyecto Test Compatibilidad | Test Manual Project | Manual Mix Project | Proyecto Test Movimientos | Proyecto Test Default Movement | Proyecto Test Sin Movimientos | Proyecto Test Compatibilidad | Test Manual Project | Manual Mix Project | Proyecto Test Movimientos | Proyecto Test Default Movement | Proyecto Test Sin Movimientos | Proyecto Test Compatibilidad | Test Manual Project | Manual Mix Project | Proyecto Test Movimientos | Proyecto Test Default Movement | Proyecto Test Sin Movimientos | Proyecto Test Compatib"
+    }
+  ],
+  "messages": [],
+  "stdout": "dataOrigin\testado_borrado\tisArchived\ttotal\tnombres_muestra\nmanual\tactivo\t1\t7\tCOT-2026-1772833387888-6786153 | COT-2026-1772833387891-2667628 | COT-2026-1772833387892-4673628 | COT-2026-1772833387893-4870273 | COT-2026-1772833387894-8915020 | COT-2026-1772833387895-6830938 | COT-2026-1772833387898-7036206\nmanual\tactivo\t0\t92\tCOT-2026-1772833387889-1121614 | COT-2026-1772833387890-1825427 | COT-2026-1772833387896-9276683 | COT-2026-1772833387897-0178652 | COT-2026-1772833387899-2437183 | COT-2026-1772833387900-2643089 | Test Manual Project | Manual Mix Project | Proyecto Test Movimientos | Proyecto Test Default Movement | Proyecto Test Sin Movimientos | Proyecto Test Compatibilidad | Test Manual Project | Manual Mix Project | Proyecto Test Movimientos | Proyecto Test Default Movement | Proyecto Test Sin Movimientos | Proyecto Test Compatibilidad | Test Manual Project | Manual Mix Project | Proyecto Test Movimientos | Proyecto Test Default Movement | Proyecto Test Sin Movimientos | Proyecto Test Compatibilidad | Test Manual Project | Manual Mix Project | Proyecto Test Movimientos | Proyecto Test Default Movement | Proyecto Test Sin Movimientos | Proyecto Test Compatibilidad | Test Manual Project | Manual Mix Project | Proyecto Test Movimientos | Proyecto Test Default Movement | Proyecto Test Sin Movimientos | Proyecto Test Compatib\n",
+  "stderr": "",
+  "execution_time_ms": 63
+}

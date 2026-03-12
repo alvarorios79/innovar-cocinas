@@ -11,6 +11,7 @@ describe("Auto-fill de datos de cliente", () => {
   beforeAll(async () => {
     // Crear un cliente de prueba
     testClientId = await db.createClient({
+      dataOrigin: 'system',
       name: "Cliente Test Autofill",
       email: "autofill@test.com",
       whatsappPhone: "3009998888",

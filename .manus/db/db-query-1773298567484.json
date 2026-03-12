@@ -1,0 +1,21 @@
+{
+  "query": "SELECT dataOrigin, COUNT(*) as total FROM clients WHERE deletedAt IS NULL GROUP BY dataOrigin;\nSELECT COUNT(*) as total_activos FROM clients WHERE deletedAt IS NULL;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT dataOrigin, COUNT(*) as total FROM clients WHERE deletedAt IS NULL GROUP BY dataOrigin;\nSELECT COUNT(*) as total_activos FROM clients WHERE deletedAt IS NULL;",
+  "rows": [
+    {
+      "dataOrigin": "manual",
+      "total": "127"
+    },
+    {
+      "dataOrigin": "system",
+      "total": "2"
+    }
+  ],
+  "messages": [
+    "total_activos",
+    "129"
+  ],
+  "stdout": "dataOrigin\ttotal\nmanual\t127\nsystem\t2\ntotal_activos\n129\n",
+  "stderr": "",
+  "execution_time_ms": 67
+}

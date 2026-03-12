@@ -8,6 +8,7 @@ describe("Quotations - Fixed Costs Logic", () => {
   beforeEach(async () => {
     // Crear cliente de prueba
     testClientId = await db.createClient({
+      dataOrigin: 'system',
       name: "Cliente Test Costos Fijos",
       email: "test.costos@example.com",
       whatsappPhone: "+573001234567",
@@ -15,6 +16,7 @@ describe("Quotations - Fixed Costs Logic", () => {
 
     // Crear usuario admin de prueba
     testUserId = await db.createUserExtended({
+      dataOrigin: 'system',
       name: "Admin Test Fixed Costs",
       email: "admin-fixedcosts-test@test.com",
       role: "admin",
@@ -39,13 +41,12 @@ describe("Quotations - Fixed Costs Logic", () => {
 
   it("debe calcular correctamente cuando NO hay checkbox (costos fijos separados)", async () => {
     // Crear cotización sin checkbox
-    const quotationNumber = await db.getNextQuotationNumber();
     const subtotal = 9000000; // $9,000,000
     const transportCost = 600000; // $600,000 (separados)
     const total = subtotal + transportCost; // $9,600,000
 
     const quotationId = await db.createQuotation({
-      quotationNumber,
+      dataOrigin: 'system',
       clientId: testClientId,
       vendorName: "Alvaro Gutierrez",
       workType: "Cocina Integral",
@@ -82,14 +83,13 @@ describe("Quotations - Fixed Costs Logic", () => {
 
   it("debe calcular correctamente cuando SÍ hay checkbox (costos fijos incluidos)", async () => {
     // Crear cotización con checkbox
-    const quotationNumber = await db.getNextQuotationNumber();
     const itemPrice = 9600000; // $9,600,000 (ya incluye $600,000)
     const subtotal = itemPrice;
     const transportCost = 0; // $0 (ya están incluidos en el item)
     const total = subtotal; // $9,600,000
 
     const quotationId = await db.createQuotation({
-      quotationNumber,
+      dataOrigin: 'system',
       clientId: testClientId,
       vendorName: "Martha Serna",
       workType: "Cocina + Closet",
@@ -126,8 +126,6 @@ describe("Quotations - Fixed Costs Logic", () => {
 
   it("debe evitar duplicación de costos fijos", async () => {
     // Este test verifica que NO se sumen $600,000 dos veces
-    const quotationNumber = await db.getNextQuotationNumber();
-    
     // Item con checkbox: $9,000,000 + $600,000 = $9,600,000
     const itemPrice = 9600000;
     const subtotal = itemPrice;
@@ -135,7 +133,7 @@ describe("Quotations - Fixed Costs Logic", () => {
     const total = subtotal; // $9,600,000 (NO $10,200,000)
 
     const quotationId = await db.createQuotation({
-      quotationNumber,
+      dataOrigin: 'system',
       clientId: testClientId,
       vendorName: "Alvaro Gutierrez",
       workType: "Cocina Premium",

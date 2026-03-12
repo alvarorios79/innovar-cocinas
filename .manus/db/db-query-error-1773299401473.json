@@ -1,0 +1,10 @@
+{
+  "query": "-- Buscar el cliente Gustavo Rodriguez\nSELECT id, name, email, dataOrigin, deletedAt FROM clients WHERE name LIKE '%Gustavo%' OR name LIKE '%Rodriguez%' OR name LIKE '%Subway%';\n\n-- Buscar sus cotizaciones (incluyendo eliminadas)\nSELECT q.id, q.quotationNumber, q.status, q.totalAmount, q.deletedAt, c.name as cliente\nFROM quotations q\nJOIN clients c ON c.id = q.clientId\nWHERE c.name LIKE '%Gustavo%' OR c.name LIKE '%Rodriguez%' OR c.name LIKE '%Subway%';\n\n-- Buscar sus proyectos (incluyendo eliminados)\nSELECT p.id, p.name, p.status, p.totalAmount, p.deletedAt, c.name as cliente\nFROM projects p\nJOIN clients c ON c.id = p.clientId\nWHERE c.name LIKE '%Gustavo%' OR c.name LIKE '%Rodriguez%' OR c.name LIKE '%Subway%';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute -- Buscar el cliente Gustavo Rodriguez\nSELECT id, name, email, dataOrigin, deletedAt FROM clients WHERE name LIKE '%Gustavo%' OR name LIKE '%Rodriguez%' OR name LIKE '%Subway%';\n\n-- Buscar sus cotizaciones (incluyendo eliminadas)\nSELECT q.id, q.quotationNumber, q.status, q.totalAmount, q.deletedAt, c.name as cliente\nFROM quotations q\nJOIN clients c ON c.id = q.clientId\nWHERE c.name LIKE '%Gustavo%' OR c.name LIKE '%Rodriguez%' OR c.name LIKE '%Subway%';\n\n-- Buscar sus proyectos (incluyendo eliminados)\nSELECT p.id, p.name, p.status, p.totalAmount, p.deletedAt, c.name as cliente\nFROM projects p\nJOIN clients c ON c.id = p.clientId\nWHERE c.name LIKE '%Gustavo%' OR c.name LIKE '%Rodriguez%' OR c.name LIKE '%Subway%';",
+  "returncode": 1,
+  "logs": [
+    "id\tname\temail\tdataOrigin\tdeletedAt",
+    "2490003\tGustavo Rodriguez - Subway\tNULL\tmanual\tNULL",
+    "ERROR 1054 (42S22) at line 5: Unknown column 'q.totalamount' in 'field list'"
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "query": "SELECT c.name as clientName, COUNT(*) as cotizaciones FROM quotations q LEFT JOIN clients c ON q.clientId = c.id WHERE q.deletedAt IS NULL GROUP BY c.name ORDER BY c.name;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT c.name as clientName, COUNT(*) as cotizaciones FROM quotations q LEFT JOIN clients c ON q.clientId = c.id WHERE q.deletedAt IS NULL GROUP BY c.name ORDER BY c.name;",
+  "rows": [
+    {
+      "clientName": "Alfredo Bolaños",
+      "cotizaciones": "1"
+    },
+    {
+      "clientName": "Beatriz Paris",
+      "cotizaciones": "1"
+    },
+    {
+      "clientName": "Carolina Diaz",
+      "cotizaciones": "1"
+    },
+    {
+      "clientName": "Diana Ortiz",
+      "cotizaciones": "1"
+    },
+    {
+      "clientName": "Felipe Quintero",
+      "cotizaciones": "1"
+    },
+    {
+      "clientName": "Henry Morales",
+      "cotizaciones": "1"
+    },
+    {
+      "clientName": "Jhonier Cardona",
+      "cotizaciones": "1"
+    },
+    {
+      "clientName": "Juan Pablo González",
+      "cotizaciones": "1"
+    },
+    {
+      "clientName": "Lina Paez",
+      "cotizaciones": "2"
+    },
+    {
+      "clientName": "Orlando Primacho",
+      "cotizaciones": "1"
+    },
+    {
+      "clientName": "Oscar Urriago",
+      "cotizaciones": "1"
+    },
+    {
+      "clientName": "Ruth Naranjo",
+      "cotizaciones": "1"
+    },
+    {
+      "clientName": "Sr. Harold",
+      "cotizaciones": "1"
+    },
+    {
+      "clientName": "Sras. Maria Clara & Ana milena",
+      "cotizaciones": "4"
+    }
+  ],
+  "messages": [],
+  "stdout": "clientName\tcotizaciones\nAlfredo Bolaños\t1\nBeatriz Paris\t1\nCarolina Diaz\t1\nDiana Ortiz\t1\nFelipe Quintero\t1\nHenry Morales\t1\nJhonier Cardona\t1\nJuan Pablo González\t1\nLina Paez\t2\nOrlando Primacho\t1\nOscar Urriago\t1\nRuth Naranjo\t1\nSr. Harold\t1\nSras. Maria Clara & Ana milena\t4\n",
+  "stderr": "",
+  "execution_time_ms": 52
+}

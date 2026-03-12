@@ -1,0 +1,250 @@
+{
+  "query": "SELECT q.id, q.quotationNumber, q.productType, q.dataOrigin, q.createdAt, c.name as clientName FROM quotations q LEFT JOIN clients c ON q.clientId = c.id WHERE q.deletedAt IS NULL AND q.dataOrigin = 'manual' ORDER BY q.createdAt DESC LIMIT 30;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT q.id, q.quotationNumber, q.productType, q.dataOrigin, q.createdAt, c.name as clientName FROM quotations q LEFT JOIN clients c ON q.clientId = c.id WHERE q.deletedAt IS NULL AND q.dataOrigin = 'manual' ORDER BY q.createdAt DESC LIMIT 30;",
+  "rows": [
+    {
+      "id": "2820359",
+      "quotationNumber": "COT-QVS2-1773298213275-v4",
+      "productType": "cocina",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:50:13",
+      "clientName": "Test Client QVS2"
+    },
+    {
+      "id": "2820356",
+      "quotationNumber": "COT-QVS2-1773298213275",
+      "productType": "cocina",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:50:13",
+      "clientName": "Test Client QVS2"
+    },
+    {
+      "id": "2820360",
+      "quotationNumber": "COT-QVS2-1773298213275-v5",
+      "productType": "cocina",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:50:13",
+      "clientName": "Test Client QVS2"
+    },
+    {
+      "id": "2820350",
+      "quotationNumber": "COT-2026-1773298209953-2405718",
+      "productType": "cocina",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:50:09",
+      "clientName": "Test Client Send 1773298209920"
+    },
+    {
+      "id": "2820349",
+      "quotationNumber": "COT-2026-1773298209889-1815324",
+      "productType": "cocina",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:50:09",
+      "clientName": "Test Client Quotation"
+    },
+    {
+      "id": "2820338",
+      "quotationNumber": "MANUAL-1773298205373",
+      "productType": "cocina",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:50:05",
+      "clientName": "Manual Quotation Client"
+    },
+    {
+      "id": "2820334",
+      "quotationNumber": "COT-QVS2-1773298175963-v5",
+      "productType": "cocina",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:49:36",
+      "clientName": "Test Client QVS2"
+    },
+    {
+      "id": "2820333",
+      "quotationNumber": "COT-QVS2-1773298175963-v4",
+      "productType": "cocina",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:49:36",
+      "clientName": "Test Client QVS2"
+    },
+    {
+      "id": "2820330",
+      "quotationNumber": "COT-QVS2-1773298175963",
+      "productType": "cocina",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:49:35",
+      "clientName": "Test Client QVS2"
+    },
+    {
+      "id": "2820324",
+      "quotationNumber": "COT-2026-1773298173415-4056172",
+      "productType": "cocina",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:49:33",
+      "clientName": "Test Client Send 1773298173389"
+    },
+    {
+      "id": "2820323",
+      "quotationNumber": "COT-2026-1773298173359-2529001",
+      "productType": "cocina",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:49:33",
+      "clientName": "Test Client Quotation"
+    },
+    {
+      "id": "2820312",
+      "quotationNumber": "MANUAL-1773298168612",
+      "productType": "cocina",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:49:28",
+      "clientName": "Manual Quotation Client"
+    },
+    {
+      "id": "2820305",
+      "quotationNumber": "COT-QVS2-1773297815076",
+      "productType": "cocina",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:43:35",
+      "clientName": "Test Client QVS2"
+    },
+    {
+      "id": "2820308",
+      "quotationNumber": "COT-QVS2-1773297815076-v4",
+      "productType": "cocina",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:43:35",
+      "clientName": "Test Client QVS2"
+    },
+    {
+      "id": "2820309",
+      "quotationNumber": "COT-QVS2-1773297815076-v5",
+      "productType": "cocina",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:43:35",
+      "clientName": "Test Client QVS2"
+    },
+    {
+      "id": "2820300",
+      "quotationNumber": "COT-2026-1773297813008-9587274",
+      "productType": "cocina",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:43:33",
+      "clientName": "Test Client Quotation"
+    },
+    {
+      "id": "2820301",
+      "quotationNumber": "COT-2026-1773297813065-317646",
+      "productType": "cocina",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:43:33",
+      "clientName": "Test Client Send 1773297813038"
+    },
+    {
+      "id": "2820288",
+      "quotationNumber": "MANUAL-1773297807257",
+      "productType": "cocina",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:43:27",
+      "clientName": "Manual Quotation Client"
+    },
+    {
+      "id": "2820281",
+      "quotationNumber": "COT-QVS2-1773297786718",
+      "productType": "cocina",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:43:06",
+      "clientName": "Test Client QVS2"
+    },
+    {
+      "id": "2820284",
+      "quotationNumber": "COT-QVS2-1773297786718-v4",
+      "productType": "cocina",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:43:06",
+      "clientName": "Test Client QVS2"
+    },
+    {
+      "id": "2820285",
+      "quotationNumber": "COT-QVS2-1773297786718-v5",
+      "productType": "cocina",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:43:06",
+      "clientName": "Test Client QVS2"
+    },
+    {
+      "id": "2820276",
+      "quotationNumber": "COT-2026-1773297783418-2172384",
+      "productType": "cocina",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:43:03",
+      "clientName": "Test Client Send 1773297783393"
+    },
+    {
+      "id": "2820264",
+      "quotationNumber": "MANUAL-1773297778882",
+      "productType": "cocina",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:42:58",
+      "clientName": "Manual Quotation Client"
+    },
+    {
+      "id": "2820257",
+      "quotationNumber": "COT-2026-1773297712234-5168987",
+      "productType": "otro",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:41:52",
+      "clientName": "Cliente Test Cotización"
+    },
+    {
+      "id": "2820254",
+      "quotationNumber": "COT-2026-1773297705118-2928910",
+      "productType": "otro",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-12 06:41:45",
+      "clientName": "Cliente Test Cotización"
+    },
+    {
+      "id": "2790003",
+      "quotationNumber": "COT-2026-1773256745475-3501420",
+      "productType": "otro",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-11 19:19:05",
+      "clientName": "Andres Salazar"
+    },
+    {
+      "id": "2790002",
+      "quotationNumber": "COT-2026-1773254472674-1307560-v2",
+      "productType": "otro",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-11 18:44:17",
+      "clientName": "Lina Paez"
+    },
+    {
+      "id": "2790001",
+      "quotationNumber": "COT-2026-1773254472674-1307560",
+      "productType": "otro",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-11 18:41:12",
+      "clientName": "Lina Paez"
+    },
+    {
+      "id": "2760002",
+      "quotationNumber": "COT-2026-1773253317540-3034338",
+      "productType": "otro",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-11 18:21:57",
+      "clientName": "Jhonier Cardona"
+    },
+    {
+      "id": "2730001",
+      "quotationNumber": "COT-2026-1772833387901-4386134-v2",
+      "productType": "otro",
+      "dataOrigin": "manual",
+      "createdAt": "2026-03-09 17:20:35",
+      "clientName": "Sras. Maria Clara & Ana milena"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tquotationNumber\tproductType\tdataOrigin\tcreatedAt\tclientName\n2820359\tCOT-QVS2-1773298213275-v4\tcocina\tmanual\t2026-03-12 06:50:13\tTest Client QVS2\n2820356\tCOT-QVS2-1773298213275\tcocina\tmanual\t2026-03-12 06:50:13\tTest Client QVS2\n2820360\tCOT-QVS2-1773298213275-v5\tcocina\tmanual\t2026-03-12 06:50:13\tTest Client QVS2\n2820350\tCOT-2026-1773298209953-2405718\tcocina\tmanual\t2026-03-12 06:50:09\tTest Client Send 1773298209920\n2820349\tCOT-2026-1773298209889-1815324\tcocina\tmanual\t2026-03-12 06:50:09\tTest Client Quotation\n2820338\tMANUAL-1773298205373\tcocina\tmanual\t2026-03-12 06:50:05\tManual Quotation Client\n2820334\tCOT-QVS2-1773298175963-v5\tcocina\tmanual\t2026-03-12 06:49:36\tTest Client QVS2\n2820333\tCOT-QVS2-1773298175963-v4\tcocina\tmanual\t2026-03-12 06:49:36\tTest Client QVS2\n2820330\tCOT-QVS2-1773298175963\tcocina\tmanual\t2026-03-12 06:49:35\tTest Client QVS2\n2820324\tCOT-2026-1773298173415-4056172\tcocina\tmanual\t2026-03-12 06:49:33\tTest Client Send 1773298173389\n2820323\tCOT-2026-1773298173359-2529001\tcocina\tmanual\t2026-03-12 06:49:33\tTest Client Quotation\n2820312\tMANUAL-1773298168612\tcocina\tmanual\t2026-03-12 06:49:28\tManual Quotation Client\n2820305\tCOT-QVS2-1773297815076\tcocina\tmanual\t2026-03-12 06:43:35\tTest Client QVS2\n2820308\tCOT-QVS2-1773297815076-v4\tcocina\tmanual\t2026-03-12 06:43:35\tTest Client QVS2\n2820309\tCOT-QVS2-1773297815076-v5\tcocina\tmanual\t2026-03-12 06:43:35\tTest Client QVS2\n2820300\tCOT-2026-1773297813008-9587274\tcocina\tmanual\t2026-03-12 06:43:33\tTest Client Quotation\n2820301\tCOT-2026-1773297813065-317646\tcocina\tmanual\t2026-03-12 06:43:33\tTest Client Send 1773297813038\n2820288\tMANUAL-1773297807257\tcocina\tmanual\t2026-03-12 06:43:27\tManual Quotation Client\n2820281\tCOT-QVS2-1773297786718\tcocina\tmanual\t2026-03-12 06:43:06\tTest Client QVS2\n2820284\tCOT-QVS2-1773297786718-v4\tcocina\tmanual\t2026-03-12 06:43:06\tTest Client QVS2\n2820285\tCOT-QVS2-1773297786718-v5\tcocina\tmanual\t2026-03-12 06:43:06\tTest Client QVS2\n2820276\tCOT-2026-1773297783418-2172384\tcocina\tmanual\t2026-03-12 06:43:03\tTest Client Send 1773297783393\n2820264\tMANUAL-1773297778882\tcocina\tmanual\t2026-03-12 06:42:58\tManual Quotation Client\n2820257\tCOT-2026-1773297712234-5168987\totro\tmanual\t2026-03-12 06:41:52\tCliente Test Cotización\n2820254\tCOT-2026-1773297705118-2928910\totro\tmanual\t2026-03-12 06:41:45\tCliente Test Cotización\n2790003\tCOT-2026-1773256745475-3501420\totro\tmanual\t2026-03-11 19:19:05\tAndres Salazar\n2790002\tCOT-2026-1773254472674-1307560-v2\totro\tmanual\t2026-03-11 18:44:17\tLina Paez\n2790001\tCOT-2026-1773254472674-1307560\totro\tmanual\t2026-03-11 18:41:12\tLina Paez\n2760002\tCOT-2026-1773253317540-3034338\totro\tmanual\t2026-03-11 18:21:57\tJhonier Cardona\n2730001\tCOT-2026-1772833387901-4386134-v2\totro\tmanual\t2026-03-09 17:20:35\tSras. Maria Clara & Ana milena\n",
+  "stderr": "",
+  "execution_time_ms": 60
+}

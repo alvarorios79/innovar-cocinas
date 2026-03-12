@@ -8,6 +8,7 @@ describe("Advisory Requests - Preferred Call Time", () => {
   beforeAll(async () => {
     // Crear un cliente de prueba
     testClientId = await db.createClient({
+      dataOrigin: 'system',
       name: "Test Client Advisory",
       whatsappPhone: "3001234567",
       email: "test@advisory.com",

@@ -1,0 +1,22 @@
+{
+  "query": "\nSELECT \n  dataOrigin,\n  deletedAt IS NOT NULL AS is_deleted,\n  isArchived,\n  COUNT(*) AS total\nFROM projects\nGROUP BY dataOrigin, is_deleted, isArchived\nORDER BY dataOrigin, is_deleted;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute \nSELECT \n  dataOrigin,\n  deletedAt IS NOT NULL AS is_deleted,\n  isArchived,\n  COUNT(*) AS total\nFROM projects\nGROUP BY dataOrigin, is_deleted, isArchived\nORDER BY dataOrigin, is_deleted;\n",
+  "rows": [
+    {
+      "dataOrigin": "manual",
+      "is_deleted": "0",
+      "isArchived": "0",
+      "total": "92"
+    },
+    {
+      "dataOrigin": "manual",
+      "is_deleted": "0",
+      "isArchived": "1",
+      "total": "7"
+    }
+  ],
+  "messages": [],
+  "stdout": "dataOrigin\tis_deleted\tisArchived\ttotal\nmanual\t0\t0\t92\nmanual\t0\t1\t7\n",
+  "stderr": "",
+  "execution_time_ms": 93
+}

@@ -7,6 +7,7 @@ describe("Appointments Timezone", () => {
   beforeEach(async () => {
     // Crear un cliente de prueba
     testClientId = await db.createClient({
+      dataOrigin: 'system',
       name: "Cliente Timezone Test",
       whatsappPhone: "+573001234567",
       email: "timezone@test.com",
@@ -25,6 +26,7 @@ describe("Appointments Timezone", () => {
     const scheduledDate = new Date(dateStr);
 
     const appointmentId = await db.createAppointment({
+      dataOrigin: 'system',
       clientId: testClientId,
       scheduledDate,
       notes: "Test timezone",
@@ -69,6 +71,7 @@ describe("Appointments Timezone", () => {
       const scheduledDate = new Date(dateStr);
 
       const appointmentId = await db.createAppointment({
+      dataOrigin: 'system',
         clientId: testClientId,
         scheduledDate,
         notes: `Test ${testCase.time}`,

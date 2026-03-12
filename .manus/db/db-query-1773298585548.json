@@ -1,0 +1,80 @@
+{
+  "query": "SELECT name, email, dataOrigin FROM clients WHERE deletedAt IS NULL ORDER BY name;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT name, email, dataOrigin FROM clients WHERE deletedAt IS NULL ORDER BY name;",
+  "rows": [
+    {
+      "name": "Alfredo Bolaños",
+      "email": "NULL",
+      "dataOrigin": "manual"
+    },
+    {
+      "name": "Beatriz Paris",
+      "email": "NULL",
+      "dataOrigin": "manual"
+    },
+    {
+      "name": "Carolina Diaz",
+      "email": "NULL",
+      "dataOrigin": "manual"
+    },
+    {
+      "name": "Diana Ortiz",
+      "email": "NULL",
+      "dataOrigin": "manual"
+    },
+    {
+      "name": "Felipe Quintero",
+      "email": "NULL",
+      "dataOrigin": "manual"
+    },
+    {
+      "name": "Henry Morales",
+      "email": "NULL",
+      "dataOrigin": "manual"
+    },
+    {
+      "name": "Jhonier Cardona",
+      "email": "NULL",
+      "dataOrigin": "manual"
+    },
+    {
+      "name": "Juan Pablo González",
+      "email": "NULL",
+      "dataOrigin": "manual"
+    },
+    {
+      "name": "Lina Paez",
+      "email": "NULL",
+      "dataOrigin": "manual"
+    },
+    {
+      "name": "Orlando Primacho",
+      "email": "NULL",
+      "dataOrigin": "manual"
+    },
+    {
+      "name": "Oscar Urriago",
+      "email": "NULL",
+      "dataOrigin": "manual"
+    },
+    {
+      "name": "Ruth Naranjo",
+      "email": "alvarorios79@gmail.com",
+      "dataOrigin": "manual"
+    },
+    {
+      "name": "Sr. Harold",
+      "email": "NULL",
+      "dataOrigin": "manual"
+    },
+    {
+      "name": "Sras. Maria Clara & Ana milena",
+      "email": "NULL",
+      "dataOrigin": "manual"
+    }
+  ],
+  "messages": [],
+  "stdout": "name\temail\tdataOrigin\nAlfredo Bolaños\tNULL\tmanual\nBeatriz Paris\tNULL\tmanual\nCarolina Diaz\tNULL\tmanual\nDiana Ortiz\tNULL\tmanual\nFelipe Quintero\tNULL\tmanual\nHenry Morales\tNULL\tmanual\nJhonier Cardona\tNULL\tmanual\nJuan Pablo González\tNULL\tmanual\nLina Paez\tNULL\tmanual\nOrlando Primacho\tNULL\tmanual\nOscar Urriago\tNULL\tmanual\nRuth Naranjo\talvarorios79@gmail.com\tmanual\nSr. Harold\tNULL\tmanual\nSras. Maria Clara & Ana milena\tNULL\tmanual\n",
+  "stderr": "",
+  "execution_time_ms": 62
+}

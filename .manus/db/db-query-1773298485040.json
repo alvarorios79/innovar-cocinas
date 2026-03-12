@@ -1,0 +1,318 @@
+{
+  "query": "SELECT q.id, q.quotationNumber, c.name as clientName, q.status, q.createdAt FROM quotations q LEFT JOIN clients c ON q.clientId = c.id WHERE q.deletedAt IS NULL ORDER BY q.createdAt DESC LIMIT 60;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT q.id, q.quotationNumber, c.name as clientName, q.status, q.createdAt FROM quotations q LEFT JOIN clients c ON q.clientId = c.id WHERE q.deletedAt IS NULL ORDER BY q.createdAt DESC LIMIT 60;",
+  "rows": [
+    {
+      "id": "2820359",
+      "quotationNumber": "COT-QVS2-1773298213275-v4",
+      "clientName": "Test Client QVS2",
+      "status": "draft",
+      "createdAt": "2026-03-12 06:50:13"
+    },
+    {
+      "id": "2820356",
+      "quotationNumber": "COT-QVS2-1773298213275",
+      "clientName": "Test Client QVS2",
+      "status": "draft",
+      "createdAt": "2026-03-12 06:50:13"
+    },
+    {
+      "id": "2820360",
+      "quotationNumber": "COT-QVS2-1773298213275-v5",
+      "clientName": "Test Client QVS2",
+      "status": "draft",
+      "createdAt": "2026-03-12 06:50:13"
+    },
+    {
+      "id": "2820350",
+      "quotationNumber": "COT-2026-1773298209953-2405718",
+      "clientName": "Test Client Send 1773298209920",
+      "status": "sent",
+      "createdAt": "2026-03-12 06:50:09"
+    },
+    {
+      "id": "2820349",
+      "quotationNumber": "COT-2026-1773298209889-1815324",
+      "clientName": "Test Client Quotation",
+      "status": "draft",
+      "createdAt": "2026-03-12 06:50:09"
+    },
+    {
+      "id": "2820338",
+      "quotationNumber": "MANUAL-1773298205373",
+      "clientName": "Manual Quotation Client",
+      "status": "draft",
+      "createdAt": "2026-03-12 06:50:05"
+    },
+    {
+      "id": "2820334",
+      "quotationNumber": "COT-QVS2-1773298175963-v5",
+      "clientName": "Test Client QVS2",
+      "status": "draft",
+      "createdAt": "2026-03-12 06:49:36"
+    },
+    {
+      "id": "2820333",
+      "quotationNumber": "COT-QVS2-1773298175963-v4",
+      "clientName": "Test Client QVS2",
+      "status": "draft",
+      "createdAt": "2026-03-12 06:49:36"
+    },
+    {
+      "id": "2820330",
+      "quotationNumber": "COT-QVS2-1773298175963",
+      "clientName": "Test Client QVS2",
+      "status": "draft",
+      "createdAt": "2026-03-12 06:49:35"
+    },
+    {
+      "id": "2820324",
+      "quotationNumber": "COT-2026-1773298173415-4056172",
+      "clientName": "Test Client Send 1773298173389",
+      "status": "sent",
+      "createdAt": "2026-03-12 06:49:33"
+    },
+    {
+      "id": "2820323",
+      "quotationNumber": "COT-2026-1773298173359-2529001",
+      "clientName": "Test Client Quotation",
+      "status": "draft",
+      "createdAt": "2026-03-12 06:49:33"
+    },
+    {
+      "id": "2820312",
+      "quotationNumber": "MANUAL-1773298168612",
+      "clientName": "Manual Quotation Client",
+      "status": "draft",
+      "createdAt": "2026-03-12 06:49:28"
+    },
+    {
+      "id": "2820305",
+      "quotationNumber": "COT-QVS2-1773297815076",
+      "clientName": "Test Client QVS2",
+      "status": "draft",
+      "createdAt": "2026-03-12 06:43:35"
+    },
+    {
+      "id": "2820309",
+      "quotationNumber": "COT-QVS2-1773297815076-v5",
+      "clientName": "Test Client QVS2",
+      "status": "draft",
+      "createdAt": "2026-03-12 06:43:35"
+    },
+    {
+      "id": "2820308",
+      "quotationNumber": "COT-QVS2-1773297815076-v4",
+      "clientName": "Test Client QVS2",
+      "status": "draft",
+      "createdAt": "2026-03-12 06:43:35"
+    },
+    {
+      "id": "2820300",
+      "quotationNumber": "COT-2026-1773297813008-9587274",
+      "clientName": "Test Client Quotation",
+      "status": "draft",
+      "createdAt": "2026-03-12 06:43:33"
+    },
+    {
+      "id": "2820301",
+      "quotationNumber": "COT-2026-1773297813065-317646",
+      "clientName": "Test Client Send 1773297813038",
+      "status": "sent",
+      "createdAt": "2026-03-12 06:43:33"
+    },
+    {
+      "id": "2820288",
+      "quotationNumber": "MANUAL-1773297807257",
+      "clientName": "Manual Quotation Client",
+      "status": "draft",
+      "createdAt": "2026-03-12 06:43:27"
+    },
+    {
+      "id": "2820281",
+      "quotationNumber": "COT-QVS2-1773297786718",
+      "clientName": "Test Client QVS2",
+      "status": "draft",
+      "createdAt": "2026-03-12 06:43:06"
+    },
+    {
+      "id": "2820284",
+      "quotationNumber": "COT-QVS2-1773297786718-v4",
+      "clientName": "Test Client QVS2",
+      "status": "draft",
+      "createdAt": "2026-03-12 06:43:06"
+    },
+    {
+      "id": "2820285",
+      "quotationNumber": "COT-QVS2-1773297786718-v5",
+      "clientName": "Test Client QVS2",
+      "status": "draft",
+      "createdAt": "2026-03-12 06:43:06"
+    },
+    {
+      "id": "2820276",
+      "quotationNumber": "COT-2026-1773297783418-2172384",
+      "clientName": "Test Client Send 1773297783393",
+      "status": "sent",
+      "createdAt": "2026-03-12 06:43:03"
+    },
+    {
+      "id": "2820264",
+      "quotationNumber": "MANUAL-1773297778882",
+      "clientName": "Manual Quotation Client",
+      "status": "draft",
+      "createdAt": "2026-03-12 06:42:58"
+    },
+    {
+      "id": "2820257",
+      "quotationNumber": "COT-2026-1773297712234-5168987",
+      "clientName": "Cliente Test Cotización",
+      "status": "draft",
+      "createdAt": "2026-03-12 06:41:52"
+    },
+    {
+      "id": "2820254",
+      "quotationNumber": "COT-2026-1773297705118-2928910",
+      "clientName": "Cliente Test Cotización",
+      "status": "draft",
+      "createdAt": "2026-03-12 06:41:45"
+    },
+    {
+      "id": "2790003",
+      "quotationNumber": "COT-2026-1773256745475-3501420",
+      "clientName": "Andres Salazar",
+      "status": "draft",
+      "createdAt": "2026-03-11 19:19:05"
+    },
+    {
+      "id": "2790002",
+      "quotationNumber": "COT-2026-1773254472674-1307560-v2",
+      "clientName": "Lina Paez",
+      "status": "draft",
+      "createdAt": "2026-03-11 18:44:17"
+    },
+    {
+      "id": "2790001",
+      "quotationNumber": "COT-2026-1773254472674-1307560",
+      "clientName": "Lina Paez",
+      "status": "draft",
+      "createdAt": "2026-03-11 18:41:12"
+    },
+    {
+      "id": "2760002",
+      "quotationNumber": "COT-2026-1773253317540-3034338",
+      "clientName": "Jhonier Cardona",
+      "status": "draft",
+      "createdAt": "2026-03-11 18:21:57"
+    },
+    {
+      "id": "2730001",
+      "quotationNumber": "COT-2026-1772833387901-4386134-v2",
+      "clientName": "Sras. Maria Clara & Ana milena",
+      "status": "draft",
+      "createdAt": "2026-03-09 17:20:35"
+    },
+    {
+      "id": "2700001",
+      "quotationNumber": "COT-2026-1772833387901-4386134",
+      "clientName": "Sras. Maria Clara & Ana milena",
+      "status": "draft",
+      "createdAt": "2026-03-08 02:25:14"
+    },
+    {
+      "id": "2670301",
+      "quotationNumber": "COT-2026-1772833387900-2643089",
+      "clientName": "Carolina Diaz",
+      "status": "approved",
+      "createdAt": "2026-03-07 01:14:32"
+    },
+    {
+      "id": "2670300",
+      "quotationNumber": "COT-2026-1772833387899-2437183",
+      "clientName": "Juan Pablo González",
+      "status": "approved",
+      "createdAt": "2026-03-07 00:44:32"
+    },
+    {
+      "id": "2670299",
+      "quotationNumber": "COT-2026-1772833387898-7036206",
+      "clientName": "Alfredo Bolaños",
+      "status": "approved",
+      "createdAt": "2026-03-07 00:40:37"
+    },
+    {
+      "id": "2670298",
+      "quotationNumber": "COT-2026-1772833387897-0178652",
+      "clientName": "Oscar Urriago",
+      "status": "approved",
+      "createdAt": "2026-03-07 00:36:50"
+    },
+    {
+      "id": "2670297",
+      "quotationNumber": "COT-2026-1772833387896-9276683",
+      "clientName": "Sr. Harold",
+      "status": "approved",
+      "createdAt": "2026-03-07 00:23:49"
+    },
+    {
+      "id": "2670296",
+      "quotationNumber": "COT-2026-1772833387895-6830938",
+      "clientName": "Beatriz Paris",
+      "status": "approved",
+      "createdAt": "2026-03-07 00:17:36"
+    },
+    {
+      "id": "2670295",
+      "quotationNumber": "COT-2026-1772833387894-8915020",
+      "clientName": "Orlando Primacho",
+      "status": "approved",
+      "createdAt": "2026-03-07 00:11:08"
+    },
+    {
+      "id": "2670294",
+      "quotationNumber": "COT-2026-1772833387893-4870273",
+      "clientName": "Henry Morales",
+      "status": "approved",
+      "createdAt": "2026-03-07 00:04:04"
+    },
+    {
+      "id": "2670293",
+      "quotationNumber": "COT-2026-1772833387892-4673628",
+      "clientName": "Ruth Naranjo",
+      "status": "approved",
+      "createdAt": "2026-03-07 00:01:24"
+    },
+    {
+      "id": "2670292",
+      "quotationNumber": "COT-2026-1772833387891-2667628",
+      "clientName": "Felipe Quintero",
+      "status": "approved",
+      "createdAt": "2026-03-06 23:56:52"
+    },
+    {
+      "id": "2670291",
+      "quotationNumber": "COT-2026-1772833387890-1825427",
+      "clientName": "Diana Ortiz",
+      "status": "approved",
+      "createdAt": "2026-03-06 23:53:01"
+    },
+    {
+      "id": "2670290",
+      "quotationNumber": "COT-2026-1772833387889-1121614",
+      "clientName": "Sras. Maria Clara & Ana milena",
+      "status": "approved",
+      "createdAt": "2026-03-06 23:49:21"
+    },
+    {
+      "id": "2670289",
+      "quotationNumber": "COT-2026-1772833387888-6786153",
+      "clientName": "Sras. Maria Clara & Ana milena",
+      "status": "approved",
+      "createdAt": "2026-03-06 23:45:56"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tquotationNumber\tclientName\tstatus\tcreatedAt\n2820359\tCOT-QVS2-1773298213275-v4\tTest Client QVS2\tdraft\t2026-03-12 06:50:13\n2820356\tCOT-QVS2-1773298213275\tTest Client QVS2\tdraft\t2026-03-12 06:50:13\n2820360\tCOT-QVS2-1773298213275-v5\tTest Client QVS2\tdraft\t2026-03-12 06:50:13\n2820350\tCOT-2026-1773298209953-2405718\tTest Client Send 1773298209920\tsent\t2026-03-12 06:50:09\n2820349\tCOT-2026-1773298209889-1815324\tTest Client Quotation\tdraft\t2026-03-12 06:50:09\n2820338\tMANUAL-1773298205373\tManual Quotation Client\tdraft\t2026-03-12 06:50:05\n2820334\tCOT-QVS2-1773298175963-v5\tTest Client QVS2\tdraft\t2026-03-12 06:49:36\n2820333\tCOT-QVS2-1773298175963-v4\tTest Client QVS2\tdraft\t2026-03-12 06:49:36\n2820330\tCOT-QVS2-1773298175963\tTest Client QVS2\tdraft\t2026-03-12 06:49:35\n2820324\tCOT-2026-1773298173415-4056172\tTest Client Send 1773298173389\tsent\t2026-03-12 06:49:33\n2820323\tCOT-2026-1773298173359-2529001\tTest Client Quotation\tdraft\t2026-03-12 06:49:33\n2820312\tMANUAL-1773298168612\tManual Quotation Client\tdraft\t2026-03-12 06:49:28\n2820305\tCOT-QVS2-1773297815076\tTest Client QVS2\tdraft\t2026-03-12 06:43:35\n2820309\tCOT-QVS2-1773297815076-v5\tTest Client QVS2\tdraft\t2026-03-12 06:43:35\n2820308\tCOT-QVS2-1773297815076-v4\tTest Client QVS2\tdraft\t2026-03-12 06:43:35\n2820300\tCOT-2026-1773297813008-9587274\tTest Client Quotation\tdraft\t2026-03-12 06:43:33\n2820301\tCOT-2026-1773297813065-317646\tTest Client Send 1773297813038\tsent\t2026-03-12 06:43:33\n2820288\tMANUAL-1773297807257\tManual Quotation Client\tdraft\t2026-03-12 06:43:27\n2820281\tCOT-QVS2-1773297786718\tTest Client QVS2\tdraft\t2026-03-12 06:43:06\n2820284\tCOT-QVS2-1773297786718-v4\tTest Client QVS2\tdraft\t2026-03-12 06:43:06\n2820285\tCOT-QVS2-1773297786718-v5\tTest Client QVS2\tdraft\t2026-03-12 06:43:06\n2820276\tCOT-2026-1773297783418-2172384\tTest Client Send 1773297783393\tsent\t2026-03-12 06:43:03\n2820264\tMANUAL-1773297778882\tManual Quotation Client\tdraft\t2026-03-12 06:42:58\n2820257\tCOT-2026-1773297712234-5168987\tCliente Test Cotización\tdraft\t2026-03-12 06:41:52\n2820254\tCOT-2026-1773297705118-2928910\tCliente Test Cotización\tdraft\t2026-03-12 06:41:45\n2790003\tCOT-2026-1773256745475-3501420\tAndres Salazar\tdraft\t2026-03-11 19:19:05\n2790002\tCOT-2026-1773254472674-1307560-v2\tLina Paez\tdraft\t2026-03-11 18:44:17\n2790001\tCOT-2026-1773254472674-1307560\tLina Paez\tdraft\t2026-03-11 18:41:12\n2760002\tCOT-2026-1773253317540-3034338\tJhonier Cardona\tdraft\t2026-03-11 18:21:57\n2730001\tCOT-2026-1772833387901-4386134-v2\tSras. Maria Clara & Ana milena\tdraft\t2026-03-09 17:20:35\n2700001\tCOT-2026-1772833387901-4386134\tSras. Maria Clara & Ana milena\tdraft\t2026-03-08 02:25:14\n2670301\tCOT-2026-1772833387900-2643089\tCarolina Diaz\tapproved\t2026-03-07 01:14:32\n2670300\tCOT-2026-1772833387899-2437183\tJuan Pablo González\tapproved\t2026-03-07 00:44:32\n2670299\tCOT-2026-1772833387898-7036206\tAlfredo Bolaños\tapproved\t2026-03-07 00:40:37\n2670298\tCOT-2026-1772833387897-0178652\tOscar Urriago\tapproved\t2026-03-07 00:36:50\n2670297\tCOT-2026-1772833387896-9276683\tSr. Harold\tapproved\t2026-03-07 00:23:49\n2670296\tCOT-2026-1772833387895-6830938\tBeatriz Paris\tapproved\t2026-03-07 00:17:36\n2670295\tCOT-2026-1772833387894-8915020\tOrlando Primacho\tapproved\t2026-03-07 00:11:08\n2670294\tCOT-2026-1772833387893-4870273\tHenry Morales\tapproved\t2026-03-07 00:04:04\n2670293\tCOT-2026-1772833387892-4673628\tRuth Naranjo\tapproved\t2026-03-07 00:01:24\n2670292\tCOT-2026-1772833387891-2667628\tFelipe Quintero\tapproved\t2026-03-06 23:56:52\n2670291\tCOT-2026-1772833387890-1825427\tDiana Ortiz\tapproved\t2026-03-06 23:53:01\n2670290\tCOT-2026-1772833387889-1121614\tSras. Maria Clara & Ana milena\tapproved\t2026-03-06 23:49:21\n2670289\tCOT-2026-1772833387888-6786153\tSras. Maria Clara & Ana milena\tapproved\t2026-03-06 23:45:56\n",
+  "stderr": "",
+  "execution_time_ms": 59
+}

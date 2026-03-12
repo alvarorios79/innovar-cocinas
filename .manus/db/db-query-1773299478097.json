@@ -1,0 +1,9 @@
+{
+  "query": "UPDATE clients \nSET deletedAt = NOW()\nWHERE deletedAt IS NULL\nAND (\n  name LIKE 'Cliente Test%'\n  OR name LIKE 'Test Client%'\n  OR name LIKE 'Manual Client%'\n  OR name LIKE 'Manual Mix Client%'\n  OR name LIKE 'Manual Quotation Client%'\n  OR name LIKE 'DataOrigin Test Client%'\n  OR name LIKE 'System Test Client%'\n  OR name LIKE 'Test Manual Client%'\n  OR name LIKE 'Test User%'\n  OR name LIKE 'Cliente Duplicado%'\n  OR name LIKE 'Cliente Timezone Test%'\n  OR name LIKE 'New Name Only%'\n  OR name = 'Manuel Nope'\n);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute UPDATE clients \nSET deletedAt = NOW()\nWHERE deletedAt IS NULL\nAND (\n  name LIKE 'Cliente Test%'\n  OR name LIKE 'Test Client%'\n  OR name LIKE 'Manual Client%'\n  OR name LIKE 'Manual Mix Client%'\n  OR name LIKE 'Manual Quotation Client%'\n  OR name LIKE 'DataOrigin Test Client%'\n  OR name LIKE 'System Test Client%'\n  OR name LIKE 'Test Manual Client%'\n  OR name LIKE 'Test User%'\n  OR name LIKE 'Cliente Duplicado%'\n  OR name LIKE 'Cliente Timezone Test%'\n  OR name LIKE 'New Name Only%'\n  OR name = 'Manuel Nope'\n);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 69
+}

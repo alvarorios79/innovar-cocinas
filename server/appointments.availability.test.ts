@@ -9,6 +9,7 @@ describe("Validación de disponibilidad horaria", () => {
   beforeEach(async () => {
     // Crear cliente de prueba
     testClientId = await db.createClient({
+      dataOrigin: 'system',
       name: "Cliente Test Horario",
       whatsappPhone: "3001112222",
     });
@@ -45,6 +46,7 @@ describe("Validación de disponibilidad horaria", () => {
 
     // Agendar cita
     testAppointmentId = await db.createAppointment({
+      dataOrigin: 'system',
       clientId: testClientId,
       workTypes: ["cocina"],
       scheduledDate: date,
@@ -66,6 +68,7 @@ describe("Validación de disponibilidad horaria", () => {
 
     // Agendar cita
     testAppointmentId = await db.createAppointment({
+      dataOrigin: 'system',
       clientId: testClientId,
       workTypes: ["closet"],
       scheduledDate: date,
@@ -117,6 +120,7 @@ describe("Validación de disponibilidad horaria", () => {
     const dateStr = `2026-01-20T08:30:00-05:00`;
     const appointmentDate = new Date(dateStr);
     testAppointmentId = await db.createAppointment({
+      dataOrigin: 'system',
       clientId: testClientId,
       workTypes: ["puertas"],
       scheduledDate: appointmentDate,

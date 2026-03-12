@@ -11,6 +11,7 @@ describe("Auto-registro de usuarios al crear cita", () => {
     // Crear un cliente de prueba sin userId
     testEmail = `test-${Date.now()}@example.com`;
     testClientId = await db.createClient({
+      dataOrigin: 'system',
       name: "Cliente Test Auto-registro",
       email: testEmail,
       whatsappPhone: `300${Math.floor(1000000 + Math.random() * 9000000)}`,
@@ -60,6 +61,7 @@ describe("Auto-registro de usuarios al crear cita", () => {
     
     // Crear usuario
     const userId = await db.createUserExtended({
+      dataOrigin: 'system',
       name: clientBefore!.name,
       email: clientBefore!.email!,
       role: "user",
@@ -85,6 +87,7 @@ describe("Auto-registro de usuarios al crear cita", () => {
   it("no debe crear usuario duplicado si ya existe uno con el mismo email", async () => {  
     // Crear usuario manualmente primero
     const existingUserId = await db.createUserExtended({
+      dataOrigin: 'system',
       name: "Usuario Existente",
       email: testEmail,
       role: "user",

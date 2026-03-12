@@ -5,6 +5,7 @@ describe("Quotations System", () => {
   it("should generate quotation number automatically", async () => {
     // Crear cliente de prueba
     const clientId = await db.createClient({
+      dataOrigin: 'system',
       userId: null,
       name: "Cliente Test Cotización",
       email: "test@cotizacion.com",
@@ -14,6 +15,7 @@ describe("Quotations System", () => {
 
     // Crear usuario de prueba para createdBy
     const userId = await db.createUserExtended({
+      dataOrigin: 'system',
       name: "Admin Test",
       email: "admin-quot-test@test.com",
       role: "admin",
@@ -21,6 +23,7 @@ describe("Quotations System", () => {
 
     // Crear cotización sin especificar quotationNumber
     const quotationId = await db.createQuotation({
+      dataOrigin: 'system',
       clientId,
       vendorName: "Alvaro Gutierrez",
       workType: "Cocina Integral Test",
@@ -37,7 +40,7 @@ describe("Quotations System", () => {
     // Verificar que se generó el número automáticamente
     const quotation = await db.getQuotationById(quotationId);
     expect(quotation).toBeDefined();
-    expect(quotation?.quotationNumber).toMatch(/^COT-\d{4}-\d+$/);
+    expect(quotation?.quotationNumber).toMatch(/^COT-\d{4}-\d+-\d+$/);
     expect(quotation?.vendorName).toBe("Alvaro Gutierrez");
     expect(quotation?.status).toBe("draft");
 
@@ -50,6 +53,7 @@ describe("Quotations System", () => {
   it("should create and manage quotation items", async () => {
     // Crear cliente de prueba
     const clientId = await db.createClient({
+      dataOrigin: 'system',
       userId: null,
       name: "Cliente Test Items",
       email: "test@items.com",
@@ -59,6 +63,7 @@ describe("Quotations System", () => {
 
     // Crear usuario de prueba para createdBy
     const userId = await db.createUserExtended({
+      dataOrigin: 'system',
       name: "Admin Test Items",
       email: "admin-items-test@test.com",
       role: "admin",
@@ -66,6 +71,7 @@ describe("Quotations System", () => {
 
     // Crear cotización
     const quotationId = await db.createQuotation({
+      dataOrigin: 'system',
       clientId,
       vendorName: "Martha Serna",
       workType: "Closet",

@@ -11,14 +11,16 @@ describe("clients.update", () => {
   beforeAll(async () => {
     // Crear usuario admin de prueba
     testUserId = await db_module.createUserExtended({
+      dataOrigin: 'system',
       name: "Test Admin",
       email: "admin-update-test@test.com",
       role: "admin",
-      passwordHash: "hash",
+      password: "hash",
     });
 
     // Crear cliente de prueba
     testClientId = await db_module.createClient({
+      dataOrigin: 'system',
       name: "Original Name",
       email: "original@test.com",
       whatsappPhone: "3001234567",

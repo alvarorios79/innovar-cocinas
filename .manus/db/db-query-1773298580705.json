@@ -1,0 +1,9 @@
+{
+  "query": "UPDATE clients \nSET deletedAt = NOW()\nWHERE deletedAt IS NULL\nAND name NOT IN (\n  'Lina Paez', 'Lina Páez',\n  'Jhonier Cardona',\n  'Carolina Diaz', 'Carolina Díaz',\n  'Juan Pablo González', 'Juan Pablo Gonzalez',\n  'Alfredo Bolaños', 'Alfredo Bolanos',\n  'Oscar Urriago',\n  'Sr. Harold', 'Harold',\n  'Diana Ortiz',\n  'Sras. Maria Clara & Ana milena', 'Maria Clara',\n  'Felipe Quintero',\n  'Ruth Naranjo',\n  'Henry Morales',\n  'Orlando Primacho',\n  'Beatriz Paris', 'Beatriz París'\n);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute UPDATE clients \nSET deletedAt = NOW()\nWHERE deletedAt IS NULL\nAND name NOT IN (\n  'Lina Paez', 'Lina Páez',\n  'Jhonier Cardona',\n  'Carolina Diaz', 'Carolina Díaz',\n  'Juan Pablo González', 'Juan Pablo Gonzalez',\n  'Alfredo Bolaños', 'Alfredo Bolanos',\n  'Oscar Urriago',\n  'Sr. Harold', 'Harold',\n  'Diana Ortiz',\n  'Sras. Maria Clara & Ana milena', 'Maria Clara',\n  'Felipe Quintero',\n  'Ruth Naranjo',\n  'Henry Morales',\n  'Orlando Primacho',\n  'Beatriz Paris', 'Beatriz París'\n);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 76
+}

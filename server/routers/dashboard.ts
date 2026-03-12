@@ -29,7 +29,13 @@ export const dashboardRouter = router({
 
       // Obtener datos del dashboard
       const financialData = await getGlobalFinancialDashboard();
-      const cashFlowData = await getCashFlowData();
+      const cashFlowRaw = await getCashFlowData();
+      // Transformar al formato que usa el frontend: { label, ingresos, egresos }
+      const cashFlowData = cashFlowRaw.map((m: any) => ({
+        label: m.month,
+        ingresos: m.inflow,
+        egresos: m.outflow,
+      }));
 
       return {
         ...financialData,

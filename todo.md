@@ -5316,3 +5316,18 @@ Listo para pasar a Fase 7.2 (Intelligent Alerts) cuando sea requerido.
 - [x] Corregir errores en archivos del servidor (business-days.ts, reminders-service.ts, overdue-changes-service.ts, routers/appointments.ts, routers/expenses.ts, routers/payments.ts, routers/projects.ts, routers/quotations.ts, routers/quotations-versioning.ts, routers/hardwareCatalog.ts, routers/backups.ts, routers/dataProtection.ts, routers/financialSettings.ts)
 - [x] Corregir errores en archivos del cliente (Admin.tsx, PricingConfig.tsx, ProjectDetail.tsx, Projects.tsx, ProjectInlineDetail.tsx)
 - [x] Compilación TypeScript limpia: 0 errores (reducción de 225 → 0)
+
+## Fase 1: Corrección Quirúrgica de Tests — 12 de Marzo de 2026
+
+- [ ] Corregir tests con ER_DUP_ENTRY en openId (usar UUID único por test)
+- [ ] Corregir tests con funciones renombradas (getAllHardware, getPaymentsByProjectId, getAllNotifications)
+- [ ] Corregir tests de getCashFlowData (lógica de mes futuro)
+- [ ] Corregir movements.test.ts (función renombrada)
+- [ ] Corregir tests de archive/archive-sync (.returning no disponible en MySQL)
+- [ ] Verificar suite completa: meta 0 tests fallidos
+
+## Corrección dataOrigin en tests — 12 de Marzo de 2026
+
+- [ ] Corregir todos los archivos de test para usar dataOrigin='system' en createProject, createClient, createUser, createQuotation, createAppointment, etc.
+- [ ] Verificar que los tests pasan y que los registros creados tienen dataOrigin='system'
+- [ ] Guardar checkpoint con la corrección aplicada

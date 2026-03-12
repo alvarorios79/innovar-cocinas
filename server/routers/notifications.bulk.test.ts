@@ -4,6 +4,7 @@ import * as db from "../db";
 import { users } from "../../drizzle/schema";
 import { getDb } from "../db";
 import { eq } from "drizzle-orm";
+import { randomUUID } from "crypto";
 import { notifications } from "../../drizzle/schema";
 
 function createContext(overrides?: any) {
@@ -31,7 +32,8 @@ describe("Notifications Bulk Deletion", () => {
       email: "bulk-test@example.com",
       name: "Bulk Test User",
       role: "super_admin",
-      openId: "test-openid-bulk",
+      openId: randomUUID(),
+      dataOrigin: "system",
       createdAt: new Date(),
       updatedAt: new Date(),
     });

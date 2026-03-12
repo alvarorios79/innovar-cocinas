@@ -9,6 +9,7 @@ describe("Quotations Edit Functionality", () => {
   beforeAll(async () => {
     // Crear usuario de prueba para createdBy
     testUserId = await db.createUserExtended({
+      dataOrigin: 'system',
       name: "Admin Test Edit",
       email: "admin-edit-test@test.com",
       role: "admin",
@@ -21,6 +22,7 @@ describe("Quotations Edit Functionality", () => {
     } else {
       // Crear cliente si no existe
       testClientId = await db.createClient({
+      dataOrigin: 'system',
         userId: null,
         name: "Cliente Test Edit",
         email: "test-edit@test.com",
@@ -29,12 +31,11 @@ describe("Quotations Edit Functionality", () => {
     }
 
     // Crear cotización de prueba
-    const quotationNumber = await db.getNextQuotationNumber();
     const validUntil = new Date();
     validUntil.setDate(validUntil.getDate() + 7);
 
     testQuotationId = await db.createQuotation({
-      quotationNumber,
+      dataOrigin: 'system',
       clientId: testClientId,
       vendorName: "Alvaro Gutierrez",
       workType: "Cocina Integral",

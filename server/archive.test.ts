@@ -1,65 +1,64 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import * as db from "./db";
 import { getDb } from "./db";
-import { projects, quotations, clients } from "../drizzle/schema";
+import { projects, quotations } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
 
 describe("Archive functionality", () => {
   let testProjectId: number;
   let testQuotationId: number;
   let testClientId: number;
+  let testUserId: number;
 
   beforeAll(async () => {
-    const database = await getDb();
-    if (!database) throw new Error("Database not available");
+    // Crear usuario de prueba
+    testUserId = await db.createUserExtended({
+      dataOrigin: 'system',
+      name: "Admin Test Archive",
+      email: "admin-archive-test@test.com",
+      role: "admin",
+    });
 
-    // Crear cliente de prueba
-    const clientResult = await database
-      .insert(clients)
-      .values({
-        name: "Test Client Archive",
-        email: "test-archive@example.com",
-        phone: "3001234567",
-        createdAt: new Date(),
-      })
-      .returning({ id: clients.id });
-    testClientId = clientResult[0].id;
+    // Crear cliente de prueba usando db.createClient (usa insertId, no .returning())
+    testClientId = await db.createClient({
+      dataOrigin: 'system',
+      name: "Test Client Archive",
+      email: "test-archive@example.com",
+      whatsappPhone: "3001234567",
+    });
 
-    // Crear proyecto de prueba
-    const projectResult = await database
-      .insert(projects)
-      .values({
-        clientId: testClientId,
-        name: "Test Project Archive",
-        status: "entregado",
-        workType: "cocina",
-        isArchived: 0,
-        createdAt: new Date(),
-      })
-      .returning({ id: projects.id });
-    testProjectId = projectResult[0].id;
+    // Crear proyecto de prueba usando db.createProject
+    testProjectId = await db.createProject({
+      dataOrigin: 'system',
+      clientId: testClientId,
+      name: "Test Project Archive",
+      status: "entregado",
+      workType: "cocina",
+      isArchived: 0,
+      createdBy: testUserId,
+    });
 
-    // Crear cotización de prueba
-    const quotationResult = await database
-      .insert(quotations)
-      .values({
-        clientId: testClientId,
-        quotationNumber: "TEST-ARCHIVE-001",
-        status: "aprobada",
-        isArchived: 0,
-        createdAt: new Date(),
-      })
-      .returning({ id: quotations.id });
-    testQuotationId = quotationResult[0].id;
+    // Crear cotización de prueba usando db.createQuotation
+    testQuotationId = await db.createQuotation({
+      dataOrigin: 'system',
+      clientId: testClientId,
+      vendorName: "Test Vendor",
+      workType: "cocina",
+      status: "draft",
+      subtotal: "1000000",
+      total: "1000000",
+      createdBy: testUserId,
+    });
   });
 
   afterAll(async () => {
     const database = await getDb();
     if (!database) return;
 
-    await database.delete(projects).where(eq(projects.id, testProjectId));
-    await database.delete(quotations).where(eq(quotations.id, testQuotationId));
-    await database.delete(clients).where(eq(clients.id, testClientId));
+    await database.delete(projects).where(eq(projects.id, testProjectId)).catch(() => {});
+    await database.delete(quotations).where(eq(quotations.id, testQuotationId)).catch(() => {});
+    await db.deleteClient(testClientId).catch(() => {});
+    await db.deleteUser(testUserId).catch(() => {});
   });
 
   it("should archive a project and include it in archived results", async () => {
@@ -81,7 +80,7 @@ describe("Archive functionality", () => {
     const activeResults = await db.getAllProjectsPaginated({
       archived: false,
     });
-    const foundInActive = activeResults.data.some(
+    const foundInActive = (activeResults?.data || []).some(
       (p) => p.id === testProjectId
     );
     expect(foundInActive).toBe(false);
@@ -90,7 +89,7 @@ describe("Archive functionality", () => {
     const archivedResults = await db.getAllProjectsPaginated({
       archived: true,
     });
-    const foundInArchived = archivedResults.data.some(
+    const foundInArchived = (archivedResults?.data || []).some(
       (p) => p.id === testProjectId
     );
     expect(foundInArchived).toBe(true);
@@ -118,7 +117,7 @@ describe("Archive functionality", () => {
     const activeResults = await db.getAllQuotationsGroupedByBase({
       archived: false,
     });
-    const foundInActive = activeResults.data.some(
+    const foundInActive = (activeResults?.data || []).some(
       (group) => group.baseQuotationId === testQuotationId
     );
     expect(foundInActive).toBe(false);

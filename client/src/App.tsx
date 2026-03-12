@@ -5,7 +5,7 @@ import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
-import { WhatsAppButton } from "./components/WhatsAppButton";
+
 import { MobileBottomNavigation } from "./components/navigation/MobileBottomNavigation";
 import { OfflineIndicator } from "./components/OfflineIndicator";
 import Home from "./pages/Home";
@@ -79,7 +79,6 @@ function App() {
         <TooltipProvider>
           <Toaster />
           <Router />
-          <WhatsAppButton />
           <MobileBottomNavigation />
           <OfflineIndicator />
         </TooltipProvider>

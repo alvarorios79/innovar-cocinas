@@ -245,7 +245,7 @@ export default function Accounting() {
   const canEditDelete = user && ["admin", "super_admin"].includes(user.role);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
+    <div className="min-h-screen pb-20 md:pb-0 bg-gradient-to-b from-slate-50 to-slate-100">
       <ExpenseImportModal
         open={importModalOpen}
         onOpenChange={setImportModalOpen}

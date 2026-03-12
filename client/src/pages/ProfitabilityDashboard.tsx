@@ -133,7 +133,7 @@ export default function ProfitabilityDashboard() {
   const scale = maxValue > 0 ? 100 / maxValue : 1;
 
   return (
-    <div className="min-h-screen bg-background p-6">
+    <div className="min-h-screen pb-20 md:pb-0 bg-background p-6">
       <div className="max-w-7xl mx-auto">
         <PageHeader
           title="📊 Dashboard de Rentabilidad"

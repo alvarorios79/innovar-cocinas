@@ -295,7 +295,7 @@ export default function Comercial() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-rose-50">
+    <div className="min-h-screen pb-20 md:pb-0 bg-gradient-to-br from-pink-50 via-white to-rose-50">
       {/* Header */}
       <header className="border-b bg-white/95 backdrop-blur-md sticky top-0 z-50 shadow-sm">
         <div className="container">

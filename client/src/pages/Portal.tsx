@@ -476,7 +476,7 @@ export default function Portal() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen pb-20 md:pb-0 bg-background">
       {/* Header */}
       <header className="border-b">
         <div className="container flex h-14 md:h-16 items-center justify-between px-3 md:px-4">

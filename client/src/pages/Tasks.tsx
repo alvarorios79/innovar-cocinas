@@ -865,7 +865,7 @@ export default function Tasks() {
   );
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen pb-20 md:pb-0 bg-background">
       {/* AlertDialog de confirmación para enviar recordatorio */}
       <AlertDialog open={reminderConfirm.open} onOpenChange={(open) => setReminderConfirm({ ...reminderConfirm, open })}>
         <AlertDialogContent>

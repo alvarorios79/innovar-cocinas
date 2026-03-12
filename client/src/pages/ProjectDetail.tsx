@@ -543,7 +543,7 @@ export default function ProjectDetail() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen pb-20 md:pb-0 bg-background">
       
       <FileViewer
         files={fileViewer.files}

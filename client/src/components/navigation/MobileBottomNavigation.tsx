@@ -1,16 +1,33 @@
 import { useLocation } from "wouter";
-import { useRouter } from "wouter";
 import { Home, FolderOpen, FileText, Users, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { useState, useEffect } from "react";
 
 export function MobileBottomNavigation() {
   const [location] = useLocation();
   const [, setLocation] = useLocation();
   const { user } = useAuth();
+  const [isMobile, setIsMobile] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
 
-  // Solo mostrar en pantallas móviles (< 768px)
-  const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+  // Detectar pantalla móvil y cambios de tamaño
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  // Animar al cambiar de ruta
+  useEffect(() => {
+    setIsAnimating(true);
+    const timer = setTimeout(() => setIsAnimating(false), 300);
+    return () => clearTimeout(timer);
+  }, [location]);
 
   if (!isMobile || !user) return null;
 
@@ -25,9 +42,14 @@ export function MobileBottomNavigation() {
   ];
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-border md:hidden z-40 safe-area-inset-bottom">
+    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-border md:hidden z-40 safe-area-inset-bottom shadow-lg">
+      {/* Línea de indicador de carga */}
+      {isAnimating && (
+        <div className="absolute top-0 left-0 h-0.5 bg-gradient-to-r from-accent via-accent to-transparent animate-pulse" />
+      )}
+
       <div className="flex justify-around items-center h-16">
-        {navItems.map((item) => {
+        {navItems.map((item, index) => {
           const Icon = item.icon;
           const active = isActive(item.path);
 
@@ -36,17 +58,54 @@ export function MobileBottomNavigation() {
               key={item.path}
               variant="ghost"
               size="sm"
-              className={`flex flex-col items-center gap-1 h-full rounded-none flex-1 ${
-                active ? "bg-accent text-accent-foreground" : "text-muted-foreground"
+              className={`flex flex-col items-center gap-1 h-full rounded-none flex-1 transition-all duration-300 ease-in-out relative group ${
+                active
+                  ? "bg-accent/10 text-accent-foreground"
+                  : "text-muted-foreground hover:bg-accent/5"
               }`}
               onClick={() => setLocation(item.path)}
+              style={{
+                animation: active ? `slideUp 0.3s ease-out ${index * 0.05}s` : "none",
+              }}
             >
-              <Icon className="w-5 h-5" />
-              <span className="text-xs font-medium">{item.label}</span>
+              {/* Icono con animación */}
+              <Icon
+                className={`w-5 h-5 transition-all duration-300 ${
+                  active ? "scale-110 animate-bounce" : "scale-100 group-hover:scale-105"
+                }`}
+              />
+
+              {/* Etiqueta con animación */}
+              <span
+                className={`text-xs font-medium transition-all duration-300 ${
+                  active ? "font-bold" : "font-medium"
+                }`}
+              >
+                {item.label}
+              </span>
+
+              {/* Indicador de ruta activa */}
+              {active && (
+                <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-accent rounded-full animate-pulse" />
+              )}
             </Button>
           );
         })}
       </div>
+
+      {/* Estilos de animación */}
+      <style>{`
+        @keyframes slideUp {
+          from {
+            opacity: 0;
+            transform: translateY(4px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
     </div>
   );
 }

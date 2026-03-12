@@ -1,4 +1,5 @@
-import { Toaster } from "@/components/ui/sonner";
+import { Toaster } from "sonner";
+import React from "react";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
@@ -6,6 +7,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { WhatsAppButton } from "./components/WhatsAppButton";
 import { MobileBottomNavigation } from "./components/navigation/MobileBottomNavigation";
+import { OfflineIndicator } from "./components/OfflineIndicator";
 import Home from "./pages/Home";
 import Admin from "./pages/Admin";
 import Portal from "./pages/Portal";
@@ -57,6 +59,20 @@ function Router() {
 }
 
 function App() {
+  // Registrar Service Worker para soporte offline
+  React.useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker
+        .register('/service-worker.js')
+        .then((registration) => {
+          console.log('[App] Service Worker registrado:', registration);
+        })
+        .catch((error) => {
+          console.error('[App] Error al registrar Service Worker:', error);
+        });
+    }
+  }, []);
+
   return (
     <ErrorBoundary>
       <ThemeProvider defaultTheme="light">
@@ -65,6 +81,7 @@ function App() {
           <Router />
           <WhatsAppButton />
           <MobileBottomNavigation />
+          <OfflineIndicator />
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>

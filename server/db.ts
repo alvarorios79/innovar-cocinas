@@ -2409,3 +2409,24 @@ export async function restoreClient(clientId: number, userId?: number) {
     });
   }
 }
+
+// Restore a project from recycle bin
+export async function restoreProject(projectId: number, userId?: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.update(projects)
+    .set({ deletedAt: null })
+    .where(eq(projects.id, projectId));
+  
+  // Log to audit log if userId provided
+  if (userId) {
+    await db.insert(auditLogs).values({
+      userId,
+      action: "restore",
+      recordType: "projects",
+      recordId: projectId,
+      timestamp: new Date().toISOString(),
+    });
+  }
+}

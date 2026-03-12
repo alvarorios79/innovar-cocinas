@@ -31,15 +31,13 @@ export const dataProtectionRouter = router({
     }),
 
   getDeletedTasks: protectedProcedure
-    .input(z.object({ limit: z.number().default(100) }))
-    .query(async ({ input }) => {
-      return await db.getDeletedTasks(input.limit);
+    .query(async () => {
+      return await db.getDeletedTasks();
     }),
 
   getDeletedExpenses: protectedProcedure
-    .input(z.object({ limit: z.number().default(100) }))
-    .query(async ({ input }) => {
-      return await db.getDeletedExpenses(input.limit);
+    .query(async () => {
+      return await db.getDeletedExpenses();
     }),
 
   // ============ RECYCLE BIN - RESTORE RECORDS ============
@@ -68,20 +66,6 @@ export const dataProtectionRouter = router({
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: error.message || "Error al restaurar proyecto",
-        });
-      }
-    }),
-
-  restoreClient: protectedProcedure
-    .input(z.object({ clientId: z.number() }))
-    .mutation(async ({ input, ctx }) => {
-      try {
-        await db.restoreClient(input.clientId, ctx.user.id);
-        return { success: true, message: "Cliente restaurado exitosamente" };
-      } catch (error: any) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: error.message || "Error al restaurar cliente",
         });
       }
     }),

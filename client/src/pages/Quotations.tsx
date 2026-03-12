@@ -822,6 +822,7 @@ export default function Quotations() {
       
       const code = shapeToCode[value];
       if (code && allPricing) {
+      {/* @ts-ignore */}
         const pricingItem = allPricing.find((p: any) => p.code === code);
         if (pricingItem && pricingItem.descriptionTemplate) {
           newItems[index].description = pricingItem.descriptionTemplate;

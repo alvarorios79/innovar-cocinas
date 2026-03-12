@@ -1,0 +1,34 @@
+{
+  "query": "SELECT dataOrigin, COUNT(*) as total FROM projects GROUP BY dataOrigin; SELECT dataOrigin, COUNT(*) as total FROM clients GROUP BY dataOrigin; SELECT dataOrigin, COUNT(*) as total FROM quotations GROUP BY dataOrigin;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT dataOrigin, COUNT(*) as total FROM projects GROUP BY dataOrigin; SELECT dataOrigin, COUNT(*) as total FROM clients GROUP BY dataOrigin; SELECT dataOrigin, COUNT(*) as total FROM quotations GROUP BY dataOrigin;",
+  "rows": [
+    {
+      "dataOrigin": "manual",
+      "total": "71"
+    },
+    {
+      "dataOrigin": "dataOrigin",
+      "total": "total"
+    },
+    {
+      "dataOrigin": "system",
+      "total": "1"
+    },
+    {
+      "dataOrigin": "manual",
+      "total": "769"
+    },
+    {
+      "dataOrigin": "dataOrigin",
+      "total": "total"
+    },
+    {
+      "dataOrigin": "manual",
+      "total": "196"
+    }
+  ],
+  "messages": [],
+  "stdout": "dataOrigin\ttotal\nmanual\t71\ndataOrigin\ttotal\nsystem\t1\nmanual\t769\ndataOrigin\ttotal\nmanual\t196\n",
+  "stderr": "",
+  "execution_time_ms": 127
+}

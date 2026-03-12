@@ -1,0 +1,9 @@
+{
+  "query": "DELETE FROM appointments WHERE dataOrigin = 'system'; DELETE FROM projectDetails WHERE projectId IN (SELECT id FROM projects WHERE dataOrigin = 'system'); DELETE FROM projectPhotos WHERE projectId IN (SELECT id FROM projects WHERE dataOrigin = 'system'); DELETE FROM projectMaterials WHERE projectId IN (SELECT id FROM projects WHERE dataOrigin = 'system'); DELETE FROM quotations WHERE dataOrigin = 'system'; DELETE FROM projects WHERE dataOrigin = 'system'; DELETE FROM clients WHERE dataOrigin = 'system'; DELETE FROM expenses WHERE dataOrigin = 'system';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute DELETE FROM appointments WHERE dataOrigin = 'system'; DELETE FROM projectDetails WHERE projectId IN (SELECT id FROM projects WHERE dataOrigin = 'system'); DELETE FROM projectPhotos WHERE projectId IN (SELECT id FROM projects WHERE dataOrigin = 'system'); DELETE FROM projectMaterials WHERE projectId IN (SELECT id FROM projects WHERE dataOrigin = 'system'); DELETE FROM quotations WHERE dataOrigin = 'system'; DELETE FROM projects WHERE dataOrigin = 'system'; DELETE FROM clients WHERE dataOrigin = 'system'; DELETE FROM expenses WHERE dataOrigin = 'system';",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 111
+}

@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import * as db from "../db";
 import { appRouter } from "../routers";
 
-describe.skip("projectDetails router", () => {
+describe("projectDetails router", () => {
   let testProjectId: number;
   let testUserId: number;
 
@@ -35,7 +35,7 @@ describe.skip("projectDetails router", () => {
       res: {} as any,
     });
 
-    const result = await caller.create({
+    const result = await caller.projectDetails.create({
       projectId: testProjectId,
       type: "nota_importante",
       title: "Test Note",
@@ -46,7 +46,7 @@ describe.skip("projectDetails router", () => {
     expect(result).toEqual({ success: true });
 
     // Verify the detail was created
-    const details = await caller.getByProject({ projectId: testProjectId });
+    const details = await caller.projectDetails.getByProject({ projectId: testProjectId });
     const testDetail = details.find((d) => d.title === "Test Note");
     expect(testDetail).toBeDefined();
     expect(testDetail?.content).toBe("This is a test note");
@@ -66,7 +66,7 @@ describe.skip("projectDetails router", () => {
     });
 
     try {
-      await caller.create({
+      await caller.projectDetails.create({
         projectId: testProjectId,
         type: "nota_importante",
         title: "", // Empty title
@@ -93,7 +93,7 @@ describe.skip("projectDetails router", () => {
     });
 
     try {
-      await caller.create({
+      await caller.projectDetails.create({
         projectId: testProjectId,
         type: "nota_importante",
         title: "Test Note",

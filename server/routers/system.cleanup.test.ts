@@ -4,7 +4,7 @@ import { getDb } from "../db";
 import { clients, quotations, projects, appointments, users } from "../../drizzle/schema";
 import { eq } from "drizzle-orm";
 
-describe.skip("System Router - cleanupData", () => {
+describe("System Router - cleanupData", () => {
   let db: any;
   let superAdminUser: any;
   let regularUser: any;
@@ -18,12 +18,14 @@ describe.skip("System Router - cleanupData", () => {
       .insert(users)
       .values([
         {
+          openId: "admin-test-cleanup",
           email: "admin@test.com",
           password: "hashed_password",
           role: "super_admin",
           dataOrigin: "manual",
         },
         {
+          openId: "user-test-cleanup",
           email: "user@test.com",
           password: "hashed_password",
           role: "user",
@@ -68,6 +70,7 @@ describe.skip("System Router - cleanupData", () => {
       .values({
         name: "Test Client System",
         email: "test@system.com",
+        whatsappPhone: "573001234567",
         dataOrigin: "system",
         createdBy: superAdminUser.id,
       });
@@ -103,12 +106,17 @@ describe.skip("System Router - cleanupData", () => {
   });
 
   it("should only delete system data, not manual data", async () => {
-    // Create system and manual data
+    // Create system and manual data con emails únicos
+    const timestamp = Date.now();
+    const systemEmail = `system-cleanup-${timestamp}@test.com`;
+    const manualEmail = `manual-cleanup-${timestamp}@test.com`;
+    
     const systemClient = await db
       .insert(clients)
       .values({
         name: "System Client",
-        email: "system@test.com",
+        email: systemEmail,
+        whatsappPhone: "573001111111",
         dataOrigin: "system",
         createdBy: superAdminUser.id,
       });
@@ -117,7 +125,8 @@ describe.skip("System Router - cleanupData", () => {
       .insert(clients)
       .values({
         name: "Manual Client",
-        email: "manual@test.com",
+        email: manualEmail,
+        whatsappPhone: "573002222222",
         dataOrigin: "manual",
         createdBy: superAdminUser.id,
       });
@@ -135,7 +144,7 @@ describe.skip("System Router - cleanupData", () => {
     const remainingClients = await db
       .select()
       .from(clients)
-      .where(eq(clients.email, "manual@test.com"));
+      .where(eq(clients.email, manualEmail));
 
     expect(remainingClients.length).toBe(1);
     expect(remainingClients[0].dataOrigin).toBe("manual");
@@ -144,7 +153,7 @@ describe.skip("System Router - cleanupData", () => {
     const deletedClients = await db
       .select()
       .from(clients)
-      .where(eq(clients.email, "system@test.com"));
+      .where(eq(clients.email, systemEmail));
 
     expect(deletedClients.length).toBe(0);
   });

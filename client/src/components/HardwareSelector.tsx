@@ -337,8 +337,8 @@ export function HardwareSelector({ projectId, readOnly = false, showOnlySelected
                   className="flex items-center justify-between p-2 bg-muted/50 rounded-lg"
                 >
                   <div className="flex items-center gap-2">
-                    {getCategoryIcon(selection.hardware.category)}
-                    <span className="font-medium text-sm">{selection.hardware.name}</span>
+                    {getCategoryIcon((selection as any)?.hardwareCategory)}
+                    <span className="font-medium text-sm">{(selection as any)?.hardwareName}</span>
                     {selection.selectedOption && (
                       <Badge variant="outline" className="text-xs">
                         {selection.selectedOption}

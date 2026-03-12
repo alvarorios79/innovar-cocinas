@@ -35,8 +35,8 @@ export const uploadRouter = router({
         const { storagePut } = await import("../storage");
         
         // Validar permisos si es para un proyecto
-        if (input.stage) {
-          if (!validatePhotoUploadPermission(ctx.user.role, input.stage, input.category)) {
+        if (input.category) {
+          if (!validatePhotoUploadPermission(ctx.user.role, input.category)) {
             throw new TRPCError({ 
               code: "FORBIDDEN", 
               message: "No tienes permisos para subir fotos en esta categoría" 
@@ -125,8 +125,8 @@ export const uploadRouter = router({
         const { storagePut } = await import("../storage");
         
         // Validar permisos
-        if (input.stage) {
-          if (!validatePhotoUploadPermission(ctx.user.role, input.stage, input.category)) {
+        if (input.category) {
+          if (!validatePhotoUploadPermission(ctx.user.role, input.category)) {
             throw new TRPCError({ 
               code: "FORBIDDEN", 
               message: "No tienes permisos para subir fotos en esta categoría" 

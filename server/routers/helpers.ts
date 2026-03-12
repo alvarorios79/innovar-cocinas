@@ -46,32 +46,72 @@ export function validateStatusChange(role: string, currentStatus: string, newSta
   return false;
 }
 
-// Validar permisos de subida de fotos según rol y etapa
-export function validatePhotoUploadPermission(role: string, stage: string, category?: string): boolean {
+// Validar permisos de lectura de fotos según rol y categoría
+export function validatePhotoViewPermission(role: string, category: string): boolean {
+  if (role === "super_admin" || role === "admin") {
+    return true;
+  }
+
+  if (role === "comercial" || role === "disenador") {
+    // Comercial y diseñador pueden ver todas las categorías
+    return true;
+  }
+
+  if (role === "jefe_taller" || role === "operario") {
+    // jefe_taller y operario pueden ver:
+    // - disenos: para ver planos, modelado, despiece (solo lectura)
+    // - avance: para ver y subir fotos de su trabajo
+    // - instalacion: para ver y subir fotos de su trabajo
+    // - entrega: para ver y subir fotos finales
+    return ["disenos", "avance", "instalacion", "entrega"].includes(category);
+  }
+
+  return false;
+}
+
+// Validar permisos de subida de fotos según rol y categoría
+export function validatePhotoUploadPermission(role: string, category: string): boolean {
   if (role === "super_admin" || role === "admin") {
     return true;
   }
 
   if (role === "comercial") {
-    // Comercial puede subir fotos de cotización y medidas en cualquier etapa
-    if (category && ["cotizacion", "medidas"].includes(category)) {
-      return true;
-    }
-    return false;
+    // Comercial puede subir fotos de cotización y medidas
+    return ["cotizacion", "medidas"].includes(category);
   }
 
   if (role === "disenador") {
-    return ["inicial", "diseno"].includes(stage);
+    // Diseñador puede subir fotos de diseño
+    return ["disenos"].includes(category);
   }
 
-  if (role === "jefe_taller") {
-    // jefe_taller puede subir en todas las etapas de producción
-    return ["corte", "enchape", "ensamble", "final"].includes(stage);
+  if (role === "jefe_taller" || role === "operario") {
+    // jefe_taller y operario pueden subir en:
+    // - avance: fotos de producción (corte, enchape, ensamble)
+    // - instalacion: fotos de instalación
+    // - entrega: fotos finales
+    return ["avance", "instalacion", "entrega"].includes(category);
   }
 
-  if (role === "operario") {
-    // operario puede subir en todas las etapas de producción incluyendo fotos finales y renders
-    return ["diseno", "corte", "enchape", "ensamble", "final"].includes(stage);
+  return false;
+}
+
+// Validar permisos de eliminación de fotos según rol y categoría
+export function validatePhotoDeletePermission(role: string, category: string, uploadedByUserId: number, currentUserId: number): boolean {
+  if (role === "super_admin" || role === "admin") {
+    return true;
+  }
+
+  if (role === "comercial" || role === "disenador") {
+    // Comercial y diseñador pueden eliminar sus propias fotos
+    return uploadedByUserId === currentUserId;
+  }
+
+  if (role === "jefe_taller" || role === "operario") {
+    // jefe_taller y operario solo pueden eliminar fotos que ellos subieron
+    // Y solo en categorías donde pueden subir (avance, instalacion, entrega)
+    const canDeleteCategories = ["avance", "instalacion", "entrega"];
+    return canDeleteCategories.includes(category) && uploadedByUserId === currentUserId;
   }
 
   return false;

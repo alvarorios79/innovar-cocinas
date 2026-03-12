@@ -1,0 +1,9 @@
+{
+  "query": "SELECT q.id, q.quotationNumber, q.clientId, q.total, q.createdAt, q.status, c.name as clientName FROM quotations q LEFT JOIN clients c ON q.clientId = c.id WHERE DATE(q.createdAt) = '2026-03-11' ORDER BY q.createdAt DESC",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT q.id, q.quotationNumber, q.clientId, q.total, q.createdAt, q.status, c.name as clientName FROM quotations q LEFT JOIN clients c ON q.clientId = c.id WHERE DATE(q.createdAt) = '2026-03-11' ORDER BY q.createdAt DESC",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 56
+}

@@ -1,0 +1,9 @@
+{
+  "query": "SELECT q.id, q.quotationNumber, q.clientId, q.total, q.status, q.createdAt, q.deletedAt, c.name FROM quotations q LEFT JOIN clients c ON q.clientId = c.id WHERE q.deletedAt IS NOT NULL AND (q.quotationNumber LIKE '%3034338%' OR q.quotationNumber LIKE '%1307560%' OR c.name LIKE '%Jhonier%' OR c.name LIKE '%Lina%')",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT q.id, q.quotationNumber, q.clientId, q.total, q.status, q.createdAt, q.deletedAt, c.name FROM quotations q LEFT JOIN clients c ON q.clientId = c.id WHERE q.deletedAt IS NOT NULL AND (q.quotationNumber LIKE '%3034338%' OR q.quotationNumber LIKE '%1307560%' OR c.name LIKE '%Jhonier%' OR c.name LIKE '%Lina%')",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 56
+}

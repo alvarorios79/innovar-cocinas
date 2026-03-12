@@ -1,4 +1,4 @@
-import { validatePhotoUploadPermission, validateStatusChange } from "./helpers";
+import { validatePhotoUploadPermission, validatePhotoDeletePermission, validatePhotoViewPermission, validateStatusChange } from "./helpers";
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "../_core/cookies";
 import { systemRouter } from "../_core/systemRouter";
@@ -1645,8 +1645,8 @@ export const projectPhotosRouter = router({
         const category = input.category;
         const subcategory = input.subcategory;
 
-        // Validar permisos por etapa y categoría
-        const canUpload = validatePhotoUploadPermission(role, stage, category);
+        // Validar permisos por categoría
+        const canUpload = validatePhotoUploadPermission(role, category);
         if (!canUpload) {
           throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para subir fotos en esta categoría" });
         }
@@ -1735,7 +1735,12 @@ export const projectPhotosRouter = router({
         projectId: z.number(),
         category: z.enum(["cotizacion", "medidas", "disenos", "avance", "instalacion", "entrega"]),
       }))
-      .query(async ({ input }) => {
+      .query(async ({ ctx, input }) => {
+        // Validar que el usuario tenga permiso para ver fotos de esta categoría
+        const canView = validatePhotoViewPermission(ctx.user.role, input.category);
+        if (!canView) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para ver fotos de esta categoría" });
+        }
         return await db.getProjectPhotosByCategory(input.projectId, input.category);
       }),
 
@@ -1743,21 +1748,21 @@ export const projectPhotosRouter = router({
     delete: protectedProcedure
       .input(z.object({ id: z.number() }))
       .mutation(async ({ ctx, input }) => {
-        // Admins, comercial y diseñador pueden eliminar cualquier foto
-        const canDeleteAny = ["admin", "super_admin", "comercial", "disenador"].includes(ctx.user.role);
+        const photo = await db.getProjectPhotoById(input.id);
+        if (!photo) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Foto no encontrada" });
+        }
         
-        if (!canDeleteAny) {
-          // Jefe de taller y operario solo pueden eliminar fotos que ellos subieron
-          const photo = await db.getProjectPhotoById(input.id);
-          if (!photo) {
-            throw new TRPCError({ code: "NOT_FOUND", message: "Foto no encontrada" });
-          }
-          
-          const canDeleteOwn = ["jefe_taller", "operario"].includes(ctx.user.role) && photo.uploadedBy === ctx.user.id;
-          
-          if (!canDeleteOwn) {
-            throw new TRPCError({ code: "FORBIDDEN", message: "Solo puedes eliminar fotos que tú subiste" });
-          }
+        // Validar permisos de eliminación
+        const canDelete = validatePhotoDeletePermission(
+          ctx.user.role,
+          photo.category,
+          photo.uploadedBy,
+          ctx.user.id
+        );
+        
+        if (!canDelete) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para eliminar esta foto" });
         }
 
         await db.deleteProjectPhoto(input.id);

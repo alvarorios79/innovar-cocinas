@@ -2430,3 +2430,34 @@ export async function restoreProject(projectId: number, userId?: number) {
     });
   }
 }
+
+// Get all deleted clients
+export async function getDeletedClients() {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  return await db.select()
+    .from(clients)
+    .where(isNotNull(clients.deletedAt))
+    .orderBy(desc(clients.deletedAt));
+}
+
+// Get all deleted projects
+export async function getDeletedProjects() {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  return await db.select()
+    .from(projects)
+    .where(isNotNull(projects.deletedAt))
+    .orderBy(desc(projects.deletedAt));
+}
+
+// Delete an advisory request
+export async function deleteAdvisoryRequest(requestId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  return await db.delete(advisoryRequests)
+    .where(eq(advisoryRequests.id, requestId));
+}

@@ -1,4 +1,4 @@
-import { eq, desc, and, or, gte, lte, gt, between, sql, inArray, isNull, isNotNull, asc } from "drizzle-orm";
+import { eq, desc, and, or, gte, lte, gt, between, sql, inArray, isNull, isNotNull, asc, like, ne } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 // @ts-ignore
 import { 
@@ -246,11 +246,11 @@ export async function getAllAppointmentsPaginated(options?: { page?: number; lim
   const offset = (page - 1) * limit;
   const status = options?.status;
 
-  let whereConditions = and(isNull(appointments.deletedAt), eq(appointments.dataOrigin, 'manual'));
+  const baseCondition = and(isNull(appointments.deletedAt), eq(appointments.dataOrigin, 'manual'));
   
-  if (status) {
-    whereConditions = and(whereConditions, eq(appointments.status, status));
-  }
+  const whereConditions = status
+    ? and(baseCondition, eq(appointments.status, status as any))!
+    : baseCondition;
 
   const data = await db.select()
     .from(appointments)
@@ -1069,8 +1069,6 @@ export async function withTransaction<T>(callback: ((tx?: any) => Promise<T>) | 
   });
 }
 
-import { asc } from "drizzle-orm";
-
 // ============ MISSING FUNCTIONS ============
 
 export async function upsertUser(user: any) {
@@ -1230,7 +1228,7 @@ export async function getBackupHistory(limit: number = 50) {
   return [];
 }
 
-export async function getLatestBackup(backupType?: string) {
+export async function getLatestBackup(backupType?: string): Promise<{ id: string; s3Key: string | null; status: string; createdAt: string } | null> {
   // Placeholder implementation for getting latest backup
   // This would typically query a backups table
   console.log("[Backup] Getting latest backup of type:", backupType);
@@ -1718,7 +1716,7 @@ export async function getAdvisoryRequestsByClientId(clientId: number) {
   if (!db) return [];
   return await db.select()
     .from(advisoryRequests)
-    .where(and(eq(advisoryRequests.clientId, clientId), isNull(advisoryRequests.deletedAt)))
+    .where(eq(advisoryRequests.clientId, clientId))
     .orderBy(desc(advisoryRequests.createdAt));
 }
 
@@ -2078,10 +2076,10 @@ export async function cancelProjectReminders(projectId: number) {
   if (!db) return;
   
   await db.update(reminders)
-    .set({ status: 'cancelled', updatedAt: new Date().toISOString() })
+    .set({ status: 'cancelado' })
     .where(and(
       eq(reminders.projectId, projectId),
-      eq(reminders.status, 'pending')
+      eq(reminders.status, 'pendiente')
     ));
 }
 
@@ -2135,7 +2133,7 @@ export async function updateHardwareItem(id: number, data: Partial<{
   data = normalizedData;
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  await db.update(hardwareCatalog).set({ ...data, updatedAt: new Date().toISOString().slice(0, 19).replace("T", " ") }).where(eq(hardwareCatalog.id, id));
+  await db.update(hardwareCatalog).set({ ...(data as any), updatedAt: new Date().toISOString().slice(0, 19).replace("T", " ") }).where(eq(hardwareCatalog.id, id));
 }
 
 // Delete a hardware catalog item (soft delete via active=0)
@@ -2220,7 +2218,7 @@ export async function getExpensesByType() {
   const db = await getDb();
   if (!db) return [];
   return await db.select().from(expenses)
-    .where(ne(expenses.expenseType, null))
+    .where(isNotNull(expenses.expenseType))
     .orderBy(expenses.expenseType);
 }
 
@@ -2261,7 +2259,7 @@ export async function getProjectExpensesSummary() {
   const db = await getDb();
   if (!db) return [];
   const allExpenses = await db.select().from(expenses)
-    .where(ne(expenses.projectId, null));
+    .where(isNotNull(expenses.projectId));
   const grouped: any = {};
   for (const exp of allExpenses) {
     const pid = exp.projectId || 0;
@@ -2300,10 +2298,10 @@ export async function getAuditLogsForRecord(recordType: string, recordId: number
   if (!db) return [];
   return await db.select().from(auditLogs)
     .where(and(
-      eq(auditLogs.recordType, recordType),
+      eq(auditLogs.tableName, recordType),
       eq(auditLogs.recordId, recordId)
     ))
-    .orderBy(auditLogs.timestamp);
+    .orderBy(desc(auditLogs.createdAt));
 }
 
 // Get audit logs by user
@@ -2312,7 +2310,7 @@ export async function getAuditLogsByUser(userId: number) {
   if (!db) return [];
   return await db.select().from(auditLogs)
     .where(eq(auditLogs.userId, userId))
-    .orderBy(auditLogs.timestamp);
+    .orderBy(desc(auditLogs.createdAt));
 }
 
 // Permanently delete a record (hard delete)
@@ -2348,9 +2346,8 @@ export async function restoreQuotation(quotationId: number, userId?: number) {
     await db.insert(auditLogs).values({
       userId,
       action: "restore",
-      recordType: "quotations",
+      tableName: "quotations",
       recordId: quotationId,
-      timestamp: new Date().toISOString(),
     });
   }
 }
@@ -2369,9 +2366,8 @@ export async function restoreAppointment(appointmentId: number, userId?: number)
     await db.insert(auditLogs).values({
       userId,
       action: "restore",
-      recordType: "appointments",
+      tableName: "appointments",
       recordId: appointmentId,
-      timestamp: new Date().toISOString(),
     });
   }
 }
@@ -2390,9 +2386,8 @@ export async function restoreTask(taskId: number, userId?: number) {
     await db.insert(auditLogs).values({
       userId,
       action: "restore",
-      recordType: "tasks",
+      tableName: "tasks",
       recordId: taskId,
-      timestamp: new Date().toISOString(),
     });
   }
 }
@@ -2411,9 +2406,8 @@ export async function restoreExpense(expenseId: number, userId?: number) {
     await db.insert(auditLogs).values({
       userId,
       action: "restore",
-      recordType: "expenses",
+      tableName: "expenses",
       recordId: expenseId,
-      timestamp: new Date().toISOString(),
     });
   }
 }
@@ -2478,9 +2472,8 @@ export async function restoreClient(clientId: number, userId?: number) {
     await db.insert(auditLogs).values({
       userId,
       action: "restore",
-      recordType: "clients",
+      tableName: "clients",
       recordId: clientId,
-      timestamp: new Date().toISOString(),
     });
   }
 }
@@ -2499,9 +2492,8 @@ export async function restoreProject(projectId: number, userId?: number) {
     await db.insert(auditLogs).values({
       userId,
       action: "restore",
-      recordType: "projects",
+      tableName: "projects",
       recordId: projectId,
-      timestamp: new Date().toISOString(),
     });
   }
 }
@@ -2549,18 +2541,18 @@ export async function getAllClientsPaginated(options?: { page?: number; limit?: 
   const offset = (page - 1) * limit;
   const search = options?.search?.toLowerCase() || "";
   
-  let whereConditions = isNull(clients.deletedAt);
+  const baseCondition = isNull(clients.deletedAt);
   
-  if (search) {
-    whereConditions = and(
-      whereConditions,
-      or(
-        like(clients.name, `%${search}%`),
-        like(clients.email, `%${search}%`),
-        like(clients.phone, `%${search}%`)
-      )
-    );
-  }
+  const whereConditions = search
+    ? and(
+        baseCondition,
+        or(
+          like(clients.name, `%${search}%`),
+          like(clients.email, `%${search}%`),
+          like(clients.whatsappPhone, `%${search}%`)
+        )
+      )!
+    : baseCondition;
   
   const data = await db.select()
     .from(clients)

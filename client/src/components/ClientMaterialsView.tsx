@@ -44,9 +44,9 @@ export function ClientMaterialsView({ projectId }: ClientMaterialsViewProps) {
 
   const hasMaterials = materials && (materials.woodType || materials.countertopType || materials.sinkMeasure);
   
-  // Filter out items without hardware first
-  const selectionsToDisplay = selections?.filter((s: any) => s.hardwareCategory) || [];
-  const hasHardware = selectionsToDisplay && selectionsToDisplay.length > 0;
+  // Filter out items without hardware first - handle undefined selections
+  const selectionsToDisplay = (Array.isArray(selections) ? selections : []).filter((s: any) => s && s.hardwareCategory);
+  const hasHardware = selectionsToDisplay.length > 0;
 
   if (!hasMaterials && !hasHardware) {
     return (
@@ -163,7 +163,7 @@ export function ClientMaterialsView({ projectId }: ClientMaterialsViewProps) {
             <CardTitle className="text-base sm:text-lg flex items-center gap-2">
               <Wrench className="h-5 w-5" />
               Herrajes Incluidos
-              <Badge variant="secondary" className="ml-2">{selections.length}</Badge>
+              <Badge variant="secondary" className="ml-2">{selectionsToDisplay.length}</Badge>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">

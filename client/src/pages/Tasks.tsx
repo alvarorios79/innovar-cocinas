@@ -818,35 +818,33 @@ export default function Tasks() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Proyecto (opcional)</Label>
-                  <Select 
-                    value={createForm.projectId || "none"} 
-                    onValueChange={(v) => setCreateForm({ ...createForm, projectId: v === "none" ? "" : v })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Sin proyecto" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Sin proyecto</SelectItem>
-                      {projects.map((p: any) => (
-                        <SelectItem key={p.id} value={p.id.toString()}>
-                          {p.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div className="space-y-2">
+                <Label>Proyecto (opcional)</Label>
+                <Select 
+                  value={createForm.projectId || "none"} 
+                  onValueChange={(v) => setCreateForm({ ...createForm, projectId: v === "none" ? "" : v })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sin proyecto" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Sin proyecto</SelectItem>
+                    {projects.map((p: any) => (
+                      <SelectItem key={p.id} value={p.id.toString()}>
+                        {p.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-                <div className="space-y-2">
-                  <Label>Fecha límite</Label>
-                  <Input
-                    type="date"
-                    value={createForm.dueDate}
-                    onChange={(e) => setCreateForm({ ...createForm, dueDate: e.target.value })}
-                  />
-                </div>
+              <div className="space-y-2">
+                <Label>Fecha límite</Label>
+                <Input
+                  type="date"
+                  value={createForm.dueDate}
+                  onChange={(e) => setCreateForm({ ...createForm, dueDate: e.target.value })}
+                />
               </div>
 
               <div className="flex justify-end gap-2">

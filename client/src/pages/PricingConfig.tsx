@@ -314,7 +314,7 @@ export default function PricingConfig() {
           </div>
           
           {/* Stats rápidos */}
-          <div className="relative mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="relative mt-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3">
             <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 text-center">
               <p className="text-2xl font-bold">{allPricing?.length || 0}</p>
               <p className="text-xs text-emerald-100">Precios Configurados</p>

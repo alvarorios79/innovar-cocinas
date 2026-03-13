@@ -469,7 +469,7 @@ export default function Comercial() {
             <TrendingUp className="h-5 w-5 text-pink-500" />
             Resumen del Día
           </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3">
             <Link href="/projects">
               <Card className="bg-gradient-to-br from-pink-500 to-rose-600 text-white shadow-lg hover:shadow-xl transition-all hover:scale-[1.02] cursor-pointer">
                 <CardContent className="p-4">

@@ -71,7 +71,7 @@ function ProjectApprovalView({
         {designPhotos.length > 0 ? (
           <div className="space-y-4">
             <h3 className="font-semibold text-lg">Imágenes del {title}</h3>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3">
               {designPhotos.map((photo: any) => (
                 <div 
                   key={photo.id} 
@@ -506,14 +506,14 @@ export default function Portal() {
           <>
             {loadingProjectFromUrl ? (
               <Card className="mb-4 md:mb-8">
-                <CardContent className="p-8 text-center">
+                <CardContent className="p-4 md:p-8 text-center">
                   <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
                   <p>Cargando proyecto...</p>
                 </CardContent>
               </Card>
             ) : projectFromUrlError ? (
               <Card className="mb-4 md:mb-8 border-red-200 bg-red-50">
-                <CardContent className="p-8 text-center">
+                <CardContent className="p-4 md:p-8 text-center">
                   <AlertCircle className="h-12 w-12 mx-auto text-red-500 mb-4" />
                   <h2 className="text-xl font-bold text-red-700 mb-2">Proyecto no encontrado</h2>
                   <p className="text-red-600 mb-4">No pudimos encontrar el proyecto solicitado o no tienes acceso a él.</p>

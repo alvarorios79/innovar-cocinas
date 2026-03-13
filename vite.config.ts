@@ -36,13 +36,14 @@ export default defineConfig({
       ".manusvm.computer",
       "localhost",
       "127.0.0.1",
-      "3000-iszwt6rg5d41o3pha7t07-d1080d40.us2.manus.computer",
     ],
-    hmr: {
-      protocol: "wss",
-      host: process.env.VITE_HMR_HOST || "3000-iszwt6rg5d41o3pha7t07-d1080d40.us2.manus.computer",
-      port: 443,
-    },
+    hmr: process.env.VITE_HMR_HOST
+      ? {
+          protocol: "wss",
+          host: process.env.VITE_HMR_HOST,
+          port: 443,
+        }
+      : true,
     fs: {
       strict: true,
       deny: ["**/.*"],

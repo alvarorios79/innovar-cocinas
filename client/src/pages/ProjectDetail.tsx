@@ -468,7 +468,7 @@ export default function ProjectDetail() {
           documento_cotizacion: ["super_admin", "admin", "comercial"],
           fotos_iniciales: ["super_admin", "admin", "comercial", "disenador"],
           dibujo: ["super_admin", "admin", "comercial", "disenador"],
-          renders: ["super_admin", "admin", "comercial", "disenador", "jefe_taller"],
+          renders: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"],
           despieces: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"],
           detalles: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"],
           modelado_3d: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"],

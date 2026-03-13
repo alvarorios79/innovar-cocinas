@@ -138,7 +138,7 @@ export default function ProfitabilityDashboard() {
         <PageHeader
           title="📊 Dashboard de Rentabilidad"
           subtitle="Análisis financiero del mes actual y últimos 6 meses"
-          showBack={false}
+          showBack={true}
         />
 
       {/* KPI Cards */}

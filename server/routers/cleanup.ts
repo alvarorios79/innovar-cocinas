@@ -59,7 +59,7 @@ const getSystemRecordCounts = async (db: any) => {
         sql`${notifications.userId} IN (SELECT id FROM users WHERE dataOrigin = 'system')`
       ),
       db.select({ count: sql`COUNT(*) as count` }).from(expenses).where(
-        sql`${expenses.projectId} IN (SELECT id FROM projects WHERE dataOrigin = 'system')`
+        sql`${expenses.dataOrigin} IN ('system', 'test')`
       ),
     ]);
 
@@ -208,12 +208,12 @@ const getSystemRecordsByTable = async (
         countQuery = await db
           .select({ count: sql`COUNT(*) as count` })
           .from(expenses)
-          .where(sql`${expenses.projectId} IN (SELECT id FROM projects WHERE dataOrigin = 'system')`);
+          .where(sql`${expenses.dataOrigin} IN ('system', 'test')`);
         totalCount = countQuery[0]?.count || 0;
         records = await db
           .select()
           .from(expenses)
-          .where(sql`${expenses.projectId} IN (SELECT id FROM projects WHERE dataOrigin = 'system')`)
+          .where(sql`${expenses.dataOrigin} IN ('system', 'test')`)
           .limit(pageSize)
           .offset(offset);
         break;

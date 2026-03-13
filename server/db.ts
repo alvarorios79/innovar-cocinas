@@ -1016,7 +1016,7 @@ export async function getExpensesByProject(projectId: number) {
   const db = await getDb();
   if (!db) return [];
 
-  return await db.select().from(expenses).where(eq(expenses.projectId, projectId)).orderBy(desc(expenses.createdAt));
+  return await db.select().from(expenses).where(and(eq(expenses.projectId, projectId), eq(expenses.dataOrigin, 'manual'))).orderBy(desc(expenses.createdAt));
 }
 
 export async function updateExpense(id: number, data: Partial<InsertExpense>) {
@@ -1999,14 +1999,14 @@ export async function getAllQuotationsPaginated(params: {
 export async function getAllExpenses() {
   const db = await getDb();
   if (!db) return [];
-  return await db.select().from(expenses).where(isNull(expenses.deletedAt)).orderBy(desc(expenses.createdAt));
+  return await db.select().from(expenses).where(and(isNull(expenses.deletedAt), eq(expenses.dataOrigin, 'manual'))).orderBy(desc(expenses.createdAt));
 }
 
 export async function getExpensesByType(type: string) {
   const db = await getDb();
   if (!db) return [];
   return await db.select().from(expenses)
-    .where(and(isNull(expenses.deletedAt), eq(expenses.expenseType, type as any)))
+    .where(and(isNull(expenses.deletedAt), eq(expenses.expenseType, type as any), eq(expenses.dataOrigin, 'manual')))
     .orderBy(desc(expenses.createdAt));
 }
 
@@ -2016,6 +2016,7 @@ export async function getExpensesByDateRange(startDate: Date, endDate: Date) {
   return await db.select().from(expenses)
     .where(and(
       isNull(expenses.deletedAt),
+      eq(expenses.dataOrigin, 'manual'),
       gte(expenses.expenseDate, startDate.toISOString()),
       lte(expenses.expenseDate, endDate.toISOString())
     ))
@@ -2031,7 +2032,7 @@ export async function getAllExpensesPaginated(params: { page?: number; limit?: n
   if (!db) return { data: [], total: 0 };
   const limit = params.limit ?? 50;
   const offset = ((params.page ?? 1) - 1) * limit;
-  let allRows = await db.select().from(expenses).where(isNull(expenses.deletedAt)).orderBy(desc(expenses.createdAt));
+  let allRows = await db.select().from(expenses).where(and(isNull(expenses.deletedAt), eq(expenses.dataOrigin, 'manual'))).orderBy(desc(expenses.createdAt));
   if (params.expenseType && params.expenseType !== 'all') {
     allRows = allRows.filter(e => e.expenseType === params.expenseType);
   }
@@ -2041,7 +2042,7 @@ export async function getAllExpensesPaginated(params: { page?: number; limit?: n
 export async function getExpensesSummaryByType() {
   const db = await getDb();
   if (!db) return [];
-  const rows = await db.select().from(expenses).where(isNull(expenses.deletedAt));
+  const rows = await db.select().from(expenses).where(and(isNull(expenses.deletedAt), eq(expenses.dataOrigin, 'manual')));
   const map = new Map<string, number>();
   rows.forEach(e => {
     const key = e.expenseType;
@@ -2053,7 +2054,7 @@ export async function getExpensesSummaryByType() {
 export async function getOperativeExpensesSummaryByCategory() {
   const db = await getDb();
   if (!db) return [];
-  const rows = await db.select().from(expenses).where(and(isNull(expenses.deletedAt), eq(expenses.expenseType, 'gasto_operativo')));
+  const rows = await db.select().from(expenses).where(and(isNull(expenses.deletedAt), eq(expenses.expenseType, 'gasto_operativo'), eq(expenses.dataOrigin, 'manual')));
   const map = new Map<string, number>();
   rows.forEach(e => {
     const key = e.operativeCategory ?? 'otro';
@@ -2065,7 +2066,7 @@ export async function getOperativeExpensesSummaryByCategory() {
 export async function getProjectExpensesSummary() {
   const db = await getDb();
   if (!db) return [];
-  const rows = await db.select().from(expenses).where(and(isNull(expenses.deletedAt), eq(expenses.expenseType, 'materiales_proyecto')));
+  const rows = await db.select().from(expenses).where(and(isNull(expenses.deletedAt), eq(expenses.expenseType, 'materiales_proyecto'), eq(expenses.dataOrigin, 'manual')));
   const map = new Map<string, number>();
   rows.forEach(e => {
     const key = e.projectClientName ?? 'Sin proyecto';
@@ -2077,7 +2078,7 @@ export async function getProjectExpensesSummary() {
 export async function getExpensesSummaryByGeneralCategory() {
   const db = await getDb();
   if (!db) return [];
-  const rows = await db.select().from(expenses).where(isNull(expenses.deletedAt));
+  const rows = await db.select().from(expenses).where(and(isNull(expenses.deletedAt), eq(expenses.dataOrigin, 'manual')));
   const map = new Map<string, number>();
   rows.forEach(e => {
     const key = e.generalCategory ?? 'otros';

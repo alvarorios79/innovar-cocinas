@@ -43,7 +43,11 @@ export default defineConfig({
           host: process.env.VITE_HMR_HOST,
           port: 443,
         }
-      : true,
+      : {
+          protocol: "wss",
+          host: "localhost",
+          port: 443,
+        },
     fs: {
       strict: true,
       deny: ["**/.*"],

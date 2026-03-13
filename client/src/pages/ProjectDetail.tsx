@@ -56,6 +56,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { PhotoUploader } from "@/components/PhotoUploader";
 import { PaymentsSection } from "@/components/PaymentsSection";
 import { PageHeader } from "@/components/PageHeader";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { toast } from "sonner";
 
 
@@ -553,6 +554,14 @@ export default function ProjectDetail() {
       />
       
       <div className="container py-6">
+        {/* Breadcrumbs */}
+        <Breadcrumbs
+          items={[
+            { label: "Proyectos", href: "/projects" },
+            { label: projectDetail.name },
+          ]}
+        />
+        
         {/* Header */}
         <PageHeader
           title={projectDetail.name}

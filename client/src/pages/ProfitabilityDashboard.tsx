@@ -6,6 +6,7 @@ import { trpc } from "@/lib/trpc";
 import { TrendingUp, DollarSign, Zap, Target, Calendar } from "lucide-react";
 import { formatPrice } from "@/lib/formatters";
 import { PageHeader } from "@/components/PageHeader";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 
 interface MonthlyMetrics {
   month: number;
@@ -135,6 +136,12 @@ export default function ProfitabilityDashboard() {
   return (
     <div className="min-h-screen pb-20 md:pb-0 bg-background p-6">
       <div className="max-w-7xl mx-auto">
+        <Breadcrumbs
+          items={[
+            { label: "Panel Admin", href: "/admin" },
+            { label: "Rentabilidad" },
+          ]}
+        />
         <PageHeader
           title="📊 Dashboard de Rentabilidad"
           subtitle="Análisis financiero del mes actual y últimos 6 meses"

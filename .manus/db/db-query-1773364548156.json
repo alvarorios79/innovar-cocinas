@@ -1,0 +1,130 @@
+{
+  "query": "SELECT id, category, name, active FROM hardwareCatalog LIMIT 20;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT id, category, name, active FROM hardwareCatalog LIMIT 20;",
+  "rows": [
+    {
+      "id": "1",
+      "category": "cocinas",
+      "name": "Bisagras",
+      "active": "1"
+    },
+    {
+      "id": "2",
+      "category": "cocinas",
+      "name": "Rieles de cajón",
+      "active": "1"
+    },
+    {
+      "id": "3",
+      "category": "cocinas",
+      "name": "Platero inoxidable",
+      "active": "1"
+    },
+    {
+      "id": "4",
+      "category": "cocinas",
+      "name": "Pistones a gas",
+      "active": "1"
+    },
+    {
+      "id": "5",
+      "category": "cocinas",
+      "name": "Herraje puerta partida",
+      "active": "1"
+    },
+    {
+      "id": "6",
+      "category": "cocinas",
+      "name": "Patas zócalo",
+      "active": "1"
+    },
+    {
+      "id": "7",
+      "category": "cocinas",
+      "name": "Basurero",
+      "active": "1"
+    },
+    {
+      "id": "8",
+      "category": "cocinas",
+      "name": "Alacena",
+      "active": "1"
+    },
+    {
+      "id": "9",
+      "category": "cocinas",
+      "name": "Esquinero",
+      "active": "0"
+    },
+    {
+      "id": "10",
+      "category": "cocinas",
+      "name": "Especiero",
+      "active": "1"
+    },
+    {
+      "id": "11",
+      "category": "closets",
+      "name": "Rieles montaje bajo para cajón",
+      "active": "1"
+    },
+    {
+      "id": "12",
+      "category": "closets",
+      "name": "Tubo de colgar",
+      "active": "1"
+    },
+    {
+      "id": "13",
+      "category": "closets",
+      "name": "Sistema de correderas",
+      "active": "1"
+    },
+    {
+      "id": "14",
+      "category": "closets",
+      "name": "Manijas",
+      "active": "1"
+    },
+    {
+      "id": "15",
+      "category": "closets",
+      "name": "Pantaloneros",
+      "active": "1"
+    },
+    {
+      "id": "16",
+      "category": "closets",
+      "name": "Joyero-Relojeros ",
+      "active": "1"
+    },
+    {
+      "id": "17",
+      "category": "closets",
+      "name": "Organizador Objetos",
+      "active": "1"
+    },
+    {
+      "id": "18",
+      "category": "closets",
+      "name": "Colgadero elevador",
+      "active": "1"
+    },
+    {
+      "id": "19",
+      "category": "puertas",
+      "name": "Chapas gama alta",
+      "active": "1"
+    },
+    {
+      "id": "20",
+      "category": "puertas",
+      "name": "Bisagras",
+      "active": "1"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tcategory\tname\tactive\n1\tcocinas\tBisagras\t1\n2\tcocinas\tRieles de cajón\t1\n3\tcocinas\tPlatero inoxidable\t1\n4\tcocinas\tPistones a gas\t1\n5\tcocinas\tHerraje puerta partida\t1\n6\tcocinas\tPatas zócalo\t1\n7\tcocinas\tBasurero\t1\n8\tcocinas\tAlacena\t1\n9\tcocinas\tEsquinero\t0\n10\tcocinas\tEspeciero\t1\n11\tclosets\tRieles montaje bajo para cajón\t1\n12\tclosets\tTubo de colgar\t1\n13\tclosets\tSistema de correderas\t1\n14\tclosets\tManijas\t1\n15\tclosets\tPantaloneros\t1\n16\tclosets\tJoyero-Relojeros \t1\n17\tclosets\tOrganizador Objetos\t1\n18\tclosets\tColgadero elevador\t1\n19\tpuertas\tChapas gama alta\t1\n20\tpuertas\tBisagras\t1\n",
+  "stderr": "",
+  "execution_time_ms": 53
+}

@@ -2290,11 +2290,15 @@ export async function getAppointmentsByDate(date: Date) {
 export async function getHardwareCatalog(category?: string) {
   const db = await getDb();
   if (!db) return [];
-  const query = db.select().from(hardwareCatalog);
+  
+  let conditions: any = eq(hardwareCatalog.active, 1);
   if (category) {
-    return await query.where(eq(hardwareCatalog.category, category as any)).orderBy(asc(hardwareCatalog.sortOrder));
+    conditions = and(eq(hardwareCatalog.active, 1), eq(hardwareCatalog.category, category as any));
   }
-  return await query.orderBy(asc(hardwareCatalog.sortOrder));
+  
+  return await db.select().from(hardwareCatalog)
+    .where(conditions)
+    .orderBy(asc(hardwareCatalog.sortOrder));
 }
 export async function getAllHardware() {
   return getHardwareCatalog();

@@ -768,33 +768,33 @@ export default function Projects() {
               return (
                 <div className="mt-6 p-4 bg-white rounded-lg border">
                   <h3 className="text-sm font-semibold mb-4">Distribución de Rentabilidad</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
                     {/* Saludable */}
-                    <div className="bg-green-50 rounded-lg p-4 border border-green-200 flex flex-col items-center justify-center text-center">
-                      <div className="text-2xl font-bold text-green-700">{healthy}</div>
-                      <div className="text-xs text-green-600 mt-1">Saludable</div>
-                      <div className="text-xs text-green-500 mt-0.5">(mayor a 20%)</div>
+                    <div className="bg-green-50 rounded-lg p-2 sm:p-4 border border-green-200 flex flex-col items-center justify-center text-center">
+                      <div className="text-xl sm:text-2xl font-bold text-green-700">{healthy}</div>
+                      <div className="text-xs text-green-600 mt-0.5 sm:mt-1">Saludable</div>
+                      <div className="text-xs text-green-500 mt-0.5 hidden sm:block">(mayor a 20%)</div>
                     </div>
 
                     {/* Moderado */}
-                    <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-200 flex flex-col items-center justify-center text-center">
-                      <div className="text-2xl font-bold text-yellow-700">{moderate}</div>
-                      <div className="text-xs text-yellow-600 mt-1">Moderado</div>
-                      <div className="text-xs text-yellow-500 mt-0.5">(10-20%)</div>
+                    <div className="bg-yellow-50 rounded-lg p-2 sm:p-4 border border-yellow-200 flex flex-col items-center justify-center text-center">
+                      <div className="text-xl sm:text-2xl font-bold text-yellow-700">{moderate}</div>
+                      <div className="text-xs text-yellow-600 mt-0.5 sm:mt-1">Moderado</div>
+                      <div className="text-xs text-yellow-500 mt-0.5 hidden sm:block">(10-20%)</div>
                     </div>
 
                     {/* En Riesgo */}
-                    <div className="bg-orange-50 rounded-lg p-4 border border-orange-200 flex flex-col items-center justify-center text-center">
-                      <div className="text-2xl font-bold text-orange-700">{risk}</div>
-                      <div className="text-xs text-orange-600 mt-1">En Riesgo</div>
-                      <div className="text-xs text-orange-500 mt-0.5">(5-10%)</div>
+                    <div className="bg-orange-50 rounded-lg p-2 sm:p-4 border border-orange-200 flex flex-col items-center justify-center text-center">
+                      <div className="text-xl sm:text-2xl font-bold text-orange-700">{risk}</div>
+                      <div className="text-xs text-orange-600 mt-0.5 sm:mt-1">En Riesgo</div>
+                      <div className="text-xs text-orange-500 mt-0.5 hidden sm:block">(5-10%)</div>
                     </div>
 
                     {/* Crítico */}
-                    <div className="bg-red-50 rounded-lg p-4 border border-red-200 flex flex-col items-center justify-center text-center">
-                      <div className="text-2xl font-bold text-red-700">{critical}</div>
-                      <div className="text-xs text-red-600 mt-1">Crítico</div>
-                      <div className="text-xs text-red-500 mt-0.5">(menor a 5%)</div>
+                    <div className="bg-red-50 rounded-lg p-2 sm:p-4 border border-red-200 flex flex-col items-center justify-center text-center">
+                      <div className="text-xl sm:text-2xl font-bold text-red-700">{critical}</div>
+                      <div className="text-xs text-red-600 mt-0.5 sm:mt-1">Crítico</div>
+                      <div className="text-xs text-red-500 mt-0.5 hidden sm:block">(menor a 5%)</div>
                     </div>
                   </div>
                 </div>

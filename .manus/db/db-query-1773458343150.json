@@ -1,0 +1,9 @@
+{
+  "query": "CREATE INDEX `accountingClosureProjects_closureId_idx` ON `accountingClosureProjects` (`closureId`);\nCREATE INDEX `accountingClosureProjects_projectId_idx` ON `accountingClosureProjects` (`projectId`);\nCREATE INDEX `accountingClosures_status_idx` ON `accountingClosures` (`status`);\nCREATE INDEX `accountingClosures_createdBy_idx` ON `accountingClosures` (`createdBy`);\nCREATE INDEX `accountingClosures_periodStart_idx` ON `accountingClosures` (`periodStart`);\nCREATE INDEX `accountingClosures_periodEnd_idx` ON `accountingClosures` (`periodEnd`);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute CREATE INDEX `accountingClosureProjects_closureId_idx` ON `accountingClosureProjects` (`closureId`);\nCREATE INDEX `accountingClosureProjects_projectId_idx` ON `accountingClosureProjects` (`projectId`);\nCREATE INDEX `accountingClosures_status_idx` ON `accountingClosures` (`status`);\nCREATE INDEX `accountingClosures_createdBy_idx` ON `accountingClosures` (`createdBy`);\nCREATE INDEX `accountingClosures_periodStart_idx` ON `accountingClosures` (`periodStart`);\nCREATE INDEX `accountingClosures_periodEnd_idx` ON `accountingClosures` (`periodEnd`);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 1444
+}

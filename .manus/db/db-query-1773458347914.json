@@ -1,0 +1,16 @@
+{
+  "query": "SHOW TABLES LIKE 'accounting%';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SHOW TABLES LIKE 'accounting%';",
+  "rows": [
+    {
+      "Tables_in_XhEkCr8yXcaeDFyuQebdJQ (accounting%)": "accountingClosureProjects"
+    },
+    {
+      "Tables_in_XhEkCr8yXcaeDFyuQebdJQ (accounting%)": "accountingClosures"
+    }
+  ],
+  "messages": [],
+  "stdout": "Tables_in_XhEkCr8yXcaeDFyuQebdJQ (accounting%)\naccountingClosureProjects\naccountingClosures\n",
+  "stderr": "",
+  "execution_time_ms": 55
+}

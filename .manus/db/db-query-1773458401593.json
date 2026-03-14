@@ -1,0 +1,9 @@
+{
+  "query": "ALTER TABLE `projects` ADD `accountingClosureId` int;\nALTER TABLE `projects` ADD CONSTRAINT `projects_accountingClosureId_accountingClosures_id_fk` FOREIGN KEY (`accountingClosureId`) REFERENCES `accountingClosures`(`id`) ON DELETE no action ON UPDATE no action;\nCREATE INDEX `projects_accountingClosureId_idx` ON `projects` (`accountingClosureId`);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute ALTER TABLE `projects` ADD `accountingClosureId` int;\nALTER TABLE `projects` ADD CONSTRAINT `projects_accountingClosureId_accountingClosures_id_fk` FOREIGN KEY (`accountingClosureId`) REFERENCES `accountingClosures`(`id`) ON DELETE no action ON UPDATE no action;\nCREATE INDEX `projects_accountingClosureId_idx` ON `projects` (`accountingClosureId`);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 1179
+}

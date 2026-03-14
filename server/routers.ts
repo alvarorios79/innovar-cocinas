@@ -24,8 +24,10 @@ import { financialSettingsRouter } from "./routers/financialSettings";
 import { dashboardRouter } from "./routers/dashboard";
 import { dataProtectionRouter } from "./routers/dataProtection";
 import { backupsRouter } from "./routers/backups";
+import { accountingClosuresRouter } from "./routers/accountingClosures";
 
 export const appRouter = router({
+  accountingClosures: accountingClosuresRouter,
   backups: backupsRouter,
   dataProtection: dataProtectionRouter,
   system: systemRouter,

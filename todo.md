@@ -5331,3 +5331,62 @@ Listo para pasar a Fase 7.2 (Intelligent Alerts) cuando sea requerido.
 - [ ] Corregir todos los archivos de test para usar dataOrigin='system' en createProject, createClient, createUser, createQuotation, createAppointment, etc.
 - [ ] Verificar que los tests pasan y que los registros creados tienen dataOrigin='system'
 - [ ] Guardar checkpoint con la corrección aplicada
+
+
+## Sistema de Cierre Contable (Accounting Closure)
+
+### FASE 1: Infraestructura de Base de Datos ✅
+- [x] Crear tabla `accountingClosures` con metadatos de cierres
+- [x] Crear tabla `accountingClosureProjects` para vincular proyectos a cierres
+- [x] Agregar campo `accountingClosureId` a tabla `projects`
+- [x] Crear índices para optimizar consultas
+- [x] Crear funciones de base de datos en `server/db.ts`:
+  - [x] `getPendingClosureProjects()` - Obtener proyectos archivados sin cierre
+  - [x] `createAccountingClosure()` - Crear nuevo cierre contable
+  - [x] `getAccountingClosures()` - Listar cierres con filtros
+  - [x] `getClosureDetails()` - Obtener detalles de un cierre
+  - [x] `confirmAccountingClosure()` - Confirmar cierre
+  - [x] `getClosureProjects()` - Obtener proyectos de un cierre
+- [x] Crear router tRPC en `server/routers/accountingClosures.ts` con endpoints:
+  - [x] `getPendingProjects` - Obtener proyectos pendientes
+  - [x] `create` - Crear cierre contable
+  - [x] `list` - Listar cierres
+  - [x] `getDetails` - Obtener detalles
+  - [x] `confirm` - Confirmar cierre
+  - [x] `getProjects` - Obtener proyectos del cierre
+- [x] Crear tests en `server/accounting-closures.test.ts` (11 tests pasando)
+- [x] Validar que solo proyectos ARCHIVADOS pueden ser cerrados
+- [x] Validar que solo proyectos con status 'entregado' pueden ser cerrados
+- [x] Validar que solo datos reales (dataOrigin='manual') se incluyen en cierres
+- [x] Implementar transacciones para garantizar integridad de datos
+
+### FASE 2: Interfaz de Usuario (Pendiente)
+- [ ] Crear página de Cierre Contable en Panel Admin
+- [ ] Componente para seleccionar proyectos a cerrar
+- [ ] Formulario para ingresar período de cierre (fecha inicio, fecha fin)
+- [ ] Vista previa de totales (ventas, gastos, ganancia)
+- [ ] Botón para crear cierre en estado "borrador"
+- [ ] Botón para confirmar cierre (cambiar a "confirmado")
+- [ ] Vista de historial de cierres confirmados
+
+### FASE 3: Reportes Financieros (Pendiente)
+- [ ] Actualizar dashboard financiero para excluir proyectos cerrados
+- [ ] Crear reporte de cierres contables
+- [ ] Mostrar proyectos cerrados por período
+- [ ] Mostrar totales acumulados por cierre
+- [ ] Exportar cierre a PDF
+
+### FASE 4: Validaciones y Auditoría (Pendiente)
+- [ ] Registrar quién creó cada cierre
+- [ ] Registrar quién confirmó cada cierre
+- [ ] Impedir edición de cierres confirmados
+- [ ] Impedir eliminación de cierres confirmados
+- [ ] Crear audit log para cambios de cierre
+
+### Notas Técnicas
+- Solo proyectos con `isArchived=1` y `status='entregado'` pueden ser cerrados
+- Solo proyectos con `dataOrigin='manual'` se incluyen (no test data)
+- Los cierres pueden estar en estado 'draft' (borrador) o 'confirmed' (confirmado)
+- Una vez cerrado, un proyecto no puede ser incluido en otro cierre
+- El sistema calcula automáticamente totales (ventas, gastos, ganancia)
+- Las transacciones garantizan que todos los datos se guardan juntos o se revierten

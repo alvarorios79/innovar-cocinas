@@ -55,7 +55,11 @@ import {
   financialSettings,
   InsertFinancialSettings,
   auditLogs,
-  InsertAuditLog
+  InsertAuditLog,
+  accountingClosures,
+  InsertAccountingClosure,
+  accountingClosureProjects,
+  InsertAccountingClosureProject
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 import { randomUUID } from 'crypto';
@@ -2417,4 +2421,223 @@ export async function updateNotificationPushSent(notificationId: number) {
   const db = await getDb();
   if (!db) return;
   await db.update(notifications).set({ sentPush: 1 }).where(eq(notifications.id, notificationId));
+}
+
+
+// ============ ACCOUNTING CLOSURES ============
+
+/**
+ * Get archived projects that are not yet included in any closure
+ * Only projects with status 'entregado' and isArchived=1 can be closed
+ */
+export async function getPendingClosureProjects() {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return await db.select()
+    .from(projects)
+    .where(
+      and(
+        eq(projects.isArchived, 1),
+        eq(projects.status, 'entregado'),
+        isNull(projects.accountingClosureId),
+        eq(projects.dataOrigin, 'manual')
+      )
+    )
+    .orderBy(desc(projects.createdAt));
+}
+
+/**
+ * Create a new accounting closure
+ */
+export async function createAccountingClosure(data: {
+  periodStart: string | Date;
+  periodEnd: string | Date;
+  createdBy: number;
+  projectIds: number[];
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  // Start transaction
+  const result = await db.transaction(async (tx) => {
+    // Create closure record
+    // Convert dates to string format if needed
+    const formatDate = (date: string | Date): string => {
+      if (typeof date === 'string') return date;
+      return date.toISOString().split('T')[0];
+    };
+    
+    const closureResult = await tx.insert(accountingClosures).values({
+      periodStart: formatDate(data.periodStart),
+      periodEnd: formatDate(data.periodEnd),
+      status: 'draft',
+      createdBy: data.createdBy,
+      projectCount: data.projectIds.length,
+      totalSales: 0,
+      totalExpenses: 0,
+      totalProfit: 0,
+    } as any);
+    
+    const closureId = closureResult[0].insertId;
+    
+    // Get project details for closure
+    const projectsData = await tx.select()
+      .from(projects)
+      .where(inArray(projects.id, data.projectIds));
+    
+    let totalSales = 0;
+    let totalExpenses = 0;
+    let totalProfit = 0;
+    
+    // Add projects to closure
+    for (const project of projectsData) {
+      const projectValue = project.totalAmount ? parseFloat(project.totalAmount.toString()) : 0;
+      const totalPaid = project.advanceAmount ? parseFloat(project.advanceAmount.toString()) : 0;
+      
+      // Get project expenses
+      const projectExpenses = await tx.select()
+        .from(expenses)
+        .where(
+          and(
+            eq(expenses.projectId, project.id),
+            eq(expenses.dataOrigin, 'manual')
+          )
+        );
+      
+      const totalProjectExpenses = projectExpenses.reduce((sum, exp) => {
+        return sum + (exp.amount ? parseFloat(exp.amount.toString()) : 0);
+      }, 0);
+      
+      const profit = projectValue - totalProjectExpenses;
+      
+      await tx.insert(accountingClosureProjects).values({
+        closureId,
+        projectId: project.id,
+        projectName: project.name,
+        projectValue: projectValue,
+        totalPaid: totalPaid,
+        totalExpenses: totalProjectExpenses,
+        profit: profit,
+      } as any);
+      
+      // Update project with closure reference
+      await tx.update(projects)
+        .set({ accountingClosureId: closureId })
+        .where(eq(projects.id, project.id));
+      
+      totalSales += projectValue;
+      totalExpenses += totalProjectExpenses;
+      totalProfit += profit;
+    }
+    
+    // Update closure totals
+    await tx.update(accountingClosures)
+      .set({
+        totalSales: totalSales,
+        totalExpenses: totalExpenses,
+        totalProfit: totalProfit,
+      } as any)
+      .where(eq(accountingClosures.id, closureId));
+    
+    return closureId;
+  });
+  
+  return result;
+}
+
+/**
+ * Get accounting closures with filtering
+ */
+export async function getAccountingClosures(filters?: {
+  status?: 'draft' | 'confirmed';
+  createdBy?: number;
+  periodStart?: string | Date;
+  periodEnd?: string | Date;
+}) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  let conditions: any[] = [];
+  
+  if (filters?.status) {
+    conditions.push(eq(accountingClosures.status, filters.status));
+  }
+  
+  if (filters?.createdBy) {
+    conditions.push(eq(accountingClosures.createdBy, filters.createdBy));
+  }
+  
+  if (filters?.periodStart) {
+    const startStr = typeof filters.periodStart === 'string' 
+      ? filters.periodStart 
+      : filters.periodStart.toISOString().split('T')[0];
+    conditions.push(gte(accountingClosures.periodEnd, startStr));
+  }
+  
+  if (filters?.periodEnd) {
+    const endStr = typeof filters.periodEnd === 'string' 
+      ? filters.periodEnd 
+      : filters.periodEnd.toISOString().split('T')[0];
+    conditions.push(lte(accountingClosures.periodStart, endStr));
+  }
+  
+  const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+  
+  return await db.select()
+    .from(accountingClosures)
+    .where(whereClause)
+    .orderBy(desc(accountingClosures.createdAt));
+}
+
+/**
+ * Get closure details with projects
+ */
+export async function getClosureDetails(closureId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const closure = await db.select()
+    .from(accountingClosures)
+    .where(eq(accountingClosures.id, closureId))
+    .limit(1);
+  
+  if (!closure.length) return null;
+  
+  const closureProjects = await db.select()
+    .from(accountingClosureProjects)
+    .where(eq(accountingClosureProjects.closureId, closureId));
+  
+  return {
+    ...closure[0],
+    projects: closureProjects,
+  };
+}
+
+/**
+ * Confirm an accounting closure
+ */
+export async function confirmAccountingClosure(closureId: number, confirmedBy: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.update(accountingClosures)
+    .set({
+      status: 'confirmed',
+      confirmedBy: confirmedBy,
+      confirmedAt: new Date().toISOString(),
+    } as any)
+    .where(eq(accountingClosures.id, closureId));
+}
+
+/**
+ * Get projects included in a closure
+ */
+export async function getClosureProjects(closureId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return await db.select()
+    .from(accountingClosureProjects)
+    .where(eq(accountingClosureProjects.closureId, closureId));
 }

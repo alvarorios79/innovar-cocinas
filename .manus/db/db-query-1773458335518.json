@@ -1,0 +1,9 @@
+{
+  "query": "CREATE TABLE `accountingClosureProjects` (\n\t`id` int AUTO_INCREMENT NOT NULL,\n\t`closureId` int NOT NULL,\n\t`projectId` int NOT NULL,\n\t`projectName` varchar(255) NOT NULL,\n\t`projectValue` decimal(15,2) NOT NULL,\n\t`totalPaid` decimal(15,2) NOT NULL,\n\t`totalExpenses` decimal(15,2) NOT NULL,\n\t`profit` decimal(15,2) NOT NULL,\n\t`createdAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,\n\tCONSTRAINT `accountingClosureProjects_id` PRIMARY KEY(`id`),\n\tCONSTRAINT `accountingClosureProjects_closureId_accountingClosures_id_fk` FOREIGN KEY (`closureId`) REFERENCES `accountingClosures`(`id`) ON DELETE cascade ON UPDATE no action,\n\tCONSTRAINT `accountingClosureProjects_projectId_projects_id_fk` FOREIGN KEY (`projectId`) REFERENCES `projects`(`id`) ON DELETE no action ON UPDATE no action\n);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute CREATE TABLE `accountingClosureProjects` (\n\t`id` int AUTO_INCREMENT NOT NULL,\n\t`closureId` int NOT NULL,\n\t`projectId` int NOT NULL,\n\t`projectName` varchar(255) NOT NULL,\n\t`projectValue` decimal(15,2) NOT NULL,\n\t`totalPaid` decimal(15,2) NOT NULL,\n\t`totalExpenses` decimal(15,2) NOT NULL,\n\t`profit` decimal(15,2) NOT NULL,\n\t`createdAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,\n\tCONSTRAINT `accountingClosureProjects_id` PRIMARY KEY(`id`),\n\tCONSTRAINT `accountingClosureProjects_closureId_accountingClosures_id_fk` FOREIGN KEY (`closureId`) REFERENCES `accountingClosures`(`id`) ON DELETE cascade ON UPDATE no action,\n\tCONSTRAINT `accountingClosureProjects_projectId_projects_id_fk` FOREIGN KEY (`projectId`) REFERENCES `projects`(`id`) ON DELETE no action ON UPDATE no action\n);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 176
+}

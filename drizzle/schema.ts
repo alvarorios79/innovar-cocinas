@@ -1,5 +1,6 @@
 import { mysqlTable, mysqlSchema, AnyMySqlColumn, index, text, foreignKey, int, mysqlEnum, timestamp, varchar, decimal, json, bigint, tinyint } from "drizzle-orm/mysql-core"
 import { sql } from "drizzle-orm"
+import { date } from "drizzle-orm/mysql-core"
 
 export const drizzleMigrations = mysqlTable("__drizzle_migrations__", {
 	id: bigint({ mode: "number" }).autoincrement().notNull(),
@@ -405,6 +406,7 @@ export const projects = mysqlTable("projects", {
 		dataOrigin: mysqlEnum(['manual', 'system', 'test']).default('manual').notNull(),
 		isArchived: tinyint().default(0).notNull(),
 		skipDesignProcess: tinyint().default(0).notNull(),
+		accountingClosureId: int().references(() => accountingClosures.id),
 	},
 	(table) => [
 	index("projects_quotationId_quotations_id_fk").on(table.quotationId),
@@ -414,6 +416,7 @@ export const projects = mysqlTable("projects", {
 	index("projects_quotationId_idx").on(table.quotationId),
 	index("projects_designerId_idx").on(table.designerId),
 	index("projects_createdBy_idx").on(table.createdBy),
+	index("projects_accountingClosureId_idx").on(table.accountingClosureId),
 ]);
 
 	export const pushSubscriptions = mysqlTable("pushSubscriptions", {
@@ -697,6 +700,43 @@ export const cleanupAuditLog = mysqlTable("cleanupAuditLog", {
 ]);
 
 
+export const accountingClosures = mysqlTable("accountingClosures", {
+	id: int().autoincrement().notNull(),
+	periodStart: date({ mode: 'string' }).notNull(),
+	periodEnd: date({ mode: 'string' }).notNull(),
+	status: mysqlEnum(['draft', 'confirmed']).default('draft').notNull(),
+	createdBy: int().notNull().references(() => users.id),
+	confirmedBy: int(),
+	totalSales: decimal({ precision: 15, scale: 2 }).notNull().default('0'),
+	totalExpenses: decimal({ precision: 15, scale: 2 }).notNull().default('0'),
+	totalProfit: decimal({ precision: 15, scale: 2 }).notNull().default('0'),
+	projectCount: int().notNull().default(0),
+	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	confirmedAt: timestamp({ mode: 'string' }),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+},
+(table) => [
+	index("accountingClosures_status_idx").on(table.status),
+	index("accountingClosures_createdBy_idx").on(table.createdBy),
+	index("accountingClosures_periodStart_idx").on(table.periodStart),
+	index("accountingClosures_periodEnd_idx").on(table.periodEnd),
+]);
+
+export const accountingClosureProjects = mysqlTable("accountingClosureProjects", {
+	id: int().autoincrement().notNull(),
+	closureId: int().notNull().references(() => accountingClosures.id, { onDelete: "cascade" }),
+	projectId: int().notNull().references(() => projects.id),
+	projectName: varchar({ length: 255 }).notNull(),
+	projectValue: decimal({ precision: 15, scale: 2 }).notNull(),
+	totalPaid: decimal({ precision: 15, scale: 2 }).notNull(),
+	totalExpenses: decimal({ precision: 15, scale: 2 }).notNull(),
+	profit: decimal({ precision: 15, scale: 2 }).notNull(),
+	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+},
+(table) => [
+	index("accountingClosureProjects_closureId_idx").on(table.closureId),
+	index("accountingClosureProjects_projectId_idx").on(table.projectId),
+]);
 
 
 // ============ INSERT TYPES ============
@@ -725,3 +765,5 @@ export type InsertClientRevisionHistory = typeof clientRevisionHistory.$inferIns
 export type InsertFinancialAlert = typeof financialAlerts.$inferInsert;
 export type InsertBackupMetadata = typeof backupMetadata.$inferInsert;
 export type InsertCleanupAuditLog = typeof cleanupAuditLog.$inferInsert;
+export type InsertAccountingClosure = typeof accountingClosures.$inferInsert;
+export type InsertAccountingClosureProject = typeof accountingClosureProjects.$inferInsert;

@@ -8,7 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { TrendingUp, TrendingDown, DollarSign, BarChart3, Calendar, Filter, X, Download } from "lucide-react";
+import { TrendingUp, TrendingDown, DollarSign, BarChart3, Calendar, Filter, X, Download, AlertCircle } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 export function ClosureReportTab() {
   const [startDate, setStartDate] = useState("");
@@ -16,9 +17,10 @@ export function ClosureReportTab() {
   const [statusFilter, setStatusFilter] = useState<"all" | "draft" | "confirmed">("confirmed");
   const [showFilters, setShowFilters] = useState(false);
   const [downloadingId, setDownloadingId] = useState<number | null>(null);
+  const [confirmingClosureId, setConfirmingClosureId] = useState<number | null>(null);
 
   // Queries
-  const { data: reports, isLoading: reportsLoading } = trpc.accountingClosures.getReportsByPeriod.useQuery(
+  const { data: reports, isLoading: reportsLoading, refetch: refetchReports } = trpc.accountingClosures.getReportsByPeriod.useQuery(
     {
       startDate: startDate || undefined,
       endDate: endDate || undefined,
@@ -82,6 +84,59 @@ export function ClosureReportTab() {
       toast.error("❌ Error al generar el PDF");
     } finally {
       setDownloadingId(null);
+    }
+  };
+
+  const handleDownloadExcel = async (closureId: number) => {
+    setDownloadingId(closureId);
+    try {
+      const result = await trpc.accountingClosures.generateExcel.useQuery(
+        { closureId },
+        { enabled: false }
+      ).refetch();
+      
+      const excelData = result.data;
+      if (!excelData) throw new Error("No Excel data received");
+      
+      // Decode base64 to binary
+      const binaryString = atob(excelData.buffer);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      
+      // Create blob and download
+      const blob = new Blob([bytes], { type: excelData.mimeType });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = excelData.filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      toast.success("✅ Excel descargado exitosamente");
+    } catch (error) {
+      console.error("Error downloading Excel:", error);
+      toast.error("❌ Error al descargar el Excel");
+    } finally {
+      setDownloadingId(null);
+    }
+  };
+
+  const confirmMutation = trpc.accountingClosures.confirm.useMutation();
+
+  const handleConfirmClosure = async (closureId: number) => {
+    try {
+      await confirmMutation.mutateAsync({ closureId });
+      toast.success("✅ Cierre contable confirmado exitosamente");
+      setConfirmingClosureId(null);
+      refetchReports();
+    } catch (error: any) {
+      console.error("Error confirming closure:", error);
+      const errorMessage = error?.message || "Error al confirmar el cierre";
+      toast.error(`❌ ${errorMessage}`);
     }
   };
 
@@ -276,16 +331,39 @@ export function ClosureReportTab() {
                       Creado: {new Date(closure.createdAt).toLocaleDateString("es-CO")}
                       {closure.confirmedAt && ` • Confirmado: ${new Date(closure.confirmedAt).toLocaleDateString("es-CO")}`}
                     </div>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleDownloadPDF(closure.id)}
-                      disabled={downloadingId === closure.id}
-                      className="text-teal-600 hover:text-teal-700 hover:bg-teal-50 border-teal-200"
-                    >
-                      <Download className="h-4 w-4 mr-1" />
-                      {downloadingId === closure.id ? "Generando..." : "Descargar PDF"}
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleDownloadPDF(closure.id)}
+                        disabled={downloadingId === closure.id}
+                        className="text-teal-600 hover:text-teal-700 hover:bg-teal-50 border-teal-200"
+                      >
+                        <Download className="h-4 w-4 mr-1" />
+                        {downloadingId === closure.id ? "Generando..." : "PDF"}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleDownloadExcel(closure.id)}
+                        disabled={downloadingId === closure.id}
+                        className="text-green-600 hover:text-green-700 hover:bg-green-50 border-green-200"
+                      >
+                        <Download className="h-4 w-4 mr-1" />
+                        {downloadingId === closure.id ? "Generando..." : "Excel"}
+                      </Button>
+                      {closure.status === "draft" && (
+                        <Button
+                          size="sm"
+                          variant="default"
+                          onClick={() => setConfirmingClosureId(closure.id)}
+                          disabled={confirmMutation.isPending}
+                          className="bg-teal-600 hover:bg-teal-700"
+                        >
+                          Confirmar
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -298,6 +376,36 @@ export function ClosureReportTab() {
           )}
         </CardContent>
       </Card>
+
+      {/* Confirmation Dialog */}
+      <AlertDialog open={confirmingClosureId !== null} onOpenChange={(open) => !open && setConfirmingClosureId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <div className="flex items-center gap-3">
+              <AlertCircle className="h-6 w-6 text-amber-600" />
+              <AlertDialogTitle>Confirmar Cierre Contable</AlertDialogTitle>
+            </div>
+            <AlertDialogDescription className="mt-2">
+              ¿Estás seguro de que deseas confirmar este cierre contable? Esta acción no se puede deshacer.
+              <div className="mt-3 p-3 bg-amber-50 rounded-md border border-amber-200">
+                <p className="text-sm text-amber-900">
+                  Una vez confirmado, el cierre será inmutable y se enviará una notificación al propietario.
+                </p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex gap-3 justify-end">
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => confirmingClosureId && handleConfirmClosure(confirmingClosureId)}
+              disabled={confirmMutation.isPending}
+              className="bg-teal-600 hover:bg-teal-700"
+            >
+              {confirmMutation.isPending ? "Confirmando..." : "Confirmar"}
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -5436,3 +5436,19 @@ Listo para pasar a Fase 7.2 (Intelligent Alerts) cuando sea requerido.
 - [x] Hoja 3: Histórico mensual (últimos 6 meses)
 - [x] Endpoint tRPC para descarga de Excel
 - [x] Retorna buffer base64 para descarga
+
+### FASE 5C: Integración de UI - Botones de Descarga ✅
+- [x] Agregar botón "Descargar PDF" en ClosureReportTab
+- [x] Agregar botón "Descargar Excel" en ClosureReportTab
+- [x] Estados de carga mientras se genera archivo
+- [x] Mensajes toast de éxito/error
+- [x] Descarga automática de Excel
+- [x] Vista previa de impresión para PDF
+
+### FASE 5D: Validaciones en UI - Confirmación de Cierre ✅
+- [x] Agregar botón "Confirmar" para cierres en borrador
+- [x] Dialog de confirmación con advertencia
+- [x] Mensaje de que la acción no se puede deshacer
+- [x] Notificación automática al propietario
+- [x] Manejo de errores con mensajes claros
+- [x] Estados visuales de restricciones

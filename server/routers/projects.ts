@@ -1318,12 +1318,6 @@ ${input.notes || "No se especificaron detalles"}
           throw new TRPCError({ code: "FORBIDDEN", message: "Solo administradores o jefe de taller pueden editar proyectos" });
         }
 
-        // Validar que el proyecto no esté cerrado
-        const canEdit = await db.canEditProject(input.id);
-        if (!canEdit.canEdit) {
-          throw new TRPCError({ code: "FORBIDDEN", message: canEdit.reason });
-        }
-
         const { id, estimatedInstallDate, scheduledInstallDate, ...rest } = input;
         const data: any = { ...rest };
         if (estimatedInstallDate) data.estimatedInstallDate = estimatedInstallDate.toISOString();
@@ -1375,12 +1369,6 @@ ${input.notes || "No se especificaron detalles"}
       .mutation(async ({ ctx, input }) => {
         if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "comercial") {
           throw new TRPCError({ code: "FORBIDDEN", message: "Solo administradores pueden eliminar proyectos" });
-        }
-
-        // Validar que el proyecto no esté cerrado
-        const canDelete = await db.canDeleteProject(input.id);
-        if (!canDelete.canDelete) {
-          throw new TRPCError({ code: "FORBIDDEN", message: canDelete.reason });
         }
 
         await db.deleteProject(input.id);

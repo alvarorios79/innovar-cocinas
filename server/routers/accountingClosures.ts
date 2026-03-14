@@ -11,12 +11,8 @@ import {
   getClosureSummary,
   getMonthlyClosureSummary,
   generateClosurePDF,
-  canDeleteClosure,
-  getDb,
 } from "../db";
 import { TRPCError } from "@trpc/server";
-import { eq } from "drizzle-orm";
-import { accountingClosures, accountingClosureProjects } from "../../drizzle/schema";
 
 export const accountingClosuresRouter = router({
   /**
@@ -168,38 +164,6 @@ export const accountingClosuresRouter = router({
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Error al confirmar cierre contable",
-        });
-      }
-    }),
-
-  /**
-   * Delete a closure (only drafts can be deleted)
-   */
-  delete: adminProcedure
-    .input(z.object({ closureId: z.number() }))
-    .mutation(async ({ input, ctx }) => {
-      try {
-        const canDelete = await canDeleteClosure(input.closureId);
-        if (!canDelete.canDelete) {
-          throw new TRPCError({
-            code: "FORBIDDEN",
-            message: canDelete.reason,
-          });
-        }
-
-        const db = await getDb();
-        if (!db) throw new Error("Database connection failed");
-
-        await db.delete(accountingClosureProjects).where(eq(accountingClosureProjects.closureId, input.closureId));
-        await db.delete(accountingClosures).where(eq(accountingClosures.id, input.closureId));
-
-        return { message: "Cierre contable eliminado exitosamente" };
-      } catch (error) {
-        if (error instanceof TRPCError) throw error;
-        console.error("[AccountingClosures] Error deleting closure:", error);
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Error al eliminar cierre contable",
         });
       }
     }),

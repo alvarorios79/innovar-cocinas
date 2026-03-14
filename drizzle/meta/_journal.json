@@ -211,6 +211,13 @@
       "when": 1773458392324,
       "tag": "0029_furry_iron_fist",
       "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "5",
+      "when": 1773465233418,
+      "tag": "0030_fast_carlie_cooper",
+      "breakpoints": true
     }
   ]
 }

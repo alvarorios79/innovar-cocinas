@@ -1,0 +1,9 @@
+{
+  "query": "CREATE TABLE IF NOT EXISTS closureAuditLog (\n  id INT AUTO_INCREMENT PRIMARY KEY,\n  closureId INT NOT NULL,\n  action ENUM('created', 'confirmed', 'deleted') NOT NULL,\n  performedBy INT NOT NULL,\n  actionDetails JSON,\n  timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\n  ipAddress VARCHAR(45),\n  userAgent TEXT,\n  FOREIGN KEY (closureId) REFERENCES accountingClosures(id),\n  FOREIGN KEY (performedBy) REFERENCES users(id),\n  INDEX closureAuditLog_closureId_idx (closureId),\n  INDEX closureAuditLog_performedBy_idx (performedBy),\n  INDEX closureAuditLog_action_idx (action),\n  INDEX closureAuditLog_timestamp_idx (timestamp)\n);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute CREATE TABLE IF NOT EXISTS closureAuditLog (\n  id INT AUTO_INCREMENT PRIMARY KEY,\n  closureId INT NOT NULL,\n  action ENUM('created', 'confirmed', 'deleted') NOT NULL,\n  performedBy INT NOT NULL,\n  actionDetails JSON,\n  timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\n  ipAddress VARCHAR(45),\n  userAgent TEXT,\n  FOREIGN KEY (closureId) REFERENCES accountingClosures(id),\n  FOREIGN KEY (performedBy) REFERENCES users(id),\n  INDEX closureAuditLog_closureId_idx (closureId),\n  INDEX closureAuditLog_performedBy_idx (performedBy),\n  INDEX closureAuditLog_action_idx (action),\n  INDEX closureAuditLog_timestamp_idx (timestamp)\n);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 201
+}

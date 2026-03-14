@@ -59,7 +59,9 @@ import {
   accountingClosures,
   InsertAccountingClosure,
   accountingClosureProjects,
-  InsertAccountingClosureProject
+  InsertAccountingClosureProject,
+  closureAuditLog,
+  InsertClosureAuditLog
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 import { randomUUID } from 'crypto';
@@ -3241,5 +3243,128 @@ export async function generateClosureExcel(closureId: number): Promise<Buffer> {
   } catch (error) {
     console.error("[Excel] Error generating Excel:", error);
     throw error;
+  }
+}
+
+
+// ============================================================================
+// FASE 6: AUDIT LOG FUNCTIONS
+// ============================================================================
+
+export async function logClosureAudit(
+  closureId: number,
+  action: 'created' | 'confirmed' | 'deleted',
+  performedBy: number,
+  actionDetails?: Record<string, any>,
+  ipAddress?: string,
+  userAgent?: string
+) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[AUDIT LOG] Database not available");
+    return;
+  }
+
+  try {
+    await db.insert(closureAuditLog).values({
+      closureId,
+      action,
+      performedBy,
+      actionDetails: actionDetails || {},
+      ipAddress,
+      userAgent,
+    });
+  } catch (error) {
+    console.error(`[AUDIT LOG] Error logging closure ${action}:`, error);
+    // Don't throw - audit log failure shouldn't break the operation
+  }
+}
+
+export async function getClosureAuditLog(
+  closureId?: number,
+  action?: 'created' | 'confirmed' | 'deleted',
+  startDate?: string,
+  endDate?: string
+) {
+  const db = await getDb();
+  if (!db) return [];
+
+  try {
+    const conditions: any[] = [];
+    
+    if (closureId) {
+      conditions.push(eq(closureAuditLog.closureId, closureId));
+    }
+    if (action) {
+      conditions.push(eq(closureAuditLog.action, action));
+    }
+    if (startDate) {
+      conditions.push(gte(closureAuditLog.timestamp, startDate));
+    }
+    if (endDate) {
+      conditions.push(lte(closureAuditLog.timestamp, endDate));
+    }
+
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+    const logs = await db
+      .select()
+      .from(closureAuditLog)
+      .where(whereClause)
+      .orderBy(desc(closureAuditLog.timestamp));
+    
+    return logs.map(log => ({
+      ...log,
+      actionDetails: log.actionDetails || {},
+    }));
+  } catch (error) {
+    console.error('[AUDIT LOG] Error retrieving audit logs:', error);
+    return [];
+  }
+}
+
+export async function getClosureAuditSummary(closureId: number) {
+  const db = await getDb();
+  if (!db) return null;
+
+  try {
+    const logs = await db
+      .select()
+      .from(closureAuditLog)
+      .where(eq(closureAuditLog.closureId, closureId))
+      .orderBy(asc(closureAuditLog.timestamp));
+
+    return {
+      closureId,
+      totalActions: logs.length,
+      createdAt: logs.find(l => l.action === 'created')?.timestamp,
+      createdBy: logs.find(l => l.action === 'created')?.performedBy,
+      confirmedAt: logs.find(l => l.action === 'confirmed')?.timestamp,
+      confirmedBy: logs.find(l => l.action === 'confirmed')?.performedBy,
+      deletedAt: logs.find(l => l.action === 'deleted')?.timestamp,
+      deletedBy: logs.find(l => l.action === 'deleted')?.performedBy,
+      timeline: logs,
+    };
+  } catch (error) {
+    console.error('[AUDIT LOG] Error retrieving audit summary:', error);
+    return null;
+  }
+}
+
+export async function getUserAuditActions(userId: number, limit = 50) {
+  const db = await getDb();
+  if (!db) return [];
+
+  try {
+    const logs = await db
+      .select()
+      .from(closureAuditLog)
+      .where(eq(closureAuditLog.performedBy, userId))
+      .orderBy(desc(closureAuditLog.timestamp))
+      .limit(limit);
+
+    return logs;
+  } catch (error) {
+    console.error('[AUDIT LOG] Error retrieving user audit actions:', error);
+    return [];
   }
 }

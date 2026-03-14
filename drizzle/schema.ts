@@ -767,3 +767,33 @@ export type InsertBackupMetadata = typeof backupMetadata.$inferInsert;
 export type InsertCleanupAuditLog = typeof cleanupAuditLog.$inferInsert;
 export type InsertAccountingClosure = typeof accountingClosures.$inferInsert;
 export type InsertAccountingClosureProject = typeof accountingClosureProjects.$inferInsert;
+
+
+export const closureAuditLog = mysqlTable("closureAuditLog", {
+	id: int().autoincrement().notNull(),
+	closureId: int().notNull().references(() => accountingClosures.id),
+	action: mysqlEnum(['created', 'confirmed', 'deleted']).notNull(),
+	performedBy: int().notNull().references(() => users.id),
+	actionDetails: json().$type<{
+		previousStatus?: string;
+		newStatus?: string;
+		projectCount?: number;
+		totalSales?: string;
+		totalExpenses?: string;
+		totalProfit?: string;
+		reason?: string;
+		[key: string]: any;
+	}>(),
+	timestamp: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	ipAddress: varchar({ length: 45 }),
+	userAgent: text(),
+},
+(table) => [
+	index("closureAuditLog_closureId_idx").on(table.closureId),
+	index("closureAuditLog_performedBy_idx").on(table.performedBy),
+	index("closureAuditLog_action_idx").on(table.action),
+	index("closureAuditLog_timestamp_idx").on(table.timestamp),
+]);
+
+export type SelectClosureAuditLog = typeof closureAuditLog.$inferSelect;
+export type InsertClosureAuditLog = typeof closureAuditLog.$inferInsert;

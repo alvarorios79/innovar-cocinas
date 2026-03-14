@@ -17,6 +17,10 @@ import {
   getDb,
   notifyOwnerClosureConfirmed,
   generateClosureExcel,
+  logClosureAudit,
+  getClosureAuditLog,
+  getClosureAuditSummary,
+  getUserAuditActions,
 } from "../db";
 
 export const accountingClosuresRouter = router({
@@ -308,6 +312,60 @@ export const accountingClosuresRouter = router({
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Error al generar Excel del cierre",
+        });
+      }
+    }),
+
+  /**
+   * Get audit log for a closure
+   */
+  getAuditLog: adminProcedure
+    .input(z.object({ closureId: z.number() }))
+    .query(async ({ input }) => {
+      try {
+        const logs = await getClosureAuditLog(input.closureId);
+        return logs;
+      } catch (error) {
+        console.error("[AccountingClosures] Error getting audit log:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Error al obtener registro de auditoría",
+        });
+      }
+    }),
+
+  /**
+   * Get audit summary for a closure
+   */
+  getAuditSummary: adminProcedure
+    .input(z.object({ closureId: z.number() }))
+    .query(async ({ input }) => {
+      try {
+        const summary = await getClosureAuditSummary(input.closureId);
+        return summary;
+      } catch (error) {
+        console.error("[AccountingClosures] Error getting audit summary:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Error al obtener resumen de auditoría",
+        });
+      }
+    }),
+
+  /**
+   * Get user audit actions
+   */
+  getUserActions: adminProcedure
+    .input(z.object({ userId: z.number(), limit: z.number().default(50) }))
+    .query(async ({ input }) => {
+      try {
+        const actions = await getUserAuditActions(input.userId, input.limit);
+        return actions;
+      } catch (error) {
+        console.error("[AccountingClosures] Error getting user actions:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Error al obtener acciones del usuario",
         });
       }
     }),

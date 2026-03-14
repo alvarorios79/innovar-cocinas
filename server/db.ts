@@ -3127,3 +3127,158 @@ export async function generateClosurePDF(closureId: number) {
 
   return htmlContent;
 }
+
+
+/**
+ * Check if a project is closed (part of an accounting closure)
+ */
+export async function isProjectClosed(projectId: number): Promise<boolean> {
+  const db = await getDb();
+  if (!db) throw new Error("Database connection failed");
+
+  const project = await db.select().from(projects).where(eq(projects.id, projectId)).limit(1);
+  return project.length > 0 && project[0].accountingClosureId !== null;
+}
+
+/**
+ * Check if a closure is confirmed
+ */
+export async function isClosureConfirmed(closureId: number): Promise<boolean> {
+  const db = await getDb();
+  if (!db) throw new Error("Database connection failed");
+
+  const closure = await db
+    .select()
+    .from(accountingClosures)
+    .where(eq(accountingClosures.id, closureId))
+    .limit(1);
+
+  return closure.length > 0 && closure[0].status === "confirmed";
+}
+
+/**
+ * Check if a project is already in another closure
+ */
+export async function isProjectInAnotherClosure(projectId: number, excludeClosureId?: number): Promise<boolean> {
+  const db = await getDb();
+  if (!db) throw new Error("Database connection failed");
+
+  let whereConditions = [eq(accountingClosureProjects.projectId, projectId)];
+  
+  if (excludeClosureId) {
+    whereConditions.push(ne(accountingClosureProjects.closureId, excludeClosureId));
+  }
+
+  const result = await db
+    .select()
+    .from(accountingClosureProjects)
+    .where(and(...whereConditions))
+    .limit(1);
+
+  return result.length > 0;
+}
+
+/**
+ * Get all projects in a closure
+ */
+export async function getProjectsInClosure(closureId: number): Promise<number[]> {
+  const db = await getDb();
+  if (!db) throw new Error("Database connection failed");
+
+  const projects = await db
+    .select({ projectId: accountingClosureProjects.projectId })
+    .from(accountingClosureProjects)
+    .where(eq(accountingClosureProjects.closureId, closureId));
+
+  return projects.map(p => p.projectId);
+}
+
+/**
+ * Validate that all projects in a closure exist and are not deleted
+ */
+export async function validateClosureProjects(closureId: number): Promise<{ valid: boolean; errors: string[] }> {
+  const db = await getDb();
+  if (!db) throw new Error("Database connection failed");
+
+  const errors: string[] = [];
+  const projectIds = await getProjectsInClosure(closureId);
+
+  for (const projectId of projectIds) {
+    const project = await db.select().from(projects).where(eq(projects.id, projectId)).limit(1);
+
+    if (project.length === 0) {
+      errors.push(`Proyecto ${projectId} no existe`);
+    } else if (project[0].deletedAt !== null) {
+      errors.push(`Proyecto ${projectId} ha sido eliminado`);
+    }
+  }
+
+  return {
+    valid: errors.length === 0,
+    errors,
+  };
+}
+
+/**
+ * Check if a closure can be edited
+ */
+export async function canEditClosure(closureId: number): Promise<{ canEdit: boolean; reason?: string }> {
+  const confirmed = await isClosureConfirmed(closureId);
+
+  if (confirmed) {
+    return {
+      canEdit: false,
+      reason: "No se puede editar un cierre confirmado",
+    };
+  }
+
+  return { canEdit: true };
+}
+
+/**
+ * Check if a closure can be deleted
+ */
+export async function canDeleteClosure(closureId: number): Promise<{ canDelete: boolean; reason?: string }> {
+  const confirmed = await isClosureConfirmed(closureId);
+
+  if (confirmed) {
+    return {
+      canDelete: false,
+      reason: "No se puede eliminar un cierre confirmado",
+    };
+  }
+
+  return { canDelete: true };
+}
+
+/**
+ * Check if a project can be edited
+ */
+export async function canEditProject(projectId: number): Promise<{ canEdit: boolean; reason?: string }> {
+  const closed = await isProjectClosed(projectId);
+
+  if (closed) {
+    return {
+      canEdit: false,
+      reason: "No se puede editar un proyecto que está incluido en un cierre contable",
+    };
+  }
+
+  return { canEdit: true };
+}
+
+/**
+ * Check if a project can be deleted
+ */
+export async function canDeleteProject(projectId: number): Promise<{ canDelete: boolean; reason?: string }> {
+  const closed = await isProjectClosed(projectId);
+
+  if (closed) {
+    return {
+      canDelete: false,
+      reason: "No se puede eliminar un proyecto que está incluido en un cierre contable",
+    };
+  }
+
+  return { canDelete: true };
+}

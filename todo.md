@@ -5408,3 +5408,14 @@ Listo para pasar a Fase 7.2 (Intelligent Alerts) cuando sea requerido.
 - [x] Crear resumen de cierres (total de ventas, gastos, ganancia)
 - [x] Agregar TAB de "Reportes" en Accounting.tsx
 - [x] Mostrar gráfico de resumen mensual
+
+
+### FASE 4: Exportar Reportes a PDF ✅
+- [x] Crear función de generación de PDF en backend
+- [x] Incluir detalles de proyectos en PDF
+- [x] Agregar totales (ventas, gastos, ganancia)
+- [x] Agregar firma digital del responsable
+- [x] Crear endpoint tRPC para descargar PDF
+- [x] Agregar botón de descarga en ClosureReportTab
+- [x] Integrar vista previa de impresión
+- [x] Manejo de errores y notificaciones

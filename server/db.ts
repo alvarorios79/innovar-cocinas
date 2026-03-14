@@ -2786,3 +2786,344 @@ export async function getMonthlyClosureSummary(months: number = 6) {
     };
   });
 }
+
+
+/**
+ * Generate PDF for accounting closure
+ * @param closureId - ID of the closure to generate PDF for
+ */
+export async function generateClosurePDF(closureId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database connection failed");
+
+  // Get closure details
+  const closure = await getClosureDetails(closureId);
+  if (!closure) throw new Error("Closure not found");
+
+  // Get closure projects
+  const projects = await getClosureProjects(closureId);
+
+  // Get creator and confirmer info
+  const creator = await db.select().from(users).where(eq(users.id, closure.createdBy)).limit(1);
+  const confirmer = closure.confirmedBy
+    ? await db.select().from(users).where(eq(users.id, closure.confirmedBy)).limit(1)
+    : null;
+
+  // Format data for PDF
+  const closureDate = new Date(closure.periodStart);
+  const closureDateStr = closureDate.toLocaleDateString("es-CO", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+
+  const periodStartStr = new Date(closure.periodStart).toLocaleDateString("es-CO");
+  const periodEndStr = new Date(closure.periodEnd).toLocaleDateString("es-CO");
+
+  // Create HTML for PDF
+  const htmlContent = `
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Cierre Contable ${closureId}</title>
+      <style>
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+        }
+        body {
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          color: #333;
+          line-height: 1.6;
+        }
+        .container {
+          max-width: 800px;
+          margin: 0 auto;
+          padding: 40px;
+          background: white;
+        }
+        .header {
+          text-align: center;
+          margin-bottom: 40px;
+          border-bottom: 3px solid #0d9488;
+          padding-bottom: 20px;
+        }
+        .header h1 {
+          color: #0d9488;
+          font-size: 28px;
+          margin-bottom: 10px;
+        }
+        .header p {
+          color: #666;
+          font-size: 14px;
+        }
+        .closure-info {
+          background: #f0fdf4;
+          border-left: 4px solid #0d9488;
+          padding: 15px;
+          margin-bottom: 30px;
+          border-radius: 4px;
+        }
+        .closure-info h2 {
+          color: #0d9488;
+          font-size: 16px;
+          margin-bottom: 10px;
+        }
+        .info-row {
+          display: flex;
+          justify-content: space-between;
+          margin-bottom: 8px;
+          font-size: 14px;
+        }
+        .info-label {
+          font-weight: 600;
+          color: #333;
+        }
+        .info-value {
+          color: #666;
+        }
+        .projects-section {
+          margin-bottom: 30px;
+        }
+        .projects-section h3 {
+          color: #0d9488;
+          font-size: 16px;
+          margin-bottom: 15px;
+          border-bottom: 2px solid #e5e7eb;
+          padding-bottom: 10px;
+        }
+        table {
+          width: 100%;
+          border-collapse: collapse;
+          margin-bottom: 20px;
+          font-size: 13px;
+        }
+        th {
+          background: #f3f4f6;
+          color: #333;
+          padding: 12px;
+          text-align: left;
+          font-weight: 600;
+          border-bottom: 2px solid #d1d5db;
+        }
+        td {
+          padding: 12px;
+          border-bottom: 1px solid #e5e7eb;
+        }
+        tr:hover {
+          background: #f9fafb;
+        }
+        .text-right {
+          text-align: right;
+        }
+        .summary-section {
+          background: #f9fafb;
+          padding: 20px;
+          border-radius: 8px;
+          margin-bottom: 30px;
+        }
+        .summary-row {
+          display: flex;
+          justify-content: space-between;
+          margin-bottom: 12px;
+          font-size: 14px;
+        }
+        .summary-label {
+          font-weight: 600;
+          color: #333;
+        }
+        .summary-value {
+          color: #0d9488;
+          font-weight: 600;
+          font-size: 16px;
+        }
+        .summary-row.total {
+          border-top: 2px solid #d1d5db;
+          padding-top: 12px;
+          margin-top: 12px;
+        }
+        .summary-value.total {
+          color: #059669;
+          font-size: 18px;
+        }
+        .signature-section {
+          margin-top: 40px;
+          padding-top: 20px;
+          border-top: 2px solid #e5e7eb;
+        }
+        .signature-row {
+          display: flex;
+          justify-content: space-between;
+          margin-top: 40px;
+        }
+        .signature-box {
+          width: 45%;
+          text-align: center;
+          font-size: 12px;
+        }
+        .signature-line {
+          border-top: 1px solid #333;
+          margin-bottom: 5px;
+          height: 40px;
+        }
+        .signature-name {
+          font-weight: 600;
+          color: #333;
+        }
+        .signature-role {
+          color: #666;
+          font-size: 11px;
+        }
+        .footer {
+          text-align: center;
+          margin-top: 40px;
+          padding-top: 20px;
+          border-top: 1px solid #e5e7eb;
+          font-size: 12px;
+          color: #999;
+        }
+        .status-badge {
+          display: inline-block;
+          padding: 4px 12px;
+          border-radius: 20px;
+          font-size: 12px;
+          font-weight: 600;
+        }
+        .status-confirmed {
+          background: #d1fae5;
+          color: #065f46;
+        }
+        .status-draft {
+          background: #fef3c7;
+          color: #92400e;
+        }
+        .page-break {
+          page-break-after: always;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <!-- Header -->
+        <div class="header">
+          <h1>📊 Reporte de Cierre Contable</h1>
+          <p>INNOVAR Cocinas Integrales</p>
+        </div>
+
+        <!-- Closure Info -->
+        <div class="closure-info">
+          <h2>Información del Cierre</h2>
+          <div class="info-row">
+            <span class="info-label">Número de Cierre:</span>
+            <span class="info-value">#${closureId}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Período:</span>
+            <span class="info-value">${periodStartStr} - ${periodEndStr}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Estado:</span>
+            <span class="info-value">
+              <span class="status-badge ${closure.status === "confirmed" ? "status-confirmed" : "status-draft"}">
+                ${closure.status === "confirmed" ? "✓ Confirmado" : "◐ Borrador"}
+              </span>
+            </span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Creado por:</span>
+            <span class="info-value">${creator[0]?.name || "Sistema"}</span>
+          </div>
+          ${closure.confirmedBy && confirmer ? `
+          <div class="info-row">
+            <span class="info-label">Confirmado por:</span>
+            <span class="info-value">${confirmer[0]?.name || "Sistema"}</span>
+          </div>
+          ` : ""}
+          <div class="info-row">
+            <span class="info-label">Fecha de Generación:</span>
+            <span class="info-value">${closureDateStr}</span>
+          </div>
+        </div>
+
+        <!-- Projects Section -->
+        <div class="projects-section">
+          <h3>Proyectos Incluidos (${projects.length})</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Proyecto</th>
+                <th class="text-right">Valor</th>
+                <th class="text-right">Gastos</th>
+                <th class="text-right">Ganancia</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${projects
+                .map(
+                  (p: any) => `
+              <tr>
+                <td>${p.projectName}</td>
+                <td class="text-right">$${Number(p.projectValue).toLocaleString("es-CO", { maximumFractionDigits: 0 })}</td>
+                <td class="text-right">$${Number(p.totalExpenses).toLocaleString("es-CO", { maximumFractionDigits: 0 })}</td>
+                <td class="text-right">$${Number(p.profit).toLocaleString("es-CO", { maximumFractionDigits: 0 })}</td>
+              </tr>
+              `
+                )
+                .join("")}
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Summary Section -->
+        <div class="summary-section">
+          <h3 style="color: #0d9488; margin-bottom: 15px;">Resumen Financiero</h3>
+          <div class="summary-row">
+            <span class="summary-label">Total Ventas:</span>
+            <span class="summary-value">$${Number(closure.totalSales).toLocaleString("es-CO", { maximumFractionDigits: 0 })}</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Total Gastos:</span>
+            <span class="summary-value">$${Number(closure.totalExpenses).toLocaleString("es-CO", { maximumFractionDigits: 0 })}</span>
+          </div>
+          <div class="summary-row total">
+            <span class="summary-label">Ganancia Neta:</span>
+            <span class="summary-value total">$${Number(closure.totalProfit).toLocaleString("es-CO", { maximumFractionDigits: 0 })}</span>
+          </div>
+        </div>
+
+        <!-- Signature Section -->
+        <div class="signature-section">
+          <h3 style="color: #0d9488; margin-bottom: 30px;">Firmas Autorizadas</h3>
+          <div class="signature-row">
+            <div class="signature-box">
+              <div class="signature-line"></div>
+              <div class="signature-name">${creator[0]?.name || "Responsable"}</div>
+              <div class="signature-role">Creador del Cierre</div>
+              <div class="signature-role">${new Date(closure.createdAt).toLocaleDateString("es-CO")}</div>
+            </div>
+            ${closure.confirmedBy && confirmer ? `
+            <div class="signature-box">
+              <div class="signature-line"></div>
+              <div class="signature-name">${confirmer[0]?.name || "Responsable"}</div>
+              <div class="signature-role">Confirmador del Cierre</div>
+              <div class="signature-role">${new Date(closure.confirmedAt || new Date()).toLocaleDateString("es-CO")}</div>
+            </div>
+            ` : ""}
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+          <p>Este documento es un reporte oficial del cierre contable generado por INNOVAR Cocinas Integrales.</p>
+          <p>Fecha de generación: ${new Date().toLocaleString("es-CO")}</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  return htmlContent;
+}

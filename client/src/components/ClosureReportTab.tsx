@@ -8,13 +8,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { TrendingUp, TrendingDown, DollarSign, BarChart3, Calendar, Filter, X } from "lucide-react";
+import { TrendingUp, TrendingDown, DollarSign, BarChart3, Calendar, Filter, X, Download } from "lucide-react";
 
 export function ClosureReportTab() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "draft" | "confirmed">("confirmed");
   const [showFilters, setShowFilters] = useState(false);
+  const [downloadingId, setDownloadingId] = useState<number | null>(null);
 
   // Queries
   const { data: reports, isLoading: reportsLoading } = trpc.accountingClosures.getReportsByPeriod.useQuery(
@@ -45,158 +46,195 @@ export function ClosureReportTab() {
     setStatusFilter("confirmed");
   };
 
+  const handleDownloadPDF = async (closureId: number) => {
+    setDownloadingId(closureId);
+    try {
+      const result = await trpc.accountingClosures.generatePDF.useQuery(
+        { closureId },
+        { enabled: false }
+      ).refetch();
+      
+      const pdfData = result.data;
+      if (!pdfData) throw new Error("No PDF data received");
+      
+      // Create blob from HTML
+      const blob = new Blob([pdfData.html], { type: "text/html" });
+      const url = URL.createObjectURL(blob);
+      
+      // Create iframe for printing
+      const iframe = document.createElement("iframe");
+      iframe.style.display = "none";
+      iframe.src = url;
+      document.body.appendChild(iframe);
+      
+      // Wait for iframe to load then print
+      iframe.onload = () => {
+        iframe.contentWindow?.print();
+        setTimeout(() => {
+          document.body.removeChild(iframe);
+          URL.revokeObjectURL(url);
+        }, 100);
+      };
+      
+      toast.success("✅ PDF generado. Se abrirá la vista previa de impresión");
+    } catch (error) {
+      console.error("Error downloading PDF:", error);
+      toast.error("❌ Error al generar el PDF");
+    } finally {
+      setDownloadingId(null);
+    }
+  };
+
   const getStatusBadge = (status: "draft" | "confirmed") => {
     if (status === "draft") {
       return <Badge variant="outline" className="bg-yellow-50 text-yellow-700">Borrador</Badge>;
     }
-    return <Badge className="bg-green-600">Confirmado</Badge>;
+    return <Badge className="bg-green-100 text-green-700">Confirmado</Badge>;
   };
 
   return (
     <div className="space-y-6">
       {/* Summary Cards */}
-      {summary && !summaryLoading && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-600">Total de Cierres</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-gray-900">{summary.totalClosures}</div>
-              <p className="text-xs text-gray-500 mt-1">Cierres confirmados</p>
-            </CardContent>
-          </Card>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-gray-600">Total Cierres</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-gray-900">
+              {summary?.totalClosures || 0}
+            </div>
+            <p className="text-xs text-gray-500 mt-1">Período seleccionado</p>
+          </CardContent>
+        </Card>
 
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-600">Ventas Totales</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-teal-600">
-                ${Number(summary.totalSales).toLocaleString("es-CO", { maximumFractionDigits: 0 })}
-              </div>
-              <p className="text-xs text-gray-500 mt-1">Ingresos registrados</p>
-            </CardContent>
-          </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-gray-600 flex items-center gap-2">
+              <TrendingUp className="h-4 w-4 text-teal-600" />
+              Total Ventas
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-teal-600">
+              ${Number(summary?.totalSales || 0).toLocaleString("es-CO", { maximumFractionDigits: 0 })}
+            </div>
+            <p className="text-xs text-gray-500 mt-1">De todos los cierres</p>
+          </CardContent>
+        </Card>
 
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-600">Gastos Totales</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-orange-600">
-                ${Number(summary.totalExpenses).toLocaleString("es-CO", { maximumFractionDigits: 0 })}
-              </div>
-              <p className="text-xs text-gray-500 mt-1">Egresos registrados</p>
-            </CardContent>
-          </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-gray-600 flex items-center gap-2">
+              <TrendingDown className="h-4 w-4 text-orange-600" />
+              Total Gastos
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-orange-600">
+              ${Number(summary?.totalExpenses || 0).toLocaleString("es-CO", { maximumFractionDigits: 0 })}
+            </div>
+            <p className="text-xs text-gray-500 mt-1">De todos los cierres</p>
+          </CardContent>
+        </Card>
 
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-600">Ganancia Neta</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-green-600">
-                ${Number(summary.totalProfit).toLocaleString("es-CO", { maximumFractionDigits: 0 })}
-              </div>
-              <p className="text-xs text-gray-500 mt-1">
-                Margen: {summary.averageProfitMargin.toFixed(1)}%
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-gray-600 flex items-center gap-2">
+              <DollarSign className="h-4 w-4 text-green-600" />
+              Ganancia Total
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">
+              ${Number(summary?.totalProfit || 0).toLocaleString("es-CO", { maximumFractionDigits: 0 })}
+            </div>
+            <p className="text-xs text-gray-500 mt-1">De todos los cierres</p>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Filters */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Filter className="h-4 w-4 text-gray-600" />
-              <CardTitle className="text-base">Filtros de Reportes</CardTitle>
+            <div>
+              <CardTitle>Filtros</CardTitle>
+              <CardDescription>Filtra los cierres por período y estado</CardDescription>
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowFilters(!showFilters)}
-              className="text-gray-600"
-            >
-              {showFilters ? "Ocultar" : "Mostrar"}
-            </Button>
-          </div>
-        </CardHeader>
-
-        {showFilters && (
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <Label className="text-sm font-medium">Fecha Inicio</Label>
-                <Input
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label className="text-sm font-medium">Fecha Fin</Label>
-                <Input
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label className="text-sm font-medium">Estado</Label>
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value as "all" | "draft" | "confirmed")}
-                  className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md text-sm"
-                >
-                  <option value="all">Todos</option>
-                  <option value="draft">Borradores</option>
-                  <option value="confirmed">Confirmados</option>
-                </select>
-              </div>
-            </div>
-            <div className="flex gap-2">
+            {(startDate || endDate || statusFilter !== "confirmed") && (
               <Button
-                onClick={handleClearFilters}
-                variant="outline"
                 size="sm"
-                className="text-gray-600"
+                variant="outline"
+                onClick={handleClearFilters}
+                className="text-red-600 hover:text-red-700 hover:bg-red-50"
               >
                 <X className="h-4 w-4 mr-1" />
-                Limpiar Filtros
+                Limpiar
               </Button>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <Label htmlFor="startDate" className="text-sm font-medium">
+                Fecha Inicio
+              </Label>
+              <Input
+                id="startDate"
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="mt-2"
+              />
             </div>
-          </CardContent>
-        )}
+            <div>
+              <Label htmlFor="endDate" className="text-sm font-medium">
+                Fecha Fin
+              </Label>
+              <Input
+                id="endDate"
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="mt-2"
+              />
+            </div>
+            <div>
+              <Label htmlFor="status" className="text-sm font-medium">
+                Estado
+              </Label>
+              <select
+                id="status"
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value as any)}
+                className="mt-2 w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+              >
+                <option value="all">Todos</option>
+                <option value="draft">Borrador</option>
+                <option value="confirmed">Confirmado</option>
+              </select>
+            </div>
+          </div>
+        </CardContent>
       </Card>
 
-      {/* Reports List */}
+      {/* Closures List */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <BarChart3 className="h-5 w-5 text-teal-600" />
-            Reportes de Cierres Contables
-          </CardTitle>
+          <CardTitle>Cierres Contables</CardTitle>
           <CardDescription>
             {reports?.length || 0} cierre(s) encontrado(s)
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {reportsLoading ? (
-            <div className="flex justify-center py-8">
-              <div className="animate-spin h-8 w-8 border-4 border-teal-600 border-t-transparent rounded-full"></div>
-            </div>
-          ) : reports && reports.length > 0 ? (
-            <div className="space-y-3">
+          {reports && reports.length > 0 ? (
+            <div className="space-y-4">
               {reports.map((closure: any) => (
                 <div
                   key={closure.id}
-                  className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition"
+                  className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div>
@@ -233,9 +271,21 @@ export function ClosureReportTab() {
                     </div>
                   </div>
 
-                  <div className="text-xs text-gray-500">
-                    Creado: {new Date(closure.createdAt).toLocaleDateString("es-CO")}
-                    {closure.confirmedAt && ` • Confirmado: ${new Date(closure.confirmedAt).toLocaleDateString("es-CO")}`}
+                  <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
+                    <div className="text-xs text-gray-500">
+                      Creado: {new Date(closure.createdAt).toLocaleDateString("es-CO")}
+                      {closure.confirmedAt && ` • Confirmado: ${new Date(closure.confirmedAt).toLocaleDateString("es-CO")}`}
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleDownloadPDF(closure.id)}
+                      disabled={downloadingId === closure.id}
+                      className="text-teal-600 hover:text-teal-700 hover:bg-teal-50 border-teal-200"
+                    >
+                      <Download className="h-4 w-4 mr-1" />
+                      {downloadingId === closure.id ? "Generando..." : "Descargar PDF"}
+                    </Button>
                   </div>
                 </div>
               ))}
@@ -248,48 +298,6 @@ export function ClosureReportTab() {
           )}
         </CardContent>
       </Card>
-
-      {/* Monthly Summary Chart */}
-      {monthlySummary && monthlySummary.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-teal-600" />
-              Resumen Mensual (Últimos 6 Meses)
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {monthlySummary.map((month: any, idx: number) => (
-                <div key={idx} className="border-b pb-4 last:border-b-0">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-medium text-gray-900">{month.month}</span>
-                    <div className="flex gap-4 text-sm">
-                      <span className="text-teal-600">
-                        Ventas: ${Number(month.sales).toLocaleString("es-CO", { maximumFractionDigits: 0 })}
-                      </span>
-                      <span className="text-green-600">
-                        Ganancia: ${Number(month.profit).toLocaleString("es-CO", { maximumFractionDigits: 0 })}
-                      </span>
-                    </div>
-                  </div>
-                  {/* Simple bar visualization */}
-                  <div className="flex gap-1 h-6 bg-gray-100 rounded overflow-hidden">
-                    {month.sales > 0 && (
-                      <div
-                        className="bg-teal-500"
-                        style={{
-                          width: `${(month.sales / (monthlySummary[0]?.sales || 1)) * 100}%`,
-                        }}
-                      />
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }

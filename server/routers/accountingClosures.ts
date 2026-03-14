@@ -10,6 +10,7 @@ import {
   getClosureReportsByPeriod,
   getClosureSummary,
   getMonthlyClosureSummary,
+  generateClosurePDF,
 } from "../db";
 import { TRPCError } from "@trpc/server";
 
@@ -254,6 +255,27 @@ export const accountingClosuresRouter = router({
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Error al obtener resumen mensual de cierres",
+        });
+      }
+    }),
+
+  /**
+   * Generate PDF for closure
+   */
+  generatePDF: adminProcedure
+    .input(z.object({ closureId: z.number() }))
+    .query(async ({ input }) => {
+      try {
+        const htmlContent = await generateClosurePDF(input.closureId);
+        return {
+          html: htmlContent,
+          filename: `cierre-contable-${input.closureId}.pdf`,
+        };
+      } catch (error) {
+        console.error("[AccountingClosures] Error generating PDF:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Error al generar PDF del cierre",
         });
       }
     }),

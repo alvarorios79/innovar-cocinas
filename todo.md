@@ -5419,3 +5419,20 @@ Listo para pasar a Fase 7.2 (Intelligent Alerts) cuando sea requerido.
 - [x] Agregar botón de descarga en ClosureReportTab
 - [x] Integrar vista previa de impresión
 - [x] Manejo de errores y notificaciones
+
+
+### FASE 5A: Notificaciones al Propietario ✅
+- [x] Crear función para enviar notificación al propietario
+- [x] Integrar notificación cuando se confirma un cierre
+- [x] Incluir resumen de totales en notificación
+- [x] Incluir lista de proyectos cerrados
+- [x] Incluir usuario responsable del cierre
+- [x] Notificación automática al confirmar cierre
+
+### FASE 5B: Exportar a Excel ✅
+- [x] Crear función para generar Excel con múltiples hojas
+- [x] Hoja 1: Resumen del cierre (totales, período, estado)
+- [x] Hoja 2: Lista de proyectos con detalles
+- [x] Hoja 3: Histórico mensual (últimos 6 meses)
+- [x] Endpoint tRPC para descarga de Excel
+- [x] Retorna buffer base64 para descarga

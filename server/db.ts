@@ -3127,3 +3127,119 @@ export async function generateClosurePDF(closureId: number) {
 
   return htmlContent;
 }
+
+
+/**
+ * Send notification to owner when closure is confirmed
+ */
+export async function notifyOwnerClosureConfirmed(closureId: number, confirmedBy: number): Promise<boolean> {
+  try {
+    const { notifyOwner } = await import("./_core/notification");
+    const closure = await getClosureDetails(closureId);
+    
+    if (!closure) {
+      console.error("[Notification] Closure not found:", closureId);
+      return false;
+    }
+
+    const projectIds = await getClosureProjects(closureId);
+
+    const content = `
+Cierre Contable Confirmado
+
+Período: ${closure.periodStart} a ${closure.periodEnd}
+Estado: ${closure.status}
+Número de Proyectos: ${projectIds.length}
+
+Totales:
+- Ventas: $${closure.totalSales}
+- Gastos: $${closure.totalExpenses}
+- Ganancia: $${closure.totalProfit}
+
+Confirmado por: Usuario #${confirmedBy}
+Fecha: ${new Date().toLocaleString()}
+    `.trim();
+
+    const notifyResult = await notifyOwner({
+      title: `Cierre Contable #${closureId} Confirmado`,
+      content,
+    });
+
+    return notifyResult === true;
+  } catch (error) {
+    console.error("[Notification] Error notifying owner:", error);
+    return false;
+  }
+}
+
+/**
+ * Generate Excel file for closure export
+ */
+export async function generateClosureExcel(closureId: number): Promise<Buffer> {
+  try {
+    const XLSX = await import("xlsx");
+    const closure = await getClosureDetails(closureId);
+    
+    if (!closure) {
+      throw new Error("Closure not found");
+    }
+
+    const projectIds = await getClosureProjects(closureId);
+    const monthlySummary = await getMonthlyClosureSummary(6);
+
+    // Sheet 1: Summary
+    const summaryData = [
+      ["Cierre Contable #" + closureId],
+      [],
+      ["Período", closure.periodStart + " a " + closure.periodEnd],
+      ["Estado", closure.status],
+      ["Número de Proyectos", projectIds.length],
+      [],
+      ["Totales"],
+      ["Ventas", closure.totalSales],
+      ["Gastos", closure.totalExpenses],
+      ["Ganancia", closure.totalProfit],
+      ["Margen", ((Number(closure.totalProfit) / Number(closure.totalSales)) * 100).toFixed(2) + "%"],
+      [],
+      ["Creado por", "Usuario #" + closure.createdBy],
+      ["Confirmado por", closure.confirmedBy ? "Usuario #" + closure.confirmedBy : "N/A"],
+    ];
+
+    // Sheet 2: Projects
+    const projectsData = [
+      ["Proyectos Incluidos en el Cierre"],
+      ["ID Proyecto", "Nombre", "Estado"],
+      ...projectIds.map((id) => [id, "Proyecto #" + id, "Incluido"]),
+    ];
+
+    // Sheet 3: Monthly Summary
+    const monthlySummaryData = [
+      ["Resumen Mensual (Últimos 6 Meses)"],
+      ["Mes", "Total Cierres", "Ventas", "Gastos", "Ganancia"],
+      ...monthlySummary.map((m: any) => [
+        m.month || "N/A",
+        m.closureCount || 0,
+        m.totalSales || 0,
+        m.totalExpenses || 0,
+        m.totalProfit || 0,
+      ]),
+    ];
+
+    // Create workbook
+    const workbook = XLSX.utils.book_new();
+    const ws1 = XLSX.utils.aoa_to_sheet(summaryData);
+    const ws2 = XLSX.utils.aoa_to_sheet(projectsData);
+    const ws3 = XLSX.utils.aoa_to_sheet(monthlySummaryData);
+
+    XLSX.utils.book_append_sheet(workbook, ws1, "Resumen");
+    XLSX.utils.book_append_sheet(workbook, ws2, "Proyectos");
+    XLSX.utils.book_append_sheet(workbook, ws3, "Histórico Mensual");
+
+    // Generate buffer
+    const buffer = XLSX.write(workbook, { bookType: "xlsx", type: "buffer" });
+    return buffer;
+  } catch (error) {
+    console.error("[Excel] Error generating Excel:", error);
+    throw error;
+  }
+}

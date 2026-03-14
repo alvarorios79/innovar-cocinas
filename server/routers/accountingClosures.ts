@@ -1,5 +1,8 @@
 import { z } from "zod";
 import { router, protectedProcedure, adminProcedure } from "../_core/trpc";
+import { TRPCError } from "@trpc/server";
+import { eq } from "drizzle-orm";
+import { accountingClosures, accountingClosureProjects } from "../../drizzle/schema";
 import {
   getPendingClosureProjects,
   createAccountingClosure,
@@ -11,8 +14,10 @@ import {
   getClosureSummary,
   getMonthlyClosureSummary,
   generateClosurePDF,
+  getDb,
+  notifyOwnerClosureConfirmed,
+  generateClosureExcel,
 } from "../db";
-import { TRPCError } from "@trpc/server";
 
 export const accountingClosuresRouter = router({
   /**
@@ -157,6 +162,11 @@ export const accountingClosuresRouter = router({
 
         await confirmAccountingClosure(input.closureId, ctx.user.id);
 
+        // Send notification to owner
+        await notifyOwnerClosureConfirmed(input.closureId, ctx.user.id).catch((error) => {
+          console.error("[AccountingClosures] Error sending notification:", error);
+        });
+
         return { message: "Cierre contable confirmado exitosamente" };
       } catch (error) {
         if (error instanceof TRPCError) throw error;
@@ -276,6 +286,28 @@ export const accountingClosuresRouter = router({
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Error al generar PDF del cierre",
+        });
+      }
+    }),
+
+  /**
+   * Generate Excel for closure
+   */
+  generateExcel: adminProcedure
+    .input(z.object({ closureId: z.number() }))
+    .query(async ({ input }) => {
+      try {
+        const buffer = await generateClosureExcel(input.closureId);
+        return {
+          buffer: buffer.toString("base64"),
+          filename: `cierre-contable-${input.closureId}.xlsx`,
+          mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        };
+      } catch (error) {
+        console.error("[AccountingClosures] Error generating Excel:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Error al generar Excel del cierre",
         });
       }
     }),

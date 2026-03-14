@@ -1174,7 +1174,12 @@ export async function getGlobalFinancialDashboard() {
   const db = await getDb();
   if (!db) return { totalRevenue: 0, totalExpenses: 0, balance: 0 };
 
-  const allProjects = await db.select().from(projects).where(and(isNull(projects.deletedAt), eq(projects.dataOrigin, 'manual')));
+  // Exclude projects that have been closed (accountingClosureId is not null)
+  const allProjects = await db.select().from(projects).where(and(
+    isNull(projects.deletedAt),
+    eq(projects.dataOrigin, 'manual'),
+    isNull(projects.accountingClosureId)
+  ));
   
   let totalRevenue = 0;
   let totalExpenses = 0;
@@ -2640,4 +2645,144 @@ export async function getClosureProjects(closureId: number) {
   return await db.select()
     .from(accountingClosureProjects)
     .where(eq(accountingClosureProjects.closureId, closureId));
+}
+
+
+/**
+ * Get closure reports by period with filtering
+ * @param startDate - Start date (ISO string)
+ * @param endDate - End date (ISO string)
+ * @param status - Filter by status: 'draft' | 'confirmed' | 'all'
+ */
+export async function getClosureReportsByPeriod(
+  startDate?: string,
+  endDate?: string,
+  status: 'draft' | 'confirmed' | 'all' = 'all'
+) {
+  const db = await getDb();
+  if (!db) return [];
+
+  const conditions: any[] = [];
+
+  // Add date filters if provided
+  if (startDate) {
+    conditions.push(gte(accountingClosures.periodStart, startDate));
+  }
+  if (endDate) {
+    conditions.push(lte(accountingClosures.periodEnd, endDate));
+  }
+
+  // Add status filter
+  if (status !== 'all') {
+    conditions.push(eq(accountingClosures.status, status));
+  }
+
+  const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+  const closures = whereClause
+    ? await db.select().from(accountingClosures).where(whereClause).orderBy(desc(accountingClosures.periodStart))
+    : await db.select().from(accountingClosures).orderBy(desc(accountingClosures.periodStart));
+
+  return closures;
+}
+
+/**
+ * Get closure summary statistics
+ * @param startDate - Start date (ISO string)
+ * @param endDate - End date (ISO string)
+ */
+export async function getClosureSummary(startDate?: string, endDate?: string) {
+  const db = await getDb();
+  if (!db) {
+    return {
+      totalClosures: 0,
+      totalSales: 0,
+      totalExpenses: 0,
+      totalProfit: 0,
+      averageProfitMargin: 0,
+    };
+  }
+
+  const conditions: any[] = [eq(accountingClosures.status, 'confirmed')];
+
+  if (startDate) {
+    conditions.push(gte(accountingClosures.periodStart, startDate));
+  }
+  if (endDate) {
+    conditions.push(lte(accountingClosures.periodEnd, endDate));
+  }
+
+  const closures = await db.select().from(accountingClosures).where(and(...conditions));
+
+
+  let totalSales = 0;
+  let totalExpenses = 0;
+  let totalProfit = 0;
+
+  for (const closure of closures) {
+    totalSales += parseFloat(closure.totalSales?.toString() || '0');
+    totalExpenses += parseFloat(closure.totalExpenses?.toString() || '0');
+    totalProfit += parseFloat(closure.totalProfit?.toString() || '0');
+  }
+
+  const averageProfitMargin = totalSales > 0 ? (totalProfit / totalSales) * 100 : 0;
+
+  return {
+    totalClosures: closures.length,
+    totalSales,
+    totalExpenses,
+    totalProfit,
+    averageProfitMargin,
+  };
+}
+
+/**
+ * Get monthly closure summary for charts
+ * @param months - Number of months to retrieve (default: 6)
+ */
+export async function getMonthlyClosureSummary(months: number = 6) {
+  const db = await getDb();
+  if (!db) return [];
+
+  const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+  const now = new Date();
+
+  // Build the last N months (oldest to newest)
+  const monthsData: { month: string; year: number; monthIndex: number }[] = [];
+  for (let i = months - 1; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    monthsData.push({
+      month: monthNames[d.getMonth()],
+      year: d.getFullYear(),
+      monthIndex: d.getMonth(),
+    });
+  }
+
+  // Fetch all confirmed closures
+  const allClosures = await db
+    .select()
+    .from(accountingClosures)
+    .where(eq(accountingClosures.status, 'confirmed'));
+
+  return monthsData.map(({ month, year, monthIndex }) => {
+    let sales = 0;
+    let expenses = 0;
+    let profit = 0;
+
+    for (const closure of allClosures) {
+      if (!closure.periodStart) continue;
+      const d = new Date(closure.periodStart);
+      if (d.getFullYear() === year && d.getMonth() === monthIndex) {
+        sales += parseFloat(closure.totalSales?.toString() || '0');
+        expenses += parseFloat(closure.totalExpenses?.toString() || '0');
+        profit += parseFloat(closure.totalProfit?.toString() || '0');
+      }
+    }
+
+    return {
+      month: `${month} ${year}`,
+      sales,
+      expenses,
+      profit,
+    };
+  });
 }

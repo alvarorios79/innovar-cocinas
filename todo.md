@@ -5395,3 +5395,16 @@ Listo para pasar a Fase 7.2 (Intelligent Alerts) cuando sea requerido.
 - Una vez cerrado, un proyecto no puede ser incluido en otro cierre
 - El sistema calcula automáticamente totales (ventas, gastos, ganancia)
 - Las transacciones garantizan que todos los datos se guardan juntos o se revierten
+
+### FASE 3: Reportes Financieros ✅
+- [x] Actualizar función de dashboard para excluir proyectos cerrados
+- [x] Crear función de base de datos para obtener cierres por período
+- [x] Crear función de resumen de cierres
+- [x] Crear función de resumen mensual
+- [x] Crear endpoints tRPC para reportes
+- [x] Crear componente ClosureReportTab.tsx
+- [x] Agregar filtros por período y estado
+- [x] Mostrar lista de cierres con totales
+- [x] Crear resumen de cierres (total de ventas, gastos, ganancia)
+- [x] Agregar TAB de "Reportes" en Accounting.tsx
+- [x] Mostrar gráfico de resumen mensual

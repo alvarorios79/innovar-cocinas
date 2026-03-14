@@ -35,6 +35,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { ExpenseImportModal } from "@/components/ExpenseImportModal";
 import { ReceiptUpload } from "@/components/ReceiptUpload";
 import { AccountingClosureTab } from "@/components/AccountingClosureTab";
+import { ClosureReportTab } from "@/components/ClosureReportTab";
 import { Upload } from "lucide-react";
 
 // Categorías operativas
@@ -83,7 +84,7 @@ export default function Accounting() {
   const [importModalOpen, setImportModalOpen] = useState(false);
   const [receiptUrl, setReceiptUrl] = useState<string>("");
   const [receiptFileName, setReceiptFileName] = useState<string>("");
-  const [activeTab, setActiveTab] = useState<"expenses" | "closure">("expenses");
+  const [activeTab, setActiveTab] = useState<"expenses" | "closure" | "reports">("expenses");
 
   // Queries
   const { data: projects } = trpc.projects.list.useQuery();
@@ -310,6 +311,14 @@ export default function Accounting() {
           >
             <Calculator className="h-4 w-4 mr-2" />
             Cierre Contable
+          </Button>
+          <Button
+            variant={activeTab === "reports" ? "default" : "ghost"}
+            onClick={() => setActiveTab("reports")}
+            className="rounded-b-none"
+          >
+            <TrendingUp className="h-4 w-4 mr-2" />
+            Reportes
           </Button>
         </div>
 
@@ -643,6 +652,11 @@ export default function Accounting() {
         {/* CLOSURE TAB */}
         {activeTab === "closure" && (
           <AccountingClosureTab />
+        )}
+
+        {/* REPORTS TAB */}
+        {activeTab === "reports" && (
+          <ClosureReportTab />
         )}
       </div>
     </div>

@@ -7,6 +7,9 @@ import {
   getClosureDetails,
   confirmAccountingClosure,
   getClosureProjects,
+  getClosureReportsByPeriod,
+  getClosureSummary,
+  getMonthlyClosureSummary,
 } from "../db";
 import { TRPCError } from "@trpc/server";
 
@@ -178,6 +181,79 @@ export const accountingClosuresRouter = router({
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Error al obtener proyectos del cierre",
+        });
+      }
+    }),
+
+  /**
+   * Get closure reports by period with filtering
+   */
+  getReportsByPeriod: adminProcedure
+    .input(
+      z.object({
+        startDate: z.string().optional(),
+        endDate: z.string().optional(),
+        status: z.enum(["draft", "confirmed", "all"]).default("all"),
+      })
+    )
+    .query(async ({ input }) => {
+      try {
+        const reports = await getClosureReportsByPeriod(
+          input.startDate,
+          input.endDate,
+          input.status
+        );
+        return reports;
+      } catch (error) {
+        console.error("[AccountingClosures] Error getting reports:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Error al obtener reportes de cierres",
+        });
+      }
+    }),
+
+  /**
+   * Get closure summary statistics
+   */
+  getSummary: adminProcedure
+    .input(
+      z.object({
+        startDate: z.string().optional(),
+        endDate: z.string().optional(),
+      })
+    )
+    .query(async ({ input }) => {
+      try {
+        const summary = await getClosureSummary(input.startDate, input.endDate);
+        return summary;
+      } catch (error) {
+        console.error("[AccountingClosures] Error getting summary:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Error al obtener resumen de cierres",
+        });
+      }
+    }),
+
+  /**
+   * Get monthly closure summary for charts
+   */
+  getMonthlySummary: adminProcedure
+    .input(
+      z.object({
+        months: z.number().min(1).max(24).default(6),
+      })
+    )
+    .query(async ({ input }) => {
+      try {
+        const monthlySummary = await getMonthlyClosureSummary(input.months);
+        return monthlySummary;
+      } catch (error) {
+        console.error("[AccountingClosures] Error getting monthly summary:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Error al obtener resumen mensual de cierres",
         });
       }
     }),

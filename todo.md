@@ -5360,14 +5360,19 @@ Listo para pasar a Fase 7.2 (Intelligent Alerts) cuando sea requerido.
 - [x] Validar que solo datos reales (dataOrigin='manual') se incluyen en cierres
 - [x] Implementar transacciones para garantizar integridad de datos
 
-### FASE 2: Interfaz de Usuario (Pendiente)
-- [ ] Crear página de Cierre Contable en Panel Admin
-- [ ] Componente para seleccionar proyectos a cerrar
-- [ ] Formulario para ingresar período de cierre (fecha inicio, fecha fin)
-- [ ] Vista previa de totales (ventas, gastos, ganancia)
-- [ ] Botón para crear cierre en estado "borrador"
-- [ ] Botón para confirmar cierre (cambiar a "confirmado")
-- [ ] Vista de historial de cierres confirmados
+### FASE 2: Interfaz de Usuario ✅
+- [x] Crear TAB "Cierre Contable" dentro de Accounting.tsx
+- [x] Crear componente AccountingClosureTab.tsx
+- [x] Componente para seleccionar proyectos a cerrar
+- [x] Formulario para ingresar período de cierre (fecha inicio, fecha fin)
+- [x] Vista previa de totales (ventas, gastos, ganancia)
+- [x] Botón para crear cierre en estado "borrador"
+- [x] Botón para confirmar cierre (cambiar a "confirmado")
+- [x] Vista de historial de cierres confirmados
+- [x] Integración con tRPC endpoints
+- [x] Validaciones de fecha y proyectos
+- [x] Estados visuales (draft/confirmed)
+- [x] Cálculo automático de totales en preview
 
 ### FASE 3: Reportes Financieros (Pendiente)
 - [ ] Actualizar dashboard financiero para excluir proyectos cerrados

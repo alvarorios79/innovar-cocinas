@@ -34,6 +34,7 @@ import {
 import { useAuth } from "@/_core/hooks/useAuth";
 import { ExpenseImportModal } from "@/components/ExpenseImportModal";
 import { ReceiptUpload } from "@/components/ReceiptUpload";
+import { AccountingClosureTab } from "@/components/AccountingClosureTab";
 import { Upload } from "lucide-react";
 
 // Categorías operativas
@@ -82,6 +83,7 @@ export default function Accounting() {
   const [importModalOpen, setImportModalOpen] = useState(false);
   const [receiptUrl, setReceiptUrl] = useState<string>("");
   const [receiptFileName, setReceiptFileName] = useState<string>("");
+  const [activeTab, setActiveTab] = useState<"expenses" | "closure">("expenses");
 
   // Queries
   const { data: projects } = trpc.projects.list.useQuery();
@@ -291,6 +293,29 @@ export default function Accounting() {
       </div>
 
       <div className="container max-w-6xl mx-auto px-4 py-8">
+        {/* TAB Navigation */}
+        <div className="flex gap-2 border-b mb-8">
+          <Button
+            variant={activeTab === "expenses" ? "default" : "ghost"}
+            onClick={() => setActiveTab("expenses")}
+            className="rounded-b-none"
+          >
+            <DollarSign className="h-4 w-4 mr-2" />
+            Gastos
+          </Button>
+          <Button
+            variant={activeTab === "closure" ? "default" : "ghost"}
+            onClick={() => setActiveTab("closure")}
+            className="rounded-b-none"
+          >
+            <Calculator className="h-4 w-4 mr-2" />
+            Cierre Contable
+          </Button>
+        </div>
+
+        {/* EXPENSES TAB */}
+        {activeTab === "expenses" && (
+        <>
         {/* Formulario Simple */}
         <Card className="mb-8 shadow-lg">
           <CardHeader>
@@ -612,6 +637,13 @@ export default function Accounting() {
             </div>
           </AlertDialogContent>
         </AlertDialog>
+        </>
+        )}
+
+        {/* CLOSURE TAB */}
+        {activeTab === "closure" && (
+          <AccountingClosureTab />
+        )}
       </div>
     </div>
   );

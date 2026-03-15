@@ -85,6 +85,8 @@ export default function Accounting() {
   const [receiptUrl, setReceiptUrl] = useState<string>("");
   const [receiptFileName, setReceiptFileName] = useState<string>("");
   const [activeTab, setActiveTab] = useState<"expenses" | "closure" | "reports">("expenses");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [filterProjectId, setFilterProjectId] = useState<string>("");
 
   // Queries
   const { data: projects } = trpc.projects.list.useQuery();
@@ -203,8 +205,13 @@ export default function Accounting() {
       filtered = filtered.filter(e => e.amount <= max);
     }
 
+    if (filterProjectId) {
+      const projectIdNum = parseInt(filterProjectId);
+      filtered = filtered.filter(e => e.projectId === projectIdNum);
+    }
+
     return filtered;
-  }, [expenses, filterType, minAmount, maxAmount]);
+  }, [expenses, filterType, minAmount, maxAmount, filterProjectId]);
 
   // Validar y guardar
   const handleSubmit = async (e: any) => {
@@ -536,7 +543,7 @@ export default function Accounting() {
           </CardHeader>
           <CardContent>
             {/* Filtros */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-6 p-4 bg-gray-50 rounded-lg">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-3 mb-6 p-4 bg-gray-50 rounded-lg">
               <div>
                 <Label className="text-xs">Tipo</Label>
                 <Select value={filterType} onValueChange={(v: any) => setFilterType(v as any)}>
@@ -570,6 +577,21 @@ export default function Accounting() {
                   className="h-10"
                 />
               </div>
+              <div>
+                <Label className="text-xs">Proyecto</Label>
+                <Select value={filterProjectId} onValueChange={setFilterProjectId}>
+                  <SelectTrigger className="h-10">
+                    <SelectValue placeholder="Todos los proyectos" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {projects?.map((project: any) => (
+                      <SelectItem key={project.id} value={project.id.toString()}>
+                        {project.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
               <div className="flex items-end">
                 <Button
                   variant="outline"
@@ -578,6 +600,7 @@ export default function Accounting() {
                     setFilterType("all");
                     setMinAmount("");
                     setMaxAmount("");
+                    setFilterProjectId("");
                   }}
                   className="w-full h-10"
                 >
@@ -594,6 +617,7 @@ export default function Accounting() {
                   <tr className="border-b bg-gray-50">
                     <th className="text-left py-3 px-4 font-semibold">Fecha</th>
                     <th className="text-left py-3 px-4 font-semibold">Descripción</th>
+                    <th className="text-left py-3 px-4 font-semibold">Proyecto</th>
                     <th className="text-left py-3 px-4 font-semibold">Tipo</th>
                     <th className="text-right py-3 px-4 font-semibold">Monto</th>
                     <th className="text-center py-3 px-4 font-semibold">Comprobante</th>
@@ -601,12 +625,15 @@ export default function Accounting() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredExpenses.slice(0, 10).map((expense: any, idx: number) => (
+                  {filteredExpenses.slice((currentPage - 1) * 50, currentPage * 50).map((expense: any, idx: number) => (
                     <tr key={idx} className="border-b hover:bg-gray-50">
                       <td className="py-3 px-4">
                         {new Date(expense.expenseDate).toLocaleDateString('es-CO')}
                       </td>
                       <td className="py-3 px-4">{expense.description}</td>
+                      <td className="py-3 px-4">
+                        {expense.projectId ? `Proyecto #${expense.projectId}` : "Operativo"}
+                      </td>
                       <td className="py-3 px-4">
                         <Badge variant={expense.expenseType === "materiales_proyecto" ? "default" : "secondary"}>
                           {expense.expenseType === "materiales_proyecto" ? "Proyecto" : "Operativo"}
@@ -666,6 +693,38 @@ export default function Accounting() {
             {filteredExpenses.length === 0 && (
               <div className="text-center py-8 text-gray-500">
                 No hay gastos registrados
+              </div>
+            )}
+
+            {/* Paginación */}
+            {filteredExpenses.length > 0 && (
+              <div className="flex items-center justify-between mt-6 p-4 bg-gray-50 rounded-lg">
+                <div className="text-sm text-gray-600">
+                  Mostrando {Math.min((currentPage - 1) * 50 + 1, filteredExpenses.length)} a {Math.min(currentPage * 50, filteredExpenses.length)} de {filteredExpenses.length} gastos
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                    disabled={currentPage === 1}
+                    className="h-9"
+                  >
+                    ◀ Anterior
+                  </Button>
+                  <div className="flex items-center gap-2 px-3">
+                    <span className="text-sm font-medium">Página {currentPage} de {Math.ceil(filteredExpenses.length / 50)}</span>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(currentPage + 1)}
+                    disabled={currentPage >= Math.ceil(filteredExpenses.length / 50)}
+                    className="h-9"
+                  >
+                    Siguiente ▶
+                  </Button>
+                </div>
               </div>
             )}
           </CardContent>

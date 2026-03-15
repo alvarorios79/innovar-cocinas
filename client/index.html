@@ -27,17 +27,40 @@
   <body>
     <div id="root"></div>
     <script>
-      // Disable Vite HMR WebSocket errors in remote environments
-      if (typeof window !== 'undefined') {
+      // Intercept Vite HMR before it loads
+      (function() {
+        const originalFetch = window.fetch;
+        window.fetch = function(...args) {
+          const url = args[0];
+          if (typeof url === 'string' && url.includes('@vite/client')) {
+            return originalFetch.apply(this, args).then(response => {
+              if (response.ok) {
+                return response.text().then(text => {
+                  const modifiedText = text.replace(
+                    /protocol:\s*['"]wss?['"]/g,
+                    "protocol: 'wss'"
+                  ).replace(
+                    /host:\s*['"]localhost['"]/g,
+                    "host: 'invalid'"
+                  );
+                  return new Response(modifiedText, response);
+                });
+              }
+              return response;
+            });
+          }
+          return originalFetch.apply(this, args);
+        };
+        
         const originalError = console.error;
         console.error = function(...args) {
-          const errorStr = String(args[0]);
-          if (errorStr && (errorStr.includes('[vite]') || errorStr.includes('WebSocket'))) {
-            return; // Silently ignore Vite HMR errors
+          const msg = String(args[0] || '');
+          if (msg.includes('[vite]') || msg.includes('WebSocket')) {
+            return;
           }
           originalError.apply(console, args);
         };
-      }
+      })();
     </script>
     <script type="module" src="/src/main.tsx"></script>
     <script>

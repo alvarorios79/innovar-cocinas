@@ -139,6 +139,51 @@ export default function Accounting() {
     },
   });
 
+  // Export handler
+  const handleExportExpenses = async () => {
+    try {
+      if (!expenses || expenses.length === 0) {
+        toast.error("No hay gastos para exportar");
+        return;
+      }
+
+      // Filtrar gastos según los filtros actuales
+      const dataToExport = filteredExpenses;
+
+      // Crear CSV
+      const headers = ["Fecha", "Tipo", "Descripción", "Monto", "Categoría", "Proyecto"];
+      const rows = dataToExport.map(expense => [
+        new Date(expense.expenseDate).toLocaleDateString('es-CO'),
+        expense.expenseType === 'materiales_proyecto' ? 'Proyecto' : 'Operativo',
+        expense.description,
+        expense.amount.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+        expense.operativeCategory || expense.generalCategory || '-',
+        expense.projectId ? `COT-${expense.projectId}` : '-'
+      ]);
+
+      // Crear contenido CSV
+      const csvContent = [
+        headers.join(','),
+        ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+      ].join('\n');
+
+      // Crear blob y descargar
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `gastos_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      toast.success(`✅ ${dataToExport.length} gasto(s) exportado(s) correctamente`);
+    } catch (error: any) {
+      toast.error(`Error al exportar: ${error.message}`);
+    }
+  };
+
   // Filtrar gastos
   const filteredExpenses = useMemo(() => {
     if (!expenses) return [];
@@ -483,7 +528,7 @@ export default function Accounting() {
                 <CardTitle>Historial de Gastos</CardTitle>
                 <CardDescription>Últimos gastos registrados</CardDescription>
               </div>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" onClick={handleExportExpenses}>
                 <Download className="h-4 w-4 mr-2" />
                 Exportar
               </Button>

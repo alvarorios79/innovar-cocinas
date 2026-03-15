@@ -984,18 +984,55 @@ export default function ProjectDetail() {
                         <span className="font-bold text-lg">{formatCurrency((projectDetail as any).financialInfo?.totalAmount || 0)}</span>
                       </div>
                       
-                      {/* Adelanto pagado */}
+                      {/* Desglose de Pagos Dinámico */}
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
+                        <p className="text-xs font-semibold text-blue-700 mb-2">Desglose de Pagos</p>
+                        <div className="space-y-1 text-xs text-blue-600">
+                          {(projectDetail as any).payments && (projectDetail as any).payments.length > 0 ? (
+                            (projectDetail as any).payments.map((payment: any, idx: number) => (
+                              <p key={idx}>
+                                • {payment.type === 'adelanto' ? 'Pago 1 (Adelanto)' :
+                                   payment.type === 'saldo_final' ? 'Pago 2 (Final)' :
+                                   payment.type === 'abono' ? `Abono ${idx}` : 'Otro Pago'}
+                                : {formatCurrency(payment.amount)}
+                              </p>
+                            ))
+                          ) : (
+                            <p>Sin pagos registrados</p>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {/* Total Pagado */}
                       <div className="flex justify-between items-center py-2 border-b">
-                        <span className="text-muted-foreground">Adelanto Pagado (60%)</span>
-                        <span className="font-semibold text-green-600">{formatCurrency((projectDetail as any).financialInfo?.advanceAmount || 0)}</span>
+                        <span className="text-muted-foreground">Total Pagado ({Math.round(((projectDetail as any).financialInfo?.totalCobrado || 0) / ((projectDetail as any).financialInfo?.totalAmount || 1) * 100)}%)</span>
+                        <span className="font-semibold text-green-600">{formatCurrency((projectDetail as any).financialInfo?.totalCobrado || 0)}</span>
                       </div>
                       
                       {/* Saldo pendiente - DESTACADO */}
-                      <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                      <div className={`border rounded-lg p-3 ${
+                        (projectDetail as any).financialInfo?.remainingAmount > 0
+                          ? "bg-amber-50 border-amber-200"
+                          : "bg-green-50 border-green-200"
+                      }`}>
                         <div className="flex justify-between items-center">
-                          <span className="font-medium text-amber-800">Saldo Pendiente (40%)</span>
-                          <span className="font-bold text-xl text-amber-600">
-                            {formatCurrency((projectDetail as any).financialInfo?.remainingAmount || 0)}
+                          <span className={`font-medium ${
+                            (projectDetail as any).financialInfo?.remainingAmount > 0
+                              ? "text-amber-800"
+                              : "text-green-800"
+                          }`}>
+                            {(projectDetail as any).financialInfo?.remainingAmount > 0
+                              ? `Saldo Pendiente (${Math.round(((projectDetail as any).financialInfo?.remainingAmount || 0) / ((projectDetail as any).financialInfo?.totalAmount || 1) * 100)}%)`
+                              : "✅ Cancelado 100%"}
+                          </span>
+                          <span className={`font-bold text-xl ${
+                            (projectDetail as any).financialInfo?.remainingAmount > 0
+                              ? "text-amber-600"
+                              : "text-green-600"
+                          }`}>
+                            {(projectDetail as any).financialInfo?.remainingAmount > 0
+                              ? formatCurrency((projectDetail as any).financialInfo?.remainingAmount || 0)
+                              : "✓ Completado"}
                           </span>
                         </div>
                         {projectDetail.status === "entregado" && (projectDetail as any).financialInfo?.remainingAmount > 0 && (

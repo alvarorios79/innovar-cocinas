@@ -37,17 +37,11 @@ export default defineConfig({
       "localhost",
       "127.0.0.1",
     ],
-    hmr: process.env.VITE_HMR_HOST
-      ? {
-          protocol: "wss",
-          host: process.env.VITE_HMR_HOST,
-          port: 443,
-        }
-      : {
-          protocol: "wss",
-          host: "localhost",
-          port: 443,
-        },
+    hmr: {
+      protocol: "wss",
+      host: process.env.VITE_HMR_HOST || "localhost",
+      port: process.env.VITE_HMR_PORT ? parseInt(process.env.VITE_HMR_PORT) : 443,
+    },
     fs: {
       strict: true,
       deny: ["**/.*"],

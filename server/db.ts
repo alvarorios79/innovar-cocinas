@@ -2124,7 +2124,24 @@ export async function getAllExpensesPaginated(params: { page?: number; limit?: n
   if (params.expenseType && params.expenseType !== 'all') {
     allRows = allRows.filter(e => e.expenseType === params.expenseType);
   }
-  return { data: allRows.slice(offset, offset + limit), total: allRows.length };
+  
+  const projectIds = allRows
+    .filter(e => e.projectId)
+    .map(e => e.projectId)
+    .filter((id): id is number => id !== null && id !== undefined);
+  
+  let projectMap = new Map<number, string>();
+  if (projectIds.length > 0) {
+    const projectsData = await db.select({ id: projects.id, clientName: projects.name }).from(projects).where(inArray(projects.id, projectIds));
+    projectsData.forEach(p => projectMap.set(p.id, p.clientName));
+  }
+  
+  const enrichedRows = allRows.map(e => ({
+    ...e,
+    projectClientName: e.projectId ? (projectMap.get(e.projectId) || null) : null
+  }));
+  
+  return { data: enrichedRows.slice(offset, offset + limit), total: enrichedRows.length };
 }
 
 export async function getExpensesSummaryByType() {

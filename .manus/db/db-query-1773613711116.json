@@ -1,0 +1,16 @@
+{
+  "query": "SELECT id, projectId, projectClientName, description FROM expenses WHERE projectId = 2130113 LIMIT 1;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT id, projectId, projectClientName, description FROM expenses WHERE projectId = 2130113 LIMIT 1;",
+  "rows": [
+    {
+      "id": "390044",
+      "projectId": "2130113",
+      "projectClientName": "NULL",
+      "description": "acarreo itos y 10 gasolina"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tprojectId\tprojectClientName\tdescription\n390044\t2130113\tNULL\tacarreo itos y 10 gasolina\n",
+  "stderr": "",
+  "execution_time_ms": 63
+}

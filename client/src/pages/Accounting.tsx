@@ -578,10 +578,10 @@ export default function Accounting() {
                 />
               </div>
               <div>
-                <Label className="text-xs">Proyecto</Label>
+                <Label className="text-xs">Cliente</Label>
                 <Select value={filterProjectId} onValueChange={setFilterProjectId}>
                   <SelectTrigger className="h-10">
-                    <SelectValue placeholder="Todos los proyectos" />
+                    <SelectValue placeholder="Todos los clientes" />
                   </SelectTrigger>
                   <SelectContent>
                     {projects?.map((project: any) => (
@@ -617,7 +617,7 @@ export default function Accounting() {
                   <tr className="border-b bg-gray-50">
                     <th className="text-left py-3 px-4 font-semibold">Fecha</th>
                     <th className="text-left py-3 px-4 font-semibold">Descripción</th>
-                    <th className="text-left py-3 px-4 font-semibold">Proyecto</th>
+                    <th className="text-left py-3 px-4 font-semibold">Cliente</th>
                     <th className="text-left py-3 px-4 font-semibold">Tipo</th>
                     <th className="text-right py-3 px-4 font-semibold">Monto</th>
                     <th className="text-center py-3 px-4 font-semibold">Comprobante</th>
@@ -632,7 +632,14 @@ export default function Accounting() {
                       </td>
                       <td className="py-3 px-4">{expense.description}</td>
                       <td className="py-3 px-4">
-                        {expense.projectId ? `Proyecto #${expense.projectId}` : "Operativo"}
+                        {(() => {
+                          const projectClientName = expense.projectClientName;
+                          if (!projectClientName) return 'Operativo';
+                          if (projectClientName === 'Operativo' || projectClientName.toLowerCase() === 'operativo') return 'Operativo';
+                          // Si está en formato "Proyecto #XXXX", extraer solo el número
+                          const match = projectClientName.match(/#(\d+)/);
+                          return match ? match[1] : projectClientName;
+                        })()}
                       </td>
                       <td className="py-3 px-4">
                         <Badge variant={expense.expenseType === "materiales_proyecto" ? "default" : "secondary"}>

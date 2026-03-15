@@ -576,7 +576,7 @@ export async function getProjectsByStatus(status: string) {
 
 export async function getAllProjectsPaginated(options?: { page?: number; limit?: number; status?: string; archived?: boolean }) {
   const db = await getDb();
-  if (!db) return { projects: [], total: 0 };
+  if (!db) return { data: [], total: 0 };
 
   const page = options?.page || 1;
   const limit = options?.limit || 50;
@@ -601,7 +601,49 @@ export async function getAllProjectsPaginated(options?: { page?: number; limit?:
   const countResult = await db.select({ count: sql<number>`COUNT(*)` }).from(projects).where(whereConditions);
   const total = countResult[0]?.count || 0;
 
-  return { data: projectsList, total };
+  // Calcular rentabilidad para cada proyecto
+  const projectsWithRentability = await Promise.all(
+    projectsList.map(async (project) => {
+      try {
+        // Obtener pagos del proyecto
+        const projectPayments = await db.select().from(payments)
+          .where(eq(payments.projectId, project.id));
+        
+        // Obtener gastos del proyecto
+        const projectExpenses = await db.select().from(expenses)
+          .where(and(eq(expenses.projectId, project.id), eq(expenses.dataOrigin, 'manual')));
+        
+        // Calcular ingresos recibidos (solo pagos, no devoluciones)
+        const ingresosRecibidos = projectPayments
+          .filter(p => p.movementType === 'payment')
+          .reduce((sum, p) => sum + Number(p.amount || 0), 0);
+        
+        // Calcular gastos totales
+        const gastos = projectExpenses.reduce((sum, e) => sum + Number(e.amount || 0), 0);
+        
+        // Calcular margen
+        const margen = ingresosRecibidos - gastos;
+        
+        // Calcular rentabilidad: (margen / ingresosRecibidos) * 100
+        const rentabilidad = ingresosRecibidos > 0 
+          ? (margen / ingresosRecibidos) * 100
+          : 0;
+        
+        return {
+          ...project,
+          rentabilidad: Math.round(rentabilidad * 100) / 100, // Redondear a 2 decimales
+        };
+      } catch (error) {
+        console.error(`[getAllProjectsPaginated] Error calculando rentabilidad para proyecto ${project.id}:`, error);
+        return {
+          ...project,
+          rentabilidad: 0,
+        };
+      }
+    })
+  );
+
+  return { data: projectsWithRentability, total };
 }
 
 export async function updateProject(id: number, data: Partial<InsertProject>) {

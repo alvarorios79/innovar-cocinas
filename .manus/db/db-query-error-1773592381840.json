@@ -1,0 +1,8 @@
+{
+  "query": "SELECT \n  p.id,\n  p.clientName,\n  p.totalAmount,\n  p.status,\n  p.quotationId,\n  q.id as quotation_id,\n  q.status as quotation_status\nFROM projects p\nLEFT JOIN quotations q ON p.quotationId = q.id\nWHERE p.deletedAt IS NULL\nORDER BY p.status DESC, p.clientName ASC",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT \n  p.id,\n  p.clientName,\n  p.totalAmount,\n  p.status,\n  p.quotationId,\n  q.id as quotation_id,\n  q.status as quotation_status\nFROM projects p\nLEFT JOIN quotations q ON p.quotationId = q.id\nWHERE p.deletedAt IS NULL\nORDER BY p.status DESC, p.clientName ASC",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1054 (42S22) at line 1: Unknown column 'p.clientName' in 'order clause'"
+  ]
+}

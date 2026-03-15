@@ -1,0 +1,48 @@
+{
+  "query": "-- Check all projects grouped by status\nSELECT \n  status,\n  COUNT(*) as cantidad,\n  SUM(CAST(totalAmount AS DECIMAL(12,2))) as total\nFROM projects\nWHERE deletedAt IS NULL \n  AND dataOrigin = 'manual'\nGROUP BY status\nORDER BY total DESC;\n\n-- Check if there's an 'archived' or 'entregado' status\nSELECT DISTINCT status FROM projects WHERE deletedAt IS NULL",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute -- Check all projects grouped by status\nSELECT \n  status,\n  COUNT(*) as cantidad,\n  SUM(CAST(totalAmount AS DECIMAL(12,2))) as total\nFROM projects\nWHERE deletedAt IS NULL \n  AND dataOrigin = 'manual'\nGROUP BY status\nORDER BY total DESC;\n\n-- Check if there's an 'archived' or 'entregado' status\nSELECT DISTINCT status FROM projects WHERE deletedAt IS NULL",
+  "rows": [
+    {
+      "status": "entregado",
+      "cantidad": "9",
+      "total": "92280750.00"
+    },
+    {
+      "status": "listo_instalacion",
+      "cantidad": "2",
+      "total": "54398000.00"
+    },
+    {
+      "status": "despiece",
+      "cantidad": "2",
+      "total": "23367500.00"
+    },
+    {
+      "status": "corte",
+      "cantidad": "1",
+      "total": "16650000.00"
+    },
+    {
+      "status": "en_diseno",
+      "cantidad": "1",
+      "total": "7594000.00"
+    },
+    {
+      "status": "pendiente_modelado",
+      "cantidad": "1",
+      "total": "3500000.00"
+    }
+  ],
+  "messages": [
+    "status",
+    "corte",
+    "despiece",
+    "entregado",
+    "pendiente_modelado",
+    "listo_instalacion",
+    "en_diseno"
+  ],
+  "stdout": "status\tcantidad\ttotal\nentregado\t9\t92280750.00\nlisto_instalacion\t2\t54398000.00\ndespiece\t2\t23367500.00\ncorte\t1\t16650000.00\nen_diseno\t1\t7594000.00\npendiente_modelado\t1\t3500000.00\nstatus\ncorte\ndespiece\nentregado\npendiente_modelado\nlisto_instalacion\nen_diseno\n",
+  "stderr": "",
+  "execution_time_ms": 64
+}

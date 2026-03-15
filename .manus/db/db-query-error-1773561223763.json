@@ -1,0 +1,25 @@
+{
+  "query": "SELECT \n  id,\n  name,\n  totalAmount,\n  quotationId,\n  CASE WHEN quotationId IS NULL THEN 'SIN COTIZACIÓN' ELSE 'CON COTIZACIÓN' END as tipo\nFROM projects \nWHERE deletedAt IS NULL AND dataOrigin = 'manual'\nORDER BY totalAmount DESC;\n\nSELECT \n  CASE WHEN quotationId IS NULL THEN 'SIN COTIZACIÓN' ELSE 'CON COTIZACIÓN' END as tipo,\n  COUNT(*) as cantidad,\n  SUM(CAST(totalAmount AS DECIMAL(12,2))) as total\nFROM projects \nWHERE deletedAt IS NULL AND dataOrigin = 'manual'\nGROUP BY quotationId IS NULL",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT \n  id,\n  name,\n  totalAmount,\n  quotationId,\n  CASE WHEN quotationId IS NULL THEN 'SIN COTIZACIÓN' ELSE 'CON COTIZACIÓN' END as tipo\nFROM projects \nWHERE deletedAt IS NULL AND dataOrigin = 'manual'\nORDER BY totalAmount DESC;\n\nSELECT \n  CASE WHEN quotationId IS NULL THEN 'SIN COTIZACIÓN' ELSE 'CON COTIZACIÓN' END as tipo,\n  COUNT(*) as cantidad,\n  SUM(CAST(totalAmount AS DECIMAL(12,2))) as total\nFROM projects \nWHERE deletedAt IS NULL AND dataOrigin = 'manual'\nGROUP BY quotationId IS NULL",
+  "returncode": 1,
+  "logs": [
+    "id\tname\ttotalAmount\tquotationId\ttipo",
+    "2130107\tCOT-2026-1772833387890-1825427 - Diana Ortiz\t49938000.00\t2670291\tCON COTIZACIÓN",
+    "2130109\tCOT-2026-1772833387892-4673628 - Ruth Naranjo\t26216000.00\t2670293\tCON COTIZACIÓN",
+    "2130105\tCOT-2026-1772833387888-6786153 - Sras. Maria Clara & Ana milena\t25726000.00\t2670289\tCON COTIZACIÓN",
+    "2130116\tCOT-2026-1772833387899-2437183 - Juan Pablo González\t16780000.00\t2670300\tCON COTIZACIÓN",
+    "2130117\tCOT-2026-1772833387900-2643089 - Carolina Diaz\t16650000.00\t2670301\tCON COTIZACIÓN",
+    "2130106\tCOT-2026-1772833387889-1121614 - Sras. Maria Clara & Ana milena\t10730000.00\t2670290\tCON COTIZACIÓN",
+    "2130108\tCOT-2026-1772833387891-2667628 - Felipe Quintero\t7943000.00\t2670292\tCON COTIZACIÓN",
+    "2310001\tCOT-2026-1773352754220-6529183 - Lina Paez\t7594000.00\t2940001\tCON COTIZACIÓN",
+    "2130111\tCOT-2026-1772833387894-8915020 - Orlando Primacho\t7305750.00\t2670295\tCON COTIZACIÓN",
+    "2130115\tCOT-2026-1772833387898-7036206 - Alfredo Bolaños\t6600000.00\t2670299\tCON COTIZACIÓN",
+    "2340001\tCOT-2026-1773448016668-1759804 - Gustavo Rodriguez - Subway\t6587500.00\t2970001\tCON COTIZACIÓN",
+    "2130114\tCOT-2026-1772833387897-0178652 - Oscar Urriago\t4460000.00\t2670298\tCON COTIZACIÓN",
+    "2400001\tCOT-2026-1773539040435-943369 - Andres Salazar\t3500000.00\t3030001\tCON COTIZACIÓN",
+    "2130113\tCOT-2026-1772833387896-9276683 - Sr. Harold\t3400000.00\t2670297\tCON COTIZACIÓN",
+    "2130112\tCOT-2026-1772833387895-6830938 - Beatriz Paris\t2860000.00\t2670296\tCON COTIZACIÓN",
+    "2130110\tCOT-2026-1772833387893-4870273 - Henry Morales\t1500000.00\t2670294\tCON COTIZACIÓN",
+    "ERROR 1055 (42000) at line 11: Expression #1 of SELECT list is not in GROUP BY clause and contains nonaggregated column 'XhEkCr8yXcaeDFyuQebdJQ.projects.quotationId' which is not functionally dependent on columns in GROUP BY clause; this is incompatible with sql_mode=only_full_group_by"
+  ]
+}

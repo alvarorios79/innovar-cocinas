@@ -1,0 +1,138 @@
+{
+  "query": "SELECT \n  p.id,\n  p.name,\n  p.status,\n  ROUND(CAST(p.totalAmount AS DECIMAL(12,2)), 2) as totalAmount,\n  p.quotationId,\n  CASE WHEN p.quotationId IS NULL THEN 'SIN COTIZACIÓN' ELSE 'CON COTIZACIÓN' END as tiene_cotizacion\nFROM projects p\nWHERE p.deletedAt IS NULL \n  AND p.dataOrigin = 'manual'\nORDER BY p.status, p.totalAmount DESC",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT \n  p.id,\n  p.name,\n  p.status,\n  ROUND(CAST(p.totalAmount AS DECIMAL(12,2)), 2) as totalAmount,\n  p.quotationId,\n  CASE WHEN p.quotationId IS NULL THEN 'SIN COTIZACIÓN' ELSE 'CON COTIZACIÓN' END as tiene_cotizacion\nFROM projects p\nWHERE p.deletedAt IS NULL \n  AND p.dataOrigin = 'manual'\nORDER BY p.status, p.totalAmount DESC",
+  "rows": [
+    {
+      "id": "2310001",
+      "name": "COT-2026-1773352754220-6529183 - Lina Paez",
+      "status": "en_diseno",
+      "totalAmount": "7594000.00",
+      "quotationId": "2940001",
+      "tiene_cotizacion": "CON COTIZACIÓN"
+    },
+    {
+      "id": "2400001",
+      "name": "COT-2026-1773539040435-943369 - Andres Salazar",
+      "status": "pendiente_modelado",
+      "totalAmount": "3500000.00",
+      "quotationId": "3030001",
+      "tiene_cotizacion": "CON COTIZACIÓN"
+    },
+    {
+      "id": "2130116",
+      "name": "COT-2026-1772833387899-2437183 - Juan Pablo González",
+      "status": "despiece",
+      "totalAmount": "16780000.00",
+      "quotationId": "2670300",
+      "tiene_cotizacion": "CON COTIZACIÓN"
+    },
+    {
+      "id": "2340001",
+      "name": "COT-2026-1773448016668-1759804 - Gustavo Rodriguez - Subway",
+      "status": "despiece",
+      "totalAmount": "6587500.00",
+      "quotationId": "2970001",
+      "tiene_cotizacion": "CON COTIZACIÓN"
+    },
+    {
+      "id": "2130117",
+      "name": "COT-2026-1772833387900-2643089 - Carolina Diaz",
+      "status": "corte",
+      "totalAmount": "16650000.00",
+      "quotationId": "2670301",
+      "tiene_cotizacion": "CON COTIZACIÓN"
+    },
+    {
+      "id": "2130107",
+      "name": "COT-2026-1772833387890-1825427 - Diana Ortiz",
+      "status": "listo_instalacion",
+      "totalAmount": "49938000.00",
+      "quotationId": "2670291",
+      "tiene_cotizacion": "CON COTIZACIÓN"
+    },
+    {
+      "id": "2130114",
+      "name": "COT-2026-1772833387897-0178652 - Oscar Urriago",
+      "status": "listo_instalacion",
+      "totalAmount": "4460000.00",
+      "quotationId": "2670298",
+      "tiene_cotizacion": "CON COTIZACIÓN"
+    },
+    {
+      "id": "2130109",
+      "name": "COT-2026-1772833387892-4673628 - Ruth Naranjo",
+      "status": "entregado",
+      "totalAmount": "26216000.00",
+      "quotationId": "2670293",
+      "tiene_cotizacion": "CON COTIZACIÓN"
+    },
+    {
+      "id": "2130105",
+      "name": "COT-2026-1772833387888-6786153 - Sras. Maria Clara & Ana milena",
+      "status": "entregado",
+      "totalAmount": "25726000.00",
+      "quotationId": "2670289",
+      "tiene_cotizacion": "CON COTIZACIÓN"
+    },
+    {
+      "id": "2130106",
+      "name": "COT-2026-1772833387889-1121614 - Sras. Maria Clara & Ana milena",
+      "status": "entregado",
+      "totalAmount": "10730000.00",
+      "quotationId": "2670290",
+      "tiene_cotizacion": "CON COTIZACIÓN"
+    },
+    {
+      "id": "2130108",
+      "name": "COT-2026-1772833387891-2667628 - Felipe Quintero",
+      "status": "entregado",
+      "totalAmount": "7943000.00",
+      "quotationId": "2670292",
+      "tiene_cotizacion": "CON COTIZACIÓN"
+    },
+    {
+      "id": "2130111",
+      "name": "COT-2026-1772833387894-8915020 - Orlando Primacho",
+      "status": "entregado",
+      "totalAmount": "7305750.00",
+      "quotationId": "2670295",
+      "tiene_cotizacion": "CON COTIZACIÓN"
+    },
+    {
+      "id": "2130115",
+      "name": "COT-2026-1772833387898-7036206 - Alfredo Bolaños",
+      "status": "entregado",
+      "totalAmount": "6600000.00",
+      "quotationId": "2670299",
+      "tiene_cotizacion": "CON COTIZACIÓN"
+    },
+    {
+      "id": "2130113",
+      "name": "COT-2026-1772833387896-9276683 - Sr. Harold",
+      "status": "entregado",
+      "totalAmount": "3400000.00",
+      "quotationId": "2670297",
+      "tiene_cotizacion": "CON COTIZACIÓN"
+    },
+    {
+      "id": "2130112",
+      "name": "COT-2026-1772833387895-6830938 - Beatriz Paris",
+      "status": "entregado",
+      "totalAmount": "2860000.00",
+      "quotationId": "2670296",
+      "tiene_cotizacion": "CON COTIZACIÓN"
+    },
+    {
+      "id": "2130110",
+      "name": "COT-2026-1772833387893-4870273 - Henry Morales",
+      "status": "entregado",
+      "totalAmount": "1500000.00",
+      "quotationId": "2670294",
+      "tiene_cotizacion": "CON COTIZACIÓN"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\tstatus\ttotalAmount\tquotationId\ttiene_cotizacion\n2310001\tCOT-2026-1773352754220-6529183 - Lina Paez\ten_diseno\t7594000.00\t2940001\tCON COTIZACIÓN\n2400001\tCOT-2026-1773539040435-943369 - Andres Salazar\tpendiente_modelado\t3500000.00\t3030001\tCON COTIZACIÓN\n2130116\tCOT-2026-1772833387899-2437183 - Juan Pablo González\tdespiece\t16780000.00\t2670300\tCON COTIZACIÓN\n2340001\tCOT-2026-1773448016668-1759804 - Gustavo Rodriguez - Subway\tdespiece\t6587500.00\t2970001\tCON COTIZACIÓN\n2130117\tCOT-2026-1772833387900-2643089 - Carolina Diaz\tcorte\t16650000.00\t2670301\tCON COTIZACIÓN\n2130107\tCOT-2026-1772833387890-1825427 - Diana Ortiz\tlisto_instalacion\t49938000.00\t2670291\tCON COTIZACIÓN\n2130114\tCOT-2026-1772833387897-0178652 - Oscar Urriago\tlisto_instalacion\t4460000.00\t2670298\tCON COTIZACIÓN\n2130109\tCOT-2026-1772833387892-4673628 - Ruth Naranjo\tentregado\t26216000.00\t2670293\tCON COTIZACIÓN\n2130105\tCOT-2026-1772833387888-6786153 - Sras. Maria Clara & Ana milena\tentregado\t25726000.00\t2670289\tCON COTIZACIÓN\n2130106\tCOT-2026-1772833387889-1121614 - Sras. Maria Clara & Ana milena\tentregado\t10730000.00\t2670290\tCON COTIZACIÓN\n2130108\tCOT-2026-1772833387891-2667628 - Felipe Quintero\tentregado\t7943000.00\t2670292\tCON COTIZACIÓN\n2130111\tCOT-2026-1772833387894-8915020 - Orlando Primacho\tentregado\t7305750.00\t2670295\tCON COTIZACIÓN\n2130115\tCOT-2026-1772833387898-7036206 - Alfredo Bolaños\tentregado\t6600000.00\t2670299\tCON COTIZACIÓN\n2130113\tCOT-2026-1772833387896-9276683 - Sr. Harold\tentregado\t3400000.00\t2670297\tCON COTIZACIÓN\n2130112\tCOT-2026-1772833387895-6830938 - Beatriz Paris\tentregado\t2860000.00\t2670296\tCON COTIZACIÓN\n2130110\tCOT-2026-1772833387893-4870273 - Henry Morales\tentregado\t1500000.00\t2670294\tCON COTIZACIÓN\n",
+  "stderr": "",
+  "execution_time_ms": 60
+}

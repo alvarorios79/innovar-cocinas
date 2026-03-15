@@ -1557,7 +1557,7 @@ export async function getAllTasks(options?: { status?: string }): Promise<any[]>
  * 
  * Métricas calculadas:
  * - ingresosRecibidos: SUM(payments.amount) WHERE movementType = 'payment'
- * - totalVendido: SUM(projects.totalAmount) WHERE deletedAt IS NULL AND dataOrigin = 'manual'
+ * - totalVendido: SUM(projects.totalAmount) - SUM(descuentos) WHERE deletedAt IS NULL AND dataOrigin = 'manual' AND quotationId IS NOT NULL
  * - porCobrar: totalVendido - ingresosRecibidos
  * - gastos: SUM(expenses.amount)
  * - margen: ingresosRecibidos - gastos
@@ -1586,18 +1586,40 @@ export async function getCEOFinancialMetrics() {
     
     const ingresosRecibidos = parseFloat(paymentsResult[0]?.total?.toString() || '0');
 
-    // 2️⃣ TOTAL VENDIDO
-    // SUM(projects.totalAmount) WHERE deletedAt IS NULL AND dataOrigin = 'manual'
-    // NO filtrar por status de proyecto
+    // 2️⃣ TOTAL VENDIDO (con descuentos restados)
+    // SUM(projects.totalAmount) - SUM(descuentos) WHERE deletedAt IS NULL AND dataOrigin = 'manual' AND quotationId IS NOT NULL
+    // Solo contar proyectos que vinieron de cotizaciones aprobadas
     const projectsResult = await db.select({
       total: sql<number>`SUM(CAST(projects.totalAmount AS DECIMAL(12,2)))`
     }).from(projects)
       .where(and(
         isNull(projects.deletedAt),
-        eq(projects.dataOrigin, 'manual')
+        eq(projects.dataOrigin, 'manual'),
+        isNotNull(projects.quotationId)  // Solo proyectos con cotización aprobada
       ));
     
-    const totalVendido = parseFloat(projectsResult[0]?.total?.toString() || '0');
+    const totalProjects = parseFloat(projectsResult[0]?.total?.toString() || '0');
+    
+    // 2B️⃣ DESCUENTOS
+    // SUM(payments.amount) WHERE movementType = 'discount'
+    const discountsResult = await db.select({
+      total: sql<number>`SUM(CAST(payments.amount AS DECIMAL(12,2)))`
+    }).from(payments)
+      .where(eq(payments.movementType, 'discount'));
+    
+    const descuentos = parseFloat(discountsResult[0]?.total?.toString() || '0');
+    
+    // 2C️⃣ SOBRECARGAS
+    // SUM(payments.amount) WHERE movementType = 'surcharge'
+    const surchargesResult = await db.select({
+      total: sql<number>`SUM(CAST(payments.amount AS DECIMAL(12,2)))`
+    }).from(payments)
+      .where(eq(payments.movementType, 'surcharge'));
+    
+    const sobrecargas = parseFloat(surchargesResult[0]?.total?.toString() || '0');
+    
+    // TOTAL VENDIDO = Suma de proyectos - Descuentos + Sobrecargas
+    const totalVendido = totalProjects - descuentos + sobrecargas;
 
     // 3️⃣ GASTOS
     // SUM(expenses.amount)
@@ -1620,7 +1642,9 @@ export async function getCEOFinancialMetrics() {
       porCobrar,
       gastos,
       margen,
-      rentabilidad
+      rentabilidad,
+      descuentos,
+      sobrecargas
     };
   } catch (error) {
     console.error("[getCEOFinancialMetrics] Error:", error);
@@ -1630,7 +1654,9 @@ export async function getCEOFinancialMetrics() {
       porCobrar: 0,
       gastos: 0,
       margen: 0,
-      rentabilidad: 0
+      rentabilidad: 0,
+      descuentos: 0,
+      sobrecargas: 0
     };
   }
 }

@@ -1,0 +1,122 @@
+{
+  "query": "SELECT \n  id,\n  name,\n  CAST(totalAmount AS DECIMAL(12,2)) as totalAmount,\n  quotationId,\n  status\nFROM projects\nWHERE deletedAt IS NULL \n  AND dataOrigin = 'manual'\nORDER BY totalAmount DESC",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT \n  id,\n  name,\n  CAST(totalAmount AS DECIMAL(12,2)) as totalAmount,\n  quotationId,\n  status\nFROM projects\nWHERE deletedAt IS NULL \n  AND dataOrigin = 'manual'\nORDER BY totalAmount DESC",
+  "rows": [
+    {
+      "id": "2130107",
+      "name": "COT-2026-1772833387890-1825427 - Diana Ortiz",
+      "totalAmount": "49938000.00",
+      "quotationId": "2670291",
+      "status": "listo_instalacion"
+    },
+    {
+      "id": "2130109",
+      "name": "COT-2026-1772833387892-4673628 - Ruth Naranjo",
+      "totalAmount": "26216000.00",
+      "quotationId": "2670293",
+      "status": "entregado"
+    },
+    {
+      "id": "2130105",
+      "name": "COT-2026-1772833387888-6786153 - Sras. Maria Clara & Ana milena",
+      "totalAmount": "25726000.00",
+      "quotationId": "2670289",
+      "status": "entregado"
+    },
+    {
+      "id": "2130116",
+      "name": "COT-2026-1772833387899-2437183 - Juan Pablo González",
+      "totalAmount": "16780000.00",
+      "quotationId": "2670300",
+      "status": "despiece"
+    },
+    {
+      "id": "2130117",
+      "name": "COT-2026-1772833387900-2643089 - Carolina Diaz",
+      "totalAmount": "16650000.00",
+      "quotationId": "2670301",
+      "status": "corte"
+    },
+    {
+      "id": "2130106",
+      "name": "COT-2026-1772833387889-1121614 - Sras. Maria Clara & Ana milena",
+      "totalAmount": "10730000.00",
+      "quotationId": "2670290",
+      "status": "entregado"
+    },
+    {
+      "id": "2130108",
+      "name": "COT-2026-1772833387891-2667628 - Felipe Quintero",
+      "totalAmount": "7943000.00",
+      "quotationId": "2670292",
+      "status": "entregado"
+    },
+    {
+      "id": "2310001",
+      "name": "COT-2026-1773352754220-6529183 - Lina Paez",
+      "totalAmount": "7594000.00",
+      "quotationId": "2940001",
+      "status": "en_diseno"
+    },
+    {
+      "id": "2130111",
+      "name": "COT-2026-1772833387894-8915020 - Orlando Primacho",
+      "totalAmount": "7305750.00",
+      "quotationId": "2670295",
+      "status": "entregado"
+    },
+    {
+      "id": "2130115",
+      "name": "COT-2026-1772833387898-7036206 - Alfredo Bolaños",
+      "totalAmount": "6600000.00",
+      "quotationId": "2670299",
+      "status": "entregado"
+    },
+    {
+      "id": "2340001",
+      "name": "COT-2026-1773448016668-1759804 - Gustavo Rodriguez - Subway",
+      "totalAmount": "6587500.00",
+      "quotationId": "2970001",
+      "status": "despiece"
+    },
+    {
+      "id": "2130114",
+      "name": "COT-2026-1772833387897-0178652 - Oscar Urriago",
+      "totalAmount": "4460000.00",
+      "quotationId": "2670298",
+      "status": "listo_instalacion"
+    },
+    {
+      "id": "2400001",
+      "name": "COT-2026-1773539040435-943369 - Andres Salazar",
+      "totalAmount": "3500000.00",
+      "quotationId": "3030001",
+      "status": "pendiente_modelado"
+    },
+    {
+      "id": "2130113",
+      "name": "COT-2026-1772833387896-9276683 - Sr. Harold",
+      "totalAmount": "3400000.00",
+      "quotationId": "2670297",
+      "status": "entregado"
+    },
+    {
+      "id": "2130112",
+      "name": "COT-2026-1772833387895-6830938 - Beatriz Paris",
+      "totalAmount": "2860000.00",
+      "quotationId": "2670296",
+      "status": "entregado"
+    },
+    {
+      "id": "2130110",
+      "name": "COT-2026-1772833387893-4870273 - Henry Morales",
+      "totalAmount": "1500000.00",
+      "quotationId": "2670294",
+      "status": "entregado"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\ttotalAmount\tquotationId\tstatus\n2130107\tCOT-2026-1772833387890-1825427 - Diana Ortiz\t49938000.00\t2670291\tlisto_instalacion\n2130109\tCOT-2026-1772833387892-4673628 - Ruth Naranjo\t26216000.00\t2670293\tentregado\n2130105\tCOT-2026-1772833387888-6786153 - Sras. Maria Clara & Ana milena\t25726000.00\t2670289\tentregado\n2130116\tCOT-2026-1772833387899-2437183 - Juan Pablo González\t16780000.00\t2670300\tdespiece\n2130117\tCOT-2026-1772833387900-2643089 - Carolina Diaz\t16650000.00\t2670301\tcorte\n2130106\tCOT-2026-1772833387889-1121614 - Sras. Maria Clara & Ana milena\t10730000.00\t2670290\tentregado\n2130108\tCOT-2026-1772833387891-2667628 - Felipe Quintero\t7943000.00\t2670292\tentregado\n2310001\tCOT-2026-1773352754220-6529183 - Lina Paez\t7594000.00\t2940001\ten_diseno\n2130111\tCOT-2026-1772833387894-8915020 - Orlando Primacho\t7305750.00\t2670295\tentregado\n2130115\tCOT-2026-1772833387898-7036206 - Alfredo Bolaños\t6600000.00\t2670299\tentregado\n2340001\tCOT-2026-1773448016668-1759804 - Gustavo Rodriguez - Subway\t6587500.00\t2970001\tdespiece\n2130114\tCOT-2026-1772833387897-0178652 - Oscar Urriago\t4460000.00\t2670298\tlisto_instalacion\n2400001\tCOT-2026-1773539040435-943369 - Andres Salazar\t3500000.00\t3030001\tpendiente_modelado\n2130113\tCOT-2026-1772833387896-9276683 - Sr. Harold\t3400000.00\t2670297\tentregado\n2130112\tCOT-2026-1772833387895-6830938 - Beatriz Paris\t2860000.00\t2670296\tentregado\n2130110\tCOT-2026-1772833387893-4870273 - Henry Morales\t1500000.00\t2670294\tentregado\n",
+  "stderr": "",
+  "execution_time_ms": 63
+}

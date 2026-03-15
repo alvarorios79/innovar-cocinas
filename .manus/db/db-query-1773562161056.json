@@ -1,0 +1,9 @@
+{
+  "query": "SELECT \n  id,\n  name,\n  clientId,\n  CAST(totalAmount AS DECIMAL(12,2)) as totalAmount,\n  status,\n  quotationId\nFROM projects\nWHERE deletedAt IS NULL \n  AND dataOrigin = 'manual'\n  AND quotationId IS NULL\nORDER BY createdAt DESC",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT \n  id,\n  name,\n  clientId,\n  CAST(totalAmount AS DECIMAL(12,2)) as totalAmount,\n  status,\n  quotationId\nFROM projects\nWHERE deletedAt IS NULL \n  AND dataOrigin = 'manual'\n  AND quotationId IS NULL\nORDER BY createdAt DESC",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 63
+}

@@ -1,0 +1,30 @@
+{
+  "query": "-- Check quotations total (approved)\nSELECT \n  COUNT(*) as cantidad_cotizaciones_aprobadas,\n  SUM(CAST(total AS DECIMAL(12,2))) as total_cotizaciones_aprobadas\nFROM quotations\nWHERE deletedAt IS NULL AND status = 'approved';\n\n-- Check projects with quotationId\nSELECT \n  COUNT(*) as proyectos_con_cotizacion,\n  SUM(CAST(totalAmount AS DECIMAL(12,2))) as total_proyectos_con_cotizacion\nFROM projects\nWHERE deletedAt IS NULL \n  AND dataOrigin = 'manual'\n  AND quotationId IS NOT NULL;\n\n-- Check projects WITHOUT quotationId\nSELECT \n  COUNT(*) as proyectos_sin_cotizacion,\n  SUM(CAST(totalAmount AS DECIMAL(12,2))) as total_proyectos_sin_cotizacion\nFROM projects\nWHERE deletedAt IS NULL \n  AND dataOrigin = 'manual'\n  AND quotationId IS NULL",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute -- Check quotations total (approved)\nSELECT \n  COUNT(*) as cantidad_cotizaciones_aprobadas,\n  SUM(CAST(total AS DECIMAL(12,2))) as total_cotizaciones_aprobadas\nFROM quotations\nWHERE deletedAt IS NULL AND status = 'approved';\n\n-- Check projects with quotationId\nSELECT \n  COUNT(*) as proyectos_con_cotizacion,\n  SUM(CAST(totalAmount AS DECIMAL(12,2))) as total_proyectos_con_cotizacion\nFROM projects\nWHERE deletedAt IS NULL \n  AND dataOrigin = 'manual'\n  AND quotationId IS NOT NULL;\n\n-- Check projects WITHOUT quotationId\nSELECT \n  COUNT(*) as proyectos_sin_cotizacion,\n  SUM(CAST(totalAmount AS DECIMAL(12,2))) as total_proyectos_sin_cotizacion\nFROM projects\nWHERE deletedAt IS NULL \n  AND dataOrigin = 'manual'\n  AND quotationId IS NULL",
+  "rows": [
+    {
+      "cantidad_cotizaciones_aprobadas": "16",
+      "total_cotizaciones_aprobadas": "197790250.00"
+    },
+    {
+      "cantidad_cotizaciones_aprobadas": "proyectos_con_cotizacion",
+      "total_cotizaciones_aprobadas": "total_proyectos_con_cotizacion"
+    },
+    {
+      "cantidad_cotizaciones_aprobadas": "16",
+      "total_cotizaciones_aprobadas": "197790250.00"
+    },
+    {
+      "cantidad_cotizaciones_aprobadas": "proyectos_sin_cotizacion",
+      "total_cotizaciones_aprobadas": "total_proyectos_sin_cotizacion"
+    },
+    {
+      "cantidad_cotizaciones_aprobadas": "0",
+      "total_cotizaciones_aprobadas": "NULL"
+    }
+  ],
+  "messages": [],
+  "stdout": "cantidad_cotizaciones_aprobadas\ttotal_cotizaciones_aprobadas\n16\t197790250.00\nproyectos_con_cotizacion\ttotal_proyectos_con_cotizacion\n16\t197790250.00\nproyectos_sin_cotizacion\ttotal_proyectos_sin_cotizacion\n0\tNULL\n",
+  "stderr": "",
+  "execution_time_ms": 77
+}

@@ -1,0 +1,20 @@
+{
+  "query": "SELECT \n  movementType,\n  COUNT(*) as cantidad,\n  SUM(CAST(amount AS DECIMAL(12,2))) as total\nFROM payments\nGROUP BY movementType\nORDER BY movementType",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT \n  movementType,\n  COUNT(*) as cantidad,\n  SUM(CAST(amount AS DECIMAL(12,2))) as total\nFROM payments\nGROUP BY movementType\nORDER BY movementType",
+  "rows": [
+    {
+      "movementType": "discount",
+      "cantidad": "2",
+      "total": "550000.00"
+    },
+    {
+      "movementType": "payment",
+      "cantidad": "23",
+      "total": "146198600.00"
+    }
+  ],
+  "messages": [],
+  "stdout": "movementType\tcantidad\ttotal\ndiscount\t2\t550000.00\npayment\t23\t146198600.00\n",
+  "stderr": "",
+  "execution_time_ms": 63
+}

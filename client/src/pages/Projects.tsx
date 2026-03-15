@@ -49,6 +49,7 @@ import { MaterialsForm } from "@/components/MaterialsForm";
 import { HardwareSelector } from "@/components/HardwareSelector";
 import { ProjectInlineDetail } from "@/components/ProjectInlineDetail";
 import { PageHeader } from "@/components/PageHeader";
+import { ExportProjectsButton } from "@/components/ExportProjectsButton";
 // Usar tRPC mutations en lugar de fetch directo
 
 // Estados del proyecto según Ruta INNOVAR (14 estados simplificados)
@@ -814,15 +815,17 @@ export default function Projects() {
               );
             })()}
 
-            {/* Botón crear (solo admin) */}
+            {/* Botones de acción (solo admin) */}
             {(user?.role === "admin" || user?.role === "super_admin") && (
-              <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-                <DialogTrigger asChild>
-                  <Button>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Nuevo Proyecto
-                  </Button>
-                </DialogTrigger>
+              <>
+                <ExportProjectsButton archived={archiveTab === 'archived'} />
+                <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+                  <DialogTrigger asChild>
+                    <Button>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Nuevo Proyecto
+                    </Button>
+                  </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
                     <DialogTitle>Crear Nuevo Proyecto</DialogTitle>
@@ -897,6 +900,7 @@ export default function Projects() {
                   </form>
                 </DialogContent>
               </Dialog>
+              </>
             )}
             </div>
           </div>

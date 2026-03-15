@@ -11,21 +11,20 @@ interface ExportProjectsButtonProps {
 
 export function ExportProjectsButton({ archived = false }: ExportProjectsButtonProps) {
   const [isExporting, setIsExporting] = useState(false);
+  const { refetch } = trpc.projects.exportToExcel.useQuery({ archived }, { enabled: false });
 
   const handleExport = async () => {
     try {
       setIsExporting(true);
+      const { data } = await refetch();
       
-      // Obtener datos del servidor
-      const response = await trpc.projects.exportToExcel.useQuery({ archived });
-      
-      if (!response?.data?.data || response.data.data.length === 0) {
+      if (!data?.data || data.data.length === 0) {
         toast.error('No hay proyectos para exportar');
         return;
       }
 
       // Crear workbook
-      const ws = XLSX.utils.json_to_sheet(response.data.data as any[]);
+      const ws = XLSX.utils.json_to_sheet(data.data as any[]);
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, 'Proyectos');
 

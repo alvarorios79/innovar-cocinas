@@ -199,8 +199,21 @@ export default function Projects() {
   // Estado para búsqueda de cliente
   const [searchTerm, setSearchTerm] = useState("");
   
-  // Estado para tab de archivado
-  const [archiveTab, setArchiveTab] = useState<'active' | 'archived'>('active');
+  // Estado para tab de archivado (inicializar desde localStorage)
+  const [archiveTab, setArchiveTab] = useState<'active' | 'archived'>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('projectsArchiveTab');
+      return (saved === 'archived' || saved === 'active') ? saved : 'active';
+    }
+    return 'active';
+  });
+  
+  // Guardar el estado de la pestaña en localStorage cuando cambia
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('projectsArchiveTab', archiveTab);
+    }
+  }, [archiveTab]);
   
   // Estado para carga de archivado
   const [archivingProjectId, setArchivingProjectId] = useState<number | null>(null);

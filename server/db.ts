@@ -1246,6 +1246,13 @@ export async function getGlobalFinancialDashboard() {
     }
   }
 
+  // Include operational expenses (bodega) - expenses with projectId = NULL
+  const operationalExpenses = await db.select().from(expenses).where(isNull(expenses.projectId));
+  for (const expense of operationalExpenses) {
+    const amount = parseFloat(expense.amount?.toString() || '0');
+    totalExpenses += amount;
+  }
+
   return {
     totalRevenue,
     totalExpenses,

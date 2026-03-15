@@ -797,3 +797,36 @@ export const closureAuditLog = mysqlTable("closureAuditLog", {
 
 export type SelectClosureAuditLog = typeof closureAuditLog.$inferSelect;
 export type InsertClosureAuditLog = typeof closureAuditLog.$inferInsert;
+
+// ============ ACCOUNTING CLOSURE OPERATIONAL EXPENSES ============
+export const accountingClosureOperationalExpenses = mysqlTable("accountingClosureOperationalExpenses", {
+	id: int().autoincrement().notNull().primaryKey(),
+	closureId: int().notNull().references(() => accountingClosures.id, { onDelete: "cascade" }),
+	expenseId: int().notNull().references(() => expenses.id),
+	category: mysqlEnum([
+		"arriendo",
+		"energia",
+		"agua",
+		"internet",
+		"mantenimiento",
+		"herramientas",
+		"jardineria",
+		"reparaciones",
+		"transporte",
+		"papeleria",
+		"aseo",
+		"otro",
+	]).notNull(),
+	description: text().notNull(),
+	amount: decimal({ precision: 12, scale: 2 }).notNull(),
+	expenseDate: timestamp({ mode: "string" }).notNull(),
+	createdAt: timestamp({ mode: "string" }).default("CURRENT_TIMESTAMP").notNull(),
+},
+(table) => [
+	index("accountingClosureOperationalExpenses_closureId_idx").on(table.closureId),
+	index("accountingClosureOperationalExpenses_expenseId_idx").on(table.expenseId),
+	index("accountingClosureOperationalExpenses_category_idx").on(table.category),
+]);
+
+export type SelectAccountingClosureOperationalExpense = typeof accountingClosureOperationalExpenses.$inferSelect;
+export type InsertAccountingClosureOperationalExpense = typeof accountingClosureOperationalExpenses.$inferInsert;

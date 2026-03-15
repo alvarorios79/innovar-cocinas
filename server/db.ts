@@ -60,6 +60,8 @@ import {
   InsertAccountingClosure,
   accountingClosureProjects,
   InsertAccountingClosureProject,
+  accountingClosureOperationalExpenses,
+  InsertAccountingClosureOperationalExpense,
   closureAuditLog,
   InsertClosureAuditLog
 } from "../drizzle/schema";
@@ -2539,6 +2541,21 @@ export async function createAccountingClosure(data: {
     let totalExpenses = 0;
     let totalProfit = 0;
     
+    // Get operational expenses (bodega) to include in closure
+    const operationalExpenses = await tx.select()
+      .from(expenses)
+      .where(
+        and(
+          eq(expenses.expenseType, 'gasto_operativo'),
+          eq(expenses.dataOrigin, 'manual'),
+          isNull(expenses.deletedAt)
+        )
+      );
+    
+    const totalOperationalExpenses = operationalExpenses.reduce((sum, exp) => {
+      return sum + (exp.amount ? parseFloat(exp.amount.toString()) : 0);
+    }, 0);
+    
     // Add projects to closure
     for (const project of projectsData) {
       const projectValue = project.totalAmount ? parseFloat(project.totalAmount.toString()) : 0;
@@ -2580,12 +2597,40 @@ export async function createAccountingClosure(data: {
       totalProfit += profit;
     }
     
-    // Update closure totals
+    // Add operational expenses to closure (using raw SQL due to schema sync)
+    const pool = await getPool();
+    if (pool) {
+      for (const expense of operationalExpenses) {
+        const conn = await pool.getConnection();
+        try {
+          await conn.execute(
+            `INSERT INTO accountingClosureOperationalExpenses 
+            (closureId, expenseId, category, description, amount, expenseDate) 
+            VALUES (?, ?, ?, ?, ?, ?)`,
+            [
+              closureId,
+              expense.id,
+              expense.operativeCategory || 'otro',
+              expense.description,
+              expense.amount,
+              expense.expenseDate
+            ]
+          );
+        } finally {
+          conn.release();
+        }
+      }
+    }
+    
+    // Update closure totals (include operational expenses)
+    const finalTotalExpenses = totalExpenses + totalOperationalExpenses;
+    const finalTotalProfit = totalSales - finalTotalExpenses;
+    
     await tx.update(accountingClosures)
       .set({
         totalSales: totalSales,
-        totalExpenses: totalExpenses,
-        totalProfit: totalProfit,
+        totalExpenses: finalTotalExpenses,
+        totalProfit: finalTotalProfit,
       } as any)
       .where(eq(accountingClosures.id, closureId));
     
@@ -2637,6 +2682,27 @@ export async function getAccountingClosures(filters?: {
     .from(accountingClosures)
     .where(whereClause)
     .orderBy(desc(accountingClosures.createdAt));
+}
+
+/**
+ * Get operational expenses for a closure
+ */
+export async function getClosureOperationalExpenses(closureId: number) {
+  const pool = await getPool();
+  if (!pool) return [];
+  
+  const conn = await pool.getConnection();
+  try {
+    const [rows] = await conn.execute(
+      `SELECT * FROM accountingClosureOperationalExpenses 
+       WHERE closureId = ? 
+       ORDER BY expenseDate DESC`,
+      [closureId]
+    );
+    return rows as any[];
+  } finally {
+    conn.release();
+  }
 }
 
 /**

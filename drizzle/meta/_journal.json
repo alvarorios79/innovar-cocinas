@@ -218,6 +218,20 @@
       "when": 1773465233418,
       "tag": "0030_fast_carlie_cooper",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "5",
+      "when": 1773557978102,
+      "tag": "0031_watery_madelyne_pryor",
+      "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "5",
+      "when": 1773558036676,
+      "tag": "0032_polite_magneto",
+      "breakpoints": true
     }
   ]
 }

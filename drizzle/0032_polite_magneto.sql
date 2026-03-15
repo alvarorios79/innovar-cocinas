@@ -1,0 +1,1 @@
+ALTER TABLE `accountingClosureOperationalExpenses` ADD PRIMARY KEY(`id`);

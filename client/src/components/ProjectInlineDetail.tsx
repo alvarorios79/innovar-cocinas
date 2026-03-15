@@ -1370,49 +1370,88 @@ export function ProjectInlineDetail({
                       </Button>
                     </CardTitle>
                   </CardHeader>
-                  {showFinancialInfo && (
-                    <CardContent className="text-sm space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Total del Proyecto</span>
-                        <span className="font-medium">
-                          {totalAmount > 0 
-                            ? new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(totalAmount)
-                            : "$0"}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Adelanto Pagado (60%)</span>
-                        <span className="font-medium text-green-600">
-                          {advanceAmount > 0
-                            ? new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(advanceAmount)
-                            : "$0"}
-                        </span>
-                      </div>
-                      <div className="flex justify-between bg-yellow-100 p-2 rounded">
-                        <span className="text-yellow-700">Saldo Pendiente (40%)</span>
-                        <span className="font-medium text-yellow-700">
-                          {remainingAmount > 0
-                            ? new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(remainingAmount)
-                            : "$0"}
-                        </span>
-                      </div>
-                      
-                      {/* Enlace al recibo del adelanto */}
-                      {projectDetail.advanceReceiptUrl && (
-                        <div className="pt-2 border-t">
-                          <a 
-                            href={projectDetail.advanceReceiptUrl} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-2 text-blue-600 hover:text-blue-800 hover:underline"
-                          >
-                            <FileText className="h-4 w-4" />
-                            Ver Recibo del Adelanto
-                          </a>
+                  {showFinancialInfo && (() => {
+                    // Calcular total pagado desde el array de payments
+                    const totalPaid = (projectDetail as any).payments?.reduce((sum: number, p: any) => sum + Number(p.amount), 0) || 0;
+                    const percentagePaid = totalAmount > 0 ? Math.round((totalPaid / totalAmount) * 100) : 0;
+                    const percentagePending = 100 - percentagePaid;
+                    
+                    return (
+                      <CardContent className="text-sm space-y-3">
+                        {/* Total del Proyecto */}
+                        <div className="flex justify-between pb-2 border-b">
+                          <span className="text-muted-foreground font-medium">Total del Proyecto</span>
+                          <span className="font-bold text-lg">
+                            {totalAmount > 0 
+                              ? new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(totalAmount)
+                              : "$0"}
+                          </span>
                         </div>
-                      )}
-                    </CardContent>
-                  )}
+                        
+                        {/* Desglose de Pagos */}
+                        {(projectDetail as any).payments && (projectDetail as any).payments.length > 0 && (
+                          <div className="space-y-1">
+                            <p className="text-muted-foreground font-medium text-xs">Desglose de Pagos:</p>
+                            {(projectDetail as any).payments.map((payment: any, idx: number) => (
+                              <div key={idx} className="flex justify-between pl-2 text-xs">
+                                <span className="text-muted-foreground">
+                                  {payment.type === 'adelanto' ? '• Pago 1 (Adelanto)' :
+                                   payment.type === 'saldo_final' ? '• Pago 2 (Final)' :
+                                   payment.type === 'abono' ? '• Abono' : '• Otro Pago'}
+                                </span>
+                                <span className="font-medium text-green-600">
+                                  {new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(Number(payment.amount))}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        
+                        {/* Total Pagado y Saldo */}
+                        <div className="pt-2 border-t space-y-2">
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Total Pagado</span>
+                            <span className="font-bold text-green-600">
+                              {new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(totalPaid)} ({percentagePaid}%)
+                            </span>
+                          </div>
+                          <div className={`flex justify-between p-2 rounded ${
+                            remainingAmount <= 0 
+                              ? 'bg-green-100' 
+                              : 'bg-yellow-100'
+                          }`}>
+                            <span className={remainingAmount <= 0 ? 'text-green-700' : 'text-yellow-700'}>
+                              {remainingAmount <= 0 ? 'Estado' : 'Saldo Pendiente'}
+                            </span>
+                            <span className={`font-bold ${
+                              remainingAmount <= 0 
+                                ? 'text-green-700' 
+                                : 'text-yellow-700'
+                            }`}>
+                              {remainingAmount <= 0 
+                                ? '✅ Cancelado 100%' 
+                                : new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(remainingAmount) + ` (${percentagePending}%)`
+                              }
+                            </span>
+                          </div>
+                        </div>
+                        {/* Enlace al recibo del adelanto */}
+                        {projectDetail.advanceReceiptUrl && (
+                          <div className="pt-2 border-t">
+                            <a 
+                              href={projectDetail.advanceReceiptUrl} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-2 text-blue-600 hover:text-blue-800 hover:underline"
+                            >
+                              <FileText className="h-4 w-4" />
+                              Ver Recibo del Adelanto
+                            </a>
+                          </div>
+                        )}
+                      </CardContent>
+                    );
+                  })()}
                 </Card>
               );
             })()}
@@ -1544,17 +1583,23 @@ export function ProjectInlineDetail({
                     </p>
                   </div>
                   
-                  {/* Adelanto Pagado */}
-                  <div className="text-center p-3 bg-green-100/50 rounded-lg">
-                    <p className="text-xs text-green-700 mb-1">Adelanto Pagado (60%)</p>
-                    <p className="text-xl font-bold text-green-700">
-                      {new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format((projectDetail as any).financialInfo.advanceAmount)}
-                    </p>
-                    {projectDetail.advanceReceivedAt && (
-                      <p className="text-xs text-green-600 mt-1">
-                        Recibido: {new Date(projectDetail.advanceReceivedAt).toLocaleDateString('es-CO')}
-                      </p>
-                    )}
+                  {/* Desglose de Pagos Dinámico */}
+                  <div className="text-center p-3 bg-blue-50 rounded-lg border border-blue-200">
+                    <p className="text-xs font-semibold text-blue-700 mb-2">Desglose de Pagos</p>
+                    <div className="space-y-1 text-xs text-blue-600">
+                      {projectDetail.payments && projectDetail.payments.length > 0 ? (
+                        projectDetail.payments.map((payment: any, idx: number) => (
+                          <p key={idx}>
+                            • {payment.type === 'adelanto' ? 'Pago 1 (Adelanto)' :
+                               payment.type === 'saldo_final' ? 'Pago 2 (Final)' :
+                               payment.type === 'abono' ? `Abono ${idx}` : 'Otro Pago'}
+                            : {new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(payment.amount)}
+                          </p>
+                        ))
+                      ) : (
+                        <p>Sin pagos registrados</p>
+                      )}
+                    </div>
                   </div>
                   
                    {/* Descuentos */}
@@ -1579,12 +1624,14 @@ export function ProjectInlineDetail({
                        ? "bg-red-100/50"
                        : "bg-green-100/50"
                    }`}>
-                     <p className={`text-xs mb-1 ${
+                     <p className={`text-xs mb-1 font-semibold ${
                        (projectDetail as any).financialInfo.remainingAmount > 0
-                         ? "text-red-700"
+                         ? "text-yellow-700"
                          : "text-green-700"
                      }`}>
-                       {(projectDetail as any).financialInfo.remainingAmount > 0 ? "Saldo Pendiente (40%)" : "Pagado Completamente"}
+                       {(projectDetail as any).financialInfo.remainingAmount > 0 
+                         ? `Saldo Pendiente (${Math.round(((projectDetail as any).financialInfo.remainingAmount / (projectDetail as any).financialInfo.totalAmount) * 100)}%)`
+                         : "✅ Cancelado 100%"}
                      </p>
                      <p className={`text-xl font-bold ${
                        (projectDetail as any).financialInfo.remainingAmount > 0

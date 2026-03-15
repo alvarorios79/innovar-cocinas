@@ -1625,6 +1625,28 @@ ${input.notes || "No se especificaron detalles"}
           });
         }
       }),
+
+    // Exportar proyectos a Excel
+    exportToExcel: protectedProcedure
+      .input(z.object({
+        archived: z.boolean().optional(),
+      }))
+      .query(async ({ ctx, input }) => {
+        // Solo admin y super_admin pueden exportar
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para exportar" });
+        }
+
+        const { getProjectsForExport } = await import("../export");
+        const rows = await getProjectsForExport(input.archived);
+        
+        // Convertir a formato JSON para que el cliente lo descargue
+        return {
+          success: true,
+          data: rows,
+          timestamp: new Date().toISOString(),
+        };
+      }),
 });
 
 
@@ -1992,6 +2014,28 @@ export const projectMaterialsRouter = router({
         }
         const result = await db.getGlobalFinancialDashboard();
         return result;
+      }),
+
+    // Exportar proyectos a Excel
+    exportToExcel: protectedProcedure
+      .input(z.object({
+        archived: z.boolean().optional(),
+      }))
+      .query(async ({ ctx, input }) => {
+        // Solo admin y super_admin pueden exportar
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para exportar" });
+        }
+
+        const { getProjectsForExport } = await import("../export");
+        const rows = await getProjectsForExport(input.archived);
+        
+        // Convertir a formato JSON para que el cliente lo descargue
+        return {
+          success: true,
+          data: rows,
+          timestamp: new Date().toISOString(),
+        };
       }),
 
 

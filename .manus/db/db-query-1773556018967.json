@@ -1,0 +1,210 @@
+{
+  "query": "SELECT id, description, amount, DATE(expenseDate) as expense_date, DATE(createdAt) as created_date, expenseType FROM expenses ORDER BY id DESC LIMIT 25;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT id, description, amount, DATE(expenseDate) as expense_date, DATE(createdAt) as created_date, expenseType FROM expenses ORDER BY id DESC LIMIT 25;",
+  "rows": [
+    {
+      "id": "330034",
+      "description": "pago contador",
+      "amount": "350000.00",
+      "expense_date": "2026-03-13",
+      "created_date": "2026-03-14",
+      "expenseType": "gasto_operativo"
+    },
+    {
+      "id": "330033",
+      "description": "Gasolina Luchito",
+      "amount": "150000.00",
+      "expense_date": "2026-03-12",
+      "created_date": "2026-03-14",
+      "expenseType": "gasto_operativo"
+    },
+    {
+      "id": "330032",
+      "description": "Gasolina Alvaro",
+      "amount": "203000.00",
+      "expense_date": "2026-03-10",
+      "created_date": "2026-03-14",
+      "expenseType": "gasto_operativo"
+    },
+    {
+      "id": "330031",
+      "description": "Energia bodega",
+      "amount": "368290.00",
+      "expense_date": "2026-03-09",
+      "created_date": "2026-03-14",
+      "expenseType": "gasto_operativo"
+    },
+    {
+      "id": "330030",
+      "description": "Guadaña Bodega",
+      "amount": "180000.00",
+      "expense_date": "2026-03-06",
+      "created_date": "2026-03-14",
+      "expenseType": "gasto_operativo"
+    },
+    {
+      "id": "330029",
+      "description": "Alquiler Bodega",
+      "amount": "3461500.00",
+      "expense_date": "2026-03-02",
+      "created_date": "2026-03-14",
+      "expenseType": "gasto_operativo"
+    },
+    {
+      "id": "330028",
+      "description": "Complemento sueldo Daniel",
+      "amount": "327134.00",
+      "expense_date": "2026-03-02",
+      "created_date": "2026-03-14",
+      "expenseType": "gasto_operativo"
+    },
+    {
+      "id": "330027",
+      "description": "Quincena Diseñador",
+      "amount": "400000.00",
+      "expense_date": "2026-03-02",
+      "created_date": "2026-03-14",
+      "expenseType": "gasto_operativo"
+    },
+    {
+      "id": "330026",
+      "description": "Gasolina Alvaro",
+      "amount": "186481.00",
+      "expense_date": "2026-03-02",
+      "created_date": "2026-03-14",
+      "expenseType": "gasto_operativo"
+    },
+    {
+      "id": "330025",
+      "description": "Quincena Daniel mas contrato 250",
+      "amount": "1250000.00",
+      "expense_date": "2026-02-28",
+      "created_date": "2026-03-14",
+      "expenseType": "gasto_operativo"
+    },
+    {
+      "id": "330024",
+      "description": "Gasolina Alvaro",
+      "amount": "186481.00",
+      "expense_date": "2026-02-20",
+      "created_date": "2026-03-14",
+      "expenseType": "gasto_operativo"
+    },
+    {
+      "id": "330023",
+      "description": "Gasolina Luchito",
+      "amount": "150000.00",
+      "expense_date": "2026-02-17",
+      "created_date": "2026-03-14",
+      "expenseType": "gasto_operativo"
+    },
+    {
+      "id": "330022",
+      "description": "quincena Diseñador",
+      "amount": "400000.00",
+      "expense_date": "2026-02-16",
+      "created_date": "2026-03-14",
+      "expenseType": "gasto_operativo"
+    },
+    {
+      "id": "330021",
+      "description": "quincena Daniel",
+      "amount": "1187854.00",
+      "expense_date": "2026-02-16",
+      "created_date": "2026-03-14",
+      "expenseType": "gasto_operativo"
+    },
+    {
+      "id": "330020",
+      "description": "Gasolina Alvaro",
+      "amount": "206996.00",
+      "expense_date": "2026-02-09",
+      "created_date": "2026-03-14",
+      "expenseType": "gasto_operativo"
+    },
+    {
+      "id": "330019",
+      "description": "Gasolina Guadaña",
+      "amount": "20000.00",
+      "expense_date": "2026-02-07",
+      "created_date": "2026-03-14",
+      "expenseType": "gasto_operativo"
+    },
+    {
+      "id": "330018",
+      "description": "Gasolina Luchito",
+      "amount": "150000.00",
+      "expense_date": "2026-02-07",
+      "created_date": "2026-03-14",
+      "expenseType": "gasto_operativo"
+    },
+    {
+      "id": "330017",
+      "description": "Ajuste de alquiler IPC",
+      "amount": "64500.00",
+      "expense_date": "2026-02-05",
+      "created_date": "2026-03-14",
+      "expenseType": "gasto_operativo"
+    },
+    {
+      "id": "330016",
+      "description": "Guadaña bodega",
+      "amount": "120000.00",
+      "expense_date": "2026-02-05",
+      "created_date": "2026-03-14",
+      "expenseType": "gasto_operativo"
+    },
+    {
+      "id": "330015",
+      "description": "Energia",
+      "amount": "821717.00",
+      "expense_date": "2026-02-05",
+      "created_date": "2026-03-14",
+      "expenseType": "gasto_operativo"
+    },
+    {
+      "id": "330014",
+      "description": "Alquiler bodega IPC",
+      "amount": "3397000.00",
+      "expense_date": "2026-02-05",
+      "created_date": "2026-03-14",
+      "expenseType": "gasto_operativo"
+    },
+    {
+      "id": "330013",
+      "description": "Hilo Guadaña y aceite",
+      "amount": "64000.00",
+      "expense_date": "2026-02-03",
+      "created_date": "2026-03-14",
+      "expenseType": "gasto_operativo"
+    },
+    {
+      "id": "330012",
+      "description": "Pago Diseñador",
+      "amount": "400000.00",
+      "expense_date": "2026-01-31",
+      "created_date": "2026-03-14",
+      "expenseType": "gasto_operativo"
+    },
+    {
+      "id": "330011",
+      "description": "Quincena Daniel",
+      "amount": "1188250.00",
+      "expense_date": "2026-01-31",
+      "created_date": "2026-03-14",
+      "expenseType": "gasto_operativo"
+    },
+    {
+      "id": "330010",
+      "description": "Gasolina Alvaro",
+      "amount": "185335.00",
+      "expense_date": "2026-01-30",
+      "created_date": "2026-03-14",
+      "expenseType": "gasto_operativo"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tdescription\tamount\texpense_date\tcreated_date\texpenseType\n330034\tpago contador\t350000.00\t2026-03-13\t2026-03-14\tgasto_operativo\n330033\tGasolina Luchito\t150000.00\t2026-03-12\t2026-03-14\tgasto_operativo\n330032\tGasolina Alvaro\t203000.00\t2026-03-10\t2026-03-14\tgasto_operativo\n330031\tEnergia bodega\t368290.00\t2026-03-09\t2026-03-14\tgasto_operativo\n330030\tGuadaña Bodega\t180000.00\t2026-03-06\t2026-03-14\tgasto_operativo\n330029\tAlquiler Bodega\t3461500.00\t2026-03-02\t2026-03-14\tgasto_operativo\n330028\tComplemento sueldo Daniel\t327134.00\t2026-03-02\t2026-03-14\tgasto_operativo\n330027\tQuincena Diseñador\t400000.00\t2026-03-02\t2026-03-14\tgasto_operativo\n330026\tGasolina Alvaro\t186481.00\t2026-03-02\t2026-03-14\tgasto_operativo\n330025\tQuincena Daniel mas contrato 250\t1250000.00\t2026-02-28\t2026-03-14\tgasto_operativo\n330024\tGasolina Alvaro\t186481.00\t2026-02-20\t2026-03-14\tgasto_operativo\n330023\tGasolina Luchito\t150000.00\t2026-02-17\t2026-03-14\tgasto_operativo\n330022\tquincena Diseñador\t400000.00\t2026-02-16\t2026-03-14\tgasto_operativo\n330021\tquincena Daniel\t1187854.00\t2026-02-16\t2026-03-14\tgasto_operativo\n330020\tGasolina Alvaro\t206996.00\t2026-02-09\t2026-03-14\tgasto_operativo\n330019\tGasolina Guadaña\t20000.00\t2026-02-07\t2026-03-14\tgasto_operativo\n330018\tGasolina Luchito\t150000.00\t2026-02-07\t2026-03-14\tgasto_operativo\n330017\tAjuste de alquiler IPC\t64500.00\t2026-02-05\t2026-03-14\tgasto_operativo\n330016\tGuadaña bodega\t120000.00\t2026-02-05\t2026-03-14\tgasto_operativo\n330015\tEnergia\t821717.00\t2026-02-05\t2026-03-14\tgasto_operativo\n330014\tAlquiler bodega IPC\t3397000.00\t2026-02-05\t2026-03-14\tgasto_operativo\n330013\tHilo Guadaña y aceite\t64000.00\t2026-02-03\t2026-03-14\tgasto_operativo\n330012\tPago Diseñador\t400000.00\t2026-01-31\t2026-03-14\tgasto_operativo\n330011\tQuincena Daniel\t1188250.00\t2026-01-31\t2026-03-14\tgasto_operativo\n330010\tGasolina Alvaro\t185335.00\t2026-01-30\t2026-03-14\tgasto_operativo\n",
+  "stderr": "",
+  "execution_time_ms": 72
+}

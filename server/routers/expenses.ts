@@ -314,6 +314,72 @@ export const expensesRouter = router({
         }));
       }),
 
+    // Exportar gastos a CSV
+    exportCSV: protectedProcedure
+      .input(z.object({
+        startDate: z.string().optional(),
+        endDate: z.string().optional(),
+        expenseType: z.enum(["all", "materiales_proyecto", "gasto_operativo"]).optional(),
+      }).optional())
+      .query(async ({ ctx, input }) => {
+        const allowedRoles = ["super_admin", "admin", "comercial"];
+        if (!allowedRoles.includes(ctx.user.role)) {
+          throw new TRPCError({ code: "FORBIDDEN" });
+        }
+
+        let expenses;
+        if (input?.startDate && input?.endDate) {
+          expenses = await db.getExpensesByDateRange(
+            new Date(input.startDate),
+            new Date(input.endDate)
+          );
+        } else if (input?.expenseType && input.expenseType !== "all") {
+          expenses = await db.getExpensesByType(input.expenseType);
+        } else {
+          expenses = await db.getAllExpenses();
+        }
+
+        // Generar CSV
+        const headers = [
+          "ID",
+          "Fecha del Gasto",
+          "Tipo",
+          "Categoría",
+          "Subcategoría",
+          "Descripción",
+          "Proyecto",
+          "Monto",
+          "Creado Por",
+          "Fecha de Creación",
+        ];
+
+        const allUsers = await db.getAllUsers();
+        const userMap = new Map(allUsers.map(u => [u.id, u.name]));
+
+        const rows = expenses.map(e => [
+          e.id,
+          new Date(e.expenseDate).toLocaleDateString('es-CO'),
+          e.expenseType === 'materiales_proyecto' ? 'Materiales' : 'Operativo',
+          e.generalCategory || '',
+          e.subcategory || '',
+          e.description,
+          e.projectClientName || '',
+          parseFloat(e.amount?.toString() || '0').toLocaleString('es-CO'),
+          userMap.get(e.createdBy) || 'Desconocido',
+          new Date(e.createdAt).toLocaleDateString('es-CO'),
+        ]);
+
+        const csv = [
+          headers.join(","),
+          ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(","))
+        ].join("\n");
+
+        return {
+          csv,
+          fileName: `gastos_${new Date().toISOString().split('T')[0]}.csv`,
+        };
+      }),
+
     // Subir soporte de gasto
     uploadSupport: protectedProcedure
       .input(z.object({

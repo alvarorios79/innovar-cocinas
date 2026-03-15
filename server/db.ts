@@ -1275,15 +1275,15 @@ export async function getCashFlowData() {
 
     for (const p of allPayments) {
       if (!p.createdAt) continue;
-      const d = new Date(p.createdAt);
+      const d = new Date(p.createdAt); // Use createdAt for payments (no date field)
       if (d.getFullYear() === year && d.getMonth() === monthIndex && p.movementType === 'payment') {
         inflow += parseFloat(p.amount?.toString() || '0');
       }
     }
 
     for (const e of allExpenses) {
-      if (!e.createdAt) continue;
-      const d = new Date(e.createdAt);
+      if (!e.expenseDate) continue;
+      const d = new Date(e.expenseDate); // Use expenseDate for expenses (real event date)
       if (d.getFullYear() === year && d.getMonth() === monthIndex) {
         outflow += parseFloat(e.amount?.toString() || '0');
       }

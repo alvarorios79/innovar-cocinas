@@ -23,6 +23,8 @@ import {
   getUserAuditActions,
   getEligibleProjectsForAccountingClosure,
   getArchivedProjectsForClosure,
+  getConfirmedClosures,
+  getClosedProjects,
 } from "../db";
 
 export const accountingClosuresRouter = router({

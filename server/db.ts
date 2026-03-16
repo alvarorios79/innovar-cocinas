@@ -2832,19 +2832,93 @@ export async function getClosureDetails(closureId: number) {
 }
 
 /**
- * Confirm an accounting closure
+ * Confirm an accounting closure - FASE 4
+ * 
+ * Cambios realizados:
+ * 1. Verifica que el cierre exista y esté en estado DRAFT
+ * 2. Obtiene todos los proyectos del cierre
+ * 3. Vincula cada proyecto al cierre (UPDATE projects SET accountingClosureId)
+ * 4. Cambia estado del cierre a CONFIRMED
+ * 5. Registra timestamp de confirmación
+ * 
+ * Una vez confirmado, el cierre es inmutable y los proyectos no pueden entrar en otro cierre.
  */
 export async function confirmAccountingClosure(closureId: number, confirmedBy: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   
-  await db.update(accountingClosures)
-    .set({
-      status: 'confirmed',
-      confirmedBy: confirmedBy,
-      confirmedAt: new Date().toISOString(),
-    } as any)
-    .where(eq(accountingClosures.id, closureId));
+  try {
+    // PASO 1: Verificar que el cierre exista y esté en DRAFT
+    const existingClosure = await db
+      .select()
+      .from(accountingClosures)
+      .where(eq(accountingClosures.id, closureId))
+      .limit(1);
+    
+    if (existingClosure.length === 0) {
+      throw new Error(`Cierre contable ${closureId} no encontrado`);
+    }
+    
+    const closure = existingClosure[0];
+    
+    if (closure.status !== 'draft') {
+      throw new Error(
+        `No se puede confirmar cierre en estado ${closure.status}. Solo cierres en DRAFT pueden ser confirmados.`
+      );
+    }
+    
+    console.log(`[CLOSURE CONFIRMATION ${closureId}] Iniciando confirmación...`);
+    
+    // PASO 2: Obtener todos los proyectos del cierre
+    const closureProjects = await db
+      .select()
+      .from(accountingClosureProjects)
+      .where(eq(accountingClosureProjects.closureId, closureId));
+    
+    console.log(`[CLOSURE CONFIRMATION ${closureId}] Encontrados ${closureProjects.length} proyectos`);
+    
+    // PASO 3: Usar transacción para vincular proyectos y confirmar cierre
+    const result = await db.transaction(async (tx) => {
+      // Vincular cada proyecto al cierre
+      for (const closureProject of closureProjects) {
+        await tx
+          .update(projects)
+          .set({ accountingClosureId: closureId })
+          .where(eq(projects.id, closureProject.projectId));
+        
+        console.log(
+          `[CLOSURE CONFIRMATION ${closureId}] Proyecto ${closureProject.projectId} vinculado al cierre`
+        );
+      }
+      
+      // PASO 4: Cambiar estado del cierre a CONFIRMED
+      const now = new Date().toISOString();
+      
+      await tx
+        .update(accountingClosures)
+        .set({
+          status: 'confirmed',
+          confirmedBy: confirmedBy,
+          confirmedAt: now,
+        })
+        .where(eq(accountingClosures.id, closureId));
+      
+      console.log(
+        `[CLOSURE CONFIRMATION ${closureId}] Estado cambiado a CONFIRMED. Proyectos vinculados: ${closureProjects.length}`
+      );
+      
+      return {
+        closureId,
+        projectsLinked: closureProjects.length,
+        confirmedAt: now,
+      };
+    });
+    
+    return result;
+  } catch (error) {
+    console.error(`[CLOSURE CONFIRMATION ${closureId}] Error:`, error);
+    throw error;
+  }
 }
 
 /**
@@ -3736,5 +3810,135 @@ export async function getArchivedProjectsForClosure() {
   } catch (error) {
     console.error('[ACCOUNTING CLOSURE] Error getting archived projects:', error);
     throw error;
+  }
+}
+
+
+
+/**
+ * Get confirmed closures with their projects
+ * Útil para mostrar historial de cierres confirmados
+ */
+export async function getConfirmedClosures(filters?: {
+  periodStart?: string | Date;
+  periodEnd?: string | Date;
+  limit?: number;
+}) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  try {
+    let conditions: any[] = [eq(accountingClosures.status, 'confirmed')];
+    
+    if (filters?.periodStart) {
+      const startStr = typeof filters.periodStart === 'string'
+        ? filters.periodStart
+        : filters.periodStart.toISOString().split('T')[0];
+      conditions.push(gte(accountingClosures.periodEnd, startStr));
+    }
+    
+    if (filters?.periodEnd) {
+      const endStr = typeof filters.periodEnd === 'string'
+        ? filters.periodEnd
+        : filters.periodEnd.toISOString().split('T')[0];
+      conditions.push(lte(accountingClosures.periodStart, endStr));
+    }
+    
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+    
+    const closures = await db
+      .select()
+      .from(accountingClosures)
+      .where(whereClause)
+      .orderBy(desc(accountingClosures.confirmedAt))
+      .limit(filters?.limit || 50);
+    
+    // Para cada cierre, obtener los proyectos incluidos
+    const closuresWithProjects = [];
+    
+    for (const closure of closures) {
+      const closureProjects = await db
+        .select()
+        .from(accountingClosureProjects)
+        .where(eq(accountingClosureProjects.closureId, closure.id));
+      
+      closuresWithProjects.push({
+        ...closure,
+        projects: closureProjects,
+        projectCount: closureProjects.length,
+      });
+    }
+    
+    return closuresWithProjects;
+  } catch (error) {
+    console.error('[GET CONFIRMED CLOSURES] Error:', error);
+    return [];
+  }
+}
+
+/**
+ * Get projects that belong to a confirmed closure
+ * Útil para mostrar proyectos cerrados
+ */
+export async function getClosedProjects(filters?: {
+  closureId?: number;
+  clientId?: number;
+  limit?: number;
+}) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  try {
+    let conditions: any[] = [isNotNull(projects.accountingClosureId as any)];
+    
+    if (filters?.closureId) {
+      conditions.push(eq(projects.accountingClosureId, filters.closureId));
+    }
+    
+    if (filters?.clientId) {
+      conditions.push(eq(projects.clientId, filters.clientId));
+    }
+    
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+    
+    const closedProjects = await db
+      .select()
+      .from(projects)
+      .where(whereClause)
+      .orderBy(desc(projects.deliveredAt))
+      .limit(filters?.limit || 100);
+    
+    // Enriquecer con información del cliente y cierre
+    const enrichedProjects = [];
+    
+    for (const project of closedProjects) {
+      const clientData = await db
+        .select({ name: clients.name })
+        .from(clients)
+        .where(eq(clients.id, project.clientId))
+        .limit(1);
+      
+      const closureData = await db
+        .select()
+        .from(accountingClosures)
+        .where(eq(accountingClosures.id, project.accountingClosureId as any))
+        .limit(1);
+      
+      enrichedProjects.push({
+        projectId: project.id,
+        projectName: project.name,
+        clientName: clientData[0]?.name || 'Sin cliente',
+        totalAmount: project.totalAmount,
+        accountingClosureId: project.accountingClosureId,
+        closurePeriod: closureData[0]
+          ? `${closureData[0].periodStart} a ${closureData[0].periodEnd}`
+          : 'Desconocido',
+      });
+    }
+    
+    return enrichedProjects;
+  } catch (error) {
+    console.error('[GET CLOSED PROJECTS] Error:', error);
+    return [];
   }
 }

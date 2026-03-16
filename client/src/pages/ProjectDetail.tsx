@@ -940,7 +940,7 @@ export default function ProjectDetail() {
 
           {/* Tab Información */}
           <TabsContent value="info" className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <Card>
                 <CardHeader className="py-3 bg-blue-50">
                   <CardTitle className="text-sm flex items-center gap-2">

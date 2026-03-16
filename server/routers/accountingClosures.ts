@@ -407,4 +407,59 @@ export const accountingClosuresRouter = router({
       });
     }
   }),
+  /**
+   * Get confirmed closures with their projects
+   */
+  getConfirmed: adminProcedure
+    .input(
+      z.object({
+        periodStart: z.date().optional(),
+        periodEnd: z.date().optional(),
+        limit: z.number().default(50),
+      })
+    )
+    .query(async ({ input }) => {
+      try {
+        const closures = await getConfirmedClosures({
+          periodStart: input.periodStart,
+          periodEnd: input.periodEnd,
+          limit: input.limit,
+        });
+        return closures;
+      } catch (error) {
+        console.error("[AccountingClosures] Error getting confirmed closures:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Error al obtener cierres confirmados",
+        });
+      }
+    }),
+
+  /**
+   * Get closed projects (projects linked to confirmed closures)
+   */
+  getClosedProjects: adminProcedure
+    .input(
+      z.object({
+        closureId: z.number().optional(),
+        clientId: z.number().optional(),
+        limit: z.number().default(100),
+      })
+    )
+    .query(async ({ input }) => {
+      try {
+        const projects = await getClosedProjects({
+          closureId: input.closureId,
+          clientId: input.clientId,
+          limit: input.limit,
+        });
+        return projects;
+      } catch (error) {
+        console.error("[AccountingClosures] Error getting closed projects:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Error al obtener proyectos cerrados",
+        });
+      }
+    }),
 });

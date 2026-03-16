@@ -36,7 +36,9 @@ import { ExpenseImportModal } from "@/components/ExpenseImportModal";
 import { ReceiptUpload } from "@/components/ReceiptUpload";
 import { AccountingClosureTab } from "@/components/AccountingClosureTab";
 import { ClosureReportTab } from "@/components/ClosureReportTab";
-import { Upload } from "lucide-react";
+import { ConfirmedClosuresTab } from "@/components/ConfirmedClosuresTab";
+import { ClosedProjectsTab } from "@/components/ClosedProjectsTab";
+import { Upload, CheckCircle2, Archive } from "lucide-react";
 
 // Categorías operativas
 const OPERATIVE_CATEGORIES = [
@@ -84,7 +86,7 @@ export default function Accounting() {
   const [importModalOpen, setImportModalOpen] = useState(false);
   const [receiptUrl, setReceiptUrl] = useState<string>("");
   const [receiptFileName, setReceiptFileName] = useState<string>("");
-  const [activeTab, setActiveTab] = useState<"expenses" | "closure" | "reports">("expenses");
+  const [activeTab, setActiveTab] = useState<"expenses" | "closure" | "confirmed" | "closed" | "reports">("expenses");
   const [currentPage, setCurrentPage] = useState(1);
   const [filterProjectId, setFilterProjectId] = useState<string>("");
 
@@ -363,6 +365,22 @@ export default function Accounting() {
           >
             <Calculator className="h-4 w-4 mr-2" />
             Cierre Contable
+          </Button>
+          <Button
+            variant={activeTab === "confirmed" ? "default" : "ghost"}
+            onClick={() => setActiveTab("confirmed")}
+            className="rounded-b-none"
+          >
+            <CheckCircle2 className="h-4 w-4 mr-2" />
+            Cierres Confirmados
+          </Button>
+          <Button
+            variant={activeTab === "closed" ? "default" : "ghost"}
+            onClick={() => setActiveTab("closed")}
+            className="rounded-b-none"
+          >
+            <Archive className="h-4 w-4 mr-2" />
+            Proyectos Cerrados
           </Button>
           <Button
             variant={activeTab === "reports" ? "default" : "ghost"}
@@ -763,6 +781,16 @@ export default function Accounting() {
         {/* CLOSURE TAB */}
         {activeTab === "closure" && (
           <AccountingClosureTab />
+        )}
+
+        {/* CONFIRMED CLOSURES TAB */}
+        {activeTab === "confirmed" && (
+          <ConfirmedClosuresTab />
+        )}
+
+        {/* CLOSED PROJECTS TAB */}
+        {activeTab === "closed" && (
+          <ClosedProjectsTab />
         )}
 
         {/* REPORTS TAB */}

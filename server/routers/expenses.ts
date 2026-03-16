@@ -380,6 +380,19 @@ export const expensesRouter = router({
         };
       }),
 
+    // Obtener gastos de materiales de un proyecto
+    getProjectMaterialExpenses: protectedProcedure
+      .input(z.object({ projectId: z.number() }))
+      .query(async ({ ctx, input }) => {
+        const expenses = await db.getExpensesByProject(input.projectId);
+        const materialExpenses = expenses.filter(e => e.expenseType === 'materiales_proyecto');
+        const total = materialExpenses.reduce((sum, e) => sum + parseFloat(e.amount?.toString() || '0'), 0);
+        return {
+          expenses: materialExpenses,
+          total,
+        };
+      }),
+
     // Subir soporte de gasto
     uploadSupport: protectedProcedure
       .input(z.object({

@@ -44,9 +44,11 @@ import {
   Unlock,
   CreditCard
 } from "lucide-react";
+import { useEffect } from "react";
 import { useFileViewer, FileViewer } from "@/components/FileViewer";
 import { MaterialsForm } from "@/components/MaterialsForm";
 import { HardwareSelector } from "@/components/HardwareSelector";
+import { ProjectResultCard } from "@/components/ProjectResultCard";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
@@ -130,6 +132,7 @@ export default function ProjectDetail() {
   
   // Toggle para ocultar información financiera (CEO, admin, comercial)
   const [showFinancialInfo, setShowFinancialInfo] = useState(false);
+  const [materialExpensesTotal, setMaterialExpensesTotal] = useState(0);
   
   // Candado para evitar clics accidentales en aprobación del cliente
   const [approvalUnlocked, setApprovalUnlocked] = useState(false);
@@ -146,6 +149,21 @@ export default function ProjectDetail() {
       refetchOnWindowFocus: true,
     }
   );
+
+  // Cargar gastos de materiales del proyecto
+  const { data: expensesData } = trpc.expenses.getProjectMaterialExpenses.useQuery(
+    { projectId },
+    {
+      enabled: !!projectId,
+    }
+  );
+
+  // Actualizar total de gastos cuando cambien
+  useEffect(() => {
+    if (expensesData?.total) {
+      setMaterialExpensesTotal(expensesData.total);
+    }
+  }, [expensesData?.total]);
 
   const uploadPhoto = trpc.projectPhotos.upload.useMutation({
     onSuccess: () => {
@@ -1076,6 +1094,14 @@ export default function ProjectDetail() {
                     </CardContent>
                   )}
                 </Card>
+              )}
+
+              {projectDetail && (
+                <ProjectResultCard
+                  totalAmount={Number((projectDetail as any).financialInfo?.totalAmount || 0)}
+                  materialExpenses={materialExpensesTotal}
+                  status={projectDetail.status}
+                />
               )}
 
               <Card>

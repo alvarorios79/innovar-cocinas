@@ -2549,7 +2549,15 @@ export async function getPendingClosureProjects() {
 }
 
 /**
- * Create a new accounting closure
+ * Create a new accounting closure - FASE 3
+ * 
+ * Calcula:
+ * - Ingresos: SUM(payments.amount) WHERE movementType = 'payment'
+ * - Gastos de proyecto: SUM(expenses.amount) WHERE expenseType = 'materiales_proyecto'
+ * - Gastos operativos: SUM(expenses.amount) WHERE expenseType = 'gasto_operativo' AND expenseDate BETWEEN periodStart AND periodEnd
+ * - Utilidad: ingresos - gastos_proyecto - gastos_operativos
+ * 
+ * NO modifica proyectos. Solo guarda cierre en estado DRAFT.
  */
 export async function createAccountingClosure(data: {
   periodStart: string | Date;
@@ -2562,16 +2570,19 @@ export async function createAccountingClosure(data: {
   
   // Start transaction
   const result = await db.transaction(async (tx) => {
-    // Create closure record
     // Convert dates to string format if needed
     const formatDate = (date: string | Date): string => {
       if (typeof date === 'string') return date;
       return date.toISOString().split('T')[0];
     };
     
+    const periodStartStr = formatDate(data.periodStart);
+    const periodEndStr = formatDate(data.periodEnd);
+    
+    // Create closure record in DRAFT status
     const closureResult = await tx.insert(accountingClosures).values({
-      periodStart: formatDate(data.periodStart),
-      periodEnd: formatDate(data.periodEnd),
+      periodStart: periodStartStr,
+      periodEnd: periodEndStr,
       status: 'draft',
       createdBy: data.createdBy,
       projectCount: data.projectIds.length,
@@ -2587,69 +2598,111 @@ export async function createAccountingClosure(data: {
       .from(projects)
       .where(inArray(projects.id, data.projectIds));
     
-    let totalSales = 0;
-    let totalExpenses = 0;
-    let totalProfit = 0;
+    let totalRevenue = 0;           // Ingresos (pagos)
+    let totalProjectExpenses = 0;   // Gastos de proyecto
+    let totalProfit = 0;            // Utilidad
     
-    // Get operational expenses (bodega) to include in closure
-    const operationalExpenses = await tx.select()
+    // PASO 1: Calcular gastos operativos del período
+    const operationalExpensesResult = await tx.select({
+      total: sql<number>`COALESCE(SUM(CAST(amount AS DECIMAL(12,2))), 0)`
+    })
+    .from(expenses)
+    .where(
+      and(
+        eq(expenses.expenseType, 'gasto_operativo'),
+        eq(expenses.dataOrigin, 'manual'),
+        isNull(expenses.deletedAt),
+        gte(expenses.expenseDate, periodStartStr),
+        lte(expenses.expenseDate, periodEndStr)
+      )
+    );
+    
+    const totalOperationalExpenses = parseFloat(
+      operationalExpensesResult[0]?.total?.toString() || '0'
+    );
+    
+    console.log(`[CLOSURE ${closureId}] Gastos operativos del período: $${totalOperationalExpenses}`);
+    
+    // PASO 2: Procesar cada proyecto
+    for (const project of projectsData) {
+      // PASO 2A: Calcular ingresos (pagos del proyecto)
+      const paymentsResult = await tx.select({
+        total: sql<number>`COALESCE(SUM(CAST(amount AS DECIMAL(12,2))), 0)`
+      })
+      .from(payments)
+      .where(
+        and(
+          eq(payments.projectId, project.id),
+          eq(payments.movementType, 'payment')
+        )
+      );
+      
+      const projectRevenue = parseFloat(
+        paymentsResult[0]?.total?.toString() || '0'
+      );
+      
+      // PASO 2B: Calcular gastos de proyecto (solo materiales_proyecto)
+      const projectExpensesResult = await tx.select({
+        total: sql<number>`COALESCE(SUM(CAST(amount AS DECIMAL(12,2))), 0)`
+      })
       .from(expenses)
       .where(
         and(
-          eq(expenses.expenseType, 'gasto_operativo'),
+          eq(expenses.projectId, project.id),
+          eq(expenses.expenseType, 'materiales_proyecto'),
           eq(expenses.dataOrigin, 'manual'),
           isNull(expenses.deletedAt)
         )
       );
-    
-    const totalOperationalExpenses = operationalExpenses.reduce((sum, exp) => {
-      return sum + (exp.amount ? parseFloat(exp.amount.toString()) : 0);
-    }, 0);
-    
-    // Add projects to closure
-    for (const project of projectsData) {
-      const projectValue = project.totalAmount ? parseFloat(project.totalAmount.toString()) : 0;
-      const totalPaid = project.advanceAmount ? parseFloat(project.advanceAmount.toString()) : 0;
       
-      // Get project expenses
-      const projectExpenses = await tx.select()
-        .from(expenses)
-        .where(
-          and(
-            eq(expenses.projectId, project.id),
-            eq(expenses.dataOrigin, 'manual')
-          )
-        );
+      const projectExpensesAmount = parseFloat(
+        projectExpensesResult[0]?.total?.toString() || '0'
+      );
       
-      const totalProjectExpenses = projectExpenses.reduce((sum, exp) => {
-        return sum + (exp.amount ? parseFloat(exp.amount.toString()) : 0);
-      }, 0);
+      // PASO 2C: Calcular utilidad del proyecto
+      const projectProfit = projectRevenue - projectExpensesAmount;
       
-      const profit = projectValue - totalProjectExpenses;
+      console.log(`[CLOSURE ${closureId}] Proyecto ${project.id}: Ingresos=$${projectRevenue}, Gastos=$${projectExpensesAmount}, Utilidad=$${projectProfit}`);
       
+      // Guardar proyecto en cierre
       await tx.insert(accountingClosureProjects).values({
         closureId,
         projectId: project.id,
         projectName: project.name,
-        projectValue: projectValue,
-        totalPaid: totalPaid,
-        totalExpenses: totalProjectExpenses,
-        profit: profit,
+        projectValue: parseFloat(project.totalAmount?.toString() || '0'),
+        totalPaid: projectRevenue,
+        totalExpenses: projectExpensesAmount,
+        profit: projectProfit,
       } as any);
       
-      // Update project with closure reference
-      await tx.update(projects)
-        .set({ accountingClosureId: closureId })
-        .where(eq(projects.id, project.id));
-      
-      totalSales += projectValue;
-      totalExpenses += totalProjectExpenses;
-      totalProfit += profit;
+      // Acumular totales
+      totalRevenue += projectRevenue;
+      totalProjectExpenses += projectExpensesAmount;
+      totalProfit += projectProfit;
     }
     
-    // Add operational expenses to closure (using raw SQL due to schema sync)
+    // PASO 3: Calcular utilidad final
+    // UTILIDAD = ingresos - gastos_proyecto - gastos_operativos
+    const netProfit = totalRevenue - totalProjectExpenses - totalOperationalExpenses;
+    const totalExpenses = totalProjectExpenses + totalOperationalExpenses;
+    
+    console.log(`[CLOSURE ${closureId}] Totales: Ingresos=$${totalRevenue}, Gastos Proyecto=$${totalProjectExpenses}, Gastos Operativos=$${totalOperationalExpenses}, Utilidad=$${netProfit}`);
+    
+    // PASO 4: Guardar gastos operativos en tabla de auditoría
     const pool = await getPool();
     if (pool) {
+      const operationalExpenses = await tx.select()
+        .from(expenses)
+        .where(
+          and(
+            eq(expenses.expenseType, 'gasto_operativo'),
+            eq(expenses.dataOrigin, 'manual'),
+            isNull(expenses.deletedAt),
+            gte(expenses.expenseDate, periodStartStr),
+            lte(expenses.expenseDate, periodEndStr)
+          )
+        );
+      
       for (const expense of operationalExpenses) {
         const conn = await pool.getConnection();
         try {
@@ -2672,17 +2725,16 @@ export async function createAccountingClosure(data: {
       }
     }
     
-    // Update closure totals (include operational expenses)
-    const finalTotalExpenses = totalExpenses + totalOperationalExpenses;
-    const finalTotalProfit = totalSales - finalTotalExpenses;
-    
+    // PASO 5: Actualizar cierre con totales calculados
     await tx.update(accountingClosures)
       .set({
-        totalSales: totalSales,
-        totalExpenses: finalTotalExpenses,
-        totalProfit: finalTotalProfit,
+        totalSales: totalRevenue,
+        totalExpenses: totalExpenses,
+        totalProfit: netProfit,
       } as any)
       .where(eq(accountingClosures.id, closureId));
+    
+    console.log(`[CLOSURE ${closureId}] Cierre creado exitosamente en estado DRAFT`);
     
     return closureId;
   });

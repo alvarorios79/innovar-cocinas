@@ -3526,3 +3526,163 @@ export async function getUserAuditActions(userId: number, limit = 50) {
     return [];
   }
 }
+
+
+// ============ ACCOUNTING CLOSURE - ELIGIBLE PROJECTS ============
+
+/**
+ * Obtiene proyectos elegibles para cierre contable
+ * 
+ * Criterios:
+ * - isArchived = 1 (proyecto archivado)
+ * - accountingClosureId IS NULL (no está en un cierre)
+ * - balance = 0 (pagos completados)
+ * 
+ * Balance = totalAmount - SUM(payments.amount WHERE movementType = 'payment')
+ */
+export async function getEligibleProjectsForAccountingClosure() {
+  try {
+    const db = await getDb();
+    if (!db) throw new Error('Database connection failed');
+    
+    // Primero obtener todos los proyectos archivados sin cierre
+    const allArchived = await db
+      .select({
+        projectId: projects.id,
+        projectName: projects.name,
+        clientId: projects.clientId,
+        totalAmount: projects.totalAmount,
+      })
+      .from(projects)
+      .where(
+        and(
+          eq(projects.isArchived, 1),
+          isNull(projects.accountingClosureId),
+          eq(projects.status, 'entregado')
+        )
+      );
+
+    // Para cada proyecto, calcular pagos y balance
+    const eligibleProjects = [];
+    
+    for (const proj of allArchived) {
+      // Obtener pagos del proyecto
+      const paymentsResult = await db
+        .select({
+          total: sql<number>`COALESCE(SUM(CAST(amount AS DECIMAL(12,2))), 0)`
+        })
+        .from(payments)
+        .where(
+          and(
+            eq(payments.projectId, proj.projectId),
+            eq(payments.movementType, 'payment')
+          )
+        );
+      
+      const totalPaid = parseFloat(paymentsResult[0]?.total?.toString() || '0');
+      const totalAmount = parseFloat(proj.totalAmount?.toString() || '0');
+      const balance = totalAmount - totalPaid;
+      
+      // Solo incluir si balance = 0 (pagos completados)
+      if (balance === 0) {
+        // Obtener nombre del cliente
+        const clientData = await db
+          .select({ name: clients.name })
+          .from(clients)
+          .where(eq(clients.id, proj.clientId))
+          .limit(1);
+        
+        eligibleProjects.push({
+          projectId: proj.projectId,
+          projectName: proj.projectName,
+          clientName: clientData[0]?.name || 'Sin cliente',
+          totalAmount: totalAmount,
+          totalPaid: totalPaid,
+          balance: balance,
+        });
+      }
+    }
+
+    return eligibleProjects;
+  } catch (error) {
+    console.error('[ACCOUNTING CLOSURE] Error getting eligible projects:', error);
+    throw error;
+  }
+}
+
+/**
+ * Obtiene proyectos archivados sin restricción de balance
+ * Útil para ver todos los proyectos disponibles para cierre
+ */
+export async function getArchivedProjectsForClosure() {
+  try {
+    const db = await getDb();
+    if (!db) throw new Error('Database connection failed');
+    
+    // Obtener todos los proyectos archivados sin cierre
+    const allArchived = await db
+      .select({
+        projectId: projects.id,
+        projectName: projects.name,
+        clientId: projects.clientId,
+        totalAmount: projects.totalAmount,
+        status: projects.status,
+        isArchived: projects.isArchived,
+        accountingClosureId: projects.accountingClosureId,
+      })
+      .from(projects)
+      .where(
+        and(
+          eq(projects.isArchived, 1),
+          isNull(projects.accountingClosureId)
+        )
+      )
+      .orderBy(desc(projects.deliveredAt));
+
+    // Para cada proyecto, calcular pagos y balance
+    const archivedProjects = [];
+    
+    for (const proj of allArchived) {
+      // Obtener pagos del proyecto
+      const paymentsResult = await db
+        .select({
+          total: sql<number>`COALESCE(SUM(CAST(amount AS DECIMAL(12,2))), 0)`
+        })
+        .from(payments)
+        .where(
+          and(
+            eq(payments.projectId, proj.projectId),
+            eq(payments.movementType, 'payment')
+          )
+        );
+      
+      const totalPaid = parseFloat(paymentsResult[0]?.total?.toString() || '0');
+      const totalAmount = parseFloat(proj.totalAmount?.toString() || '0');
+      const balance = totalAmount - totalPaid;
+      
+      // Obtener nombre del cliente
+      const clientData = await db
+        .select({ name: clients.name })
+        .from(clients)
+        .where(eq(clients.id, proj.clientId))
+        .limit(1);
+      
+      archivedProjects.push({
+        projectId: proj.projectId,
+        projectName: proj.projectName,
+        clientName: clientData[0]?.name || 'Sin cliente',
+        totalAmount: totalAmount,
+        totalPaid: totalPaid,
+        balance: balance,
+        status: proj.status,
+        isArchived: proj.isArchived,
+        accountingClosureId: proj.accountingClosureId,
+      });
+    }
+
+    return archivedProjects;
+  } catch (error) {
+    console.error('[ACCOUNTING CLOSURE] Error getting archived projects:', error);
+    throw error;
+  }
+}

@@ -5465,3 +5465,30 @@ Listo para pasar a Fase 7.2 (Intelligent Alerts) cuando sea requerido.
 - [x] Soporte para filtros (closureId, action, startDate, endDate)
 - [x] Resumen de auditoría por cierre
 - [x] Historial de acciones por usuario
+
+
+## Dashboard de Rentabilidad - Diagnóstico y Corrección
+
+- [ ] FASE 1: Diagnóstico completo del Dashboard
+  - [ ] Revisar estructura del componente Rentabilidad
+  - [ ] Analizar queries de datos financieros
+  - [ ] Verificar gráfico "Ingresos vs Gastos - Últimos 6 Meses"
+  - [ ] Revisar KPIs (Ingresos, Gastos, Margen, Rentabilidad, Proyectos)
+  - [ ] Revisar KPIs secundarios (Ingreso Promedio, Cartera Pendiente)
+
+- [ ] FASE 2: Identificar problemas específicos
+  - [ ] Gráfico vacío sin datos de 6 meses
+  - [ ] Inconsistencia de fechas (solo Oct 2025)
+  - [ ] Datos del gráfico vs KPIs no coinciden
+  - [ ] Falta de visualización de líneas/barras en gráfico
+
+- [ ] FASE 3: Corregir problemas
+  - [ ] Corregir query de datos históricos
+  - [ ] Actualizar rango de fechas (últimos 6 meses)
+  - [ ] Sincronizar datos del gráfico con KPIs
+  - [ ] Verificar rendering del gráfico
+
+- [ ] FASE 4: Verificación y checkpoint
+  - [ ] Probar Dashboard en navegador
+  - [ ] Verificar que gráfico muestre datos correctos
+  - [ ] Guardar checkpoint

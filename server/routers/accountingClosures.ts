@@ -21,6 +21,8 @@ import {
   getClosureAuditLog,
   getClosureAuditSummary,
   getUserAuditActions,
+  getEligibleProjectsForAccountingClosure,
+  getArchivedProjectsForClosure,
 } from "../db";
 
 export const accountingClosuresRouter = router({
@@ -369,4 +371,38 @@ export const accountingClosuresRouter = router({
         });
       }
     }),
+
+  /**
+   * Get projects eligible for accounting closure
+   * Criteria: archived, no closure assigned, balance = 0 (fully paid)
+   */
+  getEligibleProjects: adminProcedure.query(async () => {
+    try {
+      const projects = await getEligibleProjectsForAccountingClosure();
+      return projects;
+    } catch (error) {
+      console.error("[AccountingClosures] Error getting eligible projects:", error);
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Error al obtener proyectos elegibles para cierre",
+      });
+    }
+  }),
+
+  /**
+   * Get all archived projects without closure
+   * Includes projects with pending payments
+   */
+  getArchivedProjects: adminProcedure.query(async () => {
+    try {
+      const projects = await getArchivedProjectsForClosure();
+      return projects;
+    } catch (error) {
+      console.error("[AccountingClosures] Error getting archived projects:", error);
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Error al obtener proyectos archivados",
+      });
+    }
+  }),
 });

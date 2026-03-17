@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Upload, X, FileText, Image } from "lucide-react";
 import { toast } from "sonner";
+import { trpc } from "@/lib/trpc";
 
 interface ReceiptUploadProps {
   onUploadComplete: (url: string, fileName: string) => void;
@@ -21,6 +22,8 @@ export function ReceiptUpload({
     currentReceiptUrl || null
   );
   const [fileName, setFileName] = useState(currentFileName || "");
+  
+  const uploadImage = trpc.upload.image.useMutation();
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -41,28 +44,32 @@ export function ReceiptUpload({
 
     setIsUploading(true);
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("type", "receipt");
-
-      const response = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error("Error al subir el archivo");
-      }
-
-      const data = await response.json();
-      setPreviewUrl(data.url);
-      setFileName(file.name);
-      onUploadComplete(data.url, file.name);
-      toast.success("Comprobante subido correctamente");
+      // Leer archivo como base64
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        try {
+          const fileData = event.target?.result as string;
+          const result = await uploadImage.mutateAsync({
+            fileName: file.name,
+            fileData: fileData,
+            contentType: file.type,
+          });
+          
+          setPreviewUrl(result.url);
+          setFileName(file.name);
+          onUploadComplete(result.url, file.name);
+          toast.success("Comprobante subido correctamente");
+        } catch (error) {
+          console.error("Error uploading receipt:", error);
+          toast.error("Error al subir el comprobante");
+        } finally {
+          setIsUploading(false);
+        }
+      };
+      reader.readAsDataURL(file);
     } catch (error) {
-      console.error("Error uploading receipt:", error);
-      toast.error("Error al subir el comprobante");
-    } finally {
+      console.error("Error reading file:", error);
+      toast.error("Error al leer el archivo");
       setIsUploading(false);
     }
   };

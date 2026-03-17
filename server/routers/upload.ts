@@ -73,11 +73,12 @@ export const uploadRouter = router({
           });
         }
 
-        // Comprimir imagen si es una imagen
+        // No comprimir - subir archivo tal como está
         let finalContentType = input.contentType;
-        if (input.contentType.startsWith('image/')) {
+        // Para imágenes, intentar comprimir si es posible, pero no es crítico
+        if (input.contentType.startsWith('image/') && input.contentType !== 'application/pdf') {
           try {
-            const { compressImage, generateThumbnail } = await import('../image-utils');
+            const { compressImage } = await import('../image-utils');
             const compressed = await compressImage(buffer, {
               maxWidth: 1920,
               maxHeight: 1080,
@@ -86,16 +87,12 @@ export const uploadRouter = router({
             });
             buffer = Buffer.from(compressed.buffer);
             finalContentType = compressed.mimeType;
-            
-            // Generar thumbnail para vistas previas
-            const thumbnail = await generateThumbnail(buffer, 300);
-            const thumbKey = fileKey.replace(/\.[^.]+$/, '-thumb.jpg');
-            await storagePut(thumbKey, thumbnail.buffer, thumbnail.mimeType);
           } catch (compressionError) {
             // Si falla la compresión, continuar con la imagen original
             console.warn('Error comprimiendo imagen, usando original:', compressionError);
           }
         }
+        // Para PDFs, subir sin modificar
 
         try {
           const { url } = await storagePut(fileKey, buffer, finalContentType);

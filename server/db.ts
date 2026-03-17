@@ -2087,15 +2087,49 @@ export async function getAllQuotationsPaginated(params: {
 export async function getAllExpenses() {
   const db = await getDb();
   if (!db) return [];
-  return await db.select().from(expenses).where(and(isNull(expenses.deletedAt), eq(expenses.dataOrigin, 'manual'))).orderBy(desc(expenses.createdAt));
+  const allRows = await db.select().from(expenses).where(and(isNull(expenses.deletedAt), eq(expenses.dataOrigin, 'manual'))).orderBy(desc(expenses.createdAt));
+  
+  // Enriquecer con nombres de proyectos
+  const projectIds = allRows
+    .filter(e => e.projectId)
+    .map(e => e.projectId)
+    .filter((id): id is number => id !== null && id !== undefined);
+  
+  let projectMap = new Map<number, string>();
+  if (projectIds.length > 0) {
+    const projectsData = await db.select({ id: projects.id, name: projects.name }).from(projects).where(inArray(projects.id, projectIds));
+    projectsData.forEach(p => projectMap.set(p.id, p.name));
+  }
+  
+  return allRows.map(e => ({
+    ...e,
+    projectClientName: e.projectId ? (projectMap.get(e.projectId) || 'Operativo') : 'Operativo'
+  }));
 }
 
 export async function getExpensesByType(type: string) {
   const db = await getDb();
   if (!db) return [];
-  return await db.select().from(expenses)
+  const allRows = await db.select().from(expenses)
     .where(and(isNull(expenses.deletedAt), eq(expenses.expenseType, type as any), eq(expenses.dataOrigin, 'manual')))
     .orderBy(desc(expenses.createdAt));
+  
+  // Enriquecer con nombres de proyectos
+  const projectIds = allRows
+    .filter(e => e.projectId)
+    .map(e => e.projectId)
+    .filter((id): id is number => id !== null && id !== undefined);
+  
+  let projectMap = new Map<number, string>();
+  if (projectIds.length > 0) {
+    const projectsData = await db.select({ id: projects.id, name: projects.name }).from(projects).where(inArray(projects.id, projectIds));
+    projectsData.forEach(p => projectMap.set(p.id, p.name));
+  }
+  
+  return allRows.map(e => ({
+    ...e,
+    projectClientName: e.projectId ? (projectMap.get(e.projectId) || 'Operativo') : 'Operativo'
+  }));
 }
 
 export async function getExpensesByDateRange(startDate: Date, endDate: Date) {

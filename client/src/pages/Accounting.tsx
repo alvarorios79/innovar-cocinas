@@ -650,14 +650,7 @@ export default function Accounting() {
                       </td>
                       <td className="py-3 px-4">{expense.description}</td>
                       <td className="py-3 px-4">
-                        {(() => {
-                          const projectClientName = expense.projectClientName;
-                          if (!projectClientName) return 'Operativo';
-                          if (projectClientName === 'Operativo' || projectClientName.toLowerCase() === 'operativo') return 'Operativo';
-                          // Si está en formato "Proyecto #XXXX", extraer solo el número
-                          const match = projectClientName.match(/#(\d+)/);
-                          return match ? match[1] : projectClientName;
-                        })()}
+                        {expense.projectClientName || 'Operativo'}
                       </td>
                       <td className="py-3 px-4">
                         <Badge variant={expense.expenseType === "materiales_proyecto" ? "default" : "secondary"}>

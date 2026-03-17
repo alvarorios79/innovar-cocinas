@@ -97,19 +97,25 @@ export default function Accounting() {
   // Check if user has permission to import
   const canImport = user?.role === "admin" || user?.role === "super_admin";
 
+  // Función para resetear el formulario (mantiene tipo de gasto)
+  const resetForm = () => {
+    // NO resetear expenseType - el usuario lo selecciona una sola vez
+    setProjectId("");
+    setOperativeCategory("");
+    setDescription("");
+    setAmount("");
+    setExpenseDate(new Date().toISOString().split("T")[0]);
+    setEditingId(null);
+    setReceiptUrl("");
+    setReceiptFileName("");
+  };
+
   // Mutations
   const createExpense = trpc.expenses.create.useMutation({
     onSuccess: () => {
       toast.success("✅ Gasto registrado correctamente");
       utils.expenses.getAll.invalidate();
-      // Autolimpieza inteligente
-      setDescription("");
-      setAmount("");
-      setExpenseDate(new Date().toISOString().split("T")[0]);
-      setEditingId(null);
-      setReceiptUrl("");
-      setReceiptFileName("");
-      // Mantener tipo, proyecto/categoría y fecha
+      resetForm();
     },
     onError: (error) => {
       toast.error(`Error: ${error.message}`);
@@ -120,12 +126,7 @@ export default function Accounting() {
     onSuccess: () => {
       toast.success("✅ Gasto actualizado correctamente");
       utils.expenses.getAll.invalidate();
-      setDescription("");
-      setAmount("");
-      setExpenseDate(new Date().toISOString().split("T")[0]);
-      setEditingId(null);
-      setReceiptUrl("");
-      setReceiptFileName("");
+      resetForm();
     },
     onError: (error) => {
       toast.error(`Error: ${error.message}`);
@@ -285,14 +286,7 @@ export default function Accounting() {
   };
 
   const handleCancelEdit = () => {
-    setEditingId(null);
-    setDescription("");
-    setAmount("");
-    setExpenseDate(new Date().toISOString().split("T")[0]);
-    setProjectId("");
-    setOperativeCategory("");
-    setReceiptUrl("");
-    setReceiptFileName("");
+    resetForm();
   };
 
   const handleDeleteExpense = async (id: number) => {

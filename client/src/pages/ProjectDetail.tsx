@@ -1096,7 +1096,7 @@ export default function ProjectDetail() {
                 </Card>
               )}
 
-              {projectDetail && (
+              {projectDetail && user?.role !== "disenador" && user?.role !== "jefe_taller" && user?.role !== "operario" && (
                 <ProjectResultCard
                   totalAmount={Number((projectDetail as any).financialInfo?.totalAmount || 0)}
                   materialExpenses={materialExpensesTotal}

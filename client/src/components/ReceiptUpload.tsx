@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,6 +24,12 @@ export function ReceiptUpload({
   const [fileName, setFileName] = useState(currentFileName || "");
   
   const uploadImage = trpc.upload.image.useMutation();
+
+  // Sincronizar previewUrl cuando currentReceiptUrl cambia (ej: al limpiar el formulario)
+  useEffect(() => {
+    setPreviewUrl(currentReceiptUrl || null);
+    setFileName(currentFileName || "");
+  }, [currentReceiptUrl, currentFileName]);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

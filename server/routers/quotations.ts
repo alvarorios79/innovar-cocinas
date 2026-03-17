@@ -2034,9 +2034,9 @@ export const quotationsRouter = router({
           const templateWithDocResponse = await whatsappCloud.sendTemplateWithDocument(
             client.whatsappPhone,
             "cotizacion_pdf",
-            "es_CO",
+            "es",
             pdfUrl,
-            `Cotizacion-${quotation.quotationNumber}.pdf`,
+            `Cotizacion_${quotation.quotationNumber.replace(/-/g, '_')}.pdf`,
             client.name,
             quotation.quotationNumber,
             formattedAmount

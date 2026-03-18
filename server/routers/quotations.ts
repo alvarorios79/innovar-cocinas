@@ -110,6 +110,48 @@ export const quotationsRouter = router({
           return qId;
         });
 
+        // Generar PDF automaticamente
+        try {
+          const quotation = await db.getQuotationById(quotationId);
+          const client = await db.getClientById(input.clientId);
+          
+          if (quotation && client) {
+            const { generateQuotationPDF } = await import("../quotation-pdf-generator");
+            const { storagePut } = await import("../storage");
+            const { readFileSync } = await import("fs");
+            
+            // Preparar datos para el PDF
+            const pdfData = {
+              quotationNumber: quotation.quotationNumber,
+              date: quotation.createdAt ? new Date(quotation.createdAt).toLocaleDateString("es-CO") : new Date().toLocaleDateString("es-CO"),
+              clientName: client.name,
+              clientPhone: client.whatsappPhone,
+              clientAddress: client.address || "",
+              vendorName: input.vendorName,
+              productType: quotation.productType,
+              validUntil: quotation.validUntil ? new Date(quotation.validUntil).toLocaleDateString("es-CO") : new Date().toLocaleDateString("es-CO"),
+              items: [],
+              subtotal: quotation.subtotal,
+              transportCost: quotation.transportCost,
+              discountPercent: quotation.discountPercent || undefined,
+              discountAmount: quotation.discountAmount || undefined,
+              total: quotation.total,
+            };
+            
+            const { pdfPath } = await generateQuotationPDF(pdfData, quotationId, 1);
+            const pdfBuffer = readFileSync(pdfPath);
+            
+            // Subir a S3
+            const { url } = await storagePut(`quotations/${client.id}/${quotationId}/COT-${quotationId}.pdf`, pdfBuffer, "application/pdf");
+            
+            // Actualizar la cotizacion con la URL del PDF
+            await db.updateQuotation(quotationId, { pdfUrl: url });
+          }
+        } catch (error) {
+          console.error("Error generando PDF automatico:", error);
+          // No fallar la creacion de cotizacion si el PDF falla
+        }
+
         return { success: true, quotationId };
       }),
 

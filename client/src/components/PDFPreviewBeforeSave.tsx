@@ -107,7 +107,10 @@ export function PDFPreviewBeforeSave({
   }, [containerWidth]);
 
   // Limpiar URL para react-pdf (quitar parámetros de query)
-  const cleanPdfUrl = pdfUrl.replace("?preview=true", "").replace("&preview=true", "");
+  const cleanPdfUrl = pdfUrl ? pdfUrl.replace("?preview=true", "").replace("&preview=true", "") : "";
+  
+  // Validar si pdfUrl está disponible
+  const isPdfUrlAvailable = !!pdfUrl && pdfUrl.trim().length > 0;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -131,7 +134,16 @@ export function PDFPreviewBeforeSave({
           <X className="h-5 w-5" />
         </button>
 
-        {isIOS ? (
+        {!isPdfUrlAvailable ? (
+          // Si no hay URL, mostrar mensaje de error
+          <div className="flex-1 flex flex-col items-center justify-center gap-4 p-6">
+            <AlertCircle className="h-12 w-12 text-red-500" />
+            <div className="text-center">
+              <p className="font-semibold text-gray-900">PDF no disponible</p>
+              <p className="text-sm text-gray-600 mt-2">El PDF aún no se ha generado. Por favor, intenta más tarde.</p>
+            </div>
+          </div>
+        ) : isIOS ? (
           // En iOS, mostrar mensaje y botón para abrir PDF
           <div className="flex-1 flex flex-col items-center justify-center gap-4 p-6">
             <AlertCircle className="h-12 w-12 text-amber-500" />
@@ -259,14 +271,18 @@ export function PDFPreviewBeforeSave({
         )}
 
         <DialogFooter className="flex-row justify-between gap-2 pt-2">
-          <Button
-            variant="outline"
-            onClick={handleDownload}
-            disabled={isGenerating || !pdfUrl}
-          >
-            <Download className="h-4 w-4 mr-2" />
-            Descargar PDF
-          </Button>
+          <div className="flex gap-2">
+            {isPdfUrlAvailable && (
+              <Button
+                variant="outline"
+                onClick={handleDownload}
+                disabled={isGenerating}
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Descargar PDF
+              </Button>
+            )}
+          </div>
           <Button
             onClick={() => onOpenChange(false)}
           >

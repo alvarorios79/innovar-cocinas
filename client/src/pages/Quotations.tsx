@@ -227,6 +227,7 @@ export default function Quotations() {
 
   const createQuotation = trpc.quotations.create.useMutation({
     onSuccess: () => {
+      console.log("[QUOTATION] onSuccess: Cotización creada exitosamente");
       utils.quotations.list.invalidate();
       utils.quotations.listPaginatedGrouped.invalidate();
       toast.success("Cotización creada exitosamente");
@@ -234,6 +235,7 @@ export default function Quotations() {
       resetForm();
     },
     onError: (error) => {
+      console.error("[QUOTATION] onError:", error);
       toast.error(error.message || "Error al crear cotización");
     },
   });
@@ -1038,14 +1040,26 @@ export default function Quotations() {
   };
 
   const handleSubmit = (e: React.FormEvent) => {
+    console.log("[QUOTATION] handleSubmit ejecutado");
     e.preventDefault();
+    console.log("[QUOTATION] preventDefault ejecutado");
+    console.log("[QUOTATION] selectedClient:", selectedClient);
+    console.log("[QUOTATION] items:", items);
 
     if (!selectedClient) {
       toast.error("Selecciona un cliente");
       return;
     }
 
-    if (items.some((item) => !item.itemType)) {
+    // Filtrar items vacíos (sin itemType) antes de validar
+    const validItems = items.filter(item => item.itemType);
+    
+    if (validItems.length === 0) {
+      toast.error("Debes agregar al menos un producto a la cotización");
+      return;
+    }
+
+    if (items.some((item) => item.itemType && !item.itemType)) {
       toast.error("Selecciona el tipo de producto para todos los items");
       return;
     }
@@ -1160,7 +1174,8 @@ export default function Quotations() {
     }
 
     // Recalcular totales de items de cocina antes de enviar
-    const itemsWithUpdatedPrices = items.map((item, index) => {
+    // Usar solo items válidos (con itemType)
+    const itemsWithUpdatedPrices = validItems.map((item, index) => {
       if (item.itemType === "cocina" && item.kitchenConfig) {
         // Asegurar que campos requeridos tengan valores para items de cocina
         const description = item.description || "Cocina integral";
@@ -1396,6 +1411,8 @@ export default function Quotations() {
       });
     } else {
       // Crear nueva cotización
+      console.log("[QUOTATION] Llamando a createQuotation.mutate");
+      console.log("[QUOTATION] itemsWithUpdatedPrices:", itemsWithUpdatedPrices);
       createQuotation.mutate({
         clientId: selectedClient,
         vendorName,
@@ -3488,7 +3505,8 @@ export default function Quotations() {
                   Cancelar
                 </Button>
                 <Button 
-                  type="submit" 
+                  type="button"
+                  onClick={handleSubmit}
                   disabled={createQuotation.isPending || updateQuotation.isPending}
                   className="px-4 sm:px-6 text-sm sm:text-base bg-[oklch(0.72_0.14_180)] hover:bg-[oklch(0.60_0.14_180)] text-white shadow-md flex-1 sm:flex-none"
                 >

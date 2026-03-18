@@ -112,13 +112,30 @@ export const quotationsRouter = router({
 
         // Generar PDF automaticamente
         try {
+          console.log("[PDF] Iniciando generación de PDF para cotización:", quotationId);
           const quotation = await db.getQuotationById(quotationId);
           const client = await db.getClientById(input.clientId);
+          
+          console.log("[PDF] Cotización encontrada:", quotation?.quotationNumber);
+          console.log("[PDF] Cotización completa:", JSON.stringify(quotation, null, 2));
+          console.log("[PDF] Cliente encontrado:", client?.name);
+          console.log("[PDF] Cliente completo:", JSON.stringify(client, null, 2));
+          
+          if (!quotation) {
+            console.error("[PDF] ERROR: Cotización no encontrada con ID:", quotationId);
+          }
+          if (!client) {
+            console.error("[PDF] ERROR: Cliente no encontrado con ID:", input.clientId);
+          }
           
           if (quotation && client) {
             const { generateQuotationPDF } = await import("../quotation-pdf-generator");
             const { storagePut } = await import("../storage");
             const { readFileSync } = await import("fs");
+            
+            // Obtener los items de la cotización
+            const quotationItems = await db.getQuotationItems(quotationId);
+            console.log("[PDF] Items obtenidos:", quotationItems.length);
             
             // Preparar datos para el PDF
             const pdfData = {
@@ -130,7 +147,13 @@ export const quotationsRouter = router({
               vendorName: input.vendorName,
               productType: quotation.productType,
               validUntil: quotation.validUntil ? new Date(quotation.validUntil).toLocaleDateString("es-CO") : new Date().toLocaleDateString("es-CO"),
-              items: [],
+              items: quotationItems.map(item => ({
+                itemNumber: item.itemNumber,
+                description: item.description || "Item",
+                quantity: item.quantity || "1",
+                unitPrice: item.unitPrice || undefined,
+                totalPrice: item.totalPrice || "0",
+              })),
               subtotal: quotation.subtotal,
               transportCost: quotation.transportCost,
               discountPercent: quotation.discountPercent || undefined,
@@ -138,18 +161,26 @@ export const quotationsRouter = router({
               total: quotation.total,
             };
             
+            console.log("[PDF] Generando PDF...");
             const { pdfPath } = await generateQuotationPDF(pdfData, quotationId, 1);
+            console.log("[PDF] PDF generado en:", pdfPath);
+            
             const pdfBuffer = readFileSync(pdfPath);
+            console.log("[PDF] Buffer leído, tamaño:", pdfBuffer.length);
             
             // Subir a S3
-            const { url } = await storagePut(`quotations/${client.id}/${quotationId}/COT-${quotationId}.pdf`, pdfBuffer, "application/pdf");
+            const s3Key = `quotations/${client.id}/${quotationId}/COT-${quotationId}.pdf`;
+            console.log("[PDF] Subiendo a S3 con clave:", s3Key);
+            const { url } = await storagePut(s3Key, pdfBuffer, "application/pdf");
+            console.log("[PDF] URL retornada por S3:", url);
             
             // Actualizar la cotizacion con la URL del PDF
+            console.log("[PDF] Actualizando cotización con URL:", url);
             await db.updateQuotation(quotationId, { pdfUrl: url });
+            console.log("[PDF] Cotización actualizada correctamente");
           }
-        } catch (error) {
-          console.error("Error generando PDF automatico:", error);
-          // No fallar la creacion de cotizacion si el PDF falla
+        } catch (error: any) {
+          console.error("[PDF] Error generando PDF:", error?.message);
         }
 
         return { success: true, quotationId };

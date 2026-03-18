@@ -1,0 +1,16 @@
+{
+  "query": "SELECT id, email, openId, passwordHash FROM users WHERE email = 'alvarorios79@hotmail.com';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT id, email, openId, passwordHash FROM users WHERE email = 'alvarorios79@hotmail.com';",
+  "rows": [
+    {
+      "id": "840718",
+      "email": "alvarorios79@hotmail.com",
+      "openId": "manual-1768784385418-4ah52f",
+      "passwordHash": "$2b$12$5urDjc/7I.iM9/SNKo18memdPQ88GexkmpdNNzyDyWSlU4vjNX7yG"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\temail\topenId\tpasswordHash\n840718\talvarorios79@hotmail.com\tmanual-1768784385418-4ah52f\t$2b$12$5urDjc/7I.iM9/SNKo18memdPQ88GexkmpdNNzyDyWSlU4vjNX7yG\n",
+  "stderr": "",
+  "execution_time_ms": 56
+}

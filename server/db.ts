@@ -418,6 +418,7 @@ export async function getQuotationsByClient(clientId: number) {
   const db = await getDb();
   if (!db) return [];
 
+  // Mostrar todas las cotizaciones (draft, sent, approved, rejected) del cliente
   return await db.select().from(quotations).where(and(eq(quotations.clientId, clientId), eq(quotations.dataOrigin, 'manual'))).orderBy(desc(quotations.createdAt));
 }
 

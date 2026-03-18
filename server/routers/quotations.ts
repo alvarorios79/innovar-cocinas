@@ -2033,7 +2033,7 @@ export const quotationsRouter = router({
           // Enviar plantilla con documento en el header (un solo mensaje)
           const templateWithDocResponse = await whatsappCloud.sendTemplateWithDocument(
             client.whatsappPhone,
-            "cotizacion_pdf",
+            "cotizacion_pdf_v3",
             "es",
             pdfUrl,
             `Cotizacion_${quotation.quotationNumber.replace(/-/g, '_')}.pdf`,
@@ -2070,6 +2070,11 @@ export const quotationsRouter = router({
           console.log("[WHATSAPP] Template with document sent: ✓");
           console.log("========== END FLOW ==========");
           console.log("\n");
+          
+          // Actualizar estado de la cotización a "sent"
+          await db.updateQuotation(input.id, {
+            status: "sent",
+          });
           
           return {
             success: true,

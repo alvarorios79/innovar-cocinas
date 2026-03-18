@@ -1134,7 +1134,8 @@ export default function Portal() {
                 ) : (
                   <div className="space-y-4">
                     {quotations.map((quot: any) => {
-                      // Verificar si es una cotización enviada (en inglés o español)
+                      // Verificar estado de la cotización
+                      const isDraft = quot.status === "draft" || quot.status === "borrador";
                       const isSent = quot.status === "sent" || quot.status === "enviada";
                       const isApproved = quot.status === "approved" || quot.status === "aprobada";
                       const isRejected = quot.status === "rejected" || quot.status === "rechazada";
@@ -1171,6 +1172,23 @@ export default function Portal() {
                             </p>
                           </div>
                         </div>
+                        
+                        {/* Botón de descargar PDF para cotizaciones en draft */}
+                        {isDraft && (
+                          <div className="flex flex-col sm:flex-row gap-2 pt-3 border-t">
+                            <Button
+                              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                              onClick={() => {
+                                // Generar y descargar PDF
+                                toast.info("Generando PDF...");
+                                // TODO: Implementar descarga de PDF
+                              }}
+                            >
+                              <FileText className="h-4 w-4 mr-2" />
+                              Descargar PDF
+                            </Button>
+                          </div>
+                        )}
                         
                         {/* Botones de aprobar/rechazar para cotizaciones enviadas */}
                         {isSent && (

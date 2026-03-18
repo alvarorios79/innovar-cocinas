@@ -222,6 +222,9 @@ export default function Portal() {
   
   // Estado para mostrar timeline expandido
   const [expandedProjectId, setExpandedProjectId] = useState<number | null>(null);
+  
+  // Estado para descargar PDF de cotización
+  const [isDownloadingPDF, setIsDownloadingPDF] = useState(false);
 
   // Leer el parámetro project de la URL
   const projectIdFromUrl = useMemo(() => {
@@ -1177,11 +1180,24 @@ export default function Portal() {
                         {isDraft && (
                           <div className="flex flex-col sm:flex-row gap-2 pt-3 border-t">
                             <Button
+                              className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                              onClick={() => {
+                                window.open(`/api/quotations/pdf/${quot.id}`, '_blank');
+                              }}
+                            >
+                              <FileText className="h-4 w-4 mr-2" />
+                              Ver PDF
+                            </Button>
+                            <Button
                               className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
                               onClick={() => {
-                                // Generar y descargar PDF
-                                toast.info("Generando PDF...");
-                                // TODO: Implementar descarga de PDF
+                                const link = document.createElement('a');
+                                link.href = `/api/quotations/pdf/${quot.id}?download=true`;
+                                link.download = `${quot.quotationNumber}.pdf`;
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                                toast.success("Descargando PDF...");
                               }}
                             >
                               <FileText className="h-4 w-4 mr-2" />

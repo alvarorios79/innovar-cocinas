@@ -4,7 +4,7 @@ import { initGlobalErrorHandlers } from "../global-error-handler";
 // Inicializar handlers globales de errores ANTES de cualquier otra cosa
 initGlobalErrorHandlers();
 
-import express from "express";
+import express, { Request, Response } from "express";
 import { createServer } from "http";
 import net from "net";
 import { unlinkSync, existsSync } from "fs";
@@ -23,6 +23,7 @@ import { startWhatsAppTokenMonitor } from "../whatsapp-token-monitor";
 import { backupScheduler } from "../services/backupScheduler";
 import { apiRateLimiter, authRateLimiter, uploadRateLimiter } from "../rate-limiter";
 import cors from "cors";
+import quotationPdfRouter from "../routes/quotation-pdf";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -146,8 +147,11 @@ async function startServer() {
     }
   });
 
+  // Quotation PDF endpoint (ver y descargar)
+  app.use("/api", quotationPdfRouter);
+
   // PDF download endpoint
-  app.get("/api/pdf/:filename", async (req, res) => {
+  app.get("/api/pdf/:filename", async (req: Request, res: Response) => {
     try {
       const { readFileSync, existsSync } = await import('fs');
       const { join } = await import('path');

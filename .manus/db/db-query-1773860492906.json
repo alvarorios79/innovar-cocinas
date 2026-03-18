@@ -1,0 +1,17 @@
+{
+  "query": "SELECT id, quotationNumber, clientId, status, dataOrigin FROM quotations WHERE quotationNumber = 'COT-2026-1773723740633-4077546' LIMIT 1;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT id, quotationNumber, clientId, status, dataOrigin FROM quotations WHERE quotationNumber = 'COT-2026-1773723740633-4077546' LIMIT 1;",
+  "rows": [
+    {
+      "id": "3180001",
+      "quotationNumber": "COT-2026-1773723740633-4077546",
+      "clientId": "300053",
+      "status": "draft",
+      "dataOrigin": "manual"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tquotationNumber\tclientId\tstatus\tdataOrigin\n3180001\tCOT-2026-1773723740633-4077546\t300053\tdraft\tmanual\n",
+  "stderr": "",
+  "execution_time_ms": 81
+}

@@ -1,6 +1,6 @@
 import { Router, Request, Response } from "express";
 import * as db from "../db";
-import { storagePut, storageGet } from "../storage";
+import { storagePut, getPresignedS3Url } from "../storage";
 import { generateQuotationPDF } from "../quotation-pdf-generator";
 import { readFileSync, unlinkSync } from "fs";
 
@@ -119,14 +119,16 @@ router.get("/quotations/pdf/:id", async (req: Request, res: Response) => {
       return res.status(500).json({ error: "Error crítico: No se pudo generar el PDF" });
     }
 
-    // Obtener URL presignada de S3 y redirigir
-    console.log(`[PDF-ENDPOINT] Obteniendo URL presignada de S3: ${quotation.pdfUrl}`);
+    // Obtener URL presignada directa de S3 (sin CloudFront) y redirigir
+    console.log(`[PDF-ENDPOINT] Generando URL presignada directa de S3: ${quotation.pdfUrl}`);
     try {
-      const presignedUrl = await storageGet(quotation.pdfUrl);
-      console.log(`[PDF-ENDPOINT] ✅ URL presignada obtenida`);
+      // Usar getPresignedS3Url para obtener URL directa de S3, no CloudFront
+      const presignedUrl = await getPresignedS3Url(quotation.pdfUrl, 3600);
+      console.log(`[PDF-ENDPOINT] ✅ URL presignada de S3 generada (directa, sin CloudFront)`);
+      console.log(`[PDF-ENDPOINT] URL: ${presignedUrl.substring(0, 80)}...`);
 
       // Si es descarga, agregar parámetro a la URL presignada
-      let redirectUrl = presignedUrl.url;
+      let redirectUrl = presignedUrl;
       if (download) {
         console.log(`[PDF-ENDPOINT] Modo: DESCARGA - Agregando parámetro de descarga`);
         redirectUrl += (redirectUrl.includes('?') ? '&' : '?') + `response-content-disposition=attachment;filename="${quotation.quotationNumber}.pdf"`;
@@ -134,12 +136,12 @@ router.get("/quotations/pdf/:id", async (req: Request, res: Response) => {
         console.log(`[PDF-ENDPOINT] Modo: VISUALIZACIÓN - Redirigiendo a S3`);
       }
 
-      console.log(`[PDF-ENDPOINT] ✅ Redirigiendo al cliente a S3`);
+      console.log(`[PDF-ENDPOINT] ✅ Redirigiendo al cliente a S3 (URL directa)`);
       return res.redirect(redirectUrl);
     } catch (s3Error: any) {
-      console.error(`[PDF-ENDPOINT] ❌ Error obteniendo URL presignada de S3:`, s3Error?.message);
+      console.error(`[PDF-ENDPOINT] ❌ Error generando URL presignada de S3:`, s3Error?.message);
       return res.status(500).json({
-        error: "Error obteniendo URL presignada de S3",
+        error: "Error generando URL presignada de S3",
         details: s3Error?.message,
       });
     }

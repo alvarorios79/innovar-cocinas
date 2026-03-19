@@ -205,3 +205,45 @@ export async function refreshSignedUrl(originalUrl: string): Promise<string> {
     return originalUrl; // Retornar la URL original si falla
   }
 }
+
+/**
+ * Genera una URL presignada directamente desde S3 (sin CloudFront)
+ * Útil para archivos privados que necesitan acceso temporal
+ * Retorna una URL del tipo: https://bucket-name.s3.amazonaws.com/...
+ */
+export async function getPresignedS3Url(relKey: string, expiresIn: number = 3600): Promise<string> {
+  const { baseUrl, apiKey } = getStorageConfig();
+  const key = normalizeKey(relKey);
+  
+  // Usar el endpoint de presigned URL que retorna URLs directas de S3
+  const presignedApiUrl = new URL(
+    'v1/storage/presignedUrl',
+    ensureTrailingSlash(baseUrl)
+  );
+  presignedApiUrl.searchParams.set('path', key);
+  presignedApiUrl.searchParams.set('expiresIn', String(expiresIn));
+  
+  const response = await fetch(presignedApiUrl, {
+    method: 'GET',
+    headers: buildAuthHeaders(apiKey),
+  });
+  
+  if (!response.ok) {
+    const errorText = await response.text().catch(() => response.statusText);
+    console.error('[Storage] Presigned URL generation failed:', response.status, errorText);
+    throw new Error(`Failed to generate presigned URL: ${response.status} ${response.statusText}`);
+  }
+  
+  const data = await response.json();
+  
+  // Validar que sea una URL de S3 directo, no CloudFront
+  if (!data.url || typeof data.url !== 'string') {
+    throw new Error('Invalid presigned URL response');
+  }
+  
+  if (!data.url.includes('.s3.amazonaws.com') && !data.url.includes('.s3.') && !data.url.includes('s3-')) {
+    console.warn('[Storage] Warning: Presigned URL may be from CloudFront:', data.url);
+  }
+  
+  return data.url;
+}

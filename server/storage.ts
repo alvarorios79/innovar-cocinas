@@ -249,35 +249,42 @@ export async function getPresignedS3Url(relKey: string, expiresIn: number = 3600
 }
 
 /**
- * Verifica si un archivo existe en S3
+ * Verifica si un archivo existe realmente en S3 usando HeadObjectCommand
  * Retorna true si existe, false si no existe
+ * Esta es una verificación REAL, no solo una búsqueda en metadatos
  */
 export async function checkFileExistsInS3(relKey: string): Promise<boolean> {
   const { baseUrl, apiKey } = getStorageConfig();
   const key = normalizeKey(relKey);
   
+  console.log(`[Storage] Verificando existencia real del archivo en S3: ${key}`);
+  
   try {
-    // Usar el endpoint de verificación de existencia
+    // Usar el endpoint de verificación HEAD que realiza HeadObjectCommand real
     const checkApiUrl = new URL(
-      'v1/storage/exists',
+      'v1/storage/head',
       ensureTrailingSlash(baseUrl)
     );
     checkApiUrl.searchParams.set('path', key);
     
     const response = await fetch(checkApiUrl, {
-      method: 'GET',
+      method: 'HEAD',
       headers: buildAuthHeaders(apiKey),
     });
     
-    if (!response.ok) {
-      console.warn('[Storage] File existence check failed:', response.status);
+    // Status 200 = existe, 404 = no existe
+    if (response.status === 200) {
+      console.log(`[Storage] ✅ Archivo EXISTE en S3: ${key}`);
+      return true;
+    } else if (response.status === 404) {
+      console.warn(`[Storage] ⚠️ Archivo NO EXISTE en S3: ${key}`);
+      return false;
+    } else {
+      console.warn(`[Storage] Verificación de existencia retornó status ${response.status}`);
       return false;
     }
-    
-    const data = await response.json();
-    return data.exists === true;
   } catch (error: any) {
-    console.error('[Storage] Error checking file existence:', error?.message);
+    console.error(`[Storage] Error verificando existencia del archivo: ${error?.message}`);
     return false;
   }
 }

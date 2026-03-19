@@ -190,6 +190,20 @@ router.get("/quotations/pdf/:id", async (req: Request, res: Response) => {
         }
       }
 
+      // VALIDACIÓN FINAL: Verificar una última vez que el archivo existe REALMENTE en S3
+      console.log(`[PDF-ENDPOINT] VALIDACIÓN FINAL: Verificando existencia real del archivo en S3...`);
+      const finalFileCheck = await checkFileExistsInS3(quotation.pdfUrl);
+      
+      if (!finalFileCheck) {
+        console.error(`[PDF-ENDPOINT] ❌ CRÍTICO: Archivo no existe en S3 después de regeneración: ${quotation.pdfUrl}`);
+        return res.status(500).json({
+          error: "Error crítico: PDF no disponible en S3 después de regeneración",
+          details: "El archivo no pudo ser verificado en S3",
+        });
+      }
+      
+      console.log(`[PDF-ENDPOINT] ✅ VALIDACIÓN FINAL PASADA: Archivo existe en S3`);
+      
       // Obtener URL presignada directa de S3
       console.log(`[PDF-ENDPOINT] Generando URL presignada directa de S3: ${quotation.pdfUrl}`);
       const presignedUrl = await getPresignedS3Url(quotation.pdfUrl, 3600);

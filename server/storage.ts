@@ -247,3 +247,67 @@ export async function getPresignedS3Url(relKey: string, expiresIn: number = 3600
   
   return data.url;
 }
+
+/**
+ * Verifica si un archivo existe en S3
+ * Retorna true si existe, false si no existe
+ */
+export async function checkFileExistsInS3(relKey: string): Promise<boolean> {
+  const { baseUrl, apiKey } = getStorageConfig();
+  const key = normalizeKey(relKey);
+  
+  try {
+    // Usar el endpoint de verificación de existencia
+    const checkApiUrl = new URL(
+      'v1/storage/exists',
+      ensureTrailingSlash(baseUrl)
+    );
+    checkApiUrl.searchParams.set('path', key);
+    
+    const response = await fetch(checkApiUrl, {
+      method: 'GET',
+      headers: buildAuthHeaders(apiKey),
+    });
+    
+    if (!response.ok) {
+      console.warn('[Storage] File existence check failed:', response.status);
+      return false;
+    }
+    
+    const data = await response.json();
+    return data.exists === true;
+  } catch (error: any) {
+    console.error('[Storage] Error checking file existence:', error?.message);
+    return false;
+  }
+}
+
+/**
+ * Genera una URL presignada directamente desde S3 (sin CloudFront)
+ * Con verificación previa de existencia del archivo
+ * Si el archivo no existe, retorna null
+ */
+export async function getPresignedS3UrlWithCheck(relKey: string, expiresIn: number = 3600): Promise<string | null> {
+  const key = normalizeKey(relKey);
+  
+  console.log(`[Storage] Verificando existencia del archivo: ${key}`);
+  
+  // Verificar si el archivo existe
+  const fileExists = await checkFileExistsInS3(key);
+  
+  if (!fileExists) {
+    console.warn(`[Storage] Archivo no existe en S3: ${key}`);
+    return null;
+  }
+  
+  console.log(`[Storage] Archivo existe en S3, generando URL presignada`);
+  
+  try {
+    const presignedUrl = await getPresignedS3Url(key, expiresIn);
+    console.log(`[Storage] URL presignada generada exitosamente`);
+    return presignedUrl;
+  } catch (error: any) {
+    console.error(`[Storage] Error generando URL presignada:`, error?.message);
+    return null;
+  }
+}

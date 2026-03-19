@@ -1,6 +1,6 @@
 import { Router, Request, Response } from "express";
 import * as db from "../db";
-import { storagePut, getPresignedS3Url } from "../storage";
+import { storagePut, getPresignedS3Url, getPresignedS3UrlWithCheck, checkFileExistsInS3 } from "../storage";
 import { generateQuotationPDF } from "../quotation-pdf-generator";
 import { readFileSync, unlinkSync } from "fs";
 
@@ -119,10 +119,79 @@ router.get("/quotations/pdf/:id", async (req: Request, res: Response) => {
       return res.status(500).json({ error: "Error crítico: No se pudo generar el PDF" });
     }
 
-    // Obtener URL presignada directa de S3 (sin CloudFront) y redirigir
-    console.log(`[PDF-ENDPOINT] Generando URL presignada directa de S3: ${quotation.pdfUrl}`);
+    // Verificar si el archivo existe en S3 y generar URL presignada
+    console.log(`[PDF-ENDPOINT] Verificando existencia del archivo en S3: ${quotation.pdfUrl}`);
     try {
-      // Usar getPresignedS3Url para obtener URL directa de S3, no CloudFront
+      // Verificar si el archivo existe en S3
+      const fileExists = await checkFileExistsInS3(quotation.pdfUrl);
+      
+      if (!fileExists) {
+        console.warn(`[PDF-ENDPOINT] ⚠️ Archivo no existe en S3: ${quotation.pdfUrl}`);
+        console.log(`[PDF-ENDPOINT] Regenerando PDF...`);
+        
+        // Regenerar el PDF
+        try {
+          const quotationItems = await db.getQuotationItems(quotationId);
+          const pdfData = {
+            quotationNumber: quotation.quotationNumber,
+            date: quotation.createdAt
+              ? new Date(quotation.createdAt).toLocaleDateString("es-CO")
+              : new Date().toLocaleDateString("es-CO"),
+            clientName: client.name,
+            clientPhone: client.whatsappPhone || "",
+            clientAddress: client.address || "",
+            vendorName: quotation.vendorName || "",
+            productType: quotation.productType || "",
+            validUntil: quotation.validUntil
+              ? new Date(quotation.validUntil).toLocaleDateString("es-CO")
+              : new Date().toLocaleDateString("es-CO"),
+            items: quotationItems.map((item: any) => ({
+              itemNumber: item.itemNumber || 0,
+              description: item.description || "Item",
+              quantity: String(item.quantity || "1"),
+              unitPrice: item.unitPrice ? String(item.unitPrice) : undefined,
+              totalPrice: String(item.totalPrice || "0"),
+            })),
+            subtotal: String(quotation.subtotal || "0"),
+            transportCost: String(quotation.transportCost || "0"),
+            discountPercent: quotation.discountPercent ? String(quotation.discountPercent) : undefined,
+            discountAmount: quotation.discountAmount ? String(quotation.discountAmount) : undefined,
+            total: String(quotation.total || "0"),
+          };
+
+          console.log(`[PDF-ENDPOINT] Generando PDF con PDFKit...`);
+          const { pdfPath: generatedPath } = await generateQuotationPDF(pdfData, quotationId, 1);
+          pdfPath = generatedPath;
+          console.log(`[PDF-ENDPOINT] ✅ PDF regenerado en: ${pdfPath}`);
+
+          // Leer buffer del PDF
+          const pdfBuffer = readFileSync(pdfPath);
+          console.log(`[PDF-ENDPOINT] Buffer leído, tamaño: ${pdfBuffer.length} bytes`);
+
+          // Subir a S3
+          const s3Key = `quotations/${client.id}/${quotationId}/v1.pdf`;
+          console.log(`[PDF-ENDPOINT] Subiendo PDF regenerado a S3 con clave: ${s3Key}`);
+          const { url: pdfUrl } = await storagePut(s3Key, pdfBuffer, "application/pdf");
+          console.log(`[PDF-ENDPOINT] ✅ PDF regenerado subido a S3. URL: ${pdfUrl}`);
+
+          // Guardar URL en la base de datos
+          console.log(`[PDF-ENDPOINT] Actualizando URL en base de datos...`);
+          await db.updateQuotation(quotationId, { pdfUrl });
+          console.log(`[PDF-ENDPOINT] ✅ URL actualizada en base de datos`);
+
+          // Actualizar quotation con la nueva URL
+          quotation.pdfUrl = pdfUrl;
+        } catch (regenerateError: any) {
+          console.error(`[PDF-ENDPOINT] ❌ Error regenerando PDF:`, regenerateError?.message);
+          return res.status(500).json({
+            error: "Error regenerando PDF",
+            details: regenerateError?.message,
+          });
+        }
+      }
+
+      // Obtener URL presignada directa de S3
+      console.log(`[PDF-ENDPOINT] Generando URL presignada directa de S3: ${quotation.pdfUrl}`);
       const presignedUrl = await getPresignedS3Url(quotation.pdfUrl, 3600);
       console.log(`[PDF-ENDPOINT] ✅ URL presignada de S3 generada (directa, sin CloudFront)`);
       console.log(`[PDF-ENDPOINT] URL: ${presignedUrl.substring(0, 80)}...`);
@@ -139,9 +208,9 @@ router.get("/quotations/pdf/:id", async (req: Request, res: Response) => {
       console.log(`[PDF-ENDPOINT] ✅ Redirigiendo al cliente a S3 (URL directa)`);
       return res.redirect(redirectUrl);
     } catch (s3Error: any) {
-      console.error(`[PDF-ENDPOINT] ❌ Error generando URL presignada de S3:`, s3Error?.message);
+      console.error(`[PDF-ENDPOINT] ❌ Error verificando/generando URL presignada de S3:`, s3Error?.message);
       return res.status(500).json({
-        error: "Error generando URL presignada de S3",
+        error: "Error verificando/generando URL presignada de S3",
         details: s3Error?.message,
       });
     }

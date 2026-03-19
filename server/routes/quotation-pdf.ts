@@ -2,7 +2,7 @@ import { Router, Request, Response } from "express";
 import * as db from "../db";
 import { storagePut, getPresignedS3Url, getPresignedS3UrlWithCheck, checkFileExistsInS3 } from "../storage";
 import { generateQuotationPDF } from "../quotation-pdf-generator";
-import { readFileSync, unlinkSync } from "fs";
+import { readFileSync, unlinkSync, existsSync, statSync } from "fs";
 
 const router = Router();
 
@@ -79,36 +79,68 @@ router.get("/quotations/pdf/:id", async (req: Request, res: Response) => {
           total: String(quotation.total || "0"),
         };
 
-        console.log(`[PDF-ENDPOINT] Generando PDF con PDFKit...`);
+        console.log(`[PDF-ENDPOINT] PASO 1: Generando PDF con PDFKit...`);
         const { pdfPath: generatedPath } = await generateQuotationPDF(pdfData, quotationId, 1);
         pdfPath = generatedPath;
         console.log(`[PDF-ENDPOINT] ✅ PDF generado en: ${pdfPath}`);
 
-        // Leer buffer del PDF
-        const pdfBuffer = readFileSync(pdfPath);
-        console.log(`[PDF-ENDPOINT] Buffer leído, tamaño: ${pdfBuffer.length} bytes`);
+        // VALIDACIÓN 1: Verificar que el PDF existe en disco
+        console.log(`[PDF-ENDPOINT] VALIDACIÓN 1: Verificando existencia del PDF en disco...`);
+        if (!existsSync(pdfPath)) {
+          throw new Error(`PDF no existe en disco: ${pdfPath}`);
+        }
+        console.log(`[PDF-ENDPOINT] ✅ PDF existe en disco`);
 
-        // Subir a S3
+        // VALIDACIÓN 2: Verificar que el PDF no está vacío
+        console.log(`[PDF-ENDPOINT] VALIDACIÓN 2: Verificando tamaño del PDF...`);
+        const pdfStats = statSync(pdfPath);
+        const pdfSize = pdfStats.size;
+        if (!pdfSize || pdfSize <= 0) {
+          throw new Error(`PDF vacío o tamaño inválido: ${pdfSize} bytes`);
+        }
+        console.log(`[PDF-ENDPOINT] ✅ PDF válido, tamaño: ${pdfSize} bytes`);
+
+        // Leer buffer del PDF
+        console.log(`[PDF-ENDPOINT] PASO 2: Leyendo buffer del PDF...`);
+        const pdfBuffer = readFileSync(pdfPath);
+        if (!pdfBuffer || pdfBuffer.length !== pdfSize) {
+          throw new Error(`Buffer inválido: esperado ${pdfSize} bytes, obtenido ${pdfBuffer.length} bytes`);
+        }
+        console.log(`[PDF-ENDPOINT] ✅ Buffer leído correctamente, tamaño: ${pdfBuffer.length} bytes`);
+
+        // PASO 3: Subir a S3
         const s3Key = `quotations/${client.id}/${quotationId}/v1.pdf`;
-        console.log(`[PDF-ENDPOINT] Subiendo a S3 con clave: ${s3Key}`);
+        console.log(`[PDF-ENDPOINT] PASO 3: Subiendo PDF a S3 con clave: ${s3Key}`);
         const { url: pdfUrl } = await storagePut(s3Key, pdfBuffer, "application/pdf");
         console.log(`[PDF-ENDPOINT] ✅ PDF subido a S3. URL: ${pdfUrl}`);
 
-        // Guardar URL en la base de datos
-        console.log(`[PDF-ENDPOINT] Guardando URL en base de datos...`);
+        // VALIDACIÓN 3: Verificar que el archivo realmente existe en S3
+        console.log(`[PDF-ENDPOINT] VALIDACIÓN 3: Confirmando existencia en S3...`);
+        const fileExistsInS3 = await checkFileExistsInS3(s3Key);
+        if (!fileExistsInS3) {
+          throw new Error(`PDF NO SE SUBIÓ A S3 CORRECTAMENTE: ${s3Key}`);
+        }
+        console.log(`[PDF-ENDPOINT] ✅ PDF confirmado en S3`);
+
+        // PASO 4: Guardar URL en la base de datos
+        console.log(`[PDF-ENDPOINT] PASO 4: Guardando URL en base de datos...`);
         await db.updateQuotation(quotationId, { pdfUrl });
-        console.log(`[PDF-ENDPOINT] ✅ URL guardada en base de datos`);
+        console.log(`[PDF-ENDPOINT] ✅ URL guardada en base de datos: ${pdfUrl}`);
 
         // Actualizar quotation con la nueva URL para usarla en esta respuesta
         quotation.pdfUrl = pdfUrl;
 
-        console.log(`[PDF-ENDPOINT] Fallback completado exitosamente`);
+        console.log(`[PDF-ENDPOINT] ✅ FALLBACK COMPLETADO EXITOSAMENTE - PDF GARANTIZADO EN S3`);
       } catch (fallbackError: any) {
-        console.error(`[PDF-ENDPOINT] ❌ ERROR en fallback de generación:`, fallbackError?.message);
+        console.error(`[PDF-ENDPOINT] ❌ ERROR CRÍTICO EN FALLBACK:`, fallbackError?.message);
         console.error(`[PDF-ENDPOINT] Stack:`, fallbackError?.stack);
+        
+        // IMPORTANTE: NO guardar pdfUrl si algo falló
+        // El sistema se detiene completamente
         return res.status(500).json({
-          error: "Error generando PDF",
+          error: "Error crítico generando PDF - Sistema detenido",
           details: fallbackError?.message,
+          message: "El PDF no se pudo generar ni subir a S3. Por favor, intenta de nuevo.",
         });
       }
     }

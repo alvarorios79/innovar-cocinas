@@ -491,6 +491,30 @@ export async function getQuotationItems(quotationId: number) {
   return await db.select().from(quotationItems).where(eq(quotationItems.quotationId, quotationId)).orderBy(desc(quotationItems.createdAt));
 }
 
+export async function getLatestQuotationItems(projectId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  // ESTRATEGIA: Obtener la cotización original del proyecto
+  const project = await db.select().from(projects).where(eq(projects.id, projectId)).limit(1);
+  if (!project || !project[0]?.quotationId) return [];
+
+  // Obtener la cotización original para acceder a baseQuotationId
+  const originalQuotation = await db.select().from(quotations).where(eq(quotations.id, project[0].quotationId)).limit(1);
+  if (!originalQuotation || !originalQuotation[0]?.baseQuotationId) return [];
+
+  // Obtener la última versión de la cotización
+  const latestQuotation = await db.select().from(quotations)
+    .where(eq(quotations.baseQuotationId, originalQuotation[0].baseQuotationId))
+    .orderBy(desc(quotations.versionNumber))
+    .limit(1);
+  
+  if (!latestQuotation || !latestQuotation[0]) return [];
+
+  // Obtener los ítems de la última versión
+  return await db.select().from(quotationItems).where(eq(quotationItems.quotationId, latestQuotation[0].id)).orderBy(desc(quotationItems.createdAt));
+}
+
 export async function deleteQuotationItems(quotationId: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");

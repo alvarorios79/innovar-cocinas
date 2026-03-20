@@ -220,28 +220,26 @@ export function QuotationGroupCard({
           </div>
         </div>
 
-        {/* Selector de versión compacto - Solo si hay múltiples versiones */}
-        {group.versionCount > 1 && (
-          <div className="flex items-center gap-2">
-            <label className="text-xs font-medium text-gray-600">Versión:</label>
-            <Select
-              value={selectedVersionId.toString()}
-              onValueChange={(value) => setSelectedVersionId(parseInt(value))}
-            >
-              <SelectTrigger className="w-32 h-7 text-xs">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {group.versions.map((version) => (
-                  <SelectItem key={version.id} value={version.id.toString()}>
-                    V{version.versionNumber}
-                    {version.id === group.activeVersion.id ? " (Activa)" : " (Hist)"}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        )}
+        {/* Selector de versión - SIEMPRE VISIBLE */}
+        <div className="flex items-center gap-2">
+          <label className="text-xs font-medium text-gray-600">Versión:</label>
+          <Select
+            value={selectedVersionId.toString()}
+            onValueChange={(value) => setSelectedVersionId(parseInt(value))}
+          >
+            <SelectTrigger className="w-32 h-7 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {group.versions.map((version) => (
+                <SelectItem key={version.id} value={version.id.toString()}>
+                  V{version.versionNumber}
+                  {version.id === group.activeVersion.id ? " (Activa)" : " (Hist)"}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       <CardContent className="px-3 py-2 md:px-3 md:py-2 space-y-2">
@@ -322,12 +320,13 @@ export function QuotationGroupCard({
           </Button>
 
           {/* SECUNDARIOS */}
-          {isActiveVersion && !selectedVersion.projectId && (
+          {isActiveVersion && !group.activeVersion.projectId && (
             <Button
               size="sm"
               className="text-xs py-1 px-2 h-7 gap-1 bg-emerald-600 hover:bg-emerald-700 text-white"
-              onClick={() => onCreateProject(selectedVersion)}
+              onClick={() => onCreateProject(group.activeVersion)}
               disabled={isLocked}
+              title="Crea proyecto con la ultima version aprobada"
             >
               <FolderPlus className="w-3 h-3" />
               <span className="hidden sm:inline">Proyecto</span>

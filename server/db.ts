@@ -1578,11 +1578,6 @@ export async function getAllQuotationsGroupedByBase(options?: { page?: number; l
 
   // Convertir a array y validar estructura
   let grouped = Array.from(groupedMap.values()).map(group => {
-    // CORRECCION: Buscar projectId en TODA la cadena de versiones
-    // Las versiones nuevas (v3, v4, v5) no tienen projectId,
-    // pero la version original (v1 o v2) si
-    const hasProject = group.versions?.some((v: any) => v.projectId !== null && v.projectId !== undefined);
-    
     return {
       baseQuotationId: group.baseQuotationId ?? null,
       quotationNumber: group.quotationNumber ?? '',
@@ -1591,9 +1586,25 @@ export async function getAllQuotationsGroupedByBase(options?: { page?: number; l
       createdAt: group.createdAt ?? new Date(),
       activeVersion: group.activeVersion ?? null,
       versions: group.versions ?? [],
-      hasProject: hasProject ?? false,
+      versionIds: group.versions?.map((v: any) => v.id) ?? [],
+      hasProject: false, // Se calculara despues
     };
   });
+  
+  // Buscar proyectos para cada grupo de cotizaciones
+  // La relacion esta en projects.quotationId, no en quotations.projectId
+  const db_instance = await getDb();
+  if (db_instance) {
+    for (const group of grouped) {
+      if (group.versionIds && group.versionIds.length > 0) {
+        const projectsForVersions = await db_instance.select()
+          .from(projects)
+          .where(inArray(projects.quotationId, group.versionIds));
+        
+        group.hasProject = projectsForVersions.length > 0;
+      }
+    }
+  }
 
   // Aplicar filtro archived DESPUÉS de agrupar, basándose en activeVersion.isArchived
   // Por defecto, devolver solo cotizaciones activas (no archivadas)

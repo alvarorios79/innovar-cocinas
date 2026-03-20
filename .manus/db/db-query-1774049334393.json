@@ -1,0 +1,9 @@
+{
+  "query": "SELECT \n  p.id,\n  p.projectId,\n  p.amount,\n  p.type,\n  p.movementType,\n  p.receivedAt,\n  'PAGO SIN PROYECTO' as alerta\nFROM payments p\nWHERE p.projectId IS NULL\nORDER BY p.receivedAt DESC",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT \n  p.id,\n  p.projectId,\n  p.amount,\n  p.type,\n  p.movementType,\n  p.receivedAt,\n  'PAGO SIN PROYECTO' as alerta\nFROM payments p\nWHERE p.projectId IS NULL\nORDER BY p.receivedAt DESC",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 49
+}

@@ -1,0 +1,40 @@
+{
+  "query": "SELECT \n  COUNT(*) as total_pagos,\n  SUM(CAST(amount AS DECIMAL(15,2))) as total_monto,\n  movementType,\n  type\nFROM payments\nGROUP BY movementType, type\nORDER BY total_monto DESC",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT \n  COUNT(*) as total_pagos,\n  SUM(CAST(amount AS DECIMAL(15,2))) as total_monto,\n  movementType,\n  type\nFROM payments\nGROUP BY movementType, type\nORDER BY total_monto DESC",
+  "rows": [
+    {
+      "total_pagos": "17",
+      "total_monto": "116343925.00",
+      "movementType": "payment",
+      "type": "advance"
+    },
+    {
+      "total_pagos": "5",
+      "total_monto": "27022800.00",
+      "movementType": "payment",
+      "type": "final"
+    },
+    {
+      "total_pagos": "3",
+      "total_monto": "6200000.00",
+      "movementType": "payment",
+      "type": "partial"
+    },
+    {
+      "total_pagos": "1",
+      "total_monto": "320000.00",
+      "movementType": "discount",
+      "type": "other"
+    },
+    {
+      "total_pagos": "1",
+      "total_monto": "230000.00",
+      "movementType": "discount",
+      "type": "final"
+    }
+  ],
+  "messages": [],
+  "stdout": "total_pagos\ttotal_monto\tmovementType\ttype\n17\t116343925.00\tpayment\tadvance\n5\t27022800.00\tpayment\tfinal\n3\t6200000.00\tpayment\tpartial\n1\t320000.00\tdiscount\tother\n1\t230000.00\tdiscount\tfinal\n",
+  "stderr": "",
+  "execution_time_ms": 64
+}

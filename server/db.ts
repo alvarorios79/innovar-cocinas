@@ -3839,7 +3839,8 @@ export async function getEligibleProjectsForAccountingClosure() {
     const eligibleProjects = [];
     
     for (const proj of allArchived) {
-      // Obtener pagos del proyecto
+      // Obtener pagos del proyecto (SIN filtro temporal - incluye todos los pagos)
+      // Nota: Los pagos se filtran por período en createAccountingClosure()
       const paymentsResult = await db
         .select({
           total: sql<number>`COALESCE(SUM(CAST(amount AS DECIMAL(12,2))), 0)`
@@ -3857,7 +3858,8 @@ export async function getEligibleProjectsForAccountingClosure() {
       const balance = totalAmount - totalPaid;
       
       // Solo incluir si balance = 0 (pagos completados)
-      if (balance === 0) {
+      // Esto asegura que SOLO proyectos completamente pagados aparezcan en el listado
+      if (Math.abs(balance) < 0.01) { // Usar comparación con tolerancia decimal
         // Obtener nombre del cliente
         const clientData = await db
           .select({ name: clients.name })

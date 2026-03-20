@@ -1,0 +1,22 @@
+{
+  "query": "SELECT \n  COUNT(*) as total_gastos,\n  SUM(CAST(amount AS DECIMAL(15,2))) as total_monto,\n  expenseType,\n  dataOrigin\nFROM expenses\nWHERE deletedAt IS NULL\nGROUP BY expenseType, dataOrigin\nORDER BY total_monto DESC",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT \n  COUNT(*) as total_gastos,\n  SUM(CAST(amount AS DECIMAL(15,2))) as total_monto,\n  expenseType,\n  dataOrigin\nFROM expenses\nWHERE deletedAt IS NULL\nGROUP BY expenseType, dataOrigin\nORDER BY total_monto DESC",
+  "rows": [
+    {
+      "total_gastos": "74",
+      "total_monto": "73595151.00",
+      "expenseType": "materiales_proyecto",
+      "dataOrigin": "manual"
+    },
+    {
+      "total_gastos": "38",
+      "total_monto": "20318214.00",
+      "expenseType": "gasto_operativo",
+      "dataOrigin": "manual"
+    }
+  ],
+  "messages": [],
+  "stdout": "total_gastos\ttotal_monto\texpenseType\tdataOrigin\n74\t73595151.00\tmateriales_proyecto\tmanual\n38\t20318214.00\tgasto_operativo\tmanual\n",
+  "stderr": "",
+  "execution_time_ms": 64
+}

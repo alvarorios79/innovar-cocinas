@@ -1,0 +1,16 @@
+{
+  "query": "SELECT \n  COUNT(*) as total_pagos,\n  COUNT(CASE WHEN p.projectId IS NULL THEN 1 END) as pagos_sin_proyecto,\n  COUNT(CASE WHEN p.projectId IS NOT NULL THEN 1 END) as pagos_con_proyecto,\n  COUNT(CASE WHEN pr.id IS NULL THEN 1 END) as pagos_proyecto_inexistente\nFROM payments p\nLEFT JOIN projects pr ON p.projectId = pr.id",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT \n  COUNT(*) as total_pagos,\n  COUNT(CASE WHEN p.projectId IS NULL THEN 1 END) as pagos_sin_proyecto,\n  COUNT(CASE WHEN p.projectId IS NOT NULL THEN 1 END) as pagos_con_proyecto,\n  COUNT(CASE WHEN pr.id IS NULL THEN 1 END) as pagos_proyecto_inexistente\nFROM payments p\nLEFT JOIN projects pr ON p.projectId = pr.id",
+  "rows": [
+    {
+      "total_pagos": "27",
+      "pagos_sin_proyecto": "0",
+      "pagos_con_proyecto": "27",
+      "pagos_proyecto_inexistente": "0"
+    }
+  ],
+  "messages": [],
+  "stdout": "total_pagos\tpagos_sin_proyecto\tpagos_con_proyecto\tpagos_proyecto_inexistente\n27\t0\t27\t0\n",
+  "stderr": "",
+  "execution_time_ms": 63
+}

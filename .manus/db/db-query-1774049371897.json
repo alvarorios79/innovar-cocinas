@@ -1,0 +1,17 @@
+{
+  "query": "SELECT \n  COUNT(*) as total_proyectos,\n  COUNT(CASE WHEN p.quotationId IS NOT NULL THEN 1 END) as proyectos_con_cotizacion,\n  COUNT(CASE WHEN p.quotationId IS NULL THEN 1 END) as proyectos_sin_cotizacion,\n  COUNT(CASE WHEN p.deletedAt IS NULL THEN 1 END) as proyectos_activos,\n  COUNT(CASE WHEN p.deletedAt IS NOT NULL THEN 1 END) as proyectos_eliminados\nFROM projects p\nWHERE p.dataOrigin = 'manual' AND p.deletedAt IS NULL",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT \n  COUNT(*) as total_proyectos,\n  COUNT(CASE WHEN p.quotationId IS NOT NULL THEN 1 END) as proyectos_con_cotizacion,\n  COUNT(CASE WHEN p.quotationId IS NULL THEN 1 END) as proyectos_sin_cotizacion,\n  COUNT(CASE WHEN p.deletedAt IS NULL THEN 1 END) as proyectos_activos,\n  COUNT(CASE WHEN p.deletedAt IS NOT NULL THEN 1 END) as proyectos_eliminados\nFROM projects p\nWHERE p.dataOrigin = 'manual' AND p.deletedAt IS NULL",
+  "rows": [
+    {
+      "total_proyectos": "16",
+      "proyectos_con_cotizacion": "16",
+      "proyectos_sin_cotizacion": "0",
+      "proyectos_activos": "16",
+      "proyectos_eliminados": "0"
+    }
+  ],
+  "messages": [],
+  "stdout": "total_proyectos\tproyectos_con_cotizacion\tproyectos_sin_cotizacion\tproyectos_activos\tproyectos_eliminados\n16\t16\t0\t16\t0\n",
+  "stderr": "",
+  "execution_time_ms": 55
+}

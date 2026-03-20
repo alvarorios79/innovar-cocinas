@@ -1,0 +1,88 @@
+{
+  "query": "SELECT \n  ac.id,\n  ac.periodStart,\n  ac.periodEnd,\n  ac.status,\n  ac.totalSales,\n  ac.totalExpenses,\n  ac.totalProfit,\n  ac.projectCount,\n  ac.createdAt,\n  ac.confirmedAt,\n  u.name as createdByName\nFROM accountingClosures ac\nLEFT JOIN users u ON ac.createdBy = u.id\nORDER BY ac.createdAt DESC\nLIMIT 10",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT \n  ac.id,\n  ac.periodStart,\n  ac.periodEnd,\n  ac.status,\n  ac.totalSales,\n  ac.totalExpenses,\n  ac.totalProfit,\n  ac.projectCount,\n  ac.createdAt,\n  ac.confirmedAt,\n  u.name as createdByName\nFROM accountingClosures ac\nLEFT JOIN users u ON ac.createdBy = u.id\nORDER BY ac.createdAt DESC\nLIMIT 10",
+  "rows": [
+    {
+      "id": "6",
+      "periodStart": "2026-01-01",
+      "periodEnd": "2026-03-31",
+      "status": "draft",
+      "totalSales": "0.00",
+      "totalExpenses": "0.00",
+      "totalProfit": "0.00",
+      "projectCount": "1",
+      "createdAt": "2026-03-14 03:25:54",
+      "confirmedAt": "NULL",
+      "createdByName": "Alvaro Rios"
+    },
+    {
+      "id": "5",
+      "periodStart": "2026-01-01",
+      "periodEnd": "2026-03-31",
+      "status": "confirmed",
+      "totalSales": "0.00",
+      "totalExpenses": "0.00",
+      "totalProfit": "0.00",
+      "projectCount": "1",
+      "createdAt": "2026-03-14 03:25:54",
+      "confirmedAt": "2026-03-14 03:25:54",
+      "createdByName": "Alvaro Rios"
+    },
+    {
+      "id": "3",
+      "periodStart": "2026-01-01",
+      "periodEnd": "2026-03-31",
+      "status": "confirmed",
+      "totalSales": "0.00",
+      "totalExpenses": "0.00",
+      "totalProfit": "0.00",
+      "projectCount": "1",
+      "createdAt": "2026-03-14 03:25:40",
+      "confirmedAt": "2026-03-14 03:25:41",
+      "createdByName": "Alvaro Rios"
+    },
+    {
+      "id": "4",
+      "periodStart": "2026-01-01",
+      "periodEnd": "2026-03-31",
+      "status": "draft",
+      "totalSales": "0.00",
+      "totalExpenses": "0.00",
+      "totalProfit": "0.00",
+      "projectCount": "1",
+      "createdAt": "2026-03-14 03:25:40",
+      "confirmedAt": "NULL",
+      "createdByName": "Alvaro Rios"
+    },
+    {
+      "id": "2",
+      "periodStart": "2026-01-01",
+      "periodEnd": "2026-03-31",
+      "status": "draft",
+      "totalSales": "0.00",
+      "totalExpenses": "0.00",
+      "totalProfit": "0.00",
+      "projectCount": "1",
+      "createdAt": "2026-03-14 03:25:05",
+      "confirmedAt": "NULL",
+      "createdByName": "Alvaro Rios"
+    },
+    {
+      "id": "1",
+      "periodStart": "2026-01-01",
+      "periodEnd": "2026-03-31",
+      "status": "confirmed",
+      "totalSales": "0.00",
+      "totalExpenses": "0.00",
+      "totalProfit": "0.00",
+      "projectCount": "1",
+      "createdAt": "2026-03-14 03:25:05",
+      "confirmedAt": "2026-03-14 03:25:06",
+      "createdByName": "Alvaro Rios"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tperiodStart\tperiodEnd\tstatus\ttotalSales\ttotalExpenses\ttotalProfit\tprojectCount\tcreatedAt\tconfirmedAt\tcreatedByName\n6\t2026-01-01\t2026-03-31\tdraft\t0.00\t0.00\t0.00\t1\t2026-03-14 03:25:54\tNULL\tAlvaro Rios\n5\t2026-01-01\t2026-03-31\tconfirmed\t0.00\t0.00\t0.00\t1\t2026-03-14 03:25:54\t2026-03-14 03:25:54\tAlvaro Rios\n3\t2026-01-01\t2026-03-31\tconfirmed\t0.00\t0.00\t0.00\t1\t2026-03-14 03:25:40\t2026-03-14 03:25:41\tAlvaro Rios\n4\t2026-01-01\t2026-03-31\tdraft\t0.00\t0.00\t0.00\t1\t2026-03-14 03:25:40\tNULL\tAlvaro Rios\n2\t2026-01-01\t2026-03-31\tdraft\t0.00\t0.00\t0.00\t1\t2026-03-14 03:25:05\tNULL\tAlvaro Rios\n1\t2026-01-01\t2026-03-31\tconfirmed\t0.00\t0.00\t0.00\t1\t2026-03-14 03:25:05\t2026-03-14 03:25:06\tAlvaro Rios\n",
+  "stderr": "",
+  "execution_time_ms": 120
+}

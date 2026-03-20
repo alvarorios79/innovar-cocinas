@@ -171,8 +171,23 @@ export const projectsRouter = router({
         }
         const allClients = await db.getAllClients();
         const clientMap = new Map(allClients.map(c => [c.id, c]));
+        
+        // Obtener quotationNumber para cada proyecto
+        const projectsWithQuotations = await Promise.all(
+          filteredData.map(async (p) => {
+            let quotationNumber = p.name; // Fallback al nombre guardado
+            if (p.quotationId) {
+              const quotation = await db.getQuotationById(p.quotationId);
+              if (quotation?.quotationNumber) {
+                quotationNumber = quotation.quotationNumber;
+              }
+            }
+            return { ...p, name: quotationNumber, client: clientMap.get(p.clientId) };
+          })
+        );
+        
         return {
-          data: filteredData.map(p => ({ ...p, client: clientMap.get(p.clientId) })),
+          data: projectsWithQuotations,
           total: result.total,
           page,
           limit,

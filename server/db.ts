@@ -488,7 +488,12 @@ export async function getQuotationItems(quotationId: number) {
   const db = await getDb();
   if (!db) return [];
 
-  return await db.select().from(quotationItems).where(eq(quotationItems.quotationId, quotationId)).orderBy(desc(quotationItems.createdAt));
+  const items = await db.select().from(quotationItems).where(eq(quotationItems.quotationId, quotationId)).orderBy(desc(quotationItems.createdAt));
+  // Convertir includesFixedCosts de número a boolean
+  return items.map(item => ({
+    ...item,
+    includesFixedCosts: Boolean(item.includesFixedCosts)
+  }));
 }
 
 export async function getLatestQuotationItems(projectId: number) {
@@ -512,7 +517,12 @@ export async function getLatestQuotationItems(projectId: number) {
   if (!latestQuotation || !latestQuotation[0]) return [];
 
   // Obtener los ítems de la última versión
-  return await db.select().from(quotationItems).where(eq(quotationItems.quotationId, latestQuotation[0].id)).orderBy(desc(quotationItems.createdAt));
+  const items = await db.select().from(quotationItems).where(eq(quotationItems.quotationId, latestQuotation[0].id)).orderBy(desc(quotationItems.createdAt));
+  // Convertir includesFixedCosts de número a boolean
+  return items.map(item => ({
+    ...item,
+    includesFixedCosts: Boolean(item.includesFixedCosts)
+  }));
 }
 
 export function normalizeQuotationItemsToMaterials(items: any[]) {

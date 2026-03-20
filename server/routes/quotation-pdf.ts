@@ -109,7 +109,8 @@ router.get("/quotations/pdf/:id", async (req: Request, res: Response) => {
         console.log(`[PDF-ENDPOINT] ✅ Buffer leído correctamente, tamaño: ${pdfBuffer.length} bytes`);
 
         // PASO 3: Subir a S3
-        const s3Key = `quotations/${client.id}/${quotationId}/v1.pdf`;
+        const versionNumber = quotation.versionNumber || 1;
+        const s3Key = `quotations/${client.id}/${quotationId}/v${versionNumber}.pdf`;
         console.log(`[PDF-ENDPOINT] PASO 3: Subiendo PDF a S3 con clave: ${s3Key}`);
         const { url: pdfUrl } = await storagePut(s3Key, pdfBuffer, "application/pdf");
         console.log(`[PDF-ENDPOINT] ✅ PDF subido a S3. URL: ${pdfUrl}`);

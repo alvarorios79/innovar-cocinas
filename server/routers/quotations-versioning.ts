@@ -39,6 +39,61 @@ export const quotationsVersioningRouter = router({
         const { getQuotationById } = await import("../db");
         const newQuotation = await getQuotationById(newQuotationId);
 
+        // FASE 2: Generar PDF automáticamente para la nueva versión
+        if (newQuotation) {
+          try {
+            console.log(`[VERSIONING] Generando PDF para nueva versión: ${newQuotationId}`);
+            
+            const { getClientById, getQuotationItems } = await import("../db");
+            const { generateQuotationPDF } = await import("../quotation-pdf-generator");
+            const { storagePut } = await import("../storage");
+            const { readFileSync } = await import("fs");
+            
+            const client = await getClientById(newQuotation.clientId);
+            const quotationItems = await getQuotationItems(newQuotationId);
+            
+            if (client && quotationItems) {
+              const pdfData = {
+                quotationNumber: newQuotation.quotationNumber,
+                date: newQuotation.createdAt ? new Date(newQuotation.createdAt).toLocaleDateString("es-CO") : new Date().toLocaleDateString("es-CO"),
+                clientName: client.name,
+                clientPhone: client.whatsappPhone || "",
+                clientAddress: client.address || "",
+                vendorName: newQuotation.vendorName || "",
+                productType: newQuotation.productType || "",
+                validUntil: newQuotation.validUntil ? new Date(newQuotation.validUntil).toLocaleDateString("es-CO") : new Date().toLocaleDateString("es-CO"),
+                items: quotationItems.map((item: any) => ({
+                  itemNumber: item.itemNumber || 0,
+                  description: item.description || "Item",
+                  quantity: String(item.quantity || "1"),
+                  unitPrice: item.unitPrice ? String(item.unitPrice) : undefined,
+                  totalPrice: String(item.totalPrice || "0"),
+                })),
+                subtotal: String(newQuotation.subtotal || "0"),
+                transportCost: String(newQuotation.transportCost || "0"),
+                discountPercent: newQuotation.discountPercent ? String(newQuotation.discountPercent) : undefined,
+                discountAmount: newQuotation.discountAmount ? String(newQuotation.discountAmount) : undefined,
+                total: String(newQuotation.total || "0"),
+              };
+              
+              const versionNumber = newQuotation.versionNumber || 1;
+              const { pdfPath } = await generateQuotationPDF(pdfData, newQuotationId, versionNumber);
+              const pdfBuffer = readFileSync(pdfPath);
+              const s3Key = `quotations/${client.id}/${newQuotationId}/v${versionNumber}.pdf`;
+              const { url: pdfUrl } = await storagePut(s3Key, pdfBuffer, "application/pdf");
+              
+              // Actualizar la cotización con la URL del PDF
+              const { updateQuotation } = await import("../db");
+              await updateQuotation(newQuotationId, { pdfUrl });
+              
+              console.log(`[VERSIONING] PDF generado exitosamente para versión V${versionNumber}: ${pdfUrl}`);
+            }
+          } catch (pdfError: any) {
+            console.error(`[VERSIONING] Error generando PDF para nueva versión:`, pdfError?.message);
+            // No lanzar error, solo registrar. La versión se crea aunque falle el PDF
+          }
+        }
+
         // Actualizar el proyecto para que apunte a la nueva versión
         const project = await getProjectByQuotationId(input.quotationId);
         if (project && newQuotation) {

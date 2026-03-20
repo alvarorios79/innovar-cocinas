@@ -471,7 +471,10 @@ export async function deleteQuotation(id: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  await db.delete(quotations).where(eq(quotations.id, id));
+  // Soft delete: marcar con deletedAt en lugar de eliminar físicamente
+  await db.update(quotations)
+    .set({ deletedAt: new Date().toISOString() })
+    .where(eq(quotations.id, id));
 }
 
 // ============ QUOTATION ITEMS ============
@@ -1574,15 +1577,23 @@ export async function getAllQuotationsGroupedByBase(options?: { page?: number; l
   }
 
   // Convertir a array y validar estructura
-  let grouped = Array.from(groupedMap.values()).map(group => ({
-    baseQuotationId: group.baseQuotationId ?? null,
-    quotationNumber: group.quotationNumber ?? '',
-    client: group.client ?? null,
-    status: group.status ?? 'pendiente',
-    createdAt: group.createdAt ?? new Date(),
-    activeVersion: group.activeVersion ?? null,
-    versions: group.versions ?? [],
-  }));
+  let grouped = Array.from(groupedMap.values()).map(group => {
+    // CORRECCION: Buscar projectId en TODA la cadena de versiones
+    // Las versiones nuevas (v3, v4, v5) no tienen projectId,
+    // pero la version original (v1 o v2) si
+    const hasProject = group.versions?.some((v: any) => v.projectId !== null && v.projectId !== undefined);
+    
+    return {
+      baseQuotationId: group.baseQuotationId ?? null,
+      quotationNumber: group.quotationNumber ?? '',
+      client: group.client ?? null,
+      status: group.status ?? 'pendiente',
+      createdAt: group.createdAt ?? new Date(),
+      activeVersion: group.activeVersion ?? null,
+      versions: group.versions ?? [],
+      hasProject: hasProject ?? false,
+    };
+  });
 
   // Aplicar filtro archived DESPUÉS de agrupar, basándose en activeVersion.isArchived
   // Por defecto, devolver solo cotizaciones activas (no archivadas)

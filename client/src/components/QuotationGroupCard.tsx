@@ -16,6 +16,7 @@ interface QuotationGroupCardProps {
     versions: any[];
     activeVersion: any;
     versionCount: number;
+    hasProject?: boolean;
   };
   client: any;
   archiveTab: 'active' | 'archived';
@@ -182,7 +183,7 @@ export function QuotationGroupCard({
                   Vence pronto
                 </Badge>
               )}
-              {selectedVersion.projectId ? (
+              {group.hasProject ? (
                 <Badge className="bg-emerald-100 text-emerald-800 text-xs py-0 px-2 border border-emerald-300 flex items-center gap-1">
                   <span className="text-base">✅</span>
                   <span>Proyecto</span>

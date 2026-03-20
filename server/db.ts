@@ -515,6 +515,31 @@ export async function getLatestQuotationItems(projectId: number) {
   return await db.select().from(quotationItems).where(eq(quotationItems.quotationId, latestQuotation[0].id)).orderBy(desc(quotationItems.createdAt));
 }
 
+export function normalizeQuotationItemsToMaterials(items: any[]) {
+  if (!items || items.length === 0) return null;
+  
+  const firstItem = items[0];
+  const kitchenConfig = firstItem.kitchenConfig as any;
+  const countertopConfig = firstItem.countertopConfig as any;
+  
+  return {
+    id: firstItem.id,
+    projectId: 0,
+    woodType: kitchenConfig?.woodType || null,
+    woodColor: kitchenConfig?.woodColor || null,
+    woodPhotoUrl: kitchenConfig?.woodPhotoUrl || null,
+    countertopType: countertopConfig?.type || null,
+    countertopName: countertopConfig?.name || null,
+    countertopPhotoUrl: countertopConfig?.photoUrl || null,
+    sinkMeasure: kitchenConfig?.sinkMeasure || null,
+    sinkPhotoUrl: kitchenConfig?.sinkPhotoUrl || null,
+    notes: firstItem.description || null,
+    createdBy: 0,
+    createdAt: firstItem.createdAt,
+    updatedAt: firstItem.createdAt,
+  };
+}
+
 export async function deleteQuotationItems(quotationId: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");

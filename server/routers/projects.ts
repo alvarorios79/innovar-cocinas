@@ -1909,12 +1909,10 @@ export const projectMaterialsRouter = router({
     get: protectedProcedure
       .input(z.object({ projectId: z.number() }))
       .query(async ({ input }) => {
-        // ESTRATEGIA: Obtener los ítems de la última versión de cotización
         const quotationItems = await db.getLatestQuotationItems(input.projectId);
         if (quotationItems && quotationItems.length > 0) {
-          return quotationItems;
+          return db.normalizeQuotationItemsToMaterials(quotationItems);
         }
-        // Fallback: obtener materiales del proyecto si no hay ítems de cotización
         const materials = await db.getProjectMaterials(input.projectId);
         return materials[0] ?? null;
       }),

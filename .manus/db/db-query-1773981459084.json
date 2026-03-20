@@ -1,0 +1,230 @@
+{
+  "query": "SELECT \n  q.id,\n  q.versionNumber,\n  q.baseQuotationId,\n  q.parentQuotationId,\n  q.quotationNumber,\n  q.total,\n  p.id as projectId,\n  p.quotationId as projectQuotationId,\n  p.totalAmount\nFROM quotations q\nLEFT JOIN projects p ON q.id = p.quotationId\nWHERE q.quotationNumber LIKE '%COT-2026%'\nORDER BY q.createdAt DESC\nLIMIT 20;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT \n  q.id,\n  q.versionNumber,\n  q.baseQuotationId,\n  q.parentQuotationId,\n  q.quotationNumber,\n  q.total,\n  p.id as projectId,\n  p.quotationId as projectQuotationId,\n  p.totalAmount\nFROM quotations q\nLEFT JOIN projects p ON q.id = p.quotationId\nWHERE q.quotationNumber LIKE '%COT-2026%'\nORDER BY q.createdAt DESC\nLIMIT 20;",
+  "rows": [
+    {
+      "id": "3360006",
+      "versionNumber": "4",
+      "baseQuotationId": "3330003",
+      "parentQuotationId": "3360005",
+      "quotationNumber": "COT-2026-1773896739549-3568750-v4",
+      "total": "4946875.00",
+      "projectId": "2550001",
+      "projectQuotationId": "3360006",
+      "totalAmount": "3946875.00"
+    },
+    {
+      "id": "3360005",
+      "versionNumber": "3",
+      "baseQuotationId": "3330003",
+      "parentQuotationId": "3360004",
+      "quotationNumber": "COT-2026-1773896739549-3568750-v3",
+      "total": "3946875.00",
+      "projectId": "NULL",
+      "projectQuotationId": "NULL",
+      "totalAmount": "NULL"
+    },
+    {
+      "id": "3360004",
+      "versionNumber": "2",
+      "baseQuotationId": "3330003",
+      "parentQuotationId": "3330003",
+      "quotationNumber": "COT-2026-1773896739549-3568750-v2",
+      "total": "2946875.00",
+      "projectId": "NULL",
+      "projectQuotationId": "NULL",
+      "totalAmount": "NULL"
+    },
+    {
+      "id": "3330003",
+      "versionNumber": "1",
+      "baseQuotationId": "NULL",
+      "parentQuotationId": "NULL",
+      "quotationNumber": "COT-2026-1773896739549-3568750",
+      "total": "2446875.00",
+      "projectId": "NULL",
+      "projectQuotationId": "NULL",
+      "totalAmount": "NULL"
+    },
+    {
+      "id": "3300004",
+      "versionNumber": "3",
+      "baseQuotationId": "3300002",
+      "parentQuotationId": "3300003",
+      "quotationNumber": "COT-2026-1773880842722-8765281-v3",
+      "total": "2599000.00",
+      "projectId": "NULL",
+      "projectQuotationId": "NULL",
+      "totalAmount": "NULL"
+    },
+    {
+      "id": "3300003",
+      "versionNumber": "2",
+      "baseQuotationId": "3300002",
+      "parentQuotationId": "3300002",
+      "quotationNumber": "COT-2026-1773880842722-8765281-v2",
+      "total": "2599000.00",
+      "projectId": "NULL",
+      "projectQuotationId": "NULL",
+      "totalAmount": "NULL"
+    },
+    {
+      "id": "3300002",
+      "versionNumber": "1",
+      "baseQuotationId": "NULL",
+      "parentQuotationId": "NULL",
+      "quotationNumber": "COT-2026-1773880842722-8765281",
+      "total": "2599000.00",
+      "projectId": "NULL",
+      "projectQuotationId": "NULL",
+      "totalAmount": "NULL"
+    },
+    {
+      "id": "3300001",
+      "versionNumber": "1",
+      "baseQuotationId": "NULL",
+      "parentQuotationId": "NULL",
+      "quotationNumber": "COT-2026-1773877538361-5974948",
+      "total": "50161215.00",
+      "projectId": "NULL",
+      "projectQuotationId": "NULL",
+      "totalAmount": "NULL"
+    },
+    {
+      "id": "3150001",
+      "versionNumber": "1",
+      "baseQuotationId": "NULL",
+      "parentQuotationId": "NULL",
+      "quotationNumber": "COT-2026-1773707533777-9014499",
+      "total": "2756000.00",
+      "projectId": "NULL",
+      "projectQuotationId": "NULL",
+      "totalAmount": "NULL"
+    },
+    {
+      "id": "3120001",
+      "versionNumber": "1",
+      "baseQuotationId": "NULL",
+      "parentQuotationId": "NULL",
+      "quotationNumber": "COT-2026-1773705949537-9883049",
+      "total": "22319500.00",
+      "projectId": "NULL",
+      "projectQuotationId": "NULL",
+      "totalAmount": "NULL"
+    },
+    {
+      "id": "3030001",
+      "versionNumber": "1",
+      "baseQuotationId": "NULL",
+      "parentQuotationId": "NULL",
+      "quotationNumber": "COT-2026-1773539040435-943369",
+      "total": "3500000.00",
+      "projectId": "2400001",
+      "projectQuotationId": "3030001",
+      "totalAmount": "3500000.00"
+    },
+    {
+      "id": "2970001",
+      "versionNumber": "1",
+      "baseQuotationId": "NULL",
+      "parentQuotationId": "NULL",
+      "quotationNumber": "COT-2026-1773448016668-1759804",
+      "total": "6587500.00",
+      "projectId": "2340001",
+      "projectQuotationId": "2970001",
+      "totalAmount": "6587500.00"
+    },
+    {
+      "id": "2940001",
+      "versionNumber": "1",
+      "baseQuotationId": "NULL",
+      "parentQuotationId": "NULL",
+      "quotationNumber": "COT-2026-1773352754220-6529183",
+      "total": "7594000.00",
+      "projectId": "2310001",
+      "projectQuotationId": "2940001",
+      "totalAmount": "7594000.00"
+    },
+    {
+      "id": "2670301",
+      "versionNumber": "1",
+      "baseQuotationId": "NULL",
+      "parentQuotationId": "NULL",
+      "quotationNumber": "COT-2026-1772833387900-2643089",
+      "total": "16650000.00",
+      "projectId": "2130117",
+      "projectQuotationId": "2670301",
+      "totalAmount": "16650000.00"
+    },
+    {
+      "id": "2670300",
+      "versionNumber": "1",
+      "baseQuotationId": "NULL",
+      "parentQuotationId": "NULL",
+      "quotationNumber": "COT-2026-1772833387899-2437183",
+      "total": "16780000.00",
+      "projectId": "2130116",
+      "projectQuotationId": "2670300",
+      "totalAmount": "16780000.00"
+    },
+    {
+      "id": "2670299",
+      "versionNumber": "1",
+      "baseQuotationId": "NULL",
+      "parentQuotationId": "NULL",
+      "quotationNumber": "COT-2026-1772833387898-7036206",
+      "total": "6600000.00",
+      "projectId": "2130115",
+      "projectQuotationId": "2670299",
+      "totalAmount": "6600000.00"
+    },
+    {
+      "id": "2670298",
+      "versionNumber": "1",
+      "baseQuotationId": "NULL",
+      "parentQuotationId": "NULL",
+      "quotationNumber": "COT-2026-1772833387897-0178652",
+      "total": "4460000.00",
+      "projectId": "2130114",
+      "projectQuotationId": "2670298",
+      "totalAmount": "4460000.00"
+    },
+    {
+      "id": "2670297",
+      "versionNumber": "1",
+      "baseQuotationId": "NULL",
+      "parentQuotationId": "NULL",
+      "quotationNumber": "COT-2026-1772833387896-9276683",
+      "total": "3400000.00",
+      "projectId": "2130113",
+      "projectQuotationId": "2670297",
+      "totalAmount": "3400000.00"
+    },
+    {
+      "id": "2670296",
+      "versionNumber": "1",
+      "baseQuotationId": "NULL",
+      "parentQuotationId": "NULL",
+      "quotationNumber": "COT-2026-1772833387895-6830938",
+      "total": "2860000.00",
+      "projectId": "2130112",
+      "projectQuotationId": "2670296",
+      "totalAmount": "2860000.00"
+    },
+    {
+      "id": "2670295",
+      "versionNumber": "1",
+      "baseQuotationId": "NULL",
+      "parentQuotationId": "NULL",
+      "quotationNumber": "COT-2026-1772833387894-8915020",
+      "total": "7305750.00",
+      "projectId": "2130111",
+      "projectQuotationId": "2670295",
+      "totalAmount": "7305750.00"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tversionNumber\tbaseQuotationId\tparentQuotationId\tquotationNumber\ttotal\tprojectId\tprojectQuotationId\ttotalAmount\n3360006\t4\t3330003\t3360005\tCOT-2026-1773896739549-3568750-v4\t4946875.00\t2550001\t3360006\t3946875.00\n3360005\t3\t3330003\t3360004\tCOT-2026-1773896739549-3568750-v3\t3946875.00\tNULL\tNULL\tNULL\n3360004\t2\t3330003\t3330003\tCOT-2026-1773896739549-3568750-v2\t2946875.00\tNULL\tNULL\tNULL\n3330003\t1\tNULL\tNULL\tCOT-2026-1773896739549-3568750\t2446875.00\tNULL\tNULL\tNULL\n3300004\t3\t3300002\t3300003\tCOT-2026-1773880842722-8765281-v3\t2599000.00\tNULL\tNULL\tNULL\n3300003\t2\t3300002\t3300002\tCOT-2026-1773880842722-8765281-v2\t2599000.00\tNULL\tNULL\tNULL\n3300002\t1\tNULL\tNULL\tCOT-2026-1773880842722-8765281\t2599000.00\tNULL\tNULL\tNULL\n3300001\t1\tNULL\tNULL\tCOT-2026-1773877538361-5974948\t50161215.00\tNULL\tNULL\tNULL\n3150001\t1\tNULL\tNULL\tCOT-2026-1773707533777-9014499\t2756000.00\tNULL\tNULL\tNULL\n3120001\t1\tNULL\tNULL\tCOT-2026-1773705949537-9883049\t22319500.00\tNULL\tNULL\tNULL\n3030001\t1\tNULL\tNULL\tCOT-2026-1773539040435-943369\t3500000.00\t2400001\t3030001\t3500000.00\n2970001\t1\tNULL\tNULL\tCOT-2026-1773448016668-1759804\t6587500.00\t2340001\t2970001\t6587500.00\n2940001\t1\tNULL\tNULL\tCOT-2026-1773352754220-6529183\t7594000.00\t2310001\t2940001\t7594000.00\n2670301\t1\tNULL\tNULL\tCOT-2026-1772833387900-2643089\t16650000.00\t2130117\t2670301\t16650000.00\n2670300\t1\tNULL\tNULL\tCOT-2026-1772833387899-2437183\t16780000.00\t2130116\t2670300\t16780000.00\n2670299\t1\tNULL\tNULL\tCOT-2026-1772833387898-7036206\t6600000.00\t2130115\t2670299\t6600000.00\n2670298\t1\tNULL\tNULL\tCOT-2026-1772833387897-0178652\t4460000.00\t2130114\t2670298\t4460000.00\n2670297\t1\tNULL\tNULL\tCOT-2026-1772833387896-9276683\t3400000.00\t2130113\t2670297\t3400000.00\n2670296\t1\tNULL\tNULL\tCOT-2026-1772833387895-6830938\t2860000.00\t2130112\t2670296\t2860000.00\n2670295\t1\tNULL\tNULL\tCOT-2026-1772833387894-8915020\t7305750.00\t2130111\t2670295\t7305750.00\n",
+  "stderr": "",
+  "execution_time_ms": 406
+}

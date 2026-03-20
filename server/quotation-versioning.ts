@@ -68,6 +68,7 @@ export async function getQuotationVersionChain(quotationId: number) {
   if (!quotation[0]) return [];
 
   const baseId = quotation[0].baseQuotationId || quotation[0].id;
+  console.log(`[VERSIONING-CHAIN] Buscando cadena para quotationId=${quotationId}, baseId=${baseId}, currentVersion=${quotation[0].versionNumber}`);
 
   // Get all versions that share the same base
   const allVersions = await db
@@ -84,9 +85,12 @@ export async function getQuotationVersionChain(quotationId: number) {
     })
     .from(quotations)
     .where(eq(quotations.baseQuotationId, baseId));
+  
+  console.log(`[VERSIONING-CHAIN] Versiones encontradas con baseQuotationId=${baseId}: ${allVersions.map(v => `V${v.versionNumber}(id=${v.id})`).join(', ')}`);
 
   // Include the base quotation itself if not already in the list
   if (!allVersions.some(v => v.id === baseId)) {
+    console.log(`[VERSIONING-CHAIN] Base quotation (id=${baseId}) no está en la lista, buscando...`);
     const baseQuotation = await db
       .select({
         id: quotations.id,
@@ -104,11 +108,18 @@ export async function getQuotationVersionChain(quotationId: number) {
       .limit(1);
 
     if (baseQuotation[0]) {
+      console.log(`[VERSIONING-CHAIN] Base quotation encontrada: V${baseQuotation[0].versionNumber}(id=${baseQuotation[0].id})`);
       allVersions.push(baseQuotation[0]);
+    } else {
+      console.log(`[VERSIONING-CHAIN] Base quotation NO encontrada para id=${baseId}`);
     }
+  } else {
+    console.log(`[VERSIONING-CHAIN] Base quotation ya está en la lista`);
   }
 
-  return allVersions.sort((a, b) => (a.versionNumber || 1) - (b.versionNumber || 1));
+  const sorted = allVersions.sort((a, b) => (a.versionNumber || 1) - (b.versionNumber || 1));
+  console.log(`[VERSIONING-CHAIN] Cadena final: ${sorted.map(v => `V${v.versionNumber}(id=${v.id})`).join(' -> ')}`);
+  return sorted;
 }
 
 /**

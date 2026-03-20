@@ -351,12 +351,16 @@ export default function Quotations() {
 
   // Mutación para crear nueva versión de cotización
   const createVersion = trpc.quotationsVersioning.createVersion.useMutation({
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       toast.success(`Nueva versión creada exitosamente`);
-      utils.quotations.list.invalidate();
-      utils.quotations.listPaginatedGrouped.invalidate();
-      // Abrir la nueva versión en el editor
-      handleEdit(data.newQuotationId);
+      // Invalidar queries y esperar a que se refresquen
+      await utils.quotations.list.invalidate();
+      await utils.quotations.listPaginatedGrouped.invalidate();
+      
+      // Esperar un poco para que React actualice el estado
+      setTimeout(() => {
+        handleEdit(data.newQuotationId);
+      }, 500);
     },
     onError: (error: any) => {
       toast.error(error.message || "Error al crear nueva versión");

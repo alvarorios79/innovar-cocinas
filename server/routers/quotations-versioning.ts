@@ -114,9 +114,11 @@ export const quotationsVersioningRouter = router({
         // Si encuentra proyecto, actualizar a la nueva versión
         if (project && newQuotation) {
           console.log(`[VERSIONING] Actualizando proyecto ${project.id} de V${project.quotationId} a nueva versión V${newQuotation.versionNumber} (ID: ${newQuotationId})`);
+          const newTotal = String(Number(newQuotation.total) || 0);
+          console.log(`[VERSIONING] Nuevo totalAmount a guardar: ${newTotal}`);
           await updateProject(project.id, {
             quotationId: newQuotationId,
-            totalAmount: (Number(newQuotation.total) || 0).toString(),
+            totalAmount: newTotal,
           });
           console.log(`[VERSIONING] Proyecto ${project.id} actualizado exitosamente. Nuevo total: $${newQuotation.total}`);
         } else if (!project) {

@@ -95,28 +95,32 @@ export const quotationsVersioningRouter = router({
         }
 
         // Actualizar el proyecto para que apunte a la nueva versión
-        // Buscar proyecto vinculado a cualquier versión de esta cotización
-        const versionInfo = await versioning.getQuotationVersionInfo(input.quotationId);
-        const baseId = versionInfo?.baseQuotationId || input.quotationId;
+        // Buscar proyecto vinculado a CUALQUIER versión de esta cotización
+        let project = null;
         
-        // Buscar proyecto vinculado a la cotización actual o a cualquier versión
-        let project = await getProjectByQuotationId(input.quotationId);
+        // Obtener todas las versiones de la cotización
+        const allVersions = await versioning.getQuotationVersionChain(input.quotationId);
+        console.log(`[VERSIONING] Cadena de versiones encontradas: ${allVersions.map(v => v.id).join(', ')}`);
         
-        // Si no encuentra proyecto en la versión actual, buscar en la base
-        if (!project && baseId !== input.quotationId) {
-          project = await getProjectByQuotationId(baseId);
+        // Buscar proyecto en cualquier versión
+        for (const version of allVersions) {
+          project = await getProjectByQuotationId(version.id);
+          if (project) {
+            console.log(`[VERSIONING] Proyecto encontrado en versión ${version.versionNumber} (ID: ${version.id})`);
+            break;
+          }
         }
         
         // Si encuentra proyecto, actualizar a la nueva versión
         if (project && newQuotation) {
-          console.log(`[VERSIONING] Actualizando proyecto ${project.id} a nueva versión ${newQuotationId}`);
+          console.log(`[VERSIONING] Actualizando proyecto ${project.id} de V${project.quotationId} a nueva versión V${newQuotation.versionNumber} (ID: ${newQuotationId})`);
           await updateProject(project.id, {
             quotationId: newQuotationId,
             totalAmount: (Number(newQuotation.total) || 0).toString(),
           });
-          console.log(`[VERSIONING] Proyecto ${project.id} actualizado exitosamente a V${newQuotation.versionNumber}`);
+          console.log(`[VERSIONING] Proyecto ${project.id} actualizado exitosamente. Nuevo total: $${newQuotation.total}`);
         } else if (!project) {
-          console.log(`[VERSIONING] No se encontró proyecto vinculado a la cotización ${input.quotationId}`);
+          console.log(`[VERSIONING] No se encontró proyecto vinculado a ninguna versión de la cotización ${input.quotationId}`);
         }
 
         return { newQuotationId };

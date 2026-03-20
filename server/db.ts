@@ -445,6 +445,21 @@ export async function getLatestApprovedQuotationVersion(quotationId: number) {
   return result.length > 0 ? result[0] : undefined;
 }
 
+export async function getLatestQuotationByBaseId(baseQuotationId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db.select().from(quotations)
+    .where(and(
+      eq(quotations.baseQuotationId, baseQuotationId),
+      eq(quotations.dataOrigin, 'manual')
+    ))
+    .orderBy(desc(quotations.versionNumber))
+    .limit(1);
+
+  return result.length > 0 ? result[0] : undefined;
+}
+
 export async function updateQuotation(id: number, data: Partial<InsertQuotation>) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
@@ -897,7 +912,23 @@ export async function calculateProjectBalance(projectId: number) {
   }
 
   const projectData = project[0];
-  const totalAmount = parseFloat(projectData.totalAmount?.toString() || '0');
+  
+  // ESTRATEGIA: Obtener dinamicamente el precio de la ultima version de cotizacion
+  let totalAmount = parseFloat(projectData.totalAmount?.toString() || '0');
+  
+  if (projectData.quotationId) {
+    try {
+      const originalQuotation = await getQuotationById(projectData.quotationId);
+      if (originalQuotation?.baseQuotationId) {
+        const latestQuotation = await getLatestQuotationByBaseId(originalQuotation.baseQuotationId);
+        if (latestQuotation?.total) {
+          totalAmount = parseFloat(latestQuotation.total.toString());
+        }
+      }
+    } catch (error) {
+      console.error('[calculateProjectBalance] Error obteniendo ultima version:', error);
+    }
+  }
 
   // Get all payments for this project
   const projectPayments = await db.select().from(payments).where(eq(payments.projectId, projectId));

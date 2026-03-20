@@ -172,14 +172,23 @@ export const projectsRouter = router({
         const allClients = await db.getAllClients();
         const clientMap = new Map(allClients.map(c => [c.id, c]));
         
-        // Obtener quotationNumber para cada proyecto
+        // Obtener quotationNumber para cada proyecto (ESTRATEGIA: obtener dinamicamente la ultima version)
         const projectsWithQuotations = await Promise.all(
           filteredData.map(async (p) => {
             let quotationNumber = p.name; // Fallback al nombre guardado
             if (p.quotationId) {
-              const quotation = await db.getQuotationById(p.quotationId);
-              if (quotation?.quotationNumber) {
-                quotationNumber = quotation.quotationNumber;
+              try {
+                const originalQuotation = await db.getQuotationById(p.quotationId);
+                if (originalQuotation?.baseQuotationId) {
+                  const latestQuotation = await db.getLatestQuotationByBaseId(originalQuotation.baseQuotationId);
+                  if (latestQuotation?.quotationNumber) {
+                    quotationNumber = latestQuotation.quotationNumber;
+                  }
+                } else if (originalQuotation?.quotationNumber) {
+                  quotationNumber = originalQuotation.quotationNumber;
+                }
+              } catch (error) {
+                console.error('[listPaginated] Error obteniendo ultima version:', error);
               }
             }
             return { ...p, name: quotationNumber, client: clientMap.get(p.clientId) };
@@ -207,13 +216,17 @@ export const projectsRouter = router({
         }
 
         // Optimización: ejecutar consultas en paralelo
+        // ESTRATEGIA: Obtener la cotización original para acceder a baseQuotationId
+        const originalQuotation = project.quotationId ? await db.getQuotationById(project.quotationId) : null;
+        const baseQuotationId = originalQuotation?.baseQuotationId || project.quotationId;
+        
         const [client, photosRaw, details, history, projectTasks, quotation, payments, clientAppointments, clientRevisions, totalPaidFromPayments, projectBalance] = await Promise.all([
           db.getClientById(project.clientId),
           db.getProjectPhotos(input.id),
           db.getProjectDetailsByProjectId(input.id),
           db.getProjectStatusHistory(input.id),
           db.getTasksByProject(input.id),
-          project.quotationId ? db.getQuotationById(project.quotationId) : Promise.resolve(null),
+          baseQuotationId ? db.getLatestQuotationByBaseId(baseQuotationId) : Promise.resolve(null),
           db.getPaymentsByProject(input.id),
           db.getAppointmentsByClient(project.clientId),
           Promise.resolve([]),
@@ -367,6 +380,8 @@ export const projectsRouter = router({
 
         const result = {
           ...project,
+          // ESTRATEGIA: Usar el quotationNumber de la ultima version en lugar del nombre guardado
+          name: quotation?.quotationNumber || project.name,
           quotationId: project.quotationId,
           client,
           photos,

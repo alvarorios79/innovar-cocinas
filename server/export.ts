@@ -1,4 +1,4 @@
-import { getDb } from './db';
+import { getDb, getQuotationById, getLatestQuotationByBaseId } from './db';
 import { projects, payments, expenses, clients, quotations } from '../drizzle/schema';
 import { eq, and, isNull, desc } from 'drizzle-orm';
 
@@ -41,13 +41,20 @@ export async function getProjectsForExport(archived?: boolean): Promise<ProjectE
         .limit(1);
       const clientName = client[0]?.name || 'N/A';
 
-      // Obtener cotización
+      // Obtener cotización (ESTRATEGIA: obtener dinamicamente la ultima version)
       let quotationNumber = 'N/A';
       if (project.quotationId) {
-        const quotation = await db.select().from(quotations)
-          .where(eq(quotations.id, project.quotationId))
-          .limit(1);
-        quotationNumber = quotation[0]?.quotationNumber || 'N/A';
+        try {
+          const originalQuotation = await getQuotationById(project.quotationId);
+          if (originalQuotation?.baseQuotationId) {
+            const latestQuotation = await getLatestQuotationByBaseId(originalQuotation.baseQuotationId);
+            quotationNumber = latestQuotation?.quotationNumber || 'N/A';
+          } else if (originalQuotation?.quotationNumber) {
+            quotationNumber = originalQuotation.quotationNumber;
+          }
+        } catch (error) {
+          console.error('[export] Error obteniendo ultima version:', error);
+        }
       }
 
       // Obtener pagos del proyecto

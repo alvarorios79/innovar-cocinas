@@ -17,6 +17,7 @@ import {
   DollarSign,
   TrendingUp,
   Loader2,
+  RotateCcw,
 } from "lucide-react";
 import {
   AlertDialog,
@@ -80,6 +81,19 @@ export function AccountingClosureTab() {
       utils.accountingClosures.list.invalidate();
       setSelectedClosureId(null);
       setShowConfirmDialog(false);
+    },
+    onError: (error) => {
+      toast.error(`Error: ${error.message}`);
+    },
+  });
+
+  const [showRevertDialog, setShowRevertDialog] = useState(false);
+  const revertClosure = trpc.accountingClosures.revert.useMutation({
+    onSuccess: (data) => {
+      toast.success(`✅ Cierre revertido. ${data.projectsUnlinked} proyectos desvinculados`);
+      utils.accountingClosures.list.invalidate();
+      setSelectedClosureId(null);
+      setShowRevertDialog(false);
     },
     onError: (error) => {
       toast.error(`Error: ${error.message}`);
@@ -415,9 +429,22 @@ export function AccountingClosureTab() {
                   )}
 
                   {closure.status === "confirmed" && (
-                    <div className="flex items-center gap-2 text-green-600 text-sm">
-                      <Lock className="h-4 w-4" />
-                      <span>Cierre confirmado y bloqueado</span>
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2 text-green-600 text-sm">
+                        <Lock className="h-4 w-4" />
+                        <span>Cierre confirmado y bloqueado</span>
+                      </div>
+                      <Button
+                        onClick={() => {
+                          setSelectedClosureId(closure.id);
+                          setShowRevertDialog(true);
+                        }}
+                        variant="outline"
+                        className="w-full text-orange-600 border-orange-600 hover:bg-orange-50"
+                      >
+                        <RotateCcw className="h-4 w-4 mr-2" />
+                        Revertir Cierre
+                      </Button>
                     </div>
                   )}
                 </CardContent>
@@ -451,6 +478,41 @@ export function AccountingClosureTab() {
                 </>
               ) : (
                 "Confirmar"
+              )}
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Revert Dialog */}
+      <AlertDialog open={showRevertDialog} onOpenChange={setShowRevertDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Revertir Cierre Contable</AlertDialogTitle>
+            <AlertDialogDescription>
+              ¿Estás seguro de que deseas revertir este cierre? Los proyectos volverán a estar
+              archivados y serán elegibles para un nuevo cierre. Esta acción no se puede deshacer
+              fácilmente.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex gap-3">
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (selectedClosureId) {
+                  revertClosure.mutate({ closureId: selectedClosureId });
+                }
+              }}
+              disabled={revertClosure.isPending}
+              className="bg-orange-600 hover:bg-orange-700"
+            >
+              {revertClosure.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Revirtiendo...
+                </>
+              ) : (
+                "Revertir"
               )}
             </AlertDialogAction>
           </div>

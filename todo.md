@@ -5492,3 +5492,15 @@ Listo para pasar a Fase 7.2 (Intelligent Alerts) cuando sea requerido.
   - [ ] Probar Dashboard en navegador
   - [ ] Verificar que gráfico muestre datos correctos
   - [ ] Guardar checkpoint
+
+
+## Reversión de Cierres Contables
+
+- [x] Implementar endpoint `revertAccountingClosure()` en server/routers/accountingClosures.ts
+  - [x] Cambiar status de CONFIRMED a DRAFT
+  - [x] Limpiar accountingClosureId de todos los proyectos incluidos
+  - [x] Usar transacción para garantizar integridad
+  - [x] Validar que no hay dependencias críticas
+- [x] Crear tests para validar reversión (server/accounting-closure-revert.test.ts)
+- [x] Integrar botón de reversión en UI (client/src/components/AccountingClosureTab.tsx)
+- [x] Validar flujo completo: crear → confirmar → revertir → elegible nuevamente

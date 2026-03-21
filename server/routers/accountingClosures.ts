@@ -9,6 +9,7 @@ import {
   getAccountingClosures,
   getClosureDetails,
   confirmAccountingClosure,
+  revertAccountingClosure,
   getClosureProjects,
   getClosureReportsByPeriod,
   getClosureSummary,
@@ -182,6 +183,47 @@ export const accountingClosuresRouter = router({
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Error al confirmar cierre contable",
+        });
+      }
+    }),
+
+  /**
+   * Revert an accounting closure from CONFIRMED back to DRAFT
+   */
+  revert: adminProcedure
+    .input(z.object({ closureId: z.number() }))
+    .mutation(async ({ input, ctx }) => {
+      try {
+        // Verify closure exists
+        const closure = await getClosureDetails(input.closureId);
+        if (!closure) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Cierre contable no encontrado",
+          });
+        }
+
+        // Verify closure is in confirmed status
+        if (closure.status !== "confirmed") {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Solo cierres confirmados pueden ser revertidos",
+          });
+        }
+
+        const result = await revertAccountingClosure(input.closureId, ctx.user.id);
+
+        return {
+          message: "Cierre contable revertido exitosamente",
+          projectsUnlinked: result.projectsUnlinked,
+          revertedAt: result.revertedAt,
+        };
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        console.error("[AccountingClosures] Error reverting closure:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Error al revertir cierre contable",
         });
       }
     }),

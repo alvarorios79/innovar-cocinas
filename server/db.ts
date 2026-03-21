@@ -4091,3 +4091,102 @@ export async function getClosedProjects(filters?: {
     return [];
   }
 }
+
+
+/**
+ * Revert an accounting closure from CONFIRMED back to DRAFT
+ * This removes the accountingClosureId from all linked projects
+ * @param closureId - ID of the closure to revert
+ * @param revertedBy - User ID who is reverting the closure
+ */
+export async function revertAccountingClosure(closureId: number, revertedBy: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  try {
+    // PASO 1: Verificar que el cierre exista y esté en CONFIRMED
+    const existingClosure = await db
+      .select()
+      .from(accountingClosures)
+      .where(eq(accountingClosures.id, closureId))
+      .limit(1);
+    
+    if (existingClosure.length === 0) {
+      throw new Error(`Cierre contable ${closureId} no encontrado`);
+    }
+    
+    const closure = existingClosure[0];
+    
+    if (closure.status !== 'confirmed') {
+      throw new Error(
+        `No se puede revertir cierre en estado ${closure.status}. Solo cierres CONFIRMED pueden ser revertidos.`
+      );
+    }
+    
+    console.log(`[CLOSURE REVERT ${closureId}] Iniciando reversión...`);
+    
+    // PASO 2: Obtener todos los proyectos del cierre
+    const closureProjects = await db
+      .select()
+      .from(accountingClosureProjects)
+      .where(eq(accountingClosureProjects.closureId, closureId));
+    
+    console.log(`[CLOSURE REVERT ${closureId}] Encontrados ${closureProjects.length} proyectos vinculados`);
+    
+    // PASO 3: Usar transacción para desvinculación de proyectos y revertir cierre
+    const result = await db.transaction(async (tx) => {
+      // Desvinculación de cada proyecto del cierre
+      for (const closureProject of closureProjects) {
+        await tx
+          .update(projects)
+          .set({ accountingClosureId: null })
+          .where(eq(projects.id, closureProject.projectId));
+        
+        console.log(
+          `[CLOSURE REVERT ${closureId}] Proyecto ${closureProject.projectId} desvinculado del cierre`
+        );
+      }
+      
+      // PASO 4: Cambiar estado del cierre a DRAFT
+      const now = new Date().toISOString();
+      
+      await tx
+        .update(accountingClosures)
+        .set({
+          status: 'draft',
+          confirmedBy: null,
+          confirmedAt: null,
+          updatedAt: now,
+        })
+        .where(eq(accountingClosures.id, closureId));
+      
+      console.log(
+        `[CLOSURE REVERT ${closureId}] Estado cambiado a DRAFT. Proyectos desvinculados: ${closureProjects.length}`
+      );
+      
+      return {
+        closureId,
+        projectsUnlinked: closureProjects.length,
+        revertedAt: now,
+      };
+    });
+    
+    // PASO 5: Registrar en audit log
+    await logClosureAudit(
+      closureId,
+      'deleted',
+      revertedBy,
+      {
+        projectsUnlinked: closureProjects.length,
+        previousStatus: 'confirmed',
+        newStatus: 'draft',
+        action: 'reverted',
+      }
+    );
+    
+    return result;
+  } catch (error) {
+    console.error(`[CLOSURE REVERT ${closureId}] Error:`, error);
+    throw error;
+  }
+}

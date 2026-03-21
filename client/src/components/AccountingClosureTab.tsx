@@ -105,7 +105,7 @@ export function AccountingClosureTab() {
     if (!pendingProjects) return { sales: 0, expenses: 0, profit: 0 };
 
     const selected = pendingProjects.filter((p) =>
-      selectedProjects.includes(p.id)
+      selectedProjects.includes(p.projectId)
     );
 
     let sales = 0;
@@ -278,17 +278,17 @@ export function AccountingClosureTab() {
                 <div className="space-y-3">
                   {pendingProjects.map((project) => (
                     <div
-                      key={project.id}
+                      key={project.projectId}
                       className="flex items-center gap-3 p-3 border rounded-lg hover:bg-gray-50"
                     >
                       <Checkbox
-                        checked={selectedProjects.includes(project.id)}
-                        onCheckedChange={() => handleToggleProject(project.id)}
+                        checked={selectedProjects.includes(project.projectId)}
+                        onCheckedChange={() => handleToggleProject(project.projectId)}
                       />
                       <div className="flex-1">
-                        <p className="font-medium">{project.name}</p>
+                        <p className="font-medium">{project.projectName}</p>
                         <p className="text-sm text-gray-600">
-                          Cliente: {project.clientId}
+                          Cliente: {project.clientName}
                         </p>
                       </div>
                       <div className="text-right">

@@ -30,17 +30,17 @@ import {
 
 export const accountingClosuresRouter = router({
   /**
-   * Get archived projects pending closure
+   * Get eligible projects for accounting closure (archived + fully paid + no closure)
    */
   getPendingProjects: adminProcedure.query(async () => {
     try {
-      const projects = await getPendingClosureProjects();
+      const projects = await getEligibleProjectsForAccountingClosure();
       return projects;
     } catch (error) {
       console.error("[AccountingClosures] Error getting pending projects:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
-        message: "Error al obtener proyectos pendientes de cierre",
+        message: "Error al obtener proyectos elegibles para cierre",
       });
     }
   }),

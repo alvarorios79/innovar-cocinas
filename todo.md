@@ -5504,3 +5504,10 @@ Listo para pasar a Fase 7.2 (Intelligent Alerts) cuando sea requerido.
 - [x] Crear tests para validar reversión (server/accounting-closure-revert.test.ts)
 - [x] Integrar botón de reversión en UI (client/src/components/AccountingClosureTab.tsx)
 - [x] Validar flujo completo: crear → confirmar → revertir → elegible nuevamente
+
+
+## Bug Fix: Filtrado de Proyectos Elegibles en Cierre Contable
+
+- [x] Identificar que getPendingClosureProjects() retornaba TODOS los archivados
+- [x] Cambiar getPendingProjects para usar getEligibleProjectsForAccountingClosure()
+- [x] Validar que SOLO aparecen proyectos con balance=0 (pagados al 100%)

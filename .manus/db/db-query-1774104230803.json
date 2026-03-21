@@ -1,0 +1,100 @@
+{
+  "query": "SELECT e.id, e.projectId, e.expenseType, e.amount, e.expenseDate, e.dataOrigin, p.name as projectName FROM expenses e LEFT JOIN projects p ON e.projectId = p.id WHERE e.expenseType = 'materiales_proyecto' AND e.dataOrigin = 'manual' AND e.deletedAt IS NULL LIMIT 10",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT e.id, e.projectId, e.expenseType, e.amount, e.expenseDate, e.dataOrigin, p.name as projectName FROM expenses e LEFT JOIN projects p ON e.projectId = p.id WHERE e.expenseType = 'materiales_proyecto' AND e.dataOrigin = 'manual' AND e.deletedAt IS NULL LIMIT 10",
+  "rows": [
+    {
+      "id": "360010",
+      "projectId": "2130105",
+      "expenseType": "materiales_proyecto",
+      "amount": "1497251.00",
+      "expenseDate": "2026-01-08 00:00:00",
+      "dataOrigin": "manual",
+      "projectName": "COT-2026-1772833387888-6786153 - Sras. Maria Clara & Ana milena"
+    },
+    {
+      "id": "360009",
+      "projectId": "2130105",
+      "expenseType": "materiales_proyecto",
+      "amount": "1295000.00",
+      "expenseDate": "2026-01-08 00:00:00",
+      "dataOrigin": "manual",
+      "projectName": "COT-2026-1772833387888-6786153 - Sras. Maria Clara & Ana milena"
+    },
+    {
+      "id": "360008",
+      "projectId": "2130105",
+      "expenseType": "materiales_proyecto",
+      "amount": "360000.00",
+      "expenseDate": "2026-01-08 00:00:00",
+      "dataOrigin": "manual",
+      "projectName": "COT-2026-1772833387888-6786153 - Sras. Maria Clara & Ana milena"
+    },
+    {
+      "id": "360007",
+      "projectId": "2130105",
+      "expenseType": "materiales_proyecto",
+      "amount": "5000000.00",
+      "expenseDate": "2026-01-08 00:00:00",
+      "dataOrigin": "manual",
+      "projectName": "COT-2026-1772833387888-6786153 - Sras. Maria Clara & Ana milena"
+    },
+    {
+      "id": "360005",
+      "projectId": "2130107",
+      "expenseType": "materiales_proyecto",
+      "amount": "90000.00",
+      "expenseDate": "2026-01-06 00:00:00",
+      "dataOrigin": "manual",
+      "projectName": "COT-2026-1772833387890-1825427 - Diana Ortiz"
+    },
+    {
+      "id": "360003",
+      "projectId": "2130107",
+      "expenseType": "materiales_proyecto",
+      "amount": "1097067.00",
+      "expenseDate": "2026-01-01 00:00:00",
+      "dataOrigin": "manual",
+      "projectName": "COT-2026-1772833387890-1825427 - Diana Ortiz"
+    },
+    {
+      "id": "360002",
+      "projectId": "2130107",
+      "expenseType": "materiales_proyecto",
+      "amount": "5199991.00",
+      "expenseDate": "2026-01-01 00:00:00",
+      "dataOrigin": "manual",
+      "projectName": "COT-2026-1772833387890-1825427 - Diana Ortiz"
+    },
+    {
+      "id": "360001",
+      "projectId": "2130107",
+      "expenseType": "materiales_proyecto",
+      "amount": "4803761.00",
+      "expenseDate": "2026-01-01 00:00:00",
+      "dataOrigin": "manual",
+      "projectName": "COT-2026-1772833387890-1825427 - Diana Ortiz"
+    },
+    {
+      "id": "360006",
+      "projectId": "2130108",
+      "expenseType": "materiales_proyecto",
+      "amount": "1565000.00",
+      "expenseDate": "2026-01-06 00:00:00",
+      "dataOrigin": "manual",
+      "projectName": "COT-2026-1772833387891-2667628 - Felipe Quintero"
+    },
+    {
+      "id": "360004",
+      "projectId": "2130108",
+      "expenseType": "materiales_proyecto",
+      "amount": "140000.00",
+      "expenseDate": "2026-01-01 00:00:00",
+      "dataOrigin": "manual",
+      "projectName": "COT-2026-1772833387891-2667628 - Felipe Quintero"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tprojectId\texpenseType\tamount\texpenseDate\tdataOrigin\tprojectName\n360010\t2130105\tmateriales_proyecto\t1497251.00\t2026-01-08 00:00:00\tmanual\tCOT-2026-1772833387888-6786153 - Sras. Maria Clara & Ana milena\n360009\t2130105\tmateriales_proyecto\t1295000.00\t2026-01-08 00:00:00\tmanual\tCOT-2026-1772833387888-6786153 - Sras. Maria Clara & Ana milena\n360008\t2130105\tmateriales_proyecto\t360000.00\t2026-01-08 00:00:00\tmanual\tCOT-2026-1772833387888-6786153 - Sras. Maria Clara & Ana milena\n360007\t2130105\tmateriales_proyecto\t5000000.00\t2026-01-08 00:00:00\tmanual\tCOT-2026-1772833387888-6786153 - Sras. Maria Clara & Ana milena\n360005\t2130107\tmateriales_proyecto\t90000.00\t2026-01-06 00:00:00\tmanual\tCOT-2026-1772833387890-1825427 - Diana Ortiz\n360003\t2130107\tmateriales_proyecto\t1097067.00\t2026-01-01 00:00:00\tmanual\tCOT-2026-1772833387890-1825427 - Diana Ortiz\n360002\t2130107\tmateriales_proyecto\t5199991.00\t2026-01-01 00:00:00\tmanual\tCOT-2026-1772833387890-1825427 - Diana Ortiz\n360001\t2130107\tmateriales_proyecto\t4803761.00\t2026-01-01 00:00:00\tmanual\tCOT-2026-1772833387890-1825427 - Diana Ortiz\n360006\t2130108\tmateriales_proyecto\t1565000.00\t2026-01-06 00:00:00\tmanual\tCOT-2026-1772833387891-2667628 - Felipe Quintero\n360004\t2130108\tmateriales_proyecto\t140000.00\t2026-01-01 00:00:00\tmanual\tCOT-2026-1772833387891-2667628 - Felipe Quintero\n",
+  "stderr": "",
+  "execution_time_ms": 62
+}

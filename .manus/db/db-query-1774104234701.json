@@ -1,0 +1,90 @@
+{
+  "query": "SELECT id, operativeCategory, description, amount, expenseDate, dataOrigin FROM expenses WHERE expenseType = 'gasto_operativo' AND dataOrigin = 'manual' AND deletedAt IS NULL LIMIT 10",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT id, operativeCategory, description, amount, expenseDate, dataOrigin FROM expenses WHERE expenseType = 'gasto_operativo' AND dataOrigin = 'manual' AND deletedAt IS NULL LIMIT 10",
+  "rows": [
+    {
+      "id": "330001",
+      "operativeCategory": "otro",
+      "description": "pago contador",
+      "amount": "350000.00",
+      "expenseDate": "2026-01-13 00:00:00",
+      "dataOrigin": "manual"
+    },
+    {
+      "id": "330002",
+      "operativeCategory": "otro",
+      "description": "Industria y comercio",
+      "amount": "169000.00",
+      "expenseDate": "2026-01-13 00:00:00",
+      "dataOrigin": "manual"
+    },
+    {
+      "id": "330003",
+      "operativeCategory": "internet",
+      "description": "Internet",
+      "amount": "182690.00",
+      "expenseDate": "2026-01-15 00:00:00",
+      "dataOrigin": "manual"
+    },
+    {
+      "id": "330004",
+      "operativeCategory": "transporte",
+      "description": "Gasolina Luchito",
+      "amount": "150000.00",
+      "expenseDate": "2026-01-15 00:00:00",
+      "dataOrigin": "manual"
+    },
+    {
+      "id": "330005",
+      "operativeCategory": "otro",
+      "description": "Quincena Nomina Daniel",
+      "amount": "1296488.00",
+      "expenseDate": "2026-01-16 00:00:00",
+      "dataOrigin": "manual"
+    },
+    {
+      "id": "330006",
+      "operativeCategory": "otro",
+      "description": "Pago Diseñador",
+      "amount": "400000.00",
+      "expenseDate": "2026-01-16 00:00:00",
+      "dataOrigin": "manual"
+    },
+    {
+      "id": "330007",
+      "operativeCategory": "transporte",
+      "description": "Gasolina Alvaro",
+      "amount": "218004.00",
+      "expenseDate": "2026-01-17 00:00:00",
+      "dataOrigin": "manual"
+    },
+    {
+      "id": "330008",
+      "operativeCategory": "transporte",
+      "description": "Gasolina Daniel",
+      "amount": "20000.00",
+      "expenseDate": "2026-01-17 00:00:00",
+      "dataOrigin": "manual"
+    },
+    {
+      "id": "330009",
+      "operativeCategory": "transporte",
+      "description": "Gasolina Lucho",
+      "amount": "150000.00",
+      "expenseDate": "2026-03-23 00:00:00",
+      "dataOrigin": "manual"
+    },
+    {
+      "id": "330010",
+      "operativeCategory": "transporte",
+      "description": "Gasolina Alvaro",
+      "amount": "185335.00",
+      "expenseDate": "2026-01-30 00:00:00",
+      "dataOrigin": "manual"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\toperativeCategory\tdescription\tamount\texpenseDate\tdataOrigin\n330001\totro\tpago contador\t350000.00\t2026-01-13 00:00:00\tmanual\n330002\totro\tIndustria y comercio\t169000.00\t2026-01-13 00:00:00\tmanual\n330003\tinternet\tInternet\t182690.00\t2026-01-15 00:00:00\tmanual\n330004\ttransporte\tGasolina Luchito\t150000.00\t2026-01-15 00:00:00\tmanual\n330005\totro\tQuincena Nomina Daniel\t1296488.00\t2026-01-16 00:00:00\tmanual\n330006\totro\tPago Diseñador\t400000.00\t2026-01-16 00:00:00\tmanual\n330007\ttransporte\tGasolina Alvaro\t218004.00\t2026-01-17 00:00:00\tmanual\n330008\ttransporte\tGasolina Daniel\t20000.00\t2026-01-17 00:00:00\tmanual\n330009\ttransporte\tGasolina Lucho\t150000.00\t2026-03-23 00:00:00\tmanual\n330010\ttransporte\tGasolina Alvaro\t185335.00\t2026-01-30 00:00:00\tmanual\n",
+  "stderr": "",
+  "execution_time_ms": 57
+}

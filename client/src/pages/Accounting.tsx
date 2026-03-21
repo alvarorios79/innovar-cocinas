@@ -304,37 +304,39 @@ export default function Accounting() {
       />
       {/* Botón de navegación */}
       <div className="bg-white border-b shadow-sm">
-        <div className="container max-w-6xl mx-auto px-4 py-3">
+        <div className="container max-w-6xl mx-auto px-4 py-2 md:py-3">
           <Link href="/admin">
             <Button
               variant="ghost"
-              className="w-full md:w-auto h-10 md:h-9 mb-3 md:mb-0 text-gray-700 hover:text-teal-600 hover:bg-teal-50"
+              className="w-full md:w-auto h-9 md:h-9 text-xs md:text-sm text-gray-700 hover:text-teal-600 hover:bg-teal-50"
             >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Volver al Panel
+              <ArrowLeft className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
+              <span className="hidden sm:inline">Volver al Panel</span>
+              <span className="sm:hidden">Volver</span>
             </Button>
           </Link>
         </div>
       </div>
 
-      {/* Header */}
+      {/* Header - Responsive */}
       <div className="bg-white border-b shadow-sm">
-        <div className="container max-w-6xl mx-auto px-4 py-6">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <Calculator className="h-8 w-8 text-teal-600" />
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">Contabilidad</h1>
-                <p className="text-gray-600">Registro de gastos del proyecto</p>
+        <div className="container max-w-6xl mx-auto px-4 py-4 md:py-6">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-4">
+            <div className="flex items-center gap-2 md:gap-3">
+              <Calculator className="h-6 w-6 md:h-8 md:w-8 text-teal-600 flex-shrink-0" />
+              <div className="min-w-0">
+                <h1 className="text-xl md:text-3xl font-bold text-gray-900 truncate">Contabilidad</h1>
+                <p className="text-xs md:text-sm text-gray-600 hidden sm:block">Registro de gastos del proyecto</p>
               </div>
             </div>
             {canImport && (
               <Button
                 onClick={() => setImportModalOpen(true)}
-                className="bg-teal-600 hover:bg-teal-700 text-white"
+                className="bg-teal-600 hover:bg-teal-700 text-white w-full md:w-auto text-xs md:text-sm py-2 md:py-2"
               >
-                <Upload className="h-4 w-4 mr-2" />
-                Importar gastos
+                <Upload className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
+                <span className="hidden sm:inline">Importar gastos</span>
+                <span className="sm:hidden">Importar</span>
               </Button>
             )}
           </div>
@@ -342,48 +344,55 @@ export default function Accounting() {
       </div>
 
       <div className="container max-w-6xl mx-auto px-4 py-8">
-        {/* TAB Navigation */}
-        <div className="flex gap-2 border-b mb-8">
-          <Button
-            variant={activeTab === "expenses" ? "default" : "ghost"}
-            onClick={() => setActiveTab("expenses")}
-            className="rounded-b-none"
-          >
-            <DollarSign className="h-4 w-4 mr-2" />
-            Gastos
-          </Button>
-          <Button
-            variant={activeTab === "closure" ? "default" : "ghost"}
-            onClick={() => setActiveTab("closure")}
-            className="rounded-b-none"
-          >
-            <Calculator className="h-4 w-4 mr-2" />
-            Cierre Contable
-          </Button>
-          <Button
-            variant={activeTab === "confirmed" ? "default" : "ghost"}
-            onClick={() => setActiveTab("confirmed")}
-            className="rounded-b-none"
-          >
-            <CheckCircle2 className="h-4 w-4 mr-2" />
-            Cierres Confirmados
-          </Button>
-          <Button
-            variant={activeTab === "closed" ? "default" : "ghost"}
-            onClick={() => setActiveTab("closed")}
-            className="rounded-b-none"
-          >
-            <Archive className="h-4 w-4 mr-2" />
-            Proyectos Cerrados
-          </Button>
-          <Button
-            variant={activeTab === "reports" ? "default" : "ghost"}
-            onClick={() => setActiveTab("reports")}
-            className="rounded-b-none"
-          >
-            <TrendingUp className="h-4 w-4 mr-2" />
-            Reportes
-          </Button>
+        {/* TAB Navigation - Responsive */}
+        <div className="overflow-x-auto -mx-4 px-4 mb-8">
+          <div className="flex gap-2 border-b min-w-max md:min-w-0">
+            <Button
+              variant={activeTab === "expenses" ? "default" : "ghost"}
+              onClick={() => setActiveTab("expenses")}
+              className="rounded-b-none whitespace-nowrap text-xs sm:text-sm md:text-base px-2 sm:px-3 md:px-4"
+            >
+              <DollarSign className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Gastos</span>
+              <span className="sm:hidden">Gastos</span>
+            </Button>
+            <Button
+              variant={activeTab === "closure" ? "default" : "ghost"}
+              onClick={() => setActiveTab("closure")}
+              className="rounded-b-none whitespace-nowrap text-xs sm:text-sm md:text-base px-2 sm:px-3 md:px-4"
+            >
+              <Calculator className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Cierre</span>
+              <span className="sm:hidden">Cierre</span>
+            </Button>
+            <Button
+              variant={activeTab === "confirmed" ? "default" : "ghost"}
+              onClick={() => setActiveTab("confirmed")}
+              className="rounded-b-none whitespace-nowrap text-xs sm:text-sm md:text-base px-2 sm:px-3 md:px-4"
+            >
+              <CheckCircle2 className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Confirmados</span>
+              <span className="sm:hidden">Conf.</span>
+            </Button>
+            <Button
+              variant={activeTab === "closed" ? "default" : "ghost"}
+              onClick={() => setActiveTab("closed")}
+              className="rounded-b-none whitespace-nowrap text-xs sm:text-sm md:text-base px-2 sm:px-3 md:px-4"
+            >
+              <Archive className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Cerrados</span>
+              <span className="sm:hidden">Cerr.</span>
+            </Button>
+            <Button
+              variant={activeTab === "reports" ? "default" : "ghost"}
+              onClick={() => setActiveTab("reports")}
+              className="rounded-b-none whitespace-nowrap text-xs sm:text-sm md:text-base px-2 sm:px-3 md:px-4"
+            >
+              <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Reportes</span>
+              <span className="sm:hidden">Rep.</span>
+            </Button>
+          </div>
         </div>
 
         {/* EXPENSES TAB */}

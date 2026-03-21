@@ -5511,3 +5511,19 @@ Listo para pasar a Fase 7.2 (Intelligent Alerts) cuando sea requerido.
 - [x] Identificar que getPendingClosureProjects() retornaba TODOS los archivados
 - [x] Cambiar getPendingProjects para usar getEligibleProjectsForAccountingClosure()
 - [x] Validar que SOLO aparecen proyectos con balance=0 (pagados al 100%)
+
+
+## Cálculo de Gastos en Cierre Contable
+
+- [x] Corregir createAccountingClosure() para incluir TODOS los gastos operativos sin filtro de fecha
+- [x] Validar que gastos de proyecto solo incluyen proyectos del cierre
+- [x] Crear tests para validar cálculo correcto de gastos
+- [ ] Crear nuevo cierre contable para validar en UI
+
+## Responsive Design - Página de Contabilidad
+
+- [x] Hacer tabs scrollables horizontalmente en móvil
+- [x] Ajustar tamaño de fuente y padding para pantallas pequeñas
+- [x] Hacer header responsive (teléfono/tablet/computador)
+- [x] Hacer botón de navegación responsive
+- [x] Validar que funciona en iPhone, iPad y desktop

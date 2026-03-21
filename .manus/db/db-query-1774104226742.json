@@ -1,0 +1,20 @@
+{
+  "query": "SELECT expenseType, COUNT(*) as count, SUM(amount) as total FROM expenses WHERE deletedAt IS NULL GROUP BY expenseType",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT expenseType, COUNT(*) as count, SUM(amount) as total FROM expenses WHERE deletedAt IS NULL GROUP BY expenseType",
+  "rows": [
+    {
+      "expenseType": "materiales_proyecto",
+      "count": "79",
+      "total": "78130151.00"
+    },
+    {
+      "expenseType": "gasto_operativo",
+      "count": "44",
+      "total": "25239742.00"
+    }
+  ],
+  "messages": [],
+  "stdout": "expenseType\tcount\ttotal\nmateriales_proyecto\t79\t78130151.00\ngasto_operativo\t44\t25239742.00\n",
+  "stderr": "",
+  "execution_time_ms": 187
+}

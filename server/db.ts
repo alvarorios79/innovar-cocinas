@@ -2749,7 +2749,8 @@ export async function createAccountingClosure(data: {
     let totalProjectExpenses = 0;   // Gastos de proyecto
     let totalProfit = 0;            // Utilidad
     
-    // PASO 1: Calcular gastos operativos del período
+    // PASO 1: Calcular gastos operativos (TODOS, sin filtro de fecha)
+    // REGLA: Se incluyen TODOS los gastos operativos registrados
     const operationalExpensesResult = await tx.select({
       total: sql<number>`COALESCE(SUM(CAST(amount AS DECIMAL(12,2))), 0)`
     })
@@ -2758,9 +2759,8 @@ export async function createAccountingClosure(data: {
       and(
         eq(expenses.expenseType, 'gasto_operativo'),
         eq(expenses.dataOrigin, 'manual'),
-        isNull(expenses.deletedAt),
-        gte(expenses.expenseDate, periodStartStr),
-        lte(expenses.expenseDate, periodEndStr)
+        isNull(expenses.deletedAt)
+        // NO filtrar por fecha - incluir TODOS los gastos operativos
       )
     );
     
@@ -2835,7 +2835,8 @@ export async function createAccountingClosure(data: {
     
     console.log(`[CLOSURE ${closureId}] Totales: Ingresos=$${totalRevenue}, Gastos Proyecto=$${totalProjectExpenses}, Gastos Operativos=$${totalOperationalExpenses}, Utilidad=$${netProfit}`);
     
-    // PASO 4: Guardar gastos operativos en tabla de auditoría
+    // PASO 4: Guardar gastos operativos en tabla de audítoría
+    // REGLA: Se guardan TODOS los gastos operativos (sin filtro de fecha)
     const pool = await getPool();
     if (pool) {
       const operationalExpenses = await tx.select()
@@ -2844,9 +2845,8 @@ export async function createAccountingClosure(data: {
           and(
             eq(expenses.expenseType, 'gasto_operativo'),
             eq(expenses.dataOrigin, 'manual'),
-            isNull(expenses.deletedAt),
-            gte(expenses.expenseDate, periodStartStr),
-            lte(expenses.expenseDate, periodEndStr)
+            isNull(expenses.deletedAt)
+            // NO filtrar por fecha - incluir TODOS los gastos operativos
           )
         );
       

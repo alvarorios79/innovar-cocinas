@@ -346,55 +346,51 @@ export default function Accounting() {
       <div className="container max-w-6xl mx-auto px-4 py-8">
         {/* TAB Navigation - Responsive */}
         <div className="overflow-x-auto -mx-4 px-4 mb-8">
-          <div className="flex gap-1 md:gap-2 border-b min-w-max md:min-w-0">
+          <div className="flex gap-2 border-b min-w-max md:min-w-0">
             <Button
               variant={activeTab === "expenses" ? "default" : "ghost"}
               onClick={() => setActiveTab("expenses")}
-              className="rounded-b-none text-xs md:text-sm px-2 md:px-4 py-2 h-auto flex flex-col items-center justify-center md:flex-row md:items-center"
+              className="rounded-b-none whitespace-nowrap text-xs sm:text-sm md:text-base px-2 sm:px-3 md:px-4"
             >
-              <DollarSign className="h-3 w-3 md:h-4 md:w-4 md:mr-2" />
-              <span className="text-center md:text-left">Gastos</span>
+              <DollarSign className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Gastos</span>
+              <span className="sm:hidden">Gastos</span>
             </Button>
             <Button
               variant={activeTab === "closure" ? "default" : "ghost"}
               onClick={() => setActiveTab("closure")}
-              className="rounded-b-none text-xs md:text-sm px-2 md:px-4 py-2 h-auto flex flex-col items-center justify-center md:flex-row md:items-center"
+              className="rounded-b-none whitespace-nowrap text-xs sm:text-sm md:text-base px-2 sm:px-3 md:px-4"
             >
-              <Calculator className="h-3 w-3 md:h-4 md:w-4 md:mr-2" />
-              <div className="text-center md:text-left">
-                <div>Cierre</div>
-                <div className="text-xs">Contable</div>
-              </div>
+              <Calculator className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Cierre</span>
+              <span className="sm:hidden">Cierre</span>
             </Button>
             <Button
               variant={activeTab === "confirmed" ? "default" : "ghost"}
               onClick={() => setActiveTab("confirmed")}
-              className="rounded-b-none text-xs md:text-sm px-2 md:px-4 py-2 h-auto flex flex-col items-center justify-center md:flex-row md:items-center"
+              className="rounded-b-none whitespace-nowrap text-xs sm:text-sm md:text-base px-2 sm:px-3 md:px-4"
             >
-              <CheckCircle2 className="h-3 w-3 md:h-4 md:w-4 md:mr-2" />
-              <div className="text-center md:text-left">
-                <div>Cierres</div>
-                <div className="text-xs">Confirmados</div>
-              </div>
+              <CheckCircle2 className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Confirmados</span>
+              <span className="sm:hidden">Conf.</span>
             </Button>
             <Button
               variant={activeTab === "closed" ? "default" : "ghost"}
               onClick={() => setActiveTab("closed")}
-              className="rounded-b-none text-xs md:text-sm px-2 md:px-4 py-2 h-auto flex flex-col items-center justify-center md:flex-row md:items-center"
+              className="rounded-b-none whitespace-nowrap text-xs sm:text-sm md:text-base px-2 sm:px-3 md:px-4"
             >
-              <Archive className="h-3 w-3 md:h-4 md:w-4 md:mr-2" />
-              <div className="text-center md:text-left">
-                <div>Proyectos</div>
-                <div className="text-xs">Cerrados</div>
-              </div>
+              <Archive className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Cerrados</span>
+              <span className="sm:hidden">Cerr.</span>
             </Button>
             <Button
               variant={activeTab === "reports" ? "default" : "ghost"}
               onClick={() => setActiveTab("reports")}
-              className="rounded-b-none text-xs md:text-sm px-2 md:px-4 py-2 h-auto flex flex-col items-center justify-center md:flex-row md:items-center"
+              className="rounded-b-none whitespace-nowrap text-xs sm:text-sm md:text-base px-2 sm:px-3 md:px-4"
             >
-              <TrendingUp className="h-3 w-3 md:h-4 md:w-4 md:mr-2" />
-              <span className="text-center md:text-left">Reportes</span>
+              <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Reportes</span>
+              <span className="sm:hidden">Rep.</span>
             </Button>
           </div>
         </div>

@@ -362,8 +362,8 @@ export default function Accounting() {
               className="rounded-b-none whitespace-nowrap text-xs sm:text-sm md:text-base px-2 sm:px-3 md:px-4"
             >
               <Calculator className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-              <span className="hidden sm:inline">Cierre</span>
-              <span className="sm:hidden">Cierre</span>
+              <span className="hidden sm:inline">Cierre Contable</span>
+              <span className="sm:hidden">Cierre<br/>Contable</span>
             </Button>
             <Button
               variant={activeTab === "confirmed" ? "default" : "ghost"}
@@ -371,8 +371,8 @@ export default function Accounting() {
               className="rounded-b-none whitespace-nowrap text-xs sm:text-sm md:text-base px-2 sm:px-3 md:px-4"
             >
               <CheckCircle2 className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-              <span className="hidden sm:inline">Confirmados</span>
-              <span className="sm:hidden">Conf.</span>
+              <span className="hidden sm:inline">Cierres Confirmados</span>
+              <span className="sm:hidden">Cierres<br/>Confirmados</span>
             </Button>
             <Button
               variant={activeTab === "closed" ? "default" : "ghost"}
@@ -380,8 +380,8 @@ export default function Accounting() {
               className="rounded-b-none whitespace-nowrap text-xs sm:text-sm md:text-base px-2 sm:px-3 md:px-4"
             >
               <Archive className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-              <span className="hidden sm:inline">Cerrados</span>
-              <span className="sm:hidden">Cerr.</span>
+              <span className="hidden sm:inline">Proyectos Cerrados</span>
+              <span className="sm:hidden">Proyectos<br/>Cerrados</span>
             </Button>
             <Button
               variant={activeTab === "reports" ? "default" : "ghost"}

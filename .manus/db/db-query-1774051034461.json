@@ -1,0 +1,100 @@
+{
+  "query": "SELECT \n  p.id,\n  p.name,\n  p.status,\n  p.isArchived,\n  p.accountingClosureId,\n  p.totalAmount,\n  COALESCE(SUM(CASE WHEN pm.movementType = 'payment' THEN pm.amount ELSE 0 END), 0) as totalPaid,\n  p.totalAmount - COALESCE(SUM(CASE WHEN pm.movementType = 'payment' THEN pm.amount ELSE 0 END), 0) as balance\nFROM projects p\nLEFT JOIN payments pm ON p.id = pm.projectId\nWHERE p.status = 'entregado'\nGROUP BY p.id, p.name, p.status, p.isArchived, p.accountingClosureId, p.totalAmount\nORDER BY p.isArchived DESC, balance ASC",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT \n  p.id,\n  p.name,\n  p.status,\n  p.isArchived,\n  p.accountingClosureId,\n  p.totalAmount,\n  COALESCE(SUM(CASE WHEN pm.movementType = 'payment' THEN pm.amount ELSE 0 END), 0) as totalPaid,\n  p.totalAmount - COALESCE(SUM(CASE WHEN pm.movementType = 'payment' THEN pm.amount ELSE 0 END), 0) as balance\nFROM projects p\nLEFT JOIN payments pm ON p.id = pm.projectId\nWHERE p.status = 'entregado'\nGROUP BY p.id, p.name, p.status, p.isArchived, p.accountingClosureId, p.totalAmount\nORDER BY p.isArchived DESC, balance ASC",
+  "rows": [
+    {
+      "id": "2130112",
+      "name": "COT-2026-1772833387895-6830938 - Beatriz Paris",
+      "status": "entregado",
+      "isArchived": "1",
+      "accountingClosureId": "NULL",
+      "totalAmount": "2860000.00",
+      "totalPaid": "2860000.00",
+      "balance": "0.00"
+    },
+    {
+      "id": "2130110",
+      "name": "COT-2026-1772833387893-4870273 - Henry Morales",
+      "status": "entregado",
+      "isArchived": "1",
+      "accountingClosureId": "NULL",
+      "totalAmount": "1500000.00",
+      "totalPaid": "1500000.00",
+      "balance": "0.00"
+    },
+    {
+      "id": "2130113",
+      "name": "COT-2026-1772833387896-9276683 - Sr. Harold",
+      "status": "entregado",
+      "isArchived": "1",
+      "accountingClosureId": "NULL",
+      "totalAmount": "3400000.00",
+      "totalPaid": "3400000.00",
+      "balance": "0.00"
+    },
+    {
+      "id": "2130105",
+      "name": "COT-2026-1772833387888-6786153 - Sras. Maria Clara & Ana milena",
+      "status": "entregado",
+      "isArchived": "1",
+      "accountingClosureId": "NULL",
+      "totalAmount": "25726000.00",
+      "totalPaid": "25726000.00",
+      "balance": "0.00"
+    },
+    {
+      "id": "2130106",
+      "name": "COT-2026-1772833387889-1121614 - Sras. Maria Clara & Ana milena",
+      "status": "entregado",
+      "isArchived": "1",
+      "accountingClosureId": "NULL",
+      "totalAmount": "10730000.00",
+      "totalPaid": "10500000.00",
+      "balance": "230000.00"
+    },
+    {
+      "id": "2130109",
+      "name": "COT-2026-1772833387892-4673628 - Ruth Naranjo",
+      "status": "entregado",
+      "isArchived": "1",
+      "accountingClosureId": "NULL",
+      "totalAmount": "26216000.00",
+      "totalPaid": "25896000.00",
+      "balance": "320000.00"
+    },
+    {
+      "id": "2130115",
+      "name": "COT-2026-1772833387898-7036206 - Alfredo Bolaños",
+      "status": "entregado",
+      "isArchived": "1",
+      "accountingClosureId": "NULL",
+      "totalAmount": "6600000.00",
+      "totalPaid": "4700000.00",
+      "balance": "1900000.00"
+    },
+    {
+      "id": "2130111",
+      "name": "COT-2026-1772833387894-8915020 - Orlando Primacho",
+      "status": "entregado",
+      "isArchived": "1",
+      "accountingClosureId": "NULL",
+      "totalAmount": "7305750.00",
+      "totalPaid": "5000000.00",
+      "balance": "2305750.00"
+    },
+    {
+      "id": "2130108",
+      "name": "COT-2026-1772833387891-2667628 - Felipe Quintero",
+      "status": "entregado",
+      "isArchived": "1",
+      "accountingClosureId": "NULL",
+      "totalAmount": "7943000.00",
+      "totalPaid": "4765800.00",
+      "balance": "3177200.00"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\tstatus\tisArchived\taccountingClosureId\ttotalAmount\ttotalPaid\tbalance\n2130112\tCOT-2026-1772833387895-6830938 - Beatriz Paris\tentregado\t1\tNULL\t2860000.00\t2860000.00\t0.00\n2130110\tCOT-2026-1772833387893-4870273 - Henry Morales\tentregado\t1\tNULL\t1500000.00\t1500000.00\t0.00\n2130113\tCOT-2026-1772833387896-9276683 - Sr. Harold\tentregado\t1\tNULL\t3400000.00\t3400000.00\t0.00\n2130105\tCOT-2026-1772833387888-6786153 - Sras. Maria Clara & Ana milena\tentregado\t1\tNULL\t25726000.00\t25726000.00\t0.00\n2130106\tCOT-2026-1772833387889-1121614 - Sras. Maria Clara & Ana milena\tentregado\t1\tNULL\t10730000.00\t10500000.00\t230000.00\n2130109\tCOT-2026-1772833387892-4673628 - Ruth Naranjo\tentregado\t1\tNULL\t26216000.00\t25896000.00\t320000.00\n2130115\tCOT-2026-1772833387898-7036206 - Alfredo Bolaños\tentregado\t1\tNULL\t6600000.00\t4700000.00\t1900000.00\n2130111\tCOT-2026-1772833387894-8915020 - Orlando Primacho\tentregado\t1\tNULL\t7305750.00\t5000000.00\t2305750.00\n2130108\tCOT-2026-1772833387891-2667628 - Felipe Quintero\tentregado\t1\tNULL\t7943000.00\t4765800.00\t3177200.00\n",
+  "stderr": "",
+  "execution_time_ms": 89
+}

@@ -1,0 +1,24 @@
+{
+  "query": "SELECT \n  p.id,\n  p.projectId,\n  p.amount,\n  p.movementType,\n  pr.name as projectName\nFROM payments p\nLEFT JOIN projects pr ON p.projectId = pr.id\nWHERE p.movementType = 'discount'\nORDER BY p.projectId",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT \n  p.id,\n  p.projectId,\n  p.amount,\n  p.movementType,\n  pr.name as projectName\nFROM payments p\nLEFT JOIN projects pr ON p.projectId = pr.id\nWHERE p.movementType = 'discount'\nORDER BY p.projectId",
+  "rows": [
+    {
+      "id": "450019",
+      "projectId": "2130106",
+      "amount": "230000.00",
+      "movementType": "discount",
+      "projectName": "COT-2026-1772833387889-1121614 - Sras. Maria Clara & Ana milena"
+    },
+    {
+      "id": "300001",
+      "projectId": "2130109",
+      "amount": "320000.00",
+      "movementType": "discount",
+      "projectName": "COT-2026-1772833387892-4673628 - Ruth Naranjo"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tprojectId\tamount\tmovementType\tprojectName\n450019\t2130106\t230000.00\tdiscount\tCOT-2026-1772833387889-1121614 - Sras. Maria Clara & Ana milena\n300001\t2130109\t320000.00\tdiscount\tCOT-2026-1772833387892-4673628 - Ruth Naranjo\n",
+  "stderr": "",
+  "execution_time_ms": 67
+}

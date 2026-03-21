@@ -3843,19 +3843,19 @@ export async function getEligibleProjectsForAccountingClosure() {
       // Nota: Los pagos se filtran por período en createAccountingClosure()
       const paymentsResult = await db
         .select({
-          total: sql<number>`COALESCE(SUM(CAST(amount AS DECIMAL(12,2))), 0)`
+          totalPayments: sql<number>`COALESCE(SUM(CASE WHEN movementType = 'payment' THEN amount ELSE 0 END), 0)`,
+          totalDiscounts: sql<number>`COALESCE(SUM(CASE WHEN movementType = 'discount' THEN amount ELSE 0 END), 0)`
         })
         .from(payments)
         .where(
-          and(
-            eq(payments.projectId, proj.projectId),
-            eq(payments.movementType, 'payment')
-          )
+          eq(payments.projectId, proj.projectId)
         );
       
-      const totalPaid = parseFloat(paymentsResult[0]?.total?.toString() || '0');
+      const totalPaid = parseFloat(paymentsResult[0]?.totalPayments?.toString() || '0');
+      const totalDiscounts = parseFloat(paymentsResult[0]?.totalDiscounts?.toString() || '0');
       const totalAmount = parseFloat(proj.totalAmount?.toString() || '0');
-      const balance = totalAmount - totalPaid;
+      // Balance = totalAmount - pagos - descuentos
+      const balance = totalAmount - totalPaid - totalDiscounts;
       
       // Solo incluir si balance = 0 (pagos completados)
       // Esto asegura que SOLO proyectos completamente pagados aparezcan en el listado

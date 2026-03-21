@@ -26,6 +26,7 @@ import {
   getArchivedProjectsForClosure,
   getConfirmedClosures,
   getClosedProjects,
+  calculateClosurePreview,
 } from "../db";
 
 export const accountingClosuresRouter = router({
@@ -501,6 +502,29 @@ export const accountingClosuresRouter = router({
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Error al obtener proyectos cerrados",
+        });
+      }
+    }),
+
+  /**
+   * Calculate closure preview with real calculations
+   * Shows what the closure will contain before creating it
+   */
+  calculatePreview: adminProcedure
+    .input(
+      z.object({
+        projectIds: z.array(z.number()),
+      })
+    )
+    .query(async ({ input }) => {
+      try {
+        const preview = await calculateClosurePreview(input.projectIds);
+        return preview;
+      } catch (error) {
+        console.error("[AccountingClosures] Error calculating preview:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Error al calcular preview del cierre",
         });
       }
     }),

@@ -5527,3 +5527,17 @@ Listo para pasar a Fase 7.2 (Intelligent Alerts) cuando sea requerido.
 - [x] Hacer header responsive (teléfono/tablet/computador)
 - [x] Hacer botón de navegación responsive
 - [x] Validar que funciona en iPhone, iPad y desktop
+
+
+## Preview en Tiempo Real del Cierre Contable
+
+- [x] Crear función `calculateClosurePreview()` en server/db.ts
+  - [x] Calcular TODOS los gastos operativos (sin filtro de fecha)
+  - [x] Calcular gastos de proyectos seleccionados
+  - [x] Calcular ingresos de proyectos seleccionados
+  - [x] Retornar valores exactos que tendrá el cierre
+- [x] Crear endpoint `calculatePreview` en router
+- [x] Integrar en UI para mostrar preview en tiempo real
+  - [x] Mostrar desglose: ingresos | gastos_proyecto | gastos_operativos | utilidad
+  - [x] Actualizar cuando cambia selección de proyectos
+  - [x] Validar que preview = cierre creado

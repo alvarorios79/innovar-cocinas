@@ -57,6 +57,11 @@ export function AccountingClosureTab() {
     { closureId: selectedClosureId || 0 },
     { enabled: !!selectedClosureId }
   );
+  const { data: previewData, isLoading: loadingPreview } =
+    trpc.accountingClosures.calculatePreview.useQuery(
+      { projectIds: selectedProjects },
+      { enabled: selectedProjects.length > 0 }
+    );
 
   // Mutations
   const createClosure = trpc.accountingClosures.create.useMutation({
@@ -100,31 +105,19 @@ export function AccountingClosureTab() {
     },
   });
 
-  // Calculate totals for preview
+  // Use real preview data from backend
   const previewTotals = useMemo(() => {
-    if (!pendingProjects) return { sales: 0, expenses: 0, profit: 0 };
-
-    const selected = pendingProjects.filter((p) =>
-      selectedProjects.includes(p.projectId)
-    );
-
-    let sales = 0;
-    let expenses = 0;
-
-    selected.forEach((project) => {
-      const amount = project.totalAmount
-        ? parseFloat(project.totalAmount.toString())
-        : 0;
-      sales += amount;
-      // Note: expenses would need to be calculated from the database
-    });
-
-    return {
-      sales,
-      expenses,
-      profit: sales - expenses,
-    };
-  }, [pendingProjects, selectedProjects]);
+    if (!previewData) {
+      return {
+        totalSales: 0,
+        totalProjectExpenses: 0,
+        totalOperationalExpenses: 0,
+        totalExpenses: 0,
+        totalProfit: 0,
+      };
+    }
+    return previewData;
+  }, [previewData]);
 
   const handleCreateClosure = async () => {
     // Validations
@@ -317,19 +310,19 @@ export function AccountingClosureTab() {
                   <div className="bg-white p-4 rounded-lg">
                     <p className="text-sm text-gray-600">Ventas Totales</p>
                     <p className="text-2xl font-bold text-teal-600">
-                      ${Number(previewTotals.sales).toFixed(2)}
+                      ${Number(previewTotals.totalSales).toFixed(2)}
                     </p>
                   </div>
                   <div className="bg-white p-4 rounded-lg">
                     <p className="text-sm text-gray-600">Gastos Totales</p>
                     <p className="text-2xl font-bold text-orange-600">
-                      ${Number(previewTotals.expenses).toFixed(2)}
+                      ${Number(previewTotals.totalExpenses).toFixed(2)}
                     </p>
                   </div>
                   <div className="bg-white p-4 rounded-lg">
                     <p className="text-sm text-gray-600">Ganancia Neta</p>
                     <p className="text-2xl font-bold text-green-600">
-                      ${Number(previewTotals.profit).toFixed(2)}
+                      ${Number(previewTotals.totalProfit).toFixed(2)}
                     </p>
                   </div>
                 </div>

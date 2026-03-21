@@ -4190,3 +4190,100 @@ export async function revertAccountingClosure(closureId: number, revertedBy: num
     throw error;
   }
 }
+
+
+/**
+ * Calculate closure preview with real calculations
+ * Returns the same values that will be in the closure
+ */
+export async function calculateClosurePreview(projectIds: number[]) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  if (projectIds.length === 0) {
+    return {
+      totalSales: 0,
+      totalProjectExpenses: 0,
+      totalOperationalExpenses: 0,
+      totalExpenses: 0,
+      totalProfit: 0,
+    };
+  }
+
+  // PASO 1: Calcular gastos operativos (TODOS, sin filtro de fecha)
+  const operationalExpensesResult = await db.select({
+    total: sql<number>`COALESCE(SUM(CAST(amount AS DECIMAL(12,2))), 0)`
+  })
+  .from(expenses)
+  .where(
+    and(
+      eq(expenses.expenseType, 'gasto_operativo'),
+      eq(expenses.dataOrigin, 'manual'),
+      isNull(expenses.deletedAt)
+    )
+  );
+
+  const totalOperationalExpenses = parseFloat(
+    operationalExpensesResult[0]?.total?.toString() || '0'
+  );
+
+  // Get project details
+  const projectsData = await db.select()
+    .from(projects)
+    .where(inArray(projects.id, projectIds));
+
+  let totalSales = 0;
+  let totalProjectExpenses = 0;
+
+  // PASO 2: Procesar cada proyecto
+  for (const project of projectsData) {
+    // Calcular ingresos (pagos del proyecto)
+    const paymentsResult = await db.select({
+      total: sql<number>`COALESCE(SUM(CAST(amount AS DECIMAL(12,2))), 0)`
+    })
+    .from(payments)
+    .where(
+      and(
+        eq(payments.projectId, project.id),
+        eq(payments.movementType, 'payment')
+      )
+    );
+
+    const projectRevenue = parseFloat(
+      paymentsResult[0]?.total?.toString() || '0'
+    );
+
+    // Calcular gastos de proyecto (solo materiales_proyecto)
+    const projectExpensesResult = await db.select({
+      total: sql<number>`COALESCE(SUM(CAST(amount AS DECIMAL(12,2))), 0)`
+    })
+    .from(expenses)
+    .where(
+      and(
+        eq(expenses.projectId, project.id),
+        eq(expenses.expenseType, 'materiales_proyecto'),
+        eq(expenses.dataOrigin, 'manual'),
+        isNull(expenses.deletedAt)
+      )
+    );
+
+    const projectExpensesAmount = parseFloat(
+      projectExpensesResult[0]?.total?.toString() || '0'
+    );
+
+    totalSales += projectRevenue;
+    totalProjectExpenses += projectExpensesAmount;
+  }
+
+  // PASO 3: Calcular totales
+  const totalExpenses = totalProjectExpenses + totalOperationalExpenses;
+  const totalProfit = totalSales - totalExpenses;
+
+  return {
+    totalSales,
+    totalProjectExpenses,
+    totalOperationalExpenses,
+    totalExpenses,
+    totalProfit,
+  };
+}

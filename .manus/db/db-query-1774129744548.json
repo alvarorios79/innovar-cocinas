@@ -1,0 +1,16 @@
+{
+  "query": "SELECT \n  p.id,\n  p.name,\n  c.name as client_name,\n  SUM(CASE WHEN pay.movementType = 'payment' THEN pay.amount ELSE 0 END) as total_payments\nFROM projects p\nLEFT JOIN clients c ON p.clientId = c.id\nLEFT JOIN payments pay ON p.id = pay.projectId\nWHERE p.id IN (2130117, 2130119, 2130120)\nGROUP BY p.id, p.name, c.name\nORDER BY p.id;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT \n  p.id,\n  p.name,\n  c.name as client_name,\n  SUM(CASE WHEN pay.movementType = 'payment' THEN pay.amount ELSE 0 END) as total_payments\nFROM projects p\nLEFT JOIN clients c ON p.clientId = c.id\nLEFT JOIN payments pay ON p.id = pay.projectId\nWHERE p.id IN (2130117, 2130119, 2130120)\nGROUP BY p.id, p.name, c.name\nORDER BY p.id;",
+  "rows": [
+    {
+      "id": "2130117",
+      "name": "COT-2026-1772833387900-2643089 - Carolina Diaz",
+      "client_name": "Carolina Diaz",
+      "total_payments": "9990000.00"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\tclient_name\ttotal_payments\n2130117\tCOT-2026-1772833387900-2643089 - Carolina Diaz\tCarolina Diaz\t9990000.00\n",
+  "stderr": "",
+  "execution_time_ms": 136
+}

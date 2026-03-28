@@ -1,0 +1,90 @@
+{
+  "query": "SELECT COLUMN_NAME, DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'projects' LIMIT 20;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT COLUMN_NAME, DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'projects' LIMIT 20;",
+  "rows": [
+    {
+      "COLUMN_NAME": "id",
+      "DATA_TYPE": "int"
+    },
+    {
+      "COLUMN_NAME": "quotationId",
+      "DATA_TYPE": "int"
+    },
+    {
+      "COLUMN_NAME": "clientId",
+      "DATA_TYPE": "int"
+    },
+    {
+      "COLUMN_NAME": "name",
+      "DATA_TYPE": "varchar"
+    },
+    {
+      "COLUMN_NAME": "workType",
+      "DATA_TYPE": "enum"
+    },
+    {
+      "COLUMN_NAME": "status",
+      "DATA_TYPE": "enum"
+    },
+    {
+      "COLUMN_NAME": "initialMeasurements",
+      "DATA_TYPE": "text"
+    },
+    {
+      "COLUMN_NAME": "design3dFiles",
+      "DATA_TYPE": "text"
+    },
+    {
+      "COLUMN_NAME": "despieceFiles",
+      "DATA_TYPE": "text"
+    },
+    {
+      "COLUMN_NAME": "clientApprovedAt",
+      "DATA_TYPE": "timestamp"
+    },
+    {
+      "COLUMN_NAME": "clientApprovalNotes",
+      "DATA_TYPE": "text"
+    },
+    {
+      "COLUMN_NAME": "createdBy",
+      "DATA_TYPE": "int"
+    },
+    {
+      "COLUMN_NAME": "designerId",
+      "DATA_TYPE": "int"
+    },
+    {
+      "COLUMN_NAME": "createdAt",
+      "DATA_TYPE": "timestamp"
+    },
+    {
+      "COLUMN_NAME": "updatedAt",
+      "DATA_TYPE": "timestamp"
+    },
+    {
+      "COLUMN_NAME": "quotationSentAt",
+      "DATA_TYPE": "timestamp"
+    },
+    {
+      "COLUMN_NAME": "quotationApprovedAt",
+      "DATA_TYPE": "timestamp"
+    },
+    {
+      "COLUMN_NAME": "advanceReceivedAt",
+      "DATA_TYPE": "timestamp"
+    },
+    {
+      "COLUMN_NAME": "totalAmount",
+      "DATA_TYPE": "decimal"
+    },
+    {
+      "COLUMN_NAME": "advanceAmount",
+      "DATA_TYPE": "decimal"
+    }
+  ],
+  "messages": [],
+  "stdout": "COLUMN_NAME\tDATA_TYPE\nid\tint\nquotationId\tint\nclientId\tint\nname\tvarchar\nworkType\tenum\nstatus\tenum\ninitialMeasurements\ttext\ndesign3dFiles\ttext\ndespieceFiles\ttext\nclientApprovedAt\ttimestamp\nclientApprovalNotes\ttext\ncreatedBy\tint\ndesignerId\tint\ncreatedAt\ttimestamp\nupdatedAt\ttimestamp\nquotationSentAt\ttimestamp\nquotationApprovedAt\ttimestamp\nadvanceReceivedAt\ttimestamp\ntotalAmount\tdecimal\nadvanceAmount\tdecimal\n",
+  "stderr": "",
+  "execution_time_ms": 54
+}

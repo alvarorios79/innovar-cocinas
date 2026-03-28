@@ -5541,3 +5541,16 @@ Listo para pasar a Fase 7.2 (Intelligent Alerts) cuando sea requerido.
   - [x] Mostrar desglose: ingresos | gastos_proyecto | gastos_operativos | utilidad
   - [x] Actualizar cuando cambia selección de proyectos
   - [x] Validar que preview = cierre creado
+
+
+## Auditoría del Sistema de Tareas
+
+- [x] Revisar estructura de tareas y permisos en backend
+- [x] Validar matriz de permisos de creación de tareas por rol
+- [x] Validar sistema de notificaciones para tareas
+- [x] Revisar UI de tareas y permisos de visualización
+- [x] Corregir problemas encontrados
+  - [x] Implementar matriz de permisos en helpers.ts
+  - [x] Validar rol del usuario asignado en create
+  - [x] Filtrar usuarios asignables según matriz
+  - [x] Corregir permisos de visualización (Jefe de Taller no puede ver todas)

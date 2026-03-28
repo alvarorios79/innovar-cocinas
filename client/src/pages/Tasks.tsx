@@ -93,7 +93,9 @@ export default function Tasks() {
   const utils = trpc.useUtils();
   
   // Verificar si el usuario puede ver todas las tareas
-  const canViewAllTasks = ["admin", "super_admin", "comercial", "jefe_taller"].includes(user?.role || "");
+  // Solo Super Admin, Admin y Comercial pueden ver todas
+  // Diseñador, Jefe de Taller y Operario solo ven sus tareas asignadas y las que han asignado
+  const canViewAllTasks = ["admin", "super_admin", "comercial"].includes(user?.role || "");
   
   const { data: myTasksData, isLoading: loadingMyTasks } = trpc.tasks.listPaginated.useQuery({
     page: taskPage,

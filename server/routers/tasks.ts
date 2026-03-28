@@ -29,8 +29,14 @@ export const tasksRouter = router({
         assignedTo: z.number(),
       }))
       .mutation(async ({ ctx, input }) => {
-        // Validar permisos de asignación
-        const canAssign = validateTaskAssignmentPermission(ctx.user.role, input.assignedTo);
+        // Obtener el usuario asignado para validar su rol
+        const assignedUser = await db.getUserById(input.assignedTo);
+        if (!assignedUser) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Usuario no encontrado" });
+        }
+
+        // Validar permisos de asignación según la matriz
+        const canAssign = validateTaskAssignmentPermission(ctx.user.role, assignedUser.role);
         if (!canAssign.allowed) {
           throw new TRPCError({ code: "FORBIDDEN", message: canAssign.message });
         }
@@ -83,14 +89,14 @@ export const tasksRouter = router({
         }
 
         // Enviar email de notificación de tarea (no bloquea si falla)
-        let assignedUser: any = null;
+        let assignedUserForEmail: any = null;
         try {
-          assignedUser = await db.getUserById(input.assignedTo);
-          if (assignedUser?.email) {
+          assignedUserForEmail = await db.getUserById(input.assignedTo);
+          if (assignedUserForEmail?.email) {
             const { sendEmail } = await import("../email");
             const { taskAssignedEmailTemplate } = await import("../email-templates");
             const emailData = taskAssignedEmailTemplate({
-              recipientName: assignedUser.name || "Usuario",
+              recipientName: assignedUserForEmail.name || "Usuario",
               taskTitle: input.title,
               taskDescription: input.description,
               priority: input.priority,
@@ -99,7 +105,7 @@ export const tasksRouter = router({
               portalUrl: `${process.env.VITE_APP_URL || ""}/tasks`,
             });
             await sendEmail({
-              to: assignedUser.email,
+              to: assignedUserForEmail.email,
               subject: emailData.subject,
               html: emailData.html,
             });
@@ -484,18 +490,24 @@ export const tasksRouter = router({
         const allUsers = await db.getAllUsers();
         const myRole = ctx.user.role;
         
-        // Roles que pueden recibir tareas (equipo de trabajo + super_admin para auto-asignación)
-        const workTeamRoles = ["super_admin", "comercial", "disenador", "jefe_taller", "operario"];
+        // Matriz de permisos: quién puede asignar tareas a qué roles
+        const permissionMatrix: Record<string, string[]> = {
+          super_admin: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"],
+          admin: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"],
+          comercial: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"],
+          disenador: ["super_admin", "admin", "jefe_taller"],
+          jefe_taller: ["super_admin", "admin", "comercial", "disenador", "operario"],
+          operario: ["disenador", "jefe_taller"],
+        };
         
-        // Verificar si el usuario puede asignar tareas
-        const canAssignRoles = ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"];
-        if (!canAssignRoles.includes(myRole)) {
+        const allowedRoles = permissionMatrix[myRole];
+        if (!allowedRoles) {
           return [];
         }
 
-        // Filtrar solo equipo de trabajo
+        // Filtrar usuarios cuyo rol está en la lista permitida
         return allUsers
-          .filter(u => workTeamRoles.includes(u.role))
+          .filter(u => allowedRoles.includes(u.role))
           .map(u => ({
             id: u.id,
             name: u.name,

@@ -1,0 +1,42 @@
+{
+  "query": "SELECT \n  status,\n  COUNT(*) as count\nFROM projects\nGROUP BY status\nORDER BY count DESC;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT \n  status,\n  COUNT(*) as count\nFROM projects\nGROUP BY status\nORDER BY count DESC;",
+  "rows": [
+    {
+      "status": "contacto",
+      "count": "112"
+    },
+    {
+      "status": "cotizacion_enviada",
+      "count": "96"
+    },
+    {
+      "status": "entregado",
+      "count": "9"
+    },
+    {
+      "status": "listo_instalacion",
+      "count": "3"
+    },
+    {
+      "status": "pendiente_modelado",
+      "count": "2"
+    },
+    {
+      "status": "cotizacion_aprobada",
+      "count": "1"
+    },
+    {
+      "status": "despiece",
+      "count": "1"
+    },
+    {
+      "status": "ensamble",
+      "count": "1"
+    }
+  ],
+  "messages": [],
+  "stdout": "status\tcount\ncontacto\t112\ncotizacion_enviada\t96\nentregado\t9\nlisto_instalacion\t3\npendiente_modelado\t2\ncotizacion_aprobada\t1\ndespiece\t1\nensamble\t1\n",
+  "stderr": "",
+  "execution_time_ms": 61
+}

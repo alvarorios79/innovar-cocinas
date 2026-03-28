@@ -1,0 +1,8 @@
+{
+  "query": "SELECT \n  p.id,\n  p.name,\n  c.name as client_name,\n  p.totalAmount,\n  p.balance,\n  p.status,\n  COUNT(DISTINCT pay.id) as payment_count,\n  SUM(CASE WHEN pay.movementType = 'payment' THEN pay.amount ELSE 0 END) as total_paid\nFROM projects p\nLEFT JOIN clients c ON p.clientId = c.id\nLEFT JOIN payments pay ON p.id = pay.projectId\nWHERE p.status = 'archived' AND p.balance = 0\nGROUP BY p.id, p.name, c.name, p.totalAmount, p.balance, p.status\nORDER BY p.id DESC\nLIMIT 10;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT \n  p.id,\n  p.name,\n  c.name as client_name,\n  p.totalAmount,\n  p.balance,\n  p.status,\n  COUNT(DISTINCT pay.id) as payment_count,\n  SUM(CASE WHEN pay.movementType = 'payment' THEN pay.amount ELSE 0 END) as total_paid\nFROM projects p\nLEFT JOIN clients c ON p.clientId = c.id\nLEFT JOIN payments pay ON p.id = pay.projectId\nWHERE p.status = 'archived' AND p.balance = 0\nGROUP BY p.id, p.name, c.name, p.totalAmount, p.balance, p.status\nORDER BY p.id DESC\nLIMIT 10;",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1054 (42S22) at line 1: Unknown column 'p.balance' in 'group statement'"
+  ]
+}

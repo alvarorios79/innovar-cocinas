@@ -118,13 +118,25 @@ export function validatePhotoDeletePermission(role: string, category: string, up
 }
 
 // Validar permisos de asignación de tareas
-export function validateTaskAssignmentPermission(assignerRole: string, assignedToId: number): { allowed: boolean; message: string } {
-  // Por ahora, validamos que el rol tenga permisos generales de asignar
-  // La validación específica del usuario asignado se hace en getAssignableUsers
-  const canAssignRoles = ["super_admin", "admin", "disenador", "jefe_taller", "operario"];
-  
-  if (!canAssignRoles.includes(assignerRole)) {
-    return { allowed: false, message: "No tienes permisos para asignar tareas" };
+// Matriz de permisos: quién puede asignar tareas a quién
+export function validateTaskAssignmentPermission(assignerRole: string, assignedToRole: string): { allowed: boolean; message: string } {
+  // Matriz de permisos de asignación de tareas
+  const permissionMatrix: Record<string, string[]> = {
+    super_admin: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"],
+    admin: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"],
+    comercial: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"],
+    disenador: ["super_admin", "admin", "jefe_taller"],
+    jefe_taller: ["super_admin", "admin", "comercial", "disenador", "operario"],
+    operario: ["disenador", "jefe_taller"],
+  };
+
+  const allowedRoles = permissionMatrix[assignerRole];
+  if (!allowedRoles) {
+    return { allowed: false, message: "Tu rol no puede asignar tareas" };
+  }
+
+  if (!allowedRoles.includes(assignedToRole)) {
+    return { allowed: false, message: `No puedes asignar tareas a usuarios con rol ${assignedToRole}` };
   }
 
   return { allowed: true, message: "" };

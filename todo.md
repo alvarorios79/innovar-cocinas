@@ -5554,3 +5554,12 @@ Listo para pasar a Fase 7.2 (Intelligent Alerts) cuando sea requerido.
   - [x] Validar rol del usuario asignado en create
   - [x] Filtrar usuarios asignables según matriz
   - [x] Corregir permisos de visualización (Jefe de Taller no puede ver todas)
+
+
+## Corrección de Etiquetado de Descuentos
+
+- [x] Revisar cómo se muestran descuentos en tarjeta "Información Financiera"
+- [x] Identificar que se mostraban como "Otro Pago" sin especificar que eran descuentos
+- [x] Corregir etiquetado en "Desglose de Pagos" (ProjectDetail.tsx línea 1012-1013)
+  - [x] Agregar detección de movementType === 'discount' para mostrar "🔴 Descuento"
+  - [x] Agregar detección de movementType === 'surcharge' para mostrar "🟠 Recargo"

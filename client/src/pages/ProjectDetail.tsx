@@ -1009,7 +1009,9 @@ export default function ProjectDetail() {
                           {(projectDetail as any).payments && (projectDetail as any).payments.length > 0 ? (
                             (projectDetail as any).payments.map((payment: any, idx: number) => (
                               <p key={idx}>
-                                • {payment.type === 'adelanto' ? 'Pago 1 (Adelanto)' :
+                                • {payment.movementType === 'discount' ? '🔴 Descuento' :
+                                   payment.movementType === 'surcharge' ? '🟠 Recargo' :
+                                   payment.type === 'adelanto' ? 'Pago 1 (Adelanto)' :
                                    payment.type === 'saldo_final' ? 'Pago 2 (Final)' :
                                    payment.type === 'abono' ? `Abono ${idx}` : 'Otro Pago'}
                                 : {formatCurrency(payment.amount)}

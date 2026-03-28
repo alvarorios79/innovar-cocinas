@@ -381,7 +381,9 @@ export const projectsRouter = router({
         const result = {
           ...project,
           // ESTRATEGIA: Usar el quotationNumber de la ultima version en lugar del nombre guardado
-          name: quotation?.quotationNumber || project.name,
+          name: quotation?.quotationNumber && client?.name 
+            ? `${quotation.quotationNumber} - ${client.name}`
+            : quotation?.quotationNumber || project.name,
           quotationId: project.quotationId,
           client,
           photos,

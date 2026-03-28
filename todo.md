@@ -5563,3 +5563,11 @@ Listo para pasar a Fase 7.2 (Intelligent Alerts) cuando sea requerido.
 - [x] Corregir etiquetado en "Desglose de Pagos" (ProjectDetail.tsx línea 1012-1013)
   - [x] Agregar detección de movementType === 'discount' para mostrar "🔴 Descuento"
   - [x] Agregar detección de movementType === 'surcharge' para mostrar "🟠 Recargo"
+
+
+## Nombres de Proyectos Versionados
+
+- [x] Revisar dónde se generan nombres de proyectos versionados
+- [x] Identificar por qué no incluyen nombre del cliente
+- [x] Corregir para mostrar "Numeral V# - Cliente" en lugar de solo "Numeral V#"
+  - [x] Actualizar línea 384 de projects.ts para incluir nombre del cliente

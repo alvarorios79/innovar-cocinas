@@ -796,7 +796,7 @@ export function ProjectInlineDetail({
         </div>
       )}
 
-      {/* Ensamble -> Listo Instalación */}
+      {/* Ensamble -> En Instalación */}
       {projectDetail.status === "ensamble" && 
         (user?.role === "jefe_taller" || user?.role === "operario" || user?.role === "admin" || user?.role === "super_admin") && (
         <div className="bg-teal-50 border border-teal-200 rounded-lg p-4 mb-4">
@@ -814,18 +814,18 @@ export function ProjectInlineDetail({
             disabled={updateStatus.isPending}
           >
             <CheckCircle2 className="h-4 w-4 mr-1" />
-            Marcar Listo para Instalación
+            Marcar En Instalación
           </Button>
         </div>
       )}
 
-      {/* Listo Instalación -> Instalación Programada */}
+      {/* En Instalación -> Instalación Programada */}
       {projectDetail.status === "listo_instalacion" && 
         (user?.role === "jefe_taller" || user?.role === "admin" || user?.role === "super_admin") && (
         <div className="bg-teal-50 border border-teal-200 rounded-lg p-4 mb-4">
           <h4 className="font-medium text-teal-800 mb-2 flex items-center gap-2">
             <CheckCircle2 className="h-4 w-4" />
-            Proyecto Listo para Instalación
+            Proyecto En Instalación
           </h4>
           <p className="text-sm text-teal-700 mb-4">
             Coordina con el cliente la fecha de instalación y programa la entrega.

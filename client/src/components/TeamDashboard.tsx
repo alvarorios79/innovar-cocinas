@@ -499,7 +499,7 @@ export function TeamDashboard() {
       corte: "En Corte",
       enchape: "En Enchape",
       ensamble: "En Ensamble",
-      listo_instalacion: "Listo Instalación",
+      listo_instalacion: "En Instalación",
       entregado: "Entregado",
     };
     return statusLabels[status] || status;

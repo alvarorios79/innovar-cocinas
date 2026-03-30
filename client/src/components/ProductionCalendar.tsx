@@ -21,7 +21,7 @@ const PRODUCTION_STATUSES = {
   corte: { label: "Corte", color: "bg-orange-400" },
   enchape: { label: "Enchape", color: "bg-orange-500" },
   ensamble: { label: "Ensamble", color: "bg-orange-600" },
-  listo_instalacion: { label: "Listo Instalación", color: "bg-teal-500" },
+  listo_instalacion: { label: "En Instalación", color: "bg-teal-500" },
   entregado: { label: "Entregado", color: "bg-green-600" },
 };
 

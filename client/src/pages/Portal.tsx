@@ -421,7 +421,7 @@ export default function Portal() {
     corte: { label: "En Corte", color: "bg-orange-500", icon: Hammer },
     enchape: { label: "En Enchape", color: "bg-orange-600", icon: Paintbrush },
     ensamble: { label: "En Ensamble", color: "bg-orange-700", icon: Package },
-    listo_instalacion: { label: "Listo para Instalación", color: "bg-green-500", icon: Truck },
+    listo_instalacion: { label: "En Instalación", color: "bg-green-500", icon: Truck },
     entregado: { label: "Entregado", color: "bg-green-700", icon: CheckCircle2 },
   };
 

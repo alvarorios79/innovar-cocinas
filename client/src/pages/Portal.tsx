@@ -421,7 +421,7 @@ export default function Portal() {
     corte: { label: "En Corte", color: "bg-orange-500", icon: Hammer },
     enchape: { label: "En Enchape", color: "bg-orange-600", icon: Paintbrush },
     ensamble: { label: "En Ensamble", color: "bg-orange-700", icon: Package },
-    listo_instalacion: { label: "Listo para Instalación", color: "bg-green-500", icon: Truck },
+    en_instalacion: { label: "Listo para Instalación", color: "bg-green-500", icon: Truck },
     entregado: { label: "Entregado", color: "bg-green-700", icon: CheckCircle2 },
   };
 
@@ -439,7 +439,7 @@ export default function Portal() {
   };
 
   const getProgressPercentage = (status: string): number => {
-    const statusOrder = ["contacto", "cotizacion_enviada", "cotizacion_aprobada", "adelanto_recibido", "en_diseno", "pendiente_modelado", "pendiente_render", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "entregado"];
+    const statusOrder = ["contacto", "cotizacion_enviada", "cotizacion_aprobada", "adelanto_recibido", "en_diseno", "pendiente_modelado", "pendiente_render", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "en_instalacion", "entregado"];
     const index = statusOrder.indexOf(status);
     return Math.round(((index + 1) / statusOrder.length) * 100);
   };

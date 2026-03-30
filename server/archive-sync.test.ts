@@ -35,7 +35,7 @@ describe('Archive Sync: isArchived ↔ status', () => {
       dataOrigin: 'system',
       clientId: testClientId,
       name: 'Test Project Archive Sync',
-      status: 'listo_instalacion',
+      status: 'en_instalacion',
       workType: 'cocina',
       isArchived: 0,
       createdBy: testUserId,
@@ -68,10 +68,10 @@ describe('Archive Sync: isArchived ↔ status', () => {
   });
 
   it('Cuando status cambia FROM "entregado" a otro, isArchived debe ser 0', async () => {
-    // Cambiar de vuelta a listo_instalacion
+    // Cambiar de vuelta a en_instalacion
     await database
       .update(projects)
-      .set({ status: 'listo_instalacion', isArchived: 0, updatedAt: new Date() })
+      .set({ status: 'en_instalacion', isArchived: 0, updatedAt: new Date() })
       .where(eq(projects.id, testProjectId));
 
     // Verificar
@@ -80,11 +80,11 @@ describe('Archive Sync: isArchived ↔ status', () => {
       .from(projects)
       .where(eq(projects.id, testProjectId));
 
-    expect(result[0].status).toBe('listo_instalacion');
+    expect(result[0].status).toBe('en_instalacion');
     expect(result[0].isArchived).toBe(0);
   });
 
-  it('Sincronización bidireccional: entregado → listo_instalacion → entregado', async () => {
+  it('Sincronización bidireccional: entregado → en_instalacion → entregado', async () => {
     // 1. Cambiar a entregado
     await database
       .update(projects)

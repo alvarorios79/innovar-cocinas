@@ -76,7 +76,7 @@ const PROJECT_STATUSES: Record<string, { label: string; color: string; icon: any
   corte: { label: "En Corte", color: "bg-orange-500", icon: AlertCircle },
   enchape: { label: "En Enchape", color: "bg-orange-600", icon: AlertCircle },
   ensamble: { label: "En Ensamble", color: "bg-orange-700", icon: AlertCircle },
-  listo_instalacion: { label: "Listo para Instalación", color: "bg-teal-500", icon: AlertCircle },
+  en_instalacion: { label: "Listo para Instalación", color: "bg-teal-500", icon: AlertCircle },
   entregado: { label: "Entregado", color: "bg-green-700", icon: CheckCircle2 },
 };
 
@@ -328,7 +328,7 @@ export default function ProjectDetail() {
     despiece: "corte",
     corte: "enchape",
     enchape: "ensamble",
-    armado: "listo_instalacion",
+    armado: "en_instalacion",
     proceso_instalacion: "entregado",
     fotos_finales: "entregado",
   };
@@ -340,8 +340,8 @@ export default function ProjectDetail() {
     corte: ["corte", "despiece"],
     enchape: ["enchape", "corte"],
     armado: ["ensamble", "enchape"],
-    proceso_instalacion: ["listo_instalacion", "listo_instalacion"],
-    fotos_finales: ["listo_instalacion", "entregado"],
+    proceso_instalacion: ["en_instalacion", "en_instalacion"],
+    fotos_finales: ["en_instalacion", "entregado"],
   };
 
   // Verificar si el usuario tiene rol permitido para avanzar
@@ -1326,7 +1326,7 @@ export default function ProjectDetail() {
                                     Avanzar a {photoToNextStatus[subcategory] === "corte" ? "Corte" :
                                                photoToNextStatus[subcategory] === "enchape" ? "Enchape" :
                                                photoToNextStatus[subcategory] === "ensamble" ? "Ensamble" :
-                                               photoToNextStatus[subcategory] === "listo_instalacion" ? "Listo para Instalación" :
+                                               photoToNextStatus[subcategory] === "en_instalacion" ? "Listo para Instalación" :
                                                photoToNextStatus[subcategory] === "entregado" ? "Entregado" : "Siguiente Etapa"}
                                   </Button>
                                   {canSendSectionNotification() && (
@@ -1368,7 +1368,7 @@ export default function ProjectDetail() {
                                     Avanzar a {photoToNextStatus[subcategory] === "corte" ? "Corte" :
                                                photoToNextStatus[subcategory] === "enchape" ? "Enchape" :
                                                photoToNextStatus[subcategory] === "ensamble" ? "Ensamble" :
-                                               photoToNextStatus[subcategory] === "listo_instalacion" ? "Listo para Instalación" :
+                                               photoToNextStatus[subcategory] === "en_instalacion" ? "Listo para Instalación" :
                                                photoToNextStatus[subcategory] === "entregado" ? "Entregado" : "Siguiente Etapa"}
                                   </Button>
                                   {canSendSectionNotification() && (
@@ -1923,7 +1923,7 @@ export default function ProjectDetail() {
                     {advanceConfirmDialog.nextStatus === "corte" ? "Corte" :
                      advanceConfirmDialog.nextStatus === "enchape" ? "Enchape" :
                      advanceConfirmDialog.nextStatus === "ensamble" ? "Ensamble" :
-                     advanceConfirmDialog.nextStatus === "listo_instalacion" ? "Listo para Instalación" :
+                     advanceConfirmDialog.nextStatus === "en_instalacion" ? "Listo para Instalación" :
                      advanceConfirmDialog.nextStatus === "entregado" ? "Entregado" : "Siguiente Etapa"}
                   </strong>.
                   <br /><br />

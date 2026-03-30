@@ -73,14 +73,14 @@ describe("PDF Generator", () => {
         corte: "En Producción - Corte",
         enchape: "En Producción - Enchape",
         ensamble: "En Producción - Ensamble",
-        listo_instalacion: "Listo para Instalación",
+        en_instalacion: "Listo para Instalación",
         entregado: "Entregado",
       };
 
       const allStatuses = [
         "contacto", "cotizacion_enviada", "cotizacion_aprobada", "adelanto_recibido",
         "en_diseno", "pendiente_modelado", "pendiente_render", "aprobacion_final",
-        "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "entregado"
+        "despiece", "corte", "enchape", "ensamble", "en_instalacion", "entregado"
       ];
 
       allStatuses.forEach(status => {

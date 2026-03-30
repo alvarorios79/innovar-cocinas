@@ -5571,3 +5571,12 @@ Listo para pasar a Fase 7.2 (Intelligent Alerts) cuando sea requerido.
 - [x] Identificar por qué no incluyen nombre del cliente
 - [x] Corregir para mostrar "Numeral V# - Cliente" en lugar de solo "Numeral V#"
   - [x] Actualizar línea 384 de projects.ts para incluir nombre del cliente
+
+
+## Cambio de Nombre de Estado "listo_instalacion" a "en_instalacion"
+
+- [x] Buscar todas las referencias a listo_instalacion en backend y frontend (114 encontradas)
+- [x] Cambiar nombre del estado en schema y base de datos
+- [x] Actualizar todas las referencias en backend (114 reemplazadas)
+- [x] Actualizar todas las referencias en frontend (114 reemplazadas)
+- [x] Validar que funcione correctamente (TypeScript compila sin errores)

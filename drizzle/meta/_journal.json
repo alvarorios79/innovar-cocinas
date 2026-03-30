@@ -232,6 +232,13 @@
       "when": 1773558036676,
       "tag": "0032_polite_magneto",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "5",
+      "when": 1774875407948,
+      "tag": "0033_fresh_scourge",
+      "breakpoints": true
     }
   ]
 }

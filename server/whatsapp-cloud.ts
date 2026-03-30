@@ -653,7 +653,7 @@ export async function sendProjectStatusUpdate(
     corte: "En Producción - Corte",
     enchape: "En Producción - Enchape",
     ensamble: "En Producción - Ensamble",
-    listo_instalacion: "Listo para Instalación",
+    en_instalacion: "Listo para Instalación",
     entregado: "Entregado",
   };
 
@@ -670,7 +670,7 @@ export async function sendProjectStatusUpdate(
     corte: "✂️",
     enchape: "🪵",
     ensamble: "🔧",
-    listo_instalacion: "🚚",
+    en_instalacion: "🚚",
     entregado: "🎉",
   };
 

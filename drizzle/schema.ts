@@ -367,7 +367,7 @@ export const projects = mysqlTable("projects", {
 	clientId: int().notNull().references(() => clients.id),
 	name: varchar({ length: 255 }).notNull(),
 	workType: mysqlEnum(['cocina','closet','puertas','centro_tv']).notNull(),
-	status: mysqlEnum(['contacto','cotizacion_enviada','cotizacion_aprobada','adelanto_recibido','en_diseno','pendiente_modelado','pendiente_render','aprobacion_final','despiece','corte','enchape','ensamble','listo_instalacion','entregado']).default('contacto').notNull(),
+	status: mysqlEnum(['contacto','cotizacion_enviada','cotizacion_aprobada','adelanto_recibido','en_diseno','pendiente_modelado','pendiente_render','aprobacion_final','despiece','corte','enchape','ensamble','en_instalacion','entregado']).default('contacto').notNull(),
 	initialMeasurements: text(),
 	design3DFiles: text(),
 	despieceFiles: text(),

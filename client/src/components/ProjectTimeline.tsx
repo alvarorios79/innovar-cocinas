@@ -66,7 +66,7 @@ const TIMELINE_STAGES = [
     label: "Instalación",
     description: "Instalación en sitio",
     icon: Truck,
-    statuses: ["listo_instalacion", "listo_instalacion"],
+    statuses: ["en_instalacion", "en_instalacion"],
     clientAction: false,
   },
   {
@@ -101,7 +101,7 @@ const STATUS_TO_STAGE_INDEX: Record<string, number> = {
   corte: 4,
   enchape: 5,
   ensamble: 6,
-  listo_instalacion: 7,
+  en_instalacion: 7,
   entregado: 9,
 };
 

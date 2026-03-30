@@ -21,7 +21,7 @@ const PRODUCTION_STATUSES = {
   corte: { label: "Corte", color: "bg-orange-400" },
   enchape: { label: "Enchape", color: "bg-orange-500" },
   ensamble: { label: "Ensamble", color: "bg-orange-600" },
-  listo_instalacion: { label: "Listo Instalación", color: "bg-teal-500" },
+  en_instalacion: { label: "Listo Instalación", color: "bg-teal-500" },
   entregado: { label: "Entregado", color: "bg-green-600" },
 };
 
@@ -32,7 +32,7 @@ const STAGE_ESTIMATED_DAYS: Record<string, number> = {
   corte: 3,
   enchape: 4,
   ensamble: 5,
-  listo_instalacion: 2,
+  en_instalacion: 2,
   entregado: 1,
 };
 
@@ -50,7 +50,7 @@ export function ProductionCalendar({ className }: ProductionCalendarProps) {
   const productionProjects = useMemo(() => {
     if (!projects) return [];
     return projects.filter(p => 
-      ["aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "listo_instalacion"].includes(p.status)
+      ["aprobacion_final", "despiece", "corte", "enchape", "ensamble", "en_instalacion", "en_instalacion"].includes(p.status)
     );
   }, [projects]);
   

@@ -29,7 +29,7 @@ describe("Projects Module", () => {
         "corte",
         "enchape",
         "ensamble",
-        "listo_instalacion",
+        "en_instalacion",
         "entregado"
       ];
       
@@ -51,8 +51,8 @@ describe("Projects Module", () => {
         despiece: ["corte"],
         corte: ["enchape"],
         enchape: ["ensamble"],
-        ensamble: ["listo_instalacion"],
-        listo_instalacion: ["entregado"],
+        ensamble: ["en_instalacion"],
+        en_instalacion: ["entregado"],
       };
 
       // Verificar que contacto solo puede ir a cotizacion_enviada
@@ -85,7 +85,7 @@ describe("Projects Module", () => {
     });
 
     it("should allow production roles to change production statuses", () => {
-      const productionStatuses = ["corte", "enchape", "ensamble", "listo_instalacion"];
+      const productionStatuses = ["corte", "enchape", "ensamble", "en_instalacion"];
       const productionRoles = ["jefe_taller", "operario"];
       
       const canProductionChange = (role: string, status: string) => 

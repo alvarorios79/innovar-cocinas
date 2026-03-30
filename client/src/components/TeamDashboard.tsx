@@ -139,12 +139,12 @@ export function TeamDashboard() {
     switch (role) {
       case "disenador":
         return projects.filter(p => 
-          ["adelanto_recibido", "en_diseno", "pendiente_modelado", "pendiente_render", "pendiente_render", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "listo_instalacion", "entregado"].includes(p.status)
+          ["adelanto_recibido", "en_diseno", "pendiente_modelado", "pendiente_render", "pendiente_render", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "en_instalacion", "en_instalacion", "entregado"].includes(p.status)
         );
       case "jefe_taller":
       case "operario":
         return projects.filter(p => 
-          ["aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "listo_instalacion"].includes(p.status)
+          ["aprobacion_final", "despiece", "corte", "enchape", "ensamble", "en_instalacion", "en_instalacion"].includes(p.status)
         );
       case "comercial":
       case "admin":
@@ -331,14 +331,14 @@ export function TeamDashboard() {
           },
           { 
             label: "Listos Instalar", 
-            value: myProjects.filter(p => p.status === "listo_instalacion").length,
+            value: myProjects.filter(p => p.status === "en_instalacion").length,
             icon: <Truck className="h-6 w-6" />,
             color: "bg-gradient-to-br from-green-500 to-emerald-500",
-            link: "/projects?status=listo_instalacion"
+            link: "/projects?status=en_instalacion"
           },
           { 
             label: "Instalaciones", 
-            value: myProjects.filter(p => p.status === "listo_instalacion").length,
+            value: myProjects.filter(p => p.status === "en_instalacion").length,
             icon: <Calendar className="h-6 w-6" />,
             color: "bg-gradient-to-br from-blue-500 to-cyan-500",
             link: "/calendar"
@@ -365,7 +365,7 @@ export function TeamDashboard() {
           ["despiece", "corte", "enchape", "ensamble"].includes(p.status)
         );
         const listosInstalar = myProjects.filter(p => 
-          ["listo_instalacion", "listo_instalacion"].includes(p.status)
+          ["en_instalacion", "en_instalacion"].includes(p.status)
         );
         return [
           { 
@@ -499,7 +499,7 @@ export function TeamDashboard() {
       corte: "En Corte",
       enchape: "En Enchape",
       ensamble: "En Ensamble",
-      listo_instalacion: "Listo Instalación",
+      en_instalacion: "Listo Instalación",
       entregado: "Entregado",
     };
     return statusLabels[status] || status;
@@ -520,7 +520,7 @@ export function TeamDashboard() {
       corte: "bg-amber-100 text-amber-700 border-amber-200",
       enchape: "bg-rose-100 text-rose-700 border-rose-200",
       ensamble: "bg-pink-100 text-pink-700 border-pink-200",
-      listo_instalacion: "bg-cyan-100 text-cyan-700 border-cyan-200",
+      en_instalacion: "bg-cyan-100 text-cyan-700 border-cyan-200",
       entregado: "bg-gray-100 text-gray-700 border-gray-200",
     };
     return statusColors[status] || "bg-gray-100 text-gray-700 border-gray-200";

@@ -108,7 +108,7 @@ ${data.portalUrl}
 *INNOVAR Cocinas Integrales*`,
 
   // Listo para instalación
-  listo_instalacion: (data) => `🚚 *¡${data.clientName}, tu ${data.workType} está lista!*
+  en_instalacion: (data) => `🚚 *¡${data.clientName}, tu ${data.workType} está lista!*
 
 Tu proyecto *"${data.projectName}"* ha sido completado en nuestro taller y está *LISTO PARA INSTALACIÓN*.
 
@@ -162,7 +162,7 @@ const STATUS_LABELS: Record<string, string> = {
   corte: "En Producción - Corte",
   enchape: "En Producción - Enchape",
   ensamble: "En Producción - Ensamble",
-  listo_instalacion: "Listo para Instalación",
+  en_instalacion: "Listo para Instalación",
   entregado: "Entregado",
 };
 

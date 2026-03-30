@@ -43,7 +43,7 @@ const PROJECT_STATUSES = {
   corte: { label: "En Corte", color: "bg-orange-500", icon: Hammer },
   enchape: { label: "En Enchape", color: "bg-orange-600", icon: Paintbrush },
   ensamble: { label: "En Ensamble", color: "bg-orange-700", icon: Package },
-  en_instalacion: { label: "Listo para Instalación", color: "bg-teal-500", icon: Truck },
+  listo_instalacion: { label: "En Instalación", color: "bg-teal-500", icon: Truck },
   entregado: { label: "Entregado", color: "bg-green-700", icon: CheckCircle2 },
 };
 
@@ -115,8 +115,8 @@ export function ProjectCard({
       despiece: "corte",
       corte: "enchape",
       enchape: "ensamble",
-      ensamble: "en_instalacion",
-      en_instalacion: "entregado",
+      ensamble: "listo_instalacion",
+      listo_instalacion: "entregado",
     };
     return flow[currentStatus] || null;
   };
@@ -130,7 +130,7 @@ export function ProjectCard({
       return ["adelanto_recibido", "en_diseno", "aprobacion_final"].includes(status);
     }
     if (role === "jefe_taller") {
-      return ["aprobacion_final", "corte", "enchape", "ensamble", "en_instalacion", "en_instalacion"].includes(status);
+      return ["aprobacion_final", "corte", "enchape", "ensamble", "listo_instalacion", "listo_instalacion"].includes(status);
     }
     if (role === "operario") {
       return ["corte", "enchape", "ensamble"].includes(status);

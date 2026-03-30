@@ -1,0 +1,20 @@
+{
+  "query": "SELECT id, name, status FROM projects WHERE name LIKE '%Carolina%' OR name LIKE '%Andres%' LIMIT 10",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT id, name, status FROM projects WHERE name LIKE '%Carolina%' OR name LIKE '%Andres%' LIMIT 10",
+  "rows": [
+    {
+      "id": "2130117",
+      "name": "COT-2026-1772833387900-2643089 - Carolina Diaz",
+      "status": "en_instalacion"
+    },
+    {
+      "id": "2400001",
+      "name": "COT-2026-1773539040435-943369 - Andres Salazar",
+      "status": "pendiente_modelado"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\tstatus\n2130117\tCOT-2026-1772833387900-2643089 - Carolina Diaz\ten_instalacion\n2400001\tCOT-2026-1773539040435-943369 - Andres Salazar\tpendiente_modelado\n",
+  "stderr": "",
+  "execution_time_ms": 65
+}

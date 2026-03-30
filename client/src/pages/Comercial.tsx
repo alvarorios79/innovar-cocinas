@@ -222,7 +222,7 @@ export default function Comercial() {
       corte: "En Corte",
       enchape: "En Enchape",
       ensamble: "En Ensamble",
-      en_instalacion: "Listo Instalación",
+      listo_instalacion: "Listo Instalación",
       entregado: "Entregado",
     };
     return statusLabels[status] || status;
@@ -243,7 +243,7 @@ export default function Comercial() {
       corte: "bg-amber-100 text-amber-700",
       enchape: "bg-rose-100 text-rose-700",
       ensamble: "bg-pink-100 text-pink-700",
-      en_instalacion: "bg-cyan-100 text-cyan-700",
+      listo_instalacion: "bg-cyan-100 text-cyan-700",
       entregado: "bg-gray-100 text-gray-700",
     };
     return statusColors[status] || "bg-gray-100 text-gray-700";

@@ -65,7 +65,7 @@ describe("WhatsApp Notifications Service", () => {
     });
 
     it("should generate ready for installation message", () => {
-      const data = { ...baseMessageData, status: "en_instalacion" };
+      const data = { ...baseMessageData, status: "listo_instalacion" };
       const message = generateProjectMessage(data);
       
       expect(message).toContain("LISTO PARA INSTALACIÓN");
@@ -200,8 +200,8 @@ describe("WhatsApp Notifications Service", () => {
       expect(getStatusLabel("ensamble")).toBe("En Producción - Ensamble");
     });
 
-    it("should return correct label for en_instalacion", () => {
-      expect(getStatusLabel("en_instalacion")).toBe("Listo para Instalación");
+    it("should return correct label for listo_instalacion", () => {
+      expect(getStatusLabel("listo_instalacion")).toBe("Listo para Instalación");
     });
 
     it("should return correct label for entregado", () => {

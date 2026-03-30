@@ -78,7 +78,7 @@ export function ProjectResultCard({ totalAmount, materialExpenses, status }: Pro
               {status === "cotizacion_aprobada" && "Cotización Aprobada"}
               {status === "adelanto_recibido" && "Adelanto Recibido"}
               {status === "en_produccion" && "En Producción"}
-              {status === "en_instalacion" && "Listo Instalación"}
+              {status === "listo_instalacion" && "Listo Instalación"}
               {status === "instalado" && "Instalado"}
               {status === "cancelado" && "Cancelado"}
             </Badge>

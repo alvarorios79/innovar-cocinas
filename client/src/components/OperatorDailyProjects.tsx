@@ -34,7 +34,7 @@ const OPERATOR_STATUSES = {
   corte: { label: "Corte", color: "bg-orange-500", icon: Hammer },
   enchape: { label: "Enchape", color: "bg-orange-600", icon: Paintbrush },
   ensamble: { label: "Ensamble", color: "bg-orange-700", icon: Package },
-  en_instalacion: { label: "Listo Instalación", color: "bg-cyan-500", icon: Package },
+  listo_instalacion: { label: "Listo Instalación", color: "bg-cyan-500", icon: Package },
   entregado: { label: "Entregado", color: "bg-green-600", icon: CheckCircle2 },
 };
 
@@ -64,7 +64,7 @@ const STAGE_CHECKLISTS: Record<string, Array<{ id: string; label: string; descri
     { id: "verificar_funcionamiento", label: "Verificar funcionamiento", description: "Probar puertas y cajones" },
     { id: "limpieza_final", label: "Limpieza final", description: "Limpiar y preparar para instalación" },
   ],
-  en_instalacion: [
+  listo_instalacion: [
     { id: "verificar_modulos", label: "Verificar módulos", description: "Confirmar que todos los módulos estén listos" },
     { id: "preparar_herramientas", label: "Preparar herramientas", description: "Alistar herramientas para instalación" },
     { id: "cargar_vehiculo", label: "Cargar vehículo", description: "Cargar módulos en el vehículo de transporte" },
@@ -104,7 +104,7 @@ export function OperatorDailyProjects({ className }: OperatorDailyProjectsProps)
   
   // Filtrar proyectos en etapas de producción para operario (incluyendo instalación)
   const operatorProjects = (projects || []).filter(p => 
-    ["despiece", "corte", "enchape", "ensamble", "en_instalacion", "en_instalacion"].includes(p.status)
+    ["despiece", "corte", "enchape", "ensamble", "listo_instalacion", "listo_instalacion"].includes(p.status)
   );
   
   const handleRequestMaterials = () => {

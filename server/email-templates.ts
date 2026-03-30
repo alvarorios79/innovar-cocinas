@@ -146,7 +146,7 @@ export function projectStatusChangeEmailTemplate(data: {
     diseno_listo: "Diseño Listo",
     aprobado_cliente: "Aprobado por Cliente",
     en_produccion: "En Producción",
-    en_instalacion: "Listo para Instalación",
+    listo_instalacion: "Listo para Instalación",
     instalado: "Instalado",
     finalizado: "Finalizado",
   };

@@ -23,20 +23,20 @@ export function validateStatusChange(role: string, currentStatus: string, newSta
 
   // Jefe de taller puede:
   // - despiece -> corte (pasar a producción)
-  // - corte -> enchape -> ensamble -> en_instalacion -> entregado
+  // - corte -> enchape -> ensamble -> listo_instalacion -> entregado
   if (role === "jefe_taller") {
     if (currentStatus === "despiece" && newStatus === "corte") return true;
-    const productionFlow = ["corte", "enchape", "ensamble", "en_instalacion", "entregado"];
+    const productionFlow = ["corte", "enchape", "ensamble", "listo_instalacion", "entregado"];
     const currentIndex = productionFlow.indexOf(currentStatus);
     const newIndex = productionFlow.indexOf(newStatus);
     if (currentIndex >= 0 && newIndex === currentIndex + 1) return true;
     return false;
   }
 
-  // Operario puede: corte -> enchape -> ensamble -> en_instalacion
+  // Operario puede: corte -> enchape -> ensamble -> listo_instalacion
   // Ayuda al jefe de taller con el avance de producción
   if (role === "operario") {
-    const operarioFlow = ["corte", "enchape", "ensamble", "en_instalacion"];
+    const operarioFlow = ["corte", "enchape", "ensamble", "listo_instalacion"];
     const currentIndex = operarioFlow.indexOf(currentStatus);
     const newIndex = operarioFlow.indexOf(newStatus);
     if (currentIndex >= 0 && newIndex === currentIndex + 1) return true;

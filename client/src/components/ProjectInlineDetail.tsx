@@ -56,7 +56,7 @@ const PROJECT_STATUSES: Record<string, { label: string; color: string; icon: any
   corte: { label: "En Corte", color: "bg-orange-500", icon: AlertCircle },
   enchape: { label: "En Enchape", color: "bg-orange-600", icon: AlertCircle },
   ensamble: { label: "En Ensamble", color: "bg-orange-700", icon: AlertCircle },
-  en_instalacion: { label: "Listo para Instalación", color: "bg-teal-500", icon: AlertCircle },
+  listo_instalacion: { label: "En Instalación", color: "bg-teal-500", icon: AlertCircle },
   entregado: { label: "Entregado", color: "bg-green-700", icon: CheckCircle2 },
 };
 
@@ -82,8 +82,8 @@ const PAID_ADVANCE_STATUSES = [
   "corte",
   "enchape",
   "ensamble",
-  "en_instalacion",
-  "en_instalacion",
+  "listo_instalacion",
+  "listo_instalacion",
   "entregado"
 ];
 
@@ -492,7 +492,7 @@ export function ProjectInlineDetail({
     
     // Carpetas de producción que se habilitan desde aprobacion_final
     const productionFolders = ["corte", "enchape", "armado", "proceso_instalacion", "fotos_finales"];
-    const productionStates = ["aprobacion_final", "despiece", "corte", "enchape", "ensamble", "en_instalacion", "entregado"];
+    const productionStates = ["aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "entregado"];
     
     const uploadPermissions: Record<string, string[]> = {
       documento_cotizacion: ["super_admin", "admin", "comercial"],
@@ -810,7 +810,7 @@ export function ProjectInlineDetail({
           <Button
             size="sm"
             className="bg-teal-600 hover:bg-teal-700"
-            onClick={() => updateStatus.mutate({ projectId: projectDetail.id, newStatus: "en_instalacion" })}
+            onClick={() => updateStatus.mutate({ projectId: projectDetail.id, newStatus: "listo_instalacion" })}
             disabled={updateStatus.isPending}
           >
             <CheckCircle2 className="h-4 w-4 mr-1" />
@@ -820,7 +820,7 @@ export function ProjectInlineDetail({
       )}
 
       {/* Listo Instalación -> Instalación Programada */}
-      {projectDetail.status === "en_instalacion" && 
+      {projectDetail.status === "listo_instalacion" && 
         (user?.role === "jefe_taller" || user?.role === "admin" || user?.role === "super_admin") && (
         <div className="bg-teal-50 border border-teal-200 rounded-lg p-4 mb-4">
           <h4 className="font-medium text-teal-800 mb-2 flex items-center gap-2">
@@ -833,7 +833,7 @@ export function ProjectInlineDetail({
           <Button
             size="sm"
             className="bg-teal-600 hover:bg-teal-700"
-            onClick={() => updateStatus.mutate({ projectId: projectDetail.id, newStatus: "en_instalacion" })}
+            onClick={() => updateStatus.mutate({ projectId: projectDetail.id, newStatus: "listo_instalacion" })}
             disabled={updateStatus.isPending}
           >
             <CheckCircle2 className="h-4 w-4 mr-1" />
@@ -843,7 +843,7 @@ export function ProjectInlineDetail({
       )}
 
       {/* Instalación Programada -> Entregado */}
-      {projectDetail.status === "en_instalacion" && 
+      {projectDetail.status === "listo_instalacion" && 
         (user?.role === "jefe_taller" || user?.role === "admin" || user?.role === "super_admin") && (
         <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
           <h4 className="font-medium text-green-800 mb-2 flex items-center gap-2">

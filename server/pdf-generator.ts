@@ -40,7 +40,7 @@ export async function generateProjectReportHTML(projectId: number): Promise<stri
     corte: "En Producción - Corte",
     enchape: "En Producción - Enchape",
     ensamble: "En Producción - Ensamble",
-    en_instalacion: "Listo para Instalación",
+    listo_instalacion: "Listo para Instalación",
     entregado: "Entregado",
   };
 

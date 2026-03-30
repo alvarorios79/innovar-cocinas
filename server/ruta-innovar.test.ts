@@ -152,8 +152,8 @@ describe("Ruta INNOVAR - Flujo de Estados", () => {
     "corte",
     "enchape",
     "ensamble",
-    "en_instalacion",
-    "en_instalacion",
+    "listo_instalacion",
+    "listo_instalacion",
     "entregado",
   ];
 

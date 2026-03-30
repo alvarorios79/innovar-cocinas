@@ -195,7 +195,7 @@ export async function checkDeliveryDeadlineReminders() {
           eq(projects.status, "corte"),
           eq(projects.status, "enchape"),
           eq(projects.status, "ensamble"),
-          eq(projects.status, "en_instalacion")
+          eq(projects.status, "listo_instalacion")
         ),
         isNull(projects.deliveredAt)
       )
@@ -383,7 +383,7 @@ function getStatusLabel(status: string): string {
     corte: "Corte",
     enchape: "Enchape",
     ensamble: "Ensamble",
-    en_instalacion: "Listo para Instalación",
+    listo_instalacion: "Listo para Instalación",
     entregado: "Entregado",
   };
   return labels[status] || status;

@@ -155,7 +155,7 @@ export async function createRemindersForStatusChange(
       break;
     }
     
-    case "en_instalacion": {
+    case "listo_instalacion": {
       // Recordatorio 3 días antes de la instalación
       const projectData = await db.getProjectById(projectId);
       if (projectData?.scheduledInstallDate) {

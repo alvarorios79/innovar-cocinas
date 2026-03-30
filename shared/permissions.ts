@@ -22,7 +22,7 @@ export type ProjectStatus =
   | 'corte'
   | 'enchape'
   | 'ensamble'
-  | 'en_instalacion'     // Fusión de en_instalacion + instalacion_programada
+  | 'listo_instalacion'     // Fusión de listo_instalacion + instalacion_programada
   | 'entregado';
 
 // Categorías de fotos
@@ -51,12 +51,12 @@ export type PhotoSubcategory =
  * Estados que cada rol puede ver en la lista de proyectos
  */
 export const VIEW_PROJECT_STATES: Record<UserRole, ProjectStatus[]> = {
-  super_admin: ['contacto', 'cotizacion_enviada', 'cotizacion_aprobada', 'adelanto_recibido', 'en_diseno', 'pendiente_modelado', 'pendiente_render', 'aprobacion_final', 'despiece', 'corte', 'enchape', 'ensamble', 'en_instalacion', 'entregado'],
-  admin: ['contacto', 'cotizacion_enviada', 'cotizacion_aprobada', 'adelanto_recibido', 'en_diseno', 'pendiente_modelado', 'pendiente_render', 'aprobacion_final', 'despiece', 'corte', 'enchape', 'ensamble', 'en_instalacion', 'entregado'],
-  comercial: ['contacto', 'cotizacion_enviada', 'cotizacion_aprobada', 'adelanto_recibido', 'en_diseno', 'pendiente_modelado', 'pendiente_render', 'aprobacion_final', 'despiece', 'corte', 'enchape', 'ensamble', 'en_instalacion', 'entregado'],
-  disenador: ['adelanto_recibido', 'en_diseno', 'pendiente_modelado', 'pendiente_render', 'aprobacion_final', 'despiece', 'corte', 'enchape', 'ensamble', 'en_instalacion', 'entregado'],
-  jefe_taller: ['despiece', 'corte', 'enchape', 'ensamble', 'en_instalacion', 'entregado'],
-  operario: ['despiece', 'corte', 'enchape', 'ensamble', 'en_instalacion', 'entregado'],
+  super_admin: ['contacto', 'cotizacion_enviada', 'cotizacion_aprobada', 'adelanto_recibido', 'en_diseno', 'pendiente_modelado', 'pendiente_render', 'aprobacion_final', 'despiece', 'corte', 'enchape', 'ensamble', 'listo_instalacion', 'entregado'],
+  admin: ['contacto', 'cotizacion_enviada', 'cotizacion_aprobada', 'adelanto_recibido', 'en_diseno', 'pendiente_modelado', 'pendiente_render', 'aprobacion_final', 'despiece', 'corte', 'enchape', 'ensamble', 'listo_instalacion', 'entregado'],
+  comercial: ['contacto', 'cotizacion_enviada', 'cotizacion_aprobada', 'adelanto_recibido', 'en_diseno', 'pendiente_modelado', 'pendiente_render', 'aprobacion_final', 'despiece', 'corte', 'enchape', 'ensamble', 'listo_instalacion', 'entregado'],
+  disenador: ['adelanto_recibido', 'en_diseno', 'pendiente_modelado', 'pendiente_render', 'aprobacion_final', 'despiece', 'corte', 'enchape', 'ensamble', 'listo_instalacion', 'entregado'],
+  jefe_taller: ['despiece', 'corte', 'enchape', 'ensamble', 'listo_instalacion', 'entregado'],
+  operario: ['despiece', 'corte', 'enchape', 'ensamble', 'listo_instalacion', 'entregado'],
 };
 
 // ============================================
@@ -67,11 +67,11 @@ export const VIEW_PROJECT_STATES: Record<UserRole, ProjectStatus[]> = {
  * Estados a los que cada rol puede avanzar un proyecto
  */
 export const ADVANCE_STATUS_PERMISSIONS: Record<UserRole, ProjectStatus[]> = {
-  super_admin: ['contacto', 'cotizacion_enviada', 'cotizacion_aprobada', 'adelanto_recibido', 'en_diseno', 'pendiente_modelado', 'pendiente_render', 'aprobacion_final', 'despiece', 'corte', 'enchape', 'ensamble', 'en_instalacion', 'entregado'],
-  admin: ['contacto', 'cotizacion_enviada', 'cotizacion_aprobada', 'adelanto_recibido', 'en_diseno', 'pendiente_modelado', 'pendiente_render', 'aprobacion_final', 'despiece', 'corte', 'enchape', 'ensamble', 'en_instalacion', 'entregado'],
+  super_admin: ['contacto', 'cotizacion_enviada', 'cotizacion_aprobada', 'adelanto_recibido', 'en_diseno', 'pendiente_modelado', 'pendiente_render', 'aprobacion_final', 'despiece', 'corte', 'enchape', 'ensamble', 'listo_instalacion', 'entregado'],
+  admin: ['contacto', 'cotizacion_enviada', 'cotizacion_aprobada', 'adelanto_recibido', 'en_diseno', 'pendiente_modelado', 'pendiente_render', 'aprobacion_final', 'despiece', 'corte', 'enchape', 'ensamble', 'listo_instalacion', 'entregado'],
   comercial: ['contacto', 'cotizacion_enviada', 'cotizacion_aprobada', 'adelanto_recibido'],
   disenador: ['en_diseno', 'pendiente_modelado', 'pendiente_render', 'aprobacion_final', 'despiece'],
-  jefe_taller: ['corte', 'enchape', 'ensamble', 'en_instalacion', 'entregado'],
+  jefe_taller: ['corte', 'enchape', 'ensamble', 'listo_instalacion', 'entregado'],
   operario: ['corte', 'enchape', 'ensamble'],
 };
 
@@ -183,7 +183,7 @@ export const STATUS_LABELS: Record<ProjectStatus, string> = {
   corte: 'Corte',
   enchape: 'Enchape',
   ensamble: 'Ensamble',
-  en_instalacion: 'Listo para Instalación',
+  listo_instalacion: 'Listo para Instalación',
   entregado: 'Entregado',
 };
 

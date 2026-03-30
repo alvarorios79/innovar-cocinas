@@ -108,21 +108,21 @@ export const projectsRouter = router({
         // (necesita ver proyectos en producción para responder consultas del jefe de taller/operario)
         if (role === "disenador") {
           projectsList = projectsList.filter(p => 
-            ["adelanto_recibido", "en_diseno", "pendiente_modelado", "pendiente_render", "pendiente_render", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "en_instalacion", "en_instalacion", "entregado"].includes(p.status)
+            ["adelanto_recibido", "en_diseno", "pendiente_modelado", "pendiente_render", "pendiente_render", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "listo_instalacion", "entregado"].includes(p.status)
           );
         }
 
         // Jefe de taller ve proyectos desde diseño listo hasta entregado
         if (role === "jefe_taller") {
           projectsList = projectsList.filter(p => 
-            ["pendiente_render", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "en_instalacion", "en_instalacion", "entregado"].includes(p.status)
+            ["pendiente_render", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "listo_instalacion", "entregado"].includes(p.status)
           );
         }
         
         // Operario ve los mismos proyectos que el jefe de taller (desde diseño listo hasta entregado)
         if (role === "operario") {
           projectsList = projectsList.filter(p => 
-            ["pendiente_render", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "en_instalacion", "entregado"].includes(p.status)
+            ["pendiente_render", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "entregado"].includes(p.status)
           );
         }
 
@@ -156,17 +156,17 @@ export const projectsRouter = router({
         let filteredData: typeof result.data = result.data || [];
         if (role === "disenador") {
           filteredData = filteredData.filter(p => 
-            ["adelanto_recibido", "en_diseno", "pendiente_modelado", "pendiente_render", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "en_instalacion", "entregado"].includes(p.status)
+            ["adelanto_recibido", "en_diseno", "pendiente_modelado", "pendiente_render", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "entregado"].includes(p.status)
           );
         }
         if (role === "jefe_taller") {
           filteredData = filteredData.filter(p => 
-            ["pendiente_render", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "en_instalacion", "entregado"].includes(p.status)
+            ["pendiente_render", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "entregado"].includes(p.status)
           );
         }
         if (role === "operario") {
           filteredData = filteredData.filter(p => 
-            ["pendiente_render", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "en_instalacion", "entregado"].includes(p.status)
+            ["pendiente_render", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "entregado"].includes(p.status)
           );
         }
         const allClients = await db.getAllClients();
@@ -501,7 +501,7 @@ export const projectsRouter = router({
           "cotizacion_enviada", "cotizacion_aprobada", "adelanto_recibido",
           "en_diseno", "pendiente_render", "aprobacion_final",
           "despiece", "corte", "enchape", "ensamble", 
-          "en_instalacion", "en_instalacion", "entregado"
+          "listo_instalacion", "listo_instalacion", "entregado"
         ]),
         notes: z.string().optional(),
         advanceAmount: z.number().optional(),
@@ -529,7 +529,7 @@ export const projectsRouter = router({
         }
 
         // Validación general: Etapas productivas requieren fotos antes de avanzar
-        const stagesRequiringPhotos = ["corte", "enchape", "ensamble", "en_instalacion"];
+        const stagesRequiringPhotos = ["corte", "enchape", "ensamble", "listo_instalacion"];
         
         if (stagesRequiringPhotos.includes(currentStatus)) {
           try {
@@ -543,7 +543,7 @@ export const projectsRouter = router({
 
             // Mapear estado del proyecto a categoría de fotos
             let photoCategory = "avance"; // corte, enchape, ensamble usan "avance"
-            if (currentStatus === "en_instalacion") {
+            if (currentStatus === "listo_instalacion") {
               photoCategory = "instalacion";
             }
 
@@ -578,7 +578,7 @@ export const projectsRouter = router({
         }
 
         // Validación especial: Fotos de instalación requeridas antes de marcar como entregado
-        if (currentStatus === "en_instalacion" && newStatus === "entregado") {
+        if (currentStatus === "listo_instalacion" && newStatus === "entregado") {
           try {
             const dbInstance = await db.getDb();
             if (!dbInstance) {
@@ -660,7 +660,7 @@ export const projectsRouter = router({
             updateData.selectedMaterials = input.selectedMaterials;
           }
         }
-        if (newStatus === "en_instalacion" && input.scheduledInstallDate) {
+        if (newStatus === "listo_instalacion" && input.scheduledInstallDate) {
           updateData.scheduledInstallDate = input.scheduledInstallDate;
         }
         if (newStatus === "entregado" && !project.deliveredAt) {
@@ -708,7 +708,7 @@ export const projectsRouter = router({
         }
 
         // Notificar al jefe de taller cuando el operario avanza una etapa de producción
-        const productionStages = ["enchape", "ensamble", "en_instalacion"];
+        const productionStages = ["enchape", "ensamble", "listo_instalacion"];
         if (role === "operario" && productionStages.includes(newStatus)) {
           try {
             const allUsers = await db.getAllUsers();
@@ -717,7 +717,7 @@ export const projectsRouter = router({
             const stageLabels: Record<string, string> = {
               enchape: "Enchape",
               ensamble: "Ensamble",
-              en_instalacion: "Listo para Instalación",
+              listo_instalacion: "Listo para Instalación",
             };
             
             for (const jefe of jefesTaller) {
@@ -1467,8 +1467,8 @@ ${input.notes || "No se especificaron detalles"}
 
           // 3. Flujo inverso de estados
           const reverseFlow: Record<string, string | null> = {
-            entregado: "en_instalacion",
-            en_instalacion: "ensamble",
+            entregado: "listo_instalacion",
+            listo_instalacion: "ensamble",
             ensamble: "enchape",
             enchape: "corte",
             corte: "despiece",
@@ -1723,18 +1723,18 @@ export const projectPhotosRouter = router({
 
         // Cambiar estado del proyecto automáticamente según la subcategoría de foto subida
         // Solo cambiar si el proyecto está en un estado anterior o igual
-        const statusOrder = ["contacto", "cotizacion_enviada", "cotizacion_aprobada", "adelanto_recibido", "en_diseno", "pendiente_modelado", "pendiente_render", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "en_instalacion", "entregado"];
+        const statusOrder = ["contacto", "cotizacion_enviada", "cotizacion_aprobada", "adelanto_recibido", "en_diseno", "pendiente_modelado", "pendiente_render", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "entregado"];
         const currentStatusIndex = statusOrder.indexOf(project.status);
         
         // Mapeo de subcategoría a estado de proyecto
-        type ProjectStatus = "contacto" | "cotizacion_enviada" | "cotizacion_aprobada" | "adelanto_recibido" | "en_diseno" | "pendiente_modelado" | "pendiente_render" | "aprobacion_final" | "despiece" | "corte" | "enchape" | "ensamble" | "en_instalacion" | "entregado";
+        type ProjectStatus = "contacto" | "cotizacion_enviada" | "cotizacion_aprobada" | "adelanto_recibido" | "en_diseno" | "pendiente_modelado" | "pendiente_render" | "aprobacion_final" | "despiece" | "corte" | "enchape" | "ensamble" | "listo_instalacion" | "entregado";
         
         const subcategoryToStatus: Record<string, ProjectStatus> = {
           "despieces": "despiece",
           "corte": "corte",
           "enchape": "enchape",
           "armado": "ensamble",
-          "proceso_instalacion": "en_instalacion",
+          "proceso_instalacion": "listo_instalacion",
           "fotos_finales": "entregado",
         };
 

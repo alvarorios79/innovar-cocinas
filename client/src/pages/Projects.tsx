@@ -66,7 +66,7 @@ const PROJECT_STATUSES: Record<string, { label: string; color: string; icon: any
   corte: { label: "En Corte", color: "bg-orange-500", icon: Hammer },
   enchape: { label: "En Enchape", color: "bg-orange-600", icon: Paintbrush },
   ensamble: { label: "En Ensamble", color: "bg-orange-700", icon: Package },
-  en_instalacion: { label: "Listo para Instalación", color: "bg-teal-500", icon: Truck },
+  listo_instalacion: { label: "Listo para Instalación", color: "bg-teal-500", icon: Truck },
   entregado: { label: "Entregado", color: "bg-green-700", icon: CheckCircle2 },
 };
 
@@ -542,8 +542,8 @@ export default function Projects() {
       despiece: "corte",
       corte: "enchape",
       enchape: "ensamble",
-      ensamble: "en_instalacion",
-      en_instalacion: "en_instalacion",
+      ensamble: "listo_instalacion",
+      listo_instalacion: "listo_instalacion",
       instalacion_programada: "entregado",
     };
     return flow[currentStatus] || null;
@@ -558,7 +558,7 @@ export default function Projects() {
       return ["adelanto_recibido", "en_diseno", "aprobacion_final"].includes(status);
     }
     if (role === "jefe_taller") {
-      return ["aprobacion_final", "corte", "enchape", "ensamble", "en_instalacion", "en_instalacion"].includes(status);
+      return ["aprobacion_final", "corte", "enchape", "ensamble", "listo_instalacion", "listo_instalacion"].includes(status);
     }
     if (role === "operario") {
       return ["corte", "enchape", "ensamble"].includes(status);
@@ -676,15 +676,15 @@ export default function Projects() {
                   .filter(([key]) => {
                     // Jefe de taller: solo etapas desde diseño listo hasta entregado
                     if (user?.role === "jefe_taller") {
-                      return ["pendiente_render", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "en_instalacion", "en_instalacion", "entregado"].includes(key);
+                      return ["pendiente_render", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "listo_instalacion", "entregado"].includes(key);
                     }
                     // Diseñador: ve todos los estados desde adelanto hasta entregado
                     if (user?.role === "disenador") {
-                      return ["adelanto_recibido", "en_diseno", "pendiente_modelado", "pendiente_render", "pendiente_render", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "en_instalacion", "en_instalacion", "entregado"].includes(key);
+                      return ["adelanto_recibido", "en_diseno", "pendiente_modelado", "pendiente_render", "pendiente_render", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "listo_instalacion", "entregado"].includes(key);
                     }
                     // Operario: solo etapas de producción
                     if (user?.role === "operario") {
-                      return ["despiece", "corte", "enchape", "ensamble", "en_instalacion"].includes(key);
+                      return ["despiece", "corte", "enchape", "ensamble", "listo_instalacion"].includes(key);
                     }
                     // Admin y super_admin ven todos
                     return true;

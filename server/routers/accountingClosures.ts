@@ -27,6 +27,8 @@ import {
   getConfirmedClosures,
   getClosedProjects,
   calculateClosurePreview,
+  deleteTestProject,
+  getTestProjectsForDeletion,
 } from "../db";
 
 export const accountingClosuresRouter = router({
@@ -525,6 +527,53 @@ export const accountingClosuresRouter = router({
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Error al calcular preview del cierre",
+        });
+      }
+    }),
+
+  /**
+   * Get all test projects available for deletion
+   */
+  getTestProjects: adminProcedure.query(async () => {
+    try {
+      const testProjects = await getTestProjectsForDeletion();
+      return testProjects;
+    } catch (error) {
+      console.error("[AccountingClosures] Error getting test projects:", error);
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Error al obtener proyectos de prueba",
+      });
+    }
+  }),
+
+  /**
+   * Delete a test project (only if dataOrigin = 'test')
+   */
+  deleteTestProject: adminProcedure
+    .input(z.object({ projectId: z.number() }))
+    .mutation(async ({ input, ctx }) => {
+      try {
+        const result = await deleteTestProject(input.projectId);
+        
+        if (result) {
+          return {
+            success: true,
+            message: "Proyecto de prueba eliminado exitosamente",
+            projectId: input.projectId,
+          };
+        }
+      } catch (error) {
+        if (error instanceof Error && error.message.includes("Solo se pueden eliminar")) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: error.message,
+          });
+        }
+        console.error("[AccountingClosures] Error deleting test project:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Error al eliminar proyecto de prueba",
         });
       }
     }),

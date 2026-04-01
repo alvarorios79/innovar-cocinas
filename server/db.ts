@@ -3824,20 +3824,22 @@ export async function getEligibleProjectsForAccountingClosure() {
     const db = await getDb();
     if (!db) throw new Error('Database connection failed');
     
-    // Primero obtener todos los proyectos archivados sin cierre
+    // Primero obtener todos los proyectos archivados sin cierre (EXCLUYENDO proyectos de prueba)
     const allArchived = await db
       .select({
         projectId: projects.id,
         projectName: projects.name,
         clientId: projects.clientId,
         totalAmount: projects.totalAmount,
+        dataOrigin: projects.dataOrigin,
       })
       .from(projects)
       .where(
         and(
           eq(projects.isArchived, 1),
           isNull(projects.accountingClosureId),
-          eq(projects.status, 'entregado')
+          eq(projects.status, 'entregado'),
+          eq(projects.dataOrigin, 'manual')
         )
       );
 
@@ -4300,4 +4302,102 @@ export async function calculateClosurePreview(projectIds: number[]) {
     totalExpenses,
     totalProfit,
   };
+}
+
+/**
+ * Elimina un proyecto de prueba (solo si dataOrigin = 'test')
+ * Retorna true si se eliminó, false si no es un proyecto de prueba
+ */
+export async function deleteTestProject(projectId: number) {
+  try {
+    const db = await getDb();
+    if (!db) throw new Error('Database connection failed');
+
+    // Primero verificar que es un proyecto de prueba
+    const project = await db
+      .select({ dataOrigin: projects.dataOrigin })
+      .from(projects)
+      .where(eq(projects.id, projectId))
+      .limit(1);
+
+    if (!project || project.length === 0) {
+      throw new Error('Proyecto no encontrado');
+    }
+
+    if (project[0].dataOrigin !== 'test') {
+      throw new Error('Solo se pueden eliminar proyectos de prueba (dataOrigin = test)');
+    }
+
+    // Eliminar proyecto de prueba y sus datos asociados
+    await db.transaction(async (tx) => {
+      // Eliminar pagos del proyecto
+      await tx.delete(payments).where(eq(payments.projectId, projectId));
+
+      // Eliminar fotos del proyecto
+      await tx.delete(projectPhotos).where(eq(projectPhotos.projectId, projectId));
+
+      // Eliminar historial de estado
+      await tx.delete(projectStatusHistory).where(eq(projectStatusHistory.projectId, projectId));
+
+      // Eliminar tareas del proyecto
+      await tx.delete(tasks).where(eq(tasks.projectId, projectId));
+
+      // Finalmente, eliminar el proyecto
+      await tx.delete(projects).where(eq(projects.id, projectId));
+    });
+
+    console.log(`[TEST PROJECT] Proyecto de prueba ${projectId} eliminado exitosamente`);
+    return true;
+  } catch (error) {
+    console.error('[TEST PROJECT] Error deleting test project:', error);
+    throw error;
+  }
+}
+
+/**
+ * Obtiene todos los proyectos de prueba disponibles para borrar
+ */
+export async function getTestProjectsForDeletion() {
+  try {
+    const db = await getDb();
+    if (!db) throw new Error('Database connection failed');
+
+    const testProjects = await db
+      .select({
+        projectId: projects.id,
+        projectName: projects.name,
+        clientId: projects.clientId,
+        status: projects.status,
+        createdAt: projects.createdAt,
+      })
+      .from(projects)
+      .where(
+        and(
+          eq(projects.dataOrigin, 'test'),
+          isNull(projects.accountingClosureId)
+        )
+      )
+      .orderBy(desc(projects.createdAt));
+
+    // Obtener nombres de clientes
+    const projectsWithClientNames = await Promise.all(
+      testProjects.map(async (proj) => {
+        const clientData = await db
+          .select({ name: clients.name })
+          .from(clients)
+          .where(eq(clients.id, proj.clientId))
+          .limit(1);
+
+        return {
+          ...proj,
+          clientName: clientData[0]?.name || 'Sin cliente',
+        };
+      })
+    );
+
+    return projectsWithClientNames;
+  } catch (error) {
+    console.error('[TEST PROJECT] Error getting test projects:', error);
+    throw error;
+  }
 }

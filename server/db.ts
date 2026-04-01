@@ -3845,12 +3845,12 @@ export async function getEligibleProjectsForAccountingClosure() {
     const eligibleProjects = [];
     
     for (const proj of allArchived) {
-      // Obtener pagos del proyecto (SIN filtro temporal - incluye todos los pagos)
-      // Nota: Los pagos se filtran por período en createAccountingClosure()
+      // Obtener pagos, descuentos y recargos del proyecto
       const paymentsResult = await db
         .select({
           totalPayments: sql<number>`COALESCE(SUM(CASE WHEN movementType = 'payment' THEN amount ELSE 0 END), 0)`,
-          totalDiscounts: sql<number>`COALESCE(SUM(CASE WHEN movementType = 'discount' THEN amount ELSE 0 END), 0)`
+          totalDiscounts: sql<number>`COALESCE(SUM(CASE WHEN movementType = 'discount' THEN amount ELSE 0 END), 0)`,
+          totalSurcharges: sql<number>`COALESCE(SUM(CASE WHEN movementType = 'surcharge' THEN amount ELSE 0 END), 0)`
         })
         .from(payments)
         .where(
@@ -3858,10 +3858,15 @@ export async function getEligibleProjectsForAccountingClosure() {
         );
       
       const totalPaid = parseFloat(paymentsResult[0]?.totalPayments?.toString() || '0');
-      const totalDiscounts = parseFloat(paymentsResult[0]?.totalDiscounts?.toString() || '0');
-      const totalAmount = parseFloat(proj.totalAmount?.toString() || '0');
-      // Balance = totalAmount - pagos - descuentos
-      const balance = totalAmount - totalPaid - totalDiscounts;
+      const discountsApplied = parseFloat(paymentsResult[0]?.totalDiscounts?.toString() || '0');
+      const surchargesApplied = parseFloat(paymentsResult[0]?.totalSurcharges?.toString() || '0');
+      const originalPrice = parseFloat(proj.totalAmount?.toString() || '0');
+      
+      // Calcular precio NETO
+      const netPrice = originalPrice - discountsApplied + surchargesApplied;
+      
+      // Balance = netPrice - pagos (el dinero real que falta)
+      const balance = netPrice - totalPaid;
       
       // Solo incluir si balance = 0 (pagos completados)
       // Esto asegura que SOLO proyectos completamente pagados aparezcan en el listado
@@ -3877,7 +3882,10 @@ export async function getEligibleProjectsForAccountingClosure() {
           projectId: proj.projectId,
           projectName: proj.projectName,
           clientName: clientData[0]?.name || 'Sin cliente',
-          totalAmount: totalAmount,
+          originalPrice: originalPrice,
+          discountsApplied: discountsApplied,
+          surchargesApplied: surchargesApplied,
+          netPrice: netPrice,
           totalPaid: totalPaid,
           balance: balance,
         });

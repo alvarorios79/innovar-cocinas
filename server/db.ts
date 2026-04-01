@@ -609,6 +609,21 @@ export async function createProject(project: InsertProject, dataOrigin: "manual"
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
+  // Validación: Si el nombre contiene TEST, DEBE ser dataOrigin = 'test'
+  if (project.name.toUpperCase().includes('TEST') && dataOrigin !== 'test') {
+    throw new Error('Los proyectos con TEST en el nombre DEBEN tener dataOrigin = test');
+  }
+  
+  // Validación: Si dataOrigin = 'test', el nombre DEBE contener TEST
+  if (dataOrigin === 'test' && !project.name.toUpperCase().includes('TEST')) {
+    throw new Error('Los proyectos con dataOrigin = test DEBEN tener TEST en el nombre');
+  }
+  
+  // Validación: Si dataOrigin = 'system', el nombre DEBE contener SYSTEM
+  if (dataOrigin === 'system' && !project.name.toUpperCase().includes('SYSTEM')) {
+    throw new Error('Los proyectos con dataOrigin = system DEBEN tener SYSTEM en el nombre');
+  }
+
   const result = await db.insert(projects).values({ ...project, dataOrigin });
   return result[0].insertId;
 }
@@ -3839,8 +3854,7 @@ export async function getEligibleProjectsForAccountingClosure() {
           eq(projects.isArchived, 1),
           isNull(projects.accountingClosureId),
           eq(projects.status, 'entregado'),
-          ne(projects.dataOrigin, 'test'),
-          ne(projects.dataOrigin, 'system')
+          eq(projects.dataOrigin, 'manual') // SOLO proyectos reales
         )
       );
 

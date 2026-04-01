@@ -2772,21 +2772,23 @@ export async function createAccountingClosure(data: {
     
     // PASO 2: Procesar cada proyecto
     for (const project of projectsData) {
-      // PASO 2A: Calcular ingresos (pagos del proyecto)
-      const paymentsResult = await tx.select({
-        total: sql<number>`COALESCE(SUM(CAST(amount AS DECIMAL(12,2))), 0)`
+      // PASO 2A: Calcular ingresos, descuentos y recargos
+      const paymentsDetailResult = await tx.select({
+        payments: sql<number>`COALESCE(SUM(CASE WHEN movementType = 'payment' THEN amount ELSE 0 END), 0)`,
+        discounts: sql<number>`COALESCE(SUM(CASE WHEN movementType = 'discount' THEN amount ELSE 0 END), 0)`,
+        surcharges: sql<number>`COALESCE(SUM(CASE WHEN movementType = 'surcharge' THEN amount ELSE 0 END), 0)`
       })
       .from(payments)
-      .where(
-        and(
-          eq(payments.projectId, project.id),
-          eq(payments.movementType, 'payment')
-        )
-      );
+      .where(eq(payments.projectId, project.id));
       
-      const projectRevenue = parseFloat(
-        paymentsResult[0]?.total?.toString() || '0'
-      );
+      const totalPayments = parseFloat(paymentsDetailResult[0]?.payments?.toString() || '0');
+      const totalDiscounts = parseFloat(paymentsDetailResult[0]?.discounts?.toString() || '0');
+      const totalSurcharges = parseFloat(paymentsDetailResult[0]?.surcharges?.toString() || '0');
+      
+      // Calcular precio original, neto y revenue
+      const originalPrice = parseFloat(project.totalAmount?.toString() || '0');
+      const netPrice = originalPrice - totalDiscounts + totalSurcharges;
+      const projectRevenue = totalPayments;
       
       // PASO 2B: Calcular gastos de proyecto (solo materiales_proyecto)
       const projectExpensesResult = await tx.select({
@@ -2806,24 +2808,28 @@ export async function createAccountingClosure(data: {
         projectExpensesResult[0]?.total?.toString() || '0'
       );
       
-      // PASO 2C: Calcular utilidad del proyecto
-      const projectProfit = projectRevenue - projectExpensesAmount;
+      // PASO 2C: Calcular utilidad del proyecto basada en PRECIO NETO
+      const projectProfit = netPrice - projectExpensesAmount;
       
-      console.log(`[CLOSURE ${closureId}] Proyecto ${project.id}: Ingresos=$${projectRevenue}, Gastos=$${projectExpensesAmount}, Utilidad=$${projectProfit}`);
+      console.log(`[CLOSURE ${closureId}] Proyecto ${project.id}: Original=$${originalPrice}, Descuentos=$${totalDiscounts}, Recargos=$${totalSurcharges}, Neto=$${netPrice}, Pagos=$${projectRevenue}, Gastos=$${projectExpensesAmount}, Utilidad=$${projectProfit}`);
       
-      // Guardar proyecto en cierre
+      // Guardar proyecto en cierre CON DESGLOSE DE PRECIOS
       await tx.insert(accountingClosureProjects).values({
         closureId,
         projectId: project.id,
         projectName: project.name,
-        projectValue: parseFloat(project.totalAmount?.toString() || '0'),
+        projectValue: originalPrice,
+        originalPrice: originalPrice,
+        discountsApplied: totalDiscounts,
+        surchargesApplied: totalSurcharges,
+        netPrice: netPrice,
         totalPaid: projectRevenue,
         totalExpenses: projectExpensesAmount,
         profit: projectProfit,
       } as any);
       
-      // Acumular totales
-      totalRevenue += projectRevenue;
+      // Acumular totales usando PRECIO NETO
+      totalRevenue += netPrice;
       totalProjectExpenses += projectExpensesAmount;
       totalProfit += projectProfit;
     }

@@ -130,9 +130,9 @@ describe("Cleanup Router - System Data Deletion", () => {
 
   describe("Audit logging", () => {
     it("should support audit log recording", async () => {
-      // Verify cleanupAuditLog table exists and can be queried
-      // Verificar que la tabla cleanupAuditLog existe
-      const auditLogs = await db.execute(sql`SELECT * FROM cleanupAuditLog LIMIT 1`).catch(() => []);
+      // Verify closureAuditLog table exists and can be queried
+      // Verificar que la tabla closureAuditLog existe
+      const auditLogs = await db.execute(sql`SELECT * FROM closureAuditLog LIMIT 1`).catch(() => []);
       // Si la tabla no existe, el test pasa (es un check de existencia)
       const result = Array.isArray(auditLogs) ? auditLogs : [];
       expect(Array.isArray(result)).toBe(true);

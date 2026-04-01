@@ -306,9 +306,31 @@ export function AccountingClosureTab() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                <div className="bg-white p-4 rounded-lg border border-teal-200">
+                  <p className="text-sm font-semibold text-gray-700 mb-3">💰 Desglose de Ingresos</p>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Precio de Cotización Original:</span>
+                      <span className="font-semibold">-</span>
+                    </div>
+                    <div className="flex justify-between text-red-600">
+                      <span>Menos: Descuentos Aplicados</span>
+                      <span className="font-semibold">-</span>
+                    </div>
+                    <div className="flex justify-between text-green-600">
+                      <span>Más: Recargos Aplicados</span>
+                      <span className="font-semibold">-</span>
+                    </div>
+                    <div className="border-t border-gray-200 pt-2 mt-2 flex justify-between font-bold text-teal-700">
+                      <span>= PRECIO NETO (Dinero Real):</span>
+                      <span>${Number(previewTotals.totalSales).toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-3 gap-4">
                   <div className="bg-white p-4 rounded-lg">
-                    <p className="text-sm text-gray-600">Ventas Totales</p>
+                    <p className="text-sm text-gray-600">Ventas Netas</p>
                     <p className="text-2xl font-bold text-teal-600">
                       ${Number(previewTotals.totalSales).toFixed(2)}
                     </p>

@@ -27,7 +27,7 @@ import {
   priorEstimates,
   advisoryRequests,
   pushSubscriptions,
-  cleanupAuditLog,
+  closureAuditLog,
 } from "../../drizzle/schema";
 
 const TABLE_NAMES = {
@@ -292,7 +292,7 @@ const logCleanupOperation = async (
   details?: Record<string, any>
 ) => {
   try {
-    await db.insert(cleanupAuditLog).values({
+    await db.insert(closureAuditLog).values({
       tableName,
       recordsDeleted,
       executedBy,
@@ -797,11 +797,11 @@ export const cleanupRouter = router({
         const [logs, countResult] = await Promise.all([
           db
             .select()
-            .from(cleanupAuditLog)
-            .orderBy(sql`${cleanupAuditLog.timestamp} DESC`)
+            .from(closureAuditLog)
+            .orderBy(sql`${closureAuditLog.timestamp} DESC`)
             .limit(input.pageSize)
             .offset(offset),
-          db.select({ count: sql`COUNT(*) as count` }).from(cleanupAuditLog),
+          db.select({ count: sql`COUNT(*) as count` }).from(closureAuditLog),
         ]);
 
         const totalCount = (countResult[0]?.count as number) || 0;

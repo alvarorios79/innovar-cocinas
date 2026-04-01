@@ -1,14 +1,69 @@
-import { mysqlTable, mysqlSchema, AnyMySqlColumn, index, text, foreignKey, int, mysqlEnum, timestamp, varchar, decimal, json, bigint, tinyint } from "drizzle-orm/mysql-core"
+import { mysqlTable, mysqlSchema, AnyMySqlColumn, index, bigint, text, foreignKey, int, mysqlEnum, decimal, timestamp, varchar, date, json, tinyint } from "drizzle-orm/mysql-core"
 import { sql } from "drizzle-orm"
-import { date } from "drizzle-orm/mysql-core"
 
 export const drizzleMigrations = mysqlTable("__drizzle_migrations__", {
-	id: bigint({ mode: "number" }).autoincrement().notNull(),
+	id: bigint({ mode: "number", unsigned: true }).autoincrement().notNull(),
 	hash: text().notNull(),
 	createdAt: bigint("created_at", { mode: "number" }),
 },
 (table) => [
 	index("id").on(table.id),
+]);
+
+export const accountingClosureOperationalExpenses = mysqlTable("accountingClosureOperationalExpenses", {
+	id: int().autoincrement().notNull(),
+	closureId: int().notNull().references(() => accountingClosures.id, { onDelete: "cascade" } ),
+	expenseId: int().notNull().references(() => expenses.id),
+	category: mysqlEnum(['arriendo','energia','agua','internet','mantenimiento','herramientas','jardineria','reparaciones','transporte','papeleria','aseo','otro']).notNull(),
+	description: text().notNull(),
+	amount: decimal({ precision: 12, scale: 2 }).notNull(),
+	expenseDate: timestamp({ mode: 'string' }).notNull(),
+	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+},
+(table) => [
+	index("accountingClosureOperationalExpenses_closureId_idx").on(table.closureId),
+	index("accountingClosureOperationalExpenses_expenseId_idx").on(table.expenseId),
+	index("accountingClosureOperationalExpenses_category_idx").on(table.category),
+]);
+
+export const accountingClosureProjects = mysqlTable("accountingClosureProjects", {
+	id: int().autoincrement().notNull(),
+	closureId: int().notNull().references(() => accountingClosures.id, { onDelete: "cascade" } ),
+	projectId: int().notNull().references(() => projects.id),
+	projectName: varchar({ length: 255 }).notNull(),
+	projectValue: decimal({ precision: 15, scale: 2 }).notNull(),
+	totalPaid: decimal({ precision: 15, scale: 2 }).notNull(),
+	totalExpenses: decimal({ precision: 15, scale: 2 }).notNull(),
+	profit: decimal({ precision: 15, scale: 2 }).notNull(),
+	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+},
+(table) => [
+	index("accountingClosureProjects_closureId_idx").on(table.closureId),
+	index("accountingClosureProjects_projectId_idx").on(table.projectId),
+]);
+
+export const accountingClosures = mysqlTable("accountingClosures", {
+	id: int().autoincrement().notNull(),
+	// you can use { mode: 'date' }, if you want to have Date as type for this column
+	periodStart: date({ mode: 'string' }).notNull(),
+	// you can use { mode: 'date' }, if you want to have Date as type for this column
+	periodEnd: date({ mode: 'string' }).notNull(),
+	status: mysqlEnum(['draft','confirmed']).default('draft').notNull(),
+	createdBy: int().notNull().references(() => users.id),
+	confirmedBy: int(),
+	totalSales: decimal({ precision: 15, scale: 2 }).default('0').notNull(),
+	totalExpenses: decimal({ precision: 15, scale: 2 }).default('0').notNull(),
+	totalProfit: decimal({ precision: 15, scale: 2 }).default('0').notNull(),
+	projectCount: int().default(0).notNull(),
+	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	confirmedAt: timestamp({ mode: 'string' }),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+},
+(table) => [
+	index("accountingClosures_status_idx").on(table.status),
+	index("accountingClosures_createdBy_idx").on(table.createdBy),
+	index("accountingClosures_periodStart_idx").on(table.periodStart),
+	index("accountingClosures_periodEnd_idx").on(table.periodEnd),
 ]);
 
 export const advisoryRequests = mysqlTable("advisoryRequests", {
@@ -40,18 +95,66 @@ export const appointments = mysqlTable("appointments", {
 	id: int().autoincrement().notNull(),
 	clientId: int().notNull().references(() => clients.id),
 	scheduledDate: timestamp({ mode: 'string' }),
-		status: mysqlEnum(['pendiente','confirmada','completada','cancelada']).default('pendiente').notNull(),
-		notes: text(),
-		createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
-		updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
-		deletedAt: timestamp({ mode: 'string' }),
-		dataOrigin: mysqlEnum(['manual', 'system', 'test']).default('manual').notNull(),
-	},
+	status: mysqlEnum(['pendiente','confirmada','completada','cancelada']).default('pendiente').notNull(),
+	notes: text(),
+	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+	deletedAt: timestamp({ mode: 'string' }),
+	dataOrigin: mysqlEnum(['manual','system']).default('manual').notNull(),
+},
 (table) => [
 	index("appointments_clientId_idx").on(table.clientId),
 	index("appointments_scheduledDate_idx").on(table.scheduledDate),
 	index("appointments_status_idx").on(table.status),
 	index("appointments_client_status_idx").on(table.clientId, table.status),
+]);
+
+export const auditLogs = mysqlTable("auditLogs", {
+	id: int().autoincrement().notNull(),
+	userId: int().notNull().references(() => users.id),
+	action: mysqlEnum(['create','update','delete','restore']).notNull(),
+	tableName: varchar({ length: 100 }).notNull(),
+	recordId: int().notNull(),
+	changes: json(),
+	changesSummary: text(),
+	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	ipAddress: varchar({ length: 45 }),
+	userAgent: text(),
+},
+(table) => [
+	index("auditLogs_userId_idx").on(table.userId),
+	index("auditLogs_tableName_idx").on(table.tableName),
+	index("auditLogs_recordId_idx").on(table.recordId),
+	index("auditLogs_action_idx").on(table.action),
+	index("auditLogs_createdAt_idx").on(table.createdAt),
+	index("auditLogs_tableName_recordId_idx").on(table.tableName, table.recordId),
+]);
+
+export const backupMetadata = mysqlTable("backupMetadata", {
+	id: int().autoincrement().notNull(),
+	backupName: varchar({ length: 255 }).notNull(),
+	backupType: mysqlEnum(['daily','weekly','manual']).notNull(),
+	s3Key: varchar({ length: 500 }).notNull(),
+	s3Url: text().notNull(),
+	fileSize: bigint({ mode: "number" }),
+	rowCounts: json(),
+	checksums: json(),
+	status: mysqlEnum(['pending','completed','failed','verified']).default('pending').notNull(),
+	verificationStatus: mysqlEnum(['not_verified','verified','failed']).default('not_verified').notNull(),
+	errorMessage: text(),
+	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	completedAt: timestamp({ mode: 'string' }),
+	verifiedAt: timestamp({ mode: 'string' }),
+	expiresAt: timestamp({ mode: 'string' }),
+	createdBy: int().references(() => users.id),
+	retentionDays: int().default(30).notNull(),
+	dataOriginSummary: json(),
+},
+(table) => [
+	index("backupMetadata_status_idx").on(table.status),
+	index("backupMetadata_backupType_idx").on(table.backupType),
+	index("backupMetadata_createdAt_idx").on(table.createdAt),
+	index("backupMetadata_expiresAt_idx").on(table.expiresAt),
 ]);
 
 export const clientRevisionHistory = mysqlTable("client_revision_history", {
@@ -67,22 +170,39 @@ export const clientRevisionHistory = mysqlTable("client_revision_history", {
 	index("clientRevisionHistory_projectId_idx").on(table.projectId),
 ]);
 
-	export const clients = mysqlTable("clients", {
-		id: int().autoincrement().notNull(),
-		userId: int().references(() => users.id),
-		name: varchar({ length: 255 }).notNull(),
-		email: varchar({ length: 320 }),
-		whatsappPhone: varchar({ length: 20 }).notNull(),
-		address: text(),
-		createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
-		updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
-		internalManagement: tinyint().default(0).notNull(),
-		deletedAt: timestamp({ mode: 'string' }),
-		dataOrigin: mysqlEnum(['manual', 'system', 'test']).default('manual').notNull(),
-	},
+export const clients = mysqlTable("clients", {
+	id: int().autoincrement().notNull(),
+	userId: int().references(() => users.id),
+	name: varchar({ length: 255 }).notNull(),
+	email: varchar({ length: 320 }),
+	whatsappPhone: varchar({ length: 20 }).notNull(),
+	address: text(),
+	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+	internalManagement: tinyint().default(0).notNull(),
+	deletedAt: timestamp({ mode: 'string' }),
+	dataOrigin: mysqlEnum(['manual','system']).default('manual').notNull(),
+},
 (table) => [
 	index("clients_userId_idx").on(table.userId),
 	index("clients_whatsappPhone_idx").on(table.whatsappPhone),
+]);
+
+export const closureAuditLog = mysqlTable("closureAuditLog", {
+	id: int().autoincrement().notNull(),
+	closureId: int().notNull().references(() => accountingClosures.id, { onDelete: "cascade" } ),
+	action: mysqlEnum(['created','confirmed','deleted']).notNull(),
+	performedBy: int().notNull().references(() => users.id),
+	actionDetails: json(),
+	timestamp: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP'),
+	ipAddress: varchar({ length: 45 }),
+	userAgent: text(),
+},
+(table) => [
+	index("closureAuditLog_closureId_idx").on(table.closureId),
+	index("closureAuditLog_performedBy_idx").on(table.performedBy),
+	index("closureAuditLog_action_idx").on(table.action),
+	index("closureAuditLog_timestamp_idx").on(table.timestamp),
 ]);
 
 export const colombianHolidays = mysqlTable("colombianHolidays", {
@@ -96,31 +216,53 @@ export const colombianHolidays = mysqlTable("colombianHolidays", {
 	index("colombianHolidays_date_idx").on(table.date),
 ]);
 
-	export const expenses = mysqlTable("expenses", {
-		id: int().autoincrement().notNull(),
-		expenseType: mysqlEnum(['materiales_proyecto','gasto_operativo']).notNull(),
-		projectId: int().references(() => projects.id, { onDelete: "set null" } ),
-		projectClientName: varchar({ length: 255 }),
-		operativeCategory: mysqlEnum(['arriendo','energia','agua','internet','mantenimiento','herramientas','jardineria','reparaciones','transporte','papeleria','aseo','otro']),
-		description: text().notNull(),
-		amount: decimal({ precision: 12, scale: 2 }).notNull(),
-		expenseDate: timestamp({ mode: 'string' }).notNull(),
-		supportUrl: text(),
-			supportFileName: varchar({ length: 255 }),
-			receiptUrl: text(),
-			createdBy: int().notNull().references(() => users.id),
-		createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
-		updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
-		generalCategory: mysqlEnum(['materiales','mano_de_obra','alquiler','servicios','transporte','mantenimiento','otros']).notNull(),
-		subcategory: varchar({ length: 255 }),
-		deletedAt: timestamp({ mode: 'string' }),
-		dataOrigin: mysqlEnum(['manual', 'system', 'test']).default('manual').notNull(),
-	},
+export const expenses = mysqlTable("expenses", {
+	id: int().autoincrement().notNull(),
+	expenseType: mysqlEnum(['materiales_proyecto','gasto_operativo']).notNull(),
+	projectId: int().references(() => projects.id, { onDelete: "set null" } ),
+	projectClientName: varchar({ length: 255 }),
+	operativeCategory: mysqlEnum(['arriendo','energia','agua','internet','mantenimiento','herramientas','jardineria','reparaciones','transporte','papeleria','aseo','otro']),
+	description: text().notNull(),
+	amount: decimal({ precision: 12, scale: 2 }).notNull(),
+	expenseDate: timestamp({ mode: 'string' }).notNull(),
+	supportUrl: text(),
+	supportFileName: varchar({ length: 255 }),
+	createdBy: int().notNull().references(() => users.id),
+	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+	generalCategory: mysqlEnum(['materiales','mano_de_obra','alquiler','servicios','transporte','mantenimiento','otros']).notNull(),
+	subcategory: varchar({ length: 255 }),
+	receiptUrl: text(),
+	deletedAt: timestamp({ mode: 'string' }),
+	dataOrigin: mysqlEnum(['manual','system','test']).default('manual').notNull(),
+},
 (table) => [
 	index("expenses_projectId_idx").on(table.projectId),
 	index("expenses_expenseDate_idx").on(table.expenseDate),
 	index("expenses_expenseType_idx").on(table.expenseType),
 ]);
+
+export const financialAlerts = mysqlTable("financialAlerts", {
+	id: int().autoincrement().notNull(),
+	alertType: mysqlEnum(['deliveredWithOutstanding','lowCollectionRate']).notNull(),
+	isActive: tinyint().default(0).notNull(),
+	lastTriggeredAt: timestamp({ mode: 'string' }),
+	lastMessageSentAt: timestamp({ mode: 'string' }),
+	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+},
+(table) => [
+	index("financialAlerts_alertType_unique").on(table.alertType),
+]);
+
+export const financialSettings = mysqlTable("financialSettings", {
+	id: int().autoincrement().notNull(),
+	outstandingThresholdPercent: int().default(40).notNull(),
+	collectionThresholdPercent: int().default(70).notNull(),
+	lowProfitThresholdPercent: int().default(10).notNull(),
+	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+});
 
 export const hardwareCatalog = mysqlTable("hardwareCatalog", {
 	id: int().autoincrement().notNull(),
@@ -134,6 +276,7 @@ export const hardwareCatalog = mysqlTable("hardwareCatalog", {
 	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 	price: decimal({ precision: 12, scale: 2 }).default('0').notNull(),
+	unit: varchar({ length: 50 }).default('unidad').notNull(),
 },
 (table) => [
 	index("hardwareCatalog_category_idx").on(table.category),
@@ -231,13 +374,29 @@ export const notifications = mysqlTable("notifications", {
 	index("notifications_user_read_idx").on(table.userId, table.read),
 ]);
 
+export const payments = mysqlTable("payments", {
+	id: int().autoincrement().notNull(),
+	projectId: int().notNull().references(() => projects.id, { onDelete: "cascade" } ),
+	amount: decimal({ precision: 12, scale: 2 }).notNull(),
+	type: mysqlEnum(['advance','final','partial','other']).notNull(),
+	receivedAt: timestamp({ mode: 'string' }).notNull(),
+	method: varchar({ length: 100 }),
+	notes: text(),
+	registeredBy: int().references(() => users.id),
+	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	movementType: varchar({ length: 20 }).default('payment').notNull(),
+},
+(table) => [
+	index("payments_projectId_idx").on(table.projectId),
+	index("payments_receivedAt_idx").on(table.receivedAt),
+]);
+
 export const pricingConfig = mysqlTable("pricingConfig", {
 	id: int().autoincrement().notNull(),
 	category: mysqlEnum(['cocina_base','mesones','muebles_especiales','extras','puertas_tapas','herrajes','closets','puertas_producto','centros_tv','otros','acabados_especiales']).notNull(),
 	code: varchar({ length: 100 }).notNull(),
 	name: varchar({ length: 255 }).notNull(),
 	description: text(),
-	descriptionTemplate: text(),
 	value: decimal({ precision: 12, scale: 2 }).notNull(),
 	unit: varchar({ length: 50 }),
 	sortOrder: int().default(0).notNull(),
@@ -245,6 +404,7 @@ export const pricingConfig = mysqlTable("pricingConfig", {
 	updatedBy: int(),
 	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+	descriptionTemplate: text(),
 },
 (table) => [
 	index("code").on(table.code),
@@ -330,6 +490,20 @@ export const projectMaterials = mysqlTable("projectMaterials", {
 	index("projectMaterials_projectId_idx").on(table.projectId),
 ]);
 
+export const projectPayments = mysqlTable("projectPayments", {
+	id: int().autoincrement().notNull(),
+	projectId: int().notNull().references(() => projects.id, { onDelete: "cascade" } ),
+	type: mysqlEnum(['adelanto','saldo_final','abono','otro']).notNull(),
+	amount: decimal({ precision: 12, scale: 2 }).notNull(),
+	paymentDate: timestamp({ mode: 'string' }).notNull(),
+	receiptUrl: text(),
+	notes: text(),
+	registeredBy: int().notNull().references(() => users.id),
+	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+},
+(table) => [
+	index("projectPayments_projectId_idx").on(table.projectId),
+]);
 
 export const projectPhotos = mysqlTable("projectPhotos", {
 	id: int().autoincrement().notNull(),
@@ -377,6 +551,7 @@ export const projects = mysqlTable("projects", {
 	designerId: int().references(() => users.id),
 	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+	quotationSentAt: timestamp({ mode: 'string' }),
 	quotationApprovedAt: timestamp({ mode: 'string' }),
 	advanceReceivedAt: timestamp({ mode: 'string' }),
 	totalAmount: decimal({ precision: 12, scale: 2 }),
@@ -389,7 +564,7 @@ export const projects = mysqlTable("projects", {
 	scheduledInstallDate: timestamp({ mode: 'string' }),
 	installDurationDays: int().default(1),
 	deliveredAt: timestamp({ mode: 'string' }),
-
+	advanceReceiptUrl: text(),
 	advanceReceiptUrl: text("advance_receipt_url"),
 	quotationPdfUrl: text(),
 	tentativeInstallDate: timestamp({ mode: 'string' }),
@@ -400,15 +575,15 @@ export const projects = mysqlTable("projects", {
 	rendersApprovedBy: varchar({ length: 255 }),
 	renderRevisionNumber: int().default(0),
 	modeladoRevisionNumber: int().default(0),
-		changesRequestedAt: timestamp({ mode: 'string' }),
-		deletedAt: timestamp({ mode: 'string' }),
-		currentApprovedQuotationId: int(),
-		dataOrigin: mysqlEnum(['manual', 'system', 'test']).default('manual').notNull(),
-		isArchived: tinyint().default(0).notNull(),
-		skipDesignProcess: tinyint().default(0).notNull(),
-		accountingClosureId: int().references(() => accountingClosures.id),
-	},
-	(table) => [
+	changesRequestedAt: timestamp({ mode: 'string' }),
+	deletedAt: timestamp({ mode: 'string' }),
+	currentApprovedQuotationId: int(),
+	dataOrigin: mysqlEnum(['manual','system']).default('manual').notNull(),
+	isArchived: tinyint().default(0).notNull(),
+	skipDesignProcess: tinyint().default(0).notNull(),
+	accountingClosureId: int().references(() => accountingClosures.id),
+},
+(table) => [
 	index("projects_quotationId_quotations_id_fk").on(table.quotationId),
 	index("projects_clientId_idx").on(table.clientId),
 	index("projects_status_idx").on(table.status),
@@ -419,28 +594,22 @@ export const projects = mysqlTable("projects", {
 	index("projects_accountingClosureId_idx").on(table.accountingClosureId),
 ]);
 
-	export const pushSubscriptions = mysqlTable("pushSubscriptions", {
-	id: int().autoincrement().notNull().primaryKey(),
-	userId: int().notNull().references(() => users.id, { onDelete: "cascade" }),
+export const pushSubscriptions = mysqlTable("pushSubscriptions", {
+	id: int().autoincrement().notNull(),
+	userId: int().notNull().references(() => users.id),
 	endpoint: text().notNull(),
 	p256Dh: varchar({ length: 255 }).notNull(),
 	auth: varchar({ length: 255 }).notNull(),
-	isActive: tinyint().default(1).notNull(),
 	userAgent: text(),
 	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+	isActive: tinyint().default(1).notNull(),
 	lastUsedAt: timestamp({ mode: 'string' }),
-	dataOrigin: mysqlEnum(['manual', 'system']).default('manual').notNull(),
-	},
-	(table) => [
-		index("pushSubscriptions_userId_idx").on(table.userId),
-		index("pushSubscriptions_endpoint_idx").on(table.endpoint),
-		index("pushSubscriptions_isActive_idx").on(table.isActive),
-		index("pushSubscriptions_createdAt_idx").on(table.createdAt),
-	]);
-
-	export type InsertPushSubscription = typeof pushSubscriptions.$inferInsert;
-	export type SelectPushSubscription = typeof pushSubscriptions.$inferSelect;
+	dataOrigin: mysqlEnum(['manual','system']).default('manual').notNull(),
+},
+(table) => [
+	index("pushSubscriptions_userId_idx").on(table.userId),
+]);
 
 export const quotationItems = mysqlTable("quotationItems", {
 	id: int().autoincrement().notNull(),
@@ -490,25 +659,37 @@ export const quotations = mysqlTable("quotations", {
 	isLocked: tinyint().default(0).notNull(),
 	lockedAt: timestamp({ mode: 'string' }),
 	lockedBy: int(),
+	deletedAt: timestamp({ mode: 'string' }),
 	parentQuotationId: int(),
 	isAdditional: tinyint().default(0).notNull(),
 	baseQuotationId: int(),
 	versionNumber: int().default(1).notNull(),
+	isHistoricalCopy: tinyint().default(0).notNull(),
 	clientResponseStatus: mysqlEnum(['aprobado','rechazado','revision']),
 	clientResponseNotes: text(),
-		clientResponseAt: timestamp({ mode: 'string' }),
-		whatsappApiSentAt: timestamp({ mode: 'string' }),
-		deletedAt: timestamp({ mode: 'string' }),
-		dataOrigin: mysqlEnum(['manual', 'system', 'test']).default('manual').notNull(),
-		isArchived: tinyint().default(0).notNull(),
-		},
-	(table) => [
-		index("quotationNumber").on(table.quotationNumber),
+	clientResponseAt: timestamp({ mode: 'string' }),
+	whatsappApiSentAt: timestamp({ mode: 'string' }),
+	dataOrigin: mysqlEnum(['manual','system']).default('manual').notNull(),
+	isArchived: tinyint().default(0).notNull(),
+},
+(table) => [
+	index("quotationNumber").on(table.quotationNumber),
 	index("quotations_clientId_idx").on(table.clientId),
 	index("quotations_status_idx").on(table.status),
 	index("quotations_createdBy_idx").on(table.createdBy),
-		index("quotations_createdAt_idx").on(table.createdAt),
-		index("quotations_clientResponseStatus_idx").on(table.clientResponseStatus),
+	index("quotations_createdAt_idx").on(table.createdAt),
+	index("quotations_parentQuotationId_idx").on(table.parentQuotationId),
+	index("quotations_baseQuotationId_idx").on(table.baseQuotationId),
+	foreignKey({
+			columns: [table.parentQuotationId],
+			foreignColumns: [table.id],
+			name: "quotations_parentQuotationId_fk"
+		}),
+	foreignKey({
+			columns: [table.baseQuotationId],
+			foreignColumns: [table.id],
+			name: "quotations_baseQuotationId_fk"
+		}),
 ]);
 
 export const reminders = mysqlTable("reminders", {
@@ -521,6 +702,8 @@ export const reminders = mysqlTable("reminders", {
 	message: text(),
 	sentAt: timestamp({ mode: 'string' }),
 	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	scheduledFor: timestamp({ mode: 'string' }),
+	sent: tinyint().default(0).notNull(),
 },
 (table) => [
 	index("reminders_projectId_idx").on(table.projectId),
@@ -554,279 +737,37 @@ export const tasks = mysqlTable("tasks", {
 	lastReminderSentBy: int(),
 	reminderCount: int().default(0).notNull(),
 	deletedAt: timestamp({ mode: 'string' }),
-	dataOrigin: mysqlEnum(['manual', 'system']).default('manual').notNull(),
-	},
-	(table) => [
-		index("tasks_assignedTo_idx").on(table.assignedTo),
-		index("tasks_status_idx").on(table.status),
+	dataOrigin: mysqlEnum(['manual','system']).default('manual').notNull(),
+},
+(table) => [
+	index("tasks_assignedTo_idx").on(table.assignedTo),
+	index("tasks_status_idx").on(table.status),
 	index("tasks_dueDate_idx").on(table.dueDate),
 	index("tasks_projectId_idx").on(table.projectId),
 	index("tasks_assigned_status_idx").on(table.assignedTo, table.status),
 ]);
 
-	export const payments = mysqlTable("payments", {
-		id: int().autoincrement().notNull(),
-		projectId: int().notNull().references(() => projects.id, { onDelete: "cascade" }),
-		amount: decimal({ precision: 12, scale: 2 }).notNull(),
-		type: mysqlEnum(['advance','final','partial','other']).notNull(),
-		receivedAt: timestamp({ mode: 'string' }).notNull(),
-		method: varchar({ length: 100 }),
-		notes: text(),
-		registeredBy: int().references(() => users.id),
-		createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
-		movementType: mysqlEnum(['payment','discount','surcharge']).default('payment').notNull(),
-	},
-	(table) => [
-		index("payments_projectId_idx").on(table.projectId),
-		index("payments_receivedAt_idx").on(table.receivedAt),
-	]);
-
-		export const users = mysqlTable("users", {
-		id: int().autoincrement().notNull(),
-		openId: varchar({ length: 64 }).notNull(),
-		name: text(),
-		email: varchar({ length: 320 }),
-		loginMethod: varchar({ length: 64 }),
-		role: mysqlEnum(['user','admin','super_admin','comercial','disenador','jefe_taller','operario']).default('user').notNull(),
-		phone: varchar({ length: 20 }),
-		createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
-		updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
-		lastSignedIn: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
-		passwordHash: varchar({ length: 255 }),
-		passwordResetToken: varchar({ length: 100 }),
-		passwordResetExpires: timestamp({ mode: 'string' }),
-			birthDate: timestamp({ mode: 'string' }),
-		dataOrigin: mysqlEnum(['manual', 'system', 'test']).default('manual').notNull(),
-		deletedAt: timestamp({ mode: 'string' }),
-	},
+export const users = mysqlTable("users", {
+	id: int().autoincrement().notNull(),
+	openId: varchar({ length: 64 }).notNull(),
+	name: text(),
+	email: varchar({ length: 320 }),
+	loginMethod: varchar({ length: 64 }),
+	role: mysqlEnum(['user','admin','super_admin','comercial','disenador','jefe_taller','operario']).default('user').notNull(),
+	phone: varchar({ length: 20 }),
+	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+	lastSignedIn: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	passwordHash: varchar({ length: 255 }),
+	passwordResetToken: varchar({ length: 100 }),
+	passwordResetExpires: timestamp({ mode: 'string' }),
+	birthDate: timestamp({ mode: 'string' }),
+	dataOrigin: mysqlEnum(['manual','system']).default('manual').notNull(),
+	deletedAt: timestamp({ mode: 'string' }),
+	isTeamMember: tinyint().default(0).notNull(),
+},
 (table) => [
 	index("users_openId_unique").on(table.openId),
 	index("users_role_idx").on(table.role),
 	index("users_email_idx").on(table.email),
 ]);
-
-export const financialAlerts = mysqlTable("financialAlerts", {
-	id: int().autoincrement().notNull(),
-	alertType: mysqlEnum(['deliveredWithOutstanding','lowCollectionRate']).notNull(),
-	isActive: tinyint().default(0).notNull(),
-	lastTriggeredAt: timestamp({ mode: 'string' }),
-	lastMessageSentAt: timestamp({ mode: 'string' }),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
-	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
-},
-(table) => [
-	index("financialAlerts_alertType_idx").on(table.alertType),
-	index("financialAlerts_isActive_idx").on(table.isActive),
-]);
-
-export const financialSettings = mysqlTable("financialSettings", {
-	id: int().autoincrement().notNull().primaryKey(),
-	outstandingThresholdPercent: int().default(40).notNull(),
-	collectionThresholdPercent: int().default(70).notNull(),
-	lowProfitThresholdPercent: int().default(10).notNull(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
-	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
-});
-
-export type InsertFinancialSettings = typeof financialSettings.$inferInsert;
-export type SelectFinancialSettings = typeof financialSettings.$inferSelect;
-
-// Audit logging table for tracking all data changes
-export const auditLogs = mysqlTable("auditLogs", {
-	id: int().autoincrement().notNull().primaryKey(),
-	userId: int().notNull().references(() => users.id),
-	action: mysqlEnum(['create', 'update', 'delete', 'restore']).notNull(),
-	tableName: varchar({ length: 100 }).notNull(),
-	recordId: int().notNull(),
-	changes: json(), // Store before/after values for updates
-	changesSummary: text(), // Human-readable summary of changes
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
-	ipAddress: varchar({ length: 45 }),
-	userAgent: text(),
-},
-(table) => [
-	index("auditLogs_userId_idx").on(table.userId),
-	index("auditLogs_tableName_idx").on(table.tableName),
-	index("auditLogs_recordId_idx").on(table.recordId),
-	index("auditLogs_action_idx").on(table.action),
-	index("auditLogs_createdAt_idx").on(table.createdAt),
-	index("auditLogs_tableName_recordId_idx").on(table.tableName, table.recordId),
-]);
-
-export type InsertAuditLog = typeof auditLogs.$inferInsert;
-export type SelectAuditLog = typeof auditLogs.$inferSelect;
-
-
-export const backupMetadata = mysqlTable("backupMetadata", {
-	id: int().autoincrement().notNull(),
-	backupName: varchar({ length: 255 }).notNull(),
-	backupType: mysqlEnum(['daily', 'weekly', 'manual']).notNull(),
-	s3Key: varchar({ length: 500 }).notNull(),
-	s3Url: text().notNull(),
-	fileSize: bigint({ mode: 'number' }),
-	rowCounts: json().$type<Record<string, number>>(),
-	checksums: json().$type<Record<string, string>>(),
-	status: mysqlEnum(['pending', 'completed', 'failed', 'verified']).default('pending').notNull(),
-	verificationStatus: mysqlEnum(['not_verified', 'verified', 'failed']).default('not_verified').notNull(),
-	errorMessage: text(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
-	completedAt: timestamp({ mode: 'string' }),
-	verifiedAt: timestamp({ mode: 'string' }),
-	expiresAt: timestamp({ mode: 'string' }),
-	createdBy: int().references(() => users.id),
-	retentionDays: int().default(30).notNull(),
-	dataOriginSummary: json().$type<{ manual: number; system: number }>(),
-},
-(table) => [
-	index("backupMetadata_status_idx").on(table.status),
-	index("backupMetadata_backupType_idx").on(table.backupType),
-	index("backupMetadata_createdAt_idx").on(table.createdAt),
-	index("backupMetadata_expiresAt_idx").on(table.expiresAt),
-]);
-
-export const cleanupAuditLog = mysqlTable("cleanupAuditLog", {
-	id: int().autoincrement().notNull(),
-	tableName: varchar({ length: 100 }).notNull(),
-	recordsDeleted: int().notNull(),
-	executedBy: int().notNull().references(() => users.id),
-	timestamp: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
-	cleanupSessionId: varchar({ length: 255 }),
-	details: json().$type<Record<string, any>>(),
-},
-(table) => [
-	index("cleanupAuditLog_executedBy_idx").on(table.executedBy),
-	index("cleanupAuditLog_timestamp_idx").on(table.timestamp),
-	index("cleanupAuditLog_cleanupSessionId_idx").on(table.cleanupSessionId),
-]);
-
-
-export const accountingClosures = mysqlTable("accountingClosures", {
-	id: int().autoincrement().notNull(),
-	periodStart: date({ mode: 'string' }).notNull(),
-	periodEnd: date({ mode: 'string' }).notNull(),
-	status: mysqlEnum(['draft', 'confirmed']).default('draft').notNull(),
-	createdBy: int().notNull().references(() => users.id),
-	confirmedBy: int(),
-	totalSales: decimal({ precision: 15, scale: 2 }).notNull().default('0'),
-	totalExpenses: decimal({ precision: 15, scale: 2 }).notNull().default('0'),
-	totalProfit: decimal({ precision: 15, scale: 2 }).notNull().default('0'),
-	projectCount: int().notNull().default(0),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
-	confirmedAt: timestamp({ mode: 'string' }),
-	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
-},
-(table) => [
-	index("accountingClosures_status_idx").on(table.status),
-	index("accountingClosures_createdBy_idx").on(table.createdBy),
-	index("accountingClosures_periodStart_idx").on(table.periodStart),
-	index("accountingClosures_periodEnd_idx").on(table.periodEnd),
-]);
-
-export const accountingClosureProjects = mysqlTable("accountingClosureProjects", {
-	id: int().autoincrement().notNull(),
-	closureId: int().notNull().references(() => accountingClosures.id, { onDelete: "cascade" }),
-	projectId: int().notNull().references(() => projects.id),
-	projectName: varchar({ length: 255 }).notNull(),
-	projectValue: decimal({ precision: 15, scale: 2 }).notNull(),
-	totalPaid: decimal({ precision: 15, scale: 2 }).notNull(),
-	totalExpenses: decimal({ precision: 15, scale: 2 }).notNull(),
-	profit: decimal({ precision: 15, scale: 2 }).notNull(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
-},
-(table) => [
-	index("accountingClosureProjects_closureId_idx").on(table.closureId),
-	index("accountingClosureProjects_projectId_idx").on(table.projectId),
-]);
-
-
-// ============ INSERT TYPES ============
-export type InsertUser = typeof users.$inferInsert;
-export type InsertClient = typeof clients.$inferInsert;
-export type InsertAppointment = typeof appointments.$inferInsert;
-export type InsertAppointmentWorkType = typeof appointmentWorkTypes.$inferInsert;
-export type InsertAdvisoryRequest = typeof advisoryRequests.$inferInsert;
-export type InsertPriorEstimate = typeof priorEstimates.$inferInsert;
-export type InsertQuotation = typeof quotations.$inferInsert;
-export type InsertQuotationItem = typeof quotationItems.$inferInsert;
-export type InsertColombianHoliday = typeof colombianHolidays.$inferInsert;
-export type InsertReminder = typeof reminders.$inferInsert;
-export type InsertProject = typeof projects.$inferInsert;
-export type InsertProjectPhoto = typeof projectPhotos.$inferInsert;
-export type InsertProjectDetail = typeof projectDetails.$inferInsert;
-export type InsertTask = typeof tasks.$inferInsert;
-export type InsertTaskReminder = typeof taskReminders.$inferInsert;
-export type InsertProjectStatusHistory = typeof projectStatusHistory.$inferInsert;
-export type InsertNotification = typeof notifications.$inferInsert;
-export type InsertPayment = typeof payments.$inferInsert;
-export type InsertPricingConfig = typeof pricingConfig.$inferInsert;
-export type InsertPricingHistory = typeof pricingHistory.$inferInsert;
-export type InsertExpense = typeof expenses.$inferInsert;
-export type InsertClientRevisionHistory = typeof clientRevisionHistory.$inferInsert;
-export type InsertFinancialAlert = typeof financialAlerts.$inferInsert;
-export type InsertBackupMetadata = typeof backupMetadata.$inferInsert;
-export type InsertCleanupAuditLog = typeof cleanupAuditLog.$inferInsert;
-export type InsertAccountingClosure = typeof accountingClosures.$inferInsert;
-export type InsertAccountingClosureProject = typeof accountingClosureProjects.$inferInsert;
-
-
-export const closureAuditLog = mysqlTable("closureAuditLog", {
-	id: int().autoincrement().notNull(),
-	closureId: int().notNull().references(() => accountingClosures.id),
-	action: mysqlEnum(['created', 'confirmed', 'deleted']).notNull(),
-	performedBy: int().notNull().references(() => users.id),
-	actionDetails: json().$type<{
-		previousStatus?: string;
-		newStatus?: string;
-		projectCount?: number;
-		totalSales?: string;
-		totalExpenses?: string;
-		totalProfit?: string;
-		reason?: string;
-		[key: string]: any;
-	}>(),
-	timestamp: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
-	ipAddress: varchar({ length: 45 }),
-	userAgent: text(),
-},
-(table) => [
-	index("closureAuditLog_closureId_idx").on(table.closureId),
-	index("closureAuditLog_performedBy_idx").on(table.performedBy),
-	index("closureAuditLog_action_idx").on(table.action),
-	index("closureAuditLog_timestamp_idx").on(table.timestamp),
-]);
-
-export type SelectClosureAuditLog = typeof closureAuditLog.$inferSelect;
-export type InsertClosureAuditLog = typeof closureAuditLog.$inferInsert;
-
-// ============ ACCOUNTING CLOSURE OPERATIONAL EXPENSES ============
-export const accountingClosureOperationalExpenses = mysqlTable("accountingClosureOperationalExpenses", {
-	id: int().autoincrement().notNull().primaryKey(),
-	closureId: int().notNull().references(() => accountingClosures.id, { onDelete: "cascade" }),
-	expenseId: int().notNull().references(() => expenses.id),
-	category: mysqlEnum([
-		"arriendo",
-		"energia",
-		"agua",
-		"internet",
-		"mantenimiento",
-		"herramientas",
-		"jardineria",
-		"reparaciones",
-		"transporte",
-		"papeleria",
-		"aseo",
-		"otro",
-	]).notNull(),
-	description: text().notNull(),
-	amount: decimal({ precision: 12, scale: 2 }).notNull(),
-	expenseDate: timestamp({ mode: "string" }).notNull(),
-	createdAt: timestamp({ mode: "string" }).default("CURRENT_TIMESTAMP").notNull(),
-},
-(table) => [
-	index("accountingClosureOperationalExpenses_closureId_idx").on(table.closureId),
-	index("accountingClosureOperationalExpenses_expenseId_idx").on(table.expenseId),
-	index("accountingClosureOperationalExpenses_category_idx").on(table.category),
-]);
-
-export type SelectAccountingClosureOperationalExpense = typeof accountingClosureOperationalExpenses.$inferSelect;
-export type InsertAccountingClosureOperationalExpense = typeof accountingClosureOperationalExpenses.$inferInsert;

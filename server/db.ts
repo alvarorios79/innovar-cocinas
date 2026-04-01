@@ -3824,7 +3824,7 @@ export async function getEligibleProjectsForAccountingClosure() {
     const db = await getDb();
     if (!db) throw new Error('Database connection failed');
     
-    // Primero obtener todos los proyectos archivados sin cierre (EXCLUYENDO proyectos de prueba)
+    // Primero obtener todos los proyectos archivados sin cierre
     const allArchived = await db
       .select({
         projectId: projects.id,
@@ -3838,8 +3838,7 @@ export async function getEligibleProjectsForAccountingClosure() {
         and(
           eq(projects.isArchived, 1),
           isNull(projects.accountingClosureId),
-          eq(projects.status, 'entregado'),
-          eq(projects.dataOrigin, 'manual')
+          eq(projects.status, 'entregado')
         )
       );
 
@@ -3890,6 +3889,7 @@ export async function getEligibleProjectsForAccountingClosure() {
           netPrice: netPrice,
           totalPaid: totalPaid,
           balance: balance,
+          dataOrigin: proj.dataOrigin,
         });
       }
     }
@@ -3920,6 +3920,7 @@ export async function getArchivedProjectsForClosure() {
         status: projects.status,
         isArchived: projects.isArchived,
         accountingClosureId: projects.accountingClosureId,
+        dataOrigin: projects.dataOrigin,
       })
       .from(projects)
       .where(
@@ -3968,6 +3969,7 @@ export async function getArchivedProjectsForClosure() {
         status: proj.status,
         isArchived: proj.isArchived,
         accountingClosureId: proj.accountingClosureId,
+        dataOrigin: proj.dataOrigin,
       });
     }
 

@@ -341,19 +341,21 @@ export function AccountingClosureTab() {
                           </div>
                         </div>
                       </div>
-                      {/* Botón de borrado para proyectos de prueba */}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          setSelectedTestProjectId(project.projectId);
-                          setShowDeleteTestDialog(true);
-                        }}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                        title="Eliminar proyecto de prueba"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      {/* Botón de borrado SOLO para proyectos de prueba */}
+                      {project.dataOrigin === 'test' && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedTestProjectId(project.projectId);
+                            setShowDeleteTestDialog(true);
+                          }}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          title="Eliminar proyecto de prueba"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
                     </div>
                   ))}
                 </div>

@@ -3824,7 +3824,7 @@ export async function getEligibleProjectsForAccountingClosure() {
     const db = await getDb();
     if (!db) throw new Error('Database connection failed');
     
-    // Primero obtener todos los proyectos archivados sin cierre
+    // Primero obtener todos los proyectos archivados sin cierre (EXCLUIR proyectos de prueba)
     const allArchived = await db
       .select({
         projectId: projects.id,
@@ -3838,7 +3838,9 @@ export async function getEligibleProjectsForAccountingClosure() {
         and(
           eq(projects.isArchived, 1),
           isNull(projects.accountingClosureId),
-          eq(projects.status, 'entregado')
+          eq(projects.status, 'entregado'),
+          ne(projects.dataOrigin, 'test'),
+          ne(projects.dataOrigin, 'system')
         )
       );
 

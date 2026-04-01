@@ -17,7 +17,6 @@ import {
   TrendingUp,
   Loader2,
   RotateCcw,
-  Trash2,
 } from "lucide-react";
 import {
   AlertDialog,
@@ -93,20 +92,6 @@ export function AccountingClosureTab() {
   });
 
   const [showRevertDialog, setShowRevertDialog] = useState(false);
-  const [showDeleteTestDialog, setShowDeleteTestDialog] = useState(false);
-  const [selectedTestProjectId, setSelectedTestProjectId] = useState<number | null>(null);
-  
-  const deleteTestProjectMutation = trpc.accountingClosures.deleteTestProject.useMutation({
-    onSuccess: () => {
-      toast.success("✅ Proyecto de prueba eliminado exitosamente");
-      utils.accountingClosures.getPendingProjects.invalidate();
-      setShowDeleteTestDialog(false);
-      setSelectedTestProjectId(null);
-    },
-    onError: (error) => {
-      toast.error(`Error: ${error.message}`);
-    },
-  });
 
   const revertClosure = trpc.accountingClosures.revert.useMutation({
     onSuccess: (data) => {
@@ -341,21 +326,6 @@ export function AccountingClosureTab() {
                           </div>
                         </div>
                       </div>
-                      {/* Botón de borrado SOLO para proyectos de prueba */}
-                      {project.dataOrigin === 'test' && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            setSelectedTestProjectId(project.projectId);
-                            setShowDeleteTestDialog(true);
-                          }}
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                          title="Eliminar proyecto de prueba"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      )}
                     </div>
                   ))}
                 </div>
@@ -599,38 +569,7 @@ export function AccountingClosureTab() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Delete Test Project Dialog */}
-      <AlertDialog open={showDeleteTestDialog} onOpenChange={setShowDeleteTestDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Eliminar Proyecto de Prueba</AlertDialogTitle>
-            <AlertDialogDescription>
-              ¿Estás seguro de que deseas eliminar este proyecto de prueba? Esta acción no puede ser revertida.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <div className="flex gap-3">
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                if (selectedTestProjectId) {
-                  deleteTestProjectMutation.mutate({ projectId: selectedTestProjectId });
-                }
-              }}
-              disabled={deleteTestProjectMutation.isPending}
-              className="bg-red-600 hover:bg-red-700"
-            >
-              {deleteTestProjectMutation.isPending ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Eliminando...
-                </>
-              ) : (
-                "Eliminar"
-              )}
-            </AlertDialogAction>
-          </div>
-        </AlertDialogContent>
-      </AlertDialog>
+
     </div>
   );
 }

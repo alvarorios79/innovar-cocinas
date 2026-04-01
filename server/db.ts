@@ -3854,7 +3854,8 @@ export async function getEligibleProjectsForAccountingClosure() {
           eq(projects.isArchived, 1),
           isNull(projects.accountingClosureId),
           eq(projects.status, 'entregado'),
-          eq(projects.dataOrigin, 'manual') // SOLO proyectos reales
+          eq(projects.dataOrigin, 'manual'), // SOLO proyectos reales
+          isNull(projects.deletedAt) // EXCLUIR proyectos eliminados (soft delete)
         )
       );
 

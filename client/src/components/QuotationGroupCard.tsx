@@ -287,12 +287,13 @@ export function QuotationGroupCard({
 
         {/* Botones - Jerarquía clara y compacta */}
         <div className="flex flex-wrap gap-1">
-          {/* PRIMARIOS - Editar disponible para cualquier versión */}
+          {/* PRIMARIOS - Editar disponible solo para versión activa */}
           <Button
             size="sm"
             className="text-xs py-1 px-2 h-7 gap-1 bg-[#14B8A6] hover:bg-[#0d9488] text-white"
             onClick={() => onEdit(selectedVersion)}
-            disabled={isLocked}
+            disabled={isLocked || !isActiveVersion}
+            title={!isActiveVersion ? "Activa esta versión para editarla" : ""}
           >
             <Edit className="w-3 h-3" />
             <span className="hidden sm:inline">Editar</span>

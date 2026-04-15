@@ -232,6 +232,14 @@ export const quotationsRouter = router({
           throw new TRPCError({ code: "NOT_FOUND", message: "Quotation not found" });
         }
 
+        // Validar que no sea una copia histórica (solo lectura)
+        if (currentQuotation.isHistoricalCopy) {
+          throw new TRPCError({ 
+            code: "FORBIDDEN", 
+            message: "No se puede editar una versión histórica. Actívala primero para hacer cambios." 
+          });
+        }
+
         // La mutación update SIEMPRE actualiza la cotización directamente.
         // La creación de nuevas versiones se maneja exclusivamente con el botón
         // "Crear Nueva Versión" (quotationsVersioning.createVersion).

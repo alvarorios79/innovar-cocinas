@@ -255,3 +255,65 @@ describe("Quotation Versioning", () => {
     });
   });
 });
+
+
+  // ── setActiveVersion ─────────────────────────────────────────
+
+  describe("setActiveVersion", () => {
+    it("should fail when trying to activate a non-existent quotation", async () => {
+      await expect(
+        (await import("./quotation-versioning")).setActiveVersion(999999, testUserId)
+      ).rejects.toThrow("no encontrada");
+    });
+
+    it("should fail when trying to activate the same version that is already active", async () => {
+      await expect(
+        (await import("./quotation-versioning")).setActiveVersion(testQuotationId, testUserId)
+      ).rejects.toThrow("ya es la versión activa");
+    });
+  });
+
+  // ── deleteVersion ────────────────────────────────────────────
+
+  describe("deleteVersion", () => {
+    it("should fail when trying to delete the base version (V1)", async () => {
+      await expect(
+        (await import("./quotation-versioning")).deleteVersion(testQuotationId, testUserId)
+      ).rejects.toThrow("No se puede eliminar la versión base");
+    });
+
+    it("should successfully soft-delete a non-base version not linked to a project", async () => {
+      const db = await getTestDb();
+      
+      // Create V2
+      const v2Result = await db.insert(quotations).values({
+        quotationNumber: "QT-VER-002",
+        clientId: testClientId,
+        vendorName: "Test Vendor",
+        productType: "cocina",
+        status: "draft",
+        subtotal: "1200.00",
+        transportCost: "100.00",
+        total: "1300.00",
+        createdBy: testUserId,
+        versionNumber: 2,
+        isAdditional: 1,
+        baseQuotationId: testQuotationId,
+        parentQuotationId: testQuotationId,
+      });
+      const v2Id = v2Result[0].insertId;
+      createdVersionIds.push(v2Id);
+
+      const result = await (await import("./quotation-versioning")).deleteVersion(v2Id, testUserId);
+      expect(result.success).toBe(true);
+      expect(result.message).toContain("eliminada");
+
+      // Verify soft delete
+      const deleted = await db
+        .select()
+        .from(quotations)
+        .where(eq(quotations.id, v2Id))
+        .limit(1);
+      expect(deleted[0]?.deletedAt).not.toBeNull();
+    });
+  });

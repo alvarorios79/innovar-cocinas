@@ -10,8 +10,18 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
-import { Copy, Plus, Lock } from "lucide-react";
+import { Copy, Plus, Lock, Check, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface QuotationVersioningProps {
@@ -36,6 +46,7 @@ export function QuotationVersioning({
   isAdditional,
 }: QuotationVersioningProps) {
   const [showVersionDialog, setShowVersionDialog] = useState(false);
+  const [selectedVersionForAction, setSelectedVersionForAction] = useState<{ id: number; versionNumber: number; action: 'activate' | 'delete' } | null>(null);
   const utils = trpc.useUtils();
 
   // Obtener cadena de versiones
@@ -61,6 +72,44 @@ export function QuotationVersioning({
 
   const handleCreateVersion = () => {
     createVersion.mutate({ quotationId });
+  };
+
+  // Activar versión anterior
+  const setActiveVersion = trpc.quotationsVersioning.setActiveVersion.useMutation({
+    onSuccess: (data) => {
+      toast.success(data.message);
+      setSelectedVersionForAction(null);
+      utils.quotations.list.invalidate();
+      utils.quotations.listPaginated.invalidate();
+      utils.quotationsVersioning.getVersionChain.invalidate();
+    },
+    onError: (error) => {
+      toast.error(error.message || "Error al activar versión");
+    },
+  });
+
+  // Eliminar versión
+  const deleteVersion = trpc.quotationsVersioning.deleteVersion.useMutation({
+    onSuccess: (data) => {
+      toast.success(data.message);
+      setSelectedVersionForAction(null);
+      utils.quotations.list.invalidate();
+      utils.quotations.listPaginated.invalidate();
+      utils.quotationsVersioning.getVersionChain.invalidate();
+    },
+    onError: (error) => {
+      toast.error(error.message || "Error al eliminar versión");
+    },
+  });
+
+  const handleVersionAction = () => {
+    if (!selectedVersionForAction) return;
+    
+    if (selectedVersionForAction.action === 'activate') {
+      setActiveVersion.mutate({ quotationId: selectedVersionForAction.id });
+    } else if (selectedVersionForAction.action === 'delete') {
+      deleteVersion.mutate({ quotationId: selectedVersionForAction.id });
+    }
   };
 
   // Verificar si puede crear versión: solo si está aprobada y no bloqueada
@@ -100,21 +149,55 @@ export function QuotationVersioning({
           {versionChain && versionChain.length > 0 && (
             <div className="bg-white rounded p-2 border border-blue-100">
               <p className="text-xs font-medium text-muted-foreground mb-2">Historial de versiones:</p>
-              <div className="flex flex-wrap gap-2">
-                {versionChain.map((version: any, index: number) => (
-                  <Badge
-                    key={version.id}
-                    variant={version.id === quotationId ? "default" : "outline"}
-                    className={
-                      version.id === quotationId
-                        ? "bg-blue-600 text-white"
-                        : "border-blue-200 text-blue-700"
-                    }
-                  >
-                    v{version.versionNumber}
-                    {version.id === quotationId && " (vigente)"}
-                  </Badge>
-                ))}
+              <div className="space-y-2">
+                {versionChain.map((version: any, index: number) => {
+                  const isActive = version.id === quotationId;
+                  const isBase = index === 0;
+                  return (
+                    <div key={version.id} className="flex items-center justify-between bg-gray-50 p-2 rounded border border-gray-200">
+                      <div className="flex items-center gap-2">
+                        <Badge
+                          variant={isActive ? "default" : "outline"}
+                          className={
+                            isActive
+                              ? "bg-blue-600 text-white"
+                              : "border-blue-200 text-blue-700"
+                          }
+                        >
+                          v{version.versionNumber}
+                          {isActive && " (vigente)"}
+                        </Badge>
+                        <span className="text-xs text-muted-foreground">
+                          ${Number(version.total || 0).toLocaleString('es-CO')}
+                        </span>
+                      </div>
+                      <div className="flex gap-1">
+                        {!isActive && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-6 w-6 p-0 text-green-600 hover:bg-green-50"
+                            title="Activar esta versión"
+                            onClick={() => setSelectedVersionForAction({ id: version.id, versionNumber: version.versionNumber, action: 'activate' })}
+                          >
+                            <Check className="h-4 w-4" />
+                          </Button>
+                        )}
+                        {!isBase && !isActive && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-6 w-6 p-0 text-red-600 hover:bg-red-50"
+                            title="Eliminar esta versión"
+                            onClick={() => setSelectedVersionForAction({ id: version.id, versionNumber: version.versionNumber, action: 'delete' })}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -138,7 +221,7 @@ export function QuotationVersioning({
         </CardContent>
       </Card>
 
-      {/* Diálogo de confirmación */}
+      {/* Diálogo de confirmación para crear versión */}
       <Dialog open={showVersionDialog} onOpenChange={setShowVersionDialog}>
         <DialogContent>
           <DialogHeader>
@@ -172,6 +255,36 @@ export function QuotationVersioning({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Alert Dialog para confirmar acción */}
+      <AlertDialog open={!!selectedVersionForAction} onOpenChange={(open) => !open && setSelectedVersionForAction(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {selectedVersionForAction?.action === 'activate' ? 'Activar Versión' : 'Eliminar Versión'}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {selectedVersionForAction?.action === 'activate' 
+                ? `¿Estás seguro de que deseas activar la versión V${selectedVersionForAction?.versionNumber}? El proyecto se vinculará a esta versión.`
+                : `¿Estás seguro de que deseas eliminar la versión V${selectedVersionForAction?.versionNumber}? Esta acción no se puede deshacer.`
+              }
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleVersionAction}
+              disabled={setActiveVersion.isPending || deleteVersion.isPending}
+              className={selectedVersionForAction?.action === 'delete' ? 'bg-red-600 hover:bg-red-700' : ''}
+            >
+              {setActiveVersion.isPending || deleteVersion.isPending 
+                ? 'Procesando...' 
+                : selectedVersionForAction?.action === 'activate' ? 'Activar' : 'Eliminar'
+              }
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

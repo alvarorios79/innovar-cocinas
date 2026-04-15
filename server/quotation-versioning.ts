@@ -281,3 +281,130 @@ export async function isQuotationLocked(quotationId: number): Promise<boolean> {
 
   return quotation[0]?.isLocked === 1;
 }
+
+
+/**
+ * Set a previous version as the active version for a project
+ * This updates the project to point to the selected version
+ */
+export async function setActiveVersion(
+  quotationId: number,
+  userId: number
+): Promise<{ success: boolean; message: string }> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  // Get the quotation to activate
+  const quotationToActivate = await db
+    .select()
+    .from(quotations)
+    .where(eq(quotations.id, quotationId))
+    .limit(1);
+
+  if (!quotationToActivate[0]) {
+    throw new Error("Cotización no encontrada");
+  }
+
+  const quotation = quotationToActivate[0];
+
+  // Get the base quotation ID
+  const baseId = quotation.baseQuotationId || quotation.id;
+
+  // Get all versions with the same base
+  const allVersions = await db
+    .select({ id: quotations.id, versionNumber: quotations.versionNumber })
+    .from(quotations)
+    .where(eq(quotations.baseQuotationId, baseId));
+
+  // Find the current active version (the one with highest version number)
+  const currentActive = allVersions.sort((a, b) => (b.versionNumber || 1) - (a.versionNumber || 1))[0];
+
+  // Validate: Cannot activate the same version that is already active
+  if (currentActive?.id === quotationId) {
+    throw new Error("Esta versión ya es la versión activa");
+  }
+
+  // Import getProjectByQuotationId to find the project
+  const { getProjectByQuotationId, updateProject } = await import("./db");
+
+  // Find the project linked to any version of this quotation
+  let project = null;
+  for (const version of allVersions) {
+    project = await getProjectByQuotationId(version.id);
+    if (project) break;
+  }
+
+  if (!project) {
+    throw new Error("No se encontró proyecto vinculado a esta cotización");
+  }
+
+  // Update the project to point to the new version
+  await updateProject(project.id, {
+    quotationId: quotationId,
+    totalAmount: String(quotation.total || 0),
+  });
+
+  console.log(`[VERSIONING] Proyecto ${project.id} actualizado a versión V${quotation.versionNumber} (ID: ${quotationId})`);
+
+  return {
+    success: true,
+    message: `Versión V${quotation.versionNumber} activada exitosamente`,
+  };
+}
+
+/**
+ * Delete a previous version of a quotation
+ * Cannot delete the base version or a version linked to a project
+ */
+export async function deleteVersion(
+  quotationId: number,
+  userId: number
+): Promise<{ success: boolean; message: string }> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  // Get the quotation to delete
+  const quotationToDelete = await db
+    .select()
+    .from(quotations)
+    .where(eq(quotations.id, quotationId))
+    .limit(1);
+
+  if (!quotationToDelete[0]) {
+    throw new Error("Cotización no encontrada");
+  }
+
+  const quotation = quotationToDelete[0];
+  const baseId = quotation.baseQuotationId || quotation.id;
+
+  // Validation 1: Cannot delete the base version (V1)
+  if (quotation.id === baseId) {
+    throw new Error("No se puede eliminar la versión base (V1) de la cotización");
+  }
+
+  // Validation 2: Check if this version is linked to a project
+  const { getProjectByQuotationId } = await import("./db");
+  const linkedProject = await getProjectByQuotationId(quotationId);
+
+  if (linkedProject) {
+    throw new Error(
+      `No se puede eliminar esta versión porque está vinculada al proyecto "${linkedProject.name}". ` +
+      `Cambia el proyecto a otra versión antes de eliminar esta.`
+    );
+  }
+
+  // Soft delete: Mark as deleted
+  await db
+    .update(quotations)
+    .set({
+      deletedAt: new Date().toISOString().slice(0, 19).replace('T', ' '),
+    })
+    .where(eq(quotations.id, quotationId));
+
+  console.log(`[VERSIONING] Versión V${quotation.versionNumber} (ID: ${quotationId}) eliminada por usuario ${userId}`);
+
+  return {
+    success: true,
+    message: `Versión V${quotation.versionNumber} eliminada exitosamente`,
+  };
+}

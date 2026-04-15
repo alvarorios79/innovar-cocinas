@@ -204,4 +204,52 @@ export const quotationsVersioningRouter = router({
         });
       }
     }),
+
+  setActiveVersion: protectedProcedure
+    .input(z.object({
+      quotationId: z.number(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const allowedRoles = ["admin", "super_admin", "comercial"];
+      if (!allowedRoles.includes(ctx.user.role)) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "No tienes permisos para cambiar versiones de cotizaciones",
+        });
+      }
+
+      try {
+        const result = await versioning.setActiveVersion(input.quotationId, ctx.user.id);
+        return result;
+      } catch (error: any) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: error.message || "Error al activar versión de cotización",
+        });
+      }
+    }),
+
+  deleteVersion: protectedProcedure
+    .input(z.object({
+      quotationId: z.number(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const allowedRoles = ["admin", "super_admin"];
+      if (!allowedRoles.includes(ctx.user.role)) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Solo administradores pueden eliminar versiones de cotizaciones",
+        });
+      }
+
+      try {
+        const result = await versioning.deleteVersion(input.quotationId, ctx.user.id);
+        return result;
+      } catch (error: any) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: error.message || "Error al eliminar versión de cotización",
+        });
+      }
+    }),
 });

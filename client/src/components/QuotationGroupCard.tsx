@@ -458,11 +458,11 @@ export function QuotationGroupCard({
         </div>
 
         {/* Historial de versiones */}
-        {group.versions && group.versions.length > 1 && group.hasProject && (
+        {group.versions && group.versions.length > 1 && group.hasProject && group.projectId && (
           <QuotationVersionHistory
             versions={group.versions}
             currentQuotationId={group.activeVersion.id}
-            baseQuotationId={group.baseQuotationId}
+            projectId={group.projectId}
             onVersionActivated={() => {
               utils.quotations.listPaginatedGrouped.invalidate();
               toast.success("Versión activada correctamente");

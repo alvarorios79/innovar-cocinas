@@ -1,37 +1,16 @@
 import { getDb } from "./db";
 import { quotations, projects } from "../drizzle/schema";
-import { eq, inArray } from "drizzle-orm";
-
-/**
- * Obtener el ID del proyecto asociado a una cotización
- * @param quotationId - ID de la cotización
- */
-async function getProjectIdForQuotation(quotationId: number): Promise<number | null> {
-  try {
-    const db = await getDb();
-    if (!db) throw new Error("Database not available");
-
-    // Buscar proyecto que use esta cotización
-    const project = await db
-      .select({ id: projects.id })
-      .from(projects)
-      .where(eq(projects.quotationId, quotationId))
-      .limit(1);
-
-    return project.length > 0 ? project[0].id : null;
-  } catch (error) {
-    console.error("[getProjectIdForQuotation] Error:", error);
-    return null;
-  }
-}
+import { eq } from "drizzle-orm";
 
 /**
  * Activar una versión anterior de cotización
  * Cambia el proyecto para que use la versión seleccionada
  * @param quotationId - ID de la cotización a activar
+ * @param projectId - ID del proyecto a actualizar
  */
 export async function setActiveQuotationVersion(
-  quotationId: number
+  quotationId: number,
+  projectId: number
 ) {
   try {
     const db = await getDb();
@@ -46,12 +25,6 @@ export async function setActiveQuotationVersion(
 
     if (!quotation.length) {
       throw new Error("Cotización no encontrada");
-    }
-
-    // Obtener el projectId asociado a esta cotización
-    const projectId = await getProjectIdForQuotation(quotationId);
-    if (!projectId) {
-      throw new Error("Proyecto no encontrado para esta cotización");
     }
 
     // Verificar que el proyecto existe

@@ -7,6 +7,7 @@ import { Eye, EyeOff, Edit, FileText, Send, Copy, Download, FolderPlus, FileEdit
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { downloadPDFiOS } from "@/lib/pdf-download";
+import { QuotationVersionHistory } from "@/components/QuotationVersionHistory";
 
 interface QuotationGroupCardProps {
   group: {
@@ -455,6 +456,19 @@ export function QuotationGroupCard({
             </Button>
           )}
         </div>
+
+        {/* Historial de versiones */}
+        {group.versions && group.versions.length > 1 && (
+          <QuotationVersionHistory
+            versions={group.versions}
+            currentQuotationId={group.activeVersion.id}
+            projectId={group.activeVersion.projectId || 0}
+            onVersionActivated={() => {
+              utils.quotations.listPaginatedGrouped.invalidate();
+              toast.success("Versión activada correctamente");
+            }}
+          />
+        )}
 
         {/* Indicador de versión histórica */}
         {!isActiveVersion && (

@@ -1,5 +1,5 @@
 import { getDb } from "./db";
-import { quotations, projects } from "@/drizzle/schema";
+import { quotations, projects } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
 
 /**

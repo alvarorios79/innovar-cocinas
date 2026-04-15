@@ -27,14 +27,14 @@ interface QuotationVersion {
 interface QuotationVersionHistoryProps {
   versions: QuotationVersion[];
   currentQuotationId: number;
-  projectId: number;
+  baseQuotationId: number;
   onVersionActivated?: () => void;
 }
 
 export function QuotationVersionHistory({
   versions,
   currentQuotationId,
-  projectId,
+  baseQuotationId,
   onVersionActivated,
 }: QuotationVersionHistoryProps) {
   const [selectedVersion, setSelectedVersion] = useState<number | null>(null);
@@ -61,7 +61,6 @@ export function QuotationVersionHistory({
     if (selectedVersion) {
       setActiveVersionMutation.mutate({
         quotationId: selectedVersion,
-        projectId,
       });
     }
   };

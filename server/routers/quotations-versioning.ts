@@ -208,7 +208,6 @@ export const quotationsVersioningRouter = router({
   setActiveVersion: protectedProcedure
     .input(z.object({
       quotationId: z.number(),
-      projectId: z.number(),
     }))
     .mutation(async ({ ctx, input }) => {
       const allowedRoles = ["admin", "super_admin", "comercial"];
@@ -221,7 +220,7 @@ export const quotationsVersioningRouter = router({
 
       try {
         const { setActiveQuotationVersion } = await import("../quotation-versioning-simple");
-        const result = await setActiveQuotationVersion(input.quotationId, input.projectId);
+        const result = await setActiveQuotationVersion(input.quotationId);
         return result;
       } catch (error: any) {
         throw new TRPCError({

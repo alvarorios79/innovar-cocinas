@@ -1,4 +1,4 @@
-import { db } from "./db";
+import { getDb } from "./db";
 import { quotations, projects } from "@/drizzle/schema";
 import { eq } from "drizzle-orm";
 
@@ -13,6 +13,9 @@ export async function setActiveQuotationVersion(
   projectId: number
 ) {
   try {
+    const db = await getDb();
+    if (!db) throw new Error("Database not available");
+
     // Verificar que la cotización existe
     const quotation = await db
       .select()
@@ -71,6 +74,9 @@ export async function setActiveQuotationVersion(
  */
 export async function getQuotationVersionHistory(baseQuotationId: number) {
   try {
+    const db = await getDb();
+    if (!db) throw new Error("Database not available");
+
     const versions = await db
       .select({
         id: quotations.id,

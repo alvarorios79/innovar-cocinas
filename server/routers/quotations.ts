@@ -302,75 +302,19 @@ export const quotationsRouter = router({
           newTotal = currentQuotation.total;
         }
 
-        // Actualizar proyecto si esta cotizacion esta vinculada a uno
-        // IMPORTANTE: El proyecto puede estar vinculado a OTRA versión del mismo grupo
-        // Entonces buscamos en TODAS las versiones del grupo
+        // Actualizar proyecto si esta cotizacion esta vinculada a una
         if (newTotal) {
           try {
             console.log(`[UPDATE_QUOTATION] Buscando proyecto para cotizacion ${id}, newTotal: ${newTotal}`);
-            const dbInstance = await (db as any).getDb();
-            if (dbInstance) {
-              // Obtener baseQuotationId de la cotización actual
-              const currentQuot = await dbInstance
-                .select({ baseQuotationId: quotations.baseQuotationId })
-                .from(quotations)
-                .where(eq(quotations.id, id))
-                .limit(1);
-              
-              let baseId = id; // Si no tiene baseQuotationId, usar el id mismo
-              if (currentQuot.length > 0 && currentQuot[0].baseQuotationId) {
-                baseId = currentQuot[0].baseQuotationId;
-              }
-              
-              console.log(`[UPDATE_QUOTATION] baseQuotationId: ${baseId}`);
-              
-              // Obtener TODAS las versiones del grupo
-              // Si baseId es el mismo que id, significa que es la única versión (sin baseQuotationId)
-              // En ese caso, buscar solo esa cotización
-              let allVersions;
-              if (baseId === id) {
-                // Es la única versión, buscar solo esta
-                allVersions = await dbInstance
-                  .select({ id: quotations.id })
-                  .from(quotations)
-                  .where(eq(quotations.id, id));
-              } else {
-                // Hay múltiples versiones, buscar todas del grupo
-                allVersions = await dbInstance
-                  .select({ id: quotations.id })
-                  .from(quotations)
-                  .where(
-                    or(
-                      eq(quotations.baseQuotationId, baseId),
-                      eq(quotations.id, baseId)
-                    )
-                  );
-              }
-              
-              const versionIds = allVersions.map(v => v.id);
-              console.log(`[UPDATE_QUOTATION] Versiones del grupo: ${versionIds.join(', ')}`);
-              
-              // Buscar proyecto en CUALQUIERA de las versiones del grupo
-              const projectsLinkedToGroup = await dbInstance
-                .select({ id: projects.id })
-                .from(projects)
-                .where(inArray(projects.quotationId, versionIds))
-                .limit(1);
-
-              console.log(`[UPDATE_QUOTATION] Proyectos encontrados: ${projectsLinkedToGroup.length}`);
-              if (projectsLinkedToGroup.length > 0) {
-                console.log(`[UPDATE_QUOTATION] Actualizando proyecto ${projectsLinkedToGroup[0].id} con totalAmount: ${newTotal}`);
-                const result = await dbInstance
-                  .update(projects)
-                  .set({
-                    totalAmount: newTotal,
-                    updatedAt: new Date(),
-                  })
-                  .where(eq(projects.id, projectsLinkedToGroup[0].id));
-                console.log(`[UPDATE_QUOTATION] Resultado de actualización:`, result);
-              } else {
-                console.log(`[UPDATE_QUOTATION] No se encontró proyecto en ninguna versión del grupo`);
-              }
+            const linkedProject = await db.getProjectByQuotationId(id);
+            if (linkedProject) {
+              console.log(`[UPDATE_QUOTATION] Encontrado proyecto ${linkedProject.id}, actualizando totalAmount a ${newTotal}`);
+              await db.updateProject(linkedProject.id, {
+                totalAmount: newTotal.toString(),
+              });
+              console.log(`[UPDATE_QUOTATION] Proyecto actualizado exitosamente`);
+            } else {
+              console.log(`[UPDATE_QUOTATION] No se encontró proyecto para cotizacion ${id}`);
             }
           } catch (error) {
             console.error("[UPDATE_QUOTATION] Error updating project amount:", error);
@@ -380,55 +324,11 @@ export const quotationsRouter = router({
         }
 
         // Obtener projectId si existe para que el frontend lo invalide
-        // Buscar en TODAS las versiones del grupo
         let projectId: number | null = null;
         try {
-          const dbInstance = await (db as any).getDb();
-          if (dbInstance) {
-            // Obtener baseQuotationId
-            const currentQuot = await dbInstance
-              .select({ baseQuotationId: quotations.baseQuotationId })
-              .from(quotations)
-              .where(eq(quotations.id, id))
-              .limit(1);
-            
-            let baseId = id;
-            if (currentQuot.length > 0 && currentQuot[0].baseQuotationId) {
-              baseId = currentQuot[0].baseQuotationId;
-            }
-            
-            // Obtener todas las versiones
-            let allVersions;
-            if (baseId === id) {
-              // Es la única versión
-              allVersions = await dbInstance
-                .select({ id: quotations.id })
-                .from(quotations)
-                .where(eq(quotations.id, id));
-            } else {
-              // Hay múltiples versiones
-              allVersions = await dbInstance
-                .select({ id: quotations.id })
-                .from(quotations)
-                .where(
-                  or(
-                    eq(quotations.baseQuotationId, baseId),
-                    eq(quotations.id, baseId)
-                  )
-                );
-            }
-            
-            const versionIds = allVersions.map(v => v.id);
-            
-            // Buscar proyecto
-            const projectResult = await dbInstance
-              .select({ id: projects.id })
-              .from(projects)
-              .where(inArray(projects.quotationId, versionIds))
-              .limit(1);
-            if (projectResult.length > 0) {
-              projectId = projectResult[0].id;
-            }
+          const linkedProject = await db.getProjectByQuotationId(id);
+          if (linkedProject) {
+            projectId = linkedProject.id;
           }
         } catch (error) {
           console.error("[UPDATE_QUOTATION] Error getting projectId:", error);

@@ -14,8 +14,8 @@ import { createRemindersForStatusChange } from "../reminders-service";
 import * as whatsappCloud from "../whatsapp-cloud";
 import { addBusinessDays, calculateEstimatedDeliveryDate } from "../business-days";
 import { sanitizeText, sanitizeHtml, sanitizeForEmail, sanitizePhone, sanitizeEmail } from "../sanitize";
-import { eq } from "drizzle-orm";
-import { projects } from "../../drizzle/schema";
+import { eq, inArray, or } from "drizzle-orm";
+import { projects, quotations } from "../../drizzle/schema";
 
 
 export const quotationsRouter = router({
@@ -303,31 +303,61 @@ export const quotationsRouter = router({
         }
 
         // Actualizar proyecto si esta cotizacion esta vinculada a uno
-        // Usar el total calculado en lugar de leer de la BD nuevamente
+        // IMPORTANTE: El proyecto puede estar vinculado a OTRA versión del mismo grupo
+        // Entonces buscamos en TODAS las versiones del grupo
         if (newTotal) {
           try {
             console.log(`[UPDATE_QUOTATION] Buscando proyecto para cotizacion ${id}, newTotal: ${newTotal}`);
             const dbInstance = await (db as any).getDb();
             if (dbInstance) {
-              const projectsLinkedToQuotation = await dbInstance
+              // Obtener baseQuotationId de la cotización actual
+              const currentQuot = await dbInstance
+                .select({ baseQuotationId: quotations.baseQuotationId })
+                .from(quotations)
+                .where(eq(quotations.id, id))
+                .limit(1);
+              
+              let baseId = id; // Si no tiene baseQuotationId, usar el id mismo
+              if (currentQuot.length > 0 && currentQuot[0].baseQuotationId) {
+                baseId = currentQuot[0].baseQuotationId;
+              }
+              
+              console.log(`[UPDATE_QUOTATION] baseQuotationId: ${baseId}`);
+              
+              // Obtener TODAS las versiones del grupo
+              const allVersions = await dbInstance
+                .select({ id: quotations.id })
+                .from(quotations)
+                .where(
+                  or(
+                    eq(quotations.baseQuotationId, baseId),
+                    eq(quotations.id, baseId)
+                  )
+                );
+              
+              const versionIds = allVersions.map(v => v.id);
+              console.log(`[UPDATE_QUOTATION] Versiones del grupo: ${versionIds.join(', ')}`);
+              
+              // Buscar proyecto en CUALQUIERA de las versiones del grupo
+              const projectsLinkedToGroup = await dbInstance
                 .select({ id: projects.id })
                 .from(projects)
-                .where(eq(projects.quotationId, id))
+                .where(inArray(projects.quotationId, versionIds))
                 .limit(1);
 
-              console.log(`[UPDATE_QUOTATION] Proyectos encontrados: ${projectsLinkedToQuotation.length}`);
-              if (projectsLinkedToQuotation.length > 0) {
-                console.log(`[UPDATE_QUOTATION] Actualizando proyecto ${projectsLinkedToQuotation[0].id} con totalAmount: ${newTotal}`);
+              console.log(`[UPDATE_QUOTATION] Proyectos encontrados: ${projectsLinkedToGroup.length}`);
+              if (projectsLinkedToGroup.length > 0) {
+                console.log(`[UPDATE_QUOTATION] Actualizando proyecto ${projectsLinkedToGroup[0].id} con totalAmount: ${newTotal}`);
                 const result = await dbInstance
                   .update(projects)
                   .set({
                     totalAmount: newTotal,
                     updatedAt: new Date(),
                   })
-                  .where(eq(projects.id, projectsLinkedToQuotation[0].id));
+                  .where(eq(projects.id, projectsLinkedToGroup[0].id));
                 console.log(`[UPDATE_QUOTATION] Resultado de actualización:`, result);
               } else {
-                console.log(`[UPDATE_QUOTATION] No se encontró proyecto para cotizacion ${id}`);
+                console.log(`[UPDATE_QUOTATION] No se encontró proyecto en ninguna versión del grupo`);
               }
             }
           } catch (error) {
@@ -338,14 +368,41 @@ export const quotationsRouter = router({
         }
 
         // Obtener projectId si existe para que el frontend lo invalide
+        // Buscar en TODAS las versiones del grupo
         let projectId: number | null = null;
         try {
           const dbInstance = await (db as any).getDb();
           if (dbInstance) {
+            // Obtener baseQuotationId
+            const currentQuot = await dbInstance
+              .select({ baseQuotationId: quotations.baseQuotationId })
+              .from(quotations)
+              .where(eq(quotations.id, id))
+              .limit(1);
+            
+            let baseId = id;
+            if (currentQuot.length > 0 && currentQuot[0].baseQuotationId) {
+              baseId = currentQuot[0].baseQuotationId;
+            }
+            
+            // Obtener todas las versiones
+            const allVersions = await dbInstance
+              .select({ id: quotations.id })
+              .from(quotations)
+              .where(
+                or(
+                  eq(quotations.baseQuotationId, baseId),
+                  eq(quotations.id, baseId)
+                )
+              );
+            
+            const versionIds = allVersions.map(v => v.id);
+            
+            // Buscar proyecto
             const projectResult = await dbInstance
               .select({ id: projects.id })
               .from(projects)
-              .where(eq(projects.quotationId, id))
+              .where(inArray(projects.quotationId, versionIds))
               .limit(1);
             if (projectResult.length > 0) {
               projectId = projectResult[0].id;

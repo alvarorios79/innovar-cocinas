@@ -14,6 +14,8 @@ import { createRemindersForStatusChange } from "../reminders-service";
 import * as whatsappCloud from "../whatsapp-cloud";
 import { addBusinessDays, calculateEstimatedDeliveryDate } from "../business-days";
 import { sanitizeText, sanitizeHtml, sanitizeForEmail, sanitizePhone, sanitizeEmail } from "../sanitize";
+import { eq } from "drizzle-orm";
+import { projects } from "../../drizzle/schema";
 
 
 export const quotationsRouter = router({
@@ -295,6 +297,34 @@ export const quotationsRouter = router({
           const { discountPercent: _, ...safeQuotationData } = quotationData;
           await db.updateQuotation(id, safeQuotationData);
         }
+
+        // Actualizar proyecto si esta cotizacion esta vinculada a uno
+        try {
+          const dbInstance = await (db as any).getDb();
+          if (dbInstance) {
+            const projectsLinkedToQuotation = await dbInstance
+              .select({ id: projects.id })
+              .from(projects)
+              .where(eq(projects.quotationId, id))
+              .limit(1);
+
+            if (projectsLinkedToQuotation.length > 0) {
+              const updatedQuotation = await db.getQuotationById(id);
+              if (updatedQuotation) {
+                await dbInstance
+                  .update(projects)
+                  .set({
+                    totalAmount: updatedQuotation.total,
+                    updatedAt: new Date(),
+                  })
+                  .where(eq(projects.id, projectsLinkedToQuotation[0].id));
+              }
+            }
+          }
+        } catch (error) {
+          console.error("Error updating project amount:", error);
+        }
+
         return { success: true, quotationId: id };
       }),
 

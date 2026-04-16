@@ -303,61 +303,24 @@ export const quotationsRouter = router({
         }
 
         // Actualizar proyecto si esta cotizacion esta vinculada a una
-        // IMPORTANTE: El proyecto podría estar vinculado a CUALQUIER versión del grupo
         if (newTotal) {
           try {
-            console.log(`[UPDATE_QUOTATION] Buscando proyecto para cotizacion ${id}, newTotal: ${newTotal}`);
-            
-            // Obtener el baseQuotationId para encontrar todas las versiones del grupo
-            const quotationRecord = await db.getQuotationById(id);
-            const baseId = quotationRecord?.baseQuotationId || id;
-            
-            console.log(`[UPDATE_QUOTATION] baseQuotationId: ${baseId}`);
-            
-            // Obtener todas las versiones del grupo
-            const allQuotations = await db.getAllQuotations();
-            const groupVersionIds = allQuotations
-              .filter(q => (q.baseQuotationId === baseId || q.id === baseId))
-              .map(q => q.id);
-            
-            console.log(`[UPDATE_QUOTATION] Versiones del grupo: ${groupVersionIds.join(', ')}`);
-            
-            // Buscar proyecto en CUALQUIERA de las versiones del grupo
-            const allProjects = await db.getAllProjects();
-            const linkedProject = allProjects.find(p => groupVersionIds.includes(p.quotationId));
-            
+            // Buscar proyecto vinculado a esta cotización
+            const linkedProject = await db.getProjectByQuotationId(id);
             if (linkedProject) {
-              console.log(`[UPDATE_QUOTATION] Encontrado proyecto ${linkedProject.id}, actualizando totalAmount a ${newTotal}`);
               await db.updateProject(linkedProject.id, {
                 totalAmount: newTotal.toString(),
               });
-              console.log(`[UPDATE_QUOTATION] Proyecto actualizado exitosamente`);
-            } else {
-              console.log(`[UPDATE_QUOTATION] No se encontró proyecto en ninguna versión del grupo`);
             }
           } catch (error) {
             console.error("[UPDATE_QUOTATION] Error updating project amount:", error);
           }
-        } else {
-          console.log(`[UPDATE_QUOTATION] newTotal es null/undefined, no se actualiza proyecto`);
         }
 
         // Obtener projectId si existe para que el frontend lo invalide
         let projectId: number | null = null;
         try {
-          const quotationRecord = await db.getQuotationById(id);
-          const baseId = quotationRecord?.baseQuotationId || id;
-          
-          // Obtener todas las versiones del grupo
-          const allQuotations = await db.getAllQuotations();
-          const groupVersionIds = allQuotations
-            .filter(q => (q.baseQuotationId === baseId || q.id === baseId))
-            .map(q => q.id);
-          
-          // Buscar proyecto en CUALQUIERA de las versiones del grupo
-          const allProjects = await db.getAllProjects();
-          const linkedProject = allProjects.find(p => groupVersionIds.includes(p.quotationId));
-          
+          const linkedProject = await db.getProjectByQuotationId(id);
           if (linkedProject) {
             projectId = linkedProject.id;
           }

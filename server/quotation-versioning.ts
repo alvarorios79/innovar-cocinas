@@ -186,12 +186,6 @@ export async function createQuotationVersion(
 
   const newQuotationId = result[0].insertId;
 
-  // Mark all previous versions as historical (read-only)
-  await db
-    .update(quotations)
-    .set({ isHistoricalCopy: 1 })
-    .where(eq(quotations.baseQuotationId, baseId));
-
   // Copy all items from parent quotation
   const parentItems = await db
     .select()

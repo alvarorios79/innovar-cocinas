@@ -26,7 +26,6 @@ import { dashboardRouter } from "./routers/dashboard";
 import { dataProtectionRouter } from "./routers/dataProtection";
 import { backupsRouter } from "./routers/backups";
 import { accountingClosuresRouter } from "./routers/accountingClosures";
-import { debugSyncRouter } from "./routers/debug-sync";
 
 export const appRouter = router({
   accountingClosures: accountingClosuresRouter,
@@ -62,7 +61,6 @@ export const appRouter = router({
   expenses: expensesRouter,
   quotationsVersioning: quotationsVersioningRouter,
   quotationsDownload: quotationsDownloadRouter,
-  debugSync: debugSyncRouter,
 });
 
 export type AppRouter = typeof appRouter;

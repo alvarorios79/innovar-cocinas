@@ -204,29 +204,4 @@ export const quotationsVersioningRouter = router({
         });
       }
     }),
-
-  setActiveVersion: protectedProcedure
-    .input(z.object({
-      quotationId: z.number(),
-    }))
-    .mutation(async ({ ctx, input }) => {
-      const allowedRoles = ["admin", "super_admin", "comercial"];
-      if (!allowedRoles.includes(ctx.user.role)) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "No tienes permisos para activar versiones de cotizaciones",
-        });
-      }
-
-      try {
-        const { setActiveQuotationVersion } = await import("../quotation-versioning-simple");
-        const result = await setActiveQuotationVersion(input.quotationId);
-        return result;
-      } catch (error: any) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: error.message || "Error al activar versión de cotización",
-        });
-      }
-    }),
 });

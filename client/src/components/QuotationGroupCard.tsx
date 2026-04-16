@@ -7,7 +7,6 @@ import { Eye, EyeOff, Edit, FileText, Send, Copy, Download, FolderPlus, FileEdit
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { downloadPDFiOS } from "@/lib/pdf-download";
-import { QuotationVersionHistory } from "@/components/QuotationVersionHistory";
 
 interface QuotationGroupCardProps {
   group: {
@@ -287,13 +286,12 @@ export function QuotationGroupCard({
 
         {/* Botones - Jerarquía clara y compacta */}
         <div className="flex flex-wrap gap-1">
-          {/* PRIMARIOS - Editar disponible solo para versión activa */}
+          {/* PRIMARIOS - Editar disponible para cualquier versión */}
           <Button
             size="sm"
             className="text-xs py-1 px-2 h-7 gap-1 bg-[#14B8A6] hover:bg-[#0d9488] text-white"
             onClick={() => onEdit(selectedVersion)}
-            disabled={isLocked || !isActiveVersion}
-            title={!isActiveVersion ? "Activa esta versión para editarla" : ""}
+            disabled={isLocked}
           >
             <Edit className="w-3 h-3" />
             <span className="hidden sm:inline">Editar</span>
@@ -457,18 +455,6 @@ export function QuotationGroupCard({
             </Button>
           )}
         </div>
-
-        {/* Historial de versiones */}
-        {group.versions && group.versions.length > 1 && group.hasProject && (
-          <QuotationVersionHistory
-            versions={group.versions}
-            currentQuotationId={group.activeVersion.id}
-            onVersionActivated={() => {
-              utils.quotations.listPaginatedGrouped.invalidate();
-              toast.success("Versión activada correctamente");
-            }}
-          />
-        )}
 
         {/* Indicador de versión histórica */}
         {!isActiveVersion && (

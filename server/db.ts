@@ -1603,7 +1603,6 @@ export async function getAllQuotationsGroupedByBase(options?: { page?: number; l
       versions: group.versions ?? [],
       versionIds: group.versions?.map((v: any) => v.id) ?? [],
       hasProject: false, // Se calculara despues
-      projectId: null, // Se calculara despues
     };
   });
   
@@ -1613,13 +1612,11 @@ export async function getAllQuotationsGroupedByBase(options?: { page?: number; l
   if (db_instance) {
     for (const group of grouped) {
       if (group.versionIds && group.versionIds.length > 0) {
-        const projectsForVersions = await db_instance.select({ id: projects.id })
+        const projectsForVersions = await db_instance.select()
           .from(projects)
-          .where(inArray(projects.quotationId, group.versionIds))
-          .limit(1);
+          .where(inArray(projects.quotationId, group.versionIds));
         
         group.hasProject = projectsForVersions.length > 0;
-        group.projectId = projectsForVersions.length > 0 ? projectsForVersions[0].id : null;
       }
     }
   }

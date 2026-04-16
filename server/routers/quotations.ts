@@ -14,8 +14,6 @@ import { createRemindersForStatusChange } from "../reminders-service";
 import * as whatsappCloud from "../whatsapp-cloud";
 import { addBusinessDays, calculateEstimatedDeliveryDate } from "../business-days";
 import { sanitizeText, sanitizeHtml, sanitizeForEmail, sanitizePhone, sanitizeEmail } from "../sanitize";
-import { eq, inArray, or } from "drizzle-orm";
-import { projects, quotations } from "../../drizzle/schema";
 
 
 export const quotationsRouter = router({
@@ -234,25 +232,15 @@ export const quotationsRouter = router({
           throw new TRPCError({ code: "NOT_FOUND", message: "Quotation not found" });
         }
 
-        // Validar que no sea una copia histórica (solo lectura)
-        if (currentQuotation.isHistoricalCopy) {
-          throw new TRPCError({ 
-            code: "FORBIDDEN", 
-            message: "No se puede editar una versión histórica. Actívala primero para hacer cambios." 
-          });
-        }
-
         // La mutación update SIEMPRE actualiza la cotización directamente.
         // La creación de nuevas versiones se maneja exclusivamente con el botón
-           let newTotal: string | null = null;
-
+        // "Crear Nueva Versión" (quotationsVersioning.createVersion).
         if (items) {
           const subtotal = items.reduce((sum, item) => sum + item.totalPrice, 0);
           const transportCost = 0;
           const discountPercent = input.discountPercent ?? 0;
           const discountAmount = subtotal * (discountPercent / 100);
           const total = subtotal - discountAmount;
-          newTotal = total.toString();
 
           await withTransaction(async (tx) => {
             await db.deleteQuotationItems(id);
@@ -281,7 +269,7 @@ export const quotationsRouter = router({
               transportCost: transportCost.toString(),
               discountPercent: discountPercent.toString(),
               discountAmount: discountAmount.toString(),
-              total: newTotal,
+              total: total.toString(),
             });
           });
         } else if (input.discountPercent !== undefined) {
@@ -289,46 +277,17 @@ export const quotationsRouter = router({
           const discountPercent = input.discountPercent;
           const discountAmount = subtotal * (discountPercent / 100);
           const total = subtotal - discountAmount;
-          newTotal = total.toString();
           await db.updateQuotation(id, {
             ...quotationData,
             discountPercent: discountPercent.toString(),
             discountAmount: discountAmount.toString(),
-            total: newTotal,
+            total: total.toString(),
           });
         } else {
           const { discountPercent: _, ...safeQuotationData } = quotationData;
           await db.updateQuotation(id, safeQuotationData);
-          newTotal = currentQuotation.total;
         }
-
-        // Actualizar proyecto si esta cotizacion esta vinculada a una
-        if (newTotal) {
-          try {
-            // Buscar proyecto vinculado a esta cotización
-            const linkedProject = await db.getProjectByQuotationId(id);
-            if (linkedProject) {
-              await db.updateProject(linkedProject.id, {
-                totalAmount: newTotal.toString(),
-              });
-            }
-          } catch (error) {
-            console.error("[UPDATE_QUOTATION] Error updating project amount:", error);
-          }
-        }
-
-        // Obtener projectId si existe para que el frontend lo invalide
-        let projectId: number | null = null;
-        try {
-          const linkedProject = await db.getProjectByQuotationId(id);
-          if (linkedProject) {
-            projectId = linkedProject.id;
-          }
-        } catch (error) {
-          console.error("[UPDATE_QUOTATION] Error getting projectId:", error);
-        }
-
-        return { success: true, quotationId: id, projectId };
+        return { success: true, quotationId: id };
       }),
 
     // Listar todas las cotizaciones (Admin)

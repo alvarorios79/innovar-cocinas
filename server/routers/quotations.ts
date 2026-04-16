@@ -306,6 +306,7 @@ export const quotationsRouter = router({
         // Usar el total calculado en lugar de leer de la BD nuevamente
         if (newTotal) {
           try {
+            console.log(`[UPDATE_QUOTATION] Buscando proyecto para cotizacion ${id}, newTotal: ${newTotal}`);
             const dbInstance = await (db as any).getDb();
             if (dbInstance) {
               const projectsLinkedToQuotation = await dbInstance
@@ -314,19 +315,26 @@ export const quotationsRouter = router({
                 .where(eq(projects.quotationId, id))
                 .limit(1);
 
+              console.log(`[UPDATE_QUOTATION] Proyectos encontrados: ${projectsLinkedToQuotation.length}`);
               if (projectsLinkedToQuotation.length > 0) {
-                await dbInstance
+                console.log(`[UPDATE_QUOTATION] Actualizando proyecto ${projectsLinkedToQuotation[0].id} con totalAmount: ${newTotal}`);
+                const result = await dbInstance
                   .update(projects)
                   .set({
                     totalAmount: newTotal,
                     updatedAt: new Date(),
                   })
                   .where(eq(projects.id, projectsLinkedToQuotation[0].id));
+                console.log(`[UPDATE_QUOTATION] Resultado de actualización:`, result);
+              } else {
+                console.log(`[UPDATE_QUOTATION] No se encontró proyecto para cotizacion ${id}`);
               }
             }
           } catch (error) {
-            console.error("Error updating project amount:", error);
+            console.error("[UPDATE_QUOTATION] Error updating project amount:", error);
           }
+        } else {
+          console.log(`[UPDATE_QUOTATION] newTotal es null/undefined, no se actualiza proyecto`);
         }
 
         return { success: true, quotationId: id };

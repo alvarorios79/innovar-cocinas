@@ -241,9 +241,13 @@ export default function Quotations() {
   });
 
   const updateQuotation = trpc.quotations.update.useMutation({
-    onSuccess: () => {
+    onSuccess: (data) => {
       utils.quotations.list.invalidate();
       utils.quotations.listPaginatedGrouped.invalidate();
+      // Invalidar proyecto si existe
+      if (data.projectId) {
+        utils.projects.getById.invalidate({ id: data.projectId });
+      }
       toast.success("Cotización actualizada exitosamente");
       setShowCreateDialog(false);
       resetForm();

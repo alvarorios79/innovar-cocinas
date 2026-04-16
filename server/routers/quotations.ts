@@ -337,7 +337,25 @@ export const quotationsRouter = router({
           console.log(`[UPDATE_QUOTATION] newTotal es null/undefined, no se actualiza proyecto`);
         }
 
-        return { success: true, quotationId: id };
+        // Obtener projectId si existe para que el frontend lo invalide
+        let projectId: number | null = null;
+        try {
+          const dbInstance = await (db as any).getDb();
+          if (dbInstance) {
+            const projectResult = await dbInstance
+              .select({ id: projects.id })
+              .from(projects)
+              .where(eq(projects.quotationId, id))
+              .limit(1);
+            if (projectResult.length > 0) {
+              projectId = projectResult[0].id;
+            }
+          }
+        } catch (error) {
+          console.error("[UPDATE_QUOTATION] Error getting projectId:", error);
+        }
+
+        return { success: true, quotationId: id, projectId };
       }),
 
     // Listar todas las cotizaciones (Admin)

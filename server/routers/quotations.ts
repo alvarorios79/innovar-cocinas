@@ -325,15 +325,27 @@ export const quotationsRouter = router({
               console.log(`[UPDATE_QUOTATION] baseQuotationId: ${baseId}`);
               
               // Obtener TODAS las versiones del grupo
-              const allVersions = await dbInstance
-                .select({ id: quotations.id })
-                .from(quotations)
-                .where(
-                  or(
-                    eq(quotations.baseQuotationId, baseId),
-                    eq(quotations.id, baseId)
-                  )
-                );
+              // Si baseId es el mismo que id, significa que es la única versión (sin baseQuotationId)
+              // En ese caso, buscar solo esa cotización
+              let allVersions;
+              if (baseId === id) {
+                // Es la única versión, buscar solo esta
+                allVersions = await dbInstance
+                  .select({ id: quotations.id })
+                  .from(quotations)
+                  .where(eq(quotations.id, id));
+              } else {
+                // Hay múltiples versiones, buscar todas del grupo
+                allVersions = await dbInstance
+                  .select({ id: quotations.id })
+                  .from(quotations)
+                  .where(
+                    or(
+                      eq(quotations.baseQuotationId, baseId),
+                      eq(quotations.id, baseId)
+                    )
+                  );
+              }
               
               const versionIds = allVersions.map(v => v.id);
               console.log(`[UPDATE_QUOTATION] Versiones del grupo: ${versionIds.join(', ')}`);
@@ -386,15 +398,25 @@ export const quotationsRouter = router({
             }
             
             // Obtener todas las versiones
-            const allVersions = await dbInstance
-              .select({ id: quotations.id })
-              .from(quotations)
-              .where(
-                or(
-                  eq(quotations.baseQuotationId, baseId),
-                  eq(quotations.id, baseId)
-                )
-              );
+            let allVersions;
+            if (baseId === id) {
+              // Es la única versión
+              allVersions = await dbInstance
+                .select({ id: quotations.id })
+                .from(quotations)
+                .where(eq(quotations.id, id));
+            } else {
+              // Hay múltiples versiones
+              allVersions = await dbInstance
+                .select({ id: quotations.id })
+                .from(quotations)
+                .where(
+                  or(
+                    eq(quotations.baseQuotationId, baseId),
+                    eq(quotations.id, baseId)
+                  )
+                );
+            }
             
             const versionIds = allVersions.map(v => v.id);
             

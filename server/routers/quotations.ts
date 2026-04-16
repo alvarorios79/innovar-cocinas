@@ -244,13 +244,15 @@ export const quotationsRouter = router({
 
         // La mutación update SIEMPRE actualiza la cotización directamente.
         // La creación de nuevas versiones se maneja exclusivamente con el botón
-        // "Crear Nueva Versión" (quotationsVersioning.createVersion).
+           let newTotal: string | null = null;
+
         if (items) {
           const subtotal = items.reduce((sum, item) => sum + item.totalPrice, 0);
           const transportCost = 0;
           const discountPercent = input.discountPercent ?? 0;
           const discountAmount = subtotal * (discountPercent / 100);
           const total = subtotal - discountAmount;
+          newTotal = total.toString();
 
           await withTransaction(async (tx) => {
             await db.deleteQuotationItems(id);
@@ -279,7 +281,7 @@ export const quotationsRouter = router({
               transportCost: transportCost.toString(),
               discountPercent: discountPercent.toString(),
               discountAmount: discountAmount.toString(),
-              total: total.toString(),
+              total: newTotal,
             });
           });
         } else if (input.discountPercent !== undefined) {
@@ -287,42 +289,44 @@ export const quotationsRouter = router({
           const discountPercent = input.discountPercent;
           const discountAmount = subtotal * (discountPercent / 100);
           const total = subtotal - discountAmount;
+          newTotal = total.toString();
           await db.updateQuotation(id, {
             ...quotationData,
             discountPercent: discountPercent.toString(),
             discountAmount: discountAmount.toString(),
-            total: total.toString(),
+            total: newTotal,
           });
         } else {
           const { discountPercent: _, ...safeQuotationData } = quotationData;
           await db.updateQuotation(id, safeQuotationData);
+          newTotal = currentQuotation.total;
         }
 
         // Actualizar proyecto si esta cotizacion esta vinculada a uno
-        try {
-          const dbInstance = await (db as any).getDb();
-          if (dbInstance) {
-            const projectsLinkedToQuotation = await dbInstance
-              .select({ id: projects.id })
-              .from(projects)
-              .where(eq(projects.quotationId, id))
-              .limit(1);
+        // Usar el total calculado en lugar de leer de la BD nuevamente
+        if (newTotal) {
+          try {
+            const dbInstance = await (db as any).getDb();
+            if (dbInstance) {
+              const projectsLinkedToQuotation = await dbInstance
+                .select({ id: projects.id })
+                .from(projects)
+                .where(eq(projects.quotationId, id))
+                .limit(1);
 
-            if (projectsLinkedToQuotation.length > 0) {
-              const updatedQuotation = await db.getQuotationById(id);
-              if (updatedQuotation) {
+              if (projectsLinkedToQuotation.length > 0) {
                 await dbInstance
                   .update(projects)
                   .set({
-                    totalAmount: updatedQuotation.total,
+                    totalAmount: newTotal,
                     updatedAt: new Date(),
                   })
                   .where(eq(projects.id, projectsLinkedToQuotation[0].id));
               }
             }
+          } catch (error) {
+            console.error("Error updating project amount:", error);
           }
-        } catch (error) {
-          console.error("Error updating project amount:", error);
         }
 
         return { success: true, quotationId: id };

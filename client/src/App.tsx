@@ -28,6 +28,7 @@ import AppointmentsCalendar from "./pages/AppointmentsCalendar";
 import { CEODashboard } from "./pages/CEODashboard";
 import ProfitabilityDashboard from "./pages/ProfitabilityDashboard";
 import LimpiezaSistema from "./pages/LimpiezaSistema";
+import DebugSync from "./pages/DebugSync";
 
 function Router() {
   return (
@@ -52,6 +53,7 @@ function Router() {
       <Route path={"/ceo-dashboard"} component={CEODashboard} />
       <Route path={"/profitability-dashboard"} component={ProfitabilityDashboard} />
       <Route path={"/limpieza-sistema"} component={LimpiezaSistema} />
+      <Route path={"/debug-sync"} component={DebugSync} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>

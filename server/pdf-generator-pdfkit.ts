@@ -207,7 +207,13 @@ export async function generateQuotationPDF(
       }
 
       // Sección de totales (subtotal, descuento, total)
-      currentY += 30;
+      currentY += 15;
+      
+      // Verificar si hay espacio para los totales (necesita ~80 puntos)
+      if (currentY + 80 > doc.page.height - 50) {
+        doc.addPage();
+        currentY = 60;
+      }
       
       // Subtotal
       doc.fontSize(10).fillColor(darkGray).font("Helvetica");
@@ -246,10 +252,10 @@ export async function generateQuotationPDF(
 
       // Observaciones Generales (si existen)
       if (data.generalNotes && data.generalNotes.trim()) {
-        currentY += 15;
-        if (currentY > 650) {
+        currentY += 10;
+        if (currentY > doc.page.height - 100) {
           doc.addPage();
-          currentY = 50;
+          currentY = 60;
         }
 
         doc.fontSize(11).fillColor(turquoise).font("Helvetica-Bold");
@@ -301,9 +307,9 @@ export async function generateQuotationPDF(
 
       // Firmas
       currentY += 12;
-      if (currentY > 680) {
+      if (currentY > doc.page.height - 80) {
         doc.addPage();
-        currentY = 50;
+        currentY = 60;
       }
 
       doc.fontSize(10).font("Helvetica-Bold");

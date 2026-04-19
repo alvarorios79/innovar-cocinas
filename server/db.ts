@@ -2877,8 +2877,8 @@ export async function createAccountingClosure(data: {
     
     console.log(`[CLOSURE ${closureId}] Totales: Ingresos=$${totalRevenue}, Gastos Proyecto=$${totalProjectExpenses}, Gastos Operativos=$${totalOperationalExpenses}, Utilidad=$${netProfit}`);
     
-    // PASO 4: Guardar gastos operativos en tabla de audítoría
-    // REGLA: Se guardan TODOS los gastos operativos (sin filtro de fecha)
+    // PASO 4: Guardar gastos operativos en tabla de auditoría
+    // REGLA: Se guardan SOLO los gastos operativos NUEVOS desde el cierre anterior
     const pool = await getPool();
     if (pool) {
       const operationalExpenses = await tx.select()
@@ -2887,8 +2887,11 @@ export async function createAccountingClosure(data: {
           and(
             eq(expenses.expenseType, 'gasto_operativo'),
             eq(expenses.dataOrigin, 'manual'),
-            isNull(expenses.deletedAt)
-            // NO filtrar por fecha - incluir TODOS los gastos operativos
+            isNull(expenses.deletedAt),
+            // Filtrar por fecha: desde el último cierre confirmado (o desde el inicio si no hay)
+            lastClosureDate 
+              ? gte(expenses.expenseDate, sql`${lastClosureDate.toISOString().split('T')[0]}`)
+              : undefined
           )
         );
       

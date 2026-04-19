@@ -2764,8 +2764,26 @@ export async function createAccountingClosure(data: {
     let totalProjectExpenses = 0;   // Gastos de proyecto
     let totalProfit = 0;            // Utilidad
     
-    // PASO 1: Calcular gastos operativos (TODOS, sin filtro de fecha)
-    // REGLA: Se incluyen TODOS los gastos operativos registrados
+    // PASO 1: Obtener fecha del último cierre confirmado
+    const lastClosureResult = await tx.select({
+      confirmedAt: accountingClosures.confirmedAt
+    })
+    .from(accountingClosures)
+    .where(
+      and(
+        eq(accountingClosures.status, 'confirmed'),
+        isNotNull(accountingClosures.confirmedAt)
+      )
+    )
+    .orderBy(desc(accountingClosures.confirmedAt))
+    .limit(1);
+    
+    const lastClosureDate = lastClosureResult[0]?.confirmedAt ? new Date(lastClosureResult[0].confirmedAt) : null;
+    
+    console.log(`[CLOSURE ${closureId}] Último cierre confirmado: ${lastClosureDate?.toISOString() || 'ninguno'}`);
+    
+    // PASO 2: Calcular gastos operativos desde el último cierre hasta hoy
+    // REGLA: Se incluyen SOLO los gastos operativos NUEVOS desde el cierre anterior
     const operationalExpensesResult = await tx.select({
       total: sql<number>`COALESCE(SUM(CAST(amount AS DECIMAL(12,2))), 0)`
     })
@@ -2774,8 +2792,11 @@ export async function createAccountingClosure(data: {
       and(
         eq(expenses.expenseType, 'gasto_operativo'),
         eq(expenses.dataOrigin, 'manual'),
-        isNull(expenses.deletedAt)
-        // NO filtrar por fecha - incluir TODOS los gastos operativos
+        isNull(expenses.deletedAt),
+        // Filtrar por fecha: desde el último cierre confirmado (o desde el inicio si no hay)
+        lastClosureDate 
+          ? gte(expenses.expenseDate, sql`${lastClosureDate.toISOString().split('T')[0]}`)
+          : undefined
       )
     );
     
@@ -2785,7 +2806,7 @@ export async function createAccountingClosure(data: {
     
     console.log(`[CLOSURE ${closureId}] Gastos operativos del período: $${totalOperationalExpenses}`);
     
-    // PASO 2: Procesar cada proyecto
+    // PASO 3: Procesar cada proyecto
     for (const project of projectsData) {
       // PASO 2A: Calcular ingresos, descuentos y recargos
       const paymentsDetailResult = await tx.select({

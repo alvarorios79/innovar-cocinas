@@ -154,17 +154,74 @@ export function PDFPreviewDialog({
               )}
               
               {!error && (
-                <div className="flex-1 overflow-auto">
-                  <iframe
-                    src={pdfUrl}
-                    className="w-full h-full border-0"
-                    title="PDF Preview"
-                    onLoad={() => setIsLoading(false)}
-                    onError={() => {
-                      setError('No se pudo cargar el PDF');
-                      setIsLoading(false);
-                    }}
-                  />
+                <div className="flex-1 flex flex-col">
+                  {/* PDF Viewer con react-pdf */}
+                  <div className="flex-1 overflow-auto flex items-center justify-center bg-gray-50">
+                    <Document
+                      file={pdfUrl}
+                      onLoadSuccess={onDocumentLoadSuccess}
+                      onLoadError={onDocumentLoadError}
+                      loading={<Loader2 className="h-8 w-8 animate-spin text-gray-400" />}
+                    >
+                      <Page
+                        pageNumber={pageNumber}
+                        scale={scale}
+                        renderTextLayer={false}
+                        renderAnnotationLayer={false}
+                      />
+                    </Document>
+                  </div>
+                  
+                  {/* Controles de navegación */}
+                  {numPages > 1 && (
+                    <div className="flex items-center justify-center gap-4 p-4 bg-white border-t">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handlePreviousPage}
+                        disabled={pageNumber <= 1}
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </Button>
+                      
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium">
+                          Página {pageNumber} de {numPages}
+                        </span>
+                      </div>
+                      
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleNextPage}
+                        disabled={pageNumber >= numPages}
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                      
+                      <div className="flex gap-2 ml-4 border-l pl-4">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleZoomOut}
+                          disabled={scale <= 0.5}
+                        >
+                          <ZoomOut className="h-4 w-4" />
+                        </Button>
+                        <span className="text-sm font-medium w-12 text-center">
+                          {Math.round(scale * 100)}%
+                        </span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleZoomIn}
+                          disabled={scale >= 2.0}
+                        >
+                          <ZoomIn className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </>

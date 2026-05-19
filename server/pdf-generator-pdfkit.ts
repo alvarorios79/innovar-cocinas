@@ -252,7 +252,8 @@ export async function generateQuotationPDF(
 
       // Observaciones Generales (si existen)
       if (data.generalNotes && data.generalNotes.trim()) {
-        currentY += 10;
+        // Agregar espacio después del total (mínimo 50 puntos)
+        currentY += 50;
         if (currentY > doc.page.height - 100) {
           doc.addPage();
           currentY = 60;

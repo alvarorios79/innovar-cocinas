@@ -1,0 +1,92 @@
+{
+  "query": "SELECT \n  q.id,\n  q.quotationNumber,\n  q.versionNumber,\n  qi.itemNumber,\n  qi.itemType,\n  qi.description\nFROM quotations q\nJOIN quotationItems qi ON q.id = qi.quotationId\nWHERE q.quotationNumber LIKE '%1778595705651%' \nAND q.versionNumber = '3'\nORDER BY qi.itemNumber ASC;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT \n  q.id,\n  q.quotationNumber,\n  q.versionNumber,\n  qi.itemNumber,\n  qi.itemType,\n  qi.description\nFROM quotations q\nJOIN quotationItems qi ON q.id = qi.quotationId\nWHERE q.quotationNumber LIKE '%1778595705651%' \nAND q.versionNumber = '3'\nORDER BY qi.itemNumber ASC;",
+  "rows": [
+    {
+      "id": "4440001",
+      "quotationNumber": "COT-2026-1778595705651-6739503-v3",
+      "versionNumber": "3",
+      "itemNumber": "1",
+      "itemType": "otro",
+      "description": "Cocina Integral modular, en material RH color Rovere Arena. Linea de cocina con : torre de hornos, lavaplatos doble, especiero, mod para estufa y cajoneros, en la parte superior: mod platero con herraje incluido en acero inoxidable, mod almacenamiento, mod extractor (nevera libre sin nicho) medidas 3,34 x 3,32"
+    },
+    {
+      "id": "4440001",
+      "quotationNumber": "COT-2026-1778595705651-6739503-v3",
+      "versionNumber": "3",
+      "itemNumber": "2",
+      "itemType": "otro",
+      "description": "Meson sinterizado con regrueso y salpicadero de 10 cm totalmente instalado 7.28 mt lineales incluye cocina completa y estacion de cafe. color Crotone Purpis (Español) Brillante"
+    },
+    {
+      "id": "4440001",
+      "quotationNumber": "COT-2026-1778595705651-6739503-v3",
+      "versionNumber": "3",
+      "itemNumber": "3",
+      "itemType": "otro",
+      "description": "Lavaplatos doble marca socoda en acero inoxidable de sub montar, totalmente instalado en piedra."
+    },
+    {
+      "id": "4440001",
+      "quotationNumber": "COT-2026-1778595705651-6739503-v3",
+      "versionNumber": "3",
+      "itemNumber": "4",
+      "itemType": "otro",
+      "description": "Mueble estacion de cafe (diseño final por definir) medidas 2,10 x 1,57 muebles superior e inferior"
+    },
+    {
+      "id": "4440001",
+      "quotationNumber": "COT-2026-1778595705651-6739503-v3",
+      "versionNumber": "3",
+      "itemNumber": "5",
+      "itemType": "otro",
+      "description": "Mueble de Baño en material RH medidas 1,04 x 0,52"
+    },
+    {
+      "id": "4440001",
+      "quotationNumber": "COT-2026-1778595705651-6739503-v3",
+      "versionNumber": "3",
+      "itemNumber": "6",
+      "itemType": "otro",
+      "description": "Mueble de baño en material RH (diseño final por definir) medidas 1,52 x 0,60"
+    },
+    {
+      "id": "4440001",
+      "quotationNumber": "COT-2026-1778595705651-6739503-v3",
+      "versionNumber": "3",
+      "itemNumber": "7",
+      "itemType": "otro",
+      "description": "Division para baño corrediza en acero inoxidable y vidrio templado de 8 mm, medidas 2,00 x 1,34 mt"
+    },
+    {
+      "id": "4440001",
+      "quotationNumber": "COT-2026-1778595705651-6739503-v3",
+      "versionNumber": "3",
+      "itemNumber": "8",
+      "itemType": "otro",
+      "description": "meson sinterizado medidas 1,04 x 0,52 con salpicadero de 10 cm, con agujeros de griferia y desague."
+    },
+    {
+      "id": "4440001",
+      "quotationNumber": "COT-2026-1778595705651-6739503-v3",
+      "versionNumber": "3",
+      "itemNumber": "9",
+      "itemType": "otro",
+      "description": "meson sinterizado medidas 1,52 x 0,60 con salpicadero de 10 cm con agujeros de griferia y desague."
+    },
+    {
+      "id": "4440001",
+      "quotationNumber": "COT-2026-1778595705651-6739503-v3",
+      "versionNumber": "3",
+      "itemNumber": "10",
+      "itemType": "otro",
+      "description": "Basurero doble con sistema cierre lento"
+    }
+  ],
+  "messages": [
+    "Alacena de 0,65 x 0,50 x 3,32 Linea de cajoneros con muebles superiores de almacenamiento medidas 2,27 x 2,32 mt (distribucion final por definir en diseño) Luz led muebles superiores, rieles y bisagras cierre lento."
+  ],
+  "stdout": "id\tquotationNumber\tversionNumber\titemNumber\titemType\tdescription\n4440001\tCOT-2026-1778595705651-6739503-v3\t3\t1\totro\tCocina Integral modular, en material RH color Rovere Arena. Linea de cocina con : torre de hornos, lavaplatos doble, especiero, mod para estufa y cajoneros, en la parte superior: mod platero con herraje incluido en acero inoxidable, mod almacenamiento, mod extractor (nevera libre sin nicho) medidas 3,34 x 3,32\nAlacena de 0,65 x 0,50 x 3,32 Linea de cajoneros con muebles superiores de almacenamiento medidas 2,27 x 2,32 mt (distribucion final por definir en diseño) Luz led muebles superiores, rieles y bisagras cierre lento.\n4440001\tCOT-2026-1778595705651-6739503-v3\t3\t2\totro\tMeson sinterizado con regrueso y salpicadero de 10 cm totalmente instalado 7.28 mt lineales incluye cocina completa y estacion de cafe. color Crotone Purpis (Español) Brillante\n4440001\tCOT-2026-1778595705651-6739503-v3\t3\t3\totro\tLavaplatos doble marca socoda en acero inoxidable de sub montar, totalmente instalado en piedra.\n4440001\tCOT-2026-1778595705651-6739503-v3\t3\t4\totro\tMueble estacion de cafe (diseño final por definir) medidas 2,10 x 1,57 muebles superior e inferior\n4440001\tCOT-2026-1778595705651-6739503-v3\t3\t5\totro\tMueble de Baño en material RH medidas 1,04 x 0,52\n4440001\tCOT-2026-1778595705651-6739503-v3\t3\t6\totro\tMueble de baño en material RH (diseño final por definir) medidas 1,52 x 0,60\n4440001\tCOT-2026-1778595705651-6739503-v3\t3\t7\totro\tDivision para baño corrediza en acero inoxidable y vidrio templado de 8 mm, medidas 2,00 x 1,34 mt\n4440001\tCOT-2026-1778595705651-6739503-v3\t3\t8\totro\tmeson sinterizado medidas 1,04 x 0,52 con salpicadero de 10 cm, con agujeros de griferia y desague.\n4440001\tCOT-2026-1778595705651-6739503-v3\t3\t9\totro\tmeson sinterizado medidas 1,52 x 0,60 con salpicadero de 10 cm con agujeros de griferia y desague.\n4440001\tCOT-2026-1778595705651-6739503-v3\t3\t10\totro\tBasurero doble con sistema cierre lento\n",
+  "stderr": "",
+  "execution_time_ms": 353
+}

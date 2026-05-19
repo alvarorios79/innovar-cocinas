@@ -1,0 +1,80 @@
+{
+  "query": "SELECT \n  qi.id,\n  qi.itemNumber,\n  qi.itemType,\n  SUBSTRING(qi.description, 1, 50) as desc_preview,\n  qi.createdAt\nFROM quotationItems qi\nWHERE qi.quotationId = '4440001'\nORDER BY qi.id ASC;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT \n  qi.id,\n  qi.itemNumber,\n  qi.itemType,\n  SUBSTRING(qi.description, 1, 50) as desc_preview,\n  qi.createdAt\nFROM quotationItems qi\nWHERE qi.quotationId = '4440001'\nORDER BY qi.id ASC;",
+  "rows": [
+    {
+      "id": "4620001",
+      "itemNumber": "1",
+      "itemType": "otro",
+      "desc_preview": "Cocina Integral modular, en material RH color Rove",
+      "createdAt": "2026-05-19 19:32:38"
+    },
+    {
+      "id": "4620002",
+      "itemNumber": "2",
+      "itemType": "otro",
+      "desc_preview": "Meson sinterizado con regrueso y salpicadero de 10",
+      "createdAt": "2026-05-19 19:32:38"
+    },
+    {
+      "id": "4620003",
+      "itemNumber": "3",
+      "itemType": "otro",
+      "desc_preview": "Lavaplatos doble marca socoda en acero inoxidable ",
+      "createdAt": "2026-05-19 19:32:38"
+    },
+    {
+      "id": "4620004",
+      "itemNumber": "4",
+      "itemType": "otro",
+      "desc_preview": "Mueble estacion de cafe (diseño final por definir)",
+      "createdAt": "2026-05-19 19:32:38"
+    },
+    {
+      "id": "4620005",
+      "itemNumber": "5",
+      "itemType": "otro",
+      "desc_preview": "Mueble de Baño en material RH medidas 1,04 x 0,52",
+      "createdAt": "2026-05-19 19:32:38"
+    },
+    {
+      "id": "4620006",
+      "itemNumber": "6",
+      "itemType": "otro",
+      "desc_preview": "Mueble de baño en material RH (diseño final por de",
+      "createdAt": "2026-05-19 19:32:39"
+    },
+    {
+      "id": "4620007",
+      "itemNumber": "7",
+      "itemType": "otro",
+      "desc_preview": "Division para baño corrediza en acero inoxidable y",
+      "createdAt": "2026-05-19 19:32:39"
+    },
+    {
+      "id": "4620008",
+      "itemNumber": "8",
+      "itemType": "otro",
+      "desc_preview": "meson sinterizado medidas 1,04 x 0,52 con salpicad",
+      "createdAt": "2026-05-19 19:32:39"
+    },
+    {
+      "id": "4620009",
+      "itemNumber": "9",
+      "itemType": "otro",
+      "desc_preview": "meson sinterizado medidas 1,52 x 0,60 con salpicad",
+      "createdAt": "2026-05-19 19:32:39"
+    },
+    {
+      "id": "4620010",
+      "itemNumber": "10",
+      "itemType": "otro",
+      "desc_preview": "Basurero doble con sistema cierre lento",
+      "createdAt": "2026-05-19 19:32:39"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\titemNumber\titemType\tdesc_preview\tcreatedAt\n4620001\t1\totro\tCocina Integral modular, en material RH color Rove\t2026-05-19 19:32:38\n4620002\t2\totro\tMeson sinterizado con regrueso y salpicadero de 10\t2026-05-19 19:32:38\n4620003\t3\totro\tLavaplatos doble marca socoda en acero inoxidable \t2026-05-19 19:32:38\n4620004\t4\totro\tMueble estacion de cafe (diseño final por definir)\t2026-05-19 19:32:38\n4620005\t5\totro\tMueble de Baño en material RH medidas 1,04 x 0,52\t2026-05-19 19:32:38\n4620006\t6\totro\tMueble de baño en material RH (diseño final por de\t2026-05-19 19:32:39\n4620007\t7\totro\tDivision para baño corrediza en acero inoxidable y\t2026-05-19 19:32:39\n4620008\t8\totro\tmeson sinterizado medidas 1,04 x 0,52 con salpicad\t2026-05-19 19:32:39\n4620009\t9\totro\tmeson sinterizado medidas 1,52 x 0,60 con salpicad\t2026-05-19 19:32:39\n4620010\t10\totro\tBasurero doble con sistema cierre lento\t2026-05-19 19:32:39\n",
+  "stderr": "",
+  "execution_time_ms": 273
+}

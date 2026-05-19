@@ -1,0 +1,8 @@
+{
+  "query": "\n-- Copiar closetConfig del item de closet desde v3 a v4\nUPDATE quotation_items qi_v4\nSET qi_v4.closetConfig = (\n  SELECT qi_v3.closetConfig\n  FROM quotation_items qi_v3\n  WHERE qi_v3.quotationId = '4350001'  -- v3\n  AND qi_v3.itemType = 'closet'\n  AND qi_v3.itemNumber = qi_v4.itemNumber\n)\nWHERE qi_v4.quotationId = '4380001'  -- v4\nAND qi_v4.itemType = 'closet'\nAND qi_v4.closetConfig IS NULL;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute \n-- Copiar closetConfig del item de closet desde v3 a v4\nUPDATE quotation_items qi_v4\nSET qi_v4.closetConfig = (\n  SELECT qi_v3.closetConfig\n  FROM quotation_items qi_v3\n  WHERE qi_v3.quotationId = '4350001'  -- v3\n  AND qi_v3.itemType = 'closet'\n  AND qi_v3.itemNumber = qi_v4.itemNumber\n)\nWHERE qi_v4.quotationId = '4380001'  -- v4\nAND qi_v4.itemType = 'closet'\nAND qi_v4.closetConfig IS NULL;\n",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1146 (42S02) at line 3: Table 'xhekcr8yxcaedfyuqebdjq.quotation_items' doesn't exist"
+  ]
+}

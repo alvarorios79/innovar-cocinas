@@ -1,0 +1,8 @@
+{
+  "query": "SELECT \n  q.id,\n  q.quotationNumber,\n  q.versionNumber,\n  q.clientName,\n  COUNT(qi.id) as item_count\nFROM quotations q\nLEFT JOIN quotationItems qi ON q.id = qi.quotationId\nWHERE q.quotationNumber LIKE '%1775675643251%'\nGROUP BY q.id\nORDER BY q.versionNumber DESC;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT \n  q.id,\n  q.quotationNumber,\n  q.versionNumber,\n  q.clientName,\n  COUNT(qi.id) as item_count\nFROM quotations q\nLEFT JOIN quotationItems qi ON q.id = qi.quotationId\nWHERE q.quotationNumber LIKE '%1775675643251%'\nGROUP BY q.id\nORDER BY q.versionNumber DESC;",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1054 (42S22) at line 1: Unknown column 'q.clientname' in 'field list'"
+  ]
+}

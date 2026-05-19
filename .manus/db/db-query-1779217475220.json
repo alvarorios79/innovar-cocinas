@@ -1,0 +1,38 @@
+{
+  "query": "SELECT \n  qi.itemNumber,\n  qi.itemType,\n  qi.description,\n  qi.closetConfig,\n  qi.totalPrice\nFROM quotationItems qi\nWHERE qi.quotationId = '4380001'\nORDER BY qi.itemNumber ASC;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT \n  qi.itemNumber,\n  qi.itemType,\n  qi.description,\n  qi.closetConfig,\n  qi.totalPrice\nFROM quotationItems qi\nWHERE qi.quotationId = '4380001'\nORDER BY qi.itemNumber ASC;",
+  "rows": [
+    {
+      "itemNumber": "1",
+      "itemType": "otro",
+      "description": "Cocina integral en madera aglomerada tipo RH color gris creta por el cliente. forma lineal de piso a techo con: nicho de nevera con almacenamiento superior y puerta batiente, torre de hornos, modulo lavaplatos, lavavajillas, mod estufa, especiero, cajoneros triple y almacenamiento. Diseño y distribucion final por definir. 12,12 mt (muebles superiores no incluidos)",
+      "closetConfig": "NULL",
+      "totalPrice": "12500000.00"
+    },
+    {
+      "itemNumber": "2",
+      "itemType": "mesones",
+      "description": "Mesón en Sinterizado 4.4ML x 60cm",
+      "closetConfig": "NULL",
+      "totalPrice": "5410000.00"
+    },
+    {
+      "itemNumber": "3",
+      "itemType": "otro",
+      "description": "Basurero doble con cierre lento",
+      "closetConfig": "NULL",
+      "totalPrice": "450000.00"
+    },
+    {
+      "itemNumber": "4",
+      "itemType": "closet",
+      "description": "",
+      "closetConfig": "\"{\\\"type\\\":\\\"estandar\\\",\\\"width\\\":2.32,\\\"height\\\":2.3,\\\"doorType\\\":\\\"corredizas\\\",\\\"squareMeters\\\":5.335999999999999,\\\"pricePerSquareMeter\\\":750000,\\\"subtotal\\\":4001999.9999999995,\\\"notes\\\":\\\"\\\",\\\"includeTransport\\\":false,\\\"transportCost\\\":150000}\"",
+      "totalPrice": "4002000.00"
+    }
+  ],
+  "messages": [],
+  "stdout": "itemNumber\titemType\tdescription\tclosetConfig\ttotalPrice\n1\totro\tCocina integral en madera aglomerada tipo RH color gris creta por el cliente. forma lineal de piso a techo con: nicho de nevera con almacenamiento superior y puerta batiente, torre de hornos, modulo lavaplatos, lavavajillas, mod estufa, especiero, cajoneros triple y almacenamiento. Diseño y distribucion final por definir. 12,12 mt (muebles superiores no incluidos)\tNULL\t12500000.00\n2\tmesones\tMesón en Sinterizado 4.4ML x 60cm\tNULL\t5410000.00\n3\totro\tBasurero doble con cierre lento\tNULL\t450000.00\n4\tcloset\t\t\"{\\\"type\\\":\\\"estandar\\\",\\\"width\\\":2.32,\\\"height\\\":2.3,\\\"doorType\\\":\\\"corredizas\\\",\\\"squareMeters\\\":5.335999999999999,\\\"pricePerSquareMeter\\\":750000,\\\"subtotal\\\":4001999.9999999995,\\\"notes\\\":\\\"\\\",\\\"includeTransport\\\":false,\\\"transportCost\\\":150000}\"\t4002000.00\n",
+  "stderr": "",
+  "execution_time_ms": 271
+}

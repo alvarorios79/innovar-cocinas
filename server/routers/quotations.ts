@@ -537,6 +537,9 @@ export const quotationsRouter = router({
         const items = await db.getQuotationItems(input.id);
 
         // Preparar datos para el PDF
+        // Ordenar items por itemNumber
+        const sortedItems = [...items].sort((a, b) => (a.itemNumber || 0) - (b.itemNumber || 0));
+        
         const pdfData = {
           quotationNumber: quotation.quotationNumber,
           date: new Date().toLocaleDateString('es-CO', { timeZone: 'America/Bogota' }),
@@ -546,7 +549,7 @@ export const quotationsRouter = router({
           vendorName: quotation.vendorName,
           productType: quotation.productType,
           validUntil: quotation.validUntil ? new Date(quotation.validUntil).toLocaleDateString('es-CO', { timeZone: 'America/Bogota' }) : '',
-          items: items.map(item => {
+          items: sortedItems.map(item => {
             let description = item.description;
             
             // Parsear hardwareSelections si es string JSON
@@ -554,10 +557,19 @@ export const quotationsRouter = router({
               ? JSON.parse(item.hardwareSelections)
               : item.hardwareSelections;
             
-            // Parsear closetConfig si es string JSON
-            const closetConfig = item.closetConfig && typeof item.closetConfig === 'string'
-              ? JSON.parse(item.closetConfig)
-              : item.closetConfig;
+            // Parsear closetConfig si es string JSON (manejar doble serialización)
+            let closetConfig = item.closetConfig;
+            if (closetConfig && typeof closetConfig === 'string') {
+              try {
+                closetConfig = JSON.parse(closetConfig);
+                // Si el resultado es un string, hacer otro parse
+                if (typeof closetConfig === 'string') {
+                  closetConfig = JSON.parse(closetConfig);
+                }
+              } catch (e) {
+                closetConfig = null;
+              }
+            }
             
             // Parsear doorConfig si es string JSON
             const doorConfig = item.doorConfig && typeof item.doorConfig === 'string'
@@ -1513,10 +1525,19 @@ export const quotationsRouter = router({
               ? JSON.parse(item.hardwareSelections)
               : item.hardwareSelections;
             
-            // Parsear closetConfig si es string JSON
-            const closetConfig = item.closetConfig && typeof item.closetConfig === 'string'
-              ? JSON.parse(item.closetConfig)
-              : item.closetConfig;
+            // Parsear closetConfig si es string JSON (manejar doble serialización)
+            let closetConfig = item.closetConfig;
+            if (closetConfig && typeof closetConfig === 'string') {
+              try {
+                closetConfig = JSON.parse(closetConfig);
+                // Si el resultado es un string, hacer otro parse
+                if (typeof closetConfig === 'string') {
+                  closetConfig = JSON.parse(closetConfig);
+                }
+              } catch (e) {
+                closetConfig = null;
+              }
+            }
             
             // Parsear doorConfig si es string JSON
             const doorConfig = item.doorConfig && typeof item.doorConfig === 'string'

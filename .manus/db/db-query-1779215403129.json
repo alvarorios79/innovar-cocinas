@@ -1,0 +1,34 @@
+{
+  "query": "\n-- Primero, identificar las versiones de la cotización\nSELECT id, quotationNumber, versionNumber, createdAt \nFROM quotations \nWHERE quotationNumber LIKE '%1775675643251%' \nORDER BY versionNumber DESC;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute \n-- Primero, identificar las versiones de la cotización\nSELECT id, quotationNumber, versionNumber, createdAt \nFROM quotations \nWHERE quotationNumber LIKE '%1775675643251%' \nORDER BY versionNumber DESC;\n",
+  "rows": [
+    {
+      "id": "4380001",
+      "quotationNumber": "COT-2026-1775675643251-1927015-v4",
+      "versionNumber": "4",
+      "createdAt": "2026-05-19 16:59:04"
+    },
+    {
+      "id": "4350001",
+      "quotationNumber": "COT-2026-1775675643251-1927015-v3",
+      "versionNumber": "3",
+      "createdAt": "2026-05-19 14:47:20"
+    },
+    {
+      "id": "4230002",
+      "quotationNumber": "COT-2026-1775675643251-1927015-v2",
+      "versionNumber": "2",
+      "createdAt": "2026-05-12 18:49:52"
+    },
+    {
+      "id": "3570001",
+      "quotationNumber": "COT-2026-1775675643251-1927015",
+      "versionNumber": "1",
+      "createdAt": "2026-04-08 19:14:03"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tquotationNumber\tversionNumber\tcreatedAt\n4380001\tCOT-2026-1775675643251-1927015-v4\t4\t2026-05-19 16:59:04\n4350001\tCOT-2026-1775675643251-1927015-v3\t3\t2026-05-19 14:47:20\n4230002\tCOT-2026-1775675643251-1927015-v2\t2\t2026-05-12 18:49:52\n3570001\tCOT-2026-1775675643251-1927015\t1\t2026-04-08 19:14:03\n",
+  "stderr": "",
+  "execution_time_ms": 472
+}

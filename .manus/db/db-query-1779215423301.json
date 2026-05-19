@@ -1,0 +1,17 @@
+{
+  "query": "\n-- Verificar que el closetConfig fue copiado\nSELECT id, quotationId, itemType, itemNumber, closetConfig \nFROM quotationItems \nWHERE quotationId IN ('4350001', '4380001')\nAND itemType = 'closet';\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute \n-- Verificar que el closetConfig fue copiado\nSELECT id, quotationId, itemType, itemNumber, closetConfig \nFROM quotationItems \nWHERE quotationId IN ('4350001', '4380001')\nAND itemType = 'closet';\n",
+  "rows": [
+    {
+      "id": "4500004",
+      "quotationId": "4380001",
+      "itemType": "closet",
+      "itemNumber": "4",
+      "closetConfig": "\"{\\\"type\\\":\\\"estandar\\\",\\\"width\\\":2.32,\\\"height\\\":2.3,\\\"doorType\\\":\\\"corredizas\\\",\\\"squareMeters\\\":5.335999999999999,\\\"pricePerSquareMeter\\\":750000,\\\"subtotal\\\":4001999.9999999995,\\\"notes\\\":\\\"\\\",\\\"includeTransport\\\":false,\\\"transportCost\\\":150000}\""
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tquotationId\titemType\titemNumber\tclosetConfig\n4500004\t4380001\tcloset\t4\t\"{\\\"type\\\":\\\"estandar\\\",\\\"width\\\":2.32,\\\"height\\\":2.3,\\\"doorType\\\":\\\"corredizas\\\",\\\"squareMeters\\\":5.335999999999999,\\\"pricePerSquareMeter\\\":750000,\\\"subtotal\\\":4001999.9999999995,\\\"notes\\\":\\\"\\\",\\\"includeTransport\\\":false,\\\"transportCost\\\":150000}\"\n",
+  "stderr": "",
+  "execution_time_ms": 263
+}

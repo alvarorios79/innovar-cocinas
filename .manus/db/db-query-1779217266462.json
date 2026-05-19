@@ -1,0 +1,9 @@
+{
+  "query": "SELECT \n  q.versionNumber,\n  qi.itemType,\n  qi.description,\n  qi.closetConfig,\n  LENGTH(qi.closetConfig) as config_length\nFROM quotations q\nJOIN quotationItems qi ON q.id = qi.quotationId\nWHERE q.quotationNumber = 'COT-2026-1775675643251'\nAND qi.itemType = 'closet'\nORDER BY q.versionNumber DESC;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2bxEETtHLyojAa4.root --database XhEkCr8yXcaeDFyuQebdJQ --execute SELECT \n  q.versionNumber,\n  qi.itemType,\n  qi.description,\n  qi.closetConfig,\n  LENGTH(qi.closetConfig) as config_length\nFROM quotations q\nJOIN quotationItems qi ON q.id = qi.quotationId\nWHERE q.quotationNumber = 'COT-2026-1775675643251'\nAND qi.itemType = 'closet'\nORDER BY q.versionNumber DESC;",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 270
+}

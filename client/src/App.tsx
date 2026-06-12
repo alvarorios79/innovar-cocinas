@@ -2,7 +2,7 @@ import { Toaster } from "sonner";
 import React from "react";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
-import { Route, Switch } from "wouter";
+import { Route, Switch, useLocation } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 
@@ -12,6 +12,7 @@ import Home from "./pages/Home";
 import Admin from "./pages/Admin";
 import Portal from "./pages/Portal";
 import Projects from "./pages/Projects";
+import DashboardLayout from "./components/DashboardLayout";
 import Tasks from "./pages/Tasks";
 import InstallationCalendar from "./pages/InstallationCalendar";
 import Quotations from "./pages/Quotations";
@@ -29,32 +30,50 @@ import { CEODashboard } from "./pages/CEODashboard";
 import ProfitabilityDashboard from "./pages/ProfitabilityDashboard";
 import LimpiezaSistema from "./pages/LimpiezaSistema";
 
+
+
+function LayoutWrapper({ children }: { children: React.ReactNode }) {
+  const [location] = useLocation();
+  
+  // Rutas públicas que NO deben tener sidebar
+  const publicRoutes = ["/", "/login", "/register", "/forgot-password", "/reset-password", "/portal"];
+  const isPublicRoute = publicRoutes.some(route => location === route || location.startsWith("/portal"));
+  
+  if (isPublicRoute) {
+    return <>{children}</>;
+  }
+  
+  return <DashboardLayout>{children}</DashboardLayout>;
+}
+
 function Router() {
   return (
-    <Switch>
+    <LayoutWrapper>
+      <Switch>
       <Route path={"/"} component={Home} />
-      <Route path={"/admin"} component={Admin} />
-      <Route path={"/comercial"} component={Comercial} />
+      <Route path={"/admin"}><Admin /></Route>
+      <Route path={"/comercial"}><Comercial /></Route>
       <Route path={"/portal"} component={Portal} />
-      <Route path={"/projects"} component={Projects} />
-      <Route path={"/projects/:id"} component={ProjectDetail} />
-      <Route path={"/tasks"} component={Tasks} />
-      <Route path={"/calendar"} component={InstallationCalendar} />
-      <Route path={"/appointments-calendar"} component={AppointmentsCalendar} />
-      <Route path={"/quotations"} component={Quotations} />
+      <Route path={"/projects"}><Projects /></Route>
+      <Route path={"/projects/:id"}><ProjectDetail /></Route>
+      <Route path={"/tasks"}><Tasks /></Route>
+      <Route path={"/calendar"}><InstallationCalendar /></Route>
+      <Route path={"/appointments-calendar"}><AppointmentsCalendar /></Route>
+      <Route path={"/quotations"}><Quotations /></Route>
       <Route path={"/login"} component={Login} />
       <Route path={"/register"} component={Register} />
       <Route path={"/forgot-password"} component={ForgotPassword} />
       <Route path={"/reset-password"} component={ResetPassword} />
-      <Route path={"/gallery"} component={PublicGallery} />
-      <Route path={"/pricing-config"} component={PricingConfig} />
-      <Route path={"/accounting"} component={Accounting} />
-      <Route path={"/ceo-dashboard"} component={CEODashboard} />
-      <Route path={"/profitability-dashboard"} component={ProfitabilityDashboard} />
+      <Route path={"/gallery"}><PublicGallery /></Route>
+      <Route path={"/pricing-config"}><PricingConfig /></Route>
+      <Route path={"/accounting"}><Accounting /></Route>
+      <Route path={"/ceo-dashboard"}><CEODashboard /></Route>
+      <Route path={"/profitability-dashboard"}><ProfitabilityDashboard /></Route>
       <Route path={"/limpieza-sistema"} component={LimpiezaSistema} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>
+    </LayoutWrapper>
   );
 }
 

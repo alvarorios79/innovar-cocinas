@@ -2,7 +2,7 @@ import { mysqlTable, mysqlSchema, AnyMySqlColumn, index, bigint, text, foreignKe
 import { sql } from "drizzle-orm"
 
 export const drizzleMigrations = mysqlTable("__drizzle_migrations__", {
-	id: bigint({ mode: "number", unsigned: true }).autoincrement().notNull(),
+	id: bigint({ mode: "number", unsigned: true }).autoincrement().primaryKey(),
 	hash: text().notNull(),
 	createdAt: bigint("created_at", { mode: "number" }),
 },
@@ -10,15 +10,15 @@ export const drizzleMigrations = mysqlTable("__drizzle_migrations__", {
 	index("id").on(table.id),
 ]);
 
-export const accountingClosureOperationalExpenses = mysqlTable("accountingClosureOperationalExpenses", {
-	id: int().autoincrement().notNull(),
-	closureId: int().notNull().references(() => accountingClosures.id, { onDelete: "cascade" } ),
-	expenseId: int().notNull().references(() => expenses.id),
+export const accountingClosureOperationalExpenses = mysqlTable("accounting_op_expenses", {
+	id: int().autoincrement().primaryKey(),
+	closureId: int().notNull().references(() => accountingClosures.id, { onDelete: "cascade", name: "fk_acoe_closure" }),
+	expenseId: int().notNull().references(() => expenses.id, { name: "fk_acoe_expense" }),
 	category: mysqlEnum(['arriendo','energia','agua','internet','mantenimiento','herramientas','jardineria','reparaciones','transporte','papeleria','aseo','otro']).notNull(),
 	description: text().notNull(),
 	amount: decimal({ precision: 12, scale: 2 }).notNull(),
 	expenseDate: timestamp({ mode: 'string' }).notNull(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 },
 (table) => [
 	index("accountingClosureOperationalExpenses_closureId_idx").on(table.closureId),
@@ -27,7 +27,7 @@ export const accountingClosureOperationalExpenses = mysqlTable("accountingClosur
 ]);
 
 export const accountingClosureProjects = mysqlTable("accountingClosureProjects", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().primaryKey(),
 	closureId: int().notNull().references(() => accountingClosures.id, { onDelete: "cascade" } ),
 	projectId: int().notNull().references(() => projects.id),
 	projectName: varchar({ length: 255 }).notNull(),
@@ -35,7 +35,7 @@ export const accountingClosureProjects = mysqlTable("accountingClosureProjects",
 	totalPaid: decimal({ precision: 15, scale: 2 }).notNull(),
 	totalExpenses: decimal({ precision: 15, scale: 2 }).notNull(),
 	profit: decimal({ precision: 15, scale: 2 }).notNull(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 },
 (table) => [
 	index("accountingClosureProjects_closureId_idx").on(table.closureId),
@@ -43,7 +43,7 @@ export const accountingClosureProjects = mysqlTable("accountingClosureProjects",
 ]);
 
 export const accountingClosures = mysqlTable("accountingClosures", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().primaryKey(),
 	// you can use { mode: 'date' }, if you want to have Date as type for this column
 	periodStart: date({ mode: 'string' }).notNull(),
 	// you can use { mode: 'date' }, if you want to have Date as type for this column
@@ -55,7 +55,7 @@ export const accountingClosures = mysqlTable("accountingClosures", {
 	totalExpenses: decimal({ precision: 15, scale: 2 }).default('0').notNull(),
 	totalProfit: decimal({ precision: 15, scale: 2 }).default('0').notNull(),
 	projectCount: int().default(0).notNull(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	confirmedAt: timestamp({ mode: 'string' }),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 },
@@ -67,12 +67,12 @@ export const accountingClosures = mysqlTable("accountingClosures", {
 ]);
 
 export const advisoryRequests = mysqlTable("advisoryRequests", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().primaryKey(),
 	clientId: int().notNull().references(() => clients.id),
 	workType: mysqlEnum(['cocina','closet','puertas','centro_tv']).notNull(),
 	status: mysqlEnum(['pendiente','contactado','completado']).default('pendiente').notNull(),
 	notes: text(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 	preferredCallTime: text(),
 },
@@ -82,22 +82,22 @@ export const advisoryRequests = mysqlTable("advisoryRequests", {
 ]);
 
 export const appointmentWorkTypes = mysqlTable("appointmentWorkTypes", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().primaryKey(),
 	appointmentId: int().notNull().references(() => appointments.id, { onDelete: "cascade" } ),
 	workType: mysqlEnum(['cocina','closet','puertas','centro_tv']).notNull(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 },
 (table) => [
 	index("appointmentWorkTypes_appointmentId_idx").on(table.appointmentId),
 ]);
 
 export const appointments = mysqlTable("appointments", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().primaryKey(),
 	clientId: int().notNull().references(() => clients.id),
 	scheduledDate: timestamp({ mode: 'string' }),
 	status: mysqlEnum(['pendiente','confirmada','completada','cancelada']).default('pendiente').notNull(),
 	notes: text(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 	deletedAt: timestamp({ mode: 'string' }),
 	dataOrigin: mysqlEnum(['manual','system']).default('manual').notNull(),
@@ -110,14 +110,14 @@ export const appointments = mysqlTable("appointments", {
 ]);
 
 export const auditLogs = mysqlTable("auditLogs", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().primaryKey(),
 	userId: int().notNull().references(() => users.id),
 	action: mysqlEnum(['create','update','delete','restore']).notNull(),
 	tableName: varchar({ length: 100 }).notNull(),
 	recordId: int().notNull(),
 	changes: json(),
 	changesSummary: text(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	ipAddress: varchar({ length: 45 }),
 	userAgent: text(),
 },
@@ -131,7 +131,7 @@ export const auditLogs = mysqlTable("auditLogs", {
 ]);
 
 export const backupMetadata = mysqlTable("backupMetadata", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().primaryKey(),
 	backupName: varchar({ length: 255 }).notNull(),
 	backupType: mysqlEnum(['daily','weekly','manual']).notNull(),
 	s3Key: varchar({ length: 500 }).notNull(),
@@ -142,7 +142,7 @@ export const backupMetadata = mysqlTable("backupMetadata", {
 	status: mysqlEnum(['pending','completed','failed','verified']).default('pending').notNull(),
 	verificationStatus: mysqlEnum(['not_verified','verified','failed']).default('not_verified').notNull(),
 	errorMessage: text(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	completedAt: timestamp({ mode: 'string' }),
 	verifiedAt: timestamp({ mode: 'string' }),
 	expiresAt: timestamp({ mode: 'string' }),
@@ -158,26 +158,26 @@ export const backupMetadata = mysqlTable("backupMetadata", {
 ]);
 
 export const clientRevisionHistory = mysqlTable("client_revision_history", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().primaryKey(),
 	projectId: int().notNull().references(() => projects.id, { onDelete: "cascade" } ),
 	type: mysqlEnum(['modelado_3d','renders']).notNull(),
 	revisionNumber: int().notNull(),
 	clientName: varchar({ length: 255 }).notNull(),
 	changes: text().notNull(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 },
 (table) => [
 	index("clientRevisionHistory_projectId_idx").on(table.projectId),
 ]);
 
 export const clients = mysqlTable("clients", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().primaryKey(),
 	userId: int().references(() => users.id),
 	name: varchar({ length: 255 }).notNull(),
 	email: varchar({ length: 320 }),
 	whatsappPhone: varchar({ length: 20 }).notNull(),
 	address: text(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 	internalManagement: tinyint().default(0).notNull(),
 	deletedAt: timestamp({ mode: 'string' }),
@@ -189,12 +189,12 @@ export const clients = mysqlTable("clients", {
 ]);
 
 export const closureAuditLog = mysqlTable("closureAuditLog", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().primaryKey(),
 	closureId: int().notNull().references(() => accountingClosures.id, { onDelete: "cascade" } ),
 	action: mysqlEnum(['created','confirmed','deleted']).notNull(),
 	performedBy: int().notNull().references(() => users.id),
 	actionDetails: json(),
-	timestamp: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP'),
+	timestamp: timestamp({ mode: 'string' }).defaultNow(),
 	ipAddress: varchar({ length: 45 }),
 	userAgent: text(),
 },
@@ -206,7 +206,7 @@ export const closureAuditLog = mysqlTable("closureAuditLog", {
 ]);
 
 export const colombianHolidays = mysqlTable("colombianHolidays", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().primaryKey(),
 	date: timestamp({ mode: 'string' }).notNull(),
 	name: varchar({ length: 255 }).notNull(),
 	year: int().notNull(),
@@ -217,7 +217,7 @@ export const colombianHolidays = mysqlTable("colombianHolidays", {
 ]);
 
 export const expenses = mysqlTable("expenses", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().primaryKey(),
 	expenseType: mysqlEnum(['materiales_proyecto','gasto_operativo']).notNull(),
 	projectId: int().references(() => projects.id, { onDelete: "set null" } ),
 	projectClientName: varchar({ length: 255 }),
@@ -228,7 +228,7 @@ export const expenses = mysqlTable("expenses", {
 	supportUrl: text(),
 	supportFileName: varchar({ length: 255 }),
 	createdBy: int().notNull().references(() => users.id),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 	generalCategory: mysqlEnum(['materiales','mano_de_obra','alquiler','servicios','transporte','mantenimiento','otros']).notNull(),
 	subcategory: varchar({ length: 255 }),
@@ -243,12 +243,12 @@ export const expenses = mysqlTable("expenses", {
 ]);
 
 export const financialAlerts = mysqlTable("financialAlerts", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().primaryKey(),
 	alertType: mysqlEnum(['deliveredWithOutstanding','lowCollectionRate']).notNull(),
 	isActive: tinyint().default(0).notNull(),
 	lastTriggeredAt: timestamp({ mode: 'string' }),
 	lastMessageSentAt: timestamp({ mode: 'string' }),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 },
 (table) => [
@@ -256,16 +256,16 @@ export const financialAlerts = mysqlTable("financialAlerts", {
 ]);
 
 export const financialSettings = mysqlTable("financialSettings", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().primaryKey(),
 	outstandingThresholdPercent: int().default(40).notNull(),
 	collectionThresholdPercent: int().default(70).notNull(),
 	lowProfitThresholdPercent: int().default(10).notNull(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 });
 
 export const hardwareCatalog = mysqlTable("hardwareCatalog", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().primaryKey(),
 	category: mysqlEnum(['cocinas','closets','puertas']).notNull(),
 	name: varchar({ length: 255 }).notNull(),
 	description: text(),
@@ -273,7 +273,7 @@ export const hardwareCatalog = mysqlTable("hardwareCatalog", {
 	photoUrl: text(),
 	sortOrder: int().default(0).notNull(),
 	active: tinyint().default(1).notNull(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 	price: decimal({ precision: 12, scale: 2 }).default('0').notNull(),
 	unit: varchar({ length: 50 }).default('unidad').notNull(),
@@ -284,7 +284,7 @@ export const hardwareCatalog = mysqlTable("hardwareCatalog", {
 ]);
 
 export const kitchenQuotations = mysqlTable("kitchenQuotations", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().primaryKey(),
 	quotationId: int().notNull(),
 	shape: mysqlEnum(['L','U','lineal']).notNull(),
 	totalMeters: decimal({ precision: 10, scale: 2 }).notNull(),
@@ -335,7 +335,7 @@ export const kitchenQuotations = mysqlTable("kitchenQuotations", {
 	transportCost: decimal({ precision: 12, scale: 2 }).default('600000').notNull(),
 	subtotal: decimal({ precision: 12, scale: 2 }).notNull(),
 	total: decimal({ precision: 12, scale: 2 }).notNull(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 	hasPaintedDoors: tinyint().default(0).notNull(),
 	paintedDoorsUpperQty: int().default(0),
@@ -357,7 +357,7 @@ export const kitchenQuotations = mysqlTable("kitchenQuotations", {
 ]);
 
 export const notifications = mysqlTable("notifications", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().primaryKey(),
 	userId: int().notNull().references(() => users.id),
 	title: varchar({ length: 255 }).notNull(),
 	body: text().notNull(),
@@ -366,7 +366,7 @@ export const notifications = mysqlTable("notifications", {
 	referenceType: varchar({ length: 50 }),
 	read: tinyint().default(0).notNull(),
 	sentPush: tinyint().default(0).notNull(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 },
 (table) => [
 	index("notifications_userId_idx").on(table.userId),
@@ -375,7 +375,7 @@ export const notifications = mysqlTable("notifications", {
 ]);
 
 export const payments = mysqlTable("payments", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().primaryKey(),
 	projectId: int().notNull().references(() => projects.id, { onDelete: "cascade" } ),
 	amount: decimal({ precision: 12, scale: 2 }).notNull(),
 	type: mysqlEnum(['advance','final','partial','other']).notNull(),
@@ -383,7 +383,7 @@ export const payments = mysqlTable("payments", {
 	method: varchar({ length: 100 }),
 	notes: text(),
 	registeredBy: int().references(() => users.id),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	movementType: varchar({ length: 20 }).default('payment').notNull(),
 },
 (table) => [
@@ -392,7 +392,7 @@ export const payments = mysqlTable("payments", {
 ]);
 
 export const pricingConfig = mysqlTable("pricingConfig", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().primaryKey(),
 	category: mysqlEnum(['cocina_base','mesones','muebles_especiales','extras','puertas_tapas','herrajes','closets','puertas_producto','centros_tv','otros','acabados_especiales']).notNull(),
 	code: varchar({ length: 100 }).notNull(),
 	name: varchar({ length: 255 }).notNull(),
@@ -402,7 +402,7 @@ export const pricingConfig = mysqlTable("pricingConfig", {
 	sortOrder: int().default(0).notNull(),
 	active: tinyint().default(1).notNull(),
 	updatedBy: int(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 	descriptionTemplate: text(),
 },
@@ -412,24 +412,24 @@ export const pricingConfig = mysqlTable("pricingConfig", {
 ]);
 
 export const pricingHistory = mysqlTable("pricingHistory", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().primaryKey(),
 	pricingConfigId: int().notNull(),
 	previousValue: decimal({ precision: 12, scale: 2 }).notNull(),
 	newValue: decimal({ precision: 12, scale: 2 }).notNull(),
 	changedBy: int().notNull(),
 	reason: text(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 },
 (table) => [
 	index("pricingHistory_pricingConfigId_idx").on(table.pricingConfigId),
 ]);
 
 export const priorEstimates = mysqlTable("priorEstimates", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().primaryKey(),
 	clientId: int().notNull().references(() => clients.id),
 	workType: mysqlEnum(['cocina','closet','puertas','centro_tv']).notNull(),
 	additionalDetails: text(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	kitchenShape: mysqlEnum(['L','U','lineal']),
 	materialType: mysqlEnum(['quarzone','sinterizado']),
 	linearLength: decimal({ precision: 10, scale: 2 }),
@@ -440,14 +440,14 @@ export const priorEstimates = mysqlTable("priorEstimates", {
 ]);
 
 export const projectDetails = mysqlTable("projectDetails", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().primaryKey(),
 	projectId: int().notNull().references(() => projects.id),
 	type: mysqlEnum(['medida_especial','nota_importante','foto_referencia']).notNull(),
 	title: varchar({ length: 255 }).notNull(),
 	content: text().notNull(),
 	photoUrl: text(),
 	createdBy: int().notNull().references(() => users.id),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 },
 (table) => [
@@ -455,13 +455,13 @@ export const projectDetails = mysqlTable("projectDetails", {
 ]);
 
 export const projectHardwareSelections = mysqlTable("projectHardwareSelections", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().primaryKey(),
 	projectId: int().notNull(),
 	hardwareId: int().notNull(),
 	selectedOption: text(),
 	notes: text(),
 	createdBy: int().notNull(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	quantity: int().default(1).notNull(),
 	priceAtQuotation: decimal({ precision: 10, scale: 2 }),
 },
@@ -471,7 +471,7 @@ export const projectHardwareSelections = mysqlTable("projectHardwareSelections",
 ]);
 
 export const projectMaterials = mysqlTable("projectMaterials", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().primaryKey(),
 	projectId: int().notNull(),
 	woodType: mysqlEnum(['rh','estandar']),
 	woodColor: varchar({ length: 255 }),
@@ -483,7 +483,7 @@ export const projectMaterials = mysqlTable("projectMaterials", {
 	sinkPhotoUrl: text(),
 	notes: text(),
 	createdBy: int().notNull(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 },
 (table) => [
@@ -491,7 +491,7 @@ export const projectMaterials = mysqlTable("projectMaterials", {
 ]);
 
 export const projectPayments = mysqlTable("projectPayments", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().primaryKey(),
 	projectId: int().notNull().references(() => projects.id, { onDelete: "cascade" } ),
 	type: mysqlEnum(['adelanto','saldo_final','abono','otro']).notNull(),
 	amount: decimal({ precision: 12, scale: 2 }).notNull(),
@@ -499,20 +499,20 @@ export const projectPayments = mysqlTable("projectPayments", {
 	receiptUrl: text(),
 	notes: text(),
 	registeredBy: int().notNull().references(() => users.id),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 },
 (table) => [
 	index("projectPayments_projectId_idx").on(table.projectId),
 ]);
 
 export const projectPhotos = mysqlTable("projectPhotos", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().primaryKey(),
 	projectId: int().notNull().references(() => projects.id),
 	stage: mysqlEnum(['inicial','diseno','corte','enchape','ensamble','final']).notNull(),
 	photoUrl: text().notNull(),
 	description: text(),
 	uploadedBy: int().notNull().references(() => users.id),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	category: mysqlEnum(['cotizacion','medidas','disenos','avance','instalacion','entrega']).default('medidas').notNull(),
 	subcategory: mysqlEnum(['fotos_iniciales','dibujo','renders','despieces','detalles','modelado','modelado_3d','corte','enchape','armado','proceso_instalacion','fotos_finales','documento_cotizacion']),
 },
@@ -523,20 +523,20 @@ export const projectPhotos = mysqlTable("projectPhotos", {
 ]);
 
 export const projectStatusHistory = mysqlTable("projectStatusHistory", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().primaryKey(),
 	projectId: int().notNull().references(() => projects.id),
 	fromStatus: varchar({ length: 50 }),
 	toStatus: varchar({ length: 50 }).notNull(),
 	changedBy: int().notNull().references(() => users.id),
 	notes: text(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 },
 (table) => [
 	index("projectStatusHistory_projectId_idx").on(table.projectId),
 ]);
 
 export const projects = mysqlTable("projects", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().primaryKey(),
 	quotationId: int(),
 	clientId: int().notNull().references(() => clients.id),
 	name: varchar({ length: 255 }).notNull(),
@@ -549,7 +549,7 @@ export const projects = mysqlTable("projects", {
 	clientApprovalNotes: text(),
 	createdBy: int().notNull().references(() => users.id),
 	designerId: int().references(() => users.id),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 	quotationSentAt: timestamp({ mode: 'string' }),
 	quotationApprovedAt: timestamp({ mode: 'string' }),
@@ -564,7 +564,6 @@ export const projects = mysqlTable("projects", {
 	scheduledInstallDate: timestamp({ mode: 'string' }),
 	installDurationDays: int().default(1),
 	deliveredAt: timestamp({ mode: 'string' }),
-	advanceReceiptUrl: text(),
 	advanceReceiptUrl: text("advance_receipt_url"),
 	quotationPdfUrl: text(),
 	tentativeInstallDate: timestamp({ mode: 'string' }),
@@ -595,13 +594,13 @@ export const projects = mysqlTable("projects", {
 ]);
 
 export const pushSubscriptions = mysqlTable("pushSubscriptions", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().primaryKey(),
 	userId: int().notNull().references(() => users.id),
 	endpoint: text().notNull(),
 	p256Dh: varchar({ length: 255 }).notNull(),
 	auth: varchar({ length: 255 }).notNull(),
 	userAgent: text(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 	isActive: tinyint().default(1).notNull(),
 	lastUsedAt: timestamp({ mode: 'string' }),
@@ -612,7 +611,7 @@ export const pushSubscriptions = mysqlTable("pushSubscriptions", {
 ]);
 
 export const quotationItems = mysqlTable("quotationItems", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().primaryKey(),
 	quotationId: int().notNull().references(() => quotations.id, { onDelete: "cascade" } ),
 	itemNumber: int().notNull(),
 	itemType: varchar({ length: 50 }).default('otro').notNull(),
@@ -620,7 +619,7 @@ export const quotationItems = mysqlTable("quotationItems", {
 	quantity: varchar({ length: 50 }).notNull(),
 	unitPrice: varchar({ length: 50 }),
 	totalPrice: decimal({ precision: 12, scale: 2 }).notNull(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	includesFixedCosts: tinyint().default(0).notNull(),
 	kitchenConfig: json(),
 	hardwareSelections: json(),
@@ -635,7 +634,7 @@ export const quotationItems = mysqlTable("quotationItems", {
 ]);
 
 export const quotations = mysqlTable("quotations", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().primaryKey(),
 	quotationNumber: varchar({ length: 50 }).notNull(),
 	clientId: int().notNull().references(() => clients.id, { onDelete: "cascade" } ),
 	vendorName: varchar({ length: 255 }).notNull(),
@@ -648,7 +647,7 @@ export const quotations = mysqlTable("quotations", {
 	pdfUrl: text(),
 	sentAt: timestamp({ mode: 'string' }),
 	createdBy: int().notNull().references(() => users.id),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 	approvedAt: timestamp({ mode: 'string' }),
 	rejectionReason: text(),
@@ -693,7 +692,7 @@ export const quotations = mysqlTable("quotations", {
 ]);
 
 export const reminders = mysqlTable("reminders", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().primaryKey(),
 	projectId: int().references(() => projects.id),
 	type: mysqlEnum(['cotizacion_sin_respuesta','diseno_pendiente','aprobacion_pendiente','produccion_retrasada','instalacion_proxima']).notNull(),
 	assignedTo: int().notNull().references(() => users.id),
@@ -701,7 +700,7 @@ export const reminders = mysqlTable("reminders", {
 	status: mysqlEnum(['pendiente','enviado','completado','cancelado']).default('pendiente').notNull(),
 	message: text(),
 	sentAt: timestamp({ mode: 'string' }),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	scheduledFor: timestamp({ mode: 'string' }),
 	sent: tinyint().default(0).notNull(),
 },
@@ -713,15 +712,15 @@ export const reminders = mysqlTable("reminders", {
 ]);
 
 export const taskReminders = mysqlTable("taskReminders", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().primaryKey(),
 	taskId: int().notNull().references(() => tasks.id, { onDelete: "cascade" } ),
 	sentBy: int().notNull().references(() => users.id),
 	sentTo: int().notNull().references(() => users.id),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 });
 
 export const tasks = mysqlTable("tasks", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().primaryKey(),
 	projectId: int().references(() => projects.id),
 	title: varchar({ length: 255 }).notNull(),
 	description: text(),
@@ -731,7 +730,7 @@ export const tasks = mysqlTable("tasks", {
 	assignedTo: int().notNull().references(() => users.id),
 	assignedBy: int().notNull().references(() => users.id),
 	completedAt: timestamp({ mode: 'string' }),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 	lastReminderSentAt: timestamp({ mode: 'string' }),
 	lastReminderSentBy: int(),
@@ -748,16 +747,16 @@ export const tasks = mysqlTable("tasks", {
 ]);
 
 export const users = mysqlTable("users", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().primaryKey(),
 	openId: varchar({ length: 64 }).notNull(),
 	name: text(),
 	email: varchar({ length: 320 }),
 	loginMethod: varchar({ length: 64 }),
 	role: mysqlEnum(['user','admin','super_admin','comercial','disenador','jefe_taller','operario']).default('user').notNull(),
 	phone: varchar({ length: 20 }),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
-	lastSignedIn: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	lastSignedIn: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	passwordHash: varchar({ length: 255 }),
 	passwordResetToken: varchar({ length: 100 }),
 	passwordResetExpires: timestamp({ mode: 'string' }),

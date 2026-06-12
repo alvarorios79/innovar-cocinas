@@ -508,6 +508,15 @@ export default function ProjectDetail() {
   };
 
   const filteredFolders = getFilteredFolders();
+  const disenoFolders = Object.fromEntries(
+    Object.entries(filteredFolders).filter(([cat]) => ['cotizacion', 'medidas', 'disenos'].includes(cat))
+  );
+  const produccionFolders = Object.fromEntries(
+    Object.entries(filteredFolders).filter(([cat]) => ['avance'].includes(cat))
+  );
+  const instalacionFolders = Object.fromEntries(
+    Object.entries(filteredFolders).filter(([cat]) => ['instalacion', 'entrega'].includes(cat))
+  );
 
   if (!user) {
     return (
@@ -662,280 +671,62 @@ export default function ProjectDetail() {
           )}
         </div>
 
-        {/* Panel de Control de Diseño - Diseño Moderno */}
-        {(user?.role === "admin" || user?.role === "super_admin" || user?.role === "comercial") && (
-          <div className="mb-6 rounded-xl overflow-hidden shadow-lg border border-gray-200 dark:border-gray-700">
-            {/* Header del Panel */}
-            <div className="bg-gradient-to-r from-teal-600 to-teal-500 px-6 py-4">
-              <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                <Palette className="h-5 w-5" />
-                Centro de Control de Diseño
-              </h3>
-              <p className="text-teal-100 text-sm mt-1">Gestiona el envío y aprobación de diseños del cliente</p>
-            </div>
-            
-            <div className="bg-white dark:bg-gray-900 p-6">
-              {/* Grid de Tarjetas de Acción */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                
-                {/* Tarjeta Modelado 3D */}
-                <div className={`relative rounded-xl p-5 transition-all duration-300 ${projectDetail.photos?.filter((p: any) => p.subcategory === "modelado_3d").length > 0 ? 'bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/30 border-2 border-purple-200 dark:border-purple-700 hover:shadow-md' : 'bg-gray-50 dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-600'}`}>
-                  <div className="flex items-start gap-4">
-                    <div className={`p-3 rounded-xl ${projectDetail.photos?.filter((p: any) => p.subcategory === "modelado_3d").length > 0 ? 'bg-purple-500 text-white' : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400'}`}>
-                      <Box className="h-6 w-6" />
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-semibold text-gray-800 dark:text-gray-200">Modelado 3D</h4>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                        {projectDetail.photos?.filter((p: any) => p.subcategory === "modelado_3d").length > 0 
-                          ? `${projectDetail.photos?.filter((p: any) => p.subcategory === "modelado_3d").length} imagen(es) listas`
-                          : 'Sin imágenes aún'}
-                      </p>
-                      {projectDetail.modeladoApprovedAt && (
-                        <div className="mt-2 flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
-                          <CheckCircle2 className="h-3 w-3" />
-                          Aprobado por {projectDetail.modeladoApprovedBy}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  {projectDetail.photos?.filter((p: any) => p.subcategory === "modelado_3d").length > 0 && (
-                    <Button
-                      size="sm"
-                      className={`w-full mt-4 shadow-sm ${(projectDetail.modeladoRevisionNumber || 0) >= 1 ? 'bg-purple-500 hover:bg-purple-600' : 'bg-purple-600 hover:bg-purple-700'} text-white`}
-                      onClick={() => sendModeladoToClient.mutate({ projectId: projectDetail.id })}
-                      disabled={sendModeladoToClient.isPending}
-                      title={(projectDetail.modeladoRevisionNumber || 0) >= 1 ? 'Reenviar enlace de aprobación al cliente (incrementará la revisión)' : 'Enviar modelado al cliente para aprobación'}
-                    >
-                      <MessageCircle className={`h-4 w-4 mr-2 ${sendModeladoToClient.isPending ? 'animate-spin' : ''}`} />
-                      {sendModeladoToClient.isPending ? 'Enviando...' : (projectDetail.modeladoRevisionNumber || 0) >= 1 ? `Reenviar (Rev. ${(projectDetail.modeladoRevisionNumber || 0) + 1})` : 'Enviar Modelado'}
-                    </Button>
-                  )}
-                </div>
-                
-                {/* Tarjeta Renders */}
-                <div className={`relative rounded-xl p-5 transition-all duration-300 ${projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length > 0 ? 'bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/30 dark:to-emerald-800/30 border-2 border-emerald-200 dark:border-emerald-700 hover:shadow-md' : 'bg-gray-50 dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-600'}`}>
-                  <div className="flex items-start gap-4">
-                    <div className={`p-3 rounded-xl ${projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length > 0 ? 'bg-emerald-500 text-white' : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400'}`}>
-                      <ImageIcon className="h-6 w-6" />
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-semibold text-gray-800 dark:text-gray-200">Renders Finales</h4>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                        {projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length > 0 
-                          ? `${projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length} imagen(es) listas`
-                          : 'Sin imágenes aún'}
-                      </p>
-                      {projectDetail.rendersApprovedAt && (
-                        <div className="mt-2 flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
-                          <CheckCircle2 className="h-3 w-3" />
-                          Aprobado por {projectDetail.rendersApprovedBy}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  {projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length > 0 && (
-                    <Button
-                      size="sm"
-                      className={`w-full mt-4 shadow-sm ${(projectDetail.renderRevisionNumber || 0) >= 1 ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-emerald-600 hover:bg-emerald-700'} text-white`}
-                      onClick={() => sendRendersToClient.mutate({ projectId: projectDetail.id })}
-                      disabled={sendRendersToClient.isPending}
-                      title={(projectDetail.renderRevisionNumber || 0) >= 1 ? 'Reenviar enlace de aprobación al cliente (incrementará la revisión)' : 'Enviar renders al cliente para aprobación'}
-                    >
-                      <MessageCircle className={`h-4 w-4 mr-2 ${sendRendersToClient.isPending ? 'animate-spin' : ''}`} />
-                      {sendRendersToClient.isPending ? 'Enviando...' : (projectDetail.renderRevisionNumber || 0) >= 1 ? `Reenviar (Rev. ${(projectDetail.renderRevisionNumber || 0) + 1})` : 'Enviar Renders'}
-                    </Button>
-                  )}
-                </div>
-              </div>
-              
-              {/* Sección de Aprobación - Siempre visible */}
-              {(() => {
-                // Estados donde se puede aprobar internamente (admin/comercial puede aprobar en nombre del cliente)
-                const isInDesignPhase = ["en_diseno", "pendiente_modelado", "pendiente_render"].includes(projectDetail.status as string);
-                const isPendingApproval = (projectDetail.status as string) === "pendiente_modelado" || (projectDetail.status as string) === "pendiente_render";
-                const isApproved = projectDetail.rendersApprovedAt || projectDetail.modeladoApprovedAt;
-                const hasDesignContent = (projectDetail.photos?.filter((p: any) => p.subcategory === "modelado_3d" || p.subcategory === "renders").length || 0) > 0;
-                
-                let statusMessage = "";
-                let statusColor = "gray";
-                
-                if (isPendingApproval) {
-                  statusMessage = "Esperando confirmación del cliente por WhatsApp";
-                  statusColor = "amber";
-                } else if (projectDetail.rendersApprovedAt) {
-                  statusMessage = `Renders aprobados el ${new Date(projectDetail.rendersApprovedAt).toLocaleDateString('es-CO')}`;
-                  statusColor = "green";
-                } else if (projectDetail.modeladoApprovedAt) {
-                  statusMessage = `Modelado aprobado el ${new Date(projectDetail.modeladoApprovedAt).toLocaleDateString('es-CO')}`;
-                  statusColor = "green";
-                } else if ((projectDetail.status as string) === "en_diseno") {
-                  statusMessage = "En proceso de diseño - Puedes aprobar si el cliente confirma por teléfono/WhatsApp";
-                  statusColor = "blue";
-                } else if (!hasDesignContent) {
-                  statusMessage = "Sube imágenes de modelado o renders primero";
-                  statusColor = "gray";
-                } else {
-                  statusMessage = "Envía el diseño al cliente para solicitar aprobación";
-                  statusColor = "blue";
-                }
-                
-                return (
-                  <div className={`rounded-xl p-5 border mb-4 ${
-                    statusColor === "amber" ? "bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20 border-amber-200 dark:border-amber-700" :
-                    statusColor === "green" ? "bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-green-200 dark:border-green-700" :
-                    statusColor === "blue" ? "bg-gradient-to-r from-blue-50 to-sky-50 dark:from-blue-900/20 dark:to-sky-900/20 border-blue-200 dark:border-blue-700" :
-                    "bg-gradient-to-r from-gray-50 to-slate-50 dark:from-gray-900/20 dark:to-slate-900/20 border-gray-200 dark:border-gray-700"
-                  }`}>
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className={`p-2 rounded-lg text-white ${
-                        statusColor === "amber" ? "bg-amber-500" :
-                        statusColor === "green" ? "bg-green-500" :
-                        statusColor === "blue" ? "bg-blue-500" :
-                        "bg-gray-400"
-                      }`}>
-                        {statusColor === "green" ? <CheckCircle2 className="h-5 w-5" /> : <AlertCircle className="h-5 w-5" />}
-                      </div>
-                      <div>
-                        <h4 className={`font-semibold ${
-                          statusColor === "amber" ? "text-amber-800 dark:text-amber-200" :
-                          statusColor === "green" ? "text-green-800 dark:text-green-200" :
-                          statusColor === "blue" ? "text-blue-800 dark:text-blue-200" :
-                          "text-gray-600 dark:text-gray-400"
-                        }`}>
-                          {isPendingApproval ? "Pendiente de Aprobación" : isApproved ? "Diseño Aprobado" : "Aprobar en Nombre del Cliente"}
-                        </h4>
-                        <p className={`text-sm ${
-                          statusColor === "amber" ? "text-amber-600 dark:text-amber-400" :
-                          statusColor === "green" ? "text-green-600 dark:text-green-400" :
-                          statusColor === "blue" ? "text-blue-600 dark:text-blue-400" :
-                          "text-gray-500 dark:text-gray-500"
-                        }`}>{statusMessage}</p>
-                      </div>
-                    </div>
-                    <div className="flex flex-wrap gap-3 items-center">
-                      {/* Botón de candado para desbloquear aprobación */}
-                      {isInDesignPhase && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setApprovalUnlocked(!approvalUnlocked)}
-                          className={`${
-                            approvalUnlocked 
-                              ? "border-green-500 text-green-700 bg-green-50 hover:bg-green-100 dark:bg-green-900/20" 
-                              : "border-gray-300 text-gray-500 hover:bg-gray-50"
-                          }`}
-                          title={approvalUnlocked ? "Clic para bloquear" : "Clic para desbloquear y poder aprobar"}
-                        >
-                          {approvalUnlocked ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
-                        </Button>
-                      )}
-                      <Button
-                        onClick={() => {
-                          approveDesign.mutate({ projectId: projectDetail.id, approved: true });
-                          setApprovalUnlocked(false);
-                        }}
-                        disabled={approveDesign.isPending || !isInDesignPhase || !approvalUnlocked}
-                        className={`shadow-sm ${
-                          isInDesignPhase && approvalUnlocked
-                            ? "bg-green-600 hover:bg-green-700 text-white" 
-                            : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                        }`}
-                        title={!isInDesignPhase ? "Solo disponible durante el proceso de diseño" : !approvalUnlocked ? "Desbloquea primero con el candado" : "Aprobar en nombre del cliente (confirmación por teléfono/WhatsApp)"}
-                      >
-                        <CheckCircle2 className="h-4 w-4 mr-2" />
-                        Aprobar
-                      </Button>
-                      <Button
-                        variant="outline"
-                        className={`${
-                          isInDesignPhase && approvalUnlocked
-                            ? "border-orange-400 text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20" 
-                            : "border-gray-300 text-gray-400 cursor-not-allowed"
-                        }`}
-                        onClick={() => {
-                          if (isInDesignPhase && approvalUnlocked) {
-                            const notes = prompt("Indica qué cambios se necesitan:");
-                            if (notes) {
-                              approveDesign.mutate({ projectId: projectDetail.id, approved: false, notes });
-                              setApprovalUnlocked(false);
-                            }
-                          }
-                        }}
-                        disabled={approveDesign.isPending || !isInDesignPhase || !approvalUnlocked}
-                        title={!isInDesignPhase ? "Solo disponible durante el proceso de diseño" : !approvalUnlocked ? "Desbloquea primero con el candado" : "Registrar cambios solicitados por el cliente"}
-                      >
-                        <XCircle className="h-4 w-4 mr-2" />
-                        Solicitar Cambios
-                      </Button>
-                    </div>
-                    {projectDetail.clientApprovalNotes && (
-                      <div className="mt-4 p-3 bg-orange-100 dark:bg-orange-900/30 rounded-lg border border-orange-200 dark:border-orange-700">
-                        <p className="text-sm text-orange-800 dark:text-orange-200">
-                          <strong>📝 Últimos cambios solicitados:</strong> {projectDetail.clientApprovalNotes}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                );
-              })()}
-              
-            </div>
-          </div>
-        )}
+        {/* Centro de Control de Diseño — ahora dentro del tab Diseño */}
 
-        {/* Tabs con colores distintivos */}
+        {/* Tabs — estructura por área */}
         <Tabs defaultValue="info" className="w-full">
-          <TabsList className="flex md:flex-wrap overflow-x-auto md:overflow-x-visible w-full gap-1 h-auto p-1 bg-muted/50 mb-4 md:mb-4 scrollbar-hide">
-            <TabsTrigger 
-              value="info" 
-              className="flex-shrink-0 md:flex-1 min-w-max md:min-w-0 text-xs sm:text-sm px-2 sm:px-4 py-2.5 bg-blue-100 text-blue-700 data-[state=active]:bg-blue-500 data-[state=active]:text-white hover:bg-blue-200 transition-colors rounded-md whitespace-nowrap"
+          <TabsList className="flex overflow-x-auto w-full gap-1 h-auto p-1 bg-muted/50 mb-4 scrollbar-hide">
+            <TabsTrigger
+              value="info"
+              className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 bg-blue-100 text-blue-700 data-[state=active]:bg-blue-500 data-[state=active]:text-white hover:bg-blue-200 transition-colors rounded-md whitespace-nowrap"
             >
-              <Info className="h-4 w-4 mr-1 sm:mr-2" />
-              <span className="hidden sm:inline">Información</span>
-              <span className="sm:hidden">Info</span>
-            </TabsTrigger>
-            <TabsTrigger 
-              value="materials" 
-              className="flex-shrink-0 md:flex-1 min-w-max md:min-w-0 text-xs sm:text-sm px-2 sm:px-4 py-2.5 bg-purple-100 text-purple-700 data-[state=active]:bg-purple-500 data-[state=active]:text-white hover:bg-purple-200 transition-colors rounded-md whitespace-nowrap"
-            >
-              <Palette className="h-4 w-4 mr-1 sm:mr-2" />
-              <span className="hidden sm:inline">Materiales</span>
-              <span className="sm:hidden">Mat.</span>
-            </TabsTrigger>
-            <TabsTrigger 
-              value="photos" 
-              className="flex-shrink-0 md:flex-1 min-w-max md:min-w-0 text-xs sm:text-sm px-2 sm:px-4 py-2.5 bg-green-100 text-green-700 data-[state=active]:bg-green-500 data-[state=active]:text-white hover:bg-green-200 transition-colors rounded-md whitespace-nowrap"
-            >
-              <Camera className="h-4 w-4 mr-1 sm:mr-2" />
-              Fotos
-            </TabsTrigger>
-            <TabsTrigger 
-              value="details" 
-              className="flex-shrink-0 md:flex-1 min-w-max md:min-w-0 text-xs sm:text-sm px-2 sm:px-4 py-2.5 bg-orange-100 text-orange-700 data-[state=active]:bg-orange-500 data-[state=active]:text-white hover:bg-orange-200 transition-colors rounded-md whitespace-nowrap"
-            >
-              <ListTodo className="h-4 w-4 mr-1 sm:mr-2" />
-              <span className="hidden sm:inline">Detalles</span>
-              <span className="sm:hidden">Det.</span>
-            </TabsTrigger>
-            <TabsTrigger 
-              value="history" 
-              className="flex-shrink-0 md:flex-1 min-w-max md:min-w-0 text-xs sm:text-sm px-2 sm:px-4 py-2.5 bg-gray-200 text-gray-700 data-[state=active]:bg-gray-600 data-[state=active]:text-white hover:bg-gray-300 transition-colors rounded-md whitespace-nowrap"
-            >
-              <History className="h-4 w-4 mr-1 sm:mr-2" />
-              <span className="hidden sm:inline">Historial</span>
-              <span className="sm:hidden">Hist.</span>
+              <Info className="h-3.5 w-3.5 mr-1" />
+              <span>Info</span>
             </TabsTrigger>
             {user?.role !== "disenador" && user?.role !== "jefe_taller" && user?.role !== "operario" && (
-              <TabsTrigger 
-                value="payments" 
-                className="flex-shrink-0 md:flex-1 min-w-max md:min-w-0 text-xs sm:text-sm px-2 sm:px-4 py-2.5 bg-emerald-100 text-emerald-700 data-[state=active]:bg-emerald-500 data-[state=active]:text-white hover:bg-emerald-200 transition-colors rounded-md whitespace-nowrap"
+              <TabsTrigger
+                value="financiero"
+                className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 bg-emerald-100 text-emerald-700 data-[state=active]:bg-emerald-500 data-[state=active]:text-white hover:bg-emerald-200 transition-colors rounded-md whitespace-nowrap"
               >
-                <CreditCard className="h-4 w-4 mr-1 sm:mr-2" />
-                <span className="hidden sm:inline">Pagos</span>
-                <span className="sm:hidden">Pag.</span>
+                <DollarSign className="h-3.5 w-3.5 mr-1" />
+                <span>Financiero</span>
               </TabsTrigger>
             )}
+            <TabsTrigger
+              value="diseno"
+              className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 bg-purple-100 text-purple-700 data-[state=active]:bg-purple-500 data-[state=active]:text-white hover:bg-purple-200 transition-colors rounded-md whitespace-nowrap"
+            >
+              <Palette className="h-3.5 w-3.5 mr-1" />
+              <span>Diseño</span>
+            </TabsTrigger>
+            <TabsTrigger
+              value="produccion"
+              className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 bg-orange-100 text-orange-700 data-[state=active]:bg-orange-500 data-[state=active]:text-white hover:bg-orange-200 transition-colors rounded-md whitespace-nowrap"
+            >
+              <Hammer className="h-3.5 w-3.5 mr-1" />
+              <span>Producción</span>
+            </TabsTrigger>
+            <TabsTrigger
+              value="instalacion"
+              className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 bg-teal-100 text-teal-700 data-[state=active]:bg-teal-500 data-[state=active]:text-white hover:bg-teal-200 transition-colors rounded-md whitespace-nowrap"
+            >
+              <Truck className="h-3.5 w-3.5 mr-1" />
+              <span>Instalación</span>
+            </TabsTrigger>
+            <TabsTrigger
+              value="postventa"
+              className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 bg-pink-100 text-pink-700 data-[state=active]:bg-pink-500 data-[state=active]:text-white hover:bg-pink-200 transition-colors rounded-md whitespace-nowrap"
+            >
+              <CheckCircle2 className="h-3.5 w-3.5 mr-1" />
+              <span>Postventa</span>
+            </TabsTrigger>
+            <TabsTrigger
+              value="history"
+              className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 bg-gray-200 text-gray-700 data-[state=active]:bg-gray-600 data-[state=active]:text-white hover:bg-gray-300 transition-colors rounded-md whitespace-nowrap"
+            >
+              <History className="h-3.5 w-3.5 mr-1" />
+              <span>Historial</span>
+            </TabsTrigger>
           </TabsList>
 
           {/* Tab Información */}
@@ -1180,11 +971,14 @@ export default function ProjectDetail() {
             )}
           </TabsContent>
 
-          {/* Tab Materiales */}
-          <TabsContent value="materials" className="space-y-4">
+          {/* Tab Producción */}
+          <TabsContent value="produccion" className="space-y-4">
             <Card>
-              <CardHeader className="py-3 bg-purple-50">
-                <CardTitle className="text-sm">Materiales Seleccionados</CardTitle>
+              <CardHeader className="py-3 bg-orange-50">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Palette className="h-4 w-4 text-orange-600" />
+                  Materiales Seleccionados
+                </CardTitle>
               </CardHeader>
               <CardContent className="pt-4">
                 <MaterialsForm
@@ -1194,8 +988,11 @@ export default function ProjectDetail() {
               </CardContent>
             </Card>
             <Card>
-              <CardHeader className="py-3 bg-purple-50">
-                <CardTitle className="text-sm">Herrajes</CardTitle>
+              <CardHeader className="py-3 bg-orange-50">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Box className="h-4 w-4 text-orange-600" />
+                  Herrajes
+                </CardTitle>
               </CardHeader>
               <CardContent className="pt-4">
                 <HardwareSelector
@@ -1205,11 +1002,290 @@ export default function ProjectDetail() {
                 />
               </CardContent>
             </Card>
+
+            {/* Fotos avance producción */}
+            {Object.entries(produccionFolders).map(([category, subcategories]) => (
+              <Card key={category}>
+                <CardHeader className="py-3 bg-gradient-to-r from-orange-500 to-amber-500">
+                  <CardTitle className="text-base font-bold text-white">{categoryLabels[category] || category}</CardTitle>
+                </CardHeader>
+                <CardContent className="pt-4">
+                  <div className="space-y-4">
+                    {(subcategories as string[]).map((subcategory) => {
+                      const photos = projectDetail.photos?.filter(
+                        (p: any) => p.category === category && p.subcategory === subcategory
+                      ) || [];
+                      return (
+                        <div key={subcategory} className="border rounded-lg p-3">
+                          <div className="flex items-center justify-between mb-2">
+                            <h5 className="font-semibold text-sm text-orange-700 flex items-center gap-2">
+                              <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
+                              {subcategoryLabels[subcategory] || subcategory}
+                              <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${photos.length > 0 ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-500'}`}>
+                                {photos.length} fotos
+                              </span>
+                            </h5>
+                            {canUploadToFolder(subcategory) && (() => {
+                              const uc = canUploadToStage(subcategory);
+                              return (
+                                <Button variant="ghost" size="sm" disabled={!uc.allowed} title={uc.message || "Subir foto"}
+                                  onClick={() => { if (!uc.allowed) { toast.error(uc.message); return; } setPhotoForm({ ...photoForm, category: category as any, subcategory }); setShowPhotoDialog(true); }}>
+                                  <Upload className={`h-4 w-4 ${!uc.allowed ? 'text-gray-300' : ''}`} />
+                                </Button>
+                              );
+                            })()}
+                          </div>
+                          {photos.length > 0 ? (
+                            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2">
+                              {photos.map((photo: any, idx: number) => (
+                                <div key={photo.id} className="aspect-square rounded-md overflow-hidden cursor-pointer hover:opacity-80"
+                                  onClick={() => fileViewer.openViewer(photos.map((p: any) => ({ url: p.photoUrl, title: p.description || "Foto" })), idx)}>
+                                  <img src={photo.photoUrl || ''} alt={photo.description || "Foto"} className="w-full h-full object-cover" />
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-sm text-muted-foreground">Sin fotos en esta etapa</p>
+                          )}
+                          {canShowAdvanceButton(subcategory) && photoToCurrentStatus[subcategory]?.includes(projectDetail.status as string) && (
+                            <Button size="sm" onClick={() => openAdvanceConfirmDialog(subcategory)} disabled={updateStatus.isPending}
+                              className="w-full mt-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold">
+                              {updateStatus.isPending ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : <ArrowRight className="h-4 w-4 mr-2" />}
+                              Avanzar etapa
+                            </Button>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </TabsContent>
 
-          {/* Tab Fotos */}
-          <TabsContent value="photos" className="space-y-4">
-            {Object.entries(filteredFolders).map(([category, subcategories]) => (
+          {/* Tab Diseño */}
+          <TabsContent value="diseno" className="space-y-4">
+
+            {/* Centro de Control de Diseño */}
+            {(user?.role === "admin" || user?.role === "super_admin" || user?.role === "comercial") && (
+              <div className="mb-4 rounded-xl overflow-hidden shadow-lg border border-gray-200 dark:border-gray-700">
+                {/* Header del Panel */}
+                <div className="bg-gradient-to-r from-teal-600 to-teal-500 px-6 py-4">
+                  <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                    <Palette className="h-5 w-5" />
+                    Centro de Control de Diseño
+                  </h3>
+                  <p className="text-teal-100 text-sm mt-1">Gestiona el envío y aprobación de diseños del cliente</p>
+                </div>
+                
+                <div className="bg-white dark:bg-gray-900 p-6">
+                  {/* Grid de Tarjetas de Acción */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    
+                    {/* Tarjeta Modelado 3D */}
+                    <div className={`relative rounded-xl p-5 transition-all duration-300 ${projectDetail.photos?.filter((p: any) => p.subcategory === "modelado_3d").length > 0 ? 'bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/30 border-2 border-purple-200 dark:border-purple-700 hover:shadow-md' : 'bg-gray-50 dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-600'}`}>
+                      <div className="flex items-start gap-4">
+                        <div className={`p-3 rounded-xl ${projectDetail.photos?.filter((p: any) => p.subcategory === "modelado_3d").length > 0 ? 'bg-purple-500 text-white' : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400'}`}>
+                          <Box className="h-6 w-6" />
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-gray-800 dark:text-gray-200">Modelado 3D</h4>
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                            {projectDetail.photos?.filter((p: any) => p.subcategory === "modelado_3d").length > 0 
+                              ? `${projectDetail.photos?.filter((p: any) => p.subcategory === "modelado_3d").length} imagen(es) listas`
+                              : 'Sin imágenes aún'}
+                          </p>
+                          {projectDetail.modeladoApprovedAt && (
+                            <div className="mt-2 flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
+                              <CheckCircle2 className="h-3 w-3" />
+                              Aprobado por {projectDetail.modeladoApprovedBy}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      {projectDetail.photos?.filter((p: any) => p.subcategory === "modelado_3d").length > 0 && (
+                        <Button
+                          size="sm"
+                          className={`w-full mt-4 shadow-sm ${(projectDetail.modeladoRevisionNumber || 0) >= 1 ? 'bg-purple-500 hover:bg-purple-600' : 'bg-purple-600 hover:bg-purple-700'} text-white`}
+                          onClick={() => sendModeladoToClient.mutate({ projectId: projectDetail.id })}
+                          disabled={sendModeladoToClient.isPending}
+                          title={(projectDetail.modeladoRevisionNumber || 0) >= 1 ? 'Reenviar enlace de aprobación al cliente (incrementará la revisión)' : 'Enviar modelado al cliente para aprobación'}
+                        >
+                          <MessageCircle className={`h-4 w-4 mr-2 ${sendModeladoToClient.isPending ? 'animate-spin' : ''}`} />
+                          {sendModeladoToClient.isPending ? 'Enviando...' : (projectDetail.modeladoRevisionNumber || 0) >= 1 ? `Reenviar (Rev. ${(projectDetail.modeladoRevisionNumber || 0) + 1})` : 'Enviar Modelado'}
+                        </Button>
+                      )}
+                    </div>
+                    
+                    {/* Tarjeta Renders */}
+                    <div className={`relative rounded-xl p-5 transition-all duration-300 ${projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length > 0 ? 'bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/30 dark:to-emerald-800/30 border-2 border-emerald-200 dark:border-emerald-700 hover:shadow-md' : 'bg-gray-50 dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-600'}`}>
+                      <div className="flex items-start gap-4">
+                        <div className={`p-3 rounded-xl ${projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length > 0 ? 'bg-emerald-500 text-white' : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400'}`}>
+                          <ImageIcon className="h-6 w-6" />
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-gray-800 dark:text-gray-200">Renders Finales</h4>
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                            {projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length > 0 
+                              ? `${projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length} imagen(es) listas`
+                              : 'Sin imágenes aún'}
+                          </p>
+                          {projectDetail.rendersApprovedAt && (
+                            <div className="mt-2 flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
+                              <CheckCircle2 className="h-3 w-3" />
+                              Aprobado por {projectDetail.rendersApprovedBy}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      {projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length > 0 && (
+                        <Button
+                          size="sm"
+                          className={`w-full mt-4 shadow-sm ${(projectDetail.renderRevisionNumber || 0) >= 1 ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-emerald-600 hover:bg-emerald-700'} text-white`}
+                          onClick={() => sendRendersToClient.mutate({ projectId: projectDetail.id })}
+                          disabled={sendRendersToClient.isPending}
+                          title={(projectDetail.renderRevisionNumber || 0) >= 1 ? 'Reenviar enlace de aprobación al cliente (incrementará la revisión)' : 'Enviar renders al cliente para aprobación'}
+                        >
+                          <MessageCircle className={`h-4 w-4 mr-2 ${sendRendersToClient.isPending ? 'animate-spin' : ''}`} />
+                          {sendRendersToClient.isPending ? 'Enviando...' : (projectDetail.renderRevisionNumber || 0) >= 1 ? `Reenviar (Rev. ${(projectDetail.renderRevisionNumber || 0) + 1})` : 'Enviar Renders'}
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Sección de Aprobación */}
+                  {(() => {
+                    const isInDesignPhase = ["en_diseno", "pendiente_modelado", "pendiente_render"].includes(projectDetail.status as string);
+                    const isPendingApproval = (projectDetail.status as string) === "pendiente_modelado" || (projectDetail.status as string) === "pendiente_render";
+                    const isApproved = projectDetail.rendersApprovedAt || projectDetail.modeladoApprovedAt;
+                    const hasDesignContent = (projectDetail.photos?.filter((p: any) => p.subcategory === "modelado_3d" || p.subcategory === "renders").length || 0) > 0;
+                    
+                    let statusMessage = "";
+                    let statusColor = "gray";
+                    
+                    if (isPendingApproval) {
+                      statusMessage = "Esperando confirmación del cliente por WhatsApp";
+                      statusColor = "amber";
+                    } else if (projectDetail.rendersApprovedAt) {
+                      statusMessage = `Renders aprobados el ${new Date(projectDetail.rendersApprovedAt).toLocaleDateString('es-CO')}`;
+                      statusColor = "green";
+                    } else if (projectDetail.modeladoApprovedAt) {
+                      statusMessage = `Modelado aprobado el ${new Date(projectDetail.modeladoApprovedAt).toLocaleDateString('es-CO')}`;
+                      statusColor = "green";
+                    } else if ((projectDetail.status as string) === "en_diseno") {
+                      statusMessage = "En proceso de diseño - Puedes aprobar si el cliente confirma por teléfono/WhatsApp";
+                      statusColor = "blue";
+                    } else if (!hasDesignContent) {
+                      statusMessage = "Sube imágenes de modelado o renders primero";
+                      statusColor = "gray";
+                    } else {
+                      statusMessage = "Envía el diseño al cliente para solicitar aprobación";
+                      statusColor = "blue";
+                    }
+                    
+                    return (
+                      <div className={`rounded-xl p-5 border mb-4 ${
+                        statusColor === "amber" ? "bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20 border-amber-200 dark:border-amber-700" :
+                        statusColor === "green" ? "bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-green-200 dark:border-green-700" :
+                        statusColor === "blue" ? "bg-gradient-to-r from-blue-50 to-sky-50 dark:from-blue-900/20 dark:to-sky-900/20 border-blue-200 dark:border-blue-700" :
+                        "bg-gradient-to-r from-gray-50 to-slate-50 dark:from-gray-900/20 dark:to-slate-900/20 border-gray-200 dark:border-gray-700"
+                      }`}>
+                        <div className="flex items-center gap-3 mb-4">
+                          <div className={`p-2 rounded-lg text-white ${
+                            statusColor === "amber" ? "bg-amber-500" :
+                            statusColor === "green" ? "bg-green-500" :
+                            statusColor === "blue" ? "bg-blue-500" :
+                            "bg-gray-400"
+                          }`}>
+                            {statusColor === "green" ? <CheckCircle2 className="h-5 w-5" /> : <AlertCircle className="h-5 w-5" />}
+                          </div>
+                          <div>
+                            <h4 className={`font-semibold ${
+                              statusColor === "amber" ? "text-amber-800 dark:text-amber-200" :
+                              statusColor === "green" ? "text-green-800 dark:text-green-200" :
+                              statusColor === "blue" ? "text-blue-800 dark:text-blue-200" :
+                              "text-gray-600 dark:text-gray-400"
+                            }`}>
+                              {isPendingApproval ? "Pendiente de Aprobación" : isApproved ? "Diseño Aprobado" : "Aprobar en Nombre del Cliente"}
+                            </h4>
+                            <p className={`text-sm ${
+                              statusColor === "amber" ? "text-amber-600 dark:text-amber-400" :
+                              statusColor === "green" ? "text-green-600 dark:text-green-400" :
+                              statusColor === "blue" ? "text-blue-600 dark:text-blue-400" :
+                              "text-gray-500 dark:text-gray-500"
+                            }`}>{statusMessage}</p>
+                          </div>
+                        </div>
+                        <div className="flex flex-wrap gap-3 items-center">
+                          {isInDesignPhase && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setApprovalUnlocked(!approvalUnlocked)}
+                              className={`${
+                                approvalUnlocked 
+                                  ? "border-green-500 text-green-700 bg-green-50 hover:bg-green-100 dark:bg-green-900/20" 
+                                  : "border-gray-300 text-gray-500 hover:bg-gray-50"
+                              }`}
+                              title={approvalUnlocked ? "Clic para bloquear" : "Clic para desbloquear y poder aprobar"}
+                            >
+                              {approvalUnlocked ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
+                            </Button>
+                          )}
+                          <Button
+                            onClick={() => {
+                              approveDesign.mutate({ projectId: projectDetail.id, approved: true });
+                              setApprovalUnlocked(false);
+                            }}
+                            disabled={approveDesign.isPending || !isInDesignPhase || !approvalUnlocked}
+                            className={`shadow-sm ${
+                              isInDesignPhase && approvalUnlocked
+                                ? "bg-green-600 hover:bg-green-700 text-white" 
+                                : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                            }`}
+                            title={!isInDesignPhase ? "Solo disponible durante el proceso de diseño" : !approvalUnlocked ? "Desbloquea primero con el candado" : "Aprobar en nombre del cliente (confirmación por teléfono/WhatsApp)"}
+                          >
+                            <CheckCircle2 className="h-4 w-4 mr-2" />
+                            Aprobar
+                          </Button>
+                          <Button
+                            variant="outline"
+                            className={`${
+                              isInDesignPhase && approvalUnlocked
+                                ? "border-orange-400 text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20" 
+                                : "border-gray-300 text-gray-400 cursor-not-allowed"
+                            }`}
+                            onClick={() => {
+                              if (isInDesignPhase && approvalUnlocked) {
+                                const notes = prompt("Indica qué cambios se necesitan:");
+                                if (notes) {
+                                  approveDesign.mutate({ projectId: projectDetail.id, approved: false, notes });
+                                  setApprovalUnlocked(false);
+                                }
+                              }
+                            }}
+                            disabled={approveDesign.isPending || !isInDesignPhase || !approvalUnlocked}
+                            title={!isInDesignPhase ? "Solo disponible durante el proceso de diseño" : !approvalUnlocked ? "Desbloquea primero con el candado" : "Registrar cambios solicitados por el cliente"}
+                          >
+                            <XCircle className="h-4 w-4 mr-2" />
+                            Solicitar Cambios
+                          </Button>
+                        </div>
+                        {projectDetail.clientApprovalNotes && (
+                          <div className="mt-4 p-3 bg-orange-100 dark:bg-orange-900/30 rounded-lg border border-orange-200 dark:border-orange-700">
+                            <p className="text-sm text-orange-800 dark:text-orange-200">
+                              <strong>📝 Últimos cambios solicitados:</strong> {projectDetail.clientApprovalNotes}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
+                </div>
+              </div>
+            )}
+
+            {Object.entries(disenoFolders).map(([category, subcategories]) => (
               <Card key={category}>
                 <CardHeader className="py-3 bg-gradient-to-r from-emerald-500 to-teal-500">
                   <CardTitle className="text-base font-bold text-white tracking-wide">
@@ -1262,11 +1338,6 @@ export default function ProjectDetail() {
                             <>
                               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
                                 {photos.map((photo: any, idx: number) => {
-                                  if (idx === 0) {
-                                    console.log('=== PHOTO DEBUG ===');
-               
-                                    console.log('photoUrl:', photo.photoUrl);
-                                  }
                                   return (
                                   <div
                                     key={photo.id}
@@ -1287,7 +1358,6 @@ export default function ProjectDetail() {
                                         alt={photo.description || "Foto"}
                                         className="w-full h-full object-cover"
                                         onError={(e) => {
-                                          console.log('Image load error for:', photo.photoUrl);
                                           (e.target as HTMLImageElement).src = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22%3E%3Crect fill=%22%23f0f0f0%22 width=%22100%22 height=%22100%22/%3E%3C/svg%3E';
                                         }}
                                       />
@@ -1393,17 +1463,14 @@ export default function ProjectDetail() {
                 </CardContent>
               </Card>
             ))}
-          </TabsContent>
 
-          {/* Tab Detalles */}
-          <TabsContent value="details" className="space-y-4">
-            {/* Sección de Historial de Revisiones del Cliente */}
+            {/* Revisiones del cliente */}
             {projectDetail.clientRevisions && projectDetail.clientRevisions.length > 0 && (
-              <Card className="border-orange-300 bg-orange-50/50">
-                <CardHeader className="py-3 bg-gradient-to-r from-orange-500 to-orange-600">
+              <Card className="border-purple-300 bg-purple-50/50">
+                <CardHeader className="py-3 bg-gradient-to-r from-purple-500 to-purple-600">
                   <CardTitle className="text-sm text-white flex items-center gap-2">
                     <MessageSquare className="h-4 w-4" />
-                    Historial de Cambios Solicitados por el Cliente ({projectDetail.clientRevisions.length})
+                    Revisiones del Cliente ({projectDetail.clientRevisions.length})
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="pt-4">
@@ -1510,6 +1577,105 @@ export default function ProjectDetail() {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Tab Instalación */}
+          <TabsContent value="instalacion" className="space-y-4">
+            {/* Fechas de instalación */}
+            {(projectDetail.tentativeInstallDate || projectDetail.estimatedInstallDate) && (
+              <Card>
+                <CardHeader className="py-3 bg-teal-50">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-teal-600" />
+                    Fechas de Instalación
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="text-sm space-y-2 pt-4">
+                  {projectDetail.tentativeInstallDate && (
+                    <p className="text-red-600 font-medium">
+                      <strong>🔴 Fecha tentativa:</strong> {formatDate(projectDetail.tentativeInstallDate)}
+                    </p>
+                  )}
+                  {projectDetail.estimatedInstallDate && projectDetail.isInstallDateOfficial && (
+                    <p className="text-green-600 font-medium">
+                      <strong>🟢 Fecha oficial:</strong> {formatDate(projectDetail.estimatedInstallDate)}
+                    </p>
+                  )}
+                  {projectDetail.estimatedInstallDate && !projectDetail.isInstallDateOfficial && (
+                    <p><strong>Instalación estimada:</strong> {formatDate(projectDetail.estimatedInstallDate)}</p>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Fotos de instalación y entrega */}
+            {Object.entries(instalacionFolders).map(([category, subcategories]) => (
+              <Card key={category}>
+                <CardHeader className="py-3 bg-gradient-to-r from-teal-600 to-teal-500">
+                  <CardTitle className="text-base font-bold text-white">{categoryLabels[category] || category}</CardTitle>
+                </CardHeader>
+                <CardContent className="pt-4">
+                  <div className="space-y-4">
+                    {(subcategories as string[]).map((subcategory) => {
+                      const photos = projectDetail.photos?.filter(
+                        (p: any) => p.category === category && p.subcategory === subcategory
+                      ) || [];
+                      return (
+                        <div key={subcategory} className="border rounded-lg p-3">
+                          <div className="flex items-center justify-between mb-2">
+                            <h5 className="font-semibold text-sm text-teal-700 flex items-center gap-2">
+                              <span className="w-2 h-2 bg-teal-500 rounded-full"></span>
+                              {subcategoryLabels[subcategory] || subcategory}
+                              <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${photos.length > 0 ? 'bg-teal-100 text-teal-700' : 'bg-gray-100 text-gray-500'}`}>
+                                {photos.length} fotos
+                              </span>
+                            </h5>
+                            {canUploadToFolder(subcategory) && (() => {
+                              const uc = canUploadToStage(subcategory);
+                              return (
+                                <Button variant="ghost" size="sm" disabled={!uc.allowed} title={uc.message || "Subir foto"}
+                                  onClick={() => { if (!uc.allowed) { toast.error(uc.message); return; } setPhotoForm({ ...photoForm, category: category as any, subcategory }); setShowPhotoDialog(true); }}>
+                                  <Upload className={`h-4 w-4 ${!uc.allowed ? 'text-gray-300' : ''}`} />
+                                </Button>
+                              );
+                            })()}
+                          </div>
+                          {photos.length > 0 ? (
+                            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2">
+                              {photos.map((photo: any, idx: number) => (
+                                <div key={photo.id} className="aspect-square rounded-md overflow-hidden cursor-pointer hover:opacity-80"
+                                  onClick={() => fileViewer.openViewer(photos.map((p: any) => ({ url: p.photoUrl, title: p.description || "Foto" })), idx)}>
+                                  <img src={photo.photoUrl || ''} alt={photo.description || "Foto"} className="w-full h-full object-cover" />
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-sm text-muted-foreground">Sin fotos en esta etapa</p>
+                          )}
+                          {canShowAdvanceButton(subcategory) && photoToCurrentStatus[subcategory]?.includes(projectDetail.status as string) && (
+                            <Button size="sm" onClick={() => openAdvanceConfirmDialog(subcategory)} disabled={updateStatus.isPending}
+                              className="w-full mt-3 bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white font-semibold">
+                              {updateStatus.isPending ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : <ArrowRight className="h-4 w-4 mr-2" />}
+                              Avanzar a entregado
+                            </Button>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+
+            {Object.keys(instalacionFolders).length === 0 && (
+              <Card>
+                <CardContent className="py-12 flex flex-col items-center justify-center text-center">
+                  <Truck className="h-16 w-16 text-gray-200 mb-4" />
+                  <p className="text-gray-400 font-medium">Sin fotos de instalación aún</p>
+                  <p className="text-xs text-gray-300 mt-1">Las fotos del proceso de instalación y entrega aparecerán aquí</p>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
 
           {/* Tab Historial */}
@@ -1627,9 +1793,26 @@ export default function ProjectDetail() {
             </Card>
           </TabsContent>
 
-          {/* Tab Pagos */}
+          {/* Tab Postventa */}
+          <TabsContent value="postventa" className="space-y-4">
+            <Card>
+              <CardHeader className="py-3 bg-pink-50">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-pink-600" />
+                  Seguimiento Postventa
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="py-12 flex flex-col items-center justify-center text-center">
+                <CheckCircle2 className="h-16 w-16 text-gray-200 mb-4" />
+                <p className="text-gray-400 font-medium">Módulo de postventa en desarrollo</p>
+                <p className="text-xs text-gray-300 mt-1">Aquí se registrará el seguimiento postventa del proyecto</p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Tab Financiero */}
           {user?.role !== "disenador" && user?.role !== "jefe_taller" && user?.role !== "operario" && (
-            <TabsContent value="payments" className="space-y-4">
+            <TabsContent value="financiero" className="space-y-4">
               <PaymentsSection 
                 projectId={projectId}
                 totalAmount={(projectDetail as any).financialInfo?.totalAmount || 0}

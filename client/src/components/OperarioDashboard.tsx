@@ -254,12 +254,16 @@ export function OperarioDashboard() {
       <header className="border-b bg-[#162828]/95 backdrop-blur-md sticky top-0 z-50 shadow-sm">
         <div className="container">
           <div className="flex h-14 md:h-16 items-center justify-between">
-            <Link href="/">
-              <img 
-                src="/logo-light.png" 
-                alt="INNOVAR" 
-                className="h-8 md:h-10 object-contain"
-              />
+            <Link href="/" className="flex items-center gap-2">
+              <div className="rounded overflow-hidden flex items-center justify-center shrink-0"
+                style={{ width: 36, height: 36, background: "#0C1A1A", border: "1px solid rgba(106,207,199,0.15)" }}>
+                <img src="/logo-dark.jpg" alt="INNOVAR"
+                  style={{ width: "100%", height: "100%", objectFit: "contain", mixBlendMode: "screen" }} />
+              </div>
+              <div className="hidden sm:flex flex-col leading-none">
+                <span className="font-bold text-xs text-white" style={{ letterSpacing: "0.14em" }}>INNOVAR</span>
+                <span className="text-[9px]" style={{ color: "rgba(106,207,199,0.55)" }}>Cocinas de Diseño</span>
+              </div>
             </Link>
             
             <div className="flex items-center gap-2 md:gap-4">
@@ -283,11 +287,11 @@ export function OperarioDashboard() {
           <div className="max-w-4xl mx-auto space-y-4">
             {/* Logo y Saludo */}
             <div className="flex justify-center mb-2">
-              <img 
-                src="/logo-light.png" 
-                alt="INNOVAR Cocinas Integrales" 
-                className="h-14 sm:h-16 md:h-20 w-auto"
-              />
+              <div className="rounded-xl overflow-hidden flex items-center justify-center"
+                style={{ width: 80, height: 80, background: "#0C1A1A", border: "1px solid rgba(106,207,199,0.15)" }}>
+                <img src="/logo-dark.jpg" alt="INNOVAR Cocinas Integrales"
+                  style={{ width: "100%", height: "100%", objectFit: "contain", mixBlendMode: "screen" }} />
+              </div>
             </div>
             
             <div className="bg-gradient-to-r from-blue-600 to-cyan-600 rounded-2xl p-4 md:p-6 text-white shadow-xl">

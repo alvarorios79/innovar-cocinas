@@ -143,11 +143,13 @@ export function QuotationGroupCard({
       <div className={`px-3 py-2 md:px-3 md:py-2 border-b border-[rgba(106,207,199,0.12)] ${isExpired ? 'bg-red-50' : isExpiringSoon ? 'bg-yellow-50' : 'bg-[#162828]'}`}>
         <div className="flex items-center gap-2 md:gap-3 mb-2">
           {/* Logo Innovar pequeño (32px) */}
-          <div className="flex-shrink-0 w-8 h-8 md:w-8 md:h-8 rounded-md flex items-center justify-center overflow-hidden bg-[#162828]">
-            <img 
-              src="/logo-light.png" 
-              alt="Innovar" 
-              className="w-full h-full object-contain p-0.5"
+          <div className="flex-shrink-0 w-8 h-8 md:w-8 md:h-8 rounded-md flex items-center justify-center overflow-hidden"
+            style={{ background: "#0C1A1A", border: "1px solid rgba(106,207,199,0.15)" }}>
+            <img
+              src="/logo-dark.jpg"
+              alt="Innovar"
+              className="w-full h-full object-contain"
+              style={{ mixBlendMode: "screen" }}
               onError={(e) => {
                 // Fallback si el logo no existe
                 (e.target as HTMLImageElement).style.display = 'none';

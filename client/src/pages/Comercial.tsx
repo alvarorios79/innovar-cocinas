@@ -281,11 +281,11 @@ export default function Comercial() {
           <div className="max-w-4xl mx-auto text-center space-y-3">
             {/* Logo grande */}
             <div className="flex justify-center">
-              <img 
-                src="/logo-light.png" 
-                alt="INNOVAR Cocinas Integrales" 
-                className="h-16 sm:h-20 md:h-24 w-auto"
-              />
+              <div className="rounded-xl overflow-hidden flex items-center justify-center"
+                style={{ width: 96, height: 96, background: "#0C1A1A", border: "1px solid rgba(106,207,199,0.15)" }}>
+                <img src="/logo-dark.jpg" alt="INNOVAR Cocinas Integrales"
+                  style={{ width: "100%", height: "100%", objectFit: "contain", mixBlendMode: "screen" }} />
+              </div>
             </div>
             
             {/* Información de contacto */}

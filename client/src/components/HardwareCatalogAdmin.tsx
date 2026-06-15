@@ -216,7 +216,7 @@ export function HardwareCatalogAdmin() {
                       setForm({ ...form, category: value })
                     }
                   >
-                    <SelectTrigger className="bg-white">
+                    <SelectTrigger className="bg-[#162828]">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -431,7 +431,7 @@ export function HardwareCatalogAdmin() {
           <Button
             variant="ghost"
             size="icon"
-            className="absolute top-4 right-4 text-white hover:bg-white/20"
+            className="absolute top-4 right-4 text-white hover:bg-[#162828]/20"
             onClick={() => setPreviewImage(null)}
           >
             <X className="h-6 w-6" />

@@ -877,7 +877,7 @@ export function ProjectInlineDetail({
             <p className="text-teal-100 text-xs mt-1">Gestiona el envío y aprobación de diseños del cliente</p>
           </div>
           
-          <div className="bg-white dark:bg-gray-900 p-4">
+          <div className="bg-[#162828] dark:bg-gray-900 p-4">
             {/* Grid de Tarjetas de Acción */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
               
@@ -1146,7 +1146,7 @@ export function ProjectInlineDetail({
             <p className="text-purple-100 text-xs mt-1">Modelado 3D y Renders aprobados por el cliente</p>
           </div>
           
-          <div className="bg-white dark:bg-gray-900 p-4">
+          <div className="bg-[#162828] dark:bg-gray-900 p-4">
             {/* Grid de Fotos de Modelado y Renders */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Sección Modelado */}
@@ -1568,7 +1568,7 @@ export function ProjectInlineDetail({
               <CardContent>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   {/* Total del Proyecto */}
-                  <div className="text-center p-3 bg-white/50 rounded-lg">
+                  <div className="text-center p-3 bg-[#162828]/50 rounded-lg">
                     <p className="text-xs text-muted-foreground mb-1">Total del Proyecto</p>
                     <p className="text-xl font-bold text-gray-800">
                       {new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format((projectDetail as any).financialInfo.totalAmount)}
@@ -1675,7 +1675,7 @@ export function ProjectInlineDetail({
                     <h4 className="text-sm font-medium mb-2">Historial de Pagos</h4>
                     <div className="space-y-2">
                       {(projectDetail as any).payments.map((payment: any) => (
-                        <div key={payment.id} className="flex justify-between items-center text-sm p-2 bg-white/50 rounded">
+                        <div key={payment.id} className="flex justify-between items-center text-sm p-2 bg-[#162828]/50 rounded">
                           <div>
                             <span className={`font-medium ${
                               payment.type === 'adelanto' ? 'text-blue-600' :

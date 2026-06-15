@@ -85,7 +85,7 @@ export const clientsRouter = router({
     listPaginated: protectedProcedure
       .input(z.object({
         page: z.number().min(1).optional().default(1),
-        limit: z.number().min(1).max(100).optional().default(50),
+        limit: z.number().min(1).max(500).optional().default(50),
         search: z.string().optional(),
       }).optional())
       .query(async ({ ctx, input }) => {

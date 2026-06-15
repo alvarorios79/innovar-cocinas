@@ -200,7 +200,7 @@ export default function AppointmentsCalendar() {
 
   if (!canViewCalendar) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="min-h-screen flex items-center justify-center p-4">
         <Card className="max-w-md">
           <CardContent className="pt-6 text-center">
             <p className="text-muted-foreground">No tienes permisos para ver este calendario.</p>
@@ -234,10 +234,10 @@ export default function AppointmentsCalendar() {
 
   const getStatusBadge = (status: string) => {
     const styles: Record<string, string> = {
-      pendiente: "bg-yellow-100 text-yellow-800",
-      confirmada: "bg-blue-100 text-blue-800",
-      completada: "bg-green-100 text-green-800",
-      cancelada: "bg-red-100 text-red-800",
+      pendiente: "bg-yellow-500/15 text-yellow-400",
+      confirmada: "bg-blue-500/20 text-blue-300",
+      completada: "bg-green-500/15 text-green-400",
+      cancelada: "bg-red-500/15 text-red-400",
     };
     const labels: Record<string, string> = {
       pendiente: "Pendiente",
@@ -246,42 +246,36 @@ export default function AppointmentsCalendar() {
       cancelada: "Cancelada",
     };
     return (
-      <Badge className={styles[status] || "bg-gray-100 text-gray-800"}>
+      <Badge className={styles[status] || "bg-white/[0.08] text-white/70"}>
         {labels[status] || status}
       </Badge>
     );
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b sticky top-0 z-10">
-        <div className="container py-3 px-4 flex items-center justify-between">
-          <Link href="/">
-            <Button variant="ghost" size="sm" className="gap-2">
-              <Home className="h-4 w-4" />
-              <span className="hidden sm:inline">Inicio</span>
-            </Button>
-          </Link>
-          <PageHeader
-            title="Calendario de Citas"
-            subtitle="Citas de toma de medidas programadas"
-            showBack={false}
-          />
-          <Link href="/calendar">
-            <Button variant="outline" size="sm" className="gap-2">
-              <Calendar className="h-4 w-4" />
-              <span className="hidden sm:inline">Instalaciones</span>
-            </Button>
-          </Link>
-        </div>
-      </header>
+    <div className="pb-20 md:pb-0">
+      <div className="container py-4 md:py-6 px-3 md:px-4">
+        <PageHeader
+          title="Calendario de Citas"
+          subtitle="Citas de toma de medidas programadas"
+          icon={<Calendar className="h-5 w-5" />}
+          showBack={true}
+          actions={
+            <Link href="/calendar">
+              <Button variant="outline" size="sm" className="gap-2">
+                <Calendar className="h-4 w-4" />
+                <span>Instalaciones</span>
+              </Button>
+            </Link>
+          }
+        />
+      </div>
 
       <main className="container py-4 md:py-6 px-3 md:px-4">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Calendario */}
           <div className="lg:col-span-3">
-            <Card>
+            <Card className="bg-[#162828] border border-white/[0.06] overflow-hidden" style={{ borderTop: "3px solid #1DB5A8" }}>
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -304,7 +298,7 @@ export default function AppointmentsCalendar() {
                 {/* Días de la semana */}
                 <div className="grid grid-cols-7 gap-1 mb-2">
                   {DAYS_SHORT.map(day => (
-                    <div key={day} className="text-center text-sm font-medium text-gray-500 py-2">
+                    <div key={day} className="text-center text-sm font-medium text-white/40 py-2">
                       {day}
                     </div>
                   ))}
@@ -325,15 +319,15 @@ export default function AppointmentsCalendar() {
                         className={`
                           relative p-1 md:p-2 min-h-[60px] md:min-h-[80px] rounded-lg border transition-all
                           ${!isCurrentMonth ? "opacity-40" : ""}
-                          ${isToday ? "ring-2 ring-blue-500" : ""}
-                          ${isSelected ? "bg-blue-50 border-blue-300" : "border-gray-200 hover:border-gray-300"}
-                          ${availability === "none" ? "bg-gray-100" : availability === "blocked" ? "bg-pink-100" : "bg-white"}
+                          ${isToday ? "ring-2 ring-teal-500" : ""}
+                          ${isSelected ? "bg-teal-500/20 border-teal-500/50" : "border-white/[0.08] hover:border-white/[0.18]"}
+                          ${availability === "none" ? "bg-transparent" : availability === "blocked" ? "bg-white/[0.03]" : "bg-white/[0.07]"}
                         `}
                       >
                         <span className={`
                           text-sm font-medium
-                          ${isToday ? "text-blue-600" : "text-gray-900"}
-                          ${availability === "none" ? "text-gray-400" : availability === "blocked" ? "text-pink-600" : ""}
+                          ${isToday ? "text-teal-400" : "text-white/75"}
+                          ${availability === "none" ? "text-white/20" : availability === "blocked" ? "text-white/30" : "text-white/80"}
                         `}>
                           {date.getDate()}
                         </span>
@@ -345,15 +339,15 @@ export default function AppointmentsCalendar() {
                               <div
                                 key={i}
                                 className={`w-2 h-2 rounded-full ${
-                                  apt.status === "completada" ? "bg-green-500" :
-                                  apt.status === "cancelada" ? "bg-red-500" :
-                                  apt.status === "confirmada" ? "bg-blue-500" :
-                                  "bg-yellow-500"
+                                  apt.status === "completada" ? "bg-green-400" :
+                                  apt.status === "cancelada" ? "bg-red-400" :
+                                  apt.status === "confirmada" ? "bg-blue-400" :
+                                  "bg-yellow-400"
                                 }`}
                               />
                             ))}
                             {dayAppointments.length > 3 && (
-                              <span className="text-[10px] text-gray-500">+{dayAppointments.length - 3}</span>
+                              <span className="text-[10px] text-white/35">+{dayAppointments.length - 3}</span>
                             )}
                           </div>
                         )}
@@ -363,21 +357,21 @@ export default function AppointmentsCalendar() {
                 </div>
 
                 {/* Leyenda de estados de citas */}
-                <div className="flex flex-wrap gap-4 mt-4 text-sm">
+                <div className="flex flex-wrap gap-4 mt-4 text-sm text-white/50">
                   <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-yellow-500" />
+                    <div className="w-3 h-3 rounded-full bg-yellow-400" />
                     <span>Pendiente</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-blue-500" />
+                    <div className="w-3 h-3 rounded-full bg-blue-400" />
                     <span>Confirmada</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-green-500" />
+                    <div className="w-3 h-3 rounded-full bg-green-400" />
                     <span>Completada</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-red-500" />
+                    <div className="w-3 h-3 rounded-full bg-red-400" />
                     <span>Cancelada</span>
                   </div>
                 </div>
@@ -385,15 +379,15 @@ export default function AppointmentsCalendar() {
                 {/* Leyenda de disponibilidad */}
                 <div className="flex flex-wrap gap-4 mt-3 pt-3 border-t text-sm">
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 rounded bg-white border border-gray-300" />
+                    <div className="w-4 h-4 rounded bg-[#162828] border border-white/[0.15]" />
                     <span>Disponible (Mar, Jue, Vie)</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 rounded bg-pink-100 border border-pink-200" />
+                    <div className="w-4 h-4 rounded bg-white/[0.05] border border-white/[0.12]" />
                     <span>Bloqueado (Lun, Mié, Sáb)</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 rounded bg-gray-100 border border-gray-200" />
+                    <div className="w-4 h-4 rounded border border-white/[0.07]" />
                     <span>No laborable (Dom, Festivos)</span>
                   </div>
                 </div>
@@ -403,10 +397,10 @@ export default function AppointmentsCalendar() {
 
           {/* Panel lateral - Citas del día seleccionado */}
           <div className="lg:col-span-1">
-            <Card>
+            <Card className="bg-[#162828] border border-white/[0.06] overflow-hidden" style={{ borderTop: "3px solid #1DB5A8" }}>
               <CardHeader>
                 <CardTitle className="text-sm flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-blue-600" />
+                  <Clock className="h-4 w-4 text-teal-400" />
                   {selectedDate ? (
                     <>Citas del {selectedDate.getDate()} de {MONTHS[selectedDate.getMonth()]}</>
                   ) : (
@@ -426,13 +420,13 @@ export default function AppointmentsCalendar() {
                         {getAppointmentsForDate(selectedDate).map(apt => (
                           <div
                             key={apt.id}
-                            className="p-3 rounded-lg border bg-white hover:shadow-sm cursor-pointer transition-all"
+                            className="p-3 rounded-lg border bg-[#162828] hover:shadow-sm cursor-pointer transition-all"
                             onClick={() => setSelectedAppointment(apt)}
                           >
                             <div className="flex items-start justify-between gap-2">
                               <div className="flex-1 min-w-0">
                                 <p className="font-medium text-sm truncate">{apt.clientName}</p>
-                                <p className="text-xs text-gray-500 flex items-center gap-1">
+                                <p className="text-xs text-white/40 flex items-center gap-1">
                                   <Clock className="h-3 w-3" />
                                   {new Date(apt.scheduledDate).toLocaleTimeString("es-CO", {
                                     hour: "2-digit",
@@ -463,31 +457,31 @@ export default function AppointmentsCalendar() {
             </Card>
 
             {/* Resumen */}
-            <Card className="mt-4">
+            <Card className="mt-4 bg-[#162828] border border-white/[0.06] overflow-hidden" style={{ borderTop: "3px solid #6366F1" }}>
               <CardHeader>
                 <CardTitle className="text-sm">Resumen del Mes</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Total citas:</span>
+                    <span className="text-white/45">Total citas:</span>
                     <span className="font-medium">{appointments.length}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Pendientes:</span>
-                    <span className="font-medium text-yellow-600">
+                    <span className="text-white/45">Pendientes:</span>
+                    <span className="font-medium text-yellow-400">
                       {appointments.filter(a => a.status === "pendiente").length}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Confirmadas:</span>
-                    <span className="font-medium text-blue-600">
+                    <span className="text-white/45">Confirmadas:</span>
+                    <span className="font-medium text-teal-400">
                       {appointments.filter(a => a.status === "confirmada").length}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Completadas:</span>
-                    <span className="font-medium text-green-600">
+                    <span className="text-white/45">Completadas:</span>
+                    <span className="font-medium text-green-400">
                       {appointments.filter(a => a.status === "completada").length}
                     </span>
                   </div>
@@ -503,7 +497,7 @@ export default function AppointmentsCalendar() {
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5 text-blue-600" />
+              <Calendar className="h-5 w-5 text-teal-400" />
               Detalle de Cita
             </DialogTitle>
           </DialogHeader>
@@ -511,7 +505,7 @@ export default function AppointmentsCalendar() {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <User className="h-4 w-4 text-gray-500" />
+                  <User className="h-4 w-4 text-white/45" />
                   <span className="font-medium">{selectedAppointment.clientName}</span>
                 </div>
                 {getStatusBadge(selectedAppointment.status)}
@@ -519,7 +513,7 @@ export default function AppointmentsCalendar() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <div className="text-sm text-gray-500 flex items-center gap-1">
+                  <div className="text-sm text-white/45 flex items-center gap-1">
                     <Calendar className="h-4 w-4" />
                     Fecha
                   </div>
@@ -532,7 +526,7 @@ export default function AppointmentsCalendar() {
                   </div>
                 </div>
                 <div>
-                  <div className="text-sm text-gray-500 flex items-center gap-1">
+                  <div className="text-sm text-white/45 flex items-center gap-1">
                     <Clock className="h-4 w-4" />
                     Hora
                   </div>
@@ -547,7 +541,7 @@ export default function AppointmentsCalendar() {
 
               {selectedAppointment.clientPhone && (
                 <div>
-                  <div className="text-sm text-gray-500 flex items-center gap-1">
+                  <div className="text-sm text-white/45 flex items-center gap-1">
                     <Phone className="h-4 w-4" />
                     Teléfono
                   </div>
@@ -557,7 +551,7 @@ export default function AppointmentsCalendar() {
 
               {selectedAppointment.clientAddress && (
                 <div>
-                  <div className="text-sm text-gray-500 flex items-center gap-1">
+                  <div className="text-sm text-white/45 flex items-center gap-1">
                     <MapPin className="h-4 w-4" />
                     Dirección
                   </div>
@@ -566,7 +560,7 @@ export default function AppointmentsCalendar() {
               )}
 
               <div>
-                <div className="text-sm text-gray-500 mb-2">Tipos de trabajo</div>
+                <div className="text-sm text-white/45 mb-2">Tipos de trabajo</div>
                 <div className="flex flex-wrap gap-2">
                   {selectedAppointment.workTypes.map((wt: string) => (
                     <Badge key={wt} variant="secondary">
@@ -578,8 +572,8 @@ export default function AppointmentsCalendar() {
 
               {selectedAppointment.notes && (
                 <div>
-                  <div className="text-sm text-gray-500">Notas</div>
-                  <div className="text-sm bg-gray-50 p-2 rounded">{selectedAppointment.notes}</div>
+                  <div className="text-sm text-white/45">Notas</div>
+                  <div className="text-sm bg-white/[0.04] p-2 rounded">{selectedAppointment.notes}</div>
                 </div>
               )}
 
@@ -605,13 +599,13 @@ export default function AppointmentsCalendar() {
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Pencil className="h-5 w-5 text-blue-600" />
+              <Pencil className="h-5 w-5 text-teal-400" />
               Reagendar Cita
             </DialogTitle>
           </DialogHeader>
           {editingAppointment && (
             <div className="space-y-4">
-              <div className="text-sm text-gray-600">
+              <div className="text-sm text-white/55">
                 Cliente: <span className="font-medium">{editingAppointment.clientName}</span>
               </div>
 
@@ -626,9 +620,9 @@ export default function AppointmentsCalendar() {
               />
 
               {newDate && newTime && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm">
-                  <p className="font-semibold text-blue-800">Nueva fecha seleccionada:</p>
-                  <p className="text-blue-700">
+                <div className="bg-teal-500/10 border border-teal-500/25 rounded-lg p-3 text-sm">
+                  <p className="font-semibold text-teal-300">Nueva fecha seleccionada:</p>
+                  <p className="text-teal-300/80">
                     {new Date(newDate + "T12:00:00").toLocaleDateString("es-CO", {
                       weekday: "long",
                       year: "numeric",

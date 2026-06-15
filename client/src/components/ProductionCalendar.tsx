@@ -126,7 +126,7 @@ export function ProductionCalendar({ className }: ProductionCalendarProps) {
         key={day}
         className={`min-h-[80px] p-1 border rounded-md ${
           isToday ? "bg-blue-50 border-blue-300" : 
-          isPast ? "bg-gray-50" : "bg-white"
+          isPast ? "bg-gray-50" : "bg-[#162828]"
         }`}
       >
         <div className={`text-xs font-medium mb-1 ${isToday ? "text-blue-600" : "text-gray-600"}`}>
@@ -246,7 +246,7 @@ export function ProductionCalendar({ className }: ProductionCalendarProps) {
                       <div className={`p-3 rounded-lg border cursor-pointer hover:shadow-md transition-shadow ${
                         isOverdue ? "border-red-300 bg-red-50" :
                         isWarning ? "border-yellow-300 bg-yellow-50" :
-                        "border-gray-200 bg-white"
+                        "border-gray-200 bg-[#162828]"
                       }`}>
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center gap-2">

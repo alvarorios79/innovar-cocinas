@@ -346,7 +346,7 @@ export function CountertopConfigurator({ config, onChange }: CountertopConfigura
         const showSalpicaderoAltoOption = meson.tipo === "meson" || meson.tipo === "barra";
 
         return (
-          <div key={meson.id} className="space-y-3 p-3 bg-white rounded-lg border border-rose-200">
+          <div key={meson.id} className="space-y-3 p-3 bg-[#162828] rounded-lg border border-rose-200">
             {/* Header del sub-mesón */}
             <div className="flex items-center justify-between">
               <h4 className="font-medium text-rose-700">
@@ -419,7 +419,7 @@ export function CountertopConfigurator({ config, onChange }: CountertopConfigura
                   onChange={(e) => handleSubMesonChange(index, "fondo", parseInt(e.target.value) || 60)}
                   className="h-9"
                 />
-                <p className="text-[10px] text-gray-500">
+                <p className="text-[10px] text-white/45">
                   {meson.tipo === "barra" && meson.fondo >= 35 && meson.fondo <= 45 
                     ? "Barra angosta" 
                     : `Recargo: ${multiplicadorTexto}`}
@@ -449,7 +449,7 @@ export function CountertopConfigurator({ config, onChange }: CountertopConfigura
               <div className="p-2 bg-rose-50 rounded space-y-2">
                 <h5 className="text-xs font-medium text-rose-700">Opciones de Isla</h5>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  <div className="flex items-center gap-2 p-2 bg-white rounded text-sm">
+                  <div className="flex items-center gap-2 p-2 bg-[#162828] rounded text-sm">
                     <Checkbox
                       id={`laterales-${meson.id}`}
                       checked={meson.incluyeLaterales}
@@ -463,7 +463,7 @@ export function CountertopConfigurator({ config, onChange }: CountertopConfigura
                     <span className="font-semibold text-rose-700 text-xs">{formatPrice(meson.subtotalLaterales)}</span>
                   </div>
 
-                  <div className="flex items-center gap-2 p-2 bg-white rounded text-sm">
+                  <div className="flex items-center gap-2 p-2 bg-[#162828] rounded text-sm">
                     <Checkbox
                       id={`regrueso-${meson.id}`}
                       checked={meson.incluyeRegrueso}
@@ -491,7 +491,7 @@ export function CountertopConfigurator({ config, onChange }: CountertopConfigura
                       value={meson.alturaLateral.toString()} 
                       onValueChange={(v) => handleSubMesonChange(index, "alturaLateral", parseInt(v))}
                     >
-                      <SelectTrigger className="h-9 bg-white">
+                      <SelectTrigger className="h-9 bg-[#162828]">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -504,7 +504,7 @@ export function CountertopConfigurator({ config, onChange }: CountertopConfigura
                   </div>
 
                   {meson.alturaLateral > 0 && (
-                    <div className="flex items-center gap-2 p-2 bg-white rounded">
+                    <div className="flex items-center gap-2 p-2 bg-[#162828] rounded">
                       <div className="flex-1">
                         <Label className="text-xs">Lateral ({meson.alturaLateral}cm)</Label>
                       </div>
@@ -528,7 +528,7 @@ export function CountertopConfigurator({ config, onChange }: CountertopConfigura
                     <Label htmlFor={`salpicaderoAlto-${meson.id}`} className="text-xs cursor-pointer font-medium">
                       Salpicadero Alto (reemplaza el bajo, duplica metraje)
                     </Label>
-                    <p className="text-[10px] text-gray-500">
+                    <p className="text-[10px] text-white/45">
                       {meson.metrosLineales} ML × {formatPrice(meson.precioML)} × {multiplicador}
                     </p>
                   </div>
@@ -541,8 +541,8 @@ export function CountertopConfigurator({ config, onChange }: CountertopConfigura
 
             {/* Incluido en el precio */}
             <div className="p-2 bg-gray-50 rounded">
-              <h5 className="text-xs font-medium text-gray-600 mb-1">Incluido en el precio:</h5>
-              <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-600">
+              <h5 className="text-xs font-medium text-white/60 mb-1">Incluido en el precio:</h5>
+              <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-white/60">
                 {includedItems.map((item, i) => (
                   <div key={i} className="flex items-center gap-1">
                     <span className="text-green-600">✓</span>
@@ -556,7 +556,7 @@ export function CountertopConfigurator({ config, onChange }: CountertopConfigura
       })}
 
       {/* Transporte */}
-      <div className="p-3 bg-white rounded-lg border border-rose-200">
+      <div className="p-3 bg-[#162828] rounded-lg border border-rose-200">
         <div className="flex items-center gap-3">
           <Checkbox
             id="transport"

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useLocation, Link } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { KpiCard, KpiGrid } from "@/components/KpiCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
@@ -35,6 +36,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PageHeader } from "@/components/PageHeader";
 
 const PRIORITY_CONFIG = {
   alta: { label: "Alta", color: "bg-red-500", icon: AlertTriangle },
@@ -746,15 +748,9 @@ export default function Tasks() {
         </Select>
       )}
 
-      {/* Botón crear tarea */}
+      {/* Dialog crear tarea (controlado desde PageHeader) */}
       {assignableUsers.length > 0 && (
         <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Nueva Tarea
-            </Button>
-          </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Crear Nueva Tarea</DialogTitle>
@@ -970,35 +966,23 @@ export default function Tasks() {
         </DialogContent>
       </Dialog>
 
-      {/* Header */}
-      <header className="border-b">
-        <div className="container flex h-14 md:h-16 items-center justify-between px-3 md:px-4">
-          <div className="flex items-center gap-2 md:gap-4">
-            <Link href="/">
-              <Button variant="ghost" size="sm" className="px-2 md:px-3">
-                <span className="hidden sm:inline">← Inicio</span>
-                <span className="sm:hidden">←</span>
-              </Button>
-            </Link>
-            <Link href="/projects" className="hidden md:block">
-              <Button variant="ghost" size="sm">Proyectos</Button>
-            </Link>
-            <img 
-              src="/logo-light.png" 
-              alt="INNOVAR" 
-              className="h-10 md:h-12 w-auto object-contain"
-            />
-            <span className="hidden lg:inline text-sm text-muted-foreground">Tareas</span>
-          </div>
-          <div className="flex items-center gap-1 md:gap-2">
-            <NotificationBell />
-            <Badge variant="outline" className="text-xs md:text-sm">{getRoleLabel(user?.role || "")}</Badge>
-            <span className="hidden sm:inline text-sm text-muted-foreground truncate max-w-[100px]">{user?.name}</span>
-          </div>
-        </div>
-      </header>
-
       <div className="container py-4 md:py-8 px-3 md:px-4">
+        <PageHeader
+          title="Tareas"
+          subtitle="Gestiona y haz seguimiento de las tareas del equipo"
+          icon={<ListTodo className="h-5 w-5" />}
+          actions={
+            assignableUsers.length > 0 ? (
+              <Button
+                onClick={() => setShowCreateDialog(true)}
+                style={{ background: "linear-gradient(135deg, #1DB5A8, #0D9B8F)" }}
+                className="text-white font-medium shadow-sm hover:opacity-90"
+              >
+                <Plus className="h-4 w-4 mr-1.5" /> Nueva Tarea
+              </Button>
+            ) : undefined
+          }
+        />
         {/* Panel de Recordatorios */}
         {user && (
           <div className="mb-4 md:mb-6">
@@ -1023,37 +1007,29 @@ export default function Tasks() {
             {/* Tab: Mis Tareas */}
             <TabsContent value="mis-tareas" className="space-y-4">
               {/* Stats de mis tareas */}
-              <div className="grid grid-cols-3 gap-2 md:gap-4">
-                <Card className="cursor-pointer hover:shadow-md" onClick={() => setStatusFilter("pendiente")}>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Pendientes</CardTitle>
-                    <Clock className="h-4 w-4 text-gray-500" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{myPendingCount}</div>
-                  </CardContent>
-                </Card>
-
-                <Card className="cursor-pointer hover:shadow-md" onClick={() => setStatusFilter("en_progreso")}>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">En Progreso</CardTitle>
-                    <Play className="h-4 w-4 text-blue-500" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{myInProgressCount}</div>
-                  </CardContent>
-                </Card>
-
-                <Card className="cursor-pointer hover:shadow-md" onClick={() => setStatusFilter("completada")}>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Completadas</CardTitle>
-                    <CheckCircle2 className="h-4 w-4 text-green-500" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{myCompletedCount}</div>
-                  </CardContent>
-                </Card>
-              </div>
+              <KpiGrid cols={3}>
+                <KpiCard
+                  label="Pendientes"
+                  value={myPendingCount}
+                  icon={<Clock className="h-4 w-4" />}
+                  accent="#F59E0B"
+                  onClick={() => setStatusFilter("pendiente")}
+                />
+                <KpiCard
+                  label="En Progreso"
+                  value={myInProgressCount}
+                  icon={<Play className="h-4 w-4" />}
+                  accent="#3B82F6"
+                  onClick={() => setStatusFilter("en_progreso")}
+                />
+                <KpiCard
+                  label="Completadas"
+                  value={myCompletedCount}
+                  icon={<CheckCircle2 className="h-4 w-4" />}
+                  accent="#22C55E"
+                  onClick={() => setStatusFilter("completada")}
+                />
+              </KpiGrid>
 
               {/* Botón atrás */}
               <Button
@@ -1087,40 +1063,32 @@ export default function Tasks() {
             {/* Tab: Supervisión */}
             <TabsContent value="supervision" className="space-y-4">
               {/* Stats globales */}
-              <div className="grid grid-cols-3 gap-2 md:gap-4">
-                <Card className="cursor-pointer hover:shadow-md" onClick={() => setStatusFilter("pendiente")}>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Pendientes</CardTitle>
-                    <Clock className="h-4 w-4 text-gray-500" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{allPendingCount}</div>
-                    <p className="text-xs text-muted-foreground">Total del equipo</p>
-                  </CardContent>
-                </Card>
-
-                <Card className="cursor-pointer hover:shadow-md" onClick={() => setStatusFilter("en_progreso")}>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">En Progreso</CardTitle>
-                    <Play className="h-4 w-4 text-blue-500" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{allInProgressCount}</div>
-                    <p className="text-xs text-muted-foreground">Total del equipo</p>
-                  </CardContent>
-                </Card>
-
-                <Card className="cursor-pointer hover:shadow-md" onClick={() => setStatusFilter("completada")}>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Completadas</CardTitle>
-                    <CheckCircle2 className="h-4 w-4 text-green-500" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{allCompletedCount}</div>
-                    <p className="text-xs text-muted-foreground">Total del equipo</p>
-                  </CardContent>
-                </Card>
-              </div>
+              <KpiGrid cols={3}>
+                <KpiCard
+                  label="Pendientes"
+                  value={allPendingCount}
+                  helper="Total del equipo"
+                  icon={<Clock className="h-4 w-4" />}
+                  accent="#F59E0B"
+                  onClick={() => setStatusFilter("pendiente")}
+                />
+                <KpiCard
+                  label="En Progreso"
+                  value={allInProgressCount}
+                  helper="Total del equipo"
+                  icon={<Play className="h-4 w-4" />}
+                  accent="#3B82F6"
+                  onClick={() => setStatusFilter("en_progreso")}
+                />
+                <KpiCard
+                  label="Completadas"
+                  value={allCompletedCount}
+                  helper="Total del equipo"
+                  icon={<CheckCircle2 className="h-4 w-4" />}
+                  accent="#22C55E"
+                  onClick={() => setStatusFilter("completada")}
+                />
+              </KpiGrid>
 
               {/* Resumen por usuario */}
               {getUserStats().length > 0 && (

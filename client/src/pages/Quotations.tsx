@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import { useAuth } from "@/_core/hooks/useAuth";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { HardwareSelectorForQuotation } from "@/components/HardwareSelectorForQuotation";
@@ -28,7 +29,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-import { Plus, Trash2, FileText, Send, Eye, Pencil, Mail, Search, X, UserPlus, FolderPlus, ChefHat, Ruler, Package, Sofa, DoorOpen, Tv, Wrench, LayoutGrid, Calendar, User, Building2, Truck, Sparkles, CircleDollarSign, Lightbulb, Palette, Edit3, Lock, Unlock, ArrowLeft, Copy, Archive } from "lucide-react";
+import { Plus, Trash2, FileText, Send, Eye, Pencil, Mail, Search, X, UserPlus, FolderPlus, ChefHat, Ruler, Package, Sofa, DoorOpen, Tv, Wrench, LayoutGrid, Calendar, User, Building2, Truck, Sparkles, CircleDollarSign, Lightbulb, Palette, Edit3, Lock, Unlock, ArrowLeft, Copy, Archive, SlidersHorizontal } from "lucide-react";
 import { toast } from "sonner";
 import { formatPrice } from "@/lib/formatters";
 import { CreateQuickClientDialog } from "@/components/CreateQuickClientDialog";
@@ -36,6 +37,8 @@ import { usePricing, getPriceFromMap } from "@/hooks/usePricing";
 import { QuotationGroupCard } from "@/components/QuotationGroupCard";
 import { ArchiveFilterTabs } from "@/components/ArchiveFilterTabs";
 import { InitialPaymentModal } from "@/components/InitialPaymentModal";
+import { PageHeader } from "@/components/PageHeader";
+import { ExportQuotationsButton } from "@/components/ExportQuotationsButton";
 
 
 interface HardwareSelection {
@@ -72,8 +75,103 @@ interface QuotationItem {
   acabadosConfig?: AcabadosConfig;
 }
 
+// ─── Notas estándar INNOVAR ───────────────────────────────────────────────────
+const INNOVAR_NOTAS_DEFAULT = `• Los precios están sujetos a cambio si los materiales sufren variación antes de la aprobación del diseño.
+• Incluye fabricación e instalación. No incluye obra civil, electricidad, plomería, instalación de gas, electrodomésticos ni grifos o llaves.
+• El color, veta y textura exacta del material pueden variar levemente según disponibilidad del proveedor.
+• La medición final se realizará después del anticipo. Pequeñas variaciones de medida no generan ajuste de precio.
+• Garantía: 1 año sobre madera y estructura, 6 meses sobre herrajes.
+• El valor del mesón (Granito, Quarzone y Sinterizado) corresponde a modelos estándar nacionales. Vetas especiales, modelos importados o de colección tienen costos adicionales que se cotizan por separado según la selección del cliente.
+• El cliente se compromete a garantizar acceso al lugar de instalación en jornada completa (8:00 a.m. – 12:00 m. y 1:00 p.m. – 5:00 p.m.) durante todos los días requeridos para la instalación. Interrupciones, restricciones de horario o condiciones del sitio que impidan el trabajo normal podrán generar costos adicionales por desplazamiento, reprogramación o tiempos improductivos del equipo instalador.`;
+
+// ─── Generadores de descripción automática ────────────────────────────────────
+function buildKitchenDescription(config: KitchenConfig): string {
+  // Tipos de cocina completa (Estándar / Premium / Deluxe)
+  const classNames: Record<string, string> = {
+    estandar: "Estándar", premium: "Premium", deluxe: "Deluxe",
+    // Configuraciones especiales
+    frente_pll: "Frente / PLL", solo_superiores: "solo muebles superiores",
+    solo_inferiores: "solo muebles inferiores", puertas_tapas: "puertas y tapas (solo cambio)",
+    solo_acabados: "solo acabados especiales",
+    // Legado (por si existen cotizaciones antiguas)
+    L: "Estándar", U: "Estándar", lineal: "Estándar",
+  };
+  const clase = classNames[config.shape] || config.shape || "";
+  const meters = config.totalMeters > 0 ? ` ${config.totalMeters}ml` : "";
+
+  const parts: string[] = [];
+  const km = config.kitchenModules || {};
+  const sm = config.specialModules || {};
+  if (km.esquinero1x1)        parts.push("esquinero 1×1");
+  if (km.esquineroSuperior)   parts.push("esquinero superior");
+  if (km.cajoneroTriple)      parts.push("cajonero triple");
+  if (km.cajoneroDoble)       parts.push("cajonero doble");
+  if (km.basurero)            parts.push("basurero integrado");
+  if (km.moduloEstufaHorno || sm.torreHornos) parts.push("módulo estufa y horno");
+  if (km.moduloAlmacInf)      parts.push("módulo almacenamiento inferior");
+  if (km.moduloAlmacSup || sm.alacenaEntrepanos || sm.alacenaHerraje) parts.push("módulo almacenamiento superior");
+  if (km.moduloExtractor)     parts.push("módulo extractor");
+  if (km.moduloMicroondas)    parts.push("módulo de microondas");
+  if (km.especiero)           parts.push("especiero");
+  if (km.botellero)           parts.push("botellero");
+  if (km.moduloRepisa)        parts.push("módulo repisa");
+  if (km.luzLed || config.ledLighting > 0) parts.push("luz LED");
+  if (sm.nichoNevecon)        parts.push("nicho para nevecón");
+  if (sm.nichoNevera)         parts.push("nicho para nevera");
+  if (config.island?.enabled && config.island.meters > 0) parts.push(`isla ${config.island.meters}ml`);
+  if (config.bar?.enabled && config.bar.meters > 0)       parts.push(`barra ${config.bar.meters}ml`);
+
+  const modulosText = parts.length > 0 ? ` Módulos: ${parts.join(", ")}.` : "";
+
+  const countertopNames: Record<string, string> = {
+    quarzone: "Quarzone", sinterizado: "porcelanato sinterizado",
+    granito: "granito", acero: "acero inoxidable",
+  };
+  const mesonText = config.countertop?.type
+    ? ` Mesón en ${countertopNames[config.countertop.type] || config.countertop.type}.`
+    : "";
+
+  return `Cocina integral ${clase}${meters}. Material aglomerado tipo RH, color a elegir por el cliente.${modulosText}${mesonText} (Diseño por definir)`;
+}
+
+function buildClosetDescription(config: import("@/components/ClosetConfigurator").ClosetConfig): string {
+  const typeNames: Record<string, string> = {
+    estandar: "Estándar", premium: "Premium", deluxe: "Deluxe",
+    especial: "Especial (fondo reducido)",
+    // legado
+    empotrado: "Premium",
+  };
+  const dims = config.width > 0 && config.height > 0 ? ` ${config.width}m × ${config.height}m` : "";
+  const parts: string[] = [];
+  if (config.accessories?.maletero)       parts.push("maletero");
+  if (config.accessories?.divisor)        parts.push("divisor de ropa");
+  if (config.accessories?.entrepanos)     parts.push("entrepaños");
+  if (config.accessories?.doubleCajonero) parts.push("doble cajonero");
+  if (config.accessories?.zapatero)       parts.push("zapatero");
+  if (config.accessories?.dobleColgadero) parts.push("doble colgadero");
+  if (config.accessories?.espejo)         parts.push("espejo en puertas");
+  const accesText = parts.length > 0 ? ` Incluye: ${parts.join(", ")}.` : "";
+  const doorText = config.doorType === "corredizas" ? " Puertas corredizas." : " Puertas batientes.";
+  return `Closet ${typeNames[config.type] || config.type}${dims}. Material aglomerado tipo RH, color a elegir por el cliente.${accesText}${doorText} (Diseño por definir)`;
+}
+
+function buildDoorDescription(config: import("@/components/DoorConfigurator").DoorConfig): string {
+  if (!config.doors || config.doors.length === 0) return "";
+  // Determinar color de herrajes del primer ítem (todos suelen ser iguales)
+  const colorHerrajesRaw = config.doors[0]?.hardwareColor || "negro";
+  const colorHerrajesLabel = colorHerrajesRaw === "plata" ? "Plata" : "Negro";
+  const totalPuertas = config.doors.reduce((sum, d) => sum + (d.quantity || 1), 0);
+  const countText = totalPuertas > 1 ? `${totalPuertas} ` : "";
+  return `${countText}Puerta(s) en material aglomerado tipo RH, color a elegir por el cliente, puertas macizas con marco, chapa gama alta, bisagras y tope de puerta totalmente instalada y funcional. Herrajes en color ${colorHerrajesLabel}.`;
+}
+
+function buildTVDescription(_config: import("@/components/TVCenterConfigurator").TVCenterConfig): string {
+  return "Material aglomerado tipo RH, color a elegir por el cliente con: mueble flotante, pantalla para soporte TV, alistonado, repisas. (Diseño por definir)";
+}
+
 export default function Quotations() {
   const utils = trpc.useUtils();
+  const { user } = useAuth();
   const [location] = useLocation();
   
   // Hook para precios dinámicos desde la base de datos
@@ -90,8 +188,16 @@ export default function Quotations() {
   }, [location]);
   const [editingQuotation, setEditingQuotation] = useState<number | null>(null);
   const [selectedClient, setSelectedClient] = useState<number | null>(null);
-  const [vendorName, setVendorName] = useState("Alvaro Gutierrez");
+  const VENDOR_OPTIONS = ["Alvaro Ríos", "Martha Serna"];
+  const resolveVendor = (name?: string | null) =>
+    name && VENDOR_OPTIONS.includes(name) ? name : "Alvaro Ríos";
+  const [vendorName, setVendorName] = useState(() => resolveVendor(user?.name));
   const [workType, setWorkType] = useState("");
+
+  // Sync vendorName when auth loads asynchronously
+  useEffect(() => {
+    if (user?.name) setVendorName(resolveVendor(user.name));
+  }, [user?.name]);
   
   // Estados para vista previa antes de guardar
   const [previewBeforeSaveOpen, setPreviewBeforeSaveOpen] = useState(false);
@@ -106,6 +212,10 @@ export default function Quotations() {
   const QUOTATIONS_PER_PAGE = 50;
   const [filterDateFrom, setFilterDateFrom] = useState<string>("");
   const [filterDateTo, setFilterDateTo] = useState<string>("");
+  const [filterAmountMin, setFilterAmountMin] = useState<string>("");
+  const [filterAmountMax, setFilterAmountMax] = useState<string>("");
+  const [filterHasProject, setFilterHasProject] = useState<string>("all"); // all | yes | no
+  const [showFilters, setShowFilters] = useState(false);
   
   // Estados para editor de contenido PDF
   const [pdfEditorOpen, setPdfEditorOpen] = useState(false);
@@ -122,6 +232,12 @@ export default function Quotations() {
   
   // Estado para descuento
   const [discountPercent, setDiscountPercent] = useState<number>(0);
+
+  // Notas y condiciones
+  const [generalNotes, setGeneralNotes] = useState<string>(INNOVAR_NOTAS_DEFAULT);
+  const [paymentTerms, setPaymentTerms] = useState<string>("60% anticipo — 40% a la entrega de la obra");
+  const [deliveryTime, setDeliveryTime] = useState<string>("25 días hábiles a partir de la aprobación del render final");
+
   const [items, setItems] = useState<QuotationItem[]>([
     { 
       itemNumber: 1, 
@@ -196,23 +312,36 @@ export default function Quotations() {
     if (filterClient && !quot.client?.name?.toLowerCase().includes(filterClient.toLowerCase())) {
       return false;
     }
-    // Filtro por estado
-    if (filterStatus !== "all" && quot.status !== filterStatus) {
+    // Filtro por estado (aplica a la versión activa del grupo)
+    if (filterStatus !== "all" && quot.activeVersion?.status !== filterStatus && quot.status !== filterStatus) {
       return false;
     }
     // Filtro por fecha desde
     if (filterDateFrom) {
-      const quotDate = new Date(quot.createdAt);
+      const quotDate = new Date(quot.createdAt || quot.activeVersion?.createdAt);
       const fromDate = new Date(filterDateFrom);
       if (quotDate < fromDate) return false;
     }
     // Filtro por fecha hasta
     if (filterDateTo) {
-      const quotDate = new Date(quot.createdAt);
+      const quotDate = new Date(quot.createdAt || quot.activeVersion?.createdAt);
       const toDate = new Date(filterDateTo);
-      toDate.setHours(23, 59, 59, 999); // Incluir todo el día
+      toDate.setHours(23, 59, 59, 999);
       if (quotDate > toDate) return false;
     }
+    // Filtro por monto mínimo
+    if (filterAmountMin) {
+      const total = Number(quot.total || quot.activeVersion?.total || 0);
+      if (total < Number(filterAmountMin)) return false;
+    }
+    // Filtro por monto máximo
+    if (filterAmountMax) {
+      const total = Number(quot.total || quot.activeVersion?.total || 0);
+      if (total > Number(filterAmountMax)) return false;
+    }
+    // Filtro por tiene proyecto
+    if (filterHasProject === "yes" && !quot.hasProject) return false;
+    if (filterHasProject === "no" && quot.hasProject) return false;
     return true;
   });
 
@@ -221,13 +350,22 @@ export default function Quotations() {
     setFilterStatus("all");
     setFilterDateFrom("");
     setFilterDateTo("");
+    setFilterAmountMin("");
+    setFilterAmountMax("");
+    setFilterHasProject("all");
   };
 
-  const hasActiveFilters = filterClient || filterStatus !== "all" || filterDateFrom || filterDateTo;
+  const hasActiveFilters =
+    !!filterClient ||
+    filterStatus !== "all" ||
+    !!filterDateFrom ||
+    !!filterDateTo ||
+    !!filterAmountMin ||
+    !!filterAmountMax ||
+    filterHasProject !== "all";
 
   const createQuotation = trpc.quotations.create.useMutation({
     onSuccess: () => {
-      console.log("[QUOTATION] onSuccess: Cotización creada exitosamente");
       utils.quotations.list.invalidate();
       utils.quotations.listPaginatedGrouped.invalidate();
       toast.success("Cotización creada exitosamente");
@@ -235,7 +373,6 @@ export default function Quotations() {
       resetForm();
     },
     onError: (error) => {
-      console.error("[QUOTATION] onError:", error);
       toast.error(error.message || "Error al crear cotización");
     },
   });
@@ -430,9 +567,12 @@ export default function Quotations() {
   const resetForm = () => {
     setEditingQuotation(null);
     setSelectedClient(null);
-    setVendorName("Alvaro Gutierrez");
+    setVendorName(user?.name || "Alvaro Ríos");
     setWorkType("");
     setDiscountPercent(0);
+    setGeneralNotes(INNOVAR_NOTAS_DEFAULT);
+    setPaymentTerms("60% anticipo — 40% a la entrega de la obra");
+    setDeliveryTime("25 días hábiles a partir de la aprobación del render final");
     setItems([{ 
       itemNumber: 1, 
       itemType: "", 
@@ -524,6 +664,14 @@ export default function Quotations() {
       // Cargar descuento si existe
       const quotationDiscount = (quotationData as any)?.discountPercent;
       setDiscountPercent(quotationDiscount ? parseFloat(quotationDiscount) : 0);
+
+      // Cargar notas y condiciones
+      const loadedNotes = (quotationData as any)?.generalNotes;
+      setGeneralNotes(loadedNotes && loadedNotes.trim() ? loadedNotes : INNOVAR_NOTAS_DEFAULT);
+      const loadedPayment = (quotationData as any)?.paymentTerms;
+      setPaymentTerms(loadedPayment && loadedPayment.trim() ? loadedPayment : "60% anticipo — 40% a la entrega de la obra");
+      const loadedDelivery = (quotationData as any)?.deliveryTime;
+      setDeliveryTime(loadedDelivery && loadedDelivery.trim() ? loadedDelivery : "25 días hábiles a partir de la aprobación del render final");
       
       // Cargar items si existen
       if (quotationData && quotationData.items && Array.isArray(quotationData.items)) {
@@ -541,11 +689,22 @@ export default function Quotations() {
             type: item.closetConfig.type || "estandar",
             width: item.closetConfig.width || 0,
             height: item.closetConfig.height || 0,
-            doorType: item.closetConfig.doorType || "sliding",
+            doorType: item.closetConfig.doorType || "corredizas",
             squareMeters: typeof item.closetConfig.squareMeters === 'string' ? parseFloat(item.closetConfig.squareMeters) : (item.closetConfig.squareMeters || 0),
             pricePerSquareMeter: typeof item.closetConfig.pricePerSquareMeter === 'string' ? parseFloat(item.closetConfig.pricePerSquareMeter) : (item.closetConfig.pricePerSquareMeter || 750000),
             subtotal: typeof item.closetConfig.subtotal === 'string' ? parseFloat(item.closetConfig.subtotal) : (item.closetConfig.subtotal || 0),
             notes: item.closetConfig.notes || "",
+            includeTransport: item.closetConfig.includeTransport ?? false,
+            transportCost: item.closetConfig.transportCost ?? 150000,
+            accessories: {
+              maletero: item.closetConfig.accessories?.maletero ?? false,
+              divisor: item.closetConfig.accessories?.divisor ?? false,
+              entrepanos: item.closetConfig.accessories?.entrepanos ?? false,
+              doubleCajonero: item.closetConfig.accessories?.doubleCajonero ?? false,
+              zapatero: item.closetConfig.accessories?.zapatero ?? false,
+              dobleColgadero: item.closetConfig.accessories?.dobleColgadero ?? false,
+              espejo: item.closetConfig.accessories?.espejo ?? false,
+            },
           } : undefined,
           tvCenterConfig: item.tvCenterConfig ? {
             width: typeof item.tvCenterConfig.width === 'string' ? parseFloat(item.tvCenterConfig.width) : (item.tvCenterConfig.width ?? 1.60),
@@ -573,7 +732,7 @@ export default function Quotations() {
                   width: door.width ?? 80,
                   height: door.height ?? 2.10,
                   quantity: door.quantity ?? 1,
-                  hardwareColor: door.hardwareColor || "aluminio",
+                  hardwareColor: door.hardwareColor || "negro",
                   hasLintel: door.hasLintel ?? true,
                   location: door.location || "",
                   notes: door.notes || "",
@@ -588,7 +747,7 @@ export default function Quotations() {
                   width: item.doorConfig.width ?? 80,
                   height: item.doorConfig.height ?? 2.10,
                   quantity: item.doorConfig.quantity ?? 1,
-                  hardwareColor: item.doorConfig.hardwareColor || "aluminio",
+                  hardwareColor: item.doorConfig.hardwareColor || "negro",
                   hasLintel: true,
                   location: "",
                   notes: "",
@@ -654,6 +813,10 @@ export default function Quotations() {
               hasLateral: item.kitchenConfig.bar?.hasLateral ?? false,
             },
             ledLighting: item.kitchenConfig.ledLighting ?? 0,
+            kitchenModules: item.kitchenConfig.kitchenModules ? {
+              ...item.kitchenConfig.kitchenModules,
+              luzLed: item.kitchenConfig.kitchenModules.luzLed ?? false,
+            } : undefined,
           } : {
             shape: "",
             totalMeters: 0,
@@ -927,9 +1090,15 @@ export default function Quotations() {
       total += (dc.drawerCovers || 0) * getPrice('TAPA_CAJON');
       total += (dc.smallCovers || 0) * getPrice('TAPA_PEQUENA');
     } else {
-      // Cocinas completas (Lineal, L, U, etc.): inferiores + superiores
-      total += resultingMeters * getPrice('MUEBLE_INFERIOR_ML');
-      total += resultingMeters * getPrice('MUEBLE_SUPERIOR_ML');
+      // Cocinas completas: inferior y superior cobrados por separado al mismo precio/ml
+      // El precio/ml varía según la referencia (Estándar / Premium / Deluxe)
+      const mlPriceCode =
+        config.shape === 'premium' ? 'COCINA_ML_PREMIUM' :
+        config.shape === 'deluxe'  ? 'COCINA_ML_DELUXE'  :
+                                     'COCINA_ML_ESTANDAR'; // estandar + legacy (lineal/L/U)
+      const mlPrice = getPrice(mlPriceCode);
+      total += resultingMeters * mlPrice; // mueble inferior
+      total += resultingMeters * mlPrice; // mueble superior
     }
 
     // 3. Muebles especiales (para cocinas completas y puertas_tapas) - precios dinámicos
@@ -944,7 +1113,9 @@ export default function Quotations() {
     // 4. Mesón principal (usa metraje resultante automáticamente) - precios dinámicos
     // No aplica para solo_superiores ni puertas_tapas
     if (config.shape !== 'solo_superiores' && config.shape !== 'puertas_tapas' && config.countertop.type) {
-      const basePrice = config.countertop.type === "quarzone" ? getPrice('MESON_CUARZO') : getPrice('MESON_SINTERIZADO');
+      const basePrice = config.countertop.type === "quarzone" ? getPrice('MESON_CUARZO')
+                      : config.countertop.type === "granito"  ? getPrice('MESON_GRANITO')
+                      : getPrice('MESON_SINTERIZADO');
       let countertopPrice = basePrice;
       
       const surchargePercent = getPrice('MESON_RECARGO_FONDO') / 100;
@@ -966,7 +1137,9 @@ export default function Quotations() {
       
       // Mesón superior de isla
       if (config.island.countertopType) {
-        const islandCountertopPrice = config.island.countertopType === "quarzone" ? getPrice('MESON_CUARZO') : getPrice('MESON_SINTERIZADO');
+        const islandCountertopPrice = config.island.countertopType === "quarzone" ? getPrice('MESON_CUARZO')
+                                    : config.island.countertopType === "granito"  ? getPrice('MESON_GRANITO')
+                                    : getPrice('MESON_SINTERIZADO');
         total += config.island.meters * islandCountertopPrice;
         
         // Laterales de isla
@@ -984,7 +1157,9 @@ export default function Quotations() {
       
       // Mesón superior de barra
       if (config.bar.countertopType) {
-        const barCountertopPrice = config.bar.countertopType === "quarzone" ? getPrice('MESON_CUARZO') : getPrice('MESON_SINTERIZADO');
+        const barCountertopPrice = config.bar.countertopType === "quarzone" ? getPrice('MESON_CUARZO')
+                                 : config.bar.countertopType === "granito"  ? getPrice('MESON_GRANITO')
+                                 : getPrice('MESON_SINTERIZADO');
         total += config.bar.meters * barCountertopPrice;
         
         // Lateral de barra
@@ -1033,9 +1208,13 @@ export default function Quotations() {
       total += (item.fixedCostsAmount ?? 600000);
     }
 
-    // Actualizar total del item
+    // Actualizar total e descripción del item
     const finalItems = [...items];
     finalItems[index].totalPrice = total;
+    // Auto-generar descripción si está vacía
+    if (!finalItems[index].description?.trim()) {
+      finalItems[index].description = buildKitchenDescription(finalItems[index].kitchenConfig!);
+    }
     setItems(finalItems);
   };
 
@@ -1044,11 +1223,7 @@ export default function Quotations() {
   };
 
   const handleSubmit = (e: React.FormEvent) => {
-    console.log("[QUOTATION] handleSubmit ejecutado");
     e.preventDefault();
-    console.log("[QUOTATION] preventDefault ejecutado");
-    console.log("[QUOTATION] selectedClient:", selectedClient);
-    console.log("[QUOTATION] items:", items);
 
     if (!selectedClient) {
       toast.error("Selecciona un cliente");
@@ -1075,7 +1250,7 @@ export default function Quotations() {
       if (item.itemType === "cocina") {
         // Para cocinas: validar campos específicos
         if (!item.kitchenConfig?.shape) {
-          toast.error(`Item ${i + 1}: Selecciona la forma de la cocina`);
+          toast.error(`Item ${i + 1}: Selecciona el tipo de cocina`);
           return;
         }
         // Metraje solo requerido para formas que no sean puertas_tapas ni solo_acabados
@@ -1245,7 +1420,9 @@ export default function Quotations() {
         // Mesón principal (usa metraje resultante automáticamente) - precios dinámicos
         // No aplica para solo_superiores ni puertas_tapas
         if (config.shape !== 'solo_superiores' && config.shape !== 'puertas_tapas' && config.countertop.type) {
-          const basePrice = config.countertop.type === "quarzone" ? getPrice('MESON_CUARZO') : getPrice('MESON_SINTERIZADO');
+          const basePrice = config.countertop.type === "quarzone" ? getPrice('MESON_CUARZO')
+                      : config.countertop.type === "granito"  ? getPrice('MESON_GRANITO')
+                      : getPrice('MESON_SINTERIZADO');
           let countertopPrice = basePrice;
           
           const surchargePercent = getPrice('MESON_RECARGO_FONDO') / 100;
@@ -1267,7 +1444,9 @@ export default function Quotations() {
           
           // Mesón superior de isla
           if (config.island.countertopType) {
-            const islandCountertopPrice = config.island.countertopType === "quarzone" ? getPrice('MESON_CUARZO') : getPrice('MESON_SINTERIZADO');
+            const islandCountertopPrice = config.island.countertopType === "quarzone" ? getPrice('MESON_CUARZO')
+                                    : config.island.countertopType === "granito"  ? getPrice('MESON_GRANITO')
+                                    : getPrice('MESON_SINTERIZADO');
             total += config.island.meters * islandCountertopPrice;
             
             // Laterales de isla
@@ -1285,7 +1464,9 @@ export default function Quotations() {
           
           // Mesón superior de barra
           if (config.bar.countertopType) {
-            const barCountertopPrice = config.bar.countertopType === "quarzone" ? getPrice('MESON_CUARZO') : getPrice('MESON_SINTERIZADO');
+            const barCountertopPrice = config.bar.countertopType === "quarzone" ? getPrice('MESON_CUARZO')
+                                 : config.bar.countertopType === "granito"  ? getPrice('MESON_GRANITO')
+                                 : getPrice('MESON_SINTERIZADO');
             total += config.bar.meters * barCountertopPrice;
             
             // Lateral de barra
@@ -1403,6 +1584,30 @@ export default function Quotations() {
       return item;
     });
 
+    // Generar descripciones automáticas para cocina, closet, puerta, tv si están vacías
+    const itemsWithDescriptions = itemsWithUpdatedPrices.map((item) => {
+      if (item.itemType === "cocina" && item.kitchenConfig) {
+        const desc = item.description?.trim() || buildKitchenDescription(item.kitchenConfig);
+        return { ...item, description: desc, quantity: item.quantity || "1" };
+      }
+      if (item.itemType === "closet" && item.closetConfig) {
+        const desc = item.description?.trim() || buildClosetDescription(item.closetConfig);
+        return { ...item, description: desc, quantity: item.quantity || "1" };
+      }
+      if (item.itemType === "puerta" && item.doorConfig) {
+        const desc = item.description?.trim() || buildDoorDescription(item.doorConfig);
+        return { ...item, description: desc, quantity: item.quantity || String(item.doorConfig.doors?.length || 1) };
+      }
+      if (item.itemType === "centro_tv" && item.tvCenterConfig) {
+        const desc = item.description?.trim() || buildTVDescription(item.tvCenterConfig);
+        return { ...item, description: desc, quantity: item.quantity || "1" };
+      }
+      return item;
+    });
+
+    // Texto completo de condiciones para las notas del PDF
+    const notesWithTerms = `${generalNotes}\n\nCondiciones de pago: ${paymentTerms}\nTiempo de entrega: ${deliveryTime}`;
+
     if (editingQuotation) {
       // Actualizar cotización existente
       updateQuotation.mutate({
@@ -1411,18 +1616,18 @@ export default function Quotations() {
         vendorName,
         productType: (workType || items[0]?.itemType || "otro") as "cocina" | "closet" | "puerta" | "centro_tv" | "herrajes" | "mesones" | "otro",
         discountPercent,
-        items: itemsWithUpdatedPrices,
+        generalNotes: notesWithTerms,
+        items: itemsWithDescriptions,
       });
     } else {
       // Crear nueva cotización
-      console.log("[QUOTATION] Llamando a createQuotation.mutate");
-      console.log("[QUOTATION] itemsWithUpdatedPrices:", itemsWithUpdatedPrices);
       createQuotation.mutate({
         clientId: selectedClient,
         vendorName,
         productType: (workType || items[0]?.itemType || "otro") as "cocina" | "closet" | "puerta" | "centro_tv" | "herrajes" | "mesones" | "otro",
         discountPercent,
-        items: itemsWithUpdatedPrices,
+        generalNotes: notesWithTerms,
+        items: itemsWithDescriptions,
       });
     }
   };
@@ -1440,119 +1645,226 @@ export default function Quotations() {
   };
 
   return (
-    <div className="container mx-auto py-8">
-      {/* Botón de volver atrás */}
-      <Button 
-        variant="ghost" 
-        className="mb-4 gap-2" 
-        onClick={() => window.history.back()}
-      >
-        <ArrowLeft className="h-4 w-4" />
-        Volver
-      </Button>
-      
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-3xl font-bold mb-3">Cotizaciones</h1>
-          <ArchiveFilterTabs
-            activeTab={archiveTab}
-            onTabChange={setArchiveTab}
-            tabs={[
-              { id: "active", label: "Activas" },
-              { id: "archived", label: "Archivadas" },
-            ]}
-          />
-        </div>
-        <div className="flex gap-2 flex-wrap justify-end">
-          <div className="hidden sm:block">
-            <CreateQuickClientDialog 
-              onClientCreated={() => utils.clients.list.invalidate()}
-              trigger={
-                <Button variant="outline" className="gap-2">
-                  <UserPlus className="h-4 w-4" />
-                  Crear Cliente Rápido
-                </Button>
-              }
+    <div className="container mx-auto py-6 pb-20 md:pb-6">
+      <PageHeader
+        title="Cotizaciones"
+        subtitle="Gestiona y controla las cotizaciones de proyectos"
+        icon={<FileText className="h-5 w-5" />}
+        showBack={true}
+        actions={
+          <div className="flex gap-2 flex-wrap">
+            <ExportQuotationsButton
+              filters={{
+                status: filterStatus,
+                dateFrom: filterDateFrom,
+                dateTo: filterDateTo,
+                archived: archiveTab === 'archived',
+              }}
             />
+            <div className="hidden sm:block">
+              <CreateQuickClientDialog
+                onClientCreated={() => utils.clients.list.invalidate()}
+                trigger={
+                  <Button variant="outline" size="sm" className="gap-2">
+                    <UserPlus className="h-4 w-4" />
+                    Crear Cliente
+                  </Button>
+                }
+              />
+            </div>
+            <Button
+              onClick={() => setShowCreateDialog(true)}
+              style={{ background: "linear-gradient(135deg, #1DB5A8, #0D9B8F)" }}
+              className="text-white font-medium shadow-sm hover:opacity-90"
+            >
+              <Plus className="h-4 w-4 mr-1.5" />
+              Nueva Cotización
+            </Button>
           </div>
-          <Button onClick={() => setShowCreateDialog(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Nueva Cotización
-          </Button>
-        </div>
+        }
+      />
+
+      <div className="mb-6">
+        <ArchiveFilterTabs
+          activeTab={archiveTab}
+          onTabChange={setArchiveTab}
+          tabs={[
+            { id: "active", label: "Activas" },
+            { id: "archived", label: "Archivadas" },
+          ]}
+        />
       </div>
 
       {/* Filtros */}
-      <Card className="mb-6">
-        <CardContent className="pt-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-            <div>
-              <Label className="text-sm font-medium mb-2 block">Buscar Cliente</Label>
-              <Input
-                placeholder="Nombre del cliente..."
-                value={filterClient}
-                onChange={(e) => setFilterClient(e.target.value)}
-                className="h-9"
-              />
-            </div>
-            <div>
-              <Label className="text-sm font-medium mb-2 block">Estado</Label>
-              <Select value={filterStatus} onValueChange={setFilterStatus}>
-                <SelectTrigger className="h-9">
-                  <SelectValue placeholder="Todos" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="draft">Borrador</SelectItem>
-                  <SelectItem value="sent">Enviada</SelectItem>
-                  <SelectItem value="approved">Aprobada</SelectItem>
-                  <SelectItem value="rejected">Rechazada</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label className="text-sm font-medium mb-2 block">Fecha Creación</Label>
-              <div className="h-9 px-3 py-2 bg-muted/50 rounded border text-sm font-medium flex items-center">
-                {new Date().toLocaleDateString('es-CO')}
-              </div>
-            </div>
-            <div>
-              <Label className="text-sm font-medium mb-2 block">Válida hasta</Label>
-              <div className="h-9 px-3 py-2 bg-muted/50 rounded border text-sm font-medium flex items-center">
-                {(() => {
-                  const d = new Date();
-                  d.setDate(d.getDate() + 7);
-                  return d.toLocaleDateString('es-CO');
-                })()}
-                <span className="text-xs text-muted-foreground ml-1">(7 días)</span>
-              </div>
-            </div>
-            <div>
-              <Label className="text-sm font-medium mb-2 block">Entrega estimada</Label>
-              <div className="h-9 px-3 py-2 bg-red-50 dark:bg-red-950/30 rounded border border-red-200 dark:border-red-900 text-sm font-medium text-red-600 flex items-center">
-                {(() => {
-                  const d = new Date();
-                  d.setDate(d.getDate() + 35);
-                  return d.toLocaleDateString('es-CO');
-                })()}
-                <span className="text-xs text-red-500 ml-1">* Tentativa</span>
-              </div>
-            </div>
-            <div className="flex items-end">
-              {hasActiveFilters && (
-                <Button variant="outline" onClick={clearFilters} className="h-9 w-full">
-                  Limpiar Filtros
-                </Button>
-              )}
-            </div>
+      <div className="mb-4">
+        {/* Barra de búsqueda rápida + toggle filtros */}
+        <div className="flex gap-2 mb-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
+            <Input
+              placeholder="Buscar cliente..."
+              value={filterClient}
+              onChange={(e) => { setFilterClient(e.target.value); setQuotationPage(1); }}
+              className="pl-9 h-9"
+            />
+            {filterClient && (
+              <button onClick={() => setFilterClient("")} className="absolute right-2 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/60">
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
           </div>
+          <Button
+            variant={showFilters ? "default" : "outline"}
+            size="sm"
+            className={`gap-1.5 h-9 shrink-0 ${showFilters ? "bg-[#1DB5A8] hover:bg-[#0D9B8F] text-white" : ""}`}
+            onClick={() => setShowFilters(s => !s)}
+          >
+            <SlidersHorizontal className="h-4 w-4" />
+            Filtros
+            {hasActiveFilters && !showFilters && (
+              <span className="ml-1 bg-[#1DB5A8] text-white rounded-full w-4 h-4 text-[10px] flex items-center justify-center">
+                {[filterStatus !== "all", !!filterDateFrom, !!filterDateTo, !!filterAmountMin, !!filterAmountMax, filterHasProject !== "all"].filter(Boolean).length}
+              </span>
+            )}
+          </Button>
           {hasActiveFilters && (
-            <p className="text-sm text-muted-foreground mt-3">
-              Mostrando {filteredQuotations.length} de {quotations.length} cotizaciones
-            </p>
+            <Button variant="ghost" size="sm" className="h-9 text-white/45 gap-1" onClick={clearFilters}>
+              <X className="h-3.5 w-3.5" />
+              Limpiar
+            </Button>
           )}
-        </CardContent>
-      </Card>
+        </div>
+
+        {/* Panel de filtros avanzados */}
+        {showFilters && (
+          <Card className="border-[#1DB5A8]/20">
+            <CardContent className="pt-4 pb-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                {/* Estado */}
+                <div>
+                  <Label className="text-xs font-medium mb-1.5 block text-white/60">Estado</Label>
+                  <Select value={filterStatus} onValueChange={(v) => { setFilterStatus(v); setQuotationPage(1); }}>
+                    <SelectTrigger className="h-8 text-xs">
+                      <SelectValue placeholder="Todos" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos</SelectItem>
+                      <SelectItem value="draft">Borrador</SelectItem>
+                      <SelectItem value="sent">Enviada</SelectItem>
+                      <SelectItem value="approved">Aprobada</SelectItem>
+                      <SelectItem value="rejected">Rechazada</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Fecha desde */}
+                <div>
+                  <Label className="text-xs font-medium mb-1.5 block text-white/60">Fecha desde</Label>
+                  <Input
+                    type="date"
+                    value={filterDateFrom}
+                    onChange={(e) => { setFilterDateFrom(e.target.value); setQuotationPage(1); }}
+                    className="h-8 text-xs"
+                  />
+                </div>
+
+                {/* Fecha hasta */}
+                <div>
+                  <Label className="text-xs font-medium mb-1.5 block text-white/60">Fecha hasta</Label>
+                  <Input
+                    type="date"
+                    value={filterDateTo}
+                    onChange={(e) => { setFilterDateTo(e.target.value); setQuotationPage(1); }}
+                    className="h-8 text-xs"
+                  />
+                </div>
+
+                {/* Monto mínimo */}
+                <div>
+                  <Label className="text-xs font-medium mb-1.5 block text-white/60">Monto mín.</Label>
+                  <Input
+                    type="number"
+                    placeholder="0"
+                    value={filterAmountMin}
+                    onChange={(e) => { setFilterAmountMin(e.target.value); setQuotationPage(1); }}
+                    className="h-8 text-xs"
+                  />
+                </div>
+
+                {/* Monto máximo */}
+                <div>
+                  <Label className="text-xs font-medium mb-1.5 block text-white/60">Monto máx.</Label>
+                  <Input
+                    type="number"
+                    placeholder="∞"
+                    value={filterAmountMax}
+                    onChange={(e) => { setFilterAmountMax(e.target.value); setQuotationPage(1); }}
+                    className="h-8 text-xs"
+                  />
+                </div>
+
+                {/* Tiene proyecto */}
+                <div>
+                  <Label className="text-xs font-medium mb-1.5 block text-white/60">Proyecto</Label>
+                  <Select value={filterHasProject} onValueChange={(v) => { setFilterHasProject(v); setQuotationPage(1); }}>
+                    <SelectTrigger className="h-8 text-xs">
+                      <SelectValue placeholder="Todos" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos</SelectItem>
+                      <SelectItem value="yes">Con proyecto</SelectItem>
+                      <SelectItem value="no">Sin proyecto</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Chips de filtros activos + contador */}
+        {hasActiveFilters && (
+          <div className="flex items-center gap-2 mt-2 flex-wrap">
+            <span className="text-xs text-white/45">{filteredQuotations.length} resultado{filteredQuotations.length !== 1 ? "s" : ""}</span>
+            {filterStatus !== "all" && (
+              <span className="flex items-center gap-1 text-xs bg-indigo-50 text-indigo-700 border border-indigo-100 rounded-full px-2 py-0.5">
+                Estado: {filterStatus === "draft" ? "Borrador" : filterStatus === "sent" ? "Enviada" : filterStatus === "approved" ? "Aprobada" : "Rechazada"}
+                <button onClick={() => setFilterStatus("all")}><X className="h-3 w-3" /></button>
+              </span>
+            )}
+            {filterDateFrom && (
+              <span className="flex items-center gap-1 text-xs bg-blue-50 text-blue-700 border border-blue-100 rounded-full px-2 py-0.5">
+                Desde: {new Date(filterDateFrom + "T00:00:00").toLocaleDateString("es-CO")}
+                <button onClick={() => setFilterDateFrom("")}><X className="h-3 w-3" /></button>
+              </span>
+            )}
+            {filterDateTo && (
+              <span className="flex items-center gap-1 text-xs bg-blue-50 text-blue-700 border border-blue-100 rounded-full px-2 py-0.5">
+                Hasta: {new Date(filterDateTo + "T00:00:00").toLocaleDateString("es-CO")}
+                <button onClick={() => setFilterDateTo("")}><X className="h-3 w-3" /></button>
+              </span>
+            )}
+            {filterAmountMin && (
+              <span className="flex items-center gap-1 text-xs bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-full px-2 py-0.5">
+                Min: ${Number(filterAmountMin).toLocaleString("es-CO")}
+                <button onClick={() => setFilterAmountMin("")}><X className="h-3 w-3" /></button>
+              </span>
+            )}
+            {filterAmountMax && (
+              <span className="flex items-center gap-1 text-xs bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-full px-2 py-0.5">
+                Max: ${Number(filterAmountMax).toLocaleString("es-CO")}
+                <button onClick={() => setFilterAmountMax("")}><X className="h-3 w-3" /></button>
+              </span>
+            )}
+            {filterHasProject !== "all" && (
+              <span className="flex items-center gap-1 text-xs bg-amber-50 text-amber-700 border border-amber-100 rounded-full px-2 py-0.5">
+                {filterHasProject === "yes" ? "Con proyecto" : "Sin proyecto"}
+                <button onClick={() => setFilterHasProject("all")}><X className="h-3 w-3" /></button>
+              </span>
+            )}
+          </div>
+        )}
+      </div>
 
       {isLoading ? (
         <p>Cargando...</p>
@@ -1565,9 +1877,6 @@ export default function Quotations() {
       ) : (
         <div className="grid gap-4">
           {(() => {
-            console.log("[DIAGNOSTICO] quotations.length:", quotations.length);
-            console.log("[DIAGNOSTICO] filteredQuotations.length:", filteredQuotations.length);
-            console.log("[DIAGNOSTICO] filteredQuotations:", filteredQuotations);
             return null;
           })()}
           {filteredQuotations.map((group: any) => (
@@ -1739,15 +2048,6 @@ export default function Quotations() {
         <DialogContent className="w-[95vw] sm:w-[90vw] md:max-w-3xl lg:max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto p-0">
           {/* Header con gradiente */}
           <div className="bg-gradient-to-r from-[oklch(0.72_0.14_180)] to-[oklch(0.60_0.14_180)] p-4 sm:p-6 rounded-t-lg relative">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute right-2 top-2 sm:right-4 sm:top-4 text-white hover:bg-white/20 h-8 w-8 sm:h-10 sm:w-10"
-              onClick={() => setShowCreateDialog(false)}
-              title="Cerrar (ESC)"
-            >
-              ✕
-            </Button>
             <DialogHeader>
               <DialogTitle className="text-white text-lg sm:text-xl flex items-center gap-2 sm:gap-3 pr-8">
                 <FileText className="h-5 w-5 sm:h-6 sm:w-6" />
@@ -1759,14 +2059,14 @@ export default function Quotations() {
 
           <form onSubmit={handleSubmit} className="p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6">
             {/* Sección: Información General */}
-            <div className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-5 border border-slate-200 dark:border-slate-700 shadow-sm">
-              <h3 className="text-sm sm:text-base font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2 mb-3 sm:mb-4">
+            <div className="bg-[rgba(106,207,199,0.05)] rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-5 border border-[rgba(106,207,199,0.12)] shadow-sm">
+              <h3 className="text-sm sm:text-base font-semibold text-white/85 flex items-center gap-2 mb-3 sm:mb-4">
                 <User className="h-4 w-4 sm:h-5 sm:w-5 text-[oklch(0.72_0.14_180)]" />
                 Información General
               </h3>
               <div className="grid grid-cols-1 gap-3 sm:gap-4">
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium text-slate-600 dark:text-slate-300 flex items-center gap-2">
+                  <Label className="text-sm font-medium text-white/60 flex items-center gap-2">
                     <Building2 className="h-4 w-4" />
                     Cliente
                   </Label>
@@ -1775,7 +2075,7 @@ export default function Quotations() {
                       value={selectedClient?.toString() || ""}
                       onValueChange={(value) => setSelectedClient(parseInt(value))}
                     >
-                      <SelectTrigger className="flex-1 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 hover:border-[oklch(0.72_0.14_180)] transition-colors">
+                      <SelectTrigger className="flex-1 bg-[#162828] border-[rgba(106,207,199,0.18)] hover:border-[oklch(0.72_0.14_180)] transition-colors">
                         <SelectValue placeholder="Seleccionar cliente" />
                       </SelectTrigger>
                       <SelectContent>
@@ -1801,17 +2101,17 @@ export default function Quotations() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium text-slate-600 dark:text-slate-300 flex items-center gap-2">
+                  <Label className="text-sm font-medium text-white/60 flex items-center gap-2">
                     <User className="h-4 w-4" />
                     Vendedor
                   </Label>
                   <Select value={vendorName} onValueChange={setVendorName}>
-                    <SelectTrigger className="bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 hover:border-[oklch(0.72_0.14_180)] transition-colors">
+                    <SelectTrigger className="bg-[#162828] border-[rgba(106,207,199,0.18)] hover:border-[oklch(0.72_0.14_180)] transition-colors">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Alvaro Gutierrez">
-                        Alvaro Gutierrez
+                      <SelectItem value="Alvaro Ríos">
+                        Alvaro Ríos
                       </SelectItem>
                       <SelectItem value="Martha Serna">Martha Serna</SelectItem>
                     </SelectContent>
@@ -1821,31 +2121,31 @@ export default function Quotations() {
             </div>
 
             {/* Sección: Fechas */}
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-5 border border-blue-200 dark:border-blue-800 shadow-sm">
-              <h3 className="text-sm sm:text-base font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2 mb-3 sm:mb-4">
+            <div className="bg-[rgba(106,207,199,0.05)] rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-5 border border-[rgba(106,207,199,0.12)] shadow-sm">
+              <h3 className="text-sm sm:text-base font-semibold text-white/85 flex items-center gap-2 mb-3 sm:mb-4">
                 <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
                 Fechas de la Cotización
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3 md:gap-4">
-                <div className="bg-white dark:bg-slate-800 rounded-lg p-3 sm:p-4 border border-blue-100 dark:border-blue-900">
+                <div className="bg-[#162828] rounded-lg p-3 sm:p-4 border border-[rgba(106,207,199,0.12)]">
                   <div className="flex items-center gap-2 mb-1 sm:mb-2">
-                    <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                    <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-[rgba(106,207,199,0.15)] flex items-center justify-center">
                       <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600" />
                     </div>
                     <Label className="text-[10px] sm:text-xs font-medium text-blue-600 dark:text-blue-400 uppercase tracking-wide">Creación</Label>
                   </div>
-                  <p className="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200">
+                  <p className="text-xs sm:text-sm font-semibold text-white/85">
                     {new Date().toLocaleDateString('es-CO', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
                   </p>
                 </div>
-                <div className="bg-white dark:bg-slate-800 rounded-lg p-3 sm:p-4 border border-amber-100 dark:border-amber-900">
+                <div className="bg-[#162828] rounded-lg p-3 sm:p-4 border border-[rgba(106,207,199,0.12)]">
                   <div className="flex items-center gap-2 mb-1 sm:mb-2">
-                    <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-amber-100 dark:bg-amber-900 flex items-center justify-center">
+                    <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-[rgba(106,207,199,0.15)] flex items-center justify-center">
                       <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-amber-600" />
                     </div>
                     <Label className="text-[10px] sm:text-xs font-medium text-amber-600 dark:text-amber-400 uppercase tracking-wide">Validez</Label>
                   </div>
-                  <p className="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200">
+                  <p className="text-xs sm:text-sm font-semibold text-white/85">
                     {(() => {
                       const validUntil = new Date();
                       validUntil.setDate(validUntil.getDate() + 7);
@@ -1854,14 +2154,14 @@ export default function Quotations() {
                   </p>
                   <span className="text-xs text-amber-600 dark:text-amber-400">7 días</span>
                 </div>
-                <div className="bg-white dark:bg-slate-800 rounded-lg p-3 sm:p-4 border border-red-100 dark:border-red-900">
+                <div className="bg-[#162828] rounded-lg p-3 sm:p-4 border border-[rgba(106,207,199,0.12)]">
                   <div className="flex items-center gap-2 mb-1 sm:mb-2">
-                    <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-red-100 dark:bg-red-900 flex items-center justify-center">
+                    <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-[rgba(106,207,199,0.15)] flex items-center justify-center">
                       <Truck className="h-3 w-3 sm:h-4 sm:w-4 text-red-600" />
                     </div>
                     <Label className="text-[10px] sm:text-xs font-medium text-red-600 dark:text-red-400 uppercase tracking-wide">Entrega Est.</Label>
                   </div>
-                  <p className="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200">
+                  <p className="text-xs sm:text-sm font-semibold text-white/85">
                     {(() => {
                       const COLOMBIA_HOLIDAYS_2025 = [
                         '2025-01-01', '2025-01-06', '2025-03-24', '2025-04-17', '2025-04-18',
@@ -1895,9 +2195,9 @@ export default function Quotations() {
             </div>
 
             {/* Sección: Productos */}
-            <div className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-5 border border-emerald-200 dark:border-emerald-800 shadow-sm">
+            <div className="bg-[rgba(106,207,199,0.05)] rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-5 border border-[rgba(106,207,199,0.12)] shadow-sm">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0 mb-3 sm:mb-4">
-                <h3 className="text-sm sm:text-base font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2">
+                <h3 className="text-sm sm:text-base font-semibold text-white/85 flex items-center gap-2">
                   <Package className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-600" />
                   Productos a Cotizar
                 </h3>
@@ -1914,14 +2214,14 @@ export default function Quotations() {
 
               <div className="space-y-3 sm:space-y-4">
                 {items.map((item, index) => (
-                  <div key={index} className="bg-white dark:bg-slate-800 rounded-lg sm:rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+                  <div key={index} className="bg-[#162828] rounded-lg sm:rounded-xl border border-[rgba(106,207,199,0.12)] shadow-sm overflow-hidden">
                     {/* Header del Item */}
-                    <div className="bg-gradient-to-r from-slate-100 to-slate-50 dark:from-slate-700 dark:to-slate-800 px-3 sm:px-4 py-2 sm:py-3 flex justify-between items-center border-b border-slate-200 dark:border-slate-600">
+                    <div className="bg-[rgba(106,207,199,0.07)] px-3 sm:px-4 py-2 sm:py-3 flex justify-between items-center border-b border-[rgba(106,207,199,0.12)]">
                       <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
                         <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-emerald-100 dark:bg-emerald-900 flex items-center justify-center text-emerald-700 dark:text-emerald-300 font-bold text-xs sm:text-sm">
                           {item.itemNumber}
                         </div>
-                        <span className="font-semibold text-slate-700 dark:text-slate-200 text-sm sm:text-base">
+                        <span className="font-semibold text-white/85 text-sm sm:text-base">
                           {item.itemType === 'cocina' ? 'Cocina Integral' : 
                            item.itemType === 'closet' ? 'Closet' :
                            item.itemType === 'puerta' ? 'Puerta' :
@@ -1952,7 +2252,7 @@ export default function Quotations() {
                     <div className="p-3 sm:p-4">
                       <div className="grid gap-3 sm:gap-4">
                         <div>
-                          <Label className="text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-300 flex items-center gap-2 mb-1 sm:mb-2">
+                          <Label className="text-xs sm:text-sm font-medium text-white/60 flex items-center gap-2 mb-1 sm:mb-2">
                             <LayoutGrid className="h-3 w-3 sm:h-4 sm:w-4" />
                             Tipo de Producto
                           </Label>
@@ -1962,7 +2262,7 @@ export default function Quotations() {
                               updateItem(index, "itemType", value);
                             }}
                           >
-                            <SelectTrigger className="bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 hover:border-emerald-500 transition-colors">
+                            <SelectTrigger className="bg-[#162828] border-[rgba(106,207,199,0.18)] hover:border-emerald-500 transition-colors">
                               <SelectValue placeholder="Selecciona el tipo de producto" />
                             </SelectTrigger>
                             <SelectContent>
@@ -1979,7 +2279,7 @@ export default function Quotations() {
                                 <span className="flex items-center gap-2"><Tv className="h-4 w-4 text-blue-500" /> Centro de TV</span>
                               </SelectItem>
                               <SelectItem value="mesones">
-                                <span className="flex items-center gap-2"><Ruler className="h-4 w-4 text-slate-500" /> Mesones</span>
+                                <span className="flex items-center gap-2"><Ruler className="h-4 w-4 text-white/45" /> Mesones</span>
                               </SelectItem>
                               <SelectItem value="herrajes">
                                 <span className="flex items-center gap-2"><Wrench className="h-4 w-4 text-gray-500" /> Herrajes</span>
@@ -1996,20 +2296,20 @@ export default function Quotations() {
 
                         {/* Campos dinámicos para COCINA */}
                         {item.itemType === "cocina" && (
-                          <div className="space-y-3 sm:space-y-4 p-3 sm:p-4 md:p-5 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/30 rounded-lg sm:rounded-xl border border-orange-200 dark:border-orange-800">
-                            <h3 className="font-semibold text-sm sm:text-base text-slate-700 dark:text-slate-200 flex items-center gap-2">
+                          <div className="space-y-3 sm:space-y-4 p-3 sm:p-4 md:p-5 bg-[rgba(106,207,199,0.05)] rounded-lg sm:rounded-xl border border-[rgba(106,207,199,0.12)]">
+                            <h3 className="font-semibold text-sm sm:text-base text-white/85 flex items-center gap-2">
                               <ChefHat className="h-4 w-4 sm:h-5 sm:w-5 text-orange-500" />
                               Configuración de Cocina Integral
                             </h3>
                             
                             {/* 1. Forma */}
                             <div className="space-y-2">
-                              <Label className="text-sm font-medium text-slate-600 dark:text-slate-300">Forma de la Cocina</Label>
+                              <Label className="text-sm font-medium text-white/60">Tipo de Cocina</Label>
                               <Select 
                                 value={item.kitchenConfig?.shape || ""} 
                                 onValueChange={(value) => updateKitchenConfig(index, "shape", value)}
                               >
-                                <SelectTrigger className="bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 hover:border-orange-400 transition-colors">
+                                <SelectTrigger className="bg-[#162828] border-[rgba(106,207,199,0.18)] hover:border-orange-400 transition-colors">
                                   <SelectValue placeholder="Selecciona la forma" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -2028,7 +2328,7 @@ export default function Quotations() {
                             {/* 2. Metraje total - No aplica para puertas_tapas ni solo_acabados */}
                             {!['puertas_tapas', 'solo_acabados'].includes(item.kitchenConfig?.shape || '') && (
                             <div className="space-y-2">
-                              <Label className="text-sm font-medium text-slate-600 dark:text-slate-300 flex items-center gap-2">
+                              <Label className="text-sm font-medium text-white/60 flex items-center gap-2">
                                 <Ruler className="h-4 w-4" />
                                 Metraje Total {item.kitchenConfig?.shape === 'frente_pll' ? 'del Frente PLL' : item.kitchenConfig?.shape === 'solo_superiores' ? 'Muebles Superiores' : item.kitchenConfig?.shape === 'solo_inferiores' ? 'Muebles Inferiores' : 'de la Cocina'} (ml)
                               </Label>
@@ -2038,7 +2338,7 @@ export default function Quotations() {
                                 value={item.kitchenConfig?.totalMeters || ""}
                                 onChange={(e) => updateKitchenConfig(index, "totalMeters", parseFloat(e.target.value) || 0)}
                                 placeholder="Ej: 5.00"
-                                className="bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 hover:border-orange-400 transition-colors"
+                                className="bg-[#162828] border-[rgba(106,207,199,0.18)] hover:border-orange-400 transition-colors"
                               />
                             </div>
                             )}
@@ -2218,8 +2518,8 @@ export default function Quotations() {
 
                             {/* 3. Muebles especiales - Para cocinas completas y puertas_tapas */}
                             {!['frente_pll', 'solo_superiores', 'solo_inferiores'].includes(item.kitchenConfig?.shape || '') && (
-                            <div className="bg-white dark:bg-slate-800 rounded-lg p-3 sm:p-4 border border-orange-100 dark:border-orange-900">
-                              <Label className="mb-2 sm:mb-3 block text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2">
+                            <div className="bg-[#162828] rounded-lg p-3 sm:p-4 border border-[rgba(106,207,199,0.12)]">
+                              <Label className="mb-2 sm:mb-3 block text-xs sm:text-sm font-semibold text-white/85 flex items-center gap-2">
                                 <Package className="h-3 w-3 sm:h-4 sm:w-4 text-orange-500" />
                                 Muebles Especiales (se descuentan del metraje)
                               </Label>
@@ -2346,8 +2646,8 @@ export default function Quotations() {
 
                             {/* 4. Mesón principal - Solo para cocinas completas y solo_inferiores */}
                             {!['solo_superiores', 'puertas_tapas'].includes(item.kitchenConfig?.shape || '') && (
-                            <div className="bg-white dark:bg-slate-800 rounded-lg p-3 sm:p-4 border border-orange-100 dark:border-orange-900 space-y-2 sm:space-y-3">
-                              <Label className="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2">
+                            <div className="bg-[#162828] rounded-lg p-3 sm:p-4 border border-[rgba(106,207,199,0.12)] space-y-2 sm:space-y-3">
+                              <Label className="text-xs sm:text-sm font-semibold text-white/85 flex items-center gap-2">
                                 <Ruler className="h-3 w-3 sm:h-4 sm:w-4 text-orange-500" />
                                 Mesón Principal
                               </Label>
@@ -2389,7 +2689,7 @@ export default function Quotations() {
 
                             {/* 5. Isla - Para cocinas completas y puertas_tapas */}
                             {!['frente_pll', 'solo_superiores', 'solo_inferiores'].includes(item.kitchenConfig?.shape || '') && (
-                            <div className="bg-white dark:bg-slate-800 rounded-lg p-3 sm:p-4 border border-blue-100 dark:border-blue-900 space-y-2 sm:space-y-3">
+                            <div className="bg-[#162828] rounded-lg p-3 sm:p-4 border border-[rgba(106,207,199,0.12)] space-y-2 sm:space-y-3">
                               <div className="flex items-center space-x-2">
                                 <input
                                   type="checkbox"
@@ -2398,7 +2698,7 @@ export default function Quotations() {
                                   onChange={(e) => updateKitchenConfig(index, "island.enabled", e.target.checked)}
                                   className="h-4 w-4 accent-blue-500"
                                 />
-                                <Label htmlFor={`islandEnabled-${index}`} className="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 cursor-pointer flex items-center gap-2">
+                                <Label htmlFor={`islandEnabled-${index}`} className="text-xs sm:text-sm font-semibold text-white/85 cursor-pointer flex items-center gap-2">
                                   <LayoutGrid className="h-3 w-3 sm:h-4 sm:w-4 text-blue-500" />
                                   Isla
                                 </Label>
@@ -2452,7 +2752,7 @@ export default function Quotations() {
 
                             {/* 6. Barra - Para cocinas completas y puertas_tapas */}
                             {!['frente_pll', 'solo_superiores', 'solo_inferiores'].includes(item.kitchenConfig?.shape || '') && (
-                            <div className="bg-white dark:bg-slate-800 rounded-lg p-3 sm:p-4 border border-purple-100 dark:border-purple-900 space-y-2 sm:space-y-3">
+                            <div className="bg-[#162828] rounded-lg p-3 sm:p-4 border border-purple-100 dark:border-purple-900 space-y-2 sm:space-y-3">
                               <div className="flex items-center space-x-2">
                                 <input
                                   type="checkbox"
@@ -2461,7 +2761,7 @@ export default function Quotations() {
                                   onChange={(e) => updateKitchenConfig(index, "bar.enabled", e.target.checked)}
                                   className="h-4 w-4 accent-purple-500"
                                 />
-                                <Label htmlFor={`barEnabled-${index}`} className="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 cursor-pointer flex items-center gap-2">
+                                <Label htmlFor={`barEnabled-${index}`} className="text-xs sm:text-sm font-semibold text-white/85 cursor-pointer flex items-center gap-2">
                                   <Ruler className="h-3 w-3 sm:h-4 sm:w-4 text-purple-500" />
                                   Barra
                                 </Label>
@@ -2515,8 +2815,8 @@ export default function Quotations() {
 
                             {/* 7. Luz LED (opcional) - Solo para cocinas completas, frente_pll y solo_superiores */}
                             {!['solo_inferiores', 'puertas_tapas'].includes(item.kitchenConfig?.shape || '') && (
-                            <div className="bg-white dark:bg-slate-800 rounded-lg p-3 sm:p-4 border border-yellow-100 dark:border-yellow-900 space-y-2">
-                              <Label className="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2">
+                            <div className="bg-[#162828] rounded-lg p-3 sm:p-4 border border-[rgba(106,207,199,0.12)] space-y-2">
+                              <Label className="text-xs sm:text-sm font-semibold text-white/85 flex items-center gap-2">
                                 <Lightbulb className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-500" />
                                 Luz LED - $180,000/ml
                               </Label>
@@ -2526,13 +2826,13 @@ export default function Quotations() {
                                 value={item.kitchenConfig?.ledLighting || ""}
                                 onChange={(e) => updateKitchenConfig(index, "ledLighting", parseFloat(e.target.value) || 0)}
                                 placeholder="Dejar en 0 si no lleva LED"
-                                className="bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600"
+                                className="bg-[#162828] border-[rgba(106,207,199,0.18)]"
                               />
                             </div>
                             )}
 
                             {/* 8. Pintado Puertas Alto Brillo */}
-                            <div className="bg-white dark:bg-slate-800 rounded-lg p-3 sm:p-4 border border-pink-200 dark:border-pink-900 space-y-2 sm:space-y-3">
+                            <div className="bg-[#162828] rounded-lg p-3 sm:p-4 border border-[rgba(106,207,199,0.12)] space-y-2 sm:space-y-3">
                               <div className="flex items-center space-x-2">
                                 <input
                                   type="checkbox"
@@ -2544,7 +2844,7 @@ export default function Quotations() {
                                   }}
                                   className="h-4 w-4 accent-pink-500"
                                 />
-                                <Label htmlFor={`paintedDoors-${index}`} className="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 cursor-pointer flex items-center gap-2">
+                                <Label htmlFor={`paintedDoors-${index}`} className="text-xs sm:text-sm font-semibold text-white/85 cursor-pointer flex items-center gap-2">
                                   <Palette className="h-3 w-3 sm:h-4 sm:w-4 text-pink-500" />
                                   Pintado Puertas Alto Brillo
                                 </Label>
@@ -2640,7 +2940,7 @@ export default function Quotations() {
                             </div>
 
                             {/* 9. Acabados Especiales - Puertas Aluminio + Vidrio y LED Alacenas */}
-                            <div className="bg-white dark:bg-slate-800 rounded-lg p-3 sm:p-4 border border-purple-200 dark:border-purple-900 space-y-3">
+                            <div className="bg-[#162828] rounded-lg p-3 sm:p-4 border border-[rgba(106,207,199,0.12)] space-y-3">
                               <div className="flex items-center space-x-2">
                                 <input
                                   type="checkbox"
@@ -2652,7 +2952,7 @@ export default function Quotations() {
                                   }}
                                   className="h-4 w-4 accent-purple-500"
                                 />
-                                <Label htmlFor={`specialFinishes-${index}`} className="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 cursor-pointer flex items-center gap-2">
+                                <Label htmlFor={`specialFinishes-${index}`} className="text-xs sm:text-sm font-semibold text-white/85 cursor-pointer flex items-center gap-2">
                                   <Sparkles className="h-3 w-3 sm:h-4 sm:w-4 text-purple-500" />
                                   Acabados Especiales (Aluminio + Vidrio / LED Alacenas)
                                 </Label>
@@ -2671,7 +2971,7 @@ export default function Quotations() {
                                     
                                     {/* Lista de puertas */}
                                     {(item.kitchenConfig?.specialFinishes?.aluminumGlassDoors || []).map((door, doorIdx) => (
-                                      <div key={door.id} className="flex items-center gap-2 bg-white dark:bg-slate-700 p-2 rounded border">
+                                      <div key={door.id} className="flex items-center gap-2 bg-[#162828] p-2 rounded border">
                                         <span className="text-xs font-medium text-purple-600">#{doorIdx + 1}</span>
                                         <div className="flex-1 grid grid-cols-2 gap-2">
                                           <div>
@@ -2870,6 +3170,20 @@ export default function Quotations() {
                                 Total Cocina: {formatPrice(item.totalPrice)}
                               </p>
                             </div>
+
+                            {/* Descripción auto-generada (editable) */}
+                            <div>
+                              <Label className="text-sm font-medium text-gray-700 block mb-1">
+                                Descripción del ítem <span className="text-xs text-gray-400 font-normal">(auto-generada — editable)</span>
+                              </Label>
+                              <Textarea
+                                value={item.description}
+                                onChange={(e) => updateItem(index, "description", e.target.value)}
+                                placeholder="La descripción se genera automáticamente al configurar la cocina…"
+                                rows={3}
+                                className="text-sm bg-[#162828] border-[rgba(106,207,199,0.18)] text-white/85"
+                              />
+                            </div>
                           </div>
                         )}
 
@@ -2951,19 +3265,19 @@ export default function Quotations() {
 
                         {/* Campos dinámicos para ACABADOS ESPECIALES */}
                         {item.itemType === "acabados_especiales" && (
-                          <div className="space-y-4 p-4 bg-gradient-to-br from-cyan-50 to-sky-50 dark:from-cyan-950/30 dark:to-sky-950/30 rounded-xl border border-cyan-200 dark:border-cyan-800">
-                            <h3 className="font-semibold text-base text-slate-700 dark:text-slate-200 flex items-center gap-2">
+                          <div className="space-y-4 p-4 bg-[rgba(106,207,199,0.05)] rounded-xl border border-[rgba(106,207,199,0.12)]">
+                            <h3 className="font-semibold text-base text-white/85 flex items-center gap-2">
                               <Sparkles className="h-5 w-5 text-cyan-500" />
                               Configuración de Acabados Especiales
                             </h3>
                             
                             {/* Puertas de Aluminio con Vidrio Ahumado */}
-                            <div className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-cyan-100 dark:border-cyan-900 space-y-3">
-                              <Label className="text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2">
+                            <div className="bg-[#162828] rounded-lg p-4 border border-[rgba(106,207,199,0.12)] space-y-3">
+                              <Label className="text-sm font-semibold text-white/85 flex items-center gap-2">
                                 <DoorOpen className="h-4 w-4 text-cyan-500" />
                                 Puertas de Aluminio con Vidrio Ahumado - {formatPrice(getPrice('ACABADO_ALUMINIO_VIDRIO_M2'))}/m²
                               </Label>
-                              <p className="text-xs text-slate-500">
+                              <p className="text-xs text-white/45">
                                 Bisagras adicionales: +1 par (alto mayor a 80cm) o +2 pares (alto mayor a 140cm) a {formatPrice(getPrice('ACABADO_BISAGRA_PAR'))}/par
                               </p>
                               
@@ -2991,7 +3305,7 @@ export default function Quotations() {
                                         }}
                                         className="w-20 h-8 text-sm"
                                       />
-                                      <span className="text-slate-400">×</span>
+                                      <span className="text-white/40">×</span>
                                       <Input
                                         type="number"
                                         step="0.01"
@@ -3009,7 +3323,7 @@ export default function Quotations() {
                                         className="w-20 h-8 text-sm"
                                       />
                                     </div>
-                                    <span className="text-sm text-slate-600 dark:text-slate-400">
+                                    <span className="text-sm text-white/60 dark:text-white/40">
                                       = {sqm.toFixed(2)} m²
                                       {extraHinges > 0 && <span className="text-cyan-600"> + {extraHinges} par{extraHinges > 1 ? 'es' : ''} bisagras</span>}
                                     </span>
@@ -3050,7 +3364,7 @@ export default function Quotations() {
                             </div>
                             
                             {/* Luz LED para Alacenas */}
-                            <div className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-yellow-100 dark:border-yellow-900 space-y-3">
+                            <div className="bg-[#162828] rounded-lg p-4 border border-[rgba(106,207,199,0.12)] space-y-3">
                               <div className="flex items-center space-x-2">
                                 <input
                                   type="checkbox"
@@ -3071,7 +3385,7 @@ export default function Quotations() {
                                   }}
                                   className="h-4 w-4 accent-yellow-500"
                                 />
-                                <Label htmlFor={`acabados-led-${index}`} className="text-sm font-semibold text-slate-700 dark:text-slate-200 cursor-pointer flex items-center gap-2">
+                                <Label htmlFor={`acabados-led-${index}`} className="text-sm font-semibold text-white/85 cursor-pointer flex items-center gap-2">
                                   <Lightbulb className="h-4 w-4 text-yellow-500" />
                                   Luz LED para Alacenas - {formatPrice(getPrice('ACABADO_LED_ML'))}/ml
                                 </Label>
@@ -3166,7 +3480,10 @@ export default function Quotations() {
                                 newItems[index] = {
                                   ...newItems[index],
                                   closetConfig: config,
-                                  totalPrice: total
+                                  totalPrice: total,
+                                  description: newItems[index].description?.trim()
+                                    ? newItems[index].description
+                                    : buildClosetDescription(config),
                                 };
                                 setItems(newItems);
                               }}
@@ -3182,7 +3499,7 @@ export default function Quotations() {
                                   const newItems = [...items];
                                   const closetTotal = newItems[index].closetConfig?.subtotal || 0;
                                   const fixedAmount = newItems[index].fixedCostsAmount ?? 600000;
-                                  
+
                                   if (e.target.checked) {
                                     newItems[index].totalPrice = closetTotal + fixedAmount;
                                     if (newItems[index].fixedCostsAmount === undefined) {
@@ -3191,7 +3508,7 @@ export default function Quotations() {
                                   } else {
                                     newItems[index].totalPrice = closetTotal;
                                   }
-                                  
+
                                   newItems[index].includesFixedCosts = e.target.checked;
                                   setItems(newItems);
                                 }}
@@ -3218,6 +3535,20 @@ export default function Quotations() {
                                 />
                               )}
                             </div>
+
+                            {/* Descripción auto-generada (editable) */}
+                            <div className="mt-4">
+                              <Label className="text-sm font-medium text-gray-700 block mb-1">
+                                Descripción del ítem <span className="text-xs text-gray-400 font-normal">(auto-generada — editable)</span>
+                              </Label>
+                              <Textarea
+                                value={item.description}
+                                onChange={(e) => updateItem(index, "description", e.target.value)}
+                                placeholder="La descripción se genera automáticamente al configurar el closet…"
+                                rows={3}
+                                className="text-sm bg-[#162828] border-[rgba(106,207,199,0.18)] text-white/85"
+                              />
+                            </div>
                           </>
                         )}
 
@@ -3233,10 +3564,14 @@ export default function Quotations() {
                                 if (newItems[index].includesFixedCosts) {
                                   total += (newItems[index].fixedCostsAmount || 600000);
                                 }
+                                const autoDesc = buildDoorDescription(config);
                                 newItems[index] = {
                                   ...newItems[index],
                                   doorConfig: config,
-                                  totalPrice: total
+                                  totalPrice: total,
+                                  description: newItems[index].description?.trim()
+                                    ? newItems[index].description
+                                    : autoDesc,
                                 };
                                 setItems(newItems);
                               }}
@@ -3252,7 +3587,7 @@ export default function Quotations() {
                                   const newItems = [...items];
                                   const doorTotal = newItems[index].doorConfig?.subtotal || 0;
                                   const fixedAmount = newItems[index].fixedCostsAmount ?? 600000;
-                                  
+
                                   if (e.target.checked) {
                                     newItems[index].totalPrice = doorTotal + fixedAmount;
                                     if (newItems[index].fixedCostsAmount === undefined) {
@@ -3261,7 +3596,7 @@ export default function Quotations() {
                                   } else {
                                     newItems[index].totalPrice = doorTotal;
                                   }
-                                  
+
                                   newItems[index].includesFixedCosts = e.target.checked;
                                   setItems(newItems);
                                 }}
@@ -3288,6 +3623,20 @@ export default function Quotations() {
                                 />
                               )}
                             </div>
+
+                            {/* Descripción auto-generada (editable) */}
+                            <div className="mt-4">
+                              <Label className="text-sm font-medium text-gray-700 block mb-1">
+                                Descripción del ítem <span className="text-xs text-gray-400 font-normal">(auto-generada — editable)</span>
+                              </Label>
+                              <Textarea
+                                value={item.description}
+                                onChange={(e) => updateItem(index, "description", e.target.value)}
+                                placeholder="La descripción se genera automáticamente al configurar las puertas…"
+                                rows={3}
+                                className="text-sm bg-[#162828] border-[rgba(106,207,199,0.18)] text-white/85"
+                              />
+                            </div>
                           </>
                         )}
 
@@ -3301,11 +3650,27 @@ export default function Quotations() {
                                 newItems[index] = {
                                   ...newItems[index],
                                   tvCenterConfig: config,
-                                  totalPrice: config.subtotal
+                                  totalPrice: config.subtotal,
+                                  description: newItems[index].description?.trim()
+                                    ? newItems[index].description
+                                    : buildTVDescription(config),
                                 };
                                 setItems(newItems);
                               }}
                             />
+                            {/* Descripción auto-generada (editable) */}
+                            <div className="mt-4">
+                              <Label className="text-sm font-medium text-gray-700 block mb-1">
+                                Descripción del ítem <span className="text-xs text-gray-400 font-normal">(auto-generada — editable)</span>
+                              </Label>
+                              <Textarea
+                                value={item.description}
+                                onChange={(e) => updateItem(index, "description", e.target.value)}
+                                placeholder="La descripción se genera automáticamente al configurar el centro de TV…"
+                                rows={3}
+                                className="text-sm bg-[#162828] border-[rgba(106,207,199,0.18)] text-white/85"
+                              />
+                            </div>
                           </>
                         )}
 
@@ -3445,25 +3810,54 @@ export default function Quotations() {
                 </div>
                 
                 {/* Descuento */}
-                <div className="flex justify-between items-center gap-3">
-                  <div className="flex items-center gap-2">
-                    <span className="text-white/90 text-sm sm:text-base">Descuento:</span>
-                    <div className="flex items-center gap-1">
-                      <Input
-                        type="number"
-                        min="0"
-                        max="100"
-                        step="0.5"
-                        value={discountPercent}
-                        onChange={(e) => setDiscountPercent(Math.min(100, Math.max(0, parseFloat(e.target.value) || 0)))}
-                        className="w-16 sm:w-20 h-8 text-center bg-white/20 border-white/30 text-white placeholder:text-white/50 text-sm"
-                      />
-                      <span className="text-white/90 text-sm">%</span>
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center gap-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-white/90 text-sm sm:text-base">Descuento:</span>
+                      <div className="flex items-center gap-1">
+                        <Input
+                          type="number"
+                          min="0"
+                          max="100"
+                          step="0.5"
+                          value={discountPercent}
+                          onChange={(e) => setDiscountPercent(Math.min(100, Math.max(0, parseFloat(e.target.value) || 0)))}
+                          className="w-16 sm:w-20 h-8 text-center bg-[#162828]/20 border-white/30 text-white placeholder:text-white/50 text-sm"
+                        />
+                        <span className="text-white/90 text-sm">%</span>
+                      </div>
                     </div>
+                    <span className="text-base sm:text-lg font-semibold text-white/90">
+                      -{formatPrice(calculateTotal() * (discountPercent / 100))}
+                    </span>
                   </div>
-                  <span className="text-base sm:text-lg font-semibold text-white/90">
-                    -{formatPrice(calculateTotal() * (discountPercent / 100))}
-                  </span>
+                  {/* Botones rápidos de descuento */}
+                  <div className="flex items-center gap-1 flex-wrap">
+                    <span className="text-white/60 text-xs mr-1">Rápido:</span>
+                    {[5, 10, 15].map((val) => (
+                      <button
+                        key={val}
+                        type="button"
+                        onClick={() => setDiscountPercent(discountPercent === val ? 0 : val)}
+                        className={`px-2 py-0.5 rounded text-xs font-semibold transition-all border ${
+                          discountPercent === val
+                            ? "bg-[#162828] text-emerald-700 border-white"
+                            : "bg-[#162828]/20 text-white border-white/30 hover:bg-[#162828]/30"
+                        }`}
+                      >
+                        {val}%
+                      </button>
+                    ))}
+                    {discountPercent > 0 && ![5, 10, 15].includes(discountPercent) && (
+                      <button
+                        type="button"
+                        onClick={() => setDiscountPercent(0)}
+                        className="px-2 py-0.5 rounded text-xs font-semibold bg-[#162828]/10 text-white/60 border border-white/20 hover:bg-[#162828]/20 transition-all"
+                      >
+                        Quitar
+                      </button>
+                    )}
+                  </div>
                 </div>
                 
                 {/* Separador */}
@@ -3472,7 +3866,7 @@ export default function Quotations() {
                 {/* Total Final */}
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-2 sm:gap-3">
-                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/20 flex items-center justify-center">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-[#162828]/20 flex items-center justify-center">
                       <CircleDollarSign className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                     </div>
                     <div>
@@ -3482,6 +3876,42 @@ export default function Quotations() {
                       </p>
                     </div>
                   </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Notas y Condiciones */}
+            <div className="space-y-4 border border-gray-200 rounded-xl p-4 bg-gray-50">
+              <h3 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">Notas y Condiciones</h3>
+
+              <div>
+                <Label className="text-sm font-medium text-gray-700 block mb-1">
+                  Notas generales <span className="text-xs text-gray-400 font-normal">(editables)</span>
+                </Label>
+                <Textarea
+                  value={generalNotes}
+                  onChange={(e) => setGeneralNotes(e.target.value)}
+                  rows={5}
+                  className="text-sm bg-[#162828] border-[rgba(106,207,199,0.18)] text-white/85 font-mono"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium text-gray-700 block mb-1">Condiciones de pago</Label>
+                  <Input
+                    value={paymentTerms}
+                    onChange={(e) => setPaymentTerms(e.target.value)}
+                    className="text-sm bg-[#162828] text-white/85"
+                  />
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-700 block mb-1">Tiempo de entrega</Label>
+                  <Input
+                    value={deliveryTime}
+                    onChange={(e) => setDeliveryTime(e.target.value)}
+                    className="text-sm bg-[#162828] text-white/85"
+                  />
                 </div>
               </div>
             </div>

@@ -43,6 +43,7 @@ export default function PublicGallery() {
   const search = useSearch();
   const params = new URLSearchParams(search);
   const projectId = parseInt(params.get("project") || "0");
+  const token = params.get("token") || "";
   const photoType = params.get("type") as "modelado_3d" | "renders" | undefined;
 
   const [selectedPhoto, setSelectedPhoto] = useState<number | null>(null);
@@ -56,14 +57,14 @@ export default function PublicGallery() {
   const [actionCompleted, setActionCompleted] = useState<"approved" | "changes" | null>(null);
 
   const { data, isLoading, error } = trpc.publicGallery.getProjectPhotos.useQuery(
-    { projectId, type: photoType },
-    { enabled: projectId > 0 }
+    { projectId, token, type: photoType },
+    { enabled: projectId > 0 && !!token }
   );
 
   // Consultar estado de aprobación
   const { data: approvalStatus } = trpc.publicGallery.getApprovalStatus.useQuery(
-    { projectId },
-    { enabled: projectId > 0 }
+    { projectId, token },
+    { enabled: projectId > 0 && !!token }
   );
 
   // Determinar si ya está aprobado según el tipo
@@ -120,7 +121,7 @@ export default function PublicGallery() {
     },
   });
 
-  if (projectId === 0) {
+  if (projectId === 0 || !token) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
         <Card className="max-w-md w-full text-center p-8">
@@ -190,6 +191,7 @@ export default function PublicGallery() {
     }
     approveMutation.mutate({
       projectId,
+      token,
       clientName: clientName.trim(),
       type: photoType || "modelado_3d",
     });
@@ -206,6 +208,7 @@ export default function PublicGallery() {
     }
     changesMutation.mutate({
       projectId,
+      token,
       clientName: clientName.trim(),
       type: photoType || "modelado_3d",
       changes: changesText.trim(),

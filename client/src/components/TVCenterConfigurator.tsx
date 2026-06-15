@@ -128,9 +128,9 @@ export function TVCenterConfigurator({ config, onChange }: TVCenterConfiguratorP
             <h5 className="font-semibold text-purple-700 mb-3">Medidas del Mueble</h5>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label className="text-sm font-medium text-gray-700 block mb-2">Ancho del Mueble</Label>
+                <Label className="text-sm font-medium text-white/85 block mb-2">Ancho del Mueble</Label>
                 <Select value={width.toString()} onValueChange={(v) => setWidth(parseFloat(v))}>
-                  <SelectTrigger className="h-10 bg-white">
+                  <SelectTrigger className="h-10 bg-[#162828]">
                     <SelectValue placeholder="Seleccionar ancho" />
                   </SelectTrigger>
                   <SelectContent>
@@ -143,9 +143,9 @@ export function TVCenterConfigurator({ config, onChange }: TVCenterConfiguratorP
                 </Select>
               </div>
               <div>
-                <Label className="text-sm font-medium text-gray-700 block mb-2">Repisas Flotantes</Label>
+                <Label className="text-sm font-medium text-white/85 block mb-2">Repisas Flotantes</Label>
                 <Select value={floatingShelves.toString()} onValueChange={(v) => setFloatingShelves(parseInt(v))}>
-                  <SelectTrigger className="h-10 bg-white">
+                  <SelectTrigger className="h-10 bg-[#162828]">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -170,12 +170,12 @@ export function TVCenterConfigurator({ config, onChange }: TVCenterConfiguratorP
           </div>
 
           {/* Opciones adicionales */}
-          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-            <h5 className="font-semibold text-gray-700 mb-3">Opciones Adicionales</h5>
+          <div className="bg-gray-50 p-4 rounded-lg border border-[rgba(106,207,199,0.12)]">
+            <h5 className="font-semibold text-white/85 mb-3">Opciones Adicionales</h5>
             
             <div className="space-y-4">
               {/* Alto Brillo */}
-              <div className="flex items-center justify-between p-3 bg-white rounded border">
+              <div className="flex items-center justify-between p-3 bg-[#162828] rounded border">
                 <div className="flex items-center gap-3">
                   <Checkbox 
                     id="high-gloss" 
@@ -195,7 +195,7 @@ export function TVCenterConfigurator({ config, onChange }: TVCenterConfiguratorP
               </div>
 
               {/* Luces LED */}
-              <div className="flex items-center justify-between p-3 bg-white rounded border">
+              <div className="flex items-center justify-between p-3 bg-[#162828] rounded border">
                 <div className="flex items-center gap-3">
                   <Checkbox 
                     id="led-lights" 
@@ -215,12 +215,12 @@ export function TVCenterConfigurator({ config, onChange }: TVCenterConfiguratorP
               </div>
 
               {/* Espacios para equipos */}
-              <div className="flex items-center justify-between p-3 bg-white rounded border">
+              <div className="flex items-center justify-between p-3 bg-[#162828] rounded border">
                 <div className="flex items-center gap-3">
                   <Box className="h-4 w-4 text-blue-500" />
                   <div>
                     <Label className="font-medium">Espacios para Equipos</Label>
-                    <p className="text-xs text-gray-500">Consolas, decodificadores, etc.</p>
+                    <p className="text-xs text-white/45">Consolas, decodificadores, etc.</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -245,7 +245,7 @@ export function TVCenterConfigurator({ config, onChange }: TVCenterConfiguratorP
           </div>
 
           {/* Transporte e Imprevistos */}
-          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+          <div className="bg-gray-50 p-4 rounded-lg border border-[rgba(106,207,199,0.12)]">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Checkbox 
@@ -259,7 +259,7 @@ export function TVCenterConfigurator({ config, onChange }: TVCenterConfiguratorP
               </div>
               {includeTransport && (
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-600">Monto: $</span>
+                  <span className="text-sm text-white/60">Monto: $</span>
                   <Input 
                     type="number" 
                     value={transportCost} 
@@ -273,12 +273,12 @@ export function TVCenterConfigurator({ config, onChange }: TVCenterConfiguratorP
 
           {/* Notas */}
           <div>
-            <Label className="text-sm font-medium text-gray-700 block mb-2">Notas Adicionales</Label>
+            <Label className="text-sm font-medium text-white/85 block mb-2">Notas Adicionales</Label>
             <Textarea 
               value={notes} 
               onChange={(e) => setNotes(e.target.value)} 
               placeholder="Especificaciones adicionales, colores, ubicación de equipos, etc."
-              className="bg-white"
+              className="bg-[#162828]"
               rows={2}
             />
           </div>

@@ -45,6 +45,23 @@ export interface KitchenConfig {
     spiceQty: number; // Tapa de especiero - $100,000
     golaQty: number; // Tapas pequeña/gola - $45,000
   };
+  // Módulos de cocina — para descripción automática de la cotización
+  kitchenModules?: {
+    esquinero1x1?: boolean;        // Esquinero inferior 1x1
+    esquineroSuperior?: boolean;   // Esquinero superior
+    cajoneroTriple?: boolean;      // Cajonero triple
+    cajoneroDoble?: boolean;       // Cajonero doble
+    basurero?: boolean;            // Basurero integrado
+    moduloEstufaHorno?: boolean;   // Módulo estufa y horno
+    moduloAlmacInf?: boolean;      // Módulo almacenamiento inferior
+    moduloAlmacSup?: boolean;      // Módulo almacenamiento superior
+    moduloExtractor?: boolean;     // Módulo extractor
+    moduloMicroondas?: boolean;    // Módulo de microondas
+    especiero?: boolean;           // Especiero
+    botellero?: boolean;           // Botellero
+    moduloRepisa?: boolean;        // Módulo repisa
+    luzLed?: boolean;              // Luz LED
+  };
   // Para forma "Puertas y Tapas (solo cambio)"
   doorsAndCovers?: {
     upperDoors70: number;   // Puertas superiores hasta 70cm - $120,000
@@ -142,6 +159,22 @@ export function KitchenConfigurator({
         meters: 0,
       },
     },
+    kitchenModules: {
+      esquinero1x1: false,
+      esquineroSuperior: false,
+      cajoneroTriple: false,
+      cajoneroDoble: false,
+      basurero: false,
+      moduloEstufaHorno: false,
+      moduloAlmacInf: false,
+      moduloAlmacSup: false,
+      moduloExtractor: false,
+      moduloMicroondas: false,
+      especiero: false,
+      botellero: false,
+      moduloRepisa: false,
+      luzLed: false,
+    },
     notes: "",
   };
 
@@ -195,30 +228,35 @@ export function KitchenConfigurator({
             <h5 className="font-semibold text-emerald-700 mb-3">Dimensiones del Proyecto</h5>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label className="text-sm font-medium text-gray-700 block mb-2">Forma de la Cocina</Label>
-                <Select 
-                  value={currentConfig.shape} 
+                <Label className="text-sm font-medium text-white/85 block mb-2">Tipo de Cocina</Label>
+                <Select
+                  value={currentConfig.shape}
                   onValueChange={(value) => updateConfig("shape", value)}
                 >
-                  <SelectTrigger className="h-10 bg-white">
-                    <SelectValue placeholder="Selecciona la forma" />
+                  <SelectTrigger className="h-10 bg-[#162828]">
+                    <SelectValue placeholder="Selecciona el tipo" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="L">En L</SelectItem>
-                    <SelectItem value="U">En U</SelectItem>
-                    <SelectItem value="lineal">Lineal</SelectItem>
+                    <SelectItem value="estandar">Cocina Estándar</SelectItem>
+                    <SelectItem value="premium">Cocina Premium</SelectItem>
+                    <SelectItem value="deluxe">Cocina Deluxe</SelectItem>
+                    <SelectItem value="frente_pll">Frente / PLL</SelectItem>
+                    <SelectItem value="solo_superiores">Solo muebles superiores</SelectItem>
+                    <SelectItem value="solo_inferiores">Solo muebles inferiores</SelectItem>
+                    <SelectItem value="puertas_tapas">Puertas y tapas (solo cambio)</SelectItem>
+                    <SelectItem value="solo_acabados">Solo acabados especiales</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div>
-                <Label className="text-sm font-medium text-gray-700 block mb-2">Metraje Total (ml)</Label>
+                <Label className="text-sm font-medium text-white/85 block mb-2">Metraje Total (ml)</Label>
                 <Input
                   type="number"
                   step="0.01"
                   value={currentConfig.totalMeters || ""}
                   onChange={(e) => updateConfig("totalMeters", parseFloat(e.target.value) || 0)}
                   placeholder="Ej: 5.00"
-                  className="h-10 bg-white"
+                  className="h-10 bg-[#162828]"
                 />
               </div>
             </div>
@@ -233,12 +271,12 @@ export function KitchenConfigurator({
           </div>
 
           {/* Muebles Especiales */}
-          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-            <h5 className="font-semibold text-gray-700 mb-3">Muebles Especiales (se descuentan del metraje)</h5>
+          <div className="bg-gray-50 p-4 rounded-lg border border-[rgba(106,207,199,0.12)]">
+            <h5 className="font-semibold text-white/85 mb-3">Muebles Especiales (se descuentan del metraje)</h5>
             
             <div className="space-y-3">
               {/* Nicho Nevecon */}
-              <div className="flex items-center justify-between p-3 bg-white rounded border">
+              <div className="flex items-center justify-between p-3 bg-[#162828] rounded border">
                 <div className="flex items-center gap-3">
                   <Checkbox 
                     id="nicho-nevecon" 
@@ -258,7 +296,7 @@ export function KitchenConfigurator({
               </div>
 
               {/* Nicho Nevera */}
-              <div className="flex items-center justify-between p-3 bg-white rounded border">
+              <div className="flex items-center justify-between p-3 bg-[#162828] rounded border">
                 <div className="flex items-center gap-3">
                   <Checkbox 
                     id="nicho-nevera" 
@@ -278,7 +316,7 @@ export function KitchenConfigurator({
               </div>
 
               {/* Alacena Entrepaños */}
-              <div className="flex items-center justify-between p-3 bg-white rounded border">
+              <div className="flex items-center justify-between p-3 bg-[#162828] rounded border">
                 <div className="flex items-center gap-3">
                   <Checkbox 
                     id="alacena-entrepanos" 
@@ -298,7 +336,7 @@ export function KitchenConfigurator({
               </div>
 
               {/* Alacena Herraje */}
-              <div className="flex items-center justify-between p-3 bg-white rounded border">
+              <div className="flex items-center justify-between p-3 bg-[#162828] rounded border">
                 <div className="flex items-center gap-3">
                   <Checkbox 
                     id="alacena-herraje" 
@@ -318,7 +356,7 @@ export function KitchenConfigurator({
               </div>
 
               {/* Torre de Hornos */}
-              <div className="flex items-center justify-between p-3 bg-white rounded border">
+              <div className="flex items-center justify-between p-3 bg-[#162828] rounded border">
                 <div className="flex items-center gap-3">
                   <Checkbox 
                     id="torre-hornos" 
@@ -339,32 +377,66 @@ export function KitchenConfigurator({
             </div>
           </div>
 
+          {/* Módulos de Cocina — checklist descriptivo */}
+          <div className="bg-teal-50 p-4 rounded-lg border border-teal-200">
+            <h5 className="font-semibold text-teal-700 mb-3">Módulos de Cocina (para descripción)</h5>
+            <p className="text-xs text-teal-600 mb-3">Selecciona los módulos que lleva esta cocina — se usan para generar la descripción automática de la cotización.</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {([
+                { key: "esquinero1x1",       label: "Esquinero 1×1 (inferior)" },
+                { key: "esquineroSuperior",   label: "Esquinero superior" },
+                { key: "cajoneroTriple",      label: "Cajonero triple" },
+                { key: "cajoneroDoble",       label: "Cajonero doble" },
+                { key: "basurero",            label: "Basurero integrado" },
+                { key: "moduloEstufaHorno",   label: "Módulo estufa y horno" },
+                { key: "moduloAlmacInf",      label: "Módulo almacenamiento inferior" },
+                { key: "moduloAlmacSup",      label: "Módulo almacenamiento superior" },
+                { key: "moduloExtractor",     label: "Módulo extractor" },
+                { key: "moduloMicroondas",    label: "Módulo de microondas" },
+                { key: "especiero",           label: "Especiero" },
+                { key: "botellero",           label: "Botellero" },
+                { key: "moduloRepisa",        label: "Módulo repisa" },
+                { key: "luzLed",             label: "Luz LED" },
+              ] as { key: keyof NonNullable<KitchenConfig["kitchenModules"]>; label: string }[]).map(({ key, label }) => (
+                <div key={key} className="flex items-center gap-2 p-2 bg-[#162828] rounded border border-teal-100 hover:border-teal-300 transition-colors">
+                  <Checkbox
+                    id={`km-${key}`}
+                    checked={currentConfig.kitchenModules?.[key] ?? false}
+                    onCheckedChange={(c) => updateConfig(`kitchenModules.${key}`, c === true)}
+                  />
+                  <Label htmlFor={`km-${key}`} className="cursor-pointer text-sm text-white/85">{label}</Label>
+                </div>
+              ))}
+            </div>
+          </div>
+
           {/* Mesón Principal */}
           <div className="bg-emerald-50 p-4 rounded-lg border border-emerald-200">
             <h5 className="font-semibold text-emerald-700 mb-3">Mesón Principal</h5>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label className="text-sm font-medium text-gray-700 block mb-2">Tipo de Mesón *</Label>
+                <Label className="text-sm font-medium text-white/85 block mb-2">Tipo de Mesón *</Label>
                 <Select 
                   value={currentConfig.countertop.type} 
                   onValueChange={(value) => updateConfig("countertop.type", value)}
                 >
-                  <SelectTrigger className="h-10 bg-white">
+                  <SelectTrigger className="h-10 bg-[#162828]">
                     <SelectValue placeholder="Selecciona tipo" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="granito">Granito ($700k/ml)</SelectItem>
                     <SelectItem value="quarzone">Quarzone ($850k/ml)</SelectItem>
                     <SelectItem value="sinterizado">Sinterizado ($1.2M/ml)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div>
-                <Label className="text-sm font-medium text-gray-700 block mb-2">Recargo por Fondo</Label>
+                <Label className="text-sm font-medium text-white/85 block mb-2">Recargo por Fondo</Label>
                 <Select 
                   value={currentConfig.countertop.depthSurcharge} 
                   onValueChange={(value) => updateConfig("countertop.depthSurcharge", value)}
                 >
-                  <SelectTrigger className="h-10 bg-white">
+                  <SelectTrigger className="h-10 bg-[#162828]">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -378,7 +450,7 @@ export function KitchenConfigurator({
           </div>
 
           {/* Isla */}
-          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+          <div className="bg-gray-50 p-4 rounded-lg border border-[rgba(106,207,199,0.12)]">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-3">
                 <Checkbox 
@@ -386,36 +458,37 @@ export function KitchenConfigurator({
                   checked={currentConfig.island.enabled} 
                   onCheckedChange={(c) => updateConfig("island.enabled", c === true)} 
                 />
-                <Label htmlFor="isla-enabled" className="cursor-pointer font-semibold text-gray-700">
+                <Label htmlFor="isla-enabled" className="cursor-pointer font-semibold text-white/85">
                   Incluir Isla
                 </Label>
               </div>
             </div>
             
             {currentConfig.island.enabled && (
-              <div className="space-y-4 mt-3 pt-3 border-t border-gray-200">
+              <div className="space-y-4 mt-3 pt-3 border-t border-[rgba(106,207,199,0.12)]">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label className="text-sm font-medium text-gray-700 block mb-2">Metros lineales de isla</Label>
+                    <Label className="text-sm font-medium text-white/85 block mb-2">Metros lineales de isla</Label>
                     <Input
                       type="number"
                       step="0.01"
                       value={currentConfig.island.meters || ""}
                       onChange={(e) => updateConfig("island.meters", parseFloat(e.target.value) || 0)}
                       placeholder="0.00"
-                      className="h-10 bg-white"
+                      className="h-10 bg-[#162828]"
                     />
                   </div>
                   <div>
-                    <Label className="text-sm font-medium text-gray-700 block mb-2">Tipo de mesón</Label>
+                    <Label className="text-sm font-medium text-white/85 block mb-2">Tipo de mesón</Label>
                     <Select 
                       value={currentConfig.island.countertopType} 
                       onValueChange={(value) => updateConfig("island.countertopType", value)}
                     >
-                      <SelectTrigger className="h-10 bg-white">
+                      <SelectTrigger className="h-10 bg-[#162828]">
                         <SelectValue placeholder="Tipo" />
                       </SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="granito">Granito</SelectItem>
                         <SelectItem value="quarzone">Quarzone</SelectItem>
                         <SelectItem value="sinterizado">Sinterizado</SelectItem>
                       </SelectContent>
@@ -437,7 +510,7 @@ export function KitchenConfigurator({
           </div>
 
           {/* Barra */}
-          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+          <div className="bg-gray-50 p-4 rounded-lg border border-[rgba(106,207,199,0.12)]">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-3">
                 <Checkbox 
@@ -445,36 +518,37 @@ export function KitchenConfigurator({
                   checked={currentConfig.bar.enabled} 
                   onCheckedChange={(c) => updateConfig("bar.enabled", c === true)} 
                 />
-                <Label htmlFor="barra-enabled" className="cursor-pointer font-semibold text-gray-700">
+                <Label htmlFor="barra-enabled" className="cursor-pointer font-semibold text-white/85">
                   Incluir Barra
                 </Label>
               </div>
             </div>
             
             {currentConfig.bar.enabled && (
-              <div className="space-y-4 mt-3 pt-3 border-t border-gray-200">
+              <div className="space-y-4 mt-3 pt-3 border-t border-[rgba(106,207,199,0.12)]">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label className="text-sm font-medium text-gray-700 block mb-2">Metros lineales de barra</Label>
+                    <Label className="text-sm font-medium text-white/85 block mb-2">Metros lineales de barra</Label>
                     <Input
                       type="number"
                       step="0.01"
                       value={currentConfig.bar.meters || ""}
                       onChange={(e) => updateConfig("bar.meters", parseFloat(e.target.value) || 0)}
                       placeholder="0.00"
-                      className="h-10 bg-white"
+                      className="h-10 bg-[#162828]"
                     />
                   </div>
                   <div>
-                    <Label className="text-sm font-medium text-gray-700 block mb-2">Tipo de mesón</Label>
+                    <Label className="text-sm font-medium text-white/85 block mb-2">Tipo de mesón</Label>
                     <Select 
                       value={currentConfig.bar.countertopType} 
                       onValueChange={(value) => updateConfig("bar.countertopType", value)}
                     >
-                      <SelectTrigger className="h-10 bg-white">
+                      <SelectTrigger className="h-10 bg-[#162828]">
                         <SelectValue placeholder="Tipo" />
                       </SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="granito">Granito</SelectItem>
                         <SelectItem value="quarzone">Quarzone</SelectItem>
                         <SelectItem value="sinterizado">Sinterizado</SelectItem>
                       </SelectContent>
@@ -496,13 +570,13 @@ export function KitchenConfigurator({
           </div>
 
           {/* Luz LED */}
-          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+          <div className="bg-gray-50 p-4 rounded-lg border border-[rgba(106,207,199,0.12)]">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Lightbulb className="h-4 w-4 text-amber-500" />
                 <div>
                   <Label className="font-medium">Iluminación LED</Label>
-                  <p className="text-xs text-gray-500">$180,000 por metro lineal</p>
+                  <p className="text-xs text-white/45">$180,000 por metro lineal</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -512,9 +586,9 @@ export function KitchenConfigurator({
                   value={currentConfig.ledLighting || ""}
                   onChange={(e) => updateConfig("ledLighting", parseFloat(e.target.value) || 0)}
                   placeholder="0"
-                  className="h-9 w-24 text-right bg-white"
+                  className="h-9 w-24 text-right bg-[#162828]"
                 />
-                <span className="text-sm text-gray-600">ml</span>
+                <span className="text-sm text-white/60">ml</span>
               </div>
             </div>
           </div>
@@ -542,10 +616,10 @@ export function KitchenConfigurator({
                 <p className="text-xs text-pink-600 mb-2">Ingrese la cantidad de cada tipo de puerta</p>
                 
                 {/* Puertas Superiores */}
-                <div className="flex items-center justify-between p-2 bg-white rounded border">
+                <div className="flex items-center justify-between p-2 bg-[#162828] rounded border">
                   <div>
                     <Label className="text-sm font-medium">Puertas Superiores</Label>
-                    <p className="text-xs text-gray-500">$120,000 c/u</p>
+                    <p className="text-xs text-white/45">$120,000 c/u</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <Input
@@ -554,7 +628,7 @@ export function KitchenConfigurator({
                       value={currentConfig.paintedDoors?.upperQty || ""}
                       onChange={(e) => updateConfig("paintedDoors.upperQty", parseInt(e.target.value) || 0)}
                       placeholder="0"
-                      className="h-8 w-20 text-right bg-white"
+                      className="h-8 w-20 text-right bg-[#162828]"
                     />
                     <span className="text-sm text-pink-700 font-medium w-28 text-right">
                       ${((currentConfig.paintedDoors?.upperQty || 0) * 120000).toLocaleString()}
@@ -563,10 +637,10 @@ export function KitchenConfigurator({
                 </div>
 
                 {/* Puertas Inferiores */}
-                <div className="flex items-center justify-between p-2 bg-white rounded border">
+                <div className="flex items-center justify-between p-2 bg-[#162828] rounded border">
                   <div>
                     <Label className="text-sm font-medium">Puertas Inferiores</Label>
-                    <p className="text-xs text-gray-500">$150,000 c/u</p>
+                    <p className="text-xs text-white/45">$150,000 c/u</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <Input
@@ -575,7 +649,7 @@ export function KitchenConfigurator({
                       value={currentConfig.paintedDoors?.lowerQty || ""}
                       onChange={(e) => updateConfig("paintedDoors.lowerQty", parseInt(e.target.value) || 0)}
                       placeholder="0"
-                      className="h-8 w-20 text-right bg-white"
+                      className="h-8 w-20 text-right bg-[#162828]"
                     />
                     <span className="text-sm text-pink-700 font-medium w-28 text-right">
                       ${((currentConfig.paintedDoors?.lowerQty || 0) * 150000).toLocaleString()}
@@ -584,10 +658,10 @@ export function KitchenConfigurator({
                 </div>
 
                 {/* Puertas de Alacena */}
-                <div className="flex items-center justify-between p-2 bg-white rounded border">
+                <div className="flex items-center justify-between p-2 bg-[#162828] rounded border">
                   <div>
                     <Label className="text-sm font-medium">Puertas de Alacena</Label>
-                    <p className="text-xs text-gray-500">$250,000 c/u</p>
+                    <p className="text-xs text-white/45">$250,000 c/u</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <Input
@@ -596,7 +670,7 @@ export function KitchenConfigurator({
                       value={currentConfig.paintedDoors?.pantryQty || ""}
                       onChange={(e) => updateConfig("paintedDoors.pantryQty", parseInt(e.target.value) || 0)}
                       placeholder="0"
-                      className="h-8 w-20 text-right bg-white"
+                      className="h-8 w-20 text-right bg-[#162828]"
                     />
                     <span className="text-sm text-pink-700 font-medium w-28 text-right">
                       ${((currentConfig.paintedDoors?.pantryQty || 0) * 250000).toLocaleString()}
@@ -605,10 +679,10 @@ export function KitchenConfigurator({
                 </div>
 
                 {/* Tapas de Cajón */}
-                <div className="flex items-center justify-between p-2 bg-white rounded border">
+                <div className="flex items-center justify-between p-2 bg-[#162828] rounded border">
                   <div>
                     <Label className="text-sm font-medium">Tapas de Cajón</Label>
-                    <p className="text-xs text-gray-500">$80,000 c/u</p>
+                    <p className="text-xs text-white/45">$80,000 c/u</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <Input
@@ -617,7 +691,7 @@ export function KitchenConfigurator({
                       value={currentConfig.paintedDoors?.drawerQty || ""}
                       onChange={(e) => updateConfig("paintedDoors.drawerQty", parseInt(e.target.value) || 0)}
                       placeholder="0"
-                      className="h-8 w-20 text-right bg-white"
+                      className="h-8 w-20 text-right bg-[#162828]"
                     />
                     <span className="text-sm text-pink-700 font-medium w-28 text-right">
                       ${((currentConfig.paintedDoors?.drawerQty || 0) * 80000).toLocaleString()}
@@ -626,10 +700,10 @@ export function KitchenConfigurator({
                 </div>
 
                 {/* Tapa de Especiero */}
-                <div className="flex items-center justify-between p-2 bg-white rounded border">
+                <div className="flex items-center justify-between p-2 bg-[#162828] rounded border">
                   <div>
                     <Label className="text-sm font-medium">Tapa de Especiero</Label>
-                    <p className="text-xs text-gray-500">$100,000 c/u</p>
+                    <p className="text-xs text-white/45">$100,000 c/u</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <Input
@@ -638,7 +712,7 @@ export function KitchenConfigurator({
                       value={currentConfig.paintedDoors?.spiceQty || ""}
                       onChange={(e) => updateConfig("paintedDoors.spiceQty", parseInt(e.target.value) || 0)}
                       placeholder="0"
-                      className="h-8 w-20 text-right bg-white"
+                      className="h-8 w-20 text-right bg-[#162828]"
                     />
                     <span className="text-sm text-pink-700 font-medium w-28 text-right">
                       ${((currentConfig.paintedDoors?.spiceQty || 0) * 100000).toLocaleString()}
@@ -647,10 +721,10 @@ export function KitchenConfigurator({
                 </div>
 
                 {/* Tapas Pequeña/Gola */}
-                <div className="flex items-center justify-between p-2 bg-white rounded border">
+                <div className="flex items-center justify-between p-2 bg-[#162828] rounded border">
                   <div>
                     <Label className="text-sm font-medium">Tapas Pequeña/Gola</Label>
-                    <p className="text-xs text-gray-500">$45,000 c/u</p>
+                    <p className="text-xs text-white/45">$45,000 c/u</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <Input
@@ -659,7 +733,7 @@ export function KitchenConfigurator({
                       value={currentConfig.paintedDoors?.golaQty || ""}
                       onChange={(e) => updateConfig("paintedDoors.golaQty", parseInt(e.target.value) || 0)}
                       placeholder="0"
-                      className="h-8 w-20 text-right bg-white"
+                      className="h-8 w-20 text-right bg-[#162828]"
                     />
                     <span className="text-sm text-pink-700 font-medium w-28 text-right">
                       ${((currentConfig.paintedDoors?.golaQty || 0) * 45000).toLocaleString()}
@@ -686,7 +760,7 @@ export function KitchenConfigurator({
           </div>
 
           {/* Transporte e Imprevistos */}
-          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+          <div className="bg-gray-50 p-4 rounded-lg border border-[rgba(106,207,199,0.12)]">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Checkbox 
@@ -700,12 +774,12 @@ export function KitchenConfigurator({
               </div>
               {includesFixedCosts && (
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-600">Monto: $</span>
+                  <span className="text-sm text-white/60">Monto: $</span>
                   <Input 
                     type="number" 
                     value={fixedCostsAmount} 
                     onChange={(e) => onFixedCostsChange(true, parseFloat(e.target.value) || 0)} 
-                    className="h-9 w-32 text-right bg-white" 
+                    className="h-9 w-32 text-right bg-[#162828]" 
                   />
                 </div>
               )}
@@ -776,10 +850,10 @@ export function KitchenConfigurator({
                         const totalDoorPrice = doorPrice + hingePrice;
                         
                         return (
-                          <div key={door.id} className="flex items-center gap-2 bg-white p-2 rounded border border-amber-200">
+                          <div key={door.id} className="flex items-center gap-2 bg-[#162828] p-2 rounded border border-amber-200">
                             <span className="text-sm font-medium text-amber-700 w-16">Puerta {index + 1}:</span>
                             <div className="flex items-center gap-1">
-                              <Label className="text-xs text-gray-500">Alto:</Label>
+                              <Label className="text-xs text-white/45">Alto:</Label>
                               <Input
                                 type="number"
                                 step="0.01"
@@ -805,7 +879,7 @@ export function KitchenConfigurator({
                               <span className="text-xs">m</span>
                             </div>
                             <div className="flex items-center gap-1">
-                              <Label className="text-xs text-gray-500">Ancho:</Label>
+                              <Label className="text-xs text-white/45">Ancho:</Label>
                               <Input
                                 type="number"
                                 step="0.01"
@@ -896,7 +970,7 @@ export function KitchenConfigurator({
                   
                   {currentConfig.specialFinishes?.ledLighting?.enabled && (
                     <div className="flex items-center gap-3 pl-6">
-                      <Label className="text-sm text-gray-600">Metros lineales (lado largo del mueble):</Label>
+                      <Label className="text-sm text-white/60">Metros lineales (lado largo del mueble):</Label>
                       <Input
                         type="number"
                         step="0.01"
@@ -944,12 +1018,12 @@ export function KitchenConfigurator({
 
           {/* Notas */}
           <div>
-            <Label className="text-sm font-medium text-gray-700 block mb-2">Notas Adicionales</Label>
+            <Label className="text-sm font-medium text-white/85 block mb-2">Notas Adicionales</Label>
             <Textarea
               value={currentConfig.notes || ""}
               onChange={(e) => updateConfig("notes", e.target.value)}
               placeholder="Especificaciones adicionales, colores, acabados..."
-              className="bg-white"
+              className="bg-[#162828]"
               rows={2}
             />
           </div>

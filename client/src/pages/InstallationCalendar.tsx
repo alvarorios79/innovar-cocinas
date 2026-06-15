@@ -209,25 +209,15 @@ export default function InstallationCalendar() {
   today.setHours(0, 0, 0, 0);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b sticky top-0 z-10">
-        <div className="container py-3 md:py-4 px-3 md:px-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 md:gap-4">
-              <Link href="/">
-                <Button variant="ghost" size="sm" className="px-2">
-                  <ChevronLeft className="h-4 w-4" />
-                  <span className="hidden sm:inline ml-1">Volver</span>
-                </Button>
-              </Link>
-              <PageHeader
-                title="Calendario de Instalaciones"
-                subtitle="Gestiona las instalaciones programadas"
-                showBack={false}
-              />
-            </div>
-            <div className="flex items-center gap-2">
+    <div className="pb-20 md:pb-0">
+      <div className="container py-4 md:py-6 px-3 md:px-4">
+        <PageHeader
+          title="Calendario de Instalaciones"
+          subtitle="Gestiona las instalaciones programadas"
+          icon={<Calendar className="h-5 w-5" />}
+          showBack={true}
+          actions={
+            <div className="flex gap-2">
               <Link href="/appointments-calendar">
                 <Button variant="outline" size="sm" className="gap-2">
                   <Calendar className="h-4 w-4" />
@@ -235,15 +225,15 @@ export default function InstallationCalendar() {
                 </Button>
               </Link>
               <Link href="/projects">
-                <Button variant="outline" size="sm" className="px-2 md:px-3">
+                <Button variant="outline" size="sm">
                   <Wrench className="h-4 w-4 md:mr-2" />
                   <span className="hidden md:inline">Ver Proyectos</span>
                 </Button>
               </Link>
             </div>
-          </div>
-        </div>
-      </header>
+          }
+        />
+      </div>
 
       <main className="container py-4 md:py-6 px-3 md:px-4">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -298,7 +288,7 @@ export default function InstallationCalendar() {
                         onClick={() => setSelectedDate(date)}
                         className={`
                           relative min-h-[80px] p-1 rounded-lg border transition-all text-left
-                          ${!isCurrentMonth ? "bg-gray-100 text-gray-400" : availability === "none" ? "bg-red-400 text-white" : availability === "half" ? "bg-amber-400 text-amber-900" : "bg-white"}
+                          ${!isCurrentMonth ? "bg-gray-100 text-gray-400" : availability === "none" ? "bg-red-400 text-white" : availability === "half" ? "bg-amber-400 text-amber-900" : "bg-[#162828]"}
                           ${isToday ? "ring-4 ring-teal-500 ring-offset-2" : ""}
                           ${isSelected ? "bg-teal-500 text-white border-teal-600" : "border-gray-200 hover:border-teal-300"}
                           ${isPast && !isToday ? "opacity-60" : ""}
@@ -367,7 +357,7 @@ export default function InstallationCalendar() {
                 {/* Leyenda */}
                 <div className="flex flex-wrap gap-4 mt-4 pt-4 border-t text-sm">
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-white border rounded"></div>
+                    <div className="w-4 h-4 bg-[#162828] border rounded"></div>
                     <span>Disponible (L-V)</span>
                   </div>
                   <div className="flex items-center gap-2">

@@ -3,10 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Eye, EyeOff, Edit, FileText, Send, Copy, Download, FolderPlus, FileEdit, Lock, Trash2, Image as ImageIcon, Archive } from "lucide-react";
+import { Eye, EyeOff, Edit, FileText, Send, Copy, Download, FolderPlus, FileEdit, Lock, Trash2, Image as ImageIcon, Archive, GitCompare } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { downloadPDFiOS } from "@/lib/pdf-download";
+import { QuotationVersionComparator } from "@/components/QuotationVersionComparator";
+import { ExportQuotationWordButton } from "@/components/ExportQuotationWordButton";
 
 interface QuotationGroupCardProps {
   group: {
@@ -17,6 +19,8 @@ interface QuotationGroupCardProps {
     activeVersion: any;
     versionCount: number;
     hasProject?: boolean;
+    projectId?: number;
+    activeProjectQuotationId?: number | null;
   };
   client: any;
   archiveTab: 'active' | 'archived';
@@ -48,6 +52,7 @@ export function QuotationGroupCard({
   const utils = trpc.useUtils();
   const [selectedVersionId, setSelectedVersionId] = useState(group.activeVersion.id);
   const [showValues, setShowValues] = useState(false);
+  const [showComparator, setShowComparator] = useState(false);
   
   const archiveQuotation = trpc.quotations.archive.useMutation({
     onSuccess: () => {
@@ -129,15 +134,16 @@ export function QuotationGroupCard({
   const isExpired = daysUntilExpiry <= 0;
 
   const cardBorderClass = isExpired ? 'border-l-red-500' : isExpiringSoon ? 'border-l-yellow-500' : 'border-l-[#14B8A6]';
-  const cardBgClass = isExpired ? 'bg-red-50' : isExpiringSoon ? 'bg-yellow-50' : 'bg-white';
+  const cardBgClass = isExpired ? 'bg-red-50' : isExpiringSoon ? 'bg-yellow-50' : 'bg-[#162828]';
 
   return (
+    <>
     <Card className={`w-full overflow-hidden shadow-sm border-l-2 ${cardBorderClass} ${cardBgClass}`}>
       {/* HEADER COMPACTO - UNA SOLA LÍNEA */}
-      <div className={`px-3 py-2 md:px-3 md:py-2 border-b border-gray-200 ${isExpired ? 'bg-red-50' : isExpiringSoon ? 'bg-yellow-50' : 'bg-white'}`}>
+      <div className={`px-3 py-2 md:px-3 md:py-2 border-b border-[rgba(106,207,199,0.12)] ${isExpired ? 'bg-red-50' : isExpiringSoon ? 'bg-yellow-50' : 'bg-[#162828]'}`}>
         <div className="flex items-center gap-2 md:gap-3 mb-2">
           {/* Logo Innovar pequeño (32px) */}
-          <div className="flex-shrink-0 w-8 h-8 md:w-8 md:h-8 rounded-md flex items-center justify-center overflow-hidden bg-white">
+          <div className="flex-shrink-0 w-8 h-8 md:w-8 md:h-8 rounded-md flex items-center justify-center overflow-hidden bg-[#162828]">
             <img 
               src="/logo-light.png" 
               alt="Innovar" 
@@ -157,7 +163,7 @@ export function QuotationGroupCard({
             </h3>
             {/* Número de cotización - Debajo */}
             <div className="flex items-center gap-2 flex-wrap mt-0.5">
-              <p className="text-xs text-gray-500 truncate">
+              <p className="text-xs text-white/45 truncate">
                 {group.quotationNumber}
               </p>
               {isActiveVersion && (
@@ -166,9 +172,14 @@ export function QuotationGroupCard({
                 </Badge>
               )}
               {group.versionCount > 1 && (
-                <Badge variant="outline" className="text-xs py-0 px-2 text-gray-600">
+                <button
+                  onClick={() => setShowComparator(true)}
+                  className="flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-800 border border-indigo-200 hover:border-indigo-400 rounded-full px-2 py-0 transition-colors"
+                  title="Comparar versiones"
+                >
+                  <GitCompare className="w-3 h-3" />
                   {group.versionCount}v
-                </Badge>
+                </button>
               )}
               <Badge className={`${getStatusColor(selectedVersion.status)} text-xs py-0 px-2 border-0`}>
                 {getStatusLabel(selectedVersion.status)}
@@ -194,9 +205,19 @@ export function QuotationGroupCard({
                   <span>Sin Proyecto</span>
                 </Badge>
               )}
+              {group.hasProject && selectedVersion.id === group.activeProjectQuotationId && (
+                <Badge className="bg-indigo-100 text-indigo-700 text-xs py-0 px-2 border border-indigo-200 flex items-center gap-1">
+                  <span>💰 Precio vigente</span>
+                </Badge>
+              )}
+              {group.hasProject && selectedVersion.id !== group.activeProjectQuotationId && (
+                <Badge className="bg-gray-100 text-white/45 text-xs py-0 px-2 border border-[rgba(106,207,199,0.12)]">
+                  Versión anterior
+                </Badge>
+              )}
             </div>
             {client?.phone && (
-              <p className="text-xs text-gray-500 truncate mt-0.5">
+              <p className="text-xs text-white/45 truncate mt-0.5">
                 {client.phone}
               </p>
             )}
@@ -214,7 +235,7 @@ export function QuotationGroupCard({
                 <span className="text-gray-400 text-xs">••••••••</span>
               )}
             </div>
-            <div className="text-xs text-gray-500 mt-0.5 space-y-0.5">
+            <div className="text-xs text-white/45 mt-0.5 space-y-0.5">
               <div>Crea: {createdDate.toLocaleDateString('es-CO', { month: '2-digit', day: '2-digit' })}</div>
               <div>Vence: {validUntilDate.toLocaleDateString('es-CO', { month: '2-digit', day: '2-digit' })}</div>
             </div>
@@ -223,7 +244,7 @@ export function QuotationGroupCard({
 
         {/* Selector de versión - SIEMPRE VISIBLE */}
         <div className="flex items-center gap-2">
-          <label className="text-xs font-medium text-gray-600">Versión:</label>
+          <label className="text-xs font-medium text-white/60">Versión:</label>
           <Select
             value={selectedVersionId.toString()}
             onValueChange={(value) => setSelectedVersionId(parseInt(value))}
@@ -232,12 +253,16 @@ export function QuotationGroupCard({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {group.versions.map((version) => (
-                <SelectItem key={version.id} value={version.id.toString()}>
-                  V{version.versionNumber}
-                  {version.id === group.activeVersion.id ? " (Activa)" : " (Hist)"}
-                </SelectItem>
-              ))}
+              {group.versions.map((version) => {
+                const isProjectVersion = version.id === group.activeProjectQuotationId;
+                const isActive = version.id === group.activeVersion.id;
+                return (
+                  <SelectItem key={version.id} value={version.id.toString()}>
+                    V{version.versionNumber}
+                    {isProjectVersion && group.hasProject ? " ✓ Precio vigente" : isActive && !group.hasProject ? " (Activa)" : " (Anterior)"}
+                  </SelectItem>
+                );
+              })}
             </SelectContent>
           </Select>
         </div>
@@ -246,23 +271,23 @@ export function QuotationGroupCard({
       <CardContent className="px-3 py-2 md:px-3 md:py-2 space-y-2">
         {/* Sección de Precios - Colapsable compacta */}
         {isActiveVersion && (
-          <div className="border-b border-gray-200 pb-2">
+          <div className="border-b border-[rgba(106,207,199,0.12)] pb-2">
             <button
               onClick={() => setShowValues(!showValues)}
-              className="w-full flex items-center justify-between px-2 py-1 rounded text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+              className="w-full flex items-center justify-between px-2 py-1 rounded text-xs font-medium text-white/85 hover:bg-gray-50 transition-colors"
             >
               <span>Precios</span>
               {showValues ? (
-                <EyeOff className="w-3 h-3 text-gray-500" />
+                <EyeOff className="w-3 h-3 text-white/45" />
               ) : (
-                <Eye className="w-3 h-3 text-gray-500" />
+                <Eye className="w-3 h-3 text-white/45" />
               )}
             </button>
             
             {showValues && (
               <div className="mt-1 p-2 rounded bg-[#14B8A6]/5 border border-[#14B8A6]/20 text-xs space-y-1">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Subtotal:</span>
+                  <span className="text-white/60">Subtotal:</span>
                   <span className="font-semibold">
                     ${parseFloat(selectedVersion.subtotal || "0").toLocaleString("es-CO", {
                       minimumFractionDigits: 0,
@@ -271,7 +296,7 @@ export function QuotationGroupCard({
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Transporte:</span>
+                  <span className="text-white/60">Transporte:</span>
                   <span className="font-semibold">
                     ${parseFloat(selectedVersion.transportCost || "0").toLocaleString("es-CO", {
                       minimumFractionDigits: 0,
@@ -302,8 +327,20 @@ export function QuotationGroupCard({
               size="sm"
               variant="outline"
               className="text-xs py-1 px-2 h-7 gap-1"
-              onClick={() => onCreateVersion(selectedVersion)}
+              onClick={() => {
+                if (group.hasProject) {
+                  const confirmed = window.confirm(
+                    '⚠️ Esta cotización tiene un proyecto vinculado.\n\n' +
+                    'Al crear una nueva versión y modificar los precios, ' +
+                    'el valor del proyecto se actualizará automáticamente con el nuevo total.\n\n' +
+                    '¿Continuar?'
+                  );
+                  if (!confirmed) return;
+                }
+                onCreateVersion(selectedVersion);
+              }}
               disabled={isLocked}
+              title={group.hasProject ? 'Al modificar precios en la nueva versión, el valor del proyecto se actualizará automáticamente' : 'Crear nueva versión de esta cotización'}
             >
               <Copy className="w-3 h-3" />
               <span className="hidden sm:inline">V.Nueva</span>
@@ -319,6 +356,11 @@ export function QuotationGroupCard({
             <FileText className="w-3 h-3" />
             <span className="hidden sm:inline">PDF</span>
           </Button>
+
+          <ExportQuotationWordButton
+            quotationId={selectedVersion.id}
+            quotationNumber={selectedVersion.quotationNumber || group.quotationNumber}
+          />
 
           {/* SECUNDARIOS */}
           {isActiveVersion && !group.activeVersion.projectId && (
@@ -467,9 +509,9 @@ export function QuotationGroupCard({
         {isActiveVersion && (
           <div className="mt-3 p-3 rounded bg-pink-50 border border-pink-200">
             <div className="flex items-center justify-between mb-2">
-              <label className="text-sm font-semibold text-gray-700">Notas del Cliente</label>
+              <label className="text-sm font-semibold text-white/85">Notas del Cliente</label>
               <div className="flex gap-1">
-                <select className="text-xs px-2 py-1 rounded border border-pink-300 bg-white">
+                <select className="text-xs px-2 py-1 rounded border border-pink-300 bg-[#162828]">
                   <option value="">Sin estado</option>
                   <option value="aprobado">Aprobado</option>
                   <option value="rechazado">Rechazado</option>
@@ -478,7 +520,7 @@ export function QuotationGroupCard({
               </div>
             </div>
             <textarea
-              className="w-full text-xs p-2 rounded border border-pink-300 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-400"
+              className="w-full text-xs p-2 rounded border border-pink-300 bg-[#162828] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-400"
               placeholder="Ingresa la respuesta del cliente aquí..."
               rows={2}
               defaultValue={selectedVersion.clientResponseNotes || ""}
@@ -487,5 +529,16 @@ export function QuotationGroupCard({
         )}
       </CardContent>
     </Card>
+
+    {/* Comparador de versiones */}
+    {showComparator && (
+      <QuotationVersionComparator
+        open={showComparator}
+        onClose={() => setShowComparator(false)}
+        quotationId={group.activeVersion.id}
+        quotationNumber={group.quotationNumber}
+      />
+    )}
+    </>
   );
 }

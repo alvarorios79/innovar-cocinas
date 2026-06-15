@@ -1,9 +1,8 @@
-import { useEffect } from "react";
-import { trpc } from "@/lib/trpc";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertCircle, TrendingUp, DollarSign, TrendingDown, AlertTriangle } from "lucide-react";
+import { AlertCircle, TrendingUp, DollarSign, TrendingDown, AlertTriangle, BarChart3 } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
-import DashboardLayout from "@/components/DashboardLayout";
+import { KpiCard, KpiGrid } from "@/components/KpiCard";
+import { trpc } from "@/lib/trpc";
 import {
   ResponsiveContainer,
   BarChart,
@@ -24,26 +23,20 @@ const formatCurrency = (value: number) => {
   }).format(value);
 };
 
+// ── Componente principal ─────────────────────────────────────────────────────
 export function CEODashboard() {
-  // Query para obtener métricas del Panel CEO
   const { data: ceoMetrics, isLoading, error } = trpc.dashboard.getCEOMetrics.useQuery();
-  
-  // Query para obtener datos del dashboard global (para flujo de caja)
   const { data: dashboardData } = trpc.dashboard.getGlobalDashboard.useQuery();
-
-  // DEBUG LOGS
-  useEffect(() => {
-    console.log("CEO Metrics:", ceoMetrics);
-    console.log("CEO Metrics error:", error);
-    console.log("CEO Metrics loading:", isLoading);
-  }, [ceoMetrics, error, isLoading]);
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="flex items-center justify-center py-24">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Cargando dashboard...</p>
+          <div
+            className="animate-spin rounded-full h-12 w-12 mx-auto mb-4"
+            style={{ border: "3px solid #e2e8f0", borderTopColor: "#1DB5A8" }}
+          />
+          <p className="text-sm text-muted-foreground">Cargando métricas...</p>
         </div>
       </div>
     );
@@ -51,21 +44,11 @@ export function CEODashboard() {
 
   if (error || !ceoMetrics) {
     return (
-      <div className="flex items-center justify-center h-screen p-4">
-        <div className="text-center max-w-2xl">
-          <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <p className="text-red-500 font-bold mb-4">Error al cargar el dashboard</p>
-          <pre style={{
-            backgroundColor: "#f3f4f6",
-            padding: "16px",
-            borderRadius: "8px",
-            overflow: "auto",
-            maxHeight: "400px",
-            textAlign: "left",
-            fontSize: "12px",
-            color: "#dc2626",
-            fontFamily: "monospace"
-          }}>
+      <div className="flex items-center justify-center py-24 px-4">
+        <div className="text-center max-w-lg">
+          <AlertCircle className="h-12 w-12 text-red-400 mx-auto mb-4" />
+          <p className="text-red-500 font-semibold mb-3">Error al cargar el dashboard</p>
+          <pre className="bg-red-50 text-red-600 text-xs p-4 rounded-lg overflow-auto text-left max-h-60">
             {JSON.stringify(error, null, 2)}
           </pre>
         </div>
@@ -73,258 +56,193 @@ export function CEODashboard() {
     );
   }
 
-  // Extraer métricas
   const ingresosRecibidos = Number(ceoMetrics?.ingresosRecibidos) || 0;
-  const totalVendido = Number(ceoMetrics?.totalVendido) || 0;
-  const porCobrar = Number(ceoMetrics?.porCobrar) || 0;
-  const gastos = Number(ceoMetrics?.gastos) || 0;
-  const margen = Number(ceoMetrics?.margen) || 0;
-  const rentabilidad = Number(ceoMetrics?.rentabilidad) || 0;
+  const totalVendido      = Number(ceoMetrics?.totalVendido) || 0;
+  const porCobrar         = Number(ceoMetrics?.porCobrar) || 0;
+  const gastos            = Number(ceoMetrics?.gastos) || 0;
+  const margen            = Number(ceoMetrics?.margen) || 0;
+  const rentabilidad      = Number(ceoMetrics?.rentabilidad) || 0;
+  const cashFlowData      = dashboardData?.cashFlow || [];
 
-  // Datos de flujo de caja del dashboard global
-  const cashFlowData = dashboardData?.cashFlow || [];
+  const pctPorCobrar = totalVendido > 0 ? ((porCobrar / totalVendido) * 100).toFixed(1) : "0";
+  const pctGastos    = ingresosRecibidos > 0 ? ((gastos / ingresosRecibidos) * 100).toFixed(1) : "0";
 
   return (
-        <div className="min-h-screen pb-20 md:pb-0 bg-gradient-to-br from-slate-50 to-slate-100 p-6">
-      <div className="max-w-7xl mx-auto">
-        <PageHeader
-          title="Panel Financiero CEO"
-          subtitle="Control total del negocio - Métricas en tiempo real"
-          showBack={false}
+    <div>
+      <PageHeader
+        title="Panel Financiero"
+        subtitle="Métricas del negocio en tiempo real"
+        icon={<BarChart3 className="h-5 w-5" />}
+      />
+
+      {/* ── Fila 1: KPIs principales ── */}
+      <KpiGrid cols={3} className="mb-6">
+        <KpiCard
+          label="Ingresos Recibidos"
+          value={formatCurrency(ingresosRecibidos)}
+          helper="Pagos registrados en el sistema"
+          icon={<TrendingUp className="h-5 w-5" />}
+          accent="#1DB5A8"
         />
+        <KpiCard
+          label="Total Vendido"
+          value={formatCurrency(totalVendido)}
+          helper="Valor total de proyectos activos"
+          icon={<DollarSign className="h-5 w-5" />}
+          accent="#22C55E"
+        />
+        <KpiCard
+          label="Por Cobrar"
+          value={formatCurrency(porCobrar)}
+          helper={`${pctPorCobrar}% del total vendido pendiente`}
+          icon={<AlertTriangle className="h-5 w-5" />}
+          accent="#F59E0B"
+        />
+      </KpiGrid>
 
-        {/* KPI Cards - Primera fila */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-          {/* Ingresos Recibidos */}
-          <Card className="border border-teal-100 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 bg-white dark:bg-slate-900">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <TrendingUp className="h-4 w-4 text-teal-600" />
-                Ingresos Recibidos
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold text-teal-600">{formatCurrency(ingresosRecibidos)}</p>
-              <p className="text-xs text-slate-500 mt-1">Pagos registrados</p>
-            </CardContent>
-          </Card>
+      {/* ── Fila 2: KPIs financieros ── */}
+      <KpiGrid cols={3} className="mb-8">
+        <KpiCard
+          label="Gastos Totales"
+          value={formatCurrency(gastos)}
+          helper={`${pctGastos}% de los ingresos recibidos`}
+          icon={<TrendingDown className="h-5 w-5" />}
+          accent="#EF4444"
+        />
+        <KpiCard
+          label="Margen Neto"
+          value={formatCurrency(margen)}
+          helper="Ingresos recibidos − gastos totales"
+          icon={<DollarSign className="h-5 w-5" />}
+          accent="#1DB5A8"
+        />
+        <KpiCard
+          label="Rentabilidad"
+          value={`${rentabilidad.toFixed(1)}%`}
+          helper="Margen sobre ingresos recibidos"
+          icon={<TrendingUp className="h-5 w-5" />}
+          accent="#F59E0B"
+        />
+      </KpiGrid>
 
-          {/* Total Vendido */}
-          <Card className="border border-teal-100 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 bg-white dark:bg-slate-900">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <DollarSign className="h-4 w-4 text-teal-700" />
-                Total Vendido
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold text-teal-700">{formatCurrency(totalVendido)}</p>
-              <p className="text-xs text-slate-500 mt-1">Valor de proyectos</p>
-            </CardContent>
-          </Card>
-
-          {/* Por Cobrar */}
-          <Card className="border border-teal-100 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 bg-white dark:bg-slate-900">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <AlertTriangle className="h-4 w-4 text-amber-600" />
-                Por Cobrar
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold text-amber-600">{formatCurrency(porCobrar)}</p>
-              <p className="text-xs text-slate-500 mt-1">
-                {totalVendido > 0 ? `${((porCobrar / totalVendido) * 100).toFixed(1)}% pendiente` : "0% pendiente"}
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* KPI Cards - Segunda fila */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-          {/* Gastos */}
-          <Card className="border border-teal-100 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 bg-white dark:bg-slate-900">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <TrendingDown className="h-4 w-4 text-red-500" />
-                Gastos Totales
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold text-red-500">{formatCurrency(gastos)}</p>
-              <p className="text-xs text-slate-500 mt-1">Proyectos + Operativos</p>
-            </CardContent>
-          </Card>
-
-          {/* Margen */}
-          <Card className="border border-teal-100 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 bg-white dark:bg-slate-900">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <DollarSign className="h-4 w-4 text-teal-600" />
-                Margen Neto
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold text-teal-600">{formatCurrency(margen)}</p>
-              <p className="text-xs text-slate-500 mt-1">Ingresos - Gastos</p>
-            </CardContent>
-          </Card>
-
-          {/* Rentabilidad */}
-          <Card className="border border-teal-100 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 bg-white dark:bg-slate-900">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <TrendingUp className="h-4 w-4 text-amber-600" />
-                Rentabilidad
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold text-amber-600">{rentabilidad.toFixed(1)}%</p>
-              <p className="text-xs text-slate-500 mt-1">(Margen / Ingresos)</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Financial Summary */}
-        <Card className="border border-teal-100 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 bg-white dark:bg-slate-900 mb-8">
-          <CardHeader>
-            <CardTitle className="text-2xl font-semibold tracking-tight">Resumen Financiero Detallado</CardTitle>
-            <CardDescription>Análisis completo de ingresos, gastos y rentabilidad</CardDescription>
+      {/* ── Flujo de caja ── */}
+      {cashFlowData.length > 0 && (
+        <Card className="mb-6 shadow-sm border-0" style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.08)" }}>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base font-semibold text-white/85">Flujo de Caja — Últimos 6 meses</CardTitle>
+            <CardDescription>Ingresos vs Egresos por mes</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Ingresos */}
-              <div className="space-y-4">
-                <h3 className="text-sm font-semibold text-slate-700">Ingresos</h3>
-                <div className="flex justify-between items-center pb-3 border-b">
-                  <span className="text-sm text-slate-600">Recibidos</span>
-                  <span className="font-bold text-teal-600">{formatCurrency(ingresosRecibidos)}</span>
-                </div>
-                <div className="flex justify-between items-center pb-3 border-b">
-                  <span className="text-sm text-slate-600">Total Vendido</span>
-                  <span className="font-bold text-teal-700">{formatCurrency(totalVendido)}</span>
-                </div>
-                <div className="flex justify-between items-center pb-3 border-b">
-                  <span className="text-sm text-slate-600">Por Cobrar</span>
-                  <span className="font-bold text-amber-600">{formatCurrency(porCobrar)}</span>
-                </div>
-              </div>
-
-              {/* Gastos */}
-              <div className="space-y-4">
-                <h3 className="text-sm font-semibold text-slate-700">Gastos</h3>
-                <div className="flex justify-between items-center pb-3 border-b">
-                  <span className="text-sm text-slate-600">Total Gastos</span>
-                  <span className="font-bold text-red-500">{formatCurrency(gastos)}</span>
-                </div>
-                <div className="flex justify-between items-center pb-3 border-b">
-                  <span className="text-sm text-slate-600">% del Ingreso</span>
-                  <span className="font-bold text-red-500">
-                    {ingresosRecibidos > 0 ? ((gastos / ingresosRecibidos) * 100).toFixed(1) : 0}%
-                  </span>
-                </div>
-              </div>
-
-              {/* Rentabilidad */}
-              <div className="space-y-4">
-                <h3 className="text-sm font-semibold text-slate-700">Rentabilidad</h3>
-                <div className="flex justify-between items-center pb-3 border-b">
-                  <span className="text-sm text-slate-600">Margen Neto</span>
-                  <span className="font-bold text-teal-600">{formatCurrency(margen)}</span>
-                </div>
-                <div className="flex justify-between items-center pb-3 border-b">
-                  <span className="text-sm text-slate-600">Rentabilidad</span>
-                  <span className="font-bold text-amber-600">{rentabilidad.toFixed(1)}%</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Summary Boxes */}
-            <div className="mt-6 pt-6 border-t-2 space-y-3">
-              <div className="flex justify-between items-center bg-teal-50 p-3 rounded-lg">
-                <span className="text-sm font-medium text-slate-700">Ingresos Recibidos</span>
-                <span className="font-bold text-lg text-teal-600">
-                  {formatCurrency(ingresosRecibidos)}
-                </span>
-              </div>
-              <div className="flex justify-between items-center bg-teal-50 p-3 rounded-lg">
-                <span className="text-sm font-medium text-slate-700">Total Vendido</span>
-                <span className="font-bold text-lg text-teal-700">
-                  {formatCurrency(totalVendido)}
-                </span>
-              </div>
-              <div className="flex justify-between items-center bg-amber-50 p-3 rounded-lg">
-                <span className="text-sm font-medium text-slate-700">Por Cobrar</span>
-                <span className="font-bold text-lg text-amber-600">
-                  {formatCurrency(porCobrar)}
-                </span>
-              </div>
-              <div className="flex justify-between items-center bg-red-50/50 p-3 rounded-lg">
-                <span className="text-sm font-medium text-slate-700">Gastos Totales</span>
-                <span className="font-bold text-lg text-red-500">
-                  {formatCurrency(gastos)}
-                </span>
-              </div>
-              <div className="flex justify-between items-center bg-teal-50 p-3 rounded-lg">
-                <span className="text-sm font-medium text-slate-700">Margen Neto</span>
-                <span className="font-bold text-lg text-teal-600">
-                  {formatCurrency(margen)}
-                </span>
-              </div>
-              <div className="flex justify-between items-center bg-amber-50 p-3 rounded-lg">
-                <span className="text-sm font-medium text-slate-700">Rentabilidad</span>
-                <span className="font-bold text-lg text-amber-600">
-                  {rentabilidad.toFixed(1)}%
-                </span>
-              </div>
-            </div>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={280}>
+              <BarChart data={cashFlowData} barCategoryGap="30%">
+                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                <XAxis dataKey="label" tick={{ fontSize: 12, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false} tickFormatter={(v) => `$${(v/1000000).toFixed(0)}M`} />
+                <Tooltip
+                  formatter={(value) => formatCurrency(Number(value))}
+                  contentStyle={{ borderRadius: 8, border: "1px solid #e2e8f0", fontSize: 12 }}
+                />
+                <Legend wrapperStyle={{ fontSize: 12 }} />
+                <Bar dataKey="ingresos" fill="#1DB5A8" name="Ingresos" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="egresos"  fill="#EF4444" name="Egresos"  radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
           </CardContent>
         </Card>
+      )}
 
-        {/* Flujo de Caja - Últimos 6 Meses */}
-        {cashFlowData && cashFlowData.length > 0 && (
-          <Card className="border border-teal-100 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 bg-white dark:bg-slate-900 mb-8">
-            <CardHeader>
-              <CardTitle className="text-2xl font-semibold tracking-tight">Flujo de Caja - Últimos 6 Meses</CardTitle>
-              <CardDescription>Ingresos vs Egresos por mes</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={cashFlowData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="label" />
-                  <YAxis />
-                  <Tooltip formatter={(value) => formatCurrency(Number(value))} />
-                  <Legend />
-                  <Bar dataKey="ingresos" fill="#1DB5A8" name="Ingresos" />
-                  <Bar dataKey="egresos" fill="#EF4444" name="Egresos" />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        )}
+      {/* ── Resumen financiero detallado ── */}
+      <Card className="mb-6 shadow-sm border-0" style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.08)" }}>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base font-semibold text-white/85">Resumen Financiero Detallado</CardTitle>
+          <CardDescription>Análisis completo de ingresos, gastos y rentabilidad</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Ingresos */}
+            <div className="space-y-3">
+              <p className="text-xs font-semibold uppercase tracking-wider text-white/35">Ingresos</p>
+              {[
+                { label: "Recibidos",     value: formatCurrency(ingresosRecibidos), color: "text-teal-600" },
+                { label: "Total Vendido", value: formatCurrency(totalVendido),      color: "text-teal-700" },
+                { label: "Por Cobrar",    value: formatCurrency(porCobrar),         color: "text-amber-600" },
+              ].map((row) => (
+                <div key={row.label} className="flex justify-between items-center py-2 border-b border-slate-50 last:border-0">
+                  <span className="text-sm text-white/45">{row.label}</span>
+                  <span className={`text-sm font-semibold ${row.color}`}>{row.value}</span>
+                </div>
+              ))}
+            </div>
 
-        {/* Info Card */}
-        <Card className="border border-teal-100 shadow-md bg-teal-50">
-          <CardHeader>
-            <CardTitle className="text-slate-800">Información del Dashboard</CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm text-slate-700">
-            <p>
-              Este dashboard muestra métricas financieras reales en tiempo real basadas en:
-            </p>
-            <ul className="list-disc list-inside mt-2 space-y-1">
-              <li><strong>Ingresos Recibidos:</strong> Pagos registrados en el sistema (movementType = 'payment')</li>
-              <li><strong>Total Vendido:</strong> Suma del valor de todos los proyectos activos</li>
-              <li><strong>Por Cobrar:</strong> Diferencia entre total vendido e ingresos recibidos</li>
-              <li><strong>Gastos:</strong> Suma de todos los gastos registrados (proyectos + operativos)</li>
-              <li><strong>Margen Neto:</strong> Ingresos recibidos menos gastos totales</li>
-              <li><strong>Rentabilidad:</strong> Porcentaje de margen sobre ingresos recibidos</li>
-            </ul>
-          </CardContent>
-        </Card>
+            {/* Gastos */}
+            <div className="space-y-3">
+              <p className="text-xs font-semibold uppercase tracking-wider text-white/35">Gastos</p>
+              {[
+                { label: "Total Gastos",  value: formatCurrency(gastos), color: "text-red-500" },
+                { label: "% del Ingreso", value: `${pctGastos}%`,        color: "text-red-500" },
+              ].map((row) => (
+                <div key={row.label} className="flex justify-between items-center py-2 border-b border-slate-50 last:border-0">
+                  <span className="text-sm text-white/45">{row.label}</span>
+                  <span className={`text-sm font-semibold ${row.color}`}>{row.value}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Rentabilidad */}
+            <div className="space-y-3">
+              <p className="text-xs font-semibold uppercase tracking-wider text-white/35">Resultado</p>
+              {[
+                { label: "Margen Neto",    value: formatCurrency(margen),       color: "text-teal-600" },
+                { label: "Rentabilidad",   value: `${rentabilidad.toFixed(1)}%`, color: "text-amber-600" },
+              ].map((row) => (
+                <div key={row.label} className="flex justify-between items-center py-2 border-b border-slate-50 last:border-0">
+                  <span className="text-sm text-white/45">{row.label}</span>
+                  <span className={`text-sm font-semibold ${row.color}`}>{row.value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Summary highlights */}
+          <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {[
+              { label: "Ingresos",     value: formatCurrency(ingresosRecibidos), bg: "rgba(29,181,168,0.06)",  border: "rgba(29,181,168,0.2)",  text: "text-teal-700" },
+              { label: "Por Cobrar",   value: formatCurrency(porCobrar),         bg: "rgba(245,158,11,0.06)", border: "rgba(245,158,11,0.2)",  text: "text-amber-700" },
+              { label: "Gastos",       value: formatCurrency(gastos),            bg: "rgba(239,68,68,0.06)",  border: "rgba(239,68,68,0.2)",   text: "text-red-600" },
+              { label: "Margen Neto",  value: formatCurrency(margen),            bg: "rgba(29,181,168,0.06)", border: "rgba(29,181,168,0.2)",  text: "text-teal-700" },
+              { label: "Rentabilidad", value: `${rentabilidad.toFixed(1)}%`,     bg: "rgba(245,158,11,0.06)", border: "rgba(245,158,11,0.2)",  text: "text-amber-700" },
+            ].map((item) => (
+              <div
+                key={item.label}
+                className="rounded-lg px-4 py-3"
+                style={{ background: item.bg, border: `1px solid ${item.border}` }}
+              >
+                <p className="text-xs text-white/45 mb-1">{item.label}</p>
+                <p className={`text-base font-bold ${item.text}`}>{item.value}</p>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ── Info ── */}
+      <div
+        className="rounded-xl p-5 text-sm text-white/60"
+        style={{
+          background: "rgba(29,181,168,0.04)",
+          border: "1px solid rgba(29,181,168,0.15)",
+        }}
+      >
+        <p className="font-semibold text-white/85 mb-2">Fuentes de datos</p>
+        <ul className="space-y-1 text-white/45">
+          <li><strong className="text-white/60">Ingresos Recibidos:</strong> Pagos registrados (movementType = payment)</li>
+          <li><strong className="text-white/60">Total Vendido:</strong> Suma del valor de todos los proyectos activos</li>
+          <li><strong className="text-white/60">Por Cobrar:</strong> Total vendido − ingresos recibidos</li>
+          <li><strong className="text-white/60">Gastos:</strong> Gastos de proyectos + gastos operativos</li>
+          <li><strong className="text-white/60">Margen Neto:</strong> Ingresos recibidos − gastos totales</li>
+          <li><strong className="text-white/60">Rentabilidad:</strong> (Margen / Ingresos) × 100</li>
+        </ul>
       </div>
     </div>
-  
-      );
+  );
 }

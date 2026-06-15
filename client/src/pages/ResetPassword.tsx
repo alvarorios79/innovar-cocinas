@@ -31,7 +31,7 @@ export default function ResetPassword() {
       toast.success("¡Contraseña actualizada!", {
         description: "Ya puedes iniciar sesión con tu nueva contraseña",
       });
-      window.location.href = "/portal";
+      setLocation("/login");
     },
     onError: (error) => {
       toast.error("Error", {
@@ -87,10 +87,10 @@ export default function ResetPassword() {
 
   if (!token) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-100 flex items-center justify-center p-3 md:p-4">
+      <div className="min-h-screen flex items-center justify-center p-3 md:p-4" style={{ background: "linear-gradient(135deg, #f8fafc 0%, #f0fdfa 100%)" }}>
         <Card className="w-full max-w-md shadow-xl">
           <CardHeader className="text-center space-y-2 p-4 md:p-6">
-            <div className="mx-auto w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-red-500 to-rose-600 rounded-2xl flex items-center justify-center mb-2">
+            <div className="mx-auto w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-teal-600 to-teal-500 rounded-2xl flex items-center justify-center mb-2">
               <AlertTriangle className="text-white h-8 w-8 md:h-10 md:w-10" />
             </div>
             <CardTitle className="text-xl md:text-2xl font-bold text-gray-800">Enlace inválido</CardTitle>
@@ -100,12 +100,12 @@ export default function ResetPassword() {
           </CardHeader>
           <CardContent className="p-4 md:p-6 pt-0">
             <Link href="/forgot-password">
-              <Button className="w-full h-11 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-semibold">
+              <Button className="w-full h-11 bg-gradient-to-r from-teal-600 to-teal-500 hover:from-teal-700 hover:to-teal-600 text-white font-semibold">
                 Solicitar nuevo enlace
               </Button>
             </Link>
             <div className="mt-4 text-center">
-              <Link href="/login" className="text-sm text-gray-500 hover:text-amber-600 transition-colors">
+              <Link href="/login" className="text-sm text-gray-500 hover:text-teal-600 transition-colors">
                 ← Volver a iniciar sesión
               </Link>
             </div>
@@ -116,10 +116,10 @@ export default function ResetPassword() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-100 flex items-center justify-center p-3 md:p-4">
+    <div className="min-h-screen flex items-center justify-center p-3 md:p-4" style={{ background: "linear-gradient(135deg, #f8fafc 0%, #f0fdfa 100%)" }}>
       <Card className="w-full max-w-md shadow-xl">
         <CardHeader className="text-center space-y-2 p-4 md:p-6">
-          <div className="mx-auto w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl flex items-center justify-center mb-2">
+          <div className="mx-auto w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-teal-600 to-teal-500 rounded-2xl flex items-center justify-center mb-2">
             <Lock className="text-white h-8 w-8 md:h-10 md:w-10" />
           </div>
           <CardTitle className="text-xl md:text-2xl font-bold text-gray-800">Nueva Contraseña</CardTitle>
@@ -180,7 +180,7 @@ export default function ResetPassword() {
 
             <Button
               type="submit"
-              className="w-full h-11 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-semibold"
+              className="w-full h-11 bg-gradient-to-r from-teal-600 to-teal-500 hover:from-teal-700 hover:to-teal-600 text-white font-semibold"
               disabled={resetMutation.isPending || !isPasswordValid || !passwordsMatch}
             >
               {resetMutation.isPending ? (
@@ -198,7 +198,7 @@ export default function ResetPassword() {
           </form>
 
           <div className="mt-6 text-center">
-            <Link href="/login" className="text-sm text-gray-500 hover:text-amber-600 transition-colors">
+            <Link href="/login" className="text-sm text-gray-500 hover:text-teal-600 transition-colors">
               ← Volver a iniciar sesión
             </Link>
           </div>

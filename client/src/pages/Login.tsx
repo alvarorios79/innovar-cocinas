@@ -42,14 +42,13 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-100 flex items-center justify-center p-3 md:p-4">
-      <Card className="w-full max-w-md shadow-xl">
+    <div className="min-h-screen flex items-center justify-center p-3 md:p-4" style={{ background: "linear-gradient(135deg, #f8fafc 0%, #f0fdfa 100%)" }}>
+      <Card className="w-full max-w-md shadow-xl border border-teal-100">
         <CardHeader className="text-center space-y-2 p-4 md:p-6">
-          <div className="mx-auto w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl flex items-center justify-center mb-2">
-            <span className="text-white text-2xl md:text-3xl font-bold">I</span>
+          <div className="mx-auto mb-2 flex items-center justify-center">
+            <img src="/logo-original.png" alt="INNOVAR Cocinas de Diseño" style={{ width: 90, height: "auto", objectFit: "contain" }} />
           </div>
-          <CardTitle className="text-xl md:text-2xl font-bold text-gray-800">INNOVAR Cocinas</CardTitle>
-          <CardDescription className="text-sm md:text-base text-gray-600">
+          <CardDescription className="text-sm md:text-base text-gray-600 pt-1">
             Ingresa tus credenciales para acceder al sistema
           </CardDescription>
         </CardHeader>
@@ -92,7 +91,7 @@ export default function Login() {
 
             <Button
               type="submit"
-              className="w-full h-11 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-semibold"
+              className="w-full h-11 text-white font-semibold" style={{ background: "linear-gradient(135deg, #1DB5A8 0%, #0D9B8F 100%)" }}
               disabled={loginMutation.isPending}
             >
               {loginMutation.isPending ? (

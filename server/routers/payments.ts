@@ -2,6 +2,7 @@ import { router, protectedProcedure, adminProcedure } from "../_core/trpc";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import * as db from "../db";
+import * as whatsappCloud from "../whatsapp-cloud";
 
 export const paymentsRouter = router({
   /**
@@ -40,6 +41,30 @@ export const paymentsRouter = router({
         notes: input.notes || null,
         registeredBy: ctx.user.id,
       });
+
+      // WhatsApp confirmación de pago al cliente (solo para pagos reales, no descuentos)
+      const movType = input.movementType || "payment";
+      if (movType === "payment" && whatsappCloud.isWhatsAppCloudConfigured()) {
+        try {
+          const client = await db.getClientById(project.clientId);
+          if (client?.whatsappPhone) {
+            const fmtCOP = (v: number) =>
+              new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(v);
+
+            const msg =
+              `✅ *¡Hola ${client.name}!*\n\n` +
+              `Hemos registrado tu pago de *${fmtCOP(input.amount)}* para el proyecto *"${project.name}"*.\n\n` +
+              `💳 Método: ${input.method || "No especificado"}\n` +
+              (input.notes ? `📝 Nota: ${input.notes}\n\n` : "\n") +
+              `Gracias por tu pago. Si tienes alguna consulta, contáctanos.\n\n` +
+              `*INNOVAR Cocinas de Diseño*\n📞 313 680 2025`;
+
+            await whatsappCloud.sendTextMessage(client.whatsappPhone, msg);
+          }
+        } catch (waError) {
+          console.error("[WhatsApp] Error enviando confirmación de pago:", waError);
+        }
+      }
 
       return { id: paymentId, message: "Pago registrado exitosamente" };
     }),

@@ -581,6 +581,7 @@ export const projects = mysqlTable("projects", {
 	isArchived: tinyint().default(0).notNull(),
 	skipDesignProcess: tinyint().default(0).notNull(),
 	accountingClosureId: int().references(() => accountingClosures.id),
+	publicToken: varchar({ length: 64 }),
 },
 (table) => [
 	index("projects_quotationId_quotations_id_fk").on(table.quotationId),
@@ -591,6 +592,7 @@ export const projects = mysqlTable("projects", {
 	index("projects_designerId_idx").on(table.designerId),
 	index("projects_createdBy_idx").on(table.createdBy),
 	index("projects_accountingClosureId_idx").on(table.accountingClosureId),
+	index("projects_publicToken_idx").on(table.publicToken),
 ]);
 
 export const pushSubscriptions = mysqlTable("pushSubscriptions", {
@@ -769,4 +771,30 @@ export const users = mysqlTable("users", {
 	index("users_openId_unique").on(table.openId),
 	index("users_role_idx").on(table.role),
 	index("users_email_idx").on(table.email),
+]);
+
+// ── POSTVENTA ─────────────────────────────────────────────────────────────────
+export const postventaReclamaciones = mysqlTable("postventaReclamaciones", {
+	id: int().autoincrement().primaryKey(),
+	projectId: int().notNull().references(() => projects.id, { onDelete: "cascade" }),
+	title: varchar({ length: 255 }).notNull(),
+	description: text(),
+	// reclamacion = cliente reporta problema, seguimiento_30d = llamada de satisfacción, revision_anual = oferta de revisión al año
+	type: mysqlEnum(['reclamacion', 'seguimiento_30d', 'revision_anual']).default('reclamacion').notNull(),
+	status: mysqlEnum(['pendiente', 'en_revision', 'resuelto', 'no_procede']).default('pendiente').notNull(),
+	priority: mysqlEnum(['alta', 'media', 'baja']).default('media').notNull(),
+	assignedTo: int().references(() => users.id),
+	createdBy: int().notNull().references(() => users.id),
+	resolvedBy: int().references(() => users.id),
+	resolvedAt: timestamp({ mode: 'string' }),
+	resolvedNotes: text(),
+	scheduledFor: timestamp({ mode: 'string' }), // fecha programada para seguimiento/revisión
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+},
+(table) => [
+	index("postventa_projectId_idx").on(table.projectId),
+	index("postventa_status_idx").on(table.status),
+	index("postventa_type_idx").on(table.type),
+	index("postventa_scheduledFor_idx").on(table.scheduledFor),
 ]);

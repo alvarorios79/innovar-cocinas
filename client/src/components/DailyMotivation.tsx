@@ -551,14 +551,14 @@ export function DailyMotivation({ userName, className = "", userBirthDate }: Dai
       
       {/* Patrón decorativo */}
       <div className="absolute inset-0 opacity-10">
-        <div className="absolute top-0 left-0 w-32 h-32 bg-white rounded-full -translate-x-16 -translate-y-16" />
-        <div className="absolute bottom-0 right-0 w-40 h-40 bg-white rounded-full translate-x-20 translate-y-20" />
+        <div className="absolute top-0 left-0 w-32 h-32 bg-[#162828] rounded-full -translate-x-16 -translate-y-16" />
+        <div className="absolute bottom-0 right-0 w-40 h-40 bg-[#162828] rounded-full translate-x-20 translate-y-20" />
       </div>
       
       {/* Contenido */}
       <div className="relative p-4 md:p-6 text-white">
         <div className="flex items-start gap-3">
-          <div className={`p-2 md:p-3 rounded-full ${isSpecial ? "bg-white/30" : "bg-white/20"}`}>
+          <div className={`p-2 md:p-3 rounded-full ${isSpecial ? "bg-[#162828]/30" : "bg-[#162828]/20"}`}>
             <IconComponent className="h-5 w-5 md:h-6 md:w-6" />
           </div>
           <div className="flex-1 min-w-0">

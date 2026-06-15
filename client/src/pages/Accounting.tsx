@@ -1,5 +1,3 @@
-"use client";
-
 import { useState, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
@@ -22,6 +20,7 @@ import {
 } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { Link } from "wouter";
+import { ExportExpensesButton } from "@/components/ExportExpensesButton";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -296,54 +295,32 @@ export default function Accounting() {
   const canEditDelete = user && ["admin", "super_admin"].includes(user.role);
 
   return (
-    <div className="min-h-screen pb-20 md:pb-0 bg-gradient-to-b from-slate-50 to-slate-100">
+    <div className="pb-20 md:pb-6">
       <ExpenseImportModal
         open={importModalOpen}
         onOpenChange={setImportModalOpen}
         projects={projects || []}
       />
-      {/* Botón de navegación */}
-      <div className="bg-white border-b shadow-sm">
-        <div className="container max-w-6xl mx-auto px-4 py-2 md:py-3">
-          <Link href="/admin">
+      <PageHeader
+        title="Contabilidad"
+        subtitle="Registro y control de gastos del proyecto"
+        icon={<Calculator className="h-5 w-5" />}
+        showBack={true}
+        actions={
+          canImport ? (
             <Button
-              variant="ghost"
-              className="w-full md:w-auto h-9 md:h-9 text-xs md:text-sm text-gray-700 hover:text-teal-600 hover:bg-teal-50"
+              onClick={() => setImportModalOpen(true)}
+              style={{ background: "linear-gradient(135deg, #1DB5A8, #0D9B8F)" }}
+              className="text-white font-medium shadow-sm hover:opacity-90"
             >
-              <ArrowLeft className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
-              <span className="hidden sm:inline">Volver al Panel</span>
-              <span className="sm:hidden">Volver</span>
+              <Upload className="h-4 w-4 mr-1.5" />
+              Importar gastos
             </Button>
-          </Link>
-        </div>
-      </div>
+          ) : undefined
+        }
+      />
 
-      {/* Header - Responsive */}
-      <div className="bg-white border-b shadow-sm">
-        <div className="container max-w-6xl mx-auto px-4 py-4 md:py-6">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-4">
-            <div className="flex items-center gap-2 md:gap-3">
-              <Calculator className="h-6 w-6 md:h-8 md:w-8 text-teal-600 flex-shrink-0" />
-              <div className="min-w-0">
-                <h1 className="text-xl md:text-3xl font-bold text-gray-900 truncate">Contabilidad</h1>
-                <p className="text-xs md:text-sm text-gray-600 hidden sm:block">Registro de gastos del proyecto</p>
-              </div>
-            </div>
-            {canImport && (
-              <Button
-                onClick={() => setImportModalOpen(true)}
-                className="bg-teal-600 hover:bg-teal-700 text-white w-full md:w-auto text-xs md:text-sm py-2 md:py-2"
-              >
-                <Upload className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
-                <span className="hidden sm:inline">Importar gastos</span>
-                <span className="sm:hidden">Importar</span>
-              </Button>
-            )}
-          </div>
-        </div>
-      </div>
-
-      <div className="container max-w-6xl mx-auto px-4 py-8">
+      <div className="container max-w-6xl mx-auto px-4 py-4">
         {/* TAB Navigation - Responsive */}
         <div className="overflow-x-auto -mx-4 px-4 mb-8">
           <div className="flex gap-2 border-b min-w-max md:min-w-0">
@@ -418,7 +395,7 @@ export default function Accounting() {
                     className={`flex-1 h-12 text-base font-semibold transition-all ${
                       expenseType === "materiales_proyecto"
                         ? "bg-teal-600 text-white shadow-md"
-                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                        : "bg-white/[0.06] text-slate-400 hover:bg-white/[0.10]"
                     }`}
                   >
                     Proyecto
@@ -429,7 +406,7 @@ export default function Accounting() {
                     className={`flex-1 h-12 text-base font-semibold transition-all ${
                       expenseType === "gasto_operativo"
                         ? "bg-amber-600 text-white shadow-md"
-                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                        : "bg-white/[0.06] text-slate-400 hover:bg-white/[0.10]"
                     }`}
                   >
                     Operativo
@@ -556,15 +533,16 @@ export default function Accounting() {
                 <CardTitle>Historial de Gastos</CardTitle>
                 <CardDescription>Últimos gastos registrados</CardDescription>
               </div>
-              <Button variant="outline" size="sm" onClick={handleExportExpenses}>
-                <Download className="h-4 w-4 mr-2" />
-                Exportar
-              </Button>
+              <ExportExpensesButton
+                expenses={filteredExpenses as any}
+                filename={`Gastos_INNOVAR_${new Date().toISOString().slice(0, 10)}`}
+                label="Exportar Excel"
+              />
             </div>
           </CardHeader>
           <CardContent>
             {/* Filtros */}
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-3 mb-6 p-4 bg-gray-50 rounded-lg">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-3 mb-6 p-4 bg-white/[0.04] rounded-lg border border-white/[0.06]">
               <div>
                 <Label className="text-xs">Tipo</Label>
                 <Select value={filterType} onValueChange={(v: any) => setFilterType(v as any)}>
@@ -635,19 +613,19 @@ export default function Accounting() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b bg-gray-50">
-                    <th className="text-left py-3 px-4 font-semibold">Fecha</th>
-                    <th className="text-left py-3 px-4 font-semibold">Descripción</th>
-                    <th className="text-left py-3 px-4 font-semibold">Cliente</th>
-                    <th className="text-left py-3 px-4 font-semibold">Tipo</th>
-                    <th className="text-right py-3 px-4 font-semibold">Monto</th>
-                    <th className="text-center py-3 px-4 font-semibold">Comprobante</th>
-                    {canEditDelete && <th className="text-center py-3 px-4 font-semibold">Acciones</th>}
+                  <tr className="border-b border-white/[0.08] bg-white/[0.04]">
+                    <th className="text-left py-3 px-4 font-semibold text-slate-400 text-xs uppercase tracking-wide">Fecha</th>
+                    <th className="text-left py-3 px-4 font-semibold text-slate-400 text-xs uppercase tracking-wide">Descripción</th>
+                    <th className="text-left py-3 px-4 font-semibold text-slate-400 text-xs uppercase tracking-wide">Cliente</th>
+                    <th className="text-left py-3 px-4 font-semibold text-slate-400 text-xs uppercase tracking-wide">Tipo</th>
+                    <th className="text-right py-3 px-4 font-semibold text-slate-400 text-xs uppercase tracking-wide">Monto</th>
+                    <th className="text-center py-3 px-4 font-semibold text-slate-400 text-xs uppercase tracking-wide">Comprobante</th>
+                    {canEditDelete && <th className="text-center py-3 px-4 font-semibold text-slate-400 text-xs uppercase tracking-wide">Acciones</th>}
                   </tr>
                 </thead>
                 <tbody>
                   {filteredExpenses.slice((currentPage - 1) * 50, currentPage * 50).map((expense: any, idx: number) => (
-                    <tr key={idx} className="border-b hover:bg-gray-50">
+                    <tr key={idx} className="border-b border-white/[0.06] hover:bg-white/[0.04] transition-colors">
                       <td className="py-3 px-4">
                         {new Date(expense.expenseDate).toLocaleDateString('es-CO')}
                       </td>
@@ -669,14 +647,14 @@ export default function Accounting() {
                             href={expense.receiptUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 hover:underline"
+                            className="inline-flex items-center gap-1 text-teal-400 hover:text-teal-300 hover:underline"
                             title="Ver comprobante"
                           >
                             <span className="text-lg">📎</span>
                             <span className="hidden md:inline text-xs">Ver</span>
                           </a>
                         ) : (
-                          <span className="text-gray-400 text-xs">-</span>
+                          <span className="text-slate-600 text-xs">-</span>
                         )}
                       </td>
                       {canEditDelete && (
@@ -696,7 +674,7 @@ export default function Accounting() {
                               size="sm"
                               variant="ghost"
                               onClick={() => setDeleteConfirmId(expense.id)}
-                              className="h-8 w-8 p-0 md:h-auto md:w-auto md:px-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                              className="h-8 w-8 p-0 md:h-auto md:w-auto md:px-2 text-red-400 hover:text-red-300 hover:bg-red-500/10"
                               title="Eliminar"
                             >
                               <Trash2 className="h-4 w-4 md:mr-1" />
@@ -712,15 +690,15 @@ export default function Accounting() {
             </div>
 
             {filteredExpenses.length === 0 && (
-              <div className="text-center py-8 text-gray-500">
+              <div className="text-center py-8 text-slate-500">
                 No hay gastos registrados
               </div>
             )}
 
             {/* Paginación */}
             {filteredExpenses.length > 0 && (
-              <div className="flex items-center justify-between mt-6 p-4 bg-gray-50 rounded-lg">
-                <div className="text-sm text-gray-600">
+              <div className="flex items-center justify-between mt-6 p-4 bg-white/[0.04] rounded-lg border border-white/[0.06]">
+                <div className="text-sm text-slate-400">
                   Mostrando {Math.min((currentPage - 1) * 50 + 1, filteredExpenses.length)} a {Math.min(currentPage * 50, filteredExpenses.length)} de {filteredExpenses.length} gastos
                 </div>
                 <div className="flex gap-2">

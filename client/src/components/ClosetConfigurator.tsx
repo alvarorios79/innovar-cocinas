@@ -14,7 +14,7 @@ import {
 import { LayoutGrid, DoorOpen, Truck } from "lucide-react";
 
 export interface ClosetConfig {
-  type: "estandar" | "especial" | "empotrado";
+  type: "estandar" | "premium" | "deluxe" | "especial";
   width: number;
   height: number;
   doorType: "corredizas" | "batientes";
@@ -24,6 +24,15 @@ export interface ClosetConfig {
   notes?: string;
   includeTransport?: boolean;
   transportCost?: number;
+  accessories?: {
+    maletero?: boolean;
+    divisor?: boolean;
+    entrepanos?: boolean;
+    doubleCajonero?: boolean;
+    zapatero?: boolean;
+    dobleColgadero?: boolean;
+    espejo?: boolean;
+  };
 }
 
 interface ClosetConfiguratorProps {
@@ -35,21 +44,27 @@ const CLOSET_TYPES = {
   estandar: {
     label: "Closet Estándar",
     price: 750000,
-    depth: "0.60 cm",
-    description: "Profundidad estándar de 0.60 cm"
+    depth: "60 cm",
+    description: "Fondo estándar 60 cm"
+  },
+  premium: {
+    label: "Closet Premium",
+    price: 900000,
+    depth: "60 cm",
+    description: "Con espaldar y laterales — gama alta"
+  },
+  deluxe: {
+    label: "Closet Deluxe",
+    price: 1100000,
+    depth: "60 cm",
+    description: "Máxima calidad, acabados exclusivos"
   },
   especial: {
     label: "Closet Especial",
-    price: 650000,
-    depth: "hasta 0.45 cm",
-    description: "Profundidad reducida hasta 0.45 cm"
+    price: 700000,
+    depth: "< 40 cm",
+    description: "Fondo reducido menor a 40 cm"
   },
-  empotrado: {
-    label: "Closet Empotrado",
-    price: 900000,
-    depth: "0.60 cm",
-    description: "Gama alta con espaldar y laterales"
-  }
 };
 
 export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps) {
@@ -61,13 +76,22 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
   const [includeTransport, setIncludeTransport] = useState<boolean>(config?.includeTransport ?? false);
   const [transportCost, setTransportCost] = useState<number>(config?.transportCost ?? 150000);
 
+  // Accesorios del closet
+  const [accMaletero, setAccMaletero] = useState<boolean>(config?.accessories?.maletero ?? false);
+  const [accDivisor, setAccDivisor] = useState<boolean>(config?.accessories?.divisor ?? false);
+  const [accEntrepanos, setAccEntrepanos] = useState<boolean>(config?.accessories?.entrepanos ?? false);
+  const [accDoubleCajonero, setAccDoubleCajonero] = useState<boolean>(config?.accessories?.doubleCajonero ?? false);
+  const [accZapatero, setAccZapatero] = useState<boolean>(config?.accessories?.zapatero ?? false);
+  const [accDobleColgadero, setAccDobleColgadero] = useState<boolean>(config?.accessories?.dobleColgadero ?? false);
+  const [accEspejo, setAccEspejo] = useState<boolean>(config?.accessories?.espejo ?? false);
+
   useEffect(() => {
     const widthNum = parseFloat(width) || 0;
     const heightNum = parseFloat(height) || 0;
     const squareMeters = widthNum * heightNum;
     const pricePerSquareMeter = CLOSET_TYPES[type].price;
     let subtotal = squareMeters * pricePerSquareMeter;
-    
+
     if (includeTransport) {
       subtotal += transportCost;
     }
@@ -82,11 +106,21 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
       subtotal,
       notes,
       includeTransport,
-      transportCost
+      transportCost,
+      accessories: {
+        maletero: accMaletero,
+        divisor: accDivisor,
+        entrepanos: accEntrepanos,
+        doubleCajonero: accDoubleCajonero,
+        zapatero: accZapatero,
+        dobleColgadero: accDobleColgadero,
+        espejo: accEspejo,
+      },
     };
 
     onChange(newConfig);
-  }, [type, width, height, doorType, notes, includeTransport, transportCost]);
+  }, [type, width, height, doorType, notes, includeTransport, transportCost,
+      accMaletero, accDivisor, accEntrepanos, accDoubleCajonero, accZapatero, accDobleColgadero, accEspejo]);
 
   const squareMeters = (parseFloat(width) || 0) * (parseFloat(height) || 0);
   const closetType = CLOSET_TYPES[type] || CLOSET_TYPES.estandar;
@@ -108,7 +142,7 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
           <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
             <h5 className="font-semibold text-blue-700 mb-3">Tipo de Closet</h5>
             <Select value={type} onValueChange={(value) => setType(value as ClosetConfig["type"])}>
-              <SelectTrigger className="h-10 bg-white">
+              <SelectTrigger className="h-10 bg-[#162828]">
                 <SelectValue placeholder="Selecciona el tipo" />
               </SelectTrigger>
               <SelectContent>
@@ -130,11 +164,11 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
           </div>
 
           {/* Medidas */}
-          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-            <h5 className="font-semibold text-gray-700 mb-3">Medidas del Closet</h5>
+          <div className="bg-gray-50 p-4 rounded-lg border border-[rgba(106,207,199,0.12)]">
+            <h5 className="font-semibold text-white/85 mb-3">Medidas del Closet</h5>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label className="text-sm font-medium text-gray-700 block mb-2">Ancho (metros)</Label>
+                <Label className="text-sm font-medium text-white/85 block mb-2">Ancho (metros)</Label>
                 <Input
                   type="number"
                   step="0.01"
@@ -142,11 +176,11 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
                   value={width}
                   onChange={(e) => setWidth(e.target.value)}
                   placeholder="Ej: 2.50"
-                  className="h-10 bg-white"
+                  className="h-10 bg-[#162828]"
                 />
               </div>
               <div>
-                <Label className="text-sm font-medium text-gray-700 block mb-2">Alto (metros)</Label>
+                <Label className="text-sm font-medium text-white/85 block mb-2">Alto (metros)</Label>
                 <Input
                   type="number"
                   step="0.01"
@@ -154,26 +188,26 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
                   value={height}
                   onChange={(e) => setHeight(e.target.value)}
                   placeholder="Ej: 2.40"
-                  className="h-10 bg-white"
+                  className="h-10 bg-[#162828]"
                 />
               </div>
             </div>
             {squareMeters > 0 && (
               <div className="mt-3 p-3 bg-gray-100 rounded flex justify-between items-center">
-                <span className="text-sm text-gray-700">Área total:</span>
+                <span className="text-sm text-white/85">Área total:</span>
                 <span className="font-bold text-gray-800">{squareMeters.toFixed(2)} M²</span>
               </div>
             )}
           </div>
 
           {/* Tipo de Puertas */}
-          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+          <div className="bg-gray-50 p-4 rounded-lg border border-[rgba(106,207,199,0.12)]">
             <div className="flex items-center gap-2 mb-3">
-              <DoorOpen className="h-4 w-4 text-gray-600" />
-              <h5 className="font-semibold text-gray-700">Tipo de Puertas</h5>
+              <DoorOpen className="h-4 w-4 text-white/60" />
+              <h5 className="font-semibold text-white/85">Tipo de Puertas</h5>
             </div>
             <Select value={doorType} onValueChange={(value) => setDoorType(value as ClosetConfig["doorType"])}>
-              <SelectTrigger className="h-10 bg-white">
+              <SelectTrigger className="h-10 bg-[#162828]">
                 <SelectValue placeholder="Selecciona el tipo" />
               </SelectTrigger>
               <SelectContent>
@@ -183,17 +217,43 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
             </Select>
           </div>
 
+          {/* Accesorios del closet */}
+          <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+            <h5 className="font-semibold text-blue-700 mb-3">Componentes (para descripción)</h5>
+            <p className="text-xs text-blue-600 mb-3">Selecciona los componentes que lleva este closet — se generará la descripción automáticamente.</p>
+            <div className="grid grid-cols-2 gap-2">
+              {([
+                { state: accMaletero,       setState: setAccMaletero,       label: "Maletero" },
+                { state: accDivisor,        setState: setAccDivisor,        label: "Divisor de ropa" },
+                { state: accEntrepanos,     setState: setAccEntrepanos,     label: "Entrepaños" },
+                { state: accDoubleCajonero, setState: setAccDoubleCajonero, label: "Doble cajonero" },
+                { state: accZapatero,       setState: setAccZapatero,       label: "Zapatero" },
+                { state: accDobleColgadero, setState: setAccDobleColgadero, label: "Doble colgadero" },
+                { state: accEspejo,         setState: setAccEspejo,         label: "Espejo en puertas" },
+              ]).map(({ state, setState, label }) => (
+                <div key={label} className="flex items-center gap-2 p-2 bg-[#162828] rounded border border-blue-100 hover:border-blue-300 transition-colors">
+                  <Checkbox
+                    id={`acc-${label}`}
+                    checked={state}
+                    onCheckedChange={(c) => setState(c === true)}
+                  />
+                  <Label htmlFor={`acc-${label}`} className="cursor-pointer text-sm text-white/85">{label}</Label>
+                </div>
+              ))}
+            </div>
+          </div>
+
           {/* Transporte e Imprevistos */}
-          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+          <div className="bg-gray-50 p-4 rounded-lg border border-[rgba(106,207,199,0.12)]">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <Checkbox 
-                  id="closet-transport" 
+                <Checkbox
+                  id="closet-transport"
                   checked={includeTransport} 
                   onCheckedChange={(c) => setIncludeTransport(c === true)} 
                 />
                 <div className="flex items-center gap-2">
-                  <Truck className="h-4 w-4 text-gray-600" />
+                  <Truck className="h-4 w-4 text-white/60" />
                   <Label htmlFor="closet-transport" className="cursor-pointer font-medium">
                     Incluir Transporte e Imprevistos
                   </Label>
@@ -201,7 +261,7 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
               </div>
               {includeTransport && (
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-600">Monto: $</span>
+                  <span className="text-sm text-white/60">Monto: $</span>
                   <Input 
                     type="number" 
                     value={transportCost} 
@@ -215,12 +275,12 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
 
           {/* Notas */}
           <div>
-            <Label className="text-sm font-medium text-gray-700 block mb-2">Notas Adicionales</Label>
+            <Label className="text-sm font-medium text-white/85 block mb-2">Notas Adicionales</Label>
             <Textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Sin zapatero, con espejo en puertas, acabado especial, etc."
-              className="bg-white"
+              className="bg-[#162828]"
               rows={2}
             />
           </div>

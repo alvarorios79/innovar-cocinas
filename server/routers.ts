@@ -26,6 +26,7 @@ import { dashboardRouter } from "./routers/dashboard";
 import { dataProtectionRouter } from "./routers/dataProtection";
 import { backupsRouter } from "./routers/backups";
 import { accountingClosuresRouter } from "./routers/accountingClosures";
+import { postventaRouter } from "./routers/postventa";
 
 export const appRouter = router({
   accountingClosures: accountingClosuresRouter,
@@ -61,6 +62,7 @@ export const appRouter = router({
   expenses: expensesRouter,
   quotationsVersioning: quotationsVersioningRouter,
   quotationsDownload: quotationsDownloadRouter,
+  postventa: postventaRouter,
 });
 
 export type AppRouter = typeof appRouter;

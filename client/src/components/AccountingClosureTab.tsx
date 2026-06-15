@@ -343,7 +343,7 @@ export function AccountingClosureTab() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="bg-white p-4 rounded-lg border border-teal-200">
+                <div className="bg-[#162828] p-4 rounded-lg border border-teal-200">
                   <p className="text-sm font-semibold text-gray-700 mb-3">💰 Desglose de Ingresos</p>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
@@ -366,19 +366,19 @@ export function AccountingClosureTab() {
                 </div>
 
                 <div className="grid grid-cols-3 gap-4">
-                  <div className="bg-white p-4 rounded-lg">
+                  <div className="bg-[#162828] p-4 rounded-lg">
                     <p className="text-sm text-gray-600">Ventas Netas</p>
                     <p className="text-2xl font-bold text-teal-600">
                       ${Number(previewTotals.totalSales).toFixed(2)}
                     </p>
                   </div>
-                  <div className="bg-white p-4 rounded-lg">
+                  <div className="bg-[#162828] p-4 rounded-lg">
                     <p className="text-sm text-gray-600">Gastos Totales</p>
                     <p className="text-2xl font-bold text-orange-600">
                       ${Number(previewTotals.totalExpenses).toFixed(2)}
                     </p>
                   </div>
-                  <div className="bg-white p-4 rounded-lg">
+                  <div className="bg-[#162828] p-4 rounded-lg">
                     <p className="text-sm text-gray-600">Ganancia Neta</p>
                     <p className="text-2xl font-bold text-green-600">
                       ${Number(previewTotals.totalProfit).toFixed(2)}

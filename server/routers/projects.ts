@@ -73,16 +73,33 @@ export const projectsRouter = router({
         });
         
         // Notificar al diseñador asignado
+        const clientForNotif = await db.getClientById(input.clientId);
         if (autoAssignedDesignerId) {
-          const clientData = await db.getClientById(input.clientId);
           await db.createNotification({
             userId: autoAssignedDesignerId,
             title: "🎨 Nuevo Proyecto Asignado",
-            body: `Se te ha asignado automáticamente el proyecto "${input.name}" del cliente ${clientData?.name || "Cliente"}.`,
+            body: `Se te ha asignado automáticamente el proyecto "${input.name}" del cliente ${clientForNotif?.name || "Cliente"}.`,
             type: "proyecto",
             referenceId: projectId,
             referenceType: "project",
           });
+        }
+
+        // WhatsApp bienvenida al cliente cuando se crea el proyecto
+        if (whatsappCloud.isWhatsAppCloudConfigured() && clientForNotif?.whatsappPhone) {
+          try {
+            const baseUrl = (ctx.req as any).headers?.origin || `https://${(ctx.req as any).headers?.host}`;
+            const portalUrl = `${baseUrl}/portal?project=${projectId}`;
+            await whatsappCloud.sendProjectStatusUpdate(
+              clientForNotif.whatsappPhone,
+              clientForNotif.name,
+              input.name,
+              "pendiente", // estado inicial → mensaje de bienvenida
+              portalUrl
+            );
+          } catch (waError) {
+            console.error("[WhatsApp] Error enviando bienvenida al crear proyecto:", waError);
+          }
         }
 
         return { success: true, projectId };
@@ -108,21 +125,22 @@ export const projectsRouter = router({
         // (necesita ver proyectos en producción para responder consultas del jefe de taller/operario)
         if (role === "disenador") {
           projectsList = projectsList.filter(p => 
-            ["adelanto_recibido", "en_diseno", "pendiente_modelado", "pendiente_render", "pendiente_render", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "listo_instalacion", "entregado"].includes(p.status)
+            ["adelanto_recibido", "en_diseno", "pendiente_modelado", "pendiente_render", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "entregado"].includes(p.status)
           );
         }
 
-        // Jefe de taller ve proyectos desde diseño listo hasta entregado
+        // Jefe de taller ve proyectos solo desde producción (despiece en adelante)
+        // No ve proyectos en diseño ni pendientes de aprobación
         if (role === "jefe_taller") {
-          projectsList = projectsList.filter(p => 
-            ["pendiente_render", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "listo_instalacion", "entregado"].includes(p.status)
+          projectsList = projectsList.filter(p =>
+            ["despiece", "corte", "enchape", "ensamble", "listo_instalacion", "entregado"].includes(p.status)
           );
         }
-        
-        // Operario ve los mismos proyectos que el jefe de taller (desde diseño listo hasta entregado)
+
+        // Operario ve los mismos proyectos que el jefe de taller (solo producción)
         if (role === "operario") {
-          projectsList = projectsList.filter(p => 
-            ["pendiente_render", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "entregado"].includes(p.status)
+          projectsList = projectsList.filter(p =>
+            ["despiece", "corte", "enchape", "ensamble", "listo_instalacion", "entregado"].includes(p.status)
           );
         }
 
@@ -160,13 +178,13 @@ export const projectsRouter = router({
           );
         }
         if (role === "jefe_taller") {
-          filteredData = filteredData.filter(p => 
-            ["pendiente_render", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "entregado"].includes(p.status)
+          filteredData = filteredData.filter(p =>
+            ["despiece", "corte", "enchape", "ensamble", "listo_instalacion", "entregado"].includes(p.status)
           );
         }
         if (role === "operario") {
-          filteredData = filteredData.filter(p => 
-            ["pendiente_render", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "entregado"].includes(p.status)
+          filteredData = filteredData.filter(p =>
+            ["despiece", "corte", "enchape", "ensamble", "listo_instalacion", "entregado"].includes(p.status)
           );
         }
         const allClients = await db.getAllClients();
@@ -207,12 +225,16 @@ export const projectsRouter = router({
     getById: protectedProcedure
       .input(z.object({ id: z.number() }))
       .query(async ({ ctx, input }) => {
-        console.log("[DEBUG getById] ID recibido:", input.id, "tipo:", typeof input.id);
         const project = await db.getProjectById(input.id);
-        console.log("[DEBUG getById] Proyecto encontrado:", project ? `ID ${project.id}` : "NULL");
         if (!project) {
-          console.log("[DEBUG getById] ERROR: Proyecto no encontrado para ID", input.id);
           throw new TRPCError({ code: "NOT_FOUND", message: "Proyecto no encontrado" });
+        }
+
+        // jefe_taller y operario solo pueden ver proyectos en fase de producción
+        const role = ctx.user.role;
+        const productionStatuses = ["despiece", "corte", "enchape", "ensamble", "listo_instalacion", "entregado"];
+        if ((role === "jefe_taller" || role === "operario") && !productionStatuses.includes(project.status)) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Sin acceso a este proyecto" });
         }
 
         // Optimización: ejecutar consultas en paralelo
@@ -993,38 +1015,40 @@ export const projectsRouter = router({
           }
         }
 
-        // Notificar al jefe de taller cuando el proyecto pasa a despiece (producción)
+        // Notificar al jefe de taller y operarios cuando el proyecto pasa a despiece (producción)
+        // Este es el momento en que ambos roles ven el proyecto por primera vez
         if (newStatus === "despiece") {
           try {
             const allUsers = await db.getAllUsers();
-            const jefesTaller = allUsers.filter(u => u.role === "jefe_taller");
-            
-            for (const jefe of jefesTaller) {
-              // Crear notificación en la base de datos
+            const equipoProduccion = allUsers.filter(u => u.role === "jefe_taller" || u.role === "operario");
+
+            for (const persona of equipoProduccion) {
+              const esJefe = persona.role === "jefe_taller";
               await db.createNotification({
-                userId: jefe.id,
+                userId: persona.id,
                 title: "🏭 Nuevo Proyecto en Producción",
-                body: `El proyecto "${project.name}" está listo para producción. El diseñador ha completado el despiece.`,
+                body: esJefe
+                  ? `El proyecto "${project.name}" entra a producción. Revisa el despiece y coordina el equipo.`
+                  : `Se te ha asignado un nuevo proyecto: "${project.name}". Puedes revisar los diseños y avanzar desde Producción.`,
                 type: "proyecto",
                 referenceId: project.id,
                 referenceType: "project",
               });
-              
-              // Intentar enviar notificación push
+
               try {
                 const { createAndSendNotification } = await import("../push-notifications");
-                await createAndSendNotification(jefe.id, {
+                await createAndSendNotification(persona.id, {
                   title: "🏭 Nuevo Proyecto en Producción",
                   body: `"${project.name}" listo para producción`,
                   type: "proyecto",
-                  url: "/projects",
+                  url: `/projects/${project.id}`,
                 });
               } catch (e) {
                 // Silenciar error de push
               }
             }
           } catch (e) {
-            // Silenciar error de notificación
+            console.error("Error notificando equipo de producción:", e);
           }
         }
 
@@ -1122,7 +1146,41 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
           }
         }
 
-        return { 
+        // ── Postventa automática al entregar ─────────────────────────────────
+        if (newStatus === "entregado") {
+          try {
+            const now = new Date();
+            // 1. Seguimiento de satisfacción a los 30 días
+            const followUp30 = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+            await db.createReclamacion({
+              projectId: input.projectId,
+              title: `Llamada de seguimiento — ${project.name}`,
+              description: "Verificar satisfacción del cliente, revisar si hay ajustes pendientes o inconvenientes post-instalación.",
+              type: "seguimiento_30d",
+              status: "pendiente",
+              priority: "media",
+              scheduledFor: followUp30.toISOString(),
+              createdBy: ctx.user.id,
+            });
+
+            // 2. Revisión anual gratuita al año de entregado
+            const followUp1Year = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000);
+            await db.createReclamacion({
+              projectId: input.projectId,
+              title: `Revisión anual gratuita — ${project.name}`,
+              description: "Ofrecer revisión general gratuita al cliente. Si se detectan arreglos o mejoras, se cotizan por separado.",
+              type: "revision_anual",
+              status: "pendiente",
+              priority: "baja",
+              scheduledFor: followUp1Year.toISOString(),
+              createdBy: ctx.user.id,
+            });
+          } catch (e) {
+            console.error("Error creando registros de postventa:", e);
+          }
+        }
+
+        return {
           success: true,
           whatsappNotification,
           paymentReminderWhatsApp,
@@ -1201,6 +1259,36 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
             changedBy: ctx.user.id,
             notes: `${approverLabel} aprobó el ${tipoAprobacion}: ${input.notes || ""}`,
           });
+
+          // Cuando el cliente aprueba los renders → notificar a admin/super_admin
+          // para que puedan mover el proyecto a producción
+          if (nextStatus === "aprobacion_final") {
+            try {
+              const allUsers = await db.getAllUsers();
+              const admins = allUsers.filter(u => u.role === "admin" || u.role === "super_admin");
+              for (const admin of admins) {
+                await db.createNotification({
+                  userId: admin.id,
+                  title: "✅ Diseño Aprobado — Listo para Producción",
+                  body: `El cliente aprobó los renders del proyecto "${project.name}". Ya puede iniciar la etapa de producción (Despiece).`,
+                  type: "proyecto",
+                  referenceId: input.projectId,
+                  referenceType: "project",
+                });
+                try {
+                  const { createAndSendNotification } = await import("../push-notifications");
+                  await createAndSendNotification(admin.id, {
+                    title: "✅ Diseño Aprobado",
+                    body: `"${project.name}" listo para iniciar producción`,
+                    type: "proyecto",
+                    url: `/projects/${input.projectId}`,
+                  });
+                } catch (e) { /* silenciar push */ }
+              }
+            } catch (e) {
+              console.error("Error notificando a admin sobre aprobación de renders:", e);
+            }
+          }
         } else {
           // Si rechaza, vuelve a diseño
           await db.updateProject(input.projectId, {

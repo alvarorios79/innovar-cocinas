@@ -60,8 +60,8 @@ export function MobileBottomNavigation() {
               size="sm"
               className={`flex flex-col items-center gap-1 h-full rounded-none flex-1 transition-all duration-300 ease-in-out relative group ${
                 active
-                  ? "bg-white/20 text-white font-semibold"
-                  : "text-white/70 hover:bg-white/10"
+                  ? "bg-[#162828]/20 text-white font-semibold"
+                  : "text-white/70 hover:bg-[#162828]/10"
               }`}
               onClick={() => setLocation(item.path)}
               style={{

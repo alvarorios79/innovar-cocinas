@@ -24,6 +24,7 @@ export const quotationsRouter = router({
         vendorName: z.string(),
         productType: z.enum(["cocina", "closet", "puerta", "centro_tv", "herrajes", "mesones", "acabados_especiales", "otro"]).optional(),
         discountPercent: z.number().min(0).max(100).optional().default(0),
+        generalNotes: z.string().optional(),
         items: z.array(z.object({
           itemNumber: z.number(),
           itemType: z.string(),
@@ -85,6 +86,7 @@ export const quotationsRouter = router({
             discountAmount: discountAmount.toString(),
             total: total.toString(),
             createdBy: ctx.user.id,
+            generalNotes: input.generalNotes || null,
           });
 
           for (const item of input.items) {
@@ -272,6 +274,12 @@ export const quotationsRouter = router({
               total: total.toString(),
             });
           });
+          // Sincronizar totalAmount del proyecto si esta cotización está vinculada
+          const linkedProject1 = await db.getProjectByQuotationId(id);
+          if (linkedProject1) {
+            await db.updateProject(linkedProject1.id, { totalAmount: total.toString() });
+            console.log(`[QUOTATION-SYNC] Proyecto ${linkedProject1.id} actualizado con totalAmount=${total} por edición de ítems en cotización ${id}`);
+          }
         } else if (input.discountPercent !== undefined) {
           const subtotal = parseFloat(currentQuotation.subtotal);
           const discountPercent = input.discountPercent;
@@ -283,6 +291,12 @@ export const quotationsRouter = router({
             discountAmount: discountAmount.toString(),
             total: total.toString(),
           });
+          // Sincronizar totalAmount del proyecto si esta cotización está vinculada
+          const linkedProject2 = await db.getProjectByQuotationId(id);
+          if (linkedProject2) {
+            await db.updateProject(linkedProject2.id, { totalAmount: total.toString() });
+            console.log(`[QUOTATION-SYNC] Proyecto ${linkedProject2.id} actualizado con totalAmount=${total} por cambio de descuento en cotización ${id}`);
+          }
         } else {
           const { discountPercent: _, ...safeQuotationData } = quotationData;
           await db.updateQuotation(id, safeQuotationData);
@@ -462,13 +476,48 @@ export const quotationsRouter = router({
         }
 
         const updateData: any = { status: input.status };
-        
-        // Si se envía, registrar fecha
+
         if (input.status === "sent") {
           updateData.sentAt = new Date();
         }
 
         await db.updateQuotation(input.id, updateData);
+
+        // WhatsApp al equipo cuando una cotización es aprobada
+        if (input.status === "approved" && whatsappCloud.isWhatsAppCloudConfigured()) {
+          try {
+            const quotation = await db.getQuotationById(input.id);
+            const allClients = await db.getAllClients();
+            const client = allClients.find((c: any) => c.id === quotation?.clientId);
+            const allUsers = await db.getAllUsers();
+            const teamUsers = (allUsers as any[]).filter((u: any) =>
+              ["admin", "super_admin", "comercial"].includes(u.role) && u.phone
+            );
+
+            if (quotation && client) {
+              const fmtCOP = (v: number) =>
+                new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(v);
+
+              const teamMsg =
+                `🎉 *Cotización Aprobada*\n\n` +
+                `El cliente *${client.name}* ha aprobado la cotización *${quotation.quotationNumber}*.\n\n` +
+                `💰 Total: *${fmtCOP(Number(quotation.total || 0))}*\n` +
+                `📋 Ya puedes crear el proyecto en el CRM.\n\n` +
+                `*INNOVAR CRM*`;
+
+              for (const user of teamUsers) {
+                try {
+                  await whatsappCloud.sendTextMessage((user as any).phone, teamMsg);
+                } catch (e) {
+                  console.error(`[WhatsApp] Error notificando a ${(user as any).name}:`, e);
+                }
+              }
+            }
+          } catch (waError) {
+            console.error("[WhatsApp] Error notificando equipo por aprobación:", waError);
+          }
+        }
+
         return { success: true };
       }),
 
@@ -2753,5 +2802,139 @@ export const quotationsRouter = router({
             console.error('ERROR UNARCHIVING:', error);
             throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Error al desarchivar' });
           }
+        }),
+
+      exportToExcel: protectedProcedure
+        .input(z.object({
+          status: z.string().optional(),
+          clientId: z.number().optional(),
+          dateFrom: z.string().optional(),
+          dateTo: z.string().optional(),
+          archived: z.boolean().optional(),
+        }))
+        .query(async ({ ctx, input }) => {
+          if (!ctx.user || !['admin', 'super_admin', 'comercial'].includes(ctx.user.role)) {
+            throw new TRPCError({ code: 'FORBIDDEN', message: 'No tienes permisos para exportar' });
+          }
+          const allQuotations = await db.getAllQuotations();
+          const allClients = await db.getAllClients();
+          const clientMap = new Map(allClients.map((c: any) => [c.id, c.name]));
+
+          let filtered = (allQuotations as any[]).filter((q: any) => q.dataOrigin === 'manual');
+          if (input.archived !== undefined) filtered = filtered.filter((q: any) => !!q.isArchived === input.archived);
+          if (input.status) filtered = filtered.filter((q: any) => q.status === input.status);
+          if (input.clientId) filtered = filtered.filter((q: any) => q.clientId === input.clientId);
+          if (input.dateFrom) {
+            const from = new Date(input.dateFrom);
+            filtered = filtered.filter((q: any) => new Date(q.createdAt) >= from);
+          }
+          if (input.dateTo) {
+            const to = new Date(input.dateTo);
+            to.setHours(23, 59, 59, 999);
+            filtered = filtered.filter((q: any) => new Date(q.createdAt) <= to);
+          }
+
+          const STATUS_MAP: Record<string, string> = {
+            draft: 'Borrador', sent: 'Enviada', approved: 'Aprobada', rejected: 'Rechazada',
+          };
+
+          const rows = filtered.map((q: any) => ({
+            'N° Cotización': q.quotationNumber || '',
+            'Versión': q.versionNumber ?? 1,
+            'Cliente': clientMap.get(q.clientId) || 'N/A',
+            'Estado': STATUS_MAP[q.status] || q.status || '',
+            'Total (COP)': Number(q.total || 0),
+            'Descuento %': Number(q.discountPercentage || 0),
+            'Total con descuento': Number(q.totalWithDiscount || q.total || 0),
+            'Válida hasta': q.validUntil ? new Date(q.validUntil).toLocaleDateString('es-CO') : '',
+            'Fecha creación': q.createdAt ? new Date(q.createdAt).toLocaleDateString('es-CO') : '',
+            'Con proyecto': q.projectId ? 'Sí' : 'No',
+            'Archivada': q.isArchived ? 'Sí' : 'No',
+          }));
+
+          return { data: rows, total: rows.length };
+        }),
+
+      exportProjectReport: protectedProcedure
+        .input(z.object({ projectId: z.number() }))
+        .query(async ({ ctx, input }) => {
+          if (!ctx.user || !['admin', 'super_admin'].includes(ctx.user.role)) {
+            throw new TRPCError({ code: 'FORBIDDEN', message: 'No tienes permisos para exportar' });
+          }
+          const { getDb } = await import('../db');
+          const schema = await import('../../drizzle/schema');
+          const { eq, and, isNull } = await import('drizzle-orm');
+          const dbConn = await getDb();
+          if (!dbConn) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
+
+          const [project] = await dbConn.select().from(schema.projects).where(eq(schema.projects.id, input.projectId)).limit(1);
+          if (!project) throw new TRPCError({ code: 'NOT_FOUND', message: 'Proyecto no encontrado' });
+
+          const [client] = await dbConn.select().from(schema.clients).where(eq(schema.clients.id, project.clientId)).limit(1);
+          const projectPayments = await dbConn.select().from(schema.payments).where(eq(schema.payments.projectId, input.projectId));
+          const projectExpenses = await dbConn.select().from(schema.expenses).where(
+            and(eq(schema.expenses.projectId, input.projectId), isNull(schema.expenses.deletedAt))
+          );
+
+          let quotationNumber = 'N/A';
+          if (project.quotationId) {
+            const [q] = await dbConn.select().from(schema.quotations).where(eq(schema.quotations.id, project.quotationId)).limit(1);
+            quotationNumber = q?.quotationNumber || 'N/A';
+          }
+
+          const totalAmount = Number(project.totalAmount || 0);
+          const totalPagado = (projectPayments as any[]).filter((p: any) => p.movementType === 'payment').reduce((s: number, p: any) => s + Number(p.amount || 0), 0);
+          const totalDescuentos = (projectPayments as any[]).filter((p: any) => p.movementType === 'discount').reduce((s: number, p: any) => s + Number(p.amount || 0), 0);
+          const totalGastos = (projectExpenses as any[]).reduce((s: number, e: any) => s + Number(e.amount || 0), 0);
+          const porCobrar = totalAmount - totalPagado - totalDescuentos;
+          const margen = totalPagado - totalGastos;
+
+          const STATUS_MAP: Record<string, string> = {
+            pending: 'Pendiente', diseno: 'Diseño', produccion: 'Producción',
+            instalacion: 'Instalación', entregado: 'Entregado', cancelado: 'Cancelado',
+          };
+          const MOVE_MAP: Record<string, string> = { payment: 'Pago', discount: 'Descuento', refund: 'Devolución' };
+          const CAT_MAP: Record<string, string> = {
+            materiales: 'Materiales', mano_de_obra: 'Mano de obra', transporte: 'Transporte',
+            alquiler: 'Alquiler', servicios: 'Servicios', mantenimiento: 'Mantenimiento', otros: 'Otros',
+          };
+
+          const summary = [{
+            'ID Proyecto': project.id,
+            'Cotización': quotationNumber,
+            'Cliente': client?.name || 'N/A',
+            'Estado': STATUS_MAP[project.status || ''] || project.status || '',
+            'Total Cotizado': totalAmount,
+            'Pagos Recibidos': totalPagado,
+            'Descuentos': totalDescuentos,
+            'Por Cobrar': porCobrar,
+            'Gastos Materiales': totalGastos,
+            'Margen Bruto': margen,
+            'Fecha Creación': project.createdAt ? new Date(project.createdAt).toLocaleDateString('es-CO') : '',
+            'Fecha Instalación': project.scheduledInstallDate ? new Date(project.scheduledInstallDate).toLocaleDateString('es-CO') : '',
+          }];
+
+          const paymentsRows = (projectPayments as any[]).map((p: any) => ({
+            'Fecha': p.paymentDate ? new Date(p.paymentDate).toLocaleDateString('es-CO') : '',
+            'Tipo': MOVE_MAP[p.movementType] || p.movementType || '',
+            'Monto': Number(p.amount || 0),
+            'Método': p.paymentMethod || '',
+            'Notas': p.notes || '',
+          }));
+
+          const expensesRows = (projectExpenses as any[]).map((e: any) => ({
+            'Fecha': e.expenseDate ? new Date(e.expenseDate).toLocaleDateString('es-CO') : '',
+            'Descripción': e.description || '',
+            'Categoría': CAT_MAP[e.generalCategory || ''] || e.generalCategory || '',
+            'Subcategoría': e.subcategory || '',
+            'Monto': Number(e.amount || 0),
+          }));
+
+          return {
+            summary,
+            payments: paymentsRows,
+            expenses: expensesRows,
+            clientName: client?.name || 'Proyecto',
+          };
         }),
 });

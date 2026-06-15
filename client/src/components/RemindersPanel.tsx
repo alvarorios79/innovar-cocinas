@@ -27,41 +27,41 @@ interface RemindersPanelProps {
 }
 
 // Configuración de tipos de recordatorio
-const REMINDER_TYPE_CONFIG: Record<string, { 
-  label: string; 
-  icon: any; 
+const REMINDER_TYPE_CONFIG: Record<string, {
+  label: string;
+  icon: any;
   color: string;
   bgColor: string;
 }> = {
-  cotizacion_sin_respuesta: { 
-    label: "Cotización sin respuesta", 
-    icon: FileText, 
-    color: "text-orange-600",
-    bgColor: "bg-orange-50 border-orange-200"
+  cotizacion_sin_respuesta: {
+    label: "Cotización sin respuesta",
+    icon: FileText,
+    color: "text-orange-400",
+    bgColor: "bg-orange-500/10 border-orange-500/20"
   },
-  diseno_pendiente: { 
-    label: "Diseño pendiente", 
-    icon: Paintbrush, 
-    color: "text-purple-600",
-    bgColor: "bg-purple-50 border-purple-200"
+  diseno_pendiente: {
+    label: "Diseño pendiente",
+    icon: Paintbrush,
+    color: "text-purple-400",
+    bgColor: "bg-purple-500/10 border-purple-500/20"
   },
-  aprobacion_pendiente: { 
-    label: "Aprobación pendiente", 
-    icon: Clock, 
-    color: "text-yellow-600",
-    bgColor: "bg-yellow-50 border-yellow-200"
+  aprobacion_pendiente: {
+    label: "Aprobación pendiente",
+    icon: Clock,
+    color: "text-amber-400",
+    bgColor: "bg-amber-500/10 border-amber-500/20"
   },
-  produccion_retrasada: { 
-    label: "Producción retrasada", 
-    icon: Hammer, 
-    color: "text-red-600",
-    bgColor: "bg-red-50 border-red-200"
+  produccion_retrasada: {
+    label: "Producción retrasada",
+    icon: Hammer,
+    color: "text-red-400",
+    bgColor: "bg-red-500/10 border-red-500/20"
   },
-  instalacion_proxima: { 
-    label: "Instalación próxima", 
-    icon: Truck, 
-    color: "text-teal-600",
-    bgColor: "bg-teal-50 border-teal-200"
+  instalacion_proxima: {
+    label: "Instalación próxima",
+    icon: Truck,
+    color: "text-teal-400",
+    bgColor: "bg-teal-500/10 border-teal-500/20"
   },
 };
 
@@ -108,17 +108,17 @@ export function RemindersPanel({ userId, userRole, compact = false }: RemindersP
 
   if (activeReminders.length === 0) {
     return (
-      <Card className="bg-gradient-to-br from-amber-50 to-yellow-50 border-amber-200">
+      <Card className="bg-[#162828] border-amber-500/20" style={{ borderTop: "3px solid #F59E0B" }}>
         <CardHeader className="pb-3">
           <CardTitle className="text-sm flex items-center gap-2">
-            <Bell className="h-4 w-4 text-amber-600" />
+            <Bell className="h-4 w-4 text-amber-400" />
             Recordatorios
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-center py-4">
-            <CheckCircle2 className="h-8 w-8 mx-auto text-green-500 mb-2" />
-            <p className="text-sm text-muted-foreground">No tienes recordatorios pendientes</p>
+            <CheckCircle2 className="h-8 w-8 mx-auto text-green-400 mb-2" />
+            <p className="text-sm text-white/45">No tienes recordatorios pendientes</p>
           </div>
         </CardContent>
       </Card>
@@ -129,8 +129,8 @@ export function RemindersPanel({ userId, userRole, compact = false }: RemindersP
     const config = REMINDER_TYPE_CONFIG[reminder.type] || {
       label: reminder.type,
       icon: Bell,
-      color: "text-gray-600",
-      bgColor: "bg-gray-50 border-gray-200"
+      color: "text-white/55",
+      bgColor: "bg-white/[0.05] border-white/[0.08]"
     };
     const Icon = config.icon;
     const isOverdue = new Date(reminder.dueDate) <= new Date();
@@ -138,7 +138,7 @@ export function RemindersPanel({ userId, userRole, compact = false }: RemindersP
     return (
       <div className={`p-3 rounded-lg border ${config.bgColor} ${isOverdue ? "animate-pulse" : ""}`}>
         <div className="flex items-start gap-3">
-          <div className={`p-2 rounded-full bg-white ${config.color}`}>
+          <div className={`p-2 rounded-full bg-white/[0.07] ${config.color}`}>
             <Icon className="h-4 w-4" />
           </div>
           <div className="flex-1 min-w-0">
@@ -153,7 +153,7 @@ export function RemindersPanel({ userId, userRole, compact = false }: RemindersP
                 </Badge>
               )}
             </div>
-            <p className="text-sm text-gray-700 mt-1 line-clamp-2">
+            <p className="text-sm text-white/65 mt-1 line-clamp-2">
               {reminder.message}
             </p>
             <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
@@ -177,7 +177,7 @@ export function RemindersPanel({ userId, userRole, compact = false }: RemindersP
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  className="text-xs h-7 text-green-600 border-green-300 hover:bg-green-50"
+                  className="text-xs h-7 text-green-400 border-green-500/30 hover:bg-green-500/10"
                   onClick={() => {
                     const phone = reminder.project.client.whatsappPhone.replace(/\D/g, "");
                     const fullPhone = phone.startsWith("57") ? phone : `57${phone}`;
@@ -206,11 +206,11 @@ export function RemindersPanel({ userId, userRole, compact = false }: RemindersP
   };
 
   return (
-    <Card className="bg-gradient-to-br from-amber-50 to-yellow-50 border-amber-200">
+    <Card className="bg-[#162828] border-amber-500/20" style={{ borderTop: "3px solid #F59E0B" }}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm flex items-center gap-2">
-            <Bell className="h-4 w-4 text-amber-600" />
+            <Bell className="h-4 w-4 text-amber-400" />
             Recordatorios
             {activeReminders.length > 0 && (
               <Badge variant={urgentReminders.length > 0 ? "destructive" : "secondary"}>
@@ -230,7 +230,7 @@ export function RemindersPanel({ userId, userRole, compact = false }: RemindersP
           )}
         </div>
         {urgentReminders.length > 0 && (
-          <CardDescription className="text-red-600 font-medium">
+          <CardDescription className="text-red-400 font-medium">
             {urgentReminders.length} recordatorio{urgentReminders.length > 1 ? "s" : ""} vencido{urgentReminders.length > 1 ? "s" : ""}
           </CardDescription>
         )}
@@ -241,7 +241,7 @@ export function RemindersPanel({ userId, userRole, compact = false }: RemindersP
           {/* Recordatorios vencidos primero */}
           {urgentReminders.length > 0 && (
             <div className="space-y-2">
-              <p className="text-xs font-medium text-red-600 uppercase tracking-wide">
+              <p className="text-xs font-medium text-red-400 uppercase tracking-wide">
                 Requieren atención inmediata
               </p>
               {urgentReminders.map((reminder: any) => (

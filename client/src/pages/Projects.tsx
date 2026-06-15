@@ -162,8 +162,7 @@ export default function Projects() {
         data: (error as any).data,
       }, null, 2);
       toast.error(`Error: ${errorMessage}\n${fullError}`);
-      console.error("[WHATSAPP ERROR] Error al enviar por WhatsApp:", error);
-      console.error("[WHATSAPP ERROR] Full error:", fullError);
+      console.error("[WHATSAPP ERROR]", error);
     }
   });
   
@@ -380,9 +379,7 @@ export default function Projects() {
       utils.projects.listPaginated.invalidate();
     },
     onError: (error: any) => {
-      console.error("ARCHIVE PROJECT ERROR FULL:", error);
-      console.error("ARCHIVE PROJECT ERROR MESSAGE:", error.message);
-      console.error("ARCHIVE PROJECT ERROR DATA:", error.data);
+      console.error("Archive project error:", error.message);
       toast.error(error.message || "Error al archivar proyecto");
     },
     onSettled: () => {
@@ -593,42 +590,33 @@ export default function Projects() {
   };
 
   return (
-    <div className="min-h-screen pb-20 md:pb-0 bg-background">
-      {/* Header */}
-      <header className="border-b">
-        <div className="container flex h-14 md:h-16 items-center justify-between px-3 md:px-4">
-          <div className="flex items-center gap-2 md:gap-4">
-            <Link href="/">
-              <Button variant="ghost" size="sm" className="px-2 md:px-3">
-                <span className="hidden sm:inline">← Inicio</span>
-                <span className="sm:hidden">←</span>
-              </Button>
-            </Link>
-            {(user?.role === "admin" || user?.role === "super_admin") && (
-              <Link href="/admin" className="hidden md:block">
-                <Button variant="ghost" size="sm">Panel Admin</Button>
-              </Link>
-            )}
-            <img 
-              src="/logo-light.png" 
-              alt="INNOVAR" 
-              className="h-10 md:h-12 w-auto object-contain"
-            />
-            <span className="hidden lg:inline text-sm text-muted-foreground">Gestión de Proyectos</span>
-          </div>
-          <div className="flex items-center gap-1 md:gap-2">
-            <Badge variant="outline" className="text-xs md:text-sm">{getRoleLabel(user?.role || "")}</Badge>
-            <span className="hidden sm:inline text-sm text-muted-foreground truncate max-w-[100px] lg:max-w-none">{user?.name}</span>
-          </div>
-        </div>
-      </header>
-
-      <div className="container py-4 md:py-8 px-3 md:px-4">
+    <div>
+      <div className="py-2 px-1">
         {/* Header con filtros y botón crear */}
         <PageHeader
           title="Proyectos"
-          subtitle={user?.role === "disenador" ? "Proyectos pendientes de diseño" : (user?.role === "jefe_taller" || user?.role === "operario") ? "Proyectos en producción" : "Todos los proyectos"}
+          subtitle={
+            user?.role === "disenador" ? "Proyectos pendientes de diseño" :
+            (user?.role === "jefe_taller" || user?.role === "operario") ? "Proyectos en producción" :
+            "Gestión completa de proyectos"
+          }
+          icon={<FolderKanban className="h-5 w-5" />}
           showBack={false}
+          actions={
+            (user?.role === "admin" || user?.role === "super_admin" || user?.role === "comercial") ? (
+              <div className="flex gap-2">
+                <ExportProjectsButton archived={archiveTab === 'archived'} />
+                <Button
+                  onClick={() => setShowCreateDialog(true)}
+                  style={{ background: "linear-gradient(135deg, #1DB5A8, #0D9B8F)" }}
+                  className="text-white font-medium shadow-sm hover:opacity-90"
+                >
+                  <Plus className="h-4 w-4 mr-1.5" />
+                  Nuevo Proyecto
+                </Button>
+              </div>
+            ) : undefined
+          }
         />
         
         {/* Tabs de archivado */}
@@ -639,7 +627,7 @@ export default function Projects() {
             onClick={() => setArchiveTab('active')}
             className={`text-sm font-medium transition-colors ${
               archiveTab === 'active'
-                ? 'bg-white shadow-sm text-foreground'
+                ? 'bg-[#162828] shadow-sm text-foreground'
                 : 'text-muted-foreground hover:text-foreground hover:bg-accent'
             }`}
           >
@@ -652,7 +640,7 @@ export default function Projects() {
             onClick={() => setArchiveTab('archived')}
             className={`text-sm font-medium transition-colors ${
               archiveTab === 'archived'
-                ? 'bg-white shadow-sm text-foreground'
+                ? 'bg-[#162828] shadow-sm text-foreground'
                 : 'text-muted-foreground hover:text-foreground hover:bg-accent'
             }`}
           >
@@ -780,7 +768,7 @@ export default function Projects() {
               const total = healthy + moderate + risk + critical;
 
               return (
-                <div className="mt-6 p-4 bg-white rounded-lg border">
+                <div className="mt-6 p-4 bg-[#162828] rounded-lg border">
                   <h3 className="text-sm font-semibold mb-4">Distribución de Rentabilidad</h3>
                   <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
                     {/* Saludable */}
@@ -818,14 +806,7 @@ export default function Projects() {
             {/* Botones de acción (solo admin) */}
             {(user?.role === "admin" || user?.role === "super_admin") && (
               <>
-                <ExportProjectsButton archived={archiveTab === 'archived'} />
                 <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-                  <DialogTrigger asChild>
-                    <Button>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Nuevo Proyecto
-                    </Button>
-                  </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
                     <DialogTitle>Crear Nuevo Proyecto</DialogTitle>

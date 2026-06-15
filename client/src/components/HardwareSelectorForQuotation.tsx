@@ -67,12 +67,12 @@ export function HardwareSelectorForQuotation({ selectedHardware, onHardwareChang
   const totalPrice = selectedHardware.reduce((sum, s) => sum + s.subtotal, 0);
 
   return (
-    <Card className="mt-4 border-slate-300">
+    <Card className="mt-4 border-[rgba(106,207,199,0.18)]">
       <CardContent className="p-4">
         {/* Header */}
-        <div className="flex items-center gap-2 mb-4 pb-2 border-b border-slate-200">
-          <Wrench className="h-5 w-5 text-slate-600" />
-          <h4 className="font-bold text-slate-800 text-lg">Selección de Herrajes</h4>
+        <div className="flex items-center gap-2 mb-4 pb-2 border-b border-[rgba(106,207,199,0.12)]">
+          <Wrench className="h-5 w-5 text-white/60" />
+          <h4 className="font-bold text-white/90 text-lg">Selección de Herrajes</h4>
         </div>
 
         <div className="space-y-4">
@@ -83,7 +83,7 @@ export function HardwareSelectorForQuotation({ selectedHardware, onHardwareChang
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 selectedCategory === "cocinas"
                   ? "bg-slate-700 text-white"
-                  : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                  : "bg-[#0F2222] text-white/85 hover:bg-slate-200"
               }`}
               onClick={() => setSelectedCategory("cocinas")}
             >
@@ -94,7 +94,7 @@ export function HardwareSelectorForQuotation({ selectedHardware, onHardwareChang
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 selectedCategory === "closets"
                   ? "bg-slate-700 text-white"
-                  : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                  : "bg-[#0F2222] text-white/85 hover:bg-slate-200"
               }`}
               onClick={() => setSelectedCategory("closets")}
             >
@@ -105,7 +105,7 @@ export function HardwareSelectorForQuotation({ selectedHardware, onHardwareChang
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 selectedCategory === "puertas"
                   ? "bg-slate-700 text-white"
-                  : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                  : "bg-[#0F2222] text-white/85 hover:bg-slate-200"
               }`}
               onClick={() => setSelectedCategory("puertas")}
             >
@@ -116,10 +116,10 @@ export function HardwareSelectorForQuotation({ selectedHardware, onHardwareChang
           {/* Lista de herrajes */}
           {isLoading ? (
             <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin text-slate-500" />
+              <Loader2 className="h-6 w-6 animate-spin text-white/45" />
             </div>
           ) : catalog.length === 0 ? (
-            <div className="text-center py-8 text-slate-500 bg-slate-50 rounded-lg">
+            <div className="text-center py-8 text-white/45 bg-[#0F2222] rounded-lg">
               No hay herrajes disponibles en esta categoría
             </div>
           ) : (
@@ -133,7 +133,7 @@ export function HardwareSelectorForQuotation({ selectedHardware, onHardwareChang
                   <div
                     key={hardware.id}
                     className={`border rounded-lg p-3 transition-colors ${
-                      selected ? "bg-slate-100 border-slate-400" : "bg-white border-slate-200 hover:border-slate-300"
+                      selected ? "bg-[#0F2222] border-slate-400" : "bg-[#162828] border-[rgba(106,207,199,0.12)] hover:border-[rgba(106,207,199,0.18)]"
                     }`}
                   >
                     <div className="flex items-start gap-3">
@@ -142,11 +142,11 @@ export function HardwareSelectorForQuotation({ selectedHardware, onHardwareChang
                         type="checkbox"
                         checked={selected}
                         onChange={(e) => handleToggleHardware(hardware, e.target.checked)}
-                        className="mt-1 h-4 w-4 rounded border-slate-300 text-slate-600 focus:ring-slate-500"
+                        className="mt-1 h-4 w-4 rounded border-[rgba(106,207,199,0.18)] text-white/60 focus:ring-slate-500"
                       />
 
                       {/* Imagen miniatura */}
-                      <div className="w-16 h-16 flex-shrink-0 bg-slate-100 rounded overflow-hidden">
+                      <div className="w-16 h-16 flex-shrink-0 bg-[#0F2222] rounded overflow-hidden">
                         {hardware.photoUrl ? (
                           <img
                             src={hardware.photoUrl}
@@ -154,7 +154,7 @@ export function HardwareSelectorForQuotation({ selectedHardware, onHardwareChang
                             className="w-full h-full object-cover"
                           />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center text-xs text-slate-400">
+                          <div className="w-full h-full flex items-center justify-center text-xs text-white/35">
                             Sin foto
                           </div>
                         )}
@@ -164,14 +164,14 @@ export function HardwareSelectorForQuotation({ selectedHardware, onHardwareChang
                       <div className="flex-1">
                         <div className="flex items-start justify-between">
                           <div>
-                            <h4 className="font-medium text-slate-800">{hardware.name}</h4>
+                            <h4 className="font-medium text-white/90">{hardware.name}</h4>
                             {hardware.description && (
-                              <p className="text-sm text-slate-500 line-clamp-1">
+                              <p className="text-sm text-white/45 line-clamp-1">
                                 {hardware.description}
                               </p>
                             )}
                           </div>
-                          <Badge className="ml-2 bg-slate-200 text-slate-700 hover:bg-slate-200">
+                          <Badge className="ml-2 bg-slate-200 text-white/85 hover:bg-slate-200">
                             ${price.toLocaleString('es-CO')}
                           </Badge>
                         </div>
@@ -180,7 +180,7 @@ export function HardwareSelectorForQuotation({ selectedHardware, onHardwareChang
                         {selected && (
                           <div className="mt-2 flex items-center gap-3">
                             <div className="flex items-center gap-2">
-                              <Label className="text-sm text-slate-600">Cantidad:</Label>
+                              <Label className="text-sm text-white/60">Cantidad:</Label>
                               <Input
                                 type="number"
                                 min="1"
@@ -188,10 +188,10 @@ export function HardwareSelectorForQuotation({ selectedHardware, onHardwareChang
                                 onChange={(e) =>
                                   handleQuantityChange(hardware.id, parseInt(e.target.value) || 1)
                                 }
-                                className="w-20 h-8 bg-white"
+                                className="w-20 h-8 bg-[#162828]"
                               />
                             </div>
-                            <div className="text-sm font-semibold text-slate-700">
+                            <div className="text-sm font-semibold text-white/85">
                               Subtotal: ${(price * quantity).toLocaleString('es-CO')}
                             </div>
                           </div>
@@ -207,7 +207,7 @@ export function HardwareSelectorForQuotation({ selectedHardware, onHardwareChang
           {/* Resumen Total */}
           {selectedHardware.length > 0 && (
             <div className="bg-slate-200 p-4 rounded-lg border border-slate-400">
-              <h5 className="font-semibold text-slate-800 mb-3">Resumen del Precio</h5>
+              <h5 className="font-semibold text-white/90 mb-3">Resumen del Precio</h5>
               <div className="space-y-1 text-sm">
                 <div className="flex justify-between">
                   <span>{selectedHardware.length} herraje{selectedHardware.length !== 1 ? 's' : ''} seleccionado{selectedHardware.length !== 1 ? 's' : ''}:</span>

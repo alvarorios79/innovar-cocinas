@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import { Calendar, Phone, Calculator, CheckCircle2, ArrowRight, MapPin, MessageCircle, Globe } from "lucide-react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { NotificationBell } from "@/components/NotificationBell";
 import { MobileNav } from "@/components/MobileNav";
 import { TeamDashboard } from "@/components/TeamDashboard";
@@ -24,6 +24,7 @@ import { OperatorDailyProjects } from "@/components/OperatorDailyProjects";
 
 export default function Home() {
   const { user, isAuthenticated } = useAuth();
+  const [, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState<"appointment" | "advisory" | "estimate">("appointment");
   
   // Query para contar proyectos nuevos según el rol
@@ -320,7 +321,7 @@ export default function Home() {
 
   // Si es comercial, redirigir automáticamente al Panel Comercial
   if (isAuthenticated && user?.role === "comercial") {
-    window.location.href = "/comercial";
+    setLocation("/comercial");
     return null;
   }
 

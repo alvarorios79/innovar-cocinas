@@ -508,7 +508,7 @@ export function TeamDashboard() {
   // Función para obtener el color del estado
   const getStatusColor = (status: string) => {
     const statusColors: Record<string, string> = {
-      contacto: "bg-slate-100 text-slate-700 border-slate-200",
+      contacto: "bg-[#0F2222] text-white/85 border-[rgba(106,207,199,0.12)]",
       cotizacion_enviada: "bg-blue-100 text-blue-700 border-blue-200",
       cotizacion_aprobada: "bg-emerald-100 text-emerald-700 border-emerald-200",
       adelanto_recibido: "bg-green-100 text-green-700 border-green-200",
@@ -521,127 +521,42 @@ export function TeamDashboard() {
       enchape: "bg-rose-100 text-rose-700 border-rose-200",
       ensamble: "bg-pink-100 text-pink-700 border-pink-200",
       listo_instalacion: "bg-cyan-100 text-cyan-700 border-cyan-200",
-      entregado: "bg-gray-100 text-gray-700 border-gray-200",
+      entregado: "bg-gray-100 text-white/85 border-[rgba(106,207,199,0.12)]",
     };
-    return statusColors[status] || "bg-gray-100 text-gray-700 border-gray-200";
+    return statusColors[status] || "bg-gray-100 text-white/85 border-[rgba(106,207,199,0.12)]";
   };
 
   return (
-    <div className={`min-h-screen ${config.bgGradient}`}>
-      {/* Header */}
-      <header className="border-b bg-white/95 backdrop-blur-md sticky top-0 z-50 shadow-sm">
-        <div className="container">
-          <div className="flex h-14 md:h-16 items-center justify-between">
-            <Link href="/">
-              <img 
-                src="/logo-light.png" 
-                alt="INNOVAR Cocinas Integrales" 
-                className="h-10 sm:h-12 md:h-14 w-auto cursor-pointer object-contain"
-              />
-            </Link>
-            
-            {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center gap-1 lg:gap-2">
-              {quickActions.slice(0, 4).map((action, i) => (
-                <Link key={i} href={action.href}>
-                  <Button variant="ghost" size="sm" className="text-sm font-medium">
-                    {action.label}
-                  </Button>
-                </Link>
-              ))}
-              <div className="ml-2">
-                <NotificationBell />
-              </div>
-              <div className="flex items-center gap-2 ml-2 pl-2 border-l">
-                <span className="text-xs text-muted-foreground hidden lg:block">
-                  {user?.role === "super_admin" ? "Super Admin" : 
-                   user?.role === "admin" ? "Admin" :
-                   user?.role === "disenador" ? "Diseñador" :
-                   user?.role === "jefe_taller" ? "Jefe Taller" :
-                   user?.role === "operario" ? "Operario" :
-                   user?.role === "comercial" ? "Comercial" : "Usuario"}
-                </span>
-                <span className="text-sm font-medium hidden lg:block">{user?.name}</span>
-                <LogoutButton />
-              </div>
-            </nav>
-
-            {/* Mobile Navigation */}
-            <div className="flex items-center gap-3 md:hidden">
-              <NotificationBell />
-              <MobileNav />
-            </div>
+    <div>
+      {/* Banner de bienvenida — reemplaza header + hero con logo */}
+      <div
+        className={`rounded-xl p-5 mb-6 bg-gradient-to-r ${config.color} text-white shadow-sm`}
+      >
+        <div className="flex items-start gap-4">
+          <div className="bg-[#162828]/20 p-2.5 rounded-xl shrink-0">
+            {config.icon}
+          </div>
+          <div className="min-w-0">
+            <h2 className="text-xl font-bold leading-tight">{config.title}</h2>
+            <p className="text-white/85 text-sm mt-0.5">{config.subtitle}</p>
+            <p className="text-white/70 text-xs mt-1">
+              ¡Hola, <span className="font-semibold text-white">{user?.name || "Usuario"}</span>! 👋
+            </p>
           </div>
         </div>
-      </header>
+      </div>
 
-      {/* Hero Section con Logo y Contacto */}
-      <section className="py-5 md:py-6">
-        <div className="container">
-          <div className="max-w-4xl mx-auto text-center space-y-3">
-            {/* Logo grande */}
-            <div className="flex justify-center">
-              <img 
-                src="/logo-light.png" 
-                alt="INNOVAR Cocinas Integrales" 
-                className="h-16 sm:h-20 md:h-24 w-auto"
-              />
-            </div>
-            
-            {/* Información de contacto */}
-            <div className="flex flex-wrap items-center justify-center gap-2 md:gap-4 text-xs md:text-sm text-muted-foreground">
-              <a href="tel:3136802025" className="flex items-center gap-1 hover:text-primary transition-colors">
-                <Phone className="h-3.5 w-3.5" />
-                <span>313 680 2025</span>
-              </a>
-              <span className="flex items-center gap-1">
-                <MapPin className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">K9 vía Cerritos a Pereira</span>
-                <span className="sm:hidden">Cerritos, Pereira</span>
-              </span>
-              <a href="https://innovarcocinasintegrales.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 hover:text-primary transition-colors">
-                <Globe className="h-3.5 w-3.5" />
-                <span>Sitio Web</span>
-              </a>
-              <a 
-                href="https://wa.me/573136802025" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="flex items-center gap-1 bg-[#25D366] text-white px-2.5 py-1 rounded-full hover:bg-[#128C7E] transition-colors font-medium text-xs"
-              >
-                <MessageCircle className="h-3.5 w-3.5" />
-                <span>WhatsApp</span>
-              </a>
-            </div>
+      {/* Frase motivacional */}
+      <div className="mb-6">
+        <DailyMotivation userName={user?.name || undefined} userBirthDate={user?.birthDate ? new Date(user.birthDate) : undefined} />
+      </div>
 
-            {/* Título del Portal - Banner llamativo */}
-            <div className={`mt-4 p-5 md:p-6 rounded-2xl bg-gradient-to-r ${config.color} text-white shadow-xl`}>
-              <div className="flex items-center justify-center gap-3 mb-1">
-                <div className="bg-white/20 p-2 rounded-xl">
-                  {config.icon}
-                </div>
-                <h1 className="text-xl md:text-2xl lg:text-3xl font-bold">{config.title}</h1>
-              </div>
-              <p className="text-white/90 text-sm md:text-base">{config.subtitle}</p>
-              <p className="mt-2 text-white/80 text-sm">
-                ¡Hola, <span className="font-bold text-white">{user?.name || "Usuario"}</span>! 👋
-              </p>
-            </div>
-
-            {/* Frase Motivacional Diaria */}
-            <div className="mt-4">
-              <DailyMotivation userName={user?.name || undefined} userBirthDate={user?.birthDate ? new Date(user.birthDate) : undefined} />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Estadísticas - Tarjetas llamativas */}
-      <section className="py-3 md:py-4">
-        <div className="container">
-          <div className="max-w-4xl mx-auto">
-            <h2 className="text-base md:text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-teal-600" />
+      {/* Estadísticas */}
+      <section className="mb-6">
+        <div>
+          <div>
+            <h2 className="text-sm font-semibold text-white/45 uppercase tracking-wider mb-3 flex items-center gap-2">
+              <TrendingUp className="h-4 w-4 text-teal-600" />
               Resumen del Día
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -651,7 +566,7 @@ export function TeamDashboard() {
                     <CardContent className="p-0">
                       <div className={`${stat.color} p-4 text-white`}>
                         <div className="flex items-center justify-between">
-                          <div className="bg-white/20 p-2 rounded-lg">
+                          <div className="bg-[#162828]/20 p-2 rounded-lg">
                             {stat.icon}
                           </div>
                           <span className="text-3xl md:text-4xl font-bold">{stat.value}</span>
@@ -667,12 +582,12 @@ export function TeamDashboard() {
         </div>
       </section>
 
-      {/* Acciones Rápidas - Botones grandes y llamativos */}
-      <section className="py-3 md:py-4">
-        <div className="container">
-          <div className="max-w-4xl mx-auto">
-            <h2 className="text-base md:text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">
-              <Target className="h-5 w-5 text-teal-600" />
+      {/* Acciones Rápidas */}
+      <section className="mb-6">
+        <div>
+          <div>
+            <h2 className="text-sm font-semibold text-white/45 uppercase tracking-wider mb-3 flex items-center gap-2">
+              <Target className="h-4 w-4 text-teal-600" />
               Acciones Rápidas
             </h2>
             <div className={`grid ${quickActions.length <= 3 ? 'grid-cols-1 sm:grid-cols-3' : 'grid-cols-1 sm:grid-cols-2 md:grid-cols-4'} gap-3`}>
@@ -683,7 +598,7 @@ export function TeamDashboard() {
                       <Button 
                         className={`w-full h-auto py-5 md:py-6 flex flex-col items-center gap-2 ${action.color} text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] border-0`}
                       >
-                        <div className="bg-white/20 p-2 rounded-lg">
+                        <div className="bg-[#162828]/20 p-2 rounded-lg">
                           {action.icon}
                         </div>
                         <span className="font-bold text-sm md:text-base">{action.label}</span>
@@ -720,7 +635,7 @@ export function TeamDashboard() {
                     <Button 
                       className={`w-full h-auto py-5 md:py-6 flex flex-col items-center gap-2 ${action.color} text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] border-0`}
                     >
-                      <div className="bg-white/20 p-2 rounded-lg">
+                      <div className="bg-[#162828]/20 p-2 rounded-lg">
                         {action.icon}
                       </div>
                       <span className="font-bold text-sm md:text-base">{action.label}</span>
@@ -735,20 +650,15 @@ export function TeamDashboard() {
 
       {/* CEO Control Center - Solo para super_admin */}
       {role === "super_admin" && (
-        <section className="py-3 md:py-4">
-          <div className="container">
-            <div className="max-w-4xl mx-auto">
-              <CEOControlCenter />
-            </div>
-          </div>
+        <section className="mb-6">
+          <CEOControlCenter />
         </section>
       )}
 
       {/* Proyectos Recientes */}
       {myProjects.length > 0 && (
-        <section className="py-3 md:py-4">
-          <div className="container">
-            <div className="max-w-4xl mx-auto">
+        <section className="mb-6">
+          <div>
               <div className="flex items-center justify-between mb-3">
                 <h2 className="text-base md:text-lg font-bold text-gray-800 flex items-center gap-2">
                   <Briefcase className="h-5 w-5 text-teal-600" />
@@ -773,7 +683,7 @@ export function TeamDashboard() {
                       <Card className={`${projectColors[index % 4]} hover:shadow-xl transition-all duration-300 cursor-pointer border-0 shadow-md hover:scale-[1.02] overflow-hidden`}>
                         <CardContent className="p-4 text-white">
                           <div className="flex items-center justify-between gap-2 mb-2">
-                            <div className="bg-white/20 p-2 rounded-lg">
+                            <div className="bg-[#162828]/20 p-2 rounded-lg">
                               {project.workType === "cocina" && <span className="text-xl">🍳</span>}
                               {project.workType === "closet" && <span className="text-xl">👔</span>}
                               {project.workType === "puertas" && <span className="text-xl">🛏</span>}
@@ -782,7 +692,7 @@ export function TeamDashboard() {
                             </div>
                             <Badge 
                               variant="outline" 
-                              className="bg-white/20 text-white border-white/30 font-semibold text-xs"
+                              className="bg-[#162828]/20 text-white border-white/30 font-semibold text-xs"
                             >
                               {getStatusLabel(project.status)}
                             </Badge>
@@ -800,16 +710,14 @@ export function TeamDashboard() {
                   );
                 })}
               </div>
-            </div>
           </div>
         </section>
       )}
 
       {/* Tareas Pendientes */}
       {myTasks.length > 0 && (
-        <section className="py-3 md:py-4 pb-24">
-          <div className="container">
-            <div className="max-w-4xl mx-auto">
+        <section className="mb-6 pb-4">
+          <div>
               <div className="flex items-center justify-between mb-3">
                 <h2 className="text-base md:text-lg font-bold text-gray-800 flex items-center gap-2">
                   <ClipboardList className="h-5 w-5 text-teal-600" />
@@ -839,12 +747,12 @@ export function TeamDashboard() {
                       <Card className={`${taskColors[index % 4]} hover:shadow-xl transition-all duration-300 cursor-pointer border-0 shadow-md hover:scale-[1.02] overflow-hidden`}>
                         <CardContent className="p-4 text-white">
                           <div className="flex items-center justify-between gap-2 mb-2">
-                            <div className="bg-white/20 p-2 rounded-lg">
+                            <div className="bg-[#162828]/20 p-2 rounded-lg">
                               <ClipboardList className="h-5 w-5" />
                             </div>
                             <Badge 
                               variant="outline" 
-                              className="bg-white/20 text-white border-white/30 font-semibold text-xs"
+                              className="bg-[#162828]/20 text-white border-white/30 font-semibold text-xs"
                             >
                               {priorityIcons[task.priority || "media"]} {task.priority === "alta" ? "Urgente" : task.priority === "media" ? "Media" : "Baja"}
                             </Badge>
@@ -859,7 +767,6 @@ export function TeamDashboard() {
                   );
                 })}
               </div>
-            </div>
           </div>
         </section>
       )}
@@ -921,9 +828,9 @@ export function TeamDashboard() {
                                 📅 Solicitado: {changesDate.toLocaleDateString('es-CO', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                               </p>
                             )}
-                            <div className="mt-2 p-3 bg-white rounded-lg border border-orange-200">
-                              <p className="text-sm text-gray-700 font-medium mb-1">📝 Cambios solicitados:</p>
-                              <p className="text-sm text-gray-600">{project.clientApprovalNotes || "Sin detalles especificados"}</p>
+                            <div className="mt-2 p-3 bg-[#162828] rounded-lg border border-orange-200">
+                              <p className="text-sm text-white/85 font-medium mb-1">📝 Cambios solicitados:</p>
+                              <p className="text-sm text-white/60">{project.clientApprovalNotes || "Sin detalles especificados"}</p>
                             </div>
                           </div>
                           <Link href={`/projects/${project.id}`}>
@@ -996,7 +903,7 @@ export function TeamDashboard() {
         <section className="py-8 pb-24">
           <div className="container">
             <div className="max-w-4xl mx-auto text-center">
-              <div className="bg-white rounded-2xl shadow-md p-8">
+              <div className="bg-[#162828] rounded-2xl shadow-md p-8">
                 <div className="text-6xl mb-4">🎉</div>
                 <h3 className="text-xl font-bold text-gray-800 mb-2">¡Todo al día!</h3>
                 <p className="text-muted-foreground">No tienes proyectos ni tareas pendientes en este momento.</p>

@@ -624,7 +624,11 @@ export async function createProject(project: InsertProject, dataOrigin: "manual"
     throw new Error('Los proyectos con dataOrigin = system DEBEN tener SYSTEM en el nombre');
   }
 
-  const result = await db.insert(projects).values({ ...project, dataOrigin });
+  // Generar token público único para la galería del cliente
+  const crypto = await import("crypto");
+  const publicToken = crypto.randomBytes(24).toString("hex");
+
+  const result = await db.insert(projects).values({ ...project, dataOrigin, publicToken });
   return result[0].insertId;
 }
 
@@ -632,16 +636,11 @@ export async function getProjectById(id: number) {
   const db = await getDb();
   if (!db) return undefined;
 
-  console.log("[DEBUG db.getProjectById] Buscando proyecto con ID:", id);
   const result = await db.select().from(projects).where(and(
-    eq(projects.id, id), 
-    isNull(projects.deletedAt), 
+    eq(projects.id, id),
+    isNull(projects.deletedAt),
     or(eq(projects.dataOrigin, 'manual'), isNull(projects.dataOrigin))
   )).limit(1);
-  console.log("[DEBUG db.getProjectById] Resultado:", result.length > 0 ? `Encontrado ${result[0].id}` : "No encontrado");
-  if (result.length > 0) {
-    console.log("[DEBUG db.getProjectById] dataOrigin:", result[0].dataOrigin, "deletedAt:", result[0].deletedAt);
-  }
   return result.length > 0 ? result[0] : undefined;
 }
 
@@ -1617,6 +1616,12 @@ export async function getAllQuotationsGroupedByBase(options?: { page?: number; l
           .where(inArray(projects.quotationId, group.versionIds));
         
         group.hasProject = projectsForVersions.length > 0;
+        if (projectsForVersions.length > 0) {
+          const proj = projectsForVersions[0];
+          group.projectId = proj.id;
+          // quotationId del proyecto = versión vigente que define el precio
+          group.activeProjectQuotationId = proj.quotationId;
+        }
       }
     }
   }
@@ -2068,6 +2073,102 @@ export async function getAllTasksPaginated(options?: {
     limit,
     totalPages: Math.ceil(total / limit),
   };
+}
+
+// ============ POSTVENTA RECLAMACIONES ============
+// Import inline to avoid circular issues
+import { postventaReclamaciones } from "../drizzle/schema";
+
+export type InsertReclamacion = typeof postventaReclamaciones.$inferInsert;
+export type SelectReclamacion = typeof postventaReclamaciones.$inferSelect;
+
+export async function createReclamacion(data: InsertReclamacion) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(postventaReclamaciones).values(data);
+  return result[0].insertId as number;
+}
+
+export async function getReclamacionesByProject(projectId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(postventaReclamaciones)
+    .where(eq(postventaReclamaciones.projectId, projectId))
+    .orderBy(desc(postventaReclamaciones.createdAt));
+}
+
+export async function getAllReclamaciones() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(postventaReclamaciones)
+    .orderBy(desc(postventaReclamaciones.createdAt));
+}
+
+export async function getReclamacionById(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(postventaReclamaciones)
+    .where(eq(postventaReclamaciones.id, id)).limit(1);
+  return result[0] ?? null;
+}
+
+export async function updateReclamacion(id: number, data: Partial<InsertReclamacion>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(postventaReclamaciones).set(data).where(eq(postventaReclamaciones.id, id));
+}
+
+export async function getReclamacionesStats() {
+  const db = await getDb();
+  if (!db) return { total: 0, pendientes: 0, enRevision: 0, resueltas: 0, seguimientosDue: 0, revisionesAnualesDue: 0 };
+
+  const now = new Date();
+  const in7Days = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+  const [all, pending, inReview, resolved, followUpsDue, annualDue] = await Promise.all([
+    db.select({ count: sql<number>`COUNT(*)` }).from(postventaReclamaciones),
+    db.select({ count: sql<number>`COUNT(*)` }).from(postventaReclamaciones)
+      .where(eq(postventaReclamaciones.status, 'pendiente')),
+    db.select({ count: sql<number>`COUNT(*)` }).from(postventaReclamaciones)
+      .where(eq(postventaReclamaciones.status, 'en_revision')),
+    db.select({ count: sql<number>`COUNT(*)` }).from(postventaReclamaciones)
+      .where(eq(postventaReclamaciones.status, 'resuelto')),
+    // seguimientos próximos (30d follow-up due in next 7 days)
+    db.select({ count: sql<number>`COUNT(*)` }).from(postventaReclamaciones)
+      .where(and(
+        eq(postventaReclamaciones.type, 'seguimiento_30d'),
+        eq(postventaReclamaciones.status, 'pendiente'),
+        lte(postventaReclamaciones.scheduledFor, in7Days.toISOString()),
+      )),
+    // revisiones anuales próximas (due in next 30 days)
+    db.select({ count: sql<number>`COUNT(*)` }).from(postventaReclamaciones)
+      .where(and(
+        eq(postventaReclamaciones.type, 'revision_anual'),
+        eq(postventaReclamaciones.status, 'pendiente'),
+        lte(postventaReclamaciones.scheduledFor, new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString()),
+      )),
+  ]);
+
+  return {
+    total: Number(all[0]?.count ?? 0),
+    pendientes: Number(pending[0]?.count ?? 0),
+    enRevision: Number(inReview[0]?.count ?? 0),
+    resueltas: Number(resolved[0]?.count ?? 0),
+    seguimientosDue: Number(followUpsDue[0]?.count ?? 0),
+    revisionesAnualesDue: Number(annualDue[0]?.count ?? 0),
+  };
+}
+
+export async function getPendingScheduledReclamaciones() {
+  const db = await getDb();
+  if (!db) return [];
+  const now = new Date().toISOString();
+  return db.select().from(postventaReclamaciones)
+    .where(and(
+      eq(postventaReclamaciones.status, 'pendiente'),
+      lte(postventaReclamaciones.scheduledFor, now),
+    ))
+    .orderBy(asc(postventaReclamaciones.scheduledFor));
 }
 
 

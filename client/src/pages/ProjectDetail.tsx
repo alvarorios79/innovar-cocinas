@@ -57,8 +57,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PhotoUploader } from "@/components/PhotoUploader";
 import { PaymentsSection } from "@/components/PaymentsSection";
+import { ProjectExpensesSection } from "@/components/ProjectExpensesSection";
 import { PageHeader } from "@/components/PageHeader";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { ExportProjectReportButton } from "@/components/ExportProjectReportButton";
+import { ExportProjectWordButton } from "@/components/ExportProjectWordButton";
 import { toast } from "sonner";
 
 
@@ -789,7 +792,17 @@ export default function ProjectDetail() {
                     <CardContent className="text-sm space-y-3 pt-4">
                       {/* Total del proyecto */}
                       <div className="flex justify-between items-center py-2 border-b">
-                        <span className="text-muted-foreground">Total del Proyecto</span>
+                        <div>
+                          <span className="text-muted-foreground">Total del Proyecto</span>
+                          {(projectDetail as any).quotation?.quotationNumber && (
+                            <p className="text-[10px] text-indigo-500 mt-0.5">
+                              💰 Según {(projectDetail as any).quotation.quotationNumber}
+                              {(projectDetail as any).quotation.versionNumber > 1 && (
+                                <span className="font-semibold"> (V{(projectDetail as any).quotation.versionNumber} — precio vigente)</span>
+                              )}
+                            </p>
+                          )}
+                        </div>
                         <span className="font-bold text-lg">{formatCurrency((projectDetail as any).financialInfo?.totalAmount || 0)}</span>
                       </div>
                       
@@ -997,8 +1010,8 @@ export default function ProjectDetail() {
               <CardContent className="pt-4">
                 <HardwareSelector
                   projectId={projectDetail.id}
-                  readOnly={user?.role === "disenador" || (user?.role !== "admin" && user?.role !== "super_admin")}
-                  showOnlySelected={user?.role === "disenador"}
+                  readOnly={user?.role !== "admin" && user?.role !== "super_admin"}
+                  showOnlySelected={false}
                 />
               </CardContent>
             </Card>
@@ -1078,7 +1091,7 @@ export default function ProjectDetail() {
                   <p className="text-teal-100 text-sm mt-1">Gestiona el envío y aprobación de diseños del cliente</p>
                 </div>
                 
-                <div className="bg-white dark:bg-gray-900 p-6">
+                <div className="bg-[#162828] dark:bg-gray-900 p-6">
                   {/* Grid de Tarjetas de Acción */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                     
@@ -1476,7 +1489,7 @@ export default function ProjectDetail() {
                 <CardContent className="pt-4">
                   <div className="space-y-3 max-h-96 overflow-y-auto">
                     {projectDetail.clientRevisions.map((revision: any, index: number) => (
-                      <div key={revision.id || index} className="p-3 bg-white rounded-lg border border-orange-200">
+                      <div key={revision.id || index} className="p-3 bg-[#162828] rounded-lg border border-orange-200">
                         <div className="flex items-center justify-between mb-2">
                           <span className={`text-xs font-medium px-2 py-1 rounded ${revision.type === 'modelado_3d' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>
                             {revision.type === 'modelado_3d' ? '📎 Modelado 3D' : '🎨 Renders'} - Rev. {revision.revisionNumber}
@@ -1514,7 +1527,7 @@ export default function ProjectDetail() {
                 </CardHeader>
                 <CardContent className="pt-4">
                   <div className="space-y-3">
-                    <div className="p-3 bg-white rounded-lg border border-orange-200">
+                    <div className="p-3 bg-[#162828] rounded-lg border border-orange-200">
                       <p className="text-sm text-gray-700">{projectDetail.clientApprovalNotes}</p>
                       {projectDetail.changesRequestedAt && (
                         <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
@@ -1686,7 +1699,7 @@ export default function ProjectDetail() {
                   <History className="h-5 w-5" />
                   Historial del Proyecto
                   {projectDetail.history && projectDetail.history.length > 0 && (
-                    <span className="ml-2 px-2 py-0.5 bg-white/20 rounded-full text-xs">
+                    <span className="ml-2 px-2 py-0.5 bg-[#162828]/20 rounded-full text-xs">
                       {projectDetail.history.length} eventos
                     </span>
                   )}
@@ -1753,7 +1766,7 @@ export default function ProjectDetail() {
                               {style.icon}
                             </div>
                             {/* Contenido */}
-                            <div className="flex-1 bg-white border rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow">
+                            <div className="flex-1 bg-[#162828] border rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow">
                               <div className="flex items-start justify-between gap-2">
                                 <p className="text-sm font-semibold text-gray-800">{actionText}</p>
                                 <span className="text-xs text-gray-400 whitespace-nowrap">
@@ -1813,7 +1826,17 @@ export default function ProjectDetail() {
           {/* Tab Financiero */}
           {user?.role !== "disenador" && user?.role !== "jefe_taller" && user?.role !== "operario" && (
             <TabsContent value="financiero" className="space-y-4">
-              <PaymentsSection 
+              {/* Botones de exportación */}
+              {(user?.role === "admin" || user?.role === "super_admin") && (
+                <div className="flex gap-2 justify-end">
+                  <ExportProjectReportButton
+                    projectId={projectId}
+                    clientName={(projectDetail as any).client?.name}
+                  />
+                  <ExportProjectWordButton projectId={projectId} />
+                </div>
+              )}
+              <PaymentsSection
                 projectId={projectId}
                 totalAmount={(projectDetail as any).financialInfo?.totalAmount || 0}
                 totalPaid={(projectDetail as any).financialInfo?.totalPaid || 0}
@@ -1822,6 +1845,11 @@ export default function ProjectDetail() {
                 surcharges={(projectDetail as any).financialInfo?.totalSurcharges || 0}
                 totalCobrado={(projectDetail as any).financialInfo?.totalCobrado || 0}
                 isAdmin={user?.role === "admin" || user?.role === "super_admin"}
+              />
+              <ProjectExpensesSection
+                projectId={projectId}
+                isAdmin={user?.role === "admin" || user?.role === "super_admin"}
+                onTotalChange={(total) => setMaterialExpensesTotal(total)}
               />
             </TabsContent>
           )}

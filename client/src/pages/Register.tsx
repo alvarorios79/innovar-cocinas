@@ -78,11 +78,11 @@ export default function Register() {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-100 flex items-center justify-center p-3 md:p-4">
+    <div className="min-h-screen flex items-center justify-center p-3 md:p-4" style={{ background: "linear-gradient(135deg, #f8fafc 0%, #f0fdfa 100%)" }}>
       <Card className="w-full max-w-md shadow-xl">
         <CardHeader className="text-center space-y-2 p-4 md:p-6">
-          <div className="mx-auto w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl flex items-center justify-center mb-2">
-            <span className="text-white text-2xl md:text-3xl font-bold">I</span>
+          <div className="mx-auto mb-2 flex items-center justify-center">
+            <img src="/logo-original.png" alt="INNOVAR Cocinas de Diseño" style={{ width: 90, height: "auto", objectFit: "contain" }} />
           </div>
           <CardTitle className="text-xl md:text-2xl font-bold text-gray-800">Crear Cuenta</CardTitle>
           <CardDescription className="text-sm md:text-base text-gray-600">
@@ -181,7 +181,7 @@ export default function Register() {
 
             <Button
               type="submit"
-              className="w-full h-11 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-semibold"
+              className="w-full h-11 bg-gradient-to-r from-teal-600 to-teal-500 hover:from-teal-700 hover:to-teal-600 text-white font-semibold"
               disabled={registerMutation.isPending || !isPasswordValid || !passwordsMatch}
             >
               {registerMutation.isPending ? (
@@ -201,13 +201,13 @@ export default function Register() {
           <div className="mt-6 text-center space-y-2">
             <p className="text-sm text-gray-600">
               ¿Ya tienes cuenta?{" "}
-              <Link href="/login" className="text-amber-600 hover:text-amber-700 font-medium">
+              <Link href="/login" className="text-teal-600 hover:text-teal-700 font-medium">
                 Inicia sesión
               </Link>
             </p>
             <button
               onClick={() => window.history.back()}
-              className="text-sm text-gray-500 hover:text-amber-600 transition-colors"
+              className="text-sm text-gray-500 hover:text-teal-600 transition-colors"
             >
               ← Volver a la página principal
             </button>

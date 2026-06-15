@@ -21,13 +21,17 @@ export const publicGalleryRouter = router({
     getProjectPhotos: publicProcedure
       .input(z.object({
         projectId: z.number(),
+        token: z.string().min(1),
         type: z.enum(["modelado_3d", "renders"]).optional(),
       }))
       .query(async ({ input }) => {
-        // Obtener proyecto
+        // Obtener proyecto y validar token público
         const project = await db.getProjectById(input.projectId);
         if (!project) {
           throw new TRPCError({ code: "NOT_FOUND", message: "Proyecto no encontrado" });
+        }
+        if (!project.publicToken || project.publicToken !== input.token) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Enlace inválido o expirado" });
         }
 
         // Obtener cliente
@@ -69,14 +73,18 @@ export const publicGalleryRouter = router({
     approveDesign: publicProcedure
       .input(z.object({
         projectId: z.number(),
+        token: z.string().min(1),
         clientName: z.string().min(1, "El nombre es requerido"),
         type: z.enum(["modelado_3d", "renders"]),
       }))
       .mutation(async ({ input }) => {
-        // Obtener proyecto con cliente
+        // Obtener proyecto con cliente y validar token
         const project = await db.getProjectById(input.projectId);
         if (!project) {
           throw new TRPCError({ code: "NOT_FOUND", message: "Proyecto no encontrado" });
+        }
+        if (!project.publicToken || project.publicToken !== input.token) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Enlace inválido o expirado" });
         }
 
         const now = new Date();
@@ -226,15 +234,19 @@ export const publicGalleryRouter = router({
     requestChanges: publicProcedure
       .input(z.object({
         projectId: z.number(),
+        token: z.string().min(1),
         clientName: z.string().min(1, "El nombre es requerido"),
         type: z.enum(["modelado_3d", "renders"]),
         changes: z.string().min(10, "Por favor describe los cambios que necesitas (mínimo 10 caracteres)"),
       }))
       .mutation(async ({ input }) => {
-        // Obtener proyecto
+        // Obtener proyecto y validar token
         const project = await db.getProjectById(input.projectId);
         if (!project) {
           throw new TRPCError({ code: "NOT_FOUND", message: "Proyecto no encontrado" });
+        }
+        if (!project.publicToken || project.publicToken !== input.token) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Enlace inválido o expirado" });
         }
 
         // Determinar el número de revisión actual
@@ -396,10 +408,11 @@ export const publicGalleryRouter = router({
     getApprovalStatus: publicProcedure
       .input(z.object({
         projectId: z.number(),
+        token: z.string().min(1),
       }))
       .query(async ({ input }) => {
         const project = await db.getProjectById(input.projectId);
-        if (!project) {
+        if (!project || !project.publicToken || project.publicToken !== input.token) {
           return { modeladoApproved: false, rendersApproved: false };
         }
         
@@ -469,7 +482,7 @@ export const publicGalleryRouter = router({
         
         // Generar enlace de la galería pública (sin login)
         const baseUrl = process.env.VITE_APP_URL || "https://innovarcitas.manus.space";
-        const portalLink = `${baseUrl}/gallery?project=${input.projectId}&type=renders`;
+        const portalLink = `${baseUrl}/gallery?project=${input.projectId}&token=${project.publicToken ?? ""}&type=renders`;
 
         // Generar enlace de WhatsApp si se debe notificar
         let whatsAppLink = null;
@@ -553,7 +566,7 @@ export const publicGalleryRouter = router({
         
         // Generar enlace de la galería pública (sin login)
         const baseUrl = process.env.VITE_APP_URL || "https://innovarcitas.manus.space";
-        const portalLink = `${baseUrl}/gallery?project=${input.projectId}&type=modelado_3d`;
+        const portalLink = `${baseUrl}/gallery?project=${input.projectId}&token=${project.publicToken ?? ""}&type=modelado_3d`;
 
         // Generar enlace de WhatsApp si se debe notificar
         let whatsAppLink = null;
@@ -634,7 +647,7 @@ export const publicGalleryRouter = router({
 
         // Construir URL de galería pública
         const baseUrl = process.env.VITE_APP_URL || "https://innovarcitas.manus.space";
-        const portalLink = `${baseUrl}/gallery?project=${input.projectId}&type=modelado_3d`;
+        const portalLink = `${baseUrl}/gallery?project=${input.projectId}&token=${project.publicToken ?? ""}&type=modelado_3d`;
 
         // Construir mensaje de WhatsApp
         const message = 
@@ -719,7 +732,7 @@ export const publicGalleryRouter = router({
 
         // Construir URL de galería pública
         const baseUrl = process.env.VITE_APP_URL || "https://innovarcitas.manus.space";
-        const portalLink = `${baseUrl}/gallery?project=${input.projectId}&type=renders`;
+        const portalLink = `${baseUrl}/gallery?project=${input.projectId}&token=${project.publicToken ?? ""}&type=renders`;
 
         // Construir mensaje de WhatsApp
         const message = 

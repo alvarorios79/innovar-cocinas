@@ -251,7 +251,7 @@ export function OperarioDashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50">
       {/* Header Simplificado */}
-      <header className="border-b bg-white/95 backdrop-blur-md sticky top-0 z-50 shadow-sm">
+      <header className="border-b bg-[#162828]/95 backdrop-blur-md sticky top-0 z-50 shadow-sm">
         <div className="container">
           <div className="flex h-14 md:h-16 items-center justify-between">
             <Link href="/">
@@ -268,7 +268,7 @@ export function OperarioDashboard() {
                 <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
                   Operario
                 </Badge>
-                <span className="font-medium text-gray-700">{user?.name}</span>
+                <span className="font-medium text-white/85">{user?.name}</span>
               </div>
               <LogoutButton />
               <MobileNav />
@@ -292,7 +292,7 @@ export function OperarioDashboard() {
             
             <div className="bg-gradient-to-r from-blue-600 to-cyan-600 rounded-2xl p-4 md:p-6 text-white shadow-xl">
               <div className="flex items-center gap-3">
-                <div className="bg-white/20 p-3 rounded-xl">
+                <div className="bg-[#162828]/20 p-3 rounded-xl">
                   <Package className="h-8 w-8" />
                 </div>
                 <div>
@@ -340,10 +340,10 @@ export function OperarioDashboard() {
             <div className="mt-4">
               <Link href="/projects">
                 <Card className="border-0 shadow-lg bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 text-white cursor-pointer hover:shadow-xl hover:scale-[1.02] transition-all duration-300 overflow-hidden relative">
-                  <div className="absolute inset-0 bg-white/10 opacity-0 hover:opacity-100 transition-opacity" />
+                  <div className="absolute inset-0 bg-[#162828]/10 opacity-0 hover:opacity-100 transition-opacity" />
                   <CardContent className="p-6 flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                      <div className="p-3 bg-white/20 rounded-xl">
+                      <div className="p-3 bg-[#162828]/20 rounded-xl">
                         <Package className="h-8 w-8" />
                       </div>
                       <div>
@@ -351,7 +351,7 @@ export function OperarioDashboard() {
                         <p className="text-sm text-white/80">Accede a la lista completa de proyectos</p>
                       </div>
                     </div>
-                    <div className="p-2 bg-white/20 rounded-full">
+                    <div className="p-2 bg-[#162828]/20 rounded-full">
                       <ArrowRight className="h-6 w-6" />
                     </div>
                   </CardContent>
@@ -470,7 +470,7 @@ export function OperarioDashboard() {
                           <div className="flex items-center gap-2">
                             <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
                             <div className="flex-1">
-                              <p className="text-sm font-medium text-gray-700 line-clamp-1">{task.title}</p>
+                              <p className="text-sm font-medium text-white/85 line-clamp-1">{task.title}</p>
                               <p className="text-xs text-muted-foreground">
                                 Completada el {task.updatedAt ? new Date(task.updatedAt).toLocaleDateString("es-CO") : "N/A"}
                               </p>
@@ -550,11 +550,11 @@ export function OperarioDashboard() {
                   size="sm"
                   onClick={() => navigatePhoto('prev')}
                   disabled={currentPhotoIndex === 0}
-                  className="bg-white/80"
+                  className="bg-[#162828]/80"
                 >
                   ← Anterior
                 </Button>
-                <span className="bg-white/80 px-3 py-1 rounded text-sm">
+                <span className="bg-[#162828]/80 px-3 py-1 rounded text-sm">
                   {currentPhotoIndex + 1} / {allPhotos.length}
                 </span>
                 <Button
@@ -562,7 +562,7 @@ export function OperarioDashboard() {
                   size="sm"
                   onClick={() => navigatePhoto('next')}
                   disabled={currentPhotoIndex === allPhotos.length - 1}
-                  className="bg-white/80"
+                  className="bg-[#162828]/80"
                 >
                   Siguiente →
                 </Button>
@@ -776,7 +776,7 @@ function ProjectPhotoCard({
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Badge variant="outline" className="bg-white/20 text-white border-white/30 text-xs">
+              <Badge variant="outline" className="bg-[#162828]/20 text-white border-white/30 text-xs">
                 {getStatusLabel(project.status)}
               </Badge>
               {isExpanded ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
@@ -789,7 +789,7 @@ function ProjectPhotoCard({
           <div className="p-4 bg-gray-50">
             {/* Info básica del proyecto */}
             {projectDetail?.client && (
-              <div className="mb-4 p-3 bg-white rounded-lg">
+              <div className="mb-4 p-3 bg-[#162828] rounded-lg">
                 <p className="text-sm"><strong>Cliente:</strong> {projectDetail.client.name}</p>
                 {projectDetail.client.address && (
                   <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
@@ -814,7 +814,7 @@ function ProjectPhotoCard({
                   
                   return (
                     <div key={stage}>
-                      <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                      <h4 className="text-sm font-semibold text-white/85 mb-2 flex items-center gap-2">
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -828,9 +828,9 @@ function ProjectPhotoCard({
                         {stageLabels[stage]} ({(stagePhotoList as any[]).length})
                       </h4>
                       {(stagePhotoList as any[]).length === 0 ? (
-                        <div className="flex flex-col items-center justify-center p-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                        <div className="flex flex-col items-center justify-center p-8 bg-gray-50 rounded-lg border-2 border-dashed border-[rgba(106,207,199,0.18)]">
                           <Camera className="h-8 w-8 text-gray-400 mb-2" />
-                          <p className="text-sm text-gray-500">Sin fotos de renders disponibles</p>
+                          <p className="text-sm text-white/45">Sin fotos de renders disponibles</p>
                         </div>
                       ) : (
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">

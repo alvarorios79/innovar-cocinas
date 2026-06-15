@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="es" translate="no">
 
   <head>
     <meta charset="UTF-8" />
@@ -7,6 +7,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1" />
     <title>InnovarCocinas</title>
+    <meta name="google" content="notranslate" />
     <meta name="description" content="Agenda citas y solicita estimados para cocinas integrales, closets, puertas y centros de TV en Pereira" />
     <meta name="theme-color" content="#14b8a6" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -17,11 +18,9 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
     <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
     <link rel="apple-touch-icon" href="/icon-192.png" />
-    <!-- THIS IS THE START OF A COMMENT BLOCK, BLOCK TO BE DELETED: Google Fonts here, example:
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    THIS IS THE END OF A COMMENT BLOCK, BLOCK TO BE DELETED -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
     <script>
       // Suppress Vite HMR errors immediately
       (function() {
@@ -77,17 +76,25 @@
     </script>
     <script type="module" src="/src/main.tsx"></script>
     <script>
-      // Registrar Service Worker para PWA
+      // En desarrollo: desregistrar SWs para que Vite HMR funcione sin caché
       if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
-            .then(registration => {
-              console.log('Service Worker registrado:', registration);
-            })
-            .catch(error => {
-              console.log('Error al registrar Service Worker:', error);
-            });
-        });
+        const isDev = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+        if (isDev) {
+          navigator.serviceWorker.getRegistrations().then(regs => {
+            regs.forEach(r => r.unregister());
+          });
+          // Limpiar todas las caches del browser en dev
+          if ('caches' in window) {
+            caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
+          }
+        } else {
+          // Solo registrar SW en producción
+          window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/sw.js')
+              .then(r => console.log('SW registrado:', r))
+              .catch(e => console.log('SW error:', e));
+          });
+        }
       }
     </script>
     <script

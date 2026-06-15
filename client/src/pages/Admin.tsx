@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
 import { Calendar, Phone, FileText, Users, Trash2, Plus, Bell, Key, Wrench, CheckSquare, Square, Eye, EyeOff, Search, Cake, DollarSign } from "lucide-react";
+import { KpiCard, KpiGrid } from "@/components/KpiCard";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RemindersPanel } from "@/components/RemindersPanel";
 import { toast } from "sonner";
@@ -20,6 +21,8 @@ import { HardwareCatalogAdmin } from "@/components/HardwareCatalogAdmin";
 import { CreateQuickClientDialog } from "@/components/CreateQuickClientDialog";
 import { SystemCleanupButton } from "@/components/SystemCleanupButton";
 import { formatPrice } from "@/lib/formatters";
+import { PageHeader } from "@/components/PageHeader";
+import { WhatsAppStatusPanel } from "@/components/WhatsAppStatusPanel";
 
 export default function Admin() {
   const { user, isAuthenticated, loading } = useAuth();
@@ -484,78 +487,44 @@ export default function Admin() {
   };
 
   return (
-    <div className="min-h-screen pb-20 md:pb-0 bg-background">
-      {/* Header */}
-      <header className="border-b">
-        <div className="container flex h-14 md:h-16 items-center justify-between px-3 md:px-4">
-          <div className="flex items-center gap-2 md:gap-4">
-            <Link href="/">
-              <Button variant="ghost" size="sm" className="px-2 md:px-3">
-                <span className="hidden sm:inline">← Inicio</span>
-                <span className="sm:hidden">←</span>
-              </Button>
-            </Link>
-            <img 
-              src="/logo-light.png" 
-              alt="INNOVAR" 
-              className="h-10 md:h-12 w-auto object-contain"
-            />
-            <span className="hidden md:inline text-sm text-muted-foreground">Panel Admin</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Badge variant="outline" className="text-xs">Admin</Badge>
-            <span className="hidden sm:inline text-sm text-muted-foreground truncate max-w-[100px] lg:max-w-none">{user?.name}</span>
-          </div>
-        </div>
-      </header>
+    <div className="pb-20 md:pb-0">
+      <div className="container py-4 md:py-6 px-3 md:px-4">
+        <PageHeader
+          title="Panel Administrativo"
+          subtitle="Gestión de citas, cotizaciones, usuarios y sistema"
+          icon={<Wrench className="h-5 w-5" />}
+          showBack={false}
+        />
+      </div>
 
-      <div className="container py-4 md:py-8 px-3 md:px-4">
+      <div className="container py-2 md:py-4 px-3 md:px-4">
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 mb-4 md:mb-8">
-          <Card className="bg-blue-50 border-blue-200">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-blue-900">Citas Pendientes</CardTitle>
-              <Calendar className="h-4 w-4 text-blue-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-blue-700">
-                {appointments.filter((a: any) => a.status === "pendiente").length}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-orange-50 border-orange-200">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-orange-900">Asesoramiento</CardTitle>
-              <Phone className="h-4 w-4 text-orange-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-orange-700">
-                {advisoryRequests.filter((a) => a.status === "pendiente").length}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-cyan-50 border-cyan-200">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-cyan-900">Cotizaciones</CardTitle>
-              <FileText className="h-4 w-4 text-cyan-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-cyan-700">{quotations.length}</div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-green-50 border-green-200">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-green-900">Clientes</CardTitle>
-              <Users className="h-4 w-4 text-green-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-700">{clients.length}</div>
-            </CardContent>
-          </Card>
-        </div>
+        <KpiGrid cols={4} className="mb-4 md:mb-8">
+          <KpiCard
+            label="Citas Pendientes"
+            value={appointments.filter((a: any) => a.status === "pendiente").length}
+            icon={<Calendar className="h-4 w-4" />}
+            accent="#1DB5A8"
+          />
+          <KpiCard
+            label="Asesoramiento"
+            value={advisoryRequests.filter((a) => a.status === "pendiente").length}
+            icon={<Phone className="h-4 w-4" />}
+            accent="#6366F1"
+          />
+          <KpiCard
+            label="Cotizaciones"
+            value={quotations.length}
+            icon={<FileText className="h-4 w-4" />}
+            accent="#3B82F6"
+          />
+          <KpiCard
+            label="Clientes"
+            value={clients.length}
+            icon={<Users className="h-4 w-4" />}
+            accent="#22C55E"
+          />
+        </KpiGrid>
 
         {/* Panel de Recordatorios */}
         {user && (
@@ -569,25 +538,25 @@ export default function Admin() {
           <TabsList className="grid w-full grid-cols-2 sm:grid-cols-6 h-auto gap-2 bg-transparent p-1">
             <TabsTrigger 
               value="appointments" 
-              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white hover:bg-blue-100 transition-colors"
+              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-teal-600 data-[state=active]:text-white hover:bg-teal-50 transition-colors"
             >
               Citas
             </TabsTrigger>
             <TabsTrigger 
               value="advisory" 
-              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-orange-500 data-[state=active]:text-white hover:bg-orange-100 transition-colors"
+              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-teal-600 data-[state=active]:text-white hover:bg-teal-50 transition-colors"
             >
               Asesoría
             </TabsTrigger>
             <TabsTrigger 
               value="quotations" 
-              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-cyan-500 data-[state=active]:text-white hover:bg-cyan-100 transition-colors"
+              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-teal-600 data-[state=active]:text-white hover:bg-teal-50 transition-colors"
             >
               Cotizaciones
             </TabsTrigger>
             <TabsTrigger 
               value="clients" 
-              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-green-500 data-[state=active]:text-white hover:bg-green-100 transition-colors"
+              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-teal-600 data-[state=active]:text-white hover:bg-teal-50 transition-colors"
             >
               Clientes
             </TabsTrigger>
@@ -599,19 +568,19 @@ export default function Admin() {
             </TabsTrigger>
             <TabsTrigger 
               value="hardware" 
-              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-rose-500 data-[state=active]:text-white hover:bg-rose-100 transition-colors"
+              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-teal-600 data-[state=active]:text-white hover:bg-teal-50 transition-colors"
             >
               Herrajes
             </TabsTrigger>
             <TabsTrigger 
               value="projects" 
-              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-purple-500 data-[state=active]:text-white hover:bg-purple-100 transition-colors"
+              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-teal-600 data-[state=active]:text-white hover:bg-teal-50 transition-colors"
             >
               Proyectos
             </TabsTrigger>
             {(user?.role === "super_admin" || user?.role === "admin") && (
               <Link href="/profitability-dashboard">
-                <Button variant="outline" className="text-xs sm:text-sm px-2 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border-indigo-300">
+                <Button variant="outline" className="text-xs sm:text-sm px-2 py-2 bg-teal-50 hover:bg-teal-100 text-teal-700 border-teal-300">
                   <DollarSign className="h-4 w-4 mr-1" />
                   Rentabilidad
                 </Button>
@@ -970,15 +939,15 @@ export default function Admin() {
 
           {/* Quotations Tab */}
           <TabsContent value="quotations" className="space-y-3">
-            <Card className="border-cyan-200 bg-gradient-to-br from-cyan-50 to-white">
+            <Card className="border-teal-200 bg-gradient-to-br from-teal-50 to-white">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle className="text-cyan-700">Sistema de Cotizaciones</CardTitle>
+                    <CardTitle className="text-teal-700">Sistema de Cotizaciones</CardTitle>
                     <CardDescription>Crea y gestiona cotizaciones profesionales con PDF y envío automático</CardDescription>
                   </div>
                   <Link href="/quotations">
-                    <Button size="lg" className="gap-2 bg-cyan-500 hover:bg-cyan-600">
+                    <Button size="lg" className="gap-2 bg-teal-600 hover:bg-teal-700">
                       <FileText className="h-5 w-5" />
                       Ir a Cotizaciones
                     </Button>
@@ -987,8 +956,8 @@ export default function Admin() {
               </CardHeader>
               <CardContent className="pt-3">
                 <div className="grid gap-3 md:grid-cols-3">
-                  <div className="flex items-start gap-3 p-3 rounded-lg bg-white border border-cyan-100">
-                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-cyan-100 flex items-center justify-center text-cyan-600 font-bold">
+                  <div className="flex items-start gap-3 p-3 rounded-lg bg-[#162828] border border-teal-100">
+                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center text-teal-600 font-bold">
                       1
                     </div>
                     <div>
@@ -996,8 +965,8 @@ export default function Admin() {
                       <p className="text-xs text-muted-foreground">Múltiples items con descripción detallada</p>
                     </div>
                   </div>
-                  <div className="flex items-start gap-3 p-3 rounded-lg bg-white border border-cyan-100">
-                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-cyan-100 flex items-center justify-center text-cyan-600 font-bold">
+                  <div className="flex items-start gap-3 p-3 rounded-lg bg-[#162828] border border-teal-100">
+                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center text-teal-600 font-bold">
                       2
                     </div>
                     <div>
@@ -1005,8 +974,8 @@ export default function Admin() {
                       <p className="text-xs text-muted-foreground">Genera PDFs con logo y diseño corporativo</p>
                     </div>
                   </div>
-                  <div className="flex items-start gap-3 p-3 rounded-lg bg-white border border-cyan-100">
-                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-cyan-100 flex items-center justify-center text-cyan-600 font-bold">
+                  <div className="flex items-start gap-3 p-3 rounded-lg bg-[#162828] border border-teal-100">
+                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center text-teal-600 font-bold">
                       3
                     </div>
                     <div>
@@ -1697,8 +1666,8 @@ export default function Admin() {
                                     checked={testUsers.every(u => selectedUsers.includes(u.id))}
                                     onCheckedChange={() => toggleSelectAllUsers(testUsers)}
                                   />
-                                  <h3 className="font-semibold text-lg text-orange-600">⚠️ Usuarios de Prueba</h3>
-                                  <Badge variant="outline" className="border-orange-400 text-orange-600">{testUsers.length}</Badge>
+                                  <h3 className="font-semibold text-lg text-white/45">⚠️ Usuarios de Prueba</h3>
+                                  <Badge variant="outline" className="border-orange-400 text-white/45">{testUsers.length}</Badge>
                                 </div>
                                 <div className="flex gap-2 flex-wrap">
                                   <Button
@@ -1740,7 +1709,7 @@ export default function Admin() {
                                   <Button
                                     size="sm"
                                     variant="outline"
-                                    className="border-orange-400 text-orange-600 hover:bg-orange-50"
+                                    className="border-orange-400 text-white/45 hover:bg-orange-50"
                                     onClick={() => {
                                       const testUserIds = testUsers.map(u => u.id);
                                       setSelectedUsers(prev => {
@@ -1771,7 +1740,7 @@ export default function Admin() {
                                         <div className="space-y-1 flex-1">
                                           <div className="flex items-center gap-2 flex-wrap">
                                             <h3 className="font-semibold">{usr.name || "Sin nombre"}</h3>
-                                            <Badge variant="outline" className="border-orange-400 text-orange-600">
+                                            <Badge variant="outline" className="border-orange-400 text-white/45">
                                               Prueba
                                             </Badge>
                                           </div>
@@ -1818,7 +1787,7 @@ export default function Admin() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5 text-purple-600" />
+                  <FileText className="h-5 w-5 text-teal-600" />
                   Gestión de Proyectos
                 </CardTitle>
                 <CardDescription>
@@ -1827,7 +1796,7 @@ export default function Admin() {
               </CardHeader>
               <CardContent>
                 <Link href="/projects">
-                  <Button className="bg-purple-600 hover:bg-purple-700">
+                  <Button className="bg-teal-600 hover:bg-teal-700">
                     <FileText className="h-4 w-4 mr-2" />
                     Ver Todos los Proyectos
                   </Button>
@@ -1862,31 +1831,8 @@ export default function Admin() {
           )}
           {user?.role === "super_admin" && (
             <TabsContent value="system-zone" className="space-y-4">
-              <Card className="border-red-200 bg-red-50/50">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-red-700">
-                    <Wrench className="h-5 w-5" />
-                    Zona Crítica del Sistema
-                  </CardTitle>
-                  <CardDescription>
-                    Operaciones de mantenimiento y limpieza del sistema. Úsalas con cuidado.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="rounded-lg border border-red-200 bg-red-50 p-4">
-                    <h3 className="font-semibold text-red-900 mb-2">🧹 LIMPIEZA DE SISTEMA</h3>
-                    <p className="text-sm text-red-700 mb-4">
-                      Accede al módulo completo de limpieza de datos del sistema para inspeccionar, filtrar y eliminar registros de prueba de forma segura.
-                    </p>
-                    <Link href="/limpieza-sistema">
-                      <Button className="w-full bg-red-600 hover:bg-red-700 text-white">
-                        <Wrench className="h-4 w-4 mr-2" />
-                        Ir a LIMPIEZA DE SISTEMA
-                      </Button>
-                    </Link>
-                  </div>
-                </CardContent>
-              </Card>
+              <WhatsAppStatusPanel />
+
             </TabsContent>
           )}
         </Tabs>
@@ -1921,7 +1867,7 @@ export default function Admin() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Key className="h-5 w-5 text-green-600" />
+              <Key className="h-5 w-5 text-emerald-600" />
               Contraseña Reseteada
             </DialogTitle>
             <DialogDescription>

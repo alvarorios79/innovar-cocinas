@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { DoorOpen, Plus, Trash2, Truck } from "lucide-react";
+import { usePricing } from "@/hooks/usePricing";
 
 export interface DoorItem {
   id: string;
@@ -21,7 +22,7 @@ export interface DoorItem {
   width: number;
   height: number;
   quantity: number;
-  hardwareColor: "aluminio" | "negro";
+  hardwareColor: "negro" | "plata";
   hasLintel: boolean;
   location?: string;
   notes?: string;
@@ -42,43 +43,43 @@ interface DoorConfiguratorProps {
   onChange: (config: DoorConfig) => void;
 }
 
-const DOOR_PRICES = {
-  batiente: {
-    "50-85": { price: 890000 },
-    "85-110": { price: 950000 },
-  },
-  corrediza: {
-    "50-85": { price: 1250000 },
-    "85-110": { price: 1350000 },
-  },
-};
-
 const generateId = () => Math.random().toString(36).substr(2, 9);
 
-const createNewDoor = (): DoorItem => ({
+const createNewDoor = (defaultPrice = 890000): DoorItem => ({
   id: generateId(),
   type: "batiente",
   widthRange: "50-85",
   width: 80,
   height: 2.10,
   quantity: 1,
-  hardwareColor: "aluminio",
+  hardwareColor: "negro",
   hasLintel: true,
   location: "",
   notes: "",
-  pricePerUnit: 890000,
-  lineTotal: 890000,
+  pricePerUnit: defaultPrice,
+  lineTotal: defaultPrice,
 });
 
 export function DoorConfigurator({ config, onChange }: DoorConfiguratorProps) {
+  const { getPrice } = usePricing();
+
+  // Precios dinámicos desde BD (editables en /pricing-config)
+  const getDoorPrice = (type: "batiente" | "corrediza", range: "50-85" | "85-110"): number => {
+    const codeMap = {
+      batiente:  { "50-85": "PUERTA_BATIENTE_50_85",   "85-110": "PUERTA_BATIENTE_85_110"  },
+      corrediza: { "50-85": "PUERTA_CORREDIZA_50_85",  "85-110": "PUERTA_CORREDIZA_85_110" },
+    };
+    return getPrice(codeMap[type][range]);
+  };
+
   const [doors, setDoors] = useState<DoorItem[]>(
-    config?.doors && config.doors.length > 0 
+    config?.doors && config.doors.length > 0
       ? config.doors.map(d => ({
           ...d,
           quantity: d.quantity || 1,
           lineTotal: d.lineTotal || (d.pricePerUnit * (d.quantity || 1))
         }))
-      : [createNewDoor()]
+      : [createNewDoor(getPrice("PUERTA_BATIENTE_50_85"))]
   );
   const [notes, setNotes] = useState<string>(config?.notes || "");
   const [includeTransport, setIncludeTransport] = useState<boolean>(config?.includeTransport ?? false);
@@ -90,7 +91,10 @@ export function DoorConfigurator({ config, onChange }: DoorConfiguratorProps) {
     onChange({ doors, subtotal, includeTransport, transportCost, notes });
   }, [doors, notes, includeTransport, transportCost]);
 
-  const addDoor = () => setDoors([...doors, createNewDoor()]);
+  const addDoor = () => {
+    const price = getDoorPrice("batiente", "50-85");
+    setDoors([...doors, createNewDoor(price)]);
+  };
 
   const removeDoor = (id: string) => {
     if (doors.length > 1) {
@@ -105,7 +109,7 @@ export function DoorConfigurator({ config, onChange }: DoorConfiguratorProps) {
       if (updates.width !== undefined) {
         updatedDoor.widthRange = updates.width <= 85 ? "50-85" : "85-110";
       }
-      updatedDoor.pricePerUnit = DOOR_PRICES[updatedDoor.type][updatedDoor.widthRange].price;
+      updatedDoor.pricePerUnit = getDoorPrice(updatedDoor.type, updatedDoor.widthRange);
       updatedDoor.lineTotal = updatedDoor.pricePerUnit * updatedDoor.quantity;
       return updatedDoor;
     }));
@@ -148,9 +152,9 @@ export function DoorConfigurator({ config, onChange }: DoorConfiguratorProps) {
               {/* Fila 1: Tipo y Medidas */}
               <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
                 <div>
-                  <Label className="text-sm font-medium text-gray-700 block mb-2">Tipo</Label>
+                  <Label className="text-sm font-medium text-white/85 block mb-2">Tipo</Label>
                   <Select value={door.type} onValueChange={(v) => updateDoor(door.id, { type: v as "batiente" | "corrediza" })}>
-                    <SelectTrigger className="h-10 bg-white"><SelectValue /></SelectTrigger>
+                    <SelectTrigger className="h-10 bg-[#162828]"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="batiente">Batiente</SelectItem>
                       <SelectItem value="corrediza">Corrediza</SelectItem>
@@ -158,19 +162,19 @@ export function DoorConfigurator({ config, onChange }: DoorConfiguratorProps) {
                   </Select>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium text-gray-700 block mb-2">Ancho (cm)</Label>
+                  <Label className="text-sm font-medium text-white/85 block mb-2">Ancho (cm)</Label>
                   <Input 
                     type="number" 
                     min="50" 
                     max="110" 
                     value={door.width || ""} 
                     onChange={(e) => updateDoor(door.id, { width: parseFloat(e.target.value) || 0 })} 
-                    className="h-10 bg-white"
+                    className="h-10 bg-[#162828]"
                     placeholder="50-110"
                   />
                 </div>
                 <div>
-                  <Label className="text-sm font-medium text-gray-700 block mb-2">Alto (m)</Label>
+                  <Label className="text-sm font-medium text-white/85 block mb-2">Alto (m)</Label>
                   <Input 
                     type="number" 
                     step="0.01" 
@@ -178,28 +182,28 @@ export function DoorConfigurator({ config, onChange }: DoorConfiguratorProps) {
                     max="2.40" 
                     value={door.height || ""} 
                     onChange={(e) => updateDoor(door.id, { height: parseFloat(e.target.value) || 0 })} 
-                    className="h-10 bg-white"
+                    className="h-10 bg-[#162828]"
                     placeholder="máx 2.40"
                   />
                 </div>
                 <div>
-                  <Label className="text-sm font-medium text-gray-700 block mb-2">Cantidad</Label>
+                  <Label className="text-sm font-medium text-white/85 block mb-2">Cantidad</Label>
                   <Input 
                     type="number" 
                     min="1" 
                     value={door.quantity || 1} 
                     onChange={(e) => updateDoor(door.id, { quantity: parseInt(e.target.value) || 1 })} 
-                    className="h-10 bg-white"
+                    className="h-10 bg-[#162828]"
                   />
                 </div>
                 <div>
-                  <Label className="text-sm font-medium text-gray-700 block mb-2">Ubicación</Label>
+                  <Label className="text-sm font-medium text-white/85 block mb-2">Ubicación</Label>
                   <Input 
                     type="text" 
                     value={door.location || ""} 
                     onChange={(e) => updateDoor(door.id, { location: e.target.value })} 
                     placeholder="Ej: Baño"
-                    className="h-10 bg-white"
+                    className="h-10 bg-[#162828]"
                   />
                 </div>
               </div>
@@ -207,17 +211,17 @@ export function DoorConfigurator({ config, onChange }: DoorConfiguratorProps) {
               {/* Fila 2: Accesorios */}
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
                 <div>
-                  <Label className="text-sm font-medium text-gray-700 block mb-2">Color Accesorios</Label>
-                  <Select value={door.hardwareColor} onValueChange={(v) => updateDoor(door.id, { hardwareColor: v as "aluminio" | "negro" })}>
-                    <SelectTrigger className="h-10 bg-white"><SelectValue /></SelectTrigger>
+                  <Label className="text-sm font-medium text-white/85 block mb-2">Color Accesorios</Label>
+                  <Select value={door.hardwareColor} onValueChange={(v) => updateDoor(door.id, { hardwareColor: v as "negro" | "plata" })}>
+                    <SelectTrigger className="h-10 bg-[#162828]"><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="aluminio">Aluminio</SelectItem>
                       <SelectItem value="negro">Negro</SelectItem>
+                      <SelectItem value="plata">Plata</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="flex items-end">
-                  <div className="flex items-center gap-3 h-10 px-3 bg-white rounded-md border w-full">
+                  <div className="flex items-center gap-3 h-10 px-3 bg-[#162828] rounded-md border w-full">
                     <Checkbox 
                       id={`lintel-${door.id}`} 
                       checked={door.hasLintel} 
@@ -227,13 +231,13 @@ export function DoorConfigurator({ config, onChange }: DoorConfiguratorProps) {
                   </div>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium text-gray-700 block mb-2">Notas</Label>
+                  <Label className="text-sm font-medium text-white/85 block mb-2">Notas</Label>
                   <Input 
                     type="text" 
                     value={door.notes || ""} 
                     onChange={(e) => updateDoor(door.id, { notes: e.target.value })} 
                     placeholder="Observaciones..."
-                    className="h-10 bg-white"
+                    className="h-10 bg-[#162828]"
                   />
                 </div>
               </div>
@@ -246,7 +250,7 @@ export function DoorConfigurator({ config, onChange }: DoorConfiguratorProps) {
                     <span className="mx-2">•</span>
                     <span>{door.width}cm × {door.height}m</span>
                     <span className="mx-2">•</span>
-                    <span>{door.hardwareColor === "aluminio" ? "Aluminio" : "Negro"}</span>
+                    <span>Herrajes {door.hardwareColor === "negro" ? "Negro" : "Plata"}</span>
                     <span className="mx-2">•</span>
                     <span>{door.hasLintel ? "Con dintel" : "Sin dintel"}</span>
                   </div>
@@ -264,7 +268,7 @@ export function DoorConfigurator({ config, onChange }: DoorConfiguratorProps) {
           ))}
 
           {/* Transporte e Imprevistos */}
-          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+          <div className="bg-gray-50 p-4 rounded-lg border border-[rgba(106,207,199,0.12)]">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Checkbox 
@@ -273,7 +277,7 @@ export function DoorConfigurator({ config, onChange }: DoorConfiguratorProps) {
                   onCheckedChange={(c) => setIncludeTransport(c === true)} 
                 />
                 <div className="flex items-center gap-2">
-                  <Truck className="h-4 w-4 text-gray-600" />
+                  <Truck className="h-4 w-4 text-white/60" />
                   <Label htmlFor="door-transport" className="cursor-pointer font-medium">
                     Incluir Transporte e Imprevistos
                   </Label>
@@ -281,7 +285,7 @@ export function DoorConfigurator({ config, onChange }: DoorConfiguratorProps) {
               </div>
               {includeTransport && (
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-600">Monto: $</span>
+                  <span className="text-sm text-white/60">Monto: $</span>
                   <Input 
                     type="number" 
                     value={transportCost} 
@@ -295,12 +299,12 @@ export function DoorConfigurator({ config, onChange }: DoorConfiguratorProps) {
 
           {/* Notas generales */}
           <div>
-            <Label className="text-sm font-medium text-gray-700 block mb-2">Notas Generales</Label>
+            <Label className="text-sm font-medium text-white/85 block mb-2">Notas Generales</Label>
             <Textarea 
               value={notes} 
               onChange={(e) => setNotes(e.target.value)} 
               placeholder="Observaciones generales para todas las puertas..."
-              className="bg-white"
+              className="bg-[#162828]"
               rows={2}
             />
           </div>

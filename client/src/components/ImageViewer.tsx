@@ -230,7 +230,7 @@ export function ImageViewer({ images, initialIndex = 0, isOpen, onClose }: Image
           <Button
             variant="ghost"
             size="icon"
-            className="text-white hover:bg-white/20"
+            className="text-white hover:bg-[#162828]/20"
             onClick={zoomOut}
             disabled={scale <= 0.5}
           >
@@ -240,7 +240,7 @@ export function ImageViewer({ images, initialIndex = 0, isOpen, onClose }: Image
           <Button
             variant="ghost"
             size="icon"
-            className="text-white hover:bg-white/20"
+            className="text-white hover:bg-[#162828]/20"
             onClick={zoomIn}
             disabled={scale >= 5}
           >
@@ -249,7 +249,7 @@ export function ImageViewer({ images, initialIndex = 0, isOpen, onClose }: Image
           <Button
             variant="ghost"
             size="icon"
-            className="text-white hover:bg-white/20"
+            className="text-white hover:bg-[#162828]/20"
             onClick={rotate}
           >
             <RotateCw className="h-5 w-5" />
@@ -257,7 +257,7 @@ export function ImageViewer({ images, initialIndex = 0, isOpen, onClose }: Image
           <Button
             variant="ghost"
             size="icon"
-            className="text-white hover:bg-white/20"
+            className="text-white hover:bg-[#162828]/20"
             onClick={downloadImage}
           >
             <Download className="h-5 w-5" />
@@ -265,7 +265,7 @@ export function ImageViewer({ images, initialIndex = 0, isOpen, onClose }: Image
           <Button
             variant="ghost"
             size="icon"
-            className="text-white hover:bg-white/20"
+            className="text-white hover:bg-[#162828]/20"
             onClick={onClose}
           >
             <X className="h-5 w-5" />
@@ -301,7 +301,7 @@ export function ImageViewer({ images, initialIndex = 0, isOpen, onClose }: Image
           <Button
             variant="ghost"
             size="icon"
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 h-12 w-12"
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:bg-[#162828]/20 h-12 w-12"
             onClick={goToPrevious}
           >
             <ChevronLeft className="h-8 w-8" />
@@ -309,7 +309,7 @@ export function ImageViewer({ images, initialIndex = 0, isOpen, onClose }: Image
           <Button
             variant="ghost"
             size="icon"
-            className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 h-12 w-12"
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:bg-[#162828]/20 h-12 w-12"
             onClick={goToNext}
           >
             <ChevronRight className="h-8 w-8" />

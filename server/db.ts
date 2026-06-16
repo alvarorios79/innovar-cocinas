@@ -1,5 +1,5 @@
 import { eq, desc, asc, and, or, gte, lte, gt, between, sql, inArray, isNull, isNotNull, like, ne } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/mysql2";
+import { drizzle } from "drizzle-orm/node-postgres";
 // @ts-ignore
 import { 
   InsertUser, 
@@ -68,15 +68,15 @@ import {
 import { ENV } from './_core/env';
 import { randomUUID } from 'crypto';
 import { triggerAlertEvaluation } from './services/financialAlertMonitor';
-import mysql from 'mysql2/promise';
+import { Pool } from 'pg';
 
 let _db: ReturnType<typeof drizzle> | null = null;
-let _pool: mysql.Pool | null = null;
+let _pool: Pool | null = null;
 
 export async function getPool() {
   if (!_pool && process.env.DATABASE_URL) {
     try {
-      _pool = mysql.createPool(process.env.DATABASE_URL);
+      _pool = new Pool({ connectionString: process.env.DATABASE_URL });
     } catch (error) {
       console.warn("[Database Pool] Failed to connect:", error);
       _pool = null;
@@ -88,7 +88,8 @@ export async function getPool() {
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
-      _db = drizzle(process.env.DATABASE_URL);
+      const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+      _db = drizzle(pool);
     } catch (error) {
       console.warn("[Database] Failed to connect:", error);
       _db = null;
@@ -113,8 +114,8 @@ export function enforceDataOrigin<T extends { dataOrigin?: string }>(data: T): T
 export async function createUser(user: Omit<InsertUser, 'openId'> & { openId?: string }) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  const result = await db.insert(users).values({ openId: user.openId || randomUUID(), ...user });
-  return result[0].insertId;
+  const result = await db.insert(users).values({ openId: user.openId || randomUUID(), ...user }.returning({ id: users.id });
+  return result[0].id;
 }
 
 export async function getUserById(id: number) {
@@ -167,8 +168,8 @@ export async function createClient(client: InsertClient, dataOrigin: "manual" | 
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  const result = await db.insert(clients).values({ ...client, dataOrigin });
-  return result[0].insertId;
+  const result = await db.insert(clients).values({ ...client, dataOrigin }.returning({ id: clients.id });
+  return result[0].id;
 }
 
 export async function getClientById(id: number) {
@@ -251,8 +252,8 @@ export async function createAppointment(appointment: InsertAppointment, dataOrig
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  const result = await db.insert(appointments).values({ ...appointment, dataOrigin });
-  return result[0].insertId;
+  const result = await db.insert(appointments).values({ ...appointment, dataOrigin }.returning({ id: appointments.id });
+  return result[0].id;
 }
 
 export async function getAppointmentById(id: number) {
@@ -303,8 +304,8 @@ export async function createAppointmentWorkType(workType: InsertAppointmentWorkT
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  const result = await db.insert(appointmentWorkTypes).values(workType);
-  return result[0].insertId;
+  const result = await db.insert(appointmentWorkTypes).values(workType.returning({ id: appointmentWorkTypes.id });
+  return result[0].id;
 }
 
 export async function getAppointmentWorkTypes(appointmentId: number) {
@@ -327,8 +328,8 @@ export async function createAdvisoryRequest(advisoryRequest: InsertAdvisoryReque
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  const result = await db.insert(advisoryRequests).values(advisoryRequest);
-  return result[0].insertId;
+  const result = await db.insert(advisoryRequests).values(advisoryRequest.returning({ id: advisoryRequests.id });
+  return result[0].id;
 }
 
 export async function getAdvisoryRequestById(id: number) {
@@ -359,8 +360,8 @@ export async function createPriorEstimate(estimate: InsertPriorEstimate) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  const result = await db.insert(priorEstimates).values(estimate);
-  return result[0].insertId;
+  const result = await db.insert(priorEstimates).values(estimate.returning({ id: priorEstimates.id });
+  return result[0].id;
 }
 
 export async function getPriorEstimateById(id: number) {
@@ -402,8 +403,8 @@ export async function createQuotation(quotation: Omit<InsertQuotation, 'quotatio
     };
   }
 
-  const result = await db.insert(quotations).values({ ...finalQuotation, dataOrigin } as any);
-  return result[0].insertId;
+  const result = await db.insert(quotations).values({ ...finalQuotation, dataOrigin } as any.returning({ id: quotations.id });
+  return result[0].id;
 }
 
 export async function getQuotationById(id: number) {
@@ -483,8 +484,8 @@ export async function createQuotationItem(item: InsertQuotationItem) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  const result = await db.insert(quotationItems).values(item);
-  return result[0].insertId;
+  const result = await db.insert(quotationItems).values(item.returning({ id: quotationItems.id });
+  return result[0].id;
 }
 
 export async function getQuotationItems(quotationId: number) {
@@ -566,8 +567,8 @@ export async function createReminder(reminder: InsertReminder) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  const result = await db.insert(reminders).values(reminder);
-  return result[0].insertId;
+  const result = await db.insert(reminders).values(reminder.returning({ id: reminders.id });
+  return result[0].id;
 }
 
 export async function getReminderById(id: number) {
@@ -628,8 +629,8 @@ export async function createProject(project: InsertProject, dataOrigin: "manual"
   const crypto = await import("crypto");
   const publicToken = crypto.randomBytes(24).toString("hex");
 
-  const result = await db.insert(projects).values({ ...project, dataOrigin, publicToken });
-  return result[0].insertId;
+  const result = await db.insert(projects).values({ ...project, dataOrigin, publicToken }.returning({ id: projects.id });
+  return result[0].id;
 }
 
 export async function getProjectById(id: number) {
@@ -772,8 +773,8 @@ export async function createProjectDetail(detail: InsertProjectDetail) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  const result = await db.insert(projectDetails).values(detail);
-  return result[0].insertId;
+  const result = await db.insert(projectDetails).values(detail.returning({ id: projectDetails.id });
+  return result[0].id;
 }
 
 export async function getProjectDetail(projectId: number) {
@@ -797,8 +798,8 @@ export async function createProjectPhoto(photo: InsertProjectPhoto) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  const result = await db.insert(projectPhotos).values(photo);
-  return result[0].insertId;
+  const result = await db.insert(projectPhotos).values(photo.returning({ id: projectPhotos.id });
+  return result[0].id;
 }
 
 export async function getProjectPhotos(projectId: number) {
@@ -821,8 +822,8 @@ export async function createProjectMaterial(material: any) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  const result = await db.insert(projectMaterials).values(material);
-  return result[0].insertId;
+  const result = await db.insert(projectMaterials).values(material.returning({ id: projectMaterials.id });
+  return result[0].id;
 }
 
 export async function getProjectMaterials(projectId: number) {
@@ -845,8 +846,8 @@ export async function createProjectStatusHistory(history: InsertProjectStatusHis
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  const result = await db.insert(projectStatusHistory).values(history);
-  return result[0].insertId;
+  const result = await db.insert(projectStatusHistory).values(history.returning({ id: projectStatusHistory.id });
+  return result[0].id;
 }
 
 export async function getProjectStatusHistory(projectId: number) {
@@ -862,8 +863,8 @@ export async function createTask(task: InsertTask) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  const result = await db.insert(tasks).values(task);
-  return result[0].insertId;
+  const result = await db.insert(tasks).values(task.returning({ id: tasks.id });
+  return result[0].id;
 }
 
 export async function getTaskById(id: number) {
@@ -908,8 +909,8 @@ export async function createNotification(notification: InsertNotification) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  const result = await db.insert(notifications).values(notification);
-  return result[0].insertId;
+  const result = await db.insert(notifications).values(notification.returning({ id: notifications.id });
+  return result[0].id;
 }
 
 export async function getNotificationsByUser(userId: number) {
@@ -939,8 +940,8 @@ export async function createPayment(payment: InsertPayment) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  const result = await db.insert(payments).values(payment);
-  return result[0].insertId;
+  const result = await db.insert(payments).values(payment.returning({ id: payments.id });
+  return result[0].id;
 }
 
 export async function getPaymentById(id: number) {
@@ -1054,8 +1055,8 @@ export async function createPricingConfig(config: any) {
     value: String(config.value),
     unit: config.unit,
     sortOrder: config.sortOrder ?? 0,
-  });
-  return result[0].insertId;
+  }).returning({ id: pricingConfig.id });
+  return result[0].id;
 }
 
 export async function getAllPricingConfig() {
@@ -1158,8 +1159,8 @@ export async function createExpense(expense: InsertExpense) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  const result = await db.insert(expenses).values(expense);
-  return result[0].insertId;
+  const result = await db.insert(expenses).values(expense.returning({ id: expenses.id });
+  return result[0].id;
 }
 
 export async function getExpenseById(id: number) {
@@ -1197,8 +1198,8 @@ export async function createAuditLog(log: InsertAuditLog) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  const result = await db.insert(auditLogs).values(log);
-  return result[0].insertId;
+  const result = await db.insert(auditLogs).values(log.returning({ id: auditLogs.id });
+  return result[0].id;
 }
 
 export async function getAuditLogs(limit: number = 100) {
@@ -1297,8 +1298,8 @@ export async function upsertUser(user: any) {
     await db.update(users).set(updateData).where(eq(users.openId, user.openId));
     return existing[0].id;
   } else {
-    const result = await db.insert(users).values(user);
-    return result[0].insertId;
+    const result = await db.insert(users).values(user.returning({ id: users.id });
+    return result[0].id;
   }
 }
 
@@ -1433,8 +1434,8 @@ export async function createUserExtended(data: {
     role: (data.role || 'user') as any,
     dataOrigin: (data.dataOrigin || 'manual') as any,
     createdAt: new Date().toISOString(),
-  });
-  return result[0].insertId;
+  }).returning({ id: users.id });
+  return result[0].id;
 }
 
 export async function getUserByEmail(email: string) {
@@ -2085,8 +2086,8 @@ export type SelectReclamacion = typeof postventaReclamaciones.$inferSelect;
 export async function createReclamacion(data: InsertReclamacion) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  const result = await db.insert(postventaReclamaciones).values(data);
-  return result[0].insertId as number;
+  const result = await db.insert(postventaReclamaciones).values(data.returning({ id: postventaReclamaciones.id });
+  return result[0].id as number;
 }
 
 export async function getReclamacionesByProject(projectId: number) {
@@ -2230,8 +2231,8 @@ export async function saveProjectMaterials(projectId: number, data: any, userId:
     await db.update(projectMaterials).set({ ...data, updatedAt: new Date().toISOString() }).where(eq(projectMaterials.projectId, projectId));
     return existing[0].id;
   } else {
-    const result = await db.insert(projectMaterials).values({ projectId, ...data, createdBy: userId });
-    return result[0].insertId;
+    const result = await db.insert(projectMaterials).values({ projectId, ...data, createdBy: userId }.returning({ id: projectMaterials.id });
+    return result[0].id;
   }
 }
 
@@ -2258,8 +2259,8 @@ export async function addProjectHardwareSelection(projectId: number, hardwareId:
     selectedOption: selectedOption ?? null,
     notes: notes ?? null,
     createdBy: createdBy ?? 0,
-  });
-  return result[0].insertId;
+  }).returning({ id: projectHardwareSelections.id });
+  return result[0].id;
 }
 
 export async function removeProjectHardwareSelection(projectId: number, hardwareId: number) {
@@ -2611,8 +2612,8 @@ export async function emptyRecycleBin() {
 export async function createClientRevision(data: any) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  const result = await db.insert(clientRevisionHistory).values(data);
-  return result[0].insertId;
+  const result = await db.insert(clientRevisionHistory).values(data.returning({ id: clientRevisionHistory.id });
+  return result[0].id;
 }
 
 // ============ FUNCIONES FALTANTES APPOINTMENTS ============
@@ -2676,8 +2677,8 @@ export async function getAllHardware() {
 export async function createHardwareItem(data: typeof hardwareCatalog.$inferInsert) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  const result = await db.insert(hardwareCatalog).values(data);
-  return result[0].insertId;
+  const result = await db.insert(hardwareCatalog).values(data.returning({ id: hardwareCatalog.id });
+  return result[0].id;
 }
 export async function updateHardwareItem(id: number, data: Partial<typeof hardwareCatalog.$inferInsert>) {
   const db = await getDb();
@@ -2706,8 +2707,8 @@ export async function createPushSubscription(data: {
     p256Dh: data.p256dh,
     auth: data.auth,
     userAgent: data.userAgent ?? null,
-  });
-  return result[0].insertId;
+  }).returning({ id: pushSubscriptions.id });
+  return result[0].id;
 }
 export async function deletePushSubscription(endpoint: string) {
   const db = await getDb();
@@ -2768,8 +2769,8 @@ export async function getColombianHolidays(year?: number) {
 export async function createColombianHoliday(data: InsertColombianHoliday) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  const result = await db.insert(colombianHolidays).values(data);
-  return result[0].insertId;
+  const result = await db.insert(colombianHolidays).values(data.returning({ id: colombianHolidays.id });
+  return result[0].id;
 }
 
 // ============ REMINDERS ALIASES ============
@@ -2852,9 +2853,9 @@ export async function createAccountingClosure(data: {
       totalSales: 0,
       totalExpenses: 0,
       totalProfit: 0,
-    } as any);
+    } as any).returning({ id: accountingClosures.id });
     
-    const closureId = closureResult[0].insertId;
+    const closureId = closureResult[0].id;
     
     // Get project details for closure
     const projectsData = await tx.select()

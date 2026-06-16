@@ -1,20 +1,64 @@
-import { mysqlTable, mysqlSchema, AnyMySqlColumn, index, bigint, text, foreignKey, int, mysqlEnum, decimal, timestamp, varchar, date, json, tinyint } from "drizzle-orm/mysql-core"
+import { pgTable, pgEnum, index, bigint, integer, text, foreignKey, serial, decimal, timestamp, varchar, date, json, smallint } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
 
-export const drizzleMigrations = mysqlTable("__drizzle_migrations__", {
-	id: bigint({ mode: "number", unsigned: true }).autoincrement().primaryKey(),
+// ── ENUMS ─────────────────────────────────────────────────────────────────────
+export const workTypeEnum = pgEnum('work_type', ['cocina', 'closet', 'puertas', 'centro_tv']);
+export const dataOriginEnum = pgEnum('data_origin', ['manual', 'system']);
+export const dataOriginWithTestEnum = pgEnum('data_origin_with_test', ['manual', 'system', 'test']);
+export const opExpenseCategoryEnum = pgEnum('op_expense_category', ['arriendo', 'energia', 'agua', 'internet', 'mantenimiento', 'herramientas', 'jardineria', 'reparaciones', 'transporte', 'papeleria', 'aseo', 'otro']);
+export const closureStatusEnum = pgEnum('closure_status', ['draft', 'confirmed']);
+export const advisoryStatusEnum = pgEnum('advisory_status', ['pendiente', 'contactado', 'completado']);
+export const appointmentStatusEnum = pgEnum('appointment_status', ['pendiente', 'confirmada', 'completada', 'cancelada']);
+export const auditActionEnum = pgEnum('audit_action', ['create', 'update', 'delete', 'restore']);
+export const backupTypeEnum = pgEnum('backup_type', ['daily', 'weekly', 'manual']);
+export const backupStatusEnum = pgEnum('backup_status', ['pending', 'completed', 'failed', 'verified']);
+export const verificationStatusEnum = pgEnum('verification_status', ['not_verified', 'verified', 'failed']);
+export const clientRevisionTypeEnum = pgEnum('client_revision_type', ['modelado_3d', 'renders']);
+export const expenseTypeEnum = pgEnum('expense_type', ['materiales_proyecto', 'gasto_operativo']);
+export const generalCategoryEnum = pgEnum('general_category', ['materiales', 'mano_de_obra', 'alquiler', 'servicios', 'transporte', 'mantenimiento', 'otros']);
+export const financialAlertTypeEnum = pgEnum('financial_alert_type', ['deliveredWithOutstanding', 'lowCollectionRate']);
+export const hardwareCategoryEnum = pgEnum('hardware_category', ['cocinas', 'closets', 'puertas']);
+export const kitchenShapeEnum = pgEnum('kitchen_shape', ['L', 'U', 'lineal']);
+export const countertopTypeEnum = pgEnum('countertop_type', ['quarzone', 'sinterizado']);
+export const notificationTypeEnum = pgEnum('notification_type', ['proyecto', 'tarea', 'cita', 'cotizacion', 'sistema']);
+export const paymentTypeEnum = pgEnum('payment_type', ['advance', 'final', 'partial', 'other']);
+export const pricingCategoryEnum = pgEnum('pricing_category', ['cocina_base', 'mesones', 'muebles_especiales', 'extras', 'puertas_tapas', 'herrajes', 'closets', 'puertas_producto', 'centros_tv', 'otros', 'acabados_especiales']);
+export const woodTypeEnum = pgEnum('wood_type', ['rh', 'estandar']);
+export const countertopMaterialEnum = pgEnum('countertop_material', ['granito', 'cuarzo', 'sinterizado']);
+export const projectPaymentTypeEnum = pgEnum('project_payment_type', ['adelanto', 'saldo_final', 'abono', 'otro']);
+export const photoStageEnum = pgEnum('photo_stage', ['inicial', 'diseno', 'corte', 'enchape', 'ensamble', 'final']);
+export const photoCategoryEnum = pgEnum('photo_category', ['cotizacion', 'medidas', 'disenos', 'avance', 'instalacion', 'entrega']);
+export const photoSubcategoryEnum = pgEnum('photo_subcategory', ['fotos_iniciales', 'dibujo', 'renders', 'despieces', 'detalles', 'modelado', 'modelado_3d', 'corte', 'enchape', 'armado', 'proceso_instalacion', 'fotos_finales', 'documento_cotizacion']);
+export const projectStatusEnum = pgEnum('project_status', ['contacto', 'cotizacion_enviada', 'cotizacion_aprobada', 'adelanto_recibido', 'en_diseno', 'pendiente_modelado', 'pendiente_render', 'aprobacion_final', 'despiece', 'corte', 'enchape', 'ensamble', 'listo_instalacion', 'entregado']);
+export const productTypeEnum = pgEnum('product_type', ['cocina', 'closet', 'puerta', 'centro_tv', 'herrajes', 'mesones', 'acabados_especiales', 'otro']);
+export const quotationStatusEnum = pgEnum('quotation_status', ['draft', 'sent', 'approved', 'rejected']);
+export const clientResponseStatusEnum = pgEnum('client_response_status', ['aprobado', 'rechazado', 'revision']);
+export const reminderTypeEnum = pgEnum('reminder_type', ['cotizacion_sin_respuesta', 'diseno_pendiente', 'aprobacion_pendiente', 'produccion_retrasada', 'instalacion_proxima']);
+export const reminderStatusEnum = pgEnum('reminder_status', ['pendiente', 'enviado', 'completado', 'cancelado']);
+export const taskPriorityEnum = pgEnum('task_priority', ['alta', 'media', 'baja']);
+export const taskStatusEnum = pgEnum('task_status', ['pendiente', 'en_progreso', 'completada']);
+export const userRoleEnum = pgEnum('user_role', ['user', 'admin', 'super_admin', 'comercial', 'disenador', 'jefe_taller', 'operario']);
+export const closureAuditActionEnum = pgEnum('closure_audit_action', ['created', 'confirmed', 'deleted']);
+export const projectDetailTypeEnum = pgEnum('project_detail_type', ['medida_especial', 'nota_importante', 'foto_referencia']);
+export const postventaTypeEnum = pgEnum('postventa_type', ['reclamacion', 'seguimiento_30d', 'revision_anual']);
+export const postventaStatusEnum = pgEnum('postventa_status', ['pendiente', 'en_revision', 'resuelto', 'no_procede']);
+
+// ── TABLES ────────────────────────────────────────────────────────────────────
+
+export const drizzleMigrations = pgTable("__drizzle_migrations__", {
+	id: serial().primaryKey(),
 	hash: text().notNull(),
 	createdAt: bigint("created_at", { mode: "number" }),
 },
 (table) => [
-	index("id").on(table.id),
+	index("drizzle_id_idx").on(table.id),
 ]);
 
-export const accountingClosureOperationalExpenses = mysqlTable("accounting_op_expenses", {
-	id: int().autoincrement().primaryKey(),
-	closureId: int().notNull().references(() => accountingClosures.id, { onDelete: "cascade", name: "fk_acoe_closure" }),
-	expenseId: int().notNull().references(() => expenses.id, { name: "fk_acoe_expense" }),
-	category: mysqlEnum(['arriendo','energia','agua','internet','mantenimiento','herramientas','jardineria','reparaciones','transporte','papeleria','aseo','otro']).notNull(),
+export const accountingClosureOperationalExpenses = pgTable("accounting_op_expenses", {
+	id: serial().primaryKey(),
+	closureId: integer().notNull().references(() => accountingClosures.id, { onDelete: "cascade" }),
+	expenseId: integer().notNull().references(() => expenses.id),
+	category: opExpenseCategoryEnum().notNull(),
 	description: text().notNull(),
 	amount: decimal({ precision: 12, scale: 2 }).notNull(),
 	expenseDate: timestamp({ mode: 'string' }).notNull(),
@@ -26,15 +70,15 @@ export const accountingClosureOperationalExpenses = mysqlTable("accounting_op_ex
 	index("accountingClosureOperationalExpenses_category_idx").on(table.category),
 ]);
 
-export const accountingClosureProjects = mysqlTable("accountingClosureProjects", {
-	id: int().autoincrement().primaryKey(),
-	closureId: int().notNull().references(() => accountingClosures.id, { onDelete: "cascade" } ),
-	projectId: int().notNull().references(() => projects.id),
+export const accountingClosureProjects = pgTable("accountingClosureProjects", {
+	id: serial().primaryKey(),
+	closureId: integer().notNull().references(() => accountingClosures.id, { onDelete: "cascade" }),
+	projectId: integer().notNull().references(() => projects.id),
 	projectName: varchar({ length: 255 }).notNull(),
 	projectValue: decimal({ precision: 15, scale: 2 }).notNull(),
 	totalPaid: decimal({ precision: 15, scale: 2 }).notNull(),
 	totalExpenses: decimal({ precision: 15, scale: 2 }).notNull(),
-	profit: decimal({ precision: 15, scale: 2 }).notNull(),
+	profit: decimal({ length: 15, scale: 2 }).notNull(),
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 },
 (table) => [
@@ -42,22 +86,20 @@ export const accountingClosureProjects = mysqlTable("accountingClosureProjects",
 	index("accountingClosureProjects_projectId_idx").on(table.projectId),
 ]);
 
-export const accountingClosures = mysqlTable("accountingClosures", {
-	id: int().autoincrement().primaryKey(),
-	// you can use { mode: 'date' }, if you want to have Date as type for this column
+export const accountingClosures = pgTable("accountingClosures", {
+	id: serial().primaryKey(),
 	periodStart: date({ mode: 'string' }).notNull(),
-	// you can use { mode: 'date' }, if you want to have Date as type for this column
 	periodEnd: date({ mode: 'string' }).notNull(),
-	status: mysqlEnum(['draft','confirmed']).default('draft').notNull(),
-	createdBy: int().notNull().references(() => users.id),
-	confirmedBy: int(),
+	status: closureStatusEnum().default('draft').notNull(),
+	createdBy: integer().notNull().references(() => users.id),
+	confirmedBy: integer(),
 	totalSales: decimal({ precision: 15, scale: 2 }).default('0').notNull(),
 	totalExpenses: decimal({ precision: 15, scale: 2 }).default('0').notNull(),
 	totalProfit: decimal({ precision: 15, scale: 2 }).default('0').notNull(),
-	projectCount: int().default(0).notNull(),
+	projectCount: integer().default(0).notNull(),
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	confirmedAt: timestamp({ mode: 'string' }),
-	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 },
 (table) => [
 	index("accountingClosures_status_idx").on(table.status),
@@ -66,14 +108,14 @@ export const accountingClosures = mysqlTable("accountingClosures", {
 	index("accountingClosures_periodEnd_idx").on(table.periodEnd),
 ]);
 
-export const advisoryRequests = mysqlTable("advisoryRequests", {
-	id: int().autoincrement().primaryKey(),
-	clientId: int().notNull().references(() => clients.id),
-	workType: mysqlEnum(['cocina','closet','puertas','centro_tv']).notNull(),
-	status: mysqlEnum(['pendiente','contactado','completado']).default('pendiente').notNull(),
+export const advisoryRequests = pgTable("advisoryRequests", {
+	id: serial().primaryKey(),
+	clientId: integer().notNull().references(() => clients.id),
+	workType: workTypeEnum().notNull(),
+	status: advisoryStatusEnum().default('pendiente').notNull(),
 	notes: text(),
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
-	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	preferredCallTime: text(),
 },
 (table) => [
@@ -81,26 +123,26 @@ export const advisoryRequests = mysqlTable("advisoryRequests", {
 	index("advisoryRequests_status_idx").on(table.status),
 ]);
 
-export const appointmentWorkTypes = mysqlTable("appointmentWorkTypes", {
-	id: int().autoincrement().primaryKey(),
-	appointmentId: int().notNull().references(() => appointments.id, { onDelete: "cascade" } ),
-	workType: mysqlEnum(['cocina','closet','puertas','centro_tv']).notNull(),
+export const appointmentWorkTypes = pgTable("appointmentWorkTypes", {
+	id: serial().primaryKey(),
+	appointmentId: integer().notNull().references(() => appointments.id, { onDelete: "cascade" }),
+	workType: workTypeEnum().notNull(),
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 },
 (table) => [
 	index("appointmentWorkTypes_appointmentId_idx").on(table.appointmentId),
 ]);
 
-export const appointments = mysqlTable("appointments", {
-	id: int().autoincrement().primaryKey(),
-	clientId: int().notNull().references(() => clients.id),
+export const appointments = pgTable("appointments", {
+	id: serial().primaryKey(),
+	clientId: integer().notNull().references(() => clients.id),
 	scheduledDate: timestamp({ mode: 'string' }),
-	status: mysqlEnum(['pendiente','confirmada','completada','cancelada']).default('pendiente').notNull(),
+	status: appointmentStatusEnum().default('pendiente').notNull(),
 	notes: text(),
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
-	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	deletedAt: timestamp({ mode: 'string' }),
-	dataOrigin: mysqlEnum(['manual','system']).default('manual').notNull(),
+	dataOrigin: dataOriginEnum().default('manual').notNull(),
 },
 (table) => [
 	index("appointments_clientId_idx").on(table.clientId),
@@ -109,12 +151,12 @@ export const appointments = mysqlTable("appointments", {
 	index("appointments_client_status_idx").on(table.clientId, table.status),
 ]);
 
-export const auditLogs = mysqlTable("auditLogs", {
-	id: int().autoincrement().primaryKey(),
-	userId: int().notNull().references(() => users.id),
-	action: mysqlEnum(['create','update','delete','restore']).notNull(),
+export const auditLogs = pgTable("auditLogs", {
+	id: serial().primaryKey(),
+	userId: integer().notNull().references(() => users.id),
+	action: auditActionEnum().notNull(),
 	tableName: varchar({ length: 100 }).notNull(),
-	recordId: int().notNull(),
+	recordId: integer().notNull(),
 	changes: json(),
 	changesSummary: text(),
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
@@ -130,24 +172,24 @@ export const auditLogs = mysqlTable("auditLogs", {
 	index("auditLogs_tableName_recordId_idx").on(table.tableName, table.recordId),
 ]);
 
-export const backupMetadata = mysqlTable("backupMetadata", {
-	id: int().autoincrement().primaryKey(),
+export const backupMetadata = pgTable("backupMetadata", {
+	id: serial().primaryKey(),
 	backupName: varchar({ length: 255 }).notNull(),
-	backupType: mysqlEnum(['daily','weekly','manual']).notNull(),
+	backupType: backupTypeEnum().notNull(),
 	s3Key: varchar({ length: 500 }).notNull(),
 	s3Url: text().notNull(),
 	fileSize: bigint({ mode: "number" }),
 	rowCounts: json(),
 	checksums: json(),
-	status: mysqlEnum(['pending','completed','failed','verified']).default('pending').notNull(),
-	verificationStatus: mysqlEnum(['not_verified','verified','failed']).default('not_verified').notNull(),
+	status: backupStatusEnum().default('pending').notNull(),
+	verificationStatus: verificationStatusEnum().default('not_verified').notNull(),
 	errorMessage: text(),
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	completedAt: timestamp({ mode: 'string' }),
 	verifiedAt: timestamp({ mode: 'string' }),
 	expiresAt: timestamp({ mode: 'string' }),
-	createdBy: int().references(() => users.id),
-	retentionDays: int().default(30).notNull(),
+	createdBy: integer().references(() => users.id),
+	retentionDays: integer().default(30).notNull(),
 	dataOriginSummary: json(),
 },
 (table) => [
@@ -157,11 +199,11 @@ export const backupMetadata = mysqlTable("backupMetadata", {
 	index("backupMetadata_expiresAt_idx").on(table.expiresAt),
 ]);
 
-export const clientRevisionHistory = mysqlTable("client_revision_history", {
-	id: int().autoincrement().primaryKey(),
-	projectId: int().notNull().references(() => projects.id, { onDelete: "cascade" } ),
-	type: mysqlEnum(['modelado_3d','renders']).notNull(),
-	revisionNumber: int().notNull(),
+export const clientRevisionHistory = pgTable("client_revision_history", {
+	id: serial().primaryKey(),
+	projectId: integer().notNull().references(() => projects.id, { onDelete: "cascade" }),
+	type: clientRevisionTypeEnum().notNull(),
+	revisionNumber: integer().notNull(),
 	clientName: varchar({ length: 255 }).notNull(),
 	changes: text().notNull(),
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
@@ -170,29 +212,29 @@ export const clientRevisionHistory = mysqlTable("client_revision_history", {
 	index("clientRevisionHistory_projectId_idx").on(table.projectId),
 ]);
 
-export const clients = mysqlTable("clients", {
-	id: int().autoincrement().primaryKey(),
-	userId: int().references(() => users.id),
+export const clients = pgTable("clients", {
+	id: serial().primaryKey(),
+	userId: integer().references(() => users.id),
 	name: varchar({ length: 255 }).notNull(),
 	email: varchar({ length: 320 }),
 	whatsappPhone: varchar({ length: 20 }).notNull(),
 	address: text(),
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
-	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
-	internalManagement: tinyint().default(0).notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
+	internalManagement: smallint().default(0).notNull(),
 	deletedAt: timestamp({ mode: 'string' }),
-	dataOrigin: mysqlEnum(['manual','system']).default('manual').notNull(),
+	dataOrigin: dataOriginEnum().default('manual').notNull(),
 },
 (table) => [
 	index("clients_userId_idx").on(table.userId),
 	index("clients_whatsappPhone_idx").on(table.whatsappPhone),
 ]);
 
-export const closureAuditLog = mysqlTable("closureAuditLog", {
-	id: int().autoincrement().primaryKey(),
-	closureId: int().notNull().references(() => accountingClosures.id, { onDelete: "cascade" } ),
-	action: mysqlEnum(['created','confirmed','deleted']).notNull(),
-	performedBy: int().notNull().references(() => users.id),
+export const closureAuditLog = pgTable("closureAuditLog", {
+	id: serial().primaryKey(),
+	closureId: integer().notNull().references(() => accountingClosures.id, { onDelete: "cascade" }),
+	action: closureAuditActionEnum().notNull(),
+	performedBy: integer().notNull().references(() => users.id),
 	actionDetails: json(),
 	timestamp: timestamp({ mode: 'string' }).defaultNow(),
 	ipAddress: varchar({ length: 45 }),
@@ -205,36 +247,36 @@ export const closureAuditLog = mysqlTable("closureAuditLog", {
 	index("closureAuditLog_timestamp_idx").on(table.timestamp),
 ]);
 
-export const colombianHolidays = mysqlTable("colombianHolidays", {
-	id: int().autoincrement().primaryKey(),
+export const colombianHolidays = pgTable("colombianHolidays", {
+	id: serial().primaryKey(),
 	date: timestamp({ mode: 'string' }).notNull(),
 	name: varchar({ length: 255 }).notNull(),
-	year: int().notNull(),
+	year: integer().notNull(),
 },
 (table) => [
 	index("colombianHolidays_year_idx").on(table.year),
 	index("colombianHolidays_date_idx").on(table.date),
 ]);
 
-export const expenses = mysqlTable("expenses", {
-	id: int().autoincrement().primaryKey(),
-	expenseType: mysqlEnum(['materiales_proyecto','gasto_operativo']).notNull(),
-	projectId: int().references(() => projects.id, { onDelete: "set null" } ),
+export const expenses = pgTable("expenses", {
+	id: serial().primaryKey(),
+	expenseType: expenseTypeEnum().notNull(),
+	projectId: integer().references(() => projects.id, { onDelete: "set null" }),
 	projectClientName: varchar({ length: 255 }),
-	operativeCategory: mysqlEnum(['arriendo','energia','agua','internet','mantenimiento','herramientas','jardineria','reparaciones','transporte','papeleria','aseo','otro']),
+	operativeCategory: opExpenseCategoryEnum(),
 	description: text().notNull(),
 	amount: decimal({ precision: 12, scale: 2 }).notNull(),
 	expenseDate: timestamp({ mode: 'string' }).notNull(),
 	supportUrl: text(),
 	supportFileName: varchar({ length: 255 }),
-	createdBy: int().notNull().references(() => users.id),
+	createdBy: integer().notNull().references(() => users.id),
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
-	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
-	generalCategory: mysqlEnum(['materiales','mano_de_obra','alquiler','servicios','transporte','mantenimiento','otros']).notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
+	generalCategory: generalCategoryEnum().notNull(),
 	subcategory: varchar({ length: 255 }),
 	receiptUrl: text(),
 	deletedAt: timestamp({ mode: 'string' }),
-	dataOrigin: mysqlEnum(['manual','system','test']).default('manual').notNull(),
+	dataOrigin: dataOriginWithTestEnum().default('manual').notNull(),
 },
 (table) => [
 	index("expenses_projectId_idx").on(table.projectId),
@@ -242,39 +284,39 @@ export const expenses = mysqlTable("expenses", {
 	index("expenses_expenseType_idx").on(table.expenseType),
 ]);
 
-export const financialAlerts = mysqlTable("financialAlerts", {
-	id: int().autoincrement().primaryKey(),
-	alertType: mysqlEnum(['deliveredWithOutstanding','lowCollectionRate']).notNull(),
-	isActive: tinyint().default(0).notNull(),
+export const financialAlerts = pgTable("financialAlerts", {
+	id: serial().primaryKey(),
+	alertType: financialAlertTypeEnum().notNull(),
+	isActive: smallint().default(0).notNull(),
 	lastTriggeredAt: timestamp({ mode: 'string' }),
 	lastMessageSentAt: timestamp({ mode: 'string' }),
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
-	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 },
 (table) => [
 	index("financialAlerts_alertType_unique").on(table.alertType),
 ]);
 
-export const financialSettings = mysqlTable("financialSettings", {
-	id: int().autoincrement().primaryKey(),
-	outstandingThresholdPercent: int().default(40).notNull(),
-	collectionThresholdPercent: int().default(70).notNull(),
-	lowProfitThresholdPercent: int().default(10).notNull(),
+export const financialSettings = pgTable("financialSettings", {
+	id: serial().primaryKey(),
+	outstandingThresholdPercent: integer().default(40).notNull(),
+	collectionThresholdPercent: integer().default(70).notNull(),
+	lowProfitThresholdPercent: integer().default(10).notNull(),
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
-	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 });
 
-export const hardwareCatalog = mysqlTable("hardwareCatalog", {
-	id: int().autoincrement().primaryKey(),
-	category: mysqlEnum(['cocinas','closets','puertas']).notNull(),
+export const hardwareCatalog = pgTable("hardwareCatalog", {
+	id: serial().primaryKey(),
+	category: hardwareCategoryEnum().notNull(),
 	name: varchar({ length: 255 }).notNull(),
 	description: text(),
 	options: text(),
 	photoUrl: text(),
-	sortOrder: int().default(0).notNull(),
-	active: tinyint().default(1).notNull(),
+	sortOrder: integer().default(0).notNull(),
+	active: smallint().default(1).notNull(),
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
-	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	price: decimal({ precision: 12, scale: 2 }).default('0').notNull(),
 	unit: varchar({ length: 50 }).default('unidad').notNull(),
 },
@@ -283,72 +325,72 @@ export const hardwareCatalog = mysqlTable("hardwareCatalog", {
 	index("hardwareCatalog_active_idx").on(table.active),
 ]);
 
-export const kitchenQuotations = mysqlTable("kitchenQuotations", {
-	id: int().autoincrement().primaryKey(),
-	quotationId: int().notNull(),
-	shape: mysqlEnum(['L','U','lineal']).notNull(),
+export const kitchenQuotations = pgTable("kitchenQuotations", {
+	id: serial().primaryKey(),
+	quotationId: integer().notNull(),
+	shape: kitchenShapeEnum().notNull(),
 	totalMeters: decimal({ precision: 10, scale: 2 }).notNull(),
 	resultingMeters: decimal({ precision: 10, scale: 2 }).notNull(),
 	lowerCabinetsMeters: decimal({ precision: 10, scale: 2 }).notNull(),
 	lowerCabinetsPrice: decimal({ precision: 12, scale: 2 }).notNull(),
 	upperCabinetsMeters: decimal({ precision: 10, scale: 2 }).notNull(),
 	upperCabinetsPrice: decimal({ precision: 12, scale: 2 }).notNull(),
-	hasNichoNevecon: tinyint().default(0).notNull(),
+	hasNichoNevecon: smallint().default(0).notNull(),
 	nichoNeveconPrice: decimal({ precision: 12, scale: 2 }),
-	hasNichoNeveraStandard: tinyint().default(0).notNull(),
+	hasNichoNeveraStandard: smallint().default(0).notNull(),
 	nichoNeveraStandardPrice: decimal({ precision: 12, scale: 2 }),
-	hasAlacenaEntrepanos: tinyint().default(0).notNull(),
+	hasAlacenaEntrepanos: smallint().default(0).notNull(),
 	alacenaEntrepanosPrice: decimal({ precision: 12, scale: 2 }),
-	hasAlacenaHerraje: tinyint().default(0).notNull(),
+	hasAlacenaHerraje: smallint().default(0).notNull(),
 	alacenaHerrajePrice: decimal({ precision: 12, scale: 2 }),
-	hasHerrajeItem: tinyint().default(0).notNull(),
+	hasHerrajeItem: smallint().default(0).notNull(),
 	herrajePrice: decimal({ precision: 12, scale: 2 }),
-	hasTorreHornos: tinyint().default(0).notNull(),
+	hasTorreHornos: smallint().default(0).notNull(),
 	torreHornosPrice: decimal({ precision: 12, scale: 2 }),
-	countertopType: mysqlEnum(['quarzone','sinterizado']).notNull(),
+	countertopType: countertopTypeEnum().notNull(),
 	countertopMeters: decimal({ precision: 10, scale: 2 }).notNull(),
-	countertopSurcharge30: tinyint().default(0).notNull(),
-	countertopDouble: tinyint().default(0).notNull(),
+	countertopSurcharge30: smallint().default(0).notNull(),
+	countertopDouble: smallint().default(0).notNull(),
 	countertopPrice: decimal({ precision: 12, scale: 2 }).notNull(),
-	hasIsland: tinyint().default(0).notNull(),
+	hasIsland: smallint().default(0).notNull(),
 	islandCabinetsMeters: decimal({ precision: 10, scale: 2 }),
 	islandCabinetsPrice: decimal({ precision: 12, scale: 2 }),
 	islandCountertopMeters: decimal({ precision: 10, scale: 2 }),
-	islandCountertopType: mysqlEnum(['quarzone','sinterizado']),
+	islandCountertopType: countertopTypeEnum(),
 	islandCountertopPrice: decimal({ precision: 12, scale: 2 }),
-	islandHasLaterals: tinyint().default(0).notNull(),
+	islandHasLaterals: smallint().default(0).notNull(),
 	islandLateralPrice: decimal({ precision: 12, scale: 2 }),
 	islandRegruesoPrice: decimal({ precision: 12, scale: 2 }),
 	islandTotalPrice: decimal({ precision: 12, scale: 2 }),
-	hasBar: tinyint().default(0).notNull(),
+	hasBar: smallint().default(0).notNull(),
 	barCabinetsMeters: decimal({ precision: 10, scale: 2 }),
 	barCabinetsPrice: decimal({ precision: 12, scale: 2 }),
 	barCountertopMeters: decimal({ precision: 10, scale: 2 }),
-	barCountertopType: mysqlEnum(['quarzone','sinterizado']),
+	barCountertopType: countertopTypeEnum(),
 	barCountertopPrice: decimal({ precision: 12, scale: 2 }),
-	barHasLateral: tinyint().default(0).notNull(),
+	barHasLateral: smallint().default(0).notNull(),
 	barLateralPrice: decimal({ precision: 12, scale: 2 }),
 	barTotalPrice: decimal({ precision: 12, scale: 2 }),
-	hasLed: tinyint().default(0).notNull(),
+	hasLed: smallint().default(0).notNull(),
 	ledMeters: decimal({ precision: 10, scale: 2 }),
 	ledPrice: decimal({ precision: 12, scale: 2 }),
 	transportCost: decimal({ precision: 12, scale: 2 }).default('600000').notNull(),
 	subtotal: decimal({ precision: 12, scale: 2 }).notNull(),
 	total: decimal({ precision: 12, scale: 2 }).notNull(),
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
-	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
-	hasPaintedDoors: tinyint().default(0).notNull(),
-	paintedDoorsUpperQty: int().default(0),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
+	hasPaintedDoors: smallint().default(0).notNull(),
+	paintedDoorsUpperQty: integer().default(0),
 	paintedDoorsUpperPrice: decimal({ precision: 12, scale: 2 }),
-	paintedDoorsLowerQty: int().default(0),
+	paintedDoorsLowerQty: integer().default(0),
 	paintedDoorsLowerPrice: decimal({ precision: 12, scale: 2 }),
-	paintedDoorsPantryQty: int().default(0),
+	paintedDoorsPantryQty: integer().default(0),
 	paintedDoorsPantryPrice: decimal({ precision: 12, scale: 2 }),
-	paintedDoorsDrawerQty: int().default(0),
+	paintedDoorsDrawerQty: integer().default(0),
 	paintedDoorsDrawerPrice: decimal({ precision: 12, scale: 2 }),
-	paintedDoorsSpiceQty: int().default(0),
+	paintedDoorsSpiceQty: integer().default(0),
 	paintedDoorsSpicePrice: decimal({ precision: 12, scale: 2 }),
-	paintedDoorsGolaQty: int().default(0),
+	paintedDoorsGolaQty: integer().default(0),
 	paintedDoorsGolaPrice: decimal({ precision: 12, scale: 2 }),
 	paintedDoorsTotalPrice: decimal({ precision: 12, scale: 2 }),
 },
@@ -356,16 +398,16 @@ export const kitchenQuotations = mysqlTable("kitchenQuotations", {
 	index("kitchenQuotations_quotationId_idx").on(table.quotationId),
 ]);
 
-export const notifications = mysqlTable("notifications", {
-	id: int().autoincrement().primaryKey(),
-	userId: int().notNull().references(() => users.id),
+export const notifications = pgTable("notifications", {
+	id: serial().primaryKey(),
+	userId: integer().notNull().references(() => users.id),
 	title: varchar({ length: 255 }).notNull(),
 	body: text().notNull(),
-	type: mysqlEnum(['proyecto','tarea','cita','cotizacion','sistema']).default('sistema').notNull(),
-	referenceId: int(),
+	type: notificationTypeEnum().default('sistema').notNull(),
+	referenceId: integer(),
 	referenceType: varchar({ length: 50 }),
-	read: tinyint().default(0).notNull(),
-	sentPush: tinyint().default(0).notNull(),
+	read: smallint().default(0).notNull(),
+	sentPush: smallint().default(0).notNull(),
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 },
 (table) => [
@@ -374,15 +416,15 @@ export const notifications = mysqlTable("notifications", {
 	index("notifications_user_read_idx").on(table.userId, table.read),
 ]);
 
-export const payments = mysqlTable("payments", {
-	id: int().autoincrement().primaryKey(),
-	projectId: int().notNull().references(() => projects.id, { onDelete: "cascade" } ),
+export const payments = pgTable("payments", {
+	id: serial().primaryKey(),
+	projectId: integer().notNull().references(() => projects.id, { onDelete: "cascade" }),
 	amount: decimal({ precision: 12, scale: 2 }).notNull(),
-	type: mysqlEnum(['advance','final','partial','other']).notNull(),
+	type: paymentTypeEnum().notNull(),
 	receivedAt: timestamp({ mode: 'string' }).notNull(),
 	method: varchar({ length: 100 }),
 	notes: text(),
-	registeredBy: int().references(() => users.id),
+	registeredBy: integer().references(() => users.id),
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	movementType: varchar({ length: 20 }).default('payment').notNull(),
 },
@@ -391,32 +433,32 @@ export const payments = mysqlTable("payments", {
 	index("payments_receivedAt_idx").on(table.receivedAt),
 ]);
 
-export const pricingConfig = mysqlTable("pricingConfig", {
-	id: int().autoincrement().primaryKey(),
-	category: mysqlEnum(['cocina_base','mesones','muebles_especiales','extras','puertas_tapas','herrajes','closets','puertas_producto','centros_tv','otros','acabados_especiales']).notNull(),
+export const pricingConfig = pgTable("pricingConfig", {
+	id: serial().primaryKey(),
+	category: pricingCategoryEnum().notNull(),
 	code: varchar({ length: 100 }).notNull(),
 	name: varchar({ length: 255 }).notNull(),
 	description: text(),
 	value: decimal({ precision: 12, scale: 2 }).notNull(),
 	unit: varchar({ length: 50 }),
-	sortOrder: int().default(0).notNull(),
-	active: tinyint().default(1).notNull(),
-	updatedBy: int(),
+	sortOrder: integer().default(0).notNull(),
+	active: smallint().default(1).notNull(),
+	updatedBy: integer(),
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
-	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	descriptionTemplate: text(),
 },
 (table) => [
-	index("code").on(table.code),
+	index("pricingConfig_code_idx").on(table.code),
 	index("pricingConfig_category_idx").on(table.category),
 ]);
 
-export const pricingHistory = mysqlTable("pricingHistory", {
-	id: int().autoincrement().primaryKey(),
-	pricingConfigId: int().notNull(),
+export const pricingHistory = pgTable("pricingHistory", {
+	id: serial().primaryKey(),
+	pricingConfigId: integer().notNull(),
 	previousValue: decimal({ precision: 12, scale: 2 }).notNull(),
 	newValue: decimal({ precision: 12, scale: 2 }).notNull(),
-	changedBy: int().notNull(),
+	changedBy: integer().notNull(),
 	reason: text(),
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 },
@@ -424,14 +466,14 @@ export const pricingHistory = mysqlTable("pricingHistory", {
 	index("pricingHistory_pricingConfigId_idx").on(table.pricingConfigId),
 ]);
 
-export const priorEstimates = mysqlTable("priorEstimates", {
-	id: int().autoincrement().primaryKey(),
-	clientId: int().notNull().references(() => clients.id),
-	workType: mysqlEnum(['cocina','closet','puertas','centro_tv']).notNull(),
+export const priorEstimates = pgTable("priorEstimates", {
+	id: serial().primaryKey(),
+	clientId: integer().notNull().references(() => clients.id),
+	workType: workTypeEnum().notNull(),
 	additionalDetails: text(),
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
-	kitchenShape: mysqlEnum(['L','U','lineal']),
-	materialType: mysqlEnum(['quarzone','sinterizado']),
+	kitchenShape: kitchenShapeEnum(),
+	materialType: countertopTypeEnum(),
 	linearLength: decimal({ precision: 10, scale: 2 }),
 	height: decimal({ precision: 10, scale: 2 }),
 },
@@ -439,30 +481,30 @@ export const priorEstimates = mysqlTable("priorEstimates", {
 	index("priorEstimates_clientId_idx").on(table.clientId),
 ]);
 
-export const projectDetails = mysqlTable("projectDetails", {
-	id: int().autoincrement().primaryKey(),
-	projectId: int().notNull().references(() => projects.id),
-	type: mysqlEnum(['medida_especial','nota_importante','foto_referencia']).notNull(),
+export const projectDetails = pgTable("projectDetails", {
+	id: serial().primaryKey(),
+	projectId: integer().notNull().references(() => projects.id),
+	type: projectDetailTypeEnum().notNull(),
 	title: varchar({ length: 255 }).notNull(),
 	content: text().notNull(),
 	photoUrl: text(),
-	createdBy: int().notNull().references(() => users.id),
+	createdBy: integer().notNull().references(() => users.id),
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
-	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 },
 (table) => [
 	index("projectDetails_projectId_idx").on(table.projectId),
 ]);
 
-export const projectHardwareSelections = mysqlTable("projectHardwareSelections", {
-	id: int().autoincrement().primaryKey(),
-	projectId: int().notNull(),
-	hardwareId: int().notNull(),
+export const projectHardwareSelections = pgTable("projectHardwareSelections", {
+	id: serial().primaryKey(),
+	projectId: integer().notNull(),
+	hardwareId: integer().notNull(),
 	selectedOption: text(),
 	notes: text(),
-	createdBy: int().notNull(),
+	createdBy: integer().notNull(),
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
-	quantity: int().default(1).notNull(),
+	quantity: integer().default(1).notNull(),
 	priceAtQuotation: decimal({ precision: 10, scale: 2 }),
 },
 (table) => [
@@ -470,51 +512,51 @@ export const projectHardwareSelections = mysqlTable("projectHardwareSelections",
 	index("projectHardwareSelections_hardwareId_idx").on(table.hardwareId),
 ]);
 
-export const projectMaterials = mysqlTable("projectMaterials", {
-	id: int().autoincrement().primaryKey(),
-	projectId: int().notNull(),
-	woodType: mysqlEnum(['rh','estandar']),
+export const projectMaterials = pgTable("projectMaterials", {
+	id: serial().primaryKey(),
+	projectId: integer().notNull(),
+	woodType: woodTypeEnum(),
 	woodColor: varchar({ length: 255 }),
 	woodPhotoUrl: text(),
-	countertopType: mysqlEnum(['granito','cuarzo','sinterizado']),
+	countertopType: countertopMaterialEnum(),
 	countertopName: varchar({ length: 255 }),
 	countertopPhotoUrl: text(),
 	sinkMeasure: varchar({ length: 100 }),
 	sinkPhotoUrl: text(),
 	notes: text(),
-	createdBy: int().notNull(),
+	createdBy: integer().notNull(),
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
-	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 },
 (table) => [
 	index("projectMaterials_projectId_idx").on(table.projectId),
 ]);
 
-export const projectPayments = mysqlTable("projectPayments", {
-	id: int().autoincrement().primaryKey(),
-	projectId: int().notNull().references(() => projects.id, { onDelete: "cascade" } ),
-	type: mysqlEnum(['adelanto','saldo_final','abono','otro']).notNull(),
+export const projectPayments = pgTable("projectPayments", {
+	id: serial().primaryKey(),
+	projectId: integer().notNull().references(() => projects.id, { onDelete: "cascade" }),
+	type: projectPaymentTypeEnum().notNull(),
 	amount: decimal({ precision: 12, scale: 2 }).notNull(),
 	paymentDate: timestamp({ mode: 'string' }).notNull(),
 	receiptUrl: text(),
 	notes: text(),
-	registeredBy: int().notNull().references(() => users.id),
+	registeredBy: integer().notNull().references(() => users.id),
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 },
 (table) => [
 	index("projectPayments_projectId_idx").on(table.projectId),
 ]);
 
-export const projectPhotos = mysqlTable("projectPhotos", {
-	id: int().autoincrement().primaryKey(),
-	projectId: int().notNull().references(() => projects.id),
-	stage: mysqlEnum(['inicial','diseno','corte','enchape','ensamble','final']).notNull(),
+export const projectPhotos = pgTable("projectPhotos", {
+	id: serial().primaryKey(),
+	projectId: integer().notNull().references(() => projects.id),
+	stage: photoStageEnum().notNull(),
 	photoUrl: text().notNull(),
 	description: text(),
-	uploadedBy: int().notNull().references(() => users.id),
+	uploadedBy: integer().notNull().references(() => users.id),
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
-	category: mysqlEnum(['cotizacion','medidas','disenos','avance','instalacion','entrega']).default('medidas').notNull(),
-	subcategory: mysqlEnum(['fotos_iniciales','dibujo','renders','despieces','detalles','modelado','modelado_3d','corte','enchape','armado','proceso_instalacion','fotos_finales','documento_cotizacion']),
+	category: photoCategoryEnum().default('medidas').notNull(),
+	subcategory: photoSubcategoryEnum(),
 },
 (table) => [
 	index("projectPhotos_projectId_idx").on(table.projectId),
@@ -522,12 +564,12 @@ export const projectPhotos = mysqlTable("projectPhotos", {
 	index("projectPhotos_project_category_idx").on(table.projectId, table.category),
 ]);
 
-export const projectStatusHistory = mysqlTable("projectStatusHistory", {
-	id: int().autoincrement().primaryKey(),
-	projectId: int().notNull().references(() => projects.id),
+export const projectStatusHistory = pgTable("projectStatusHistory", {
+	id: serial().primaryKey(),
+	projectId: integer().notNull().references(() => projects.id),
 	fromStatus: varchar({ length: 50 }),
 	toStatus: varchar({ length: 50 }).notNull(),
-	changedBy: int().notNull().references(() => users.id),
+	changedBy: integer().notNull().references(() => users.id),
 	notes: text(),
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 },
@@ -535,22 +577,22 @@ export const projectStatusHistory = mysqlTable("projectStatusHistory", {
 	index("projectStatusHistory_projectId_idx").on(table.projectId),
 ]);
 
-export const projects = mysqlTable("projects", {
-	id: int().autoincrement().primaryKey(),
-	quotationId: int(),
-	clientId: int().notNull().references(() => clients.id),
+export const projects = pgTable("projects", {
+	id: serial().primaryKey(),
+	quotationId: integer(),
+	clientId: integer().notNull().references(() => clients.id),
 	name: varchar({ length: 255 }).notNull(),
-	workType: mysqlEnum(['cocina','closet','puertas','centro_tv']).notNull(),
-	status: mysqlEnum(['contacto','cotizacion_enviada','cotizacion_aprobada','adelanto_recibido','en_diseno','pendiente_modelado','pendiente_render','aprobacion_final','despiece','corte','enchape','ensamble','listo_instalacion','entregado']).default('contacto').notNull(),
+	workType: workTypeEnum().notNull(),
+	status: projectStatusEnum().default('contacto').notNull(),
 	initialMeasurements: text(),
 	design3DFiles: text(),
 	despieceFiles: text(),
 	clientApprovedAt: timestamp({ mode: 'string' }),
 	clientApprovalNotes: text(),
-	createdBy: int().notNull().references(() => users.id),
-	designerId: int().references(() => users.id),
+	createdBy: integer().notNull().references(() => users.id),
+	designerId: integer().references(() => users.id),
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
-	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	quotationSentAt: timestamp({ mode: 'string' }),
 	quotationApprovedAt: timestamp({ mode: 'string' }),
 	advanceReceivedAt: timestamp({ mode: 'string' }),
@@ -562,25 +604,25 @@ export const projects = mysqlTable("projects", {
 	selectedMaterials: text(),
 	estimatedInstallDate: timestamp({ mode: 'string' }),
 	scheduledInstallDate: timestamp({ mode: 'string' }),
-	installDurationDays: int().default(1),
+	installDurationDays: integer().default(1),
 	deliveredAt: timestamp({ mode: 'string' }),
 	advanceReceiptUrl: text("advance_receipt_url"),
 	quotationPdfUrl: text(),
 	tentativeInstallDate: timestamp({ mode: 'string' }),
-	isInstallDateOfficial: tinyint().default(0),
+	isInstallDateOfficial: smallint().default(0),
 	modeladoApprovedAt: timestamp({ mode: 'string' }),
 	modeladoApprovedBy: varchar({ length: 255 }),
 	rendersApprovedAt: timestamp({ mode: 'string' }),
 	rendersApprovedBy: varchar({ length: 255 }),
-	renderRevisionNumber: int().default(0),
-	modeladoRevisionNumber: int().default(0),
+	renderRevisionNumber: integer().default(0),
+	modeladoRevisionNumber: integer().default(0),
 	changesRequestedAt: timestamp({ mode: 'string' }),
 	deletedAt: timestamp({ mode: 'string' }),
-	currentApprovedQuotationId: int(),
-	dataOrigin: mysqlEnum(['manual','system']).default('manual').notNull(),
-	isArchived: tinyint().default(0).notNull(),
-	skipDesignProcess: tinyint().default(0).notNull(),
-	accountingClosureId: int().references(() => accountingClosures.id),
+	currentApprovedQuotationId: integer(),
+	dataOrigin: dataOriginEnum().default('manual').notNull(),
+	isArchived: smallint().default(0).notNull(),
+	skipDesignProcess: smallint().default(0).notNull(),
+	accountingClosureId: integer().references(() => accountingClosures.id),
 	publicToken: varchar({ length: 64 }),
 },
 (table) => [
@@ -595,34 +637,34 @@ export const projects = mysqlTable("projects", {
 	index("projects_publicToken_idx").on(table.publicToken),
 ]);
 
-export const pushSubscriptions = mysqlTable("pushSubscriptions", {
-	id: int().autoincrement().primaryKey(),
-	userId: int().notNull().references(() => users.id),
+export const pushSubscriptions = pgTable("pushSubscriptions", {
+	id: serial().primaryKey(),
+	userId: integer().notNull().references(() => users.id),
 	endpoint: text().notNull(),
 	p256Dh: varchar({ length: 255 }).notNull(),
 	auth: varchar({ length: 255 }).notNull(),
 	userAgent: text(),
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
-	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
-	isActive: tinyint().default(1).notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
+	isActive: smallint().default(1).notNull(),
 	lastUsedAt: timestamp({ mode: 'string' }),
-	dataOrigin: mysqlEnum(['manual','system']).default('manual').notNull(),
+	dataOrigin: dataOriginEnum().default('manual').notNull(),
 },
 (table) => [
 	index("pushSubscriptions_userId_idx").on(table.userId),
 ]);
 
-export const quotationItems = mysqlTable("quotationItems", {
-	id: int().autoincrement().primaryKey(),
-	quotationId: int().notNull().references(() => quotations.id, { onDelete: "cascade" } ),
-	itemNumber: int().notNull(),
+export const quotationItems = pgTable("quotationItems", {
+	id: serial().primaryKey(),
+	quotationId: integer().notNull().references(() => quotations.id, { onDelete: "cascade" }),
+	itemNumber: integer().notNull(),
 	itemType: varchar({ length: 50 }).default('otro').notNull(),
 	description: text().notNull(),
 	quantity: varchar({ length: 50 }).notNull(),
 	unitPrice: varchar({ length: 50 }),
 	totalPrice: decimal({ precision: 12, scale: 2 }).notNull(),
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
-	includesFixedCosts: tinyint().default(0).notNull(),
+	includesFixedCosts: smallint().default(0).notNull(),
 	kitchenConfig: json(),
 	hardwareSelections: json(),
 	closetConfig: json(),
@@ -635,46 +677,46 @@ export const quotationItems = mysqlTable("quotationItems", {
 	index("quotationItems_quotationId_idx").on(table.quotationId),
 ]);
 
-export const quotations = mysqlTable("quotations", {
-	id: int().autoincrement().primaryKey(),
+export const quotations = pgTable("quotations", {
+	id: serial().primaryKey(),
 	quotationNumber: varchar({ length: 50 }).notNull(),
-	clientId: int().notNull().references(() => clients.id, { onDelete: "cascade" } ),
+	clientId: integer().notNull().references(() => clients.id, { onDelete: "cascade" }),
 	vendorName: varchar({ length: 255 }).notNull(),
-	productType: mysqlEnum(['cocina','closet','puerta','centro_tv','herrajes','mesones','acabados_especiales','otro']).default('otro').notNull(),
-	status: mysqlEnum(['draft','sent','approved','rejected']).default('draft').notNull(),
+	productType: productTypeEnum().default('otro').notNull(),
+	status: quotationStatusEnum().default('draft').notNull(),
 	validUntil: timestamp({ mode: 'string' }),
 	subtotal: decimal({ precision: 12, scale: 2 }).notNull(),
 	transportCost: decimal({ precision: 12, scale: 2 }).default('600000').notNull(),
 	total: decimal({ precision: 12, scale: 2 }).notNull(),
 	pdfUrl: text(),
 	sentAt: timestamp({ mode: 'string' }),
-	createdBy: int().notNull().references(() => users.id),
+	createdBy: integer().notNull().references(() => users.id),
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
-	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	approvedAt: timestamp({ mode: 'string' }),
 	rejectionReason: text(),
 	customDescriptions: json(),
 	generalNotes: text(),
 	discountPercent: decimal({ precision: 5, scale: 2 }).default('0'),
 	discountAmount: decimal({ precision: 15, scale: 2 }).default('0'),
-	isLocked: tinyint().default(0).notNull(),
+	isLocked: smallint().default(0).notNull(),
 	lockedAt: timestamp({ mode: 'string' }),
-	lockedBy: int(),
+	lockedBy: integer(),
 	deletedAt: timestamp({ mode: 'string' }),
-	parentQuotationId: int(),
-	isAdditional: tinyint().default(0).notNull(),
-	baseQuotationId: int(),
-	versionNumber: int().default(1).notNull(),
-	isHistoricalCopy: tinyint().default(0).notNull(),
-	clientResponseStatus: mysqlEnum(['aprobado','rechazado','revision']),
+	parentQuotationId: integer(),
+	isAdditional: smallint().default(0).notNull(),
+	baseQuotationId: integer(),
+	versionNumber: integer().default(1).notNull(),
+	isHistoricalCopy: smallint().default(0).notNull(),
+	clientResponseStatus: clientResponseStatusEnum(),
 	clientResponseNotes: text(),
 	clientResponseAt: timestamp({ mode: 'string' }),
 	whatsappApiSentAt: timestamp({ mode: 'string' }),
-	dataOrigin: mysqlEnum(['manual','system']).default('manual').notNull(),
-	isArchived: tinyint().default(0).notNull(),
+	dataOrigin: dataOriginEnum().default('manual').notNull(),
+	isArchived: smallint().default(0).notNull(),
 },
 (table) => [
-	index("quotationNumber").on(table.quotationNumber),
+	index("quotations_quotationNumber_idx").on(table.quotationNumber),
 	index("quotations_clientId_idx").on(table.clientId),
 	index("quotations_status_idx").on(table.status),
 	index("quotations_createdBy_idx").on(table.createdBy),
@@ -682,29 +724,29 @@ export const quotations = mysqlTable("quotations", {
 	index("quotations_parentQuotationId_idx").on(table.parentQuotationId),
 	index("quotations_baseQuotationId_idx").on(table.baseQuotationId),
 	foreignKey({
-			columns: [table.parentQuotationId],
-			foreignColumns: [table.id],
-			name: "quotations_parentQuotationId_fk"
-		}),
+		columns: [table.parentQuotationId],
+		foreignColumns: [table.id],
+		name: "quotations_parentQuotationId_fk"
+	}),
 	foreignKey({
-			columns: [table.baseQuotationId],
-			foreignColumns: [table.id],
-			name: "quotations_baseQuotationId_fk"
-		}),
+		columns: [table.baseQuotationId],
+		foreignColumns: [table.id],
+		name: "quotations_baseQuotationId_fk"
+	}),
 ]);
 
-export const reminders = mysqlTable("reminders", {
-	id: int().autoincrement().primaryKey(),
-	projectId: int().references(() => projects.id),
-	type: mysqlEnum(['cotizacion_sin_respuesta','diseno_pendiente','aprobacion_pendiente','produccion_retrasada','instalacion_proxima']).notNull(),
-	assignedTo: int().notNull().references(() => users.id),
+export const reminders = pgTable("reminders", {
+	id: serial().primaryKey(),
+	projectId: integer().references(() => projects.id),
+	type: reminderTypeEnum().notNull(),
+	assignedTo: integer().notNull().references(() => users.id),
 	dueDate: timestamp({ mode: 'string' }).notNull(),
-	status: mysqlEnum(['pendiente','enviado','completado','cancelado']).default('pendiente').notNull(),
+	status: reminderStatusEnum().default('pendiente').notNull(),
 	message: text(),
 	sentAt: timestamp({ mode: 'string' }),
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	scheduledFor: timestamp({ mode: 'string' }),
-	sent: tinyint().default(0).notNull(),
+	sent: smallint().default(0).notNull(),
 },
 (table) => [
 	index("reminders_projectId_idx").on(table.projectId),
@@ -713,32 +755,32 @@ export const reminders = mysqlTable("reminders", {
 	index("reminders_status_idx").on(table.status),
 ]);
 
-export const taskReminders = mysqlTable("taskReminders", {
-	id: int().autoincrement().primaryKey(),
-	taskId: int().notNull().references(() => tasks.id, { onDelete: "cascade" } ),
-	sentBy: int().notNull().references(() => users.id),
-	sentTo: int().notNull().references(() => users.id),
+export const taskReminders = pgTable("taskReminders", {
+	id: serial().primaryKey(),
+	taskId: integer().notNull().references(() => tasks.id, { onDelete: "cascade" }),
+	sentBy: integer().notNull().references(() => users.id),
+	sentTo: integer().notNull().references(() => users.id),
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 });
 
-export const tasks = mysqlTable("tasks", {
-	id: int().autoincrement().primaryKey(),
-	projectId: int().references(() => projects.id),
+export const tasks = pgTable("tasks", {
+	id: serial().primaryKey(),
+	projectId: integer().references(() => projects.id),
 	title: varchar({ length: 255 }).notNull(),
 	description: text(),
-	priority: mysqlEnum(['alta','media','baja']).default('media').notNull(),
-	status: mysqlEnum(['pendiente','en_progreso','completada']).default('pendiente').notNull(),
+	priority: taskPriorityEnum().default('media').notNull(),
+	status: taskStatusEnum().default('pendiente').notNull(),
 	dueDate: timestamp({ mode: 'string' }),
-	assignedTo: int().notNull().references(() => users.id),
-	assignedBy: int().notNull().references(() => users.id),
+	assignedTo: integer().notNull().references(() => users.id),
+	assignedBy: integer().notNull().references(() => users.id),
 	completedAt: timestamp({ mode: 'string' }),
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
-	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	lastReminderSentAt: timestamp({ mode: 'string' }),
-	lastReminderSentBy: int(),
-	reminderCount: int().default(0).notNull(),
+	lastReminderSentBy: integer(),
+	reminderCount: integer().default(0).notNull(),
 	deletedAt: timestamp({ mode: 'string' }),
-	dataOrigin: mysqlEnum(['manual','system']).default('manual').notNull(),
+	dataOrigin: dataOriginEnum().default('manual').notNull(),
 },
 (table) => [
 	index("tasks_assignedTo_idx").on(table.assignedTo),
@@ -748,24 +790,24 @@ export const tasks = mysqlTable("tasks", {
 	index("tasks_assigned_status_idx").on(table.assignedTo, table.status),
 ]);
 
-export const users = mysqlTable("users", {
-	id: int().autoincrement().primaryKey(),
+export const users = pgTable("users", {
+	id: serial().primaryKey(),
 	openId: varchar({ length: 64 }).notNull(),
 	name: text(),
 	email: varchar({ length: 320 }),
 	loginMethod: varchar({ length: 64 }),
-	role: mysqlEnum(['user','admin','super_admin','comercial','disenador','jefe_taller','operario']).default('user').notNull(),
+	role: userRoleEnum().default('user').notNull(),
 	phone: varchar({ length: 20 }),
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
-	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	lastSignedIn: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	passwordHash: varchar({ length: 255 }),
 	passwordResetToken: varchar({ length: 100 }),
 	passwordResetExpires: timestamp({ mode: 'string' }),
 	birthDate: timestamp({ mode: 'string' }),
-	dataOrigin: mysqlEnum(['manual','system']).default('manual').notNull(),
+	dataOrigin: dataOriginEnum().default('manual').notNull(),
 	deletedAt: timestamp({ mode: 'string' }),
-	isTeamMember: tinyint().default(0).notNull(),
+	isTeamMember: smallint().default(0).notNull(),
 },
 (table) => [
 	index("users_openId_unique").on(table.openId),
@@ -774,23 +816,22 @@ export const users = mysqlTable("users", {
 ]);
 
 // ── POSTVENTA ─────────────────────────────────────────────────────────────────
-export const postventaReclamaciones = mysqlTable("postventaReclamaciones", {
-	id: int().autoincrement().primaryKey(),
-	projectId: int().notNull().references(() => projects.id, { onDelete: "cascade" }),
+export const postventaReclamaciones = pgTable("postventaReclamaciones", {
+	id: serial().primaryKey(),
+	projectId: integer().notNull().references(() => projects.id, { onDelete: "cascade" }),
 	title: varchar({ length: 255 }).notNull(),
 	description: text(),
-	// reclamacion = cliente reporta problema, seguimiento_30d = llamada de satisfacción, revision_anual = oferta de revisión al año
-	type: mysqlEnum(['reclamacion', 'seguimiento_30d', 'revision_anual']).default('reclamacion').notNull(),
-	status: mysqlEnum(['pendiente', 'en_revision', 'resuelto', 'no_procede']).default('pendiente').notNull(),
-	priority: mysqlEnum(['alta', 'media', 'baja']).default('media').notNull(),
-	assignedTo: int().references(() => users.id),
-	createdBy: int().notNull().references(() => users.id),
-	resolvedBy: int().references(() => users.id),
+	type: postventaTypeEnum().default('reclamacion').notNull(),
+	status: postventaStatusEnum().default('pendiente').notNull(),
+	priority: taskPriorityEnum().default('media').notNull(),
+	assignedTo: integer().references(() => users.id),
+	createdBy: integer().notNull().references(() => users.id),
+	resolvedBy: integer().references(() => users.id),
 	resolvedAt: timestamp({ mode: 'string' }),
 	resolvedNotes: text(),
-	scheduledFor: timestamp({ mode: 'string' }), // fecha programada para seguimiento/revisión
+	scheduledFor: timestamp({ mode: 'string' }),
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
-	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 },
 (table) => [
 	index("postventa_projectId_idx").on(table.projectId),
@@ -798,3 +839,34 @@ export const postventaReclamaciones = mysqlTable("postventaReclamaciones", {
 	index("postventa_type_idx").on(table.type),
 	index("postventa_scheduledFor_idx").on(table.scheduledFor),
 ]);
+
+// ── INFERRED TYPES ────────────────────────────────────────────────────────────
+export type InsertUser = typeof users.$inferInsert;
+export type InsertClient = typeof clients.$inferInsert;
+export type InsertAppointment = typeof appointments.$inferInsert;
+export type InsertAppointmentWorkType = typeof appointmentWorkTypes.$inferInsert;
+export type InsertAdvisoryRequest = typeof advisoryRequests.$inferInsert;
+export type InsertPriorEstimate = typeof priorEstimates.$inferInsert;
+export type InsertQuotation = typeof quotations.$inferInsert;
+export type InsertQuotationItem = typeof quotationItems.$inferInsert;
+export type InsertColombianHoliday = typeof colombianHolidays.$inferInsert;
+export type InsertReminder = typeof reminders.$inferInsert;
+export type InsertProject = typeof projects.$inferInsert;
+export type InsertProjectPhoto = typeof projectPhotos.$inferInsert;
+export type InsertProjectDetail = typeof projectDetails.$inferInsert;
+export type InsertTask = typeof tasks.$inferInsert;
+export type InsertProjectStatusHistory = typeof projectStatusHistory.$inferInsert;
+export type InsertPushSubscription = typeof pushSubscriptions.$inferInsert;
+export type InsertNotification = typeof notifications.$inferInsert;
+export type InsertPayment = typeof payments.$inferInsert;
+export type InsertPricingConfig = typeof pricingConfig.$inferInsert;
+export type InsertPricingHistory = typeof pricingHistory.$inferInsert;
+export type InsertExpense = typeof expenses.$inferInsert;
+export type InsertClientRevisionHistory = typeof clientRevisionHistory.$inferInsert;
+export type InsertFinancialAlert = typeof financialAlerts.$inferInsert;
+export type InsertFinancialSettings = typeof financialSettings.$inferInsert;
+export type InsertAuditLog = typeof auditLogs.$inferInsert;
+export type InsertAccountingClosure = typeof accountingClosures.$inferInsert;
+export type InsertAccountingClosureProject = typeof accountingClosureProjects.$inferInsert;
+export type InsertAccountingClosureOperationalExpense = typeof accountingClosureOperationalExpenses.$inferInsert;
+export type InsertClosureAuditLog = typeof closureAuditLog.$inferInsert;

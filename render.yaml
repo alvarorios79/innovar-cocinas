@@ -1,0 +1,85 @@
+services:
+  - type: web
+    name: innovar-cocinas-app
+    runtime: node
+    plan: free          # cambiar a 'starter' ($7/mes) para evitar hibernación
+    region: oregon      # más cercano a Colombia que Frankfurt
+
+    # ── Build ──────────────────────────────────────────────────────────────
+    buildCommand: npm install --legacy-peer-deps && npm run build
+    startCommand: npm start
+
+    # Node version
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+
+      # ── Obligatorias — configurar en el dashboard de Render ─────────────
+      - key: NODE_ENV
+        value: production
+
+      - key: DATABASE_URL
+        sync: false        # se configura manualmente en Render (no se sube al repo)
+
+      - key: JWT_SECRET
+        generateValue: true   # Render genera un secreto aleatorio automáticamente
+
+      - key: PORT
+        value: "10000"     # Render asigna el puerto 10000 por defecto
+
+      # URL de la app (necesaria para generar enlaces en emails/WhatsApp)
+      - key: VITE_APP_URL
+        value: https://innovar-cocinas-app.onrender.com   # cambiar a tu dominio personalizado
+
+      # ── S3 / Almacenamiento de fotos ────────────────────────────────────
+      - key: BUILT_IN_FORGE_API_URL
+        sync: false
+      - key: BUILT_IN_FORGE_API_KEY
+        sync: false
+      - key: VITE_FRONTEND_FORGE_API_URL
+        sync: false
+
+      # ── Email (Resend) ───────────────────────────────────────────────────
+      - key: RESEND_API_KEY
+        sync: false
+      - key: EMAIL_FROM
+        value: "INNOVAR Cocinas <ventas@cocinasintegralespereira.co>"
+
+      # ── WhatsApp Business API ────────────────────────────────────────────
+      - key: WHATSAPP_PHONE_NUMBER_ID
+        sync: false
+      - key: WHATSAPP_BUSINESS_ACCOUNT_ID
+        sync: false
+      - key: WHATSAPP_ACCESS_TOKEN
+        sync: false
+
+      # ── Notificaciones Push (Web Push / VAPID) ───────────────────────────
+      - key: VAPID_PUBLIC_KEY
+        sync: false
+      - key: VAPID_PRIVATE_KEY
+        sync: false
+      - key: VAPID_SUBJECT
+        value: "mailto:alvarorios79@gmail.com"
+      - key: VITE_VAPID_PUBLIC_KEY
+        sync: false        # debe ser el mismo valor que VAPID_PUBLIC_KEY
+
+      # ── OAuth (si se usa login con Apple/Google) ─────────────────────────
+      - key: OAUTH_SERVER_URL
+        value: https://auth.manus.im
+      - key: VITE_OAUTH_PORTAL_URL
+        value: https://auth.manus.im
+      - key: VITE_APP_ID
+        value: innovar-cocinas
+
+      # ── Opcionales ────────────────────────────────────────────────────────
+      - key: LOG_LEVEL
+        value: info
+      - key: ENABLE_BACKUP_SCHEDULER
+        value: "false"
+
+databases:
+  - name: innovar-cocinas-db
+    plan: free
+    region: oregon
+    databaseName: innovar_prod
+    user: innovar_user

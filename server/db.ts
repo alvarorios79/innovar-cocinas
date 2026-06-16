@@ -114,7 +114,7 @@ export function enforceDataOrigin<T extends { dataOrigin?: string }>(data: T): T
 export async function createUser(user: Omit<InsertUser, 'openId'> & { openId?: string }) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  const result = await db.insert(users).values({ openId: user.openId || randomUUID(), ...user }.returning({ id: users.id });
+  const result = await db.insert(users).values({ openId: user.openId || randomUUID(), ...user }).returning({ id: users.id });
   return result[0].id;
 }
 
@@ -168,7 +168,7 @@ export async function createClient(client: InsertClient, dataOrigin: "manual" | 
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  const result = await db.insert(clients).values({ ...client, dataOrigin }.returning({ id: clients.id });
+  const result = await db.insert(clients).values({ ...client, dataOrigin }).returning({ id: clients.id });
   return result[0].id;
 }
 
@@ -252,7 +252,7 @@ export async function createAppointment(appointment: InsertAppointment, dataOrig
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  const result = await db.insert(appointments).values({ ...appointment, dataOrigin }.returning({ id: appointments.id });
+  const result = await db.insert(appointments).values({ ...appointment, dataOrigin }).returning({ id: appointments.id });
   return result[0].id;
 }
 
@@ -304,7 +304,7 @@ export async function createAppointmentWorkType(workType: InsertAppointmentWorkT
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  const result = await db.insert(appointmentWorkTypes).values(workType.returning({ id: appointmentWorkTypes.id });
+  const result = await db.insert(appointmentWorkTypes).values(workType).returning({ id: appointmentWorkTypes.id });
   return result[0].id;
 }
 
@@ -328,7 +328,7 @@ export async function createAdvisoryRequest(advisoryRequest: InsertAdvisoryReque
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  const result = await db.insert(advisoryRequests).values(advisoryRequest.returning({ id: advisoryRequests.id });
+  const result = await db.insert(advisoryRequests).values(advisoryRequest).returning({ id: advisoryRequests.id });
   return result[0].id;
 }
 
@@ -360,7 +360,7 @@ export async function createPriorEstimate(estimate: InsertPriorEstimate) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  const result = await db.insert(priorEstimates).values(estimate.returning({ id: priorEstimates.id });
+  const result = await db.insert(priorEstimates).values(estimate).returning({ id: priorEstimates.id });
   return result[0].id;
 }
 
@@ -403,7 +403,7 @@ export async function createQuotation(quotation: Omit<InsertQuotation, 'quotatio
     };
   }
 
-  const result = await db.insert(quotations).values({ ...finalQuotation, dataOrigin } as any.returning({ id: quotations.id });
+  const result = await db.insert(quotations).values({ ...finalQuotation, dataOrigin } as any).returning({ id: quotations.id });
   return result[0].id;
 }
 
@@ -484,7 +484,7 @@ export async function createQuotationItem(item: InsertQuotationItem) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  const result = await db.insert(quotationItems).values(item.returning({ id: quotationItems.id });
+  const result = await db.insert(quotationItems).values(item).returning({ id: quotationItems.id });
   return result[0].id;
 }
 
@@ -567,7 +567,7 @@ export async function createReminder(reminder: InsertReminder) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  const result = await db.insert(reminders).values(reminder.returning({ id: reminders.id });
+  const result = await db.insert(reminders).values(reminder).returning({ id: reminders.id });
   return result[0].id;
 }
 
@@ -629,7 +629,7 @@ export async function createProject(project: InsertProject, dataOrigin: "manual"
   const crypto = await import("crypto");
   const publicToken = crypto.randomBytes(24).toString("hex");
 
-  const result = await db.insert(projects).values({ ...project, dataOrigin, publicToken }.returning({ id: projects.id });
+  const result = await db.insert(projects).values({ ...project, dataOrigin, publicToken }).returning({ id: projects.id });
   return result[0].id;
 }
 
@@ -773,7 +773,7 @@ export async function createProjectDetail(detail: InsertProjectDetail) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  const result = await db.insert(projectDetails).values(detail.returning({ id: projectDetails.id });
+  const result = await db.insert(projectDetails).values(detail).returning({ id: projectDetails.id });
   return result[0].id;
 }
 
@@ -798,7 +798,7 @@ export async function createProjectPhoto(photo: InsertProjectPhoto) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  const result = await db.insert(projectPhotos).values(photo.returning({ id: projectPhotos.id });
+  const result = await db.insert(projectPhotos).values(photo).returning({ id: projectPhotos.id });
   return result[0].id;
 }
 
@@ -822,7 +822,7 @@ export async function createProjectMaterial(material: any) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  const result = await db.insert(projectMaterials).values(material.returning({ id: projectMaterials.id });
+  const result = await db.insert(projectMaterials).values(material).returning({ id: projectMaterials.id });
   return result[0].id;
 }
 
@@ -846,7 +846,7 @@ export async function createProjectStatusHistory(history: InsertProjectStatusHis
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  const result = await db.insert(projectStatusHistory).values(history.returning({ id: projectStatusHistory.id });
+  const result = await db.insert(projectStatusHistory).values(history).returning({ id: projectStatusHistory.id });
   return result[0].id;
 }
 
@@ -863,7 +863,7 @@ export async function createTask(task: InsertTask) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  const result = await db.insert(tasks).values(task.returning({ id: tasks.id });
+  const result = await db.insert(tasks).values(task).returning({ id: tasks.id });
   return result[0].id;
 }
 
@@ -909,7 +909,7 @@ export async function createNotification(notification: InsertNotification) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  const result = await db.insert(notifications).values(notification.returning({ id: notifications.id });
+  const result = await db.insert(notifications).values(notification).returning({ id: notifications.id });
   return result[0].id;
 }
 
@@ -940,7 +940,7 @@ export async function createPayment(payment: InsertPayment) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  const result = await db.insert(payments).values(payment.returning({ id: payments.id });
+  const result = await db.insert(payments).values(payment).returning({ id: payments.id });
   return result[0].id;
 }
 
@@ -1159,7 +1159,7 @@ export async function createExpense(expense: InsertExpense) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  const result = await db.insert(expenses).values(expense.returning({ id: expenses.id });
+  const result = await db.insert(expenses).values(expense).returning({ id: expenses.id });
   return result[0].id;
 }
 
@@ -1198,7 +1198,7 @@ export async function createAuditLog(log: InsertAuditLog) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  const result = await db.insert(auditLogs).values(log.returning({ id: auditLogs.id });
+  const result = await db.insert(auditLogs).values(log).returning({ id: auditLogs.id });
   return result[0].id;
 }
 
@@ -1298,7 +1298,7 @@ export async function upsertUser(user: any) {
     await db.update(users).set(updateData).where(eq(users.openId, user.openId));
     return existing[0].id;
   } else {
-    const result = await db.insert(users).values(user.returning({ id: users.id });
+    const result = await db.insert(users).values(user).returning({ id: users.id });
     return result[0].id;
   }
 }
@@ -2086,7 +2086,7 @@ export type SelectReclamacion = typeof postventaReclamaciones.$inferSelect;
 export async function createReclamacion(data: InsertReclamacion) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  const result = await db.insert(postventaReclamaciones).values(data.returning({ id: postventaReclamaciones.id });
+  const result = await db.insert(postventaReclamaciones).values(data).returning({ id: postventaReclamaciones.id });
   return result[0].id as number;
 }
 
@@ -2231,7 +2231,7 @@ export async function saveProjectMaterials(projectId: number, data: any, userId:
     await db.update(projectMaterials).set({ ...data, updatedAt: new Date().toISOString() }).where(eq(projectMaterials.projectId, projectId));
     return existing[0].id;
   } else {
-    const result = await db.insert(projectMaterials).values({ projectId, ...data, createdBy: userId }.returning({ id: projectMaterials.id });
+    const result = await db.insert(projectMaterials).values({ projectId, ...data, createdBy: userId }).returning({ id: projectMaterials.id });
     return result[0].id;
   }
 }
@@ -2612,7 +2612,7 @@ export async function emptyRecycleBin() {
 export async function createClientRevision(data: any) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  const result = await db.insert(clientRevisionHistory).values(data.returning({ id: clientRevisionHistory.id });
+  const result = await db.insert(clientRevisionHistory).values(data).returning({ id: clientRevisionHistory.id });
   return result[0].id;
 }
 
@@ -2677,7 +2677,7 @@ export async function getAllHardware() {
 export async function createHardwareItem(data: typeof hardwareCatalog.$inferInsert) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  const result = await db.insert(hardwareCatalog).values(data.returning({ id: hardwareCatalog.id });
+  const result = await db.insert(hardwareCatalog).values(data).returning({ id: hardwareCatalog.id });
   return result[0].id;
 }
 export async function updateHardwareItem(id: number, data: Partial<typeof hardwareCatalog.$inferInsert>) {
@@ -2769,7 +2769,7 @@ export async function getColombianHolidays(year?: number) {
 export async function createColombianHoliday(data: InsertColombianHoliday) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  const result = await db.insert(colombianHolidays).values(data.returning({ id: colombianHolidays.id });
+  const result = await db.insert(colombianHolidays).values(data).returning({ id: colombianHolidays.id });
   return result[0].id;
 }
 

@@ -110,3 +110,5 @@ temp/
 # (se regenera con: npx cap add android && npx cap sync android)
 android/
 ios/
+# pnpm lockfile — Render uses npm
+pnpm-lock.yaml

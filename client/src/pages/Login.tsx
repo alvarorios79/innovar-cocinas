@@ -15,13 +15,15 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
+  const utils = trpc.useUtils();
   const loginMutation = trpc.auth.loginWithPassword.useMutation({
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast.success("¡Bienvenido!", {
         description: "Has iniciado sesión correctamente",
       });
-      // Recargar la página para actualizar el estado de autenticación
-      window.location.href = "/";
+      // Actualizar la caché de auth y navegar sin recargar la página
+      utils.auth.me.setData(undefined, data.user as any);
+      setLocation("/");
     },
     onError: (error) => {
       toast.error("Error de inicio de sesión", {

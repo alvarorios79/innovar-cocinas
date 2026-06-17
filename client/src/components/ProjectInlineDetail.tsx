@@ -150,6 +150,11 @@ export function ProjectInlineDetail({
   const [delegatedReason, setDelegatedReason] = useState<"presencial"|"whatsapp_familiar"|"telefono"|"whatsapp_cliente"|"">("");
   const [delegatedNote, setDelegatedNote] = useState("");
 
+  // Solicitar cambios (reemplaza el prompt())
+  const [showRequestChangesDialog, setShowRequestChangesDialog] = useState(false);
+  const [requestChangesSource, setRequestChangesSource] = useState<"cliente_portal"|"comercial_presencial"|"comercial_whatsapp"|"comercial_telefono"|"">("");
+  const [requestChangesNotes, setRequestChangesNotes] = useState("");
+
   // Canal de cambios al entregar nueva versión
   const [showChangeChannelDialog, setShowChangeChannelDialog] = useState(false);
   const [pendingNewStatus, setPendingNewStatus] = useState<"pendiente_modelado"|"pendiente_render"|null>(null);
@@ -1085,10 +1090,9 @@ export function ProjectInlineDetail({
                       }`}
                       onClick={() => {
                         if (isPendingApproval) {
-                          const notes = prompt("Indica qué cambios se necesitan:");
-                          if (notes) {
-                            approveDesign.mutate({ projectId: projectDetail.id, approved: false, notes });
-                          }
+                          setRequestChangesSource("");
+                          setRequestChangesNotes("");
+                          setShowRequestChangesDialog(true);
                         }
                       }}
                       disabled={approveDesign.isPending || !isPendingApproval}
@@ -2675,6 +2679,97 @@ export function ProjectInlineDetail({
             >
               <MessageCircle className="h-4 w-4 mr-1" />
               Sí, abrir WhatsApp
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Diálogo: Solicitar Cambios */}
+      <Dialog open={showRequestChangesDialog} onOpenChange={setShowRequestChangesDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <XCircle className="h-5 w-5 text-orange-500" />
+              Solicitar Cambios al Diseñador
+            </DialogTitle>
+            <DialogDescription>
+              El proyecto volverá a "En Diseño" y se notificará al diseñador y al equipo.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            <div>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-2">
+                ¿Quién comunicó los cambios? <span className="text-red-500">*</span>
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                {(["cliente_portal", "comercial_presencial", "comercial_whatsapp", "comercial_telefono"] as const).map((src) => {
+                  const labels: Record<string, string> = {
+                    cliente_portal: "🌐 Cliente (portal)",
+                    comercial_presencial: "🤝 Comercial presencial",
+                    comercial_whatsapp: "📱 Comercial WhatsApp",
+                    comercial_telefono: "📞 Comercial teléfono",
+                  };
+                  return (
+                    <button
+                      key={src}
+                      type="button"
+                      onClick={() => setRequestChangesSource(src)}
+                      className={`p-3 rounded-lg border text-sm text-left transition-colors ${
+                        requestChangesSource === src
+                          ? "border-orange-500 bg-orange-50 dark:bg-orange-900/30 text-orange-800 dark:text-orange-200 font-medium"
+                          : "border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 text-gray-700 dark:text-gray-300"
+                      }`}
+                    >
+                      {labels[src]}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1">
+                ¿Qué cambios se necesitan? <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                value={requestChangesNotes}
+                onChange={(e) => setRequestChangesNotes(e.target.value)}
+                placeholder="Ej: El cliente quiere cambiar el color de las puertas a blanco y agregar más cajones en la isla"
+                className="w-full text-sm rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 p-2 text-gray-900 dark:text-gray-100 resize-none h-24 focus:outline-none focus:ring-2 focus:ring-orange-500"
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-2 mt-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowRequestChangesDialog(false);
+                setRequestChangesSource("");
+                setRequestChangesNotes("");
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              className="bg-orange-600 hover:bg-orange-700 text-white"
+              disabled={!requestChangesSource || !requestChangesNotes.trim() || approveDesign.isPending}
+              onClick={() => {
+                if (!requestChangesSource || !requestChangesNotes.trim()) return;
+                approveDesign.mutate({
+                  projectId: projectDetail.id,
+                  approved: false,
+                  notes: requestChangesNotes.trim(),
+                  changeSource: requestChangesSource,
+                });
+                setShowRequestChangesDialog(false);
+                setRequestChangesSource("");
+                setRequestChangesNotes("");
+              }}
+            >
+              <XCircle className="h-4 w-4 mr-1" />
+              Registrar y Notificar
             </Button>
           </div>
         </DialogContent>

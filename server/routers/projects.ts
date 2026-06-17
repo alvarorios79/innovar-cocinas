@@ -521,15 +521,18 @@ export const projectsRouter = router({
         projectId: z.number(),
         newStatus: z.enum([
           "cotizacion_enviada", "cotizacion_aprobada", "adelanto_recibido",
-          "en_diseno", "pendiente_render", "aprobacion_final",
-          "despiece", "corte", "enchape", "ensamble", 
-          "listo_instalacion", "listo_instalacion", "entregado"
+          "en_diseno", "pendiente_modelado", "pendiente_render", "aprobacion_final",
+          "despiece", "corte", "enchape", "ensamble",
+          "listo_instalacion", "entregado"
         ]),
         notes: z.string().optional(),
         advanceAmount: z.number().optional(),
         selectedColors: z.string().optional(),
         selectedMaterials: z.string().optional(),
         scheduledInstallDate: z.date().optional(),
+        // Canal por el que llegaron los cambios del cliente (cuando el diseñador entrega versión revisada)
+        changeChannel: z.enum(["portal", "whatsapp", "presencial", "telefono"]).optional(),
+        changeNotes: z.string().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         const project = await db.getProjectById(input.projectId);
@@ -726,6 +729,61 @@ export const projectsRouter = router({
           } catch (e) {
             // Silenciar error de notificación
             console.error("Error notificando al diseñador:", e);
+          }
+        }
+
+        // ── TRAZABILIDAD: Notificar a admin y CEO cuando el diseñador entrega contenido ──
+        if (newStatus === "pendiente_modelado" || newStatus === "pendiente_render") {
+          const tipoEntrega = newStatus === "pendiente_modelado" ? "Modelado 3D" : "Renders";
+          const designerName = ctx.user.name || "Diseñador";
+
+          // Si viene con canal de cambio (revisión tras solicitud del cliente), registrarlo
+          if (input.changeChannel && input.changeChannel !== "portal") {
+            const channelLabels: Record<string, string> = {
+              whatsapp: "WhatsApp",
+              presencial: "Visita presencial",
+              telefono: "Llamada telefónica",
+            };
+            const channelLabel = channelLabels[input.changeChannel] || input.changeChannel;
+            const revisionNotes = `Cambios recibidos por ${channelLabel}${input.changeNotes ? `: ${input.changeNotes}` : ""}`;
+            // Guardar en historial del proyecto
+            await db.createProjectStatusHistory({
+              projectId: input.projectId,
+              fromStatus: currentStatus,
+              toStatus: newStatus,
+              changedBy: ctx.user.id,
+              notes: revisionNotes,
+            });
+          }
+
+          try {
+            const { createAndSendNotification } = await import("../push-notifications");
+            const allUsers = await db.getAllUsers();
+            const adminsAndCeo = allUsers.filter(u => u.role === "admin" || u.role === "super_admin");
+            const channelNote = input.changeChannel && input.changeChannel !== "portal"
+              ? ` (cambios llegaron por ${input.changeChannel})`
+              : "";
+
+            for (const recipient of adminsAndCeo) {
+              await db.createNotification({
+                userId: recipient.id,
+                title: `🎨 ${tipoEntrega} listo para revisión del cliente`,
+                body: `${designerName} subió el ${tipoEntrega.toLowerCase()} de "${project.name}"${channelNote}. Esperando aprobación del cliente.`,
+                type: "proyecto",
+                referenceId: input.projectId,
+                referenceType: "project",
+              });
+              try {
+                await createAndSendNotification(recipient.id, {
+                  title: `🎨 ${tipoEntrega} listo: ${project.name}`,
+                  body: `${designerName} lo subió. Pendiente aprobación del cliente.`,
+                  type: "proyecto",
+                  url: `/projects/${input.projectId}`,
+                });
+              } catch (_) { /* silenciar push */ }
+            }
+          } catch (e) {
+            console.error("Error enviando notificación de trazabilidad a admin/CEO:", e);
           }
         }
 
@@ -1194,6 +1252,11 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
         projectId: z.number(),
         approved: z.boolean(),
         notes: z.string().optional(),
+        // Aprobación delegada: cuando admin/comercial aprueba en nombre del cliente
+        delegatedReason: z.enum(["presencial", "whatsapp_familiar", "telefono", "whatsapp_cliente"]).optional(),
+        delegatedNote: z.string().optional(), // detalle libre adicional
+        // Rechazo: quién comunicó los cambios
+        changeSource: z.enum(["cliente_portal", "comercial_presencial", "comercial_whatsapp", "comercial_telefono"]).optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         const project = await db.getProjectById(input.projectId);
@@ -1225,31 +1288,45 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
           throw new TRPCError({ code: "BAD_REQUEST", message: "El proyecto no está en fase de diseño" });
         }
 
-        const approverLabel = isAdmin ? "Admin" : "Cliente";
         const tipoAprobacion = isPendingModelado ? "modelado 3D" : "renders";
 
+        // Construir etiqueta y nota de trazabilidad para aprobación delegada
+        const DELEGATED_LABELS: Record<string, string> = {
+          presencial:        "aprobó en visita presencial",
+          whatsapp_familiar: "familiar confirmó por WhatsApp",
+          telefono:          "aprobó por llamada telefónica",
+          whatsapp_cliente:  "cliente confirmó por WhatsApp",
+        };
+        const isDelegated = isAdmin && !!input.delegatedReason;
+        const delegatedLabel = isDelegated
+          ? `Aprobación delegada — ${DELEGATED_LABELS[input.delegatedReason!]}${input.delegatedNote ? ` (${input.delegatedNote})` : ""}`
+          : isAdmin ? "Aprobado internamente por admin/comercial" : "Aprobado por el cliente";
+
+        const historyNote = `${delegatedLabel} | ${tipoAprobacion}${input.notes ? ` | Nota: ${input.notes}` : ""}`;
+
         if (input.approved) {
-          // Si aprueba modelado, pasa a pendiente_render (para que el diseñador suba los renders)
-          // Si aprueba renders, pasa a aprobacion_final (para iniciar producción)
           const nextStatus = isPendingModelado ? "pendiente_render" : "aprobacion_final";
-          
+
           const updateData: Record<string, unknown> = {
             status: nextStatus,
-            clientApprovalNotes: input.notes,
+            clientApprovalNotes: isDelegated ? delegatedLabel : (input.notes || null),
           };
-          
+
           if (isPendingModelado) {
             updateData.modeladoApprovedAt = new Date();
-            updateData.modeladoApprovedBy = ctx.user.id;
+            updateData.modeladoApprovedBy = isDelegated
+              ? `${ctx.user.name} (delegado: ${DELEGATED_LABELS[input.delegatedReason!]})`
+              : ctx.user.id;
           } else {
             updateData.clientApprovedAt = new Date();
             updateData.rendersApprovedAt = new Date();
-            updateData.rendersApprovedBy = ctx.user.id;
-            // Calcular fecha oficial de instalación (25 días hábiles desde la aprobación)
+            updateData.rendersApprovedBy = isDelegated
+              ? `${ctx.user.name} (delegado: ${DELEGATED_LABELS[input.delegatedReason!]})`
+              : ctx.user.id;
             updateData.estimatedInstallDate = await calculateEstimatedDeliveryDate(new Date());
             updateData.isInstallDateOfficial = 1;
           }
-          
+
           await db.updateProject(input.projectId, updateData);
 
           await db.createProjectStatusHistory({
@@ -1257,37 +1334,83 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
             fromStatus: project.status,
             toStatus: nextStatus,
             changedBy: ctx.user.id,
-            notes: `${approverLabel} aprobó el ${tipoAprobacion}: ${input.notes || ""}`,
+            notes: historyNote,
           });
 
-          // Cuando el cliente aprueba los renders → notificar a admin/super_admin
-          // para que puedan mover el proyecto a producción
-          if (nextStatus === "aprobacion_final") {
-            try {
-              const allUsers = await db.getAllUsers();
-              const admins = allUsers.filter(u => u.role === "admin" || u.role === "super_admin");
-              for (const admin of admins) {
+          // Notificar a admin/CEO y jefe_taller (si aplica) con contexto completo
+          try {
+            const { createAndSendNotification } = await import("../push-notifications");
+            const allUsers = await db.getAllUsers();
+            const adminsAndCeo = allUsers.filter(u => u.role === "admin" || u.role === "super_admin");
+
+            // Si es aprobación delegada, notificar a los demás admins/CEO con el motivo
+            if (isDelegated) {
+              for (const recipient of adminsAndCeo) {
+                if (recipient.id === ctx.user.id) continue; // No notificar al que aprobó
                 await db.createNotification({
-                  userId: admin.id,
-                  title: "✅ Diseño Aprobado — Listo para Producción",
-                  body: `El cliente aprobó los renders del proyecto "${project.name}". Ya puede iniciar la etapa de producción (Despiece).`,
+                  userId: recipient.id,
+                  title: `📋 Aprobación delegada — ${tipoAprobacion}: ${project.name}`,
+                  body: `${ctx.user.name} registró que el cliente ${delegatedLabel.toLowerCase()}.`,
                   type: "proyecto",
                   referenceId: input.projectId,
                   referenceType: "project",
                 });
                 try {
-                  const { createAndSendNotification } = await import("../push-notifications");
-                  await createAndSendNotification(admin.id, {
-                    title: "✅ Diseño Aprobado",
-                    body: `"${project.name}" listo para iniciar producción`,
+                  await createAndSendNotification(recipient.id, {
+                    title: `📋 Aprobación delegada: ${project.name}`,
+                    body: delegatedLabel,
                     type: "proyecto",
                     url: `/projects/${input.projectId}`,
                   });
-                } catch (e) { /* silenciar push */ }
+                } catch (_) { /* silenciar */ }
               }
-            } catch (e) {
-              console.error("Error notificando a admin sobre aprobación de renders:", e);
             }
+
+            // Si renders aprobados → notificar a admin/CEO + jefe_taller para iniciar producción
+            if (nextStatus === "aprobacion_final") {
+              const approvalSource = isDelegated ? `(${delegatedLabel})` : "(desde el sistema)";
+              for (const recipient of adminsAndCeo) {
+                await db.createNotification({
+                  userId: recipient.id,
+                  title: "✅ Diseño Aprobado — Listo para Producción",
+                  body: `${project.name} aprobado ${approvalSource}. Iniciar despiece.`,
+                  type: "proyecto",
+                  referenceId: input.projectId,
+                  referenceType: "project",
+                });
+                try {
+                  await createAndSendNotification(recipient.id, {
+                    title: "✅ Diseño Aprobado",
+                    body: `"${project.name}" listo para producción`,
+                    type: "proyecto",
+                    url: `/projects/${input.projectId}`,
+                  });
+                } catch (_) { /* silenciar */ }
+              }
+
+              // Notificar al jefe de taller
+              const jefesTaller = allUsers.filter(u => u.role === "jefe_taller");
+              for (const jefe of jefesTaller) {
+                await db.createNotification({
+                  userId: jefe.id,
+                  title: "🏭 Nuevo proyecto listo para producción",
+                  body: `"${project.name}" fue aprobado. ¡Listo para iniciar despiece y corte!`,
+                  type: "proyecto",
+                  referenceId: input.projectId,
+                  referenceType: "project",
+                });
+                try {
+                  await createAndSendNotification(jefe.id, {
+                    title: `🏭 A producción: ${project.name}`,
+                    body: "Diseño aprobado. Iniciar despiece.",
+                    type: "proyecto",
+                    url: `/projects/${input.projectId}`,
+                  });
+                } catch (_) { /* silenciar */ }
+              }
+            }
+          } catch (e) {
+            console.error("Error enviando notificaciones de aprobación:", e);
           }
         } else {
           // Si rechaza, vuelve a diseño
@@ -1302,8 +1425,36 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
             fromStatus: project.status,
             toStatus: "en_diseno",
             changedBy: ctx.user.id,
-            notes: `${approverLabel} rechazó el ${tipoAprobacion}: ${input.notes || ""}`,
+            notes: `${isAdmin ? "Admin/Comercial" : "Cliente"} solicitó cambios en ${tipoAprobacion}${input.changeSource ? ` [${input.changeSource}]` : ""}${input.notes ? `: ${input.notes}` : ""}`,
           });
+
+          // === NOTIFICACIONES AL ADMIN / CEO (copia de trazabilidad) ===
+          const CHANGE_SOURCE_LABELS: Record<string, string> = {
+            cliente_portal: "el cliente (portal)",
+            comercial_presencial: "el comercial — presencial",
+            comercial_whatsapp: "el comercial — WhatsApp",
+            comercial_telefono: "el comercial — teléfono",
+          };
+          const sourceLabel = input.changeSource ? CHANGE_SOURCE_LABELS[input.changeSource] : (isAdmin ? "el comercial/admin" : "el cliente (portal)");
+
+          try {
+            const { createAndSendNotification: sendAdminNotif } = await import("../push-notifications");
+            const adminUsers = await db.getUsersByRole("admin");
+            const superAdminUsers = await db.getUsersByRole("super_admin");
+            const recipients = [...adminUsers, ...superAdminUsers].filter((u: any) => u.id !== ctx.user.id);
+            for (const admin of recipients) {
+              await sendAdminNotif(admin.id, {
+                title: `🔄 Cambios solicitados: ${project.name}`,
+                body: `Informado por ${sourceLabel}. ${input.notes ? `"${input.notes.slice(0, 80)}"` : "Sin detalle."}`,
+                type: "proyecto",
+                referenceId: input.projectId,
+                referenceType: "project",
+                url: `/projects/${input.projectId}`,
+              });
+            }
+          } catch (e) {
+            console.error("[approveDesign] Error notificando admin/CEO en rechazo:", e);
+          }
 
           // === NOTIFICACIONES AL DISEÑADOR ===
           let designerWhatsAppLink = null;

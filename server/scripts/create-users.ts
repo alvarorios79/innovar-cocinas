@@ -4,6 +4,7 @@
  *   npx tsx server/scripts/create-users.ts
  */
 
+import "dotenv/config";
 import { hashPassword } from "../password-auth";
 import { createUser } from "../db";
 import { getUserByEmail } from "../db";

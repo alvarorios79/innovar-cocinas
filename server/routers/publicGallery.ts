@@ -597,6 +597,8 @@ export const publicGalleryRouter = router({
     sendModeladoToClient: protectedProcedure
       .input(z.object({
         projectId: z.number(),
+        changeChannel: z.enum(["portal", "whatsapp", "presencial", "telefono"]).optional(),
+        changeNotes: z.string().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         // Solo admin, super_admin, comercial y diseñador pueden enviar modelado
@@ -640,7 +642,7 @@ export const publicGalleryRouter = router({
               fromStatus: project.status,
               toStatus: "pendiente_modelado",
               changedBy: ctx.user.id,
-              notes: `Modelado 3D enviado al cliente por WhatsApp (Revisión #${newRevision})`,
+              notes: `Modelado 3D enviado al cliente por WhatsApp (Revisión #${newRevision})${input.changeChannel && input.changeChannel !== "portal" ? ` — Cambios recibidos vía: ${input.changeChannel}${input.changeNotes ? ` (${input.changeNotes})` : ""}` : ""}`,
             });
           });
         }
@@ -682,6 +684,8 @@ export const publicGalleryRouter = router({
     sendRendersToClient: protectedProcedure
       .input(z.object({
         projectId: z.number(),
+        changeChannel: z.enum(["portal", "whatsapp", "presencial", "telefono"]).optional(),
+        changeNotes: z.string().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         // Solo admin, super_admin, comercial y diseñador pueden enviar renders
@@ -725,7 +729,7 @@ export const publicGalleryRouter = router({
               fromStatus: project.status,
               toStatus: "pendiente_render",
               changedBy: ctx.user.id,
-              notes: `Renders enviados al cliente por WhatsApp (Revisión #${newRevision})`,
+              notes: `Renders enviados al cliente por WhatsApp (Revisión #${newRevision})${input.changeChannel && input.changeChannel !== "portal" ? ` — Cambios recibidos vía: ${input.changeChannel}${input.changeNotes ? ` (${input.changeNotes})` : ""}` : ""}`,
             });
           });
         }

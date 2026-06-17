@@ -144,6 +144,18 @@ export function ProjectInlineDetail({
   const [designerWhatsAppLink, setDesignerWhatsAppLink] = useState<string | null>(null);
   const [showDesignerWhatsAppDialog, setShowDesignerWhatsAppDialog] = useState(false);
   const [designerName, setDesignerName] = useState<string | null>(null);
+
+  // Aprobación delegada
+  const [showDelegatedApprovalDialog, setShowDelegatedApprovalDialog] = useState(false);
+  const [delegatedReason, setDelegatedReason] = useState<"presencial"|"whatsapp_familiar"|"telefono"|"whatsapp_cliente"|"">("");
+  const [delegatedNote, setDelegatedNote] = useState("");
+
+  // Canal de cambios al entregar nueva versión
+  const [showChangeChannelDialog, setShowChangeChannelDialog] = useState(false);
+  const [pendingNewStatus, setPendingNewStatus] = useState<"pendiente_modelado"|"pendiente_render"|null>(null);
+  const [pendingChangeAction, setPendingChangeAction] = useState<"sendModelado"|"sendRenders"|"updateStatus"|null>(null);
+  const [changeChannel, setChangeChannel] = useState<"portal"|"whatsapp"|"presencial"|"telefono"|"">("");
+  const [changeNotes, setChangeNotes] = useState("");
   
   // Filtros para fotos
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
@@ -617,11 +629,22 @@ export function ProjectInlineDetail({
           <Button
             size="sm"
             className="bg-blue-600 hover:bg-blue-700"
-            onClick={() => updateStatus.mutate({ projectId: projectDetail.id, newStatus: "pendiente_render" })}
+            onClick={() => {
+              if ((projectDetail.renderRevisionNumber || 0) > 0) {
+                // Re-entrega después de cambios → capturar canal
+                setChangeChannel("");
+                setChangeNotes("");
+                setPendingNewStatus("pendiente_render");
+                setPendingChangeAction("updateStatus");
+                setShowChangeChannelDialog(true);
+              } else {
+                updateStatus.mutate({ projectId: projectDetail.id, newStatus: "pendiente_render" });
+              }
+            }}
             disabled={updateStatus.isPending}
           >
             <CheckCircle2 className="h-4 w-4 mr-1" />
-            Entregar Diseño al Cliente
+            {(projectDetail.renderRevisionNumber || 0) > 0 ? "Entregar Nueva Versión" : "Entregar Diseño al Cliente"}
           </Button>
         </div>
       )}
@@ -906,9 +929,19 @@ export function ProjectInlineDetail({
                   <Button
                     size="sm"
                     className={`w-full mt-3 shadow-sm text-xs ${(projectDetail.modeladoRevisionNumber || 0) >= 1 ? 'bg-purple-500 hover:bg-purple-600' : 'bg-purple-600 hover:bg-purple-700'} text-white`}
-                    onClick={() => sendModeladoToClient.mutate({ projectId: projectDetail.id })}
+                    onClick={() => {
+                      if ((projectDetail.modeladoRevisionNumber || 0) >= 1) {
+                        setChangeChannel("");
+                        setChangeNotes("");
+                        setPendingNewStatus("pendiente_modelado");
+                        setPendingChangeAction("sendModelado");
+                        setShowChangeChannelDialog(true);
+                      } else {
+                        sendModeladoToClient.mutate({ projectId: projectDetail.id });
+                      }
+                    }}
                     disabled={sendModeladoToClient.isPending}
-                    title={(projectDetail.modeladoRevisionNumber || 0) >= 1 ? 'Reenviar enlace de aprobación al cliente (incrementará la revisión)' : 'Enviar modelado al cliente para aprobación'}
+                    title={(projectDetail.modeladoRevisionNumber || 0) >= 1 ? 'Reenviar modelado al cliente — registrar canal de cambios' : 'Enviar modelado al cliente para aprobación'}
                   >
                     <Send className={`h-3 w-3 mr-1 ${sendModeladoToClient.isPending ? 'animate-spin' : ''}`} />
                     {sendModeladoToClient.isPending ? 'Enviando...' : (projectDetail.modeladoRevisionNumber || 0) >= 1 ? `Reenviar (Rev. ${(projectDetail.modeladoRevisionNumber || 0) + 1})` : 'Enviar Modelado'}
@@ -941,9 +974,19 @@ export function ProjectInlineDetail({
                   <Button
                     size="sm"
                     className={`w-full mt-3 shadow-sm text-xs ${(projectDetail.renderRevisionNumber || 0) >= 1 ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-emerald-600 hover:bg-emerald-700'} text-white`}
-                    onClick={() => sendRendersToClient.mutate({ projectId: projectDetail.id })}
+                    onClick={() => {
+                      if ((projectDetail.renderRevisionNumber || 0) >= 1) {
+                        setChangeChannel("");
+                        setChangeNotes("");
+                        setPendingNewStatus("pendiente_render");
+                        setPendingChangeAction("sendRenders");
+                        setShowChangeChannelDialog(true);
+                      } else {
+                        sendRendersToClient.mutate({ projectId: projectDetail.id });
+                      }
+                    }}
                     disabled={sendRendersToClient.isPending}
-                    title={(projectDetail.renderRevisionNumber || 0) >= 1 ? 'Reenviar enlace de aprobación al cliente (incrementará la revisión)' : 'Enviar renders al cliente para aprobación'}
+                    title={(projectDetail.renderRevisionNumber || 0) >= 1 ? 'Reenviar renders al cliente — registrar canal de cambios' : 'Enviar renders al cliente para aprobación'}
                   >
                     <Send className={`h-3 w-3 mr-1 ${sendRendersToClient.isPending ? 'animate-spin' : ''}`} />
                     {sendRendersToClient.isPending ? 'Enviando...' : (projectDetail.renderRevisionNumber || 0) >= 1 ? `Reenviar (Rev. ${(projectDetail.renderRevisionNumber || 0) + 1})` : 'Enviar Renders'}
@@ -1014,11 +1057,17 @@ export function ProjectInlineDetail({
                   <div className="flex flex-wrap gap-2">
                     <Button
                       size="sm"
-                      onClick={() => approveDesign.mutate({ projectId: projectDetail.id, approved: true })}
+                      onClick={() => {
+                        if (isPendingApproval) {
+                          setDelegatedReason("");
+                          setDelegatedNote("");
+                          setShowDelegatedApprovalDialog(true);
+                        }
+                      }}
                       disabled={approveDesign.isPending || !isPendingApproval}
                       className={`shadow-sm text-xs ${
-                        isPendingApproval 
-                          ? "bg-green-600 hover:bg-green-700 text-white" 
+                        isPendingApproval
+                          ? "bg-green-600 hover:bg-green-700 text-white"
                           : "bg-gray-300 text-gray-500 cursor-not-allowed"
                       }`}
                       title={!isPendingApproval ? "Solo disponible cuando hay diseño pendiente de aprobación" : ""}
@@ -2626,6 +2675,198 @@ export function ProjectInlineDetail({
             >
               <MessageCircle className="h-4 w-4 mr-1" />
               Sí, abrir WhatsApp
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Diálogo: Aprobación Delegada por Comercial */}
+      <Dialog open={showDelegatedApprovalDialog} onOpenChange={setShowDelegatedApprovalDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CheckCircle2 className="h-5 w-5 text-green-600" />
+              Aprobar Diseño en Nombre del Cliente
+            </DialogTitle>
+            <DialogDescription>
+              Como administrador, puedes aprobar el diseño en representación del cliente.
+              Indica obligatoriamente cómo obtuvo la aprobación.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            <div>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-2">
+                ¿Cómo aprobó el cliente? <span className="text-red-500">*</span>
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                {(["presencial", "whatsapp_familiar", "telefono", "whatsapp_cliente"] as const).map((reason) => {
+                  const labels: Record<string, string> = {
+                    presencial: "🤝 Presencial",
+                    whatsapp_familiar: "📱 WhatsApp (familiar)",
+                    telefono: "📞 Teléfono",
+                    whatsapp_cliente: "💬 WhatsApp (cliente)",
+                  };
+                  return (
+                    <button
+                      key={reason}
+                      type="button"
+                      onClick={() => setDelegatedReason(reason)}
+                      className={`p-3 rounded-lg border text-sm text-left transition-colors ${
+                        delegatedReason === reason
+                          ? "border-green-500 bg-green-50 dark:bg-green-900/30 text-green-800 dark:text-green-200 font-medium"
+                          : "border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 text-gray-700 dark:text-gray-300"
+                      }`}
+                    >
+                      {labels[reason]}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1">
+                Nota adicional (opcional)
+              </label>
+              <textarea
+                value={delegatedNote}
+                onChange={(e) => setDelegatedNote(e.target.value)}
+                placeholder="Ej: El cliente confirmó por WhatsApp que acepta el diseño tal como está"
+                className="w-full text-sm rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 p-2 text-gray-900 dark:text-gray-100 resize-none h-20 focus:outline-none focus:ring-2 focus:ring-green-500"
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-2 mt-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowDelegatedApprovalDialog(false);
+                setDelegatedReason("");
+                setDelegatedNote("");
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              className="bg-green-600 hover:bg-green-700 text-white"
+              disabled={!delegatedReason || approveDesign.isPending}
+              onClick={() => {
+                if (!delegatedReason) return;
+                approveDesign.mutate({
+                  projectId: projectDetail.id,
+                  approved: true,
+                  delegatedReason,
+                  delegatedNote: delegatedNote || undefined,
+                });
+                setShowDelegatedApprovalDialog(false);
+                setDelegatedReason("");
+                setDelegatedNote("");
+              }}
+            >
+              <CheckCircle2 className="h-4 w-4 mr-1" />
+              Confirmar Aprobación
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Diálogo: Registrar canal de cambios al subir nueva versión */}
+      <Dialog open={showChangeChannelDialog} onOpenChange={setShowChangeChannelDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <MessageCircle className="h-5 w-5 text-blue-600" />
+              ¿Cómo solicitó los cambios el cliente?
+            </DialogTitle>
+            <DialogDescription>
+              Es una re-entrega. Para trazabilidad, indica cómo llegaron los cambios solicitados.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            <div>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-2">
+                Canal de los cambios <span className="text-red-500">*</span>
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                {(["portal", "whatsapp", "presencial", "telefono"] as const).map((ch) => {
+                  const labels: Record<string, string> = {
+                    portal: "🌐 Portal (registrado)",
+                    whatsapp: "📱 WhatsApp",
+                    presencial: "🤝 Presencial",
+                    telefono: "📞 Teléfono",
+                  };
+                  return (
+                    <button
+                      key={ch}
+                      type="button"
+                      onClick={() => setChangeChannel(ch)}
+                      className={`p-3 rounded-lg border text-sm text-left transition-colors ${
+                        changeChannel === ch
+                          ? "border-blue-500 bg-blue-50 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 font-medium"
+                          : "border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 text-gray-700 dark:text-gray-300"
+                      }`}
+                    >
+                      {labels[ch]}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1">
+                Descripción de los cambios (opcional)
+              </label>
+              <textarea
+                value={changeNotes}
+                onChange={(e) => setChangeNotes(e.target.value)}
+                placeholder="Ej: El cliente pidió cambiar el color de las puertas a blanco y agregar más gavetas"
+                className="w-full text-sm rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 p-2 text-gray-900 dark:text-gray-100 resize-none h-20 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-2 mt-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowChangeChannelDialog(false);
+                setPendingNewStatus(null);
+                setPendingChangeAction(null);
+                setChangeChannel("");
+                setChangeNotes("");
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+              disabled={!changeChannel}
+              onClick={() => {
+                if (!changeChannel) return;
+                const ch = changeChannel as "portal" | "whatsapp" | "presencial" | "telefono";
+                const notes = changeNotes || undefined;
+
+                if (pendingChangeAction === "sendModelado") {
+                  sendModeladoToClient.mutate({ projectId: projectDetail.id, changeChannel: ch, changeNotes: notes });
+                } else if (pendingChangeAction === "sendRenders") {
+                  sendRendersToClient.mutate({ projectId: projectDetail.id, changeChannel: ch, changeNotes: notes });
+                } else if (pendingChangeAction === "updateStatus" && pendingNewStatus) {
+                  updateStatus.mutate({ projectId: projectDetail.id, newStatus: pendingNewStatus, changeChannel: ch, changeNotes: notes });
+                }
+
+                setShowChangeChannelDialog(false);
+                setPendingNewStatus(null);
+                setPendingChangeAction(null);
+                setChangeChannel("");
+                setChangeNotes("");
+              }}
+            >
+              <Send className="h-4 w-4 mr-1" />
+              Registrar y Enviar
             </Button>
           </div>
         </DialogContent>

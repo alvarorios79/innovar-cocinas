@@ -284,8 +284,8 @@ function DashboardLayoutContent({ children, setSidebarWidth }: DashboardLayoutCo
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!isResizing) return;
-      const sidebarLeft = sidebarRef.current?.getBoundingClientRect().left ?? 0;
-      const newWidth = e.clientX - sidebarLeft;
+      // Sidebar is always anchored at x=0, so width = cursor x position
+      const newWidth = e.clientX;
       if (newWidth >= MIN_WIDTH && newWidth <= MAX_WIDTH) setSidebarWidth(newWidth);
     };
     const handleMouseUp = () => setIsResizing(false);
@@ -305,11 +305,11 @@ function DashboardLayoutContent({ children, setSidebarWidth }: DashboardLayoutCo
 
   return (
     <>
-      <div className="relative" ref={sidebarRef}>
-        <Sidebar
-          collapsible="icon"
-          className="border-r border-white/[0.06] bg-[#0C1A1A]"
-        >
+      <Sidebar
+        ref={sidebarRef as React.Ref<HTMLDivElement>}
+        collapsible="icon"
+        className="border-r border-white/[0.06] bg-[#0C1A1A]"
+      >
           {/* Header — logo */}
           <SidebarHeader className="h-16 justify-center border-b border-white/[0.06] bg-[#0C1A1A]">
             <button
@@ -433,19 +433,18 @@ function DashboardLayoutContent({ children, setSidebarWidth }: DashboardLayoutCo
               </DropdownMenuContent>
             </DropdownMenu>
           </SidebarFooter>
-        </Sidebar>
+      </Sidebar>
 
-        {/* Handle de resize */}
-        {!isCollapsed && (
-          <div
-            className="absolute top-0 right-0 w-1 h-full cursor-col-resize transition-colors"
-            style={{ zIndex: 50, backgroundColor: "transparent" }}
-            onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.backgroundColor = "rgba(106,207,199,0.40)")}
-            onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.backgroundColor = "transparent")}
-            onMouseDown={() => setIsResizing(true)}
-          />
-        )}
-      </div>
+      {/* Handle de resize — fixed, aligned to the sidebar's right edge via CSS var */}
+      {!isCollapsed && (
+        <div
+          className="fixed top-0 h-full w-1 cursor-col-resize transition-colors z-50"
+          style={{ left: "calc(var(--sidebar-width) - 1px)", backgroundColor: "transparent" }}
+          onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.backgroundColor = "rgba(106,207,199,0.40)")}
+          onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.backgroundColor = "transparent")}
+          onMouseDown={() => setIsResizing(true)}
+        />
+      )}
 
       {/* Contenido principal */}
       <SidebarInset>

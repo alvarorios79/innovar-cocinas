@@ -191,6 +191,38 @@ async function startServer() {
       res.status(500).json({ error: 'Error serving PDF' });
     }
   });
+  // ── ENDPOINT TEMPORAL: crear usuarios iniciales ──────────────────────────
+  // BORRAR después de ejecutar una vez
+  app.get("/api/seed-users", async (req: Request, res: Response) => {
+    if (req.query.key !== "innovar-seed-2026") {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+    const { hashPassword } = await import("../password-auth");
+    const { createUser, getUserByEmail } = await import("../db");
+    const PASSWORD = "Innovar2026#";
+    const hash = await hashPassword(PASSWORD);
+    const USERS = [
+      { email: "alejoile@gmail.com",           role: "disenador"   as const, name: "Alejo" },
+      { email: "martha79s@hotmail.com",         role: "admin"       as const, name: "Martha" },
+      { email: "jefetaller@innovarcocinas.com", role: "jefe_taller" as const, name: "Jefe Taller" },
+      { email: "operario@innovarcocinas.com",   role: "operario"    as const, name: "Operario" },
+      { email: "comercial@innovarcocinas.com",  role: "comercial"   as const, name: "Comercial" },
+    ];
+    const results: string[] = [];
+    for (const u of USERS) {
+      try {
+        const existing = await getUserByEmail(u.email);
+        if (existing) { results.push(`⚠️ Ya existe: ${u.email}`); continue; }
+        await createUser({ email: u.email, name: u.name, role: u.role, passwordHash: hash });
+        results.push(`✅ Creado: ${u.email} → ${u.role}`);
+      } catch (e: any) {
+        results.push(`❌ Error ${u.email}: ${e.message}`);
+      }
+    }
+    return res.json({ results });
+  });
+  // ── FIN ENDPOINT TEMPORAL ─────────────────────────────────────────────────
+
   // development mode uses Vite, production mode uses static files
   if (process.env.NODE_ENV === "development") {
     await setupVite(app, server);

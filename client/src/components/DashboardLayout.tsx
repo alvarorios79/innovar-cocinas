@@ -63,13 +63,24 @@ type MenuSection = {
   items: MenuItem[];
 };
 
+// ── Panel home por rol ────────────────────────────────────────────────────────
+const rolePanelItem: Record<string, MenuItem> = {
+  super_admin: { icon: LayoutDashboard, label: "Panel CEO",          path: "/", iconColor: "#1DB5A8" },
+  admin:       { icon: Shield,          label: "Panel Admin",        path: "/", iconColor: "#1DB5A8" },
+  disenador:   { icon: Palette,         label: "Panel Diseño",       path: "/", iconColor: "#ec4899" },
+  jefe_taller: { icon: Wrench,          label: "Panel Jefe Taller",  path: "/", iconColor: "#f97316" },
+  operario:    { icon: Package,         label: "Panel Operario",     path: "/", iconColor: "#3b82f6" },
+};
+
 // ── Estructura de navegación ─────────────────────────────────────────────────
 const menuSections: MenuSection[] = [
   {
     title: "Principal",
     items: [
+      // Placeholder — se reemplaza dinámicamente por rolePanelItem según el rol
+      { icon: LayoutDashboard, label: "__home__", path: "/", iconColor: "#1DB5A8" },
       { icon: LayoutDashboard, label: "Dashboard", path: "/ceo-dashboard",
-        roles: ["super_admin", "admin"], iconColor: "#1DB5A8" },
+        roles: ["super_admin", "admin"], iconColor: "#06b6d4" },
     ],
   },
   {
@@ -81,8 +92,9 @@ const menuSections: MenuSection[] = [
   {
     title: "Comercial",
     items: [
+      // Pipeline solo visible para comercial (es su panel home)
       { icon: KanbanSquare,  label: "Pipeline",     path: "/comercial",
-        roles: ["super_admin", "admin", "comercial"], iconColor: "#1DB5A8" },
+        roles: ["comercial"], iconColor: "#1DB5A8" },
       { icon: FileText,      label: "Cotizaciones",  path: "/quotations",  iconColor: "#6366f1" },
       { icon: CalendarCheck, label: "Citas",         path: "/appointments-calendar", iconColor: "#3b82f6" },
     ],
@@ -265,13 +277,18 @@ function DashboardLayoutContent({ children, setSidebarWidth }: DashboardLayoutCo
   const userRole = (user as any)?.role ?? "user";
   const roleInfo = roleLabels[userRole] ?? roleLabels["user"];
 
+  // Panel home del rol actual (comercial usa Pipeline como su home)
+  const homeItem: MenuItem = userRole === "comercial"
+    ? { icon: KanbanSquare, label: "Pipeline", path: "/comercial", iconColor: "#1DB5A8" }
+    : (rolePanelItem[userRole] ?? rolePanelItem["super_admin"]);
+
   // Filtrar secciones y ítems según el rol del usuario
   const visibleSections = menuSections
     .map((section) => ({
       ...section,
-      items: section.items.filter(
-        (item) => !item.roles || item.roles.includes(userRole)
-      ),
+      items: section.items
+        .filter((item) => !item.roles || item.roles.includes(userRole))
+        .map((item) => item.label === "__home__" ? homeItem : item),
     }))
     .filter((section) => section.items.length > 0);
 

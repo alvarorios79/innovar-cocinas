@@ -38,7 +38,7 @@ export default function Admin() {
   const [createUserForm, setCreateUserForm] = useState({
     name: "",
     email: "",
-    role: "user" as "user" | "admin" | "super_admin",
+    role: "user" as "user" | "admin" | "super_admin" | "comercial" | "disenador" | "jefe_taller" | "operario",
     password: "" as string | undefined,
     birthDate: "" as string | undefined,
   });
@@ -1246,6 +1246,10 @@ export default function Admin() {
                               <SelectValue placeholder="Selecciona un rol" />
                             </SelectTrigger>
                             <SelectContent>
+                              <SelectItem value="comercial">Comercial</SelectItem>
+                              <SelectItem value="disenador">Diseñador</SelectItem>
+                              <SelectItem value="jefe_taller">Jefe de Taller</SelectItem>
+                              <SelectItem value="operario">Operario</SelectItem>
                               <SelectItem value="user">Usuario</SelectItem>
                               {user?.role === "super_admin" && (
                                 <SelectItem value="admin">Administrador</SelectItem>

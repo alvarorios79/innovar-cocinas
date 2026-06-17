@@ -523,7 +523,7 @@ export default function ProjectDetail() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="pb-20 md:pb-0">
         
         <div className="container py-8">
           <p>Debes iniciar sesión para ver este proyecto.</p>
@@ -534,7 +534,7 @@ export default function ProjectDetail() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="pb-20 md:pb-0">
         
         <div className="container py-8">
           <div className="flex items-center justify-center h-64">
@@ -547,7 +547,7 @@ export default function ProjectDetail() {
 
   if (!projectDetail) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="pb-20 md:pb-0">
         
         <div className="container py-8">
           <p>Proyecto no encontrado.</p>
@@ -574,7 +574,7 @@ export default function ProjectDetail() {
   };
 
   return (
-    <div className="min-h-screen pb-20 md:pb-0 bg-background">
+    <div className="pb-20 md:pb-0">
       
       <FileViewer
         files={fileViewer.files}

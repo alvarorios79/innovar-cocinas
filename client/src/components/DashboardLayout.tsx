@@ -504,7 +504,7 @@ function DashboardLayoutContent({ children, setSidebarWidth }: DashboardLayoutCo
         )}
 
         <main className="flex-1 min-h-screen" style={{ background: "#0C1A1A" }}>
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
             {children}
           </div>
         </main>

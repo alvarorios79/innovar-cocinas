@@ -1645,7 +1645,7 @@ export default function Quotations() {
   };
 
   return (
-    <div className="container mx-auto py-6 pb-20 md:pb-6">
+    <div className="pb-20 md:pb-6">
       <PageHeader
         title="Cotizaciones"
         subtitle="Gestiona y controla las cotizaciones de proyectos"

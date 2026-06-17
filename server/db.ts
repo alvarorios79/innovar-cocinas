@@ -2981,42 +2981,28 @@ export async function createAccountingClosure(data: {
     
     // PASO 4: Guardar gastos operativos en tabla de auditoría
     // REGLA: Se guardan SOLO los gastos operativos NUEVOS desde el cierre anterior
-    const pool = await getPool();
-    if (pool) {
-      const operationalExpenses = await tx.select()
-        .from(expenses)
-        .where(
-          and(
-            eq(expenses.expenseType, 'gasto_operativo'),
-            eq(expenses.dataOrigin, 'manual'),
-            isNull(expenses.deletedAt),
-            // Filtrar por fecha: desde el último cierre confirmado (o desde el inicio si no hay)
-            lastClosureDate 
-              ? gte(expenses.expenseDate, sql`${lastClosureDate.toISOString().split('T')[0]}`)
-              : undefined
-          )
-        );
-      
-      for (const expense of operationalExpenses) {
-        const conn = await pool.getConnection();
-        try {
-          await conn.execute(
-            `INSERT INTO accountingClosureOperationalExpenses 
-            (closureId, expenseId, category, description, amount, expenseDate) 
-            VALUES (?, ?, ?, ?, ?, ?)`,
-            [
-              closureId,
-              expense.id,
-              expense.operativeCategory || 'otro',
-              expense.description,
-              expense.amount,
-              expense.expenseDate
-            ]
-          );
-        } finally {
-          conn.release();
-        }
-      }
+    const operationalExpenses = await tx.select()
+      .from(expenses)
+      .where(
+        and(
+          eq(expenses.expenseType, 'gasto_operativo'),
+          eq(expenses.dataOrigin, 'manual'),
+          isNull(expenses.deletedAt),
+          lastClosureDate
+            ? gte(expenses.expenseDate, sql`${lastClosureDate.toISOString().split('T')[0]}`)
+            : undefined
+        )
+      );
+
+    for (const expense of operationalExpenses) {
+      await tx.insert(accountingClosureOperationalExpenses).values({
+        closureId,
+        expenseId:   expense.id,
+        category:    (expense.operativeCategory as any) || 'otro',
+        description: expense.description || '',
+        amount:      expense.amount,
+        expenseDate: expense.expenseDate,
+      });
     }
     
     // PASO 5: Actualizar cierre con totales calculados

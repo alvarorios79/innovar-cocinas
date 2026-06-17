@@ -3443,6 +3443,8 @@ export async function generateClosurePDF(closureId: number) {
     tfoot td:first-child { text-align: left; }
     .neg { color: #dc2626; }
     .pos { color: #059669; }
+    .row-loss { background: #fff1f2 !important; }
+    .row-loss td { border-bottom-color: #fecdd3 !important; }
 
     /* ── FINANCIAL SUMMARY ── */
     .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 18px; }
@@ -3527,8 +3529,8 @@ export async function generateClosurePDF(closureId: number) {
         const gastos    = Number(p.totalExpenses);
         const utilidad  = Number(p.profit);
         const margen    = pct(utilidad, cotizado);
-        return `<tr>
-          <td>${p.projectName}</td>
+        return `<tr class="${utilidad < 0 ? "row-loss" : ""}">
+          <td>${p.projectName}${utilidad < 0 ? ' <span style="color:#dc2626;font-size:9px;font-weight:700;">▼ PÉRDIDA</span>' : ""}</td>
           <td>${fmt(cotizado)}</td>
           <td>${fmt(cobrado)}</td>
           <td class="${saldo > 0 ? "neg" : ""}">${fmt(saldo)}</td>
@@ -3716,8 +3718,9 @@ export async function generateClosureAnnexPDF(closureId: number) {
 
   if (projectIds.length > 0) {
     for (const p of closureProjectRows) {
-      const projId = (p as any).projectId as number;
-      const projName = (p as any).projectName as string;
+      const projId       = (p as any).projectId as number;
+      const projName     = (p as any).projectName as string;
+      const projCotizado = Number((p as any).projectValue);
 
       const projExpenses = await db
         .select()
@@ -3738,10 +3741,19 @@ export async function generateClosureAnnexPDF(closureId: number) {
       }
 
       const projTotal = projExpenses.reduce((s, e) => s + Number(e.amount), 0);
+      const projDiff  = projCotizado - projTotal;
       totalGastosProyectos += projTotal;
 
+      const diffColor = projDiff >= 0 ? "#059669" : "#dc2626";
+      const diffLabel = projDiff >= 0 ? `▲ ${fmt(projDiff)} a favor` : `▼ ${fmt(Math.abs(projDiff))} en pérdida`;
+
       projectExpensesHtml += `
-        <div class="proj-header">${projName} — Total gastos: ${fmt(projTotal)}</div>
+        <div class="proj-header">${projName}</div>
+        <div class="proj-summary">
+          <span><strong>Cotizado:</strong> ${fmt(projCotizado)}</span>
+          <span><strong>Gastos reales:</strong> ${fmt(projTotal)}</span>
+          <span style="color:${diffColor}"><strong>Diferencia:</strong> ${diffLabel}</span>
+        </div>
         ${Array.from(byCategory.entries()).map(([cat, g]) => `
           <div class="group-title" style="margin-left:10px">${PROJECT_CAT_LABELS[cat] ?? cat}
             <span class="group-sub">${fmt(g.subtotal)}</span>
@@ -3801,8 +3813,11 @@ export async function generateClosureAnnexPDF(closureId: number) {
     .group-sub { float: right; color: #0d9488; font-size: 11px; }
 
     .proj-header { font-size: 12px; font-weight: 700; color: #fff;
-                   background: #0d9488; padding: 6px 10px; margin: 16px 0 6px 0;
-                   border-radius: 3px; }
+                   background: #0d9488; padding: 6px 10px; margin: 16px 0 0 0;
+                   border-radius: 3px 3px 0 0; }
+    .proj-summary { display: flex; gap: 24px; background: #f0fdf4; border: 1px solid #bbf7d0;
+                    border-top: none; padding: 5px 10px; font-size: 10.5px;
+                    border-radius: 0 0 3px 3px; margin-bottom: 6px; }
 
     table { width: 100%; border-collapse: collapse; font-size: 10px; margin-bottom: 4px; }
     thead th { background: #f3f4f6; color: #333; padding: 5px 8px; text-align: right;

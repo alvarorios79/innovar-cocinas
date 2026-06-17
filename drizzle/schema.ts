@@ -5,7 +5,7 @@ import { sql } from "drizzle-orm"
 export const workTypeEnum = pgEnum('work_type', ['cocina', 'closet', 'puertas', 'centro_tv']);
 export const dataOriginEnum = pgEnum('data_origin', ['manual', 'system']);
 export const dataOriginWithTestEnum = pgEnum('data_origin_with_test', ['manual', 'system', 'test']);
-export const opExpenseCategoryEnum = pgEnum('op_expense_category', ['arriendo', 'energia', 'agua', 'internet', 'mantenimiento', 'herramientas', 'jardineria', 'reparaciones', 'transporte', 'papeleria', 'aseo', 'otro']);
+export const opExpenseCategoryEnum = pgEnum('op_expense_category', ['arriendo', 'energia', 'agua', 'internet', 'mantenimiento', 'herramientas', 'jardineria', 'reparaciones', 'transporte', 'papeleria', 'aseo', 'nomina', 'cortesia_cliente', 'gasolina_vehiculos', 'mantenimiento_moto', 'mantenimiento_bodega', 'mantenimiento_maquinaria', 'otro']);
 export const closureStatusEnum = pgEnum('closure_status', ['draft', 'confirmed']);
 export const advisoryStatusEnum = pgEnum('advisory_status', ['pendiente', 'contactado', 'completado']);
 export const appointmentStatusEnum = pgEnum('appointment_status', ['pendiente', 'confirmada', 'completada', 'cancelada']);

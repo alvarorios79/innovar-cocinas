@@ -39,20 +39,21 @@ import { ConfirmedClosuresTab } from "@/components/ConfirmedClosuresTab";
 import { ClosedProjectsTab } from "@/components/ClosedProjectsTab";
 import { Upload, CheckCircle2, Archive } from "lucide-react";
 
-// Categorías operativas
+// Categorías operativas (gastos de bodega)
 const OPERATIVE_CATEGORIES = [
-  { value: "arriendo", label: "Arriendo" },
-  { value: "energia", label: "Energía" },
-  { value: "agua", label: "Agua" },
-  { value: "internet", label: "Internet" },
-  { value: "mantenimiento", label: "Mantenimiento" },
-  { value: "herramientas", label: "Herramientas" },
-  { value: "jardineria", label: "Jardinería" },
-  { value: "reparaciones", label: "Reparaciones" },
-  { value: "transporte", label: "Transporte" },
-  { value: "papeleria", label: "Papelería" },
-  { value: "aseo", label: "Aseo" },
-  { value: "otro", label: "Otro" },
+  { value: "arriendo",              label: "Arriendo" },
+  { value: "energia",               label: "Luz / Energía" },
+  { value: "agua",                  label: "Agua" },
+  { value: "internet",              label: "Internet" },
+  { value: "aseo",                  label: "Insumos de aseo" },
+  { value: "papeleria",             label: "Insumos papelería" },
+  { value: "cortesia_cliente",      label: "Cortesía atención cliente" },
+  { value: "gasolina_vehiculos",    label: "Gasolina vehículos" },
+  { value: "mantenimiento_moto",    label: "Mantenimiento moto" },
+  { value: "mantenimiento_bodega",  label: "Mantenimiento bodega" },
+  { value: "mantenimiento_maquinaria", label: "Mantenimiento maquinaria" },
+  { value: "nomina",                label: "Nómina trabajadores" },
+  { value: "otro",                  label: "Otro" },
 ] as const;
 
 const GENERAL_CATEGORIES = [

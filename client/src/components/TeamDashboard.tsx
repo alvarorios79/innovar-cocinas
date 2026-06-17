@@ -313,7 +313,7 @@ export function TeamDashboard() {
   };
 
   return (
-    <div className="pb-8">
+    <div className="max-w-4xl mx-auto pb-8">
       {/* ── Header de rol ──────────────────────────────────────────────────── */}
       <PageHeader
         title={header.title}

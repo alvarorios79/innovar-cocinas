@@ -15,6 +15,7 @@ import {
   getClosureSummary,
   getMonthlyClosureSummary,
   generateClosurePDF,
+  generateClosureAnnexPDF,
   getDb,
   notifyOwnerClosureConfirmed,
   generateClosureExcel,
@@ -343,6 +344,27 @@ export const accountingClosuresRouter = router({
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Error al generar PDF del cierre",
+        });
+      }
+    }),
+
+  /**
+   * Generate detailed annex PDF (bodega + project expenses breakdown)
+   */
+  generateAnnexPDF: adminProcedure
+    .input(z.object({ closureId: z.number() }))
+    .query(async ({ input }) => {
+      try {
+        const htmlContent = await generateClosureAnnexPDF(input.closureId);
+        return {
+          html: htmlContent,
+          filename: `cierre-${input.closureId}-anexo-gastos.pdf`,
+        };
+      } catch (error) {
+        console.error("[AccountingClosures] Error generating annex PDF:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Error al generar el anexo de gastos",
         });
       }
     }),

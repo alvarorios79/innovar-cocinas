@@ -17,6 +17,7 @@ export function ClosureReportTab() {
   const [statusFilter, setStatusFilter] = useState<"all" | "draft" | "confirmed">("confirmed");
   const [showFilters, setShowFilters] = useState(false);
   const [downloadingId, setDownloadingId] = useState<number | null>(null);
+  const [downloadingAnnexId, setDownloadingAnnexId] = useState<number | null>(null);
   const [confirmingClosureId, setConfirmingClosureId] = useState<number | null>(null);
 
   // Queries
@@ -84,6 +85,40 @@ export function ClosureReportTab() {
       toast.error("❌ Error al generar el PDF");
     } finally {
       setDownloadingId(null);
+    }
+  };
+
+  const handleDownloadAnnexPDF = async (closureId: number) => {
+    setDownloadingAnnexId(closureId);
+    try {
+      const result = await trpc.accountingClosures.generateAnnexPDF.useQuery(
+        { closureId },
+        { enabled: false }
+      ).refetch();
+
+      const pdfData = result.data;
+      if (!pdfData) throw new Error("No annex data received");
+
+      const blob = new Blob([pdfData.html], { type: "text/html" });
+      const url = URL.createObjectURL(blob);
+      const iframe = document.createElement("iframe");
+      iframe.style.display = "none";
+      iframe.src = url;
+      document.body.appendChild(iframe);
+      iframe.onload = () => {
+        iframe.contentWindow?.print();
+        setTimeout(() => {
+          document.body.removeChild(iframe);
+          URL.revokeObjectURL(url);
+        }, 100);
+      };
+
+      toast.success("✅ Anexo de gastos generado. Se abrirá la vista de impresión");
+    } catch (error) {
+      console.error("Error downloading annex PDF:", error);
+      toast.error("❌ Error al generar el anexo de gastos");
+    } finally {
+      setDownloadingAnnexId(null);
     }
   };
 
@@ -340,7 +375,17 @@ export function ClosureReportTab() {
                         className="text-teal-600 hover:text-teal-700 hover:bg-teal-50 border-teal-200"
                       >
                         <Download className="h-4 w-4 mr-1" />
-                        {downloadingId === closure.id ? "Generando..." : "PDF"}
+                        {downloadingId === closure.id ? "Generando..." : "PDF Ejecutivo"}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleDownloadAnnexPDF(closure.id)}
+                        disabled={downloadingAnnexId === closure.id}
+                        className="text-purple-600 hover:text-purple-700 hover:bg-purple-50 border-purple-200"
+                      >
+                        <Download className="h-4 w-4 mr-1" />
+                        {downloadingAnnexId === closure.id ? "Generando..." : "Anexo Gastos"}
                       </Button>
                       <Button
                         size="sm"

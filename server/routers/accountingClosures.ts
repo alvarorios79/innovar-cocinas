@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { router, protectedProcedure, adminProcedure } from "../_core/trpc";
+import { router, protectedProcedure, adminProcedure, superAdminProcedure } from "../_core/trpc";
 import { TRPCError } from "@trpc/server";
 import { eq } from "drizzle-orm";
 import { accountingClosures, accountingClosureProjects } from "../../drizzle/schema";
@@ -190,10 +190,15 @@ export const accountingClosuresRouter = router({
     }),
 
   /**
-   * Revert an accounting closure from CONFIRMED back to DRAFT
+   * Revert an accounting closure from CONFIRMED back to DRAFT.
+   * Solo super_admin puede revertir — requiere motivo obligatorio.
+   * Los gastos tardíos deben registrarse en el siguiente período, no reabrir el cierre.
    */
-  revert: adminProcedure
-    .input(z.object({ closureId: z.number() }))
+  revert: superAdminProcedure
+    .input(z.object({
+      closureId: z.number(),
+      reason: z.string().min(10, "El motivo debe tener al menos 10 caracteres"),
+    }))
     .mutation(async ({ input, ctx }) => {
       try {
         // Verify closure exists
@@ -213,7 +218,7 @@ export const accountingClosuresRouter = router({
           });
         }
 
-        const result = await revertAccountingClosure(input.closureId, ctx.user.id);
+        const result = await revertAccountingClosure(input.closureId, ctx.user.id, input.reason);
 
         return {
           message: "Cierre contable revertido exitosamente",

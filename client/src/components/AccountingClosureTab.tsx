@@ -1,6 +1,8 @@
 
 import { useState, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -37,6 +39,8 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 
 export function AccountingClosureTab() {
+  const { user } = useAuth();
+  const isSuperAdmin = user?.role === "super_admin";
   const utils = trpc.useUtils();
   const [activeTab, setActiveTab] = useState<"create" | "history">("create");
   const [periodStart, setPeriodStart] = useState("");
@@ -92,6 +96,7 @@ export function AccountingClosureTab() {
   });
 
   const [showRevertDialog, setShowRevertDialog] = useState(false);
+  const [revertReason, setRevertReason] = useState("");
 
   const revertClosure = trpc.accountingClosures.revert.useMutation({
     onSuccess: (data) => {
@@ -99,6 +104,7 @@ export function AccountingClosureTab() {
       utils.accountingClosures.list.invalidate();
       setSelectedClosureId(null);
       setShowRevertDialog(false);
+      setRevertReason("");
     },
     onError: (error) => {
       toast.error(`Error: ${error.message}`);
@@ -479,14 +485,16 @@ export function AccountingClosureTab() {
                           <CheckCircle2 className="h-4 w-4 mr-2" />
                           Confirmar Cierre
                         </Button>
-                        <Button
-                          onClick={() => setShowRevertDialog(true)}
-                          variant="outline"
-                          className="flex-1"
-                        >
-                          <RotateCcw className="h-4 w-4 mr-2" />
-                          Revertir
-                        </Button>
+                        {isSuperAdmin && (
+                          <Button
+                            onClick={() => setShowRevertDialog(true)}
+                            variant="outline"
+                            className="flex-1"
+                          >
+                            <RotateCcw className="h-4 w-4 mr-2" />
+                            Revertir
+                          </Button>
+                        )}
                       </div>
                     )}
 
@@ -535,39 +543,55 @@ export function AccountingClosureTab() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Revert Dialog */}
-      <AlertDialog open={showRevertDialog} onOpenChange={setShowRevertDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Revertir Cierre Contable</AlertDialogTitle>
-            <AlertDialogDescription>
-              ¿Deseas revertir este cierre contable? Los proyectos serán desvinculados y podrán
-              incluirse en un nuevo cierre.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <div className="flex gap-3">
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
+      {/* Revert Dialog — solo super_admin */}
+      <Dialog open={showRevertDialog} onOpenChange={(open) => { setShowRevertDialog(open); if (!open) setRevertReason(""); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Revertir Cierre Contable</DialogTitle>
+            <DialogDescription>
+              Esta acción solo puede realizarla el Super Admin. El cierre volverá a estado borrador
+              y los proyectos quedarán desvinculados.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="rounded-md bg-amber-50 border border-amber-200 p-3 text-sm text-amber-800">
+              <strong>Recuerda:</strong> los gastos tardíos deben registrarse en el período siguiente,
+              no como motivo de reapertura. Solo revertir por error en los datos del cierre.
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="revert-reason">Motivo de la reapertura <span className="text-red-500">*</span></Label>
+              <Textarea
+                id="revert-reason"
+                placeholder="Describe el motivo (mínimo 10 caracteres)..."
+                value={revertReason}
+                onChange={(e) => setRevertReason(e.target.value)}
+                rows={3}
+              />
+              <p className="text-xs text-muted-foreground">Este motivo quedará registrado en la auditoría del cierre.</p>
+            </div>
+          </div>
+          <div className="flex gap-3 justify-end">
+            <Button variant="outline" onClick={() => { setShowRevertDialog(false); setRevertReason(""); }}>
+              Cancelar
+            </Button>
+            <Button
               onClick={() => {
                 if (selectedClosureId) {
-                  revertClosure.mutate({ closureId: selectedClosureId });
+                  revertClosure.mutate({ closureId: selectedClosureId, reason: revertReason });
                 }
               }}
-              disabled={isSubmitting}
-              className="bg-red-600 hover:bg-red-700"
+              disabled={revertReason.trim().length < 10 || revertClosure.isPending}
+              className="bg-red-600 hover:bg-red-700 text-white"
             >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Revirtiendo...
-                </>
+              {revertClosure.isPending ? (
+                <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Revirtiendo...</>
               ) : (
-                "Revertir"
+                "Revertir Cierre"
               )}
-            </AlertDialogAction>
+            </Button>
           </div>
-        </AlertDialogContent>
-      </AlertDialog>
+        </DialogContent>
+      </Dialog>
 
 
     </div>

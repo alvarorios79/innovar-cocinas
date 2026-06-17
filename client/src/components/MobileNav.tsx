@@ -113,11 +113,7 @@ export function MobileNav() {
         <SheetContent side="right" className="w-[280px] sm:w-[320px]">
           <SheetHeader className="border-b pb-4 mb-4">
             <SheetTitle className="flex items-center gap-2">
-              <div className="rounded overflow-hidden flex items-center justify-center shrink-0"
-                style={{ width: 40, height: 40, background: "#0C1A1A", border: "1px solid rgba(106,207,199,0.15)" }}>
-                <img src="/logo-dark.jpg" alt="INNOVAR"
-                  style={{ width: "100%", height: "100%", objectFit: "contain", mixBlendMode: "screen" }} />
-              </div>
+              <img src="/logo-light.png" alt="INNOVAR" style={{ height: 36, width: 36, objectFit: "contain", flexShrink: 0 }} />
               <div className="flex flex-col leading-none">
                 <span className="font-bold text-sm text-white" style={{ letterSpacing: "0.14em" }}>INNOVAR</span>
                 <span className="text-[10px]" style={{ color: "rgba(106,207,199,0.55)" }}>Cocinas de Diseño</span>

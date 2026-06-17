@@ -55,6 +55,7 @@ type MenuItem = {
   label: string;
   path: string;
   roles?: string[]; // si está definido, solo esos roles ven el ítem
+  iconColor?: string; // color del badge del ícono
 };
 
 type MenuSection = {
@@ -68,77 +69,77 @@ const menuSections: MenuSection[] = [
     title: "Principal",
     items: [
       { icon: LayoutDashboard, label: "Dashboard", path: "/ceo-dashboard",
-        roles: ["super_admin", "admin"] },
+        roles: ["super_admin", "admin"], iconColor: "#1DB5A8" },
     ],
   },
   {
     title: "CRM / Clientes",
     items: [
-      { icon: Users, label: "Clientes", path: "/clients" },
+      { icon: Users, label: "Clientes", path: "/clients", iconColor: "#0ea5e9" },
     ],
   },
   {
     title: "Comercial",
     items: [
       { icon: KanbanSquare,  label: "Pipeline",     path: "/comercial",
-        roles: ["super_admin", "admin", "comercial"] },
-      { icon: FileText,      label: "Cotizaciones",  path: "/quotations" },
-      { icon: CalendarCheck, label: "Citas",         path: "/appointments-calendar" },
+        roles: ["super_admin", "admin", "comercial"], iconColor: "#1DB5A8" },
+      { icon: FileText,      label: "Cotizaciones",  path: "/quotations",  iconColor: "#6366f1" },
+      { icon: CalendarCheck, label: "Citas",         path: "/appointments-calendar", iconColor: "#3b82f6" },
     ],
   },
   {
     title: "Proyectos",
     items: [
-      { icon: FolderKanban, label: "Proyectos", path: "/projects" },
+      { icon: FolderKanban, label: "Proyectos", path: "/projects", iconColor: "#8b5cf6" },
     ],
   },
   {
     title: "Financiero",
     items: [
       { icon: DollarSign, label: "Contabilidad", path: "/accounting",
-        roles: ["super_admin", "admin"] },
+        roles: ["super_admin", "admin"], iconColor: "#10b981" },
       { icon: BarChart3,  label: "Rentabilidad", path: "/profitability-dashboard",
-        roles: ["super_admin", "admin"] },
+        roles: ["super_admin", "admin"], iconColor: "#06b6d4" },
     ],
   },
   {
     title: "Diseño",
     items: [
       { icon: Palette, label: "Diseño", path: "/design",
-        roles: ["super_admin", "admin", "disenador"] },
+        roles: ["super_admin", "admin", "disenador"], iconColor: "#ec4899" },
     ],
   },
   {
     title: "Producción",
     items: [
       { icon: Wrench,        label: "Producción", path: "/production",
-        roles: ["super_admin", "admin", "jefe_taller", "operario"] },
-      { icon: ClipboardList, label: "Tareas",     path: "/tasks" },
+        roles: ["super_admin", "admin", "jefe_taller", "operario"], iconColor: "#f59e0b" },
+      { icon: ClipboardList, label: "Tareas",     path: "/tasks", iconColor: "#22c55e" },
     ],
   },
   {
     title: "Instalaciones",
     items: [
       { icon: Truck, label: "Instalaciones", path: "/calendar",
-        roles: ["super_admin", "admin", "jefe_taller", "operario"] },
+        roles: ["super_admin", "admin", "jefe_taller", "operario"], iconColor: "#f97316" },
     ],
   },
   {
     title: "Postventa",
     items: [
-      { icon: Star, label: "Postventa", path: "/postventa" },
+      { icon: Star, label: "Postventa", path: "/postventa", iconColor: "#eab308" },
     ],
   },
   {
     title: "Administración",
     items: [
-      { icon: Shield,     label: "Admin",            path: "/admin",
-        roles: ["super_admin", "admin"] },
-      { icon: Calculator, label: "Motor de Cotización",           path: "/pricing-config",
-        roles: ["super_admin", "admin"] },
-      { icon: Package,    label: "Herrajes",                      path: "/herrajes",
-        roles: ["super_admin", "admin"] },
-      { icon: ImageIcon,  label: "Galerías",          path: "/galerias" },
+      { icon: Shield,     label: "Admin",              path: "/admin",
+        roles: ["super_admin", "admin"], iconColor: "#94a3b8" },
+      { icon: Calculator, label: "Motor de Cotización", path: "/pricing-config",
+        roles: ["super_admin", "admin"], iconColor: "#06b6d4" },
+      { icon: Package,    label: "Herrajes",            path: "/herrajes",
+        roles: ["super_admin", "admin"], iconColor: "#a78bfa" },
+      { icon: ImageIcon,  label: "Galerías",            path: "/galerias", iconColor: "#a855f7" },
     ],
   },
 ];
@@ -164,29 +165,16 @@ const MAX_WIDTH = 380;
 function InnovarLogo({ collapsed }: { collapsed: boolean }) {
   return (
     <div className="flex items-center gap-2 px-2 min-w-0">
-      {/* Logo: mix-blend-mode:screen hace el fondo negro del JPG transparente */}
-      <div
-        className="shrink-0 rounded overflow-hidden flex items-center justify-center"
+      <img
+        src="/logo-light.png"
+        alt="INNOVAR"
         style={{
-          width: collapsed ? 36 : 44,
-          height: collapsed ? 36 : 44,
-          background: "#0C1A1A",
-          border: "1px solid rgba(106,207,199,0.15)",
+          width: collapsed ? 30 : 52,
+          height: collapsed ? 30 : 52,
+          objectFit: "contain",
+          flexShrink: 0,
         }}
-      >
-        <img
-          src="/logo-dark.jpg"
-          alt="INNOVAR"
-          style={{
-            width: "100%",
-            height: "100%",
-            objectFit: "contain",
-            mixBlendMode: "screen",
-          }}
-        />
-      </div>
-
-      {/* Texto: oculto en collapsed via clase shadcn */}
+      />
       <div
         className="flex flex-col min-w-0 leading-none"
         style={{ display: collapsed ? "none" : "flex" }}
@@ -231,8 +219,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <div className="flex flex-col items-center gap-8 p-8 max-w-sm w-full rounded-2xl"
           style={{ background: "#162828", border: "1px solid rgba(106,207,199,0.20)" }}>
           <div className="flex flex-col items-center gap-3">
-            <img src="/logo-dark.jpg" alt="INNOVAR"
-              style={{ width: 90, height: 90, objectFit: "contain", borderRadius: 12 }} />
+            <img src="/logo-light.png" alt="INNOVAR"
+              style={{ width: 90, height: 90, objectFit: "contain" }} />
           </div>
           <div className="flex flex-col items-center gap-2 text-center">
             <h1 className="text-lg font-semibold" style={{ color: "#FFFFFF" }}>Bienvenido</h1>
@@ -361,23 +349,35 @@ function DashboardLayoutContent({ children, setSidebarWidth }: DashboardLayoutCo
                           className="h-9 rounded-lg font-normal transition-all"
                           style={
                             isActive
-                              ? { backgroundColor: "#6ACFC7", color: "#0C1A1A" }
+                              ? { backgroundColor: "rgba(255,255,255,0.08)", color: "#fff" }
                               : { backgroundColor: "transparent", color: "rgba(255,255,255,0.72)" }
                           }
                           onMouseEnter={(e) => {
                             if (!isActive)
-                              (e.currentTarget as HTMLElement).style.backgroundColor = "rgba(106,207,199,0.08)";
+                              (e.currentTarget as HTMLElement).style.backgroundColor = "rgba(255,255,255,0.05)";
                           }}
                           onMouseLeave={(e) => {
                             if (!isActive)
                               (e.currentTarget as HTMLElement).style.backgroundColor = "transparent";
                           }}
                         >
-                          <item.icon
-                            className="h-4 w-4 shrink-0"
-                            style={{ color: isActive ? "#0C1A1A" : "rgba(255,255,255,0.45)" }}
-                          />
-                          <span style={{ color: isActive ? "#0C1A1A" : "rgba(255,255,255,0.72)" }}>
+                          {/* Badge sólido con color único por sección */}
+                          <span
+                            className="shrink-0 flex items-center justify-center rounded-[7px]"
+                            style={{
+                              width: 28,
+                              height: 28,
+                              background: item.iconColor ?? "#1DB5A8",
+                              opacity: isActive ? 1 : 0.85,
+                              boxShadow: isActive ? `0 0 10px ${item.iconColor ?? "#1DB5A8"}55` : "none",
+                            }}
+                          >
+                            <item.icon
+                              className="h-3.5 w-3.5 shrink-0"
+                              style={{ color: "#fff" }}
+                            />
+                          </span>
+                          <span style={{ color: isActive ? "#fff" : "rgba(255,255,255,0.72)", fontWeight: isActive ? 600 : 400 }}>
                             {item.label}
                           </span>
                         </SidebarMenuButton>
@@ -459,13 +459,13 @@ function DashboardLayoutContent({ children, setSidebarWidth }: DashboardLayoutCo
                 {activeMenuItem?.label ?? "Menú"}
               </span>
             </div>
-            <img src="/logo-dark.jpg" alt="INNOVAR" style={{ height: 32, width: 32, objectFit: "contain", borderRadius: 6 }} />
+            <img src="/logo-light.png" alt="INNOVAR" style={{ height: 32, width: 32, objectFit: "contain" }} />
           </div>
         )}
         {/* Top header bar — desktop */}
         {!isMobile && (
           <header
-            className="h-14 flex items-center justify-between px-5 sticky top-0 z-30"
+            className="h-20 flex items-center justify-between px-5 sticky top-0 z-30"
             style={{
               background: "rgba(12,26,26,0.96)",
               borderBottom: "1px solid rgba(106,207,199,0.12)",
@@ -473,25 +473,29 @@ function DashboardLayoutContent({ children, setSidebarWidth }: DashboardLayoutCo
               WebkitBackdropFilter: "blur(12px)",
             }}
           >
-            {/* Izquierda: toggle + breadcrumb */}
+            {/* Izquierda: toggle + solo logo */}
             <div className="flex items-center gap-3">
               <SidebarTrigger
-                className="h-8 w-8 rounded-lg transition-colors"
+                className="h-9 w-9 rounded-lg transition-colors"
                 style={{ color: "rgba(106,207,199,0.7)" }}
               />
-              <div style={{ width: 1, height: 20, background: "rgba(0,0,0,0.08)" }} />
-              <span className="text-sm font-medium" style={{ color: "rgba(255,255,255,0.80)" }}>
-                {activeMenuItem?.label ?? "Panel"}
-              </span>
+              <img src="/logo-light.png" alt="INNOVAR" style={{ height: 52, width: 52, objectFit: "contain", flexShrink: 0 }} />
             </div>
 
-            {/* Derecha: rol del usuario */}
-            <div className="flex items-center gap-3">
+            {/* Derecha: solo texto + rol + avatar */}
+            <div className="flex items-center gap-4">
+              <div className="flex flex-col leading-none items-center">
+                <span className="font-bold text-xl text-white" style={{ letterSpacing: "0.16em" }}>
+                  INNOV<span style={{ color: "rgba(255,255,255,0.38)" }}>AR</span>
+                </span>
+                <span className="text-xs mt-0.5" style={{ color: "rgba(106,207,199,0.65)" }}>Cocinas de Diseño</span>
+              </div>
+              <div style={{ width: 1, height: 32, background: "rgba(106,207,199,0.15)" }} />
               <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full border ${roleInfo.color}`}>
                 {roleInfo.label}
               </span>
               <div
-                className="h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
+                className="h-9 w-9 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0"
                 style={{ background: "#6ACFC7" }}
               >
                 {user?.name?.charAt(0).toUpperCase() ?? "?"}

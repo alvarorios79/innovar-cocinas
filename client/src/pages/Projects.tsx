@@ -768,35 +768,44 @@ export default function Projects() {
               const total = healthy + moderate + risk + critical;
 
               return (
-                <div className="mt-6 p-4 bg-[#162828] rounded-lg border">
-                  <h3 className="text-sm font-semibold mb-4">Distribución de Rentabilidad</h3>
-                  <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
+                <div className="mt-6 rounded-xl"
+                  style={{ background: "#162828", border: "1px solid rgba(255,255,255,0.06)", borderTop: "3px solid #10b981" }}>
+                  <div className="px-5 pt-4 pb-1">
+                    <h3 className="text-sm font-semibold" style={{ color: "rgba(255,255,255,0.85)" }}>
+                      Distribución de Rentabilidad
+                    </h3>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 p-4">
                     {/* Saludable */}
-                    <div className="bg-green-50 rounded-lg p-2 sm:p-4 border border-green-200 flex flex-col items-center justify-center text-center">
-                      <div className="text-xl sm:text-2xl font-bold text-green-700">{healthy}</div>
-                      <div className="text-xs text-green-600 mt-0.5 sm:mt-1">Saludable</div>
-                      <div className="text-xs text-green-500 mt-0.5 hidden sm:block">(mayor a 20%)</div>
+                    <div className="rounded-lg p-3 sm:p-4 flex flex-col items-center justify-center text-center"
+                      style={{ background: "rgba(16,185,129,0.12)", border: "1px solid rgba(16,185,129,0.25)" }}>
+                      <div className="text-xl sm:text-2xl font-bold" style={{ color: "#34d399" }}>{healthy}</div>
+                      <div className="text-xs font-medium mt-1" style={{ color: "#6ee7b7" }}>Saludable</div>
+                      <div className="text-[10px] mt-0.5 hidden sm:block" style={{ color: "rgba(110,231,183,0.6)" }}>(mayor a 20%)</div>
                     </div>
 
                     {/* Moderado */}
-                    <div className="bg-yellow-50 rounded-lg p-2 sm:p-4 border border-yellow-200 flex flex-col items-center justify-center text-center">
-                      <div className="text-xl sm:text-2xl font-bold text-yellow-700">{moderate}</div>
-                      <div className="text-xs text-yellow-600 mt-0.5 sm:mt-1">Moderado</div>
-                      <div className="text-xs text-yellow-500 mt-0.5 hidden sm:block">(10-20%)</div>
+                    <div className="rounded-lg p-3 sm:p-4 flex flex-col items-center justify-center text-center"
+                      style={{ background: "rgba(234,179,8,0.12)", border: "1px solid rgba(234,179,8,0.25)" }}>
+                      <div className="text-xl sm:text-2xl font-bold" style={{ color: "#fbbf24" }}>{moderate}</div>
+                      <div className="text-xs font-medium mt-1" style={{ color: "#fcd34d" }}>Moderado</div>
+                      <div className="text-[10px] mt-0.5 hidden sm:block" style={{ color: "rgba(252,211,77,0.6)" }}>(10-20%)</div>
                     </div>
 
                     {/* En Riesgo */}
-                    <div className="bg-orange-50 rounded-lg p-2 sm:p-4 border border-orange-200 flex flex-col items-center justify-center text-center">
-                      <div className="text-xl sm:text-2xl font-bold text-orange-700">{risk}</div>
-                      <div className="text-xs text-orange-600 mt-0.5 sm:mt-1">En Riesgo</div>
-                      <div className="text-xs text-orange-500 mt-0.5 hidden sm:block">(5-10%)</div>
+                    <div className="rounded-lg p-3 sm:p-4 flex flex-col items-center justify-center text-center"
+                      style={{ background: "rgba(249,115,22,0.12)", border: "1px solid rgba(249,115,22,0.25)" }}>
+                      <div className="text-xl sm:text-2xl font-bold" style={{ color: "#fb923c" }}>{risk}</div>
+                      <div className="text-xs font-medium mt-1" style={{ color: "#fdba74" }}>En Riesgo</div>
+                      <div className="text-[10px] mt-0.5 hidden sm:block" style={{ color: "rgba(253,186,116,0.6)" }}>(5-10%)</div>
                     </div>
 
                     {/* Crítico */}
-                    <div className="bg-red-50 rounded-lg p-2 sm:p-4 border border-red-200 flex flex-col items-center justify-center text-center">
-                      <div className="text-xl sm:text-2xl font-bold text-red-700">{critical}</div>
-                      <div className="text-xs text-red-600 mt-0.5 sm:mt-1">Crítico</div>
-                      <div className="text-xs text-red-500 mt-0.5 hidden sm:block">(menor a 5%)</div>
+                    <div className="rounded-lg p-3 sm:p-4 flex flex-col items-center justify-center text-center"
+                      style={{ background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.25)" }}>
+                      <div className="text-xl sm:text-2xl font-bold" style={{ color: "#f87171" }}>{critical}</div>
+                      <div className="text-xs font-medium mt-1" style={{ color: "#fca5a5" }}>Crítico</div>
+                      <div className="text-[10px] mt-0.5 hidden sm:block" style={{ color: "rgba(252,165,165,0.6)" }}>(menor a 5%)</div>
                     </div>
                   </div>
                 </div>

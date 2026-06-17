@@ -61,14 +61,14 @@ export function KpiCard({
       }}
       onClick={onClick}
     >
-      <div className="p-4 sm:p-5">
-        <div className="flex items-start justify-between mb-3">
-          <p className="text-xs font-medium text-white/45 leading-tight pr-2">{label}</p>
+      <div className="p-3 sm:p-4">
+        <div className="flex items-start justify-between mb-2">
+          <p className="text-[11px] font-medium text-white/45 leading-tight pr-2">{label}</p>
           <div
             className="flex items-center justify-center rounded-lg shrink-0"
             style={{
-              width: 34,
-              height: 34,
+              width: 30,
+              height: 30,
               background: `${accent}1A`,
               color: accent,
             }}
@@ -77,13 +77,13 @@ export function KpiCard({
           </div>
         </div>
         <p
-          className="text-2xl font-bold tracking-tight leading-none"
+          className="text-xl font-bold tracking-tight leading-none"
           style={{ color: accent }}
         >
           {value}
         </p>
         {helper && (
-          <p className="text-[11px] text-white/30 mt-1.5 leading-tight">{helper}</p>
+          <p className="text-[10px] text-white/30 mt-1 leading-tight">{helper}</p>
         )}
       </div>
     </div>

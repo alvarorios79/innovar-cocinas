@@ -527,55 +527,46 @@ export function DailyMotivation({ userName, className = "", userBirthDate }: Dai
     }
   }, [isBirthday, userName]);
 
+  // Color de acento según tipo de mensaje
+  const accentColor = isBirthdayMessage
+    ? "#EC4899"
+    : isSpecial
+      ? "#F59E0B"
+      : "#1DB5A8";
+
   return (
-    <div className={`relative overflow-hidden rounded-xl ${className}`}>
-      {/* Fondo con gradiente */}
-      <div className={`absolute inset-0 ${
-        isBirthdayMessage
-          ? "bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500"
-          : isSpecial 
-            ? "bg-gradient-to-r from-amber-400 via-orange-500 to-pink-500" 
-            : "bg-gradient-to-r from-teal-500 via-cyan-500 to-blue-500"
-      }`} />
-      
-      {/* Efecto de confeti para cumpleaños */}
+    <div
+      className={`relative bg-[#162828] rounded-xl p-3 border border-white/[0.06] ${className}`}
+      style={{ borderLeft: `3px solid ${accentColor}` }}
+    >
+      {/* Confeti decorativo para cumpleaños (pequeño, no intrusivo) */}
       {isBirthdayMessage && (
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-2 left-[10%] text-2xl animate-bounce" style={{animationDelay: '0s'}}>🎈</div>
-          <div className="absolute top-4 left-[30%] text-xl animate-bounce" style={{animationDelay: '0.2s'}}>🎉</div>
-          <div className="absolute top-2 left-[50%] text-2xl animate-bounce" style={{animationDelay: '0.4s'}}>🎂</div>
-          <div className="absolute top-4 left-[70%] text-xl animate-bounce" style={{animationDelay: '0.6s'}}>🎁</div>
-          <div className="absolute top-2 left-[90%] text-2xl animate-bounce" style={{animationDelay: '0.8s'}}>🎈</div>
+        <div className="absolute inset-0 overflow-hidden pointer-events-none rounded-xl">
+          <div className="absolute top-1 left-[20%] text-sm animate-bounce" style={{animationDelay: '0s'}}>🎈</div>
+          <div className="absolute top-1 left-[50%] text-sm animate-bounce" style={{animationDelay: '0.3s'}}>🎂</div>
+          <div className="absolute top-1 left-[80%] text-sm animate-bounce" style={{animationDelay: '0.6s'}}>🎉</div>
         </div>
       )}
-      
-      {/* Patrón decorativo */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute top-0 left-0 w-32 h-32 bg-[#162828] rounded-full -translate-x-16 -translate-y-16" />
-        <div className="absolute bottom-0 right-0 w-40 h-40 bg-[#162828] rounded-full translate-x-20 translate-y-20" />
-      </div>
-      
-      {/* Contenido */}
-      <div className="relative p-4 md:p-6 text-white">
-        <div className="flex items-start gap-3">
-          <div className={`p-2 md:p-3 rounded-full ${isSpecial ? "bg-[#162828]/30" : "bg-[#162828]/20"}`}>
-            <IconComponent className="h-5 w-5 md:h-6 md:w-6" />
-          </div>
-          <div className="flex-1 min-w-0">
-            {title && (
-              <h3 className="text-sm md:text-base font-bold mb-1 text-white/90">
-                {title}
-              </h3>
-            )}
-            {userName && (
-              <p className="text-xs md:text-sm text-white/80 mb-1">
-                ¡{greeting}, {userName}!
-              </p>
-            )}
-            <p className="text-sm md:text-lg font-medium leading-relaxed">
-              {phrase}
+      <div className="flex items-center gap-3">
+        <div
+          className="flex items-center justify-center rounded-lg shrink-0"
+          style={{ width: 34, height: 34, background: `${accentColor}1A`, color: accentColor }}
+        >
+          <IconComponent className="h-4 w-4" />
+        </div>
+        <div className="flex-1 min-w-0">
+          {title ? (
+            <p className="text-sm font-semibold leading-snug" style={{ color: "rgba(255,255,255,0.90)" }}>
+              {title}
             </p>
-          </div>
+          ) : userName ? (
+            <p className="text-xs font-medium" style={{ color: accentColor }}>
+              ¡{greeting}, {userName.split(" ")[0]}!
+            </p>
+          ) : null}
+          <p className="text-xs leading-snug mt-0.5" style={{ color: "rgba(255,255,255,0.55)" }}>
+            {phrase}
+          </p>
         </div>
       </div>
     </div>

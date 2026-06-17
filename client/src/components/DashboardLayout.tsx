@@ -239,7 +239,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <SidebarProvider
       defaultOpen={true}
-      style={{ "--sidebar-width": `${sidebarWidth}px`, "--sidebar-background": "#0A1616" } as CSSProperties}
+      style={{ "--sidebar-width": `${sidebarWidth}px`, "--sidebar-width-icon": "72px", "--sidebar-background": "#0A1616" } as CSSProperties}
     >
       <DashboardLayoutContent setSidebarWidth={setSidebarWidth}>
         {children}

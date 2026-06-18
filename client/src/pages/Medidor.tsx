@@ -608,7 +608,14 @@ export default function Medidor() {
               <button
                 type="button"
                 disabled={addPhoto.isPending || isLoadingDetail}
-                onClick={() => photoInputRef.current?.click()}
+                onClick={() => {
+                  if (!photoInputRef.current) {
+                    toast.error("DEBUG: ref es null — contactar soporte");
+                    return;
+                  }
+                  toast.info("DEBUG: abriendo selector...");
+                  photoInputRef.current.click();
+                }}
                 className="w-full h-11 rounded-md border border-[#1DB5A8]/40 bg-[#162828] flex items-center justify-center gap-2 text-[#1DB5A8] text-sm font-medium hover:bg-[#1c3535] transition-colors disabled:opacity-50"
               >
                 {isLoadingDetail

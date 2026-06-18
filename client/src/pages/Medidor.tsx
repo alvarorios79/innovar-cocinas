@@ -4,7 +4,7 @@
  */
 
 import { useState, useRef, useCallback } from "react";
-import { trpc } from "@/api/trpc";
+import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";

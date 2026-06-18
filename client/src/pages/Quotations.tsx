@@ -186,6 +186,36 @@ export default function Quotations() {
       setShowCreateDialog(true);
     }
   }, [location]);
+
+  // Detectar si viene desde una visita técnica (?fromVisit=ID)
+  const fromVisitParams = useMemo(() => {
+    const search = window.location.search;
+    if (!search.includes("fromVisit")) return null;
+    const p = new URLSearchParams(search);
+    const id = p.get("fromVisit");
+    if (!id) return null;
+    return {
+      visitId:    parseInt(id),
+      clientName: p.get("clientName") ?? "",
+      clientPhone: p.get("clientPhone") ?? "",
+      workType:   p.get("workType") ?? "",
+    };
+  }, [location]);
+
+  const markVisitConverted = trpc.technicalVisits.markConverted.useMutation();
+
+  useEffect(() => {
+    if (fromVisitParams) {
+      setShowCreateDialog(true);
+      if (fromVisitParams.workType) {
+        const wt = fromVisitParams.workType === "centro_tv" ? "centro_tv"
+          : fromVisitParams.workType === "puertas" ? "puerta"
+          : fromVisitParams.workType === "closet"  ? "closet"
+          : "cocina";
+        setWorkType(wt);
+      }
+    }
+  }, [fromVisitParams?.visitId]);
   const [editingQuotation, setEditingQuotation] = useState<number | null>(null);
   const [selectedClient, setSelectedClient] = useState<number | null>(null);
   const VENDOR_OPTIONS = ["Alvaro Ríos", "Martha Serna"];
@@ -365,12 +395,19 @@ export default function Quotations() {
     filterHasProject !== "all";
 
   const createQuotation = trpc.quotations.create.useMutation({
-    onSuccess: () => {
+    onSuccess: (data: any) => {
       utils.quotations.list.invalidate();
       utils.quotations.listPaginatedGrouped.invalidate();
       toast.success("Cotización creada exitosamente");
       setShowCreateDialog(false);
       resetForm();
+      // Si venía de una visita técnica, marcarla como convertida
+      if (fromVisitParams?.visitId) {
+        markVisitConverted.mutate({
+          visitId:     fromVisitParams.visitId,
+          quotationId: data?.id,
+        });
+      }
     },
     onError: (error) => {
       toast.error(error.message || "Error al crear cotización");
@@ -2058,6 +2095,20 @@ export default function Quotations() {
           </div>
 
           <form onSubmit={handleSubmit} className="p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6">
+            {/* Banner: cotización desde visita técnica */}
+            {fromVisitParams && !editingQuotation && (
+              <div className="bg-[#1DB5A8]/10 border border-[#1DB5A8]/30 rounded-lg px-4 py-3 flex items-start gap-3">
+                <span className="text-xl">📐</span>
+                <div>
+                  <p className="text-sm font-semibold text-[#1DB5A8]">Cotización desde visita técnica</p>
+                  <p className="text-xs text-gray-300 mt-0.5">
+                    Cliente: <span className="font-medium text-white">{fromVisitParams.clientName}</span>
+                    {fromVisitParams.clientPhone && ` · ${fromVisitParams.clientPhone}`}
+                  </p>
+                  <p className="text-xs text-gray-400 mt-0.5">Selecciona o crea el cliente en el formulario. Al guardar la visita quedará marcada como convertida.</p>
+                </div>
+              </div>
+            )}
             {/* Sección: Información General */}
             <div className="bg-[rgba(106,207,199,0.05)] rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-5 border border-[rgba(106,207,199,0.12)] shadow-sm">
               <h3 className="text-sm sm:text-base font-semibold text-white/85 flex items-center gap-2 mb-3 sm:mb-4">

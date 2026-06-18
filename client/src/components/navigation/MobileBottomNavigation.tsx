@@ -1,5 +1,5 @@
 import { useLocation } from "wouter";
-import { Home, FolderOpen, FileText, Users, Menu } from "lucide-react";
+import { Home, FolderOpen, FileText, Users, Menu, Ruler } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useState, useEffect } from "react";
@@ -31,15 +31,23 @@ export function MobileBottomNavigation() {
 
   if (!isMobile || !user) return null;
 
+  // El portal del medidor tiene su propio layout — no mostrar nav inferior allí
+  if (location.startsWith("/medidor")) return null;
+
   const isActive = (path: string) => location.startsWith(path);
 
-  const navItems = [
-    { icon: Home, label: "Inicio", path: "/" },
-    { icon: FolderOpen, label: "Proyectos", path: "/projects" },
-    { icon: FileText, label: "Cotizaciones", path: "/quotations" },
-    { icon: Users, label: "Clientes", path: "/admin" },
-    { icon: Menu, label: "Menú", path: "/menu" },
-  ];
+  // Nav específica para el rol medidor
+  const navItems = user.role === "medidor"
+    ? [
+        { icon: Ruler, label: "Mis Visitas", path: "/medidor" },
+      ]
+    : [
+        { icon: Home, label: "Inicio", path: "/" },
+        { icon: FolderOpen, label: "Proyectos", path: "/projects" },
+        { icon: FileText, label: "Cotizaciones", path: "/quotations" },
+        { icon: Users, label: "Clientes", path: "/admin" },
+        { icon: Menu, label: "Menú", path: "/menu" },
+      ];
 
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-teal-600 to-teal-700 border-t border-teal-800 md:hidden z-40 safe-area-inset-bottom shadow-2xl">

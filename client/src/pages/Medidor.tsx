@@ -124,6 +124,8 @@ export default function Medidor() {
   const [localMeasurements, setLocalMeasurements] = useState<Record<string, string>>({});
   const [localNotes, setLocalNotes]               = useState("");
   const [savingMeasurements, setSavingMeasurements] = useState(false);
+  const [localClientData, setLocalClientData]     = useState<Partial<{ clientName: string; clientPhone: string; clientAddress: string; workType: WorkType }>>({});
+  const [savingClientData, setSavingClientData]   = useState(false);
 
   // ── Acciones ─────────────────────────────────────────────────────────────
 
@@ -138,6 +140,24 @@ export default function Medidor() {
       setLocalNotes("");
       setView("detail");
     } catch { toast.error("Error al crear la visita"); }
+  };
+
+  const handleSaveClientData = async () => {
+    if (!visitDetail) return;
+    if (!localClientData.clientName && !(visit as any)?.clientName) { toast.error("El nombre es requerido"); return; }
+    setSavingClientData(true);
+    try {
+      await updateVisit.mutateAsync({
+        visitId:       visitDetail.id,
+        clientName:    localClientData.clientName   ?? (visit as any)?.clientName,
+        clientPhone:   localClientData.clientPhone  ?? (visit as any)?.clientPhone,
+        clientAddress: localClientData.clientAddress ?? (visit as any)?.clientAddress,
+        workType:      (localClientData.workType     ?? (visit as any)?.workType) as WorkType,
+      });
+      toast.success("Datos del cliente guardados");
+      refetchDetail();
+    } catch { toast.error("Error guardando datos"); }
+    finally { setSavingClientData(false); }
   };
 
   const handleSaveMeasurements = async () => {
@@ -432,6 +452,56 @@ export default function Medidor() {
       </div>
 
       <div className="max-w-lg mx-auto p-4 space-y-6">
+
+        {/* ── Sección: Datos del cliente (editable en borrador) ── */}
+        {isEditable && (
+          <section>
+            <h2 className="text-sm font-semibold text-[#1DB5A8] uppercase tracking-wide mb-3 flex items-center gap-2">
+              <Home className="h-4 w-4" /> Datos del cliente
+            </h2>
+            <div className="space-y-2">
+              {[
+                { key: "clientName",    label: "Nombre *",            type: "text", placeholder: "Nombre completo" },
+                { key: "clientPhone",   label: "Teléfono",             type: "tel",  placeholder: "WhatsApp / celular" },
+                { key: "clientAddress", label: "Dirección / Barrio",   type: "text", placeholder: "Dirección o barrio" },
+              ].map(f => (
+                <div key={f.key} className="bg-[#162828] rounded-xl px-4 py-2 border border-[#1DB5A8]/10">
+                  <label className="text-xs text-gray-400">{f.label}</label>
+                  <Input
+                    type={f.type}
+                    placeholder={f.placeholder}
+                    value={(localClientData as any)[f.key] ?? (visit as any)?.[f.key] ?? ""}
+                    onChange={e => setLocalClientData(d => ({ ...d, [f.key]: e.target.value }))}
+                    className="bg-transparent border-0 text-white placeholder:text-gray-600 p-0 h-7 focus-visible:ring-0 text-sm"
+                  />
+                </div>
+              ))}
+              {/* Tipo de trabajo */}
+              <div className="grid grid-cols-2 gap-2 mt-1">
+                {(Object.entries(WORK_TYPE_LABELS) as [WorkType, string][]).map(([key, label]) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setLocalClientData(d => ({ ...d, workType: key }))}
+                    className={`p-2 rounded-xl border text-xs font-medium transition-colors ${
+                      (localClientData.workType ?? visit?.workType) === key
+                        ? "border-[#1DB5A8] bg-[#1DB5A8]/10 text-[#1DB5A8]"
+                        : "border-[#1DB5A8]/20 bg-[#162828] text-gray-300"
+                    }`}
+                  >{label}</button>
+                ))}
+              </div>
+              <Button
+                onClick={handleSaveClientData}
+                disabled={savingClientData}
+                className="w-full mt-1 bg-[#162828] hover:bg-[#1c3535] border border-[#1DB5A8]/40 text-[#1DB5A8] h-9 text-sm"
+              >
+                {savingClientData ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
+                Guardar datos cliente
+              </Button>
+            </div>
+          </section>
+        )}
 
         {/* ── Sección: Medidas ── */}
         <section>

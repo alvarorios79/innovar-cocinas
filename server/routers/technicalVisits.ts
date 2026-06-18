@@ -278,6 +278,26 @@ export const technicalVisitsRouter = router({
       };
     }),
 
+  /** Marcar visita como convertida en cotización */
+  markConverted: protectedProcedure
+    .input(z.object({
+      visitId:     z.number(),
+      quotationId: z.number().optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      if (!["admin", "super_admin", "comercial"].includes(ctx.user.role)) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Solo admin o comercial pueden convertir visitas" });
+      }
+      const visit = await db.getTechnicalVisitById(input.visitId);
+      if (!visit) throw new TRPCError({ code: "NOT_FOUND", message: "Visita no encontrada" });
+
+      await db.updateTechnicalVisit(input.visitId, {
+        status: "convertida" as any,
+        ...(input.quotationId ? { quotationId: input.quotationId } : {}),
+      });
+      return { success: true };
+    }),
+
   /** Enviar visita al admin para cotización */
   submit: protectedProcedure
     .input(z.object({ visitId: z.number() }))

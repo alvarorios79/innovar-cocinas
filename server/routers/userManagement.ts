@@ -30,7 +30,7 @@ export const userManagementRouter = router({
       .input(z.object({
         name: z.string().min(1, "El nombre es requerido"),
         email: z.string().email("Email inválido"),
-        role: z.enum(["user", "admin", "super_admin", "comercial", "disenador", "jefe_taller", "operario"]),
+        role: z.enum(["user", "admin", "super_admin", "comercial", "disenador", "jefe_taller", "operario", "medidor"]),
         password: z.string().min(8, "La contraseña debe tener al menos 8 caracteres").optional(),
       }))
       .mutation(async ({ ctx, input }) => {

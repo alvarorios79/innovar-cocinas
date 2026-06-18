@@ -571,6 +571,7 @@ export const projectStatusHistory = pgTable("projectStatusHistory", {
 	toStatus: varchar({ length: 50 }).notNull(),
 	changedBy: integer().notNull().references(() => users.id),
 	notes: text(),
+	evidenceUrl: text(), // URL del archivo adjunto como evidencia (captura WhatsApp, correo, etc.)
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 },
 (table) => [

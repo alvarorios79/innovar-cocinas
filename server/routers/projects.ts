@@ -1255,6 +1255,7 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
         // Aprobación delegada: cuando admin/comercial aprueba en nombre del cliente
         delegatedReason: z.enum(["presencial", "whatsapp_familiar", "telefono", "whatsapp_cliente"]).optional(),
         delegatedNote: z.string().optional(), // detalle libre adicional
+        evidenceUrl: z.string().url().optional(), // URL de captura adjunta como evidencia
         // Rechazo: quién comunicó los cambios
         changeSource: z.enum(["cliente_portal", "comercial_presencial", "comercial_whatsapp", "comercial_telefono"]).optional(),
       }))
@@ -1335,6 +1336,7 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
             toStatus: nextStatus,
             changedBy: ctx.user.id,
             notes: historyNote,
+            evidenceUrl: input.evidenceUrl,
           });
 
           // Notificar a admin/CEO y jefe_taller (si aplica) con contexto completo

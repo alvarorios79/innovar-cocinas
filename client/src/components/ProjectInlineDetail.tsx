@@ -149,6 +149,8 @@ export function ProjectInlineDetail({
   const [showDelegatedApprovalDialog, setShowDelegatedApprovalDialog] = useState(false);
   const [delegatedReason, setDelegatedReason] = useState<"presencial"|"whatsapp_familiar"|"telefono"|"whatsapp_cliente"|"">("");
   const [delegatedNote, setDelegatedNote] = useState("");
+  const [delegatedEvidenceUrl, setDelegatedEvidenceUrl] = useState<string>("");
+  const [uploadingEvidence, setUploadingEvidence] = useState(false);
 
   // Solicitar cambios (reemplaza el prompt())
   const [showRequestChangesDialog, setShowRequestChangesDialog] = useState(false);
@@ -253,6 +255,8 @@ export function ProjectInlineDetail({
       toast.error(error.message || "Error al actualizar fecha");
     },
   });
+
+  const uploadEvidenceImage = trpc.upload.image.useMutation();
 
   const approveDesign = trpc.projects.approveDesign.useMutation({
     onSuccess: (result, variables) => {
@@ -2831,6 +2835,61 @@ export function ProjectInlineDetail({
                 className="w-full text-sm rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 p-2 text-gray-900 dark:text-gray-100 resize-none h-20 focus:outline-none focus:ring-2 focus:ring-green-500"
               />
             </div>
+
+            <div>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1">
+                Evidencia (opcional — captura de WhatsApp, correo, foto)
+              </label>
+              {delegatedEvidenceUrl ? (
+                <div className="flex items-center gap-2 p-2 bg-green-50 dark:bg-green-900/20 rounded border border-green-200 dark:border-green-700">
+                  <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0" />
+                  <a href={delegatedEvidenceUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-green-700 dark:text-green-300 underline truncate flex-1">
+                    Evidencia adjunta — ver archivo
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => setDelegatedEvidenceUrl("")}
+                    className="text-gray-400 hover:text-red-500 text-xs flex-shrink-0"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ) : (
+                <label className={`flex items-center gap-2 p-2 border border-dashed border-gray-300 dark:border-gray-600 rounded cursor-pointer hover:border-green-400 transition-colors ${uploadingEvidence ? "opacity-50 pointer-events-none" : ""}`}>
+                  <input
+                    type="file"
+                    accept="image/*,application/pdf"
+                    className="hidden"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      if (file.size > 10 * 1024 * 1024) { toast.error("El archivo no debe superar 10MB"); return; }
+                      setUploadingEvidence(true);
+                      try {
+                        const reader = new FileReader();
+                        reader.onload = async (ev) => {
+                          try {
+                            const result = await uploadEvidenceImage.mutateAsync({
+                              fileName: file.name,
+                              fileData: ev.target?.result as string,
+                              contentType: file.type,
+                            });
+                            setDelegatedEvidenceUrl(result.url);
+                            toast.success("Evidencia adjunta correctamente");
+                          } catch { toast.error("Error al subir la evidencia"); }
+                          finally { setUploadingEvidence(false); }
+                        };
+                        reader.readAsDataURL(file);
+                      } catch { setUploadingEvidence(false); }
+                    }}
+                  />
+                  <Upload className="h-4 w-4 text-gray-400" />
+                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                    {uploadingEvidence ? "Subiendo..." : "Adjuntar captura o archivo (JPG, PNG, PDF — máx 10MB)"}
+                  </span>
+                </label>
+              )}
+            </div>
           </div>
 
           <div className="flex justify-end gap-2 mt-2">
@@ -2840,13 +2899,14 @@ export function ProjectInlineDetail({
                 setShowDelegatedApprovalDialog(false);
                 setDelegatedReason("");
                 setDelegatedNote("");
+                setDelegatedEvidenceUrl("");
               }}
             >
               Cancelar
             </Button>
             <Button
               className="bg-green-600 hover:bg-green-700 text-white"
-              disabled={!delegatedReason || approveDesign.isPending}
+              disabled={!delegatedReason || approveDesign.isPending || uploadingEvidence}
               onClick={() => {
                 if (!delegatedReason) return;
                 approveDesign.mutate({
@@ -2854,10 +2914,12 @@ export function ProjectInlineDetail({
                   approved: true,
                   delegatedReason,
                   delegatedNote: delegatedNote || undefined,
+                  evidenceUrl: delegatedEvidenceUrl || undefined,
                 });
                 setShowDelegatedApprovalDialog(false);
                 setDelegatedReason("");
                 setDelegatedNote("");
+                setDelegatedEvidenceUrl("");
               }}
             >
               <CheckCircle2 className="h-4 w-4 mr-1" />

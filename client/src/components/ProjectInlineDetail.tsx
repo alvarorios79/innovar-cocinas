@@ -159,6 +159,9 @@ export function ProjectInlineDetail({
   const [requestChangesSource, setRequestChangesSource] = useState<"cliente_portal"|"comercial_presencial"|"comercial_whatsapp"|"comercial_telefono"|"">("");
   const [requestChangesNotes, setRequestChangesNotes] = useState("");
 
+  // Advertencia al pasar a producción sin aprobación de renders registrada
+  const [showProductionWarningDialog, setShowProductionWarningDialog] = useState(false);
+
   // Canal de cambios al entregar nueva versión
   const [showChangeChannelDialog, setShowChangeChannelDialog] = useState(false);
   const [pendingNewStatus, setPendingNewStatus] = useState<"pendiente_modelado"|"pendiente_render"|null>(null);
@@ -750,7 +753,13 @@ export function ProjectInlineDetail({
           <Button
             size="sm"
             className="bg-green-600 hover:bg-green-700"
-            onClick={() => updateStatus.mutate({ projectId: projectDetail.id, newStatus: "despiece" })}
+            onClick={() => {
+              if (!projectDetail.rendersApprovedAt) {
+                setShowProductionWarningDialog(true);
+              } else {
+                updateStatus.mutate({ projectId: projectDetail.id, newStatus: "despiece" });
+              }
+            }}
             disabled={updateStatus.isPending}
           >
             <CheckCircle2 className="h-4 w-4 mr-1" />
@@ -3059,6 +3068,51 @@ export function ProjectInlineDetail({
             >
               <Send className="h-4 w-4 mr-1" />
               Registrar y Enviar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Advertencia: pasar a producción sin aprobación de renders registrada */}
+      <Dialog open={showProductionWarningDialog} onOpenChange={setShowProductionWarningDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-amber-700">
+              <AlertCircle className="h-5 w-5 text-amber-500" />
+              Sin aprobación de renders registrada
+            </DialogTitle>
+            <DialogDescription>
+              Este proyecto no tiene aprobación formal de renders en el sistema.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-sm text-amber-800 space-y-2">
+            <p>
+              Normalmente la aprobación queda registrada cuando el cliente aprueba desde el portal
+              o cuando un admin registra la aprobación delegada.
+            </p>
+            <p className="font-medium">
+              ¿Deseas continuar y pasar el proyecto a producción de todas formas?
+              Quedará una nota en el historial indicando que se inició sin aprobación formal.
+            </p>
+          </div>
+
+          <div className="flex justify-end gap-2 mt-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowProductionWarningDialog(false)}
+            >
+              Cancelar
+            </Button>
+            <Button
+              className="bg-amber-600 hover:bg-amber-700 text-white"
+              onClick={() => {
+                setShowProductionWarningDialog(false);
+                updateStatus.mutate({ projectId: projectDetail.id, newStatus: "despiece" });
+              }}
+            >
+              <AlertCircle className="h-4 w-4 mr-1" />
+              Continuar sin aprobación registrada
             </Button>
           </div>
         </DialogContent>

@@ -63,7 +63,9 @@ import {
   accountingClosureOperationalExpenses,
   InsertAccountingClosureOperationalExpense,
   closureAuditLog,
-  InsertClosureAuditLog
+  InsertClosureAuditLog,
+  technicalVisits,
+  visitPhotos,
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 import { randomUUID } from 'crypto';
@@ -4724,4 +4726,117 @@ export async function getTestProjectsForDeletion() {
     console.error('[TEST PROJECT] Error getting test projects:', error);
     throw error;
   }
+}
+
+// ============ TECHNICAL VISITS (Portal del Medidor) ============
+
+export async function createTechnicalVisit(data: {
+  clientId?: number;
+  clientName: string;
+  clientPhone?: string;
+  clientAddress?: string;
+  workType: "cocina" | "closet" | "puertas" | "centro_tv";
+  measurements?: Record<string, unknown>;
+  notes?: string;
+  createdBy: number;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.insert(technicalVisits).values({
+    clientId: data.clientId ?? null,
+    clientName: data.clientName,
+    clientPhone: data.clientPhone ?? null,
+    clientAddress: data.clientAddress ?? null,
+    workType: data.workType,
+    measurements: data.measurements ?? null,
+    notes: data.notes ?? null,
+    createdBy: data.createdBy,
+    status: "borrador",
+  }).returning({ id: technicalVisits.id });
+
+  return result[0].id;
+}
+
+export async function getTechnicalVisitById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db.select().from(technicalVisits).where(eq(technicalVisits.id, id)).limit(1);
+  if (!result[0]) return undefined;
+
+  const photos = await db.select().from(visitPhotos)
+    .where(eq(visitPhotos.visitId, id))
+    .orderBy(visitPhotos.createdAt);
+
+  return { ...result[0], photos };
+}
+
+export async function updateTechnicalVisit(id: number, data: Partial<{
+  clientId: number;
+  clientName: string;
+  clientPhone: string;
+  clientAddress: string;
+  workType: "cocina" | "closet" | "puertas" | "centro_tv";
+  measurements: Record<string, unknown>;
+  notes: string;
+  status: "borrador" | "enviada" | "convertida";
+  quotationId: number;
+}>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(technicalVisits)
+    .set({ ...data, updatedAt: new Date().toISOString() } as any)
+    .where(eq(technicalVisits.id, id));
+}
+
+export async function listTechnicalVisits(filters?: { createdBy?: number; status?: string }) {
+  const db = await getDb();
+  if (!db) return [];
+
+  const conditions = [];
+  if (filters?.createdBy) conditions.push(eq(technicalVisits.createdBy, filters.createdBy));
+  if (filters?.status) conditions.push(eq(technicalVisits.status, filters.status as any));
+
+  const query = db.select().from(technicalVisits);
+  const rows = conditions.length > 0
+    ? await query.where(and(...conditions)).orderBy(desc(technicalVisits.createdAt))
+    : await query.orderBy(desc(technicalVisits.createdAt));
+
+  return rows;
+}
+
+export async function createVisitPhoto(data: {
+  visitId: number;
+  photoUrl: string;
+  category?: string;
+  description?: string;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.insert(visitPhotos).values({
+    visitId: data.visitId,
+    photoUrl: data.photoUrl,
+    category: data.category ?? "foto",
+    description: data.description ?? null,
+  }).returning({ id: visitPhotos.id });
+
+  return result[0].id;
+}
+
+export async function deleteVisitPhoto(photoId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.delete(visitPhotos).where(eq(visitPhotos.id, photoId));
+}
+
+export async function getVisitPhotoById(photoId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db.select().from(visitPhotos).where(eq(visitPhotos.id, photoId)).limit(1);
+  return result[0];
 }

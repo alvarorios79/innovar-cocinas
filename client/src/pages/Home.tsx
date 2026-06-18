@@ -325,6 +325,12 @@ export default function Home() {
     return null;
   }
 
+  // Si es medidor, redirigir al portal de visitas
+  if (isAuthenticated && user?.role === "medidor") {
+    setLocation("/medidor");
+    return null;
+  }
+
   // Si es miembro del equipo, mostrar el TeamDashboard
   if (isTeamMember) {
     return <TeamDashboard />;

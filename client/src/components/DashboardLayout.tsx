@@ -43,6 +43,7 @@ import {
   Trash2,
   BarChart3,
   Package,
+  Ruler,
 } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
@@ -70,6 +71,7 @@ const rolePanelItem: Record<string, MenuItem> = {
   disenador:   { icon: Palette,         label: "Panel Diseño",       path: "/", iconColor: "#ec4899" },
   jefe_taller: { icon: Wrench,          label: "Panel Jefe Taller",  path: "/", iconColor: "#f97316" },
   operario:    { icon: Package,         label: "Panel Operario",     path: "/", iconColor: "#3b82f6" },
+  medidor:     { icon: Ruler,           label: "Mis Visitas",        path: "/medidor", iconColor: "#1DB5A8" },
 };
 
 // ── Estructura de navegación ─────────────────────────────────────────────────
@@ -140,6 +142,15 @@ const menuSections: MenuSection[] = [
     title: "Postventa",
     items: [
       { icon: Star, label: "Postventa", path: "/postventa", iconColor: "#eab308" },
+    ],
+  },
+  {
+    title: "Visitas Técnicas",
+    items: [
+      { icon: Ruler, label: "Mis Visitas",      path: "/medidor",
+        roles: ["medidor"], iconColor: "#1DB5A8" },
+      { icon: Ruler, label: "Visitas Técnicas", path: "/visitas-tecnicas",
+        roles: ["super_admin", "admin", "comercial"], iconColor: "#1DB5A8" },
     ],
   },
   {
@@ -280,6 +291,8 @@ function DashboardLayoutContent({ children, setSidebarWidth }: DashboardLayoutCo
   // Panel home del rol actual (comercial usa Pipeline como su home)
   const homeItem: MenuItem = userRole === "comercial"
     ? { icon: KanbanSquare, label: "Pipeline", path: "/comercial", iconColor: "#1DB5A8" }
+    : userRole === "medidor"
+    ? { icon: Ruler, label: "Mis Visitas", path: "/medidor", iconColor: "#1DB5A8" }
     : (rolePanelItem[userRole] ?? rolePanelItem["super_admin"]);
 
   // Filtrar secciones y ítems según el rol del usuario

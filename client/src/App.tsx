@@ -37,6 +37,8 @@ import Production from "./pages/Production";
 import Postventa from "./pages/Postventa";
 import Herrajes from "./pages/Herrajes";
 import GalleryAdmin from "./pages/GalleryAdmin";
+import Medidor from "./pages/Medidor";
+import VisitasTecnicas from "./pages/VisitasTecnicas";
 
 
 function LayoutWrapper({ children }: { children: React.ReactNode }) {
@@ -45,9 +47,13 @@ function LayoutWrapper({ children }: { children: React.ReactNode }) {
 
   // Rutas siempre públicas (nunca usan DashboardLayout)
   const alwaysPublicRoutes = ["/login", "/register", "/forgot-password", "/reset-password", "/portal", "/gallery"];
+  // Rutas con layout propio (autenticadas pero sin DashboardLayout)
+  const customLayoutRoutes = ["/medidor"];
+  const isCustomLayout = customLayoutRoutes.some(route => location === route || location.startsWith(route));
   const isAlwaysPublic = alwaysPublicRoutes.some(
     route => location === route || location.startsWith("/portal") || location.startsWith("/gallery")
   );
+  if (isCustomLayout) return <>{children}</>;
   if (isAlwaysPublic) return <>{children}</>;
 
   // "/" solo es pública para usuarios no autenticados
@@ -88,6 +94,10 @@ function Router() {
         <Route path={"/production"}><Production /></Route>
         <Route path={"/postventa"}><Postventa /></Route>
         <Route path={"/galerias"}><GalleryAdmin /></Route>
+        {/* Portal del Medidor */}
+        <Route path={"/medidor"}><Medidor /></Route>
+        {/* Admin: Visitas Técnicas */}
+        <Route path={"/visitas-tecnicas"}><VisitasTecnicas /></Route>
         <Route path={"/404"} component={NotFound} />
         <Route component={NotFound} />
       </Switch>

@@ -37,7 +37,7 @@ export const reminderTypeEnum = pgEnum('reminder_type', ['cotizacion_sin_respues
 export const reminderStatusEnum = pgEnum('reminder_status', ['pendiente', 'enviado', 'completado', 'cancelado']);
 export const taskPriorityEnum = pgEnum('task_priority', ['alta', 'media', 'baja']);
 export const taskStatusEnum = pgEnum('task_status', ['pendiente', 'en_progreso', 'completada']);
-export const userRoleEnum = pgEnum('user_role', ['user', 'admin', 'super_admin', 'comercial', 'disenador', 'jefe_taller', 'operario']);
+export const userRoleEnum = pgEnum('user_role', ['user', 'admin', 'super_admin', 'comercial', 'disenador', 'jefe_taller', 'operario', 'medidor']);
 export const closureAuditActionEnum = pgEnum('closure_audit_action', ['created', 'confirmed', 'deleted']);
 export const projectDetailTypeEnum = pgEnum('project_detail_type', ['medida_especial', 'nota_importante', 'foto_referencia']);
 export const postventaTypeEnum = pgEnum('postventa_type', ['reclamacion', 'seguimiento_30d', 'revision_anual']);
@@ -637,6 +637,52 @@ export const projects = pgTable("projects", {
 	index("projects_createdBy_idx").on(table.createdBy),
 	index("projects_accountingClosureId_idx").on(table.accountingClosureId),
 	index("projects_publicToken_idx").on(table.publicToken),
+]);
+
+// ── VISITAS TÉCNICAS (Portal del Medidor) ────────────────────────────────────
+
+export const visitStatusEnum = pgEnum('visit_status', ['borrador', 'enviada', 'convertida']);
+
+export const technicalVisits = pgTable("technicalVisits", {
+	id: serial().primaryKey(),
+	// Datos del cliente (puede ser existente o nuevo)
+	clientId: integer().references(() => clients.id),
+	clientName: varchar({ length: 255 }).notNull(),
+	clientPhone: varchar({ length: 50 }),
+	clientAddress: text(),
+	// Tipo de trabajo
+	workType: workTypeEnum().notNull(),
+	// Medidas en JSON (flexible por tipo de trabajo)
+	measurements: json(),
+	// Notas libres
+	notes: text(),
+	// Estado
+	status: visitStatusEnum().default('borrador').notNull(),
+	// Quién creó la visita
+	createdBy: integer().notNull().references(() => users.id),
+	// Timestamps
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
+	// Cotización generada desde esta visita (nullable)
+	quotationId: integer(),
+},
+(table) => [
+	index("technicalVisits_createdBy_idx").on(table.createdBy),
+	index("technicalVisits_status_idx").on(table.status),
+	index("technicalVisits_clientId_idx").on(table.clientId),
+]);
+
+export const visitPhotos = pgTable("visitPhotos", {
+	id: serial().primaryKey(),
+	visitId: integer().notNull().references(() => technicalVisits.id, { onDelete: "cascade" }),
+	photoUrl: text().notNull(),
+	// 'foto' | 'pdf_plano' | 'pdf_medidas'
+	category: varchar({ length: 50 }).default('foto'),
+	description: text(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
+},
+(table) => [
+	index("visitPhotos_visitId_idx").on(table.visitId),
 ]);
 
 export const pushSubscriptions = pgTable("pushSubscriptions", {

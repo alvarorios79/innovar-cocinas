@@ -27,6 +27,7 @@ import { dataProtectionRouter } from "./routers/dataProtection";
 import { backupsRouter } from "./routers/backups";
 import { accountingClosuresRouter } from "./routers/accountingClosures";
 import { postventaRouter } from "./routers/postventa";
+import { technicalVisitsRouter } from "./routers/technicalVisits";
 
 export const appRouter = router({
   accountingClosures: accountingClosuresRouter,
@@ -63,6 +64,7 @@ export const appRouter = router({
   quotationsVersioning: quotationsVersioningRouter,
   quotationsDownload: quotationsDownloadRouter,
   postventa: postventaRouter,
+  technicalVisits: technicalVisitsRouter,
 });
 
 export type AppRouter = typeof appRouter;

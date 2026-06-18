@@ -105,7 +105,7 @@ export default function Medidor() {
     refetchOnWindowFocus: false,
   });
 
-  const { data: visitDetail, refetch: refetchDetail } = trpc.technicalVisits.getById.useQuery(
+  const { data: visitDetail, refetch: refetchDetail, isLoading: isLoadingDetail } = trpc.technicalVisits.getById.useQuery(
     { visitId: selectedVisit?.id ?? 0 },
     { enabled: view === "detail" && !!selectedVisit, refetchOnWindowFocus: false }
   );
@@ -189,7 +189,9 @@ export default function Medidor() {
   // Subir foto desde cámara o galería
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !visitDetail) return;
+    if (!file) return;
+    const visitId = visitDetail?.id ?? selectedVisit?.id;
+    if (!visitId) { toast.error("Visita no cargada aún, espera un momento"); return; }
     if (file.size > 12 * 1024 * 1024) { toast.error("Máximo 12MB por archivo"); return; }
 
     const reader = new FileReader();
@@ -197,7 +199,7 @@ export default function Medidor() {
       const fileData = ev.target?.result as string;
       try {
         await addPhoto.mutateAsync({
-          visitId:     visitDetail.id,
+          visitId,
           fileName:    file.name,
           fileData,
           contentType: file.type,
@@ -214,7 +216,9 @@ export default function Medidor() {
   // Subir y comprimir PDF de GoodNotes
   const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !visitDetail) return;
+    if (!file) return;
+    const visitId = visitDetail?.id ?? selectedVisit?.id;
+    if (!visitId) { toast.error("Visita no cargada aún, espera un momento"); return; }
     if (file.type !== "application/pdf") { toast.error("Solo se permiten archivos PDF"); return; }
     if (file.size > 50 * 1024 * 1024) { toast.error("El PDF supera el límite de 50MB"); return; }
 
@@ -226,7 +230,7 @@ export default function Medidor() {
       const fileData = ev.target?.result as string;
       try {
         const result = await compressPdf.mutateAsync({
-          visitId:  visitDetail.id,
+          visitId,
           fileName: file.name,
           fileData,
           category: "pdf_plano",
@@ -603,13 +607,15 @@ export default function Medidor() {
               />
               <button
                 type="button"
-                disabled={addPhoto.isPending}
+                disabled={addPhoto.isPending || isLoadingDetail}
                 onClick={() => photoInputRef.current?.click()}
                 className="w-full h-11 rounded-md border border-[#1DB5A8]/40 bg-[#162828] flex items-center justify-center gap-2 text-[#1DB5A8] text-sm font-medium hover:bg-[#1c3535] transition-colors disabled:opacity-50"
               >
-                {addPhoto.isPending
-                  ? <><Loader2 className="h-4 w-4 animate-spin" /> Subiendo...</>
-                  : <><Camera className="h-4 w-4" /> {fotos.length > 0 ? "Agregar más fotos" : "Tomar / subir fotos"}</>}
+                {isLoadingDetail
+                  ? <><Loader2 className="h-4 w-4 animate-spin" /> Cargando visita...</>
+                  : addPhoto.isPending
+                    ? <><Loader2 className="h-4 w-4 animate-spin" /> Subiendo...</>
+                    : <><Camera className="h-4 w-4" /> {fotos.length > 0 ? "Agregar más fotos" : "Tomar / subir fotos"}</>}
               </button>
             </>
           )}
@@ -657,13 +663,15 @@ export default function Medidor() {
               />
               <button
                 type="button"
-                disabled={compressPdf.isPending}
+                disabled={compressPdf.isPending || isLoadingDetail}
                 onClick={() => pdfInputRef.current?.click()}
                 className="w-full h-11 rounded-md border border-[#1DB5A8]/40 bg-[#162828] flex items-center justify-center gap-2 text-[#1DB5A8] text-sm font-medium hover:bg-[#1c3535] transition-colors disabled:opacity-50"
               >
-                {compressPdf.isPending
-                  ? <><Loader2 className="h-4 w-4 animate-spin" /> Comprimiendo...</>
-                  : <><FileUp className="h-4 w-4" /> Subir PDF de GoodNotes</>}
+                {isLoadingDetail
+                  ? <><Loader2 className="h-4 w-4 animate-spin" /> Cargando visita...</>
+                  : compressPdf.isPending
+                    ? <><Loader2 className="h-4 w-4 animate-spin" /> Comprimiendo...</>
+                    : <><FileUp className="h-4 w-4" /> Subir PDF de GoodNotes</>}
               </button>
             </>
           )}

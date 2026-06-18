@@ -596,35 +596,26 @@ export default function Medidor() {
           <p className="text-xs text-gray-500 mb-2">Estado: {visit?.status ?? "sin visita"} | editable: {isEditable ? "sí" : "no"}</p>
 
           {isEditable && (
-            <>
+            <div className="relative w-full h-11 rounded-md border border-[#1DB5A8]/40 bg-[#162828] overflow-hidden">
+              {/* Capa visual — no intercepta clics */}
+              <div className="absolute inset-0 flex items-center justify-center gap-2 text-[#1DB5A8] text-sm font-medium pointer-events-none select-none">
+                {isLoadingDetail
+                  ? <><Loader2 className="h-4 w-4 animate-spin" /> Cargando visita...</>
+                  : addPhoto.isPending
+                    ? <><Loader2 className="h-4 w-4 animate-spin" /> Subiendo...</>
+                    : <><Camera className="h-4 w-4" /> {fotos.length > 0 ? "Agregar más fotos" : "Tomar / subir fotos"}</>}
+              </div>
+              {/* Input cubre todo el área — el usuario hace clic directamente sobre él */}
               <input
                 ref={photoInputRef}
                 type="file"
                 accept="image/*"
                 multiple
                 onChange={handlePhotoUpload}
-                style={{ position: "fixed", top: "-9999px", left: "-9999px", width: "1px", height: "1px", opacity: 0 }}
-              />
-              <button
-                type="button"
                 disabled={addPhoto.isPending || isLoadingDetail}
-                onClick={() => {
-                  if (!photoInputRef.current) {
-                    toast.error("DEBUG: ref es null — contactar soporte");
-                    return;
-                  }
-                  toast.info("DEBUG: abriendo selector...");
-                  photoInputRef.current.click();
-                }}
-                className="w-full h-11 rounded-md border border-[#1DB5A8]/40 bg-[#162828] flex items-center justify-center gap-2 text-[#1DB5A8] text-sm font-medium hover:bg-[#1c3535] transition-colors disabled:opacity-50"
-              >
-                {isLoadingDetail
-                  ? <><Loader2 className="h-4 w-4 animate-spin" /> Cargando visita...</>
-                  : addPhoto.isPending
-                    ? <><Loader2 className="h-4 w-4 animate-spin" /> Subiendo...</>
-                    : <><Camera className="h-4 w-4" /> {fotos.length > 0 ? "Agregar más fotos" : "Tomar / subir fotos"}</>}
-              </button>
-            </>
+                style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0, cursor: "pointer" }}
+              />
+            </div>
           )}
         </section>
 
@@ -660,27 +651,23 @@ export default function Medidor() {
           )}
 
           {isEditable && (
-            <>
-              <input
-                ref={pdfInputRef}
-                type="file"
-                accept="application/pdf"
-                onChange={handlePdfUpload}
-                style={{ position: "fixed", top: "-9999px", left: "-9999px", width: "1px", height: "1px", opacity: 0 }}
-              />
-              <button
-                type="button"
-                disabled={compressPdf.isPending || isLoadingDetail}
-                onClick={() => pdfInputRef.current?.click()}
-                className="w-full h-11 rounded-md border border-[#1DB5A8]/40 bg-[#162828] flex items-center justify-center gap-2 text-[#1DB5A8] text-sm font-medium hover:bg-[#1c3535] transition-colors disabled:opacity-50"
-              >
+            <div className="relative w-full h-11 rounded-md border border-[#1DB5A8]/40 bg-[#162828] overflow-hidden">
+              <div className="absolute inset-0 flex items-center justify-center gap-2 text-[#1DB5A8] text-sm font-medium pointer-events-none select-none">
                 {isLoadingDetail
                   ? <><Loader2 className="h-4 w-4 animate-spin" /> Cargando visita...</>
                   : compressPdf.isPending
                     ? <><Loader2 className="h-4 w-4 animate-spin" /> Comprimiendo...</>
                     : <><FileUp className="h-4 w-4" /> Subir PDF de GoodNotes</>}
-              </button>
-            </>
+              </div>
+              <input
+                ref={pdfInputRef}
+                type="file"
+                accept="application/pdf"
+                onChange={handlePdfUpload}
+                disabled={compressPdf.isPending || isLoadingDetail}
+                style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0, cursor: "pointer" }}
+              />
+            </div>
           )}
         </section>
 

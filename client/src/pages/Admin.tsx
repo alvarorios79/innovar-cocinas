@@ -38,7 +38,7 @@ export default function Admin() {
   const [createUserForm, setCreateUserForm] = useState({
     name: "",
     email: "",
-    role: "user" as "user" | "admin" | "super_admin" | "comercial" | "disenador" | "jefe_taller" | "operario",
+    role: "user" as "user" | "admin" | "super_admin" | "comercial" | "disenador" | "jefe_taller" | "operario" | "medidor",
     password: "" as string | undefined,
     birthDate: "" as string | undefined,
   });
@@ -1250,6 +1250,7 @@ export default function Admin() {
                               <SelectItem value="disenador">Diseñador</SelectItem>
                               <SelectItem value="jefe_taller">Jefe de Taller</SelectItem>
                               <SelectItem value="operario">Operario</SelectItem>
+                              <SelectItem value="medidor">Técnico de Medidas</SelectItem>
                               <SelectItem value="user">Usuario</SelectItem>
                               {user?.role === "super_admin" && (
                                 <SelectItem value="admin">Administrador</SelectItem>
@@ -1434,7 +1435,8 @@ export default function Admin() {
                                               usr.role === "comercial" ? "bg-green-600" :
                                               usr.role === "disenador" ? "bg-cyan-600" :
                                               usr.role === "jefe_taller" ? "bg-orange-600" :
-                                              usr.role === "operario" ? "bg-yellow-600 text-black" : ""
+                                              usr.role === "operario" ? "bg-yellow-600 text-black" :
+                                              usr.role === "medidor" ? "bg-teal-600" : ""
                                             }
                                           >
                                             {usr.role === "super_admin" ? "Super Admin" :
@@ -1442,7 +1444,8 @@ export default function Admin() {
                                              usr.role === "comercial" ? "Comercial" :
                                              usr.role === "disenador" ? "Diseñador" :
                                              usr.role === "jefe_taller" ? "Jefe de Taller" :
-                                             usr.role === "operario" ? "Operario" : "Usuario"}
+                                             usr.role === "operario" ? "Operario" :
+                                             usr.role === "medidor" ? "Técnico Medidas" : "Usuario"}
                                           </Badge>
                                           {usr.id === user?.id && (
                                             <Badge variant="outline" className="text-xs">Tú</Badge>
@@ -1573,7 +1576,8 @@ export default function Admin() {
                                               usr.role === "comercial" ? "bg-green-600" :
                                               usr.role === "disenador" ? "bg-cyan-600" :
                                               usr.role === "jefe_taller" ? "bg-orange-600" :
-                                              usr.role === "operario" ? "bg-yellow-600 text-black" : ""
+                                              usr.role === "operario" ? "bg-yellow-600 text-black" :
+                                              usr.role === "medidor" ? "bg-teal-600" : ""
                                             }
                                           >
                                             {usr.role === "super_admin" ? "Super Admin" :
@@ -1581,7 +1585,8 @@ export default function Admin() {
                                              usr.role === "comercial" ? "Comercial" :
                                              usr.role === "disenador" ? "Diseñador" :
                                              usr.role === "jefe_taller" ? "Jefe de Taller" :
-                                             usr.role === "operario" ? "Operario" : "Usuario"}
+                                             usr.role === "operario" ? "Operario" :
+                                             usr.role === "medidor" ? "Técnico Medidas" : "Usuario"}
                                           </Badge>
                                           {usr.id === user?.id && (
                                             <Badge variant="outline" className="text-xs">Tú</Badge>

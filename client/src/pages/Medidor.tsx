@@ -3,7 +3,7 @@
  * Diseño móvil-first para uso en campo con iPad/iPhone.
  */
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { toast } from "sonner";
@@ -174,12 +174,17 @@ export default function Medidor() {
     finally { setSavingMeasurements(false); }
   };
 
-  // Inicializar medidas locales cuando carga el detalle
-  const initMeasurements = useCallback((visit: typeof visitDetail) => {
-    if (!visit) return;
-    setLocalMeasurements((visit.measurements as Record<string, string>) ?? {});
-    setLocalNotes(visit.notes ?? "");
+  // Inicializar medidas locales cuando carga el detalle (useEffect, nunca durante render)
+  const initMeasurements = useCallback((v: typeof visitDetail) => {
+    if (!v) return;
+    setLocalMeasurements((v.measurements as Record<string, string>) ?? {});
+    setLocalNotes(v.notes ?? "");
+    setLocalClientData({});
   }, []);
+
+  useEffect(() => {
+    if (visitDetail) initMeasurements(visitDetail);
+  }, [visitDetail?.id]);
 
   // Subir foto desde cámara o galería
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -408,11 +413,6 @@ export default function Medidor() {
   const isEditable = visit?.status === "borrador";
   const measurements = (visitDetail?.measurements as Record<string, string>) ?? {};
   const fields = MEASUREMENT_FIELDS[visit?.workType ?? "cocina"];
-
-  // Inicializar estado local cuando carga el detalle por primera vez
-  if (visitDetail && Object.keys(localMeasurements).length === 0 && !localNotes) {
-    initMeasurements(visitDetail);
-  }
 
   const photos = (visitDetail?.photos ?? []) as Photo[];
   const fotos   = photos.filter(p => p.category === "foto");

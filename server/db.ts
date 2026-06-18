@@ -660,6 +660,24 @@ export async function getProjectByQuotationId(quotationId: number) {
   return result.length > 0 ? result[0] : undefined;
 }
 
+export async function getProjectsPendingApproval() {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(projects)
+    .where(
+      and(
+        or(
+          eq(projects.status, "pendiente_modelado" as any),
+          eq(projects.status, "pendiente_render" as any)
+        ),
+        isNull(projects.deletedAt),
+        eq(projects.dataOrigin, 'manual')
+      )
+    )
+    .orderBy(desc(projects.createdAt));
+}
+
 export async function getProjectsByStatus(status: string) {
   const db = await getDb();
   if (!db) return [];

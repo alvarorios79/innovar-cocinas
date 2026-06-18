@@ -625,6 +625,7 @@ export const projects = pgTable("projects", {
 	skipDesignProcess: smallint().default(0).notNull(),
 	accountingClosureId: integer().references(() => accountingClosures.id),
 	publicToken: varchar({ length: 64 }),
+	approvalReminderCount: integer().default(0),
 },
 (table) => [
 	index("projects_quotationId_quotations_id_fk").on(table.quotationId),

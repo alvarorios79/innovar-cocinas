@@ -19,6 +19,7 @@ import { startOverdueChangesService } from "../overdue-changes-service";
 import { startAppointmentReminderService } from "../appointment-reminder-service";
 import { startTeamWhatsAppService } from "../whatsapp-team-notifications";
 import { startPeriodicCleanup } from "../tmp-cleanup";
+import { startApprovalReminderService } from "../approval-reminder-service";
 import { startWhatsAppTokenMonitor } from "../whatsapp-token-monitor";
 import { backupScheduler } from "../services/backupScheduler";
 import { apiRateLimiter, authRateLimiter, uploadRateLimiter } from "../rate-limiter";
@@ -257,6 +258,9 @@ async function startServer() {
     
     // Iniciar limpieza periódica de archivos temporales en /tmp
     startPeriodicCleanup();
+
+    // Iniciar servicio de recordatorios de aprobación de diseño (5h, día 2, día 4)
+    startApprovalReminderService();
     
     // Iniciar monitoreo diario del token de WhatsApp
     startWhatsAppTokenMonitor();

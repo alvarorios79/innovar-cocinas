@@ -629,14 +629,15 @@ export const publicGalleryRouter = router({
         const currentRevision = (project as any).modeladoRevisionNumber || 0;
         const newRevision = currentRevision === 0 ? 1 : currentRevision;
         
-        // Solo cambiar estado si no está ya en pendiente_modelado
+        // Cambiar estado si no está ya en pendiente_modelado, o resetear contador si ya lo está
         if (project.status !== "pendiente_modelado") {
           await withTransaction(async (tx) => {
             await db.updateProject(input.projectId, {
               status: "pendiente_modelado",
               modeladoRevisionNumber: newRevision,
-            });
-            
+              approvalReminderCount: 0,
+            } as any);
+
             await db.createProjectStatusHistory({
               projectId: input.projectId,
               fromStatus: project.status,
@@ -644,6 +645,16 @@ export const publicGalleryRouter = router({
               changedBy: ctx.user.id,
               notes: `Modelado 3D enviado al cliente por WhatsApp (Revisión #${newRevision})${input.changeChannel && input.changeChannel !== "portal" ? ` — Cambios recibidos vía: ${input.changeChannel}${input.changeNotes ? ` (${input.changeNotes})` : ""}` : ""}`,
             });
+          });
+        } else {
+          // Re-envío estando ya en pendiente_modelado: resetear contador y registrar en historial
+          await db.updateProject(input.projectId, { approvalReminderCount: 0 } as any);
+          await db.createProjectStatusHistory({
+            projectId: input.projectId,
+            fromStatus: "pendiente_modelado",
+            toStatus: "pendiente_modelado",
+            changedBy: ctx.user.id,
+            notes: `Re-envío de Modelado 3D al cliente (Revisión #${newRevision})`,
           });
         }
 
@@ -716,14 +727,15 @@ export const publicGalleryRouter = router({
         const currentRevision = (project as any).renderRevisionNumber || 0;
         const newRevision = currentRevision === 0 ? 1 : currentRevision;
         
-        // Solo cambiar estado si no está ya en pendiente_render
+        // Cambiar estado si no está ya en pendiente_render, o resetear contador si ya lo está
         if (project.status !== "pendiente_render") {
           await withTransaction(async (tx) => {
             await db.updateProject(input.projectId, {
               status: "pendiente_render",
               renderRevisionNumber: newRevision,
-            });
-            
+              approvalReminderCount: 0,
+            } as any);
+
             await db.createProjectStatusHistory({
               projectId: input.projectId,
               fromStatus: project.status,
@@ -731,6 +743,16 @@ export const publicGalleryRouter = router({
               changedBy: ctx.user.id,
               notes: `Renders enviados al cliente por WhatsApp (Revisión #${newRevision})${input.changeChannel && input.changeChannel !== "portal" ? ` — Cambios recibidos vía: ${input.changeChannel}${input.changeNotes ? ` (${input.changeNotes})` : ""}` : ""}`,
             });
+          });
+        } else {
+          // Re-envío estando ya en pendiente_render: resetear contador y registrar en historial
+          await db.updateProject(input.projectId, { approvalReminderCount: 0 } as any);
+          await db.createProjectStatusHistory({
+            projectId: input.projectId,
+            fromStatus: "pendiente_render",
+            toStatus: "pendiente_render",
+            changedBy: ctx.user.id,
+            notes: `Re-envío de Renders al cliente (Revisión #${newRevision})`,
           });
         }
 

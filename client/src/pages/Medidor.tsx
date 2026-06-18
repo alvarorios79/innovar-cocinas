@@ -589,26 +589,20 @@ export default function Medidor() {
           )}
 
           {isEditable && (
-            <>
+            <label className={`w-full flex items-center justify-center gap-2 h-11 rounded-md border border-[#1DB5A8]/40 bg-[#162828] text-[#1DB5A8] text-sm font-medium cursor-pointer hover:bg-[#1c3535] transition-colors ${addPhoto.isPending ? "opacity-50 pointer-events-none" : ""}`}>
               <input
                 ref={photoInputRef}
                 type="file"
                 accept="image/*"
                 multiple
-                className="hidden"
+                className="sr-only"
                 onChange={handlePhotoUpload}
-              />
-              <Button
-                onClick={() => photoInputRef.current?.click()}
                 disabled={addPhoto.isPending}
-                className="w-full bg-[#162828] hover:bg-[#1c3535] border border-[#1DB5A8]/40 text-[#1DB5A8] h-11"
-              >
-                {addPhoto.isPending
-                  ? <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  : <Camera className="h-4 w-4 mr-2" />}
-                {fotos.length > 0 ? "Agregar más fotos" : "Tomar / subir fotos"}
-              </Button>
-            </>
+              />
+              {addPhoto.isPending
+                ? <><Loader2 className="h-4 w-4 animate-spin" /> Subiendo...</>
+                : <><Camera className="h-4 w-4" /> {fotos.length > 0 ? "Agregar más fotos" : "Tomar / subir fotos"}</>}
+            </label>
           )}
         </section>
 
@@ -644,24 +638,19 @@ export default function Medidor() {
           )}
 
           {isEditable && (
-            <>
+            <label className={`w-full flex items-center justify-center gap-2 h-11 rounded-md border border-[#1DB5A8]/40 bg-[#162828] text-[#1DB5A8] text-sm font-medium cursor-pointer hover:bg-[#1c3535] transition-colors ${compressPdf.isPending ? "opacity-50 pointer-events-none" : ""}`}>
               <input
                 ref={pdfInputRef}
                 type="file"
                 accept="application/pdf"
-                className="hidden"
+                className="sr-only"
                 onChange={handlePdfUpload}
-              />
-              <Button
-                onClick={() => pdfInputRef.current?.click()}
                 disabled={compressPdf.isPending}
-                className="w-full bg-[#162828] hover:bg-[#1c3535] border border-[#1DB5A8]/40 text-[#1DB5A8] h-11"
-              >
-                {compressPdf.isPending
-                  ? <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Comprimiendo...</>
-                  : <><FileUp className="h-4 w-4 mr-2" /> Subir PDF de GoodNotes</>}
-              </Button>
-            </>
+              />
+              {compressPdf.isPending
+                ? <><Loader2 className="h-4 w-4 animate-spin" /> Comprimiendo...</>
+                : <><FileUp className="h-4 w-4" /> Subir PDF de GoodNotes</>}
+            </label>
           )}
         </section>
 

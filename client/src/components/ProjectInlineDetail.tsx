@@ -151,6 +151,8 @@ export function ProjectInlineDetail({
   const [delegatedNote, setDelegatedNote] = useState("");
   const [delegatedEvidenceUrl, setDelegatedEvidenceUrl] = useState<string>("");
   const [uploadingEvidence, setUploadingEvidence] = useState(false);
+  const [familyMemberName, setFamilyMemberName] = useState("");
+  const [familyMemberRelationship, setFamilyMemberRelationship] = useState("");
 
   // Solicitar cambios (reemplaza el prompt())
   const [showRequestChangesDialog, setShowRequestChangesDialog] = useState(false);
@@ -2836,6 +2838,33 @@ export function ProjectInlineDetail({
               />
             </div>
 
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1">
+                  Nombre del familiar
+                </label>
+                <input
+                  type="text"
+                  value={familyMemberName}
+                  onChange={(e) => setFamilyMemberName(e.target.value)}
+                  placeholder="Ej: Carlos Pérez"
+                  className="w-full text-sm rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 p-2 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1">
+                  Parentesco
+                </label>
+                <input
+                  type="text"
+                  value={familyMemberRelationship}
+                  onChange={(e) => setFamilyMemberRelationship(e.target.value)}
+                  placeholder="Ej: hijo, esposa, hermano"
+                  className="w-full text-sm rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 p-2 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500"
+                />
+              </div>
+            </div>
+
             <div>
               <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1">
                 Evidencia (opcional — captura de WhatsApp, correo, foto)
@@ -2900,6 +2929,8 @@ export function ProjectInlineDetail({
                 setDelegatedReason("");
                 setDelegatedNote("");
                 setDelegatedEvidenceUrl("");
+                setFamilyMemberName("");
+                setFamilyMemberRelationship("");
               }}
             >
               Cancelar
@@ -2914,12 +2945,16 @@ export function ProjectInlineDetail({
                   approved: true,
                   delegatedReason,
                   delegatedNote: delegatedNote || undefined,
+                  familyMemberName: familyMemberName || undefined,
+                  familyMemberRelationship: familyMemberRelationship || undefined,
                   evidenceUrl: delegatedEvidenceUrl || undefined,
                 });
                 setShowDelegatedApprovalDialog(false);
                 setDelegatedReason("");
                 setDelegatedNote("");
                 setDelegatedEvidenceUrl("");
+                setFamilyMemberName("");
+                setFamilyMemberRelationship("");
               }}
             >
               <CheckCircle2 className="h-4 w-4 mr-1" />

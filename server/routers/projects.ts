@@ -1255,6 +1255,8 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
         // Aprobación delegada: cuando admin/comercial aprueba en nombre del cliente
         delegatedReason: z.enum(["presencial", "whatsapp_familiar", "telefono", "whatsapp_cliente"]).optional(),
         delegatedNote: z.string().optional(), // detalle libre adicional
+        familyMemberName: z.string().optional(), // nombre del familiar que aprobó
+        familyMemberRelationship: z.string().optional(), // parentesco (hijo, esposa, etc.)
         evidenceUrl: z.string().url().optional(), // URL de captura adjunta como evidencia
         // Rechazo: quién comunicó los cambios
         changeSource: z.enum(["cliente_portal", "comercial_presencial", "comercial_whatsapp", "comercial_telefono"]).optional(),
@@ -1299,8 +1301,11 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
           whatsapp_cliente:  "cliente confirmó por WhatsApp",
         };
         const isDelegated = isAdmin && !!input.delegatedReason;
+        const familyInfo = input.familyMemberName
+          ? ` | Familiar: ${input.familyMemberName}${input.familyMemberRelationship ? ` (${input.familyMemberRelationship})` : ""}`
+          : "";
         const delegatedLabel = isDelegated
-          ? `Aprobación delegada — ${DELEGATED_LABELS[input.delegatedReason!]}${input.delegatedNote ? ` (${input.delegatedNote})` : ""}`
+          ? `Aprobación delegada — ${DELEGATED_LABELS[input.delegatedReason!]}${familyInfo}${input.delegatedNote ? ` | Nota: ${input.delegatedNote}` : ""}`
           : isAdmin ? "Aprobado internamente por admin/comercial" : "Aprobado por el cliente";
 
         const historyNote = `${delegatedLabel} | ${tipoAprobacion}${input.notes ? ` | Nota: ${input.notes}` : ""}`;

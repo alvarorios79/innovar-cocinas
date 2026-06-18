@@ -603,7 +603,7 @@ export default function Medidor() {
                 accept="image/*"
                 multiple
                 onChange={handlePhotoUpload}
-                style={{ display: "none" }}
+                style={{ position: "fixed", top: "-9999px", left: "-9999px", width: "1px", height: "1px", opacity: 0 }}
               />
               <button
                 type="button"
@@ -666,7 +666,7 @@ export default function Medidor() {
                 type="file"
                 accept="application/pdf"
                 onChange={handlePdfUpload}
-                style={{ display: "none" }}
+                style={{ position: "fixed", top: "-9999px", left: "-9999px", width: "1px", height: "1px", opacity: 0 }}
               />
               <button
                 type="button"

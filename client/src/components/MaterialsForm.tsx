@@ -202,8 +202,8 @@ export function MaterialsForm({ projectId, readOnly = false }: MaterialsFormProp
                 const file = e.target.files?.[0];
                 if (file) {
                   // Validar tamaño máximo (10MB antes de comprimir)
-                  if (file.size > 10 * 1024 * 1024) {
-                    toast.error("La imagen es muy grande. Máximo 10MB.");
+                  if (file.size > 12 * 1024 * 1024) {
+                    toast.error("La imagen es muy grande. Máximo 12MB.");
                     return;
                   }
                   handlePhotoUpload(photoType, fieldName, file);

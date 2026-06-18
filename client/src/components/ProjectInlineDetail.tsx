@@ -2901,7 +2901,7 @@ export function ProjectInlineDetail({
                     onChange={async (e) => {
                       const file = e.target.files?.[0];
                       if (!file) return;
-                      if (file.size > 10 * 1024 * 1024) { toast.error("El archivo no debe superar 10MB"); return; }
+                      if (file.size > 12 * 1024 * 1024) { toast.error("El archivo no debe superar 12MB"); return; }
                       setUploadingEvidence(true);
                       try {
                         const reader = new FileReader();

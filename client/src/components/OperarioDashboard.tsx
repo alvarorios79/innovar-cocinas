@@ -195,8 +195,8 @@ export function OperarioDashboard() {
         toast.error("Solo se permiten archivos de imagen");
         return;
       }
-      if (file.size > 10 * 1024 * 1024) {
-        toast.error("El archivo es muy grande. Máximo 10MB");
+      if (file.size > 12 * 1024 * 1024) {
+        toast.error("El archivo es muy grande. Máximo 12MB");
         return;
       }
       setSelectedFile(file);

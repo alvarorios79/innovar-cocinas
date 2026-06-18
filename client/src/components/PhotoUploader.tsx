@@ -115,9 +115,9 @@ export function PhotoUploader({
         continue;
       }
 
-      // Validar tamaño (10MB antes de comprimir)
-      if (file.size > 10 * 1024 * 1024) {
-        toast.error(`${file.name} es muy grande (máx 10MB)`);
+      // Validar tamaño (12MB por archivo)
+      if (file.size > 12 * 1024 * 1024) {
+        toast.error(`${file.name} es muy grande (máx 12MB)`);
         continue;
       }
 

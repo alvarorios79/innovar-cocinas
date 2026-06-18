@@ -594,7 +594,6 @@ export default function Medidor() {
                 ref={photoInputRef}
                 type="file"
                 accept="image/*"
-                capture="environment"
                 multiple
                 className="hidden"
                 onChange={handlePhotoUpload}

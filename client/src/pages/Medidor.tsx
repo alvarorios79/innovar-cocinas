@@ -184,22 +184,17 @@ export default function Medidor() {
     if (visitDetail) initMeasurements(visitDetail);
   }, [visitDetail?.id]);
 
-  // Subir foto desde cámara o galería
-  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const visitId = visitDetail?.id ?? selectedVisit?.id;
-    if (!visitId) { toast.error("Visita no cargada aún, espera un momento"); return; }
-    if (file.size > 12 * 1024 * 1024) { toast.error("Máximo 12MB por archivo"); return; }
+  // ── Helpers de upload ────────────────────────────────────────────────────
 
+  const uploadPhotoFile = async (file: File, visitId: number) => {
+    if (file.size > 12 * 1024 * 1024) { toast.error("Máximo 12MB por foto"); return; }
     const reader = new FileReader();
     reader.onload = async (ev) => {
-      const fileData = ev.target?.result as string;
       try {
         await addPhoto.mutateAsync({
           visitId,
           fileName:    file.name,
-          fileData,
+          fileData:    ev.target?.result as string,
           contentType: file.type,
           category:    "foto",
         });
@@ -208,39 +203,79 @@ export default function Medidor() {
       } catch { toast.error("Error subiendo foto"); }
     };
     reader.readAsDataURL(file);
-    e.target.value = "";
   };
 
-  // Subir y comprimir PDF de GoodNotes
-  const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const visitId = visitDetail?.id ?? selectedVisit?.id;
-    if (!visitId) { toast.error("Visita no cargada aún, espera un momento"); return; }
+  const uploadPdfFile = async (file: File, visitId: number) => {
     if (file.type !== "application/pdf") { toast.error("Solo se permiten archivos PDF"); return; }
     if (file.size > 50 * 1024 * 1024) { toast.error("El PDF supera el límite de 50MB"); return; }
-
-    const originalMb = (file.size / (1024 * 1024)).toFixed(1);
-    toast.info(`Comprimiendo PDF (${originalMb}MB)...`);
-
+    toast.info(`Comprimiendo PDF (${(file.size / 1048576).toFixed(1)}MB)...`);
     const reader = new FileReader();
     reader.onload = async (ev) => {
-      const fileData = ev.target?.result as string;
       try {
         const result = await compressPdf.mutateAsync({
           visitId,
           fileName: file.name,
-          fileData,
+          fileData: ev.target?.result as string,
           category: "pdf_plano",
         });
-        toast.success(
-          `PDF comprimido: ${result.originalKb}KB → ${result.compressedKb}KB (${result.savedPercent}% menos)`
-        );
+        toast.success(`PDF listo: ${result.originalKb}KB → ${result.compressedKb}KB (${result.savedPercent}% menos)`);
         refetchDetail();
       } catch { toast.error("Error procesando PDF"); }
     };
     reader.readAsDataURL(file);
-    e.target.value = "";
+  };
+
+  // Abre selector de fotos — usa File System Access API si está disponible,
+  // si no crea un input dinámico (ambos válidos como gesto de usuario directo)
+  const handlePickPhotos = () => {
+    const visitId = visitDetail?.id ?? selectedVisit?.id;
+    if (!visitId) { toast.error("Visita no cargada, espera un momento"); return; }
+
+    if ("showOpenFilePicker" in window) {
+      (window as any)
+        .showOpenFilePicker({ multiple: true, types: [{ description: "Imágenes", accept: { "image/*": [] } }] })
+        .then(async (handles: any[]) => {
+          for (const h of handles) await uploadPhotoFile(await h.getFile(), visitId);
+        })
+        .catch((e: any) => { if (e?.name !== "AbortError") toast.error("Error al abrir archivos"); });
+      return;
+    }
+
+    // Fallback: input dinámico (en contexto de gesto de usuario → permitido por Safari)
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.multiple = true;
+    input.onchange = () => {
+      Array.from(input.files ?? []).forEach(f => uploadPhotoFile(f, visitId));
+    };
+    document.body.appendChild(input);
+    input.click();
+    setTimeout(() => { try { document.body.removeChild(input); } catch (_) {} }, 10000);
+  };
+
+  const handlePickPdf = () => {
+    const visitId = visitDetail?.id ?? selectedVisit?.id;
+    if (!visitId) { toast.error("Visita no cargada, espera un momento"); return; }
+
+    if ("showOpenFilePicker" in window) {
+      (window as any)
+        .showOpenFilePicker({ multiple: false, types: [{ description: "PDF", accept: { "application/pdf": [".pdf"] } }] })
+        .then(async ([handle]: any[]) => { await uploadPdfFile(await handle.getFile(), visitId); })
+        .catch((e: any) => { if (e?.name !== "AbortError") toast.error("Error al abrir PDF"); });
+      return;
+    }
+
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "application/pdf";
+    input.onchange = () => {
+      const file = input.files?.[0];
+      if (file) uploadPdfFile(file, visitId);
+    };
+    document.body.appendChild(input);
+    input.click();
+    setTimeout(() => { try { document.body.removeChild(input); } catch (_) {} }, 10000);
   };
 
   const handleDeletePhoto = async (photoId: number) => {
@@ -591,19 +626,16 @@ export default function Medidor() {
           )}
 
           {isEditable && (
-            <label className="flex w-full h-11 items-center justify-center gap-2 rounded-md border border-[#1DB5A8]/40 bg-[#162828] cursor-pointer text-[#1DB5A8] text-sm font-medium">
+            <Button
+              type="button"
+              onClick={handlePickPhotos}
+              disabled={addPhoto.isPending}
+              className="w-full h-11 bg-[#162828] hover:bg-[#1c3535] border border-[#1DB5A8]/40 text-[#1DB5A8] text-sm font-medium"
+            >
               {addPhoto.isPending
-                ? <><Loader2 className="h-4 w-4 animate-spin" /> Subiendo...</>
-                : <><Camera className="h-4 w-4" /> {fotos.length > 0 ? "Agregar más fotos" : "Tomar / subir fotos"}</>}
-              <input
-                type="file"
-                accept="image/*"
-                multiple
-                onChange={handlePhotoUpload}
-                disabled={addPhoto.isPending}
-                style={{ position: "absolute", width: 0, height: 0, opacity: 0, overflow: "hidden" }}
-              />
-            </label>
+                ? <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Subiendo...</>
+                : <><Camera className="h-4 w-4 mr-2" /> {fotos.length > 0 ? "Agregar más fotos" : "Tomar / subir fotos"}</>}
+            </Button>
           )}
         </section>
 
@@ -639,18 +671,16 @@ export default function Medidor() {
           )}
 
           {isEditable && (
-            <label className="flex w-full h-11 items-center justify-center gap-2 rounded-md border border-[#1DB5A8]/40 bg-[#162828] cursor-pointer text-[#1DB5A8] text-sm font-medium">
+            <Button
+              type="button"
+              onClick={handlePickPdf}
+              disabled={compressPdf.isPending}
+              className="w-full h-11 bg-[#162828] hover:bg-[#1c3535] border border-[#1DB5A8]/40 text-[#1DB5A8] text-sm font-medium"
+            >
               {compressPdf.isPending
-                ? <><Loader2 className="h-4 w-4 animate-spin" /> Comprimiendo...</>
-                : <><FileUp className="h-4 w-4" /> Subir PDF de GoodNotes</>}
-              <input
-                type="file"
-                accept="application/pdf"
-                onChange={handlePdfUpload}
-                disabled={compressPdf.isPending}
-                style={{ position: "absolute", width: 0, height: 0, opacity: 0, overflow: "hidden" }}
-              />
-            </label>
+                ? <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Comprimiendo...</>
+                : <><FileUp className="h-4 w-4 mr-2" /> Subir PDF de GoodNotes</>}
+            </Button>
           )}
         </section>
 

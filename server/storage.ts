@@ -1,21 +1,98 @@
-// Preconfigured storage helpers for Manus WebDev templates
-// Uses the Biz-provided storage proxy (Authorization: Bearer <token>)
+// Storage helpers — soporta dos backends:
+// 1. Manus Forge API (desarrollo en Manus, automático)
+// 2. S3-compatible: Cloudflare R2, AWS S3, etc. (producción en Render)
 
 import { ENV } from './_core/env';
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+
+// ── Backend Manus Forge ───────────────────────────────────────────────────────
+
+type ForgeConfig = { baseUrl: string; apiKey: string };
+
+function getForgeConfig(): ForgeConfig | null {
+  const baseUrl = ENV.forgeApiUrl;
+  const apiKey = ENV.forgeApiKey;
+  if (!baseUrl || !apiKey) return null;
+  return { baseUrl: baseUrl.replace(/\/+$/, ""), apiKey };
+}
+
+// ── Backend Firebase Storage ──────────────────────────────────────────────────
+
+function getFirebaseConfig() {
+  const projectId   = process.env.FIREBASE_PROJECT_ID;
+  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+  const privateKey  = process.env.FIREBASE_PRIVATE_KEY;
+  const bucket      = process.env.FIREBASE_STORAGE_BUCKET;
+  if (!projectId || !clientEmail || !privateKey || !bucket) return null;
+  return { projectId, clientEmail, privateKey: privateKey.replace(/\\n/g, "\n"), bucket };
+}
+
+async function storagePutFirebase(relKey: string, data: Buffer | Uint8Array | string, contentType: string): Promise<{ key: string; url: string }> {
+  const cfg = getFirebaseConfig();
+  if (!cfg) throw new Error("Firebase Storage not configured");
+
+  const { initializeApp, cert, getApps, getApp } = await import("firebase-admin/app");
+  const { getStorage } = await import("firebase-admin/storage");
+
+  const app = getApps().length === 0
+    ? initializeApp({ credential: cert({ projectId: cfg.projectId, clientEmail: cfg.clientEmail, privateKey: cfg.privateKey }), storageBucket: cfg.bucket })
+    : getApp();
+
+  const key    = normalizeKey(relKey);
+  const body   = typeof data === "string" ? Buffer.from(data, "utf8") : Buffer.from(data as any);
+  const bucket = getStorage(app).bucket();
+  const file   = bucket.file(key);
+
+  await file.save(body, { contentType, public: true, metadata: { cacheControl: "public, max-age=31536000" } });
+
+  const url = `https://storage.googleapis.com/${cfg.bucket}/${key}`;
+  return { key, url };
+}
+
+// ── Backend S3-compatible (Cloudflare R2 / AWS S3) ───────────────────────────
+
+function getS3Config() {
+  const endpoint  = process.env.S3_ENDPOINT;
+  const accessKey = process.env.S3_ACCESS_KEY_ID;
+  const secretKey = process.env.S3_SECRET_ACCESS_KEY;
+  const bucket    = process.env.S3_BUCKET_NAME;
+  const publicUrl = process.env.S3_PUBLIC_URL;
+  if (!endpoint || !accessKey || !secretKey || !bucket || !publicUrl) return null;
+  return { endpoint, accessKey, secretKey, bucket, publicUrl };
+}
+
+async function storagePutS3(relKey: string, data: Buffer | Uint8Array | string, contentType: string): Promise<{ key: string; url: string }> {
+  const cfg = getS3Config();
+  if (!cfg) throw new Error("S3 storage not configured");
+
+  const client = new S3Client({
+    region: "auto",
+    endpoint: cfg.endpoint,
+    credentials: { accessKeyId: cfg.accessKey, secretAccessKey: cfg.secretKey },
+  });
+
+  const key = normalizeKey(relKey);
+  const body = typeof data === "string" ? Buffer.from(data, "utf8") : Buffer.from(data as any);
+
+  await client.send(new PutObjectCommand({
+    Bucket: cfg.bucket,
+    Key: key,
+    Body: body,
+    ContentType: contentType,
+  }));
+
+  const url = `${cfg.publicUrl.replace(/\/+$/, "")}/${key}`;
+  return { key, url };
+}
+
+// ── Manus Forge config (legacy) ───────────────────────────────────────────────
 
 type StorageConfig = { baseUrl: string; apiKey: string };
 
 function getStorageConfig(): StorageConfig {
-  const baseUrl = ENV.forgeApiUrl;
-  const apiKey = ENV.forgeApiKey;
-
-  if (!baseUrl || !apiKey) {
-    throw new Error(
-      "Storage proxy credentials missing: set BUILT_IN_FORGE_API_URL and BUILT_IN_FORGE_API_KEY"
-    );
-  }
-
-  return { baseUrl: baseUrl.replace(/\/+$/, ""), apiKey };
+  const cfg = getForgeConfig();
+  if (!cfg) throw new Error("Storage not configured");
+  return cfg;
 }
 
 function buildUploadUrl(baseUrl: string, relKey: string): URL {
@@ -74,24 +151,39 @@ export async function storagePut(
   data: Buffer | Uint8Array | string,
   contentType = "application/octet-stream"
 ): Promise<{ key: string; url: string }> {
-  const { baseUrl, apiKey } = getStorageConfig();
-  const key = normalizeKey(relKey);
-  const uploadUrl = buildUploadUrl(baseUrl, key);
-  const formData = toFormData(data, contentType, key.split("/").pop() ?? key);
-  const response = await fetch(uploadUrl, {
-    method: "POST",
-    headers: buildAuthHeaders(apiKey),
-    body: formData,
-  });
-
-  if (!response.ok) {
-    const message = await response.text().catch(() => response.statusText);
-    throw new Error(
-      `Storage upload failed (${response.status} ${response.statusText}): ${message}`
-    );
+  // Preferir Manus Forge API si está disponible (entorno de desarrollo Manus)
+  const forge = getForgeConfig();
+  if (forge) {
+    const key = normalizeKey(relKey);
+    const uploadUrl = buildUploadUrl(forge.baseUrl, key);
+    const formData = toFormData(data, contentType, key.split("/").pop() ?? key);
+    const response = await fetch(uploadUrl, {
+      method: "POST",
+      headers: buildAuthHeaders(forge.apiKey),
+      body: formData,
+    });
+    if (!response.ok) {
+      const message = await response.text().catch(() => response.statusText);
+      throw new Error(`Storage upload failed (${response.status}): ${message}`);
+    }
+    const url = (await response.json()).url;
+    return { key, url };
   }
-  const url = (await response.json()).url;
-  return { key, url };
+
+  // Fallback 1: Firebase Storage
+  if (getFirebaseConfig()) {
+    return storagePutFirebase(relKey, data, contentType);
+  }
+
+  // Fallback 2: S3-compatible (Cloudflare R2, AWS S3, etc.)
+  if (getS3Config()) {
+    return storagePutS3(relKey, data, contentType);
+  }
+
+  throw new Error(
+    "Storage no configurado. Agrega FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, " +
+    "FIREBASE_PRIVATE_KEY y FIREBASE_STORAGE_BUCKET en las variables de entorno de Render."
+  );
 }
 
 export async function storageGet(relKey: string): Promise<{ key: string; url: string; }> {

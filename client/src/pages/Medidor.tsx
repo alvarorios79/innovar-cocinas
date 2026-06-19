@@ -3,7 +3,7 @@
  * Diseño móvil-first para uso en campo con iPad/iPhone.
  */
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { toast } from "sonner";
@@ -105,7 +105,7 @@ export default function Medidor() {
     refetchOnWindowFocus: false,
   });
 
-  const { data: visitDetail, refetch: refetchDetail, isLoading: isLoadingDetail } = trpc.technicalVisits.getById.useQuery(
+  const { data: visitDetail, refetch: refetchDetail } = trpc.technicalVisits.getById.useQuery(
     { visitId: selectedVisit?.id ?? 0 },
     { enabled: view === "detail" && !!selectedVisit, refetchOnWindowFocus: false }
   );
@@ -117,8 +117,6 @@ export default function Medidor() {
   const compressPdf    = trpc.technicalVisits.compressPdf.useMutation();
   const submitVisit    = trpc.technicalVisits.submit.useMutation();
 
-  const photoInputRef = useRef<HTMLInputElement>(null);
-  const pdfInputRef   = useRef<HTMLInputElement>(null);
 
   // ── Medidas locales (se guardan al cambiar) ──────────────────────────────
   const [localMeasurements, setLocalMeasurements] = useState<Record<string, string>>({});
@@ -592,30 +590,23 @@ export default function Medidor() {
             </div>
           )}
 
-          {/* Debug: mostrar estado temporalmente */}
-          <p className="text-xs text-gray-500 mb-2">Estado: {visit?.status ?? "sin visita"} | editable: {isEditable ? "sí" : "no"}</p>
-
           {isEditable && (
-            <div className="relative w-full h-11 rounded-md border border-[#1DB5A8]/40 bg-[#162828] overflow-hidden">
+            <label className="relative block w-full h-11 rounded-md border border-[#1DB5A8]/40 bg-[#162828] overflow-hidden cursor-pointer">
               {/* Capa visual — no intercepta clics */}
               <div className="absolute inset-0 flex items-center justify-center gap-2 text-[#1DB5A8] text-sm font-medium pointer-events-none select-none">
-                {isLoadingDetail
-                  ? <><Loader2 className="h-4 w-4 animate-spin" /> Cargando visita...</>
-                  : addPhoto.isPending
-                    ? <><Loader2 className="h-4 w-4 animate-spin" /> Subiendo...</>
-                    : <><Camera className="h-4 w-4" /> {fotos.length > 0 ? "Agregar más fotos" : "Tomar / subir fotos"}</>}
+                {addPhoto.isPending
+                  ? <><Loader2 className="h-4 w-4 animate-spin" /> Subiendo...</>
+                  : <><Camera className="h-4 w-4" /> {fotos.length > 0 ? "Agregar más fotos" : "Tomar / subir fotos"}</>}
               </div>
-              {/* Input cubre todo el área — el usuario hace clic directamente sobre él */}
               <input
-                ref={photoInputRef}
                 type="file"
                 accept="image/*"
                 multiple
                 onChange={handlePhotoUpload}
-                disabled={addPhoto.isPending || isLoadingDetail}
-                style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0, cursor: "pointer" }}
+                disabled={addPhoto.isPending}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
               />
-            </div>
+            </label>
           )}
         </section>
 
@@ -651,23 +642,20 @@ export default function Medidor() {
           )}
 
           {isEditable && (
-            <div className="relative w-full h-11 rounded-md border border-[#1DB5A8]/40 bg-[#162828] overflow-hidden">
+            <label className="relative block w-full h-11 rounded-md border border-[#1DB5A8]/40 bg-[#162828] overflow-hidden cursor-pointer">
               <div className="absolute inset-0 flex items-center justify-center gap-2 text-[#1DB5A8] text-sm font-medium pointer-events-none select-none">
-                {isLoadingDetail
-                  ? <><Loader2 className="h-4 w-4 animate-spin" /> Cargando visita...</>
-                  : compressPdf.isPending
-                    ? <><Loader2 className="h-4 w-4 animate-spin" /> Comprimiendo...</>
-                    : <><FileUp className="h-4 w-4" /> Subir PDF de GoodNotes</>}
+                {compressPdf.isPending
+                  ? <><Loader2 className="h-4 w-4 animate-spin" /> Comprimiendo...</>
+                  : <><FileUp className="h-4 w-4" /> Subir PDF de GoodNotes</>}
               </div>
               <input
-                ref={pdfInputRef}
                 type="file"
                 accept="application/pdf"
                 onChange={handlePdfUpload}
-                disabled={compressPdf.isPending || isLoadingDetail}
-                style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0, cursor: "pointer" }}
+                disabled={compressPdf.isPending}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
               />
-            </div>
+            </label>
           )}
         </section>
 

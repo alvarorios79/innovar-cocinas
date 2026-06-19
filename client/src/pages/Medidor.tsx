@@ -86,7 +86,7 @@ const MEASUREMENT_FIELDS: Record<WorkType, { key: string; label: string; unit: s
 // ── Componente principal ─────────────────────────────────────────────────────
 
 export default function Medidor() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [view, setView]           = useState<"list" | "new" | "detail">("list");
   const [selectedVisit, setSelectedVisit] = useState<Visit | null>(null);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
@@ -314,14 +314,23 @@ export default function Medidor() {
           <div className="flex items-center justify-between max-w-lg mx-auto">
             <div>
               <h1 className="text-lg font-bold text-[#1DB5A8]">Visitas Técnicas</h1>
-              <p className="text-xs text-gray-400">INNOVAR Cocinas Integrales</p>
+              <p className="text-xs text-gray-400">{user?.name ?? "INNOVAR"}</p>
             </div>
-            <Button
-              onClick={() => { setForm({ clientName: "", clientPhone: "", clientAddress: "", workType: "cocina" }); setView("new"); }}
-              className="bg-[#1DB5A8] hover:bg-[#17a396] text-white text-sm px-3 py-2 h-auto"
-            >
-              <Plus className="h-4 w-4 mr-1" /> Nueva visita
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={() => { setForm({ clientName: "", clientPhone: "", clientAddress: "", workType: "cocina" }); setView("new"); }}
+                className="bg-[#1DB5A8] hover:bg-[#17a396] text-white text-sm px-3 py-2 h-auto"
+              >
+                <Plus className="h-4 w-4 mr-1" /> Nueva visita
+              </Button>
+              <button
+                onClick={() => logout()}
+                className="text-gray-400 hover:text-red-400 transition-colors p-1"
+                title="Cerrar sesión"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
           </div>
         </div>
 

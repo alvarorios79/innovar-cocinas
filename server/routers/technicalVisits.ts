@@ -152,7 +152,7 @@ export const technicalVisitsRouter = router({
       const extension   = input.fileName.split(".").pop() || "jpg";
       const fileKey     = `visits/${input.visitId}/${timestamp}-${random}.${extension}`;
 
-      const url = await storagePut(fileKey, buffer, input.contentType);
+      const { url } = await storagePut(fileKey, buffer, input.contentType);
 
       const photoId = await db.createVisitPhoto({
         visitId:     input.visitId,
@@ -257,7 +257,7 @@ export const technicalVisitsRouter = router({
       const random    = Math.random().toString(36).substring(2, 8);
       const fileKey   = `visits/${input.visitId}/${timestamp}-${random}-compressed.pdf`;
 
-      const url = await storagePut(fileKey, outputBuffer, "application/pdf");
+      const { url } = await storagePut(fileKey, outputBuffer, "application/pdf");
 
       const originalKb  = Math.round(inputBuffer.length / 1024);
       const compressedKb = Math.round(outputBuffer.length / 1024);

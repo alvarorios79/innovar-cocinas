@@ -7,6 +7,7 @@ import { protectedProcedure, router } from "../_core/trpc";
 import { z } from "zod";
 import * as db from "../db";
 import { TRPCError } from "@trpc/server";
+import { storagePut } from "../storage";
 
 const ALLOWED_ROLES = ["medidor", "admin", "super_admin", "comercial"] as const;
 
@@ -145,7 +146,6 @@ export const technicalVisitsRouter = router({
         throw new TRPCError({ code: "BAD_REQUEST", message: "El archivo supera el límite de 12MB" });
       }
 
-      const { storagePut } = await import("../storage");
       const timestamp = Date.now();
       const random    = Math.random().toString(36).substring(2, 8);
       const extension = input.fileName.split(".").pop() || "jpg";
@@ -214,8 +214,6 @@ export const technicalVisitsRouter = router({
       const { writeFileSync, readFileSync, unlinkSync, existsSync } = await import("fs");
       const { execFileSync } = await import("child_process");
       const { join } = await import("path");
-      const { storagePut } = await import("../storage");
-
       const tmpId    = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
       const inputPath  = join("/tmp", `visit-input-${tmpId}.pdf`);
       const outputPath = join("/tmp", `visit-output-${tmpId}.pdf`);

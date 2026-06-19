@@ -595,6 +595,24 @@ export default function Medidor() {
           <h2 className="text-sm font-semibold text-[#1DB5A8] uppercase tracking-wide mb-3 flex items-center gap-2">
             <Camera className="h-4 w-4" /> Fotos del espacio
           </h2>
+          {/* DEBUG — borrar cuando funcione */}
+          <p className="text-xs text-yellow-400 mb-2 bg-yellow-400/10 px-2 py-1 rounded">
+            DEBUG: status={visit?.status ?? "sin_visita"} | editable={String(isEditable)} | visitDetailId={visitDetail?.id ?? "no"} | selectedId={selectedVisit?.id ?? "no"}
+          </p>
+          {/* INPUT VISIBLE DE PRUEBA */}
+          <input
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={async (e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              const visitId = visitDetail?.id ?? selectedVisit?.id;
+              toast.info(`TEST: archivo=${file.name} visitId=${visitId}`);
+            }}
+            style={{ display: "block", width: "100%", marginBottom: "8px", padding: "8px", background: "#1DB5A8", color: "white", borderRadius: "6px", cursor: "pointer" }}
+          />
+
 
           {fotos.length > 0 && (
             <div className="grid grid-cols-3 gap-2 mb-3">

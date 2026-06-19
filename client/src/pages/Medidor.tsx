@@ -591,20 +591,17 @@ export default function Medidor() {
           )}
 
           {isEditable && (
-            <label className="relative block w-full h-11 rounded-md border border-[#1DB5A8]/40 bg-[#162828] overflow-hidden cursor-pointer">
-              {/* Capa visual — no intercepta clics */}
-              <div className="absolute inset-0 flex items-center justify-center gap-2 text-[#1DB5A8] text-sm font-medium pointer-events-none select-none">
-                {addPhoto.isPending
-                  ? <><Loader2 className="h-4 w-4 animate-spin" /> Subiendo...</>
-                  : <><Camera className="h-4 w-4" /> {fotos.length > 0 ? "Agregar más fotos" : "Tomar / subir fotos"}</>}
-              </div>
+            <label className="flex w-full h-11 items-center justify-center gap-2 rounded-md border border-[#1DB5A8]/40 bg-[#162828] cursor-pointer text-[#1DB5A8] text-sm font-medium">
+              {addPhoto.isPending
+                ? <><Loader2 className="h-4 w-4 animate-spin" /> Subiendo...</>
+                : <><Camera className="h-4 w-4" /> {fotos.length > 0 ? "Agregar más fotos" : "Tomar / subir fotos"}</>}
               <input
                 type="file"
                 accept="image/*"
                 multiple
                 onChange={handlePhotoUpload}
                 disabled={addPhoto.isPending}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                style={{ position: "absolute", width: 0, height: 0, opacity: 0, overflow: "hidden" }}
               />
             </label>
           )}
@@ -642,18 +639,16 @@ export default function Medidor() {
           )}
 
           {isEditable && (
-            <label className="relative block w-full h-11 rounded-md border border-[#1DB5A8]/40 bg-[#162828] overflow-hidden cursor-pointer">
-              <div className="absolute inset-0 flex items-center justify-center gap-2 text-[#1DB5A8] text-sm font-medium pointer-events-none select-none">
-                {compressPdf.isPending
-                  ? <><Loader2 className="h-4 w-4 animate-spin" /> Comprimiendo...</>
-                  : <><FileUp className="h-4 w-4" /> Subir PDF de GoodNotes</>}
-              </div>
+            <label className="flex w-full h-11 items-center justify-center gap-2 rounded-md border border-[#1DB5A8]/40 bg-[#162828] cursor-pointer text-[#1DB5A8] text-sm font-medium">
+              {compressPdf.isPending
+                ? <><Loader2 className="h-4 w-4 animate-spin" /> Comprimiendo...</>
+                : <><FileUp className="h-4 w-4" /> Subir PDF de GoodNotes</>}
               <input
                 type="file"
                 accept="application/pdf"
                 onChange={handlePdfUpload}
                 disabled={compressPdf.isPending}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                style={{ position: "absolute", width: 0, height: 0, opacity: 0, overflow: "hidden" }}
               />
             </label>
           )}

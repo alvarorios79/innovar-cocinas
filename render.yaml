@@ -6,7 +6,7 @@ services:
     region: oregon      # más cercano a Colombia que Frankfurt
 
     # ── Build ──────────────────────────────────────────────────────────────
-    buildCommand: npm install --legacy-peer-deps && npm run build
+    buildCommand: apt-get install -y ghostscript && npm install --legacy-peer-deps && npm run build
     startCommand: npm start
 
     # Node version

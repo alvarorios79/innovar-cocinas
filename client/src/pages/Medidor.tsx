@@ -325,10 +325,9 @@ export default function Medidor() {
               </Button>
               <button
                 onClick={() => logout()}
-                className="text-gray-400 hover:text-red-400 transition-colors p-1"
-                title="Cerrar sesión"
+                className="flex items-center gap-1 text-xs text-gray-400 hover:text-red-400 transition-colors border border-gray-600 hover:border-red-400 rounded-lg px-2 py-1.5"
               >
-                <X className="h-5 w-5" />
+                <X className="h-3.5 w-3.5" /> Salir
               </button>
             </div>
           </div>

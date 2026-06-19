@@ -9,6 +9,54 @@ import * as db from "../db";
 import { TRPCError } from "@trpc/server";
 import { storagePut } from "../storage";
 
+// ── Compresión PDF con MuPDF (WASM, sin dependencias de sistema) ──────────────
+
+async function compressPdfWithMupdf(inputBuffer: Buffer, dpi = 100, jpegQuality = 75): Promise<Buffer> {
+  const mupdf = (await import("mupdf")).default;
+
+  const srcDoc = mupdf.Document.openDocument(inputBuffer, "application/pdf");
+  const numPages = srcDoc.countPages();
+  const outDoc = new mupdf.PDFDocument();
+  const scale = dpi / 72;
+
+  for (let i = 0; i < numPages; i++) {
+    const page = srcDoc.loadPage(i);
+    const [x0, y0, x1, y1] = page.getBounds();
+    const w = x1 - x0;
+    const h = y1 - y0;
+
+    // Renderizar página a pixmap a DPI reducido
+    const pixmap = page.toPixmap(
+      mupdf.Matrix.scale(scale, scale),
+      mupdf.ColorSpace.DeviceRGB,
+      false,
+      true
+    );
+
+    // Convertir a JPEG con compresión
+    const jpegData = pixmap.asJPEG(jpegQuality, false);
+
+    // Agregar imagen JPEG como recurso XObject del PDF de salida
+    const imgBuf = new mupdf.Buffer();
+    imgBuf.writeBuffer(jpegData);
+    const pdfImage = outDoc.addImage(new mupdf.Image(imgBuf));
+
+    const resources = outDoc.newDictionary();
+    const xobjects = outDoc.newDictionary();
+    xobjects.put("Im0", pdfImage);
+    resources.put("XObject", xobjects);
+
+    // Content stream que escala la imagen para ocupar toda la página
+    const contentStream = `q ${w} 0 0 ${h} 0 0 cm /Im0 Do Q`;
+
+    const pageRef = outDoc.addPage([0, 0, w, h], 0, resources, contentStream);
+    outDoc.insertPage(-1, pageRef);
+  }
+
+  const result = outDoc.saveToBuffer("compress");
+  return Buffer.from(result.asUint8Array());
+}
+
 const ALLOWED_ROLES = ["medidor", "admin", "super_admin", "comercial"] as const;
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -221,28 +269,29 @@ export const technicalVisitsRouter = router({
       let outputBuffer: Buffer;
 
       try {
+        // Intentar primero con Ghostscript (disponible en Docker/local)
         writeFileSync(inputPath, inputBuffer);
-
+        execFileSync("gs", [
+          "-sDEVICE=pdfwrite",
+          "-dCompatibilityLevel=1.4",
+          "-dPDFSETTINGS=/ebook",
+          "-dNOPAUSE",
+          "-dBATCH",
+          "-dQUIET",
+          `-sOutputFile=${outputPath}`,
+          inputPath,
+        ], { timeout: 60000 });
+        outputBuffer = existsSync(outputPath) ? readFileSync(outputPath) : inputBuffer;
+        console.log("[compressPdf] Ghostscript OK");
+      } catch (_gsErr) {
+        // Ghostscript no disponible → usar MuPDF WASM (sin dependencias de sistema)
+        console.log("[compressPdf] Ghostscript no disponible, usando MuPDF WASM...");
         try {
-          // Ghostscript: /ebook = 150dpi, buen balance calidad/peso para planos anotados
-          execFileSync("gs", [
-            "-sDEVICE=pdfwrite",
-            "-dCompatibilityLevel=1.4",
-            "-dPDFSETTINGS=/ebook",
-            "-dNOPAUSE",
-            "-dBATCH",
-            "-dQUIET",
-            `-sOutputFile=${outputPath}`,
-            inputPath,
-          ], { timeout: 60000 });
-
-          outputBuffer = existsSync(outputPath)
-            ? readFileSync(outputPath)
-            : inputBuffer; // fallback si gs falla silenciosamente
-        } catch (gsError) {
-          // Ghostscript no disponible → subir sin comprimir
-          console.warn("[compressPdf] Ghostscript no disponible, subiendo sin comprimir:", gsError);
-          outputBuffer = inputBuffer;
+          outputBuffer = await compressPdfWithMupdf(inputBuffer, 120, 78);
+          console.log("[compressPdf] MuPDF OK:", inputBuffer.length, "→", outputBuffer.length, "bytes");
+        } catch (mupdfErr) {
+          console.error("[compressPdf] MuPDF falló también:", mupdfErr);
+          outputBuffer = inputBuffer; // último fallback: subir sin comprimir
         }
       } finally {
         try { if (existsSync(inputPath))  unlinkSync(inputPath);  } catch (_) {}
@@ -252,7 +301,6 @@ export const technicalVisitsRouter = router({
       const originalKb   = Math.round(inputBuffer.length / 1024);
       const compressedKb = Math.round(outputBuffer.length / 1024);
 
-      const { storagePut } = await import("../storage");
       const timestamp = Date.now();
       const random    = Math.random().toString(36).substring(2, 8);
       const fileKey   = `visits/${input.visitId}/${timestamp}-${random}-compressed.pdf`;

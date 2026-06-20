@@ -14,6 +14,7 @@ import {
   Camera, FileText, Plus, Send, ChevronRight,
   Trash2, CheckCircle2, Clock, X, Ruler, Home, ArrowLeft,
   Loader2, FileUp, Maximize2, MapPin, PenLine, CheckSquare, Square,
+  ClipboardList,
 } from "lucide-react";
 
 // ── Tipos ────────────────────────────────────────────────────────────────────
@@ -120,6 +121,87 @@ const CHECKLIST_ITEMS: Record<WorkType, { key: string; label: string }[]> = {
     { key: "cliente_conforme",  label: "Cliente conforme con la visita" },
   ],
 };
+
+// ── Evaluación técnica del espacio ───────────────────────────────────────────
+
+type EvalOption = { value: string; label: string };
+
+type EvalField = {
+  key: string;
+  label: string;
+  options: EvalOption[];
+  hasNote?: boolean; // campo de texto adicional cuando aplica
+};
+
+const EVALUACION_FIELDS: EvalField[] = [
+  {
+    key: "tipoParedes",
+    label: "Tipo de paredes",
+    options: [
+      { value: "bloque",   label: "Bloque / Ladrillo" },
+      { value: "concreto", label: "Concreto / Vaciado" },
+      { value: "drywall",  label: "Drywall" },
+      { value: "mixto",    label: "Mixto" },
+    ],
+  },
+  {
+    key: "estadoParedes",
+    label: "Estado de las paredes",
+    options: [
+      { value: "bueno",             label: "Bueno — listo para instalar" },
+      { value: "requiere_repello",  label: "Requiere repello / nivelación" },
+      { value: "requiere_demolicion", label: "Requiere demolición parcial" },
+    ],
+  },
+  {
+    key: "electricidad",
+    label: "Instalación eléctrica",
+    options: [
+      { value: "adecuada",           label: "Adecuada — lista" },
+      { value: "requiere_revision",  label: "Requiere revisión" },
+      { value: "requiere_ampliacion", label: "Requiere ampliación" },
+      { value: "sin_instalacion",    label: "Sin instalación existente" },
+    ],
+  },
+  {
+    key: "tomacorrientes",
+    label: "Tomacorrientes en el área",
+    options: [
+      { value: "suficientes", label: "Suficientes y bien ubicados" },
+      { value: "pocos",       label: "Pocos — se deben agregar" },
+      { value: "ninguno",     label: "Ninguno en el área" },
+    ],
+  },
+  {
+    key: "nivoPiso",
+    label: "Nivel del piso",
+    options: [
+      { value: "nivelado",           label: "Nivelado — sin problema" },
+      { value: "desnivel_leve",      label: "Desnivel leve (< 2 cm)" },
+      { value: "desnivel_importante", label: "Desnivel importante (> 2 cm)" },
+    ],
+  },
+  {
+    key: "acceso",
+    label: "Acceso para instalación",
+    options: [
+      { value: "facil",     label: "Fácil — entrada directa" },
+      { value: "escaleras", label: "Por escaleras" },
+      { value: "ascensor",  label: "Edificio con ascensor" },
+      { value: "dificil",   label: "Difícil — requiere planeación" },
+    ],
+  },
+  {
+    key: "demolicion",
+    label: "Requiere demolición o adecuación previa",
+    options: [
+      { value: "no",           label: "No — espacio libre" },
+      { value: "mueble_viejo", label: "Sí — retirar mueble existente" },
+      { value: "obra_civil",   label: "Sí — obra civil previa" },
+    ],
+    hasNote: true,
+  },
+];
 
 // Categorías de fotos
 const PHOTO_CATEGORIES = [
@@ -279,6 +361,7 @@ export default function Medidor() {
   const [localMeasurements, setLocalMeasurements] = useState<Record<string, string>>({});
   const [localNotes, setLocalNotes]               = useState("");
   const [localChecklist, setLocalChecklist]       = useState<Record<string, boolean>>({});
+  const [localEval, setLocalEval]                 = useState<Record<string, string>>({});
   const [localGeo, setLocalGeo]                   = useState<{ lat: number; lng: number } | null>(null);
   const [geoLoading, setGeoLoading]               = useState(false);
   const [savingMeasurements, setSavingMeasurements] = useState(false);
@@ -325,6 +408,7 @@ export default function Medidor() {
 
   const completionPercent = useMemo(() => {
     if (!visit) return 0;
+    const evalCompleted = EVALUACION_FIELDS.filter(f => !!localEval[f.key]).length;
     const checks = [
       !!visit.clientName,
       !!(visit.clientPhone || visit.clientAddress),
@@ -333,19 +417,21 @@ export default function Medidor() {
       pdfs.length > 0,
       !!localNotes.trim(),
       checklistItems.filter(it => localChecklist[it.key]).length >= Math.ceil(checklistItems.length * 0.6),
+      evalCompleted >= Math.ceil(EVALUACION_FIELDS.length * 0.7),
       firmas.length > 0,
     ];
     return Math.round(checks.filter(Boolean).length / checks.length * 100);
-  }, [visit, fields, localMeasurements, fotos, pdfs, localNotes, localChecklist, firmas, checklistItems]);
+  }, [visit, fields, localMeasurements, fotos, pdfs, localNotes, localChecklist, localEval, firmas, checklistItems]);
 
   // ── Inicializar estado al cargar detalle ──────────────────────────────────
 
   const initFromDetail = useCallback((v: typeof visitDetail) => {
     if (!v) return;
     const meas = (v.measurements as Record<string, any>) ?? {};
-    const { _checklist, _geo, ...numericMeasurements } = meas;
+    const { _checklist, _geo, _evaluacion, ...numericMeasurements } = meas;
     setLocalMeasurements(numericMeasurements as Record<string, string>);
     setLocalChecklist((_checklist as Record<string, boolean>) ?? {});
+    setLocalEval((_evaluacion as Record<string, string>) ?? {});
     if (_geo) setLocalGeo(_geo);
     setLocalNotes(v.notes ?? "");
     setLocalClientData({});
@@ -413,7 +499,8 @@ export default function Medidor() {
         visitId:      visitDetail.id,
         measurements: {
           ...localMeasurements,
-          _checklist: localChecklist,
+          _checklist:  localChecklist,
+          _evaluacion: localEval,
           ...(localGeo ? { _geo: localGeo } : {}),
         } as any,
         notes: localNotes,
@@ -927,6 +1014,57 @@ export default function Medidor() {
               Toca cada ítem para marcarlo. Se guarda junto con las medidas.
             </p>
           )}
+        </section>
+
+        {/* ── Evaluación técnica del espacio ── */}
+        <section>
+          <h2 className="text-sm font-semibold text-[#1DB5A8] uppercase tracking-wide mb-1 flex items-center gap-2">
+            <ClipboardList className="h-4 w-4" /> Evaluación técnica del espacio
+          </h2>
+          <p className="text-xs text-gray-400 mb-3">
+            Esta información la usarán el diseñador y el jefe de taller para planear la instalación.
+          </p>
+          <div className="space-y-4">
+            {EVALUACION_FIELDS.map(field => (
+              <div key={field.key}>
+                <p className="text-xs font-medium text-gray-300 mb-2">{field.label}</p>
+                <div className="grid grid-cols-1 gap-1.5">
+                  {field.options.map(opt => {
+                    const selected = localEval[field.key] === opt.value;
+                    return (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        disabled={!isEditable}
+                        onClick={() => setLocalEval(e => ({ ...e, [field.key]: opt.value }))}
+                        className={`w-full text-left px-3 py-2.5 rounded-xl border text-sm transition-colors disabled:opacity-60 ${
+                          selected
+                            ? "border-[#1DB5A8] bg-[#1DB5A8]/10 text-white"
+                            : "border-[#1DB5A8]/15 bg-[#162828] text-gray-400 hover:border-[#1DB5A8]/40"
+                        }`}
+                      >
+                        <span className={`inline-block w-3 h-3 rounded-full border mr-2 flex-shrink-0 align-middle ${
+                          selected ? "bg-[#1DB5A8] border-[#1DB5A8]" : "border-gray-500"
+                        }`} />
+                        {opt.label}
+                      </button>
+                    );
+                  })}
+                </div>
+                {/* Nota adicional si el campo lo requiere y hay valor seleccionado */}
+                {field.hasNote && localEval[field.key] && localEval[field.key] !== "no" && (
+                  <input
+                    type="text"
+                    disabled={!isEditable}
+                    placeholder="Describe qué requiere..."
+                    value={localEval[`${field.key}_nota`] ?? ""}
+                    onChange={e => setLocalEval(ev => ({ ...ev, [`${field.key}_nota`]: e.target.value }))}
+                    className="mt-2 w-full bg-[#162828] border border-[#1DB5A8]/20 rounded-xl px-3 py-2 text-sm text-white placeholder:text-gray-600 outline-none focus:border-[#1DB5A8] disabled:opacity-60"
+                  />
+                )}
+              </div>
+            ))}
+          </div>
         </section>
 
         {/* ── Fotos ── */}

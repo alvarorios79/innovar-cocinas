@@ -1,9 +1,9 @@
 /**
  * Portal del Técnico de Medidas — INNOVAR Cocinas Integrales
- * Diseño móvil-first para uso en campo con iPad/iPhone.
+ * Diseño móvil-first para uso en campo con iPad/iPhone/Android.
  */
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { toast } from "sonner";
@@ -11,9 +11,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  Camera, FileText, Plus, Send, ChevronRight, ChevronLeft,
+  Camera, FileText, Plus, Send, ChevronRight,
   Trash2, CheckCircle2, Clock, X, Ruler, Home, ArrowLeft,
-  Loader2, FileUp, Maximize2,
+  Loader2, FileUp, Maximize2, MapPin, PenLine, CheckSquare, Square,
 } from "lucide-react";
 
 // ── Tipos ────────────────────────────────────────────────────────────────────
@@ -51,51 +51,243 @@ const WORK_TYPE_LABELS: Record<WorkType, string> = {
 };
 
 const STATUS_CONFIG: Record<VisitStatus, { label: string; color: string; icon: typeof Clock }> = {
-  borrador:   { label: "Borrador",   color: "bg-gray-100 text-gray-700",    icon: Clock },
-  enviada:    { label: "Enviada",    color: "bg-blue-100 text-blue-700",     icon: Send },
-  convertida: { label: "Convertida", color: "bg-green-100 text-green-700",  icon: CheckCircle2 },
+  borrador:   { label: "Borrador",   color: "bg-gray-100 text-gray-700",   icon: Clock },
+  enviada:    { label: "Enviada",    color: "bg-blue-100 text-blue-700",    icon: Send },
+  convertida: { label: "Convertida", color: "bg-green-100 text-green-700", icon: CheckCircle2 },
 };
 
 // Campos de medidas por tipo de trabajo
 const MEASUREMENT_FIELDS: Record<WorkType, { key: string; label: string; unit: string; placeholder: string }[]> = {
   cocina: [
-    { key: "anchoTotal",    label: "Ancho total del espacio",   unit: "cm", placeholder: "Ej: 340" },
-    { key: "altoCielo",     label: "Alto del cielo raso",       unit: "cm", placeholder: "Ej: 250" },
-    { key: "profundidad",   label: "Profundidad disponible",    unit: "cm", placeholder: "Ej: 65" },
-    { key: "anchoVentana",  label: "Ancho ventana (si aplica)", unit: "cm", placeholder: "Ej: 80" },
-    { key: "altoVentana",   label: "Alto ventana (si aplica)",  unit: "cm", placeholder: "Ej: 60" },
-    { key: "altoVentanaPiso", label: "Ventana desde el piso",  unit: "cm", placeholder: "Ej: 90" },
+    { key: "anchoTotal",      label: "Ancho total del espacio",   unit: "cm", placeholder: "Ej: 340" },
+    { key: "altoCielo",       label: "Alto del cielo raso",       unit: "cm", placeholder: "Ej: 250" },
+    { key: "profundidad",     label: "Profundidad disponible",    unit: "cm", placeholder: "Ej: 65"  },
+    { key: "anchoVentana",    label: "Ancho ventana (si aplica)", unit: "cm", placeholder: "Ej: 80"  },
+    { key: "altoVentana",     label: "Alto ventana (si aplica)",  unit: "cm", placeholder: "Ej: 60"  },
+    { key: "altoVentanaPiso", label: "Ventana desde el piso",     unit: "cm", placeholder: "Ej: 90"  },
   ],
   closet: [
-    { key: "ancho",         label: "Ancho del nicho/espacio",   unit: "cm", placeholder: "Ej: 200" },
-    { key: "alto",          label: "Alto disponible",           unit: "cm", placeholder: "Ej: 240" },
-    { key: "profundidad",   label: "Profundidad",               unit: "cm", placeholder: "Ej: 60" },
+    { key: "ancho",       label: "Ancho del nicho/espacio", unit: "cm", placeholder: "Ej: 200" },
+    { key: "alto",        label: "Alto disponible",          unit: "cm", placeholder: "Ej: 240" },
+    { key: "profundidad", label: "Profundidad",              unit: "cm", placeholder: "Ej: 60"  },
   ],
   puertas: [
-    { key: "anchoPaso",     label: "Ancho del paso",            unit: "cm", placeholder: "Ej: 90" },
-    { key: "altoPaso",      label: "Alto del paso",             unit: "cm", placeholder: "Ej: 210" },
-    { key: "grosorPared",   label: "Grosor de la pared",        unit: "cm", placeholder: "Ej: 15" },
+    { key: "anchoPaso",   label: "Ancho del paso",      unit: "cm", placeholder: "Ej: 90"  },
+    { key: "altoPaso",    label: "Alto del paso",        unit: "cm", placeholder: "Ej: 210" },
+    { key: "grosorPared", label: "Grosor de la pared",   unit: "cm", placeholder: "Ej: 15"  },
   ],
   centro_tv: [
-    { key: "anchoEspacio",  label: "Ancho del espacio",         unit: "cm", placeholder: "Ej: 280" },
-    { key: "altoEspacio",   label: "Alto disponible",           unit: "cm", placeholder: "Ej: 220" },
-    { key: "tamanoTV",      label: "Tamaño del TV",             unit: '"',  placeholder: "Ej: 65" },
+    { key: "anchoEspacio", label: "Ancho del espacio",  unit: "cm", placeholder: "Ej: 280" },
+    { key: "altoEspacio",  label: "Alto disponible",    unit: "cm", placeholder: "Ej: 220" },
+    { key: "tamanoTV",     label: "Tamaño del TV",      unit: '"',  placeholder: "Ej: 65"  },
   ],
 };
+
+// Checklist por tipo de trabajo
+const CHECKLIST_ITEMS: Record<WorkType, { key: string; label: string }[]> = {
+  cocina: [
+    { key: "medidas_tomadas",    label: "Medidas del espacio tomadas" },
+    { key: "foto_frontal",       label: "Foto frontal del espacio" },
+    { key: "fotos_laterales",    label: "Fotos laterales / esquinas" },
+    { key: "corriente_marcada",  label: "Tomas de corriente identificadas" },
+    { key: "tuberias_marcadas",  label: "Tuberías / desagüe verificados" },
+    { key: "ventana_verificada", label: "Ventana verificada (si aplica)" },
+    { key: "plano_subido",       label: "Plano GoodNotes subido" },
+    { key: "cliente_conforme",   label: "Cliente conforme con la visita" },
+  ],
+  closet: [
+    { key: "medidas_tomadas",   label: "Medidas del nicho tomadas" },
+    { key: "foto_frontal",      label: "Foto frontal del espacio" },
+    { key: "foto_interior",     label: "Foto interior del nicho" },
+    { key: "electrico_marcado", label: "Puntos eléctricos verificados" },
+    { key: "plano_subido",      label: "Plano GoodNotes subido" },
+    { key: "cliente_conforme",  label: "Cliente conforme con la visita" },
+  ],
+  puertas: [
+    { key: "medidas_tomadas",  label: "Medidas del vano tomadas" },
+    { key: "foto_frontal",     label: "Foto del vano tomada" },
+    { key: "grosor_verificado", label: "Grosor de pared verificado" },
+    { key: "apertura_definida", label: "Lado de apertura definido" },
+    { key: "plano_subido",     label: "Plano GoodNotes subido" },
+    { key: "cliente_conforme", label: "Cliente conforme con la visita" },
+  ],
+  centro_tv: [
+    { key: "medidas_tomadas",   label: "Medidas del espacio tomadas" },
+    { key: "foto_frontal",      label: "Foto frontal tomada" },
+    { key: "tv_verificado",     label: "Tamaño del TV confirmado" },
+    { key: "corriente_marcada", label: "Tomas de corriente identificadas" },
+    { key: "plano_subido",      label: "Plano GoodNotes subido" },
+    { key: "cliente_conforme",  label: "Cliente conforme con la visita" },
+  ],
+};
+
+// Categorías de fotos
+const PHOTO_CATEGORIES = [
+  { value: "foto",          label: "📷 General" },
+  { value: "foto_frontal",  label: "🏠 Frontal" },
+  { value: "foto_lateral",  label: "↔️ Lateral" },
+  { value: "foto_techo",    label: "⬆️ Techo" },
+  { value: "foto_electrico", label: "⚡ Eléctrico" },
+  { value: "foto_plomeria", label: "💧 Plomería" },
+];
+
+// ── Componente: Firma del cliente ─────────────────────────────────────────────
+
+function SignaturePad({ onSave, onCancel }: { onSave: (dataUrl: string) => void; onCancel: () => void }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [hasDrawn, setHasDrawn] = useState(false);
+
+  const getPos = (e: React.MouseEvent | React.TouchEvent, canvas: HTMLCanvasElement) => {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    if ("touches" in e) {
+      return {
+        x: (e.touches[0].clientX - rect.left) * scaleX,
+        y: (e.touches[0].clientY - rect.top) * scaleY,
+      };
+    }
+    return {
+      x: ((e as React.MouseEvent).clientX - rect.left) * scaleX,
+      y: ((e as React.MouseEvent).clientY - rect.top) * scaleY,
+    };
+  };
+
+  const startDraw = (e: React.MouseEvent | React.TouchEvent) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d")!;
+    const pos = getPos(e, canvas);
+    ctx.beginPath();
+    ctx.moveTo(pos.x, pos.y);
+    setIsDrawing(true);
+    setHasDrawn(true);
+    e.preventDefault();
+  };
+
+  const draw = (e: React.MouseEvent | React.TouchEvent) => {
+    if (!isDrawing) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d")!;
+    const pos = getPos(e, canvas);
+    ctx.lineTo(pos.x, pos.y);
+    ctx.strokeStyle = "#1a1a1a";
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.stroke();
+    e.preventDefault();
+  };
+
+  const stopDraw = () => setIsDrawing(false);
+
+  const clear = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    canvas.getContext("2d")!.clearRect(0, 0, canvas.width, canvas.height);
+    setHasDrawn(false);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
+      <div className="bg-[#162828] rounded-2xl p-4 w-full max-w-sm">
+        <h3 className="text-white font-semibold mb-1 flex items-center gap-2">
+          <PenLine className="h-4 w-4 text-[#1DB5A8]" /> Firma del cliente
+        </h3>
+        <p className="text-xs text-gray-400 mb-3">Pida al cliente que firme con el dedo o el lápiz</p>
+        <div className="bg-white rounded-xl overflow-hidden border-2 border-[#1DB5A8]/40 mb-3">
+          <canvas
+            ref={canvasRef}
+            width={600}
+            height={220}
+            className="w-full touch-none cursor-crosshair"
+            style={{ height: "160px" }}
+            onMouseDown={startDraw}
+            onMouseMove={draw}
+            onMouseUp={stopDraw}
+            onMouseLeave={stopDraw}
+            onTouchStart={startDraw}
+            onTouchMove={draw}
+            onTouchEnd={stopDraw}
+          />
+        </div>
+        <div className="flex gap-2">
+          <Button onClick={onCancel} className="flex-1 bg-gray-700 hover:bg-gray-600 text-white h-10 text-sm">
+            Cancelar
+          </Button>
+          <Button onClick={clear} className="flex-1 bg-gray-600 hover:bg-gray-500 text-white h-10 text-sm">
+            Borrar
+          </Button>
+          <Button
+            onClick={() => {
+              const canvas = canvasRef.current;
+              if (canvas && hasDrawn) onSave(canvas.toDataURL("image/png"));
+            }}
+            disabled={!hasDrawn}
+            className="flex-1 bg-[#1DB5A8] hover:bg-[#17a396] text-white h-10 text-sm disabled:opacity-40"
+          >
+            Guardar
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Componente: Barra de progreso ─────────────────────────────────────────────
+
+function ProgressBar({ percent }: { percent: number }) {
+  const color = percent < 40 ? "bg-red-500" : percent < 75 ? "bg-yellow-400" : "bg-[#1DB5A8]";
+  return (
+    <div className="bg-[#162828] rounded-xl px-4 py-3 border border-[#1DB5A8]/10">
+      <div className="flex items-center justify-between mb-1.5">
+        <span className="text-xs text-gray-400">Completitud de la visita</span>
+        <span className={`text-xs font-bold ${percent >= 75 ? "text-[#1DB5A8]" : percent >= 40 ? "text-yellow-400" : "text-red-400"}`}>
+          {percent}%
+        </span>
+      </div>
+      <div className="h-1.5 bg-[#0C1A1A] rounded-full overflow-hidden">
+        <div
+          className={`h-full rounded-full transition-all duration-500 ${color}`}
+          style={{ width: `${percent}%` }}
+        />
+      </div>
+    </div>
+  );
+}
 
 // ── Componente principal ─────────────────────────────────────────────────────
 
 export default function Medidor() {
   const { user, logout } = useAuth();
-  const [view, setView]           = useState<"list" | "new" | "detail">("list");
+  const [view, setView]               = useState<"list" | "new" | "detail">("list");
   const [selectedVisit, setSelectedVisit] = useState<Visit | null>(null);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+  const [showSignature, setShowSignature] = useState(false);
+  const [showPhotoCategories, setShowPhotoCategories] = useState(false);
+  const [selectedPhotoCategory, setSelectedPhotoCategory] = useState("foto");
 
   // Form nueva visita
   const [form, setForm] = useState({
     clientName: "", clientPhone: "", clientAddress: "",
     workType: "cocina" as WorkType,
   });
+
+  // Estado local del detalle
+  const [localMeasurements, setLocalMeasurements] = useState<Record<string, string>>({});
+  const [localNotes, setLocalNotes]               = useState("");
+  const [localChecklist, setLocalChecklist]       = useState<Record<string, boolean>>({});
+  const [localGeo, setLocalGeo]                   = useState<{ lat: number; lng: number } | null>(null);
+  const [geoLoading, setGeoLoading]               = useState(false);
+  const [savingMeasurements, setSavingMeasurements] = useState(false);
+  const [localClientData, setLocalClientData]     = useState<Partial<{ clientName: string; clientPhone: string; clientAddress: string; workType: WorkType }>>({});
+  const [savingClientData, setSavingClientData]   = useState(false);
+
+  // Refs para inputs de archivo — solución cross-browser (Chrome, Safari, Firefox)
+  const photoInputRef = useRef<HTMLInputElement>(null);
+  const pdfInputRef   = useRef<HTMLInputElement>(null);
 
   const utils = trpc.useUtils();
 
@@ -110,20 +302,74 @@ export default function Medidor() {
     { enabled: view === "detail" && !!selectedVisit, refetchOnWindowFocus: false }
   );
 
-  const createVisit    = trpc.technicalVisits.create.useMutation();
-  const updateVisit    = trpc.technicalVisits.update.useMutation();
-  const addPhoto       = trpc.technicalVisits.addPhoto.useMutation();
-  const deletePhoto    = trpc.technicalVisits.deletePhoto.useMutation();
-  const compressPdf    = trpc.technicalVisits.compressPdf.useMutation();
-  const submitVisit    = trpc.technicalVisits.submit.useMutation();
+  const createVisit = trpc.technicalVisits.create.useMutation();
+  const updateVisit = trpc.technicalVisits.update.useMutation();
+  const addPhoto    = trpc.technicalVisits.addPhoto.useMutation();
+  const deletePhoto = trpc.technicalVisits.deletePhoto.useMutation();
+  const compressPdf = trpc.technicalVisits.compressPdf.useMutation();
+  const submitVisit = trpc.technicalVisits.submit.useMutation();
 
+  // ── Datos derivados ──────────────────────────────────────────────────────
 
-  // ── Medidas locales (se guardan al cambiar) ──────────────────────────────
-  const [localMeasurements, setLocalMeasurements] = useState<Record<string, string>>({});
-  const [localNotes, setLocalNotes]               = useState("");
-  const [savingMeasurements, setSavingMeasurements] = useState(false);
-  const [localClientData, setLocalClientData]     = useState<Partial<{ clientName: string; clientPhone: string; clientAddress: string; workType: WorkType }>>({});
-  const [savingClientData, setSavingClientData]   = useState(false);
+  const visit      = visitDetail ?? selectedVisit;
+  const isEditable = visit?.status === "borrador";
+  const fields     = MEASUREMENT_FIELDS[visit?.workType ?? "cocina"];
+  const checklistItems = CHECKLIST_ITEMS[visit?.workType ?? "cocina"];
+
+  const photos  = (visitDetail?.photos ?? []) as Photo[];
+  const fotos   = photos.filter(p => p.category.startsWith("foto") || p.category === "firma");
+  const pdfs    = photos.filter(p => p.category === "pdf_plano" || p.category === "pdf_medidas");
+  const firmas  = photos.filter(p => p.category === "firma");
+
+  // ── Barra de progreso ────────────────────────────────────────────────────
+
+  const completionPercent = useMemo(() => {
+    if (!visit) return 0;
+    const checks = [
+      !!visit.clientName,
+      !!(visit.clientPhone || visit.clientAddress),
+      fields.filter(f => !!localMeasurements[f.key]).length >= Math.ceil(fields.length / 2),
+      fotos.length > 0,
+      pdfs.length > 0,
+      !!localNotes.trim(),
+      checklistItems.filter(it => localChecklist[it.key]).length >= Math.ceil(checklistItems.length * 0.6),
+      firmas.length > 0,
+    ];
+    return Math.round(checks.filter(Boolean).length / checks.length * 100);
+  }, [visit, fields, localMeasurements, fotos, pdfs, localNotes, localChecklist, firmas, checklistItems]);
+
+  // ── Inicializar estado al cargar detalle ──────────────────────────────────
+
+  const initFromDetail = useCallback((v: typeof visitDetail) => {
+    if (!v) return;
+    const meas = (v.measurements as Record<string, any>) ?? {};
+    const { _checklist, _geo, ...numericMeasurements } = meas;
+    setLocalMeasurements(numericMeasurements as Record<string, string>);
+    setLocalChecklist((_checklist as Record<string, boolean>) ?? {});
+    if (_geo) setLocalGeo(_geo);
+    setLocalNotes(v.notes ?? "");
+    setLocalClientData({});
+  }, []);
+
+  useEffect(() => {
+    if (visitDetail) initFromDetail(visitDetail);
+  }, [visitDetail?.id]);
+
+  // ── Geolocalización al abrir visita editable ──────────────────────────────
+
+  useEffect(() => {
+    if (view !== "detail" || !isEditable || localGeo) return;
+    if (!navigator.geolocation) return;
+    setGeoLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        setLocalGeo({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        setGeoLoading(false);
+      },
+      () => setGeoLoading(false),
+      { timeout: 8000 }
+    );
+  }, [view, isEditable]);
 
   // ── Acciones ─────────────────────────────────────────────────────────────
 
@@ -135,6 +381,8 @@ export default function Medidor() {
       utils.technicalVisits.list.invalidate();
       setSelectedVisit({ id, ...form, status: "borrador", createdAt: new Date().toISOString() });
       setLocalMeasurements({});
+      setLocalChecklist({});
+      setLocalGeo(null);
       setLocalNotes("");
       setView("detail");
     } catch { toast.error("Error al crear la visita"); }
@@ -142,15 +390,14 @@ export default function Medidor() {
 
   const handleSaveClientData = async () => {
     if (!visitDetail) return;
-    if (!localClientData.clientName && !(visit as any)?.clientName) { toast.error("El nombre es requerido"); return; }
     setSavingClientData(true);
     try {
       await updateVisit.mutateAsync({
         visitId:       visitDetail.id,
-        clientName:    localClientData.clientName   ?? (visit as any)?.clientName,
-        clientPhone:   localClientData.clientPhone  ?? (visit as any)?.clientPhone,
-        clientAddress: localClientData.clientAddress ?? (visit as any)?.clientAddress,
-        workType:      (localClientData.workType     ?? (visit as any)?.workType) as WorkType,
+        clientName:    localClientData.clientName    ?? visit?.clientName,
+        clientPhone:   localClientData.clientPhone   ?? visit?.clientPhone ?? undefined,
+        clientAddress: localClientData.clientAddress ?? visit?.clientAddress ?? undefined,
+        workType:      (localClientData.workType     ?? visit?.workType) as WorkType,
       });
       toast.success("Datos del cliente guardados");
       refetchDetail();
@@ -164,29 +411,21 @@ export default function Medidor() {
     try {
       await updateVisit.mutateAsync({
         visitId:      visitDetail.id,
-        measurements: localMeasurements as any,
-        notes:        localNotes,
+        measurements: {
+          ...localMeasurements,
+          _checklist: localChecklist,
+          ...(localGeo ? { _geo: localGeo } : {}),
+        } as any,
+        notes: localNotes,
       });
-      toast.success("Medidas guardadas");
-    } catch { toast.error("Error guardando medidas"); }
+      toast.success("Guardado");
+    } catch { toast.error("Error guardando"); }
     finally { setSavingMeasurements(false); }
   };
 
-  // Inicializar medidas locales cuando carga el detalle (useEffect, nunca durante render)
-  const initMeasurements = useCallback((v: typeof visitDetail) => {
-    if (!v) return;
-    setLocalMeasurements((v.measurements as Record<string, string>) ?? {});
-    setLocalNotes(v.notes ?? "");
-    setLocalClientData({});
-  }, []);
+  // ── Upload helpers ────────────────────────────────────────────────────────
 
-  useEffect(() => {
-    if (visitDetail) initMeasurements(visitDetail);
-  }, [visitDetail?.id]);
-
-  // ── Helpers de upload ────────────────────────────────────────────────────
-
-  const uploadPhotoFile = async (file: File, visitId: number) => {
+  const uploadPhotoFile = async (file: File, visitId: number, category = "foto") => {
     if (file.size > 12 * 1024 * 1024) { toast.error("Máximo 12MB por foto"); return; }
     const reader = new FileReader();
     reader.onload = async (ev) => {
@@ -196,13 +435,12 @@ export default function Medidor() {
           fileName:    file.name,
           fileData:    ev.target?.result as string,
           contentType: file.type,
-          category:    "foto",
+          category:    category as any,
         });
         toast.success("Foto subida");
         refetchDetail();
       } catch (err: any) {
-        const msg = err?.message ?? err?.shape?.message ?? "desconocido";
-        toast.error(`Error foto: ${msg}`);
+        toast.error(`Error foto: ${err?.message ?? "desconocido"}`);
       }
     };
     reader.readAsDataURL(file);
@@ -224,73 +462,49 @@ export default function Medidor() {
         toast.success(`PDF listo: ${result.originalKb}KB → ${result.compressedKb}KB (${result.savedPercent}% menos)`);
         refetchDetail();
       } catch (err: any) {
-        const msg = err?.message ?? err?.shape?.message ?? "desconocido";
-        toast.error(`Error PDF: ${msg}`);
+        toast.error(`Error PDF: ${err?.message ?? "desconocido"}`);
       }
     };
     reader.readAsDataURL(file);
   };
 
-  // Abre selector de fotos — usa File System Access API si está disponible,
-  // si no crea un input dinámico (ambos válidos como gesto de usuario directo)
   const handlePickPhotos = () => {
     const visitId = visitDetail?.id ?? selectedVisit?.id;
-    if (!visitId) { toast.error("Visita no cargada, espera un momento"); return; }
+    if (!visitId) { toast.error("Visita no cargada"); return; }
+    setShowPhotoCategories(true);
+  };
 
-    if ("showOpenFilePicker" in window) {
-      (window as any)
-        .showOpenFilePicker({ multiple: true, types: [{ description: "Imágenes", accept: { "image/*": [] } }] })
-        .then(async (handles: any[]) => {
-          for (const h of handles) await uploadPhotoFile(await h.getFile(), visitId);
-        })
-        .catch((e: any) => { if (e?.name !== "AbortError") toast.error("Error al abrir archivos"); });
-      return;
-    }
-
-    // Fallback: input dinámico (en contexto de gesto de usuario → permitido por Safari)
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = "image/*";
-    input.multiple = true;
-    input.onchange = () => {
-      Array.from(input.files ?? []).forEach(f => uploadPhotoFile(f, visitId));
-    };
-    document.body.appendChild(input);
-    input.click();
-    setTimeout(() => { try { document.body.removeChild(input); } catch (_) {} }, 10000);
+  const confirmPickPhotos = (category: string) => {
+    setSelectedPhotoCategory(category);
+    setShowPhotoCategories(false);
+    setTimeout(() => photoInputRef.current?.click(), 100);
   };
 
   const handlePickPdf = () => {
     const visitId = visitDetail?.id ?? selectedVisit?.id;
-    if (!visitId) { toast.error("Visita no cargada, espera un momento"); return; }
-
-    if ("showOpenFilePicker" in window) {
-      (window as any)
-        .showOpenFilePicker({ multiple: false, types: [{ description: "PDF", accept: { "application/pdf": [".pdf"] } }] })
-        .then(async ([handle]: any[]) => { await uploadPdfFile(await handle.getFile(), visitId); })
-        .catch((e: any) => { if (e?.name !== "AbortError") toast.error("Error al abrir PDF"); });
-      return;
-    }
-
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = "application/pdf";
-    input.onchange = () => {
-      const file = input.files?.[0];
-      if (file) uploadPdfFile(file, visitId);
-    };
-    document.body.appendChild(input);
-    input.click();
-    setTimeout(() => { try { document.body.removeChild(input); } catch (_) {} }, 10000);
+    if (!visitId) { toast.error("Visita no cargada"); return; }
+    pdfInputRef.current?.click();
   };
 
   const handleDeletePhoto = async (photoId: number) => {
     if (!confirm("¿Eliminar este archivo?")) return;
     try {
       await deletePhoto.mutateAsync({ photoId });
-      toast.success("Archivo eliminado");
+      toast.success("Eliminado");
       refetchDetail();
-    } catch { toast.error("Error eliminando archivo"); }
+    } catch { toast.error("Error eliminando"); }
+  };
+
+  const handleSaveSignature = async (dataUrl: string) => {
+    setShowSignature(false);
+    const visitId = visitDetail?.id ?? selectedVisit?.id;
+    if (!visitId) return;
+    // Convertir data URL a File
+    const res = await fetch(dataUrl);
+    const blob = await res.blob();
+    const file = new File([blob], `firma-${Date.now()}.png`, { type: "image/png" });
+    await uploadPhotoFile(file, visitId, "firma");
+    toast.success("Firma guardada");
   };
 
   const handleSubmit = async () => {
@@ -309,7 +523,6 @@ export default function Medidor() {
   if (view === "list") {
     return (
       <div className="min-h-screen bg-[#0C1A1A] text-white">
-        {/* Header */}
         <div className="bg-[#162828] border-b border-[#1DB5A8]/20 px-4 py-4 sticky top-0 z-10">
           <div className="flex items-center justify-between max-w-lg mx-auto">
             <div>
@@ -318,7 +531,10 @@ export default function Medidor() {
             </div>
             <div className="flex items-center gap-2">
               <Button
-                onClick={() => { setForm({ clientName: "", clientPhone: "", clientAddress: "", workType: "cocina" }); setView("new"); }}
+                onClick={() => {
+                  setForm({ clientName: "", clientPhone: "", clientAddress: "", workType: "cocina" });
+                  setView("new");
+                }}
                 className="bg-[#1DB5A8] hover:bg-[#17a396] text-white text-sm px-3 py-2 h-auto"
               >
                 <Plus className="h-4 w-4 mr-1" /> Nueva visita
@@ -353,10 +569,7 @@ export default function Medidor() {
             return (
               <button
                 key={visit.id}
-                onClick={() => {
-                  setSelectedVisit(visit);
-                  setView("detail");
-                }}
+                onClick={() => { setSelectedVisit(visit); setView("detail"); }}
                 className="w-full bg-[#162828] border border-[#1DB5A8]/10 rounded-xl p-4 text-left hover:border-[#1DB5A8]/40 transition-colors"
               >
                 <div className="flex items-start justify-between gap-3">
@@ -400,7 +613,6 @@ export default function Medidor() {
         </div>
 
         <div className="max-w-lg mx-auto p-4 space-y-4">
-          {/* Tipo de trabajo */}
           <div>
             <label className="text-sm font-medium text-gray-300 block mb-2">Tipo de trabajo *</label>
             <div className="grid grid-cols-2 gap-2">
@@ -421,7 +633,6 @@ export default function Medidor() {
             </div>
           </div>
 
-          {/* Datos del cliente */}
           <div className="space-y-3">
             <label className="text-sm font-medium text-gray-300 block">Datos del cliente</label>
             <Input
@@ -450,7 +661,9 @@ export default function Medidor() {
             disabled={createVisit.isPending || !form.clientName.trim()}
             className="w-full bg-[#1DB5A8] hover:bg-[#17a396] text-white h-12 text-base font-semibold"
           >
-            {createVisit.isPending ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <Plus className="h-5 w-5 mr-2" />}
+            {createVisit.isPending
+              ? <Loader2 className="h-5 w-5 animate-spin mr-2" />
+              : <Plus className="h-5 w-5 mr-2" />}
             Crear visita y agregar medidas
           </Button>
         </div>
@@ -460,17 +673,39 @@ export default function Medidor() {
 
   // ── Render: Detalle de visita ─────────────────────────────────────────────
 
-  const visit = visitDetail ?? selectedVisit;
-  const isEditable = visit?.status === "borrador";
-  const measurements = (visitDetail?.measurements as Record<string, string>) ?? {};
-  const fields = MEASUREMENT_FIELDS[visit?.workType ?? "cocina"];
-
-  const photos = (visitDetail?.photos ?? []) as Photo[];
-  const fotos   = photos.filter(p => p.category === "foto");
-  const pdfs    = photos.filter(p => p.category === "pdf_plano" || p.category === "pdf_medidas");
+  const visitId = visitDetail?.id ?? selectedVisit?.id;
 
   return (
     <div className="min-h-screen bg-[#0C1A1A] text-white pb-24">
+
+      {/* Inputs de archivo — hidden, para compatibilidad Chrome/Safari/Firefox */}
+      <input
+        ref={photoInputRef}
+        type="file"
+        accept="image/*"
+        multiple
+        className="hidden"
+        onChange={e => {
+          const id = visitDetail?.id ?? selectedVisit?.id;
+          if (!id) return;
+          Array.from(e.target.files ?? []).forEach(f => uploadPhotoFile(f, id, selectedPhotoCategory));
+          e.target.value = "";
+        }}
+      />
+      <input
+        ref={pdfInputRef}
+        type="file"
+        accept="application/pdf"
+        className="hidden"
+        onChange={e => {
+          const id = visitDetail?.id ?? selectedVisit?.id;
+          if (!id) return;
+          const f = e.target.files?.[0];
+          if (f) uploadPdfFile(f, id);
+          e.target.value = "";
+        }}
+      />
+
       {/* Lightbox */}
       {lightboxUrl && (
         <div
@@ -484,10 +719,47 @@ export default function Medidor() {
         </div>
       )}
 
+      {/* Modal: seleccionar categoría de foto */}
+      {showPhotoCategories && (
+        <div className="fixed inset-0 bg-black/80 z-50 flex items-end justify-center p-4">
+          <div className="bg-[#162828] rounded-2xl p-4 w-full max-w-sm">
+            <h3 className="text-white font-semibold mb-3 text-center">¿Qué tipo de foto?</h3>
+            <div className="grid grid-cols-2 gap-2">
+              {PHOTO_CATEGORIES.map(cat => (
+                <button
+                  key={cat.value}
+                  onClick={() => confirmPickPhotos(cat.value)}
+                  className="p-3 rounded-xl border border-[#1DB5A8]/30 bg-[#0C1A1A] text-white text-sm hover:border-[#1DB5A8] hover:bg-[#1DB5A8]/10 transition-colors text-left"
+                >
+                  {cat.label}
+                </button>
+              ))}
+            </div>
+            <Button
+              onClick={() => setShowPhotoCategories(false)}
+              className="w-full mt-3 bg-gray-700 hover:bg-gray-600 text-white h-10 text-sm"
+            >
+              Cancelar
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Firma del cliente */}
+      {showSignature && (
+        <SignaturePad
+          onSave={handleSaveSignature}
+          onCancel={() => setShowSignature(false)}
+        />
+      )}
+
       {/* Header */}
       <div className="bg-[#162828] border-b border-[#1DB5A8]/20 px-4 py-4 sticky top-0 z-10">
         <div className="flex items-center gap-3 max-w-lg mx-auto">
-          <button onClick={() => { setView("list"); utils.technicalVisits.list.invalidate(); }} className="text-gray-400 hover:text-white">
+          <button
+            onClick={() => { setView("list"); utils.technicalVisits.list.invalidate(); }}
+            className="text-gray-400 hover:text-white"
+          >
             <ArrowLeft className="h-5 w-5" />
           </button>
           <div className="flex-1 min-w-0">
@@ -504,7 +776,28 @@ export default function Medidor() {
 
       <div className="max-w-lg mx-auto p-4 space-y-6">
 
-        {/* ── Sección: Datos del cliente (editable en borrador) ── */}
+        {/* ── Barra de progreso ── */}
+        <ProgressBar percent={completionPercent} />
+
+        {/* ── Geolocalización ── */}
+        {isEditable && (
+          <div className="flex items-center gap-2 bg-[#162828] rounded-xl px-4 py-2.5 border border-[#1DB5A8]/10">
+            <MapPin className={`h-4 w-4 flex-shrink-0 ${localGeo ? "text-[#1DB5A8]" : "text-gray-500"}`} />
+            {geoLoading ? (
+              <span className="text-xs text-gray-400 flex items-center gap-1">
+                <Loader2 className="h-3 w-3 animate-spin" /> Obteniendo ubicación...
+              </span>
+            ) : localGeo ? (
+              <span className="text-xs text-[#1DB5A8]">
+                Ubicación: {localGeo.lat.toFixed(5)}, {localGeo.lng.toFixed(5)}
+              </span>
+            ) : (
+              <span className="text-xs text-gray-500">Ubicación no disponible</span>
+            )}
+          </div>
+        )}
+
+        {/* ── Datos del cliente ── */}
         {isEditable && (
           <section>
             <h2 className="text-sm font-semibold text-[#1DB5A8] uppercase tracking-wide mb-3 flex items-center gap-2">
@@ -512,9 +805,9 @@ export default function Medidor() {
             </h2>
             <div className="space-y-2">
               {[
-                { key: "clientName",    label: "Nombre *",            type: "text", placeholder: "Nombre completo" },
-                { key: "clientPhone",   label: "Teléfono",             type: "tel",  placeholder: "WhatsApp / celular" },
-                { key: "clientAddress", label: "Dirección / Barrio",   type: "text", placeholder: "Dirección o barrio" },
+                { key: "clientName",    label: "Nombre *",          type: "text", placeholder: "Nombre completo" },
+                { key: "clientPhone",   label: "Teléfono",           type: "tel",  placeholder: "WhatsApp / celular" },
+                { key: "clientAddress", label: "Dirección / Barrio", type: "text", placeholder: "Dirección o barrio" },
               ].map(f => (
                 <div key={f.key} className="bg-[#162828] rounded-xl px-4 py-2 border border-[#1DB5A8]/10">
                   <label className="text-xs text-gray-400">{f.label}</label>
@@ -527,7 +820,6 @@ export default function Medidor() {
                   />
                 </div>
               ))}
-              {/* Tipo de trabajo */}
               <div className="grid grid-cols-2 gap-2 mt-1">
                 {(Object.entries(WORK_TYPE_LABELS) as [WorkType, string][]).map(([key, label]) => (
                   <button
@@ -554,7 +846,7 @@ export default function Medidor() {
           </section>
         )}
 
-        {/* ── Sección: Medidas ── */}
+        {/* ── Medidas ── */}
         <section>
           <h2 className="text-sm font-semibold text-[#1DB5A8] uppercase tracking-wide mb-3 flex items-center gap-2">
             <Ruler className="h-4 w-4" /> Medidas
@@ -581,13 +873,12 @@ export default function Medidor() {
             ))}
           </div>
 
-          {/* Notas de la visita */}
           <div className="mt-3">
             <Textarea
               disabled={!isEditable}
               value={localNotes}
               onChange={e => setLocalNotes(e.target.value)}
-              placeholder="Notas adicionales: columnas, tuberías, tomas de corriente, observaciones del cliente..."
+              placeholder="Notas: columnas, tuberías, tomas de corriente, observaciones del cliente..."
               className="bg-[#162828] border-[#1DB5A8]/20 text-white placeholder:text-gray-500 focus:border-[#1DB5A8] resize-none h-28 disabled:opacity-60"
             />
           </div>
@@ -604,16 +895,49 @@ export default function Medidor() {
           )}
         </section>
 
-        {/* ── Sección: Fotos ── */}
+        {/* ── Checklist de verificación ── */}
+        <section>
+          <h2 className="text-sm font-semibold text-[#1DB5A8] uppercase tracking-wide mb-3 flex items-center gap-2">
+            <CheckSquare className="h-4 w-4" /> Checklist de verificación
+          </h2>
+          <div className="space-y-2">
+            {checklistItems.map(item => {
+              const checked = !!localChecklist[item.key];
+              return (
+                <button
+                  key={item.key}
+                  disabled={!isEditable}
+                  onClick={() => setLocalChecklist(c => ({ ...c, [item.key]: !checked }))}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border transition-colors text-left ${
+                    checked
+                      ? "bg-[#1DB5A8]/10 border-[#1DB5A8]/40 text-white"
+                      : "bg-[#162828] border-[#1DB5A8]/10 text-gray-400"
+                  } disabled:opacity-70`}
+                >
+                  {checked
+                    ? <CheckCircle2 className="h-4 w-4 text-[#1DB5A8] flex-shrink-0" />
+                    : <Square className="h-4 w-4 text-gray-500 flex-shrink-0" />}
+                  <span className="text-sm">{item.label}</span>
+                </button>
+              );
+            })}
+          </div>
+          {isEditable && (
+            <p className="text-xs text-gray-500 mt-2 text-center">
+              Toca cada ítem para marcarlo. Se guarda junto con las medidas.
+            </p>
+          )}
+        </section>
+
+        {/* ── Fotos ── */}
         <section>
           <h2 className="text-sm font-semibold text-[#1DB5A8] uppercase tracking-wide mb-3 flex items-center gap-2">
             <Camera className="h-4 w-4" /> Fotos del espacio
           </h2>
 
-
-          {fotos.length > 0 && (
+          {fotos.filter(p => p.category !== "firma").length > 0 && (
             <div className="grid grid-cols-3 gap-2 mb-3">
-              {fotos.map(photo => (
+              {fotos.filter(p => p.category !== "firma").map(photo => (
                 <div key={photo.id} className="relative aspect-square">
                   <img
                     src={photo.photoUrl}
@@ -621,6 +945,12 @@ export default function Medidor() {
                     className="w-full h-full object-cover rounded-lg cursor-pointer"
                     onClick={() => setLightboxUrl(photo.photoUrl)}
                   />
+                  {/* Etiqueta de categoría */}
+                  {photo.category !== "foto" && (
+                    <span className="absolute bottom-1 left-1 bg-black/70 text-white text-[9px] px-1 py-0.5 rounded">
+                      {PHOTO_CATEGORIES.find(c => c.value === photo.category)?.label.split(" ")[1] ?? photo.category}
+                    </span>
+                  )}
                   {isEditable && (
                     <button
                       onClick={() => handleDeletePhoto(photo.id)}
@@ -649,12 +979,12 @@ export default function Medidor() {
             >
               {addPhoto.isPending
                 ? <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Subiendo...</>
-                : <><Camera className="h-4 w-4 mr-2" /> {fotos.length > 0 ? "Agregar más fotos" : "Tomar / subir fotos"}</>}
+                : <><Camera className="h-4 w-4 mr-2" /> {fotos.filter(p => p.category !== "firma").length > 0 ? "Agregar más fotos" : "Tomar / subir fotos"}</>}
             </Button>
           )}
         </section>
 
-        {/* ── Sección: PDFs de GoodNotes ── */}
+        {/* ── PDFs de GoodNotes ── */}
         <section>
           <h2 className="text-sm font-semibold text-[#1DB5A8] uppercase tracking-wide mb-1 flex items-center gap-2">
             <FileText className="h-4 w-4" /> Planos anotados (GoodNotes)
@@ -671,9 +1001,7 @@ export default function Medidor() {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-white truncate">{pdf.description ?? "Plano"}</p>
                     <a href={pdf.photoUrl} target="_blank" rel="noopener noreferrer"
-                      className="text-xs text-[#1DB5A8] underline">
-                      Ver PDF
-                    </a>
+                      className="text-xs text-[#1DB5A8] underline">Ver PDF</a>
                   </div>
                   {isEditable && (
                     <button onClick={() => handleDeletePhoto(pdf.id)} className="text-gray-500 hover:text-red-400">
@@ -699,7 +1027,42 @@ export default function Medidor() {
           )}
         </section>
 
-        {/* ── Botón: Enviar visita ── */}
+        {/* ── Firma del cliente ── */}
+        <section>
+          <h2 className="text-sm font-semibold text-[#1DB5A8] uppercase tracking-wide mb-3 flex items-center gap-2">
+            <PenLine className="h-4 w-4" /> Firma del cliente
+          </h2>
+
+          {firmas.length > 0 ? (
+            <div className="space-y-2">
+              {firmas.map(f => (
+                <div key={f.id} className="relative bg-white rounded-xl overflow-hidden border border-[#1DB5A8]/30">
+                  <img src={f.photoUrl} alt="Firma" className="w-full h-24 object-contain p-2" />
+                  {isEditable && (
+                    <button
+                      onClick={() => handleDeletePhoto(f.id)}
+                      className="absolute top-1 right-1 bg-black/60 rounded-full p-1"
+                    >
+                      <X className="h-3 w-3 text-white" />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : isEditable ? (
+            <Button
+              type="button"
+              onClick={() => setShowSignature(true)}
+              className="w-full h-11 bg-[#162828] hover:bg-[#1c3535] border border-[#1DB5A8]/40 text-[#1DB5A8] text-sm font-medium"
+            >
+              <PenLine className="h-4 w-4 mr-2" /> Capturar firma del cliente
+            </Button>
+          ) : (
+            <p className="text-sm text-gray-500 italic">Sin firma registrada</p>
+          )}
+        </section>
+
+        {/* ── Botón de envío ── */}
         {isEditable && (
           <section className="pt-2">
             <Button

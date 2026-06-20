@@ -293,14 +293,26 @@ export default function VisitasTecnicas() {
                     </a>
                   </div>
                 )}
-                <div className="pt-2 text-xs text-gray-500">
-                  Visita creada: {visit ? new Date(visit.createdAt).toLocaleDateString("es-CO", {
+                {(visit as any)?.assignedToUser?.name && (
+                  <div className="flex items-center gap-2 text-gray-300">
+                    <UserCheck className="h-4 w-4 text-[#1DB5A8]" />
+                    <span>Medidor: <span className="text-[#1DB5A8] font-medium">{(visit as any).assignedToUser.name}</span></span>
+                  </div>
+                )}
+                {(visit as any)?.scheduledDate && (
+                  <div className="flex items-center gap-2 text-gray-300">
+                    <Clock className="h-4 w-4 text-gray-500" />
+                    <span>Programada: {new Date((visit as any).scheduledDate).toLocaleDateString("es-CO", {
+                      weekday: "long", day: "2-digit", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit"
+                    })}</span>
+                  </div>
+                )}
+                <div className="pt-2 text-xs text-gray-500 border-t border-white/5">
+                  Creada: {visit ? new Date(visit.createdAt).toLocaleDateString("es-CO", {
                     day: "2-digit", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit"
                   }) : ""}
+                  {(visit as any)?.createdByUser?.name && ` · por ${(visit as any).createdByUser.name}`}
                 </div>
-                {(visit as any)?.createdByUser?.name && (
-                  <div className="text-xs text-gray-500">Medidor: {(visit as any).createdByUser.name}</div>
-                )}
               </div>
             </div>
 

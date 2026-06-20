@@ -580,6 +580,49 @@ export default function Medidor() {
 
   const handleSubmit = async () => {
     if (!visitDetail) return;
+
+    // ── Validación de campos obligatorios ────────────────────────────────────
+    const errores: string[] = [];
+
+    // 1. Teléfono del cliente
+    if (!visit?.clientPhone?.trim()) {
+      errores.push("📞 Teléfono del cliente — es obligatorio para poder contactarlo");
+    }
+
+    // 2. Al menos el 50% de medidas completadas
+    const camposLlenos = fields.filter(f => !!localMeasurements[f.key]).length;
+    const minMedidas   = Math.ceil(fields.length / 2);
+    if (camposLlenos < minMedidas) {
+      errores.push(`📐 Medidas — completa al menos ${minMedidas} de ${fields.length} campos (tienes ${camposLlenos})`);
+    }
+
+    // 3. Evaluación técnica — campos críticos
+    const evalObligatorios: Record<string, string> = {
+      tipoParedes:   "Tipo de paredes",
+      estadoParedes: "Estado de las paredes",
+      electricidad:  "Instalación eléctrica",
+      demolicion:    "Requiere demolición / adecuación",
+    };
+    for (const [key, label] of Object.entries(evalObligatorios)) {
+      if (!localEval[key]) {
+        errores.push(`🔍 Evaluación técnica — "${label}" es obligatorio`);
+      }
+    }
+
+    // 4. Al menos 1 foto
+    const fotosReales = photos.filter(p => p.category !== "firma" && !p.category.startsWith("pdf"));
+    if (fotosReales.length === 0) {
+      errores.push("📸 Fotos — sube al menos 1 foto del espacio");
+    }
+
+    if (errores.length > 0) {
+      toast.error("Completa los campos obligatorios antes de enviar:", {
+        description: errores.join("\n"),
+        duration: 8000,
+      });
+      return;
+    }
+
     if (!confirm("¿Enviar esta visita al equipo para cotizar?")) return;
     try {
       await submitVisit.mutateAsync({ visitId: visitDetail.id });

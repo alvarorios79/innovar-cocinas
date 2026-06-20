@@ -263,11 +263,23 @@ export default function ProjectDetail() {
     }
   );
 
-  // Visitas técnicas del cliente (para diseñador/jefe de taller)
+  // Visitas técnicas del cliente — diseñador solo las ve desde adelanto_recibido
+  // en adelante para evitar que empiece trabajo sin pago confirmado.
   const clientId = (projectDetail as any)?.clientId;
+  const STATUSES_WITH_DESIGN_ACCESS = [
+    "adelanto_recibido","en_diseno","pendiente_modelado","pendiente_render",
+    "aprobacion_final","despiece","corte","enchape","ensamble",
+    "listo_instalacion","entregado",
+  ];
+  const projectStatus = (projectDetail as any)?.status ?? "";
+  const canSeeVisitData =
+    ["admin","super_admin","comercial"].includes(user?.role ?? "") ||
+    (["disenador","jefe_taller"].includes(user?.role ?? "") &&
+      STATUSES_WITH_DESIGN_ACCESS.includes(projectStatus));
+
   const { data: clientVisits } = trpc.technicalVisits.listByClientId.useQuery(
     { clientId: clientId ?? 0 },
-    { enabled: !!clientId && ["disenador","jefe_taller","admin","super_admin","comercial"].includes(user?.role ?? "") }
+    { enabled: !!clientId && canSeeVisitData }
   );
 
   // Cargar gastos de materiales del proyecto

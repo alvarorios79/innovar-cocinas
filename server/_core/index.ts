@@ -17,6 +17,7 @@ import { startAutoReminderSystem } from "../task-auto-reminders";
 import { scheduleBirthdayNotifications } from "../birthday-service";
 import { startOverdueChangesService } from "../overdue-changes-service";
 import { startAppointmentReminderService } from "../appointment-reminder-service";
+import { startVisitReminderService } from "../visit-reminder-service";
 import { startTeamWhatsAppService } from "../whatsapp-team-notifications";
 import { startPeriodicCleanup } from "../tmp-cleanup";
 import { startApprovalReminderService } from "../approval-reminder-service";
@@ -260,6 +261,9 @@ async function startServer() {
     
     // Iniciar servicio de recordatorios de citas por WhatsApp (7pm, día anterior)
     startAppointmentReminderService();
+
+    // Iniciar servicio de recordatorios de visitas técnicas a medidores (7pm, día anterior)
+    startVisitReminderService();
     
     // Iniciar servicio de notificaciones WhatsApp al equipo (8am y 12pm)
     startTeamWhatsAppService();

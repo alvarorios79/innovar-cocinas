@@ -78,12 +78,18 @@ export const appointmentsRouter = router({
                 ? `Cita agendada online. ${sanitizeText(input.notes)}`
                 : "Cita agendada desde portal público. Pendiente de asignar medidor.";
 
+              // Si hay varios tipos de trabajo, guardarlos todos en measurements._workTypes
+              const visitMeasurements = input.workTypes.length > 1
+                ? { _workTypes: input.workTypes }
+                : undefined;
+
               await db.createTechnicalVisit({
                 clientId:      input.clientId,
                 clientName:    clientForVisit.name,
                 clientPhone:   clientForVisit.whatsappPhone ?? undefined,
                 clientAddress: clientForVisit.address ?? undefined,
                 workType:      input.workTypes[0] as any,
+                measurements:  visitMeasurements,
                 notes:         visitNotes,
                 scheduledDate: scheduledDate ? new Date(scheduledDate as any).toISOString() : undefined,
                 createdBy:     systemUser.id,

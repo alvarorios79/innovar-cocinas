@@ -395,8 +395,26 @@ export default function Medidor() {
 
   const visit      = visitDetail ?? selectedVisit;
   const isEditable = visit?.status === "borrador";
-  const fields     = MEASUREMENT_FIELDS[visit?.workType ?? "cocina"];
-  const checklistItems = CHECKLIST_ITEMS[visit?.workType ?? "cocina"];
+
+  // Soporte multi-tipo: si la visita tiene _workTypes en measurements, mostrar secciones por cada tipo
+  const visitMeas   = (visit?.measurements as Record<string, any>) ?? {};
+  const activeWorkTypes: WorkType[] = Array.isArray(visitMeas._workTypes) && visitMeas._workTypes.length > 1
+    ? visitMeas._workTypes as WorkType[]
+    : [visit?.workType ?? "cocina"];
+  const isMultiType = activeWorkTypes.length > 1;
+
+  // Para multi-tipo: claves prefijadas con "{tipo}_" para evitar colisiones
+  const fields = isMultiType
+    ? activeWorkTypes.flatMap(wt =>
+        MEASUREMENT_FIELDS[wt].map(f => ({ ...f, key: `${wt}_${f.key}`, _wt: wt as WorkType }))
+      )
+    : MEASUREMENT_FIELDS[visit?.workType ?? "cocina"].map(f => ({ ...f, _wt: undefined as WorkType | undefined }));
+
+  const checklistItems = isMultiType
+    ? activeWorkTypes.flatMap(wt =>
+        CHECKLIST_ITEMS[wt].map(item => ({ ...item, key: `${wt}_${item.key}`, _wt: wt as WorkType }))
+      )
+    : CHECKLIST_ITEMS[visit?.workType ?? "cocina"].map(item => ({ ...item, _wt: undefined as WorkType | undefined }));
 
   const photos  = (visitDetail?.photos ?? []) as Photo[];
   const fotos   = photos.filter(p => p.category.startsWith("foto") || p.category === "firma");
@@ -427,7 +445,7 @@ export default function Medidor() {
   const initFromDetail = useCallback((v: typeof visitDetail) => {
     if (!v) return;
     const meas = (v.measurements as Record<string, any>) ?? {};
-    const { _checklist, _geo, _evaluacion, ...numericMeasurements } = meas;
+    const { _checklist, _geo, _evaluacion, _workTypes, ...numericMeasurements } = meas;
     setLocalMeasurements(numericMeasurements as Record<string, string>);
     setLocalChecklist((_checklist as Record<string, boolean>) ?? {});
     setLocalEval((_evaluacion as Record<string, string>) ?? {});
@@ -884,25 +902,35 @@ export default function Medidor() {
             <Ruler className="h-4 w-4" /> Medidas
           </h2>
           <div className="space-y-3">
-            {fields.map(field => (
-              <div key={field.key} className="flex items-center gap-3 bg-[#162828] rounded-xl px-4 py-3 border border-[#1DB5A8]/10">
-                <div className="flex-1 min-w-0">
-                  <label className="text-xs text-gray-400">{field.label}</label>
-                  <div className="flex items-center gap-2 mt-1">
-                    <input
-                      type="number"
-                      inputMode="numeric"
-                      disabled={!isEditable}
-                      value={localMeasurements[field.key] ?? ""}
-                      onChange={e => setLocalMeasurements(m => ({ ...m, [field.key]: e.target.value }))}
-                      placeholder={field.placeholder}
-                      className="flex-1 bg-transparent text-white text-base font-medium outline-none placeholder:text-gray-600 disabled:opacity-60"
-                    />
-                    <span className="text-gray-500 text-sm flex-shrink-0">{field.unit}</span>
+            {fields.map((field, idx) => {
+              const showTypeHeader = isMultiType && (idx === 0 || fields[idx - 1]?._wt !== field._wt);
+              return (
+                <div key={field.key}>
+                  {showTypeHeader && field._wt && (
+                    <p className="text-xs font-semibold text-[#1DB5A8]/70 uppercase tracking-widest mb-2 mt-1">
+                      {WORK_TYPE_LABELS[field._wt]}
+                    </p>
+                  )}
+                  <div className="flex items-center gap-3 bg-[#162828] rounded-xl px-4 py-3 border border-[#1DB5A8]/10">
+                    <div className="flex-1 min-w-0">
+                      <label className="text-xs text-gray-400">{field.label}</label>
+                      <div className="flex items-center gap-2 mt-1">
+                        <input
+                          type="number"
+                          inputMode="numeric"
+                          disabled={!isEditable}
+                          value={localMeasurements[field.key] ?? ""}
+                          onChange={e => setLocalMeasurements(m => ({ ...m, [field.key]: e.target.value }))}
+                          placeholder={field.placeholder}
+                          className="flex-1 bg-transparent text-white text-base font-medium outline-none placeholder:text-gray-600 disabled:opacity-60"
+                        />
+                        <span className="text-gray-500 text-sm flex-shrink-0">{field.unit}</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           <div className="mt-3">
@@ -933,24 +961,31 @@ export default function Medidor() {
             <CheckSquare className="h-4 w-4" /> Checklist de verificación
           </h2>
           <div className="space-y-2">
-            {checklistItems.map(item => {
+            {checklistItems.map((item, idx) => {
               const checked = !!localChecklist[item.key];
+              const showTypeHeader = isMultiType && (idx === 0 || checklistItems[idx - 1]?._wt !== item._wt);
               return (
-                <button
-                  key={item.key}
-                  disabled={!isEditable}
-                  onClick={() => setLocalChecklist(c => ({ ...c, [item.key]: !checked }))}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border transition-colors text-left ${
-                    checked
-                      ? "bg-[#1DB5A8]/10 border-[#1DB5A8]/40 text-white"
-                      : "bg-[#162828] border-[#1DB5A8]/10 text-gray-400"
-                  } disabled:opacity-70`}
-                >
-                  {checked
-                    ? <CheckCircle2 className="h-4 w-4 text-[#1DB5A8] flex-shrink-0" />
-                    : <Square className="h-4 w-4 text-gray-500 flex-shrink-0" />}
-                  <span className="text-sm">{item.label}</span>
-                </button>
+                <div key={item.key}>
+                  {showTypeHeader && item._wt && (
+                    <p className="text-xs font-semibold text-[#1DB5A8]/70 uppercase tracking-widest mb-1 mt-2">
+                      {WORK_TYPE_LABELS[item._wt]}
+                    </p>
+                  )}
+                  <button
+                    disabled={!isEditable}
+                    onClick={() => setLocalChecklist(c => ({ ...c, [item.key]: !checked }))}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border transition-colors text-left ${
+                      checked
+                        ? "bg-[#1DB5A8]/10 border-[#1DB5A8]/40 text-white"
+                        : "bg-[#162828] border-[#1DB5A8]/10 text-gray-400"
+                    } disabled:opacity-70`}
+                  >
+                    {checked
+                      ? <CheckCircle2 className="h-4 w-4 text-[#1DB5A8] flex-shrink-0" />
+                      : <Square className="h-4 w-4 text-gray-500 flex-shrink-0" />}
+                    <span className="text-sm">{item.label}</span>
+                  </button>
+                </div>
               );
             })}
           </div>

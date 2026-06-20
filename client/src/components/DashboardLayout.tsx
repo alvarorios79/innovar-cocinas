@@ -19,7 +19,6 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { getLoginUrl } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
 import {
   LayoutDashboard,
@@ -249,7 +248,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <h1 className="text-lg font-semibold" style={{ color: "#FFFFFF" }}>Bienvenido</h1>
             <p className="text-sm" style={{ color: "rgba(255,255,255,0.55)" }}>Inicia sesión para acceder al sistema.</p>
           </div>
-          <Button onClick={() => { window.location.href = getLoginUrl(); }} size="lg"
+          <Button onClick={() => { window.location.href = "/login"; }} size="lg"
             className="w-full font-semibold transition-all"
             style={{ background: "#6ACFC7", color: "#0C1A1A" }}>
             Iniciar Sesión

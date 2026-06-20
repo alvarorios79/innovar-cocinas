@@ -167,7 +167,7 @@ export const authRouter = router({
         const client = await db.getClientByUserId(user.id);
         
         // Generar enlace de recuperación
-        const resetLink = `${process.env.VITE_APP_URL || 'https://innovarcitas.manus.space'}/reset-password?token=${resetToken}`;
+        const resetLink = `${process.env.VITE_APP_URL || 'https://innovar-cocinas.onrender.com'}/reset-password?token=${resetToken}`;
         
         // Preparar mensaje de WhatsApp
         if (client?.whatsappPhone) {

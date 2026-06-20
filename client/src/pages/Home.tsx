@@ -12,7 +12,6 @@ import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { Calendar, Phone, Calculator, CheckCircle2, ArrowRight, MapPin, MessageCircle, Globe } from "lucide-react";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { getLoginUrl } from "@/const";
 import { Link, useLocation } from "wouter";
 import { NotificationBell } from "@/components/NotificationBell";
 import { MobileNav } from "@/components/MobileNav";

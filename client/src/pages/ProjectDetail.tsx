@@ -263,19 +263,26 @@ export default function ProjectDetail() {
     }
   );
 
-  // Visitas técnicas del cliente — diseñador solo las ve desde adelanto_recibido
-  // en adelante para evitar que empiece trabajo sin pago confirmado.
+  // Visitas técnicas del cliente — acceso por rol y estado:
+  // · Diseñador: solo desde adelanto_recibido (pago confirmado)
+  // · Jefe de taller: solo desde despiece (diseños aprobados y listos para producción)
+  // · Admin/comercial/super_admin: siempre
   const clientId = (projectDetail as any)?.clientId;
-  const STATUSES_WITH_DESIGN_ACCESS = [
+  const projectStatus = (projectDetail as any)?.status ?? "";
+
+  const DESIGNER_STATUSES = [
     "adelanto_recibido","en_diseno","pendiente_modelado","pendiente_render",
     "aprobacion_final","despiece","corte","enchape","ensamble",
     "listo_instalacion","entregado",
   ];
-  const projectStatus = (projectDetail as any)?.status ?? "";
+  const TALLER_STATUSES = [
+    "despiece","corte","enchape","ensamble","listo_instalacion","entregado",
+  ];
+
   const canSeeVisitData =
     ["admin","super_admin","comercial"].includes(user?.role ?? "") ||
-    (["disenador","jefe_taller"].includes(user?.role ?? "") &&
-      STATUSES_WITH_DESIGN_ACCESS.includes(projectStatus));
+    (user?.role === "disenador" && DESIGNER_STATUSES.includes(projectStatus)) ||
+    (user?.role === "jefe_taller" && TALLER_STATUSES.includes(projectStatus));
 
   const { data: clientVisits } = trpc.technicalVisits.listByClientId.useQuery(
     { clientId: clientId ?? 0 },

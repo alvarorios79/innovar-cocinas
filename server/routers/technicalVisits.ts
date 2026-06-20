@@ -167,7 +167,7 @@ export const technicalVisitsRouter = router({
       fileName:    z.string(),
       fileData:    z.string(), // base64
       contentType: z.string(),
-      category:    z.enum(["foto", "pdf_plano", "pdf_medidas"]).default("foto"),
+      category:    z.enum(["foto", "pdf_plano", "pdf_medidas", "firma", "foto_frontal", "foto_lateral", "foto_techo", "foto_electrico", "foto_plomeria"]).default("foto"),
       description: z.string().optional(),
     }))
     .mutation(async ({ ctx, input }) => {

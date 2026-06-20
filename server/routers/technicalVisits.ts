@@ -342,6 +342,27 @@ export const technicalVisitsRouter = router({
       return { success: true };
     }),
 
+  /** Listar visitas por clientId (para diseñador/admin que necesita ver datos de medición) */
+  listByClientId: protectedProcedure
+    .input(z.object({ clientId: z.number() }))
+    .query(async ({ ctx, input }) => {
+      const allowed = ["admin", "super_admin", "comercial", "disenador", "jefe_taller"];
+      if (!allowed.includes(ctx.user.role)) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Sin acceso" });
+      }
+      const all = await db.listTechnicalVisits({});
+      const visits = all.filter((v: any) => v.clientId === input.clientId);
+      // Adjuntar fotos a cada visita
+      const withPhotos = await Promise.all(
+        visits.map(async (v: any) => {
+          // getTechnicalVisitById ya incluye las fotos
+          const full = await db.getTechnicalVisitById(v.id);
+          return full ?? v;
+        })
+      );
+      return withPhotos;
+    }),
+
   /** Enviar visita al admin para cotización */
   submit: protectedProcedure
     .input(z.object({ visitId: z.number() }))

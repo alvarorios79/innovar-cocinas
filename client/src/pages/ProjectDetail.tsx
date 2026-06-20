@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -42,7 +42,9 @@ import {
   EyeOff,
   Lock,
   Unlock,
-  CreditCard
+  CreditCard,
+  ExternalLink,
+  PenLine
 } from "lucide-react";
 import { useEffect } from "react";
 import { useFileViewer, FileViewer } from "@/components/FileViewer";
@@ -101,6 +103,104 @@ const WORK_TYPES = {
   centro_tv: "Centro de TV",
 };
 
+// ── Componente de firma de entrega ───────────────────────────────────────────
+function DeliverySignaturePad({ onSave, onCancel, uploading }: {
+  onSave: (dataUrl: string) => void;
+  onCancel: () => void;
+  uploading: boolean;
+}) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const drawingRef = useRef(false);
+
+  const getPos = (e: React.MouseEvent | React.TouchEvent, canvas: HTMLCanvasElement) => {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    if ("touches" in e) {
+      return {
+        x: (e.touches[0].clientX - rect.left) * scaleX,
+        y: (e.touches[0].clientY - rect.top) * scaleY,
+      };
+    }
+    return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY };
+  };
+
+  const startDraw = (e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    drawingRef.current = true;
+    const ctx = canvas.getContext("2d")!;
+    const pos = getPos(e, canvas);
+    ctx.beginPath();
+    ctx.moveTo(pos.x, pos.y);
+  };
+
+  const draw = (e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
+    if (!drawingRef.current) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d")!;
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = "round";
+    ctx.strokeStyle = "#1a1a1a";
+    const pos = getPos(e, canvas);
+    ctx.lineTo(pos.x, pos.y);
+    ctx.stroke();
+  };
+
+  const stopDraw = () => { drawingRef.current = false; };
+
+  const clear = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d")!;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  };
+
+  const save = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    onSave(canvas.toDataURL("image/png"));
+  };
+
+  return (
+    <div className="space-y-3">
+      <p className="text-sm text-gray-600">El cliente firma confirmando la recepción conforme del proyecto:</p>
+      <div className="border-2 border-dashed border-gray-300 rounded-lg overflow-hidden bg-white">
+        <canvas
+          ref={canvasRef}
+          width={600}
+          height={180}
+          className="w-full touch-none cursor-crosshair"
+          style={{ display: "block" }}
+          onMouseDown={startDraw}
+          onMouseMove={draw}
+          onMouseUp={stopDraw}
+          onMouseLeave={stopDraw}
+          onTouchStart={startDraw}
+          onTouchMove={draw}
+          onTouchEnd={stopDraw}
+        />
+      </div>
+      <div className="flex gap-2 justify-end">
+        <Button variant="outline" size="sm" onClick={clear} disabled={uploading}>Borrar</Button>
+        <Button variant="outline" size="sm" onClick={onCancel} disabled={uploading}>Cancelar</Button>
+        <Button
+          size="sm"
+          className="bg-emerald-600 hover:bg-emerald-700 text-white"
+          onClick={save}
+          disabled={uploading}
+        >
+          {uploading ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle2 className="h-4 w-4 mr-2" />}
+          {uploading ? "Guardando..." : "Guardar Firma"}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 export default function ProjectDetail() {
   const { user } = useAuth();
   const [, navigate] = useLocation();
@@ -139,9 +239,19 @@ export default function ProjectDetail() {
   
   // Candado para evitar clics accidentales en aprobación del cliente
   const [approvalUnlocked, setApprovalUnlocked] = useState(false);
-  
+
   // Diálogo para enviar directo a taller (saltar diseño)
   const [showDirectToWorkshopDialog, setShowDirectToWorkshopDialog] = useState(false);
+
+  // Anticipo registration
+  const [showAnticipo, setShowAnticipo] = useState(true);
+  const [anticipoAmount, setAnticipoAmount] = useState("");
+  const [copiedLink, setCopiedLink] = useState(false);
+
+  // Firma de entrega (jefe de taller)
+  const [showDeliverySignature, setShowDeliverySignature] = useState(false);
+  const [deliverySignatureData, setDeliverySignatureData] = useState<string | null>(null);
+  const [uploadingSignature, setUploadingSignature] = useState(false);
 
   const { data: projectDetail, isLoading, error } = trpc.projects.getById.useQuery(
     { id: projectId },
@@ -151,6 +261,13 @@ export default function ProjectDetail() {
       refetchOnMount: true,
       refetchOnWindowFocus: true,
     }
+  );
+
+  // Visitas técnicas del cliente (para diseñador/jefe de taller)
+  const clientId = (projectDetail as any)?.clientId;
+  const { data: clientVisits } = trpc.technicalVisits.listByClientId.useQuery(
+    { clientId: clientId ?? 0 },
+    { enabled: !!clientId && ["disenador","jefe_taller","admin","super_admin","comercial"].includes(user?.role ?? "") }
   );
 
   // Cargar gastos de materiales del proyecto
@@ -177,6 +294,28 @@ export default function ProjectDetail() {
     },
     onError: (error) => {
       toast.error(error.message || "Error al subir archivo");
+    },
+  });
+
+  // Subir firma de entrega: primero al storage, luego registrar como foto del proyecto
+  const uploadSignatureImg = trpc.upload.image.useMutation({
+    onSuccess: async (data) => {
+      if (!projectDetail) return;
+      uploadPhoto.mutate({
+        projectId: projectDetail.id,
+        stage: "final",
+        category: "entrega",
+        subcategory: "fotos_finales",
+        photoUrl: data.url,
+        description: `firma-entrega-${new Date().toLocaleDateString("es-CO")}`,
+      });
+      setShowDeliverySignature(false);
+      setUploadingSignature(false);
+      toast.success("Firma de entrega guardada correctamente");
+    },
+    onError: (e) => {
+      setUploadingSignature(false);
+      toast.error(e.message || "Error al guardar la firma");
     },
   });
 
@@ -734,6 +873,99 @@ export default function ProjectDetail() {
 
           {/* Tab Información */}
           <TabsContent value="info" className="space-y-4">
+
+            {/* ── ANTICIPO: Banner de acción cuando cotización aprobada ── */}
+            {projectDetail.status === "cotizacion_aprobada" && (user?.role === "admin" || user?.role === "super_admin" || user?.role === "comercial") && showAnticipo && (
+              <div className="rounded-xl border-2 border-blue-400 bg-gradient-to-r from-blue-50 to-indigo-50 overflow-hidden">
+                <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-3 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <DollarSign className="h-5 w-5 text-white" />
+                    <h3 className="text-white font-bold text-base">Confirmar Anticipo Recibido</h3>
+                  </div>
+                  <button onClick={() => setShowAnticipo(false)} className="text-white/70 hover:text-white text-xs">✕ Ocultar</button>
+                </div>
+                <div className="p-5 space-y-4">
+                  <p className="text-sm text-blue-900">
+                    El cliente aprobó la cotización. Cuando confirmes el anticipo, el diseñador asignado recibirá notificación para iniciar el trabajo.
+                  </p>
+                  {(projectDetail as any).designerId && (
+                    <p className="text-xs text-blue-700 bg-blue-100 rounded-lg px-3 py-2">
+                      ✅ Diseñador asignado automáticamente. Al confirmar el anticipo recibirá la orden de trabajo.
+                    </p>
+                  )}
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <div className="flex-1">
+                      <label className="text-xs font-medium text-blue-800 block mb-1">Monto del anticipo (COP)</label>
+                      <Input
+                        type="number"
+                        placeholder="Ej: 3500000"
+                        value={anticipoAmount}
+                        onChange={(e) => setAnticipoAmount(e.target.value)}
+                        className="border-blue-300 focus:border-blue-500"
+                      />
+                    </div>
+                    <div className="flex items-end">
+                      <Button
+                        className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6"
+                        disabled={updateStatus.isPending}
+                        onClick={() => {
+                          if (!anticipoAmount) { toast.error("Ingresa el monto del anticipo"); return; }
+                          updateStatus.mutate({
+                            projectId: projectDetail.id,
+                            newStatus: "adelanto_recibido",
+                            advanceAmount: Number(anticipoAmount),
+                            notes: `Anticipo confirmado: $${Number(anticipoAmount).toLocaleString("es-CO")}`,
+                          });
+                          setShowAnticipo(false);
+                        }}
+                      >
+                        {updateStatus.isPending ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle2 className="h-4 w-4 mr-2" />}
+                        Confirmar Anticipo
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ── LINK CLIENTE: Visible para admin en cualquier etapa activa ── */}
+            {(user?.role === "admin" || user?.role === "super_admin" || user?.role === "comercial") && (projectDetail as any).publicToken && !["cotizacion_enviada","cotizacion_aprobada"].includes(projectDetail.status as string) && (
+              <div className="rounded-xl border border-teal-300 bg-teal-50 px-5 py-3 flex flex-col sm:flex-row sm:items-center gap-3">
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <ExternalLink className="h-4 w-4 text-teal-600 shrink-0" />
+                  <span className="text-sm font-medium text-teal-800">Portal del cliente:</span>
+                  <span className="text-xs text-teal-600 truncate">
+                    {`/gallery?project=${projectDetail.id}&token=${(projectDetail as any).publicToken}`}
+                  </span>
+                </div>
+                <div className="flex gap-2 shrink-0">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="text-teal-700 border-teal-400 hover:bg-teal-100 text-xs h-8"
+                    onClick={() => {
+                      const url = `${window.location.origin}/gallery?project=${projectDetail.id}&token=${(projectDetail as any).publicToken}`;
+                      navigator.clipboard.writeText(url).then(() => { setCopiedLink(true); setTimeout(() => setCopiedLink(false), 2000); });
+                    }}
+                  >
+                    {copiedLink ? "✓ Copiado" : "Copiar Link"}
+                  </Button>
+                  <Button
+                    size="sm"
+                    className="bg-teal-600 hover:bg-teal-700 text-white text-xs h-8"
+                    onClick={() => {
+                      const url = `${window.location.origin}/gallery?project=${projectDetail.id}&token=${(projectDetail as any).publicToken}`;
+                      const msg = encodeURIComponent(`Hola ${projectDetail.client?.name}, aquí puedes ver el progreso de tu proyecto:\n${url}`);
+                      window.open(`https://wa.me/57${projectDetail.client?.whatsappPhone?.replace(/\D/g,'')}?text=${msg}`, "_blank");
+                    }}
+                  >
+                    <MessageCircle className="h-3.5 w-3.5 mr-1" />
+                    Enviar por WhatsApp
+                  </Button>
+                </div>
+              </div>
+            )}
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <Card>
                 <CardHeader className="py-3 bg-blue-50">
@@ -1298,6 +1530,108 @@ export default function ProjectDetail() {
               </div>
             )}
 
+            {/* ── DATOS DE VISITA TÉCNICA: visible para diseñador, jefe de taller y admin ── */}
+            {clientVisits && clientVisits.length > 0 && (
+              <Card className="border-2 border-purple-200">
+                <CardHeader className="py-3 bg-gradient-to-r from-purple-600 to-violet-600">
+                  <CardTitle className="text-sm font-bold text-white flex items-center gap-2">
+                    <MapPin className="h-4 w-4" />
+                    Datos de Visita Técnica ({clientVisits.length} visita{clientVisits.length > 1 ? "s" : ""})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-4 space-y-4">
+                  {clientVisits.map((visit: any) => {
+                    const meas = visit.measurements ?? {};
+                    const checklist = meas._checklist ?? {};
+                    const evaluacion = meas._evaluacion ?? {};
+                    const geo = meas._geo;
+                    const measureKeys = Object.keys(meas).filter(k => !k.startsWith("_"));
+                    const fotosVisita = (visit.photos ?? []).filter((p: any) => !p.category?.startsWith("pdf"));
+                    const pdfsVisita = (visit.photos ?? []).filter((p: any) => p.category?.startsWith("pdf"));
+                    return (
+                      <div key={visit.id} className="border rounded-lg p-4 space-y-3 bg-purple-50/30">
+                        <div className="flex flex-wrap items-center gap-2 text-sm">
+                          <span className="font-semibold text-purple-800">{visit.clientName}</span>
+                          <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full capitalize">{visit.workType}</span>
+                          {visit.status === "enviada" && <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">✓ Enviada</span>}
+                          {geo && (
+                            <a href={`https://www.google.com/maps?q=${geo.lat},${geo.lng}`} target="_blank" rel="noreferrer"
+                              className="text-xs text-blue-600 underline flex items-center gap-1">
+                              <MapPin className="h-3 w-3" /> Ver ubicación
+                            </a>
+                          )}
+                        </div>
+
+                        {/* Medidas */}
+                        {measureKeys.length > 0 && (
+                          <div>
+                            <p className="text-xs font-semibold text-purple-700 mb-1">📐 Medidas</p>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                              {measureKeys.map(k => (
+                                <div key={k} className="text-xs bg-white border rounded px-2 py-1">
+                                  <span className="text-gray-500 capitalize">{k.replace(/_/g," ")}: </span>
+                                  <span className="font-medium">{String(meas[k])}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Notas */}
+                        {visit.notes && (
+                          <p className="text-xs text-gray-600 italic border-l-2 border-purple-300 pl-2">{visit.notes}</p>
+                        )}
+
+                        {/* Evaluación técnica */}
+                        {Object.keys(evaluacion).length > 0 && (
+                          <div>
+                            <p className="text-xs font-semibold text-purple-700 mb-1">🔍 Evaluación</p>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
+                              {Object.entries(evaluacion).map(([k, v]: any) => (
+                                <div key={k} className="text-xs flex items-center gap-1">
+                                  <span>{v === "bueno" ? "🟢" : v === "regular" ? "🟡" : "🔴"}</span>
+                                  <span className="text-gray-600 capitalize">{k.replace(/_/g," ")}: </span>
+                                  <span className="font-medium capitalize">{v}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Fotos */}
+                        {fotosVisita.length > 0 && (
+                          <div>
+                            <p className="text-xs font-semibold text-purple-700 mb-1">📷 Fotos ({fotosVisita.length})</p>
+                            <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5">
+                              {fotosVisita.map((p: any) => (
+                                <div key={p.id} className="aspect-square rounded overflow-hidden cursor-pointer"
+                                  onClick={() => fileViewer.openViewer(fotosVisita.map((x: any) => ({ url: x.photoUrl, title: x.description ?? "Foto" })), fotosVisita.indexOf(p))}>
+                                  <img src={p.photoUrl} alt={p.description ?? "foto"} className="w-full h-full object-cover hover:opacity-80 transition-opacity" />
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* PDFs */}
+                        {pdfsVisita.length > 0 && (
+                          <div className="flex flex-wrap gap-2">
+                            {pdfsVisita.map((p: any) => (
+                              <a key={p.id} href={p.photoUrl} target="_blank" rel="noreferrer"
+                                className="flex items-center gap-1 text-xs text-red-600 bg-red-50 border border-red-200 rounded px-2 py-1 hover:bg-red-100">
+                                <FileText className="h-3 w-3" />
+                                {p.category === "pdf_plano" ? "Plano" : "PDF Medidas"}
+                              </a>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </CardContent>
+              </Card>
+            )}
+
             {Object.entries(disenoFolders).map(([category, subcategories]) => (
               <Card key={category}>
                 <CardHeader className="py-3 bg-gradient-to-r from-emerald-500 to-teal-500">
@@ -1686,6 +2020,64 @@ export default function ProjectDetail() {
                   <Truck className="h-16 w-16 text-gray-200 mb-4" />
                   <p className="text-gray-400 font-medium">Sin fotos de instalación aún</p>
                   <p className="text-xs text-gray-300 mt-1">Las fotos del proceso de instalación y entrega aparecerán aquí</p>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* ── FIRMA DE ENTREGA: jefe de taller o admin cuando está en instalación ── */}
+            {(user?.role === "jefe_taller" || user?.role === "admin" || user?.role === "super_admin") &&
+              ["listo_instalacion","entregado"].includes(projectDetail.status as string) && (
+              <Card className="border-2 border-emerald-400">
+                <CardHeader className="py-3 bg-gradient-to-r from-emerald-600 to-teal-600">
+                  <CardTitle className="text-sm font-bold text-white flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4" />
+                    Firma de Entrega del Cliente
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-4 space-y-4">
+                  {/* Verificar si ya hay firma guardada */}
+                  {(() => {
+                    const firma = (projectDetail.photos ?? []).find((p: any) => p.subcategory === "fotos_finales" && p.description?.includes("firma"));
+                    if (firma) {
+                      return (
+                        <div className="text-center space-y-2">
+                          <p className="text-sm text-emerald-700 font-medium">✅ Firma de entrega registrada</p>
+                          <img src={firma.photoUrl} alt="Firma" className="max-h-32 mx-auto border rounded-lg" />
+                        </div>
+                      );
+                    }
+                    if (!showDeliverySignature) {
+                      return (
+                        <div className="text-center space-y-3">
+                          <p className="text-sm text-gray-600">Captura la firma del cliente confirmando la entrega del proyecto.</p>
+                          <Button
+                            className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                            onClick={() => setShowDeliverySignature(true)}
+                          >
+                            <CheckCircle2 className="h-4 w-4 mr-2" />
+                            Capturar Firma de Entrega
+                          </Button>
+                        </div>
+                      );
+                    }
+                    return (
+                      <DeliverySignaturePad
+                        onSave={(dataUrl) => {
+                          setUploadingSignature(true);
+                          uploadSignatureImg.mutate({
+                            fileName: `firma-entrega-${Date.now()}.png`,
+                            fileData: dataUrl,
+                            contentType: "image/png",
+                            projectId: projectDetail.id,
+                            stage: "final",
+                            category: "entrega",
+                          });
+                        }}
+                        onCancel={() => setShowDeliverySignature(false)}
+                        uploading={uploadingSignature}
+                      />
+                    );
+                  })()}
                 </CardContent>
               </Card>
             )}

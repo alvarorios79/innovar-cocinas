@@ -18,10 +18,10 @@ import {
 } from "@/components/ui/dialog";
 import { WatermarkedImage, WatermarkedFullscreenImage } from "@/components/WatermarkedImage";
 import { toast } from "sonner";
-import { 
-  Image as ImageIcon, 
-  ZoomIn, 
-  ChevronLeft, 
+import {
+  Image as ImageIcon,
+  ZoomIn,
+  ChevronLeft,
   ChevronRight,
   X,
   Download,
@@ -29,7 +29,15 @@ import {
   Box,
   CheckCircle,
   MessageSquare,
-  Loader2
+  Loader2,
+  Clock,
+  Package,
+  Truck,
+  Home,
+  Hammer,
+  Layers,
+  Scissors,
+  Camera
 } from "lucide-react";
 
 const WORK_TYPES: Record<string, string> = {
@@ -58,7 +66,17 @@ export default function PublicGallery() {
 
   const { data, isLoading, error } = trpc.publicGallery.getProjectPhotos.useQuery(
     { projectId, token, type: photoType },
-    { enabled: projectId > 0 && !!token }
+    { enabled: projectId > 0 && !!token && !!photoType }
+  );
+
+  // Production tracking — used when no `type` param (base client link)
+  const {
+    data: statusData,
+    isLoading: statusLoading,
+    error: statusError,
+  } = trpc.publicGallery.getProjectStatus.useQuery(
+    { projectId, token },
+    { enabled: projectId > 0 && !!token && !photoType }
   );
 
   // Consultar estado de aprobación
@@ -132,6 +150,254 @@ export default function PublicGallery() {
       </div>
     );
   }
+
+  // ─── Production tracking view (no type param) ────────────────────────────
+  if (!photoType) {
+    if (statusLoading) {
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-500 mx-auto mb-4"></div>
+            <p className="text-gray-600">Cargando estado del proyecto...</p>
+          </div>
+        </div>
+      );
+    }
+    if (statusError || !statusData) {
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
+          <Card className="max-w-md w-full text-center p-8">
+            <ImageIcon className="h-16 w-16 mx-auto text-gray-400 mb-4" />
+            <h1 className="text-xl font-semibold text-gray-700 mb-2">Proyecto no encontrado</h1>
+            <p className="text-gray-500">El enlace no es válido o expiró. Contacta a INNOVAR Cocinas.</p>
+          </Card>
+        </div>
+      );
+    }
+
+    const { project: sp, client: sc, stages, productionPhotos, designPhotos } = statusData;
+
+    const STAGE_ICONS: Record<string, React.ReactNode> = {
+      cotizacion_enviada:   <Clock className="h-4 w-4" />,
+      cotizacion_aprobada:  <CheckCircle className="h-4 w-4" />,
+      adelanto_recibido:    <CheckCircle className="h-4 w-4" />,
+      en_diseno:            <Palette className="h-4 w-4" />,
+      pendiente_modelado:   <Box className="h-4 w-4" />,
+      pendiente_render:     <Camera className="h-4 w-4" />,
+      aprobacion_final:     <CheckCircle className="h-4 w-4" />,
+      despiece:             <Layers className="h-4 w-4" />,
+      corte:                <Scissors className="h-4 w-4" />,
+      enchape:              <Layers className="h-4 w-4" />,
+      ensamble:             <Hammer className="h-4 w-4" />,
+      listo_instalacion:    <Package className="h-4 w-4" />,
+      entregado:            <Home className="h-4 w-4" />,
+    };
+
+    const photoCategoryLabel: Record<string, string> = {
+      avance: "Avance de producción",
+      instalacion: "Instalación",
+      entrega: "Entrega final",
+    };
+
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col">
+        {/* Header */}
+        <header className="bg-gradient-to-r from-teal-600 via-teal-500 to-emerald-500 shadow-lg">
+          <div className="max-w-4xl mx-auto px-4 py-6">
+            <div className="flex flex-col items-center justify-center">
+              <div className="bg-white rounded-2xl p-4 shadow-xl mb-3">
+                <img src="/logo-light.png" alt="INNOVAR Cocinas Integrales" className="h-16 md:h-20 object-contain" />
+              </div>
+              <p className="text-white/90 text-sm md:text-base font-medium tracking-wide">
+                Diseño y Fabricación de Cocinas Integrales
+              </p>
+            </div>
+          </div>
+        </header>
+
+        <main className="max-w-4xl mx-auto px-4 py-8 w-full">
+          {/* Project title */}
+          <div className="text-center mb-8">
+            <Badge className="mb-3 bg-teal-100 text-teal-700 hover:bg-teal-100">
+              {WORK_TYPES[sp.workType] || sp.workType}
+            </Badge>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-2">{sp.name}</h1>
+            {sc && (
+              <p className="text-gray-600">
+                Proyecto de <span className="font-medium">{sc.name}</span>
+              </p>
+            )}
+            {sp.estimatedInstallDate && (
+              <p className="text-sm text-teal-700 mt-2">
+                Fecha estimada de instalación:{" "}
+                <span className="font-medium">
+                  {new Date(sp.estimatedInstallDate).toLocaleDateString("es-CO", {
+                    day: "numeric", month: "long", year: "numeric",
+                  })}
+                </span>
+              </p>
+            )}
+          </div>
+
+          {/* Progress timeline */}
+          <Card className="mb-8 p-6">
+            <h2 className="text-lg font-semibold text-gray-800 mb-6 flex items-center gap-2">
+              <Truck className="h-5 w-5 text-teal-600" />
+              Estado de tu proyecto
+            </h2>
+            <div className="space-y-2">
+              {stages.map((stage, idx) => (
+                <div key={stage.status} className="flex items-start gap-3">
+                  {/* Icon / connector */}
+                  <div className="flex flex-col items-center">
+                    <div
+                      className={`rounded-full p-2 flex-shrink-0 ${
+                        stage.done
+                          ? stage.current
+                            ? "bg-teal-500 text-white shadow-md shadow-teal-200"
+                            : "bg-teal-100 text-teal-600"
+                          : "bg-gray-100 text-gray-400"
+                      }`}
+                    >
+                      {STAGE_ICONS[stage.status] ?? <Clock className="h-4 w-4" />}
+                    </div>
+                    {idx < stages.length - 1 && (
+                      <div className={`w-0.5 h-6 mt-1 ${stage.done ? "bg-teal-200" : "bg-gray-200"}`} />
+                    )}
+                  </div>
+                  {/* Label */}
+                  <div className={`pb-2 pt-1.5 ${stage.current ? "" : ""}`}>
+                    <p
+                      className={`text-sm font-medium ${
+                        stage.current
+                          ? "text-teal-700"
+                          : stage.done
+                          ? "text-gray-600"
+                          : "text-gray-400"
+                      }`}
+                    >
+                      {stage.label}
+                      {stage.current && (
+                        <Badge className="ml-2 bg-teal-500 text-white text-xs py-0">
+                          Actual
+                        </Badge>
+                      )}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+
+          {/* Production photos grouped by category */}
+          {productionPhotos.length > 0 && (
+            <div className="mb-8">
+              <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <Camera className="h-5 w-5 text-teal-600" />
+                Fotos del proyecto
+              </h2>
+              {(["avance", "instalacion", "entrega"] as const).map((cat) => {
+                const catPhotos = productionPhotos.filter((p: any) => p.category === cat);
+                if (catPhotos.length === 0) return null;
+                return (
+                  <div key={cat} className="mb-6">
+                    <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wide mb-3">
+                      {photoCategoryLabel[cat]}
+                    </h3>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                      {catPhotos.map((photo: any) => (
+                        <Card key={photo.id} className="overflow-hidden">
+                          <div className="aspect-[4/3] bg-gray-100">
+                            <img
+                              src={photo.photoUrl}
+                              alt={photo.description || cat}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          {photo.description && (
+                            <CardContent className="p-2">
+                              <p className="text-xs text-gray-600 line-clamp-2">{photo.description}</p>
+                            </CardContent>
+                          )}
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Design photos if available */}
+          {designPhotos.length > 0 && (
+            <div className="mb-8">
+              <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <Palette className="h-5 w-5 text-teal-600" />
+                Diseño aprobado
+              </h2>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {designPhotos.map((photo: any) => (
+                  <Card key={photo.id} className="overflow-hidden">
+                    <div className="aspect-[4/3] bg-gray-100">
+                      <WatermarkedImage
+                        src={photo.photoUrl}
+                        alt={photo.description || photo.subcategory}
+                        className="w-full h-full"
+                        watermarkOpacity={0.3}
+                        watermarkSize={25}
+                        watermarkPosition="bottom-right"
+                      />
+                    </div>
+                    {photo.description && (
+                      <CardContent className="p-2">
+                        <p className="text-xs text-gray-600 line-clamp-2">{photo.description}</p>
+                      </CardContent>
+                    )}
+                  </Card>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Contact card */}
+          <div className="mt-8 text-center">
+            <Card className="inline-block p-6 bg-gradient-to-r from-teal-50 to-emerald-50 border-teal-200">
+              <p className="text-gray-700 mb-2">¿Tienes alguna pregunta?</p>
+              <p className="text-teal-700 font-medium">
+                Contáctanos por WhatsApp:{" "}
+                <a href="https://wa.me/573136802025" className="underline">313 680 2025</a>
+              </p>
+            </Card>
+          </div>
+        </main>
+
+        {/* Footer */}
+        <footer className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 text-white py-8 mt-auto">
+          <div className="max-w-4xl mx-auto px-4">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="bg-white rounded-lg p-2">
+                  <img src="/logo-light.png" alt="INNOVAR" className="h-8 object-contain" />
+                </div>
+                <div>
+                  <p className="text-white font-semibold">INNOVAR</p>
+                  <p className="text-gray-400 text-xs">Cocinas Integrales</p>
+                </div>
+              </div>
+              <div className="text-center md:text-right">
+                <p className="text-teal-400 font-medium">313 680 2025</p>
+                <p className="text-gray-400 text-sm">K9 vía Cerritos a Pereira</p>
+                <p className="text-gray-500 text-xs mt-1">
+                  © {new Date().getFullYear()} Todos los derechos reservados
+                </p>
+              </div>
+            </div>
+          </div>
+        </footer>
+      </div>
+    );
+  }
+  // ─── End production tracking view ────────────────────────────────────────
 
   if (isLoading) {
     return (

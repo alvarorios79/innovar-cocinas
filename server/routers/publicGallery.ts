@@ -426,6 +426,86 @@ export const publicGalleryRouter = router({
         };
       }),
 
+    // Portal de trazabilidad completa para el cliente (sin autenticación)
+    getProjectStatus: publicProcedure
+      .input(z.object({
+        projectId: z.number(),
+        token: z.string().min(1),
+      }))
+      .query(async ({ input }) => {
+        const project = await db.getProjectById(input.projectId);
+        if (!project || !project.publicToken || project.publicToken !== input.token) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Enlace inválido o expirado" });
+        }
+        const client = project.clientId ? await db.getClientById(project.clientId) : null;
+        const allPhotos = await db.getProjectPhotosByProjectId(input.projectId);
+
+        const STATUS_ORDER = [
+          "cotizacion_enviada","cotizacion_aprobada","adelanto_recibido",
+          "en_diseno","pendiente_modelado","pendiente_render","aprobacion_final",
+          "despiece","corte","enchape","ensamble","listo_instalacion","entregado",
+        ];
+        const STATUS_LABELS: Record<string, string> = {
+          cotizacion_enviada: "Cotización Enviada",
+          cotizacion_aprobada: "Cotización Aprobada",
+          adelanto_recibido: "Anticipo Recibido",
+          en_diseno: "En Diseño",
+          pendiente_modelado: "Revisión Modelado 3D",
+          pendiente_render: "Revisión Renders",
+          aprobacion_final: "Diseño Aprobado",
+          despiece: "Preparando Materiales",
+          corte: "En Corte",
+          enchape: "En Enchape",
+          ensamble: "En Ensamble",
+          listo_instalacion: "En Instalación",
+          entregado: "Entregado ✅",
+        };
+
+        const currentIdx = STATUS_ORDER.indexOf(project.status);
+
+        return {
+          project: {
+            id: project.id,
+            name: project.name,
+            workType: project.workType,
+            status: project.status,
+            statusLabel: STATUS_LABELS[project.status] ?? project.status,
+            estimatedInstallDate: project.estimatedInstallDate,
+            modeladoApprovedAt: project.modeladoApprovedAt,
+            rendersApprovedAt: project.rendersApprovedAt,
+            clientApprovedAt: project.clientApprovedAt,
+            deliveredAt: project.deliveredAt,
+          },
+          client: client ? { name: client.name } : null,
+          stages: STATUS_ORDER.map((s, idx) => ({
+            status: s,
+            label: STATUS_LABELS[s] ?? s,
+            done: idx <= currentIdx,
+            current: idx === currentIdx,
+          })),
+          // Fotos de producción visibles al cliente
+          productionPhotos: allPhotos
+            .filter((p: any) => ["avance","instalacion","entrega"].includes(p.category))
+            .map((p: any) => ({
+              id: p.id,
+              photoUrl: p.photoUrl,
+              category: p.category,
+              subcategory: p.subcategory,
+              description: p.description,
+              createdAt: p.createdAt,
+            })),
+          // Modelado y renders (para que pueda revisarlos)
+          designPhotos: allPhotos
+            .filter((p: any) => p.subcategory === "modelado_3d" || p.subcategory === "renders")
+            .map((p: any) => ({
+              id: p.id,
+              photoUrl: p.photoUrl,
+              subcategory: p.subcategory,
+              description: p.description,
+            })),
+        };
+      }),
+
     // Reiniciar aprobación de renders para solicitar nueva aprobación
     resetRendersApproval: protectedProcedure
       .input(z.object({

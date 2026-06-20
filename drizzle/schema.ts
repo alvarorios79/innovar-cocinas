@@ -658,8 +658,12 @@ export const technicalVisits = pgTable("technicalVisits", {
 	notes: text(),
 	// Estado
 	status: visitStatusEnum().default('borrador').notNull(),
-	// Quién creó la visita
+	// Quién creó/asignó la visita (admin/comercial)
 	createdBy: integer().notNull().references(() => users.id),
+	// Medidor asignado para realizar la visita
+	assignedTo: integer().references(() => users.id),
+	// Fecha programada de la visita
+	scheduledDate: timestamp({ mode: 'string' }),
 	// Timestamps
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
@@ -670,6 +674,7 @@ export const technicalVisits = pgTable("technicalVisits", {
 	index("technicalVisits_createdBy_idx").on(table.createdBy),
 	index("technicalVisits_status_idx").on(table.status),
 	index("technicalVisits_clientId_idx").on(table.clientId),
+	index("technicalVisits_assignedTo_idx").on(table.assignedTo),
 ]);
 
 export const visitPhotos = pgTable("visitPhotos", {

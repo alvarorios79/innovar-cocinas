@@ -4739,6 +4739,8 @@ export async function createTechnicalVisit(data: {
   measurements?: Record<string, unknown>;
   notes?: string;
   createdBy: number;
+  assignedTo?: number;
+  scheduledDate?: string;
 }) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
@@ -4752,8 +4754,10 @@ export async function createTechnicalVisit(data: {
     measurements: data.measurements ?? null,
     notes: data.notes ?? null,
     createdBy: data.createdBy,
+    assignedTo: data.assignedTo ?? null,
+    scheduledDate: data.scheduledDate ?? null,
     status: "borrador",
-  }).returning({ id: technicalVisits.id });
+  } as any).returning({ id: technicalVisits.id });
 
   return result[0].id;
 }
@@ -4782,6 +4786,8 @@ export async function updateTechnicalVisit(id: number, data: Partial<{
   notes: string;
   status: "borrador" | "enviada" | "convertida";
   quotationId: number;
+  assignedTo: number;
+  scheduledDate: string;
 }>) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
@@ -4791,12 +4797,13 @@ export async function updateTechnicalVisit(id: number, data: Partial<{
     .where(eq(technicalVisits.id, id));
 }
 
-export async function listTechnicalVisits(filters?: { createdBy?: number; status?: string }) {
+export async function listTechnicalVisits(filters?: { createdBy?: number; assignedTo?: number; status?: string }) {
   const db = await getDb();
   if (!db) return [];
 
   const conditions = [];
   if (filters?.createdBy) conditions.push(eq(technicalVisits.createdBy, filters.createdBy));
+  if (filters?.assignedTo !== undefined) conditions.push(eq((technicalVisits as any).assignedTo, filters.assignedTo));
   if (filters?.status) conditions.push(eq(technicalVisits.status, filters.status as any));
 
   const query = db.select().from(technicalVisits);

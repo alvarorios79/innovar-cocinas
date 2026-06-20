@@ -46,6 +46,14 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 }
 
 async function startServer() {
+  // Correr migraciones de columnas nuevas antes de aceptar tráfico
+  try {
+    const { runMigrations } = await import("../migrations");
+    await runMigrations();
+  } catch (err) {
+    console.error("[startup] Migration error (non-fatal):", err);
+  }
+
   const app = express();
   const server = createServer(app);
   // Configure body parser with larger size limit for file uploads

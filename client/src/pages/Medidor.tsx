@@ -385,7 +385,6 @@ export default function Medidor() {
     { enabled: view === "detail" && !!selectedVisit, refetchOnWindowFocus: false }
   );
 
-  const createVisit = trpc.technicalVisits.create.useMutation();
   const updateVisit = trpc.technicalVisits.update.useMutation();
   const addPhoto    = trpc.technicalVisits.addPhoto.useMutation();
   const deletePhoto = trpc.technicalVisits.deletePhoto.useMutation();
@@ -458,21 +457,6 @@ export default function Medidor() {
   }, [view, isEditable]);
 
   // ── Acciones ─────────────────────────────────────────────────────────────
-
-  const handleCreateVisit = async () => {
-    if (!form.clientName.trim()) { toast.error("El nombre del cliente es requerido"); return; }
-    try {
-      const { id } = await createVisit.mutateAsync(form);
-      toast.success("Visita creada");
-      utils.technicalVisits.list.invalidate();
-      setSelectedVisit({ id, ...form, status: "borrador", createdAt: new Date().toISOString() });
-      setLocalMeasurements({});
-      setLocalChecklist({});
-      setLocalGeo(null);
-      setLocalNotes("");
-      setView("detail");
-    } catch { toast.error("Error al crear la visita"); }
-  };
 
   const handleSaveClientData = async () => {
     if (!visitDetail) return;
@@ -613,26 +597,15 @@ export default function Medidor() {
         <div className="bg-[#162828] border-b border-[#1DB5A8]/20 px-4 py-4 sticky top-0 z-10">
           <div className="flex items-center justify-between max-w-lg mx-auto">
             <div>
-              <h1 className="text-lg font-bold text-[#1DB5A8]">Visitas Técnicas</h1>
+              <h1 className="text-lg font-bold text-[#1DB5A8]">Mis Visitas Técnicas</h1>
               <p className="text-xs text-gray-400">{user?.name ?? "INNOVAR"}</p>
             </div>
-            <div className="flex items-center gap-2">
-              <Button
-                onClick={() => {
-                  setForm({ clientName: "", clientPhone: "", clientAddress: "", workType: "cocina" });
-                  setView("new");
-                }}
-                className="bg-[#1DB5A8] hover:bg-[#17a396] text-white text-sm px-3 py-2 h-auto"
-              >
-                <Plus className="h-4 w-4 mr-1" /> Nueva visita
-              </Button>
-              <button
-                onClick={() => logout()}
-                className="flex items-center gap-1 text-xs text-gray-400 hover:text-red-400 transition-colors border border-gray-600 hover:border-red-400 rounded-lg px-2 py-1.5"
-              >
-                <X className="h-3.5 w-3.5" /> Salir
-              </button>
-            </div>
+            <button
+              onClick={() => logout()}
+              className="flex items-center gap-1 text-xs text-gray-400 hover:text-red-400 transition-colors border border-gray-600 hover:border-red-400 rounded-lg px-2 py-1.5"
+            >
+              <X className="h-3.5 w-3.5" /> Salir
+            </button>
           </div>
         </div>
 
@@ -646,8 +619,8 @@ export default function Medidor() {
           {!isLoading && visits.length === 0 && (
             <div className="text-center py-16 text-gray-400">
               <Ruler className="h-12 w-12 mx-auto mb-4 opacity-30" />
-              <p className="text-lg font-medium">Sin visitas aún</p>
-              <p className="text-sm mt-1">Crea tu primera visita técnica</p>
+              <p className="text-lg font-medium">Sin visitas asignadas</p>
+              <p className="text-sm mt-1">El admin o comercial te asignará visitas aquí</p>
             </div>
           )}
 
@@ -667,7 +640,9 @@ export default function Medidor() {
                       {visit.clientAddress && ` · ${visit.clientAddress}`}
                     </p>
                     <p className="text-xs text-gray-500 mt-1">
-                      {new Date(visit.createdAt).toLocaleDateString("es-CO", { day: "2-digit", month: "short", year: "numeric" })}
+                      {(visit as any).scheduledDate
+                        ? `📅 ${new Date((visit as any).scheduledDate).toLocaleDateString("es-CO", { weekday: "short", day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}`
+                        : new Date(visit.createdAt).toLocaleDateString("es-CO", { day: "2-digit", month: "short", year: "numeric" })}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
@@ -680,79 +655,6 @@ export default function Medidor() {
               </button>
             );
           })}
-        </div>
-      </div>
-    );
-  }
-
-  // ── Render: Nueva visita ──────────────────────────────────────────────────
-
-  if (view === "new") {
-    return (
-      <div className="min-h-screen bg-[#0C1A1A] text-white">
-        <div className="bg-[#162828] border-b border-[#1DB5A8]/20 px-4 py-4 sticky top-0 z-10">
-          <div className="flex items-center gap-3 max-w-lg mx-auto">
-            <button onClick={() => setView("list")} className="text-gray-400 hover:text-white">
-              <ArrowLeft className="h-5 w-5" />
-            </button>
-            <h1 className="text-lg font-bold">Nueva Visita Técnica</h1>
-          </div>
-        </div>
-
-        <div className="max-w-lg mx-auto p-4 space-y-4">
-          <div>
-            <label className="text-sm font-medium text-gray-300 block mb-2">Tipo de trabajo *</label>
-            <div className="grid grid-cols-2 gap-2">
-              {(Object.entries(WORK_TYPE_LABELS) as [WorkType, string][]).map(([key, label]) => (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => setForm(f => ({ ...f, workType: key }))}
-                  className={`p-3 rounded-xl border text-sm font-medium transition-colors ${
-                    form.workType === key
-                      ? "border-[#1DB5A8] bg-[#1DB5A8]/10 text-[#1DB5A8]"
-                      : "border-[#1DB5A8]/20 bg-[#162828] text-gray-300 hover:border-[#1DB5A8]/40"
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            <label className="text-sm font-medium text-gray-300 block">Datos del cliente</label>
-            <Input
-              placeholder="Nombre completo *"
-              value={form.clientName}
-              onChange={e => setForm(f => ({ ...f, clientName: e.target.value }))}
-              className="bg-[#162828] border-[#1DB5A8]/20 text-white placeholder:text-gray-500 focus:border-[#1DB5A8] h-12"
-            />
-            <Input
-              placeholder="Teléfono / WhatsApp"
-              value={form.clientPhone}
-              onChange={e => setForm(f => ({ ...f, clientPhone: e.target.value }))}
-              className="bg-[#162828] border-[#1DB5A8]/20 text-white placeholder:text-gray-500 focus:border-[#1DB5A8] h-12"
-              type="tel"
-            />
-            <Input
-              placeholder="Dirección / Barrio"
-              value={form.clientAddress}
-              onChange={e => setForm(f => ({ ...f, clientAddress: e.target.value }))}
-              className="bg-[#162828] border-[#1DB5A8]/20 text-white placeholder:text-gray-500 focus:border-[#1DB5A8] h-12"
-            />
-          </div>
-
-          <Button
-            onClick={handleCreateVisit}
-            disabled={createVisit.isPending || !form.clientName.trim()}
-            className="w-full bg-[#1DB5A8] hover:bg-[#17a396] text-white h-12 text-base font-semibold"
-          >
-            {createVisit.isPending
-              ? <Loader2 className="h-5 w-5 animate-spin mr-2" />
-              : <Plus className="h-5 w-5 mr-2" />}
-            Crear visita y agregar medidas
-          </Button>
         </div>
       </div>
     );

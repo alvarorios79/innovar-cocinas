@@ -71,27 +71,94 @@ function assertMedidorOrAdmin(role: string) {
 
 export const technicalVisitsRouter = router({
 
-  /** Crear nueva visita técnica */
+  /** Admin/comercial crean visita asignada a un medidor con cliente ya existente */
   create: protectedProcedure
     .input(z.object({
-      clientId:      z.number().optional(),
-      clientName:    z.string().min(1),
-      clientPhone:   z.string().optional(),
-      clientAddress: z.string().optional(),
+      clientId:      z.number(),
       workType:      z.enum(["cocina", "closet", "puertas", "centro_tv"]),
+      assignedTo:    z.number().optional(), // medidor asignado
+      scheduledDate: z.string().optional(), // ISO date string
+      notes:         z.string().optional(),
     }))
     .mutation(async ({ ctx, input }) => {
-      assertMedidorOrAdmin(ctx.user.role);
+      if (!["admin", "super_admin", "comercial"].includes(ctx.user.role)) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Solo admin o comercial pueden crear visitas" });
+      }
+
+      // Auto-poblar datos del cliente desde la BD
+      const client = await db.getClientById(input.clientId);
+      if (!client) throw new TRPCError({ code: "NOT_FOUND", message: "Cliente no encontrado" });
 
       const id = await db.createTechnicalVisit({
-        ...input,
-        createdBy: ctx.user.id,
+        clientId:      input.clientId,
+        clientName:    client.name,
+        clientPhone:   client.whatsappPhone ?? undefined,
+        clientAddress: client.address ?? undefined,
+        workType:      input.workType,
+        notes:         input.notes,
+        assignedTo:    input.assignedTo,
+        scheduledDate: input.scheduledDate,
+        createdBy:     ctx.user.id,
       });
+
+      // Notificar al medidor asignado
+      if (input.assignedTo) {
+        try {
+          const { createAndSendNotification } = await import("../push-notifications");
+          const workTypeLabel: Record<string, string> = {
+            cocina: "Cocina", closet: "Closet", puertas: "Puertas", centro_tv: "Centro TV",
+          };
+          await createAndSendNotification(input.assignedTo, {
+            title: `📐 Nueva visita técnica asignada`,
+            body:  `Cliente: ${client.name} — ${workTypeLabel[input.workType]}${client.address ? ` · ${client.address}` : ""}`,
+            type:  "proyecto",
+            url:   `/medidor`,
+          });
+        } catch (err) {
+          console.error("[technicalVisits.create] Error notificando medidor:", err);
+        }
+      }
 
       return { id };
     }),
 
-  /** Actualizar medidas, notas o datos del cliente */
+  /** Admin/comercial asignan medidor a una visita existente */
+  assign: protectedProcedure
+    .input(z.object({
+      visitId:       z.number(),
+      assignedTo:    z.number(),
+      scheduledDate: z.string().optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      if (!["admin", "super_admin", "comercial"].includes(ctx.user.role)) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Solo admin o comercial pueden asignar visitas" });
+      }
+
+      const visit = await db.getTechnicalVisitById(input.visitId);
+      if (!visit) throw new TRPCError({ code: "NOT_FOUND", message: "Visita no encontrada" });
+
+      await db.updateTechnicalVisit(input.visitId, {
+        assignedTo:    input.assignedTo,
+        scheduledDate: input.scheduledDate,
+      } as any);
+
+      // Notificar al medidor
+      try {
+        const { createAndSendNotification } = await import("../push-notifications");
+        await createAndSendNotification(input.assignedTo, {
+          title: `📐 Visita técnica asignada`,
+          body:  `Cliente: ${visit.clientName}${visit.clientAddress ? ` · ${visit.clientAddress}` : ""}`,
+          type:  "proyecto",
+          url:   `/medidor`,
+        });
+      } catch (err) {
+        console.error("[technicalVisits.assign] Error notificando medidor:", err);
+      }
+
+      return { success: true };
+    }),
+
+  /** Actualizar medidas, notas (medidor completa la visita) */
   update: protectedProcedure
     .input(z.object({
       visitId:       z.number(),
@@ -108,8 +175,8 @@ export const technicalVisitsRouter = router({
       const visit = await db.getTechnicalVisitById(input.visitId);
       if (!visit) throw new TRPCError({ code: "NOT_FOUND", message: "Visita no encontrada" });
 
-      // Medidor solo puede editar sus propias visitas
-      if (ctx.user.role === "medidor" && visit.createdBy !== ctx.user.id) {
+      // Medidor solo puede editar visitas asignadas a él
+      if (ctx.user.role === "medidor" && (visit as any).assignedTo !== ctx.user.id) {
         throw new TRPCError({ code: "FORBIDDEN", message: "No puedes editar esta visita" });
       }
 
@@ -132,15 +199,15 @@ export const technicalVisitsRouter = router({
       const visit = await db.getTechnicalVisitById(input.visitId);
       if (!visit) throw new TRPCError({ code: "NOT_FOUND", message: "Visita no encontrada" });
 
-      // Medidor solo ve sus propias visitas
-      if (ctx.user.role === "medidor" && visit.createdBy !== ctx.user.id) {
+      // Medidor solo ve visitas asignadas a él
+      if (ctx.user.role === "medidor" && (visit as any).assignedTo !== ctx.user.id) {
         throw new TRPCError({ code: "FORBIDDEN", message: "No tienes acceso a esta visita" });
       }
 
       return visit;
     }),
 
-  /** Listar visitas (medidor ve las suyas, admin/comercial ve todas) */
+  /** Listar visitas — medidor ve solo las asignadas a él; admin/comercial ve todas */
   list: protectedProcedure
     .input(z.object({
       status: z.enum(["borrador", "enviada", "convertida"]).optional(),
@@ -148,16 +215,25 @@ export const technicalVisitsRouter = router({
     .query(async ({ ctx, input }) => {
       assertMedidorOrAdmin(ctx.user.role);
 
-      const filters: { createdBy?: number; status?: string } = {};
+      const filters: { assignedTo?: number; status?: string } = {};
 
       if (ctx.user.role === "medidor") {
-        filters.createdBy = ctx.user.id;
+        filters.assignedTo = ctx.user.id;
       }
       if (input?.status) {
         filters.status = input.status;
       }
 
-      return await db.listTechnicalVisits(filters);
+      // Enriquecer con nombre del medidor asignado
+      const visits = await db.listTechnicalVisits(filters);
+      const allUsers = await db.getAllUsers();
+      const userMap = new Map(allUsers.map(u => [u.id, u]));
+
+      return visits.map(v => ({
+        ...v,
+        assignedToUser: (v as any).assignedTo ? userMap.get((v as any).assignedTo) ?? null : null,
+        createdByUser:  userMap.get(v.createdBy) ?? null,
+      }));
     }),
 
   /** Subir foto o PDF a una visita (base64 → S3) */
@@ -372,7 +448,7 @@ export const technicalVisitsRouter = router({
       const visit = await db.getTechnicalVisitById(input.visitId);
       if (!visit) throw new TRPCError({ code: "NOT_FOUND", message: "Visita no encontrada" });
 
-      if (ctx.user.role === "medidor" && visit.createdBy !== ctx.user.id) {
+      if (ctx.user.role === "medidor" && (visit as any).assignedTo !== ctx.user.id) {
         throw new TRPCError({ code: "FORBIDDEN", message: "No puedes enviar esta visita" });
       }
 

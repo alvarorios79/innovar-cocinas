@@ -13,6 +13,7 @@ import {
   Ruler, Camera, FileText, ChevronRight, Loader2,
   CheckCircle2, Clock, Send, User, MapPin, Phone,
   FileSpreadsheet, Eye, Maximize2, X, ArrowLeft,
+  ClipboardList, PenLine, Square,
 } from "lucide-react";
 import { useLocation } from "wouter";
 
@@ -73,6 +74,38 @@ const STATUS_CONFIG: Record<VisitStatus, { label: string; variant: "default" | "
   convertida: { label: "Convertida", variant: "secondary" },
 };
 
+// Etiquetas legibles para la evaluación técnica
+const EVAL_LABELS: Record<string, Record<string, string>> = {
+  tipoParedes:    { bloque: "Bloque / Ladrillo", concreto: "Concreto", drywall: "Drywall", mixto: "Mixto" },
+  estadoParedes:  { bueno: "✅ Bueno", requiere_repello: "⚠️ Requiere repello", requiere_demolicion: "🔴 Requiere demolición" },
+  electricidad:   { adecuada: "✅ Adecuada", requiere_revision: "⚠️ Requiere revisión", requiere_ampliacion: "⚠️ Requiere ampliación", sin_instalacion: "🔴 Sin instalación" },
+  tomacorrientes: { suficientes: "✅ Suficientes", pocos: "⚠️ Pocos", ninguno: "🔴 Ninguno" },
+  nivoPiso:       { nivelado: "✅ Nivelado", desnivel_leve: "⚠️ Desnivel leve", desnivel_importante: "🔴 Desnivel importante" },
+  acceso:         { facil: "✅ Fácil", escaleras: "Escaleras", ascensor: "Ascensor", dificil: "⚠️ Difícil" },
+  demolicion:     { no: "✅ No requiere", mueble_viejo: "⚠️ Retirar mueble", obra_civil: "🔴 Obra civil previa" },
+};
+
+const EVAL_FIELD_LABELS: Record<string, string> = {
+  tipoParedes: "Tipo de paredes", estadoParedes: "Estado paredes",
+  electricidad: "Electricidad", tomacorrientes: "Tomacorrientes",
+  nivoPiso: "Nivel del piso", acceso: "Acceso", demolicion: "Demolición",
+};
+
+const CHECKLIST_LABELS: Record<string, string> = {
+  medidas_tomadas: "Medidas tomadas", foto_frontal: "Foto frontal",
+  fotos_laterales: "Fotos laterales", corriente_marcada: "Corriente identificada",
+  tuberias_marcadas: "Tuberías verificadas", ventana_verificada: "Ventana verificada",
+  plano_subido: "Plano subido", cliente_conforme: "Cliente conforme",
+  foto_interior: "Foto interior", electrico_marcado: "Eléctrico marcado",
+  grosor_verificado: "Grosor verificado", apertura_definida: "Apertura definida",
+  tv_verificado: "TV verificado",
+};
+
+const PHOTO_CAT_LABELS: Record<string, string> = {
+  foto: "General", foto_frontal: "Frontal", foto_lateral: "Lateral",
+  foto_techo: "Techo", foto_electrico: "Eléctrico", foto_plomeria: "Plomería",
+};
+
 // ── Componente principal ─────────────────────────────────────────────────────
 
 export default function VisitasTecnicas() {
@@ -101,9 +134,14 @@ export default function VisitasTecnicas() {
   if (selectedVisitId !== null) {
     const visit = visitDetail as Visit | undefined;
     const photos = (visit?.photos ?? []) as Photo[];
-    const fotos  = photos.filter(p => p.category === "foto");
+    const fotos  = photos.filter(p => p.category !== "firma" && !p.category?.startsWith("pdf"));
     const pdfs   = photos.filter(p => p.category?.startsWith("pdf"));
-    const measurements = (visit?.measurements ?? {}) as Record<string, string>;
+    const firmas = photos.filter(p => p.category === "firma");
+    const rawMeasurements = (visit?.measurements ?? {}) as Record<string, any>;
+    const { _checklist, _evaluacion, _geo, ...measurements } = rawMeasurements;
+    const checklist:  Record<string, boolean> = (_checklist  as any) ?? {};
+    const evaluacion: Record<string, string>  = (_evaluacion as any) ?? {};
+    const geo: { lat: number; lng: number } | null = (_geo as any) ?? null;
     const fields = visit ? (MEASUREMENT_LABELS[visit.workType] ?? {}) : {};
 
     return (
@@ -172,11 +210,27 @@ export default function VisitasTecnicas() {
                     <MapPin className="h-4 w-4 text-gray-500" /> {visit.clientAddress}
                   </div>
                 )}
+                {geo && (
+                  <div className="flex items-center gap-2 text-gray-400 text-xs pt-1">
+                    <MapPin className="h-3.5 w-3.5 text-[#1DB5A8]" />
+                    <a
+                      href={`https://maps.google.com/?q=${geo.lat},${geo.lng}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[#1DB5A8] underline"
+                    >
+                      Ver en Google Maps ({geo.lat.toFixed(4)}, {geo.lng.toFixed(4)})
+                    </a>
+                  </div>
+                )}
                 <div className="pt-2 text-xs text-gray-500">
                   Visita creada: {visit ? new Date(visit.createdAt).toLocaleDateString("es-CO", {
                     day: "2-digit", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit"
                   }) : ""}
                 </div>
+                {(visit as any)?.createdByUser?.name && (
+                  <div className="text-xs text-gray-500">Medidor: {(visit as any).createdByUser.name}</div>
+                )}
               </div>
             </div>
 
@@ -205,13 +259,73 @@ export default function VisitasTecnicas() {
               )}
             </div>
 
+            {/* Evaluación técnica */}
+            {Object.keys(evaluacion).filter(k => !k.endsWith("_nota")).length > 0 && (
+              <div className="bg-[#162828] rounded-xl p-5 border border-[#1DB5A8]/10 md:col-span-2">
+                <h2 className="text-sm font-semibold text-[#1DB5A8] uppercase tracking-wide mb-4 flex items-center gap-2">
+                  <ClipboardList className="h-4 w-4" /> Evaluación técnica del espacio
+                </h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {Object.entries(EVAL_FIELD_LABELS).map(([key, label]) => {
+                    const val  = evaluacion[key];
+                    const nota = evaluacion[`${key}_nota`];
+                    if (!val) return null;
+                    return (
+                      <div key={key} className="bg-[#0C1A1A] rounded-lg px-4 py-3">
+                        <p className="text-xs text-gray-500 mb-1">{label}</p>
+                        <p className="text-sm text-white font-medium">
+                          {EVAL_LABELS[key]?.[val] ?? val}
+                        </p>
+                        {nota && <p className="text-xs text-gray-400 mt-1 italic">{nota}</p>}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Checklist */}
+            {Object.keys(checklist).length > 0 && (
+              <div className="bg-[#162828] rounded-xl p-5 border border-[#1DB5A8]/10">
+                <h2 className="text-sm font-semibold text-[#1DB5A8] uppercase tracking-wide mb-4 flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4" /> Checklist del medidor
+                </h2>
+                <div className="space-y-2">
+                  {Object.entries(checklist).map(([key, done]) => (
+                    <div key={key} className="flex items-center gap-2 text-sm">
+                      {done
+                        ? <CheckCircle2 className="h-4 w-4 text-[#1DB5A8] flex-shrink-0" />
+                        : <Square className="h-4 w-4 text-gray-600 flex-shrink-0" />}
+                      <span className={done ? "text-gray-300" : "text-gray-600 line-through"}>
+                        {CHECKLIST_LABELS[key] ?? key}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Notas */}
             {visit?.notes && (
-              <div className="bg-[#162828] rounded-xl p-5 border border-[#1DB5A8]/10 md:col-span-2">
+              <div className="bg-[#162828] rounded-xl p-5 border border-[#1DB5A8]/10">
                 <h2 className="text-sm font-semibold text-[#1DB5A8] uppercase tracking-wide mb-3 flex items-center gap-2">
                   <FileText className="h-4 w-4" /> Notas del técnico
                 </h2>
                 <p className="text-gray-300 text-sm whitespace-pre-wrap leading-relaxed">{visit.notes}</p>
+              </div>
+            )}
+
+            {/* Firma */}
+            {firmas.length > 0 && (
+              <div className="bg-[#162828] rounded-xl p-5 border border-[#1DB5A8]/10">
+                <h2 className="text-sm font-semibold text-[#1DB5A8] uppercase tracking-wide mb-3 flex items-center gap-2">
+                  <PenLine className="h-4 w-4" /> Firma del cliente
+                </h2>
+                {firmas.map(f => (
+                  <div key={f.id} className="bg-white rounded-lg overflow-hidden">
+                    <img src={f.photoUrl} alt="Firma" className="w-full h-24 object-contain p-2" />
+                  </div>
+                ))}
               </div>
             )}
 
@@ -230,6 +344,11 @@ export default function VisitasTecnicas() {
                         className="w-full h-full object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
                         onClick={() => setLightboxUrl(photo.photoUrl)}
                       />
+                      {photo.category !== "foto" && (
+                        <span className="absolute bottom-1 left-1 bg-black/70 text-white text-[9px] px-1 py-0.5 rounded">
+                          {PHOTO_CAT_LABELS[photo.category] ?? photo.category}
+                        </span>
+                      )}
                       <button
                         onClick={() => setLightboxUrl(photo.photoUrl)}
                         className="absolute bottom-1 right-1 bg-black/60 rounded-full p-1"
@@ -246,7 +365,7 @@ export default function VisitasTecnicas() {
             {pdfs.length > 0 && (
               <div className="bg-[#162828] rounded-xl p-5 border border-[#1DB5A8]/10 md:col-span-2">
                 <h2 className="text-sm font-semibold text-[#1DB5A8] uppercase tracking-wide mb-4 flex items-center gap-2">
-                  <FileText className="h-4 w-4" /> Planos / PDFs de GoodNotes ({pdfs.length})
+                  <FileText className="h-4 w-4" /> Planos GoodNotes ({pdfs.length})
                 </h2>
                 <div className="space-y-2">
                   {pdfs.map(pdf => (

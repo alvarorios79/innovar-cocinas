@@ -359,7 +359,7 @@ export const technicalVisitsRouter = router({
       const visit = await db.getTechnicalVisitById(input.visitId);
       if (!visit) throw new TRPCError({ code: "NOT_FOUND", message: "Visita no encontrada" });
 
-      if (ctx.user.role === "medidor" && visit.createdBy !== ctx.user.id) {
+      if (ctx.user.role === "medidor" && (visit as any).assignedTo !== ctx.user.id) {
         throw new TRPCError({ code: "FORBIDDEN", message: "No puedes editar esta visita" });
       }
 

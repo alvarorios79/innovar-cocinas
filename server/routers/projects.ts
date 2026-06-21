@@ -704,7 +704,9 @@ export const projectsRouter = router({
         // Notificar al diseñador cuando el proyecto pasa a "Cliente Confirmado - Iniciar Diseño"
         if (newStatus === "adelanto_recibido" && project.designerId) {
           try {
-            // Crear notificación en la base de datos
+            const designer = await db.getUserById(project.designerId);
+
+            // Notificación en campanilla
             await db.createNotification({
               userId: project.designerId,
               title: "✨ Cliente Confirmado - Iniciar Diseño",
@@ -713,8 +715,8 @@ export const projectsRouter = router({
               referenceId: project.id,
               referenceType: "project",
             });
-            
-            // Intentar enviar notificación push
+
+            // Notificación push
             try {
               const { createAndSendNotification } = await import("../push-notifications");
               await createAndSendNotification(project.designerId, {
@@ -723,11 +725,53 @@ export const projectsRouter = router({
                 type: "proyecto",
                 url: `/projects/${project.id}`,
               });
-            } catch (e) {
-              // Silenciar error de push
+            } catch (e) { /* silenciar push */ }
+
+            // WhatsApp al diseñador si tiene teléfono registrado
+            if (designer?.phone && whatsappCloud.isWhatsAppCloudConfigured()) {
+              try {
+                const clientData = await db.getClientById(project.clientId);
+                const mensaje =
+                  `✨ *Nuevo Proyecto para Diseñar - INNOVAR Cocinas*\n\n` +
+                  `Hola ${designer.name || 'Diseñador'}, tienes un proyecto listo para iniciar diseño.\n\n` +
+                  `📋 *Proyecto:* ${project.name}\n` +
+                  `👤 *Cliente:* ${clientData?.name || 'Cliente'}\n` +
+                  `🛠️ *Tipo:* ${project.workType || ''}\n\n` +
+                  `⏰ Tienes *3 días hábiles* para entregar el modelado 3D.\n\n` +
+                  `Ingresa al sistema para ver los detalles y medidas del proyecto.`;
+                await whatsappCloud.sendTextMessage(designer.phone, mensaje);
+              } catch (e) {
+                console.error("[projects] Error enviando WhatsApp al diseñador:", e);
+              }
+            }
+
+            // Email al diseñador si tiene correo
+            if (designer?.email) {
+              try {
+                const { sendEmail, generateEmailHTML } = await import("../email");
+                const clientData = await db.getClientById(project.clientId);
+                const emailHtml = generateEmailHTML(`
+                  <h2 style="color: #1DB5A8;">✨ Nuevo Proyecto para Diseñar</h2>
+                  <p>Hola <strong>${designer.name || 'Diseñador'}</strong>,</p>
+                  <p>El cliente ha confirmado su proyecto y pagado el anticipo. Ya puedes iniciar el diseño.</p>
+                  <table style="width:100%;border-collapse:collapse;margin:16px 0;">
+                    <tr><td style="padding:8px;border-bottom:1px solid #eee;font-weight:bold;">Proyecto</td><td style="padding:8px;border-bottom:1px solid #eee;">${project.name}</td></tr>
+                    <tr><td style="padding:8px;border-bottom:1px solid #eee;font-weight:bold;">Cliente</td><td style="padding:8px;border-bottom:1px solid #eee;">${clientData?.name || 'Cliente'}</td></tr>
+                    <tr><td style="padding:8px;font-weight:bold;">Tipo de trabajo</td><td style="padding:8px;">${project.workType || ''}</td></tr>
+                  </table>
+                  <p style="color:#e67e22;font-weight:bold;">⏰ Tienes 3 días hábiles para entregar el modelado 3D.</p>
+                  <p>Ingresa al sistema para ver las medidas y fotos de la visita técnica.</p>
+                `, 'Nuevo Proyecto para Diseñar - INNOVAR Cocinas');
+                await sendEmail({
+                  to: designer.email,
+                  subject: `✨ Nuevo proyecto para diseñar: ${project.name}`,
+                  html: emailHtml,
+                });
+              } catch (e) {
+                console.error("[projects] Error enviando email al diseñador:", e);
+              }
             }
           } catch (e) {
-            // Silenciar error de notificación
             console.error("Error notificando al diseñador:", e);
           }
         }

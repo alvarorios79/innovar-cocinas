@@ -149,16 +149,22 @@ export async function sendAppointmentReminders(): Promise<{
  * Programa el servicio de recordatorios de citas
  * Verifica cada hora, envía a las 8am y 12pm
  */
+/** Retorna la hora actual en zona horaria Colombia (UTC-5, sin DST) */
+function getColombiaHour(): number {
+  return new Date(
+    new Date().toLocaleString("en-US", { timeZone: "America/Bogota" })
+  ).getHours();
+}
+
 export function startAppointmentReminderService(): void {
   // Verificar cada hora
   setInterval(async () => {
-    const now = new Date();
-    const hour = now.getHours();
+    const hour = getColombiaHour();
 
-    // Ejecutar a las 7pm (recordar citas del día siguiente)
+    // Ejecutar a las 7pm Colombia (recordar citas del día siguiente)
     if (hour === 19) {
       console.log(
-        `[AppointmentReminder] Ejecutando verificación de citas a las ${hour}:00`
+        `[AppointmentReminder] Ejecutando verificación de citas a las 7PM Colombia`
       );
       const result = await sendAppointmentReminders();
       console.log(
@@ -167,9 +173,8 @@ export function startAppointmentReminderService(): void {
     }
   }, 60 * 60 * 1000);
 
-  // Verificación inicial si el servidor inicia cerca de las 7pm
-  const now = new Date();
-  const hour = now.getHours();
+  // Verificación inicial si el servidor inicia cerca de las 7pm Colombia
+  const hour = getColombiaHour();
   if (hour >= 19 && hour <= 20) {
     setTimeout(async () => {
       console.log("[AppointmentReminder] Verificación inicial de citas");
@@ -181,6 +186,6 @@ export function startAppointmentReminderService(): void {
   }
 
   console.log(
-    "[AppointmentReminder] Servicio de recordatorios de citas programado (7pm)"
+    "[AppointmentReminder] Servicio de recordatorios de citas programado (7PM Colombia)"
   );
 }

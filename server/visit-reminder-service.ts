@@ -115,15 +115,22 @@ export async function sendVisitReminders(): Promise<{
   return { checked, sent, errors };
 }
 
+/** Retorna la hora actual en zona horaria Colombia (UTC-5, sin DST) */
+function getColombiaHour(): number {
+  return new Date(
+    new Date().toLocaleString("en-US", { timeZone: "America/Bogota" })
+  ).getHours();
+}
+
 /**
- * Programa el servicio — se ejecuta cada hora y dispara a las 7:00 PM
+ * Programa el servicio — se ejecuta cada hora y dispara a las 7:00 PM Colombia
  */
 export function startVisitReminderService(): void {
   // Verificar cada hora
   setInterval(async () => {
-    const hour = new Date().getHours();
+    const hour = getColombiaHour();
     if (hour === 19) {
-      console.log("[VisitReminder] Ejecutando recordatorios de visitas técnicas (7PM)");
+      console.log("[VisitReminder] Ejecutando recordatorios de visitas técnicas (7PM Colombia)");
       const result = await sendVisitReminders();
       console.log(
         `[VisitReminder] Resultado: ${result.checked} revisadas, ` +
@@ -132,8 +139,8 @@ export function startVisitReminderService(): void {
     }
   }, 60 * 60 * 1000);
 
-  // Ejecutar de inmediato si el servidor arranca entre las 7 y las 8 PM
-  const hour = new Date().getHours();
+  // Ejecutar de inmediato si el servidor arranca entre las 7 y las 8 PM Colombia
+  const hour = getColombiaHour();
   if (hour >= 19 && hour <= 20) {
     setTimeout(async () => {
       console.log("[VisitReminder] Verificación inicial al arrancar el servidor");
@@ -144,5 +151,5 @@ export function startVisitReminderService(): void {
     }, 50_000); // 50 segundos después del boot
   }
 
-  console.log("[VisitReminder] Servicio de recordatorios de visitas técnicas programado (7PM)");
+  console.log("[VisitReminder] Servicio de recordatorios de visitas técnicas programado (7PM Colombia)");
 }

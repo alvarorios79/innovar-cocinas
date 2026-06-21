@@ -51,9 +51,10 @@ export default function ForgotPassword() {
             <div className="mx-auto w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center mb-2">
               <Mail className="text-white h-8 w-8 md:h-10 md:w-10" />
             </div>
-            <CardTitle className="text-xl md:text-2xl font-bold text-gray-800">Revisa tu WhatsApp</CardTitle>
+            <CardTitle className="text-xl md:text-2xl font-bold text-gray-800">Revisa tu correo</CardTitle>
             <CardDescription className="text-sm md:text-base text-gray-600">
-              Si existe una cuenta con el email <strong>{email}</strong>, recibirás un mensaje con instrucciones para restablecer tu contraseña.
+              Si existe una cuenta con el email <strong>{email}</strong>, recibirás un correo con instrucciones para restablecer tu contraseña.
+              {whatsappLink && " También te enviamos el enlace por WhatsApp."}
             </CardDescription>
           </CardHeader>
           <CardContent className="p-4 md:p-6 pt-0 space-y-4">
@@ -104,7 +105,7 @@ export default function ForgotPassword() {
           </div>
           <CardTitle className="text-xl md:text-2xl font-bold text-gray-800">¿Olvidaste tu contraseña?</CardTitle>
           <CardDescription className="text-sm md:text-base text-gray-600">
-            Ingresa tu email y te enviaremos instrucciones por WhatsApp para restablecer tu contraseña.
+            Ingresa tu email y te enviaremos instrucciones para restablecer tu contraseña.
           </CardDescription>
         </CardHeader>
         <CardContent className="p-4 md:p-6 pt-0">

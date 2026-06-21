@@ -176,7 +176,15 @@ export default function VisitasTecnicas() {
     const clientParam = (visit as any).clientId
       ? `&clientId=${(visit as any).clientId}`
       : `&clientName=${encodeURIComponent(visit.clientName)}&clientPhone=${encodeURIComponent(visit.clientPhone ?? "")}`;
-    navigate(`/quotations?fromVisit=${visit.id}${clientParam}&workType=${visit.workType}`);
+    // Para visitas multi-tipo, pasar todos los workTypes desde measurements._workTypes
+    const visitMeas = (visit as any).measurements as Record<string, any> | null;
+    const multiTypes: string[] | undefined = Array.isArray(visitMeas?._workTypes) && visitMeas._workTypes.length > 1
+      ? visitMeas._workTypes
+      : undefined;
+    const workTypeParam = multiTypes
+      ? `&workTypes=${encodeURIComponent(multiTypes.join(","))}`
+      : `&workType=${visit.workType}`;
+    navigate(`/quotations?fromVisit=${visit.id}${clientParam}${workTypeParam}`);
   };
 
   const handleCreateVisit = () => {

@@ -3,10 +3,10 @@
  * Provides explicit Drizzle connection for test files.
  */
 
-import { drizzle } from "drizzle-orm/mysql2";
-import mysql from "mysql2/promise";
+import { drizzle } from "drizzle-orm/node-postgres";
+import pg from "pg";
 
-let pool: mysql.Pool | null = null;
+let pool: pg.Pool | null = null;
 let testDb: ReturnType<typeof drizzle> | null = null;
 
 export async function getTestDb() {
@@ -17,8 +17,7 @@ export async function getTestDb() {
     throw new Error("DATABASE_URL environment variable is not set");
   }
 
-  pool = mysql.createPool(databaseUrl);
-// @ts-ignore
+  pool = new pg.Pool({ connectionString: databaseUrl });
   testDb = drizzle(pool);
   return testDb;
 }

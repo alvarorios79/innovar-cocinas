@@ -170,7 +170,7 @@ export async function createClient(client: InsertClient, dataOrigin: "manual" | 
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  const result = await db.insert(clients).values({ ...client, dataOrigin }).returning({ id: clients.id });
+  const result = await db.insert(clients).values({ ...client, dataOrigin: dataOrigin as any }).returning({ id: clients.id });
   return result[0].id;
 }
 
@@ -254,7 +254,7 @@ export async function createAppointment(appointment: InsertAppointment, dataOrig
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  const result = await db.insert(appointments).values({ ...appointment, dataOrigin }).returning({ id: appointments.id });
+  const result = await db.insert(appointments).values({ ...appointment, dataOrigin: dataOrigin as any }).returning({ id: appointments.id });
   return result[0].id;
 }
 
@@ -631,7 +631,7 @@ export async function createProject(project: InsertProject, dataOrigin: "manual"
   const crypto = await import("crypto");
   const publicToken = crypto.randomBytes(24).toString("hex");
 
-  const result = await db.insert(projects).values({ ...project, dataOrigin, publicToken }).returning({ id: projects.id });
+  const result = await db.insert(projects).values({ ...project, dataOrigin: dataOrigin as any, publicToken }).returning({ id: projects.id });
   return result[0].id;
 }
 
@@ -1282,7 +1282,7 @@ export async function countTestData() {
   const counts: Record<string, number> = {};
   for (const { table, name } of tables) {
     try {
-      const result = await db.select({ count: sql<number>`COUNT(*)` }).from(table).where(inArray(table.dataOrigin, ['test', 'system']));
+      const result = await db.select({ count: sql<number>`COUNT(*)` }).from(table).where(inArray(table.dataOrigin, ['test', 'system'] as any[]));
       counts[name] = result[0]?.count || 0;
     } catch (error) {
       console.error(`[Count] Error counting ${name}:`, error);
@@ -1327,7 +1327,7 @@ export async function updateUserLastSignedIn(userId: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  await db.update(users).set({ lastSignedIn: new Date() }).where(eq(users.id, userId));
+  await db.update(users).set({ lastSignedIn: new Date().toISOString() } as any).where(eq(users.id, userId));
 }
 
 export async function getFinancialSettings() {
@@ -1639,9 +1639,9 @@ export async function getAllQuotationsGroupedByBase(options?: { page?: number; l
         group.hasProject = projectsForVersions.length > 0;
         if (projectsForVersions.length > 0) {
           const proj = projectsForVersions[0];
-          group.projectId = proj.id;
+          (group as any).projectId = proj.id;
           // quotationId del proyecto = versión vigente que define el precio
-          group.activeProjectQuotationId = proj.quotationId;
+          (group as any).activeProjectQuotationId = proj.quotationId;
         }
       }
     }
@@ -3090,21 +3090,16 @@ export async function getAccountingClosures(filters?: {
  * Get operational expenses for a closure
  */
 export async function getClosureOperationalExpenses(closureId: number) {
-  const pool = await getPool();
-  if (!pool) return [];
-  
-  const conn = await pool.getConnection();
-  try {
-    const [rows] = await conn.execute(
-      `SELECT * FROM accountingClosureOperationalExpenses 
-       WHERE closureId = ? 
-       ORDER BY expenseDate DESC`,
-      [closureId]
-    );
-    return rows as any[];
-  } finally {
-    conn.release();
-  }
+  const db = await getDb();
+  if (!db) return [];
+
+  const rows = await db
+    .select()
+    .from(accountingClosureOperationalExpenses)
+    .where(eq(accountingClosureOperationalExpenses.closureId, closureId))
+    .orderBy(desc(accountingClosureOperationalExpenses.expenseDate));
+
+  return rows;
 }
 
 /**
@@ -4650,7 +4645,7 @@ export async function deleteTestProject(projectId: number) {
       throw new Error('Proyecto no encontrado');
     }
 
-    if (project[0].dataOrigin !== 'test') {
+    if ((project[0] as any).dataOrigin !== 'test') {
       throw new Error('Solo se pueden eliminar proyectos de prueba (dataOrigin = test)');
     }
 
@@ -4699,7 +4694,7 @@ export async function getTestProjectsForDeletion() {
       .from(projects)
       .where(
         and(
-          eq(projects.dataOrigin, 'test'),
+          eq(projects.dataOrigin, 'test' as any),
           isNull(projects.accountingClosureId)
         )
       )

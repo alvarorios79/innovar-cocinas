@@ -8,4 +8,9 @@ export const ENV = {
   whatsappPhoneNumberId: process.env.WHATSAPP_PHONE_NUMBER_ID ?? "",
   whatsappBusinessAccountId: process.env.WHATSAPP_BUSINESS_ACCOUNT_ID ?? "",
   whatsappAccessToken: process.env.WHATSAPP_ACCESS_TOKEN ?? "",
+  // Manus Forge API (usado en entorno de desarrollo Manus, no requerido en Render)
+  forgeApiUrl: process.env.BUILT_IN_FORGE_API_URL ?? "",
+  forgeApiKey: process.env.BUILT_IN_FORGE_API_KEY ?? "",
+  // ID del super_admin principal (protege contra degradación de rol)
+  ownerOpenId: process.env.OWNER_OPEN_ID ?? "",
 };

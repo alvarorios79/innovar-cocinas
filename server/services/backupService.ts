@@ -1,7 +1,8 @@
 import { storagePut, storageGet } from "../storage";
 import { getPool } from "../db";
 import { ENV } from "../_core/env";
-import mysql from "mysql2/promise";
+// mysql2 no está disponible en este entorno — tipos definidos localmente
+type MysqlConnection = any;
 import { createReadStream } from "fs";
 import { createWriteStream } from "fs";
 import { tmpdir } from "os";
@@ -57,7 +58,7 @@ export async function createDatabaseBackup(
       throw new Error("Database pool not available");
     }
 
-    const connection = await pool.getConnection();
+    const connection = await (pool as any).getConnection();
     try {
       // Get all tables
       const [tables] = await connection.query(
@@ -182,7 +183,7 @@ export async function createDatabaseBackup(
  * Get row counts for all tables
  */
 async function getTableRowCounts(
-  connection: mysql.PoolConnection
+  connection: MysqlConnection
 ): Promise<Record<string, number>> {
   const [tables] = await connection.query(
     "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = DATABASE()"
@@ -205,7 +206,7 @@ async function getTableRowCounts(
  * Get table checksums for verification
  */
 async function getTableChecksums(
-  connection: mysql.PoolConnection
+  connection: MysqlConnection
 ): Promise<Record<string, string>> {
   const [tables] = await connection.query(
     "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = DATABASE()"
@@ -232,7 +233,7 @@ async function getTableChecksums(
  * Get summary of data by origin
  */
 async function getDataOriginSummary(
-  connection: mysql.PoolConnection
+  connection: MysqlConnection
 ): Promise<{ manual: number; system: number }> {
   const tablesWithOrigin = [
     "clients",

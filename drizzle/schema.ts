@@ -78,7 +78,7 @@ export const accountingClosureProjects = pgTable("accountingClosureProjects", {
 	projectValue: decimal({ precision: 15, scale: 2 }).notNull(),
 	totalPaid: decimal({ precision: 15, scale: 2 }).notNull(),
 	totalExpenses: decimal({ precision: 15, scale: 2 }).notNull(),
-	profit: decimal({ length: 15, scale: 2 }).notNull(),
+	profit: decimal({ precision: 15, scale: 2 }).notNull(),
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 },
 (table) => [

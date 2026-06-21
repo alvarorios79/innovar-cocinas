@@ -182,9 +182,9 @@ export async function createQuotationVersion(
     generalNotes: parent.generalNotes,
     discountPercent: parent.discountPercent,
     discountAmount: parent.discountAmount,
-  });
+  }).returning({ id: quotations.id });
 
-  const newQuotationId = result[0].insertId;
+  const newQuotationId = result[0].id;
 
   // Copy all items from parent quotation
   const parentItems = await db

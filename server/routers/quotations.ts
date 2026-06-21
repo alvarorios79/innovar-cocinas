@@ -621,7 +621,7 @@ export const quotationsRouter = router({
               : item.hardwareSelections;
             
             // Parsear closetConfig si es string JSON (manejar doble serialización)
-            let closetConfig = item.closetConfig;
+            let closetConfig: any = item.closetConfig;
             if (closetConfig && typeof closetConfig === 'string') {
               try {
                 closetConfig = JSON.parse(closetConfig);
@@ -1589,7 +1589,7 @@ export const quotationsRouter = router({
               : item.hardwareSelections;
             
             // Parsear closetConfig si es string JSON (manejar doble serialización)
-            let closetConfig = item.closetConfig;
+            let closetConfig: any = item.closetConfig;
             if (closetConfig && typeof closetConfig === 'string') {
               try {
                 closetConfig = JSON.parse(closetConfig);

@@ -333,7 +333,7 @@ export const systemRouter = router({
         console.log("[Cleanup] Will delete records with dataOrigin IN ('system', 'test')");
         
         // Count records before deletion
-        const countBefore = await db.select({ count: sql`COUNT(*)` }).from(users).where(inArray(users.dataOrigin, ["system", "test"]));
+        const countBefore = await db.select({ count: sql`COUNT(*)` }).from(users).where(inArray(users.dataOrigin, ["system", "test"] as any[]));
         console.log("[Cleanup] Users to delete:", countBefore[0]?.count || 0);
 
         // 1. Delete notifications (references users)
@@ -398,7 +398,7 @@ export const systemRouter = router({
 
         // 6. Delete appointments (references clients)
         try {
-          const aptResult = await tx.delete(appointments).where(inArray(appointments.dataOrigin, ["system", "test"]));
+          const aptResult = await tx.delete(appointments).where(inArray(appointments.dataOrigin, ["system", "test"] as any[]));
           deletedCounts.appointments = Array.isArray(aptResult) ? aptResult.length : (aptResult as any)?.affectedRows || 0;
           console.log("[Cleanup] Deleted appointments:", deletedCounts.appointments);
         } catch (e) {
@@ -508,7 +508,7 @@ export const systemRouter = router({
 
         // 8. Delete quotations (references clients)
         try {
-          const quotResult = await tx.delete(quotations).where(inArray(quotations.dataOrigin, ["system", "test"]));
+          const quotResult = await tx.delete(quotations).where(inArray(quotations.dataOrigin, ["system", "test"] as any[]));
           deletedCounts.quotations = Array.isArray(quotResult) ? quotResult.length : (quotResult as any)?.affectedRows || 0;
           console.log("[Cleanup] Deleted quotations:", deletedCounts.quotations);
         } catch (e) {
@@ -518,7 +518,7 @@ export const systemRouter = router({
 
         // 9. Delete projects (references clients)
         try {
-          const projResult = await tx.delete(projects).where(inArray(projects.dataOrigin, ["system", "test"]));
+          const projResult = await tx.delete(projects).where(inArray(projects.dataOrigin, ["system", "test"] as any[]));
           deletedCounts.projects = Array.isArray(projResult) ? projResult.length : (projResult as any)?.affectedRows || 0;
           console.log("[Cleanup] Deleted projects:", deletedCounts.projects);
         } catch (e) {
@@ -563,7 +563,7 @@ export const systemRouter = router({
 
         // 12. Delete clients (references users)
         try {
-          const clientResult = await tx.delete(clients).where(inArray(clients.dataOrigin, ["system", "test"]));
+          const clientResult = await tx.delete(clients).where(inArray(clients.dataOrigin, ["system", "test"] as any[]));
           deletedCounts.clients = Array.isArray(clientResult) ? clientResult.length : (clientResult as any)?.affectedRows || 0;
           console.log("[Cleanup] Deleted clients:", deletedCounts.clients);
         } catch (e) {
@@ -573,7 +573,7 @@ export const systemRouter = router({
 
         // 13. Delete users (final step)
         try {
-          const userResult = await tx.delete(users).where(inArray(users.dataOrigin, ["system", "test"]));
+          const userResult = await tx.delete(users).where(inArray(users.dataOrigin, ["system", "test"] as any[]));
           deletedCounts.users = Array.isArray(userResult) ? userResult.length : (userResult as any)?.affectedRows || 0;
           console.log("[Cleanup] Deleted users:", deletedCounts.users);
         } catch (e) {

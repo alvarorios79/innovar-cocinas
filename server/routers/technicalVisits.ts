@@ -201,7 +201,7 @@ export const technicalVisitsRouter = router({
       clientPhone:   z.string().optional(),
       clientAddress: z.string().optional(),
       workType:      z.enum(["cocina", "closet", "puertas", "centro_tv"]).optional(),
-      measurements:  z.record(z.unknown()).optional(),
+      measurements:  z.record(z.string(), z.unknown()).optional(),
       notes:         z.string().optional(),
     }))
     .mutation(async ({ ctx, input }) => {

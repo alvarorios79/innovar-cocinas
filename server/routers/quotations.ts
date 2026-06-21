@@ -25,6 +25,7 @@ export const quotationsRouter = router({
         productType: z.enum(["cocina", "closet", "puerta", "centro_tv", "herrajes", "mesones", "acabados_especiales", "otro"]).optional(),
         discountPercent: z.number().min(0).max(100).optional().default(0),
         generalNotes: z.string().optional(),
+        visitId: z.number().optional(), // visita técnica origen (si aplica)
         items: z.array(z.object({
           itemNumber: z.number(),
           itemType: z.string(),
@@ -111,6 +112,19 @@ export const quotationsRouter = router({
 
           return qId;
         });
+
+        // Si la cotización viene de una visita técnica, marcarla como convertida
+        if (input.visitId) {
+          try {
+            await db.updateTechnicalVisit(input.visitId, {
+              status: "convertida" as any,
+              quotationId: quotationId,
+            });
+            console.log(`[Quotations] Visita técnica ${input.visitId} marcada como convertida → cotización ${quotationId}`);
+          } catch (visitErr) {
+            console.error("[Quotations] Error marcando visita como convertida:", visitErr);
+          }
+        }
 
         // Generar PDF automaticamente
         try {

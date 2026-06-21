@@ -351,12 +351,6 @@ export default function Medidor() {
   const [showPhotoCategories, setShowPhotoCategories] = useState(false);
   const [selectedPhotoCategory, setSelectedPhotoCategory] = useState("foto");
 
-  // Form nueva visita
-  const [form, setForm] = useState({
-    clientName: "", clientPhone: "", clientAddress: "",
-    workType: "cocina" as WorkType,
-  });
-
   // Estado local del detalle
   const [localMeasurements, setLocalMeasurements] = useState<Record<string, string>>({});
   const [localNotes, setLocalNotes]               = useState("");

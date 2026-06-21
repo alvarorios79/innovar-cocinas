@@ -1,3 +1,7 @@
+# Archivos temporales generados
+generate_doc.js
+*.docx
+
 # Dependencies
 **/node_modules
 .pnpm-store/

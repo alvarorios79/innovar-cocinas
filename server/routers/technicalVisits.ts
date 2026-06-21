@@ -142,7 +142,7 @@ export const technicalVisitsRouter = router({
         scheduledDate: input.scheduledDate,
       } as any);
 
-      // Notificar al medidor
+      // Notificar al medidor (push)
       try {
         const { createAndSendNotification } = await import("../push-notifications");
         await createAndSendNotification(input.assignedTo, {
@@ -153,6 +153,41 @@ export const technicalVisitsRouter = router({
         });
       } catch (err) {
         console.error("[technicalVisits.assign] Error notificando medidor:", err);
+      }
+
+      // Notificar al cliente por WhatsApp con nombre del medidor y fecha
+      if (visit.clientPhone) {
+        try {
+          const medidor = await db.getUserById(input.assignedTo);
+          const scheduledDate = input.scheduledDate ? new Date(input.scheduledDate) : null;
+          const dateFormatted = scheduledDate
+            ? scheduledDate.toLocaleDateString("es-CO", {
+                weekday: "long", day: "2-digit", month: "long",
+                hour: "2-digit", minute: "2-digit", timeZone: "America/Bogota",
+              })
+            : null;
+
+          const medidorName = medidor?.name || "nuestro técnico de medidas";
+          let mensaje = `📐 *INNOVAR Cocinas de Diseño*\n\n` +
+            `Hola *${visit.clientName}*, queremos informarte que hemos programado tu visita técnica.\n\n` +
+            `👤 *Técnico asignado:* ${medidorName}\n`;
+
+          if (dateFormatted) {
+            mensaje += `📅 *Fecha:* ${dateFormatted}\n`;
+          }
+          if (visit.clientAddress) {
+            mensaje += `📍 *Dirección:* ${visit.clientAddress}\n`;
+          }
+
+          mensaje += `\nPor favor asegúrate de estar en casa en esa fecha y hora. Si necesitas reagendar, comunícate con nosotros.\n\n_INNOVAR Cocinas de Diseño_`;
+
+          const whatsappCloud = await import("../whatsapp-cloud");
+          if (whatsappCloud.isWhatsAppCloudConfigured()) {
+            await whatsappCloud.sendTextMessage(visit.clientPhone, mensaje);
+          }
+        } catch (waErr) {
+          console.error("[technicalVisits.assign] Error enviando WhatsApp al cliente:", waErr);
+        }
       }
 
       return { success: true };
@@ -252,7 +287,7 @@ export const technicalVisitsRouter = router({
       const visit = await db.getTechnicalVisitById(input.visitId);
       if (!visit) throw new TRPCError({ code: "NOT_FOUND", message: "Visita no encontrada" });
 
-      if (ctx.user.role === "medidor" && visit.createdBy !== ctx.user.id) {
+      if (ctx.user.role === "medidor" && (visit as any).assignedTo !== ctx.user.id) {
         throw new TRPCError({ code: "FORBIDDEN", message: "No puedes editar esta visita" });
       }
 
@@ -297,7 +332,7 @@ export const technicalVisitsRouter = router({
 
       if (ctx.user.role === "medidor") {
         const visit = await db.getTechnicalVisitById(photo.visitId);
-        if (!visit || visit.createdBy !== ctx.user.id) {
+        if (!visit || (visit as any).assignedTo !== ctx.user.id) {
           throw new TRPCError({ code: "FORBIDDEN", message: "No puedes eliminar esta foto" });
         }
       }

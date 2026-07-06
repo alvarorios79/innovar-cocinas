@@ -14,6 +14,7 @@ interface PDFPreviewBeforeSaveProps {
   pdfUrl: string;
   isGenerating?: boolean;
   quotationNumber?: string;
+  quotationId?: number;
 }
 
 export function PDFPreviewBeforeSave({
@@ -22,6 +23,7 @@ export function PDFPreviewBeforeSave({
   pdfUrl,
   isGenerating = false,
   quotationNumber = "preview",
+  quotationId,
 }: PDFPreviewBeforeSaveProps) {
   const [numPages, setNumPages] = useState<number>(0);
   const [pageNumber, setPageNumber] = useState<number>(1);
@@ -63,21 +65,20 @@ export function PDFPreviewBeforeSave({
   };
 
   const handleDownload = async () => {
-    const downloadUrl = pdfUrl.replace("?preview=true", "").replace("&preview=true", "");
     const cleanName = quotationNumber.replace(/[^a-zA-Z0-9\-_\s]/g, '').replace(/\s+/g, '_');
     const filename = `${cleanName}.pdf`;
+    
+    // Usar el endpoint S3 estable si tenemos el ID; si no, fallback al URL temporal
+    const downloadUrl = quotationId
+      ? `/api/quotations/pdf/${quotationId}?download=true`
+      : pdfUrl.replace("?preview=true", "").replace("&preview=true", "");
     
     if (isIOS) {
       // En iOS, usar la función compatible
       await downloadPDFiOS(downloadUrl, filename);
     } else {
-      // En desktop, usar método tradicional
-      const link = document.createElement("a");
-      link.href = downloadUrl;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      // En desktop, navegar directamente (el servidor redirige a S3 con Content-Disposition: attachment)
+      window.open(downloadUrl, '_blank');
     }
   };
 

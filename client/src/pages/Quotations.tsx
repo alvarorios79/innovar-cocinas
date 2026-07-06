@@ -8,6 +8,7 @@ import { DoorConfigurator, DoorConfig } from "@/components/DoorConfigurator";
 import { TVCenterConfigurator, TVCenterConfig } from "@/components/TVCenterConfigurator";
 import { KitchenConfigurator, KitchenConfig } from "@/components/KitchenConfigurator";
 import { CountertopConfigurator, CountertopConfig, defaultCountertopConfig } from "@/components/CountertopConfigurator";
+import { MuebleCocinaConfigurator, MuebleCocinaConfig, defaultMuebleCocinaConfig, calcularMuebleCocina } from "@/components/MuebleCocinaConfigurator";
 import { PDFPreviewBeforeSave } from "@/components/PDFPreviewBeforeSave";
 import { PDFContentEditor } from "@/components/PDFContentEditor";
 import { Button } from "@/components/ui/button";
@@ -72,6 +73,7 @@ interface QuotationItem {
   doorConfig?: DoorConfig;
   tvCenterConfig?: TVCenterConfig;
   countertopConfig?: CountertopConfig;
+  muebleCocinaConfig?: MuebleCocinaConfig;
   acabadosConfig?: AcabadosConfig;
 }
 
@@ -186,36 +188,6 @@ export default function Quotations() {
       setShowCreateDialog(true);
     }
   }, [location]);
-
-  // Detectar si viene desde una visita técnica (?fromVisit=ID)
-  const fromVisitParams = useMemo(() => {
-    const search = window.location.search;
-    if (!search.includes("fromVisit")) return null;
-    const p = new URLSearchParams(search);
-    const id = p.get("fromVisit");
-    if (!id) return null;
-    return {
-      visitId:    parseInt(id),
-      clientName: p.get("clientName") ?? "",
-      clientPhone: p.get("clientPhone") ?? "",
-      workType:   p.get("workType") ?? "",
-    };
-  }, [location]);
-
-  const markVisitConverted = trpc.technicalVisits.markConverted.useMutation();
-
-  useEffect(() => {
-    if (fromVisitParams) {
-      setShowCreateDialog(true);
-      if (fromVisitParams.workType) {
-        const wt = fromVisitParams.workType === "centro_tv" ? "centro_tv"
-          : fromVisitParams.workType === "puertas" ? "puerta"
-          : fromVisitParams.workType === "closet"  ? "closet"
-          : "cocina";
-        setWorkType(wt);
-      }
-    }
-  }, [fromVisitParams?.visitId]);
   const [editingQuotation, setEditingQuotation] = useState<number | null>(null);
   const [selectedClient, setSelectedClient] = useState<number | null>(null);
   const VENDOR_OPTIONS = ["Alvaro Ríos", "Martha Serna"];
@@ -395,19 +367,12 @@ export default function Quotations() {
     filterHasProject !== "all";
 
   const createQuotation = trpc.quotations.create.useMutation({
-    onSuccess: (data: any) => {
+    onSuccess: () => {
       utils.quotations.list.invalidate();
       utils.quotations.listPaginatedGrouped.invalidate();
       toast.success("Cotización creada exitosamente");
       setShowCreateDialog(false);
       resetForm();
-      // Si venía de una visita técnica, marcarla como convertida
-      if (fromVisitParams?.visitId) {
-        markVisitConverted.mutate({
-          visitId:     fromVisitParams.visitId,
-          quotationId: data?.id,
-        });
-      }
     },
     onError: (error) => {
       toast.error(error.message || "Error al crear cotización");
@@ -1363,6 +1328,11 @@ export default function Quotations() {
           toast.error(`Item ${i + 1}: El total del mesón debe ser mayor a 0`);
           return;
         }
+      } else if (item.itemType === "mueble_cocina") {
+        if (!item.muebleCocinaConfig || item.muebleCocinaConfig.total <= 0) {
+          toast.error(`Item ${i + 1}: Configura el mueble de cocina`);
+          return;
+        }
       } else if (item.itemType === "acabados_especiales") {
         // Para acabados especiales: validar que tenga al menos un acabado
         const config = item.acabadosConfig;
@@ -1574,6 +1544,41 @@ export default function Quotations() {
           totalPrice: config.total,
         };
       }
+      // Para mueble_cocina (Piezas de Cocina): generar descripción automática
+      if (item.itemType === "mueble_cocina" && item.muebleCocinaConfig) {
+        const cfg = item.muebleCocinaConfig;
+        const LABELS: Record<string, string> = {
+          isla: "Isla", barra: "Barra", mueble_alto: "Muebles Altos", mueble_bajo: "Muebles Bajos",
+          nicho_nevecon: "Nicho Nevecón (100cm)", nicho_nevera: "Nicho Nevera (75cm)",
+          alacena_entrepanos: "Alacena Entrepaños (50cm)", alacena_herraje: "Alacena Herraje (50cm)",
+          torre_hornos: "Torre de Hornos (70cm)",
+        };
+        const labelMat: Record<string, string> = { granito: "Granito", cuarzo: "Cuarzo", sinterizado: "Sinterizado" };
+        const piezasFijas = ["nicho_nevecon","nicho_nevera","alacena_entrepanos","alacena_herraje","torre_hornos"];
+        const parts: string[] = [LABELS[cfg.tipoPieza] || cfg.tipoPieza];
+        if (!piezasFijas.includes(cfg.tipoPieza)) {
+          if (cfg.tipoPieza !== "barra" && cfg.madreraML > 0) parts.push(`${cfg.madreraML}ml madera`);
+          if (cfg.incluyeMeson || cfg.tipoPieza === "barra") parts.push(`mesón ${labelMat[cfg.mesonMaterial]} ${cfg.mesonML}ml`);
+          if (cfg.tipoPieza === "mueble_alto" && cfg.incluyeLed) parts.push("con LED");
+          if (cfg.incluyeLavaplatos) parts.push("lavaplatos");
+          if (cfg.tipoPieza === "barra") { if (cfg.incluyePedestal) parts.push("pedestal"); if (cfg.incluyeHerraje) parts.push("herraje"); }
+          if (cfg.incluyePintado && cfg.subtotalPintado > 0) parts.push("pintado alto brillo");
+          // Módulos descriptivos
+          const mods = cfg.modulosDescriptivos || {};
+          const modActivos = Object.entries(mods).filter(([,v]) => v).map(([k]) => {
+            const MAP: Record<string,string> = {
+              esquineroSuperior:"esquinero sup", moduloExtractor:"extractor", moduloMicroondas:"microondas",
+              especiero:"especiero", botellero:"botellero", moduloRepisa:"repisa", moduloAlmacSup:"almac. sup",
+              esquinero1x1:"esquinero 1×1", cajoneroTriple:"cajonero triple", cajoneroDoble:"cajonero doble",
+              basurero:"basurero", moduloEstufaHorno:"estufa/horno", moduloAlmacInf:"almac. inf",
+            };
+            return MAP[k] || k;
+          });
+          if (modActivos.length) parts.push(modActivos.join(", "));
+        }
+        if (cfg.notas) parts.push(cfg.notas);
+        return { ...item, description: parts.join(" · "), quantity: "1", totalPrice: cfg.total };
+      }
       // Para herrajes: generar descripción automática y cantidad basada en selecciones
       if (item.itemType === "herrajes" && item.hardwareSelections && item.hardwareSelections.length > 0) {
         const description = item.hardwareSelections.map(s => `${s.name} x${s.quantity}`).join(", ");
@@ -1651,7 +1656,7 @@ export default function Quotations() {
         id: editingQuotation,
         clientId: selectedClient,
         vendorName,
-        productType: (workType || items[0]?.itemType || "otro") as "cocina" | "closet" | "puerta" | "centro_tv" | "herrajes" | "mesones" | "otro",
+        productType: (workType || items[0]?.itemType || "otro") as "cocina" | "closet" | "puerta" | "centro_tv" | "herrajes" | "mesones" | "mueble_cocina" | "otro",
         discountPercent,
         generalNotes: notesWithTerms,
         items: itemsWithDescriptions,
@@ -1661,7 +1666,7 @@ export default function Quotations() {
       createQuotation.mutate({
         clientId: selectedClient,
         vendorName,
-        productType: (workType || items[0]?.itemType || "otro") as "cocina" | "closet" | "puerta" | "centro_tv" | "herrajes" | "mesones" | "otro",
+        productType: (workType || items[0]?.itemType || "otro") as "cocina" | "closet" | "puerta" | "centro_tv" | "herrajes" | "mesones" | "mueble_cocina" | "otro",
         discountPercent,
         generalNotes: notesWithTerms,
         items: itemsWithDescriptions,
@@ -1682,7 +1687,7 @@ export default function Quotations() {
   };
 
   return (
-    <div className="pb-20 md:pb-6">
+    <div className="container mx-auto py-6 pb-20 md:pb-6">
       <PageHeader
         title="Cotizaciones"
         subtitle="Gestiona y controla las cotizaciones de proyectos"
@@ -1971,7 +1976,8 @@ export default function Quotations() {
                        quot.productType === "puerta" ? "Puertas" :
                        quot.productType === "centro_tv" ? "Centro de TV" :
                        quot.productType === "herrajes" ? "Herrajes" :
-                       quot.productType === "mesones" ? "Mesones" : "Otro"}
+                       quot.productType === "mesones" ? "Mesón Solo" :
+                       quot.productType === "mueble_cocina" ? "Piezas de Cocina" : "Otro"}
                     </p>
                   </div>
                   {getStatusBadge(quot.status)}
@@ -2095,20 +2101,6 @@ export default function Quotations() {
           </div>
 
           <form onSubmit={handleSubmit} className="p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6">
-            {/* Banner: cotización desde visita técnica */}
-            {fromVisitParams && !editingQuotation && (
-              <div className="bg-[#1DB5A8]/10 border border-[#1DB5A8]/30 rounded-lg px-4 py-3 flex items-start gap-3">
-                <span className="text-xl">📐</span>
-                <div>
-                  <p className="text-sm font-semibold text-[#1DB5A8]">Cotización desde visita técnica</p>
-                  <p className="text-xs text-gray-300 mt-0.5">
-                    Cliente: <span className="font-medium text-white">{fromVisitParams.clientName}</span>
-                    {fromVisitParams.clientPhone && ` · ${fromVisitParams.clientPhone}`}
-                  </p>
-                  <p className="text-xs text-gray-400 mt-0.5">Selecciona o crea el cliente en el formulario. Al guardar la visita quedará marcada como convertida.</p>
-                </div>
-              </div>
-            )}
             {/* Sección: Información General */}
             <div className="bg-[rgba(106,207,199,0.05)] rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-5 border border-[rgba(106,207,199,0.12)] shadow-sm">
               <h3 className="text-sm sm:text-base font-semibold text-white/85 flex items-center gap-2 mb-3 sm:mb-4">
@@ -2273,11 +2265,12 @@ export default function Quotations() {
                           {item.itemNumber}
                         </div>
                         <span className="font-semibold text-white/85 text-sm sm:text-base">
-                          {item.itemType === 'cocina' ? 'Cocina Integral' : 
+                          {item.itemType === 'cocina' ? 'Cocina Integral' :
                            item.itemType === 'closet' ? 'Closet' :
                            item.itemType === 'puerta' ? 'Puerta' :
                            item.itemType === 'centro_tv' ? 'Centro de TV' :
-                           item.itemType === 'mesones' ? 'Mesones' :
+                           item.itemType === 'mesones' ? 'Mesón Solo' :
+                           item.itemType === 'mueble_cocina' ? 'Piezas de Cocina' :
                            item.itemType === 'herrajes' ? 'Herrajes' :
                            item.itemType === 'otro' ? 'Otro' : 'Nuevo Producto'}
                         </span>
@@ -2329,8 +2322,11 @@ export default function Quotations() {
                               <SelectItem value="centro_tv">
                                 <span className="flex items-center gap-2"><Tv className="h-4 w-4 text-blue-500" /> Centro de TV</span>
                               </SelectItem>
+                              <SelectItem value="mueble_cocina">
+                                <span className="flex items-center gap-2"><ChefHat className="h-4 w-4 text-teal-400" /> Piezas de Cocina</span>
+                              </SelectItem>
                               <SelectItem value="mesones">
-                                <span className="flex items-center gap-2"><Ruler className="h-4 w-4 text-white/45" /> Mesones</span>
+                                <span className="flex items-center gap-2"><Ruler className="h-4 w-4 text-white/45" /> Mesón Solo</span>
                               </SelectItem>
                               <SelectItem value="herrajes">
                                 <span className="flex items-center gap-2"><Wrench className="h-4 w-4 text-gray-500" /> Herrajes</span>
@@ -3743,8 +3739,24 @@ export default function Quotations() {
                           </>
                         )}
 
+                        {/* Configurador de Mueble de Cocina (Isla / Barra / Muebles Altos / Muebles Bajos) */}
+                        {item.itemType === "mueble_cocina" && (
+                          <MuebleCocinaConfigurator
+                            config={item.muebleCocinaConfig || calcularMuebleCocina(defaultMuebleCocinaConfig("isla"))}
+                            onChange={(config: MuebleCocinaConfig) => {
+                              const newItems = [...items];
+                              newItems[index] = {
+                                ...newItems[index],
+                                muebleCocinaConfig: config,
+                                totalPrice: config.total,
+                              };
+                              setItems(newItems);
+                            }}
+                          />
+                        )}
+
                         {/* Campos estándar para otros tipos */}
-                        {item.itemType !== "cocina" && item.itemType !== "herrajes" && item.itemType !== "closet" && item.itemType !== "puerta" && item.itemType !== "centro_tv" && item.itemType !== "mesones" && (
+                        {item.itemType !== "cocina" && item.itemType !== "herrajes" && item.itemType !== "closet" && item.itemType !== "puerta" && item.itemType !== "centro_tv" && item.itemType !== "mesones" && item.itemType !== "mueble_cocina" && (
                           <>
                             <div>
                               <Label>Descripción *</Label>

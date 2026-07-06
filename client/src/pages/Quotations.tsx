@@ -205,6 +205,7 @@ export default function Quotations() {
   const [previewBeforeSaveOpen, setPreviewBeforeSaveOpen] = useState(false);
   const [previewBeforeSaveUrl, setPreviewBeforeSaveUrl] = useState("");
   const [previewQuotationNumber, setPreviewQuotationNumber] = useState("");
+  const [previewBeforeSaveId, setPreviewBeforeSaveId] = useState<number | undefined>();
   
   // Estados para filtros
   const [filterClient, setFilterClient] = useState<string>("");
@@ -508,6 +509,7 @@ export default function Quotations() {
 
   const handlePreviewClick = (quotationId: number, quotationNumber: string) => {
     setPreviewQuotationNumber(quotationNumber);
+    setPreviewBeforeSaveId(quotationId);
     previewPDF.mutate({ id: quotationId });
   };
 
@@ -4025,6 +4027,7 @@ export default function Quotations() {
         pdfUrl={previewBeforeSaveUrl}
         isGenerating={previewPDF.isPending}
         quotationNumber={previewQuotationNumber}
+        quotationId={previewBeforeSaveId}
       />
 
       <PDFContentEditor

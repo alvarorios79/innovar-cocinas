@@ -168,6 +168,15 @@ export function TeamDashboard() {
   const draftQuotations = quotations.filter(q => q.status === "draft");
   const sentQuotations = quotations.filter(q => q.status === "sent");
 
+  // Citas programadas para hoy (comparación por fecha local)
+  const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
+  const todayEnd   = new Date(); todayEnd.setHours(23, 59, 59, 999);
+  const todayAppointments = appointments.filter(a => {
+    if (!a.scheduledDate) return false;
+    const d = new Date(a.scheduledDate);
+    return d >= todayStart && d <= todayEnd;
+  });
+
   // Estadísticas por rol
   const getStats = () => {
     switch (role) {
@@ -400,16 +409,16 @@ export function TeamDashboard() {
         ];
       default: // super_admin
         return [
-          { 
-            label: "Proyectos Activos", 
+          {
+            label: "Proyectos Activos",
             value: projects.filter(p => !["entregado", "cancelado"].includes(p.status)).length,
             icon: <Briefcase className="h-6 w-6" />,
             color: "bg-gradient-to-br from-slate-600 to-gray-700",
             link: "/projects"
           },
-          { 
-            label: "Citas Hoy", 
-            value: pendingAppointments.length,
+          {
+            label: "Citas Hoy",
+            value: todayAppointments.length,
             icon: <Calendar className="h-6 w-6" />,
             color: "bg-gradient-to-br from-teal-500 to-emerald-500",
             link: "/appointments-calendar"

@@ -222,20 +222,20 @@ export async function generateQuotationPDF(data: QuotationData, outputPath: stri
         doc.rect(ML, Y, CW, rowH).fill(alt ? LGRAY : WHITE).stroke(BORDER);
 
         // Marcador # con color teal
-        doc.fontSize(9).fillColor(TEAL).font("Helvetica-Bold")
-           .text(String(item.itemNumber), ML + 8, Y + 8, { width: 22, align: "center" });
+        doc.fontSize(10.5).fillColor(TEAL).font("Helvetica-Bold")
+           .text(String(item.itemNumber), ML + 8, Y + 10, { width: 22, align: "center" });
 
         // Descripción
-        doc.fontSize(8.5).fillColor(DGRAY).font("Helvetica")
-           .text(item.description, ML + 34, Y + 7, { width: 326, lineGap: 1.5 });
+        doc.fontSize(10).fillColor(DGRAY).font("Helvetica")
+           .text(item.description, ML + 34, Y + 8, { width: 326, lineGap: 2 });
 
         // Cantidad
-        doc.fontSize(8.5).fillColor(MGRAY).font("Helvetica")
-           .text(item.quantity, ML + 368, Y + 8, { width: 46, align: "center" });
+        doc.fontSize(10).fillColor(MGRAY).font("Helvetica")
+           .text(item.quantity, ML + 368, Y + 10, { width: 46, align: "center" });
 
         // Precio
-        doc.fontSize(8.5).fillColor(DGRAY).font("Helvetica-Bold")
-           .text(fmt(item.totalPrice), ML + 420, Y + 8, { width: 96, align: "right" });
+        doc.fontSize(10.5).fillColor(DGRAY).font("Helvetica-Bold")
+           .text(fmt(item.totalPrice), ML + 420, Y + 10, { width: 96, align: "right" });
 
         Y += rowH;
         alt = !alt;

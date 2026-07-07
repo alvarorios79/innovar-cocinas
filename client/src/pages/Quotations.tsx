@@ -662,8 +662,10 @@ export default function Quotations() {
       
       setEditingQuotation(quotationId);
       setSelectedClient(quotationGroup.clientId);
-      setVendorName(quotationGroup.vendorName);
-      setWorkType(quotationGroup.productType);
+      // Cargar vendorName del dato real de la cotización, no del grupo
+      const loadedVendor = (quotationData as any)?.vendorName || quotationGroup.vendorName || "";
+      setVendorName(loadedVendor && VENDOR_OPTIONS.includes(loadedVendor) ? loadedVendor : "Alvaro Ríos");
+      setWorkType((quotationData as any)?.productType || quotationGroup.productType || "");
       
       // Cargar descuento si existe
       const quotationDiscount = (quotationData as any)?.discountPercent;

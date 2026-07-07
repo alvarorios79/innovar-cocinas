@@ -37,22 +37,17 @@ interface QuotationData {
   baseQuotationNumber?: string;
 }
 
-// ── Colores marca Innovar ────────────────────────────────────────────────────
-const C = {
-  teal:      "#00BCD4",
-  tealDark:  "#0097A7",
-  tealLight: "#E0F7FA",
-  dark:      "#1A1A2E",
-  gray:      "#4A5568",
-  grayMid:   "#718096",
-  grayLight: "#F7F8FA",
-  grayBorder:"#E2E8F0",
-  white:     "#FFFFFF",
-  red:       "#E53E3E",
-  black:     "#000000",
-};
+// Colores — fondo blanco, acentos teal
+const TEAL      = "#00BCD4";
+const TEAL_DARK = "#0097A7";
+const DARK      = "#2D3748";
+const GRAY      = "#4A5568";
+const GRAY_MID  = "#718096";
+const GRAY_LT   = "#F7FAFC";
+const BORDER    = "#CBD5E0";
+const RED       = "#C53030";
+const WHITE     = "#FFFFFF";
 
-// Buscar logo en varias rutas posibles (dev y producción en Render)
 function findLogo(): string | null {
   const candidates = [
     path.join(__dirname, "../client/public/logo-original.png"),
@@ -70,13 +65,11 @@ function findLogo(): string | null {
   return null;
 }
 
-function formatCurrency(value: string | number): string {
-  const num = typeof value === "string"
+function fmt(value: string | number): string {
+  const n = typeof value === "string"
     ? parseFloat(value.replace(/[^0-9.-]/g, "")) || 0
     : (value || 0);
-  return isNaN(num)
-    ? "$0"
-    : `$${num.toLocaleString("es-CO", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+  return isNaN(n) ? "$0" : `$${n.toLocaleString("es-CO", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
 }
 
 export async function generateQuotationPDF(
@@ -87,300 +80,285 @@ export async function generateQuotationPDF(
     try {
       const doc = new PDFDocument({
         size: "LETTER",
-        margins: { top: 0, bottom: 40, left: 0, right: 0 },
+        margins: { top: 30, bottom: 40, left: 45, right: 45 },
         bufferPages: true,
       });
 
       const stream = createWriteStream(outputPath);
       doc.pipe(stream);
 
-      const PW = 612;  // page width
-      const PH = 792;  // page height
-      const ML = 45;   // margin left
-      const MR = 45;   // margin right
-      const CW = PW - ML - MR; // content width = 522
+      const PW = 612;
+      const PH = 792;
+      const ML = 45;
+      const MR = 45;
+      const CW = PW - ML - MR; // 522
 
-      // ── HEADER BLOCK ──────────────────────────────────────────────────────
-      // Fondo superior oscuro
-      doc.rect(0, 0, PW, 110).fill(C.dark);
-
-      // Franja teal en la parte baja del header
-      doc.rect(0, 94, PW, 6).fill(C.teal);
-
-      // Logo
+      // ─────────────────────────────────────────────────────────────────────
+      // CABECERA
+      // ─────────────────────────────────────────────────────────────────────
       const logoPath = findLogo();
+      const LOGO_H = 68;
+
       if (logoPath) {
-        try {
-          doc.image(logoPath, ML, 12, { height: 72, fit: [150, 72] });
-        } catch {}
+        try { doc.image(logoPath, ML, 28, { height: LOGO_H, fit: [160, LOGO_H] }); }
+        catch {}
       } else {
-        // Texto del logo si no hay imagen
-        doc.fontSize(22).fillColor(C.teal).font("Helvetica-Bold")
-           .text("INNOVAR", ML, 22);
-        doc.fontSize(9).fillColor(C.white).font("Helvetica")
-           .text("COCINAS DE DISEÑO", ML, 48);
+        // Wordmark de respaldo
+        doc.fontSize(24).fillColor(TEAL).font("Helvetica-Bold")
+           .text("INNOVAR", ML, 32);
+        doc.fontSize(9).fillColor(GRAY).font("Helvetica")
+           .text("COCINAS DE DISEÑO", ML, 60);
       }
 
-      // Info contacto — derecha del header
-      doc.fontSize(8).fillColor(C.white).font("Helvetica");
-      const contactX = PW - MR - 200;
-      doc.text("Km 9 vía Cerritos · Pereira, Risaralda", contactX, 20, { width: 200, align: "right" });
-      doc.text("313 680 2025", contactX, 32, { width: 200, align: "right" });
-      doc.text("ventas@cocinasintegralespereira.co", contactX, 44, { width: 200, align: "right" });
-      doc.text("cocinasintegralespereira.co", contactX, 56, { width: 200, align: "right" });
-      doc.fontSize(7.5).fillColor(C.teal).font("Helvetica-Bold")
-         .text("NIT: 10021456-1", contactX, 70, { width: 200, align: "right" });
+      // Bloque cotización — esquina superior derecha
+      const cqX = PW - MR - 190;
+      doc.rect(cqX, 28, 190, LOGO_H).fill(GRAY_LT).stroke(BORDER);
+      doc.rect(cqX, 28, 190, 22).fill(TEAL);
+      doc.fontSize(9).fillColor(WHITE).font("Helvetica-Bold")
+         .text("COTIZACIÓN", cqX + 8, 35);
 
-      // ── BANNER COTIZACIÓN ─────────────────────────────────────────────────
-      // Bloque teal con número de cotización
-      doc.rect(0, 100, PW, 52).fill(C.tealLight);
-
-      // Número de cotización
-      doc.fontSize(9).fillColor(C.grayMid).font("Helvetica")
-         .text("COTIZACIÓN", ML, 112);
-      doc.fontSize(13).fillColor(C.tealDark).font("Helvetica-Bold")
-         .text(data.quotationNumber, ML, 124);
+      // Número cotización
+      doc.fontSize(8).fillColor(DARK).font("Helvetica-Bold")
+         .text(data.quotationNumber, cqX + 8, 56, { width: 174 });
 
       // Versión si aplica
       if (data.versionNumber && data.versionNumber > 1) {
-        doc.fontSize(8).fillColor(C.gray).font("Helvetica")
-           .text(`Versión v${data.versionNumber}`, ML + 260, 119);
+        doc.fontSize(7.5).fillColor(GRAY_MID).font("Helvetica")
+           .text(`Versión v${data.versionNumber}`, cqX + 8, 68, { width: 174 });
       }
 
-      // Fecha y validez — derecha
-      const infoRightX = PW - MR - 200;
-      doc.fontSize(8).fillColor(C.grayMid).font("Helvetica")
-         .text(`Fecha: ${data.date}`, infoRightX, 112, { width: 200, align: "right" });
-      doc.fontSize(8).fillColor(C.gray).font("Helvetica")
-         .text(`Válida hasta: ${data.validUntil}`, infoRightX, 124, { width: 200, align: "right" });
+      // Fecha y validez
+      doc.fontSize(7.5).fillColor(GRAY).font("Helvetica")
+         .text(`Fecha: ${data.date}`, cqX + 8, 80, { width: 174 })
+         .text(`Válida hasta: ${data.validUntil}`, cqX + 8, 90, { width: 174 });
 
-      // Forma de pago inline
-      doc.fontSize(8).fillColor(C.tealDark).font("Helvetica-Bold")
-         .text("Forma de pago: 60% inicial — 40% al finalizar obra", ML, 138, { width: CW });
+      // Datos de contacto — bajo el logo, columna izquierda
+      const contactY = 104;
+      doc.fontSize(7.5).fillColor(GRAY).font("Helvetica")
+         .text("Km 9 vía Cerritos · Pereira, Risaralda", ML, contactY)
+         .text("313 680 2025  ·  ventas@cocinasintegralespereira.co", ML, contactY + 11)
+         .text("cocinasintegralespereira.co  ·  NIT: 10021456-1", ML, contactY + 22);
 
-      let Y = 165;
+      // Línea divisoria teal
+      const lineY = contactY + 38;
+      doc.rect(ML, lineY, CW, 2).fill(TEAL);
 
-      // ── BLOQUE CLIENTE ────────────────────────────────────────────────────
-      // Encabezado
-      doc.rect(ML, Y, CW, 20).fill(C.teal);
-      doc.fontSize(9).fillColor(C.white).font("Helvetica-Bold")
-         .text("DATOS DEL CLIENTE", ML + 8, Y + 6);
-      Y += 20;
+      let Y = lineY + 14;
 
-      // Contenido cliente
-      const clientBoxH = data.clientPhone || data.clientAddress || data.clientEmail ? 54 : 36;
-      doc.rect(ML, Y, CW, clientBoxH).fill(C.white)
-         .rect(ML, Y, CW, clientBoxH).stroke(C.grayBorder);
+      // ─────────────────────────────────────────────────────────────────────
+      // DATOS CLIENTE + PROYECTO (dos columnas)
+      // ─────────────────────────────────────────────────────────────────────
+      const halfW = (CW - 10) / 2;
 
-      doc.fontSize(12).fillColor(C.dark).font("Helvetica-Bold")
-         .text(data.clientName, ML + 10, Y + 8);
-
-      let clientDetailY = Y + 24;
-      const clientDetails: string[] = [];
-      if (data.clientPhone)  clientDetails.push(`Tel: ${data.clientPhone}`);
-      if (data.clientAddress) clientDetails.push(`Dir: ${data.clientAddress}`);
-      if (data.clientEmail)  clientDetails.push(data.clientEmail);
-      if (clientDetails.length > 0) {
-        doc.fontSize(8.5).fillColor(C.gray).font("Helvetica")
-           .text(clientDetails.join("    "), ML + 10, clientDetailY, { width: CW - 20 });
-      }
-      Y += clientBoxH + 12;
-
-      // ── DATOS DEL PROYECTO ────────────────────────────────────────────────
-      doc.rect(ML, Y, CW, 20).fill(C.dark);
-      doc.fontSize(9).fillColor(C.white).font("Helvetica-Bold")
-         .text("DATOS DEL PROYECTO", ML + 8, Y + 6);
-      Y += 20;
-
-      doc.rect(ML, Y, CW, 28).fill(C.white)
-         .rect(ML, Y, CW, 28).stroke(C.grayBorder);
-
-      // Tres columnas: Vendedor / Trabajo / — 
-      const colW = CW / 3;
-      doc.fontSize(7.5).fillColor(C.grayMid).font("Helvetica")
-         .text("ASESOR", ML + 10, Y + 5)
-         .text("TIPO DE TRABAJO", ML + colW + 10, Y + 5);
-      doc.fontSize(9).fillColor(C.dark).font("Helvetica-Bold")
-         .text(data.vendorName, ML + 10, Y + 15, { width: colW - 15 })
-         .text(data.productType, ML + colW + 10, Y + 15, { width: colW - 15 });
-      Y += 28 + 14;
-
-      // ── TABLA DE ÍTEMS ────────────────────────────────────────────────────
-      // Encabezado tabla
-      doc.rect(ML, Y, CW, 22).fill(C.teal);
-      doc.fontSize(8.5).fillColor(C.white).font("Helvetica-Bold");
-      doc.text("#",           ML + 6,        Y + 7, { width: 20 });
-      doc.text("DESCRIPCIÓN", ML + 28,       Y + 7, { width: 330 });
-      doc.text("CANT.",       ML + 365,      Y + 7, { width: 40, align: "center" });
-      doc.text("VALOR TOTAL", ML + 412,      Y + 7, { width: 100, align: "right" });
-      Y += 22;
-
-      let rowAlt = false;
-      for (const item of data.items) {
-        // Calcular altura del texto de descripción
-        const descH = doc.heightOfString(item.description, {
-          width: 330,
-          lineGap: 1.5,
-          font: "Helvetica",
-          size: 8.5,
-        });
-        const rowH = Math.max(descH + 14, 28);
-
-        // Nueva página si es necesario
-        if (Y + rowH > PH - 160) {
-          doc.addPage();
-          Y = 50;
-          // Re-dibujar encabezado de tabla en página nueva
-          doc.rect(ML, Y, CW, 22).fill(C.teal);
-          doc.fontSize(8.5).fillColor(C.white).font("Helvetica-Bold");
-          doc.text("#",           ML + 6,   Y + 7, { width: 20 });
-          doc.text("DESCRIPCIÓN", ML + 28,  Y + 7, { width: 330 });
-          doc.text("CANT.",       ML + 365, Y + 7, { width: 40, align: "center" });
-          doc.text("VALOR TOTAL", ML + 412, Y + 7, { width: 100, align: "right" });
-          Y += 22;
-        }
-
-        // Fondo fila
-        doc.rect(ML, Y, CW, rowH).fill(rowAlt ? C.grayLight : C.white)
-           .rect(ML, Y, CW, rowH).stroke(C.grayBorder);
-
-        // Línea izquierda teal por ítem
-        doc.rect(ML, Y, 3, rowH).fill(C.teal);
-
-        // Número ítem
-        doc.fontSize(9).fillColor(C.tealDark).font("Helvetica-Bold")
-           .text(item.itemNumber.toString(), ML + 7, Y + 8, { width: 18, align: "center" });
-
-        // Descripción
-        doc.fontSize(8.5).fillColor(C.dark).font("Helvetica")
-           .text(item.description, ML + 28, Y + 7, { width: 330, lineGap: 1.5 });
-
-        // Cantidad
-        doc.fontSize(9).fillColor(C.gray).font("Helvetica")
-           .text(item.quantity, ML + 365, Y + 8, { width: 40, align: "center" });
-
-        // Precio
-        doc.fontSize(9).fillColor(C.dark).font("Helvetica-Bold")
-           .text(formatCurrency(item.totalPrice), ML + 412, Y + 8, { width: 100, align: "right" });
-
-        Y += rowH;
-        rowAlt = !rowAlt;
-      }
-
+      // — Columna izquierda: Cliente —
+      doc.rect(ML, Y, halfW, 16).fill(TEAL);
+      doc.fontSize(8).fillColor(WHITE).font("Helvetica-Bold")
+         .text("CLIENTE", ML + 8, Y + 4);
       Y += 16;
 
-      // ── SECCIÓN TOTALES ───────────────────────────────────────────────────
-      // Verificar espacio
-      if (Y + 120 > PH - 60) {
-        doc.addPage();
-        Y = 50;
+      const clientLines: string[] = [data.clientName];
+      if (data.clientPhone)   clientLines.push(`Tel: ${data.clientPhone}`);
+      if (data.clientAddress) clientLines.push(data.clientAddress);
+      if (data.clientEmail)   clientLines.push(data.clientEmail);
+      const clientBoxH = clientLines.length * 13 + 10;
+
+      doc.rect(ML, Y, halfW, clientBoxH).fill(GRAY_LT).stroke(BORDER);
+      doc.fontSize(10).fillColor(DARK).font("Helvetica-Bold")
+         .text(clientLines[0], ML + 8, Y + 6);
+      let cly = Y + 19;
+      for (const line of clientLines.slice(1)) {
+        doc.fontSize(8).fillColor(GRAY).font("Helvetica")
+           .text(line, ML + 8, cly, { width: halfW - 16 });
+        cly += 13;
       }
 
-      const totW = 230;
-      const totX = PW - MR - totW;
+      // — Columna derecha: Proyecto —
+      const colRX = ML + halfW + 10;
+      doc.rect(colRX, Y - 16, halfW, 16).fill(DARK);
+      doc.fontSize(8).fillColor(WHITE).font("Helvetica-Bold")
+         .text("DATOS DEL PROYECTO", colRX + 8, Y - 12);
+
+      doc.rect(colRX, Y, halfW, clientBoxH).fill(GRAY_LT).stroke(BORDER);
+      doc.fontSize(7.5).fillColor(GRAY_MID).font("Helvetica")
+         .text("ASESOR", colRX + 8, Y + 6)
+         .text("TIPO DE TRABAJO", colRX + 8, Y + 28)
+         .text("FORMA DE PAGO", colRX + 8, Y + 50);
+      doc.fontSize(9).fillColor(DARK).font("Helvetica-Bold")
+         .text(data.vendorName, colRX + 8, Y + 15, { width: halfW - 16 })
+         .text(data.productType, colRX + 8, Y + 37, { width: halfW - 16 });
+      doc.fontSize(8.5).fillColor(TEAL_DARK).font("Helvetica-Bold")
+         .text("60% inicial — 40% al finalizar", colRX + 8, Y + 59, { width: halfW - 16 });
+
+      Y += Math.max(clientBoxH, 76) + 16;
+
+      // ─────────────────────────────────────────────────────────────────────
+      // TABLA DE ÍTEMS
+      // ─────────────────────────────────────────────────────────────────────
+      // Encabezado
+      doc.rect(ML, Y, CW, 20).fill(TEAL);
+      doc.fontSize(8).fillColor(WHITE).font("Helvetica-Bold")
+         .text("#",           ML + 6,   Y + 6, { width: 20 })
+         .text("DESCRIPCIÓN", ML + 30,  Y + 6, { width: 330 })
+         .text("CANT.",       ML + 368, Y + 6, { width: 44, align: "center" })
+         .text("VALOR TOTAL", ML + 418, Y + 6, { width: 98, align: "right" });
+      Y += 20;
+
+      let alt = false;
+      for (const item of data.items) {
+        const descH = doc.heightOfString(item.description, {
+          width: 330, lineGap: 1.5,
+        });
+        const rowH = Math.max(descH + 12, 24);
+
+        // Salto de página
+        if (Y + rowH > PH - 170) {
+          doc.addPage();
+          Y = 40;
+          doc.rect(ML, Y, CW, 20).fill(TEAL);
+          doc.fontSize(8).fillColor(WHITE).font("Helvetica-Bold")
+             .text("#",           ML + 6,   Y + 6, { width: 20 })
+             .text("DESCRIPCIÓN", ML + 30,  Y + 6, { width: 330 })
+             .text("CANT.",       ML + 368, Y + 6, { width: 44, align: "center" })
+             .text("VALOR TOTAL", ML + 418, Y + 6, { width: 98, align: "right" });
+          Y += 20;
+        }
+
+        doc.rect(ML, Y, CW, rowH).fill(alt ? GRAY_LT : WHITE).stroke(BORDER);
+
+        // Borde izquierdo teal por ítem
+        doc.rect(ML, Y, 3, rowH).fill(TEAL);
+
+        doc.fontSize(8.5).fillColor(TEAL_DARK).font("Helvetica-Bold")
+           .text(String(item.itemNumber), ML + 7, Y + 7, { width: 18, align: "center" });
+
+        doc.fontSize(8.5).fillColor(DARK).font("Helvetica")
+           .text(item.description, ML + 30, Y + 6, { width: 330, lineGap: 1.5 });
+
+        doc.fontSize(8.5).fillColor(GRAY).font("Helvetica")
+           .text(item.quantity, ML + 368, Y + 7, { width: 44, align: "center" });
+
+        doc.fontSize(8.5).fillColor(DARK).font("Helvetica-Bold")
+           .text(fmt(item.totalPrice), ML + 418, Y + 7, { width: 98, align: "right" });
+
+        Y += rowH;
+        alt = !alt;
+      }
+
+      Y += 12;
+
+      // ─────────────────────────────────────────────────────────────────────
+      // TOTALES
+      // ─────────────────────────────────────────────────────────────────────
+      if (Y + 110 > PH - 100) { doc.addPage(); Y = 40; }
+
+      const TW = 220;
+      const TX = PW - MR - TW;
 
       // Subtotal
-      doc.rect(totX, Y, totW, 26).fill(C.grayLight).stroke(C.grayBorder);
-      doc.fontSize(9).fillColor(C.gray).font("Helvetica")
-         .text("Subtotal:", totX + 10, Y + 8);
-      doc.fontSize(9).fillColor(C.dark).font("Helvetica-Bold")
-         .text(formatCurrency(data.subtotal), totX + 10, Y + 8, { width: totW - 20, align: "right" });
-      Y += 26;
+      doc.rect(TX, Y, TW, 24).fill(GRAY_LT).stroke(BORDER);
+      doc.fontSize(9).fillColor(GRAY).font("Helvetica")
+         .text("Subtotal:", TX + 10, Y + 7);
+      doc.fontSize(9).fillColor(DARK).font("Helvetica-Bold")
+         .text(fmt(data.subtotal), TX + 10, Y + 7, { width: TW - 20, align: "right" });
+      Y += 24;
 
-      // Descuento si aplica
-      const discPct = parseFloat(data.discountPercent || "0");
-      const discAmt = parseFloat(data.discountAmount || "0");
-      if (discPct > 0 && discAmt > 0) {
-        doc.rect(totX, Y, totW, 26).fill("#FFF5F5").stroke(C.grayBorder);
-        doc.fontSize(9).fillColor(C.red).font("Helvetica")
-           .text(`Descuento (${discPct}%):`, totX + 10, Y + 8);
-        doc.fontSize(9).fillColor(C.red).font("Helvetica-Bold")
-           .text(`-${formatCurrency(discAmt)}`, totX + 10, Y + 8, { width: totW - 20, align: "right" });
-        Y += 26;
+      // Descuento
+      const dp = parseFloat(data.discountPercent || "0");
+      const da = parseFloat(data.discountAmount  || "0");
+      if (dp > 0 && da > 0) {
+        doc.rect(TX, Y, TW, 24).fill(WHITE).stroke(BORDER);
+        doc.fontSize(9).fillColor(RED).font("Helvetica")
+           .text(`Descuento (${dp}%):`, TX + 10, Y + 7);
+        doc.fontSize(9).fillColor(RED).font("Helvetica-Bold")
+           .text(`-${fmt(da)}`, TX + 10, Y + 7, { width: TW - 20, align: "right" });
+        Y += 24;
       }
 
       // Total final
-      doc.rect(totX, Y, totW, 38).fill(C.teal);
-      doc.fontSize(11).fillColor(C.white).font("Helvetica-Bold")
-         .text("TOTAL:", totX + 10, Y + 12);
-      doc.fontSize(14).fillColor(C.white).font("Helvetica-Bold")
-         .text(formatCurrency(data.total), totX + 10, Y + 12, { width: totW - 20, align: "right" });
-      Y += 38 + 24;
+      doc.rect(TX, Y, TW, 34).fill(TEAL);
+      doc.fontSize(11).fillColor(WHITE).font("Helvetica-Bold")
+         .text("TOTAL:", TX + 10, Y + 10);
+      doc.fontSize(14).fillColor(WHITE).font("Helvetica-Bold")
+         .text(fmt(data.total), TX + 10, Y + 10, { width: TW - 20, align: "right" });
+      Y += 34 + 20;
 
-      // ── OBSERVACIONES ────────────────────────────────────────────────────
+      // ─────────────────────────────────────────────────────────────────────
+      // OBSERVACIONES (opcional)
+      // ─────────────────────────────────────────────────────────────────────
       if (data.generalNotes && data.generalNotes.trim()) {
-        if (Y + 60 > PH - 80) { doc.addPage(); Y = 50; }
+        if (Y + 60 > PH - 100) { doc.addPage(); Y = 40; }
 
-        doc.rect(ML, Y, CW, 20).fill(C.dark);
-        doc.fontSize(9).fillColor(C.white).font("Helvetica-Bold")
-           .text("OBSERVACIONES", ML + 8, Y + 6);
-        Y += 20;
+        doc.rect(ML, Y, CW, 18).fill(DARK);
+        doc.fontSize(8.5).fillColor(WHITE).font("Helvetica-Bold")
+           .text("OBSERVACIONES", ML + 8, Y + 5);
+        Y += 18;
 
-        doc.rect(ML, Y, CW, 10).fill(C.white); // padding top
         const noteLines = data.generalNotes.split("\n").filter(l => l.trim());
-        const noteH = noteLines.reduce((acc, l) => acc + doc.heightOfString(l, { width: CW - 20 }) + 4, 0);
-        const noteBoxH = noteH + 16;
-        doc.rect(ML, Y, CW, noteBoxH).fill(C.grayLight).stroke(C.grayBorder);
-        let nY = Y + 8;
+        let noteH = 12;
+        for (const l of noteLines) noteH += doc.heightOfString(l, { width: CW - 20, lineGap: 1.5 }) + 4;
+        doc.rect(ML, Y, CW, noteH).fill(GRAY_LT).stroke(BORDER);
+        let ny = Y + 8;
         for (const line of noteLines) {
-          doc.fontSize(8.5).fillColor(C.gray).font("Helvetica")
-             .text(line, ML + 10, nY, { width: CW - 20, lineGap: 1.5 });
-          nY += doc.heightOfString(line, { width: CW - 20 }) + 4;
+          doc.fontSize(8.5).fillColor(GRAY).font("Helvetica")
+             .text(line, ML + 10, ny, { width: CW - 20, lineGap: 1.5 });
+          ny += doc.heightOfString(line, { width: CW - 20, lineGap: 1.5 }) + 4;
         }
-        Y += noteBoxH + 14;
+        Y += noteH + 14;
       }
 
-      // ── TÉRMINOS Y CONDICIONES ────────────────────────────────────────────
-      if (Y + 120 > PH - 60) { doc.addPage(); Y = 50; }
+      // ─────────────────────────────────────────────────────────────────────
+      // TÉRMINOS Y CONDICIONES
+      // ─────────────────────────────────────────────────────────────────────
+      if (Y + 100 > PH - 80) { doc.addPage(); Y = 40; }
 
-      doc.rect(ML, Y, CW, 20).fill(C.dark);
-      doc.fontSize(9).fillColor(C.white).font("Helvetica-Bold")
-         .text("TÉRMINOS Y CONDICIONES", ML + 8, Y + 6);
-      Y += 20;
+      doc.rect(ML, Y, CW, 18).fill(DARK);
+      doc.fontSize(8.5).fillColor(WHITE).font("Helvetica-Bold")
+         .text("TÉRMINOS Y CONDICIONES", ML + 8, Y + 5);
+      Y += 18;
 
       const terms = [
         "Tiempo de entrega: 3 a 4 semanas hábiles después de aprobación del diseño y primer abono.",
         "NO incluye: obra civil, plomería, instalación de gas ni trabajos de albañilería.",
-        "Validez de la cotización: 1 semana desde la fecha de emisión.",
+        "Validez de esta cotización: 1 semana desde la fecha de emisión.",
         "Garantía: 6 meses en herrajes. Los materiales cuentan con garantía del fabricante.",
-        "Los diseños y renders son propiedad de Innovar Cocinas de Diseño.",
+        "Los diseños y renders son propiedad exclusiva de Innovar Cocinas de Diseño.",
       ];
-
-      const termsBoxH = terms.length * 16 + 12;
-      doc.rect(ML, Y, CW, termsBoxH).fill(C.white).stroke(C.grayBorder);
-      let tY = Y + 8;
+      const tBoxH = terms.length * 16 + 10;
+      doc.rect(ML, Y, CW, tBoxH).fill(WHITE).stroke(BORDER);
+      let ty = Y + 7;
       for (const term of terms) {
-        doc.fontSize(8).fillColor(C.gray).font("Helvetica")
-           .text(`• ${term}`, ML + 10, tY, { width: CW - 20 });
-        tY += 16;
+        doc.fontSize(8).fillColor(GRAY).font("Helvetica")
+           .text(`• ${term}`, ML + 10, ty, { width: CW - 20 });
+        ty += 16;
       }
-      Y += termsBoxH + 20;
+      Y += tBoxH + 20;
 
-      // ── FIRMAS ────────────────────────────────────────────────────────────
-      if (Y + 70 > PH - 40) { doc.addPage(); Y = 50; }
+      // ─────────────────────────────────────────────────────────────────────
+      // FIRMAS
+      // ─────────────────────────────────────────────────────────────────────
+      if (Y + 70 > PH - 50) { doc.addPage(); Y = 40; }
 
-      // Líneas de firma
-      doc.moveTo(ML, Y + 40).lineTo(ML + 180, Y + 40).stroke(C.grayBorder);
-      doc.moveTo(PW - MR - 180, Y + 40).lineTo(PW - MR, Y + 40).stroke(C.grayBorder);
+      doc.moveTo(ML,           Y + 36).lineTo(ML + 190,       Y + 36).stroke(BORDER);
+      doc.moveTo(PW - MR - 190, Y + 36).lineTo(PW - MR,        Y + 36).stroke(BORDER);
 
-      doc.fontSize(8.5).fillColor(C.dark).font("Helvetica-Bold")
-         .text("Firma del Cliente", ML, Y + 44);
-      doc.fontSize(8.5).fillColor(C.dark).font("Helvetica-Bold")
-         .text("INNOVAR Cocinas de Diseño", PW - MR - 180, Y + 44, { width: 180, align: "right" });
-      doc.fontSize(7.5).fillColor(C.grayMid).font("Helvetica")
-         .text(data.clientName, ML, Y + 56);
-      doc.fontSize(7.5).fillColor(C.teal).font("Helvetica")
-         .text("NIT: 10021456-1", PW - MR - 180, Y + 56, { width: 180, align: "right" });
+      doc.fontSize(8.5).fillColor(DARK).font("Helvetica-Bold")
+         .text("Firma del Cliente", ML, Y + 40)
+         .text("INNOVAR Cocinas de Diseño", PW - MR - 190, Y + 40, { width: 190, align: "right" });
+      doc.fontSize(8).fillColor(GRAY_MID).font("Helvetica")
+         .text(data.clientName, ML, Y + 52)
+         .text("NIT: 10021456-1", PW - MR - 190, Y + 52, { width: 190, align: "right" });
 
-      // ── FOOTER ────────────────────────────────────────────────────────────
-      const footerY = PH - 36;
-      doc.rect(0, footerY, PW, 36).fill(C.dark);
-      doc.fontSize(7.5).fillColor(C.teal).font("Helvetica-Bold")
-         .text("INNOVAR COCINAS DE DISEÑO", ML, footerY + 7, { width: CW / 2 });
-      doc.fontSize(7).fillColor(C.white).font("Helvetica")
-         .text("cocinasintegralespereira.co  ·  313 680 2025  ·  Pereira, Colombia", ML, footerY + 19, { width: CW });
-      doc.fontSize(7).fillColor(C.grayMid).font("Helvetica")
-         .text("Gracias por confiar en nosotros", ML, footerY + 7, { width: CW, align: "right" });
+      // ─────────────────────────────────────────────────────────────────────
+      // FOOTER
+      // ─────────────────────────────────────────────────────────────────────
+      const FY = PH - 38;
+      doc.rect(ML, FY, CW, 1).fill(TEAL);
+      doc.fontSize(7.5).fillColor(TEAL_DARK).font("Helvetica-Bold")
+         .text("Innovar Cocinas de Diseño", ML, FY + 6);
+      doc.fontSize(7).fillColor(GRAY_MID).font("Helvetica")
+         .text("cocinasintegralespereira.co  ·  313 680 2025  ·  Km 9 vía Cerritos, Pereira", ML, FY + 17);
+      doc.fontSize(7).fillColor(GRAY_MID).font("Helvetica")
+         .text("Gracias por confiar en nosotros", ML, FY + 6, { width: CW, align: "right" });
 
       doc.end();
       stream.on("finish", resolve);

@@ -966,7 +966,7 @@ export default function Projects() {
                                 (project as any).renderRevisionNumber >= 3 
                                   ? "border-red-500 text-red-600 bg-red-50" 
                                   : (project as any).renderRevisionNumber >= 2 
-                                    ? "border-amber-500 text-amber-600 bg-amber-50" 
+                                    ? "border-amber-500 text-amber-400 bg-amber-500/10" 
                                     : "border-blue-500 text-blue-600 bg-blue-50"
                               }`}
                             >
@@ -1246,7 +1246,7 @@ export default function Projects() {
                   <TabsTrigger value="materials" className="text-xs sm:text-sm px-2 sm:px-3 data-[state=active]:bg-purple-500 data-[state=active]:text-white">Materiales</TabsTrigger>
                   <TabsTrigger value="photos" className="text-xs sm:text-sm px-2 sm:px-3 data-[state=active]:bg-green-500 data-[state=active]:text-white">Fotos</TabsTrigger>
                   <TabsTrigger value="details" className="text-xs sm:text-sm px-2 sm:px-3 data-[state=active]:bg-orange-500 data-[state=active]:text-white">Detalles</TabsTrigger>
-                  <TabsTrigger value="history" className="text-xs sm:text-sm px-2 sm:px-3 data-[state=active]:bg-gray-600 data-[state=active]:text-white">Historial</TabsTrigger>
+                  <TabsTrigger value="history" className="text-xs sm:text-sm px-2 sm:px-3 data-[state=active]:bg-white/[0.20] data-[state=active]:text-white">Historial</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="info" className="space-y-4">

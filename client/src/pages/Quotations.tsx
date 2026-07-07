@@ -205,7 +205,6 @@ export default function Quotations() {
   const [previewBeforeSaveOpen, setPreviewBeforeSaveOpen] = useState(false);
   const [previewBeforeSaveUrl, setPreviewBeforeSaveUrl] = useState("");
   const [previewQuotationNumber, setPreviewQuotationNumber] = useState("");
-  const [previewBeforeSaveId, setPreviewBeforeSaveId] = useState<number | undefined>();
   
   // Estados para filtros
   const [filterClient, setFilterClient] = useState<string>("");
@@ -509,7 +508,6 @@ export default function Quotations() {
 
   const handlePreviewClick = (quotationId: number, quotationNumber: string) => {
     setPreviewQuotationNumber(quotationNumber);
-    setPreviewBeforeSaveId(quotationId);
     previewPDF.mutate({ id: quotationId });
   };
 
@@ -662,10 +660,8 @@ export default function Quotations() {
       
       setEditingQuotation(quotationId);
       setSelectedClient(quotationGroup.clientId);
-      // Cargar vendorName del dato real de la cotización, no del grupo
-      const loadedVendor = (quotationData as any)?.vendorName || quotationGroup.vendorName || "";
-      setVendorName(loadedVendor && VENDOR_OPTIONS.includes(loadedVendor) ? loadedVendor : "Alvaro Ríos");
-      setWorkType((quotationData as any)?.productType || quotationGroup.productType || "");
+      setVendorName(quotationGroup.vendorName);
+      setWorkType(quotationGroup.productType);
       
       // Cargar descuento si existe
       const quotationDiscount = (quotationData as any)?.discountPercent;
@@ -1682,10 +1678,10 @@ export default function Quotations() {
 
   const getStatusBadge = (status: string) => {
     const badges = {
-      draft: <span className="px-2 py-1 bg-white/[0.10] text-foreground/80 rounded text-xs">Borrador</span>,
+      draft: <span className="px-2 py-1 bg-white/[0.10] text-foreground rounded text-xs">Borrador</span>,
       sent: <span className="px-2 py-1 bg-blue-500/20 text-blue-300 rounded text-xs">Enviada</span>,
       approved: <span className="px-2 py-1 bg-green-500/20 text-green-300 rounded text-xs">Aprobada</span>,
-      rejected: <span className="px-2 py-1 bg-red-500/20 text-red-300 rounded text-xs">Rechazada</span>,
+      rejected: <span className="px-2 py-1 bg-red-200 text-red-300 rounded text-xs">Rechazada</span>,
     };
     return badges[status as keyof typeof badges] || status;
   };
@@ -1873,37 +1869,37 @@ export default function Quotations() {
           <div className="flex items-center gap-2 mt-2 flex-wrap">
             <span className="text-xs text-white/45">{filteredQuotations.length} resultado{filteredQuotations.length !== 1 ? "s" : ""}</span>
             {filterStatus !== "all" && (
-              <span className="flex items-center gap-1 text-xs bg-indigo-50 text-indigo-700 border border-indigo-100 rounded-full px-2 py-0.5">
+              <span className="flex items-center gap-1 text-xs bg-indigo-500/10 text-indigo-700 border border-indigo-100 rounded-full px-2 py-0.5">
                 Estado: {filterStatus === "draft" ? "Borrador" : filterStatus === "sent" ? "Enviada" : filterStatus === "approved" ? "Aprobada" : "Rechazada"}
                 <button onClick={() => setFilterStatus("all")}><X className="h-3 w-3" /></button>
               </span>
             )}
             {filterDateFrom && (
-              <span className="flex items-center gap-1 text-xs bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-full px-2 py-0.5">
+              <span className="flex items-center gap-1 text-xs bg-blue-500/10 text-blue-700 border border-blue-100 rounded-full px-2 py-0.5">
                 Desde: {new Date(filterDateFrom + "T00:00:00").toLocaleDateString("es-CO")}
                 <button onClick={() => setFilterDateFrom("")}><X className="h-3 w-3" /></button>
               </span>
             )}
             {filterDateTo && (
-              <span className="flex items-center gap-1 text-xs bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-full px-2 py-0.5">
+              <span className="flex items-center gap-1 text-xs bg-blue-500/10 text-blue-700 border border-blue-100 rounded-full px-2 py-0.5">
                 Hasta: {new Date(filterDateTo + "T00:00:00").toLocaleDateString("es-CO")}
                 <button onClick={() => setFilterDateTo("")}><X className="h-3 w-3" /></button>
               </span>
             )}
             {filterAmountMin && (
-              <span className="flex items-center gap-1 text-xs bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-full px-2 py-0.5">
+              <span className="flex items-center gap-1 text-xs bg-emerald-500/10 text-emerald-700 border border-emerald-100 rounded-full px-2 py-0.5">
                 Min: ${Number(filterAmountMin).toLocaleString("es-CO")}
                 <button onClick={() => setFilterAmountMin("")}><X className="h-3 w-3" /></button>
               </span>
             )}
             {filterAmountMax && (
-              <span className="flex items-center gap-1 text-xs bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-full px-2 py-0.5">
+              <span className="flex items-center gap-1 text-xs bg-emerald-500/10 text-emerald-700 border border-emerald-100 rounded-full px-2 py-0.5">
                 Max: ${Number(filterAmountMax).toLocaleString("es-CO")}
                 <button onClick={() => setFilterAmountMax("")}><X className="h-3 w-3" /></button>
               </span>
             )}
             {filterHasProject !== "all" && (
-              <span className="flex items-center gap-1 text-xs bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-full px-2 py-0.5">
+              <span className="flex items-center gap-1 text-xs bg-amber-500/10 text-amber-700 border border-amber-100 rounded-full px-2 py-0.5">
                 {filterHasProject === "yes" ? "Con proyecto" : "Sin proyecto"}
                 <button onClick={() => setFilterHasProject("all")}><X className="h-3 w-3" /></button>
               </span>
@@ -1971,7 +1967,7 @@ export default function Quotations() {
                     <div className="flex items-center gap-2">
                       <CardTitle>{quot.quotationNumber} - {quot.client?.name}</CardTitle>
                       {quot.versionNumber > 1 && (
-                        <span className="px-2 py-1 bg-blue-500/20 text-blue-300 text-xs font-semibold rounded">V{quot.versionNumber}</span>
+                        <span className="px-2 py-1 bg-blue-500/15 text-blue-300 text-xs font-semibold rounded">V{quot.versionNumber}</span>
                       )}
                     </div>
                     <p className="text-sm text-muted-foreground mt-1">
@@ -2057,7 +2053,7 @@ export default function Quotations() {
                   <Button
                     size="sm"
                     variant="outline"
-                    className="border-purple-500/40 text-purple-400 hover:bg-purple-500/10"
+                    className="border-purple-500/30 text-purple-700 hover:bg-purple-500/10"
                     onClick={() => {
                       if (quot.isLocked) {
                         toast.error("No se puede editar el contenido PDF de una cotización bloqueada. Desblóqueala primero.");
@@ -2265,7 +2261,7 @@ export default function Quotations() {
                     {/* Header del Item */}
                     <div className="bg-[rgba(106,207,199,0.07)] px-3 sm:px-4 py-2 sm:py-3 flex justify-between items-center border-b border-[rgba(106,207,199,0.12)]">
                       <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-                        <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-emerald-100 dark:bg-emerald-900 flex items-center justify-center text-emerald-700 dark:text-emerald-300 font-bold text-xs sm:text-sm">
+                        <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-emerald-500/15 dark:bg-emerald-900 flex items-center justify-center text-emerald-700 dark:text-emerald-300 font-bold text-xs sm:text-sm">
                           {item.itemNumber}
                         </div>
                         <span className="font-semibold text-white/85 text-sm sm:text-base">
@@ -2279,7 +2275,7 @@ export default function Quotations() {
                            item.itemType === 'otro' ? 'Otro' : 'Nuevo Producto'}
                         </span>
                         {item.totalPrice > 0 && (
-                          <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/50 px-2 py-1 rounded">
+                          <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 dark:bg-emerald-900/50 px-2 py-1 rounded">
                             {formatPrice(item.totalPrice)}
                           </span>
                         )}
@@ -2290,7 +2286,7 @@ export default function Quotations() {
                           size="sm"
                           variant="ghost"
                           onClick={() => removeItem(index)}
-                          className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                          className="text-red-500 hover:text-red-700 hover:bg-red-500/10 dark:hover:bg-red-900/30"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -2333,7 +2329,7 @@ export default function Quotations() {
                                 <span className="flex items-center gap-2"><Ruler className="h-4 w-4 text-white/45" /> Mesón Solo</span>
                               </SelectItem>
                               <SelectItem value="herrajes">
-                                <span className="flex items-center gap-2"><Wrench className="h-4 w-4 text-muted-foreground" /> Herrajes</span>
+                                <span className="flex items-center gap-2"><Wrench className="h-4 w-4 text-gray-500" /> Herrajes</span>
                               </SelectItem>
                               <SelectItem value="acabados_especiales">
                                 <span className="flex items-center gap-2"><Sparkles className="h-4 w-4 text-cyan-500" /> Acabados Especiales</span>
@@ -2360,7 +2356,7 @@ export default function Quotations() {
                                 value={item.kitchenConfig?.shape || ""} 
                                 onValueChange={(value) => updateKitchenConfig(index, "shape", value)}
                               >
-                                <SelectTrigger className="bg-[#162828] border-[rgba(106,207,199,0.18)] hover:border-orange-400 transition-colors">
+                                <SelectTrigger className="bg-[#162828] border-[rgba(106,207,199,0.18)] hover:border-orange-500/40 transition-colors">
                                   <SelectValue placeholder="Selecciona la forma" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -2389,14 +2385,14 @@ export default function Quotations() {
                                 value={item.kitchenConfig?.totalMeters || ""}
                                 onChange={(e) => updateKitchenConfig(index, "totalMeters", parseFloat(e.target.value) || 0)}
                                 placeholder="Ej: 5.00"
-                                className="bg-[#162828] border-[rgba(106,207,199,0.18)] hover:border-orange-400 transition-colors"
+                                className="bg-[#162828] border-[rgba(106,207,199,0.18)] hover:border-orange-500/40 transition-colors"
                               />
                             </div>
                             )}
 
                             {/* Checkbox módulo superior para Frente PLL */}
                             {item.kitchenConfig?.shape === 'frente_pll' && (
-                              <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-4 space-y-3">
+                              <div className="bg-amber-500/10 border border-amber-500/25 rounded-lg p-4 space-y-3">
                                 <div className="flex items-center space-x-2">
                                   <input
                                     type="checkbox"
@@ -2429,14 +2425,14 @@ export default function Quotations() {
 
                             {/* Sección Puertas y Tapas */}
                             {item.kitchenConfig?.shape === 'puertas_tapas' && (
-                              <div className="bg-purple-500/10 border border-purple-500/20 rounded-lg p-4 space-y-4">
+                              <div className="bg-purple-500/10 border border-purple-500/25 rounded-lg p-4 space-y-4">
                                 <h4 className="font-semibold text-purple-300 flex items-center gap-2">
                                   <span>🚪</span> Puertas y Tapas (Solo Cambio)
                                 </h4>
                                 
                                 {/* Puertas Superiores */}
                                 <div className="space-y-2">
-                                  <Label className="text-sm font-medium text-purple-400">Puertas Superiores</Label>
+                                  <Label className="text-sm font-medium text-purple-700">Puertas Superiores</Label>
                                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                                     <div>
                                       <Label className="text-xs">Hasta 70cm ($120,000)</Label>
@@ -2482,7 +2478,7 @@ export default function Quotations() {
 
                                 {/* Puertas Inferiores y de Alacena */}
                                 <div className="space-y-2">
-                                  <Label className="text-sm font-medium text-purple-400">Puertas Inferiores y Alacena</Label>
+                                  <Label className="text-sm font-medium text-purple-700">Puertas Inferiores y Alacena</Label>
                                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                     <div>
                                       <Label className="text-xs">Puertas Inferiores ($150,000)</Label>
@@ -2515,7 +2511,7 @@ export default function Quotations() {
 
                                 {/* Tapas */}
                                 <div className="space-y-2">
-                                  <Label className="text-sm font-medium text-purple-400">Tapas</Label>
+                                  <Label className="text-sm font-medium text-purple-700">Tapas</Label>
                                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                     <div>
                                       <Label className="text-xs">Tapas de Cajón ($90,000)</Label>
@@ -2803,7 +2799,7 @@ export default function Quotations() {
 
                             {/* 6. Barra - Para cocinas completas y puertas_tapas */}
                             {!['frente_pll', 'solo_superiores', 'solo_inferiores'].includes(item.kitchenConfig?.shape || '') && (
-                            <div className="bg-[#162828] rounded-lg p-3 sm:p-4 border border-purple-500/20 space-y-2 sm:space-y-3">
+                            <div className="bg-[#162828] rounded-lg p-3 sm:p-4 border border-purple-500/20 dark:border-purple-900 space-y-2 sm:space-y-3">
                               <div className="flex items-center space-x-2">
                                 <input
                                   type="checkbox"
@@ -3012,18 +3008,18 @@ export default function Quotations() {
                               {item.kitchenConfig?.specialFinishes?.enabled && (
                                 <div className="space-y-4 mt-3">
                                   {/* Puertas de Aluminio con Vidrio Ahumado */}
-                                  <div className="bg-purple-500/10 p-3 rounded-lg space-y-2">
-                                    <Label className="text-xs font-semibold text-purple-400">
+                                  <div className="bg-purple-500/10 dark:bg-purple-900/20 p-3 rounded-lg space-y-2">
+                                    <Label className="text-xs font-semibold text-purple-700 dark:text-purple-300">
                                       Puertas de Aluminio con Vidrio Ahumado - {formatPrice(getPrice('ACABADO_ALUMINIO_VIDRIO_M2'))}/m²
                                     </Label>
-                                    <p className="text-xs text-purple-400">
+                                    <p className="text-xs text-purple-600 dark:text-purple-400">
                                       Bisagras adicionales: +1 par (alto mayor a 80cm) o +2 pares (alto mayor a 140cm) a {formatPrice(getPrice('ACABADO_BISAGRA_PAR'))}/par
                                     </p>
                                     
                                     {/* Lista de puertas */}
                                     {(item.kitchenConfig?.specialFinishes?.aluminumGlassDoors || []).map((door, doorIdx) => (
                                       <div key={door.id} className="flex items-center gap-2 bg-[#162828] p-2 rounded border">
-                                        <span className="text-xs font-medium text-purple-400">#{doorIdx + 1}</span>
+                                        <span className="text-xs font-medium text-purple-600">#{doorIdx + 1}</span>
                                         <div className="flex-1 grid grid-cols-2 gap-2">
                                           <div>
                                             <Label className="text-xs">Alto (m)</Label>
@@ -3074,7 +3070,7 @@ export default function Quotations() {
                                           </div>
                                         </div>
                                         <div className="text-xs text-right min-w-[80px]">
-                                          <div className="text-purple-400 font-medium">{door.squareMeters?.toFixed(2) || '0.00'} m²</div>
+                                          <div className="text-purple-600 font-medium">{door.squareMeters?.toFixed(2) || '0.00'} m²</div>
                                           {door.extraHinges > 0 && (
                                             <div className="text-orange-500">+{door.extraHinges} par{door.extraHinges > 1 ? 'es' : ''}</div>
                                           )}
@@ -3088,7 +3084,7 @@ export default function Quotations() {
                                             updateKitchenConfig(index, "specialFinishes.aluminumGlassDoors", newDoors);
                                             calculateKitchenTotal(index);
                                           }}
-                                          className="text-red-400 hover:text-red-300 h-8 w-8 p-0"
+                                          className="text-red-500 hover:text-red-700 h-8 w-8 p-0"
                                         >
                                           <Trash2 className="h-4 w-4" />
                                         </Button>
@@ -3110,14 +3106,14 @@ export default function Quotations() {
                                         const newDoors = [...(item.kitchenConfig?.specialFinishes?.aluminumGlassDoors || []), newDoor];
                                         updateKitchenConfig(index, "specialFinishes.aluminumGlassDoors", newDoors);
                                       }}
-                                      className="w-full border-purple-500/40 text-purple-400 hover:bg-purple-500/10"
+                                      className="w-full border-purple-500/30 text-purple-600 hover:bg-purple-500/10"
                                     >
                                       <Plus className="h-4 w-4 mr-1" /> Agregar Puerta
                                     </Button>
                                   </div>
                                   
                                   {/* LED para Alacenas */}
-                                  <div className="bg-yellow-500/10 p-3 rounded-lg space-y-2">
+                                  <div className="bg-yellow-500/10 dark:bg-yellow-900/20 p-3 rounded-lg space-y-2">
                                     <div className="flex items-center space-x-2">
                                       <input
                                         type="checkbox"
@@ -3129,7 +3125,7 @@ export default function Quotations() {
                                         }}
                                         className="h-4 w-4 accent-yellow-500"
                                       />
-                                      <Label htmlFor={`specialLed-${index}`} className="text-xs font-semibold text-yellow-400 cursor-pointer">
+                                      <Label htmlFor={`specialLed-${index}`} className="text-xs font-semibold text-yellow-700 dark:text-yellow-300 cursor-pointer">
                                         <Lightbulb className="inline h-3 w-3 mr-1" />
                                         Luz LED para Alacenas - {formatPrice(getPrice('ACABADO_LED_ML'))}/ml
                                       </Label>
@@ -3149,7 +3145,7 @@ export default function Quotations() {
                                           className="w-24 h-8"
                                           placeholder="0"
                                         />
-                                        <span className="text-xs text-yellow-400">
+                                        <span className="text-xs text-yellow-600">
                                           = {formatPrice((item.kitchenConfig?.specialFinishes?.ledLighting?.meters || 0) * getPrice('ACABADO_LED_ML'))}
                                         </span>
                                       </div>
@@ -3160,7 +3156,7 @@ export default function Quotations() {
                             </div>
 
                             {/* 10. Transporte e imprevistos - Opcional y editable */}
-                            <div className={`flex flex-col gap-2 p-3 rounded ${item.includesFixedCosts ? 'bg-green-500/15 border border-green-500/30' : 'bg-yellow-500/10'}`}>
+                            <div className={`flex flex-col gap-2 p-3 rounded ${item.includesFixedCosts ? 'bg-green-500/15 border border-green-300' : 'bg-yellow-500/10'}`}>
                               <div className="flex items-center space-x-2">
                                 <input
                                   type="checkbox"
@@ -3184,7 +3180,7 @@ export default function Quotations() {
                                     newItems[index].includesFixedCosts = e.target.checked;
                                     setItems(newItems);
                                   }}
-                                  className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                  className="h-4 w-4 rounded border-white/[0.15] text-primary focus:ring-primary"
                                 />
                                 <Label htmlFor={`fixedCosts-${index}`} className="text-sm font-normal cursor-pointer">
                                   <Truck className="inline h-4 w-4 mr-1" />
@@ -3210,22 +3206,22 @@ export default function Quotations() {
                                     min="0"
                                     step="10000"
                                   />
-                                  <span className="text-sm text-muted-foreground">({formatPrice(item.fixedCostsAmount ?? 600000)})</span>
+                                  <span className="text-sm text-gray-500">({formatPrice(item.fixedCostsAmount ?? 600000)})</span>
                                 </div>
                               )}
                             </div>
 
                             {/* Total calculado */}
                             <div className="p-3 sm:p-4 bg-green-500/10 rounded">
-                              <p className="text-sm sm:text-lg font-bold text-green-400">
+                              <p className="text-sm sm:text-lg font-bold text-green-300">
                                 Total Cocina: {formatPrice(item.totalPrice)}
                               </p>
                             </div>
 
                             {/* Descripción auto-generada (editable) */}
                             <div>
-                              <Label className="text-sm font-medium text-foreground block mb-1">
-                                Descripción del ítem <span className="text-xs text-muted-foreground font-normal">(auto-generada — editable)</span>
+                              <Label className="text-sm font-medium text-muted-foreground block mb-1">
+                                Descripción del ítem <span className="text-xs text-gray-400 font-normal">(auto-generada — editable)</span>
                               </Label>
                               <Textarea
                                 value={item.description}
@@ -3287,7 +3283,7 @@ export default function Quotations() {
                                 newItems[index].includesFixedCosts = e.target.checked;
                                 setItems(newItems);
                               }}
-                              className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                              className="h-4 w-4 rounded border-white/[0.15] text-primary focus:ring-primary"
                             />
                             <Label htmlFor={`fixedCosts-herrajes-${index}`} className="text-sm font-normal cursor-pointer">
                               Incluye transporte e imprevistos
@@ -3337,7 +3333,7 @@ export default function Quotations() {
                                 const sqm = (door.height || 0) * (door.width || 0);
                                 const extraHinges = door.height > 1.4 ? 2 : (door.height > 0.8 ? 1 : 0);
                                 return (
-                                  <div key={doorIdx} className="flex flex-wrap items-center gap-2 p-3 bg-cyan-50 dark:bg-cyan-900/20 rounded-lg">
+                                  <div key={doorIdx} className="flex flex-wrap items-center gap-2 p-3 bg-cyan-500/10 dark:bg-cyan-900/20 rounded-lg">
                                     <span className="text-sm font-medium text-cyan-700 dark:text-cyan-300">Puerta #{doorIdx + 1}</span>
                                     <div className="flex items-center gap-1">
                                       <Input
@@ -3382,7 +3378,7 @@ export default function Quotations() {
                                       type="button"
                                       variant="ghost"
                                       size="sm"
-                                      className="text-red-400 hover:text-red-300 h-8 w-8 p-0"
+                                      className="text-red-500 hover:text-red-700 h-8 w-8 p-0"
                                       onClick={() => {
                                         const newItems = [...items];
                                         const doors = [...(newItems[index].acabadosConfig?.aluminumGlassDoors || [])];
@@ -3402,7 +3398,7 @@ export default function Quotations() {
                                 type="button"
                                 variant="outline"
                                 size="sm"
-                                className="text-cyan-600 border-cyan-300 hover:bg-cyan-50"
+                                className="text-cyan-600 border-cyan-300 hover:bg-cyan-500/10"
                                 onClick={() => {
                                   const newItems = [...items];
                                   const doors = [...(newItems[index].acabadosConfig?.aluminumGlassDoors || []), { height: 0, width: 0 }];
@@ -3484,7 +3480,7 @@ export default function Quotations() {
                                   newItems[index].totalPrice = calculateAcabadosTotal(newItems[index]);
                                   setItems(newItems);
                                 }}
-                                className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                className="h-4 w-4 rounded border-white/[0.15] text-primary focus:ring-primary"
                               />
                               <Label htmlFor={`fixedCosts-acabados-${index}`} className="text-sm font-normal cursor-pointer flex items-center gap-2">
                                 <Truck className="h-4 w-4" />
@@ -3563,7 +3559,7 @@ export default function Quotations() {
                                   newItems[index].includesFixedCosts = e.target.checked;
                                   setItems(newItems);
                                 }}
-                                className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                className="h-4 w-4 rounded border-white/[0.15] text-primary focus:ring-primary"
                               />
                               <Label htmlFor={`fixedCosts-closet-${index}`} className="text-sm font-normal cursor-pointer">
                                 Incluye transporte e imprevistos
@@ -3589,8 +3585,8 @@ export default function Quotations() {
 
                             {/* Descripción auto-generada (editable) */}
                             <div className="mt-4">
-                              <Label className="text-sm font-medium text-foreground block mb-1">
-                                Descripción del ítem <span className="text-xs text-muted-foreground font-normal">(auto-generada — editable)</span>
+                              <Label className="text-sm font-medium text-muted-foreground block mb-1">
+                                Descripción del ítem <span className="text-xs text-gray-400 font-normal">(auto-generada — editable)</span>
                               </Label>
                               <Textarea
                                 value={item.description}
@@ -3651,7 +3647,7 @@ export default function Quotations() {
                                   newItems[index].includesFixedCosts = e.target.checked;
                                   setItems(newItems);
                                 }}
-                                className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                className="h-4 w-4 rounded border-white/[0.15] text-primary focus:ring-primary"
                               />
                               <Label htmlFor={`fixedCosts-puerta-${index}`} className="text-sm font-normal cursor-pointer">
                                 Incluye transporte e imprevistos
@@ -3677,8 +3673,8 @@ export default function Quotations() {
 
                             {/* Descripción auto-generada (editable) */}
                             <div className="mt-4">
-                              <Label className="text-sm font-medium text-foreground block mb-1">
-                                Descripción del ítem <span className="text-xs text-muted-foreground font-normal">(auto-generada — editable)</span>
+                              <Label className="text-sm font-medium text-muted-foreground block mb-1">
+                                Descripción del ítem <span className="text-xs text-gray-400 font-normal">(auto-generada — editable)</span>
                               </Label>
                               <Textarea
                                 value={item.description}
@@ -3711,8 +3707,8 @@ export default function Quotations() {
                             />
                             {/* Descripción auto-generada (editable) */}
                             <div className="mt-4">
-                              <Label className="text-sm font-medium text-foreground block mb-1">
-                                Descripción del ítem <span className="text-xs text-muted-foreground font-normal">(auto-generada — editable)</span>
+                              <Label className="text-sm font-medium text-muted-foreground block mb-1">
+                                Descripción del ítem <span className="text-xs text-gray-400 font-normal">(auto-generada — editable)</span>
                               </Label>
                               <Textarea
                                 value={item.description}
@@ -3834,7 +3830,7 @@ export default function Quotations() {
                                   newItems[index].includesFixedCosts = e.target.checked;
                                   setItems(newItems);
                                 }}
-                                className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                className="h-4 w-4 rounded border-white/[0.15] text-primary focus:ring-primary"
                               />
                               <Label htmlFor={`fixedCosts-${index}`} className="text-sm font-normal cursor-pointer">
                                 Incluye transporte e imprevistos
@@ -3908,7 +3904,7 @@ export default function Quotations() {
                         onClick={() => setDiscountPercent(discountPercent === val ? 0 : val)}
                         className={`px-2 py-0.5 rounded text-xs font-semibold transition-all border ${
                           discountPercent === val
-                            ? "bg-[#162828] text-emerald-400 border-white"
+                            ? "bg-[#162828] text-emerald-700 border-white"
                             : "bg-[#162828]/20 text-white border-white/30 hover:bg-[#162828]/30"
                         }`}
                       >
@@ -3948,12 +3944,12 @@ export default function Quotations() {
             </div>
 
             {/* Notas y Condiciones */}
-            <div className="space-y-4 border border-white/[0.12] rounded-xl p-4 bg-white/[0.03]">
-              <h3 className="font-semibold text-foreground text-sm uppercase tracking-wide">Notas y Condiciones</h3>
+            <div className="space-y-4 border border-white/[0.10] rounded-xl p-4 bg-white/[0.03]">
+              <h3 className="font-semibold text-muted-foreground text-sm uppercase tracking-wide">Notas y Condiciones</h3>
 
               <div>
-                <Label className="text-sm font-medium text-foreground block mb-1">
-                  Notas generales <span className="text-xs text-muted-foreground font-normal">(editables)</span>
+                <Label className="text-sm font-medium text-muted-foreground block mb-1">
+                  Notas generales <span className="text-xs text-gray-400 font-normal">(editables)</span>
                 </Label>
                 <Textarea
                   value={generalNotes}
@@ -3965,7 +3961,7 @@ export default function Quotations() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-sm font-medium text-foreground block mb-1">Condiciones de pago</Label>
+                  <Label className="text-sm font-medium text-muted-foreground block mb-1">Condiciones de pago</Label>
                   <Input
                     value={paymentTerms}
                     onChange={(e) => setPaymentTerms(e.target.value)}
@@ -3973,7 +3969,7 @@ export default function Quotations() {
                   />
                 </div>
                 <div>
-                  <Label className="text-sm font-medium text-foreground block mb-1">Tiempo de entrega</Label>
+                  <Label className="text-sm font-medium text-muted-foreground block mb-1">Tiempo de entrega</Label>
                   <Input
                     value={deliveryTime}
                     onChange={(e) => setDeliveryTime(e.target.value)}
@@ -4001,7 +3997,7 @@ export default function Quotations() {
                   type="button"
                   variant="outline"
                   onClick={() => setShowCreateDialog(false)}
-                  className="px-4 sm:px-6 text-sm sm:text-base border-border hover:bg-white/[0.05] flex-1 sm:flex-none"
+                  className="px-4 sm:px-6 text-sm sm:text-base border-white/[0.15] hover:bg-white/[0.06] dark:border-slate-600 dark:hover:bg-slate-800 flex-1 sm:flex-none"
                 >
                   Cancelar
                 </Button>
@@ -4029,7 +4025,6 @@ export default function Quotations() {
         pdfUrl={previewBeforeSaveUrl}
         isGenerating={previewPDF.isPending}
         quotationNumber={previewQuotationNumber}
-        quotationId={previewBeforeSaveId}
       />
 
       <PDFContentEditor

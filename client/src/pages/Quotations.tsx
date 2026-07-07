@@ -3948,8 +3948,8 @@ export default function Quotations() {
             </div>
 
             {/* Notas y Condiciones */}
-            <div className="space-y-4 border border-gray-200 rounded-xl p-4 bg-gray-50">
-              <h3 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">Notas y Condiciones</h3>
+            <div className="space-y-4 border border-white/[0.12] rounded-xl p-4 bg-white/[0.03]">
+              <h3 className="font-semibold text-foreground text-sm uppercase tracking-wide">Notas y Condiciones</h3>
 
               <div>
                 <Label className="text-sm font-medium text-foreground block mb-1">

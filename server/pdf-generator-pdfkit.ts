@@ -168,7 +168,7 @@ export async function generateQuotationPDF(data: QuotationData, outputPath: stri
          .text(data.clientName, ML + 12, Y + 10, { width: HF - 20 });
       let cy = Y + 28;
       for (const l of clientLines) {
-        doc.fontSize(8.5).fillColor(MGRAY).font("Helvetica")
+        doc.fontSize(10).fillColor(MGRAY).font("Helvetica")
            .text(l, ML + 12, cy, { width: HF - 20 });
         cy += 15;
       }

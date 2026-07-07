@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -42,9 +42,7 @@ import {
   EyeOff,
   Lock,
   Unlock,
-  CreditCard,
-  ExternalLink,
-  PenLine
+  CreditCard
 } from "lucide-react";
 import { useEffect } from "react";
 import { useFileViewer, FileViewer } from "@/components/FileViewer";
@@ -103,104 +101,6 @@ const WORK_TYPES = {
   centro_tv: "Centro de TV",
 };
 
-// ── Componente de firma de entrega ───────────────────────────────────────────
-function DeliverySignaturePad({ onSave, onCancel, uploading }: {
-  onSave: (dataUrl: string) => void;
-  onCancel: () => void;
-  uploading: boolean;
-}) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const drawingRef = useRef(false);
-
-  const getPos = (e: React.MouseEvent | React.TouchEvent, canvas: HTMLCanvasElement) => {
-    const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
-    if ("touches" in e) {
-      return {
-        x: (e.touches[0].clientX - rect.left) * scaleX,
-        y: (e.touches[0].clientY - rect.top) * scaleY,
-      };
-    }
-    return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY };
-  };
-
-  const startDraw = (e: React.MouseEvent | React.TouchEvent) => {
-    e.preventDefault();
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    drawingRef.current = true;
-    const ctx = canvas.getContext("2d")!;
-    const pos = getPos(e, canvas);
-    ctx.beginPath();
-    ctx.moveTo(pos.x, pos.y);
-  };
-
-  const draw = (e: React.MouseEvent | React.TouchEvent) => {
-    e.preventDefault();
-    if (!drawingRef.current) return;
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d")!;
-    ctx.lineWidth = 2.5;
-    ctx.lineCap = "round";
-    ctx.strokeStyle = "#1a1a1a";
-    const pos = getPos(e, canvas);
-    ctx.lineTo(pos.x, pos.y);
-    ctx.stroke();
-  };
-
-  const stopDraw = () => { drawingRef.current = false; };
-
-  const clear = () => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d")!;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-  };
-
-  const save = () => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    onSave(canvas.toDataURL("image/png"));
-  };
-
-  return (
-    <div className="space-y-3">
-      <p className="text-sm text-muted-foreground">El cliente firma confirmando la recepción conforme del proyecto:</p>
-      <div className="border-2 border-dashed border-white/20 rounded-lg overflow-hidden bg-white">
-        <canvas
-          ref={canvasRef}
-          width={600}
-          height={180}
-          className="w-full touch-none cursor-crosshair"
-          style={{ display: "block" }}
-          onMouseDown={startDraw}
-          onMouseMove={draw}
-          onMouseUp={stopDraw}
-          onMouseLeave={stopDraw}
-          onTouchStart={startDraw}
-          onTouchMove={draw}
-          onTouchEnd={stopDraw}
-        />
-      </div>
-      <div className="flex gap-2 justify-end">
-        <Button variant="outline" size="sm" onClick={clear} disabled={uploading}>Borrar</Button>
-        <Button variant="outline" size="sm" onClick={onCancel} disabled={uploading}>Cancelar</Button>
-        <Button
-          size="sm"
-          className="bg-emerald-600 hover:bg-emerald-700 text-white"
-          onClick={save}
-          disabled={uploading}
-        >
-          {uploading ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle2 className="h-4 w-4 mr-2" />}
-          {uploading ? "Guardando..." : "Guardar Firma"}
-        </Button>
-      </div>
-    </div>
-  );
-}
-
 export default function ProjectDetail() {
   const { user } = useAuth();
   const [, navigate] = useLocation();
@@ -234,24 +134,14 @@ export default function ProjectDetail() {
   const [advanceConfirmDialog, setAdvanceConfirmDialog] = useState<{ open: boolean; subcategory: string; nextStatus: string; hasPhotos: boolean }>({ open: false, subcategory: "", nextStatus: "", hasPhotos: false });
   
   // Toggle para ocultar información financiera (CEO, admin, comercial)
-  const [showFinancialInfo, setShowFinancialInfo] = useState(false);
+  const [showFinancialInfo, setShowFinancialInfo] = useState(true);
   const [materialExpensesTotal, setMaterialExpensesTotal] = useState(0);
   
   // Candado para evitar clics accidentales en aprobación del cliente
   const [approvalUnlocked, setApprovalUnlocked] = useState(false);
-
+  
   // Diálogo para enviar directo a taller (saltar diseño)
   const [showDirectToWorkshopDialog, setShowDirectToWorkshopDialog] = useState(false);
-
-  // Anticipo registration
-  const [showAnticipo, setShowAnticipo] = useState(true);
-  const [anticipoAmount, setAnticipoAmount] = useState("");
-  const [copiedLink, setCopiedLink] = useState(false);
-
-  // Firma de entrega (jefe de taller)
-  const [showDeliverySignature, setShowDeliverySignature] = useState(false);
-  const [deliverySignatureData, setDeliverySignatureData] = useState<string | null>(null);
-  const [uploadingSignature, setUploadingSignature] = useState(false);
 
   const { data: projectDetail, isLoading, error } = trpc.projects.getById.useQuery(
     { id: projectId },
@@ -261,32 +151,6 @@ export default function ProjectDetail() {
       refetchOnMount: true,
       refetchOnWindowFocus: true,
     }
-  );
-
-  // Visitas técnicas del cliente — acceso por rol y estado:
-  // · Diseñador: solo desde adelanto_recibido (pago confirmado)
-  // · Jefe de taller: solo desde despiece (diseños aprobados y listos para producción)
-  // · Admin/comercial/super_admin: siempre
-  const clientId = (projectDetail as any)?.clientId;
-  const projectStatus = (projectDetail as any)?.status ?? "";
-
-  const DESIGNER_STATUSES = [
-    "adelanto_recibido","en_diseno","pendiente_modelado","pendiente_render",
-    "aprobacion_final","despiece","corte","enchape","ensamble",
-    "listo_instalacion","entregado",
-  ];
-  const TALLER_STATUSES = [
-    "despiece","corte","enchape","ensamble","listo_instalacion","entregado",
-  ];
-
-  const canSeeVisitData =
-    ["admin","super_admin","comercial"].includes(user?.role ?? "") ||
-    (user?.role === "disenador" && DESIGNER_STATUSES.includes(projectStatus)) ||
-    (user?.role === "jefe_taller" && TALLER_STATUSES.includes(projectStatus));
-
-  const { data: clientVisits } = trpc.technicalVisits.listByClientId.useQuery(
-    { clientId: clientId ?? 0 },
-    { enabled: !!clientId && canSeeVisitData }
   );
 
   // Cargar gastos de materiales del proyecto
@@ -313,28 +177,6 @@ export default function ProjectDetail() {
     },
     onError: (error) => {
       toast.error(error.message || "Error al subir archivo");
-    },
-  });
-
-  // Subir firma de entrega: primero al storage, luego registrar como foto del proyecto
-  const uploadSignatureImg = trpc.upload.image.useMutation({
-    onSuccess: async (data) => {
-      if (!projectDetail) return;
-      uploadPhoto.mutate({
-        projectId: projectDetail.id,
-        stage: "final",
-        category: "entrega",
-        subcategory: "fotos_finales",
-        photoUrl: data.url,
-        description: `firma-entrega-${new Date().toLocaleDateString("es-CO")}`,
-      });
-      setShowDeliverySignature(false);
-      setUploadingSignature(false);
-      toast.success("Firma de entrega guardada correctamente");
-    },
-    onError: (e) => {
-      setUploadingSignature(false);
-      toast.error(e.message || "Error al guardar la firma");
     },
   });
 
@@ -681,7 +523,7 @@ export default function ProjectDetail() {
 
   if (!user) {
     return (
-      <div className="pb-20 md:pb-0">
+      <div className="min-h-screen bg-background">
         
         <div className="container py-8">
           <p>Debes iniciar sesión para ver este proyecto.</p>
@@ -692,7 +534,7 @@ export default function ProjectDetail() {
 
   if (isLoading) {
     return (
-      <div className="pb-20 md:pb-0">
+      <div className="min-h-screen bg-background">
         
         <div className="container py-8">
           <div className="flex items-center justify-center h-64">
@@ -705,7 +547,7 @@ export default function ProjectDetail() {
 
   if (!projectDetail) {
     return (
-      <div className="pb-20 md:pb-0">
+      <div className="min-h-screen bg-background">
         
         <div className="container py-8">
           <p>Proyecto no encontrado.</p>
@@ -732,7 +574,7 @@ export default function ProjectDetail() {
   };
 
   return (
-    <div className="pb-20 md:pb-0">
+    <div className="min-h-screen pb-20 md:pb-0 bg-background">
       
       <FileViewer
         files={fileViewer.files}
@@ -768,7 +610,7 @@ export default function ProjectDetail() {
             <Button
               variant="outline"
               size="sm"
-              className="bg-green-50 hover:bg-green-100 text-green-700 border-green-200"
+              className="bg-green-500/10 hover:bg-green-500/15 text-green-700 border-green-500/25"
               onClick={() => {
                 const phone = projectDetail.client?.whatsappPhone?.replace(/\D/g, "");
                 window.open(`https://wa.me/57${phone}`, "_blank");
@@ -813,7 +655,7 @@ export default function ProjectDetail() {
               className={`${
                 ["adelanto_recibido", "en_diseno", "pendiente_modelado", "pendiente_render"].includes(projectDetail.status as string)
                   ? "bg-orange-500 hover:bg-orange-600 text-white border-orange-600"
-                  : "bg-gray-200 text-gray-400 border-gray-300 cursor-not-allowed"
+                  : "bg-white/[0.10] text-gray-400 border-white/[0.15] cursor-not-allowed"
               }`}
               disabled={
                 !["adelanto_recibido", "en_diseno", "pendiente_modelado", "pendiente_render"].includes(projectDetail.status as string) ||
@@ -839,7 +681,7 @@ export default function ProjectDetail() {
           <TabsList className="flex overflow-x-auto w-full gap-1 h-auto p-1 bg-muted/50 mb-4 scrollbar-hide">
             <TabsTrigger
               value="info"
-              className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 bg-blue-100 text-blue-700 data-[state=active]:bg-blue-500 data-[state=active]:text-white hover:bg-blue-200 transition-colors rounded-md whitespace-nowrap"
+              className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 bg-blue-500/15 text-blue-700 data-[state=active]:bg-blue-500 data-[state=active]:text-white hover:bg-blue-500/20 transition-colors rounded-md whitespace-nowrap"
             >
               <Info className="h-3.5 w-3.5 mr-1" />
               <span>Info</span>
@@ -847,31 +689,43 @@ export default function ProjectDetail() {
             {user?.role !== "disenador" && user?.role !== "jefe_taller" && user?.role !== "operario" && (
               <TabsTrigger
                 value="financiero"
-                className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 bg-emerald-100 text-emerald-700 data-[state=active]:bg-emerald-500 data-[state=active]:text-white hover:bg-emerald-200 transition-colors rounded-md whitespace-nowrap"
+                className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 bg-emerald-500/15 text-emerald-700 data-[state=active]:bg-emerald-500 data-[state=active]:text-white hover:bg-emerald-200 transition-colors rounded-md whitespace-nowrap"
               >
                 <DollarSign className="h-3.5 w-3.5 mr-1" />
                 <span>Financiero</span>
               </TabsTrigger>
             )}
-
-
+            <TabsTrigger
+              value="diseno"
+              className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 bg-purple-500/15 text-purple-700 data-[state=active]:bg-purple-500 data-[state=active]:text-white hover:bg-purple-500/20 transition-colors rounded-md whitespace-nowrap"
+            >
+              <Palette className="h-3.5 w-3.5 mr-1" />
+              <span>Diseño</span>
+            </TabsTrigger>
+            <TabsTrigger
+              value="produccion"
+              className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 bg-orange-500/15 text-orange-700 data-[state=active]:bg-orange-500 data-[state=active]:text-white hover:bg-orange-500/20 transition-colors rounded-md whitespace-nowrap"
+            >
+              <Hammer className="h-3.5 w-3.5 mr-1" />
+              <span>Producción</span>
+            </TabsTrigger>
             <TabsTrigger
               value="instalacion"
-              className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 bg-teal-100 text-teal-700 data-[state=active]:bg-teal-500 data-[state=active]:text-white hover:bg-teal-200 transition-colors rounded-md whitespace-nowrap"
+              className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 bg-teal-500/15 text-teal-700 data-[state=active]:bg-teal-500 data-[state=active]:text-white hover:bg-teal-200 transition-colors rounded-md whitespace-nowrap"
             >
               <Truck className="h-3.5 w-3.5 mr-1" />
               <span>Instalación</span>
             </TabsTrigger>
             <TabsTrigger
               value="postventa"
-              className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 bg-pink-100 text-pink-700 data-[state=active]:bg-pink-500 data-[state=active]:text-white hover:bg-pink-200 transition-colors rounded-md whitespace-nowrap"
+              className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 bg-pink-500/15 text-pink-700 data-[state=active]:bg-pink-500 data-[state=active]:text-white hover:bg-pink-200 transition-colors rounded-md whitespace-nowrap"
             >
               <CheckCircle2 className="h-3.5 w-3.5 mr-1" />
               <span>Postventa</span>
             </TabsTrigger>
             <TabsTrigger
               value="history"
-              className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 bg-white/[0.08] text-foreground/70 data-[state=active]:bg-white/[0.20] data-[state=active]:text-foreground hover:bg-white/[0.12] transition-colors rounded-md whitespace-nowrap"
+              className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 bg-white/[0.10] text-muted-foreground data-[state=active]:bg-gray-600 data-[state=active]:text-white hover:bg-gray-300 transition-colors rounded-md whitespace-nowrap"
             >
               <History className="h-3.5 w-3.5 mr-1" />
               <span>Historial</span>
@@ -880,102 +734,9 @@ export default function ProjectDetail() {
 
           {/* Tab Información */}
           <TabsContent value="info" className="space-y-4">
-
-            {/* ── ANTICIPO: Banner de acción cuando cotización aprobada ── */}
-            {projectDetail.status === "cotizacion_aprobada" && (user?.role === "admin" || user?.role === "super_admin" || user?.role === "comercial") && showAnticipo && (
-              <div className="rounded-xl border-2 border-blue-400 bg-gradient-to-r from-blue-50 to-indigo-50 overflow-hidden">
-                <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-3 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <DollarSign className="h-5 w-5 text-white" />
-                    <h3 className="text-white font-bold text-base">Confirmar Anticipo Recibido</h3>
-                  </div>
-                  <button onClick={() => setShowAnticipo(false)} className="text-white/70 hover:text-white text-xs">✕ Ocultar</button>
-                </div>
-                <div className="p-5 space-y-4">
-                  <p className="text-sm text-blue-900">
-                    El cliente aprobó la cotización. Cuando confirmes el anticipo, el diseñador asignado recibirá notificación para iniciar el trabajo.
-                  </p>
-                  {(projectDetail as any).designerId && (
-                    <p className="text-xs text-blue-700 bg-blue-100 rounded-lg px-3 py-2">
-                      ✅ Diseñador asignado automáticamente. Al confirmar el anticipo recibirá la orden de trabajo.
-                    </p>
-                  )}
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <div className="flex-1">
-                      <label className="text-xs font-medium text-blue-800 block mb-1">Monto del anticipo (COP)</label>
-                      <Input
-                        type="number"
-                        placeholder="Ej: 3500000"
-                        value={anticipoAmount}
-                        onChange={(e) => setAnticipoAmount(e.target.value)}
-                        className="border-blue-300 focus:border-blue-500"
-                      />
-                    </div>
-                    <div className="flex items-end">
-                      <Button
-                        className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6"
-                        disabled={updateStatus.isPending}
-                        onClick={() => {
-                          if (!anticipoAmount) { toast.error("Ingresa el monto del anticipo"); return; }
-                          updateStatus.mutate({
-                            projectId: projectDetail.id,
-                            newStatus: "adelanto_recibido",
-                            advanceAmount: Number(anticipoAmount),
-                            notes: `Anticipo confirmado: $${Number(anticipoAmount).toLocaleString("es-CO")}`,
-                          });
-                          setShowAnticipo(false);
-                        }}
-                      >
-                        {updateStatus.isPending ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle2 className="h-4 w-4 mr-2" />}
-                        Confirmar Anticipo
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* ── LINK CLIENTE: Visible para admin en cualquier etapa activa ── */}
-            {(user?.role === "admin" || user?.role === "super_admin" || user?.role === "comercial") && (projectDetail as any).publicToken && !["cotizacion_enviada","cotizacion_aprobada"].includes(projectDetail.status as string) && (
-              <div className="rounded-xl border border-teal-300 bg-teal-50 px-5 py-3 flex flex-col sm:flex-row sm:items-center gap-3">
-                <div className="flex items-center gap-2 flex-1 min-w-0">
-                  <ExternalLink className="h-4 w-4 text-teal-600 shrink-0" />
-                  <span className="text-sm font-medium text-teal-800">Portal del cliente:</span>
-                  <span className="text-xs text-teal-600 truncate">
-                    {`/gallery?project=${projectDetail.id}&token=${(projectDetail as any).publicToken}`}
-                  </span>
-                </div>
-                <div className="flex gap-2 shrink-0">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="text-teal-700 border-teal-400 hover:bg-teal-100 text-xs h-8"
-                    onClick={() => {
-                      const url = `${window.location.origin}/gallery?project=${projectDetail.id}&token=${(projectDetail as any).publicToken}`;
-                      navigator.clipboard.writeText(url).then(() => { setCopiedLink(true); setTimeout(() => setCopiedLink(false), 2000); });
-                    }}
-                  >
-                    {copiedLink ? "✓ Copiado" : "Copiar Link"}
-                  </Button>
-                  <Button
-                    size="sm"
-                    className="bg-teal-600 hover:bg-teal-700 text-white text-xs h-8"
-                    onClick={() => {
-                      const url = `${window.location.origin}/gallery?project=${projectDetail.id}&token=${(projectDetail as any).publicToken}`;
-                      const msg = encodeURIComponent(`Hola ${projectDetail.client?.name}, aquí puedes ver el progreso de tu proyecto:\n${url}`);
-                      window.open(`https://wa.me/57${projectDetail.client?.whatsappPhone?.replace(/\D/g,'')}?text=${msg}`, "_blank");
-                    }}
-                  >
-                    <MessageCircle className="h-3.5 w-3.5 mr-1" />
-                    Enviar por WhatsApp
-                  </Button>
-                </div>
-              </div>
-            )}
-
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <Card>
-                <CardHeader className="py-3 bg-blue-50">
+              <Card style={{ background: "#162828", border: "1px solid rgba(255,255,255,0.08)" }}>
+                <CardHeader className="py-3 bg-blue-500/10">
                   <CardTitle className="text-sm flex items-center gap-2">
                     <User className="h-4 w-4 text-blue-600" />
                     Información del Cliente
@@ -1006,8 +767,8 @@ export default function ProjectDetail() {
               </Card>
 
               {user?.role !== "disenador" && user?.role !== "jefe_taller" && user?.role !== "operario" && (
-                <Card>
-                  <CardHeader className="py-3 bg-green-50">
+                <Card style={{ background: "#162828", border: "1px solid rgba(255,255,255,0.08)" }}>
+                  <CardHeader className="py-3 bg-green-500/10">
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-sm flex items-center gap-2">
                         <DollarSign className="h-4 w-4 text-green-600" />
@@ -1046,7 +807,7 @@ export default function ProjectDetail() {
                       </div>
                       
                       {/* Desglose de Pagos Dinámico */}
-                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
+                      <div className="bg-blue-500/10 border border-blue-500/25 rounded-lg p-3 mb-3">
                         <p className="text-xs font-semibold text-blue-700 mb-2">Desglose de Pagos</p>
                         <div className="space-y-1 text-xs text-blue-600">
                           {(projectDetail as any).payments && (projectDetail as any).payments.length > 0 ? (
@@ -1075,14 +836,14 @@ export default function ProjectDetail() {
                       {/* Saldo pendiente - DESTACADO */}
                       <div className={`border rounded-lg p-3 ${
                         (projectDetail as any).financialInfo?.remainingAmount > 0
-                          ? "bg-amber-50 border-amber-200"
-                          : "bg-green-50 border-green-200"
+                          ? "bg-amber-500/10 border-amber-500/25"
+                          : "bg-green-500/10 border-green-500/25"
                       }`}>
                         <div className="flex justify-between items-center">
                           <span className={`font-medium ${
                             (projectDetail as any).financialInfo?.remainingAmount > 0
-                              ? "text-amber-800"
-                              : "text-green-800"
+                              ? "text-amber-300"
+                              : "text-green-300"
                           }`}>
                             {(projectDetail as any).financialInfo?.remainingAmount > 0
                               ? `Saldo Pendiente (${Math.round(((projectDetail as any).financialInfo?.remainingAmount || 0) / ((projectDetail as any).financialInfo?.totalAmount || 1) * 100)}%)`
@@ -1149,8 +910,8 @@ export default function ProjectDetail() {
                 />
               )}
 
-              <Card>
-                <CardHeader className="py-3 bg-purple-50">
+              <Card style={{ background: "#162828", border: "1px solid rgba(255,255,255,0.08)" }}>
+                <CardHeader className="py-3 bg-purple-500/10">
                   <CardTitle className="text-sm flex items-center gap-2">
                     <Calendar className="h-4 w-4 text-purple-600" />
                     Fechas del Proyecto
@@ -1193,7 +954,7 @@ export default function ProjectDetail() {
             </div>
 
             {((projectDetail as any).file3dUrl || (projectDetail as any).fileDesgloseUrl) && (
-              <Card>
+              <Card style={{ background: "#162828", border: "1px solid rgba(255,255,255,0.08)" }}>
                 <CardHeader className="py-3">
                   <CardTitle className="text-sm">Archivos de Diseño</CardTitle>
                 </CardHeader>
@@ -1224,11 +985,619 @@ export default function ProjectDetail() {
           </TabsContent>
 
           {/* Tab Producción */}
+          <TabsContent value="produccion" className="space-y-4">
+            <Card>
+              <CardHeader className="py-3 bg-orange-500/10">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Palette className="h-4 w-4 text-orange-600" />
+                  Materiales Seleccionados
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-4">
+                <MaterialsForm
+                  projectId={projectDetail.id}
+                  readOnly={user?.role === "disenador" || (user?.role !== "admin" && user?.role !== "super_admin")}
+                />
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="py-3 bg-orange-500/10">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Box className="h-4 w-4 text-orange-600" />
+                  Herrajes
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-4">
+                <HardwareSelector
+                  projectId={projectDetail.id}
+                  readOnly={user?.role !== "admin" && user?.role !== "super_admin"}
+                  showOnlySelected={false}
+                />
+              </CardContent>
+            </Card>
+
+            {/* Fotos avance producción */}
+            {Object.entries(produccionFolders).map(([category, subcategories]) => (
+              <Card key={category}>
+                <CardHeader className="py-3 bg-gradient-to-r from-orange-500 to-amber-500">
+                  <CardTitle className="text-base font-bold text-white">{categoryLabels[category] || category}</CardTitle>
+                </CardHeader>
+                <CardContent className="pt-4">
+                  <div className="space-y-4">
+                    {(subcategories as string[]).map((subcategory) => {
+                      const photos = projectDetail.photos?.filter(
+                        (p: any) => p.category === category && p.subcategory === subcategory
+                      ) || [];
+                      return (
+                        <div key={subcategory} className="border rounded-lg p-3">
+                          <div className="flex items-center justify-between mb-2">
+                            <h5 className="font-semibold text-sm text-orange-700 flex items-center gap-2">
+                              <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
+                              {subcategoryLabels[subcategory] || subcategory}
+                              <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${photos.length > 0 ? 'bg-orange-500/15 text-orange-700' : 'bg-white/[0.06] text-gray-500'}`}>
+                                {photos.length} fotos
+                              </span>
+                            </h5>
+                            {canUploadToFolder(subcategory) && (() => {
+                              const uc = canUploadToStage(subcategory);
+                              return (
+                                <Button variant="ghost" size="sm" disabled={!uc.allowed} title={uc.message || "Subir foto"}
+                                  onClick={() => { if (!uc.allowed) { toast.error(uc.message); return; } setPhotoForm({ ...photoForm, category: category as any, subcategory }); setShowPhotoDialog(true); }}>
+                                  <Upload className={`h-4 w-4 ${!uc.allowed ? 'text-gray-300' : ''}`} />
+                                </Button>
+                              );
+                            })()}
+                          </div>
+                          {photos.length > 0 ? (
+                            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2">
+                              {photos.map((photo: any, idx: number) => (
+                                <div key={photo.id} className="aspect-square rounded-md overflow-hidden cursor-pointer hover:opacity-80"
+                                  onClick={() => fileViewer.openViewer(photos.map((p: any) => ({ url: p.photoUrl, title: p.description || "Foto" })), idx)}>
+                                  <img src={photo.photoUrl || ''} alt={photo.description || "Foto"} className="w-full h-full object-cover" />
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-sm text-muted-foreground">Sin fotos en esta etapa</p>
+                          )}
+                          {canShowAdvanceButton(subcategory) && photoToCurrentStatus[subcategory]?.includes(projectDetail.status as string) && (
+                            <Button size="sm" onClick={() => openAdvanceConfirmDialog(subcategory)} disabled={updateStatus.isPending}
+                              className="w-full mt-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold">
+                              {updateStatus.isPending ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : <ArrowRight className="h-4 w-4 mr-2" />}
+                              Avanzar etapa
+                            </Button>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </TabsContent>
+
+          {/* Tab Diseño */}
+          <TabsContent value="diseno" className="space-y-4">
+
+            {/* Centro de Control de Diseño */}
+            {(user?.role === "admin" || user?.role === "super_admin" || user?.role === "comercial") && (
+              <div className="mb-4 rounded-xl overflow-hidden shadow-lg border border-white/[0.10] dark:border-gray-700">
+                {/* Header del Panel */}
+                <div className="bg-gradient-to-r from-teal-600 to-teal-500 px-6 py-4">
+                  <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                    <Palette className="h-5 w-5" />
+                    Centro de Control de Diseño
+                  </h3>
+                  <p className="text-teal-100 text-sm mt-1">Gestiona el envío y aprobación de diseños del cliente</p>
+                </div>
+                
+                <div className="bg-[#162828] dark:bg-gray-900 p-6">
+                  {/* Grid de Tarjetas de Acción */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    
+                    {/* Tarjeta Modelado 3D */}
+                    <div className={`relative rounded-xl p-5 transition-all duration-300 ${projectDetail.photos?.filter((p: any) => p.subcategory === "modelado_3d").length > 0 ? 'bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/30 border-2 border-purple-500/25 dark:border-purple-700 hover:shadow-md' : 'bg-white/[0.03] dark:bg-gray-800 border-2 border-dashed border-white/[0.15] dark:border-gray-600'}`}>
+                      <div className="flex items-start gap-4">
+                        <div className={`p-3 rounded-xl ${projectDetail.photos?.filter((p: any) => p.subcategory === "modelado_3d").length > 0 ? 'bg-purple-500 text-white' : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400'}`}>
+                          <Box className="h-6 w-6" />
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-foreground dark:text-gray-200">Modelado 3D</h4>
+                          <p className="text-sm text-muted-foreground dark:text-gray-400 mt-1">
+                            {projectDetail.photos?.filter((p: any) => p.subcategory === "modelado_3d").length > 0 
+                              ? `${projectDetail.photos?.filter((p: any) => p.subcategory === "modelado_3d").length} imagen(es) listas`
+                              : 'Sin imágenes aún'}
+                          </p>
+                          {projectDetail.modeladoApprovedAt && (
+                            <div className="mt-2 flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
+                              <CheckCircle2 className="h-3 w-3" />
+                              Aprobado por {projectDetail.modeladoApprovedBy}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      {projectDetail.photos?.filter((p: any) => p.subcategory === "modelado_3d").length > 0 && (
+                        <Button
+                          size="sm"
+                          className={`w-full mt-4 shadow-sm ${(projectDetail.modeladoRevisionNumber || 0) >= 1 ? 'bg-purple-500 hover:bg-purple-600' : 'bg-purple-600 hover:bg-purple-700'} text-white`}
+                          onClick={() => sendModeladoToClient.mutate({ projectId: projectDetail.id })}
+                          disabled={sendModeladoToClient.isPending}
+                          title={(projectDetail.modeladoRevisionNumber || 0) >= 1 ? 'Reenviar enlace de aprobación al cliente (incrementará la revisión)' : 'Enviar modelado al cliente para aprobación'}
+                        >
+                          <MessageCircle className={`h-4 w-4 mr-2 ${sendModeladoToClient.isPending ? 'animate-spin' : ''}`} />
+                          {sendModeladoToClient.isPending ? 'Enviando...' : (projectDetail.modeladoRevisionNumber || 0) >= 1 ? `Reenviar (Rev. ${(projectDetail.modeladoRevisionNumber || 0) + 1})` : 'Enviar Modelado'}
+                        </Button>
+                      )}
+                    </div>
+                    
+                    {/* Tarjeta Renders */}
+                    <div className={`relative rounded-xl p-5 transition-all duration-300 ${projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length > 0 ? 'bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/30 dark:to-emerald-800/30 border-2 border-emerald-200 dark:border-emerald-700 hover:shadow-md' : 'bg-white/[0.03] dark:bg-gray-800 border-2 border-dashed border-white/[0.15] dark:border-gray-600'}`}>
+                      <div className="flex items-start gap-4">
+                        <div className={`p-3 rounded-xl ${projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length > 0 ? 'bg-emerald-500 text-white' : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400'}`}>
+                          <ImageIcon className="h-6 w-6" />
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-foreground dark:text-gray-200">Renders Finales</h4>
+                          <p className="text-sm text-muted-foreground dark:text-gray-400 mt-1">
+                            {projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length > 0 
+                              ? `${projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length} imagen(es) listas`
+                              : 'Sin imágenes aún'}
+                          </p>
+                          {projectDetail.rendersApprovedAt && (
+                            <div className="mt-2 flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
+                              <CheckCircle2 className="h-3 w-3" />
+                              Aprobado por {projectDetail.rendersApprovedBy}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      {projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length > 0 && (
+                        <Button
+                          size="sm"
+                          className={`w-full mt-4 shadow-sm ${(projectDetail.renderRevisionNumber || 0) >= 1 ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-emerald-600 hover:bg-emerald-700'} text-white`}
+                          onClick={() => sendRendersToClient.mutate({ projectId: projectDetail.id })}
+                          disabled={sendRendersToClient.isPending}
+                          title={(projectDetail.renderRevisionNumber || 0) >= 1 ? 'Reenviar enlace de aprobación al cliente (incrementará la revisión)' : 'Enviar renders al cliente para aprobación'}
+                        >
+                          <MessageCircle className={`h-4 w-4 mr-2 ${sendRendersToClient.isPending ? 'animate-spin' : ''}`} />
+                          {sendRendersToClient.isPending ? 'Enviando...' : (projectDetail.renderRevisionNumber || 0) >= 1 ? `Reenviar (Rev. ${(projectDetail.renderRevisionNumber || 0) + 1})` : 'Enviar Renders'}
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Sección de Aprobación */}
+                  {(() => {
+                    const isInDesignPhase = ["en_diseno", "pendiente_modelado", "pendiente_render"].includes(projectDetail.status as string);
+                    const isPendingApproval = (projectDetail.status as string) === "pendiente_modelado" || (projectDetail.status as string) === "pendiente_render";
+                    const isApproved = projectDetail.rendersApprovedAt || projectDetail.modeladoApprovedAt;
+                    const hasDesignContent = (projectDetail.photos?.filter((p: any) => p.subcategory === "modelado_3d" || p.subcategory === "renders").length || 0) > 0;
+                    
+                    let statusMessage = "";
+                    let statusColor = "gray";
+                    
+                    if (isPendingApproval) {
+                      statusMessage = "Esperando confirmación del cliente por WhatsApp";
+                      statusColor = "amber";
+                    } else if (projectDetail.rendersApprovedAt) {
+                      statusMessage = `Renders aprobados el ${new Date(projectDetail.rendersApprovedAt).toLocaleDateString('es-CO')}`;
+                      statusColor = "green";
+                    } else if (projectDetail.modeladoApprovedAt) {
+                      statusMessage = `Modelado aprobado el ${new Date(projectDetail.modeladoApprovedAt).toLocaleDateString('es-CO')}`;
+                      statusColor = "green";
+                    } else if ((projectDetail.status as string) === "en_diseno") {
+                      statusMessage = "En proceso de diseño - Puedes aprobar si el cliente confirma por teléfono/WhatsApp";
+                      statusColor = "blue";
+                    } else if (!hasDesignContent) {
+                      statusMessage = "Sube imágenes de modelado o renders primero";
+                      statusColor = "gray";
+                    } else {
+                      statusMessage = "Envía el diseño al cliente para solicitar aprobación";
+                      statusColor = "blue";
+                    }
+                    
+                    return (
+                      <div className={`rounded-xl p-5 border mb-4 ${
+                        statusColor === "amber" ? "bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20 border-amber-500/25 dark:border-amber-700" :
+                        statusColor === "green" ? "bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-green-500/25 dark:border-green-700" :
+                        statusColor === "blue" ? "bg-gradient-to-r from-blue-50 to-sky-50 dark:from-blue-900/20 dark:to-sky-900/20 border-blue-500/25 dark:border-blue-700" :
+                        "bg-gradient-to-r from-gray-50 to-slate-50 dark:from-gray-900/20 dark:to-slate-900/20 border-white/[0.10] dark:border-gray-700"
+                      }`}>
+                        <div className="flex items-center gap-3 mb-4">
+                          <div className={`p-2 rounded-lg text-white ${
+                            statusColor === "amber" ? "bg-amber-500" :
+                            statusColor === "green" ? "bg-green-500" :
+                            statusColor === "blue" ? "bg-blue-500" :
+                            "bg-gray-400"
+                          }`}>
+                            {statusColor === "green" ? <CheckCircle2 className="h-5 w-5" /> : <AlertCircle className="h-5 w-5" />}
+                          </div>
+                          <div>
+                            <h4 className={`font-semibold ${
+                              statusColor === "amber" ? "text-amber-300 dark:text-amber-200" :
+                              statusColor === "green" ? "text-green-300 dark:text-green-200" :
+                              statusColor === "blue" ? "text-blue-300 dark:text-blue-200" :
+                              "text-muted-foreground dark:text-gray-400"
+                            }`}>
+                              {isPendingApproval ? "Pendiente de Aprobación" : isApproved ? "Diseño Aprobado" : "Aprobar en Nombre del Cliente"}
+                            </h4>
+                            <p className={`text-sm ${
+                              statusColor === "amber" ? "text-amber-600 dark:text-amber-400" :
+                              statusColor === "green" ? "text-green-600 dark:text-green-400" :
+                              statusColor === "blue" ? "text-blue-600 dark:text-blue-400" :
+                              "text-gray-500 dark:text-gray-500"
+                            }`}>{statusMessage}</p>
+                          </div>
+                        </div>
+                        <div className="flex flex-wrap gap-3 items-center">
+                          {isInDesignPhase && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setApprovalUnlocked(!approvalUnlocked)}
+                              className={`${
+                                approvalUnlocked 
+                                  ? "border-green-500 text-green-700 bg-green-500/10 hover:bg-green-500/15 dark:bg-green-900/20" 
+                                  : "border-white/[0.15] text-gray-500 hover:bg-white/[0.03]"
+                              }`}
+                              title={approvalUnlocked ? "Clic para bloquear" : "Clic para desbloquear y poder aprobar"}
+                            >
+                              {approvalUnlocked ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
+                            </Button>
+                          )}
+                          <Button
+                            onClick={() => {
+                              approveDesign.mutate({ projectId: projectDetail.id, approved: true });
+                              setApprovalUnlocked(false);
+                            }}
+                            disabled={approveDesign.isPending || !isInDesignPhase || !approvalUnlocked}
+                            className={`shadow-sm ${
+                              isInDesignPhase && approvalUnlocked
+                                ? "bg-green-600 hover:bg-green-700 text-white" 
+                                : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                            }`}
+                            title={!isInDesignPhase ? "Solo disponible durante el proceso de diseño" : !approvalUnlocked ? "Desbloquea primero con el candado" : "Aprobar en nombre del cliente (confirmación por teléfono/WhatsApp)"}
+                          >
+                            <CheckCircle2 className="h-4 w-4 mr-2" />
+                            Aprobar
+                          </Button>
+                          <Button
+                            variant="outline"
+                            className={`${
+                              isInDesignPhase && approvalUnlocked
+                                ? "border-orange-500/40 text-orange-700 hover:bg-orange-500/10 dark:hover:bg-orange-900/20" 
+                                : "border-white/[0.15] text-gray-400 cursor-not-allowed"
+                            }`}
+                            onClick={() => {
+                              if (isInDesignPhase && approvalUnlocked) {
+                                const notes = prompt("Indica qué cambios se necesitan:");
+                                if (notes) {
+                                  approveDesign.mutate({ projectId: projectDetail.id, approved: false, notes });
+                                  setApprovalUnlocked(false);
+                                }
+                              }
+                            }}
+                            disabled={approveDesign.isPending || !isInDesignPhase || !approvalUnlocked}
+                            title={!isInDesignPhase ? "Solo disponible durante el proceso de diseño" : !approvalUnlocked ? "Desbloquea primero con el candado" : "Registrar cambios solicitados por el cliente"}
+                          >
+                            <XCircle className="h-4 w-4 mr-2" />
+                            Solicitar Cambios
+                          </Button>
+                        </div>
+                        {projectDetail.clientApprovalNotes && (
+                          <div className="mt-4 p-3 bg-orange-500/15 dark:bg-orange-900/30 rounded-lg border border-orange-500/25 dark:border-orange-700">
+                            <p className="text-sm text-orange-300 dark:text-orange-200">
+                              <strong>📝 Últimos cambios solicitados:</strong> {projectDetail.clientApprovalNotes}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
+                </div>
+              </div>
+            )}
+
+            {Object.entries(disenoFolders).map(([category, subcategories]) => (
+              <Card key={category}>
+                <CardHeader className="py-3 bg-gradient-to-r from-emerald-500 to-teal-500">
+                  <CardTitle className="text-base font-bold text-white tracking-wide">
+                    {categoryLabels[category] || category}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-4">
+                  <div className="space-y-4">
+                    {subcategories.map((subcategory) => {
+                      const photos = projectDetail.photos?.filter(
+                        (p: any) => p.category === category && p.subcategory === subcategory
+                      ) || [];
+                      return (
+                        <div key={subcategory} className="border rounded-lg p-3">
+                          <div className="flex items-center justify-between mb-2">
+                            <h5 className="font-semibold text-base text-emerald-700 flex items-center gap-2">
+                              <span className="w-2 h-2 bg-emerald-500 rounded-full"></span>
+                              {subcategoryLabels[subcategory] || subcategory}
+                              <span className={`ml-2 px-2 py-0.5 rounded-full text-xs font-medium ${photos.length > 0 ? 'bg-emerald-500/15 text-emerald-700' : 'bg-white/[0.06] text-gray-500'}`}>
+                                {photos.length} {photos.length === 1 ? 'foto' : 'fotos'}
+                              </span>
+                            </h5>
+                            {canUploadToFolder(subcategory) && (() => {
+                              const uploadCheck = canUploadToStage(subcategory);
+                              return (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  disabled={!uploadCheck.allowed}
+                                  title={uploadCheck.message || "Subir foto"}
+                                  onClick={() => {
+                                    if (!uploadCheck.allowed) {
+                                      toast.error(uploadCheck.message);
+                                      return;
+                                    }
+                                    setPhotoForm({
+                                      ...photoForm,
+                                      category: category as any,
+                                      subcategory,
+                                    });
+                                    setShowPhotoDialog(true);
+                                  }}
+                                >
+                                  <Upload className={`h-4 w-4 ${!uploadCheck.allowed ? 'text-gray-300' : ''}`} />
+                                </Button>
+                              );
+                            })()}
+                          </div>
+                          {photos.length > 0 ? (
+                            <>
+                              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
+                                {photos.map((photo: any, idx: number) => {
+                                  return (
+                                  <div
+                                    key={photo.id}
+                                    className="aspect-square rounded-md overflow-hidden cursor-pointer hover:opacity-80 transition-opacity relative group"
+                                    onClick={() => fileViewer.openViewer(
+                                      photos.map((p: any) => ({ url: p.photoUrl, title: p.description || "Foto" })),
+                                      idx
+                                    )}
+                                  >
+                                    {photo.photoUrl?.toLowerCase().endsWith('.pdf') || photo.photoUrl?.includes('application/pdf') ? (
+                                      <div className="w-full h-full bg-red-500/10 flex flex-col items-center justify-center">
+                                        <FileText className="h-10 w-10 text-red-500" />
+                                        <span className="text-xs text-red-600 mt-1 font-medium">PDF</span>
+                                      </div>
+                                    ) : (
+                                      <img
+                                        src={photo.photoUrl || ''}
+                                        alt={photo.description || "Foto"}
+                                        className="w-full h-full object-cover"
+                                        onError={(e) => {
+                                          (e.target as HTMLImageElement).src = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22%3E%3Crect fill=%22%23f0f0f0%22 width=%22100%22 height=%22100%22/%3E%3C/svg%3E';
+                                        }}
+                                      />
+                                    )}
+                                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                      <ZoomIn className="h-6 w-6 text-white" />
+                                    </div>
+                                    {/* Botón eliminar - admin/comercial pueden eliminar cualquiera, colaboradores solo sus propias fotos */}
+                                    {(user?.role === "super_admin" || user?.role === "admin" || user?.role === "comercial" || 
+                                      ((user?.role === "jefe_taller" || user?.role === "operario" || user?.role === "disenador") && photo.uploadedBy === user?.id)) && (
+                                      <button
+                                        className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-full p-2 opacity-100 xl:opacity-0 xl:group-hover:opacity-100 transition-opacity z-10 shadow-md"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setPhotoToDelete({ id: photo.id, description: photo.description });
+                                        }}
+                                      >
+                                        <Trash2 className="h-5 w-5" />
+                                      </button>                                    )})
+                                  </div>
+                                );
+                                })})                              </div>
+                              {/* Botón de avanzar etapa - siempre visible para roles permitidos */}
+                              {canShowAdvanceButton(subcategory) && (
+                                <div className="mt-3 pt-3 border-t border-dashed border-emerald-200">
+                                  <Button
+                                    onClick={() => openAdvanceConfirmDialog(subcategory)}
+                                    disabled={updateStatus.isPending}
+                                    className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-semibold"
+                                  >
+                                    {updateStatus.isPending ? (
+                                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                                    ) : (
+                                      <ArrowRight className="h-4 w-4 mr-2" />
+                                    )}
+                                    Avanzar a {photoToNextStatus[subcategory] === "corte" ? "Corte" :
+                                               photoToNextStatus[subcategory] === "enchape" ? "Enchape" :
+                                               photoToNextStatus[subcategory] === "ensamble" ? "Ensamble" :
+                                               photoToNextStatus[subcategory] === "listo_instalacion" ? "En Instalación" :
+                                               photoToNextStatus[subcategory] === "entregado" ? "Entregado" : "Siguiente Etapa"}
+                                  </Button>
+                                  {canSendSectionNotification() && (
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      disabled={sendSectionNotification.isPending}
+                                      onClick={() => handleSendSectionNotification(subcategory)}
+                                      className="w-full sm:w-auto mt-2 text-xs sm:text-sm"
+                                    >
+                                      {sendSectionNotification.isPending ? "Enviando..." : "📲 Notificar al cliente"}
+                                    </Button>
+                                  )}
+                                </div>
+                              )}
+                            </>
+                          ) : (
+                            <>
+                              <div className="flex flex-col items-center justify-center py-8 text-center bg-white/[0.03] rounded-lg border-2 border-dashed border-white/[0.10]">
+                                <Camera className="h-10 w-10 text-gray-300 mb-2" />
+                                <p className="text-sm text-gray-400 font-medium">Sin fotos aún</p>
+                                {canUploadToFolder(subcategory) && (
+                                  <p className="text-xs text-gray-400 mt-1">Haz clic en el botón de subir para agregar</p>
+                                )}
+                              </div>
+                              {/* Botón de avanzar etapa - siempre visible para roles permitidos */}
+                              {canShowAdvanceButton(subcategory) && (
+                                <div className="mt-3 pt-3 border-t border-dashed border-amber-500/25">
+                                  <Button
+                                    onClick={() => openAdvanceConfirmDialog(subcategory)}
+                                    disabled={updateStatus.isPending}
+                                    className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold"
+                                  >
+                                    {updateStatus.isPending ? (
+                                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                                    ) : (
+                                      <ArrowRight className="h-4 w-4 mr-2" />
+                                    )}
+                                    Avanzar a {photoToNextStatus[subcategory] === "corte" ? "Corte" :
+                                               photoToNextStatus[subcategory] === "enchape" ? "Enchape" :
+                                               photoToNextStatus[subcategory] === "ensamble" ? "Ensamble" :
+                                               photoToNextStatus[subcategory] === "listo_instalacion" ? "En Instalación" :
+                                               photoToNextStatus[subcategory] === "entregado" ? "Entregado" : "Siguiente Etapa"}
+                                  </Button>
+                                  {canSendSectionNotification() && (
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      disabled={sendSectionNotification.isPending}
+                                      onClick={() => handleSendSectionNotification(subcategory)}
+                                      className="w-full sm:w-auto mt-2 text-xs sm:text-sm"
+                                    >
+                                      {sendSectionNotification.isPending ? "Enviando..." : "📲 Notificar al cliente"}
+                                    </Button>
+                                  )}
+                                </div>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+
+            {/* Revisiones del cliente */}
+            {projectDetail.clientRevisions && projectDetail.clientRevisions.length > 0 && (
+              <Card className="border-purple-500/30 bg-purple-500/10/50">
+                <CardHeader className="py-3 bg-gradient-to-r from-purple-500 to-purple-600">
+                  <CardTitle className="text-sm text-white flex items-center gap-2">
+                    <MessageSquare className="h-4 w-4" />
+                    Revisiones del Cliente ({projectDetail.clientRevisions.length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-4">
+                  <div className="space-y-3 max-h-96 overflow-y-auto">
+                    {projectDetail.clientRevisions.map((revision: any, index: number) => (
+                      <div key={revision.id || index} className="p-3 bg-[#162828] rounded-lg border border-orange-500/25">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className={`text-xs font-medium px-2 py-1 rounded ${revision.type === 'modelado_3d' ? 'bg-blue-500/15 text-blue-700' : 'bg-purple-500/15 text-purple-700'}`}>
+                            {revision.type === 'modelado_3d' ? '📎 Modelado 3D' : '🎨 Renders'} - Rev. {revision.revisionNumber}
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            {revision.clientName}
+                          </span>
+                        </div>
+                        <p className="text-sm text-muted-foreground">{revision.changes}</p>
+                        <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {new Date(revision.createdAt).toLocaleDateString('es-CO', { 
+                            weekday: 'long', 
+                            day: 'numeric', 
+                            month: 'long', 
+                            year: 'numeric',
+                            hour: '2-digit', 
+                            minute: '2-digit' 
+                          })}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+            {/* Mostrar último cambio si no hay historial pero sí hay nota */}
+            {(!projectDetail.clientRevisions || projectDetail.clientRevisions.length === 0) && projectDetail.clientApprovalNotes && (
+              <Card className="border-orange-500/30 bg-orange-500/10/50">
+                <CardHeader className="py-3 bg-gradient-to-r from-orange-500 to-orange-600">
+                  <CardTitle className="text-sm text-white flex items-center gap-2">
+                    <MessageSquare className="h-4 w-4" />
+                    Cambios Solicitados por el Cliente
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-4">
+                  <div className="space-y-3">
+                    <div className="p-3 bg-[#162828] rounded-lg border border-orange-500/25">
+                      <p className="text-sm text-muted-foreground">{projectDetail.clientApprovalNotes}</p>
+                      {projectDetail.changesRequestedAt && (
+                        <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          Solicitado: {new Date(projectDetail.changesRequestedAt).toLocaleDateString('es-CO', { 
+                            weekday: 'long', 
+                            day: 'numeric', 
+                            month: 'long', 
+                            year: 'numeric',
+                            hour: '2-digit', 
+                            minute: '2-digit' 
+                          })}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            <Card>
+              <CardHeader className="py-3 bg-orange-500/10 flex flex-row items-center justify-between">
+                <CardTitle className="text-sm">Notas y Detalles del Proyecto</CardTitle>
+                {/* Solo Super Admin, Admin, Comercial y Diseñador pueden agregar detalles */}
+                {(user?.role === "super_admin" || user?.role === "admin" || user?.role === "comercial" || user?.role === "disenador") && (
+                  <Button variant="ghost" size="sm" onClick={() => setShowDetailDialog(true)}>
+                    <Plus className="h-4 w-4 mr-1" />
+                    Agregar
+                  </Button>
+                )}
+              </CardHeader>
+              <CardContent className="pt-4">
+                {(projectDetail as any)?.details && (projectDetail as any)?.details?.length > 0 ? (
+                  <div className="space-y-3">
+                    {projectDetail.details.map((detail: any) => (
+                      <div key={detail.id} className="border rounded-lg p-3">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <Badge variant="outline" className="mb-1">
+                              {detail.type === "medida_especial" ? "Medida Especial" : 
+                               detail.type === "nota_importante" ? "Nota Importante" : "Foto Referencia"}
+                            </Badge>
+                            <h5 className="font-medium break-words min-w-0">{detail.title}</h5>
+                            <p className="text-sm text-muted-foreground break-words min-w-0">{detail.content}</p>
+                          </div>
+                          {detail.photoUrl && (
+                            <img
+                              src={detail.photoUrl}
+                              alt={detail.title}
+                              className="w-16 h-16 object-cover rounded cursor-pointer"
+                              onClick={() => fileViewer.openViewer([{ url: detail.photoUrl, title: detail.title }], 0)}
+                            />
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">No hay detalles registrados</p>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Tab Instalación */}
           <TabsContent value="instalacion" className="space-y-4">
             {/* Fechas de instalación */}
             {(projectDetail.tentativeInstallDate || projectDetail.estimatedInstallDate) && (
               <Card>
-                <CardHeader className="py-3 bg-teal-50">
+                <CardHeader className="py-3 bg-teal-500/10">
                   <CardTitle className="text-sm flex items-center gap-2">
                     <Calendar className="h-4 w-4 text-teal-600" />
                     Fechas de Instalación
@@ -1267,10 +1636,10 @@ export default function ProjectDetail() {
                       return (
                         <div key={subcategory} className="border rounded-lg p-3">
                           <div className="flex items-center justify-between mb-2">
-                            <h5 className="font-semibold text-sm text-teal-400 flex items-center gap-2">
+                            <h5 className="font-semibold text-sm text-teal-700 flex items-center gap-2">
                               <span className="w-2 h-2 bg-teal-500 rounded-full"></span>
                               {subcategoryLabels[subcategory] || subcategory}
-                              <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${photos.length > 0 ? 'bg-teal-500/20 text-teal-400' : 'bg-white/[0.08] text-muted-foreground'}`}>
+                              <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${photos.length > 0 ? 'bg-teal-500/15 text-teal-700' : 'bg-white/[0.06] text-gray-500'}`}>
                                 {photos.length} fotos
                               </span>
                             </h5>
@@ -1317,64 +1686,6 @@ export default function ProjectDetail() {
                   <Truck className="h-16 w-16 text-gray-200 mb-4" />
                   <p className="text-gray-400 font-medium">Sin fotos de instalación aún</p>
                   <p className="text-xs text-gray-300 mt-1">Las fotos del proceso de instalación y entrega aparecerán aquí</p>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* ── FIRMA DE ENTREGA: jefe de taller o admin cuando está en instalación ── */}
-            {(user?.role === "jefe_taller" || user?.role === "admin" || user?.role === "super_admin") &&
-              ["listo_instalacion","entregado"].includes(projectDetail.status as string) && (
-              <Card className="border-2 border-emerald-400">
-                <CardHeader className="py-3 bg-gradient-to-r from-emerald-600 to-teal-600">
-                  <CardTitle className="text-sm font-bold text-white flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4" />
-                    Firma de Entrega del Cliente
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="pt-4 space-y-4">
-                  {/* Verificar si ya hay firma guardada */}
-                  {(() => {
-                    const firma = (projectDetail.photos ?? []).find((p: any) => p.subcategory === "fotos_finales" && p.description?.includes("firma"));
-                    if (firma) {
-                      return (
-                        <div className="text-center space-y-2">
-                          <p className="text-sm text-emerald-700 font-medium">✅ Firma de entrega registrada</p>
-                          <img src={firma.photoUrl} alt="Firma" className="max-h-32 mx-auto border rounded-lg" />
-                        </div>
-                      );
-                    }
-                    if (!showDeliverySignature) {
-                      return (
-                        <div className="text-center space-y-3">
-                          <p className="text-sm text-muted-foreground">Captura la firma del cliente confirmando la entrega del proyecto.</p>
-                          <Button
-                            className="bg-emerald-600 hover:bg-emerald-700 text-white"
-                            onClick={() => setShowDeliverySignature(true)}
-                          >
-                            <CheckCircle2 className="h-4 w-4 mr-2" />
-                            Capturar Firma de Entrega
-                          </Button>
-                        </div>
-                      );
-                    }
-                    return (
-                      <DeliverySignaturePad
-                        onSave={(dataUrl) => {
-                          setUploadingSignature(true);
-                          uploadSignatureImg.mutate({
-                            fileName: `firma-entrega-${Date.now()}.png`,
-                            fileData: dataUrl,
-                            contentType: "image/png",
-                            projectId: projectDetail.id,
-                            stage: "final",
-                            category: "entrega",
-                          });
-                        }}
-                        onCancel={() => setShowDeliverySignature(false)}
-                        uploading={uploadingSignature}
-                      />
-                    );
-                  })()}
                 </CardContent>
               </Card>
             )}
@@ -1458,16 +1769,16 @@ export default function ProjectDetail() {
                             <div className="flex-1 bg-[#162828] border rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow">
                               <div className="flex items-start justify-between gap-2">
                                 <p className="text-sm font-semibold text-foreground">{actionText}</p>
-                                <span className="text-xs text-muted-foreground whitespace-nowrap">
+                                <span className="text-xs text-gray-400 whitespace-nowrap">
                                   {new Date(entry.createdAt).toLocaleDateString("es-CO", { day: '2-digit', month: 'short' })}
                                 </span>
                               </div>
                               {entry.notes && (
-                                <p className="text-sm text-muted-foreground mt-1 bg-white/[0.04] rounded p-2 italic">
+                                <p className="text-sm text-muted-foreground mt-1 bg-white/[0.03] rounded p-2 italic">
                                   "{entry.notes}"
                                 </p>
                               )}
-                              <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
+                              <div className="flex items-center gap-2 mt-2 text-xs text-gray-400">
                                 <Clock className="h-3 w-3" />
                                 {new Date(entry.createdAt).toLocaleTimeString("es-CO", { hour: '2-digit', minute: '2-digit' })}
                                 {entry.user && (
@@ -1498,7 +1809,7 @@ export default function ProjectDetail() {
           {/* Tab Postventa */}
           <TabsContent value="postventa" className="space-y-4">
             <Card>
-              <CardHeader className="py-3 bg-pink-50">
+              <CardHeader className="py-3 bg-pink-500/10">
                 <CardTitle className="text-sm flex items-center gap-2">
                   <CheckCircle2 className="h-4 w-4 text-pink-600" />
                   Seguimiento Postventa
@@ -1510,43 +1821,6 @@ export default function ProjectDetail() {
                 <p className="text-xs text-gray-300 mt-1">Aquí se registrará el seguimiento postventa del proyecto</p>
               </CardContent>
             </Card>
-          
-          {/* ── Acceso rápido: Diseño y Producción ── */}
-          {(user?.role === "admin" || user?.role === "super_admin" || user?.role === "comercial" || user?.role === "disenador" || user?.role === "jefe_taller" || user?.role === "operario") && (
-            <Card className="mt-4">
-              <CardHeader className="py-3 bg-gradient-to-r from-slate-700 to-slate-600">
-                <CardTitle className="text-sm text-white font-semibold">Gestión del Proyecto</CardTitle>
-              </CardHeader>
-              <CardContent className="pt-4">
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    onClick={() => navigate("/design")}
-                    className="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-purple-200 bg-purple-50 hover:bg-purple-100 dark:bg-purple-900/20 dark:border-purple-700 transition-colors text-center"
-                  >
-                    <div className="p-2 rounded-lg bg-purple-500 text-white">
-                      <Palette className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-purple-700 dark:text-purple-300">Diseño</p>
-                      <p className="text-xs text-purple-500 dark:text-purple-400">Modelado, renders y aprobación</p>
-                    </div>
-                  </button>
-                  <button
-                    onClick={() => navigate("/production")}
-                    className="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-orange-200 bg-orange-50 hover:bg-orange-100 dark:bg-orange-900/20 dark:border-orange-700 transition-colors text-center"
-                  >
-                    <div className="p-2 rounded-lg bg-orange-500 text-white">
-                      <Hammer className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-orange-700 dark:text-orange-300">Producción</p>
-                      <p className="text-xs text-orange-500 dark:text-orange-400">Materiales, herrajes y avance</p>
-                    </div>
-                  </button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
           </TabsContent>
 
           {/* Tab Financiero */}

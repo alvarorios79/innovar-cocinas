@@ -30,47 +30,47 @@ export function ProjectResultCard({ totalAmount, materialExpenses, status }: Pro
   const IconComponent = marginStatus.icon;
 
   return (
-    <Card>
+    <Card style={{ background: "#162828", border: "1px solid rgba(255,255,255,0.08)" }}>
       <CardHeader className="py-3 bg-blue-500/10">
         <CardTitle className="text-sm flex items-center gap-2">
-          <TrendingUp className="h-4 w-4 text-blue-600" />
+          <TrendingUp className="h-4 w-4 text-blue-400" />
           Resultado del Proyecto
         </CardTitle>
       </CardHeader>
       <CardContent className="text-sm space-y-3 pt-4">
         {/* Gastos registrados */}
-        <div className="flex justify-between items-center py-2 border-b">
-          <span className="text-muted-foreground">Gastos Registrados</span>
-          <span className="font-semibold text-orange-600">{formatCurrency(materialExpenses)}</span>
+        <div className="flex justify-between items-center py-2 border-b border-white/10">
+          <span className="text-white/50">Gastos Registrados</span>
+          <span className="font-semibold text-orange-400">{formatCurrency(materialExpenses)}</span>
         </div>
 
         {/* Utilidad bruta */}
-        <div className="flex justify-between items-center py-2 border-b">
-          <span className="text-muted-foreground">Utilidad Bruta</span>
-          <span className={`font-bold text-lg ${utilidadBruta >= 0 ? "text-green-600" : "text-red-600"}`}>
+        <div className="flex justify-between items-center py-2 border-b border-white/10">
+          <span className="text-white/50">Utilidad Bruta</span>
+          <span className={`font-bold text-lg ${utilidadBruta >= 0 ? "text-green-400" : "text-red-400"}`}>
             {formatCurrency(utilidadBruta)}
           </span>
         </div>
 
         {/* Margen % con estado */}
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-500/25 rounded-lg p-3">
+        <div className="bg-gradient-to-r from-blue-900/20 to-indigo-900/20 border border-blue-500/25 rounded-lg p-3">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold text-blue-700">Margen de Ganancia</span>
+            <span className="text-xs font-semibold text-blue-300">Margen de Ganancia</span>
             <Badge className={marginStatus.color}>
               <IconComponent className="h-3 w-3 mr-1" />
               {marginStatus.label}
             </Badge>
           </div>
           <div className="flex items-end gap-2">
-            <span className="text-2xl font-bold text-blue-600">{margen.toFixed(1)}%</span>
-            <span className="text-xs text-blue-600 mb-1">del total del proyecto</span>
+            <span className="text-2xl font-bold text-blue-400">{margen.toFixed(1)}%</span>
+            <span className="text-xs text-blue-400 mb-1">del total del proyecto</span>
           </div>
         </div>
 
         {/* Estado del proyecto */}
         {status && (
-          <div className="flex justify-between items-center py-2 border-t pt-3">
-            <span className="text-muted-foreground text-xs">Estado</span>
+          <div className="flex justify-between items-center py-2 border-t border-white/10 pt-3">
+            <span className="text-white/50 text-xs">Estado</span>
             <Badge variant="outline" className="text-xs">
               {status === "entregado" && "Entregado"}
               {status === "en_proceso" && "En Proceso"}

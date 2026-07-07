@@ -200,7 +200,7 @@ export function ProjectProductionPanel({ projectId }: { projectId: number }) {
                     <h5 className="font-semibold text-sm text-orange-700 flex items-center gap-2">
                       <span className="w-2 h-2 bg-orange-500 rounded-full" />
                       {subcategoryLabels[subcategory] || subcategory}
-                      <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${photos.length > 0 ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-500'}`}>
+                      <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${photos.length > 0 ? 'bg-orange-500/20 text-orange-400' : 'bg-gray-100 text-gray-500'}`}>
                         {photos.length} fotos
                       </span>
                     </h5>
@@ -252,7 +252,7 @@ export function ProjectProductionPanel({ projectId }: { projectId: number }) {
                       )}
                     </>
                   ) : (
-                    <div className="flex flex-col items-center justify-center py-8 text-center bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
+                    <div className="flex flex-col items-center justify-center py-8 text-center bg-white/[0.03] rounded-lg border-2 border-dashed border-white/[0.12]">
                       <Camera className="h-10 w-10 text-gray-300 mb-2" />
                       <p className="text-sm text-gray-400 font-medium">Sin fotos aún</p>
                     </div>

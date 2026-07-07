@@ -3149,7 +3149,7 @@ export default function Quotations() {
                                           className="w-24 h-8"
                                           placeholder="0"
                                         />
-                                        <span className="text-xs text-yellow-600">
+                                        <span className="text-xs text-yellow-400">
                                           = {formatPrice((item.kitchenConfig?.specialFinishes?.ledLighting?.meters || 0) * getPrice('ACABADO_LED_ML'))}
                                         </span>
                                       </div>

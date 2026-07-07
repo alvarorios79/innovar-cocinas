@@ -297,12 +297,12 @@ export function CountertopConfigurator({ config, onChange }: CountertopConfigura
   };
 
   return (
-    <div className="space-y-4 border rounded-lg p-4 bg-gradient-to-br from-rose-50 to-pink-50">
+    <div className="space-y-4 border border-white/[0.12] rounded-lg p-4 bg-white/[0.02]">
       {/* Header */}
-      <div className="flex flex-col gap-3 pb-3 border-b border-rose-200">
+      <div className="flex flex-col gap-3 pb-3 border-b border-white/[0.12]">
         <div className="flex items-center gap-2">
-          <Layers className="h-5 w-5 text-rose-600" />
-          <h3 className="font-semibold text-rose-800">Configurador de Mesones</h3>
+          <Layers className="h-5 w-5 text-rose-400" />
+          <h3 className="font-semibold text-foreground">Configurador de Mesones</h3>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button
@@ -346,10 +346,10 @@ export function CountertopConfigurator({ config, onChange }: CountertopConfigura
         const showSalpicaderoAltoOption = meson.tipo === "meson" || meson.tipo === "barra";
 
         return (
-          <div key={meson.id} className="space-y-3 p-3 bg-[#162828] rounded-lg border border-rose-200">
+          <div key={meson.id} className="space-y-3 p-3 bg-[#162828] rounded-lg border border-white/[0.10]">
             {/* Header del sub-mesón */}
             <div className="flex items-center justify-between">
-              <h4 className="font-medium text-rose-700">
+              <h4 className="font-medium text-rose-400">
                 {getTipoNombre(meson.tipo)} #{index + 1}
               </h4>
               {config.mesones.length > 1 && (
@@ -438,7 +438,7 @@ export function CountertopConfigurator({ config, onChange }: CountertopConfigura
 
               <div className="space-y-1">
                 <Label className="text-xs font-medium">Subtotal</Label>
-                <div className="h-9 flex items-center px-2 bg-rose-100 rounded-md font-semibold text-rose-800 text-sm">
+                <div className="h-9 flex items-center px-2 bg-rose-500/10 rounded-md font-semibold text-rose-300 text-sm">
                   {formatPrice(meson.subtotal)}
                 </div>
               </div>
@@ -446,8 +446,8 @@ export function CountertopConfigurator({ config, onChange }: CountertopConfigura
 
             {/* Opciones de Isla */}
             {meson.tipo === "isla" && (
-              <div className="p-2 bg-rose-50 rounded space-y-2">
-                <h5 className="text-xs font-medium text-rose-700">Opciones de Isla</h5>
+              <div className="p-2 bg-white/[0.04] rounded space-y-2">
+                <h5 className="text-xs font-medium text-rose-400">Opciones de Isla</h5>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                   <div className="flex items-center gap-2 p-2 bg-[#162828] rounded text-sm">
                     <Checkbox
@@ -460,7 +460,7 @@ export function CountertopConfigurator({ config, onChange }: CountertopConfigura
                         Laterales (1.8 ML)
                       </Label>
                     </div>
-                    <span className="font-semibold text-rose-700 text-xs">{formatPrice(meson.subtotalLaterales)}</span>
+                    <span className="font-semibold text-rose-400 text-xs">{formatPrice(meson.subtotalLaterales)}</span>
                   </div>
 
                   <div className="flex items-center gap-2 p-2 bg-[#162828] rounded text-sm">
@@ -474,7 +474,7 @@ export function CountertopConfigurator({ config, onChange }: CountertopConfigura
                         Regrueso (0.9 ML)
                       </Label>
                     </div>
-                    <span className="font-semibold text-rose-700 text-xs">{formatPrice(meson.subtotalRegrueso)}</span>
+                    <span className="font-semibold text-rose-400 text-xs">{formatPrice(meson.subtotalRegrueso)}</span>
                   </div>
                 </div>
               </div>
@@ -482,8 +482,8 @@ export function CountertopConfigurator({ config, onChange }: CountertopConfigura
 
             {/* Opciones de Barra */}
             {meson.tipo === "barra" && (
-              <div className="p-2 bg-rose-50 rounded space-y-2">
-                <h5 className="text-xs font-medium text-rose-700">Opciones de Barra</h5>
+              <div className="p-2 bg-white/[0.04] rounded space-y-2">
+                <h5 className="text-xs font-medium text-rose-400">Opciones de Barra</h5>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                   <div className="space-y-1">
                     <Label className="text-xs font-medium">Altura del Lateral</Label>
@@ -508,7 +508,7 @@ export function CountertopConfigurator({ config, onChange }: CountertopConfigura
                       <div className="flex-1">
                         <Label className="text-xs">Lateral ({meson.alturaLateral}cm)</Label>
                       </div>
-                      <span className="font-semibold text-rose-700 text-xs">{formatPrice(meson.subtotalLaterales)}</span>
+                      <span className="font-semibold text-rose-400 text-xs">{formatPrice(meson.subtotalLaterales)}</span>
                     </div>
                   )}
                 </div>
@@ -517,7 +517,7 @@ export function CountertopConfigurator({ config, onChange }: CountertopConfigura
 
             {/* Opción de Salpicadero Alto */}
             {showSalpicaderoAltoOption && (
-              <div className="p-2 bg-amber-50 rounded">
+              <div className="p-2 bg-amber-500/10 rounded">
                 <div className="flex items-center gap-2">
                   <Checkbox
                     id={`salpicaderoAlto-${meson.id}`}
@@ -533,14 +533,14 @@ export function CountertopConfigurator({ config, onChange }: CountertopConfigura
                     </p>
                   </div>
                   {meson.incluyeSalpicaderoAlto && (
-                    <span className="font-semibold text-amber-700 text-xs">{formatPrice(meson.subtotalSalpicaderoAlto)}</span>
+                    <span className="font-semibold text-amber-400 text-xs">{formatPrice(meson.subtotalSalpicaderoAlto)}</span>
                   )}
                 </div>
               </div>
             )}
 
             {/* Incluido en el precio */}
-            <div className="p-2 bg-gray-50 rounded">
+            <div className="p-2 bg-white/[0.03] rounded">
               <h5 className="text-xs font-medium text-white/60 mb-1">Incluido en el precio:</h5>
               <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-white/60">
                 {includedItems.map((item, i) => (
@@ -556,7 +556,7 @@ export function CountertopConfigurator({ config, onChange }: CountertopConfigura
       })}
 
       {/* Transporte */}
-      <div className="p-3 bg-[#162828] rounded-lg border border-rose-200">
+      <div className="p-3 bg-[#162828] rounded-lg border border-white/[0.10]">
         <div className="flex items-center gap-3">
           <Checkbox
             id="transport"
@@ -589,10 +589,10 @@ export function CountertopConfigurator({ config, onChange }: CountertopConfigura
       </div>
 
       {/* Resumen de precio */}
-      <div className="p-4 bg-rose-600 text-white rounded-lg">
+      <div className="p-4 bg-[#162828] border border-rose-500/20 rounded-lg">
         <div className="flex items-center gap-2 mb-3">
-          <Calculator className="h-5 w-5" />
-          <h4 className="font-semibold">Resumen de Precio</h4>
+          <Calculator className="h-5 w-5 text-rose-400" />
+          <h4 className="font-semibold text-foreground">Resumen de Precio</h4>
         </div>
         <div className="space-y-1 text-sm">
           {config.mesones.map((meson, index) => (
@@ -607,9 +607,9 @@ export function CountertopConfigurator({ config, onChange }: CountertopConfigura
               <span>{formatPrice(config.transportCost)}</span>
             </div>
           )}
-          <div className="flex justify-between pt-2 border-t border-rose-400 text-lg font-bold">
+          <div className="flex justify-between pt-2 border-t border-white/[0.15] text-lg font-bold">
             <span>TOTAL:</span>
-            <span>{formatPrice(config.total)}</span>
+            <span className="text-primary">{formatPrice(config.total)}</span>
           </div>
         </div>
       </div>

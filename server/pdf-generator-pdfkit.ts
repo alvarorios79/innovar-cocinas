@@ -279,12 +279,12 @@ export async function generateQuotationPDF(data: QuotationData, outputPath: stri
       // ── OBSERVACIONES ──────────────────────────────────────────────────────
       if (data.generalNotes && data.generalNotes.trim()) {
         if (Y + 60 > PH - 130) { doc.addPage(); Y = 30; }
-        doc.rect(ML, Y, CW, 20).fill(DGRAY);
-        doc.fontSize(8.5).fillColor(WHITE).font("Helvetica-Bold")
-           .text("OBSERVACIONES", ML + 10, Y + 6);
-        Y += 20;
+        doc.rect(ML, Y, CW, 24).fill(DGRAY);
+        doc.fontSize(10).fillColor(WHITE).font("Helvetica-Bold")
+           .text("OBSERVACIONES", ML + 10, Y + 7);
+        Y += 24;
         const nLines  = data.generalNotes.split("\n").filter(l => l.trim());
-        let   noteH   = nLines.reduce((a, l) => a + doc.heightOfString(l, { width: CW - 20, lineGap: 1.5 }) + 5, 14);
+        let   noteH   = nLines.reduce((a, l) => a + doc.heightOfString(l, { width: CW - 20, lineGap: 2 }) + 6, 16);
         doc.rect(ML, Y, CW, noteH).fill(LGRAY).stroke(BORDER);
         let ny = Y + 8;
         for (const l of nLines) {

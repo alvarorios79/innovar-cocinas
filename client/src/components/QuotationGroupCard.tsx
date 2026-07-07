@@ -134,13 +134,13 @@ export function QuotationGroupCard({
   const isExpired = daysUntilExpiry <= 0;
 
   const cardBorderClass = isExpired ? 'border-l-red-500' : isExpiringSoon ? 'border-l-yellow-500' : 'border-l-[#14B8A6]';
-  const cardBgClass = isExpired ? 'bg-red-50' : isExpiringSoon ? 'bg-yellow-50' : 'bg-[#162828]';
+  const cardBgClass = 'bg-[#162828]';
 
   return (
     <>
     <Card className={`w-full overflow-hidden shadow-sm border-l-2 ${cardBorderClass} ${cardBgClass}`}>
       {/* HEADER COMPACTO - UNA SOLA LÍNEA */}
-      <div className={`px-3 py-2 md:px-3 md:py-2 border-b border-[rgba(106,207,199,0.12)] ${isExpired ? 'bg-red-50' : isExpiringSoon ? 'bg-yellow-50' : 'bg-[#162828]'}`}>
+      <div className="px-3 py-2 md:px-3 md:py-2 border-b border-[rgba(106,207,199,0.12)] bg-[#162828]">
         <div className="flex items-center gap-2 md:gap-3 mb-2">
           {/* Logo Innovar pequeño (32px) */}
           <div className="flex-shrink-0 w-8 h-8 md:w-8 md:h-8 rounded-md flex items-center justify-center overflow-hidden">
@@ -158,7 +158,7 @@ export function QuotationGroupCard({
           {/* Información principal - Nombre cliente primero */}
           <div className="flex-1 min-w-0">
             {/* Nombre del cliente - Primero */}
-            <h3 className="text-sm md:text-base font-semibold text-gray-900 truncate">
+            <h3 className="text-sm md:text-base font-semibold text-white truncate">
               {client?.name || "Cliente"}
             </h3>
             {/* Número de cotización - Debajo */}
@@ -225,14 +225,14 @@ export function QuotationGroupCard({
 
           {/* Total y fechas compactas */}
           <div className="flex-shrink-0 text-right">
-            <div className="text-sm md:text-base font-bold text-gray-900">
+            <div className="text-sm md:text-base font-bold text-white">
               {showValues ? (
                 `$${parseFloat(selectedVersion.total || "0").toLocaleString("es-CO", {
                   minimumFractionDigits: 0,
                   maximumFractionDigits: 0,
                 })}`
               ) : (
-                <span className="text-gray-400 text-xs">••••••••</span>
+                <span className="text-white/30 text-xs">••••••••</span>
               )}
             </div>
             <div className="text-xs text-white/45 mt-0.5 space-y-0.5">
@@ -507,11 +507,11 @@ export function QuotationGroupCard({
 
         {/* Sección de Notas */}
         {isActiveVersion && (
-          <div className="mt-3 p-3 rounded bg-pink-50 border border-pink-200">
+          <div className="mt-3 p-3 rounded bg-[#1a2f2f] border border-[rgba(106,207,199,0.2)]">
             <div className="flex items-center justify-between mb-2">
               <label className="text-sm font-semibold text-white/85">Notas del Cliente</label>
               <div className="flex gap-1">
-                <select className="text-xs px-2 py-1 rounded border border-pink-300 bg-[#162828]">
+                <select className="text-xs px-2 py-1 rounded border border-[rgba(106,207,199,0.3)] bg-[#162828] text-white/70">
                   <option value="">Sin estado</option>
                   <option value="aprobado">Aprobado</option>
                   <option value="rechazado">Rechazado</option>
@@ -520,7 +520,7 @@ export function QuotationGroupCard({
               </div>
             </div>
             <textarea
-              className="w-full text-xs p-2 rounded border border-pink-300 bg-[#162828] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-400"
+              className="w-full text-xs p-2 rounded border border-[rgba(106,207,199,0.3)] bg-[#162828] text-white/80 placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/40"
               placeholder="Ingresa la respuesta del cliente aquí..."
               rows={2}
               defaultValue={selectedVersion.clientResponseNotes || ""}

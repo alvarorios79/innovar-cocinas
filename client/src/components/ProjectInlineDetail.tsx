@@ -144,30 +144,6 @@ export function ProjectInlineDetail({
   const [designerWhatsAppLink, setDesignerWhatsAppLink] = useState<string | null>(null);
   const [showDesignerWhatsAppDialog, setShowDesignerWhatsAppDialog] = useState(false);
   const [designerName, setDesignerName] = useState<string | null>(null);
-
-  // Aprobación delegada
-  const [showDelegatedApprovalDialog, setShowDelegatedApprovalDialog] = useState(false);
-  const [delegatedReason, setDelegatedReason] = useState<"presencial"|"whatsapp_familiar"|"telefono"|"whatsapp_cliente"|"">("");
-  const [delegatedNote, setDelegatedNote] = useState("");
-  const [delegatedEvidenceUrl, setDelegatedEvidenceUrl] = useState<string>("");
-  const [uploadingEvidence, setUploadingEvidence] = useState(false);
-  const [familyMemberName, setFamilyMemberName] = useState("");
-  const [familyMemberRelationship, setFamilyMemberRelationship] = useState("");
-
-  // Solicitar cambios (reemplaza el prompt())
-  const [showRequestChangesDialog, setShowRequestChangesDialog] = useState(false);
-  const [requestChangesSource, setRequestChangesSource] = useState<"cliente_portal"|"comercial_presencial"|"comercial_whatsapp"|"comercial_telefono"|"">("");
-  const [requestChangesNotes, setRequestChangesNotes] = useState("");
-
-  // Advertencia al pasar a producción sin aprobación de renders registrada
-  const [showProductionWarningDialog, setShowProductionWarningDialog] = useState(false);
-
-  // Canal de cambios al entregar nueva versión
-  const [showChangeChannelDialog, setShowChangeChannelDialog] = useState(false);
-  const [pendingNewStatus, setPendingNewStatus] = useState<"pendiente_modelado"|"pendiente_render"|null>(null);
-  const [pendingChangeAction, setPendingChangeAction] = useState<"sendModelado"|"sendRenders"|"updateStatus"|null>(null);
-  const [changeChannel, setChangeChannel] = useState<"portal"|"whatsapp"|"presencial"|"telefono"|"">("");
-  const [changeNotes, setChangeNotes] = useState("");
   
   // Filtros para fotos
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
@@ -260,8 +236,6 @@ export function ProjectInlineDetail({
       toast.error(error.message || "Error al actualizar fecha");
     },
   });
-
-  const uploadEvidenceImage = trpc.upload.image.useMutation();
 
   const approveDesign = trpc.projects.approveDesign.useMutation({
     onSuccess: (result, variables) => {
@@ -382,9 +356,9 @@ export function ProjectInlineDetail({
 
   // Helper function to get margin color
   const getMarginColor = (rentabilidad: number) => {
-    if (rentabilidad >= 20) return { bg: "bg-green-100/50", text: "text-green-700", border: "border-green-300" };
-    if (rentabilidad >= 10) return { bg: "bg-yellow-100/50", text: "text-yellow-700", border: "border-yellow-300" };
-    return { bg: "bg-red-100/50", text: "text-red-700", border: "border-red-300" };
+    if (rentabilidad >= 20) return { bg: "bg-green-500/15/50", text: "text-green-700", border: "border-green-300" };
+    if (rentabilidad >= 10) return { bg: "bg-yellow-500/15/50", text: "text-yellow-700", border: "border-yellow-300" };
+    return { bg: "bg-red-500/15/50", text: "text-red-700", border: "border-red-300" };
   };
 
   // Helper function to format currency
@@ -565,7 +539,7 @@ export function ProjectInlineDetail({
             <Button
               variant="outline"
               size="sm"
-              className="text-green-600 border-green-600 hover:bg-green-50"
+              className="text-green-600 border-green-600 hover:bg-green-500/10"
               onClick={() => {
                 const baseUrl = window.location.origin;
                 const portalUrl = `${baseUrl}/portal?project=${project.id}`;
@@ -609,8 +583,8 @@ export function ProjectInlineDetail({
       {/* Acción para Diseñador: Iniciar Diseño (adelanto_recibido -> en_diseno) */}
       {projectDetail.status === "adelanto_recibido" && 
         (user?.role === "disenador" || user?.role === "admin" || user?.role === "super_admin") && (
-        <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-4">
-          <h4 className="font-medium text-purple-800 mb-2 flex items-center gap-2">
+        <div className="bg-purple-500/10 border border-purple-500/25 rounded-lg p-4 mb-4">
+          <h4 className="font-medium text-purple-300 mb-2 flex items-center gap-2">
             <AlertCircle className="h-4 w-4" />
             Proyecto Listo para Diseño
           </h4>
@@ -632,8 +606,8 @@ export function ProjectInlineDetail({
       {/* Acción para Diseñador: Entregar Diseño (en_diseno -> pendiente_render) */}
       {projectDetail.status === "en_diseno" && 
         (user?.role === "disenador" || user?.role === "admin" || user?.role === "super_admin") && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-          <h4 className="font-medium text-blue-800 mb-2 flex items-center gap-2">
+        <div className="bg-blue-500/10 border border-blue-500/25 rounded-lg p-4 mb-4">
+          <h4 className="font-medium text-blue-300 mb-2 flex items-center gap-2">
             <AlertCircle className="h-4 w-4" />
             Proyecto en Diseño
           </h4>
@@ -643,22 +617,11 @@ export function ProjectInlineDetail({
           <Button
             size="sm"
             className="bg-blue-600 hover:bg-blue-700"
-            onClick={() => {
-              if ((projectDetail.renderRevisionNumber || 0) > 0) {
-                // Re-entrega después de cambios → capturar canal
-                setChangeChannel("");
-                setChangeNotes("");
-                setPendingNewStatus("pendiente_render");
-                setPendingChangeAction("updateStatus");
-                setShowChangeChannelDialog(true);
-              } else {
-                updateStatus.mutate({ projectId: projectDetail.id, newStatus: "pendiente_render" });
-              }
-            }}
+            onClick={() => updateStatus.mutate({ projectId: projectDetail.id, newStatus: "pendiente_render" })}
             disabled={updateStatus.isPending}
           >
             <CheckCircle2 className="h-4 w-4 mr-1" />
-            {(projectDetail.renderRevisionNumber || 0) > 0 ? "Entregar Nueva Versión" : "Entregar Diseño al Cliente"}
+            Entregar Diseño al Cliente
           </Button>
         </div>
       )}
@@ -666,7 +629,7 @@ export function ProjectInlineDetail({
       {/* Checkbox para Enviar Directamente a Taller (solo admin/super_admin) */}
       {(projectDetail.status === "cotizacion_aprobada" || projectDetail.status === "adelanto_recibido") &&
         (user?.role === "admin" || user?.role === "super_admin") && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+        <div className="bg-blue-500/10 border border-blue-500/25 rounded-lg p-4 mb-4">
           <div className="flex items-center gap-3">
             <input
               type="checkbox"
@@ -681,7 +644,7 @@ export function ProjectInlineDetail({
               className="w-4 h-4 cursor-pointer"
             />
             <label htmlFor="skipDesign" className="cursor-pointer flex-1">
-              <span className="font-medium text-blue-800">
+              <span className="font-medium text-blue-300">
                 ☐ Enviar directamente a taller (sin proceso de diseño)
               </span>
               <p className="text-xs text-blue-700 mt-1">
@@ -697,8 +660,8 @@ export function ProjectInlineDetail({
         (user?.role === "admin" || user?.role === "super_admin" || user?.role === "comercial") && (
         <>
           {projectDetail.skipDesignProcess ? (
-            <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4">
-              <h4 className="font-medium text-orange-800 mb-2 flex items-center gap-2">
+            <div className="bg-orange-500/10 border border-orange-500/25 rounded-lg p-4 mb-4">
+              <h4 className="font-medium text-orange-300 mb-2 flex items-center gap-2">
                 <Send className="h-4 w-4" />
                 Enviar Directamente a Taller
               </h4>
@@ -716,12 +679,12 @@ export function ProjectInlineDetail({
               </Button>
             </div>
           ) : (
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
-              <h4 className="font-medium text-gray-600 mb-2 flex items-center gap-2">
+            <div className="bg-white/[0.03] border border-white/[0.10] rounded-lg p-4 mb-4">
+              <h4 className="font-medium text-muted-foreground mb-2 flex items-center gap-2">
                 <AlertCircle className="h-4 w-4" />
                 Enviar a Taller (Deshabilitado)
               </h4>
-              <p className="text-sm text-gray-600 mb-4">
+              <p className="text-sm text-muted-foreground mb-4">
                 Este proyecto requiere pasar por el proceso de diseño.
                 <br />
                 <strong>Marca la opción arriba si deseas saltarlo.</strong>
@@ -742,8 +705,8 @@ export function ProjectInlineDetail({
       {/* Acción para Diseñador: Pasar a Producción (aprobacion_final -> despiece) */}
       {projectDetail.status === "aprobacion_final" && 
         (user?.role === "disenador" || user?.role === "admin" || user?.role === "super_admin") && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
-          <h4 className="font-medium text-green-800 mb-2 flex items-center gap-2">
+        <div className="bg-green-500/10 border border-green-500/25 rounded-lg p-4 mb-4">
+          <h4 className="font-medium text-green-300 mb-2 flex items-center gap-2">
             <CheckCircle2 className="h-4 w-4" />
             Diseño Aprobado por el Cliente
           </h4>
@@ -753,13 +716,7 @@ export function ProjectInlineDetail({
           <Button
             size="sm"
             className="bg-green-600 hover:bg-green-700"
-            onClick={() => {
-              if (!projectDetail.rendersApprovedAt) {
-                setShowProductionWarningDialog(true);
-              } else {
-                updateStatus.mutate({ projectId: projectDetail.id, newStatus: "despiece" });
-              }
-            }}
+            onClick={() => updateStatus.mutate({ projectId: projectDetail.id, newStatus: "despiece" })}
             disabled={updateStatus.isPending}
           >
             <CheckCircle2 className="h-4 w-4 mr-1" />
@@ -773,8 +730,8 @@ export function ProjectInlineDetail({
       {/* Despiece -> Corte */}
       {projectDetail.status === "despiece" && 
         (user?.role === "jefe_taller" || user?.role === "admin" || user?.role === "super_admin") && (
-        <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4">
-          <h4 className="font-medium text-orange-800 mb-2 flex items-center gap-2">
+        <div className="bg-orange-500/10 border border-orange-500/25 rounded-lg p-4 mb-4">
+          <h4 className="font-medium text-orange-300 mb-2 flex items-center gap-2">
             <AlertCircle className="h-4 w-4" />
             Proyecto en Despiece
           </h4>
@@ -796,8 +753,8 @@ export function ProjectInlineDetail({
       {/* Corte -> Enchape */}
       {projectDetail.status === "corte" && 
         (user?.role === "jefe_taller" || user?.role === "operario" || user?.role === "admin" || user?.role === "super_admin") && (
-        <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4">
-          <h4 className="font-medium text-orange-800 mb-2 flex items-center gap-2">
+        <div className="bg-orange-500/10 border border-orange-500/25 rounded-lg p-4 mb-4">
+          <h4 className="font-medium text-orange-300 mb-2 flex items-center gap-2">
             <AlertCircle className="h-4 w-4" />
             Proyecto en Corte
           </h4>
@@ -819,8 +776,8 @@ export function ProjectInlineDetail({
       {/* Enchape -> Ensamble */}
       {projectDetail.status === "enchape" && 
         (user?.role === "jefe_taller" || user?.role === "operario" || user?.role === "admin" || user?.role === "super_admin") && (
-        <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4">
-          <h4 className="font-medium text-orange-800 mb-2 flex items-center gap-2">
+        <div className="bg-orange-500/10 border border-orange-500/25 rounded-lg p-4 mb-4">
+          <h4 className="font-medium text-orange-300 mb-2 flex items-center gap-2">
             <AlertCircle className="h-4 w-4" />
             Proyecto en Enchape
           </h4>
@@ -842,8 +799,8 @@ export function ProjectInlineDetail({
       {/* Ensamble -> En Instalación */}
       {projectDetail.status === "ensamble" && 
         (user?.role === "jefe_taller" || user?.role === "operario" || user?.role === "admin" || user?.role === "super_admin") && (
-        <div className="bg-teal-50 border border-teal-200 rounded-lg p-4 mb-4">
-          <h4 className="font-medium text-teal-800 mb-2 flex items-center gap-2">
+        <div className="bg-teal-500/10 border border-teal-500/25 rounded-lg p-4 mb-4">
+          <h4 className="font-medium text-teal-300 mb-2 flex items-center gap-2">
             <AlertCircle className="h-4 w-4" />
             Proyecto en Ensamble
           </h4>
@@ -865,8 +822,8 @@ export function ProjectInlineDetail({
       {/* En Instalación -> Instalación Programada */}
       {projectDetail.status === "listo_instalacion" && 
         (user?.role === "jefe_taller" || user?.role === "admin" || user?.role === "super_admin") && (
-        <div className="bg-teal-50 border border-teal-200 rounded-lg p-4 mb-4">
-          <h4 className="font-medium text-teal-800 mb-2 flex items-center gap-2">
+        <div className="bg-teal-500/10 border border-teal-500/25 rounded-lg p-4 mb-4">
+          <h4 className="font-medium text-teal-300 mb-2 flex items-center gap-2">
             <CheckCircle2 className="h-4 w-4" />
             Proyecto En Instalación
           </h4>
@@ -888,8 +845,8 @@ export function ProjectInlineDetail({
       {/* Instalación Programada -> Entregado */}
       {projectDetail.status === "listo_instalacion" && 
         (user?.role === "jefe_taller" || user?.role === "admin" || user?.role === "super_admin") && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
-          <h4 className="font-medium text-green-800 mb-2 flex items-center gap-2">
+        <div className="bg-green-500/10 border border-green-500/25 rounded-lg p-4 mb-4">
+          <h4 className="font-medium text-green-300 mb-2 flex items-center gap-2">
             <CheckCircle2 className="h-4 w-4" />
             Instalación Programada
           </h4>
@@ -910,7 +867,7 @@ export function ProjectInlineDetail({
 
       {/* Panel de Control de Diseño - Diseño Moderno */}
       {(user?.role === "admin" || user?.role === "super_admin" || user?.role === "comercial") && (
-        <div className="mb-4 rounded-xl overflow-hidden shadow-lg border border-gray-200 dark:border-gray-700">
+        <div className="mb-4 rounded-xl overflow-hidden shadow-lg border border-white/[0.10] dark:border-gray-700">
           {/* Header del Panel */}
           <div className="bg-gradient-to-r from-teal-600 to-teal-500 px-4 py-3">
             <h3 className="text-base font-bold text-white flex items-center gap-2">
@@ -925,14 +882,14 @@ export function ProjectInlineDetail({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
               
               {/* Tarjeta Modelado 3D */}
-              <div className={`relative rounded-lg p-4 transition-all duration-300 ${projectDetail.photos?.filter((p: any) => p.subcategory === "modelado_3d").length > 0 ? 'bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/30 border-2 border-purple-200 dark:border-purple-700 hover:shadow-md' : 'bg-gray-50 dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-600'}`}>
+              <div className={`relative rounded-lg p-4 transition-all duration-300 ${projectDetail.photos?.filter((p: any) => p.subcategory === "modelado_3d").length > 0 ? 'bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/30 border-2 border-purple-500/25 dark:border-purple-700 hover:shadow-md' : 'bg-white/[0.03] dark:bg-gray-800 border-2 border-dashed border-white/[0.15] dark:border-gray-600'}`}>
                 <div className="flex items-start gap-3">
                   <div className={`p-2 rounded-lg ${projectDetail.photos?.filter((p: any) => p.subcategory === "modelado_3d").length > 0 ? 'bg-purple-500 text-white' : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400'}`}>
                     <Box className="h-5 w-5" />
                   </div>
                   <div className="flex-1">
-                    <h4 className="font-semibold text-gray-800 dark:text-gray-200 text-sm">Modelado 3D</h4>
-                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                    <h4 className="font-semibold text-foreground dark:text-gray-200 text-sm">Modelado 3D</h4>
+                    <p className="text-xs text-muted-foreground dark:text-gray-400 mt-1">
                       {projectDetail.photos?.filter((p: any) => p.subcategory === "modelado_3d").length > 0 
                         ? `${projectDetail.photos?.filter((p: any) => p.subcategory === "modelado_3d").length} imagen(es) listas`
                         : 'Sin imágenes aún'}
@@ -949,19 +906,9 @@ export function ProjectInlineDetail({
                   <Button
                     size="sm"
                     className={`w-full mt-3 shadow-sm text-xs ${(projectDetail.modeladoRevisionNumber || 0) >= 1 ? 'bg-purple-500 hover:bg-purple-600' : 'bg-purple-600 hover:bg-purple-700'} text-white`}
-                    onClick={() => {
-                      if ((projectDetail.modeladoRevisionNumber || 0) >= 1) {
-                        setChangeChannel("");
-                        setChangeNotes("");
-                        setPendingNewStatus("pendiente_modelado");
-                        setPendingChangeAction("sendModelado");
-                        setShowChangeChannelDialog(true);
-                      } else {
-                        sendModeladoToClient.mutate({ projectId: projectDetail.id });
-                      }
-                    }}
+                    onClick={() => sendModeladoToClient.mutate({ projectId: projectDetail.id })}
                     disabled={sendModeladoToClient.isPending}
-                    title={(projectDetail.modeladoRevisionNumber || 0) >= 1 ? 'Reenviar modelado al cliente — registrar canal de cambios' : 'Enviar modelado al cliente para aprobación'}
+                    title={(projectDetail.modeladoRevisionNumber || 0) >= 1 ? 'Reenviar enlace de aprobación al cliente (incrementará la revisión)' : 'Enviar modelado al cliente para aprobación'}
                   >
                     <Send className={`h-3 w-3 mr-1 ${sendModeladoToClient.isPending ? 'animate-spin' : ''}`} />
                     {sendModeladoToClient.isPending ? 'Enviando...' : (projectDetail.modeladoRevisionNumber || 0) >= 1 ? `Reenviar (Rev. ${(projectDetail.modeladoRevisionNumber || 0) + 1})` : 'Enviar Modelado'}
@@ -970,14 +917,14 @@ export function ProjectInlineDetail({
               </div>
               
               {/* Tarjeta Renders */}
-              <div className={`relative rounded-lg p-4 transition-all duration-300 ${projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length > 0 ? 'bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/30 dark:to-emerald-800/30 border-2 border-emerald-200 dark:border-emerald-700 hover:shadow-md' : 'bg-gray-50 dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-600'}`}>
+              <div className={`relative rounded-lg p-4 transition-all duration-300 ${projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length > 0 ? 'bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/30 dark:to-emerald-800/30 border-2 border-emerald-200 dark:border-emerald-700 hover:shadow-md' : 'bg-white/[0.03] dark:bg-gray-800 border-2 border-dashed border-white/[0.15] dark:border-gray-600'}`}>
                 <div className="flex items-start gap-3">
                   <div className={`p-2 rounded-lg ${projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length > 0 ? 'bg-emerald-500 text-white' : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400'}`}>
                     <ImageIcon className="h-5 w-5" />
                   </div>
                   <div className="flex-1">
-                    <h4 className="font-semibold text-gray-800 dark:text-gray-200 text-sm">Renders Finales</h4>
-                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                    <h4 className="font-semibold text-foreground dark:text-gray-200 text-sm">Renders Finales</h4>
+                    <p className="text-xs text-muted-foreground dark:text-gray-400 mt-1">
                       {projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length > 0 
                         ? `${projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length} imagen(es) listas`
                         : 'Sin imágenes aún'}
@@ -994,19 +941,9 @@ export function ProjectInlineDetail({
                   <Button
                     size="sm"
                     className={`w-full mt-3 shadow-sm text-xs ${(projectDetail.renderRevisionNumber || 0) >= 1 ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-emerald-600 hover:bg-emerald-700'} text-white`}
-                    onClick={() => {
-                      if ((projectDetail.renderRevisionNumber || 0) >= 1) {
-                        setChangeChannel("");
-                        setChangeNotes("");
-                        setPendingNewStatus("pendiente_render");
-                        setPendingChangeAction("sendRenders");
-                        setShowChangeChannelDialog(true);
-                      } else {
-                        sendRendersToClient.mutate({ projectId: projectDetail.id });
-                      }
-                    }}
+                    onClick={() => sendRendersToClient.mutate({ projectId: projectDetail.id })}
                     disabled={sendRendersToClient.isPending}
-                    title={(projectDetail.renderRevisionNumber || 0) >= 1 ? 'Reenviar renders al cliente — registrar canal de cambios' : 'Enviar renders al cliente para aprobación'}
+                    title={(projectDetail.renderRevisionNumber || 0) >= 1 ? 'Reenviar enlace de aprobación al cliente (incrementará la revisión)' : 'Enviar renders al cliente para aprobación'}
                   >
                     <Send className={`h-3 w-3 mr-1 ${sendRendersToClient.isPending ? 'animate-spin' : ''}`} />
                     {sendRendersToClient.isPending ? 'Enviando...' : (projectDetail.renderRevisionNumber || 0) >= 1 ? `Reenviar (Rev. ${(projectDetail.renderRevisionNumber || 0) + 1})` : 'Enviar Renders'}
@@ -1043,10 +980,10 @@ export function ProjectInlineDetail({
               
               return (
                 <div className={`rounded-lg p-4 border mb-3 ${
-                  statusColor === "amber" ? "bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20 border-amber-200 dark:border-amber-700" :
-                  statusColor === "green" ? "bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-green-200 dark:border-green-700" :
-                  statusColor === "blue" ? "bg-gradient-to-r from-blue-50 to-sky-50 dark:from-blue-900/20 dark:to-sky-900/20 border-blue-200 dark:border-blue-700" :
-                  "bg-gradient-to-r from-gray-50 to-slate-50 dark:from-gray-900/20 dark:to-slate-900/20 border-gray-200 dark:border-gray-700"
+                  statusColor === "amber" ? "bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20 border-amber-500/25 dark:border-amber-700" :
+                  statusColor === "green" ? "bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-green-500/25 dark:border-green-700" :
+                  statusColor === "blue" ? "bg-gradient-to-r from-blue-50 to-sky-50 dark:from-blue-900/20 dark:to-sky-900/20 border-blue-500/25 dark:border-blue-700" :
+                  "bg-gradient-to-r from-gray-50 to-slate-50 dark:from-gray-900/20 dark:to-slate-900/20 border-white/[0.10] dark:border-gray-700"
                 }`}>
                   <div className="flex items-center gap-2 mb-3">
                     <div className={`p-1.5 rounded-lg text-white ${
@@ -1059,10 +996,10 @@ export function ProjectInlineDetail({
                     </div>
                     <div>
                       <h4 className={`font-semibold text-sm ${
-                        statusColor === "amber" ? "text-amber-800 dark:text-amber-200" :
-                        statusColor === "green" ? "text-green-800 dark:text-green-200" :
-                        statusColor === "blue" ? "text-blue-800 dark:text-blue-200" :
-                        "text-gray-600 dark:text-gray-400"
+                        statusColor === "amber" ? "text-amber-300 dark:text-amber-200" :
+                        statusColor === "green" ? "text-green-300 dark:text-green-200" :
+                        statusColor === "blue" ? "text-blue-300 dark:text-blue-200" :
+                        "text-muted-foreground dark:text-gray-400"
                       }`}>
                         {isPendingApproval ? "Pendiente de Aprobación" : isApproved ? "Diseño Aprobado" : "Aprobación del Cliente"}
                       </h4>
@@ -1077,17 +1014,11 @@ export function ProjectInlineDetail({
                   <div className="flex flex-wrap gap-2">
                     <Button
                       size="sm"
-                      onClick={() => {
-                        if (isPendingApproval) {
-                          setDelegatedReason("");
-                          setDelegatedNote("");
-                          setShowDelegatedApprovalDialog(true);
-                        }
-                      }}
+                      onClick={() => approveDesign.mutate({ projectId: projectDetail.id, approved: true })}
                       disabled={approveDesign.isPending || !isPendingApproval}
                       className={`shadow-sm text-xs ${
-                        isPendingApproval
-                          ? "bg-green-600 hover:bg-green-700 text-white"
+                        isPendingApproval 
+                          ? "bg-green-600 hover:bg-green-700 text-white" 
                           : "bg-gray-300 text-gray-500 cursor-not-allowed"
                       }`}
                       title={!isPendingApproval ? "Solo disponible cuando hay diseño pendiente de aprobación" : ""}
@@ -1100,14 +1031,15 @@ export function ProjectInlineDetail({
                       variant="outline"
                       className={`text-xs ${
                         isPendingApproval 
-                          ? "border-orange-400 text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20" 
-                          : "border-gray-300 text-gray-400 cursor-not-allowed"
+                          ? "border-orange-500/40 text-orange-700 hover:bg-orange-500/10 dark:hover:bg-orange-900/20" 
+                          : "border-white/[0.15] text-gray-400 cursor-not-allowed"
                       }`}
                       onClick={() => {
                         if (isPendingApproval) {
-                          setRequestChangesSource("");
-                          setRequestChangesNotes("");
-                          setShowRequestChangesDialog(true);
+                          const notes = prompt("Indica qué cambios se necesitan:");
+                          if (notes) {
+                            approveDesign.mutate({ projectId: projectDetail.id, approved: false, notes });
+                          }
                         }
                       }}
                       disabled={approveDesign.isPending || !isPendingApproval}
@@ -1118,8 +1050,8 @@ export function ProjectInlineDetail({
                     </Button>
                   </div>
                   {projectDetail.clientApprovalNotes && (
-                    <div className="mt-3 p-2 bg-orange-100 dark:bg-orange-900/30 rounded border border-orange-200 dark:border-orange-700">
-                      <p className="text-xs text-orange-800 dark:text-orange-200">
+                    <div className="mt-3 p-2 bg-orange-500/15 dark:bg-orange-900/30 rounded border border-orange-500/25 dark:border-orange-700">
+                      <p className="text-xs text-orange-300 dark:text-orange-200">
                         <strong>📝 Últimos cambios solicitados:</strong> {projectDetail.clientApprovalNotes}
                       </p>
                     </div>
@@ -1134,21 +1066,21 @@ export function ProjectInlineDetail({
               const modeladoBlocked = hasRenders;
               
               return (
-                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-700">
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg p-4 border border-blue-500/25 dark:border-blue-700">
                   <div className="flex items-center gap-2 mb-3">
                     <div className="p-1.5 bg-blue-500 rounded-lg text-white">
                       <RefreshCw className="h-4 w-4" />
                     </div>
                     <div>
-                      <h4 className="font-semibold text-blue-800 dark:text-blue-200 text-sm">Solicitar Nueva Aprobación</h4>
+                      <h4 className="font-semibold text-blue-300 dark:text-blue-200 text-sm">Solicitar Nueva Aprobación</h4>
                       <p className="text-xs text-blue-600 dark:text-blue-400">Si el cliente solicitó cambios después de aprobar</p>
                     </div>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {/* Modelado */}
-                    <div className={`p-3 rounded-lg ${modeladoBlocked ? 'bg-gray-100 dark:bg-gray-800 opacity-60' : projectDetail.modeladoApprovedAt ? 'bg-purple-100 dark:bg-purple-900/30' : 'bg-gray-100 dark:bg-gray-800'}`}>
+                    <div className={`p-3 rounded-lg ${modeladoBlocked ? 'bg-white/[0.06] dark:bg-gray-800 opacity-60' : projectDetail.modeladoApprovedAt ? 'bg-purple-500/15 dark:bg-purple-900/30' : 'bg-white/[0.06] dark:bg-gray-800'}`}>
                       <div className="flex items-center justify-between mb-1">
-                        <span className={`text-xs font-medium ${modeladoBlocked ? 'text-gray-400' : projectDetail.modeladoApprovedAt ? 'text-purple-800 dark:text-purple-200' : 'text-gray-500'}`}>Modelado 3D</span>
+                        <span className={`text-xs font-medium ${modeladoBlocked ? 'text-gray-400' : projectDetail.modeladoApprovedAt ? 'text-purple-300 dark:text-purple-200' : 'text-gray-500'}`}>Modelado 3D</span>
                         {projectDetail.modeladoApprovedAt && <CheckCircle2 className="h-3 w-3 text-green-500" />}
                       </div>
                       <p className={`text-xs mb-2 ${modeladoBlocked ? 'text-gray-400' : projectDetail.modeladoApprovedAt ? 'text-purple-600 dark:text-purple-400' : 'text-gray-400'}`}>
@@ -1161,7 +1093,7 @@ export function ProjectInlineDetail({
                       <Button
                         size="sm"
                         variant="outline"
-                        className={`w-full text-xs ${modeladoBlocked ? 'border-gray-300 text-gray-400 cursor-not-allowed' : projectDetail.modeladoApprovedAt ? 'border-purple-400 text-purple-700 hover:bg-purple-200' : 'border-gray-300 text-gray-400'}`}
+                        className={`w-full text-xs ${modeladoBlocked ? 'border-white/[0.15] text-gray-400 cursor-not-allowed' : projectDetail.modeladoApprovedAt ? 'border-purple-500/40 text-purple-700 hover:bg-purple-500/20' : 'border-white/[0.15] text-gray-400'}`}
                         onClick={() => !modeladoBlocked && projectDetail.modeladoApprovedAt && resetModeladoApproval.mutate({ projectId: projectDetail.id })}
                         disabled={modeladoBlocked || !projectDetail.modeladoApprovedAt || resetModeladoApproval.isPending}
                       >
@@ -1170,9 +1102,9 @@ export function ProjectInlineDetail({
                       </Button>
                     </div>
                     {/* Renders */}
-                    <div className={`p-3 rounded-lg ${projectDetail.rendersApprovedAt ? 'bg-emerald-100 dark:bg-emerald-900/30' : hasRenders ? 'bg-amber-50 dark:bg-amber-900/20 border border-amber-300 dark:border-amber-700' : 'bg-gray-100 dark:bg-gray-800'}`}>
+                    <div className={`p-3 rounded-lg ${projectDetail.rendersApprovedAt ? 'bg-emerald-500/15 dark:bg-emerald-900/30' : hasRenders ? 'bg-amber-500/10 dark:bg-amber-900/20 border border-amber-300 dark:border-amber-700' : 'bg-white/[0.06] dark:bg-gray-800'}`}>
                       <div className="flex items-center justify-between mb-1">
-                        <span className={`text-xs font-medium ${projectDetail.rendersApprovedAt ? 'text-emerald-800 dark:text-emerald-200' : hasRenders ? 'text-amber-800 dark:text-amber-200' : 'text-gray-500'}`}>Renders</span>
+                        <span className={`text-xs font-medium ${projectDetail.rendersApprovedAt ? 'text-emerald-300 dark:text-emerald-200' : hasRenders ? 'text-amber-300 dark:text-amber-200' : 'text-gray-500'}`}>Renders</span>
                         {projectDetail.rendersApprovedAt && <CheckCircle2 className="h-3 w-3 text-green-500" />}
                         {hasRenders && !projectDetail.rendersApprovedAt && <AlertCircle className="h-3 w-3 text-amber-500" />}
                       </div>
@@ -1186,7 +1118,7 @@ export function ProjectInlineDetail({
                       <Button
                         size="sm"
                         variant="outline"
-                        className={`w-full text-xs ${hasRenders ? 'border-amber-400 text-amber-700 hover:bg-amber-200' : 'border-gray-300 text-gray-400'}`}
+                        className={`w-full text-xs ${hasRenders ? 'border-amber-400 text-amber-700 hover:bg-amber-200' : 'border-white/[0.15] text-gray-400'}`}
                         onClick={() => hasRenders && resetRendersApproval.mutate({ projectId: projectDetail.id })}
                         disabled={!hasRenders || resetRendersApproval.isPending}
                       >
@@ -1204,7 +1136,7 @@ export function ProjectInlineDetail({
 
       {/* Panel de Fotos de Referencia para Jefe de Taller y Operario */}
       {(user?.role === "jefe_taller" || user?.role === "operario") && (
-        <div className="mb-4 rounded-xl overflow-hidden shadow-lg border border-gray-200 dark:border-gray-700">
+        <div className="mb-4 rounded-xl overflow-hidden shadow-lg border border-white/[0.10] dark:border-gray-700">
           {/* Header del Panel */}
           <div className="bg-gradient-to-r from-purple-600 to-indigo-600 px-4 py-3">
             <h3 className="text-base font-bold text-white flex items-center gap-2">
@@ -1221,12 +1153,12 @@ export function ProjectInlineDetail({
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <Box className="h-4 w-4 text-purple-600" />
-                  <span className="font-semibold text-sm text-gray-800 dark:text-gray-200">Modelado 3D</span>
+                  <span className="font-semibold text-sm text-foreground dark:text-gray-200">Modelado 3D</span>
                   <Badge variant="outline" className="text-xs">
                     {projectDetail.photos?.filter((p: any) => p.subcategory === "modelado_3d").length || 0} fotos
                   </Badge>
                   {projectDetail.modeladoApprovedAt && (
-                    <Badge className="bg-green-100 text-green-700 text-xs">
+                    <Badge className="bg-green-500/15 text-green-700 text-xs">
                       <CheckCircle2 className="h-3 w-3 mr-1" />
                       Aprobado
                     </Badge>
@@ -1236,7 +1168,7 @@ export function ProjectInlineDetail({
                   {projectDetail.photos?.filter((p: any) => p.subcategory === "modelado_3d").slice(0, 6).map((photo: any, idx: number) => (
                     <div
                       key={photo.id || idx}
-                      className="aspect-square rounded-lg overflow-hidden border-2 border-purple-200 cursor-pointer hover:border-purple-400 transition-all hover:scale-105"
+                      className="aspect-square rounded-lg overflow-hidden border-2 border-purple-500/25 cursor-pointer hover:border-purple-500/40 transition-all hover:scale-105"
                       onClick={() => fileViewer.openViewer(
                         (projectDetail.photos?.filter((p: any) => p.subcategory === "modelado_3d") || []).map((p: any, i: number) => ({
                           url: p.photoUrl,
@@ -1266,12 +1198,12 @@ export function ProjectInlineDetail({
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <Palette className="h-4 w-4 text-amber-600" />
-                  <span className="font-semibold text-sm text-gray-800 dark:text-gray-200">Renders Finales</span>
+                  <span className="font-semibold text-sm text-foreground dark:text-gray-200">Renders Finales</span>
                   <Badge variant="outline" className="text-xs">
                     {projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length || 0} fotos
                   </Badge>
                   {projectDetail.rendersApprovedAt && (
-                    <Badge className="bg-green-100 text-green-700 text-xs">
+                    <Badge className="bg-green-500/15 text-green-700 text-xs">
                       <CheckCircle2 className="h-3 w-3 mr-1" />
                       Aprobado
                     </Badge>
@@ -1281,7 +1213,7 @@ export function ProjectInlineDetail({
                   {projectDetail.photos?.filter((p: any) => p.subcategory === "renders").slice(0, 6).map((photo: any, idx: number) => (
                     <div
                       key={photo.id || idx}
-                      className="aspect-square rounded-lg overflow-hidden border-2 border-amber-200 cursor-pointer hover:border-amber-400 transition-all hover:scale-105"
+                      className="aspect-square rounded-lg overflow-hidden border-2 border-amber-500/25 cursor-pointer hover:border-amber-400 transition-all hover:scale-105"
                       onClick={() => fileViewer.openViewer(
                         (projectDetail.photos?.filter((p: any) => p.subcategory === "renders") || []).map((p: any, i: number) => ({
                           url: p.photoUrl,
@@ -1310,10 +1242,10 @@ export function ProjectInlineDetail({
 
             {/* Sección Despieces si existen */}
             {(projectDetail.photos?.filter((p: any) => p.subcategory === "despieces").length || 0) > 0 && (
-              <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+              <div className="mt-4 pt-4 border-t border-white/[0.10] dark:border-gray-700">
                 <div className="flex items-center gap-2 mb-2">
                   <FileText className="h-4 w-4 text-blue-600" />
-                  <span className="font-semibold text-sm text-gray-800 dark:text-gray-200">Despieces</span>
+                  <span className="font-semibold text-sm text-foreground dark:text-gray-200">Despieces</span>
                   <Badge variant="outline" className="text-xs">
                     {projectDetail.photos?.filter((p: any) => p.subcategory === "despieces").length} archivos
                   </Badge>
@@ -1322,7 +1254,7 @@ export function ProjectInlineDetail({
                   {projectDetail.photos?.filter((p: any) => p.subcategory === "despieces").slice(0, 8).map((photo: any, idx: number) => (
                     <div
                       key={photo.id || idx}
-                      className="aspect-square rounded-lg overflow-hidden border-2 border-blue-200 cursor-pointer hover:border-blue-400 transition-all hover:scale-105"
+                      className="aspect-square rounded-lg overflow-hidden border-2 border-blue-500/25 cursor-pointer hover:border-blue-400 transition-all hover:scale-105"
                       onClick={() => fileViewer.openViewer(
                         (projectDetail.photos?.filter((p: any) => p.subcategory === "despieces") || []).map((p: any, i: number) => ({
                           url: p.photoUrl,
@@ -1352,35 +1284,35 @@ export function ProjectInlineDetail({
         <TabsList className="flex flex-wrap w-full gap-1 h-auto p-1 bg-muted/50">
           <TabsTrigger 
             value="info" 
-            className="flex-1 min-w-[80px] text-xs sm:text-sm px-2 sm:px-3 py-2 bg-blue-100 text-blue-700 data-[state=active]:bg-blue-500 data-[state=active]:text-white hover:bg-blue-200 transition-colors"
+            className="flex-1 min-w-[80px] text-xs sm:text-sm px-2 sm:px-3 py-2 bg-blue-500/15 text-blue-700 data-[state=active]:bg-blue-500 data-[state=active]:text-white hover:bg-blue-500/20 transition-colors"
           >
             <Info className="h-4 w-4 mr-1 hidden sm:inline" />
             Información
           </TabsTrigger>
           <TabsTrigger 
             value="materials" 
-            className="flex-1 min-w-[80px] text-xs sm:text-sm px-2 sm:px-3 py-2 bg-purple-100 text-purple-700 data-[state=active]:bg-purple-500 data-[state=active]:text-white hover:bg-purple-200 transition-colors"
+            className="flex-1 min-w-[80px] text-xs sm:text-sm px-2 sm:px-3 py-2 bg-purple-500/15 text-purple-700 data-[state=active]:bg-purple-500 data-[state=active]:text-white hover:bg-purple-500/20 transition-colors"
           >
             <Palette className="h-4 w-4 mr-1 hidden sm:inline" />
             Materiales
           </TabsTrigger>
           <TabsTrigger 
             value="photos" 
-            className="flex-1 min-w-[80px] text-xs sm:text-sm px-2 sm:px-3 py-2 bg-green-100 text-green-700 data-[state=active]:bg-green-500 data-[state=active]:text-white hover:bg-green-200 transition-colors"
+            className="flex-1 min-w-[80px] text-xs sm:text-sm px-2 sm:px-3 py-2 bg-green-500/15 text-green-700 data-[state=active]:bg-green-500 data-[state=active]:text-white hover:bg-green-500/20 transition-colors"
           >
             <Camera className="h-4 w-4 mr-1 hidden sm:inline" />
             Fotos
           </TabsTrigger>
           <TabsTrigger 
             value="details" 
-            className="flex-1 min-w-[80px] text-xs sm:text-sm px-2 sm:px-3 py-2 bg-orange-100 text-orange-700 data-[state=active]:bg-orange-500 data-[state=active]:text-white hover:bg-orange-200 transition-colors"
+            className="flex-1 min-w-[80px] text-xs sm:text-sm px-2 sm:px-3 py-2 bg-orange-500/15 text-orange-700 data-[state=active]:bg-orange-500 data-[state=active]:text-white hover:bg-orange-500/20 transition-colors"
           >
             <ListTodo className="h-4 w-4 mr-1 hidden sm:inline" />
             Detalles
           </TabsTrigger>
           <TabsTrigger 
             value="history" 
-            className="flex-1 min-w-[80px] text-xs sm:text-sm px-2 sm:px-3 py-2 bg-gray-200 text-gray-700 data-[state=active]:bg-gray-600 data-[state=active]:text-white hover:bg-gray-300 transition-colors"
+            className="flex-1 min-w-[80px] text-xs sm:text-sm px-2 sm:px-3 py-2 bg-white/[0.10] text-muted-foreground data-[state=active]:bg-gray-600 data-[state=active]:text-white hover:bg-gray-300 transition-colors"
           >
             <History className="h-4 w-4 mr-1 hidden sm:inline" />
             Historial
@@ -1417,7 +1349,7 @@ export function ProjectInlineDetail({
               const remainingAmount = totalAmount - advanceAmount;
               
               return (
-                <Card className="border-blue-200 bg-blue-50">
+                <Card className="border-blue-500/25 bg-blue-500/10">
                   <CardHeader className="py-3">
                     <CardTitle className="text-sm flex items-center justify-between">
                       <div className="flex items-center gap-2">
@@ -1485,8 +1417,8 @@ export function ProjectInlineDetail({
                           </div>
                           <div className={`flex justify-between p-2 rounded ${
                             remainingAmount <= 0 
-                              ? 'bg-green-100' 
-                              : 'bg-yellow-100'
+                              ? 'bg-green-500/15' 
+                              : 'bg-yellow-500/15'
                           }`}>
                             <span className={remainingAmount <= 0 ? 'text-green-700' : 'text-yellow-700'}>
                               {remainingAmount <= 0 ? 'Estado' : 'Saldo Pendiente'}
@@ -1510,7 +1442,7 @@ export function ProjectInlineDetail({
                               href={projectDetail.advanceReceiptUrl} 
                               target="_blank" 
                               rel="noopener noreferrer"
-                              className="flex items-center gap-2 text-blue-600 hover:text-blue-800 hover:underline"
+                              className="flex items-center gap-2 text-blue-600 hover:text-blue-300 hover:underline"
                             >
                               <FileText className="h-4 w-4" />
                               Ver Recibo del Adelanto
@@ -1607,10 +1539,10 @@ export function ProjectInlineDetail({
           {user?.role !== "disenador" && user?.role !== "jefe_taller" && user?.role !== "operario" && PAID_ADVANCE_STATUSES.includes(projectDetail.status) && (projectDetail as any).financialInfo && (projectDetail as any).financialInfo.totalAmount > 0 && (
             <Card className={`border-2 ${
               projectDetail.status === "entregado" && (projectDetail as any).financialInfo.remainingAmount > 0
-                ? "border-red-400 bg-red-50"
+                ? "border-red-400 bg-red-500/10"
                 : projectDetail.status === "entregado"
-                  ? "border-green-400 bg-green-50"
-                  : "border-blue-400 bg-blue-50"
+                  ? "border-green-400 bg-green-500/10"
+                  : "border-blue-400 bg-blue-500/10"
             }`}>
               <CardHeader className="py-3">
                 <CardTitle className="text-sm flex items-center justify-between">
@@ -1638,13 +1570,13 @@ export function ProjectInlineDetail({
                   {/* Total del Proyecto */}
                   <div className="text-center p-3 bg-[#162828]/50 rounded-lg">
                     <p className="text-xs text-muted-foreground mb-1">Total del Proyecto</p>
-                    <p className="text-xl font-bold text-gray-800">
+                    <p className="text-xl font-bold text-foreground">
                       {new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format((projectDetail as any).financialInfo.totalAmount)}
                     </p>
                   </div>
                   
                   {/* Total Cobrado */}
-                  <div className="text-center p-3 bg-green-100/50 rounded-lg">
+                  <div className="text-center p-3 bg-green-500/15/50 rounded-lg">
                     <p className="text-xs text-green-700 mb-1">Total Cobrado</p>
                     <p className="text-lg font-bold text-green-700">
                       {new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format((projectDetail as any).financialInfo.totalCobrado || 0)}
@@ -1652,7 +1584,7 @@ export function ProjectInlineDetail({
                   </div>
                   
                   {/* Desglose de Pagos Dinámico */}
-                  <div className="text-center p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <div className="text-center p-3 bg-blue-500/10 rounded-lg border border-blue-500/25">
                     <p className="text-xs font-semibold text-blue-700 mb-2">Desglose de Pagos</p>
                     <div className="space-y-1 text-xs text-blue-600">
                       {projectDetail.payments && projectDetail.payments.length > 0 ? (
@@ -1671,7 +1603,7 @@ export function ProjectInlineDetail({
                   </div>
                   
                    {/* Descuentos */}
-                   <div className="text-center p-3 bg-purple-100/50 rounded-lg">
+                   <div className="text-center p-3 bg-purple-500/15/50 rounded-lg">
                      <p className="text-xs text-purple-700 mb-1">Descuentos</p>
                      <p className="text-lg font-bold text-purple-700">
                        -{new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format((projectDetail as any).financialInfo.totalDiscounts || 0)}
@@ -1679,7 +1611,7 @@ export function ProjectInlineDetail({
                    </div>
                    
                    {/* Recargos */}
-                   <div className="text-center p-3 bg-orange-100/50 rounded-lg">
+                   <div className="text-center p-3 bg-orange-500/15/50 rounded-lg">
                      <p className="text-xs text-orange-700 mb-1">Recargos</p>
                      <p className="text-lg font-bold text-orange-700">
                        +{new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format((projectDetail as any).financialInfo.totalSurcharges || 0)}
@@ -1689,8 +1621,8 @@ export function ProjectInlineDetail({
                    {/* Saldo Pendiente */}
                    <div className={`text-center p-3 rounded-lg ${
                      (projectDetail as any).financialInfo.remainingAmount > 0
-                       ? "bg-red-100/50"
-                       : "bg-green-100/50"
+                       ? "bg-red-500/15/50"
+                       : "bg-green-500/15/50"
                    }`}>
                      <p className={`text-xs mb-1 font-semibold ${
                        (projectDetail as any).financialInfo.remainingAmount > 0
@@ -1725,7 +1657,7 @@ export function ProjectInlineDetail({
                     <span>Progreso de pago</span>
                     <span>{(projectDetail as any).financialInfo.paymentProgress || 0}%</span>
                   </div>
-                  <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div className="h-2 bg-white/[0.10] rounded-full overflow-hidden">
                     <div 
                       className={`h-full transition-all duration-500 ${
                         (projectDetail as any).financialInfo.isPaid
@@ -1748,7 +1680,7 @@ export function ProjectInlineDetail({
                             <span className={`font-medium ${
                               payment.type === 'adelanto' ? 'text-blue-600' :
                               payment.type === 'saldo_final' ? 'text-green-600' :
-                              payment.type === 'abono' ? 'text-purple-600' : 'text-gray-600'
+                              payment.type === 'abono' ? 'text-purple-600' : 'text-muted-foreground'
                             }`}>
                               {payment.type === 'adelanto' ? 'Adelanto' :
                                payment.type === 'saldo_final' ? 'Saldo Final' :
@@ -1818,19 +1750,19 @@ export function ProjectInlineDetail({
               
               {/* Alerta de Margen Moderado (10-15%) */}
               {!isAlertClosed("moderate-margin") && financialSummary.rentabilidad >= 10 && financialSummary.rentabilidad < 15 && (
-                <div className="flex items-center justify-between p-4 bg-yellow-500 text-gray-900 rounded-lg border border-yellow-600 shadow-md">
+                <div className="flex items-center justify-between p-4 bg-yellow-500 text-foreground rounded-lg border border-yellow-600 shadow-md">
                   <div className="flex items-center gap-3">
                     <span className="text-2xl">⚠</span>
                     <div>
                       <p className="font-bold">Margen moderado</p>
-                      <p className="text-sm text-gray-800">Rentabilidad: {financialSummary.rentabilidad.toFixed(2)}% - Monitorear costos</p>
+                      <p className="text-sm text-foreground">Rentabilidad: {financialSummary.rentabilidad.toFixed(2)}% - Monitorear costos</p>
                     </div>
                   </div>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => closeAlert("moderate-margin")}
-                    className="text-gray-900 hover:bg-yellow-600"
+                    className="text-foreground hover:bg-yellow-600"
                   >
                     ✕
                   </Button>
@@ -1872,10 +1804,10 @@ export function ProjectInlineDetail({
           {user?.role !== "disenador" && user?.role !== "jefe_taller" && user?.role !== "operario" && financialSummary && (
             <Card className={`border-2 ${
               financialSummary.margen < 0
-                ? "border-red-400 bg-red-50"
+                ? "border-red-400 bg-red-500/10"
                 : financialSummary.rentabilidad < 10
-                ? "border-yellow-400 bg-yellow-50"
-                : "border-green-400 bg-green-50"
+                ? "border-yellow-400 bg-yellow-500/10"
+                : "border-green-400 bg-green-500/10"
             }`}>
               <CardHeader className="py-3">
                 <CardTitle className="text-sm flex items-center justify-between">
@@ -1901,25 +1833,25 @@ export function ProjectInlineDetail({
               <CardContent>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {/* Total del Proyecto */}
-                  <div className="text-center p-3 bg-blue-100/50 rounded-lg border border-blue-300">
+                  <div className="text-center p-3 bg-blue-500/15/50 rounded-lg border border-blue-300">
                     <p className="text-xs text-blue-700 mb-1 font-medium">Total del Proyecto</p>
-                    <p className="text-lg font-bold text-blue-900">
+                    <p className="text-lg font-bold text-blue-300">
                       {formatCurrency(financialSummary.totalAmount)}
                     </p>
                   </div>
 
                   {/* Total Pagado */}
-                  <div className="text-center p-3 bg-green-100/50 rounded-lg border border-green-300">
+                  <div className="text-center p-3 bg-green-500/15/50 rounded-lg border border-green-300">
                     <p className="text-xs text-green-700 mb-1 font-medium">Total Pagado</p>
-                    <p className="text-lg font-bold text-green-900">
+                    <p className="text-lg font-bold text-green-300">
                       {formatCurrency(financialSummary.totalPagado)}
                     </p>
                   </div>
 
                   {/* Total Gastos */}
-                  <div className="text-center p-3 bg-orange-100/50 rounded-lg border border-orange-300">
+                  <div className="text-center p-3 bg-orange-500/15/50 rounded-lg border border-orange-500/30">
                     <p className="text-xs text-orange-700 mb-1 font-medium">Total Gastos</p>
-                    <p className="text-lg font-bold text-orange-900">
+                    <p className="text-lg font-bold text-orange-300">
                       {formatCurrency(financialSummary.totalGastos)}
                     </p>
                   </div>
@@ -1927,8 +1859,8 @@ export function ProjectInlineDetail({
                   {/* Saldo Pendiente */}
                   <div className={`text-center p-3 rounded-lg border ${
                     financialSummary.saldoPendiente > 0
-                      ? "bg-yellow-100/50 border-yellow-300"
-                      : "bg-green-100/50 border-green-300"
+                      ? "bg-yellow-500/15/50 border-yellow-300"
+                      : "bg-green-500/15/50 border-green-300"
                   }`}>
                     <p className={`text-xs mb-1 font-medium ${
                       financialSummary.saldoPendiente > 0
@@ -1940,7 +1872,7 @@ export function ProjectInlineDetail({
                     <p className={`text-lg font-bold ${
                       financialSummary.saldoPendiente > 0
                         ? "text-yellow-900"
-                        : "text-green-900"
+                        : "text-green-300"
                     }`}>
                       {formatCurrency(financialSummary.saldoPendiente)}
                     </p>
@@ -2015,9 +1947,9 @@ export function ProjectInlineDetail({
           {user?.role !== "disenador" && user?.role !== "jefe_taller" && PAID_ADVANCE_STATUSES.includes(projectDetail.status) && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {projectDetail.advanceReceiptUrl && (
-                <Card className="bg-green-50 border-green-200">
+                <Card className="bg-green-500/10 border-green-500/25">
                   <CardContent className="py-4">
-                    <p className="text-sm font-medium text-green-800 mb-2">Comprobante de pago:</p>
+                    <p className="text-sm font-medium text-green-300 mb-2">Comprobante de pago:</p>
                     <a 
                       href={projectDetail.advanceReceiptUrl} 
                       target="_blank" 
@@ -2031,9 +1963,9 @@ export function ProjectInlineDetail({
                 </Card>
               )}
               {(projectDetail as any).quotationPdfUrl && (
-                <Card className="bg-blue-50 border-blue-200">
+                <Card className="bg-blue-500/10 border-blue-500/25">
                   <CardContent className="py-4">
-                    <p className="text-sm font-medium text-blue-800 mb-2">Cotización aprobada:</p>
+                    <p className="text-sm font-medium text-blue-300 mb-2">Cotización aprobada:</p>
                     <a 
                       href={(projectDetail as any).quotationPdfUrl} 
                       target="_blank" 
@@ -2130,7 +2062,7 @@ export function ProjectInlineDetail({
                       <Button
                         size="sm"
                         variant="outline"
-                        className="text-emerald-600 border-emerald-600 hover:bg-emerald-50"
+                        className="text-emerald-600 border-emerald-600 hover:bg-emerald-500/10"
                         onClick={() => {
                           const folderToStageMap: Record<string, string> = {
                             documento_cotizacion: "inicial",
@@ -2174,7 +2106,7 @@ export function ProjectInlineDetail({
                   </CardTitle>
                   {/* Botón de Solicitar Nueva Aprobación para modelado */}
                   {folder === "modelado_3d" && projectDetail.modeladoApprovedAt && (user?.role === "super_admin" || user?.role === "admin") && (
-                    <div className="mt-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded-md border border-blue-200 dark:border-blue-800">
+                    <div className="mt-2 p-2 bg-blue-500/10 dark:bg-blue-900/20 rounded-md border border-blue-500/25 dark:border-blue-800">
                       <div className="flex items-center justify-between gap-2 flex-wrap">
                         <div className="text-xs text-blue-700 dark:text-blue-300">
                           <CheckCircle2 className="h-3 w-3 inline mr-1" />
@@ -2183,7 +2115,7 @@ export function ProjectInlineDetail({
                         <Button
                           size="sm"
                           variant="outline"
-                          className="h-7 text-xs border-blue-500 text-blue-700 hover:bg-blue-100"
+                          className="h-7 text-xs border-blue-500 text-blue-700 hover:bg-blue-500/15"
                           onClick={() => resetModeladoApproval.mutate({ projectId: projectDetail.id, notifyClient: true })}
                           disabled={resetModeladoApproval.isPending}
                         >
@@ -2194,7 +2126,7 @@ export function ProjectInlineDetail({
                   )}
                   {/* Botón de Solicitar Nueva Aprobación para renders */}
                   {folder === "renders" && projectDetail.rendersApprovedAt && (user?.role === "super_admin" || user?.role === "admin") && (
-                    <div className="mt-2 p-2 bg-amber-50 dark:bg-amber-900/20 rounded-md border border-amber-200 dark:border-amber-800">
+                    <div className="mt-2 p-2 bg-amber-500/10 dark:bg-amber-900/20 rounded-md border border-amber-500/25 dark:border-amber-800">
                       <div className="flex items-center justify-between gap-2 flex-wrap">
                         <div className="text-xs text-amber-700 dark:text-amber-300">
                           <CheckCircle2 className="h-3 w-3 inline mr-1" />
@@ -2203,7 +2135,7 @@ export function ProjectInlineDetail({
                         <Button
                           size="sm"
                           variant="outline"
-                          className="h-7 text-xs border-amber-500 text-amber-700 hover:bg-amber-100"
+                          className="h-7 text-xs border-amber-500 text-amber-700 hover:bg-amber-500/15"
                           onClick={() => resetRendersApproval.mutate({ projectId: projectDetail.id, notifyClient: true })}
                           disabled={resetRendersApproval.isPending}
                         >
@@ -2235,7 +2167,7 @@ export function ProjectInlineDetail({
                             )}
                           >
                             {isPdf ? (
-                              <div className="w-full h-20 bg-gray-100 dark:bg-gray-800 rounded flex flex-col items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                              <div className="w-full h-20 bg-white/[0.06] dark:bg-gray-800 rounded flex flex-col items-center justify-center hover:bg-white/[0.10] dark:hover:bg-gray-700 transition-colors">
                                 <FileText className="h-6 w-6 text-red-500" />
                                 <span className="text-xs text-muted-foreground mt-1">PDF</span>
                               </div>
@@ -2359,7 +2291,7 @@ export function ProjectInlineDetail({
               
               return (
                 <div key={entry.id} className={`flex items-start gap-3 p-3 bg-background rounded border ${
-                  isApproval ? "border-green-300 bg-green-50" : ""
+                  isApproval ? "border-green-300 bg-green-500/10" : ""
                 }`}>
                   <div className={`h-2 w-2 mt-2 rounded-full ${
                     isApproval ? "bg-green-500" : "bg-primary"
@@ -2379,9 +2311,9 @@ export function ProjectInlineDetail({
                       </p>
                       {changedByUser && (
                         <Badge variant="outline" className={`text-xs ${
-                          isClientApproval ? "bg-blue-100 text-blue-700 border-blue-300" :
-                          isAdminApproval ? "bg-amber-100 text-amber-700 border-amber-300" :
-                          "bg-gray-100"
+                          isClientApproval ? "bg-blue-500/15 text-blue-700 border-blue-300" :
+                          isAdminApproval ? "bg-amber-500/15 text-amber-700 border-amber-300" :
+                          "bg-white/[0.06]"
                         }`}>
                           {isClientApproval && "👤 "}
                           {isAdminApproval && "👑 "}
@@ -2694,425 +2626,6 @@ export function ProjectInlineDetail({
             >
               <MessageCircle className="h-4 w-4 mr-1" />
               Sí, abrir WhatsApp
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Diálogo: Solicitar Cambios */}
-      <Dialog open={showRequestChangesDialog} onOpenChange={setShowRequestChangesDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <XCircle className="h-5 w-5 text-orange-500" />
-              Solicitar Cambios al Diseñador
-            </DialogTitle>
-            <DialogDescription>
-              El proyecto volverá a "En Diseño" y se notificará al diseñador y al equipo.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4 py-2">
-            <div>
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-2">
-                ¿Quién comunicó los cambios? <span className="text-red-500">*</span>
-              </label>
-              <div className="grid grid-cols-2 gap-2">
-                {(["cliente_portal", "comercial_presencial", "comercial_whatsapp", "comercial_telefono"] as const).map((src) => {
-                  const labels: Record<string, string> = {
-                    cliente_portal: "🌐 Cliente (portal)",
-                    comercial_presencial: "🤝 Comercial presencial",
-                    comercial_whatsapp: "📱 Comercial WhatsApp",
-                    comercial_telefono: "📞 Comercial teléfono",
-                  };
-                  return (
-                    <button
-                      key={src}
-                      type="button"
-                      onClick={() => setRequestChangesSource(src)}
-                      className={`p-3 rounded-lg border text-sm text-left transition-colors ${
-                        requestChangesSource === src
-                          ? "border-orange-500 bg-orange-50 dark:bg-orange-900/30 text-orange-800 dark:text-orange-200 font-medium"
-                          : "border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 text-gray-700 dark:text-gray-300"
-                      }`}
-                    >
-                      {labels[src]}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div>
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1">
-                ¿Qué cambios se necesitan? <span className="text-red-500">*</span>
-              </label>
-              <textarea
-                value={requestChangesNotes}
-                onChange={(e) => setRequestChangesNotes(e.target.value)}
-                placeholder="Ej: El cliente quiere cambiar el color de las puertas a blanco y agregar más cajones en la isla"
-                className="w-full text-sm rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 p-2 text-gray-900 dark:text-gray-100 resize-none h-24 focus:outline-none focus:ring-2 focus:ring-orange-500"
-              />
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-2 mt-2">
-            <Button
-              variant="outline"
-              onClick={() => {
-                setShowRequestChangesDialog(false);
-                setRequestChangesSource("");
-                setRequestChangesNotes("");
-              }}
-            >
-              Cancelar
-            </Button>
-            <Button
-              className="bg-orange-600 hover:bg-orange-700 text-white"
-              disabled={!requestChangesSource || !requestChangesNotes.trim() || approveDesign.isPending}
-              onClick={() => {
-                if (!requestChangesSource || !requestChangesNotes.trim()) return;
-                approveDesign.mutate({
-                  projectId: projectDetail.id,
-                  approved: false,
-                  notes: requestChangesNotes.trim(),
-                  changeSource: requestChangesSource,
-                });
-                setShowRequestChangesDialog(false);
-                setRequestChangesSource("");
-                setRequestChangesNotes("");
-              }}
-            >
-              <XCircle className="h-4 w-4 mr-1" />
-              Registrar y Notificar
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Diálogo: Aprobación Delegada por Comercial */}
-      <Dialog open={showDelegatedApprovalDialog} onOpenChange={setShowDelegatedApprovalDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <CheckCircle2 className="h-5 w-5 text-green-600" />
-              Aprobar Diseño en Nombre del Cliente
-            </DialogTitle>
-            <DialogDescription>
-              Como administrador, puedes aprobar el diseño en representación del cliente.
-              Indica obligatoriamente cómo obtuvo la aprobación.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4 py-2">
-            <div>
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-2">
-                ¿Cómo aprobó el cliente? <span className="text-red-500">*</span>
-              </label>
-              <div className="grid grid-cols-2 gap-2">
-                {(["presencial", "whatsapp_familiar", "telefono", "whatsapp_cliente"] as const).map((reason) => {
-                  const labels: Record<string, string> = {
-                    presencial: "🤝 Presencial",
-                    whatsapp_familiar: "📱 WhatsApp (familiar)",
-                    telefono: "📞 Teléfono",
-                    whatsapp_cliente: "💬 WhatsApp (cliente)",
-                  };
-                  return (
-                    <button
-                      key={reason}
-                      type="button"
-                      onClick={() => setDelegatedReason(reason)}
-                      className={`p-3 rounded-lg border text-sm text-left transition-colors ${
-                        delegatedReason === reason
-                          ? "border-green-500 bg-green-50 dark:bg-green-900/30 text-green-800 dark:text-green-200 font-medium"
-                          : "border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 text-gray-700 dark:text-gray-300"
-                      }`}
-                    >
-                      {labels[reason]}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div>
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1">
-                Nota adicional (opcional)
-              </label>
-              <textarea
-                value={delegatedNote}
-                onChange={(e) => setDelegatedNote(e.target.value)}
-                placeholder="Ej: El cliente confirmó por WhatsApp que acepta el diseño tal como está"
-                className="w-full text-sm rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 p-2 text-gray-900 dark:text-gray-100 resize-none h-20 focus:outline-none focus:ring-2 focus:ring-green-500"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1">
-                  Nombre del familiar
-                </label>
-                <input
-                  type="text"
-                  value={familyMemberName}
-                  onChange={(e) => setFamilyMemberName(e.target.value)}
-                  placeholder="Ej: Carlos Pérez"
-                  className="w-full text-sm rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 p-2 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1">
-                  Parentesco
-                </label>
-                <input
-                  type="text"
-                  value={familyMemberRelationship}
-                  onChange={(e) => setFamilyMemberRelationship(e.target.value)}
-                  placeholder="Ej: hijo, esposa, hermano"
-                  className="w-full text-sm rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 p-2 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1">
-                Evidencia (opcional — captura de WhatsApp, correo, foto)
-              </label>
-              {delegatedEvidenceUrl ? (
-                <div className="flex items-center gap-2 p-2 bg-green-50 dark:bg-green-900/20 rounded border border-green-200 dark:border-green-700">
-                  <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0" />
-                  <a href={delegatedEvidenceUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-green-700 dark:text-green-300 underline truncate flex-1">
-                    Evidencia adjunta — ver archivo
-                  </a>
-                  <button
-                    type="button"
-                    onClick={() => setDelegatedEvidenceUrl("")}
-                    className="text-gray-400 hover:text-red-500 text-xs flex-shrink-0"
-                  >
-                    ✕
-                  </button>
-                </div>
-              ) : (
-                <label className={`flex items-center gap-2 p-2 border border-dashed border-gray-300 dark:border-gray-600 rounded cursor-pointer hover:border-green-400 transition-colors ${uploadingEvidence ? "opacity-50 pointer-events-none" : ""}`}>
-                  <input
-                    type="file"
-                    accept="image/*,application/pdf"
-                    className="hidden"
-                    onChange={async (e) => {
-                      const file = e.target.files?.[0];
-                      if (!file) return;
-                      if (file.size > 12 * 1024 * 1024) { toast.error("El archivo no debe superar 12MB"); return; }
-                      setUploadingEvidence(true);
-                      try {
-                        const reader = new FileReader();
-                        reader.onload = async (ev) => {
-                          try {
-                            const result = await uploadEvidenceImage.mutateAsync({
-                              fileName: file.name,
-                              fileData: ev.target?.result as string,
-                              contentType: file.type,
-                            });
-                            setDelegatedEvidenceUrl(result.url);
-                            toast.success("Evidencia adjunta correctamente");
-                          } catch { toast.error("Error al subir la evidencia"); }
-                          finally { setUploadingEvidence(false); }
-                        };
-                        reader.readAsDataURL(file);
-                      } catch { setUploadingEvidence(false); }
-                    }}
-                  />
-                  <Upload className="h-4 w-4 text-gray-400" />
-                  <span className="text-xs text-gray-500 dark:text-gray-400">
-                    {uploadingEvidence ? "Subiendo..." : "Adjuntar captura o archivo (JPG, PNG, PDF — máx 10MB)"}
-                  </span>
-                </label>
-              )}
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-2 mt-2">
-            <Button
-              variant="outline"
-              onClick={() => {
-                setShowDelegatedApprovalDialog(false);
-                setDelegatedReason("");
-                setDelegatedNote("");
-                setDelegatedEvidenceUrl("");
-                setFamilyMemberName("");
-                setFamilyMemberRelationship("");
-              }}
-            >
-              Cancelar
-            </Button>
-            <Button
-              className="bg-green-600 hover:bg-green-700 text-white"
-              disabled={!delegatedReason || approveDesign.isPending || uploadingEvidence}
-              onClick={() => {
-                if (!delegatedReason) return;
-                approveDesign.mutate({
-                  projectId: projectDetail.id,
-                  approved: true,
-                  delegatedReason,
-                  delegatedNote: delegatedNote || undefined,
-                  familyMemberName: familyMemberName || undefined,
-                  familyMemberRelationship: familyMemberRelationship || undefined,
-                  evidenceUrl: delegatedEvidenceUrl || undefined,
-                });
-                setShowDelegatedApprovalDialog(false);
-                setDelegatedReason("");
-                setDelegatedNote("");
-                setDelegatedEvidenceUrl("");
-                setFamilyMemberName("");
-                setFamilyMemberRelationship("");
-              }}
-            >
-              <CheckCircle2 className="h-4 w-4 mr-1" />
-              Confirmar Aprobación
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Diálogo: Registrar canal de cambios al subir nueva versión */}
-      <Dialog open={showChangeChannelDialog} onOpenChange={setShowChangeChannelDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <MessageCircle className="h-5 w-5 text-blue-600" />
-              ¿Cómo solicitó los cambios el cliente?
-            </DialogTitle>
-            <DialogDescription>
-              Es una re-entrega. Para trazabilidad, indica cómo llegaron los cambios solicitados.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4 py-2">
-            <div>
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-2">
-                Canal de los cambios <span className="text-red-500">*</span>
-              </label>
-              <div className="grid grid-cols-2 gap-2">
-                {(["portal", "whatsapp", "presencial", "telefono"] as const).map((ch) => {
-                  const labels: Record<string, string> = {
-                    portal: "🌐 Portal (registrado)",
-                    whatsapp: "📱 WhatsApp",
-                    presencial: "🤝 Presencial",
-                    telefono: "📞 Teléfono",
-                  };
-                  return (
-                    <button
-                      key={ch}
-                      type="button"
-                      onClick={() => setChangeChannel(ch)}
-                      className={`p-3 rounded-lg border text-sm text-left transition-colors ${
-                        changeChannel === ch
-                          ? "border-blue-500 bg-blue-50 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 font-medium"
-                          : "border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 text-gray-700 dark:text-gray-300"
-                      }`}
-                    >
-                      {labels[ch]}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div>
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1">
-                Descripción de los cambios (opcional)
-              </label>
-              <textarea
-                value={changeNotes}
-                onChange={(e) => setChangeNotes(e.target.value)}
-                placeholder="Ej: El cliente pidió cambiar el color de las puertas a blanco y agregar más gavetas"
-                className="w-full text-sm rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 p-2 text-gray-900 dark:text-gray-100 resize-none h-20 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-2 mt-2">
-            <Button
-              variant="outline"
-              onClick={() => {
-                setShowChangeChannelDialog(false);
-                setPendingNewStatus(null);
-                setPendingChangeAction(null);
-                setChangeChannel("");
-                setChangeNotes("");
-              }}
-            >
-              Cancelar
-            </Button>
-            <Button
-              className="bg-blue-600 hover:bg-blue-700 text-white"
-              disabled={!changeChannel}
-              onClick={() => {
-                if (!changeChannel) return;
-                const ch = changeChannel as "portal" | "whatsapp" | "presencial" | "telefono";
-                const notes = changeNotes || undefined;
-
-                if (pendingChangeAction === "sendModelado") {
-                  sendModeladoToClient.mutate({ projectId: projectDetail.id, changeChannel: ch, changeNotes: notes });
-                } else if (pendingChangeAction === "sendRenders") {
-                  sendRendersToClient.mutate({ projectId: projectDetail.id, changeChannel: ch, changeNotes: notes });
-                } else if (pendingChangeAction === "updateStatus" && pendingNewStatus) {
-                  updateStatus.mutate({ projectId: projectDetail.id, newStatus: pendingNewStatus, changeChannel: ch, changeNotes: notes });
-                }
-
-                setShowChangeChannelDialog(false);
-                setPendingNewStatus(null);
-                setPendingChangeAction(null);
-                setChangeChannel("");
-                setChangeNotes("");
-              }}
-            >
-              <Send className="h-4 w-4 mr-1" />
-              Registrar y Enviar
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Advertencia: pasar a producción sin aprobación de renders registrada */}
-      <Dialog open={showProductionWarningDialog} onOpenChange={setShowProductionWarningDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-amber-700">
-              <AlertCircle className="h-5 w-5 text-amber-500" />
-              Sin aprobación de renders registrada
-            </DialogTitle>
-            <DialogDescription>
-              Este proyecto no tiene aprobación formal de renders en el sistema.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-sm text-amber-800 space-y-2">
-            <p>
-              Normalmente la aprobación queda registrada cuando el cliente aprueba desde el portal
-              o cuando un admin registra la aprobación delegada.
-            </p>
-            <p className="font-medium">
-              ¿Deseas continuar y pasar el proyecto a producción de todas formas?
-              Quedará una nota en el historial indicando que se inició sin aprobación formal.
-            </p>
-          </div>
-
-          <div className="flex justify-end gap-2 mt-2">
-            <Button
-              variant="outline"
-              onClick={() => setShowProductionWarningDialog(false)}
-            >
-              Cancelar
-            </Button>
-            <Button
-              className="bg-amber-600 hover:bg-amber-700 text-white"
-              onClick={() => {
-                setShowProductionWarningDialog(false);
-                updateStatus.mutate({ projectId: projectDetail.id, newStatus: "despiece" });
-              }}
-            >
-              <AlertCircle className="h-4 w-4 mr-1" />
-              Continuar sin aprobación registrada
             </Button>
           </div>
         </DialogContent>

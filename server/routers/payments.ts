@@ -87,6 +87,29 @@ export const paymentsRouter = router({
       return await db.getPaymentsByProject(input.projectId);
     }),
 
+
+  /**
+   * Get ALL payments across all projects (admin only)
+   * Includes project name and client name via JOIN
+   */
+  getAll: adminProcedure
+    .input(
+      z.object({
+        month: z.number().min(0).max(11).optional(), // 0-indexed
+        year: z.number().optional(),
+        projectId: z.number().int().positive().optional(),
+        movementType: z.enum(["payment", "discount", "surcharge", "all"]).optional(),
+      })
+    )
+    .query(async ({ input }) => {
+      return await db.getAllPaymentsWithDetails({
+        month: input.month,
+        year: input.year,
+        projectId: input.projectId,
+        movementType: input.movementType === "all" ? undefined : input.movementType,
+      });
+    }),
+
   /**
    * Delete a payment (admin/super_admin only)
    */

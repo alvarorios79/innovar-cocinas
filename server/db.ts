@@ -3702,6 +3702,152 @@ export async function generateClosurePDF(closureId: number) {
 
 
 /**
+ * Generate detailed annex PDF (HTML) for an accounting closure
+ * Shows expense breakdown by project + operational expenses
+ */
+export async function generateClosureAnnexPDF(closureId: number): Promise<string> {
+  const db = await getDb();
+  if (!db) throw new Error("Database connection failed");
+
+  const closure = await getClosureDetails(closureId);
+  if (!closure) throw new Error("Closure not found");
+
+  const closureProjects = await db
+    .select()
+    .from(accountingClosureProjects)
+    .where(eq(accountingClosureProjects.closureId, closureId));
+
+  const opExpenses = await db
+    .select()
+    .from(accountingClosureOperationalExpenses)
+    .where(eq(accountingClosureOperationalExpenses.closureId, closureId));
+
+  const fmt = (n: number) =>
+    `$${n.toLocaleString("es-CO", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+
+  const periodStartStr = new Date(closure.periodStart).toLocaleDateString("es-CO");
+  const periodEndStr   = new Date(closure.periodEnd).toLocaleDateString("es-CO");
+
+  const totalProjectExpenses = closureProjects.reduce(
+    (s, p) => s + parseFloat(p.totalExpenses?.toString() || "0"), 0
+  );
+  const totalOpExpenses = opExpenses.reduce(
+    (s, e) => s + parseFloat(e.amount?.toString() || "0"), 0
+  );
+  const grandTotal = totalProjectExpenses + totalOpExpenses;
+
+  const projectRows = closureProjects
+    .map(
+      (p) => `
+    <tr>
+      <td>${p.projectName}</td>
+      <td class="tr">${fmt(parseFloat(p.projectValue?.toString() || "0"))}</td>
+      <td class="tr">${fmt(parseFloat(p.totalExpenses?.toString() || "0"))}</td>
+      <td class="tr">${fmt(parseFloat(p.profit?.toString() || "0"))}</td>
+    </tr>`
+    )
+    .join("");
+
+  const opRows = opExpenses.length > 0
+    ? opExpenses
+        .map(
+          (e) => `
+    <tr>
+      <td>${e.description}</td>
+      <td>${e.category}</td>
+      <td>${e.expenseDate ? new Date(e.expenseDate).toLocaleDateString("es-CO") : "—"}</td>
+      <td class="tr">${fmt(parseFloat(e.amount?.toString() || "0"))}</td>
+    </tr>`
+        )
+        .join("")
+    : `<tr><td colspan="4" style="text-align:center;color:#999;">Sin gastos operacionales</td></tr>`;
+
+  return `<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Anexo de Gastos — Cierre #${closureId}</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Segoe UI',sans-serif; color:#333; line-height:1.5; }
+    .wrap { max-width:820px; margin:0 auto; padding:40px; }
+    .header { text-align:center; border-bottom:3px solid #0d9488; padding-bottom:20px; margin-bottom:30px; }
+    .header h1 { color:#0d9488; font-size:24px; }
+    .header p { color:#666; font-size:13px; margin-top:6px; }
+    .info-box { background:#f0fdf4; border-left:4px solid #0d9488; padding:14px; border-radius:4px; margin-bottom:28px; font-size:13px; }
+    .info-box .row { display:flex; justify-content:space-between; margin-bottom:6px; }
+    .info-box .label { font-weight:600; }
+    h2 { color:#0d9488; font-size:15px; border-bottom:2px solid #e5e7eb; padding-bottom:8px; margin-bottom:14px; }
+    section { margin-bottom:32px; }
+    table { width:100%; border-collapse:collapse; font-size:13px; }
+    th { background:#f3f4f6; padding:10px 12px; text-align:left; font-weight:600; border-bottom:2px solid #d1d5db; }
+    td { padding:10px 12px; border-bottom:1px solid #e5e7eb; }
+    tr:hover { background:#f9fafb; }
+    .tr { text-align:right; }
+    .total-row { background:#f0fdf4; font-weight:700; }
+    .grand { background:#0d9488; color:white; font-weight:700; }
+    .footer { text-align:center; margin-top:40px; padding-top:16px; border-top:1px solid #e5e7eb; font-size:11px; color:#999; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <h1>📋 Anexo de Gastos — Cierre Contable #${closureId}</h1>
+    <p>INNOVAR Cocinas Integrales · Período: ${periodStartStr} a ${periodEndStr}</p>
+  </div>
+
+  <div class="info-box">
+    <div class="row"><span class="label">Estado:</span><span>${closure.status === "confirmed" ? "✓ Confirmado" : "◐ Borrador"}</span></div>
+    <div class="row"><span class="label">Período:</span><span>${periodStartStr} — ${periodEndStr}</span></div>
+    <div class="row"><span class="label">Proyectos:</span><span>${closureProjects.length}</span></div>
+    <div class="row"><span class="label">Generado:</span><span>${new Date().toLocaleString("es-CO")}</span></div>
+  </div>
+
+  <section>
+    <h2>Gastos por Proyecto</h2>
+    <table>
+      <thead><tr><th>Proyecto</th><th class="tr">Valor Venta</th><th class="tr">Gastos</th><th class="tr">Ganancia</th></tr></thead>
+      <tbody>
+        ${projectRows}
+        <tr class="total-row">
+          <td>SUBTOTAL PROYECTOS</td>
+          <td class="tr">${fmt(closureProjects.reduce((s,p)=>s+parseFloat(p.projectValue?.toString()||"0"),0))}</td>
+          <td class="tr">${fmt(totalProjectExpenses)}</td>
+          <td class="tr">${fmt(closureProjects.reduce((s,p)=>s+parseFloat(p.profit?.toString()||"0"),0))}</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Gastos Operacionales (Bodega)</h2>
+    <table>
+      <thead><tr><th>Descripción</th><th>Categoría</th><th>Fecha</th><th class="tr">Monto</th></tr></thead>
+      <tbody>
+        ${opRows}
+        <tr class="total-row">
+          <td colspan="3">SUBTOTAL OPERACIONAL</td>
+          <td class="tr">${fmt(totalOpExpenses)}</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <table>
+    <tbody>
+      <tr class="grand"><td colspan="3">TOTAL GASTOS DEL CIERRE</td><td class="tr">${fmt(grandTotal)}</td></tr>
+    </tbody>
+  </table>
+
+  <div class="footer">
+    <p>Documento generado automáticamente por INNOVAR Cocinas Integrales · ${new Date().toLocaleString("es-CO")}</p>
+  </div>
+</div>
+</body>
+</html>`;
+}
+
+/**
  * Send notification to owner when closure is confirmed
  */
 export async function notifyOwnerClosureConfirmed(closureId: number, confirmedBy: number): Promise<boolean> {

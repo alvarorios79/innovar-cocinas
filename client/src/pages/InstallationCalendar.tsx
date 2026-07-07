@@ -185,12 +185,12 @@ export default function InstallationCalendar() {
 
   if (!canViewCalendar) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="max-w-md">
           <CardContent className="pt-6 text-center">
             <AlertTriangle className="h-12 w-12 text-yellow-500 mx-auto mb-4" />
             <h2 className="text-xl font-semibold mb-2">Acceso Restringido</h2>
-            <p className="text-gray-600 mb-4">
+            <p className="text-muted-foreground mb-4">
               Solo administradores y jefes de taller pueden ver el calendario de instalaciones.
             </p>
             <Link href="/">
@@ -265,7 +265,7 @@ export default function InstallationCalendar() {
                     <div
                       key={day}
                       className={`text-center text-sm font-medium py-2 ${
-                        i === 0 ? "text-red-500" : i === 6 ? "text-orange-500" : "text-gray-600"
+                        i === 0 ? "text-red-400" : i === 6 ? "text-orange-400" : "text-muted-foreground"
                       }`}
                     >
                       {day}
@@ -288,7 +288,7 @@ export default function InstallationCalendar() {
                         onClick={() => setSelectedDate(date)}
                         className={`
                           relative min-h-[80px] p-1 rounded-lg border transition-all text-left
-                          ${!isCurrentMonth ? "bg-gray-100 text-gray-400" : availability === "none" ? "bg-red-400 text-white" : availability === "half" ? "bg-amber-400 text-amber-900" : "bg-[#162828]"}
+                          ${!isCurrentMonth ? "bg-white/[0.04] text-muted-foreground/50" : availability === "none" ? "bg-red-400 text-white" : availability === "half" ? "bg-amber-400 text-amber-900" : "bg-[#162828]"}
                           ${isToday ? "ring-4 ring-teal-500 ring-offset-2" : ""}
                           ${isSelected ? "bg-teal-500 text-white border-teal-600" : "border-gray-200 hover:border-teal-300"}
                           ${isPast && !isToday ? "opacity-60" : ""}
@@ -415,7 +415,7 @@ export default function InstallationCalendar() {
                       return (
                         <div className="text-center py-4">
                           <CheckCircle2 className="h-8 w-8 text-green-500 mx-auto mb-2" />
-                          <p className="text-sm text-gray-600">
+                          <p className="text-sm text-muted-foreground">
                             {availability === "half" 
                               ? "Disponible (medio día)" 
                               : "Disponible todo el día"
@@ -437,7 +437,7 @@ export default function InstallationCalendar() {
                           <button
                             key={inst.id}
                             onClick={() => setSelectedInstallation(inst)}
-                            className="w-full text-left p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                            className="w-full text-left p-3 bg-white/[0.04] rounded-lg hover:bg-white/[0.08] transition-colors"
                           >
                             <div className="font-medium text-sm">{inst.projectName}</div>
                             <div className="text-xs text-gray-500 mt-1">
@@ -477,7 +477,7 @@ export default function InstallationCalendar() {
                         <button
                           key={inst.id}
                           onClick={() => setSelectedInstallation(inst)}
-                          className="w-full text-left p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                          className="w-full text-left p-3 bg-white/[0.04] rounded-lg hover:bg-white/[0.08] transition-colors"
                         >
                           <div className="flex justify-between items-start">
                             <div className="font-medium text-sm">{inst.projectName}</div>
@@ -553,7 +553,7 @@ export default function InstallationCalendar() {
                 </div>
                 <div className="font-medium">{selectedInstallation.clientName}</div>
                 {selectedInstallation.clientPhone && (
-                  <div className="flex items-center gap-2 mt-1 text-sm text-gray-600">
+                  <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
                     <Phone className="h-4 w-4" />
                     {selectedInstallation.clientPhone}
                   </div>

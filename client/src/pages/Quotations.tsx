@@ -1682,7 +1682,7 @@ export default function Quotations() {
 
   const getStatusBadge = (status: string) => {
     const badges = {
-      draft: <span className="px-2 py-1 bg-gray-200 text-gray-800 rounded text-xs">Borrador</span>,
+      draft: <span className="px-2 py-1 bg-white/[0.10] text-foreground/80 rounded text-xs">Borrador</span>,
       sent: <span className="px-2 py-1 bg-blue-200 text-blue-800 rounded text-xs">Enviada</span>,
       approved: <span className="px-2 py-1 bg-green-200 text-green-800 rounded text-xs">Aprobada</span>,
       rejected: <span className="px-2 py-1 bg-red-200 text-red-800 rounded text-xs">Rechazada</span>,
@@ -1903,7 +1903,7 @@ export default function Quotations() {
               </span>
             )}
             {filterHasProject !== "all" && (
-              <span className="flex items-center gap-1 text-xs bg-amber-50 text-amber-700 border border-amber-100 rounded-full px-2 py-0.5">
+              <span className="flex items-center gap-1 text-xs bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-full px-2 py-0.5">
                 {filterHasProject === "yes" ? "Con proyecto" : "Sin proyecto"}
                 <button onClick={() => setFilterHasProject("all")}><X className="h-3 w-3" /></button>
               </span>
@@ -2333,7 +2333,7 @@ export default function Quotations() {
                                 <span className="flex items-center gap-2"><Ruler className="h-4 w-4 text-white/45" /> Mesón Solo</span>
                               </SelectItem>
                               <SelectItem value="herrajes">
-                                <span className="flex items-center gap-2"><Wrench className="h-4 w-4 text-gray-500" /> Herrajes</span>
+                                <span className="flex items-center gap-2"><Wrench className="h-4 w-4 text-muted-foreground" /> Herrajes</span>
                               </SelectItem>
                               <SelectItem value="acabados_especiales">
                                 <span className="flex items-center gap-2"><Sparkles className="h-4 w-4 text-cyan-500" /> Acabados Especiales</span>
@@ -2396,7 +2396,7 @@ export default function Quotations() {
 
                             {/* Checkbox módulo superior para Frente PLL */}
                             {item.kitchenConfig?.shape === 'frente_pll' && (
-                              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 space-y-3">
+                              <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-4 space-y-3">
                                 <div className="flex items-center space-x-2">
                                   <input
                                     type="checkbox"
@@ -2666,7 +2666,7 @@ export default function Quotations() {
                                   return Math.max(0, config.totalMeters - deductions).toFixed(2);
                                 })()} ml
                               </p>
-                              <p className="text-sm text-gray-600">
+                              <p className="text-sm text-muted-foreground">
                                 • Muebles Inferiores: {(() => {
                                   const config = item.kitchenConfig;
                                   if (!config || !config.specialModules) return "0.00";
@@ -2679,7 +2679,7 @@ export default function Quotations() {
                                   return Math.max(0, config.totalMeters - deductions).toFixed(2);
                                 })()} ml
                               </p>
-                              <p className="text-sm text-gray-600">
+                              <p className="text-sm text-muted-foreground">
                                 • Muebles Superiores: {(() => {
                                   const config = item.kitchenConfig;
                                   if (!config || !config.specialModules) return "0.00";
@@ -3193,7 +3193,7 @@ export default function Quotations() {
                               </div>
                               {item.includesFixedCosts && (
                                 <div className="flex items-center gap-2 ml-6">
-                                  <Label className="text-sm text-gray-600">Monto:</Label>
+                                  <Label className="text-sm text-muted-foreground">Monto:</Label>
                                   <Input
                                     type="number"
                                     value={item.fixedCostsAmount ?? 600000}
@@ -3210,7 +3210,7 @@ export default function Quotations() {
                                     min="0"
                                     step="10000"
                                   />
-                                  <span className="text-sm text-gray-500">({formatPrice(item.fixedCostsAmount ?? 600000)})</span>
+                                  <span className="text-sm text-muted-foreground">({formatPrice(item.fixedCostsAmount ?? 600000)})</span>
                                 </div>
                               )}
                             </div>
@@ -3224,8 +3224,8 @@ export default function Quotations() {
 
                             {/* Descripción auto-generada (editable) */}
                             <div>
-                              <Label className="text-sm font-medium text-gray-700 block mb-1">
-                                Descripción del ítem <span className="text-xs text-gray-400 font-normal">(auto-generada — editable)</span>
+                              <Label className="text-sm font-medium text-foreground block mb-1">
+                                Descripción del ítem <span className="text-xs text-muted-foreground font-normal">(auto-generada — editable)</span>
                               </Label>
                               <Textarea
                                 value={item.description}
@@ -3589,8 +3589,8 @@ export default function Quotations() {
 
                             {/* Descripción auto-generada (editable) */}
                             <div className="mt-4">
-                              <Label className="text-sm font-medium text-gray-700 block mb-1">
-                                Descripción del ítem <span className="text-xs text-gray-400 font-normal">(auto-generada — editable)</span>
+                              <Label className="text-sm font-medium text-foreground block mb-1">
+                                Descripción del ítem <span className="text-xs text-muted-foreground font-normal">(auto-generada — editable)</span>
                               </Label>
                               <Textarea
                                 value={item.description}
@@ -3677,8 +3677,8 @@ export default function Quotations() {
 
                             {/* Descripción auto-generada (editable) */}
                             <div className="mt-4">
-                              <Label className="text-sm font-medium text-gray-700 block mb-1">
-                                Descripción del ítem <span className="text-xs text-gray-400 font-normal">(auto-generada — editable)</span>
+                              <Label className="text-sm font-medium text-foreground block mb-1">
+                                Descripción del ítem <span className="text-xs text-muted-foreground font-normal">(auto-generada — editable)</span>
                               </Label>
                               <Textarea
                                 value={item.description}
@@ -3711,8 +3711,8 @@ export default function Quotations() {
                             />
                             {/* Descripción auto-generada (editable) */}
                             <div className="mt-4">
-                              <Label className="text-sm font-medium text-gray-700 block mb-1">
-                                Descripción del ítem <span className="text-xs text-gray-400 font-normal">(auto-generada — editable)</span>
+                              <Label className="text-sm font-medium text-foreground block mb-1">
+                                Descripción del ítem <span className="text-xs text-muted-foreground font-normal">(auto-generada — editable)</span>
                               </Label>
                               <Textarea
                                 value={item.description}
@@ -3952,8 +3952,8 @@ export default function Quotations() {
               <h3 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">Notas y Condiciones</h3>
 
               <div>
-                <Label className="text-sm font-medium text-gray-700 block mb-1">
-                  Notas generales <span className="text-xs text-gray-400 font-normal">(editables)</span>
+                <Label className="text-sm font-medium text-foreground block mb-1">
+                  Notas generales <span className="text-xs text-muted-foreground font-normal">(editables)</span>
                 </Label>
                 <Textarea
                   value={generalNotes}
@@ -3965,7 +3965,7 @@ export default function Quotations() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-sm font-medium text-gray-700 block mb-1">Condiciones de pago</Label>
+                  <Label className="text-sm font-medium text-foreground block mb-1">Condiciones de pago</Label>
                   <Input
                     value={paymentTerms}
                     onChange={(e) => setPaymentTerms(e.target.value)}
@@ -3973,7 +3973,7 @@ export default function Quotations() {
                   />
                 </div>
                 <div>
-                  <Label className="text-sm font-medium text-gray-700 block mb-1">Tiempo de entrega</Label>
+                  <Label className="text-sm font-medium text-foreground block mb-1">Tiempo de entrega</Label>
                   <Input
                     value={deliveryTime}
                     onChange={(e) => setDeliveryTime(e.target.value)}

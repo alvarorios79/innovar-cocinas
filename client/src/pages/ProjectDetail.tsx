@@ -167,8 +167,8 @@ function DeliverySignaturePad({ onSave, onCancel, uploading }: {
 
   return (
     <div className="space-y-3">
-      <p className="text-sm text-gray-600">El cliente firma confirmando la recepción conforme del proyecto:</p>
-      <div className="border-2 border-dashed border-gray-300 rounded-lg overflow-hidden bg-white">
+      <p className="text-sm text-muted-foreground">El cliente firma confirmando la recepción conforme del proyecto:</p>
+      <div className="border-2 border-dashed border-white/20 rounded-lg overflow-hidden bg-white">
         <canvas
           ref={canvasRef}
           width={600}
@@ -871,7 +871,7 @@ export default function ProjectDetail() {
             </TabsTrigger>
             <TabsTrigger
               value="history"
-              className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 bg-gray-200 text-gray-700 data-[state=active]:bg-gray-600 data-[state=active]:text-white hover:bg-gray-300 transition-colors rounded-md whitespace-nowrap"
+              className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 bg-white/[0.08] text-foreground/70 data-[state=active]:bg-white/[0.20] data-[state=active]:text-foreground hover:bg-white/[0.12] transition-colors rounded-md whitespace-nowrap"
             >
               <History className="h-3.5 w-3.5 mr-1" />
               <span>Historial</span>
@@ -1267,10 +1267,10 @@ export default function ProjectDetail() {
                       return (
                         <div key={subcategory} className="border rounded-lg p-3">
                           <div className="flex items-center justify-between mb-2">
-                            <h5 className="font-semibold text-sm text-teal-700 flex items-center gap-2">
+                            <h5 className="font-semibold text-sm text-teal-400 flex items-center gap-2">
                               <span className="w-2 h-2 bg-teal-500 rounded-full"></span>
                               {subcategoryLabels[subcategory] || subcategory}
-                              <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${photos.length > 0 ? 'bg-teal-100 text-teal-700' : 'bg-gray-100 text-gray-500'}`}>
+                              <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${photos.length > 0 ? 'bg-teal-500/20 text-teal-400' : 'bg-white/[0.08] text-muted-foreground'}`}>
                                 {photos.length} fotos
                               </span>
                             </h5>
@@ -1346,7 +1346,7 @@ export default function ProjectDetail() {
                     if (!showDeliverySignature) {
                       return (
                         <div className="text-center space-y-3">
-                          <p className="text-sm text-gray-600">Captura la firma del cliente confirmando la entrega del proyecto.</p>
+                          <p className="text-sm text-muted-foreground">Captura la firma del cliente confirmando la entrega del proyecto.</p>
                           <Button
                             className="bg-emerald-600 hover:bg-emerald-700 text-white"
                             onClick={() => setShowDeliverySignature(true)}
@@ -1457,17 +1457,17 @@ export default function ProjectDetail() {
                             {/* Contenido */}
                             <div className="flex-1 bg-[#162828] border rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow">
                               <div className="flex items-start justify-between gap-2">
-                                <p className="text-sm font-semibold text-gray-800">{actionText}</p>
-                                <span className="text-xs text-gray-400 whitespace-nowrap">
+                                <p className="text-sm font-semibold text-foreground">{actionText}</p>
+                                <span className="text-xs text-muted-foreground whitespace-nowrap">
                                   {new Date(entry.createdAt).toLocaleDateString("es-CO", { day: '2-digit', month: 'short' })}
                                 </span>
                               </div>
                               {entry.notes && (
-                                <p className="text-sm text-gray-600 mt-1 bg-gray-50 rounded p-2 italic">
+                                <p className="text-sm text-muted-foreground mt-1 bg-white/[0.04] rounded p-2 italic">
                                   "{entry.notes}"
                                 </p>
                               )}
-                              <div className="flex items-center gap-2 mt-2 text-xs text-gray-400">
+                              <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
                                 <Clock className="h-3 w-3" />
                                 {new Date(entry.createdAt).toLocaleTimeString("es-CO", { hour: '2-digit', minute: '2-digit' })}
                                 {entry.user && (

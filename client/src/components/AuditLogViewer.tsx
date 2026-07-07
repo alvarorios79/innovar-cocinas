@@ -30,8 +30,8 @@ export default function AuditLogViewer() {
   return (
     <div className="space-y-4">
       {/* Summary */}
-      <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-        <div className="text-sm text-gray-600">
+      <div className="p-4 bg-blue-500/10 rounded-lg border border-blue-500/25">
+        <div className="text-sm text-muted-foreground">
           Total de operaciones registradas: <span className="font-bold">{totalCount}</span>
         </div>
       </div>
@@ -43,28 +43,28 @@ export default function AuditLogViewer() {
       ) : (
         <>
           {/* Audit Log Table */}
-          <div className="overflow-x-auto border border-gray-200 rounded-lg">
+          <div className="overflow-x-auto border border-white/[0.10] rounded-lg">
             <table className="w-full text-sm">
-              <thead className="bg-gray-100 border-b border-gray-200">
+              <thead className="bg-white/[0.06] border-b border-white/[0.10]">
                 <tr>
-                  <th className="px-4 py-3 text-left font-semibold text-gray-900">Tabla</th>
-                  <th className="px-4 py-3 text-left font-semibold text-gray-900">Registros Eliminados</th>
-                  <th className="px-4 py-3 text-left font-semibold text-gray-900">Ejecutado Por</th>
-                  <th className="px-4 py-3 text-left font-semibold text-gray-900">Fecha y Hora</th>
-                  <th className="px-4 py-3 text-left font-semibold text-gray-900">Sesión</th>
+                  <th className="px-4 py-3 text-left font-semibold text-foreground">Tabla</th>
+                  <th className="px-4 py-3 text-left font-semibold text-foreground">Registros Eliminados</th>
+                  <th className="px-4 py-3 text-left font-semibold text-foreground">Ejecutado Por</th>
+                  <th className="px-4 py-3 text-left font-semibold text-foreground">Fecha y Hora</th>
+                  <th className="px-4 py-3 text-left font-semibold text-foreground">Sesión</th>
                 </tr>
               </thead>
               <tbody>
                 {logs.map((log: any) => (
-                  <tr key={log.id} className="border-b border-gray-200 hover:bg-gray-50">
-                    <td className="px-4 py-3 font-semibold text-gray-900">{log.tableName}</td>
+                  <tr key={log.id} className="border-b border-white/[0.10] hover:bg-white/[0.03]">
+                    <td className="px-4 py-3 font-semibold text-foreground">{log.tableName}</td>
                     <td className="px-4 py-3">
-                      <span className="px-2 py-1 bg-red-100 text-red-800 rounded text-xs font-semibold">
+                      <span className="px-2 py-1 bg-red-500/15 text-red-300 rounded text-xs font-semibold">
                         {log.recordsDeleted}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-gray-600">{log.executedBy}</td>
-                    <td className="px-4 py-3 text-gray-600">
+                    <td className="px-4 py-3 text-muted-foreground">{log.executedBy}</td>
+                    <td className="px-4 py-3 text-muted-foreground">
                       {log.timestamp
                         ? format(new Date(log.timestamp), "dd MMM yyyy HH:mm:ss", { locale: es })
                         : "-"}
@@ -81,7 +81,7 @@ export default function AuditLogViewer() {
           {/* Pagination */}
           {totalPages > 1 && (
             <div className="flex items-center justify-between">
-              <div className="text-sm text-gray-600">
+              <div className="text-sm text-muted-foreground">
                 Página {page} de {totalPages}
               </div>
               <div className="space-x-2">

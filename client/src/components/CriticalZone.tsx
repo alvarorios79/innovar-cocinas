@@ -140,11 +140,11 @@ export function CriticalZone() {
   return (
     <div className="space-y-6">
       {/* Warning Banner */}
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
+      <div className="bg-red-500/10 border border-red-500/25 rounded-lg p-4 flex items-start gap-3">
         <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
         <div>
-          <h3 className="font-semibold text-red-900">Zona Crítica - Gestión de Datos del Sistema</h3>
-          <p className="text-sm text-red-800 mt-1">
+          <h3 className="font-semibold text-red-300">Zona Crítica - Gestión de Datos del Sistema</h3>
+          <p className="text-sm text-red-300 mt-1">
             Esta sección contiene datos generados automáticamente por el sistema para pruebas. 
             Procede con cuidado al eliminar datos.
           </p>
@@ -153,9 +153,9 @@ export function CriticalZone() {
 
       {/* Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-        <Card className="border-red-200">
+        <Card className="border-red-500/25">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-red-900">Clientes</CardTitle>
+            <CardTitle className="text-sm font-medium text-red-300">Clientes</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-red-600">{String(systemClientsCount)}</div>
@@ -163,9 +163,9 @@ export function CriticalZone() {
           </CardContent>
         </Card>
 
-        <Card className="border-red-200">
+        <Card className="border-red-500/25">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-red-900">Cotizaciones</CardTitle>
+            <CardTitle className="text-sm font-medium text-red-300">Cotizaciones</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-red-600">{String(systemQuotationsCount)}</div>
@@ -173,9 +173,9 @@ export function CriticalZone() {
           </CardContent>
         </Card>
 
-        <Card className="border-red-200">
+        <Card className="border-red-500/25">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-red-900">Proyectos</CardTitle>
+            <CardTitle className="text-sm font-medium text-red-300">Proyectos</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-red-600">{String(systemProjectsCount)}</div>
@@ -183,9 +183,9 @@ export function CriticalZone() {
           </CardContent>
         </Card>
 
-        <Card className="border-red-200">
+        <Card className="border-red-500/25">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-red-900">Citas</CardTitle>
+            <CardTitle className="text-sm font-medium text-red-300">Citas</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-red-600">{String(systemAppointmentsCount)}</div>
@@ -197,9 +197,9 @@ export function CriticalZone() {
       </div>
 
       {/* Detailed Management */}
-      <Card className="border-red-200">
+      <Card className="border-red-500/25">
         <CardHeader>
-          <CardTitle className="text-red-900">Gestión de Datos del Sistema</CardTitle>
+          <CardTitle className="text-red-300">Gestión de Datos del Sistema</CardTitle>
           <CardDescription>
             Total de registros del sistema: <span className="font-semibold text-red-600">{String(totalSystemData)}</span>
           </CardDescription>
@@ -221,13 +221,13 @@ export function CriticalZone() {
                 <p className="text-sm text-gray-500">No hay clientes del sistema</p>
               ) : (
                 <>
-                  <div className="bg-gray-50 p-3 rounded text-sm">
-                    <p className="font-medium text-gray-900">{String(systemClientsCount)} clientes del sistema encontrados</p>
-                    <p className="text-gray-600 text-xs mt-1">Estos clientes fueron generados automáticamente para pruebas</p>
+                  <div className="bg-white/[0.03] p-3 rounded text-sm">
+                    <p className="font-medium text-foreground">{String(systemClientsCount)} clientes del sistema encontrados</p>
+                    <p className="text-muted-foreground text-xs mt-1">Estos clientes fueron generados automáticamente para pruebas</p>
                   </div>
                   {confirmDelete === "clients" ? (
-                    <div className="bg-red-50 border border-red-200 p-4 rounded space-y-3">
-                      <p className="text-sm font-medium text-red-900">
+                    <div className="bg-red-500/10 border border-red-500/25 p-4 rounded space-y-3">
+                      <p className="text-sm font-medium text-red-300">
                         ¿Confirmas que deseas eliminar {String(systemClientsCount)} clientes del sistema?
                       </p>
                       <div className="flex gap-2">
@@ -270,13 +270,13 @@ export function CriticalZone() {
                 <p className="text-sm text-gray-500">No hay cotizaciones del sistema</p>
               ) : (
                 <>
-                  <div className="bg-gray-50 p-3 rounded text-sm">
-                    <p className="font-medium text-gray-900">{String(systemQuotationsCount)} cotizaciones del sistema encontradas</p>
-                    <p className="text-gray-600 text-xs mt-1">Estas cotizaciones fueron generadas automáticamente para pruebas</p>
+                  <div className="bg-white/[0.03] p-3 rounded text-sm">
+                    <p className="font-medium text-foreground">{String(systemQuotationsCount)} cotizaciones del sistema encontradas</p>
+                    <p className="text-muted-foreground text-xs mt-1">Estas cotizaciones fueron generadas automáticamente para pruebas</p>
                   </div>
                   {confirmDelete === "quotations" ? (
-                    <div className="bg-red-50 border border-red-200 p-4 rounded space-y-3">
-                      <p className="text-sm font-medium text-red-900">
+                    <div className="bg-red-500/10 border border-red-500/25 p-4 rounded space-y-3">
+                      <p className="text-sm font-medium text-red-300">
                         ¿Confirmas que deseas eliminar {String(systemQuotationsCount)} cotizaciones del sistema?
                       </p>
                       <div className="flex gap-2">
@@ -319,13 +319,13 @@ export function CriticalZone() {
                 <p className="text-sm text-gray-500">No hay proyectos del sistema</p>
               ) : (
                 <>
-                  <div className="bg-gray-50 p-3 rounded text-sm">
-                    <p className="font-medium text-gray-900">{String(systemProjectsCount)} proyectos del sistema encontrados</p>
-                    <p className="text-gray-600 text-xs mt-1">Estos proyectos fueron generados automáticamente para pruebas</p>
+                  <div className="bg-white/[0.03] p-3 rounded text-sm">
+                    <p className="font-medium text-foreground">{String(systemProjectsCount)} proyectos del sistema encontrados</p>
+                    <p className="text-muted-foreground text-xs mt-1">Estos proyectos fueron generados automáticamente para pruebas</p>
                   </div>
                   {confirmDelete === "projects" ? (
-                    <div className="bg-red-50 border border-red-200 p-4 rounded space-y-3">
-                      <p className="text-sm font-medium text-red-900">
+                    <div className="bg-red-500/10 border border-red-500/25 p-4 rounded space-y-3">
+                      <p className="text-sm font-medium text-red-300">
                         ¿Confirmas que deseas eliminar {String(systemProjectsCount)} proyectos del sistema?
                       </p>
                       <div className="flex gap-2">
@@ -368,13 +368,13 @@ export function CriticalZone() {
                 <p className="text-sm text-gray-500">No hay citas del sistema</p>
               ) : (
                 <>
-                  <div className="bg-gray-50 p-3 rounded text-sm">
-                    <p className="font-medium text-gray-900">{String(systemAppointmentsCount)} citas del sistema encontradas</p>
-                    <p className="text-gray-600 text-xs mt-1">Estas citas fueron generadas automáticamente para pruebas</p>
+                  <div className="bg-white/[0.03] p-3 rounded text-sm">
+                    <p className="font-medium text-foreground">{String(systemAppointmentsCount)} citas del sistema encontradas</p>
+                    <p className="text-muted-foreground text-xs mt-1">Estas citas fueron generadas automáticamente para pruebas</p>
                   </div>
                   {confirmDelete === "appointments" ? (
-                    <div className="bg-red-50 border border-red-200 p-4 rounded space-y-3">
-                      <p className="text-sm font-medium text-red-900">
+                    <div className="bg-red-500/10 border border-red-500/25 p-4 rounded space-y-3">
+                      <p className="text-sm font-medium text-red-300">
                         ¿Confirmas que deseas eliminar {String(systemAppointmentsCount)} citas del sistema?
                       </p>
                       <div className="flex gap-2">
@@ -415,20 +415,20 @@ export function CriticalZone() {
       </Card>
 
       {/* System Cleanup Section */}
-      <Card className="border-red-300 bg-red-50">
+      <Card className="border-red-300 bg-red-500/10">
         <CardHeader>
-          <CardTitle className="text-red-900">Limpieza Completa del Sistema</CardTitle>
-          <CardDescription className="text-red-800">
+          <CardTitle className="text-red-300">Limpieza Completa del Sistema</CardTitle>
+          <CardDescription className="text-red-300">
             Elimina todos los datos del sistema (dataOrigin = 'system') de una vez
           </CardDescription>
         </CardHeader>
         <CardContent>
           {confirmDelete === "cleanup" ? (
-            <div className="bg-red-100 border border-red-300 p-4 rounded space-y-3">
-              <p className="text-sm font-medium text-red-900">
+            <div className="bg-red-500/15 border border-red-300 p-4 rounded space-y-3">
+              <p className="text-sm font-medium text-red-300">
                 ⚠️ ¿Confirmas que deseas ejecutar la limpieza completa del sistema?
               </p>
-              <p className="text-xs text-red-800">
+              <p className="text-xs text-red-300">
                 Se eliminarán {totalSystemData} registros del sistema en total.
               </p>
               <div className="flex gap-2">
@@ -451,27 +451,27 @@ export function CriticalZone() {
             </div>
           ) : (
             <div className="space-y-3">
-              <div className="bg-white p-4 rounded border border-red-200 space-y-2">
-                <p className="text-sm font-medium text-gray-900">Vista Previa de Datos a Eliminar:</p>
+              <div className="bg-white p-4 rounded border border-red-500/25 space-y-2">
+                <p className="text-sm font-medium text-foreground">Vista Previa de Datos a Eliminar:</p>
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-2 text-sm">
-                  <div className="bg-red-50 p-2 rounded">
-                    <p className="text-xs text-gray-600">Clientes</p>
+                  <div className="bg-red-500/10 p-2 rounded">
+                    <p className="text-xs text-muted-foreground">Clientes</p>
                     <p className="font-semibold text-red-600">{String(systemClientsCount)}</p>
                   </div>
-                  <div className="bg-red-50 p-2 rounded">
-                    <p className="text-xs text-gray-600">Cotizaciones</p>
+                  <div className="bg-red-500/10 p-2 rounded">
+                    <p className="text-xs text-muted-foreground">Cotizaciones</p>
                     <p className="font-semibold text-red-600">{String(systemQuotationsCount)}</p>
                   </div>
-                  <div className="bg-red-50 p-2 rounded">
-                    <p className="text-xs text-gray-600">Proyectos</p>
+                  <div className="bg-red-500/10 p-2 rounded">
+                    <p className="text-xs text-muted-foreground">Proyectos</p>
                     <p className="font-semibold text-red-600">{String(systemProjectsCount)}</p>
                   </div>
-                  <div className="bg-red-50 p-2 rounded">
-                    <p className="text-xs text-gray-600">Citas</p>
+                  <div className="bg-red-500/10 p-2 rounded">
+                    <p className="text-xs text-muted-foreground">Citas</p>
                     <p className="font-semibold text-red-600">{String(systemAppointmentsCount)}</p>
                   </div>
-                  <div className="bg-red-50 p-2 rounded">
-                    <p className="text-xs text-gray-600">Total</p>
+                  <div className="bg-red-500/10 p-2 rounded">
+                    <p className="text-xs text-muted-foreground">Total</p>
                     <p className="font-semibold text-red-600">{String(totalSystemData)}</p>
                   </div>
                 </div>

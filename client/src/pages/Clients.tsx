@@ -158,7 +158,7 @@ export default function Clients() {
         {search && (
           <button
             onClick={() => setSearch("")}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
           >
             <X className="h-4 w-4" />
           </button>
@@ -169,7 +169,7 @@ export default function Clients() {
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-36 rounded-xl bg-slate-100 animate-pulse" />
+            <div key={i} className="h-36 rounded-xl bg-white/[0.06] animate-pulse" />
           ))}
         </div>
       ) : clients.length === 0 ? (
@@ -279,7 +279,7 @@ export default function Clients() {
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-3 py-2">
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-muted-foreground">
               Se creó una cuenta para el cliente. Comparte estas credenciales de acceso al portal:
             </p>
             <CredRow label="Email" value={createdCreds?.email ?? ""} />
@@ -443,7 +443,7 @@ function ClientForm({
           placeholder="correo@ejemplo.com"
           type="email"
         />
-        <p className="text-[11px] text-slate-400">
+        <p className="text-[11px] text-muted-foreground">
           Si se ingresa email se creará una cuenta de acceso al portal del cliente.
         </p>
       </div>
@@ -461,7 +461,7 @@ function ClientForm({
           checked={form.internalManagement}
           onCheckedChange={(v) => update("internalManagement", !!v)}
         />
-        <Label htmlFor="internalMgmt" className="text-sm font-normal cursor-pointer text-slate-600">
+        <Label htmlFor="internalMgmt" className="text-sm font-normal cursor-pointer text-muted-foreground">
           Gestión interna (no crear cuenta de usuario aunque tenga email)
         </Label>
       </div>

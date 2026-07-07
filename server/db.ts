@@ -63,35 +63,25 @@ import {
   accountingClosureOperationalExpenses,
   InsertAccountingClosureOperationalExpense,
   closureAuditLog,
-  InsertClosureAuditLog,
-  technicalVisits,
-  visitPhotos,
+  InsertClosureAuditLog
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 import { randomUUID } from 'crypto';
 import { triggerAlertEvaluation } from './services/financialAlertMonitor';
-import { Pool } from 'pg';
+// mysql2 removed - using PostgreSQL
 
 let _db: ReturnType<typeof drizzle> | null = null;
-let _pool: Pool | null = null;
+// Pool removed - PostgreSQL connection handled by drizzle directly
 
 export async function getPool() {
-  if (!_pool && process.env.DATABASE_URL) {
-    try {
-      _pool = new Pool({ connectionString: process.env.DATABASE_URL });
-    } catch (error) {
-      console.warn("[Database Pool] Failed to connect:", error);
-      _pool = null;
-    }
-  }
-  return _pool;
+  // Deprecated: use getDb() instead
+  return null;
 }
 
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
-      const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-      _db = drizzle(pool);
+      _db = drizzle(process.env.DATABASE_URL);
     } catch (error) {
       console.warn("[Database] Failed to connect:", error);
       _db = null;
@@ -170,7 +160,7 @@ export async function createClient(client: InsertClient, dataOrigin: "manual" | 
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  const result = await db.insert(clients).values({ ...client, dataOrigin: dataOrigin as any }).returning({ id: clients.id });
+  const result = await db.insert(clients).values({ ...client, dataOrigin }).returning({ id: clients.id });
   return result[0].id;
 }
 
@@ -254,7 +244,7 @@ export async function createAppointment(appointment: InsertAppointment, dataOrig
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  const result = await db.insert(appointments).values({ ...appointment, dataOrigin: dataOrigin as any }).returning({ id: appointments.id });
+  const result = await db.insert(appointments).values({ ...appointment, dataOrigin }).returning({ id: appointments.id });
   return result[0].id;
 }
 
@@ -631,7 +621,7 @@ export async function createProject(project: InsertProject, dataOrigin: "manual"
   const crypto = await import("crypto");
   const publicToken = crypto.randomBytes(24).toString("hex");
 
-  const result = await db.insert(projects).values({ ...project, dataOrigin: dataOrigin as any, publicToken }).returning({ id: projects.id });
+  const result = await db.insert(projects).values({ ...project, dataOrigin, publicToken }).returning({ id: projects.id });
   return result[0].id;
 }
 
@@ -660,24 +650,6 @@ export async function getProjectByQuotationId(quotationId: number) {
 
   const result = await db.select().from(projects).where(eq(projects.quotationId, quotationId)).limit(1);
   return result.length > 0 ? result[0] : undefined;
-}
-
-export async function getProjectsPendingApproval() {
-  const db = await getDb();
-  if (!db) return [];
-
-  return await db.select().from(projects)
-    .where(
-      and(
-        or(
-          eq(projects.status, "pendiente_modelado" as any),
-          eq(projects.status, "pendiente_render" as any)
-        ),
-        isNull(projects.deletedAt),
-        eq(projects.dataOrigin, 'manual')
-      )
-    )
-    .orderBy(desc(projects.createdAt));
 }
 
 export async function getProjectsByStatus(status: string) {
@@ -997,68 +969,6 @@ export async function deletePayment(id: number) {
   await db.delete(payments).where(eq(payments.id, id));
 }
 
-export async function getAllPaymentsWithDetails(filters?: {
-  month?: number;   // 0-indexed (0=Jan, 11=Dec)
-  year?: number;
-  projectId?: number;
-  movementType?: "payment" | "discount" | "surcharge";
-}) {
-  const db = await getDb();
-  if (!db) return [];
-
-  const conditions: any[] = [];
-
-  if (filters?.projectId) {
-    conditions.push(eq(payments.projectId, filters.projectId));
-  }
-  if (filters?.movementType) {
-    conditions.push(eq(payments.movementType, filters.movementType));
-  }
-
-  // Filtro por mes/año usando receivedAt (ISO string)
-  if (filters?.year !== undefined) {
-    const yr = filters.year;
-    const mo = filters.month ?? -1;
-    if (mo >= 0) {
-      const start = new Date(yr, mo, 1).toISOString();
-      const end   = new Date(yr, mo + 1, 0, 23, 59, 59).toISOString();
-      conditions.push(gte(payments.receivedAt, start));
-      conditions.push(lte(payments.receivedAt, end));
-    } else {
-      const start = new Date(yr, 0, 1).toISOString();
-      const end   = new Date(yr, 11, 31, 23, 59, 59).toISOString();
-      conditions.push(gte(payments.receivedAt, start));
-      conditions.push(lte(payments.receivedAt, end));
-    }
-  }
-
-  const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
-
-  return await db
-    .select({
-      id:           payments.id,
-      amount:       payments.amount,
-      type:         payments.type,
-      movementType: payments.movementType,
-      method:       payments.method,
-      notes:        payments.notes,
-      receivedAt:   payments.receivedAt,
-      createdAt:    payments.createdAt,
-      projectId:    payments.projectId,
-      projectName:  projects.name,
-      clientId:     projects.clientId,
-      clientName:   clients.name,
-      registeredBy: payments.registeredBy,
-    })
-    .from(payments)
-    .leftJoin(projects, eq(payments.projectId, projects.id))
-    .leftJoin(clients, eq(projects.clientId, clients.id))
-    .where(whereClause)
-    .orderBy(desc(payments.receivedAt));
-}
-
-
-
 // ============ FINANCIAL CALCULATIONS ============
 
 export async function calculateProjectBalance(projectId: number) {
@@ -1137,7 +1047,8 @@ export async function createPricingConfig(config: any) {
     value: String(config.value),
     unit: config.unit,
     sortOrder: config.sortOrder ?? 0,
-  }).returning({ id: pricingConfig.id });
+  })
+  .returning({ id: pricingConfig.id });
   return result[0].id;
 }
 
@@ -1344,7 +1255,7 @@ export async function countTestData() {
   const counts: Record<string, number> = {};
   for (const { table, name } of tables) {
     try {
-      const result = await db.select({ count: sql<number>`COUNT(*)` }).from(table).where(inArray(table.dataOrigin, ['test', 'system'] as any[]));
+      const result = await db.select({ count: sql<number>`COUNT(*)` }).from(table).where(inArray(table.dataOrigin, ['test', 'system']));
       counts[name] = result[0]?.count || 0;
     } catch (error) {
       console.error(`[Count] Error counting ${name}:`, error);
@@ -1389,7 +1300,7 @@ export async function updateUserLastSignedIn(userId: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  await db.update(users).set({ lastSignedIn: new Date().toISOString() } as any).where(eq(users.id, userId));
+  await db.update(users).set({ lastSignedIn: new Date() }).where(eq(users.id, userId));
 }
 
 export async function getFinancialSettings() {
@@ -1430,7 +1341,7 @@ export async function getGlobalFinancialDashboard() {
       }
     }
 
-    const projectExpenses = await db.select().from(expenses).where(eq(expenses.projectId, project.id));
+    const projectExpenses = await db.select().from(expenses).where(and(eq(expenses.projectId, project.id), isNull(expenses.deletedAt)));
     for (const expense of projectExpenses) {
       const amount = parseFloat(expense.amount?.toString() || '0');
       totalExpenses += amount;
@@ -1438,7 +1349,7 @@ export async function getGlobalFinancialDashboard() {
   }
 
   // Include operational expenses (bodega) - expenses with projectId = NULL
-  const operationalExpenses = await db.select().from(expenses).where(isNull(expenses.projectId));
+  const operationalExpenses = await db.select().from(expenses).where(and(isNull(expenses.projectId), isNull(expenses.deletedAt)));
   for (const expense of operationalExpenses) {
     const amount = parseFloat(expense.amount?.toString() || '0');
     totalExpenses += amount;
@@ -1466,8 +1377,9 @@ export async function getCashFlowData() {
   }
 
   // Fetch all payments and expenses in one pass
+  // Bug 6 fix: filtrar gastos eliminados en el flujo de caja
   const allPayments = await db.select().from(payments);
-  const allExpenses = await db.select().from(expenses);
+  const allExpenses = await db.select().from(expenses).where(isNull(expenses.deletedAt));
 
   return months.map(({ month, year, monthIndex }) => {
     let inflow = 0;
@@ -1516,7 +1428,8 @@ export async function createUserExtended(data: {
     role: (data.role || 'user') as any,
     dataOrigin: (data.dataOrigin || 'manual') as any,
     createdAt: new Date().toISOString(),
-  }).returning({ id: users.id });
+  })
+  .returning({ id: users.id });
   return result[0].id;
 }
 
@@ -1701,9 +1614,9 @@ export async function getAllQuotationsGroupedByBase(options?: { page?: number; l
         group.hasProject = projectsForVersions.length > 0;
         if (projectsForVersions.length > 0) {
           const proj = projectsForVersions[0];
-          (group as any).projectId = proj.id;
+          group.projectId = proj.id;
           // quotationId del proyecto = versión vigente que define el precio
-          (group as any).activeProjectQuotationId = proj.quotationId;
+          group.activeProjectQuotationId = proj.quotationId;
         }
       }
     }
@@ -1788,68 +1701,62 @@ export async function getCEOFinancialMetrics() {
       porCobrar: 0,
       gastos: 0,
       margen: 0,
-      rentabilidad: 0
+      rentabilidad: 0,
+      descuentos: 0,
+      sobrecargas: 0,
     };
   }
 
   try {
-    // 1️⃣ INGRESOS RECIBIDOS
-    // SUM(payments.amount) WHERE movementType = 'payment'
-    const paymentsResult = await db.select({
-      total: sql<number>`SUM(CAST(payments.amount AS DECIMAL(12,2)))`
-    }).from(payments)
-      .where(eq(payments.movementType, 'payment'));
-    
-    const ingresosRecibidos = parseFloat(paymentsResult[0]?.total?.toString() || '0');
+    // ── CORRECCIONES APLICADAS ──────────────────────────────────────────────
+    // Bug 1 fix: se incluyen TODOS los proyectos manuales activos (con o sin quotationId)
+    // Bug 2 fix: se usa calculateProjectBalance por proyecto para obtener el total
+    //            de la ÚLTIMA versión de cotización (igual que muestra cada proyecto)
+    // Bug 4 fix: ingresosRecibidos se suma solo de proyectos dataOrigin='manual'
+    // Bug 5 fix: se excluyen proyectos cerrados (accountingClosureId IS NOT NULL)
+    // ────────────────────────────────────────────────────────────────────────
 
-    // 2️⃣ TOTAL VENDIDO (con descuentos restados)
-    // SUM(projects.totalAmount) - SUM(descuentos) WHERE deletedAt IS NULL AND dataOrigin = 'manual' AND quotationId IS NOT NULL
-    // Solo contar proyectos que vinieron de cotizaciones aprobadas
-    const projectsResult = await db.select({
-      total: sql<number>`SUM(CAST(projects.totalAmount AS DECIMAL(12,2)))`
-    }).from(projects)
-      .where(and(
-        isNull(projects.deletedAt),
-        eq(projects.dataOrigin, 'manual'),
-        isNotNull(projects.quotationId)  // Solo proyectos con cotización aprobada
-      ));
-    
-    const totalProjects = parseFloat(projectsResult[0]?.total?.toString() || '0');
-    
-    // 2B️⃣ DESCUENTOS
-    // SUM(payments.amount) WHERE movementType = 'discount'
-    const discountsResult = await db.select({
-      total: sql<number>`SUM(CAST(payments.amount AS DECIMAL(12,2)))`
-    }).from(payments)
-      .where(eq(payments.movementType, 'discount'));
-    
-    const descuentos = parseFloat(discountsResult[0]?.total?.toString() || '0');
-    
-    // 2C️⃣ SOBRECARGAS
-    // SUM(payments.amount) WHERE movementType = 'surcharge'
-    const surchargesResult = await db.select({
-      total: sql<number>`SUM(CAST(payments.amount AS DECIMAL(12,2)))`
-    }).from(payments)
-      .where(eq(payments.movementType, 'surcharge'));
-    
-    const sobrecargas = parseFloat(surchargesResult[0]?.total?.toString() || '0');
-    
-    // TOTAL VENDIDO = Suma de proyectos - Descuentos + Sobrecargas
-    const totalVendido = totalProjects - descuentos + sobrecargas;
+    // 1️⃣ Obtener todos los proyectos manuales activos y no cerrados
+    const activeProjects = await db
+      .select({ id: projects.id })
+      .from(projects)
+      .where(
+        and(
+          isNull(projects.deletedAt),
+          eq(projects.dataOrigin, 'manual'),
+          isNull(projects.accountingClosureId)
+        )
+      );
 
-    // 3️⃣ GASTOS
-    // SUM(expenses.amount)
-    const expensesResult = await db.select({
-      total: sql<number>`SUM(CAST(expenses.amount AS DECIMAL(12,2)))`
-    }).from(expenses);
-    
+    // 2️⃣ Para cada proyecto, calcular balance real (con última versión de cotización)
+    let totalVendido = 0;
+    let ingresosRecibidos = 0;
+    let totalDescuentos = 0;
+    let totalSobrecargas = 0;
+
+    for (const { id } of activeProjects) {
+      const balance = await calculateProjectBalance(id);
+      // adjustedTotal = totalAmount (última versión cotiz) + sobrecargas - descuentos
+      const adjustedTotal = balance.totalAmount + balance.totalSurcharges - balance.totalDiscounts;
+      totalVendido      += adjustedTotal;
+      ingresosRecibidos += balance.totalPaid;       // solo movementType='payment'
+      totalDescuentos   += balance.totalDiscounts;
+      totalSobrecargas  += balance.totalSurcharges;
+    }
+
+    // 3️⃣ GASTOS — Bug 3 fix: filtrar gastos eliminados (isNull(expenses.deletedAt))
+    const expensesResult = await db
+      .select({ total: sql<number>`SUM(CAST(expenses.amount AS DECIMAL(12,2)))` })
+      .from(expenses)
+      .where(isNull(expenses.deletedAt));
+
     const gastos = parseFloat(expensesResult[0]?.total?.toString() || '0');
 
-    // 4️⃣ CÁLCULOS DERIVADOS
-    const porCobrar = totalVendido - ingresosRecibidos;
-    const margen = ingresosRecibidos - gastos;
-    const rentabilidad = ingresosRecibidos > 0 
-      ? ((margen / ingresosRecibidos) * 100)
+    // 4️⃣ Métricas derivadas
+    const porCobrar    = totalVendido - ingresosRecibidos;
+    const margen       = ingresosRecibidos - gastos;
+    const rentabilidad = ingresosRecibidos > 0
+      ? (margen / ingresosRecibidos) * 100
       : 0;
 
     return {
@@ -1859,8 +1766,8 @@ export async function getCEOFinancialMetrics() {
       gastos,
       margen,
       rentabilidad,
-      descuentos,
-      sobrecargas
+      descuentos: totalDescuentos,
+      sobrecargas: totalSobrecargas,
     };
   } catch (error) {
     console.error("[getCEOFinancialMetrics] Error:", error);
@@ -1872,7 +1779,7 @@ export async function getCEOFinancialMetrics() {
       margen: 0,
       rentabilidad: 0,
       descuentos: 0,
-      sobrecargas: 0
+      sobrecargas: 0,
     };
   }
 }
@@ -2341,7 +2248,8 @@ export async function addProjectHardwareSelection(projectId: number, hardwareId:
     selectedOption: selectedOption ?? null,
     notes: notes ?? null,
     createdBy: createdBy ?? 0,
-  }).returning({ id: projectHardwareSelections.id });
+  })
+  .returning({ id: projectHardwareSelections.id });
   return result[0].id;
 }
 
@@ -2789,7 +2697,8 @@ export async function createPushSubscription(data: {
     p256Dh: data.p256dh,
     auth: data.auth,
     userAgent: data.userAgent ?? null,
-  }).returning({ id: pushSubscriptions.id });
+  })
+  .returning({ id: pushSubscriptions.id });
   return result[0].id;
 }
 export async function deletePushSubscription(endpoint: string) {
@@ -2935,7 +2844,8 @@ export async function createAccountingClosure(data: {
       totalSales: 0,
       totalExpenses: 0,
       totalProfit: 0,
-    } as any).returning({ id: accountingClosures.id });
+    } as any)
+    .returning({ id: accountingClosures.id });
     
     const closureId = closureResult[0].id;
     
@@ -3063,28 +2973,42 @@ export async function createAccountingClosure(data: {
     
     // PASO 4: Guardar gastos operativos en tabla de auditoría
     // REGLA: Se guardan SOLO los gastos operativos NUEVOS desde el cierre anterior
-    const operationalExpenses = await tx.select()
-      .from(expenses)
-      .where(
-        and(
-          eq(expenses.expenseType, 'gasto_operativo'),
-          eq(expenses.dataOrigin, 'manual'),
-          isNull(expenses.deletedAt),
-          lastClosureDate
-            ? gte(expenses.expenseDate, sql`${lastClosureDate.toISOString().split('T')[0]}`)
-            : undefined
-        )
-      );
-
-    for (const expense of operationalExpenses) {
-      await tx.insert(accountingClosureOperationalExpenses).values({
-        closureId,
-        expenseId:   expense.id,
-        category:    (expense.operativeCategory as any) || 'otro',
-        description: expense.description || '',
-        amount:      expense.amount,
-        expenseDate: expense.expenseDate,
-      });
+    const pool = await getPool();
+    if (pool) {
+      const operationalExpenses = await tx.select()
+        .from(expenses)
+        .where(
+          and(
+            eq(expenses.expenseType, 'gasto_operativo'),
+            eq(expenses.dataOrigin, 'manual'),
+            isNull(expenses.deletedAt),
+            // Filtrar por fecha: desde el último cierre confirmado (o desde el inicio si no hay)
+            lastClosureDate 
+              ? gte(expenses.expenseDate, sql`${lastClosureDate.toISOString().split('T')[0]}`)
+              : undefined
+          )
+        );
+      
+      for (const expense of operationalExpenses) {
+        const conn = await pool.getConnection();
+        try {
+          await conn.execute(
+            `INSERT INTO accountingClosureOperationalExpenses 
+            (closureId, expenseId, category, description, amount, expenseDate) 
+            VALUES (?, ?, ?, ?, ?, ?)`,
+            [
+              closureId,
+              expense.id,
+              expense.operativeCategory || 'otro',
+              expense.description,
+              expense.amount,
+              expense.expenseDate
+            ]
+          );
+        } finally {
+          conn.release();
+        }
+      }
     }
     
     // PASO 5: Actualizar cierre con totales calculados
@@ -3152,16 +3076,21 @@ export async function getAccountingClosures(filters?: {
  * Get operational expenses for a closure
  */
 export async function getClosureOperationalExpenses(closureId: number) {
-  const db = await getDb();
-  if (!db) return [];
-
-  const rows = await db
-    .select()
-    .from(accountingClosureOperationalExpenses)
-    .where(eq(accountingClosureOperationalExpenses.closureId, closureId))
-    .orderBy(desc(accountingClosureOperationalExpenses.expenseDate));
-
-  return rows;
+  const pool = await getPool();
+  if (!pool) return [];
+  
+  const conn = await pool.getConnection();
+  try {
+    const [rows] = await conn.execute(
+      `SELECT * FROM accountingClosureOperationalExpenses 
+       WHERE closureId = ? 
+       ORDER BY expenseDate DESC`,
+      [closureId]
+    );
+    return rows as any[];
+  } finally {
+    conn.release();
+  }
 }
 
 /**
@@ -3444,7 +3373,7 @@ export async function generateClosurePDF(closureId: number) {
   if (!closure) throw new Error("Closure not found");
 
   // Get closure projects
-  const closureProjects = await getClosureProjects(closureId);
+  const projects = await getClosureProjects(closureId);
 
   // Get creator and confirmer info
   const creator = await db.select().from(users).where(eq(users.id, closure.createdBy)).limit(1);
@@ -3452,494 +3381,321 @@ export async function generateClosurePDF(closureId: number) {
     ? await db.select().from(users).where(eq(users.id, closure.confirmedBy)).limit(1)
     : null;
 
-  // Get bodega/operational expenses total for this closure
-  const opExpensesRows = await db
-    .select()
-    .from(accountingClosureOperationalExpenses)
-    .where(eq(accountingClosureOperationalExpenses.closureId, closureId));
-
-  const totalBodega = opExpensesRows.reduce((sum, e) => sum + Number(e.amount), 0);
-
-  // Computed aggregates
-  const fmt = (n: number) => "$" + n.toLocaleString("es-CO", { maximumFractionDigits: 0 });
-  const pct = (num: number, den: number) =>
-    den === 0 ? "—" : (num / den * 100).toFixed(1) + "%";
-
-  const totalCotizado  = closureProjects.reduce((s, p) => s + Number(p.projectValue), 0);
-  const totalCobrado   = closureProjects.reduce((s, p) => s + Number(p.totalPaid), 0);
-  const totalSaldo     = totalCotizado - totalCobrado;
-  const totalGastosProj = closureProjects.reduce((s, p) => s + Number(p.totalExpenses), 0);
-  const totalUtilidad  = Number(closure.totalProfit);
-  const totalVentas    = Number(closure.totalSales);
-  const margenTotal    = pct(totalUtilidad, totalVentas);
+  // Format data for PDF
+  const closureDate = new Date(closure.periodStart);
+  const closureDateStr = closureDate.toLocaleDateString("es-CO", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
 
   const periodStartStr = new Date(closure.periodStart).toLocaleDateString("es-CO");
-  const periodEndStr   = new Date(closure.periodEnd).toLocaleDateString("es-CO");
-  const generatedAt    = new Date().toLocaleString("es-CO");
+  const periodEndStr = new Date(closure.periodEnd).toLocaleDateString("es-CO");
 
-  const htmlContent = `<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <title>Cierre Contable #${closureId} — Reporte Ejecutivo</title>
-  <style>
-    @page { margin: 20mm 18mm; }
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: Arial, Helvetica, sans-serif; font-size: 11px; color: #222; background: #fff; }
-
-    /* ── HEADER ── */
-    .header { display: flex; justify-content: space-between; align-items: flex-end;
-              border-bottom: 3px solid #0d9488; padding-bottom: 10px; margin-bottom: 18px; }
-    .header-title h1 { font-size: 20px; color: #0d9488; letter-spacing: .5px; }
-    .header-title p  { font-size: 11px; color: #555; margin-top: 2px; }
-    .header-meta     { text-align: right; font-size: 10px; color: #666; line-height: 1.7; }
-
-    /* ── INFO STRIP ── */
-    .info-strip { display: flex; gap: 8px; margin-bottom: 18px; }
-    .info-box { flex: 1; background: #f0fdf4; border: 1px solid #bbf7d0;
-                border-radius: 4px; padding: 8px 12px; }
-    .info-box .label { font-size: 9px; color: #555; text-transform: uppercase; letter-spacing: .4px; }
-    .info-box .value { font-size: 12px; font-weight: 700; color: #0d9488; margin-top: 2px; }
-
-    /* ── SECTION TITLE ── */
-    .section-title { font-size: 12px; font-weight: 700; color: #0d9488;
-                     border-bottom: 2px solid #ccfbf1; padding-bottom: 5px;
-                     margin-bottom: 10px; margin-top: 18px; }
-
-    /* ── TABLE ── */
-    table { width: 100%; border-collapse: collapse; font-size: 10.5px; margin-bottom: 6px; }
-    thead th { background: #0d9488; color: #fff; padding: 7px 8px;
-               text-align: right; white-space: nowrap; font-weight: 600; }
-    thead th:first-child { text-align: left; border-radius: 3px 0 0 0; }
-    thead th:last-child  { border-radius: 0 3px 0 0; }
-    tbody tr:nth-child(even) { background: #f8fffe; }
-    tbody td { padding: 6px 8px; border-bottom: 1px solid #e5e7eb; text-align: right; }
-    tbody td:first-child { text-align: left; font-weight: 500; }
-    tfoot td { padding: 7px 8px; font-weight: 700; background: #ecfdf5;
-               border-top: 2px solid #0d9488; text-align: right; font-size: 11px; }
-    tfoot td:first-child { text-align: left; }
-    .neg { color: #dc2626; }
-    .pos { color: #059669; }
-    .row-loss { background: #fff1f2 !important; }
-    .row-loss td { border-bottom-color: #fecdd3 !important; }
-
-    /* ── FINANCIAL SUMMARY ── */
-    .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 18px; }
-    .sum-card { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 5px;
-                padding: 10px 14px; }
-    .sum-card.highlight { background: #ecfdf5; border-color: #6ee7b7; }
-    .sum-card .slabel { font-size: 9.5px; color: #555; text-transform: uppercase;
-                        letter-spacing: .3px; margin-bottom: 3px; }
-    .sum-card .svalue { font-size: 16px; font-weight: 700; color: #0d9488; }
-    .sum-card.highlight .svalue { color: #059669; font-size: 18px; }
-    .sum-card .ssub   { font-size: 10px; color: #777; margin-top: 2px; }
-
-    /* ── SIGNATURES ── */
-    .sig-section { margin-top: 32px; padding-top: 16px; border-top: 1px solid #d1d5db; }
-    .sig-row { display: flex; justify-content: space-around; margin-top: 36px; }
-    .sig-box { width: 38%; text-align: center; }
-    .sig-line { border-top: 1px solid #333; margin-bottom: 5px; padding-top: 0; height: 0; }
-    .sig-name { font-weight: 700; font-size: 11px; margin-top: 6px; }
-    .sig-role { font-size: 9.5px; color: #666; }
-
-    /* ── FOOTER ── */
-    .doc-footer { text-align: center; margin-top: 28px; padding-top: 10px;
-                  border-top: 1px solid #e5e7eb; font-size: 9px; color: #aaa; }
-  </style>
-</head>
-<body>
-
-  <!-- HEADER -->
-  <div class="header">
-    <div class="header-title">
-      <h1>Reporte Ejecutivo de Cierre Contable</h1>
-      <p>INNOVAR Cocinas Integrales</p>
-    </div>
-    <div class="header-meta">
-      <div><strong>Cierre #${closureId}</strong></div>
-      <div>Período: ${periodStartStr} — ${periodEndStr}</div>
-      <div>Estado: ${closure.status === "confirmed" ? "✓ Confirmado" : "◐ Borrador"}</div>
-      <div>Generado: ${generatedAt}</div>
-    </div>
-  </div>
-
-  <!-- INFO STRIP -->
-  <div class="info-strip">
-    <div class="info-box">
-      <div class="label">Creado por</div>
-      <div class="value">${creator[0]?.name || "—"}</div>
-    </div>
-    ${closure.confirmedBy && confirmer ? `
-    <div class="info-box">
-      <div class="label">Confirmado por</div>
-      <div class="value">${confirmer[0]?.name || "—"}</div>
-    </div>
-    <div class="info-box">
-      <div class="label">Fecha confirmación</div>
-      <div class="value">${new Date(closure.confirmedAt!).toLocaleDateString("es-CO")}</div>
-    </div>` : ""}
-    <div class="info-box">
-      <div class="label">Proyectos</div>
-      <div class="value">${closureProjects.length}</div>
-    </div>
-  </div>
-
-  <!-- PROJECTS TABLE -->
-  <div class="section-title">Proyectos del Período</div>
-  <table>
-    <thead>
-      <tr>
-        <th>Proyecto</th>
-        <th>Cotizado</th>
-        <th>Cobrado</th>
-        <th>Saldo Pendiente</th>
-        <th>Gastos Proyecto</th>
-        <th>Utilidad</th>
-        <th>Margen %</th>
-      </tr>
-    </thead>
-    <tbody>
-      ${closureProjects.map((p: any) => {
-        const cotizado  = Number(p.projectValue);
-        const cobrado   = Number(p.totalPaid);
-        const saldo     = cotizado - cobrado;
-        const gastos    = Number(p.totalExpenses);
-        const utilidad  = Number(p.profit);
-        const margen    = pct(utilidad, cotizado);
-        return `<tr class="${utilidad < 0 ? "row-loss" : ""}">
-          <td>${p.projectName}${utilidad < 0 ? ' <span style="color:#dc2626;font-size:9px;font-weight:700;">▼ PÉRDIDA</span>' : ""}</td>
-          <td>${fmt(cotizado)}</td>
-          <td>${fmt(cobrado)}</td>
-          <td class="${saldo > 0 ? "neg" : ""}">${fmt(saldo)}</td>
-          <td>${fmt(gastos)}</td>
-          <td class="${utilidad >= 0 ? "pos" : "neg"}">${fmt(utilidad)}</td>
-          <td class="${utilidad >= 0 ? "pos" : "neg"}">${margen}</td>
-        </tr>`;
-      }).join("")}
-    </tbody>
-    <tfoot>
-      <tr>
-        <td>TOTALES</td>
-        <td>${fmt(totalCotizado)}</td>
-        <td>${fmt(totalCobrado)}</td>
-        <td class="${totalSaldo > 0 ? "neg" : ""}">${fmt(totalSaldo)}</td>
-        <td>${fmt(totalGastosProj)}</td>
-        <td class="${totalUtilidad >= 0 ? "pos" : "neg"}">${fmt(totalUtilidad)}</td>
-        <td class="${totalUtilidad >= 0 ? "pos" : "neg"}">${margenTotal}</td>
-      </tr>
-    </tfoot>
-  </table>
-
-  <!-- FINANCIAL SUMMARY -->
-  <div class="section-title">Resumen Financiero</div>
-  <div class="summary-grid">
-    <div class="sum-card">
-      <div class="slabel">Total Cotizado (Ventas)</div>
-      <div class="svalue">${fmt(totalVentas)}</div>
-    </div>
-    <div class="sum-card">
-      <div class="slabel">Total Cobrado</div>
-      <div class="svalue">${fmt(totalCobrado)}</div>
-      <div class="ssub">Saldo pendiente: ${fmt(totalSaldo)}</div>
-    </div>
-    <div class="sum-card">
-      <div class="slabel">Gastos de Proyectos</div>
-      <div class="svalue" style="color:#dc2626">${fmt(totalGastosProj)}</div>
-    </div>
-    <div class="sum-card">
-      <div class="slabel">Gastos de Bodega / Empresa</div>
-      <div class="svalue" style="color:#dc2626">${fmt(totalBodega)}</div>
-    </div>
-    <div class="sum-card highlight" style="grid-column: span 2;">
-      <div class="slabel">Utilidad Neta del Período</div>
-      <div class="svalue">${fmt(totalUtilidad)}</div>
-      <div class="ssub">Margen sobre ventas: ${margenTotal}</div>
-    </div>
-  </div>
-
-  <!-- SIGNATURES -->
-  <div class="sig-section">
-    <div style="font-size:11px;font-weight:700;color:#0d9488;margin-bottom:4px;">Firmas Autorizadas</div>
-    <div class="sig-row">
-      <div class="sig-box">
-        <div class="sig-line"></div>
-        <div class="sig-name">${creator[0]?.name || "Responsable"}</div>
-        <div class="sig-role">Elaboró el Cierre</div>
-        <div class="sig-role">${new Date(closure.createdAt).toLocaleDateString("es-CO")}</div>
-      </div>
-      ${closure.confirmedBy && confirmer ? `
-      <div class="sig-box">
-        <div class="sig-line"></div>
-        <div class="sig-name">${confirmer[0]?.name || "Responsable"}</div>
-        <div class="sig-role">Aprobó el Cierre</div>
-        <div class="sig-role">${new Date(closure.confirmedAt!).toLocaleDateString("es-CO")}</div>
-      </div>` : ""}
-      <div class="sig-box">
-        <div class="sig-line"></div>
-        <div class="sig-name">____________________</div>
-        <div class="sig-role">Gerencia General</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="doc-footer">
-    Documento generado automáticamente por el sistema INNOVAR Cocinas Integrales · ${generatedAt}<br>
-    Este reporte ejecutivo no incluye el detalle de gastos. Ver Anexo de Gastos para desglose completo.
-  </div>
-
-</body>
-</html>`;
-
-  return htmlContent;
-}
-
-
-/**
- * Generate the detailed annex PDF for an accounting closure.
- * Includes:
- *   1. Bodega / operational expenses grouped by category (from accountingClosureOperationalExpenses)
- *   2. Project expenses grouped by general category (from expenses table, per project)
- */
-export async function generateClosureAnnexPDF(closureId: number) {
-  const db = await getDb();
-  if (!db) throw new Error("Database connection failed");
-
-  const closure = await getClosureDetails(closureId);
-  if (!closure) throw new Error("Closure not found");
-
-  const closureProjectRows = await getClosureProjects(closureId);
-  const periodStartStr = new Date(closure.periodStart).toLocaleDateString("es-CO");
-  const periodEndStr   = new Date(closure.periodEnd).toLocaleDateString("es-CO");
-  const generatedAt    = new Date().toLocaleString("es-CO");
-  const fmt = (n: number) => "$" + n.toLocaleString("es-CO", { maximumFractionDigits: 0 });
-
-  // ── 1. BODEGA EXPENSES ────────────────────────────────────────────────────
-  const opExpenses = await db
-    .select()
-    .from(accountingClosureOperationalExpenses)
-    .where(eq(accountingClosureOperationalExpenses.closureId, closureId))
-    .orderBy(accountingClosureOperationalExpenses.category, accountingClosureOperationalExpenses.expenseDate);
-
-  const BODEGA_LABELS: Record<string, string> = {
-    arriendo:                 "Arriendo",
-    energia:                  "Luz / Energía",
-    agua:                     "Agua",
-    internet:                 "Internet",
-    aseo:                     "Insumos de aseo",
-    papeleria:                "Insumos papelería",
-    cortesia_cliente:         "Cortesía atención cliente",
-    gasolina_vehiculos:       "Gasolina vehículos",
-    mantenimiento_moto:       "Mantenimiento moto",
-    mantenimiento_bodega:     "Mantenimiento bodega",
-    mantenimiento_maquinaria: "Mantenimiento maquinaria",
-    nomina:                   "Nómina trabajadores",
-    herramientas:             "Herramientas",
-    mantenimiento:            "Mantenimiento general",
-    transporte:               "Transporte",
-    reparaciones:             "Reparaciones",
-    jardineria:               "Jardinería",
-    otro:                     "Otro",
-  };
-
-  // Group bodega expenses by category
-  const bodegaByCategory = new Map<string, { label: string; rows: typeof opExpenses; subtotal: number }>();
-  for (const exp of opExpenses) {
-    const cat = exp.category as string;
-    if (!bodegaByCategory.has(cat)) {
-      bodegaByCategory.set(cat, { label: BODEGA_LABELS[cat] ?? cat, rows: [], subtotal: 0 });
-    }
-    const group = bodegaByCategory.get(cat)!;
-    group.rows.push(exp);
-    group.subtotal += Number(exp.amount);
-  }
-  const totalBodega = opExpenses.reduce((s, e) => s + Number(e.amount), 0);
-
-  const bodegaSectionHtml = bodegaByCategory.size === 0
-    ? `<p style="color:#888;font-size:11px;">No hay gastos de bodega registrados en este período.</p>`
-    : Array.from(bodegaByCategory.values()).map(group => `
-      <div class="group-title">${group.label} <span class="group-sub">${fmt(group.subtotal)}</span></div>
-      <table>
-        <thead>
-          <tr>
-            <th>Fecha</th>
-            <th style="text-align:left">Descripción</th>
-            <th>Monto</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${group.rows.map(r => `
-          <tr>
-            <td>${new Date(r.expenseDate).toLocaleDateString("es-CO")}</td>
-            <td style="text-align:left">${r.description || "—"}</td>
-            <td>${fmt(Number(r.amount))}</td>
-          </tr>`).join("")}
-        </tbody>
-      </table>`).join("") + `
-      <div class="grand-total">Total Gastos Bodega: ${fmt(totalBodega)}</div>`;
-
-  // ── 2. PROJECT EXPENSES (from expenses table per project) ─────────────────
-  const PROJECT_CAT_LABELS: Record<string, string> = {
-    materiales:    "Materiales",
-    mano_de_obra:  "Mano de Obra",
-    alquiler:      "Alquiler",
-    servicios:     "Servicios",
-    transporte:    "Transporte",
-    mantenimiento: "Mantenimiento",
-    otros:         "Otros",
-  };
-
-  const projectIds = closureProjectRows.map((p: any) => p.projectId as number);
-
-  let projectExpensesHtml = "";
-  let totalGastosProyectos = 0;
-
-  if (projectIds.length > 0) {
-    for (const p of closureProjectRows) {
-      const projId       = (p as any).projectId as number;
-      const projName     = (p as any).projectName as string;
-      const projCotizado = Number((p as any).projectValue);
-
-      const projExpenses = await db
-        .select()
-        .from(expenses)
-        .where(eq(expenses.projectId, projId))
-        .orderBy(expenses.generalCategory, expenses.expenseDate);
-
-      if (projExpenses.length === 0) continue;
-
-      // Group by generalCategory
-      const byCategory = new Map<string, { rows: typeof projExpenses; subtotal: number }>();
-      for (const exp of projExpenses) {
-        const cat = exp.generalCategory as string;
-        if (!byCategory.has(cat)) byCategory.set(cat, { rows: [], subtotal: 0 });
-        const g = byCategory.get(cat)!;
-        g.rows.push(exp);
-        g.subtotal += Number(exp.amount);
-      }
-
-      const projTotal = projExpenses.reduce((s, e) => s + Number(e.amount), 0);
-      const projDiff  = projCotizado - projTotal;
-      totalGastosProyectos += projTotal;
-
-      const diffColor = projDiff >= 0 ? "#059669" : "#dc2626";
-      const diffLabel = projDiff >= 0 ? `▲ ${fmt(projDiff)} a favor` : `▼ ${fmt(Math.abs(projDiff))} en pérdida`;
-
-      projectExpensesHtml += `
-        <div class="proj-header">${projName}</div>
-        <div class="proj-summary">
-          <span><strong>Cotizado:</strong> ${fmt(projCotizado)}</span>
-          <span><strong>Gastos reales:</strong> ${fmt(projTotal)}</span>
-          <span style="color:${diffColor}"><strong>Diferencia:</strong> ${diffLabel}</span>
+  // Create HTML for PDF
+  const htmlContent = `
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Cierre Contable ${closureId}</title>
+      <style>
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+        }
+        body {
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          color: #333;
+          line-height: 1.6;
+        }
+        .container {
+          max-width: 800px;
+          margin: 0 auto;
+          padding: 40px;
+          background: white;
+        }
+        .header {
+          text-align: center;
+          margin-bottom: 40px;
+          border-bottom: 3px solid #0d9488;
+          padding-bottom: 20px;
+        }
+        .header h1 {
+          color: #0d9488;
+          font-size: 28px;
+          margin-bottom: 10px;
+        }
+        .header p {
+          color: #666;
+          font-size: 14px;
+        }
+        .closure-info {
+          background: #f0fdf4;
+          border-left: 4px solid #0d9488;
+          padding: 15px;
+          margin-bottom: 30px;
+          border-radius: 4px;
+        }
+        .closure-info h2 {
+          color: #0d9488;
+          font-size: 16px;
+          margin-bottom: 10px;
+        }
+        .info-row {
+          display: flex;
+          justify-content: space-between;
+          margin-bottom: 8px;
+          font-size: 14px;
+        }
+        .info-label {
+          font-weight: 600;
+          color: #333;
+        }
+        .info-value {
+          color: #666;
+        }
+        .projects-section {
+          margin-bottom: 30px;
+        }
+        .projects-section h3 {
+          color: #0d9488;
+          font-size: 16px;
+          margin-bottom: 15px;
+          border-bottom: 2px solid #e5e7eb;
+          padding-bottom: 10px;
+        }
+        table {
+          width: 100%;
+          border-collapse: collapse;
+          margin-bottom: 20px;
+          font-size: 13px;
+        }
+        th {
+          background: #f3f4f6;
+          color: #333;
+          padding: 12px;
+          text-align: left;
+          font-weight: 600;
+          border-bottom: 2px solid #d1d5db;
+        }
+        td {
+          padding: 12px;
+          border-bottom: 1px solid #e5e7eb;
+        }
+        tr:hover {
+          background: #f9fafb;
+        }
+        .text-right {
+          text-align: right;
+        }
+        .summary-section {
+          background: #f9fafb;
+          padding: 20px;
+          border-radius: 8px;
+          margin-bottom: 30px;
+        }
+        .summary-row {
+          display: flex;
+          justify-content: space-between;
+          margin-bottom: 12px;
+          font-size: 14px;
+        }
+        .summary-label {
+          font-weight: 600;
+          color: #333;
+        }
+        .summary-value {
+          color: #0d9488;
+          font-weight: 600;
+          font-size: 16px;
+        }
+        .summary-row.total {
+          border-top: 2px solid #d1d5db;
+          padding-top: 12px;
+          margin-top: 12px;
+        }
+        .summary-value.total {
+          color: #059669;
+          font-size: 18px;
+        }
+        .signature-section {
+          margin-top: 40px;
+          padding-top: 20px;
+          border-top: 2px solid #e5e7eb;
+        }
+        .signature-row {
+          display: flex;
+          justify-content: space-between;
+          margin-top: 40px;
+        }
+        .signature-box {
+          width: 45%;
+          text-align: center;
+          font-size: 12px;
+        }
+        .signature-line {
+          border-top: 1px solid #333;
+          margin-bottom: 5px;
+          height: 40px;
+        }
+        .signature-name {
+          font-weight: 600;
+          color: #333;
+        }
+        .signature-role {
+          color: #666;
+          font-size: 11px;
+        }
+        .footer {
+          text-align: center;
+          margin-top: 40px;
+          padding-top: 20px;
+          border-top: 1px solid #e5e7eb;
+          font-size: 12px;
+          color: #999;
+        }
+        .status-badge {
+          display: inline-block;
+          padding: 4px 12px;
+          border-radius: 20px;
+          font-size: 12px;
+          font-weight: 600;
+        }
+        .status-confirmed {
+          background: #d1fae5;
+          color: #065f46;
+        }
+        .status-draft {
+          background: #fef3c7;
+          color: #92400e;
+        }
+        .page-break {
+          page-break-after: always;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <!-- Header -->
+        <div class="header">
+          <h1>📊 Reporte de Cierre Contable</h1>
+          <p>INNOVAR Cocinas Integrales</p>
         </div>
-        ${Array.from(byCategory.entries()).map(([cat, g]) => `
-          <div class="group-title" style="margin-left:10px">${PROJECT_CAT_LABELS[cat] ?? cat}
-            <span class="group-sub">${fmt(g.subtotal)}</span>
+
+        <!-- Closure Info -->
+        <div class="closure-info">
+          <h2>Información del Cierre</h2>
+          <div class="info-row">
+            <span class="info-label">Número de Cierre:</span>
+            <span class="info-value">#${closureId}</span>
           </div>
-          <table style="margin-left:10px;width:calc(100% - 10px)">
+          <div class="info-row">
+            <span class="info-label">Período:</span>
+            <span class="info-value">${periodStartStr} - ${periodEndStr}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Estado:</span>
+            <span class="info-value">
+              <span class="status-badge ${closure.status === "confirmed" ? "status-confirmed" : "status-draft"}">
+                ${closure.status === "confirmed" ? "✓ Confirmado" : "◐ Borrador"}
+              </span>
+            </span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Creado por:</span>
+            <span class="info-value">${creator[0]?.name || "Sistema"}</span>
+          </div>
+          ${closure.confirmedBy && confirmer ? `
+          <div class="info-row">
+            <span class="info-label">Confirmado por:</span>
+            <span class="info-value">${confirmer[0]?.name || "Sistema"}</span>
+          </div>
+          ` : ""}
+          <div class="info-row">
+            <span class="info-label">Fecha de Generación:</span>
+            <span class="info-value">${closureDateStr}</span>
+          </div>
+        </div>
+
+        <!-- Projects Section -->
+        <div class="projects-section">
+          <h3>Proyectos Incluidos (${projects.length})</h3>
+          <table>
             <thead>
               <tr>
-                <th>Fecha</th>
-                <th style="text-align:left">Descripción</th>
-                <th>Monto</th>
+                <th>Proyecto</th>
+                <th class="text-right">Valor</th>
+                <th class="text-right">Gastos</th>
+                <th class="text-right">Ganancia</th>
               </tr>
             </thead>
             <tbody>
-              ${g.rows.map(r => `
+              ${projects
+                .map(
+                  (p: any) => `
               <tr>
-                <td>${new Date(r.expenseDate).toLocaleDateString("es-CO")}</td>
-                <td style="text-align:left">${r.description || "—"}</td>
-                <td>${fmt(Number(r.amount))}</td>
-              </tr>`).join("")}
+                <td>${p.projectName}</td>
+                <td class="text-right">$${Number(p.projectValue).toLocaleString("es-CO", { maximumFractionDigits: 0 })}</td>
+                <td class="text-right">$${Number(p.totalExpenses).toLocaleString("es-CO", { maximumFractionDigits: 0 })}</td>
+                <td class="text-right">$${Number(p.profit).toLocaleString("es-CO", { maximumFractionDigits: 0 })}</td>
+              </tr>
+              `
+                )
+                .join("")}
             </tbody>
-          </table>`).join("")}`;
-    }
+          </table>
+        </div>
 
-    if (totalGastosProyectos > 0) {
-      projectExpensesHtml += `<div class="grand-total">Total Gastos Proyectos: ${fmt(totalGastosProyectos)}</div>`;
-    }
-  }
+        <!-- Summary Section -->
+        <div class="summary-section">
+          <h3 style="color: #0d9488; margin-bottom: 15px;">Resumen Financiero</h3>
+          <div class="summary-row">
+            <span class="summary-label">Total Ventas:</span>
+            <span class="summary-value">$${Number(closure.totalSales).toLocaleString("es-CO", { maximumFractionDigits: 0 })}</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Total Gastos:</span>
+            <span class="summary-value">$${Number(closure.totalExpenses).toLocaleString("es-CO", { maximumFractionDigits: 0 })}</span>
+          </div>
+          <div class="summary-row total">
+            <span class="summary-label">Ganancia Neta:</span>
+            <span class="summary-value total">$${Number(closure.totalProfit).toLocaleString("es-CO", { maximumFractionDigits: 0 })}</span>
+          </div>
+        </div>
 
-  if (!projectExpensesHtml) {
-    projectExpensesHtml = `<p style="color:#888;font-size:11px;">No hay gastos de proyecto registrados en este período.</p>`;
-  }
+        <!-- Signature Section -->
+        <div class="signature-section">
+          <h3 style="color: #0d9488; margin-bottom: 30px;">Firmas Autorizadas</h3>
+          <div class="signature-row">
+            <div class="signature-box">
+              <div class="signature-line"></div>
+              <div class="signature-name">${creator[0]?.name || "Responsable"}</div>
+              <div class="signature-role">Creador del Cierre</div>
+              <div class="signature-role">${new Date(closure.createdAt).toLocaleDateString("es-CO")}</div>
+            </div>
+            ${closure.confirmedBy && confirmer ? `
+            <div class="signature-box">
+              <div class="signature-line"></div>
+              <div class="signature-name">${confirmer[0]?.name || "Responsable"}</div>
+              <div class="signature-role">Confirmador del Cierre</div>
+              <div class="signature-role">${new Date(closure.confirmedAt || new Date()).toLocaleDateString("es-CO")}</div>
+            </div>
+            ` : ""}
+          </div>
+        </div>
 
-  // ── HTML ──────────────────────────────────────────────────────────────────
-  const htmlContent = `<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <title>Cierre #${closureId} — Anexo de Gastos</title>
-  <style>
-    @page { margin: 18mm 16mm; }
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: Arial, Helvetica, sans-serif; font-size: 11px; color: #222; background: #fff; }
-
-    .header { display: flex; justify-content: space-between; align-items: flex-end;
-              border-bottom: 3px solid #0d9488; padding-bottom: 10px; margin-bottom: 18px; }
-    .header-title h1 { font-size: 18px; color: #0d9488; }
-    .header-title p  { font-size: 11px; color: #555; margin-top: 2px; }
-    .header-meta     { text-align: right; font-size: 10px; color: #666; line-height: 1.7; }
-
-    .section-title { font-size: 13px; font-weight: 700; color: #0d9488;
-                     border-bottom: 2px solid #ccfbf1; padding-bottom: 5px;
-                     margin-bottom: 12px; margin-top: 22px; }
-
-    .group-title { font-size: 11px; font-weight: 700; color: #333;
-                   background: #f0fdf4; padding: 5px 8px; margin: 10px 0 4px 0;
-                   border-left: 3px solid #0d9488; }
-    .group-sub { float: right; color: #0d9488; font-size: 11px; }
-
-    .proj-header { font-size: 12px; font-weight: 700; color: #fff;
-                   background: #0d9488; padding: 6px 10px; margin: 16px 0 0 0;
-                   border-radius: 3px 3px 0 0; }
-    .proj-summary { display: flex; gap: 24px; background: #f0fdf4; border: 1px solid #bbf7d0;
-                    border-top: none; padding: 5px 10px; font-size: 10.5px;
-                    border-radius: 0 0 3px 3px; margin-bottom: 6px; }
-
-    table { width: 100%; border-collapse: collapse; font-size: 10px; margin-bottom: 4px; }
-    thead th { background: #f3f4f6; color: #333; padding: 5px 8px; text-align: right;
-               border-bottom: 1px solid #d1d5db; font-weight: 600; }
-    thead th:first-child { text-align: left; width: 90px; }
-    tbody tr:nth-child(even) { background: #fafafa; }
-    tbody td { padding: 5px 8px; border-bottom: 1px solid #f0f0f0; text-align: right; }
-    tbody td:first-child { text-align: left; }
-
-    .grand-total { text-align: right; font-size: 12px; font-weight: 700; color: #059669;
-                   background: #ecfdf5; border: 1px solid #6ee7b7; border-radius: 3px;
-                   padding: 6px 12px; margin: 10px 0 0 0; }
-
-    .doc-footer { text-align: center; margin-top: 28px; padding-top: 10px;
-                  border-top: 1px solid #e5e7eb; font-size: 9px; color: #aaa; }
-  </style>
-</head>
-<body>
-
-  <div class="header">
-    <div class="header-title">
-      <h1>Anexo de Gastos — Cierre Contable #${closureId}</h1>
-      <p>INNOVAR Cocinas Integrales</p>
-    </div>
-    <div class="header-meta">
-      <div>Período: ${periodStartStr} — ${periodEndStr}</div>
-      <div>Generado: ${generatedAt}</div>
-    </div>
-  </div>
-
-  <!-- SECCIÓN 1: GASTOS DE BODEGA -->
-  <div class="section-title">1. Gastos de Bodega / Empresa</div>
-  ${bodegaSectionHtml}
-
-  <!-- SECCIÓN 2: GASTOS POR PROYECTO -->
-  <div class="section-title">2. Gastos por Proyecto</div>
-  ${projectExpensesHtml}
-
-  <div class="doc-footer">
-    Anexo de Gastos generado automáticamente · INNOVAR Cocinas Integrales · ${generatedAt}<br>
-    Ver el Reporte Ejecutivo para el resumen financiero y firmas.
-  </div>
-
-</body>
-</html>`;
+        <!-- Footer -->
+        <div class="footer">
+          <p>Este documento es un reporte oficial del cierre contable generado por INNOVAR Cocinas Integrales.</p>
+          <p>Fecha de generación: ${new Date().toLocaleString("es-CO")}</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
 
   return htmlContent;
 }
@@ -4496,7 +4252,7 @@ export async function getClosedProjects(filters?: {
  * @param closureId - ID of the closure to revert
  * @param revertedBy - User ID who is reverting the closure
  */
-export async function revertAccountingClosure(closureId: number, revertedBy: number, reason: string = '') {
+export async function revertAccountingClosure(closureId: number, revertedBy: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   
@@ -4578,8 +4334,6 @@ export async function revertAccountingClosure(closureId: number, revertedBy: num
         previousStatus: 'confirmed',
         newStatus: 'draft',
         action: 'reverted',
-        reason: reason || 'Sin motivo especificado',
-        revertedAt: result.revertedAt,
       }
     );
     
@@ -4707,7 +4461,7 @@ export async function deleteTestProject(projectId: number) {
       throw new Error('Proyecto no encontrado');
     }
 
-    if ((project[0] as any).dataOrigin !== 'test') {
+    if (project[0].dataOrigin !== 'test') {
       throw new Error('Solo se pueden eliminar proyectos de prueba (dataOrigin = test)');
     }
 
@@ -4756,7 +4510,7 @@ export async function getTestProjectsForDeletion() {
       .from(projects)
       .where(
         and(
-          eq(projects.dataOrigin, 'test' as any),
+          eq(projects.dataOrigin, 'test'),
           isNull(projects.accountingClosureId)
         )
       )
@@ -4783,124 +4537,4 @@ export async function getTestProjectsForDeletion() {
     console.error('[TEST PROJECT] Error getting test projects:', error);
     throw error;
   }
-}
-
-// ============ TECHNICAL VISITS (Portal del Medidor) ============
-
-export async function createTechnicalVisit(data: {
-  clientId?: number;
-  clientName: string;
-  clientPhone?: string;
-  clientAddress?: string;
-  workType: "cocina" | "closet" | "puertas" | "centro_tv";
-  measurements?: Record<string, unknown>;
-  notes?: string;
-  createdBy: number;
-  assignedTo?: number;
-  scheduledDate?: string;
-}) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-
-  const result = await db.insert(technicalVisits).values({
-    clientId: data.clientId ?? null,
-    clientName: data.clientName,
-    clientPhone: data.clientPhone ?? null,
-    clientAddress: data.clientAddress ?? null,
-    workType: data.workType,
-    measurements: data.measurements ?? null,
-    notes: data.notes ?? null,
-    createdBy: data.createdBy,
-    assignedTo: data.assignedTo ?? null,
-    scheduledDate: data.scheduledDate ?? null,
-    status: "borrador",
-  } as any).returning({ id: technicalVisits.id });
-
-  return result[0].id;
-}
-
-export async function getTechnicalVisitById(id: number) {
-  const db = await getDb();
-  if (!db) return undefined;
-
-  const result = await db.select().from(technicalVisits).where(eq(technicalVisits.id, id)).limit(1);
-  if (!result[0]) return undefined;
-
-  const photos = await db.select().from(visitPhotos)
-    .where(eq(visitPhotos.visitId, id))
-    .orderBy(visitPhotos.createdAt);
-
-  return { ...result[0], photos };
-}
-
-export async function updateTechnicalVisit(id: number, data: Partial<{
-  clientId: number;
-  clientName: string;
-  clientPhone: string;
-  clientAddress: string;
-  workType: "cocina" | "closet" | "puertas" | "centro_tv";
-  measurements: Record<string, unknown>;
-  notes: string;
-  status: "borrador" | "enviada" | "convertida";
-  quotationId: number;
-  assignedTo: number;
-  scheduledDate: string;
-}>) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-
-  await db.update(technicalVisits)
-    .set({ ...data, updatedAt: new Date().toISOString() } as any)
-    .where(eq(technicalVisits.id, id));
-}
-
-export async function listTechnicalVisits(filters?: { createdBy?: number; assignedTo?: number; status?: string }) {
-  const db = await getDb();
-  if (!db) return [];
-
-  const conditions = [];
-  if (filters?.createdBy) conditions.push(eq(technicalVisits.createdBy, filters.createdBy));
-  if (filters?.assignedTo !== undefined) conditions.push(eq((technicalVisits as any).assignedTo, filters.assignedTo));
-  if (filters?.status) conditions.push(eq(technicalVisits.status, filters.status as any));
-
-  const query = db.select().from(technicalVisits);
-  const rows = conditions.length > 0
-    ? await query.where(and(...conditions)).orderBy(desc(technicalVisits.createdAt))
-    : await query.orderBy(desc(technicalVisits.createdAt));
-
-  return rows;
-}
-
-export async function createVisitPhoto(data: {
-  visitId: number;
-  photoUrl: string;
-  category?: string;
-  description?: string;
-}) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-
-  const result = await db.insert(visitPhotos).values({
-    visitId: data.visitId,
-    photoUrl: data.photoUrl,
-    category: data.category ?? "foto",
-    description: data.description ?? null,
-  }).returning({ id: visitPhotos.id });
-
-  return result[0].id;
-}
-
-export async function deleteVisitPhoto(photoId: number) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-
-  await db.delete(visitPhotos).where(eq(visitPhotos.id, photoId));
-}
-
-export async function getVisitPhotoById(photoId: number) {
-  const db = await getDb();
-  if (!db) return undefined;
-
-  const result = await db.select().from(visitPhotos).where(eq(visitPhotos.id, photoId)).limit(1);
-  return result[0];
 }

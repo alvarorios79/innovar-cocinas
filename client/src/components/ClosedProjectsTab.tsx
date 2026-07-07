@@ -123,18 +123,18 @@ export function ClosedProjectsTab() {
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="h-6 w-6 animate-spin text-teal-600" />
-              <span className="ml-2 text-gray-600">Cargando proyectos...</span>
+              <span className="ml-2 text-muted-foreground">Cargando proyectos...</span>
             </div>
           ) : filteredProjects.length === 0 ? (
             <div className="text-center py-12">
               <Archive className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-              <p className="text-gray-600">No hay proyectos cerrados</p>
+              <p className="text-muted-foreground">No hay proyectos cerrados</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-slate-50">
+                  <TableRow className="bg-white/[0.03]">
                     <TableHead className="font-semibold">Cliente</TableHead>
                     <TableHead className="font-semibold">Proyecto</TableHead>
                     <TableHead className="text-right font-semibold">Valor Proyecto</TableHead>
@@ -145,9 +145,9 @@ export function ClosedProjectsTab() {
                 </TableHeader>
                 <TableBody>
                   {filteredProjects.map((project: any) => (
-                    <TableRow key={project.id} className="hover:bg-slate-50">
+                    <TableRow key={project.id} className="hover:bg-white/[0.03]">
                       <TableCell>
-                        <div className="font-medium text-gray-900">{project.clientName}</div>
+                        <div className="font-medium text-foreground">{project.clientName}</div>
                       </TableCell>
                       <TableCell>
                         <div className="space-y-1">
@@ -176,10 +176,10 @@ export function ClosedProjectsTab() {
                       </TableCell>
                       <TableCell>
                         <div className="space-y-1">
-                          <Badge className="bg-teal-100 text-teal-800 block">
+                          <Badge className="bg-teal-500/15 text-teal-300 block">
                             ID: {project.closureId}
                           </Badge>
-                          <span className="text-xs text-gray-600">
+                          <span className="text-xs text-muted-foreground">
                             {project.closurePeriod || "-"}
                           </span>
                         </div>
@@ -198,7 +198,7 @@ export function ClosedProjectsTab() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card className="shadow-lg">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
                 Valor Total Proyectos
               </CardTitle>
             </CardHeader>
@@ -213,12 +213,12 @@ export function ClosedProjectsTab() {
 
           <Card className="shadow-lg">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
                 Información Disponible
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-sm text-gray-600">
+              <div className="text-sm text-muted-foreground">
                 Ver detalles en cierres confirmados
               </div>
             </CardContent>
@@ -226,12 +226,12 @@ export function ClosedProjectsTab() {
 
           <Card className="shadow-lg">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
                 Información Disponible
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-sm text-gray-600">
+              <div className="text-sm text-muted-foreground">
                 Ver detalles en cierres confirmados
               </div>
             </CardContent>
@@ -239,7 +239,7 @@ export function ClosedProjectsTab() {
 
           <Card className="shadow-lg">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
                 Proyectos Cerrados
               </CardTitle>
             </CardHeader>

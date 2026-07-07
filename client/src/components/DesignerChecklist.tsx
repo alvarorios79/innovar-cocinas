@@ -119,7 +119,7 @@ export function DesignerChecklist({
   }
   
   return (
-    <Card className="border-purple-200 bg-gradient-to-br from-purple-50 to-white">
+    <Card className="border-purple-500/25 bg-gradient-to-br from-purple-50 to-white">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg flex items-center gap-2 text-purple-700">
@@ -131,12 +131,12 @@ export function DesignerChecklist({
               variant="outline" 
               className={`flex items-center gap-1 ${
                 timeRemaining.expired 
-                  ? "bg-red-100 text-red-700 border-red-300 animate-pulse" 
+                  ? "bg-red-500/15 text-red-700 border-red-300 animate-pulse" 
                   : timeRemaining.urgency === "critical"
-                    ? "bg-orange-100 text-orange-700 border-orange-300"
+                    ? "bg-orange-500/15 text-orange-700 border-orange-500/30"
                     : timeRemaining.urgency === "warning"
-                      ? "bg-yellow-100 text-yellow-700 border-yellow-300"
-                      : "bg-green-100 text-green-700 border-green-300"
+                      ? "bg-yellow-500/15 text-yellow-700 border-yellow-300"
+                      : "bg-green-500/15 text-green-700 border-green-300"
               }`}
             >
               <Timer className="h-3 w-3" />
@@ -162,12 +162,12 @@ export function DesignerChecklist({
         {timeRemaining && (
           <div className={`p-3 rounded-lg ${
             timeRemaining.expired 
-              ? "bg-red-100 border border-red-200" 
+              ? "bg-red-500/15 border border-red-500/25" 
               : timeRemaining.urgency === "critical"
-                ? "bg-orange-100 border border-orange-200"
+                ? "bg-orange-500/15 border border-orange-500/25"
                 : timeRemaining.urgency === "warning"
-                  ? "bg-yellow-100 border border-yellow-200"
-                  : "bg-green-100 border border-green-200"
+                  ? "bg-yellow-500/15 border border-yellow-200"
+                  : "bg-green-500/15 border border-green-500/25"
           }`}>
             <div className="flex items-center gap-3">
               <Clock className={`h-8 w-8 ${
@@ -203,15 +203,15 @@ export function DesignerChecklist({
                 key={item.id}
                 className={`flex items-center gap-3 p-3 rounded-lg border transition-colors ${
                   isChecked 
-                    ? "bg-green-50 border-green-200" 
-                    : "bg-gray-50 border-gray-200"
+                    ? "bg-green-500/10 border-green-500/25" 
+                    : "bg-white/[0.03] border-white/[0.10]"
                 }`}
               >
-                <div className={`p-2 rounded-full ${isChecked ? "bg-green-100" : "bg-gray-100"}`}>
+                <div className={`p-2 rounded-full ${isChecked ? "bg-green-500/15" : "bg-white/[0.06]"}`}>
                   <Icon className={`h-4 w-4 ${isChecked ? "text-green-600" : "text-gray-400"}`} />
                 </div>
                 <div className="flex-1">
-                  <p className={`font-medium text-sm ${isChecked ? "text-green-700" : "text-gray-700"}`}>
+                  <p className={`font-medium text-sm ${isChecked ? "text-green-700" : "text-muted-foreground"}`}>
                     {item.label}
                   </p>
                   <p className="text-xs text-muted-foreground">{item.description}</p>

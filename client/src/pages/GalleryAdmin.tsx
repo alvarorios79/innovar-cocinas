@@ -104,7 +104,7 @@ export default function GalleryAdmin() {
         icon={<Images className="h-5 w-5" />}
         showBack={false}
         actions={
-          <Button variant="outline" size="sm" onClick={() => refetch()} className="gap-2 text-slate-600">
+          <Button variant="outline" size="sm" onClick={() => refetch()} className="gap-2 text-muted-foreground">
             <RefreshCw className="h-3.5 w-3.5" /> Actualizar
           </Button>
         }
@@ -112,9 +112,9 @@ export default function GalleryAdmin() {
 
       {/* Banner pendientes de aprobación */}
       {pendingCount > 0 && (
-        <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 flex items-center gap-3">
+        <div className="mb-4 rounded-lg border border-amber-500/20 bg-amber-500/10 px-4 py-3 flex items-center gap-3">
           <Clock className="h-5 w-5 text-amber-500 shrink-0" />
-          <p className="text-sm text-amber-800">
+          <p className="text-sm text-amber-300">
             <strong>{pendingCount}</strong> proyecto{pendingCount > 1 ? "s" : ""} esperando aprobación del cliente.
             <button className="underline ml-2 font-semibold" onClick={() => setFilter("pendientes")}>
               Ver ahora
@@ -141,7 +141,7 @@ export default function GalleryAdmin() {
               size="sm"
               variant={filter === f ? "default" : "outline"}
               onClick={() => setFilter(f)}
-              className={filter === f ? "bg-teal-600 hover:bg-teal-700 text-white" : "text-slate-600"}
+              className={filter === f ? "bg-teal-600 hover:bg-teal-700 text-white" : "text-muted-foreground"}
             >
               {f === "todos" ? "Todos" : f === "pendientes" ? "Pendientes" : "Aprobados"}
             </Button>
@@ -215,17 +215,17 @@ function ProjectGalleryCard({
         <div className="flex flex-wrap items-start justify-between gap-2 mb-3">
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-semibold text-slate-800 truncate">{project.name}</span>
+              <span className="font-semibold text-foreground truncate">{project.name}</span>
               <Badge variant="outline" className="text-[10px] px-1.5 py-0 shrink-0">
                 {WORK_LABELS[project.workType] ?? project.workType}
               </Badge>
               {isPending && (
-                <Badge className="text-[10px] px-1.5 py-0 bg-amber-100 text-amber-700 border-amber-200 shrink-0">
+                <Badge className="text-[10px] px-1.5 py-0 bg-amber-500/15 text-amber-400 border-amber-500/20 shrink-0">
                   ⏳ Esperando aprobación
                 </Badge>
               )}
             </div>
-            <div className="flex items-center gap-3 text-xs text-slate-500 mt-1">
+            <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
               {project.client && (
                 <span className="flex items-center gap-1">
                   <User className="h-3 w-3" />{project.client.name}
@@ -287,19 +287,19 @@ function GalleryRow({
   highlight: boolean;
 }) {
   return (
-    <div className={`flex items-center gap-2 rounded-lg px-3 py-2 ${highlight ? "bg-amber-50 border border-amber-200" : "bg-slate-50"}`}>
+    <div className={`flex items-center gap-2 rounded-lg px-3 py-2 ${highlight ? "bg-amber-500/10 border border-amber-500/20" : "bg-white/[0.04]"}`}>
       {/* Ícono + label */}
-      <span className="text-slate-400 shrink-0">{icon}</span>
-      <span className="text-xs font-medium text-slate-700 w-24 shrink-0">{label}</span>
+      <span className="text-muted-foreground shrink-0">{icon}</span>
+      <span className="text-xs font-medium text-foreground w-24 shrink-0">{label}</span>
 
       {/* Estado */}
       {approved ? (
-        <span className="flex items-center gap-1 text-[11px] text-emerald-600 font-medium shrink-0">
+        <span className="flex items-center gap-1 text-[11px] text-emerald-400 font-medium shrink-0">
           <CheckCircle2 className="h-3 w-3" />
           {approvedBy ? `Aprobado por ${approvedBy}` : "Aprobado"}
         </span>
       ) : (
-        <span className="flex items-center gap-1 text-[11px] text-slate-400 shrink-0">
+        <span className="flex items-center gap-1 text-[11px] text-muted-foreground shrink-0">
           <Clock className="h-3 w-3" />
           Sin aprobar
         </span>

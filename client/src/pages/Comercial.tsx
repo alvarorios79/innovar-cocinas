@@ -216,9 +216,9 @@ export default function Comercial() {
       enchape: "bg-teal-100 text-teal-700",
       ensamble: "bg-teal-100 text-teal-700",
       listo_instalacion: "bg-cyan-100 text-cyan-700",
-      entregado: "bg-gray-100 text-gray-700",
+      entregado: "bg-white/[0.08] text-foreground/70",
     };
-    return statusColors[status] || "bg-gray-100 text-gray-700";
+    return statusColors[status] || "bg-white/[0.08] text-foreground/70";
   };
 
   // Manejar programación de instalación

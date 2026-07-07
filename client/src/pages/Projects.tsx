@@ -731,7 +731,7 @@ export default function Projects() {
                   setShowOverdueOnly(!showOverdueOnly);
                   if (!showOverdueOnly) setShowPendingPaymentOnly(false);
                 }}
-                className={showOverdueOnly ? "bg-red-500 hover:bg-red-600 text-white" : "border-red-300 text-red-600 hover:bg-red-50"}
+                className={showOverdueOnly ? "bg-red-500 hover:bg-red-600 text-white" : "border-red-300 text-red-600 hover:bg-red-500/10"}
               >
                 <AlertCircle className="h-4 w-4 mr-2" />
                 ⚠️ Atrasados (+5 días)
@@ -964,10 +964,10 @@ export default function Projects() {
                               variant="outline" 
                               className={`text-xs ${
                                 (project as any).renderRevisionNumber >= 3 
-                                  ? "border-red-500 text-red-600 bg-red-50" 
+                                  ? "border-red-500 text-red-600 bg-red-500/10" 
                                   : (project as any).renderRevisionNumber >= 2 
-                                    ? "border-amber-500 text-amber-400 bg-amber-500/10" 
-                                    : "border-blue-500 text-blue-600 bg-blue-50"
+                                    ? "border-amber-500 text-amber-600 bg-amber-500/10" 
+                                    : "border-blue-500 text-blue-600 bg-blue-500/10"
                               }`}
                             >
                               🎨 {(project as any).renderRevisionNumber} Rev{(project as any).renderRevisionNumber > 1 ? "s" : ""}
@@ -1041,7 +1041,7 @@ export default function Projects() {
                         {(user?.role === "admin" || user?.role === "super_admin") && (
                           <input
                             type="checkbox"
-                            className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
+                            className="h-4 w-4 rounded border-white/[0.15] text-primary focus:ring-primary cursor-pointer"
                             checked={selectedProjects.includes(project.id)}
                             onChange={() => toggleProjectSelection(project.id)}
                           />
@@ -1114,7 +1114,7 @@ export default function Projects() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                              className="text-red-500 hover:text-red-700 hover:bg-red-500/10"
                               onClick={() => {
                                 setProjectToDelete(project);
                                 setShowDeleteDialog(true);
@@ -1171,7 +1171,7 @@ export default function Projects() {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="text-green-600 border-green-600 hover:bg-green-50"
+                      className="text-green-600 border-green-600 hover:bg-green-500/10"
                       onClick={() => {
                         const baseUrl = window.location.origin;
                         const portalUrl = `${baseUrl}/portal?project=${selectedProject.id}`;
@@ -1205,8 +1205,8 @@ export default function Projects() {
             {/* Acciones según estado y rol */}
             {projectDetail && projectDetail.status === "pendiente_render" && 
               (user?.role === "admin" || user?.role === "super_admin") && (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
-                <h4 className="font-medium text-yellow-800 mb-2 flex items-center gap-2">
+              <div className="bg-yellow-500/10 border border-yellow-200 rounded-lg p-4 mb-4">
+                <h4 className="font-medium text-yellow-300 mb-2 flex items-center gap-2">
                   <AlertCircle className="h-4 w-4" />
                   Pendiente de Aprobación del Cliente
                 </h4>
@@ -1246,7 +1246,7 @@ export default function Projects() {
                   <TabsTrigger value="materials" className="text-xs sm:text-sm px-2 sm:px-3 data-[state=active]:bg-purple-500 data-[state=active]:text-white">Materiales</TabsTrigger>
                   <TabsTrigger value="photos" className="text-xs sm:text-sm px-2 sm:px-3 data-[state=active]:bg-green-500 data-[state=active]:text-white">Fotos</TabsTrigger>
                   <TabsTrigger value="details" className="text-xs sm:text-sm px-2 sm:px-3 data-[state=active]:bg-orange-500 data-[state=active]:text-white">Detalles</TabsTrigger>
-                  <TabsTrigger value="history" className="text-xs sm:text-sm px-2 sm:px-3 data-[state=active]:bg-white/[0.20] data-[state=active]:text-white">Historial</TabsTrigger>
+                  <TabsTrigger value="history" className="text-xs sm:text-sm px-2 sm:px-3 data-[state=active]:bg-gray-600 data-[state=active]:text-white">Historial</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="info" className="space-y-4">
@@ -1312,8 +1312,8 @@ export default function Projects() {
                         <p><strong>Adelanto recibido:</strong> {new Date(projectDetail.advanceReceivedAt).toLocaleDateString("es-CO")}</p>
                       )}
                       {projectDetail.advanceReceiptUrl && user?.role !== "disenador" && user?.role !== "jefe_taller" && (
-                        <div className="mt-2 p-2 bg-green-50 rounded-lg">
-                          <p className="text-sm font-medium text-green-800 mb-1">Comprobante de pago:</p>
+                        <div className="mt-2 p-2 bg-green-500/10 rounded-lg">
+                          <p className="text-sm font-medium text-green-300 mb-1">Comprobante de pago:</p>
                           <a 
                             href={projectDetail.advanceReceiptUrl} 
                             target="_blank" 
@@ -1326,8 +1326,8 @@ export default function Projects() {
                         </div>
                       )}
                       {(projectDetail as any).quotationPdfUrl && user?.role !== "disenador" && user?.role !== "jefe_taller" && (
-                        <div className="mt-2 p-2 bg-blue-50 rounded-lg">
-                          <p className="text-sm font-medium text-blue-800 mb-1">Cotización aprobada:</p>
+                        <div className="mt-2 p-2 bg-blue-500/10 rounded-lg">
+                          <p className="text-sm font-medium text-blue-300 mb-1">Cotización aprobada:</p>
                           <a 
                             href={(projectDetail as any).quotationPdfUrl} 
                             target="_blank" 
@@ -1769,7 +1769,7 @@ export default function Projects() {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                className="text-emerald-600 border-emerald-600 hover:bg-emerald-50"
+                                className="text-emerald-600 border-emerald-600 hover:bg-emerald-500/10"
                                 onClick={() => {
                                   // Mapear folder a stage para el formulario
                                   const folderToStageMap: Record<string, string> = {
@@ -1832,7 +1832,7 @@ export default function Projects() {
                                     )}
                                   >
                                     {isPdf ? (
-                                      <div className="w-full h-24 bg-gray-100 dark:bg-gray-800 rounded flex flex-col items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                                      <div className="w-full h-24 bg-white/[0.06] dark:bg-gray-800 rounded flex flex-col items-center justify-center hover:bg-white/[0.10] dark:hover:bg-gray-700 transition-colors">
                                         <FileText className="h-8 w-8 text-red-500" />
                                         <span className="text-xs text-muted-foreground mt-1">PDF</span>
                                       </div>

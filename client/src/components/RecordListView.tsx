@@ -97,17 +97,17 @@ export default function RecordListView({ tableName, onRefresh }: RecordListViewP
     <div className="space-y-4">
       {/* Status Messages */}
       {deleteSuccess && (
-        <Alert className="border-green-500 bg-green-50">
+        <Alert className="border-green-500 bg-green-500/10">
           <CheckCircle className="h-4 w-4 text-green-600" />
-          <AlertDescription className="text-green-800">
+          <AlertDescription className="text-green-300">
             ✅ Registros eliminados exitosamente
           </AlertDescription>
         </Alert>
       )}
 
       {/* Summary */}
-      <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-        <div className="text-sm text-gray-600">
+      <div className="p-4 bg-blue-500/10 rounded-lg border border-blue-500/25">
+        <div className="text-sm text-muted-foreground">
           Mostrando <span className="font-bold">{records.length}</span> de{" "}
           <span className="font-bold">{totalCount}</span> registros
         </div>
@@ -120,9 +120,9 @@ export default function RecordListView({ tableName, onRefresh }: RecordListViewP
       ) : (
         <>
           {/* Records Table */}
-          <div className="overflow-x-auto border border-gray-200 rounded-lg">
+          <div className="overflow-x-auto border border-white/[0.10] rounded-lg">
             <table className="w-full text-sm">
-              <thead className="bg-gray-100 border-b border-gray-200">
+              <thead className="bg-white/[0.06] border-b border-white/[0.10]">
                 <tr>
                   <th className="px-4 py-3 text-left">
                     <Checkbox
@@ -130,18 +130,18 @@ export default function RecordListView({ tableName, onRefresh }: RecordListViewP
                       onCheckedChange={handleSelectAll}
                     />
                   </th>
-                  <th className="px-4 py-3 text-left font-semibold text-gray-900">ID</th>
-                  <th className="px-4 py-3 text-left font-semibold text-gray-900">Nombre/Título</th>
-                  <th className="px-4 py-3 text-left font-semibold text-gray-900">Creado</th>
-                  <th className="px-4 py-3 text-left font-semibold text-gray-900">Origen</th>
+                  <th className="px-4 py-3 text-left font-semibold text-foreground">ID</th>
+                  <th className="px-4 py-3 text-left font-semibold text-foreground">Nombre/Título</th>
+                  <th className="px-4 py-3 text-left font-semibold text-foreground">Creado</th>
+                  <th className="px-4 py-3 text-left font-semibold text-foreground">Origen</th>
                 </tr>
               </thead>
               <tbody>
                 {records.map((record: any, idx: number) => (
                   <tr
                     key={record.id}
-                    className={`border-b border-gray-200 hover:bg-gray-50 ${
-                      selectedIds.includes(record.id) ? "bg-blue-50" : ""
+                    className={`border-b border-white/[0.10] hover:bg-white/[0.03] ${
+                      selectedIds.includes(record.id) ? "bg-blue-500/10" : ""
                     }`}
                   >
                     <td className="px-4 py-3">
@@ -150,17 +150,17 @@ export default function RecordListView({ tableName, onRefresh }: RecordListViewP
                         onCheckedChange={(checked) => handleSelectRecord(record.id, checked as boolean)}
                       />
                     </td>
-                    <td className="px-4 py-3 font-mono text-gray-600">{record.id}</td>
-                    <td className="px-4 py-3 text-gray-900">
+                    <td className="px-4 py-3 font-mono text-muted-foreground">{record.id}</td>
+                    <td className="px-4 py-3 text-foreground">
                       {record.name || record.title || record.email || record.description || "-"}
                     </td>
-                    <td className="px-4 py-3 text-gray-600">
+                    <td className="px-4 py-3 text-muted-foreground">
                       {record.createdAt
                         ? format(new Date(record.createdAt), "dd MMM yyyy HH:mm", { locale: es })
                         : "-"}
                     </td>
                     <td className="px-4 py-3">
-                      <span className="px-2 py-1 bg-red-100 text-red-800 rounded text-xs font-semibold">
+                      <span className="px-2 py-1 bg-red-500/15 text-red-300 rounded text-xs font-semibold">
                         {record.dataOrigin || "system"}
                       </span>
                     </td>
@@ -173,7 +173,7 @@ export default function RecordListView({ tableName, onRefresh }: RecordListViewP
           {/* Pagination */}
           {totalPages > 1 && (
             <div className="flex items-center justify-between">
-              <div className="text-sm text-gray-600">
+              <div className="text-sm text-muted-foreground">
                 Página {page} de {totalPages}
               </div>
               <div className="space-x-2">
@@ -254,9 +254,9 @@ export default function RecordListView({ tableName, onRefresh }: RecordListViewP
                     <div>
                       ¿Está seguro de que desea eliminar todos los {totalCount} registros de esta tabla?
                     </div>
-                    <Alert className="border-red-500 bg-red-50">
+                    <Alert className="border-red-500 bg-red-500/10">
                       <AlertTriangle className="h-4 w-4 text-red-600" />
-                      <AlertDescription className="text-red-800">
+                      <AlertDescription className="text-red-300">
                         Esta acción no se puede deshacer
                       </AlertDescription>
                     </Alert>

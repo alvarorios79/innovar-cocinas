@@ -251,8 +251,8 @@ export function ProjectDesignPanel({ projectId }: { projectId: number }) {
                     <Box className="h-6 w-6" />
                   </div>
                   <div className="flex-1">
-                    <h4 className="font-semibold text-gray-800 dark:text-gray-200">Modelado 3D</h4>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                    <h4 className="font-semibold text-foreground">Modelado 3D</h4>
+                    <p className="text-sm text-muted-foreground mt-1">
                       {projectDetail.photos?.filter((p: any) => p.subcategory === "modelado_3d").length > 0
                         ? `${projectDetail.photos?.filter((p: any) => p.subcategory === "modelado_3d").length} imagen(es) listas`
                         : 'Sin imágenes aún'}
@@ -285,8 +285,8 @@ export function ProjectDesignPanel({ projectId }: { projectId: number }) {
                     <ImageIcon className="h-6 w-6" />
                   </div>
                   <div className="flex-1">
-                    <h4 className="font-semibold text-gray-800 dark:text-gray-200">Renders Finales</h4>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                    <h4 className="font-semibold text-foreground">Renders Finales</h4>
+                    <p className="text-sm text-muted-foreground mt-1">
                       {projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length > 0
                         ? `${projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length} imagen(es) listas`
                         : 'Sin imágenes aún'}
@@ -339,7 +339,7 @@ export function ProjectDesignPanel({ projectId }: { projectId: number }) {
                       {statusColor === "green" ? <CheckCircle2 className="h-5 w-5" /> : <AlertCircle className="h-5 w-5" />}
                     </div>
                     <div>
-                      <h4 className={`font-semibold ${statusColor === "amber" ? "text-amber-800 dark:text-amber-200" : statusColor === "green" ? "text-green-800 dark:text-green-200" : statusColor === "blue" ? "text-blue-800 dark:text-blue-200" : "text-gray-600 dark:text-gray-400"}`}>
+                      <h4 className={`font-semibold ${statusColor === "amber" ? "text-amber-300" : statusColor === "green" ? "text-green-300" : statusColor === "blue" ? "text-blue-300" : "text-gray-600 dark:text-gray-400"}`}>
                         {isPendingApproval ? "Pendiente de Aprobación" : isApproved ? "Diseño Aprobado" : "Aprobar en Nombre del Cliente"}
                       </h4>
                       <p className={`text-sm ${statusColor === "amber" ? "text-amber-600 dark:text-amber-400" : statusColor === "green" ? "text-green-600 dark:text-green-400" : statusColor === "blue" ? "text-blue-600 dark:text-blue-400" : "text-gray-500"}`}>{statusMessage}</p>
@@ -429,7 +429,7 @@ export function ProjectDesignPanel({ projectId }: { projectId: number }) {
                       </div>
                     </div>
                   )}
-                  {visit.notes && <p className="text-xs text-gray-600 italic border-l-2 border-purple-300 pl-2">{visit.notes}</p>}
+                  {visit.notes && <p className="text-xs text-muted-foreground italic border-l-2 border-purple-500/50 pl-2">{visit.notes}</p>}
                   {Object.keys(evaluacion).length > 0 && (
                     <div>
                       <p className="text-xs font-semibold text-purple-700 mb-1">🔍 Evaluación</p>
@@ -437,7 +437,7 @@ export function ProjectDesignPanel({ projectId }: { projectId: number }) {
                         {Object.entries(evaluacion).map(([k, v]: any) => (
                           <div key={k} className="text-xs flex items-center gap-1">
                             <span>{v === "bueno" ? "🟢" : v === "regular" ? "🟡" : "🔴"}</span>
-                            <span className="text-gray-600 capitalize">{k.replace(/_/g," ")}: </span>
+                            <span className="text-muted-foreground capitalize">{k.replace(/_/g," ")}: </span>
                             <span className="font-medium capitalize">{v}</span>
                           </div>
                         ))}
@@ -495,7 +495,7 @@ export function ProjectDesignPanel({ projectId }: { projectId: number }) {
                       <h5 className="font-semibold text-base text-emerald-700 flex items-center gap-2">
                         <span className="w-2 h-2 bg-emerald-500 rounded-full" />
                         {subcategoryLabels[subcategory] || subcategory}
-                        <span className={`ml-2 px-2 py-0.5 rounded-full text-xs font-medium ${photos.length > 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-500'}`}>
+                        <span className={`ml-2 px-2 py-0.5 rounded-full text-xs font-medium ${photos.length > 0 ? 'bg-emerald-500/20 text-emerald-400' : 'bg-gray-100 text-gray-500'}`}>
                           {photos.length} {photos.length === 1 ? 'foto' : 'fotos'}
                         </span>
                       </h5>
@@ -557,7 +557,7 @@ export function ProjectDesignPanel({ projectId }: { projectId: number }) {
                         )}
                       </>
                     ) : (
-                      <div className="flex flex-col items-center justify-center py-8 text-center bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
+                      <div className="flex flex-col items-center justify-center py-8 text-center bg-white/[0.03] rounded-lg border-2 border-dashed border-white/[0.12]">
                         <Camera className="h-10 w-10 text-gray-300 mb-2" />
                         <p className="text-sm text-gray-400 font-medium">Sin fotos aún</p>
                         {canUploadToFolder(subcategory) && <p className="text-xs text-gray-400 mt-1">Haz clic en el botón de subir para agregar</p>}
@@ -590,7 +590,7 @@ export function ProjectDesignPanel({ projectId }: { projectId: number }) {
                     </span>
                     <span className="text-xs text-gray-500">{revision.clientName}</span>
                   </div>
-                  <p className="text-sm text-gray-700">{revision.changes}</p>
+                  <p className="text-sm text-foreground/85">{revision.changes}</p>
                   <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
                     <Clock className="h-3 w-3" />
                     {new Date(revision.createdAt).toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
@@ -610,7 +610,7 @@ export function ProjectDesignPanel({ projectId }: { projectId: number }) {
           </CardHeader>
           <CardContent className="pt-4">
             <div className="p-3 bg-[#162828] rounded-lg border border-orange-200">
-              <p className="text-sm text-gray-700">{projectDetail.clientApprovalNotes}</p>
+              <p className="text-sm text-foreground/85">{projectDetail.clientApprovalNotes}</p>
               {projectDetail.changesRequestedAt && (
                 <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
                   <Clock className="h-3 w-3" />

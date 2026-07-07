@@ -313,7 +313,7 @@ export async function generateQuotationPDF(data: QuotationData, outputPath: stri
       Y += tH + 20;
 
       // ── FIRMAS ─────────────────────────────────────────────────────────────
-      if (Y + 70 > PH - 44) { doc.addPage(); Y = 30; }
+      if (Y + 70 > PH - 44) { doc.addPage(); Y = PH - 36 - 110; }
       doc.moveTo(ML,           Y + 36).lineTo(ML + 185,       Y + 36).stroke(BORDER);
       doc.moveTo(PW - MR - 185, Y + 36).lineTo(PW - MR,        Y + 36).stroke(BORDER);
       doc.fontSize(8.5).fillColor(DGRAY).font("Helvetica-Bold")
@@ -323,16 +323,21 @@ export async function generateQuotationPDF(data: QuotationData, outputPath: stri
          .text(data.clientName, ML, Y + 53)
          .text("NIT: 10021456-1 · @cocinasintegralesenpereira", PW - MR - 185, Y + 53, { width: 185, align: "right" });
 
-      // ── FOOTER ─────────────────────────────────────────────────────────────
-      const FY = PH - 36;
-      doc.rect(0, FY, PW, 36).fill(DARK);
-      doc.rect(0, FY, PW, 3).fill(TEAL);
-      doc.fontSize(7.5).fillColor(TEAL).font("Helvetica-Bold")
-         .text("Innovar Cocinas de Diseño", ML, FY + 9);
-      doc.fontSize(7).fillColor("#90A4AE").font("Helvetica")
-         .text("cocinasintegralespereira.co  ·  313 680 2025  ·  Km 9 vía Cerritos, Pereira, Colombia", ML, FY + 21);
-      doc.fontSize(7).fillColor(TEAL).font("Helvetica-Bold")
-         .text("Gracias por confiar en nosotros", ML, FY + 9, { width: CW, align: "right" });
+      // ── FOOTER en todas las páginas (bufferPages: true) ────────────────────
+      const { start, count } = doc.bufferedPageRange();
+      for (let p = 0; p < count; p++) {
+        doc.switchToPage(start + p);
+        const FY = doc.page.height - 36;
+        const PW2 = doc.page.width;
+        doc.rect(0, FY, PW2, 36).fill(DARK);
+        doc.rect(0, FY, PW2, 3).fill(TEAL);
+        doc.fontSize(7.5).fillColor(TEAL).font("Helvetica-Bold")
+           .text("Innovar Cocinas de Diseño", ML, FY + 9);
+        doc.fontSize(7).fillColor("#90A4AE").font("Helvetica")
+           .text("cocinasintegralespereira.co  ·  313 680 2025  ·  Km 9 vía Cerritos, Pereira, Colombia", ML, FY + 21);
+        doc.fontSize(7).fillColor(TEAL).font("Helvetica-Bold")
+           .text("Gracias por confiar en nosotros", ML, FY + 9, { width: CW, align: "right" });
+      }
 
       doc.end();
       stream.on("finish", resolve);

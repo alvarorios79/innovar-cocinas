@@ -75,7 +75,7 @@ function ProjectApprovalView({
               {designPhotos.map((photo: any) => (
                 <div 
                   key={photo.id} 
-                  className="relative aspect-square rounded-lg overflow-hidden border-2 border-gray-200 hover:border-purple-500 cursor-pointer transition-all"
+                  className="relative aspect-square rounded-lg overflow-hidden border-2 border-white/[0.10] hover:border-purple-500 cursor-pointer transition-all"
                   onClick={() => setSelectedImage(photo.photoUrl || photo.url)}
                 >
                   <img 
@@ -93,7 +93,7 @@ function ProjectApprovalView({
             </div>
           </div>
         ) : (
-          <div className="text-center py-8 bg-gray-50 rounded-lg">
+          <div className="text-center py-8 bg-white/[0.03] rounded-lg">
             <ImageIcon className="h-12 w-12 mx-auto text-gray-400 mb-4" />
             <p className="text-gray-500">Aún no hay imágenes disponibles para revisar</p>
             <p className="text-sm text-gray-400 mt-2">El diseñador subirá las imágenes pronto</p>
@@ -119,7 +119,7 @@ function ProjectApprovalView({
                   onClick={() => setShowRejectForm(true)}
                   disabled={isSubmitting}
                   variant="outline"
-                  className="flex-1 border-orange-500 text-orange-600 hover:bg-orange-50"
+                  className="flex-1 border-orange-500 text-orange-600 hover:bg-orange-500/10"
                   size="lg"
                 >
                   <Wrench className="h-5 w-5 mr-2" />
@@ -174,8 +174,8 @@ function ProjectApprovalView({
 
         {/* Notas de cambios anteriores */}
         {project.clientApprovalNotes && (
-          <div className="mt-4 p-4 bg-orange-50 border border-orange-200 rounded-lg">
-            <h4 className="font-medium text-orange-800 mb-2">📝 Cambios solicitados anteriormente:</h4>
+          <div className="mt-4 p-4 bg-orange-500/10 border border-orange-500/25 rounded-lg">
+            <h4 className="font-medium text-orange-300 mb-2">📝 Cambios solicitados anteriormente:</h4>
             <p className="text-orange-700 text-sm">{project.clientApprovalNotes}</p>
           </div>
         )}
@@ -515,7 +515,7 @@ export default function Portal() {
                 </CardContent>
               </Card>
             ) : projectFromUrlError ? (
-              <Card className="mb-4 md:mb-8 border-red-200 bg-red-50">
+              <Card className="mb-4 md:mb-8 border-red-500/25 bg-red-500/10">
                 <CardContent className="p-4 md:p-8 text-center">
                   <AlertCircle className="h-12 w-12 mx-auto text-red-500 mb-4" />
                   <h2 className="text-xl font-bold text-red-700 mb-2">Proyecto no encontrado</h2>
@@ -560,7 +560,7 @@ export default function Portal() {
                         <span>Progreso</span>
                         <span>{getProgressPercentage(projectFromUrl.status)}%</span>
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div className="w-full bg-white/[0.10] rounded-full h-2">
                         <div 
                           className="bg-primary h-2 rounded-full transition-all duration-500"
                           style={{ width: `${getProgressPercentage(projectFromUrl.status)}%` }}
@@ -646,7 +646,7 @@ export default function Portal() {
                             <span>Progreso</span>
                             <span>{getProgressPercentage(project.status)}%</span>
                           </div>
-                          <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div className="w-full bg-white/[0.10] rounded-full h-2">
                             <div 
                               className="bg-primary h-2 rounded-full transition-all duration-500"
                               style={{ width: `${getProgressPercentage(project.status)}%` }}
@@ -658,10 +658,10 @@ export default function Portal() {
                         {project.estimatedInstallDate && project.status !== "entregado" && (
                           <div className={`flex items-center gap-2 p-3 rounded-lg ${
                             new Date(project.estimatedInstallDate) < new Date() 
-                              ? "bg-red-50 border border-red-200" 
+                              ? "bg-red-500/10 border border-red-500/25" 
                               : new Date(project.estimatedInstallDate) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-                                ? "bg-yellow-50 border border-yellow-200"
-                                : "bg-green-50 border border-green-200"
+                                ? "bg-yellow-500/10 border border-yellow-200"
+                                : "bg-green-500/10 border border-green-500/25"
                           }`}>
                             <Truck className={`h-5 w-5 ${
                               new Date(project.estimatedInstallDate) < new Date() 
@@ -673,10 +673,10 @@ export default function Portal() {
                             <div>
                               <p className={`text-sm font-medium ${
                                 new Date(project.estimatedInstallDate) < new Date() 
-                                  ? "text-red-800" 
+                                  ? "text-red-300" 
                                   : new Date(project.estimatedInstallDate) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-                                    ? "text-yellow-800"
-                                    : "text-green-800"
+                                    ? "text-yellow-300"
+                                    : "text-green-300"
                               }`}>
                                 {new Date(project.estimatedInstallDate) < new Date() 
                                   ? "Fecha de entrega vencida" 
@@ -702,10 +702,10 @@ export default function Portal() {
 
                         {/* Fecha de instalación programada */}
                         {project.scheduledInstallDate && project.status !== "entregado" && (
-                          <div className="flex items-center gap-2 p-3 rounded-lg bg-blue-50 border border-blue-200">
+                          <div className="flex items-center gap-2 p-3 rounded-lg bg-blue-500/10 border border-blue-500/25">
                             <Calendar className="h-5 w-5 text-blue-600" />
                             <div>
-                              <p className="text-sm font-medium text-blue-800">Instalación Programada</p>
+                              <p className="text-sm font-medium text-blue-300">Instalación Programada</p>
                               <p className="text-sm text-blue-600">
                                 {new Date(project.scheduledInstallDate).toLocaleDateString("es-CO", {
                                   weekday: "long",
@@ -720,10 +720,10 @@ export default function Portal() {
 
                         {/* Comprobante de pago */}
                         {project.advanceReceiptUrl && (
-                          <div className="flex items-center gap-2 p-3 rounded-lg bg-green-50 border border-green-200">
+                          <div className="flex items-center gap-2 p-3 rounded-lg bg-green-500/10 border border-green-500/25">
                             <FileText className="h-5 w-5 text-green-600" />
                             <div className="flex-1">
-                              <p className="text-sm font-medium text-green-800">Comprobante de Pago</p>
+                              <p className="text-sm font-medium text-green-300">Comprobante de Pago</p>
                               <a 
                                 href={project.advanceReceiptUrl} 
                                 target="_blank" 
@@ -738,10 +738,10 @@ export default function Portal() {
 
                         {/* PDF de cotización aprobada */}
                         {(project as any).quotationPdfUrl && (
-                          <div className="flex items-center gap-2 p-3 rounded-lg bg-blue-50 border border-blue-200">
+                          <div className="flex items-center gap-2 p-3 rounded-lg bg-blue-500/10 border border-blue-500/25">
                             <FileText className="h-5 w-5 text-blue-600" />
                             <div className="flex-1">
-                              <p className="text-sm font-medium text-blue-800">Cotización Aprobada</p>
+                              <p className="text-sm font-medium text-blue-300">Cotización Aprobada</p>
                               <a 
                                 href={(project as any).quotationPdfUrl} 
                                 target="_blank" 
@@ -756,10 +756,10 @@ export default function Portal() {
 
                         {/* Proyecto entregado */}
                         {project.status === "entregado" && project.deliveredAt && (
-                          <div className="flex items-center gap-2 p-3 rounded-lg bg-green-50 border border-green-200">
+                          <div className="flex items-center gap-2 p-3 rounded-lg bg-green-500/10 border border-green-500/25">
                             <CheckCircle2 className="h-5 w-5 text-green-600" />
                             <div>
-                              <p className="text-sm font-medium text-green-800">¡Proyecto Entregado!</p>
+                              <p className="text-sm font-medium text-green-300">¡Proyecto Entregado!</p>
                               <p className="text-sm text-green-600">
                                 Entregado el {new Date(project.deliveredAt).toLocaleDateString("es-CO", {
                                   weekday: "long",
@@ -791,8 +791,8 @@ export default function Portal() {
 
                         {/* Aprobación de diseño */}
                         {project.status === "pendiente_render" && (
-                          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                            <h4 className="font-medium text-yellow-800 mb-2 flex items-center gap-2">
+                          <div className="bg-yellow-500/10 border border-yellow-200 rounded-lg p-4">
+                            <h4 className="font-medium text-yellow-300 mb-2 flex items-center gap-2">
                               <AlertCircle className="h-4 w-4" />
                               Acción Requerida: Aprobar Diseño
                             </h4>
@@ -1018,8 +1018,8 @@ export default function Portal() {
                                   />
 
                                   {rescheduleDate && rescheduleTime && (
-                                    <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
-                                      <p className="text-sm font-semibold text-green-800">Confirma tu nueva fecha</p>
+                                    <div className="bg-green-500/10 border border-green-500/25 rounded-lg p-4 text-center">
+                                      <p className="text-sm font-semibold text-green-300">Confirma tu nueva fecha</p>
                                       <p className="text-green-700 font-medium mt-1">{formatRescheduleConfirmation()}</p>
                                       <p className="text-xs text-green-600 mt-1">Duración aproximada: 1 hora y 30 minutos</p>
                                     </div>
@@ -1049,7 +1049,7 @@ export default function Portal() {
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  className="border-red-300 text-red-600 hover:bg-red-50"
+                                  className="border-red-300 text-red-600 hover:bg-red-500/10"
                                   onClick={() => {
                                     setSelectedAppointment(apt);
                                     setCancelReason("");
@@ -1067,8 +1067,8 @@ export default function Portal() {
                                   </DialogDescription>
                                 </DialogHeader>
                                 <div className="space-y-4">
-                                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                                    <p className="text-sm text-red-800 font-medium">¿Estás seguro de que deseas cancelar esta cita?</p>
+                                  <div className="bg-red-500/10 border border-red-500/25 rounded-lg p-4">
+                                    <p className="text-sm text-red-300 font-medium">¿Estás seguro de que deseas cancelar esta cita?</p>
                                     <p className="text-xs text-red-600 mt-1">El horario quedará libre para que otro cliente pueda agendar.</p>
                                   </div>
                                   <div>
@@ -1235,10 +1235,10 @@ export default function Portal() {
                         
                         {/* Mensaje para cotizaciones aprobadas */}
                         {isApproved && (
-                          <div className="flex items-center gap-2 p-3 rounded-lg bg-green-50 border border-green-200">
+                          <div className="flex items-center gap-2 p-3 rounded-lg bg-green-500/10 border border-green-500/25">
                             <CheckCircle2 className="h-5 w-5 text-green-600" />
                             <div>
-                              <p className="text-sm font-medium text-green-800">¡Cotización Aprobada!</p>
+                              <p className="text-sm font-medium text-green-300">¡Cotización Aprobada!</p>
                               <p className="text-xs text-green-600">Nos pondremos en contacto contigo para los siguientes pasos.</p>
                             </div>
                           </div>
@@ -1246,10 +1246,10 @@ export default function Portal() {
                         
                         {/* Mensaje para cotizaciones rechazadas */}
                         {isRejected && (
-                          <div className="flex items-center gap-2 p-3 rounded-lg bg-red-50 border border-red-200">
+                          <div className="flex items-center gap-2 p-3 rounded-lg bg-red-500/10 border border-red-500/25">
                             <X className="h-5 w-5 text-red-600" />
                             <div>
-                              <p className="text-sm font-medium text-red-800">Cotización Rechazada</p>
+                              <p className="text-sm font-medium text-red-300">Cotización Rechazada</p>
                               {quot.rejectionReason && (
                                 <p className="text-xs text-red-600">Motivo: {quot.rejectionReason}</p>
                               )}
@@ -1408,22 +1408,22 @@ export default function Portal() {
             
             <div className="space-y-2">
               <Label>Monto del Adelanto (60% del total)</Label>
-              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="p-4 bg-blue-500/10 border border-blue-500/25 rounded-lg">
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-sm text-blue-700">Total de la cotización:</span>
-                  <span className="font-medium text-blue-900">
+                  <span className="font-medium text-blue-300">
                     ${selectedQuotation?.total?.toLocaleString('es-CO') || '0'}
                   </span>
                 </div>
-                <div className="flex justify-between items-center pt-2 border-t border-blue-200">
+                <div className="flex justify-between items-center pt-2 border-t border-blue-500/25">
                   <span className="text-sm font-medium text-blue-700">Adelanto requerido (60%):</span>
-                  <span className="text-lg font-bold text-blue-900">
+                  <span className="text-lg font-bold text-blue-300">
                     ${selectedQuotation?.total ? Math.round(selectedQuotation.total * 0.6).toLocaleString('es-CO') : '0'}
                   </span>
                 </div>
-                <div className="flex justify-between items-center mt-2 pt-2 border-t border-blue-200">
+                <div className="flex justify-between items-center mt-2 pt-2 border-t border-blue-500/25">
                   <span className="text-sm text-blue-600">Saldo restante (40%):</span>
-                  <span className="font-medium text-blue-800">
+                  <span className="font-medium text-blue-300">
                     ${selectedQuotation?.total ? Math.round(selectedQuotation.total * 0.4).toLocaleString('es-CO') : '0'}
                   </span>
                 </div>
@@ -1449,7 +1449,7 @@ export default function Portal() {
                 accept="image/*,application/pdf"
               />
               {receiptUrl && (
-                <div className="flex items-center gap-2 p-2 bg-green-50 rounded-lg">
+                <div className="flex items-center gap-2 p-2 bg-green-500/10 rounded-lg">
                   <CheckCircle2 className="h-4 w-4 text-green-600" />
                   <span className="text-sm text-green-700">Comprobante adjuntado</span>
                   <Button
@@ -1464,8 +1464,8 @@ export default function Portal() {
               )}
             </div>
             
-            <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-              <p className="text-sm text-green-800">
+            <div className="p-3 bg-green-500/10 border border-green-500/25 rounded-lg">
+              <p className="text-sm text-green-300">
                 Al aprobar esta cotización, se creará automáticamente tu proyecto y nuestro equipo 
                 se pondrá en contacto contigo para coordinar los siguientes pasos.
               </p>

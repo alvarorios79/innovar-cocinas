@@ -997,6 +997,68 @@ export async function deletePayment(id: number) {
   await db.delete(payments).where(eq(payments.id, id));
 }
 
+export async function getAllPaymentsWithDetails(filters?: {
+  month?: number;   // 0-indexed (0=Jan, 11=Dec)
+  year?: number;
+  projectId?: number;
+  movementType?: "payment" | "discount" | "surcharge";
+}) {
+  const db = await getDb();
+  if (!db) return [];
+
+  const conditions: any[] = [];
+
+  if (filters?.projectId) {
+    conditions.push(eq(payments.projectId, filters.projectId));
+  }
+  if (filters?.movementType) {
+    conditions.push(eq(payments.movementType, filters.movementType));
+  }
+
+  // Filtro por mes/año usando receivedAt (ISO string)
+  if (filters?.year !== undefined) {
+    const yr = filters.year;
+    const mo = filters.month ?? -1;
+    if (mo >= 0) {
+      const start = new Date(yr, mo, 1).toISOString();
+      const end   = new Date(yr, mo + 1, 0, 23, 59, 59).toISOString();
+      conditions.push(gte(payments.receivedAt, start));
+      conditions.push(lte(payments.receivedAt, end));
+    } else {
+      const start = new Date(yr, 0, 1).toISOString();
+      const end   = new Date(yr, 11, 31, 23, 59, 59).toISOString();
+      conditions.push(gte(payments.receivedAt, start));
+      conditions.push(lte(payments.receivedAt, end));
+    }
+  }
+
+  const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+  return await db
+    .select({
+      id:           payments.id,
+      amount:       payments.amount,
+      type:         payments.type,
+      movementType: payments.movementType,
+      method:       payments.method,
+      notes:        payments.notes,
+      receivedAt:   payments.receivedAt,
+      createdAt:    payments.createdAt,
+      projectId:    payments.projectId,
+      projectName:  projects.name,
+      clientId:     projects.clientId,
+      clientName:   clients.name,
+      registeredBy: payments.registeredBy,
+    })
+    .from(payments)
+    .leftJoin(projects, eq(payments.projectId, projects.id))
+    .leftJoin(clients, eq(projects.clientId, clients.id))
+    .where(whereClause)
+    .orderBy(desc(payments.receivedAt));
+}
+
+
+
 // ============ FINANCIAL CALCULATIONS ============
 
 export async function calculateProjectBalance(projectId: number) {

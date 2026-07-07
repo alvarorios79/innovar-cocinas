@@ -158,7 +158,7 @@ export async function generateQuotationPDF(data: QuotationData, outputPath: stri
       if (data.clientAddress) clientLines.push(`Dir: ${data.clientAddress}`);
       if (data.clientEmail)   clientLines.push(data.clientEmail);
       const clientBoxH = 20 + clientLines.length * 15 + 10;
-      const projBoxH   = 90;
+      const projBoxH   = 110;
       const boxH       = Math.max(clientBoxH, projBoxH);
 
       // Caja cliente
@@ -178,13 +178,13 @@ export async function generateQuotationPDF(data: QuotationData, outputPath: stri
       doc.rect(RX, Y, 3, boxH).fill(DGRAY);
       doc.fontSize(9).fillColor(MGRAY).font("Helvetica")
          .text("ASESOR",          RX + 12, Y + 8)
-         .text("TIPO DE TRABAJO", RX + 12, Y + 36)
-         .text("FORMA DE PAGO",   RX + 12, Y + 64);
+         .text("TIPO DE TRABAJO", RX + 12, Y + 44)
+         .text("FORMA DE PAGO",   RX + 12, Y + 80);
       doc.fontSize(10.5).fillColor(DGRAY).font("Helvetica-Bold")
-         .text(data.vendorName,  RX + 12, Y + 19, { width: HF - 20 })
-         .text(data.productType, RX + 12, Y + 47, { width: HF - 20 });
+         .text(data.vendorName,  RX + 12, Y + 20, { width: HF - 20 })
+         .text(data.productType, RX + 12, Y + 56, { width: HF - 20 });
       doc.fontSize(10.5).fillColor(TDARK).font("Helvetica-Bold")
-         .text("60% inicial · 40% al finalizar obra", RX + 12, Y + 75, { width: HF - 20 });
+         .text("60% inicial · 40% al finalizar obra", RX + 12, Y + 92, { width: HF - 20 });
 
       Y += boxH + 16;
 
@@ -204,7 +204,7 @@ export async function generateQuotationPDF(data: QuotationData, outputPath: stri
         const rowH  = Math.max(descH + 16, 36);
 
         // Nueva página si no hay espacio
-        if (Y + rowH > PH - 180) {
+        if (Y + rowH > PH - 70) {
           doc.addPage();
           // Encabezado tabla en página nueva
           doc.rect(0, 0, PW, 6).fill(TEAL);
@@ -244,7 +244,7 @@ export async function generateQuotationPDF(data: QuotationData, outputPath: stri
       Y += 14;
 
       // ── TOTALES ────────────────────────────────────────────────────────────
-      if (Y + 120 > PH - 120) { doc.addPage(); Y = 30; }
+      if (Y + 120 > PH - 55) { doc.addPage(); Y = 30; }
 
       const TW = 224, TX = PW - MR - TW;
 
@@ -278,7 +278,7 @@ export async function generateQuotationPDF(data: QuotationData, outputPath: stri
 
       // ── OBSERVACIONES ──────────────────────────────────────────────────────
       if (data.generalNotes && data.generalNotes.trim()) {
-        if (Y + 60 > PH - 130) { doc.addPage(); Y = 30; }
+        if (Y + 60 > PH - 55) { doc.addPage(); Y = 30; }
         doc.rect(ML, Y, CW, 24).fill(DGRAY);
         doc.fontSize(10).fillColor(WHITE).font("Helvetica-Bold")
            .text("OBSERVACIONES", ML + 10, Y + 7);
@@ -296,7 +296,7 @@ export async function generateQuotationPDF(data: QuotationData, outputPath: stri
       }
 
       // ── TÉRMINOS Y CONDICIONES ─────────────────────────────────────────────
-      if (Y + 110 > PH - 80) { doc.addPage(); Y = 30; }
+      if (Y + 110 > PH - 55) { doc.addPage(); Y = 30; }
       doc.rect(ML, Y, CW, 24).fill(DGRAY);
       doc.fontSize(10).fillColor(WHITE).font("Helvetica-Bold")
          .text("TÉRMINOS Y CONDICIONES", ML + 10, Y + 7);

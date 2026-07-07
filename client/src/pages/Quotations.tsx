@@ -3525,7 +3525,8 @@ export default function Quotations() {
                               config={item.closetConfig || null}
                               onChange={(config: ClosetConfig) => {
                                 const newItems = [...items];
-                                let total = config.subtotal;
+                                const qty = parseInt(newItems[index].quantity || "1") || 1;
+                                let total = config.subtotal * qty;
                                 // Incluir transporte si está marcado
                                 if (newItems[index].includesFixedCosts) {
                                   total += (newItems[index].fixedCostsAmount || 600000);
@@ -3542,6 +3543,40 @@ export default function Quotations() {
                               }}
                             />
 
+                            {/* Campo cantidad de closets */}
+                            <div className="mt-4 flex items-center gap-3 p-3 bg-purple-500/10 border border-purple-500/25 rounded-lg">
+                              <Label className="text-sm font-medium text-purple-300 flex items-center gap-2 whitespace-nowrap">
+                                <Sofa className="h-4 w-4" />
+                                Cantidad de closets:
+                              </Label>
+                              <Input
+                                type="number"
+                                min="1"
+                                max="20"
+                                step="1"
+                                value={item.quantity || "1"}
+                                onChange={(e) => {
+                                  const qty = Math.max(1, parseInt(e.target.value) || 1);
+                                  const newItems = [...items];
+                                  const subtotal = newItems[index].closetConfig?.subtotal || 0;
+                                  const transport = newItems[index].includesFixedCosts
+                                    ? (newItems[index].fixedCostsAmount ?? 600000) : 0;
+                                  newItems[index] = {
+                                    ...newItems[index],
+                                    quantity: String(qty),
+                                    totalPrice: subtotal * qty + transport,
+                                  };
+                                  setItems(newItems);
+                                }}
+                                className="w-24 h-9 text-center font-semibold"
+                              />
+                              {parseInt(item.quantity || "1") > 1 && item.closetConfig?.subtotal > 0 && (
+                                <span className="text-xs text-purple-300">
+                                  {parseInt(item.quantity)} × {formatPrice(item.closetConfig.subtotal)} = {formatPrice(item.closetConfig.subtotal * parseInt(item.quantity))}
+                                </span>
+                              )}
+                            </div>
+
                             {/* Checkbox de transporte para closets */}
                             <div className="flex items-center space-x-2 mt-4 flex-wrap gap-2">
                               <input
@@ -3550,16 +3585,17 @@ export default function Quotations() {
                                 checked={item.includesFixedCosts || false}
                                 onChange={(e) => {
                                   const newItems = [...items];
-                                  const closetTotal = newItems[index].closetConfig?.subtotal || 0;
+                                  const qty = parseInt(newItems[index].quantity || "1") || 1;
+                                  const closetSubtotal = newItems[index].closetConfig?.subtotal || 0;
                                   const fixedAmount = newItems[index].fixedCostsAmount ?? 600000;
 
                                   if (e.target.checked) {
-                                    newItems[index].totalPrice = closetTotal + fixedAmount;
+                                    newItems[index].totalPrice = closetSubtotal * qty + fixedAmount;
                                     if (newItems[index].fixedCostsAmount === undefined) {
                                       newItems[index].fixedCostsAmount = 600000;
                                     }
                                   } else {
-                                    newItems[index].totalPrice = closetTotal;
+                                    newItems[index].totalPrice = closetSubtotal * qty;
                                   }
 
                                   newItems[index].includesFixedCosts = e.target.checked;
@@ -3576,9 +3612,10 @@ export default function Quotations() {
                                   value={item.fixedCostsAmount ?? 600000}
                                   onChange={(e) => {
                                     const newItems = [...items];
-                                    const closetTotal = newItems[index].closetConfig?.subtotal || 0;
+                                    const qty = parseInt(newItems[index].quantity || "1") || 1;
+                                    const closetSubtotal = newItems[index].closetConfig?.subtotal || 0;
                                     const newAmount = e.target.value === '' ? 0 : parseFloat(e.target.value);
-                                    newItems[index].totalPrice = closetTotal + newAmount;
+                                    newItems[index].totalPrice = closetSubtotal * qty + newAmount;
                                     newItems[index].fixedCostsAmount = newAmount;
                                     setItems(newItems);
                                   }}

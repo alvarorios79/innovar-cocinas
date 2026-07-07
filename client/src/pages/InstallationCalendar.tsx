@@ -185,7 +185,7 @@ export default function InstallationCalendar() {
 
   if (!canViewCalendar) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="min-h-screen bg-white/[0.03] flex items-center justify-center p-4">
         <Card className="max-w-md">
           <CardContent className="pt-6 text-center">
             <AlertTriangle className="h-12 w-12 text-yellow-500 mx-auto mb-4" />
@@ -265,7 +265,7 @@ export default function InstallationCalendar() {
                     <div
                       key={day}
                       className={`text-center text-sm font-medium py-2 ${
-                        i === 0 ? "text-red-400" : i === 6 ? "text-orange-400" : "text-muted-foreground"
+                        i === 0 ? "text-red-500" : i === 6 ? "text-orange-500" : "text-muted-foreground"
                       }`}
                     >
                       {day}
@@ -288,9 +288,9 @@ export default function InstallationCalendar() {
                         onClick={() => setSelectedDate(date)}
                         className={`
                           relative min-h-[80px] p-1 rounded-lg border transition-all text-left
-                          ${!isCurrentMonth ? "bg-white/[0.04] text-muted-foreground/50" : availability === "none" ? "bg-red-400 text-white" : availability === "half" ? "bg-amber-400 text-amber-900" : "bg-[#162828]"}
+                          ${!isCurrentMonth ? "bg-white/[0.06] text-gray-400" : availability === "none" ? "bg-red-400 text-white" : availability === "half" ? "bg-amber-400 text-amber-300" : "bg-[#162828]"}
                           ${isToday ? "ring-4 ring-teal-500 ring-offset-2" : ""}
-                          ${isSelected ? "bg-teal-500 text-white border-teal-600" : "border-gray-200 hover:border-teal-300"}
+                          ${isSelected ? "bg-teal-500 text-white border-teal-600" : "border-white/[0.10] hover:border-teal-300"}
                           ${isPast && !isToday ? "opacity-60" : ""}
                         `}
                       >
@@ -308,7 +308,7 @@ export default function InstallationCalendar() {
 
                         {/* Indicador de disponibilidad */}
                         {availability === "half" && (
-                          <div className="text-[10px] text-amber-900 font-bold mb-1">Medio día</div>
+                          <div className="text-[10px] text-amber-300 font-bold mb-1">Medio día</div>
                         )}
                         {availability === "none" && !isHoliday(date) && (
                           <div className="text-[10px] text-white font-bold mb-1">No laboral</div>
@@ -428,7 +428,7 @@ export default function InstallationCalendar() {
                     return (
                       <div className="space-y-3">
                         {dayInstallations.length > 1 && (
-                          <div className="flex items-center gap-2 p-2 bg-orange-50 rounded text-orange-700 text-sm">
+                          <div className="flex items-center gap-2 p-2 bg-orange-500/10 rounded text-orange-700 text-sm">
                             <AlertTriangle className="h-4 w-4" />
                             <span>Múltiples instalaciones</span>
                           </div>
@@ -437,7 +437,7 @@ export default function InstallationCalendar() {
                           <button
                             key={inst.id}
                             onClick={() => setSelectedInstallation(inst)}
-                            className="w-full text-left p-3 bg-white/[0.04] rounded-lg hover:bg-white/[0.08] transition-colors"
+                            className="w-full text-left p-3 bg-white/[0.03] rounded-lg hover:bg-white/[0.06] transition-colors"
                           >
                             <div className="font-medium text-sm">{inst.projectName}</div>
                             <div className="text-xs text-gray-500 mt-1">
@@ -477,7 +477,7 @@ export default function InstallationCalendar() {
                         <button
                           key={inst.id}
                           onClick={() => setSelectedInstallation(inst)}
-                          className="w-full text-left p-3 bg-white/[0.04] rounded-lg hover:bg-white/[0.08] transition-colors"
+                          className="w-full text-left p-3 bg-white/[0.03] rounded-lg hover:bg-white/[0.06] transition-colors"
                         >
                           <div className="flex justify-between items-start">
                             <div className="font-medium text-sm">{inst.projectName}</div>

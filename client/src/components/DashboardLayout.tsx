@@ -69,24 +69,27 @@ const menuSections: MenuSection[] = [
   {
     title: "Principal",
     items: [
-      { icon: Home,            label: "Inicio",    path: "/",              iconColor: "#1DB5A8" },
+      { icon: Home,            label: "Inicio",    path: "/", iconColor: "#1DB5A8" },
       { icon: LayoutDashboard, label: "Panel CEO", path: "/ceo-dashboard",
-        roles: ["super_admin", "admin"], iconColor: "#0ea5e9" },
+        roles: ["super_admin"], iconColor: "#0ea5e9" },
     ],
   },
   {
     title: "CRM / Clientes",
     items: [
-      { icon: Users, label: "Clientes", path: "/clients", iconColor: "#0ea5e9" },
+      { icon: Users, label: "Clientes", path: "/clients",
+        roles: ["super_admin", "admin", "comercial"], iconColor: "#0ea5e9" },
     ],
   },
   {
     title: "Comercial",
     items: [
-      { icon: KanbanSquare,  label: "Pipeline",     path: "/comercial",
-        roles: ["super_admin", "admin", "comercial"], iconColor: "#1DB5A8" },
-      { icon: FileText,      label: "Cotizaciones",  path: "/quotations",  iconColor: "#6366f1" },
-      { icon: CalendarCheck, label: "Citas",         path: "/appointments-calendar", iconColor: "#3b82f6" },
+      { icon: KanbanSquare,  label: "Pipeline",    path: "/comercial",
+        roles: ["admin", "comercial"], iconColor: "#1DB5A8" },
+      { icon: FileText,      label: "Cotizaciones", path: "/quotations",
+        roles: ["super_admin", "admin", "comercial"], iconColor: "#6366f1" },
+      { icon: CalendarCheck, label: "Citas",        path: "/appointments-calendar",
+        roles: ["super_admin", "admin", "comercial"], iconColor: "#3b82f6" },
     ],
   },
   {
@@ -108,14 +111,14 @@ const menuSections: MenuSection[] = [
     title: "Diseño",
     items: [
       { icon: Palette, label: "Diseño", path: "/design",
-        roles: ["super_admin", "admin", "disenador"], iconColor: "#ec4899" },
+        roles: ["super_admin", "admin", "disenador", "jefe_taller", "operario"], iconColor: "#ec4899" },
     ],
   },
   {
     title: "Producción",
     items: [
       { icon: Wrench,        label: "Producción", path: "/production",
-        roles: ["super_admin", "admin", "jefe_taller", "operario"], iconColor: "#f59e0b" },
+        roles: ["super_admin", "admin", "disenador", "jefe_taller", "operario"], iconColor: "#f59e0b" },
       { icon: ClipboardList, label: "Tareas",     path: "/tasks", iconColor: "#22c55e" },
     ],
   },
@@ -123,13 +126,14 @@ const menuSections: MenuSection[] = [
     title: "Instalaciones",
     items: [
       { icon: Truck, label: "Instalaciones", path: "/calendar",
-        roles: ["super_admin", "admin", "jefe_taller", "operario"], iconColor: "#f97316" },
+        roles: ["super_admin", "admin", "comercial", "jefe_taller", "operario"], iconColor: "#f97316" },
     ],
   },
   {
     title: "Postventa",
     items: [
-      { icon: Star, label: "Postventa", path: "/postventa", iconColor: "#eab308" },
+      { icon: Star, label: "Postventa", path: "/postventa",
+        roles: ["super_admin", "admin", "comercial", "jefe_taller"], iconColor: "#eab308" },
     ],
   },
   {
@@ -141,7 +145,8 @@ const menuSections: MenuSection[] = [
         roles: ["super_admin", "admin"], iconColor: "#06b6d4" },
       { icon: Package,    label: "Herrajes",            path: "/herrajes",
         roles: ["super_admin", "admin"], iconColor: "#a78bfa" },
-      { icon: ImageIcon,  label: "Galerías",            path: "/galerias", iconColor: "#a855f7" },
+      { icon: ImageIcon,  label: "Galerías",            path: "/galerias",
+        roles: ["super_admin", "admin", "comercial", "disenador", "jefe_taller"], iconColor: "#a855f7" },
     ],
   },
 ];

@@ -288,9 +288,9 @@ export async function generateQuotationPDF(data: QuotationData, outputPath: stri
         doc.rect(ML, Y, CW, noteH).fill(LGRAY).stroke(BORDER);
         let ny = Y + 8;
         for (const l of nLines) {
-          doc.fontSize(8.5).fillColor(MGRAY).font("Helvetica")
-             .text(l, ML + 10, ny, { width: CW - 20, lineGap: 1.5 });
-          ny += doc.heightOfString(l, { width: CW - 20, lineGap: 1.5 }) + 5;
+          doc.fontSize(10).fillColor(MGRAY).font("Helvetica")
+             .text(l, ML + 10, ny, { width: CW - 20, lineGap: 2 });
+          ny += doc.heightOfString(l, { width: CW - 20, lineGap: 2 }) + 6;
         }
         Y += noteH + 14;
       }

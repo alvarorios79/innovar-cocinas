@@ -175,6 +175,8 @@ export const quotationsRouter = router({
               discountPercent: quotation.discountPercent || undefined,
               discountAmount: quotation.discountAmount || undefined,
               total: quotation.total,
+              // Bug fix #3: incluir observaciones en el PDF de creación guardado en S3
+              generalNotes: (quotation as any).generalNotes || undefined,
             };
             
             console.log("[PDF] Generando PDF...");

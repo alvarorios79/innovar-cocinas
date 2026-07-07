@@ -114,18 +114,18 @@ export function TVCenterConfigurator({ config, onChange }: TVCenterConfiguratorP
   const subtotal = basePrice + highGlossPrice + ledLightsPrice + extraShelvesPrice + equipmentSpacesPrice + transport;
 
   return (
-    <Card className="mt-4 border-purple-300">
+    <Card className="mt-4 border-white/[0.15]">
       <CardContent className="p-4">
         {/* Header */}
-        <div className="flex items-center gap-2 mb-4 pb-2 border-b border-purple-200">
-          <Tv className="h-5 w-5 text-purple-600" />
-          <h4 className="font-bold text-purple-800 text-lg">Configuración Centro de TV</h4>
+        <div className="flex items-center gap-2 mb-4 pb-2 border-b border-white/[0.12]">
+          <Tv className="h-5 w-5 text-purple-400" />
+          <h4 className="font-bold text-foreground text-lg">Configuración Centro de TV</h4>
         </div>
 
         <div className="space-y-6">
           {/* Medidas */}
-          <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-            <h5 className="font-semibold text-purple-700 mb-3">Medidas del Mueble</h5>
+          <div className="bg-white/[0.04] p-4 rounded-lg border border-white/[0.10]">
+            <h5 className="font-semibold text-foreground mb-3">Medidas del Mueble</h5>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label className="text-sm font-medium text-white/85 block mb-2">Ancho del Mueble</Label>
@@ -159,18 +159,18 @@ export function TVCenterConfigurator({ config, onChange }: TVCenterConfiguratorP
                 </Select>
               </div>
             </div>
-            <div className="mt-3 p-3 bg-purple-100 rounded">
-              <p className="text-sm text-purple-700">
+            <div className="mt-3 p-3 bg-[#162828] rounded">
+              <p className="text-sm text-purple-300">
                 <strong>Incluye:</strong> Mueble flotante, panel para TV con alistonado, {floatingShelves} repisas flotantes
               </p>
-              <p className="text-lg font-bold text-purple-800 mt-1">
+              <p className="text-lg font-bold text-foreground mt-1">
                 Precio base: ${basePrice.toLocaleString()}
               </p>
             </div>
           </div>
 
           {/* Opciones adicionales */}
-          <div className="bg-gray-50 p-4 rounded-lg border border-[rgba(106,207,199,0.12)]">
+          <div className="bg-white/[0.03] p-4 rounded-lg border border-[rgba(106,207,199,0.12)]">
             <h5 className="font-semibold text-white/85 mb-3">Opciones Adicionales</h5>
             
             <div className="space-y-4">
@@ -189,7 +189,7 @@ export function TVCenterConfigurator({ config, onChange }: TVCenterConfiguratorP
                     </Label>
                   </div>
                 </div>
-                <span className={`font-semibold ${hasHighGloss ? 'text-purple-700' : 'text-gray-400'}`}>
+                <span className={`font-semibold ${hasHighGloss ? 'text-purple-400' : 'text-muted-foreground'}`}>
                   +${HIGH_GLOSS_PRICE.toLocaleString()}
                 </span>
               </div>
@@ -209,7 +209,7 @@ export function TVCenterConfigurator({ config, onChange }: TVCenterConfiguratorP
                     </Label>
                   </div>
                 </div>
-                <span className={`font-semibold ${hasLedLights ? 'text-purple-700' : 'text-gray-400'}`}>
+                <span className={`font-semibold ${hasLedLights ? 'text-purple-400' : 'text-muted-foreground'}`}>
                   +${LED_LIGHTS_PRICE.toLocaleString()}
                 </span>
               </div>
@@ -236,7 +236,7 @@ export function TVCenterConfigurator({ config, onChange }: TVCenterConfiguratorP
                       <SelectItem value="4">4</SelectItem>
                     </SelectContent>
                   </Select>
-                  <span className={`font-semibold min-w-[100px] text-right ${equipmentSpaces > 0 ? 'text-purple-700' : 'text-gray-400'}`}>
+                  <span className={`font-semibold min-w-[100px] text-right ${equipmentSpaces > 0 ? 'text-purple-400' : 'text-muted-foreground'}`}>
                     +${equipmentSpacesPrice.toLocaleString()}
                   </span>
                 </div>
@@ -245,7 +245,7 @@ export function TVCenterConfigurator({ config, onChange }: TVCenterConfiguratorP
           </div>
 
           {/* Transporte e Imprevistos */}
-          <div className="bg-gray-50 p-4 rounded-lg border border-[rgba(106,207,199,0.12)]">
+          <div className="bg-white/[0.03] p-4 rounded-lg border border-[rgba(106,207,199,0.12)]">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Checkbox 
@@ -284,46 +284,46 @@ export function TVCenterConfigurator({ config, onChange }: TVCenterConfiguratorP
           </div>
 
           {/* Resumen de Precio */}
-          <div className="bg-purple-200 p-4 rounded-lg border border-purple-400">
-            <h5 className="font-semibold text-purple-800 mb-3">Resumen del Precio</h5>
+          <div className="bg-[#162828] p-4 rounded-lg border border-purple-500/30">
+            <h5 className="font-semibold text-foreground mb-3">Resumen del Precio</h5>
             <div className="space-y-1 text-sm">
               <div className="flex justify-between">
                 <span>Mueble flotante {width}m + panel + {floatingShelves} repisas:</span>
                 <span className="font-medium">${basePrice.toLocaleString()}</span>
               </div>
               {hasHighGloss && (
-                <div className="flex justify-between text-purple-700">
+                <div className="flex justify-between text-purple-400">
                   <span>+ Alto brillo:</span>
                   <span className="font-medium">${highGlossPrice.toLocaleString()}</span>
                 </div>
               )}
               {hasLedLights && (
-                <div className="flex justify-between text-purple-700">
+                <div className="flex justify-between text-purple-400">
                   <span>+ Iluminación LED:</span>
                   <span className="font-medium">${ledLightsPrice.toLocaleString()}</span>
                 </div>
               )}
               {floatingShelves > 2 && (
-                <div className="flex justify-between text-purple-700">
+                <div className="flex justify-between text-purple-400">
                   <span>+ {floatingShelves - 2} repisas extra:</span>
                   <span className="font-medium">${extraShelvesPrice.toLocaleString()}</span>
                 </div>
               )}
               {equipmentSpaces > 0 && (
-                <div className="flex justify-between text-purple-700">
+                <div className="flex justify-between text-purple-400">
                   <span>+ {equipmentSpaces} espacios para equipos:</span>
                   <span className="font-medium">${equipmentSpacesPrice.toLocaleString()}</span>
                 </div>
               )}
               {includeTransport && (
-                <div className="flex justify-between text-purple-700">
+                <div className="flex justify-between text-purple-400">
                   <span>+ Transporte e imprevistos:</span>
                   <span className="font-medium">${transport.toLocaleString()}</span>
                 </div>
               )}
-              <div className="border-t border-purple-400 pt-2 mt-2 flex justify-between">
-                <span className="font-bold text-purple-900">TOTAL:</span>
-                <span className="text-2xl font-bold text-purple-900">${subtotal.toLocaleString()}</span>
+              <div className="border-t border-white/[0.15] pt-2 mt-2 flex justify-between">
+                <span className="font-bold text-foreground">TOTAL:</span>
+                <span className="text-2xl font-bold text-primary">${subtotal.toLocaleString()}</span>
               </div>
             </div>
           </div>

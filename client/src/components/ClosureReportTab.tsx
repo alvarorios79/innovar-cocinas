@@ -17,7 +17,6 @@ export function ClosureReportTab() {
   const [statusFilter, setStatusFilter] = useState<"all" | "draft" | "confirmed">("confirmed");
   const [showFilters, setShowFilters] = useState(false);
   const [downloadingId, setDownloadingId] = useState<number | null>(null);
-  const [downloadingAnnexId, setDownloadingAnnexId] = useState<number | null>(null);
   const [confirmingClosureId, setConfirmingClosureId] = useState<number | null>(null);
 
   // Queries
@@ -88,40 +87,6 @@ export function ClosureReportTab() {
     }
   };
 
-  const handleDownloadAnnexPDF = async (closureId: number) => {
-    setDownloadingAnnexId(closureId);
-    try {
-      const result = await trpc.accountingClosures.generateAnnexPDF.useQuery(
-        { closureId },
-        { enabled: false }
-      ).refetch();
-
-      const pdfData = result.data;
-      if (!pdfData) throw new Error("No annex data received");
-
-      const blob = new Blob([pdfData.html], { type: "text/html" });
-      const url = URL.createObjectURL(blob);
-      const iframe = document.createElement("iframe");
-      iframe.style.display = "none";
-      iframe.src = url;
-      document.body.appendChild(iframe);
-      iframe.onload = () => {
-        iframe.contentWindow?.print();
-        setTimeout(() => {
-          document.body.removeChild(iframe);
-          URL.revokeObjectURL(url);
-        }, 100);
-      };
-
-      toast.success("✅ Anexo de gastos generado. Se abrirá la vista de impresión");
-    } catch (error) {
-      console.error("Error downloading annex PDF:", error);
-      toast.error("❌ Error al generar el anexo de gastos");
-    } finally {
-      setDownloadingAnnexId(null);
-    }
-  };
-
   const handleDownloadExcel = async (closureId: number) => {
     setDownloadingId(closureId);
     try {
@@ -177,9 +142,9 @@ export function ClosureReportTab() {
 
   const getStatusBadge = (status: "draft" | "confirmed") => {
     if (status === "draft") {
-      return <Badge variant="outline" className="bg-yellow-50 text-yellow-700">Borrador</Badge>;
+      return <Badge variant="outline" className="bg-yellow-500/10 text-yellow-700">Borrador</Badge>;
     }
-    return <Badge className="bg-green-100 text-green-700">Confirmado</Badge>;
+    return <Badge className="bg-green-500/15 text-green-700">Confirmado</Badge>;
   };
 
   return (
@@ -188,10 +153,10 @@ export function ClosureReportTab() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Total Cierres</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Total Cierres</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-gray-900">
+            <div className="text-2xl font-bold text-foreground">
               {summary?.totalClosures || 0}
             </div>
             <p className="text-xs text-gray-500 mt-1">Período seleccionado</p>
@@ -200,7 +165,7 @@ export function ClosureReportTab() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600 flex items-center gap-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
               <TrendingUp className="h-4 w-4 text-teal-600" />
               Total Ventas
             </CardTitle>
@@ -215,7 +180,7 @@ export function ClosureReportTab() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600 flex items-center gap-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
               <TrendingDown className="h-4 w-4 text-orange-600" />
               Total Gastos
             </CardTitle>
@@ -230,7 +195,7 @@ export function ClosureReportTab() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600 flex items-center gap-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
               <DollarSign className="h-4 w-4 text-green-600" />
               Ganancia Total
             </CardTitle>
@@ -257,7 +222,7 @@ export function ClosureReportTab() {
                 size="sm"
                 variant="outline"
                 onClick={handleClearFilters}
-                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                className="text-red-600 hover:text-red-700 hover:bg-red-500/10"
               >
                 <X className="h-4 w-4 mr-1" />
                 Limpiar
@@ -299,7 +264,7 @@ export function ClosureReportTab() {
                 id="status"
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value as any)}
-                className="mt-2 w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                className="mt-2 w-full px-3 py-2 border border-white/[0.15] rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
               >
                 <option value="all">Todos</option>
                 <option value="draft">Borrador</option>
@@ -324,17 +289,17 @@ export function ClosureReportTab() {
               {reports.map((closure: any) => (
                 <div
                   key={closure.id}
-                  className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
+                  className="p-4 border border-white/[0.10] rounded-lg hover:bg-white/[0.03] transition"
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="font-semibold text-gray-900">
+                        <span className="font-semibold text-foreground">
                           Período: {new Date(closure.periodStart).toLocaleDateString("es-CO")} - {new Date(closure.periodEnd).toLocaleDateString("es-CO")}
                         </span>
                         {getStatusBadge(closure.status)}
                       </div>
-                      <p className="text-sm text-gray-600 mt-1">
+                      <p className="text-sm text-muted-foreground mt-1">
                         {closure.projectCount} proyecto(s) incluido(s)
                       </p>
                     </div>
@@ -342,26 +307,26 @@ export function ClosureReportTab() {
 
                   <div className="grid grid-cols-3 gap-4 mb-3">
                     <div>
-                      <p className="text-xs text-gray-600">Ventas</p>
+                      <p className="text-xs text-muted-foreground">Ventas</p>
                       <p className="text-lg font-semibold text-teal-600">
                         ${Number(closure.totalSales).toLocaleString("es-CO", { maximumFractionDigits: 0 })}
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-600">Gastos</p>
+                      <p className="text-xs text-muted-foreground">Gastos</p>
                       <p className="text-lg font-semibold text-orange-600">
                         ${Number(closure.totalExpenses).toLocaleString("es-CO", { maximumFractionDigits: 0 })}
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-600">Ganancia</p>
+                      <p className="text-xs text-muted-foreground">Ganancia</p>
                       <p className="text-lg font-semibold text-green-600">
                         ${Number(closure.totalProfit).toLocaleString("es-CO", { maximumFractionDigits: 0 })}
                       </p>
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
+                  <div className="flex items-center justify-between mt-4 pt-4 border-t border-white/[0.10]">
                     <div className="text-xs text-gray-500">
                       Creado: {new Date(closure.createdAt).toLocaleDateString("es-CO")}
                       {closure.confirmedAt && ` • Confirmado: ${new Date(closure.confirmedAt).toLocaleDateString("es-CO")}`}
@@ -372,27 +337,17 @@ export function ClosureReportTab() {
                         variant="outline"
                         onClick={() => handleDownloadPDF(closure.id)}
                         disabled={downloadingId === closure.id}
-                        className="text-teal-600 hover:text-teal-700 hover:bg-teal-50 border-teal-200"
+                        className="text-teal-600 hover:text-teal-700 hover:bg-teal-500/10 border-teal-500/25"
                       >
                         <Download className="h-4 w-4 mr-1" />
-                        {downloadingId === closure.id ? "Generando..." : "PDF Ejecutivo"}
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleDownloadAnnexPDF(closure.id)}
-                        disabled={downloadingAnnexId === closure.id}
-                        className="text-purple-600 hover:text-purple-700 hover:bg-purple-50 border-purple-200"
-                      >
-                        <Download className="h-4 w-4 mr-1" />
-                        {downloadingAnnexId === closure.id ? "Generando..." : "Anexo Gastos"}
+                        {downloadingId === closure.id ? "Generando..." : "PDF"}
                       </Button>
                       <Button
                         size="sm"
                         variant="outline"
                         onClick={() => handleDownloadExcel(closure.id)}
                         disabled={downloadingId === closure.id}
-                        className="text-green-600 hover:text-green-700 hover:bg-green-50 border-green-200"
+                        className="text-green-600 hover:text-green-700 hover:bg-green-500/10 border-green-500/25"
                       >
                         <Download className="h-4 w-4 mr-1" />
                         {downloadingId === closure.id ? "Generando..." : "Excel"}
@@ -432,8 +387,8 @@ export function ClosureReportTab() {
             </div>
             <AlertDialogDescription className="mt-2">
               ¿Estás seguro de que deseas confirmar este cierre contable? Esta acción no se puede deshacer.
-              <div className="mt-3 p-3 bg-amber-50 rounded-md border border-amber-200">
-                <p className="text-sm text-amber-900">
+              <div className="mt-3 p-3 bg-amber-500/10 rounded-md border border-amber-500/25">
+                <p className="text-sm text-amber-300">
                   Una vez confirmado, el cierre será inmutable y se enviará una notificación al propietario.
                 </p>
               </div>

@@ -89,17 +89,29 @@ export async function generateQuotationPDF(data: QuotationData, outputPath: stri
       // Línea teal inferior del header
       doc.rect(0, HDR, PW, 3).fill(TEAL);
 
-      // Logo
+      // Logo — 60px alto, al lado izquierdo del header
       const logoPath = findLogo();
       if (logoPath) {
-        try { doc.image(logoPath, ML, 14, { height: 80, fit: [180, 80] }); }
+        try { doc.image(logoPath, ML, 10, { height: 62, fit: [90, 62] }); }
         catch { /* logo no disponible */ }
       }
-      // Wordmark de respaldo si no hay imagen
+
+      // Wordmark texto (a la derecha del logo)
+      const LX = ML + 98; // inicio texto tras logo
       if (!logoPath) {
-        doc.fontSize(22).fillColor(TEAL).font("Helvetica-Bold").text("INNOVAR", ML, 22);
-        doc.fontSize(9).fillColor(WHITE).font("Helvetica").text("COCINAS DE DISEÑO", ML, 50);
+        doc.fontSize(20).fillColor(TEAL).font("Helvetica-Bold").text("INNOVAR", ML, 18);
+        doc.fontSize(8).fillColor(WHITE).font("Helvetica").text("COCINAS DE DISEÑO", ML, 42);
+      } else {
+        doc.fontSize(18).fillColor(TEAL).font("Helvetica-Bold").text("INNOVAR", LX, 18);
+        doc.fontSize(7.5).fillColor(WHITE).font("Helvetica").text("COCINAS DE DISEÑO", LX, 38);
       }
+
+      // Contacto — debajo del wordmark, dentro del header
+      const CTX = logoPath ? LX : ML;
+      doc.fontSize(7).fillColor("#78909C").font("Helvetica")
+         .text("Km 9 vía Cerritos · Pereira, Risaralda · NIT: 10021456-1", CTX, 56, { width: 220 })
+         .text("313 680 2025 · ventas@cocinasintegralespereira.co", CTX, 67, { width: 220 })
+         .text("cocinasintegralespereira.co", CTX, 78, { width: 220 });
 
       // Bloque cotización — derecha del header
       const BW = 198, BX = PW - MR - BW;
@@ -119,11 +131,6 @@ export async function generateQuotationPDF(data: QuotationData, outputPath: stri
       doc.fontSize(7.5).fillColor("#B0BEC5").font("Helvetica")
          .text(`Fecha:         ${data.date}`, BX + 10, 66, { width: BW - 16 })
          .text(`Válida hasta: ${data.validUntil}`, BX + 10, 78, { width: BW - 16 });
-
-      // Contacto — debajo del logo dentro del header
-      doc.fontSize(7.5).fillColor("#90A4AE").font("Helvetica")
-         .text("Km 9 vía Cerritos · Pereira, Risaralda · NIT: 10021456-1", ML, 86, { width: BX - ML - 10 })
-         .text("313 680 2025 · ventas@cocinasintegralespereira.co · cocinasintegralespereira.co", ML, 96, { width: BX - ML - 10 });
 
       // ══════════════════════════════════════════════════════════════════════
       // CUERPO BLANCO

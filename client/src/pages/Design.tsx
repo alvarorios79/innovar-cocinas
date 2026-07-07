@@ -2,32 +2,36 @@ import { trpc } from "@/lib/trpc";
 import { PageHeader } from "@/components/PageHeader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import {
   Paintbrush, ExternalLink, Play, ThumbsUp, ThumbsDown,
-  Clock, RefreshCw, User, CheckCircle, AlertCircle,
+  Clock, RefreshCw, User, CheckCircle, AlertCircle, Sparkles,
+  Calendar, ArrowRight,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useLocation } from "wouter";
 
-// ── Columnas del pipeline de diseño ──────────────────────────────────────────
+// ── Etapas del pipeline ───────────────────────────────────────────────────────
 const DESIGN_STAGES = [
   {
     key: "adelanto_recibido",
     label: "Por Iniciar",
-    icon: Clock,
+    icon: Sparkles,
     color: "#6366F1",
-    bg: "rgba(99,102,241,0.07)",
-    description: "Adelanto recibido, esperando inicio de diseño",
+    gradient: "from-indigo-600 to-violet-600",
+    bg: "rgba(99,102,241,0.08)",
+    border: "rgba(99,102,241,0.25)",
+    description: "Adelanto recibido, esperando inicio",
   },
   {
     key: "en_diseno",
     label: "En Diseño",
     icon: Paintbrush,
     color: "#8B5CF6",
-    bg: "rgba(139,92,246,0.07)",
-    description: "Modelado 3D en progreso / pendiente aprobación",
+    gradient: "from-purple-600 to-fuchsia-600",
+    bg: "rgba(139,92,246,0.08)",
+    border: "rgba(139,92,246,0.25)",
+    description: "Modelado 3D en progreso",
     extraKeys: ["pendiente_modelado"],
   },
   {
@@ -35,20 +39,22 @@ const DESIGN_STAGES = [
     label: "Renders",
     icon: AlertCircle,
     color: "#F59E0B",
-    bg: "rgba(245,158,11,0.07)",
-    description: "Renders en proceso / esperando aprobación del cliente",
+    gradient: "from-amber-500 to-orange-500",
+    bg: "rgba(245,158,11,0.08)",
+    border: "rgba(245,158,11,0.25)",
+    description: "Esperando aprobación del cliente",
   },
   {
     key: "aprobacion_final",
     label: "Aprobado",
     icon: CheckCircle,
     color: "#10B981",
-    bg: "rgba(16,185,129,0.07)",
-    description: "Diseño aprobado — listo para pasar a producción",
+    gradient: "from-emerald-500 to-teal-500",
+    bg: "rgba(16,185,129,0.08)",
+    border: "rgba(16,185,129,0.25)",
+    description: "Listo para producción",
   },
 ] as const;
-
-type DesignStageKey = typeof DESIGN_STAGES[number]["key"];
 
 const DESIGN_STATUS_KEYS = [
   "adelanto_recibido",
@@ -59,10 +65,12 @@ const DESIGN_STATUS_KEYS = [
 ] as const;
 
 const WORK_TYPE_LABELS: Record<string, string> = {
-  cocina: "Cocina",
-  closet: "Closet",
-  puertas: "Puertas",
+  cocina:    "Cocina",
+  closet:    "Closet",
+  puertas:   "Puertas",
   centro_tv: "Centro TV",
+  baño:      "Baño",
+  escalera:  "Escalera",
 };
 
 type Project = {
@@ -82,11 +90,9 @@ export default function Design() {
   const [, setLocation] = useLocation();
 
   const isDesigner = user?.role === "disenador";
-  const isAdmin =
-    user?.role === "super_admin" ||
-    user?.role === "admin";
+  const isAdmin    = user?.role === "super_admin" || user?.role === "admin";
   const canApprove = isAdmin;
-  const canStart = isDesigner || isAdmin;
+  const canStart   = isDesigner || isAdmin;
 
   const { data: projects = [], isLoading, refetch } =
     trpc.projects.list.useQuery(undefined, { refetchInterval: 60_000 });
@@ -98,13 +104,12 @@ export default function Design() {
 
   const approveDesign = trpc.projects.approveDesign.useMutation({
     onSuccess: (_, vars) => {
-      toast.success(vars.approved ? "Diseño aprobado" : "Diseño rechazado — vuelve a diseño");
+      toast.success(vars.approved ? "✅ Diseño aprobado" : "🔄 Diseño rechazado — vuelve a diseño");
       refetch();
     },
     onError: (e) => toast.error(e.message),
   });
 
-  // Solo proyectos en etapas de diseño
   const designProjects = (projects as Project[]).filter((p) =>
     (DESIGN_STATUS_KEYS as readonly string[]).includes(p.status)
   );
@@ -114,26 +119,26 @@ export default function Design() {
     return designProjects.filter((p) => keys.includes(p.status));
   };
 
-  const startDesign = (projectId: number) => {
+  const startDesign = (projectId: number) =>
     updateStatus.mutate({ projectId, newStatus: "en_diseno" });
-  };
 
-  const approve = (projectId: number, approved: boolean) => {
+  const approve = (projectId: number, approved: boolean) =>
     approveDesign.mutate({ projectId, approved });
-  };
+
+  const isPending = updateStatus.isPending || approveDesign.isPending;
 
   return (
-    <div className="pb-20 md:pb-6">
+    <div className="pb-20 md:pb-6 space-y-6">
       <PageHeader
-        title="Diseño"
+        title="Pipeline de Diseño"
         icon={<Paintbrush className="h-5 w-5" />}
         showBack={false}
         actions={
           <Button
-            variant="outline"
+            variant="ghost"
             size="sm"
             onClick={() => refetch()}
-            className="gap-2 text-muted-foreground"
+            className="gap-2 text-white/50 hover:text-white/80"
           >
             <RefreshCw className="h-3.5 w-3.5" />
             Actualizar
@@ -141,75 +146,105 @@ export default function Design() {
         }
       />
 
-      {/* Contadores rápidos */}
-      <div className="flex flex-wrap gap-2 mb-5">
-        {DESIGN_STAGES.map((s) => {
-          const count = byStage(s).length;
+      {/* ── KPI counters ───────────────────────────────────────────────── */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {DESIGN_STAGES.map((stage) => {
+          const count = byStage(stage).length;
+          const Icon  = stage.icon;
           return (
             <div
-              key={s.key}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border"
+              key={stage.key}
+              className="rounded-xl p-4 flex flex-col gap-2"
               style={{
-                background: s.bg,
-                borderColor: `${s.color}30`,
-                color: s.color,
+                background: `linear-gradient(135deg, ${stage.bg}, rgba(22,40,40,0.9))`,
+                border: `1px solid ${stage.border}`,
               }}
             >
-              <span>{s.label}</span>
-              <span
-                className="h-4 w-4 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
-                style={{ background: s.color }}
-              >
-                {count}
-              </span>
+              <div className="flex items-center justify-between">
+                <div
+                  className="h-7 w-7 rounded-lg flex items-center justify-center"
+                  style={{ background: `${stage.color}20` }}
+                >
+                  <Icon className="h-4 w-4" style={{ color: stage.color }} />
+                </div>
+                <span
+                  className="text-3xl font-bold tabular-nums"
+                  style={{ color: stage.color }}
+                >
+                  {count}
+                </span>
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-white/80">{stage.label}</p>
+                <p className="text-[10px] text-white/35 mt-0.5 leading-tight">{stage.description}</p>
+              </div>
             </div>
           );
         })}
-        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-white/[0.05] text-white/55 border border-white/[0.08]">
-          Total en diseño:
-          <strong>{designProjects.length}</strong>
+      </div>
+
+      {/* Total badge */}
+      <div className="flex items-center gap-2">
+        <div
+          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium"
+          style={{
+            background: "rgba(29,181,168,0.08)",
+            border: "1px solid rgba(29,181,168,0.2)",
+            color: "#1DB5A8",
+          }}
+        >
+          <Calendar className="h-3.5 w-3.5" />
+          {designProjects.length} proyecto{designProjects.length !== 1 ? "s" : ""} en fase de diseño
         </div>
       </div>
 
-      {/* Pipeline por secciones */}
+      {/* ── Pipeline ───────────────────────────────────────────────────── */}
       {isLoading ? (
         <div className="space-y-3">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-20 rounded-xl bg-white/[0.06] animate-pulse" />
+            <div key={i} className="h-20 rounded-xl bg-white/[0.04] animate-pulse" />
           ))}
         </div>
       ) : designProjects.length === 0 ? (
-        <div className="text-center py-16 text-white/30">
-          <Paintbrush className="h-12 w-12 mx-auto mb-3 opacity-30" />
-          <p className="text-sm">No hay proyectos en la fase de diseño</p>
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+          <div
+            className="h-16 w-16 rounded-2xl flex items-center justify-center mb-4"
+            style={{ background: "rgba(29,181,168,0.08)", border: "1px solid rgba(29,181,168,0.15)" }}
+          >
+            <Paintbrush className="h-8 w-8 text-teal-400 opacity-50" />
+          </div>
+          <p className="text-white/40 text-sm">No hay proyectos en fase de diseño</p>
+          <p className="text-white/25 text-xs mt-1">Los proyectos aparecen aquí cuando reciben adelanto</p>
         </div>
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-8">
           {DESIGN_STAGES.map((stage) => {
             const stageProjects = byStage(stage);
             if (stageProjects.length === 0) return null;
             const Icon = stage.icon;
 
             return (
-              <div key={stage.key}>
+              <section key={stage.key}>
                 {/* Encabezado de sección */}
-                <div className="flex items-center gap-2 mb-2">
+                <div className="flex items-center gap-2.5 mb-3">
                   <div
-                    className="flex items-center justify-center h-6 w-6 rounded-md"
-                    style={{ background: `${stage.color}18` }}
+                    className="flex items-center justify-center h-7 w-7 rounded-lg"
+                    style={{ background: `${stage.color}15` }}
                   >
-                    <Icon className="h-3.5 w-3.5" style={{ color: stage.color }} />
+                    <Icon className="h-4 w-4" style={{ color: stage.color }} />
                   </div>
-                  <span className="text-sm font-semibold" style={{ color: stage.color }}>
+                  <span className="text-sm font-bold" style={{ color: stage.color }}>
                     {stage.label}
                   </span>
-                  <Badge
-                    className="text-[10px] h-4 px-1.5 text-white"
+                  <span
+                    className="h-5 min-w-5 px-1.5 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
                     style={{ background: stage.color }}
                   >
                     {stageProjects.length}
-                  </Badge>
-                  <span className="text-xs text-white/30 ml-1">{stage.description}</span>
+                  </span>
+                  <span className="text-xs text-white/25 hidden sm:block">
+                    — {stage.description}
+                  </span>
                 </div>
 
                 {/* Tarjetas */}
@@ -221,7 +256,7 @@ export default function Design() {
                       stage={stage}
                       canStart={canStart}
                       canApprove={canApprove}
-                      isPending={updateStatus.isPending || approveDesign.isPending}
+                      isPending={isPending}
                       onStart={() => startDesign(project.id)}
                       onApprove={() => approve(project.id, true)}
                       onReject={() => approve(project.id, false)}
@@ -229,7 +264,7 @@ export default function Design() {
                     />
                   ))}
                 </div>
-              </div>
+              </section>
             );
           })}
         </div>
@@ -255,98 +290,114 @@ function DesignCard({
 }) {
   const typeLabel = WORK_TYPE_LABELS[project.workType] ?? project.workType;
 
-  // Días desde creación (urgencia)
   const daysSince = Math.floor(
     (Date.now() - new Date(project.createdAt).getTime()) / (1000 * 60 * 60 * 24)
   );
   const isUrgent = daysSince > 3;
 
   return (
-    <Card
-      className="border hover:shadow-sm transition-shadow cursor-pointer"
-      style={{ borderLeftWidth: 3, borderLeftColor: stage.color }}
+    <div
+      className="rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center gap-3 cursor-pointer transition-all hover:translate-x-0.5"
+      style={{
+        background: "#162828",
+        border: `1px solid ${stage.border}`,
+        borderLeft: `3px solid ${stage.color}`,
+      }}
       onClick={onOpen}
     >
-      <CardContent className="p-3 flex flex-col sm:flex-row sm:items-center gap-3">
-        {/* Info principal */}
-        <div className="flex-1 min-w-0">
-          <div className="flex flex-wrap items-center gap-1.5 mb-1">
-            <p className="text-sm font-semibold text-white/85 truncate">{project.name}</p>
-            <Badge
-              variant="outline"
-              className="text-[10px] px-1.5 py-0 shrink-0"
-              style={{ color: stage.color, borderColor: `${stage.color}40` }}
-            >
-              {typeLabel}
-            </Badge>
-            {isUrgent && (
-              <Badge className="text-[10px] px-1.5 py-0 bg-red-500/15 text-red-400 border-red-500/30 shrink-0">
-                {daysSince}d
-              </Badge>
-            )}
-          </div>
-          {project.client && (
-            <p className="flex items-center gap-1 text-xs text-white/40 truncate">
-              <User className="h-3 w-3 shrink-0" />
-              {project.client.name}
-            </p>
-          )}
-        </div>
+      {/* Color accent strip */}
+      <div
+        className="hidden sm:flex h-9 w-9 rounded-lg items-center justify-center shrink-0"
+        style={{ background: `${stage.color}12` }}
+      >
+        <stage.icon className="h-4 w-4" style={{ color: stage.color }} />
+      </div>
 
-        {/* Acciones */}
-        <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
-          {/* Abrir detalle siempre disponible */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onOpen}
-            className="h-7 px-2 text-slate-500"
-            title="Ver proyecto"
+      {/* Información principal */}
+      <div className="flex-1 min-w-0">
+        <div className="flex flex-wrap items-center gap-1.5 mb-0.5">
+          <p className="text-sm font-semibold text-white/90 truncate">{project.name}</p>
+          <Badge
+            className="text-[10px] px-1.5 py-0 h-4 shrink-0 font-medium"
+            style={{
+              background: `${stage.color}15`,
+              color: stage.color,
+              border: `1px solid ${stage.color}30`,
+            }}
           >
-            <ExternalLink className="h-3.5 w-3.5" />
-          </Button>
-
-          {/* Iniciar diseño (adelanto_recibido → en_diseno) */}
-          {project.status === "adelanto_recibido" && canStart && (
-            <Button
-              size="sm"
-              onClick={onStart}
-              disabled={isPending}
-              className="h-7 px-3 text-xs text-white gap-1"
-              style={{ background: "linear-gradient(135deg, #1DB5A8, #0D9B8F)" }}
-            >
-              <Play className="h-3 w-3" />
-              Iniciar
-            </Button>
+            {typeLabel}
+          </Badge>
+          {isUrgent && (
+            <Badge className="text-[10px] px-1.5 py-0 h-4 bg-red-500/15 text-red-400 border border-red-500/30 shrink-0">
+              ⚡ {daysSince}d
+            </Badge>
           )}
-
-          {/* Aprobar / Rechazar diseño (en_diseno, pendiente_modelado, pendiente_render) */}
-          {canApprove &&
-            ["en_diseno", "pendiente_modelado", "pendiente_render"].includes(project.status) && (
-              <>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={onReject}
-                  disabled={isPending}
-                  className="h-7 px-2 text-xs text-red-600 border-red-500/25 hover:bg-red-500/10"
-                  title="Rechazar — vuelve a diseño"
-                >
-                  <ThumbsDown className="h-3.5 w-3.5" />
-                </Button>
-                <Button
-                  size="sm"
-                  onClick={onApprove}
-                  disabled={isPending}
-                  className="h-7 px-2 text-xs text-white bg-emerald-500 hover:bg-emerald-600"
-                  title="Aprobar"
-                >
-                  <ThumbsUp className="h-3.5 w-3.5" />
-                </Button>
-              </>
-            )}
         </div>
-      </CardContent>
-    </Card>
+        {project.client && (
+          <p className="flex items-center gap-1 text-xs text-white/35">
+            <User className="h-3 w-3 shrink-0" />
+            {project.client.name}
+          </p>
+        )}
+      </div>
+
+      {/* Acciones */}
+      <div
+        className="flex items-center gap-1.5 shrink-0"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Ver proyecto */}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onOpen}
+          className="h-7 w-7 p-0 text-white/30 hover:text-white/70 hover:bg-white/[0.06]"
+          title="Ver proyecto"
+        >
+          <ArrowRight className="h-3.5 w-3.5" />
+        </Button>
+
+        {/* Iniciar diseño */}
+        {project.status === "adelanto_recibido" && canStart && (
+          <Button
+            size="sm"
+            onClick={onStart}
+            disabled={isPending}
+            className="h-7 px-3 text-xs text-white gap-1 border-0"
+            style={{ background: "linear-gradient(135deg, #1DB5A8, #0D9B8F)" }}
+          >
+            <Play className="h-3 w-3" />
+            Iniciar
+          </Button>
+        )}
+
+        {/* Aprobar / Rechazar */}
+        {canApprove &&
+          ["en_diseno", "pendiente_modelado", "pendiente_render"].includes(project.status) && (
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onReject}
+                disabled={isPending}
+                className="h-7 px-2 text-red-400 border-red-500/25 hover:bg-red-500/10 hover:border-red-500/40"
+                title="Rechazar — vuelve a diseño"
+              >
+                <ThumbsDown className="h-3.5 w-3.5" />
+              </Button>
+              <Button
+                size="sm"
+                onClick={onApprove}
+                disabled={isPending}
+                className="h-7 px-3 text-xs text-white gap-1 bg-emerald-600 hover:bg-emerald-500 border-0"
+                title="Aprobar diseño"
+              >
+                <ThumbsUp className="h-3.5 w-3.5" />
+                OK
+              </Button>
+            </>
+          )}
+      </div>
+    </div>
   );
 }

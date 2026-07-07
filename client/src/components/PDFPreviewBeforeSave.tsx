@@ -4,6 +4,7 @@ import { Download, X, Eye, Loader2, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
 import { downloadPDFiOS } from "@/lib/pdf-download";
+import { toast } from "sonner";
 
 // Configurar worker de PDF.js
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
@@ -63,21 +64,30 @@ export function PDFPreviewBeforeSave({
   };
 
   const handleDownload = async () => {
-    const downloadUrl = pdfUrl.replace("?preview=true", "").replace("&preview=true", "");
+    const downloadUrl = pdfUrl.replace("&preview=true", "").replace("?preview=true", "");
     const cleanName = quotationNumber.replace(/[^a-zA-Z0-9\-_\s]/g, '').replace(/\s+/g, '_');
     const filename = `${cleanName}.pdf`;
-    
-    if (isIOS) {
-      // En iOS, usar la función compatible
-      await downloadPDFiOS(downloadUrl, filename);
-    } else {
-      // En desktop, usar método tradicional
-      const link = document.createElement("a");
-      link.href = downloadUrl;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+
+    try {
+      if (isIOS) {
+        // En iOS, usar la función compatible (ya tiene manejo de errores)
+        await downloadPDFiOS(downloadUrl, filename);
+      } else {
+        // En desktop, verificar que el archivo existe antes de descargar
+        const response = await fetch(downloadUrl, { method: 'HEAD' });
+        if (!response.ok) {
+          toast.error("El PDF ya no está disponible. Genera el PDF nuevamente.");
+          return;
+        }
+        const link = document.createElement("a");
+        link.href = downloadUrl;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+    } catch {
+      toast.error("Error al descargar el PDF. Intenta generarlo nuevamente.");
     }
   };
 
@@ -128,10 +138,10 @@ export function PDFPreviewBeforeSave({
         {/* Botón de cierre en esquina superior derecha */}
         <button
           onClick={() => onOpenChange(false)}
-          className="absolute top-4 right-4 z-50 p-2 bg-white rounded-full shadow-lg hover:bg-white/[0.06]"
+          className="absolute top-4 right-4 z-50 p-2 bg-white/[0.12] rounded-full shadow-lg hover:bg-white/[0.20]"
           title="Cerrar"
         >
-          <X className="h-5 w-5" />
+          <X className="h-5 w-5 text-foreground" />
         </button>
 
         {!isPdfUrlAvailable ? (

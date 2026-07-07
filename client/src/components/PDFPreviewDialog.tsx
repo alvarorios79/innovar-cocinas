@@ -114,10 +114,10 @@ export function PDFPreviewDialog({
           {/* Botón de cierre en esquina superior derecha */}
           <button
             onClick={() => onOpenChange(false)}
-            className="absolute top-2 right-2 z-50 p-2 bg-white rounded-full shadow-lg hover:bg-white/[0.06]"
+            className="absolute top-2 right-2 z-50 p-2 bg-white/[0.12] rounded-full shadow-lg hover:bg-white/[0.20]"
             title="Cerrar"
           >
-            <X className="h-5 w-5" />
+            <X className="h-5 w-5 text-foreground" />
           </button>
 
           {isIOS ? (
@@ -174,7 +174,7 @@ export function PDFPreviewDialog({
                   
                   {/* Controles de navegación */}
                   {numPages > 1 && (
-                    <div className="flex items-center justify-center gap-4 p-4 bg-white border-t">
+                    <div className="flex items-center justify-center gap-4 p-4 bg-white/[0.05] border-t border-white/[0.10]">
                       <Button
                         variant="outline"
                         size="sm"

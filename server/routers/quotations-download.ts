@@ -48,22 +48,14 @@ export const quotationsDownloadRouter = router({
             itemNumber: item.itemNumber,
             description: item.description,
             quantity: item.quantity.toString(),
-            // Bug fix #2: pasar número crudo, no formatCurrency() — el PDF generator formatea internamente
-            totalPrice: String(parseFloat(String(item.totalPrice)) || 0),
+            totalPrice: formatCurrency(Number(item.totalPrice)),
           })),
-          // Bug fix #2: números crudos en lugar de formatCurrency() para evitar que parseFloat falle
-          // con el separador de miles colombiano (ej: "1.200.000" → parseFloat devuelve 1.2)
-          subtotal: String(parseFloat(String(quotation.subtotal)) || 0),
-          discountAmount: quotation.discountAmount && parseFloat(String(quotation.discountAmount)) > 0
-            ? String(parseFloat(String(quotation.discountAmount)))
-            : undefined,
-          discountPercent: quotation.discountPercent && parseFloat(String(quotation.discountPercent)) > 0
-            ? String(parseFloat(String(quotation.discountPercent)))
-            : undefined,
-          transportCost: String(parseFloat(String(quotation.transportCost)) || 0),
-          total: String(parseFloat(String(quotation.total)) || 0),
-          // Bug fix #1: campo correcto es generalNotes, no notes
-          generalNotes: (quotation as any).generalNotes || '',
+          subtotal: formatCurrency(Number(quotation.subtotal)),
+          discountAmount: formatCurrency(Number(quotation.discountAmount || 0)),
+          discountPercent: quotation.discountPercent ? `${quotation.discountPercent}%` : '0%',
+          transportCost: formatCurrency(Number(quotation.transportCost || 0)),
+          total: formatCurrency(Number(quotation.total)),
+          generalNotes: (quotation as any).generalNotes || "",
         };
 
         // Generar PDF

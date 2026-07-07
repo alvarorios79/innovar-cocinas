@@ -17,10 +17,8 @@ import { startAutoReminderSystem } from "../task-auto-reminders";
 import { scheduleBirthdayNotifications } from "../birthday-service";
 import { startOverdueChangesService } from "../overdue-changes-service";
 import { startAppointmentReminderService } from "../appointment-reminder-service";
-import { startVisitReminderService } from "../visit-reminder-service";
 import { startTeamWhatsAppService } from "../whatsapp-team-notifications";
 import { startPeriodicCleanup } from "../tmp-cleanup";
-import { startApprovalReminderService } from "../approval-reminder-service";
 import { startWhatsAppTokenMonitor } from "../whatsapp-token-monitor";
 import { backupScheduler } from "../services/backupScheduler";
 import { apiRateLimiter, authRateLimiter, uploadRateLimiter } from "../rate-limiter";
@@ -47,14 +45,6 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 }
 
 async function startServer() {
-  // Correr migraciones de columnas nuevas antes de aceptar tráfico
-  try {
-    const { runMigrations } = await import("../migrations");
-    await runMigrations();
-  } catch (err) {
-    console.error("[startup] Migration error (non-fatal):", err);
-  }
-
   const app = express();
   const server = createServer(app);
   // Configure body parser with larger size limit for file uploads
@@ -186,7 +176,9 @@ async function startServer() {
       res.setHeader('Content-Disposition', `${disposition}; filename="${downloadFilename}"`);
       res.send(pdfBuffer);
       
-      // Limpiar archivo después de enviarlo
+      // Limpiar archivo temporal después de enviarlo
+      // Para previews (inline) se espera más tiempo porque el usuario puede querer descargar después
+      const cleanupDelay = isPreview ? 600000 : 30000; // 10 min para preview, 30s para descarga
       setTimeout(() => {
         try {
           if (existsSync(filepath)) {
@@ -195,44 +187,12 @@ async function startServer() {
         } catch (e) {
           console.error('Error cleaning up PDF:', e);
         }
-      }, 5000);
+      }, cleanupDelay);
     } catch (error) {
       console.error('Error serving PDF:', error);
       res.status(500).json({ error: 'Error serving PDF' });
     }
   });
-  // ── ENDPOINT TEMPORAL: crear usuarios iniciales ──────────────────────────
-  // BORRAR después de ejecutar una vez
-  app.get("/api/seed-users", async (req: Request, res: Response) => {
-    if (req.query.key !== "innovar-seed-2026") {
-      return res.status(403).json({ error: "Forbidden" });
-    }
-    const { hashPassword } = await import("../password-auth");
-    const { createUser, getUserByEmail } = await import("../db");
-    const PASSWORD = "Innovar2026#";
-    const hash = await hashPassword(PASSWORD);
-    const USERS = [
-      { email: "alejoile@gmail.com",           role: "disenador"   as const, name: "Alejo" },
-      { email: "martha79s@hotmail.com",         role: "admin"       as const, name: "Martha" },
-      { email: "jefetaller@innovarcocinas.com", role: "jefe_taller" as const, name: "Jefe Taller" },
-      { email: "operario@innovarcocinas.com",   role: "operario"    as const, name: "Operario" },
-      { email: "comercial@innovarcocinas.com",  role: "comercial"   as const, name: "Comercial" },
-    ];
-    const results: string[] = [];
-    for (const u of USERS) {
-      try {
-        const existing = await getUserByEmail(u.email);
-        if (existing) { results.push(`⚠️ Ya existe: ${u.email}`); continue; }
-        await createUser({ email: u.email, name: u.name, role: u.role, passwordHash: hash });
-        results.push(`✅ Creado: ${u.email} → ${u.role}`);
-      } catch (e: any) {
-        results.push(`❌ Error ${u.email}: ${e.message}`);
-      }
-    }
-    return res.json({ results });
-  });
-  // ── FIN ENDPOINT TEMPORAL ─────────────────────────────────────────────────
-
   // development mode uses Vite, production mode uses static files
   if (process.env.NODE_ENV === "development") {
     await setupVite(app, server);
@@ -261,18 +221,12 @@ async function startServer() {
     
     // Iniciar servicio de recordatorios de citas por WhatsApp (7pm, día anterior)
     startAppointmentReminderService();
-
-    // Iniciar servicio de recordatorios de visitas técnicas a medidores (7pm, día anterior)
-    startVisitReminderService();
     
     // Iniciar servicio de notificaciones WhatsApp al equipo (8am y 12pm)
     startTeamWhatsAppService();
     
     // Iniciar limpieza periódica de archivos temporales en /tmp
     startPeriodicCleanup();
-
-    // Iniciar servicio de recordatorios de aprobación de diseño (5h, día 2, día 4)
-    startApprovalReminderService();
     
     // Iniciar monitoreo diario del token de WhatsApp
     startWhatsAppTokenMonitor();

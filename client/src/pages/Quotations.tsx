@@ -458,7 +458,8 @@ export default function Quotations() {
 
   const previewPDF = trpc.quotations.previewPDF.useMutation({
     onSuccess: (data) => {
-      const previewUrl = `${data.downloadUrl}?preview=true`;
+      // Usar & para no romper el query string existente (downloadUrl ya tiene ?name=...)
+      const previewUrl = `${data.downloadUrl}&preview=true`;
       setPreviewBeforeSaveUrl(previewUrl);
       setPreviewBeforeSaveOpen(true);
     },

@@ -279,18 +279,21 @@ export async function generateQuotationPDF(data: QuotationData, outputPath: stri
            .text(`• ${t}`, ML + 8, ty, { width: CW - 16 });
         ty += 16;
       }
-      Y += tH + 12;
+      Y += tH + 16;
 
       // ── FIRMAS ─────────────────────────────────────────────────────────────
-      if (Y + 60 > PH - 38) { doc.addPage(); Y = PH - 28 - 95; }
-      doc.moveTo(ML,           Y + 28).lineTo(ML + 180,       Y + 28).stroke(BORDER);
-      doc.moveTo(PW - MR - 180, Y + 28).lineTo(PW - MR,        Y + 28).stroke(BORDER);
+      if (Y + 80 > PH - 38) { doc.addPage(); doc.rect(0, 0, PW, 4).fill(TEAL); Y = 36; }
+      doc.moveTo(ML,            Y + 28).lineTo(ML + 190,        Y + 28).strokeColor("#9CA3AF").lineWidth(0.8).stroke();
+      doc.moveTo(PW - MR - 190, Y + 28).lineTo(PW - MR,         Y + 28).strokeColor("#9CA3AF").lineWidth(0.8).stroke();
       doc.fontSize(8.5).fillColor(DGRAY).font("Helvetica-Bold")
          .text("Firma del Cliente",        ML,            Y + 33)
-         .text("INNOVAR Cocinas de Diseño", PW - MR - 180, Y + 33, { width: 180, align: "right" });
+         .text("INNOVAR Cocinas de Diseño", PW - MR - 190, Y + 33, { width: 190, align: "right" });
       doc.fontSize(8).fillColor(MGRAY).font("Helvetica")
          .text(data.clientName, ML, Y + 46)
-         .text("NIT: 10021456-1 · @cocinasintegralesenpereira", PW - MR - 180, Y + 46, { width: 180, align: "right" });
+         .text("NIT: 10021456-1 · @cocinasintegralesenpereira", PW - MR - 190, Y + 46, { width: 190, align: "right" });
+      // Línea de fecha bajo firma del cliente
+      doc.moveTo(ML, Y + 62).lineTo(ML + 130, Y + 62).strokeColor("#9CA3AF").lineWidth(0.8).stroke();
+      doc.fontSize(7.5).fillColor(MGRAY).font("Helvetica").text("Fecha", ML, Y + 65);
 
       // ── FOOTER en todas las páginas ────────────────────────────────────────
       const { start, count } = doc.bufferedPageRange();

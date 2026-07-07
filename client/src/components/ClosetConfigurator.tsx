@@ -11,11 +11,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { LayoutGrid, DoorOpen, Truck, Hash } from "lucide-react";
+import { LayoutGrid, DoorOpen, Truck } from "lucide-react";
 
 export interface ClosetConfig {
   type: "estandar" | "premium" | "deluxe" | "especial";
-  quantity: number;
   width: number;
   height: number;
   doorType: "corredizas" | "batientes";
@@ -70,7 +69,6 @@ const CLOSET_TYPES = {
 
 export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps) {
   const [type, setType] = useState<ClosetConfig["type"]>(config?.type || "estandar");
-  const [quantity, setQuantity] = useState<number>(config?.quantity ?? 1);
   const [width, setWidth] = useState<string>(config?.width?.toString() || "");
   const [height, setHeight] = useState<string>(config?.height?.toString() || "");
   const [doorType, setDoorType] = useState<ClosetConfig["doorType"]>(config?.doorType || "corredizas");
@@ -78,6 +76,7 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
   const [includeTransport, setIncludeTransport] = useState<boolean>(config?.includeTransport ?? false);
   const [transportCost, setTransportCost] = useState<number>(config?.transportCost ?? 150000);
 
+  // Accesorios del closet
   const [accMaletero, setAccMaletero] = useState<boolean>(config?.accessories?.maletero ?? false);
   const [accDivisor, setAccDivisor] = useState<boolean>(config?.accessories?.divisor ?? false);
   const [accEntrepanos, setAccEntrepanos] = useState<boolean>(config?.accessories?.entrepanos ?? false);
@@ -91,8 +90,7 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
     const heightNum = parseFloat(height) || 0;
     const squareMeters = widthNum * heightNum;
     const pricePerSquareMeter = CLOSET_TYPES[type].price;
-    const qty = Math.max(1, quantity);
-    let subtotal = squareMeters * pricePerSquareMeter * qty;
+    let subtotal = squareMeters * pricePerSquareMeter;
 
     if (includeTransport) {
       subtotal += transportCost;
@@ -100,7 +98,6 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
 
     const newConfig: ClosetConfig = {
       type,
-      quantity: qty,
       width: widthNum,
       height: heightNum,
       doorType,
@@ -122,37 +119,30 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
     };
 
     onChange(newConfig);
-  }, [type, quantity, width, height, doorType, notes, includeTransport, transportCost,
+  }, [type, width, height, doorType, notes, includeTransport, transportCost,
       accMaletero, accDivisor, accEntrepanos, accDoubleCajonero, accZapatero, accDobleColgadero, accEspejo]);
 
   const squareMeters = (parseFloat(width) || 0) * (parseFloat(height) || 0);
   const closetType = CLOSET_TYPES[type] || CLOSET_TYPES.estandar;
-  const qty = Math.max(1, quantity);
-  const baseSubtotalUnit = squareMeters * closetType.price;
-  const baseSubtotalTotal = baseSubtotalUnit * qty;
+  const baseSubtotal = squareMeters * closetType.price;
   const transport = includeTransport ? transportCost : 0;
-  const subtotal = baseSubtotalTotal + transport;
-
-  // ── sección reutilizable ──────────────────────────────────────────
-  const sectionClass = "bg-white/[0.04] p-4 rounded-lg border border-white/[0.10]";
-  const headingClass = "font-semibold text-foreground mb-3";
+  const subtotal = baseSubtotal + transport;
 
   return (
-    <Card className="mt-4 border-white/[0.15]">
+    <Card className="mt-4 border-blue-300">
       <CardContent className="p-4">
         {/* Header */}
-        <div className="flex items-center gap-2 mb-4 pb-2 border-b border-white/[0.12]">
-          <LayoutGrid className="h-5 w-5 text-primary" />
-          <h4 className="font-bold text-foreground text-lg">Configuración del Closet</h4>
+        <div className="flex items-center gap-2 mb-4 pb-2 border-b border-blue-500/25">
+          <LayoutGrid className="h-5 w-5 text-blue-600" />
+          <h4 className="font-bold text-blue-300 text-lg">Configuración del Closet</h4>
         </div>
 
-        <div className="space-y-4">
-
+        <div className="space-y-6">
           {/* Tipo de Closet */}
-          <div className={sectionClass}>
-            <h5 className={headingClass}>Tipo de Closet</h5>
+          <div className="bg-blue-500/10 p-4 rounded-lg border border-blue-500/25">
+            <h5 className="font-semibold text-blue-700 mb-3">Tipo de Closet</h5>
             <Select value={type} onValueChange={(value) => setType(value as ClosetConfig["type"])}>
-              <SelectTrigger className="h-10 bg-[#162828] border-white/[0.15]">
+              <SelectTrigger className="h-10 bg-[#162828]">
                 <SelectValue placeholder="Selecciona el tipo" />
               </SelectTrigger>
               <SelectContent>
@@ -163,22 +153,22 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
                 ))}
               </SelectContent>
             </Select>
-            <div className="mt-3 p-3 bg-[#162828] rounded border border-white/[0.08]">
-              <p className="text-sm text-muted-foreground">
-                <span className="text-foreground font-medium">Profundidad:</span> {closetType.depth}
+            <div className="mt-3 p-3 bg-blue-500/15 rounded">
+              <p className="text-sm text-blue-700">
+                <strong>Profundidad:</strong> {closetType.depth}
               </p>
-              <p className="text-sm text-muted-foreground mt-1">
-                <span className="text-foreground font-medium">Incluye:</span> Maletero, divisor, doble colgadero, entrepaños, doble cajonero, zapatero y puertas
+              <p className="text-sm text-blue-700 mt-1">
+                <strong>Incluye:</strong> Maletero, divisor, doble colgadero, entrepaños, doble cajonero, zapatero y puertas
               </p>
             </div>
           </div>
 
-          {/* Medidas + Cantidad */}
-          <div className={sectionClass}>
-            <h5 className={headingClass}>Medidas y Cantidad</h5>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Medidas */}
+          <div className="bg-white/[0.03] p-4 rounded-lg border border-[rgba(106,207,199,0.12)]">
+            <h5 className="font-semibold text-white/85 mb-3">Medidas del Closet</h5>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label className="text-sm font-medium text-muted-foreground block mb-2">Ancho (metros)</Label>
+                <Label className="text-sm font-medium text-white/85 block mb-2">Ancho (metros)</Label>
                 <Input
                   type="number"
                   step="0.01"
@@ -186,11 +176,11 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
                   value={width}
                   onChange={(e) => setWidth(e.target.value)}
                   placeholder="Ej: 2.50"
-                  className="h-10 bg-[#162828] border-white/[0.15]"
+                  className="h-10 bg-[#162828]"
                 />
               </div>
               <div>
-                <Label className="text-sm font-medium text-muted-foreground block mb-2">Alto (metros)</Label>
+                <Label className="text-sm font-medium text-white/85 block mb-2">Alto (metros)</Label>
                 <Input
                   type="number"
                   step="0.01"
@@ -198,45 +188,26 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
                   value={height}
                   onChange={(e) => setHeight(e.target.value)}
                   placeholder="Ej: 2.40"
-                  className="h-10 bg-[#162828] border-white/[0.15]"
-                />
-              </div>
-              <div>
-                <Label className="text-sm font-medium text-muted-foreground block mb-2 flex items-center gap-1">
-                  <Hash className="h-3.5 w-3.5" /> Cantidad
-                </Label>
-                <Input
-                  type="number"
-                  min="1"
-                  step="1"
-                  value={quantity}
-                  onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                  className="h-10 bg-[#162828] border-white/[0.15] font-semibold text-center"
+                  className="h-10 bg-[#162828]"
                 />
               </div>
             </div>
             {squareMeters > 0 && (
-              <div className="mt-3 p-3 bg-[#162828] rounded border border-white/[0.08] flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">
-                  Área unitaria: <span className="text-foreground font-medium">{squareMeters.toFixed(2)} M²</span>
-                </span>
-                {qty > 1 && (
-                  <span className="text-sm text-muted-foreground">
-                    Área total ({qty} und): <span className="text-foreground font-medium">{(squareMeters * qty).toFixed(2)} M²</span>
-                  </span>
-                )}
+              <div className="mt-3 p-3 bg-white/[0.06] rounded flex justify-between items-center">
+                <span className="text-sm text-white/85">Área total:</span>
+                <span className="font-bold text-foreground">{squareMeters.toFixed(2)} M²</span>
               </div>
             )}
           </div>
 
           {/* Tipo de Puertas */}
-          <div className={sectionClass}>
+          <div className="bg-white/[0.03] p-4 rounded-lg border border-[rgba(106,207,199,0.12)]">
             <div className="flex items-center gap-2 mb-3">
-              <DoorOpen className="h-4 w-4 text-muted-foreground" />
-              <h5 className={headingClass} style={{marginBottom: 0}}>Tipo de Puertas</h5>
+              <DoorOpen className="h-4 w-4 text-white/60" />
+              <h5 className="font-semibold text-white/85">Tipo de Puertas</h5>
             </div>
             <Select value={doorType} onValueChange={(value) => setDoorType(value as ClosetConfig["doorType"])}>
-              <SelectTrigger className="h-10 bg-[#162828] border-white/[0.15]">
+              <SelectTrigger className="h-10 bg-[#162828]">
                 <SelectValue placeholder="Selecciona el tipo" />
               </SelectTrigger>
               <SelectContent>
@@ -246,10 +217,10 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
             </Select>
           </div>
 
-          {/* Componentes (Accesorios) */}
-          <div className={sectionClass}>
-            <h5 className={headingClass}>Componentes (para descripción)</h5>
-            <p className="text-xs text-muted-foreground mb-3">Selecciona los componentes — se generará la descripción automáticamente.</p>
+          {/* Accesorios del closet */}
+          <div className="bg-blue-500/10 p-4 rounded-lg border border-blue-500/25">
+            <h5 className="font-semibold text-blue-700 mb-3">Componentes (para descripción)</h5>
+            <p className="text-xs text-blue-600 mb-3">Selecciona los componentes que lleva este closet — se generará la descripción automáticamente.</p>
             <div className="grid grid-cols-2 gap-2">
               {([
                 { state: accMaletero,       setState: setAccMaletero,       label: "Maletero" },
@@ -260,42 +231,42 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
                 { state: accDobleColgadero, setState: setAccDobleColgadero, label: "Doble colgadero" },
                 { state: accEspejo,         setState: setAccEspejo,         label: "Espejo en puertas" },
               ]).map(({ state, setState, label }) => (
-                <div key={label} className="flex items-center gap-2 p-2 bg-[#162828] rounded border border-white/[0.10] hover:border-white/[0.25] transition-colors">
+                <div key={label} className="flex items-center gap-2 p-2 bg-[#162828] rounded border border-blue-100 hover:border-blue-300 transition-colors">
                   <Checkbox
                     id={`acc-${label}`}
                     checked={state}
                     onCheckedChange={(c) => setState(c === true)}
                   />
-                  <Label htmlFor={`acc-${label}`} className="cursor-pointer text-sm text-foreground/85">{label}</Label>
+                  <Label htmlFor={`acc-${label}`} className="cursor-pointer text-sm text-white/85">{label}</Label>
                 </div>
               ))}
             </div>
           </div>
 
           {/* Transporte e Imprevistos */}
-          <div className={sectionClass}>
+          <div className="bg-white/[0.03] p-4 rounded-lg border border-[rgba(106,207,199,0.12)]">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Checkbox
                   id="closet-transport"
-                  checked={includeTransport}
-                  onCheckedChange={(c) => setIncludeTransport(c === true)}
+                  checked={includeTransport} 
+                  onCheckedChange={(c) => setIncludeTransport(c === true)} 
                 />
                 <div className="flex items-center gap-2">
-                  <Truck className="h-4 w-4 text-muted-foreground" />
-                  <Label htmlFor="closet-transport" className="cursor-pointer font-medium text-foreground">
+                  <Truck className="h-4 w-4 text-white/60" />
+                  <Label htmlFor="closet-transport" className="cursor-pointer font-medium">
                     Incluir Transporte e Imprevistos
                   </Label>
                 </div>
               </div>
               {includeTransport && (
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">Monto: $</span>
-                  <Input
-                    type="number"
-                    value={transportCost}
-                    onChange={(e) => setTransportCost(parseInt(e.target.value) || 0)}
-                    className="h-9 w-32 text-right bg-[#162828] border-white/[0.15]"
+                  <span className="text-sm text-white/60">Monto: $</span>
+                  <Input 
+                    type="number" 
+                    value={transportCost} 
+                    onChange={(e) => setTransportCost(parseInt(e.target.value) || 0)} 
+                    className="h-9 w-32 text-right" 
                   />
                 </div>
               )}
@@ -304,43 +275,34 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
 
           {/* Notas */}
           <div>
-            <Label className="text-sm font-medium text-muted-foreground block mb-2">Notas Adicionales</Label>
+            <Label className="text-sm font-medium text-white/85 block mb-2">Notas Adicionales</Label>
             <Textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Sin zapatero, con espejo en puertas, acabado especial, etc."
-              className="bg-[#162828] border-white/[0.15]"
+              className="bg-[#162828]"
               rows={2}
             />
           </div>
 
           {/* Resumen de Precio */}
           {squareMeters > 0 && (
-            <div className="bg-[#162828] p-4 rounded-lg border border-[rgba(106,207,199,0.25)]">
-              <h5 className="font-semibold text-foreground mb-3 flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-primary inline-block"></span>
-                Resumen del Precio
-              </h5>
-              <div className="space-y-1.5 text-sm">
-                <div className="flex justify-between text-muted-foreground">
-                  <span>{closetType.label} — {squareMeters.toFixed(2)} M² × ${closetType.price.toLocaleString()}/M²:</span>
-                  <span className="font-medium text-foreground">${baseSubtotalUnit.toLocaleString()}</span>
+            <div className="bg-blue-500/20 p-4 rounded-lg border border-blue-400">
+              <h5 className="font-semibold text-blue-300 mb-3">Resumen del Precio</h5>
+              <div className="space-y-1 text-sm">
+                <div className="flex justify-between">
+                  <span>{closetType.label} ({squareMeters.toFixed(2)} M² × ${closetType.price.toLocaleString()}/M²):</span>
+                  <span className="font-medium">${baseSubtotal.toLocaleString()}</span>
                 </div>
-                {qty > 1 && (
-                  <div className="flex justify-between text-muted-foreground">
-                    <span>× {qty} unidades:</span>
-                    <span className="font-medium text-foreground">${baseSubtotalTotal.toLocaleString()}</span>
-                  </div>
-                )}
                 {includeTransport && (
-                  <div className="flex justify-between text-muted-foreground">
+                  <div className="flex justify-between text-blue-700">
                     <span>+ Transporte e imprevistos:</span>
-                    <span className="font-medium text-foreground">${transport.toLocaleString()}</span>
+                    <span className="font-medium">${transport.toLocaleString()}</span>
                   </div>
                 )}
-                <div className="border-t border-white/[0.15] pt-2 mt-2 flex justify-between items-center">
-                  <span className="font-bold text-foreground">TOTAL:</span>
-                  <span className="text-2xl font-bold text-primary">${subtotal.toLocaleString()}</span>
+                <div className="border-t border-blue-400 pt-2 mt-2 flex justify-between">
+                  <span className="font-bold text-blue-300">TOTAL:</span>
+                  <span className="text-2xl font-bold text-blue-300">${subtotal.toLocaleString()}</span>
                 </div>
               </div>
             </div>

@@ -1,15 +1,17 @@
+import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { PageHeader } from "@/components/PageHeader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import {
   Paintbrush, ExternalLink, Play, ThumbsUp, ThumbsDown,
-  Clock, RefreshCw, User, CheckCircle, AlertCircle,
+  Clock, RefreshCw, User, CheckCircle, AlertCircle, Settings2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { useLocation } from "wouter";
+import { ProjectDesignPanel } from "@/components/ProjectDesignPanel";
 
 // ── Columnas del pipeline de diseño ──────────────────────────────────────────
 const DESIGN_STAGES = [
@@ -79,12 +81,11 @@ type Project = {
 // ── Página principal ──────────────────────────────────────────────────────────
 export default function Design() {
   const { user } = useAuth();
-  const [, setLocation] = useLocation();
+  const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
+  const [panelOpen, setPanelOpen] = useState(false);
 
   const isDesigner = user?.role === "disenador";
-  const isAdmin =
-    user?.role === "super_admin" ||
-    user?.role === "admin";
+  const isAdmin = user?.role === "super_admin" || user?.role === "admin";
   const canApprove = isAdmin;
   const canStart = isDesigner || isAdmin;
 
@@ -122,6 +123,13 @@ export default function Design() {
     approveDesign.mutate({ projectId, approved });
   };
 
+  const openPanel = (projectId: number) => {
+    setSelectedProjectId(projectId);
+    setPanelOpen(true);
+  };
+
+  const selectedProject = designProjects.find(p => p.id === selectedProjectId);
+
   return (
     <div className="pb-20 md:pb-6">
       <PageHeader
@@ -129,12 +137,7 @@ export default function Design() {
         icon={<Paintbrush className="h-5 w-5" />}
         showBack={false}
         actions={
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => refetch()}
-            className="gap-2 text-slate-600"
-          >
+          <Button variant="outline" size="sm" onClick={() => refetch()} className="gap-2 text-slate-600">
             <RefreshCw className="h-3.5 w-3.5" />
             Actualizar
           </Button>
@@ -146,28 +149,17 @@ export default function Design() {
         {DESIGN_STAGES.map((s) => {
           const count = byStage(s).length;
           return (
-            <div
-              key={s.key}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border"
-              style={{
-                background: s.bg,
-                borderColor: `${s.color}30`,
-                color: s.color,
-              }}
-            >
+            <div key={s.key} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border"
+              style={{ background: s.bg, borderColor: `${s.color}30`, color: s.color }}>
               <span>{s.label}</span>
-              <span
-                className="h-4 w-4 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
-                style={{ background: s.color }}
-              >
+              <span className="h-4 w-4 rounded-full flex items-center justify-center text-[10px] font-bold text-white" style={{ background: s.color }}>
                 {count}
               </span>
             </div>
           );
         })}
         <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-white/[0.05] text-white/55 border border-white/[0.08]">
-          Total en diseño:
-          <strong>{designProjects.length}</strong>
+          Total en diseño: <strong>{designProjects.length}</strong>
         </div>
       </div>
 
@@ -192,27 +184,17 @@ export default function Design() {
 
             return (
               <div key={stage.key}>
-                {/* Encabezado de sección */}
                 <div className="flex items-center gap-2 mb-2">
-                  <div
-                    className="flex items-center justify-center h-6 w-6 rounded-md"
-                    style={{ background: `${stage.color}18` }}
-                  >
+                  <div className="flex items-center justify-center h-6 w-6 rounded-md" style={{ background: `${stage.color}18` }}>
                     <Icon className="h-3.5 w-3.5" style={{ color: stage.color }} />
                   </div>
-                  <span className="text-sm font-semibold" style={{ color: stage.color }}>
-                    {stage.label}
-                  </span>
-                  <Badge
-                    className="text-[10px] h-4 px-1.5 text-white"
-                    style={{ background: stage.color }}
-                  >
+                  <span className="text-sm font-semibold" style={{ color: stage.color }}>{stage.label}</span>
+                  <Badge className="text-[10px] h-4 px-1.5 text-white" style={{ background: stage.color }}>
                     {stageProjects.length}
                   </Badge>
                   <span className="text-xs text-white/30 ml-1">{stage.description}</span>
                 </div>
 
-                {/* Tarjetas */}
                 <div className="space-y-2">
                   {stageProjects.map((project) => (
                     <DesignCard
@@ -225,7 +207,7 @@ export default function Design() {
                       onStart={() => startDesign(project.id)}
                       onApprove={() => approve(project.id, true)}
                       onReject={() => approve(project.id, false)}
-                      onOpen={() => setLocation(`/projects/${project.id}`)}
+                      onManage={() => openPanel(project.id)}
                     />
                   ))}
                 </div>
@@ -234,6 +216,19 @@ export default function Design() {
           })}
         </div>
       )}
+
+      {/* ── Panel lateral de gestión de diseño ─── */}
+      <Sheet open={panelOpen} onOpenChange={setPanelOpen}>
+        <SheetContent side="right" className="w-full sm:max-w-2xl overflow-y-auto p-4">
+          <SheetHeader className="mb-4 pb-3 border-b">
+            <SheetTitle className="flex items-center gap-2 text-base">
+              <Paintbrush className="h-4 w-4 text-teal-500" />
+              {selectedProject ? `Diseño — ${selectedProject.name}` : "Gestión de Diseño"}
+            </SheetTitle>
+          </SheetHeader>
+          {selectedProjectId && <ProjectDesignPanel projectId={selectedProjectId} />}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
@@ -241,7 +236,7 @@ export default function Design() {
 // ── DesignCard ────────────────────────────────────────────────────────────────
 function DesignCard({
   project, stage, canStart, canApprove, isPending,
-  onStart, onApprove, onReject, onOpen,
+  onStart, onApprove, onReject, onManage,
 }: {
   project: Project;
   stage: typeof DESIGN_STAGES[number];
@@ -251,32 +246,21 @@ function DesignCard({
   onStart: () => void;
   onApprove: () => void;
   onReject: () => void;
-  onOpen: () => void;
+  onManage: () => void;
 }) {
   const typeLabel = WORK_TYPE_LABELS[project.workType] ?? project.workType;
-
-  // Días desde creación (urgencia)
-  const daysSince = Math.floor(
-    (Date.now() - new Date(project.createdAt).getTime()) / (1000 * 60 * 60 * 24)
-  );
+  const daysSince = Math.floor((Date.now() - new Date(project.createdAt).getTime()) / (1000 * 60 * 60 * 24));
   const isUrgent = daysSince > 3;
 
   return (
-    <Card
-      className="border hover:shadow-sm transition-shadow cursor-pointer"
+    <Card className="border hover:shadow-sm transition-shadow cursor-pointer"
       style={{ borderLeftWidth: 3, borderLeftColor: stage.color }}
-      onClick={onOpen}
-    >
+      onClick={onManage}>
       <CardContent className="p-3 flex flex-col sm:flex-row sm:items-center gap-3">
-        {/* Info principal */}
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-center gap-1.5 mb-1">
             <p className="text-sm font-semibold text-white/85 truncate">{project.name}</p>
-            <Badge
-              variant="outline"
-              className="text-[10px] px-1.5 py-0 shrink-0"
-              style={{ color: stage.color, borderColor: `${stage.color}40` }}
-            >
+            <Badge variant="outline" className="text-[10px] px-1.5 py-0 shrink-0" style={{ color: stage.color, borderColor: `${stage.color}40` }}>
               {typeLabel}
             </Badge>
             {isUrgent && (
@@ -293,58 +277,36 @@ function DesignCard({
           )}
         </div>
 
-        {/* Acciones */}
         <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
-          {/* Abrir detalle siempre disponible */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onOpen}
-            className="h-7 px-2 text-slate-500"
-            title="Ver proyecto"
-          >
-            <ExternalLink className="h-3.5 w-3.5" />
+          {/* Gestionar diseño */}
+          <Button variant="ghost" size="sm" onClick={onManage}
+            className="h-7 px-2 text-teal-500 hover:text-teal-400" title="Gestionar diseño">
+            <Settings2 className="h-3.5 w-3.5" />
           </Button>
 
-          {/* Iniciar diseño (adelanto_recibido → en_diseno) */}
+          {/* Iniciar diseño */}
           {project.status === "adelanto_recibido" && canStart && (
-            <Button
-              size="sm"
-              onClick={onStart}
-              disabled={isPending}
+            <Button size="sm" onClick={onStart} disabled={isPending}
               className="h-7 px-3 text-xs text-white gap-1"
-              style={{ background: "linear-gradient(135deg, #1DB5A8, #0D9B8F)" }}
-            >
+              style={{ background: "linear-gradient(135deg, #1DB5A8, #0D9B8F)" }}>
               <Play className="h-3 w-3" />
               Iniciar
             </Button>
           )}
 
-          {/* Aprobar / Rechazar diseño (en_diseno, pendiente_modelado, pendiente_render) */}
-          {canApprove &&
-            ["en_diseno", "pendiente_modelado", "pendiente_render"].includes(project.status) && (
-              <>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={onReject}
-                  disabled={isPending}
-                  className="h-7 px-2 text-xs text-red-600 border-red-200 hover:bg-red-50"
-                  title="Rechazar — vuelve a diseño"
-                >
-                  <ThumbsDown className="h-3.5 w-3.5" />
-                </Button>
-                <Button
-                  size="sm"
-                  onClick={onApprove}
-                  disabled={isPending}
-                  className="h-7 px-2 text-xs text-white bg-emerald-500 hover:bg-emerald-600"
-                  title="Aprobar"
-                >
-                  <ThumbsUp className="h-3.5 w-3.5" />
-                </Button>
-              </>
-            )}
+          {/* Aprobar / Rechazar */}
+          {canApprove && ["en_diseno","pendiente_modelado","pendiente_render"].includes(project.status) && (
+            <>
+              <Button variant="outline" size="sm" onClick={onReject} disabled={isPending}
+                className="h-7 px-2 text-xs text-red-600 border-red-200 hover:bg-red-50" title="Rechazar">
+                <ThumbsDown className="h-3.5 w-3.5" />
+              </Button>
+              <Button size="sm" onClick={onApprove} disabled={isPending}
+                className="h-7 px-2 text-xs text-white bg-emerald-500 hover:bg-emerald-600" title="Aprobar">
+                <ThumbsUp className="h-3.5 w-3.5" />
+              </Button>
+            </>
+          )}
         </div>
       </CardContent>
     </Card>

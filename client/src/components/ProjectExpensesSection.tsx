@@ -111,8 +111,8 @@ export function ProjectExpensesSection({ projectId, isAdmin, onTotalChange }: Pr
   return (
     <div className="space-y-3">
       {/* Header con total */}
-      <Card className="border-orange-100">
-        <CardHeader className="py-3 bg-orange-50">
+      <Card className="border-orange-500/20">
+        <CardHeader className="py-3 bg-orange-500/10">
           <div className="flex items-center justify-between">
             <CardTitle className="text-sm flex items-center gap-2 text-orange-700">
               <TrendingDown className="h-4 w-4" />
@@ -150,7 +150,7 @@ export function ProjectExpensesSection({ projectId, isAdmin, onTotalChange }: Pr
         <Button
           onClick={() => setOpen(true)}
           variant="outline"
-          className="w-full border-orange-200 text-orange-700 hover:bg-orange-50 gap-2"
+          className="w-full border-orange-500/25 text-orange-700 hover:bg-orange-500/10 gap-2"
         >
           <Plus className="h-4 w-4" />
           Registrar Gasto
@@ -161,7 +161,7 @@ export function ProjectExpensesSection({ projectId, isAdmin, onTotalChange }: Pr
       {isLoading ? (
         <div className="space-y-2">
           {[1, 2].map((i) => (
-            <div key={i} className="h-12 rounded-lg bg-slate-100 animate-pulse" />
+            <div key={i} className="h-12 rounded-lg bg-white/[0.06] animate-pulse" />
           ))}
         </div>
       ) : expenses.length === 0 ? (
@@ -179,7 +179,7 @@ export function ProjectExpensesSection({ projectId, isAdmin, onTotalChange }: Pr
             return (
               <div
                 key={exp.id}
-                className="flex items-center gap-3 p-3 rounded-lg border bg-white hover:bg-slate-50 transition-colors"
+                className="flex items-center gap-3 p-3 rounded-lg border bg-white hover:bg-white/[0.03] transition-colors"
               >
                 <div
                   className="w-7 h-7 rounded-full flex items-center justify-center shrink-0"
@@ -188,7 +188,7 @@ export function ProjectExpensesSection({ projectId, isAdmin, onTotalChange }: Pr
                   {meta.icon}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-slate-700 truncate">{exp.description}</p>
+                  <p className="text-sm font-medium text-muted-foreground truncate">{exp.description}</p>
                   <p className="text-xs text-slate-400">
                     {meta.label} · {date}
                     {exp.subcategory && ` · ${exp.subcategory}`}

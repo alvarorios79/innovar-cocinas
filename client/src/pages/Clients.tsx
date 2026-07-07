@@ -158,7 +158,7 @@ export default function Clients() {
         {search && (
           <button
             onClick={() => setSearch("")}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-muted-foreground"
           >
             <X className="h-4 w-4" />
           </button>
@@ -443,7 +443,7 @@ function ClientForm({
           placeholder="correo@ejemplo.com"
           type="email"
         />
-        <p className="text-[11px] text-muted-foreground">
+        <p className="text-[11px] text-slate-400">
           Si se ingresa email se creará una cuenta de acceso al portal del cliente.
         </p>
       </div>

@@ -112,7 +112,7 @@ export default function GalleryAdmin() {
 
       {/* Banner pendientes de aprobación */}
       {pendingCount > 0 && (
-        <div className="mb-4 rounded-lg border border-amber-500/20 bg-amber-500/10 px-4 py-3 flex items-center gap-3">
+        <div className="mb-4 rounded-lg border border-amber-500/25 bg-amber-500/10 px-4 py-3 flex items-center gap-3">
           <Clock className="h-5 w-5 text-amber-500 shrink-0" />
           <p className="text-sm text-amber-300">
             <strong>{pendingCount}</strong> proyecto{pendingCount > 1 ? "s" : ""} esperando aprobación del cliente.
@@ -152,7 +152,7 @@ export default function GalleryAdmin() {
       {/* Lista */}
       {isLoading ? (
         <div className="space-y-2">
-          {[1, 2, 3].map(i => <div key={i} className="h-24 rounded-xl bg-slate-100 animate-pulse" />)}
+          {[1, 2, 3].map(i => <div key={i} className="h-24 rounded-xl bg-white/[0.06] animate-pulse" />)}
         </div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-16 text-slate-400">
@@ -220,12 +220,12 @@ function ProjectGalleryCard({
                 {WORK_LABELS[project.workType] ?? project.workType}
               </Badge>
               {isPending && (
-                <Badge className="text-[10px] px-1.5 py-0 bg-amber-500/15 text-amber-400 border-amber-500/20 shrink-0">
+                <Badge className="text-[10px] px-1.5 py-0 bg-amber-500/15 text-amber-700 border-amber-500/25 shrink-0">
                   ⏳ Esperando aprobación
                 </Badge>
               )}
             </div>
-            <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
+            <div className="flex items-center gap-3 text-xs text-slate-500 mt-1">
               {project.client && (
                 <span className="flex items-center gap-1">
                   <User className="h-3 w-3" />{project.client.name}
@@ -287,19 +287,19 @@ function GalleryRow({
   highlight: boolean;
 }) {
   return (
-    <div className={`flex items-center gap-2 rounded-lg px-3 py-2 ${highlight ? "bg-amber-500/10 border border-amber-500/20" : "bg-white/[0.04]"}`}>
+    <div className={`flex items-center gap-2 rounded-lg px-3 py-2 ${highlight ? "bg-amber-500/10 border border-amber-500/25" : "bg-white/[0.03]"}`}>
       {/* Ícono + label */}
-      <span className="text-muted-foreground shrink-0">{icon}</span>
-      <span className="text-xs font-medium text-foreground w-24 shrink-0">{label}</span>
+      <span className="text-slate-400 shrink-0">{icon}</span>
+      <span className="text-xs font-medium text-muted-foreground w-24 shrink-0">{label}</span>
 
       {/* Estado */}
       {approved ? (
-        <span className="flex items-center gap-1 text-[11px] text-emerald-400 font-medium shrink-0">
+        <span className="flex items-center gap-1 text-[11px] text-emerald-600 font-medium shrink-0">
           <CheckCircle2 className="h-3 w-3" />
           {approvedBy ? `Aprobado por ${approvedBy}` : "Aprobado"}
         </span>
       ) : (
-        <span className="flex items-center gap-1 text-[11px] text-muted-foreground shrink-0">
+        <span className="flex items-center gap-1 text-[11px] text-slate-400 shrink-0">
           <Clock className="h-3 w-3" />
           Sin aprobar
         </span>

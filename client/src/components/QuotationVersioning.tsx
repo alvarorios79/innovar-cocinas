@@ -68,7 +68,7 @@ export function QuotationVersioning({
 
   return (
     <>
-      <Card className="border-blue-200 bg-blue-50/50">
+      <Card className="border-blue-500/25 bg-blue-500/10/50">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
@@ -76,7 +76,7 @@ export function QuotationVersioning({
               Versionado de Cotización
             </CardTitle>
             {isLocked && (
-              <Badge variant="secondary" className="bg-amber-100 text-amber-800 flex items-center gap-1">
+              <Badge variant="secondary" className="bg-amber-500/15 text-amber-300 flex items-center gap-1">
                 <Lock className="h-3 w-3" />
                 Bloqueada
               </Badge>
@@ -108,7 +108,7 @@ export function QuotationVersioning({
                     className={
                       version.id === quotationId
                         ? "bg-blue-600 text-white"
-                        : "border-blue-200 text-blue-700"
+                        : "border-blue-500/25 text-blue-700"
                     }
                   >
                     v{version.versionNumber}

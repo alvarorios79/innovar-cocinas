@@ -99,8 +99,8 @@ export function VisualCalendar({
     return cn(
       "h-10 sm:h-12 w-full rounded-md flex items-center justify-center text-sm sm:text-base cursor-pointer transition-colors touch-manipulation",
       {
-        "bg-red-300 text-red-900 cursor-not-allowed font-medium": !isAllowed,
-        "bg-green-300 text-green-900 hover:bg-green-400 active:bg-green-500 font-medium": isAllowed && !isSelected,
+        "bg-red-300 text-red-300 cursor-not-allowed font-medium": !isAllowed,
+        "bg-green-300 text-green-300 hover:bg-green-400 active:bg-green-500 font-medium": isAllowed && !isSelected,
         "bg-primary text-primary-foreground": isSelected,
         "font-bold border-2 border-primary": isToday && !isSelected,
       }
@@ -182,7 +182,7 @@ export function VisualCalendar({
         {/* Leyenda */}
         <div className="mt-4 flex flex-wrap gap-4 text-xs">
           <div className="flex items-center gap-1">
-            <div className="h-3 w-3 rounded bg-white border border-gray-300"></div>
+            <div className="h-3 w-3 rounded bg-white border border-white/[0.15]"></div>
             <span>Disponible</span>
           </div>
           <div className="flex items-center gap-1">
@@ -216,8 +216,8 @@ export function VisualCalendar({
                   className={cn(
                     "justify-start",
                     {
-                      "bg-red-300 text-red-900 hover:bg-red-300 border-red-500 font-medium": !isAvailable,
-                      "bg-green-300 text-green-900 hover:bg-green-400 border-green-500 font-medium": isAvailable && !isSelected,
+                      "bg-red-300 text-red-300 hover:bg-red-300 border-red-500 font-medium": !isAvailable,
+                      "bg-green-300 text-green-300 hover:bg-green-400 border-green-500 font-medium": isAvailable && !isSelected,
                     }
                   )}
                 >

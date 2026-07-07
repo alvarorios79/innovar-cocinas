@@ -146,7 +146,7 @@ export function ProjectCard({
   const isInProgressForDesigner = user?.role === "disenador" && ["en_diseno", "pendiente_modelado", "pendiente_render", "pendiente_render", "aprobacion_final"].includes(project.status);
 
   return (
-    <Card className={`transition-all duration-300 ${isExpanded ? 'ring-2 ring-primary shadow-lg' : 'hover:shadow-md'} ${isNewForDesigner ? 'ring-2 ring-purple-500 bg-purple-50/50' : ''}`}>
+    <Card className={`transition-all duration-300 ${isExpanded ? 'ring-2 ring-primary shadow-lg' : 'hover:shadow-md'} ${isNewForDesigner ? 'ring-2 ring-purple-500 bg-purple-500/10/50' : ''}`}>
       <CardContent className="p-0">
         {/* Header del proyecto - siempre visible */}
         <div 
@@ -240,7 +240,7 @@ export function ProjectCard({
                 <Button
                   variant="outline"
                   size="sm"
-                  className="text-green-600 border-green-600 hover:bg-green-50"
+                  className="text-green-600 border-green-600 hover:bg-green-500/10"
                   onClick={() => onWhatsApp(project)}
                 >
                   <MessageCircle className="h-4 w-4 mr-1" />
@@ -284,8 +284,8 @@ export function ProjectCard({
             {detail.status === "pendiente_render" && 
               (user?.role === "admin" || user?.role === "super_admin") && 
               onApproveDesign && (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 my-3">
-                <h4 className="font-medium text-yellow-800 mb-2 flex items-center gap-2">
+              <div className="bg-yellow-500/10 border border-yellow-200 rounded-lg p-4 my-3">
+                <h4 className="font-medium text-yellow-300 mb-2 flex items-center gap-2">
                   <AlertCircle className="h-4 w-4" />
                   Pendiente de Aprobación del Cliente
                 </h4>
@@ -445,7 +445,7 @@ export function ProjectCard({
                         href={detail.advanceReceiptUrl} 
                         target="_blank" 
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-sm text-green-600 hover:underline bg-green-50 px-2 py-1 rounded"
+                        className="inline-flex items-center gap-1 text-sm text-green-600 hover:underline bg-green-500/10 px-2 py-1 rounded"
                       >
                         <FileText className="h-4 w-4" />
                         Ver comprobante
@@ -456,7 +456,7 @@ export function ProjectCard({
                         href={(detail as any).quotationPdfUrl} 
                         target="_blank" 
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-sm text-blue-600 hover:underline bg-blue-50 px-2 py-1 rounded"
+                        className="inline-flex items-center gap-1 text-sm text-blue-600 hover:underline bg-blue-500/10 px-2 py-1 rounded"
                       >
                         <FileText className="h-4 w-4" />
                         Ver cotización PDF

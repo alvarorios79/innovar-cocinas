@@ -84,8 +84,8 @@ export default function Register() {
           <div className="mx-auto mb-2 flex items-center justify-center">
             <img src="/logo-original.png" alt="INNOVAR Cocinas de Diseño" style={{ width: 90, height: "auto", objectFit: "contain" }} />
           </div>
-          <CardTitle className="text-xl md:text-2xl font-bold text-gray-800">Crear Cuenta</CardTitle>
-          <CardDescription className="text-sm md:text-base text-gray-600">
+          <CardTitle className="text-xl md:text-2xl font-bold text-foreground">Crear Cuenta</CardTitle>
+          <CardDescription className="text-sm md:text-base text-muted-foreground">
             Regístrate para agendar citas y dar seguimiento a tus proyectos
           </CardDescription>
         </CardHeader>
@@ -145,7 +145,7 @@ export default function Register() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-muted-foreground"
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
@@ -199,7 +199,7 @@ export default function Register() {
           </form>
 
           <div className="mt-6 text-center space-y-2">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted-foreground">
               ¿Ya tienes cuenta?{" "}
               <Link href="/login" className="text-teal-600 hover:text-teal-700 font-medium">
                 Inicia sesión

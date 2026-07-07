@@ -339,10 +339,10 @@ export function FileViewer({ files, initialIndex = 0, isOpen, onClose }: FileVie
                 className="w-full h-full"
               >
                 {/* Fallback si object no funciona */}
-                <div className="w-full h-full flex flex-col items-center justify-center p-8 text-center bg-gray-100">
+                <div className="w-full h-full flex flex-col items-center justify-center p-8 text-center bg-white/[0.06]">
                   <FileText className="h-20 w-20 text-red-500 mb-6" />
-                  <h3 className="text-xl font-semibold text-gray-800 mb-2">Documento PDF</h3>
-                  <p className="text-gray-600 mb-6">
+                  <h3 className="text-xl font-semibold text-foreground mb-2">Documento PDF</h3>
+                  <p className="text-muted-foreground mb-6">
                     Tu dispositivo no puede mostrar el PDF directamente.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-3">

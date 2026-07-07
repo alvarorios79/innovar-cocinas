@@ -17,10 +17,10 @@ function formatCurrency(value: number) {
 }
 
 function getMarginStatus(margin: number) {
-  if (margin > 20) return { label: "Saludable", color: "bg-green-100 text-green-800", icon: CheckCircle2 };
-  if (margin >= 10) return { label: "Moderado", color: "bg-blue-100 text-blue-800", icon: TrendingUp };
-  if (margin >= 5) return { label: "En riesgo", color: "bg-orange-100 text-orange-800", icon: AlertTriangle };
-  return { label: "Crítico", color: "bg-red-100 text-red-800", icon: AlertCircle };
+  if (margin > 20) return { label: "Saludable", color: "bg-green-500/15 text-green-300", icon: CheckCircle2 };
+  if (margin >= 10) return { label: "Moderado", color: "bg-blue-500/15 text-blue-300", icon: TrendingUp };
+  if (margin >= 5) return { label: "En riesgo", color: "bg-orange-500/15 text-orange-300", icon: AlertTriangle };
+  return { label: "Crítico", color: "bg-red-500/15 text-red-300", icon: AlertCircle };
 }
 
 export function ProjectResultCard({ totalAmount, materialExpenses, status }: ProjectResultCardProps) {
@@ -31,7 +31,7 @@ export function ProjectResultCard({ totalAmount, materialExpenses, status }: Pro
 
   return (
     <Card>
-      <CardHeader className="py-3 bg-blue-50">
+      <CardHeader className="py-3 bg-blue-500/10">
         <CardTitle className="text-sm flex items-center gap-2">
           <TrendingUp className="h-4 w-4 text-blue-600" />
           Resultado del Proyecto
@@ -53,7 +53,7 @@ export function ProjectResultCard({ totalAmount, materialExpenses, status }: Pro
         </div>
 
         {/* Margen % con estado */}
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-3">
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-500/25 rounded-lg p-3">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-semibold text-blue-700">Margen de Ganancia</span>
             <Badge className={marginStatus.color}>
@@ -87,8 +87,8 @@ export function ProjectResultCard({ totalAmount, materialExpenses, status }: Pro
 
         {/* Alerta si margen es muy bajo */}
         {margen < 10 && (
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-2 mt-2">
-            <p className="text-xs text-amber-800">
+          <div className="bg-amber-500/10 border border-amber-500/25 rounded-lg p-2 mt-2">
+            <p className="text-xs text-amber-300">
               ⚠️ Margen bajo. Revisa los gastos registrados para optimizar la rentabilidad.
             </p>
           </div>

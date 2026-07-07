@@ -93,8 +93,8 @@ export default function ResetPassword() {
             <div className="mx-auto w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-teal-600 to-teal-500 rounded-2xl flex items-center justify-center mb-2">
               <AlertTriangle className="text-white h-8 w-8 md:h-10 md:w-10" />
             </div>
-            <CardTitle className="text-xl md:text-2xl font-bold text-gray-800">Enlace inválido</CardTitle>
-            <CardDescription className="text-sm md:text-base text-gray-600">
+            <CardTitle className="text-xl md:text-2xl font-bold text-foreground">Enlace inválido</CardTitle>
+            <CardDescription className="text-sm md:text-base text-muted-foreground">
               El enlace de recuperación no es válido o ha expirado. Por favor solicita uno nuevo.
             </CardDescription>
           </CardHeader>
@@ -122,8 +122,8 @@ export default function ResetPassword() {
           <div className="mx-auto w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-teal-600 to-teal-500 rounded-2xl flex items-center justify-center mb-2">
             <Lock className="text-white h-8 w-8 md:h-10 md:w-10" />
           </div>
-          <CardTitle className="text-xl md:text-2xl font-bold text-gray-800">Nueva Contraseña</CardTitle>
-          <CardDescription className="text-sm md:text-base text-gray-600">
+          <CardTitle className="text-xl md:text-2xl font-bold text-foreground">Nueva Contraseña</CardTitle>
+          <CardDescription className="text-sm md:text-base text-muted-foreground">
             Ingresa tu nueva contraseña para acceder a tu cuenta
           </CardDescription>
         </CardHeader>
@@ -144,7 +144,7 @@ export default function ResetPassword() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-muted-foreground"
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>

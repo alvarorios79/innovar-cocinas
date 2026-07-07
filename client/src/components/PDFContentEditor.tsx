@@ -240,8 +240,8 @@ export function PDFContentEditor({
         
         <div className="space-y-6">
           {/* Instrucciones */}
-          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-            <p className="text-sm text-blue-800 dark:text-blue-200">
+          <div className="bg-blue-500/10 dark:bg-blue-900/20 border border-blue-500/25 dark:border-blue-800 rounded-lg p-4">
+            <p className="text-sm text-blue-300 dark:text-blue-200">
               <strong>Instrucciones:</strong> Edita la descripción de cada producto para personalizar el contenido del PDF. 
               Los cambios se guardarán con la cotización y aparecerán en el documento final.
             </p>
@@ -259,7 +259,7 @@ export function PDFContentEditor({
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base flex justify-between items-center">
                     <span className="flex items-center gap-2">
-                      <span className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-sm font-bold">
+                      <span className="w-6 h-6 rounded-full bg-emerald-500/15 text-emerald-700 flex items-center justify-center text-sm font-bold">
                         {index + 1}
                       </span>
                       {getItemTypeName(item.itemType)}
@@ -270,7 +270,7 @@ export function PDFContentEditor({
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <Label htmlFor={`desc-${index}`} className="text-sm text-slate-600 mb-2 block">
+                  <Label htmlFor={`desc-${index}`} className="text-sm text-muted-foreground mb-2 block">
                     Descripción detallada (aparecerá en el PDF)
                   </Label>
                   <Textarea
@@ -297,7 +297,7 @@ export function PDFContentEditor({
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <Label htmlFor="general-notes" className="text-sm text-slate-600 mb-2 block">
+              <Label htmlFor="general-notes" className="text-sm text-muted-foreground mb-2 block">
                 Notas adicionales que aparecerán al final del PDF
               </Label>
               <Textarea

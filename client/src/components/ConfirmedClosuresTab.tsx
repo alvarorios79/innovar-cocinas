@@ -136,18 +136,18 @@ export function ConfirmedClosuresTab() {
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="h-6 w-6 animate-spin text-teal-600" />
-              <span className="ml-2 text-gray-600">Cargando cierres...</span>
+              <span className="ml-2 text-muted-foreground">Cargando cierres...</span>
             </div>
           ) : sortedClosures.length === 0 ? (
             <div className="text-center py-12">
               <CheckCircle2 className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-              <p className="text-gray-600">No hay cierres confirmados en este período</p>
+              <p className="text-muted-foreground">No hay cierres confirmados en este período</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-slate-50">
+                  <TableRow className="bg-white/[0.03]">
                     <TableHead className="font-semibold">Período</TableHead>
                     <TableHead className="text-right font-semibold">Ingresos</TableHead>
                     <TableHead className="text-right font-semibold">Gastos Proyecto</TableHead>
@@ -159,7 +159,7 @@ export function ConfirmedClosuresTab() {
                 </TableHeader>
                 <TableBody>
                   {sortedClosures.map((closure: any) => (
-                    <TableRow key={closure.id} className="hover:bg-slate-50">
+                    <TableRow key={closure.id} className="hover:bg-white/[0.03]">
                       <TableCell>
                         <div className="space-y-1">
                           <div className="text-sm font-medium">
@@ -197,16 +197,16 @@ export function ConfirmedClosuresTab() {
                         </div>
                       </TableCell>
                       <TableCell className="text-center">
-                        <Badge className="bg-teal-100 text-teal-800">
+                        <Badge className="bg-teal-500/15 text-teal-300">
                           {closure.projectCount || 0}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-center">
                         <div className="space-y-1">
-                          <Badge className="bg-green-100 text-green-800 block">
+                          <Badge className="bg-green-500/15 text-green-300 block">
                             Confirmado
                           </Badge>
-                          <span className="text-xs text-gray-600">
+                          <span className="text-xs text-muted-foreground">
                             {formatDate(closure.confirmedAt)}
                           </span>
                         </div>
@@ -225,7 +225,7 @@ export function ConfirmedClosuresTab() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card className="shadow-lg">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
                 Ingresos Totales
               </CardTitle>
             </CardHeader>
@@ -240,7 +240,7 @@ export function ConfirmedClosuresTab() {
 
           <Card className="shadow-lg">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
                 Gastos Proyecto
               </CardTitle>
             </CardHeader>
@@ -255,7 +255,7 @@ export function ConfirmedClosuresTab() {
 
           <Card className="shadow-lg">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
                 Gastos Operativos
               </CardTitle>
             </CardHeader>
@@ -268,7 +268,7 @@ export function ConfirmedClosuresTab() {
 
           <Card className="shadow-lg">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
                 Utilidad Total
               </CardTitle>
             </CardHeader>

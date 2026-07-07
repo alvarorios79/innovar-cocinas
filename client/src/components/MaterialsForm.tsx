@@ -202,8 +202,8 @@ export function MaterialsForm({ projectId, readOnly = false }: MaterialsFormProp
                 const file = e.target.files?.[0];
                 if (file) {
                   // Validar tamaño máximo (10MB antes de comprimir)
-                  if (file.size > 12 * 1024 * 1024) {
-                    toast.error("La imagen es muy grande. Máximo 12MB.");
+                  if (file.size > 10 * 1024 * 1024) {
+                    toast.error("La imagen es muy grande. Máximo 10MB.");
                     return;
                   }
                   handlePhotoUpload(photoType, fieldName, file);
@@ -241,7 +241,7 @@ export function MaterialsForm({ projectId, readOnly = false }: MaterialsFormProp
     <div className="space-y-6">
       {/* Banner de solo lectura para diseñador */}
       {readOnly && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-center gap-2 text-blue-700">
+        <div className="bg-blue-500/10 border border-blue-500/25 rounded-lg p-3 flex items-center gap-2 text-blue-700">
           <span className="text-lg">🔒</span>
           <span className="text-sm">Modo solo lectura - Los materiales y herrajes fueron seleccionados previamente para este proyecto</span>
         </div>
@@ -250,7 +250,7 @@ export function MaterialsForm({ projectId, readOnly = false }: MaterialsFormProp
       <Card>
         <CardHeader className="pb-2 sm:pb-3">
           <CardTitle className="text-base sm:text-lg flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-full bg-amber-500/15 flex items-center justify-center">
               <span className="text-amber-700">🪵</span>
             </div>
             Madera
@@ -292,8 +292,8 @@ export function MaterialsForm({ projectId, readOnly = false }: MaterialsFormProp
       <Card>
         <CardHeader className="pb-2 sm:pb-3">
           <CardTitle className="text-base sm:text-lg flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
-              <span className="text-slate-700">🪨</span>
+            <div className="w-8 h-8 rounded-full bg-white/[0.06] flex items-center justify-center">
+              <span className="text-muted-foreground">🪨</span>
             </div>
             Mesón
           </CardTitle>

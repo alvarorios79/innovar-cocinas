@@ -11,19 +11,19 @@ export default function NotFound() {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-background">
-      <Card className="w-full max-w-lg mx-4 shadow-lg">
+    <div className="min-h-screen w-full flex items-center justify-center bg-white/[0.02]">
+      <Card className="w-full max-w-lg mx-4 shadow-lg border-0 bg-white/80 backdrop-blur-sm">
         <CardContent className="pt-8 pb-8 text-center">
           <div className="flex justify-center mb-6">
             <div className="relative">
-              <div className="absolute inset-0 bg-red-100 rounded-full animate-pulse" />
+              <div className="absolute inset-0 bg-red-500/15 rounded-full animate-pulse" />
               <AlertCircle className="relative h-16 w-16 text-red-500" />
             </div>
           </div>
 
-          <h1 className="text-4xl font-bold text-slate-900 mb-2">404</h1>
+          <h1 className="text-4xl font-bold text-foreground mb-2">404</h1>
 
-          <h2 className="text-xl font-semibold text-foreground mb-4">
+          <h2 className="text-xl font-semibold text-muted-foreground mb-4">
             Página No Encontrada
           </h2>
 

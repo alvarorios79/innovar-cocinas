@@ -47,9 +47,9 @@ const movementTypeLabels: Record<string, string> = {
 };
 
 const movementTypeColors: Record<string, { bg: string; text: string }> = {
-  payment: { bg: "bg-blue-100", text: "text-blue-700" },
-  discount: { bg: "bg-green-100", text: "text-green-700" },
-  surcharge: { bg: "bg-orange-100", text: "text-orange-700" },
+  payment: { bg: "bg-blue-500/15", text: "text-blue-700" },
+  discount: { bg: "bg-green-500/15", text: "text-green-700" },
+  surcharge: { bg: "bg-orange-500/15", text: "text-orange-700" },
 };
 
 const movementTypeDarkColors: Record<string, { bg: string; text: string }> = {
@@ -111,7 +111,7 @@ export function PaymentsTable({
   return (
     <>
       <Card>
-        <CardHeader className="py-3 bg-emerald-50 dark:bg-emerald-950">
+        <CardHeader className="py-3 bg-emerald-500/10 dark:bg-emerald-950">
           <CardTitle className="text-sm">Historial de Movimientos</CardTitle>
         </CardHeader>
         <CardContent className="pt-4">
@@ -134,15 +134,15 @@ export function PaymentsTable({
                     <td className="py-3 px-2">{formatDate(typeof payment.receivedAt === 'string' ? new Date(payment.receivedAt) : payment.receivedAt)}</td>
                     <td className="py-3 px-2">
                       {payment.movementType ? (
-                        <span className={`inline-block px-2 py-1 rounded-full text-xs ${movementTypeColors[payment.movementType]?.bg || 'bg-gray-100'} ${movementTypeColors[payment.movementType]?.text || 'text-gray-700'} ${movementTypeDarkColors[payment.movementType]?.bg || ''} ${movementTypeDarkColors[payment.movementType]?.text || ''}`}>
+                        <span className={`inline-block px-2 py-1 rounded-full text-xs ${movementTypeColors[payment.movementType]?.bg || 'bg-white/[0.06]'} ${movementTypeColors[payment.movementType]?.text || 'text-muted-foreground'} ${movementTypeDarkColors[payment.movementType]?.bg || ''} ${movementTypeDarkColors[payment.movementType]?.text || ''}`}>
                           {movementTypeLabels[payment.movementType] || payment.movementType}
                         </span>
                       ) : (
-                        <span className="inline-block px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300">Pago</span>
+                        <span className="inline-block px-2 py-1 rounded-full text-xs bg-blue-500/15 text-blue-700 dark:bg-blue-900 dark:text-blue-300">Pago</span>
                       )}
                     </td>
                     <td className="py-3 px-2">
-                      <span className="inline-block px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300">
+                      <span className="inline-block px-2 py-1 rounded-full text-xs bg-blue-500/15 text-blue-700 dark:bg-blue-900 dark:text-blue-300">
                         {typeLabels[payment.type] || payment.type}
                       </span>
                     </td>
@@ -162,7 +162,7 @@ export function PaymentsTable({
                             variant="ghost"
                             size="sm"
                             onClick={() => setDeleteId(payment.id)}
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            className="text-red-600 hover:text-red-700 hover:bg-red-500/10"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>

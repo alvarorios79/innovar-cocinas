@@ -82,18 +82,18 @@ export function InitialPaymentModal({
 
         <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-4">
           {/* Información del Proyecto */}
-          <Card className="bg-slate-50">
+          <Card className="bg-white/[0.03]">
             <CardContent className="pt-6">
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-slate-600">Total del Proyecto:</span>
+                  <span className="text-sm text-muted-foreground">Total del Proyecto:</span>
                   <span className="font-semibold text-lg">
                     {formatPrice(totalAmount)}
                   </span>
                 </div>
-                <div className="h-px bg-slate-200" />
+                <div className="h-px bg-white/[0.10]" />
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-slate-600">Anticipo Sugerido (60%):</span>
+                  <span className="text-sm text-muted-foreground">Anticipo Sugerido (60%):</span>
                   <span className="text-sm text-slate-500">
                     {formatPrice(suggestedAdvance)}
                   </span>
@@ -145,11 +145,11 @@ export function InitialPaymentModal({
           </div>
 
           {/* Resumen de Saldo */}
-          <Card className="border-emerald-200 bg-emerald-50">
+          <Card className="border-emerald-200 bg-emerald-500/10">
             <CardContent className="pt-6">
               <div className="space-y-2">
                 <div className="flex justify-between items-center text-sm">
-                  <span className="text-slate-600">Saldo Pendiente:</span>
+                  <span className="text-muted-foreground">Saldo Pendiente:</span>
                   <span className="font-semibold text-emerald-700">
                     {formatPrice(Math.max(0, remainingBalance))}
                   </span>
@@ -163,7 +163,7 @@ export function InitialPaymentModal({
 
           {/* Validación */}
           {parseFloat(paymentAmount || "0") > totalAmount && (
-            <div className="flex gap-2 p-3 bg-amber-50 border border-amber-200 rounded-md">
+            <div className="flex gap-2 p-3 bg-amber-500/10 border border-amber-500/25 rounded-md">
               <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
               <p className="text-xs text-amber-700">
                 El monto no puede ser mayor al total del proyecto

@@ -66,8 +66,8 @@ export function SystemCleanupButton() {
 
           {!showResults ? (
             <div className="space-y-4 py-4">
-              <div className="rounded-lg bg-red-50 p-3 border border-red-200">
-                <p className="text-sm text-red-900">
+              <div className="rounded-lg bg-red-500/10 p-3 border border-red-500/25">
+                <p className="text-sm text-red-300">
                   <strong>Advertencia:</strong> Se eliminarán todos los registros del sistema que fueron creados automáticamente.
                 </p>
               </div>
@@ -115,31 +115,31 @@ export function SystemCleanupButton() {
             </div>
           ) : (
             <div className="space-y-4 py-4">
-              <div className="rounded-lg bg-green-50 p-3 border border-green-200">
-                <p className="text-sm text-green-900 font-semibold">
+              <div className="rounded-lg bg-green-500/10 p-3 border border-green-500/25">
+                <p className="text-sm text-green-300 font-semibold">
                   ✅ Limpieza completada exitosamente
                 </p>
               </div>
 
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Usuarios eliminados:</span>
+                  <span className="text-muted-foreground">Usuarios eliminados:</span>
                   <span className="font-semibold">{cleanupResults?.usersDeleted || 0}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Clientes eliminados:</span>
+                  <span className="text-muted-foreground">Clientes eliminados:</span>
                   <span className="font-semibold">{cleanupResults?.clientsDeleted || 0}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Proyectos eliminados:</span>
+                  <span className="text-muted-foreground">Proyectos eliminados:</span>
                   <span className="font-semibold">{cleanupResults?.projectsDeleted || 0}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Cotizaciones eliminadas:</span>
+                  <span className="text-muted-foreground">Cotizaciones eliminadas:</span>
                   <span className="font-semibold">{cleanupResults?.quotationsDeleted || 0}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Citas eliminadas:</span>
+                  <span className="text-muted-foreground">Citas eliminadas:</span>
                   <span className="font-semibold">{cleanupResults?.appointmentsDeleted || 0}</span>
                 </div>
               </div>

@@ -58,7 +58,7 @@ function LogoutButton() {
       size="sm"
       onClick={() => logout.mutate()}
       disabled={logout.isPending}
-      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+      className="text-red-600 hover:text-red-700 hover:bg-red-500/10"
       title="Cerrar sesión"
     >
       <LogOut className="h-4 w-4" />
@@ -195,8 +195,8 @@ export function OperarioDashboard() {
         toast.error("Solo se permiten archivos de imagen");
         return;
       }
-      if (file.size > 12 * 1024 * 1024) {
-        toast.error("El archivo es muy grande. Máximo 12MB");
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error("El archivo es muy grande. Máximo 10MB");
         return;
       }
       setSelectedFile(file);
@@ -265,7 +265,7 @@ export function OperarioDashboard() {
             <div className="flex items-center gap-2 md:gap-4">
               <NotificationBell />
               <div className="hidden md:flex items-center gap-2 text-sm">
-                <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                <Badge variant="outline" className="bg-blue-500/10 text-blue-700 border-blue-500/25">
                   Operario
                 </Badge>
                 <span className="font-medium text-white/85">{user?.name}</span>
@@ -363,7 +363,7 @@ export function OperarioDashboard() {
       <section className="py-3 md:py-4">
         <div className="container">
           <div className="max-w-4xl mx-auto">
-            <h2 className="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">
+            <h2 className="text-lg font-bold text-foreground mb-3 flex items-center gap-2">
               <ClipboardList className="h-5 w-5 text-blue-600" />
               Mis Tareas
             </h2>
@@ -374,7 +374,7 @@ export function OperarioDashboard() {
               <Card className="border-0 shadow-md">
                 <CardContent className="py-8 text-center">
                   <CheckCircle2 className="h-12 w-12 mx-auto text-green-500 mb-3" />
-                  <p className="text-lg font-medium text-gray-800">¡Sin tareas pendientes!</p>
+                  <p className="text-lg font-medium text-foreground">¡Sin tareas pendientes!</p>
                   <p className="text-sm text-muted-foreground">Todas tus tareas están completadas</p>
                 </CardContent>
               </Card>
@@ -391,7 +391,7 @@ export function OperarioDashboard() {
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
                               <span className="text-lg">{priority.emoji}</span>
-                              <h3 className="font-semibold text-gray-800">{task.title}</h3>
+                              <h3 className="font-semibold text-foreground">{task.title}</h3>
                             </div>
                             {task.description && (
                               <p className="text-sm text-muted-foreground mb-2 line-clamp-2">{task.description}</p>
@@ -450,7 +450,7 @@ export function OperarioDashboard() {
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowCompletedTasks(!showCompletedTasks)}
-                  className="w-full justify-between text-muted-foreground hover:text-gray-800"
+                  className="w-full justify-between text-muted-foreground hover:text-foreground"
                 >
                   <span className="flex items-center gap-2">
                     <History className="h-4 w-4" />
@@ -462,7 +462,7 @@ export function OperarioDashboard() {
                 {showCompletedTasks && (
                   <div className="mt-3 space-y-2">
                     {completedTasks.map((task) => (
-                      <Card key={task.id} className="border-0 shadow-sm bg-gray-50">
+                      <Card key={task.id} className="border-0 shadow-sm bg-white/[0.03]">
                         <CardContent className="p-3">
                           <div className="flex items-center gap-2">
                             <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
@@ -497,7 +497,7 @@ export function OperarioDashboard() {
       <section className="py-3 md:py-4 pb-24">
         <div className="container">
           <div className="max-w-4xl mx-auto">
-            <h2 className="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">
+            <h2 className="text-lg font-bold text-foreground mb-3 flex items-center gap-2">
               <Camera className="h-5 w-5 text-blue-600" />
               Proyectos en Producción
             </h2>
@@ -508,7 +508,7 @@ export function OperarioDashboard() {
               <Card className="border-0 shadow-md">
                 <CardContent className="py-8 text-center">
                   <Package className="h-12 w-12 mx-auto text-gray-400 mb-3" />
-                  <p className="text-lg font-medium text-gray-800">Sin proyectos en producción</p>
+                  <p className="text-lg font-medium text-foreground">Sin proyectos en producción</p>
                   <p className="text-sm text-muted-foreground">No hay proyectos activos en este momento</p>
                 </CardContent>
               </Card>
@@ -783,7 +783,7 @@ function ProjectPhotoCard({
 
         {/* Contenido expandido */}
         {isExpanded && (
-          <div className="p-4 bg-gray-50">
+          <div className="p-4 bg-white/[0.03]">
             {/* Info básica del proyecto */}
             {projectDetail?.client && (
               <div className="mb-4 p-3 bg-[#162828] rounded-lg">
@@ -817,7 +817,7 @@ function ProjectPhotoCard({
                             e.stopPropagation();
                             onUploadPhoto(project.id);
                           }}
-                          className="p-1 hover:bg-blue-100 rounded transition-colors text-blue-600 hover:text-blue-700 cursor-pointer"
+                          className="p-1 hover:bg-blue-500/15 rounded transition-colors text-blue-600 hover:text-blue-700 cursor-pointer"
                           title="Subir foto para esta etapa"
                         >
                           <Camera className="h-4 w-4" />
@@ -825,7 +825,7 @@ function ProjectPhotoCard({
                         {stageLabels[stage]} ({(stagePhotoList as any[]).length})
                       </h4>
                       {(stagePhotoList as any[]).length === 0 ? (
-                        <div className="flex flex-col items-center justify-center p-8 bg-gray-50 rounded-lg border-2 border-dashed border-[rgba(106,207,199,0.18)]">
+                        <div className="flex flex-col items-center justify-center p-8 bg-white/[0.03] rounded-lg border-2 border-dashed border-[rgba(106,207,199,0.18)]">
                           <Camera className="h-8 w-8 text-gray-400 mb-2" />
                           <p className="text-sm text-white/45">Sin fotos de renders disponibles</p>
                         </div>

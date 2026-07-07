@@ -14,7 +14,6 @@ interface PDFPreviewBeforeSaveProps {
   pdfUrl: string;
   isGenerating?: boolean;
   quotationNumber?: string;
-  quotationId?: number;
 }
 
 export function PDFPreviewBeforeSave({
@@ -23,7 +22,6 @@ export function PDFPreviewBeforeSave({
   pdfUrl,
   isGenerating = false,
   quotationNumber = "preview",
-  quotationId,
 }: PDFPreviewBeforeSaveProps) {
   const [numPages, setNumPages] = useState<number>(0);
   const [pageNumber, setPageNumber] = useState<number>(1);
@@ -65,20 +63,21 @@ export function PDFPreviewBeforeSave({
   };
 
   const handleDownload = async () => {
+    const downloadUrl = pdfUrl.replace("?preview=true", "").replace("&preview=true", "");
     const cleanName = quotationNumber.replace(/[^a-zA-Z0-9\-_\s]/g, '').replace(/\s+/g, '_');
     const filename = `${cleanName}.pdf`;
-    
-    // Usar el endpoint S3 estable si tenemos el ID; si no, fallback al URL temporal
-    const downloadUrl = quotationId
-      ? `/api/quotations/pdf/${quotationId}?download=true`
-      : pdfUrl.replace("?preview=true", "").replace("&preview=true", "");
     
     if (isIOS) {
       // En iOS, usar la función compatible
       await downloadPDFiOS(downloadUrl, filename);
     } else {
-      // En desktop, navegar directamente (el servidor redirige a S3 con Content-Disposition: attachment)
-      window.open(downloadUrl, '_blank');
+      // En desktop, usar método tradicional
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     }
   };
 
@@ -129,7 +128,7 @@ export function PDFPreviewBeforeSave({
         {/* Botón de cierre en esquina superior derecha */}
         <button
           onClick={() => onOpenChange(false)}
-          className="absolute top-4 right-4 z-50 p-2 bg-white rounded-full shadow-lg hover:bg-gray-100"
+          className="absolute top-4 right-4 z-50 p-2 bg-white rounded-full shadow-lg hover:bg-white/[0.06]"
           title="Cerrar"
         >
           <X className="h-5 w-5" />
@@ -140,8 +139,8 @@ export function PDFPreviewBeforeSave({
           <div className="flex-1 flex flex-col items-center justify-center gap-4 p-6">
             <AlertCircle className="h-12 w-12 text-red-500" />
             <div className="text-center">
-              <p className="font-semibold text-gray-900">PDF no disponible</p>
-              <p className="text-sm text-gray-600 mt-2">El PDF aún no se ha generado. Por favor, intenta más tarde.</p>
+              <p className="font-semibold text-foreground">PDF no disponible</p>
+              <p className="text-sm text-muted-foreground mt-2">El PDF aún no se ha generado. Por favor, intenta más tarde.</p>
             </div>
           </div>
         ) : isIOS ? (
@@ -149,8 +148,8 @@ export function PDFPreviewBeforeSave({
           <div className="flex-1 flex flex-col items-center justify-center gap-4 p-6">
             <AlertCircle className="h-12 w-12 text-amber-500" />
             <div className="text-center">
-              <p className="font-semibold text-gray-900">Vista previa no disponible en iPhone</p>
-              <p className="text-sm text-gray-600 mt-2">Toca el botón de abajo para ver el PDF en pantalla completa</p>
+              <p className="font-semibold text-foreground">Vista previa no disponible en iPhone</p>
+              <p className="text-sm text-muted-foreground mt-2">Toca el botón de abajo para ver el PDF en pantalla completa</p>
             </div>
             <Button
               onClick={() => window.open(cleanPdfUrl, '_blank')}
@@ -164,7 +163,7 @@ export function PDFPreviewBeforeSave({
           <>
             {/* Controles de navegación y zoom */}
             {!isGenerating && !isLoading && numPages > 0 && (
-              <div className="flex items-center justify-between px-3 py-2 bg-gray-100 rounded-md text-sm flex-wrap gap-2">
+              <div className="flex items-center justify-between px-3 py-2 bg-white/[0.06] rounded-md text-sm flex-wrap gap-2">
                 <div className="flex items-center gap-1">
                   <Button
                     variant="outline"
@@ -223,11 +222,11 @@ export function PDFPreviewBeforeSave({
 
             <div 
               ref={containerRef}
-              className="flex-1 relative bg-gray-200 rounded-md overflow-auto min-h-0"
+              className="flex-1 relative bg-white/[0.10] rounded-md overflow-auto min-h-0"
               style={{ maxHeight: 'calc(95vh - 200px)' }}
             >
               {(isGenerating || isLoading) && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center z-10 bg-gray-200">
+                <div className="absolute inset-0 flex flex-col items-center justify-center z-10 bg-white/[0.10]">
                   <Loader2 className="h-8 w-8 animate-spin text-teal-600 mb-2" />
                   <div className="text-gray-500">
                     {isGenerating ? "Generando vista previa..." : "Cargando PDF..."}

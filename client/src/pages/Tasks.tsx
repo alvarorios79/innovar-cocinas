@@ -512,7 +512,7 @@ export default function Tasks() {
               )}
               {/* Historial de recordatorios */}
               {task.reminderCount > 0 && (
-                <div className="mt-2 pt-2 border-t border-dashed border-amber-200">
+                <div className="mt-2 pt-2 border-t border-dashed border-amber-500/25">
                   <p className="flex items-center gap-1 text-amber-600">
                     <Bell className="h-3 w-3" />
                     <strong>Recordatorios enviados:</strong> {task.reminderCount}
@@ -565,7 +565,7 @@ export default function Tasks() {
               <Button
                 size="sm"
                 variant="ghost"
-                className="text-amber-600 hover:text-amber-700 hover:bg-amber-50"
+                className="text-amber-600 hover:text-amber-700 hover:bg-amber-500/10"
                 onClick={() => setReminderConfirm({
                   open: true,
                   taskId: task.id,
@@ -625,7 +625,7 @@ export default function Tasks() {
                   variant="outline"
                   size="sm"
                   onClick={() => setShowReassignDialog(true)}
-                  className="border-blue-500 text-blue-600 hover:bg-blue-50"
+                  className="border-blue-500 text-blue-600 hover:bg-blue-500/10"
                 >
                   <Users className="mr-2 h-4 w-4" />
                   Reasignar ({selectedTasks.length})
@@ -667,7 +667,7 @@ export default function Tasks() {
 
       {/* Filtro por vencimiento */}
       <Select value={dueDateFilter} onValueChange={setDueDateFilter}>
-        <SelectTrigger className={`w-[160px] ${dueDateFilter !== 'all' ? 'border-amber-500 bg-amber-50 dark:bg-amber-950' : ''}`}>
+        <SelectTrigger className={`w-[160px] ${dueDateFilter !== 'all' ? 'border-amber-500 bg-amber-500/10 dark:bg-amber-950' : ''}`}>
           <Clock className="h-4 w-4 mr-2" />
           <SelectValue placeholder="Vencimiento" />
         </SelectTrigger>
@@ -861,7 +861,7 @@ export default function Tasks() {
   );
 
   return (
-    <div className="pb-20 md:pb-0">
+    <div className="min-h-screen pb-20 md:pb-0 bg-background">
       {/* AlertDialog de confirmación para enviar recordatorio */}
       <AlertDialog open={reminderConfirm.open} onOpenChange={(open) => setReminderConfirm({ ...reminderConfirm, open })}>
         <AlertDialogContent>
@@ -1115,15 +1115,15 @@ export default function Tasks() {
                             <Eye className="h-4 w-4 text-muted-foreground" />
                           </div>
                           <div className="flex gap-2 text-xs">
-                            <Badge variant="outline" className="bg-gray-100">
+                            <Badge variant="outline" className="bg-white/[0.06]">
                               <Clock className="h-3 w-3 mr-1" />
                               {stat.pending}
                             </Badge>
-                            <Badge variant="outline" className="bg-blue-100 text-blue-700">
+                            <Badge variant="outline" className="bg-blue-500/15 text-blue-700">
                               <Play className="h-3 w-3 mr-1" />
                               {stat.inProgress}
                             </Badge>
-                            <Badge variant="outline" className="bg-green-100 text-green-700">
+                            <Badge variant="outline" className="bg-green-500/15 text-green-700">
                               <CheckCircle2 className="h-3 w-3 mr-1" />
                               {stat.completed}
                             </Badge>

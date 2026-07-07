@@ -161,7 +161,7 @@ export function OperatorDailyProjects({ className }: OperatorDailyProjectsProps)
   
   return (
     <>
-      <Card className={`${className} border-orange-200`}>
+      <Card className={`${className} border-orange-500/25`}>
         <CardHeader className="pb-3 bg-gradient-to-r from-orange-50 to-amber-50">
           <CardTitle className="text-lg flex items-center gap-2 text-orange-700">
             <Hammer className="h-5 w-5" />
@@ -192,7 +192,7 @@ export function OperatorDailyProjects({ className }: OperatorDailyProjectsProps)
                   >
                     {/* Header del proyecto */}
                     <div 
-                      className={`p-3 cursor-pointer hover:bg-gray-50 ${
+                      className={`p-3 cursor-pointer hover:bg-white/[0.03] ${
                         OPERATOR_STATUSES[project.status as keyof typeof OPERATOR_STATUSES]?.color || "bg-gray-400"
                       } bg-opacity-10`}
                       onClick={() => setExpandedProject(isExpanded ? null : project.id)}
@@ -225,7 +225,7 @@ export function OperatorDailyProjects({ className }: OperatorDailyProjectsProps)
                       
                       {/* Barra de progreso */}
                       <div className="mt-2">
-                        <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                        <div className="h-1.5 bg-white/[0.10] rounded-full overflow-hidden">
                           <div 
                             className={`h-full transition-all ${
                               OPERATOR_STATUSES[project.status as keyof typeof OPERATOR_STATUSES]?.color || "bg-gray-400"
@@ -238,7 +238,7 @@ export function OperatorDailyProjects({ className }: OperatorDailyProjectsProps)
                     
                     {/* Checklist expandido */}
                     {isExpanded && (
-                      <div className="p-3 bg-gray-50 border-t">
+                      <div className="p-3 bg-white/[0.03] border-t">
                         <h5 className="font-medium text-sm mb-3 flex items-center gap-2">
                           <CheckCircle2 className="h-4 w-4 text-green-600" />
                           Checklist de {OPERATOR_STATUSES[project.status as keyof typeof OPERATOR_STATUSES]?.label}
@@ -251,7 +251,7 @@ export function OperatorDailyProjects({ className }: OperatorDailyProjectsProps)
                               <div 
                                 key={item.id}
                                 className={`flex items-start gap-3 p-2 rounded-lg border transition-colors ${
-                                  isChecked ? "bg-green-50 border-green-200" : "bg-white border-gray-200"
+                                  isChecked ? "bg-green-500/10 border-green-500/25" : "bg-white border-white/[0.10]"
                                 }`}
                               >
                                 <Checkbox
@@ -285,7 +285,7 @@ export function OperatorDailyProjects({ className }: OperatorDailyProjectsProps)
                             <Button 
                               variant="outline" 
                               size="sm"
-                              className="text-green-600 border-green-300 hover:bg-green-50"
+                              className="text-green-600 border-green-300 hover:bg-green-500/10"
                             >
                               <Camera className="h-4 w-4 mr-1" />
                               Subir Fotos
@@ -294,7 +294,7 @@ export function OperatorDailyProjects({ className }: OperatorDailyProjectsProps)
                           <Button 
                             variant="outline" 
                             size="sm"
-                            className="text-amber-600 border-amber-300 hover:bg-amber-50"
+                            className="text-amber-600 border-amber-300 hover:bg-amber-500/10"
                             onClick={(e) => {
                               e.stopPropagation();
                               setSelectedProject(project);

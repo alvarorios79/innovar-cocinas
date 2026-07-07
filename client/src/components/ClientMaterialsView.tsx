@@ -128,7 +128,7 @@ export function ClientMaterialsView({ projectId }: ClientMaterialsViewProps) {
                 </div>
                 <div className="flex-1">
                   <h4 className="font-medium flex items-center gap-2">
-                    <Square className="h-4 w-4 text-gray-600" />
+                    <Square className="h-4 w-4 text-muted-foreground" />
                     Mesón
                   </h4>
                   <p className="text-sm text-muted-foreground mt-1">

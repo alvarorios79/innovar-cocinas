@@ -181,14 +181,14 @@ Te hemos creado una cuenta en INNOVAR Cocinas para que puedas seguir el estado d
               </div>
               
               {/* Checkbox Gestión Interna */}
-              <div className="flex items-start space-x-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+              <div className="flex items-start space-x-3 p-3 bg-amber-500/10 border border-amber-500/25 rounded-lg">
                 <Checkbox
                   id="internalManagement"
                   checked={formData.internalManagement}
                   onCheckedChange={(checked) => setFormData({ ...formData, internalManagement: checked === true })}
                 />
                 <div className="space-y-1">
-                  <Label htmlFor="internalManagement" className="flex items-center gap-2 font-medium text-amber-800 cursor-pointer">
+                  <Label htmlFor="internalManagement" className="flex items-center gap-2 font-medium text-amber-300 cursor-pointer">
                     <Building2 className="h-4 w-4" />
                     Gestión interna
                   </Label>
@@ -221,7 +221,7 @@ Te hemos creado una cuenta en INNOVAR Cocinas para que puedas seguir el estado d
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
-              <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+              <div className="bg-white/[0.03] rounded-lg p-4 space-y-3">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-xs text-muted-foreground">Usuario (Email)</p>

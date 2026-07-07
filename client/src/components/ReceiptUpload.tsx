@@ -91,7 +91,7 @@ export function ReceiptUpload({
       <Label htmlFor="receipt">Adjuntar comprobante (PDF, JPG, PNG)</Label>
 
       {previewUrl ? (
-        <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+        <div className="flex items-center justify-between p-3 bg-green-500/10 border border-green-500/25 rounded-lg">
           <div className="flex items-center gap-2">
             {previewUrl.endsWith(".pdf") ? (
               <FileText className="h-5 w-5 text-red-600" />
@@ -99,7 +99,7 @@ export function ReceiptUpload({
               <Image className="h-5 w-5 text-blue-600" />
             )}
             <div className="flex-1">
-              <p className="text-sm font-medium text-gray-900">{fileName}</p>
+              <p className="text-sm font-medium text-foreground">{fileName}</p>
               <a
                 href={previewUrl}
                 target="_blank"

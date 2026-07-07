@@ -48,7 +48,7 @@ export function CEODashboard() {
         <div className="text-center max-w-lg">
           <AlertCircle className="h-12 w-12 text-red-400 mx-auto mb-4" />
           <p className="text-red-500 font-semibold mb-3">Error al cargar el dashboard</p>
-          <pre className="bg-red-50 text-red-600 text-xs p-4 rounded-lg overflow-auto text-left max-h-60">
+          <pre className="bg-red-500/10 text-red-600 text-xs p-4 rounded-lg overflow-auto text-left max-h-60">
             {JSON.stringify(error, null, 2)}
           </pre>
         </div>

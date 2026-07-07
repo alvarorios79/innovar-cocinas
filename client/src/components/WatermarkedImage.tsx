@@ -45,7 +45,7 @@ export function WatermarkedImage({
 
   if (error) {
     return (
-      <div className={`bg-gray-200 flex items-center justify-center ${className}`}>
+      <div className={`bg-white/[0.10] flex items-center justify-center ${className}`}>
         <span className="text-gray-500 text-sm">Error al cargar imagen</span>
       </div>
     );
@@ -58,7 +58,7 @@ export function WatermarkedImage({
       style={{ cursor: onClick ? "pointer" : "default" }}
     >
       {isLoading && (
-        <div className="absolute inset-0 bg-gray-100 animate-pulse flex items-center justify-center z-10">
+        <div className="absolute inset-0 bg-white/[0.06] animate-pulse flex items-center justify-center z-10">
           <div className="w-8 h-8 border-2 border-teal-500 border-t-transparent rounded-full animate-spin" />
         </div>
       )}

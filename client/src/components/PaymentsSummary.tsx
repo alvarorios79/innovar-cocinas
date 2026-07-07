@@ -21,11 +21,11 @@ function formatCurrency(value: number): string {
 
 function getBalanceColor(balance: number): { bg: string; text: string; icon: any } {
   if (balance < 0) {
-    return { bg: "bg-blue-50 dark:bg-blue-950", text: "text-blue-600 dark:text-blue-400", icon: AlertCircle };
+    return { bg: "bg-blue-500/10 dark:bg-blue-950", text: "text-blue-600 dark:text-blue-400", icon: AlertCircle };
   } else if (balance === 0) {
-    return { bg: "bg-green-50 dark:bg-green-950", text: "text-green-600 dark:text-green-400", icon: CheckCircle2 };
+    return { bg: "bg-green-500/10 dark:bg-green-950", text: "text-green-600 dark:text-green-400", icon: CheckCircle2 };
   } else {
-    return { bg: "bg-red-50 dark:bg-red-950", text: "text-red-600 dark:text-red-400", icon: AlertCircle };
+    return { bg: "bg-red-500/10 dark:bg-red-950", text: "text-red-600 dark:text-red-400", icon: AlertCircle };
   }
 }
 
@@ -37,7 +37,7 @@ export function PaymentsSummary({ totalAmount, totalPaid, balance, discounts = 0
     <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
       {/* Total del Proyecto */}
       <Card>
-        <CardHeader className="py-3 bg-blue-50 dark:bg-blue-950">
+        <CardHeader className="py-3 bg-blue-500/10 dark:bg-blue-950">
           <CardTitle className="text-sm flex items-center gap-2">
             <DollarSign className="h-4 w-4 text-blue-600 dark:text-blue-400" />
             Total del Proyecto
@@ -52,7 +52,7 @@ export function PaymentsSummary({ totalAmount, totalPaid, balance, discounts = 0
 
       {/* Total Cobrado */}
       <Card>
-        <CardHeader className="py-3 bg-green-50 dark:bg-green-950">
+        <CardHeader className="py-3 bg-green-500/10 dark:bg-green-950">
           <CardTitle className="text-sm flex items-center gap-2">
             <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
             Total Cobrado
@@ -70,7 +70,7 @@ export function PaymentsSummary({ totalAmount, totalPaid, balance, discounts = 0
 
       {/* Pagado */}
       <Card>
-        <CardHeader className="py-3 bg-green-50 dark:bg-green-950">
+        <CardHeader className="py-3 bg-green-500/10 dark:bg-green-950">
           <CardTitle className="text-sm flex items-center gap-2">
             <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
             Pagado
@@ -88,7 +88,7 @@ export function PaymentsSummary({ totalAmount, totalPaid, balance, discounts = 0
 
       {/* Descuentos */}
       <Card>
-        <CardHeader className="py-3 bg-purple-50 dark:bg-purple-950">
+        <CardHeader className="py-3 bg-purple-500/10 dark:bg-purple-950">
           <CardTitle className="text-sm flex items-center gap-2">
             <AlertCircle className="h-4 w-4 text-purple-600 dark:text-purple-400" />
             Descuentos
@@ -106,7 +106,7 @@ export function PaymentsSummary({ totalAmount, totalPaid, balance, discounts = 0
 
       {/* Recargos */}
       <Card>
-        <CardHeader className="py-3 bg-orange-50 dark:bg-orange-950">
+        <CardHeader className="py-3 bg-orange-500/10 dark:bg-orange-950">
           <CardTitle className="text-sm flex items-center gap-2">
             <AlertCircle className="h-4 w-4 text-orange-600 dark:text-orange-400" />
             Recargos

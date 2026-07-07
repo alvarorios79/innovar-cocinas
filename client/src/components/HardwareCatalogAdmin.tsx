@@ -208,8 +208,8 @@ export function HardwareCatalogAdmin() {
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">
-                <div className="space-y-2 p-3 bg-blue-50 rounded-lg border-2 border-blue-200">
-                  <Label className="text-base font-semibold text-blue-900">Categoría *</Label>
+                <div className="space-y-2 p-3 bg-blue-500/10 rounded-lg border-2 border-blue-500/25">
+                  <Label className="text-base font-semibold text-blue-300">Categoría *</Label>
                   <Select
                     value={form.category}
                     onValueChange={(value: "cocinas" | "closets" | "puertas") => 

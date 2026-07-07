@@ -15,15 +15,13 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
-  const utils = trpc.useUtils();
   const loginMutation = trpc.auth.loginWithPassword.useMutation({
-    onSuccess: (data) => {
+    onSuccess: () => {
       toast.success("¡Bienvenido!", {
         description: "Has iniciado sesión correctamente",
       });
-      // Actualizar la caché de auth y navegar sin recargar la página
-      utils.auth.me.setData(undefined, data.user as any);
-      setLocation("/");
+      // Recargar la página para actualizar el estado de autenticación
+      window.location.href = "/";
     },
     onError: (error) => {
       toast.error("Error de inicio de sesión", {
@@ -50,7 +48,7 @@ export default function Login() {
           <div className="mx-auto mb-2 flex items-center justify-center">
             <img src="/logo-original.png" alt="INNOVAR Cocinas de Diseño" style={{ width: 90, height: "auto", objectFit: "contain" }} />
           </div>
-          <CardDescription className="text-sm md:text-base text-gray-600 pt-1">
+          <CardDescription className="text-sm md:text-base text-muted-foreground pt-1">
             Ingresa tus credenciales para acceder al sistema
           </CardDescription>
         </CardHeader>
@@ -84,7 +82,7 @@ export default function Login() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-muted-foreground"
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
@@ -117,7 +115,7 @@ export default function Login() {
           </div>
 
           <div className="mt-6 text-center space-y-2 pt-4 border-t">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted-foreground">
               ¿No tienes cuenta?{" "}
               <Link href="/register" className="text-amber-600 hover:text-amber-700 font-medium">
                 Regístrate aquí

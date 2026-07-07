@@ -67,10 +67,10 @@ export function WhatsAppStatusPanel() {
   };
 
   return (
-    <Card className="border-emerald-200 bg-emerald-50/30">
+    <Card className="border-emerald-200 bg-emerald-500/10/30">
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2 text-emerald-800">
+          <CardTitle className="flex items-center gap-2 text-emerald-300">
             <MessageCircle className="h-5 w-5" />
             WhatsApp Cloud API
           </CardTitle>
@@ -79,7 +79,7 @@ export function WhatsAppStatusPanel() {
             size="sm"
             onClick={handleRefresh}
             disabled={isLoading}
-            className="text-emerald-700 hover:text-emerald-900 hover:bg-emerald-100"
+            className="text-emerald-700 hover:text-emerald-300 hover:bg-emerald-500/15"
           >
             {isLoading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -123,7 +123,7 @@ export function WhatsAppStatusPanel() {
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" />
                 <span className="text-sm font-medium text-emerald-700">Conectado</span>
-                <Badge variant="outline" className="text-[10px] border-emerald-300 text-emerald-700 bg-emerald-50">
+                <Badge variant="outline" className="text-[10px] border-emerald-300 text-emerald-700 bg-emerald-500/10">
                   ACTIVO
                 </Badge>
               </div>
@@ -196,14 +196,14 @@ export function WhatsAppStatusPanel() {
 
         {/* Instrucciones si no está configurado */}
         {!status?.configured && !isLoading && (
-          <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800 space-y-1">
+          <div className="rounded-lg border border-amber-500/25 bg-amber-500/10 p-3 text-xs text-amber-300 space-y-1">
             <p className="font-semibold">Para activar WhatsApp Cloud API:</p>
             <ol className="list-decimal list-inside space-y-1 ml-1">
               <li>Ve a Meta for Developers → tu app de WhatsApp</li>
               <li>Copia el <strong>Access Token</strong> y el <strong>Phone Number ID</strong></li>
               <li>
-                Agrega al archivo <code className="bg-amber-100 px-1 rounded">.env</code>:
-                <pre className="mt-1 bg-amber-100 rounded p-2 whitespace-pre-wrap font-mono text-[11px]">{`WHATSAPP_ACCESS_TOKEN=tu_token
+                Agrega al archivo <code className="bg-amber-500/15 px-1 rounded">.env</code>:
+                <pre className="mt-1 bg-amber-500/15 rounded p-2 whitespace-pre-wrap font-mono text-[11px]">{`WHATSAPP_ACCESS_TOKEN=tu_token
 WHATSAPP_PHONE_NUMBER_ID=tu_phone_id`}</pre>
               </li>
               <li>Reinicia el servidor</li>

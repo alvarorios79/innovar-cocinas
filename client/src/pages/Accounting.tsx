@@ -17,7 +17,6 @@ import {
   ArrowLeft,
   Edit2,
   Trash2,
-  CreditCard,
 } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { Link } from "wouter";
@@ -40,21 +39,20 @@ import { ConfirmedClosuresTab } from "@/components/ConfirmedClosuresTab";
 import { ClosedProjectsTab } from "@/components/ClosedProjectsTab";
 import { Upload, CheckCircle2, Archive } from "lucide-react";
 
-// Categorías operativas (gastos de bodega)
+// Categorías operativas
 const OPERATIVE_CATEGORIES = [
-  { value: "arriendo",              label: "Arriendo" },
-  { value: "energia",               label: "Luz / Energía" },
-  { value: "agua",                  label: "Agua" },
-  { value: "internet",              label: "Internet" },
-  { value: "aseo",                  label: "Insumos de aseo" },
-  { value: "papeleria",             label: "Insumos papelería" },
-  { value: "cortesia_cliente",      label: "Cortesía atención cliente" },
-  { value: "gasolina_vehiculos",    label: "Gasolina vehículos" },
-  { value: "mantenimiento_moto",    label: "Mantenimiento moto" },
-  { value: "mantenimiento_bodega",  label: "Mantenimiento bodega" },
-  { value: "mantenimiento_maquinaria", label: "Mantenimiento maquinaria" },
-  { value: "nomina",                label: "Nómina trabajadores" },
-  { value: "otro",                  label: "Otro" },
+  { value: "arriendo", label: "Arriendo" },
+  { value: "energia", label: "Energía" },
+  { value: "agua", label: "Agua" },
+  { value: "internet", label: "Internet" },
+  { value: "mantenimiento", label: "Mantenimiento" },
+  { value: "herramientas", label: "Herramientas" },
+  { value: "jardineria", label: "Jardinería" },
+  { value: "reparaciones", label: "Reparaciones" },
+  { value: "transporte", label: "Transporte" },
+  { value: "papeleria", label: "Papelería" },
+  { value: "aseo", label: "Aseo" },
+  { value: "otro", label: "Otro" },
 ] as const;
 
 const GENERAL_CATEGORIES = [
@@ -87,29 +85,13 @@ export default function Accounting() {
   const [importModalOpen, setImportModalOpen] = useState(false);
   const [receiptUrl, setReceiptUrl] = useState<string>("");
   const [receiptFileName, setReceiptFileName] = useState<string>("");
-  const [activeTab, setActiveTab] = useState<"expenses" | "closure" | "confirmed" | "closed" | "reports" | "payments">("expenses");
+  const [activeTab, setActiveTab] = useState<"expenses" | "closure" | "confirmed" | "closed" | "reports">("expenses");
   const [currentPage, setCurrentPage] = useState(1);
   const [filterProjectId, setFilterProjectId] = useState<string>("");
-  // Pagos tab filters
-  const [payFilterMonth, setPayFilterMonth] = useState<string>(String(new Date().getMonth()));
-  const [payFilterYear, setPayFilterYear] = useState<string>(String(new Date().getFullYear()));
-  const [payFilterProject, setPayFilterProject] = useState<string>("");
-  const [payFilterType, setPayFilterType] = useState<"all" | "payment" | "discount" | "surcharge">("all");
 
   // Queries
   const { data: projects } = trpc.projects.list.useQuery();
   const { data: expenses } = trpc.expenses.getAll.useQuery();
-
-  // Payments global query
-  const { data: allPayments, isLoading: paymentsLoading } = trpc.payments.getAll.useQuery(
-    {
-      month: payFilterMonth !== "" ? parseInt(payFilterMonth) : undefined,
-      year: payFilterYear !== "" ? parseInt(payFilterYear) : undefined,
-      projectId: payFilterProject !== "" ? parseInt(payFilterProject) : undefined,
-      movementType: payFilterType !== "all" ? payFilterType : undefined,
-    },
-    { enabled: activeTab === "payments" }
-  );
 
   // Check if user has permission to import
   const canImport = user?.role === "admin" || user?.role === "super_admin";
@@ -377,15 +359,6 @@ export default function Accounting() {
               <Archive className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
               <span className="hidden sm:inline">Proyectos Cerrados</span>
               <span className="sm:hidden">Proyectos<br/>Cerrados</span>
-            </Button>
-            <Button
-              variant={activeTab === "payments" ? "default" : "ghost"}
-              onClick={() => setActiveTab("payments")}
-              className="rounded-b-none whitespace-nowrap text-xs sm:text-sm md:text-base px-2 sm:px-3 md:px-4"
-            >
-              <CreditCard className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-              <span className="hidden sm:inline">Pagos</span>
-              <span className="sm:hidden">Pagos</span>
             </Button>
             <Button
               variant={activeTab === "reports" ? "default" : "ghost"}
@@ -681,7 +654,7 @@ export default function Accounting() {
                             <span className="hidden md:inline text-xs">Ver</span>
                           </a>
                         ) : (
-                          <span className="text-slate-600 text-xs">-</span>
+                          <span className="text-muted-foreground text-xs">-</span>
                         )}
                       </td>
                       {canEditDelete && (
@@ -792,201 +765,6 @@ export default function Accounting() {
         {/* CLOSED PROJECTS TAB */}
         {activeTab === "closed" && (
           <ClosedProjectsTab />
-        )}
-
-
-        {/* PAYMENTS TAB */}
-        {activeTab === "payments" && (
-          <div className="space-y-6">
-            {/* Filtros */}
-            <Card className="shadow-lg">
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <Filter className="h-4 w-4 text-teal-400" />
-                  Filtros
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                  {/* Mes */}
-                  <div>
-                    <Label className="text-xs text-slate-400 mb-1 block">Mes</Label>
-                    <Select value={payFilterMonth} onValueChange={setPayFilterMonth}>
-                      <SelectTrigger className="h-9 text-sm">
-                        <SelectValue placeholder="Todos" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="">Todos los meses</SelectItem>
-                        {["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"].map((m, i) => (
-                          <SelectItem key={i} value={String(i)}>{m}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  {/* Año */}
-                  <div>
-                    <Label className="text-xs text-slate-400 mb-1 block">Año</Label>
-                    <Select value={payFilterYear} onValueChange={setPayFilterYear}>
-                      <SelectTrigger className="h-9 text-sm">
-                        <SelectValue placeholder="Todos" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="">Todos los años</SelectItem>
-                        {[2024, 2025, 2026, 2027].map(y => (
-                          <SelectItem key={y} value={String(y)}>{y}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  {/* Proyecto */}
-                  <div>
-                    <Label className="text-xs text-slate-400 mb-1 block">Proyecto</Label>
-                    <Select value={payFilterProject} onValueChange={setPayFilterProject}>
-                      <SelectTrigger className="h-9 text-sm">
-                        <SelectValue placeholder="Todos" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="">Todos los proyectos</SelectItem>
-                        {projects?.map((p: any) => (
-                          <SelectItem key={p.id} value={String(p.id)}>{p.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  {/* Tipo */}
-                  <div>
-                    <Label className="text-xs text-slate-400 mb-1 block">Tipo</Label>
-                    <Select value={payFilterType} onValueChange={(v) => setPayFilterType(v as any)}>
-                      <SelectTrigger className="h-9 text-sm">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Todos</SelectItem>
-                        <SelectItem value="payment">Pagos</SelectItem>
-                        <SelectItem value="discount">Descuentos</SelectItem>
-                        <SelectItem value="surcharge">Recargos</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Resumen */}
-            {!paymentsLoading && allPayments && (
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                {/* Total cobrado */}
-                <Card className="bg-teal-500/10 border-teal-500/20">
-                  <CardContent className="pt-4 pb-4">
-                    <div className="text-xs text-teal-400 font-medium mb-1">Total Cobrado</div>
-                    <div className="text-xl font-bold text-teal-300">
-                      ${allPayments
-                        .filter((p: any) => p.movementType === "payment")
-                        .reduce((sum: number, p: any) => sum + parseFloat(p.amount || "0"), 0)
-                        .toLocaleString("es-CO")}
-                    </div>
-                    <div className="text-xs text-slate-400 mt-1">
-                      {allPayments.filter((p: any) => p.movementType === "payment").length} pagos
-                    </div>
-                  </CardContent>
-                </Card>
-                {/* Descuentos */}
-                <Card className="bg-orange-500/10 border-orange-500/20">
-                  <CardContent className="pt-4 pb-4">
-                    <div className="text-xs text-orange-400 font-medium mb-1">Descuentos</div>
-                    <div className="text-xl font-bold text-orange-300">
-                      ${allPayments
-                        .filter((p: any) => p.movementType === "discount")
-                        .reduce((sum: number, p: any) => sum + parseFloat(p.amount || "0"), 0)
-                        .toLocaleString("es-CO")}
-                    </div>
-                    <div className="text-xs text-slate-400 mt-1">
-                      {allPayments.filter((p: any) => p.movementType === "discount").length} descuentos
-                    </div>
-                  </CardContent>
-                </Card>
-                {/* Recargos */}
-                <Card className="bg-blue-500/10 border-blue-500/20">
-                  <CardContent className="pt-4 pb-4">
-                    <div className="text-xs text-blue-400 font-medium mb-1">Recargos</div>
-                    <div className="text-xl font-bold text-blue-300">
-                      ${allPayments
-                        .filter((p: any) => p.movementType === "surcharge")
-                        .reduce((sum: number, p: any) => sum + parseFloat(p.amount || "0"), 0)
-                        .toLocaleString("es-CO")}
-                    </div>
-                    <div className="text-xs text-slate-400 mt-1">
-                      {allPayments.filter((p: any) => p.movementType === "surcharge").length} recargos
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
-
-            {/* Tabla de pagos */}
-            <Card className="shadow-lg">
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <CreditCard className="h-4 w-4 text-teal-400" />
-                  Historial de Pagos
-                  {allPayments && (
-                    <Badge variant="secondary" className="ml-2">{allPayments.length}</Badge>
-                  )}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-0">
-                {paymentsLoading ? (
-                  <div className="text-center py-12 text-slate-400 text-sm">Cargando pagos...</div>
-                ) : !allPayments || allPayments.length === 0 ? (
-                  <div className="text-center py-12 text-slate-400 text-sm">
-                    No hay pagos registrados con los filtros seleccionados
-                  </div>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b border-white/[0.08] bg-white/[0.02]">
-                          <th className="text-left py-3 px-4 text-xs text-slate-400 font-medium">Fecha</th>
-                          <th className="text-left py-3 px-4 text-xs text-slate-400 font-medium">Cliente</th>
-                          <th className="text-left py-3 px-4 text-xs text-slate-400 font-medium">Proyecto</th>
-                          <th className="text-left py-3 px-4 text-xs text-slate-400 font-medium">Tipo</th>
-                          <th className="text-left py-3 px-4 text-xs text-slate-400 font-medium">Concepto</th>
-                          <th className="text-left py-3 px-4 text-xs text-slate-400 font-medium">Método</th>
-                          <th className="text-right py-3 px-4 text-xs text-slate-400 font-medium">Monto</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {allPayments.map((p: any) => {
-                          const fecha = p.receivedAt ? new Date(p.receivedAt).toLocaleDateString("es-CO", { day: "2-digit", month: "short", year: "numeric" }) : "—";
-                          const movBadge = p.movementType === "payment"
-                            ? <Badge className="text-xs bg-teal-500/20 text-teal-300 border-teal-500/30">Pago</Badge>
-                            : p.movementType === "discount"
-                            ? <Badge className="text-xs bg-orange-500/20 text-orange-300 border-orange-500/30">Descuento</Badge>
-                            : <Badge className="text-xs bg-blue-500/20 text-blue-300 border-blue-500/30">Recargo</Badge>;
-                          const typLabel: Record<string, string> = {
-                            advance: "Anticipo", final: "Pago final", partial: "Abono", other: "Otro"
-                          };
-                          return (
-                            <tr key={p.id} className="border-b border-white/[0.04] hover:bg-white/[0.03] transition-colors">
-                              <td className="py-3 px-4 text-slate-300 whitespace-nowrap">{fecha}</td>
-                              <td className="py-3 px-4 text-slate-300">{p.clientName || "—"}</td>
-                              <td className="py-3 px-4 text-slate-400 text-xs max-w-[180px] truncate">{p.projectName || "—"}</td>
-                              <td className="py-3 px-4">{movBadge}</td>
-                              <td className="py-3 px-4 text-slate-400 text-xs">{typLabel[p.type] || p.type}</td>
-                              <td className="py-3 px-4 text-slate-400 text-xs capitalize">{p.method || "—"}</td>
-                              <td className="py-3 px-4 text-right font-semibold text-slate-200 whitespace-nowrap">
-                                ${parseFloat(p.amount || "0").toLocaleString("es-CO")}
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
         )}
 
         {/* REPORTS TAB */}

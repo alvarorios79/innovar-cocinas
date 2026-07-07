@@ -221,7 +221,7 @@ export function ProjectTimeline({
               <div
                 className={cn(
                   "absolute left-5 top-10 w-0.5 h-full -ml-px",
-                  completed ? "bg-green-500" : "bg-gray-200"
+                  completed ? "bg-green-500" : "bg-white/[0.10]"
                 )}
               />
             )}

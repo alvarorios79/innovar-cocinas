@@ -19,6 +19,7 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { getLoginUrl } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
 import {
   LayoutDashboard,
@@ -42,7 +43,6 @@ import {
   Trash2,
   BarChart3,
   Package,
-  Ruler,
 } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
@@ -63,25 +63,13 @@ type MenuSection = {
   items: MenuItem[];
 };
 
-// ── Panel home por rol ────────────────────────────────────────────────────────
-const rolePanelItem: Record<string, MenuItem> = {
-  super_admin: { icon: LayoutDashboard, label: "Panel CEO",          path: "/", iconColor: "#1DB5A8" },
-  admin:       { icon: Shield,          label: "Panel Admin",        path: "/", iconColor: "#1DB5A8" },
-  disenador:   { icon: Palette,         label: "Panel Diseño",       path: "/", iconColor: "#ec4899" },
-  jefe_taller: { icon: Wrench,          label: "Panel Jefe Taller",  path: "/", iconColor: "#f97316" },
-  operario:    { icon: Package,         label: "Panel Operario",     path: "/", iconColor: "#3b82f6" },
-  medidor:     { icon: Ruler,           label: "Mis Visitas",        path: "/medidor", iconColor: "#1DB5A8" },
-};
-
 // ── Estructura de navegación ─────────────────────────────────────────────────
 const menuSections: MenuSection[] = [
   {
     title: "Principal",
     items: [
-      // Placeholder — se reemplaza dinámicamente por rolePanelItem según el rol
-      { icon: LayoutDashboard, label: "__home__", path: "/", iconColor: "#1DB5A8" },
       { icon: LayoutDashboard, label: "Dashboard", path: "/ceo-dashboard",
-        roles: ["super_admin", "admin"], iconColor: "#06b6d4" },
+        roles: ["super_admin", "admin"], iconColor: "#1DB5A8" },
     ],
   },
   {
@@ -93,9 +81,8 @@ const menuSections: MenuSection[] = [
   {
     title: "Comercial",
     items: [
-      // Pipeline solo visible para comercial (es su panel home)
       { icon: KanbanSquare,  label: "Pipeline",     path: "/comercial",
-        roles: ["comercial"], iconColor: "#1DB5A8" },
+        roles: ["super_admin", "admin", "comercial"], iconColor: "#1DB5A8" },
       { icon: FileText,      label: "Cotizaciones",  path: "/quotations",  iconColor: "#6366f1" },
       { icon: CalendarCheck, label: "Citas",         path: "/appointments-calendar", iconColor: "#3b82f6" },
     ],
@@ -144,15 +131,6 @@ const menuSections: MenuSection[] = [
     ],
   },
   {
-    title: "Visitas Técnicas",
-    items: [
-      { icon: Ruler, label: "Mis Visitas",      path: "/medidor",
-        roles: ["medidor"], iconColor: "#1DB5A8" },
-      { icon: Ruler, label: "Visitas Técnicas", path: "/visitas-tecnicas",
-        roles: ["super_admin", "admin", "comercial"], iconColor: "#1DB5A8" },
-    ],
-  },
-  {
     title: "Administración",
     items: [
       { icon: Shield,     label: "Admin",              path: "/admin",
@@ -168,7 +146,7 @@ const menuSections: MenuSection[] = [
 
 // ── Etiquetas de rol ─────────────────────────────────────────────────────────
 const roleLabels: Record<string, { label: string; color: string }> = {
-  super_admin: { label: "Super Admin", color: "bg-purple-500/15 text-purple-300 border-purple-400/25" },
+  super_admin: { label: "Super Admin", color: "bg-purple-500/15 text-purple-300 border-purple-500/40/25" },
   admin:       { label: "Admin",       color: "bg-[#6ACFC7]/15 text-[#6ACFC7] border-[#6ACFC7]/25" },
   comercial:   { label: "Comercial",   color: "bg-[#6ACFC7]/10 text-[#88d9d3] border-[#6ACFC7]/20" },
   disenador:   { label: "Diseñador",   color: "bg-indigo-500/15 text-indigo-300 border-indigo-400/25" },
@@ -248,7 +226,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <h1 className="text-lg font-semibold" style={{ color: "#FFFFFF" }}>Bienvenido</h1>
             <p className="text-sm" style={{ color: "rgba(255,255,255,0.55)" }}>Inicia sesión para acceder al sistema.</p>
           </div>
-          <Button onClick={() => { window.location.href = "/login"; }} size="lg"
+          <Button onClick={() => { window.location.href = getLoginUrl(); }} size="lg"
             className="w-full font-semibold transition-all"
             style={{ background: "#6ACFC7", color: "#0C1A1A" }}>
             Iniciar Sesión
@@ -261,7 +239,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <SidebarProvider
       defaultOpen={true}
-      style={{ "--sidebar-width": `${sidebarWidth}px`, "--sidebar-width-icon": "72px", "--sidebar-background": "#0A1616" } as CSSProperties}
+      style={{ "--sidebar-width": `${sidebarWidth}px`, "--sidebar-background": "#0A1616" } as CSSProperties}
     >
       <DashboardLayoutContent setSidebarWidth={setSidebarWidth}>
         {children}
@@ -287,20 +265,13 @@ function DashboardLayoutContent({ children, setSidebarWidth }: DashboardLayoutCo
   const userRole = (user as any)?.role ?? "user";
   const roleInfo = roleLabels[userRole] ?? roleLabels["user"];
 
-  // Panel home del rol actual (comercial usa Pipeline como su home)
-  const homeItem: MenuItem = userRole === "comercial"
-    ? { icon: KanbanSquare, label: "Pipeline", path: "/comercial", iconColor: "#1DB5A8" }
-    : userRole === "medidor"
-    ? { icon: Ruler, label: "Mis Visitas", path: "/medidor", iconColor: "#1DB5A8" }
-    : (rolePanelItem[userRole] ?? rolePanelItem["super_admin"]);
-
   // Filtrar secciones y ítems según el rol del usuario
   const visibleSections = menuSections
     .map((section) => ({
       ...section,
-      items: section.items
-        .filter((item) => !item.roles || item.roles.includes(userRole))
-        .map((item) => item.label === "__home__" ? homeItem : item),
+      items: section.items.filter(
+        (item) => !item.roles || item.roles.includes(userRole)
+      ),
     }))
     .filter((section) => section.items.length > 0);
 
@@ -313,8 +284,8 @@ function DashboardLayoutContent({ children, setSidebarWidth }: DashboardLayoutCo
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!isResizing) return;
-      // Sidebar is always anchored at x=0, so width = cursor x position
-      const newWidth = e.clientX;
+      const sidebarLeft = sidebarRef.current?.getBoundingClientRect().left ?? 0;
+      const newWidth = e.clientX - sidebarLeft;
       if (newWidth >= MIN_WIDTH && newWidth <= MAX_WIDTH) setSidebarWidth(newWidth);
     };
     const handleMouseUp = () => setIsResizing(false);
@@ -334,11 +305,11 @@ function DashboardLayoutContent({ children, setSidebarWidth }: DashboardLayoutCo
 
   return (
     <>
-      <Sidebar
-        ref={sidebarRef as React.Ref<HTMLDivElement>}
-        collapsible="icon"
-        className="border-r border-white/[0.06] bg-[#0C1A1A]"
-      >
+      <div className="relative" ref={sidebarRef}>
+        <Sidebar
+          collapsible="icon"
+          className="border-r border-white/[0.06] bg-[#0C1A1A]"
+        >
           {/* Header — logo */}
           <SidebarHeader className="h-16 justify-center border-b border-white/[0.06] bg-[#0C1A1A]">
             <button
@@ -462,18 +433,19 @@ function DashboardLayoutContent({ children, setSidebarWidth }: DashboardLayoutCo
               </DropdownMenuContent>
             </DropdownMenu>
           </SidebarFooter>
-      </Sidebar>
+        </Sidebar>
 
-      {/* Handle de resize — fixed, aligned to the sidebar's right edge via CSS var */}
-      {!isCollapsed && (
-        <div
-          className="fixed top-0 h-full w-1 cursor-col-resize transition-colors z-50"
-          style={{ left: "calc(var(--sidebar-width) - 1px)", backgroundColor: "transparent" }}
-          onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.backgroundColor = "rgba(106,207,199,0.40)")}
-          onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.backgroundColor = "transparent")}
-          onMouseDown={() => setIsResizing(true)}
-        />
-      )}
+        {/* Handle de resize */}
+        {!isCollapsed && (
+          <div
+            className="absolute top-0 right-0 w-1 h-full cursor-col-resize transition-colors"
+            style={{ zIndex: 50, backgroundColor: "transparent" }}
+            onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.backgroundColor = "rgba(106,207,199,0.40)")}
+            onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.backgroundColor = "transparent")}
+            onMouseDown={() => setIsResizing(true)}
+          />
+        )}
+      </div>
 
       {/* Contenido principal */}
       <SidebarInset>
@@ -533,7 +505,7 @@ function DashboardLayoutContent({ children, setSidebarWidth }: DashboardLayoutCo
         )}
 
         <main className="flex-1 min-h-screen" style={{ background: "#0C1A1A" }}>
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             {children}
           </div>
         </main>

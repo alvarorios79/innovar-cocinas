@@ -143,7 +143,7 @@ export function DoorConfigurator({ config, onChange }: DoorConfiguratorProps) {
                   Puerta {index + 1} - {door.type === "batiente" ? "Batiente" : "Corrediza"}
                 </h5>
                 {doors.length > 1 && (
-                  <Button type="button" size="sm" variant="ghost" onClick={() => removeDoor(door.id)} className="text-red-500 hover:text-red-700 hover:bg-red-50 h-8 w-8 p-0">
+                  <Button type="button" size="sm" variant="ghost" onClick={() => removeDoor(door.id)} className="text-red-500 hover:text-red-700 hover:bg-red-500/10 h-8 w-8 p-0">
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 )}

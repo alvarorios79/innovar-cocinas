@@ -328,7 +328,7 @@ export function ExpenseImportModal({
               </div>
             </div>
 
-            <div className="rounded-lg bg-blue-50 p-3 text-sm text-blue-700">
+            <div className="rounded-lg bg-blue-500/10 p-3 text-sm text-blue-700">
               <p>Formatos soportados: CSV, XLSX</p>
               <p>Máximo: 500 filas por archivo</p>
             </div>
@@ -338,13 +338,13 @@ export function ExpenseImportModal({
         {step === "processing" && (
           <div className="flex flex-col items-center justify-center gap-4 py-8">
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-            <p className="text-sm text-gray-600">Procesando archivo...</p>
+            <p className="text-sm text-muted-foreground">Procesando archivo...</p>
           </div>
         )}
 
         {step === "results" && result && (
           <div className="space-y-4">
-            <div className="rounded-lg bg-gray-50 p-4">
+            <div className="rounded-lg bg-white/[0.03] p-4">
               <h3 className="font-semibold mb-3">Resumen de importación</h3>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
@@ -365,7 +365,7 @@ export function ExpenseImportModal({
             {result.errors.length > 0 && (
               <div className="space-y-2">
                 <h3 className="font-semibold text-sm">Errores encontrados:</h3>
-                <div className="max-h-48 space-y-1 overflow-y-auto rounded-lg bg-red-50 p-3">
+                <div className="max-h-48 space-y-1 overflow-y-auto rounded-lg bg-red-500/10 p-3">
                   {result.errors.map((error, idx) => (
                     <div key={idx} className="flex gap-2 text-xs text-red-700">
                       <AlertCircle className="h-4 w-4 flex-shrink-0" />

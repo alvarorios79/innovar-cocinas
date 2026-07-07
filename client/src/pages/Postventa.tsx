@@ -248,7 +248,7 @@ export default function Postventa() {
 
       {/* Alertas de vencimiento próximas */}
       {overdueFollowUps > 0 && (
-        <div className="mb-4 rounded-lg border border-amber-500/20 bg-amber-500/10 px-4 py-3 flex items-center gap-3">
+        <div className="mb-4 rounded-lg border border-amber-500/25 bg-amber-500/10 px-4 py-3 flex items-center gap-3">
           <AlertTriangle className="h-5 w-5 text-amber-500 shrink-0" />
           <p className="text-sm text-amber-300">
             Tienes <strong>{overdueFollowUps}</strong> seguimiento{overdueFollowUps > 1 ? "s" : ""} o revisión{overdueFollowUps > 1 ? "es" : ""} que ya debería{overdueFollowUps > 1 ? "n" : ""} haberse contactado.
@@ -288,7 +288,7 @@ export default function Postventa() {
           {[1, 2, 3].map((i) => <div key={i} className="h-20 rounded-xl bg-white/[0.06] animate-pulse" />)}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-16 text-muted-foreground">
+        <div className="text-center py-16 text-slate-400">
           <ShieldCheck className="h-12 w-12 mx-auto mb-3 opacity-30" />
           <p className="text-sm">{search ? "Sin coincidencias" : "No hay proyectos entregados aún"}</p>
         </div>
@@ -313,7 +313,7 @@ export default function Postventa() {
           <DialogHeader>
             <DialogTitle>Nueva reclamación</DialogTitle>
           </DialogHeader>
-          <p className="text-xs text-muted-foreground -mt-2 mb-3">
+          <p className="text-xs text-slate-500 -mt-2 mb-3">
             Proyecto: <strong>{newReclamacion?.projectName}</strong>
           </p>
           <form onSubmit={handleCreate} className="space-y-3">
@@ -443,12 +443,12 @@ function ProjectPostventaCard({
                 {WORK_TYPE_LABELS[project.workType] ?? project.workType}
               </Badge>
               {overdueRecs.length > 0 && (
-                <Badge className="text-[10px] px-1.5 py-0 shrink-0 bg-amber-100 text-amber-700 border-amber-200">
+                <Badge className="text-[10px] px-1.5 py-0 shrink-0 bg-amber-500/15 text-amber-700 border-amber-500/25">
                   {overdueRecs.length} vencido{overdueRecs.length > 1 ? "s" : ""}
                 </Badge>
               )}
             </div>
-            <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
+            <div className="flex flex-wrap gap-3 text-xs text-slate-500">
               {project.client && (
                 <span className="flex items-center gap-1 truncate">
                   <User className="h-3 w-3 shrink-0" />{project.client.name}
@@ -467,16 +467,16 @@ function ProjectPostventaCard({
 
           {/* Acciones */}
           <div className="flex items-center gap-1 shrink-0">
-            <Button variant="ghost" size="sm" onClick={onOpen} className="h-7 px-2 text-muted-foreground" title="Ver proyecto">
+            <Button variant="ghost" size="sm" onClick={onOpen} className="h-7 px-2 text-slate-500" title="Ver proyecto">
               <ExternalLink className="h-3.5 w-3.5" />
             </Button>
-            <Button variant="ghost" size="sm" onClick={onNewReclamacion} className="h-7 px-2 text-muted-foreground" title="Nueva reclamación">
+            <Button variant="ghost" size="sm" onClick={onNewReclamacion} className="h-7 px-2 text-slate-500" title="Nueva reclamación">
               <Plus className="h-3.5 w-3.5" />
             </Button>
             <Button
               variant="ghost" size="sm"
               onClick={() => setExpanded(!expanded)}
-              className="h-7 px-2 text-muted-foreground"
+              className="h-7 px-2 text-slate-500"
               title={expanded ? "Ocultar" : "Ver reclamaciones"}
             >
               {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
@@ -492,7 +492,7 @@ function ProjectPostventaCard({
       {expanded && (
         <div className="border-t border-white/[0.08] bg-white/[0.03]">
           {project.reclamaciones.length === 0 ? (
-            <div className="px-4 py-6 text-center text-xs text-muted-foreground">
+            <div className="px-4 py-6 text-center text-xs text-slate-400">
               <CheckCircle2 className="h-6 w-6 mx-auto mb-1 text-emerald-400" />
               Sin reclamaciones — proyecto sin novedades
             </div>
@@ -545,12 +545,12 @@ function ReclamacionRow({
         <p className="text-sm font-medium text-foreground leading-tight">{rec.title}</p>
         <div className="flex flex-wrap gap-2 mt-1">
           <span className="text-[11px] font-medium" style={{ color: typeConf.color }}>{typeConf.label}</span>
-          <span className="text-[11px] text-muted-foreground">·</span>
+          <span className="text-[11px] text-slate-400">·</span>
           <span className="text-[11px] font-medium" style={{ color: priorityConf.color }}>{priorityConf.label}</span>
           {scheduledLabel && (
             <>
-              <span className="text-[11px] text-muted-foreground">·</span>
-              <span className={`text-[11px] ${isOverdue ? "text-amber-400 font-semibold" : "text-muted-foreground"}`}>
+              <span className="text-[11px] text-slate-400">·</span>
+              <span className={`text-[11px] ${isOverdue ? "text-amber-600 font-semibold" : "text-slate-500"}`}>
                 {isOverdue ? "⚠ Vence " : ""}{scheduledLabel}
               </span>
             </>

@@ -1683,9 +1683,9 @@ export default function Quotations() {
   const getStatusBadge = (status: string) => {
     const badges = {
       draft: <span className="px-2 py-1 bg-white/[0.10] text-foreground/80 rounded text-xs">Borrador</span>,
-      sent: <span className="px-2 py-1 bg-blue-200 text-blue-800 rounded text-xs">Enviada</span>,
-      approved: <span className="px-2 py-1 bg-green-200 text-green-800 rounded text-xs">Aprobada</span>,
-      rejected: <span className="px-2 py-1 bg-red-200 text-red-800 rounded text-xs">Rechazada</span>,
+      sent: <span className="px-2 py-1 bg-blue-500/20 text-blue-300 rounded text-xs">Enviada</span>,
+      approved: <span className="px-2 py-1 bg-green-500/20 text-green-300 rounded text-xs">Aprobada</span>,
+      rejected: <span className="px-2 py-1 bg-red-500/20 text-red-300 rounded text-xs">Rechazada</span>,
     };
     return badges[status as keyof typeof badges] || status;
   };
@@ -1879,13 +1879,13 @@ export default function Quotations() {
               </span>
             )}
             {filterDateFrom && (
-              <span className="flex items-center gap-1 text-xs bg-blue-50 text-blue-700 border border-blue-100 rounded-full px-2 py-0.5">
+              <span className="flex items-center gap-1 text-xs bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-full px-2 py-0.5">
                 Desde: {new Date(filterDateFrom + "T00:00:00").toLocaleDateString("es-CO")}
                 <button onClick={() => setFilterDateFrom("")}><X className="h-3 w-3" /></button>
               </span>
             )}
             {filterDateTo && (
-              <span className="flex items-center gap-1 text-xs bg-blue-50 text-blue-700 border border-blue-100 rounded-full px-2 py-0.5">
+              <span className="flex items-center gap-1 text-xs bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-full px-2 py-0.5">
                 Hasta: {new Date(filterDateTo + "T00:00:00").toLocaleDateString("es-CO")}
                 <button onClick={() => setFilterDateTo("")}><X className="h-3 w-3" /></button>
               </span>
@@ -1971,7 +1971,7 @@ export default function Quotations() {
                     <div className="flex items-center gap-2">
                       <CardTitle>{quot.quotationNumber} - {quot.client?.name}</CardTitle>
                       {quot.versionNumber > 1 && (
-                        <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-semibold rounded">V{quot.versionNumber}</span>
+                        <span className="px-2 py-1 bg-blue-500/20 text-blue-300 text-xs font-semibold rounded">V{quot.versionNumber}</span>
                       )}
                     </div>
                     <p className="text-sm text-muted-foreground mt-1">
@@ -2057,7 +2057,7 @@ export default function Quotations() {
                   <Button
                     size="sm"
                     variant="outline"
-                    className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                    className="border-purple-500/40 text-purple-400 hover:bg-purple-500/10"
                     onClick={() => {
                       if (quot.isLocked) {
                         toast.error("No se puede editar el contenido PDF de una cotización bloqueada. Desblóqueala primero.");
@@ -2290,7 +2290,7 @@ export default function Quotations() {
                           size="sm"
                           variant="ghost"
                           onClick={() => removeItem(index)}
-                          className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/30"
+                          className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -2429,14 +2429,14 @@ export default function Quotations() {
 
                             {/* Sección Puertas y Tapas */}
                             {item.kitchenConfig?.shape === 'puertas_tapas' && (
-                              <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 space-y-4">
-                                <h4 className="font-semibold text-purple-800 flex items-center gap-2">
+                              <div className="bg-purple-500/10 border border-purple-500/20 rounded-lg p-4 space-y-4">
+                                <h4 className="font-semibold text-purple-300 flex items-center gap-2">
                                   <span>🚪</span> Puertas y Tapas (Solo Cambio)
                                 </h4>
                                 
                                 {/* Puertas Superiores */}
                                 <div className="space-y-2">
-                                  <Label className="text-sm font-medium text-purple-700">Puertas Superiores</Label>
+                                  <Label className="text-sm font-medium text-purple-400">Puertas Superiores</Label>
                                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                                     <div>
                                       <Label className="text-xs">Hasta 70cm ($120,000)</Label>
@@ -2482,7 +2482,7 @@ export default function Quotations() {
 
                                 {/* Puertas Inferiores y de Alacena */}
                                 <div className="space-y-2">
-                                  <Label className="text-sm font-medium text-purple-700">Puertas Inferiores y Alacena</Label>
+                                  <Label className="text-sm font-medium text-purple-400">Puertas Inferiores y Alacena</Label>
                                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                     <div>
                                       <Label className="text-xs">Puertas Inferiores ($150,000)</Label>
@@ -2515,7 +2515,7 @@ export default function Quotations() {
 
                                 {/* Tapas */}
                                 <div className="space-y-2">
-                                  <Label className="text-sm font-medium text-purple-700">Tapas</Label>
+                                  <Label className="text-sm font-medium text-purple-400">Tapas</Label>
                                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                     <div>
                                       <Label className="text-xs">Tapas de Cajón ($90,000)</Label>
@@ -2559,8 +2559,8 @@ export default function Quotations() {
                                     (dc.smallCovers || 0) * 45000;
                                   const hasItems = total > 0;
                                   return hasItems ? (
-                                    <div className="bg-purple-100 rounded p-3 mt-2">
-                                      <p className="text-sm font-semibold text-purple-800">Total Puertas y Tapas: ${total.toLocaleString('es-CO')}</p>
+                                    <div className="bg-purple-500/15 rounded p-3 mt-2">
+                                      <p className="text-sm font-semibold text-purple-300">Total Puertas y Tapas: ${total.toLocaleString('es-CO')}</p>
                                     </div>
                                   ) : null;
                                 })()}
@@ -2651,7 +2651,7 @@ export default function Quotations() {
 
                             {/* Mostrar metraje resultante y muebles - Solo para cocinas completas */}
                             {!['frente_pll', 'solo_superiores', 'solo_inferiores', 'puertas_tapas'].includes(item.kitchenConfig?.shape || '') && (
-                            <div className="p-3 bg-blue-50 rounded space-y-1">
+                            <div className="p-3 bg-blue-500/10 rounded space-y-1">
                               <p className="text-sm">
                                 <span className="font-medium">Metraje resultante:</span>{" "}
                                 {(() => {
@@ -2803,7 +2803,7 @@ export default function Quotations() {
 
                             {/* 6. Barra - Para cocinas completas y puertas_tapas */}
                             {!['frente_pll', 'solo_superiores', 'solo_inferiores'].includes(item.kitchenConfig?.shape || '') && (
-                            <div className="bg-[#162828] rounded-lg p-3 sm:p-4 border border-purple-100 dark:border-purple-900 space-y-2 sm:space-y-3">
+                            <div className="bg-[#162828] rounded-lg p-3 sm:p-4 border border-purple-500/20 space-y-2 sm:space-y-3">
                               <div className="flex items-center space-x-2">
                                 <input
                                   type="checkbox"
@@ -3012,18 +3012,18 @@ export default function Quotations() {
                               {item.kitchenConfig?.specialFinishes?.enabled && (
                                 <div className="space-y-4 mt-3">
                                   {/* Puertas de Aluminio con Vidrio Ahumado */}
-                                  <div className="bg-purple-50 dark:bg-purple-900/20 p-3 rounded-lg space-y-2">
-                                    <Label className="text-xs font-semibold text-purple-700 dark:text-purple-300">
+                                  <div className="bg-purple-500/10 p-3 rounded-lg space-y-2">
+                                    <Label className="text-xs font-semibold text-purple-400">
                                       Puertas de Aluminio con Vidrio Ahumado - {formatPrice(getPrice('ACABADO_ALUMINIO_VIDRIO_M2'))}/m²
                                     </Label>
-                                    <p className="text-xs text-purple-600 dark:text-purple-400">
+                                    <p className="text-xs text-purple-400">
                                       Bisagras adicionales: +1 par (alto mayor a 80cm) o +2 pares (alto mayor a 140cm) a {formatPrice(getPrice('ACABADO_BISAGRA_PAR'))}/par
                                     </p>
                                     
                                     {/* Lista de puertas */}
                                     {(item.kitchenConfig?.specialFinishes?.aluminumGlassDoors || []).map((door, doorIdx) => (
                                       <div key={door.id} className="flex items-center gap-2 bg-[#162828] p-2 rounded border">
-                                        <span className="text-xs font-medium text-purple-600">#{doorIdx + 1}</span>
+                                        <span className="text-xs font-medium text-purple-400">#{doorIdx + 1}</span>
                                         <div className="flex-1 grid grid-cols-2 gap-2">
                                           <div>
                                             <Label className="text-xs">Alto (m)</Label>
@@ -3074,7 +3074,7 @@ export default function Quotations() {
                                           </div>
                                         </div>
                                         <div className="text-xs text-right min-w-[80px]">
-                                          <div className="text-purple-600 font-medium">{door.squareMeters?.toFixed(2) || '0.00'} m²</div>
+                                          <div className="text-purple-400 font-medium">{door.squareMeters?.toFixed(2) || '0.00'} m²</div>
                                           {door.extraHinges > 0 && (
                                             <div className="text-orange-500">+{door.extraHinges} par{door.extraHinges > 1 ? 'es' : ''}</div>
                                           )}
@@ -3088,7 +3088,7 @@ export default function Quotations() {
                                             updateKitchenConfig(index, "specialFinishes.aluminumGlassDoors", newDoors);
                                             calculateKitchenTotal(index);
                                           }}
-                                          className="text-red-500 hover:text-red-700 h-8 w-8 p-0"
+                                          className="text-red-400 hover:text-red-300 h-8 w-8 p-0"
                                         >
                                           <Trash2 className="h-4 w-4" />
                                         </Button>
@@ -3110,14 +3110,14 @@ export default function Quotations() {
                                         const newDoors = [...(item.kitchenConfig?.specialFinishes?.aluminumGlassDoors || []), newDoor];
                                         updateKitchenConfig(index, "specialFinishes.aluminumGlassDoors", newDoors);
                                       }}
-                                      className="w-full border-purple-300 text-purple-600 hover:bg-purple-50"
+                                      className="w-full border-purple-500/40 text-purple-400 hover:bg-purple-500/10"
                                     >
                                       <Plus className="h-4 w-4 mr-1" /> Agregar Puerta
                                     </Button>
                                   </div>
                                   
                                   {/* LED para Alacenas */}
-                                  <div className="bg-yellow-50 dark:bg-yellow-900/20 p-3 rounded-lg space-y-2">
+                                  <div className="bg-yellow-500/10 p-3 rounded-lg space-y-2">
                                     <div className="flex items-center space-x-2">
                                       <input
                                         type="checkbox"
@@ -3129,7 +3129,7 @@ export default function Quotations() {
                                         }}
                                         className="h-4 w-4 accent-yellow-500"
                                       />
-                                      <Label htmlFor={`specialLed-${index}`} className="text-xs font-semibold text-yellow-700 dark:text-yellow-300 cursor-pointer">
+                                      <Label htmlFor={`specialLed-${index}`} className="text-xs font-semibold text-yellow-400 cursor-pointer">
                                         <Lightbulb className="inline h-3 w-3 mr-1" />
                                         Luz LED para Alacenas - {formatPrice(getPrice('ACABADO_LED_ML'))}/ml
                                       </Label>
@@ -3160,7 +3160,7 @@ export default function Quotations() {
                             </div>
 
                             {/* 10. Transporte e imprevistos - Opcional y editable */}
-                            <div className={`flex flex-col gap-2 p-3 rounded ${item.includesFixedCosts ? 'bg-green-100 border border-green-300' : 'bg-yellow-50'}`}>
+                            <div className={`flex flex-col gap-2 p-3 rounded ${item.includesFixedCosts ? 'bg-green-500/15 border border-green-500/30' : 'bg-yellow-500/10'}`}>
                               <div className="flex items-center space-x-2">
                                 <input
                                   type="checkbox"
@@ -3216,8 +3216,8 @@ export default function Quotations() {
                             </div>
 
                             {/* Total calculado */}
-                            <div className="p-3 sm:p-4 bg-green-50 rounded">
-                              <p className="text-sm sm:text-lg font-bold text-green-800">
+                            <div className="p-3 sm:p-4 bg-green-500/10 rounded">
+                              <p className="text-sm sm:text-lg font-bold text-green-400">
                                 Total Cocina: {formatPrice(item.totalPrice)}
                               </p>
                             </div>
@@ -3382,7 +3382,7 @@ export default function Quotations() {
                                       type="button"
                                       variant="ghost"
                                       size="sm"
-                                      className="text-red-500 hover:text-red-700 h-8 w-8 p-0"
+                                      className="text-red-400 hover:text-red-300 h-8 w-8 p-0"
                                       onClick={() => {
                                         const newItems = [...items];
                                         const doors = [...(newItems[index].acabadosConfig?.aluminumGlassDoors || [])];
@@ -3908,7 +3908,7 @@ export default function Quotations() {
                         onClick={() => setDiscountPercent(discountPercent === val ? 0 : val)}
                         className={`px-2 py-0.5 rounded text-xs font-semibold transition-all border ${
                           discountPercent === val
-                            ? "bg-[#162828] text-emerald-700 border-white"
+                            ? "bg-[#162828] text-emerald-400 border-white"
                             : "bg-[#162828]/20 text-white border-white/30 hover:bg-[#162828]/30"
                         }`}
                       >
@@ -4001,7 +4001,7 @@ export default function Quotations() {
                   type="button"
                   variant="outline"
                   onClick={() => setShowCreateDialog(false)}
-                  className="px-4 sm:px-6 text-sm sm:text-base border-slate-300 hover:bg-slate-100 dark:border-slate-600 dark:hover:bg-slate-800 flex-1 sm:flex-none"
+                  className="px-4 sm:px-6 text-sm sm:text-base border-border hover:bg-white/[0.05] flex-1 sm:flex-none"
                 >
                   Cancelar
                 </Button>

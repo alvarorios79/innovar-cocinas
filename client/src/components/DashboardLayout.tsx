@@ -85,7 +85,7 @@ const menuSections: MenuSection[] = [
     title: "Comercial",
     items: [
       { icon: KanbanSquare,  label: "Pipeline",    path: "/comercial",
-        roles: ["admin", "comercial"], iconColor: "#1DB5A8" },
+        roles: ["super_admin", "admin", "comercial"], iconColor: "#1DB5A8" },
       { icon: FileText,      label: "Cotizaciones", path: "/quotations",
         roles: ["super_admin", "admin", "comercial"], iconColor: "#6366f1" },
       { icon: CalendarCheck, label: "Citas",        path: "/appointments-calendar",
@@ -140,9 +140,9 @@ const menuSections: MenuSection[] = [
     title: "Administración",
     items: [
       { icon: Shield,     label: "Admin",              path: "/admin",
-        roles: ["super_admin", "admin"], iconColor: "#94a3b8" },
+        roles: ["super_admin"], iconColor: "#94a3b8" },
       { icon: Calculator, label: "Motor de Cotización", path: "/pricing-config",
-        roles: ["super_admin", "admin"], iconColor: "#06b6d4" },
+        roles: ["super_admin"], iconColor: "#06b6d4" },
       { icon: Package,    label: "Herrajes",            path: "/herrajes",
         roles: ["super_admin", "admin"], iconColor: "#a78bfa" },
       { icon: ImageIcon,  label: "Galerías",            path: "/galerias",

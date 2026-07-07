@@ -3,8 +3,11 @@ import { HardwareCatalogAdmin } from "@/components/HardwareCatalogAdmin";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Package, RefreshCw } from "lucide-react";
+import { useAuth } from "@/_core/hooks/useAuth";
 
 export default function Herrajes() {
+  const { user } = useAuth();
+  const isSuperAdmin = user?.role === "super_admin";
   const utils = trpc.useUtils();
 
   const initMutation = trpc.hardwareCatalog.initializeCatalog.useMutation({
@@ -36,24 +39,26 @@ export default function Herrajes() {
           </div>
         </div>
 
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => initMutation.mutate()}
-          disabled={initMutation.isPending}
-          style={{
-            borderColor: "rgba(106,207,199,0.3)",
-            color: "#6ACFC7",
-            background: "rgba(106,207,199,0.07)",
-          }}
-        >
-          {initMutation.isPending ? (
-            <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-          ) : (
-            <Package className="h-4 w-4 mr-2" />
-          )}
-          Inicializar Catálogo
-        </Button>
+        {isSuperAdmin && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => initMutation.mutate()}
+            disabled={initMutation.isPending}
+            style={{
+              borderColor: "rgba(106,207,199,0.3)",
+              color: "#6ACFC7",
+              background: "rgba(106,207,199,0.07)",
+            }}
+          >
+            {initMutation.isPending ? (
+              <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Package className="h-4 w-4 mr-2" />
+            )}
+            Inicializar Catálogo
+          </Button>
+        )}
       </div>
 
       {/* Info */}

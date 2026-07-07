@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
 import { trpc } from "@/lib/trpc";
+import { useAuth } from "@/_core/hooks/useAuth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,6 +19,8 @@ const categoryLabels: Record<string, string> = {
 };
 
 export function HardwareCatalogAdmin() {
+  const { user } = useAuth();
+  const isReadOnly = user?.role === "admin"; // admin ve pero no edita
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
@@ -191,15 +194,17 @@ export function HardwareCatalogAdmin() {
               resetForm();
             }
           }}>
-            <DialogTrigger asChild>
-              <Button onClick={() => {
-                resetForm(); // Pre-seleccionar la categoría actual
-                setShowAddDialog(true);
-              }}>
-                <Plus className="mr-2 h-4 w-4" />
-                Agregar Herraje
-              </Button>
-            </DialogTrigger>
+            {!isReadOnly && (
+              <DialogTrigger asChild>
+                <Button onClick={() => {
+                  resetForm();
+                  setShowAddDialog(true);
+                }}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Agregar Herraje
+                </Button>
+              </DialogTrigger>
+            )}
             <DialogContent className="max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>{editingItem ? "Editar Herraje" : "Agregar Nuevo Herraje"}</DialogTitle>
@@ -368,51 +373,53 @@ export function HardwareCatalogAdmin() {
                         )}
                       </div>
 
-                      {/* Acciones */}
-                      <div className="flex gap-2 pt-2 border-t">
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          ref={fileInputRef}
-                          onChange={(e) => handleFileChange(e, item.id)}
-                        />
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="flex-1"
-                          onClick={() => {
-                            setUploadingId(item.id);
-                            const input = document.createElement("input");
-                            input.type = "file";
-                            input.accept = "image/*";
-                            input.onchange = (e) => handleFileChange(e as any, item.id);
-                            input.click();
-                          }}
-                          disabled={uploadingId === item.id}
-                        >
-                          <Upload className="h-4 w-4 mr-1" />
-                          {uploadingId === item.id ? "Subiendo..." : "Foto"}
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => openEditDialog(item)}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          onClick={() => {
-                            if (confirm(`¿Eliminar "${item.name}"?`)) {
-                              deleteHardware.mutate({ id: item.id });
-                            }
-                          }}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
+                      {/* Acciones — solo super_admin */}
+                      {!isReadOnly && (
+                        <div className="flex gap-2 pt-2 border-t">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            ref={fileInputRef}
+                            onChange={(e) => handleFileChange(e, item.id)}
+                          />
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="flex-1"
+                            onClick={() => {
+                              setUploadingId(item.id);
+                              const input = document.createElement("input");
+                              input.type = "file";
+                              input.accept = "image/*";
+                              input.onchange = (e) => handleFileChange(e as any, item.id);
+                              input.click();
+                            }}
+                            disabled={uploadingId === item.id}
+                          >
+                            <Upload className="h-4 w-4 mr-1" />
+                            {uploadingId === item.id ? "Subiendo..." : "Foto"}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => openEditDialog(item)}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => {
+                              if (confirm(`¿Eliminar "${item.name}"?`)) {
+                                deleteHardware.mutate({ id: item.id });
+                              }
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>

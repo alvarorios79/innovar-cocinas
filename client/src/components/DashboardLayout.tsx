@@ -23,6 +23,7 @@ import { getLoginUrl } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
 import {
   LayoutDashboard,
+  Home,
   LogOut,
   FolderKanban,
   FileText,
@@ -68,8 +69,9 @@ const menuSections: MenuSection[] = [
   {
     title: "Principal",
     items: [
-      { icon: LayoutDashboard, label: "Dashboard", path: "/ceo-dashboard",
-        roles: ["super_admin", "admin"], iconColor: "#1DB5A8" },
+      { icon: Home,            label: "Inicio",    path: "/",              iconColor: "#1DB5A8" },
+      { icon: LayoutDashboard, label: "Panel CEO", path: "/ceo-dashboard",
+        roles: ["super_admin", "admin"], iconColor: "#0ea5e9" },
     ],
   },
   {

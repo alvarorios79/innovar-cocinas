@@ -38,7 +38,7 @@ export default function Admin() {
   const [createUserForm, setCreateUserForm] = useState({
     name: "",
     email: "",
-    role: "user" as "user" | "admin" | "super_admin" | "comercial" | "disenador" | "jefe_taller" | "operario" | "medidor",
+    role: "user" as "user" | "admin" | "super_admin",
     password: "" as string | undefined,
     birthDate: "" as string | undefined,
   });
@@ -538,49 +538,49 @@ export default function Admin() {
           <TabsList className="grid w-full grid-cols-2 sm:grid-cols-6 h-auto gap-2 bg-transparent p-1">
             <TabsTrigger 
               value="appointments" 
-              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-teal-600 data-[state=active]:text-white hover:bg-teal-50 transition-colors"
+              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-teal-600 data-[state=active]:text-white hover:bg-teal-500/10 transition-colors"
             >
               Citas
             </TabsTrigger>
             <TabsTrigger 
               value="advisory" 
-              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-teal-600 data-[state=active]:text-white hover:bg-teal-50 transition-colors"
+              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-teal-600 data-[state=active]:text-white hover:bg-teal-500/10 transition-colors"
             >
               Asesoría
             </TabsTrigger>
             <TabsTrigger 
               value="quotations" 
-              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-teal-600 data-[state=active]:text-white hover:bg-teal-50 transition-colors"
+              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-teal-600 data-[state=active]:text-white hover:bg-teal-500/10 transition-colors"
             >
               Cotizaciones
             </TabsTrigger>
             <TabsTrigger 
               value="clients" 
-              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-teal-600 data-[state=active]:text-white hover:bg-teal-50 transition-colors"
+              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-teal-600 data-[state=active]:text-white hover:bg-teal-500/10 transition-colors"
             >
               Clientes
             </TabsTrigger>
             <TabsTrigger 
               value="users" 
-              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-slate-500 data-[state=active]:text-white hover:bg-slate-100 transition-colors"
+              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-slate-500 data-[state=active]:text-white hover:bg-white/[0.06] transition-colors"
             >
               Usuarios
             </TabsTrigger>
             <TabsTrigger 
               value="hardware" 
-              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-teal-600 data-[state=active]:text-white hover:bg-teal-50 transition-colors"
+              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-teal-600 data-[state=active]:text-white hover:bg-teal-500/10 transition-colors"
             >
               Herrajes
             </TabsTrigger>
             <TabsTrigger 
               value="projects" 
-              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-teal-600 data-[state=active]:text-white hover:bg-teal-50 transition-colors"
+              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-teal-600 data-[state=active]:text-white hover:bg-teal-500/10 transition-colors"
             >
               Proyectos
             </TabsTrigger>
             {(user?.role === "super_admin" || user?.role === "admin") && (
               <Link href="/profitability-dashboard">
-                <Button variant="outline" className="text-xs sm:text-sm px-2 py-2 bg-teal-50 hover:bg-teal-100 text-teal-700 border-teal-300">
+                <Button variant="outline" className="text-xs sm:text-sm px-2 py-2 bg-teal-500/10 hover:bg-teal-500/15 text-teal-700 border-teal-300">
                   <DollarSign className="h-4 w-4 mr-1" />
                   Rentabilidad
                 </Button>
@@ -590,14 +590,14 @@ export default function Admin() {
               <>
                 <TabsTrigger 
                   value="pricing" 
-                  className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-emerald-600 data-[state=active]:text-white hover:bg-emerald-100 transition-colors"
+                  className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-emerald-600 data-[state=active]:text-white hover:bg-emerald-500/15 transition-colors"
                 >
                   <DollarSign className="h-4 w-4 mr-1" />
                   Precios
                 </TabsTrigger>
                 <TabsTrigger 
                   value="system-zone" 
-                  className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-red-600 data-[state=active]:text-white hover:bg-red-100 transition-colors"
+                  className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-red-600 data-[state=active]:text-white hover:bg-red-500/15 transition-colors"
                 >
                   <Wrench className="h-4 w-4 mr-1" />
                   Limpieza
@@ -939,7 +939,7 @@ export default function Admin() {
 
           {/* Quotations Tab */}
           <TabsContent value="quotations" className="space-y-3">
-            <Card className="border-teal-200 bg-gradient-to-br from-teal-50 to-white">
+            <Card className="border-teal-500/25 bg-gradient-to-br from-teal-50 to-white">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <div>
@@ -957,7 +957,7 @@ export default function Admin() {
               <CardContent className="pt-3">
                 <div className="grid gap-3 md:grid-cols-3">
                   <div className="flex items-start gap-3 p-3 rounded-lg bg-[#162828] border border-teal-100">
-                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center text-teal-600 font-bold">
+                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-teal-500/15 flex items-center justify-center text-teal-600 font-bold">
                       1
                     </div>
                     <div>
@@ -966,7 +966,7 @@ export default function Admin() {
                     </div>
                   </div>
                   <div className="flex items-start gap-3 p-3 rounded-lg bg-[#162828] border border-teal-100">
-                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center text-teal-600 font-bold">
+                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-teal-500/15 flex items-center justify-center text-teal-600 font-bold">
                       2
                     </div>
                     <div>
@@ -975,7 +975,7 @@ export default function Admin() {
                     </div>
                   </div>
                   <div className="flex items-start gap-3 p-3 rounded-lg bg-[#162828] border border-teal-100">
-                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center text-teal-600 font-bold">
+                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-teal-500/15 flex items-center justify-center text-teal-600 font-bold">
                       3
                     </div>
                     <div>
@@ -1125,7 +1125,7 @@ export default function Admin() {
                                   <div className="flex items-center gap-2">
                                     <h3 className="font-semibold">{client.name}</h3>
                                     {client.internalManagement && (
-                                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 border border-amber-200">
+                                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-500/15 text-amber-300 border border-amber-500/25">
                                         <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
                                           <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
                                         </svg>
@@ -1246,11 +1246,6 @@ export default function Admin() {
                               <SelectValue placeholder="Selecciona un rol" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="comercial">Comercial</SelectItem>
-                              <SelectItem value="disenador">Diseñador</SelectItem>
-                              <SelectItem value="jefe_taller">Jefe de Taller</SelectItem>
-                              <SelectItem value="operario">Operario</SelectItem>
-                              <SelectItem value="medidor">Técnico de Medidas</SelectItem>
                               <SelectItem value="user">Usuario</SelectItem>
                               {user?.role === "super_admin" && (
                                 <SelectItem value="admin">Administrador</SelectItem>
@@ -1435,8 +1430,7 @@ export default function Admin() {
                                               usr.role === "comercial" ? "bg-green-600" :
                                               usr.role === "disenador" ? "bg-cyan-600" :
                                               usr.role === "jefe_taller" ? "bg-orange-600" :
-                                              usr.role === "operario" ? "bg-yellow-600 text-black" :
-                                              usr.role === "medidor" ? "bg-teal-600" : ""
+                                              usr.role === "operario" ? "bg-yellow-600 text-black" : ""
                                             }
                                           >
                                             {usr.role === "super_admin" ? "Super Admin" :
@@ -1444,8 +1438,7 @@ export default function Admin() {
                                              usr.role === "comercial" ? "Comercial" :
                                              usr.role === "disenador" ? "Diseñador" :
                                              usr.role === "jefe_taller" ? "Jefe de Taller" :
-                                             usr.role === "operario" ? "Operario" :
-                                             usr.role === "medidor" ? "Técnico Medidas" : "Usuario"}
+                                             usr.role === "operario" ? "Operario" : "Usuario"}
                                           </Badge>
                                           {usr.id === user?.id && (
                                             <Badge variant="outline" className="text-xs">Tú</Badge>
@@ -1576,8 +1569,7 @@ export default function Admin() {
                                               usr.role === "comercial" ? "bg-green-600" :
                                               usr.role === "disenador" ? "bg-cyan-600" :
                                               usr.role === "jefe_taller" ? "bg-orange-600" :
-                                              usr.role === "operario" ? "bg-yellow-600 text-black" :
-                                              usr.role === "medidor" ? "bg-teal-600" : ""
+                                              usr.role === "operario" ? "bg-yellow-600 text-black" : ""
                                             }
                                           >
                                             {usr.role === "super_admin" ? "Super Admin" :
@@ -1585,8 +1577,7 @@ export default function Admin() {
                                              usr.role === "comercial" ? "Comercial" :
                                              usr.role === "disenador" ? "Diseñador" :
                                              usr.role === "jefe_taller" ? "Jefe de Taller" :
-                                             usr.role === "operario" ? "Operario" :
-                                             usr.role === "medidor" ? "Técnico Medidas" : "Usuario"}
+                                             usr.role === "operario" ? "Operario" : "Usuario"}
                                           </Badge>
                                           {usr.id === user?.id && (
                                             <Badge variant="outline" className="text-xs">Tú</Badge>
@@ -1669,14 +1660,14 @@ export default function Admin() {
                           {/* Usuarios de Prueba */}
                           {testUsers.length > 0 && (
                             <div className="space-y-3">
-                              <div className="flex items-center justify-between pt-4 border-t border-dashed border-orange-300">
+                              <div className="flex items-center justify-between pt-4 border-t border-dashed border-orange-500/30">
                                 <div className="flex items-center gap-2">
                                   <Checkbox
                                     checked={testUsers.every(u => selectedUsers.includes(u.id))}
                                     onCheckedChange={() => toggleSelectAllUsers(testUsers)}
                                   />
                                   <h3 className="font-semibold text-lg text-white/45">⚠️ Usuarios de Prueba</h3>
-                                  <Badge variant="outline" className="border-orange-400 text-white/45">{testUsers.length}</Badge>
+                                  <Badge variant="outline" className="border-orange-500/40 text-white/45">{testUsers.length}</Badge>
                                 </div>
                                 <div className="flex gap-2 flex-wrap">
                                   <Button
@@ -1708,7 +1699,7 @@ export default function Admin() {
                                     <Button
                                       size="sm"
                                       variant="outline"
-                                      className="border-red-400 text-red-600 hover:bg-red-50"
+                                      className="border-red-400 text-red-600 hover:bg-red-500/10"
                                       onClick={() => handleBulkDelete('users')}
                                     >
                                       <Trash2 className="h-4 w-4 mr-2" />
@@ -1718,7 +1709,7 @@ export default function Admin() {
                                   <Button
                                     size="sm"
                                     variant="outline"
-                                    className="border-orange-400 text-white/45 hover:bg-orange-50"
+                                    className="border-orange-500/40 text-white/45 hover:bg-orange-500/10"
                                     onClick={() => {
                                       const testUserIds = testUsers.map(u => u.id);
                                       setSelectedUsers(prev => {
@@ -1732,13 +1723,13 @@ export default function Admin() {
                                   </Button>
                                 </div>
                               </div>
-                              <p className="text-sm text-muted-foreground bg-orange-50 p-2 rounded">
+                              <p className="text-sm text-muted-foreground bg-orange-500/10 p-2 rounded">
                                 Estos usuarios fueron detectados como cuentas de prueba basado en patrones en su email o nombre. 
                                 Puedes seleccionarlos y eliminarlos para limpiar la base de datos.
                               </p>
                               <div className="space-y-3">
                                 {testUsers.map((usr) => (
-                                  <div key={usr.id} className="border border-orange-200 rounded-lg p-3 sm:p-4 space-y-2 bg-orange-50/50">
+                                  <div key={usr.id} className="border border-orange-500/25 rounded-lg p-3 sm:p-4 space-y-2 bg-orange-500/10/50">
                                     <div className="flex items-start gap-3">
                                       <Checkbox
                                         checked={selectedUsers.includes(usr.id)}
@@ -1749,7 +1740,7 @@ export default function Admin() {
                                         <div className="space-y-1 flex-1">
                                           <div className="flex items-center gap-2 flex-wrap">
                                             <h3 className="font-semibold">{usr.name || "Sin nombre"}</h3>
-                                            <Badge variant="outline" className="border-orange-400 text-white/45">
+                                            <Badge variant="outline" className="border-orange-500/40 text-white/45">
                                               Prueba
                                             </Badge>
                                           </div>
@@ -1817,7 +1808,7 @@ export default function Admin() {
           {/* Pricing Config Tab - Solo Super Admin */}
           {user?.role === "super_admin" && (
             <TabsContent value="pricing" className="space-y-4">
-              <Card className="border-emerald-200 bg-emerald-50/50">
+              <Card className="border-emerald-200 bg-emerald-500/10/50">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <DollarSign className="h-5 w-5 text-emerald-600" />
@@ -1900,7 +1891,7 @@ export default function Admin() {
                 </p>
               </div>
             </div>
-            <p className="text-xs text-amber-600 bg-amber-50 p-2 rounded">
+            <p className="text-xs text-amber-600 bg-amber-500/10 p-2 rounded">
               ⚠️ Esta contraseña solo se mostrará una vez. Asegúrate de guardarla o compartirla ahora.
             </p>
           </div>

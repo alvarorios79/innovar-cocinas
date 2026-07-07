@@ -219,12 +219,12 @@ export function KitchenConfigurator({
         {/* Header */}
         <div className="flex items-center gap-2 mb-4 pb-2 border-b border-emerald-200">
           <ChefHat className="h-5 w-5 text-emerald-600" />
-          <h4 className="font-bold text-emerald-800 text-lg">Configuración de Cocina Integral</h4>
+          <h4 className="font-bold text-emerald-300 text-lg">Configuración de Cocina Integral</h4>
         </div>
 
         <div className="space-y-6">
           {/* Dimensiones */}
-          <div className="bg-emerald-50 p-4 rounded-lg border border-emerald-200">
+          <div className="bg-emerald-500/10 p-4 rounded-lg border border-emerald-200">
             <h5 className="font-semibold text-emerald-700 mb-3">Dimensiones del Proyecto</h5>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -260,7 +260,7 @@ export function KitchenConfigurator({
                 />
               </div>
             </div>
-            <div className="mt-3 p-3 bg-emerald-100 rounded">
+            <div className="mt-3 p-3 bg-emerald-500/15 rounded">
               <p className="text-sm text-emerald-700">
                 <strong>Metraje resultante:</strong> {resultingMeters.toFixed(2)} ml
               </p>
@@ -271,7 +271,7 @@ export function KitchenConfigurator({
           </div>
 
           {/* Muebles Especiales */}
-          <div className="bg-gray-50 p-4 rounded-lg border border-[rgba(106,207,199,0.12)]">
+          <div className="bg-white/[0.03] p-4 rounded-lg border border-[rgba(106,207,199,0.12)]">
             <h5 className="font-semibold text-white/85 mb-3">Muebles Especiales (se descuentan del metraje)</h5>
             
             <div className="space-y-3">
@@ -378,7 +378,7 @@ export function KitchenConfigurator({
           </div>
 
           {/* Módulos de Cocina — checklist descriptivo */}
-          <div className="bg-teal-50 p-4 rounded-lg border border-teal-200">
+          <div className="bg-teal-500/10 p-4 rounded-lg border border-teal-500/25">
             <h5 className="font-semibold text-teal-700 mb-3">Módulos de Cocina (para descripción)</h5>
             <p className="text-xs text-teal-600 mb-3">Selecciona los módulos que lleva esta cocina — se usan para generar la descripción automática de la cotización.</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -411,7 +411,7 @@ export function KitchenConfigurator({
           </div>
 
           {/* Mesón Principal */}
-          <div className="bg-emerald-50 p-4 rounded-lg border border-emerald-200">
+          <div className="bg-emerald-500/10 p-4 rounded-lg border border-emerald-200">
             <h5 className="font-semibold text-emerald-700 mb-3">Mesón Principal</h5>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -450,7 +450,7 @@ export function KitchenConfigurator({
           </div>
 
           {/* Isla */}
-          <div className="bg-gray-50 p-4 rounded-lg border border-[rgba(106,207,199,0.12)]">
+          <div className="bg-white/[0.03] p-4 rounded-lg border border-[rgba(106,207,199,0.12)]">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-3">
                 <Checkbox 
@@ -510,7 +510,7 @@ export function KitchenConfigurator({
           </div>
 
           {/* Barra */}
-          <div className="bg-gray-50 p-4 rounded-lg border border-[rgba(106,207,199,0.12)]">
+          <div className="bg-white/[0.03] p-4 rounded-lg border border-[rgba(106,207,199,0.12)]">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-3">
                 <Checkbox 
@@ -570,7 +570,7 @@ export function KitchenConfigurator({
           </div>
 
           {/* Luz LED */}
-          <div className="bg-gray-50 p-4 rounded-lg border border-[rgba(106,207,199,0.12)]">
+          <div className="bg-white/[0.03] p-4 rounded-lg border border-[rgba(106,207,199,0.12)]">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Lightbulb className="h-4 w-4 text-amber-500" />
@@ -594,7 +594,7 @@ export function KitchenConfigurator({
           </div>
 
           {/* Pintado Puertas Alto Brillo */}
-          <div className="bg-pink-50 p-4 rounded-lg border border-pink-200">
+          <div className="bg-pink-500/10 p-4 rounded-lg border border-pink-200">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-3">
                 <Checkbox 
@@ -742,7 +742,7 @@ export function KitchenConfigurator({
                 </div>
 
                 {/* Total Pintado */}
-                <div className="flex items-center justify-between p-2 bg-pink-100 rounded border border-pink-300 mt-2">
+                <div className="flex items-center justify-between p-2 bg-pink-500/15 rounded border border-pink-300 mt-2">
                   <Label className="text-sm font-bold text-pink-800">Total Pintado Alto Brillo:</Label>
                   <span className="text-lg font-bold text-pink-800">
                     ${((
@@ -760,7 +760,7 @@ export function KitchenConfigurator({
           </div>
 
           {/* Transporte e Imprevistos */}
-          <div className="bg-gray-50 p-4 rounded-lg border border-[rgba(106,207,199,0.12)]">
+          <div className="bg-white/[0.03] p-4 rounded-lg border border-[rgba(106,207,199,0.12)]">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Checkbox 
@@ -787,7 +787,7 @@ export function KitchenConfigurator({
           </div>
 
           {/* Acabados Especiales */}
-          <div className="bg-amber-50 p-4 rounded-lg border border-amber-300">
+          <div className="bg-amber-500/10 p-4 rounded-lg border border-amber-300">
             <div className="flex items-center gap-3 mb-4">
               <Checkbox 
                 id="special-finishes" 
@@ -802,7 +802,7 @@ export function KitchenConfigurator({
                   updateConfig("specialFinishes", newSpecialFinishes);
                 }} 
               />
-              <Label htmlFor="special-finishes" className="cursor-pointer font-semibold text-amber-800 flex items-center gap-2">
+              <Label htmlFor="special-finishes" className="cursor-pointer font-semibold text-amber-300 flex items-center gap-2">
                 <Sparkles className="h-5 w-5" />
                 Acabados Especiales (Puertas Aluminio + Vidrio)
               </Label>
@@ -818,7 +818,7 @@ export function KitchenConfigurator({
                       type="button"
                       size="sm"
                       variant="outline"
-                      className="border-amber-400 text-amber-700 hover:bg-amber-100"
+                      className="border-amber-400 text-amber-700 hover:bg-amber-500/15"
                       onClick={() => {
                         const newDoor = {
                           id: `door-${Date.now()}`,
@@ -850,7 +850,7 @@ export function KitchenConfigurator({
                         const totalDoorPrice = doorPrice + hingePrice;
                         
                         return (
-                          <div key={door.id} className="flex items-center gap-2 bg-[#162828] p-2 rounded border border-amber-200">
+                          <div key={door.id} className="flex items-center gap-2 bg-[#162828] p-2 rounded border border-amber-500/25">
                             <span className="text-sm font-medium text-amber-700 w-16">Puerta {index + 1}:</span>
                             <div className="flex items-center gap-1">
                               <Label className="text-xs text-white/45">Alto:</Label>
@@ -908,13 +908,13 @@ export function KitchenConfigurator({
                               {extraHinges > 0 && (
                                 <span className="text-orange-600 ml-2">+{extraHinges} par bisagras</span>
                               )}
-                              <span className="font-semibold text-amber-900 ml-2">${totalDoorPrice.toLocaleString()}</span>
+                              <span className="font-semibold text-amber-300 ml-2">${totalDoorPrice.toLocaleString()}</span>
                             </div>
                             <Button
                               type="button"
                               size="sm"
                               variant="ghost"
-                              className="text-red-500 hover:text-red-700 hover:bg-red-50 h-8 w-8 p-0"
+                              className="text-red-500 hover:text-red-700 hover:bg-red-500/10 h-8 w-8 p-0"
                               onClick={() => {
                                 const newDoors = (currentConfig.specialFinishes?.aluminumGlassDoors || []).filter((_, i) => i !== index);
                                 updateConfig("specialFinishes", {
@@ -931,9 +931,9 @@ export function KitchenConfigurator({
                       
                       {/* Subtotal Puertas */}
                       {(currentConfig.specialFinishes?.aluminumGlassDoors || []).length > 0 && (
-                        <div className="flex justify-between items-center pt-2 border-t border-amber-200">
+                        <div className="flex justify-between items-center pt-2 border-t border-amber-500/25">
                           <span className="text-sm text-amber-700">Subtotal Puertas Aluminio + Vidrio:</span>
-                          <span className="font-semibold text-amber-900">
+                          <span className="font-semibold text-amber-300">
                             ${(currentConfig.specialFinishes?.aluminumGlassDoors || []).reduce((sum, door) => {
                               const sqm = door.height * door.width;
                               const extraHinges = door.height > 1.4 ? 2 : (door.height > 0.8 ? 1 : 0);
@@ -947,7 +947,7 @@ export function KitchenConfigurator({
                 </div>
                 
                 {/* Luz LED para Alacenas */}
-                <div className="border-t border-amber-200 pt-4">
+                <div className="border-t border-amber-500/25 pt-4">
                   <div className="flex items-center gap-3 mb-2">
                     <Checkbox 
                       id="led-alacenas" 
@@ -989,7 +989,7 @@ export function KitchenConfigurator({
                         placeholder="0.00"
                       />
                       <span className="text-sm">ml</span>
-                      <span className="font-semibold text-amber-900">
+                      <span className="font-semibold text-amber-300">
                         = ${((currentConfig.specialFinishes?.ledLighting?.meters || 0) * precioLedMl).toLocaleString()}
                       </span>
                     </div>
@@ -997,10 +997,10 @@ export function KitchenConfigurator({
                 </div>
                 
                 {/* Total Acabados Especiales */}
-                <div className="bg-amber-100 p-3 rounded-lg mt-4">
+                <div className="bg-amber-500/15 p-3 rounded-lg mt-4">
                   <div className="flex justify-between items-center">
-                    <span className="font-semibold text-amber-800">Total Acabados Especiales:</span>
-                    <span className="text-xl font-bold text-amber-900">
+                    <span className="font-semibold text-amber-300">Total Acabados Especiales:</span>
+                    <span className="text-xl font-bold text-amber-300">
                       ${(
                        (currentConfig.specialFinishes?.aluminumGlassDoors || []).reduce((sum, door) => {
                        const sqm = door.height * door.width;
@@ -1030,7 +1030,7 @@ export function KitchenConfigurator({
 
           {/* Resumen Total */}
           <div className="bg-emerald-200 p-4 rounded-lg border border-emerald-400">
-            <h5 className="font-semibold text-emerald-800 mb-3">Resumen del Precio</h5>
+            <h5 className="font-semibold text-emerald-300 mb-3">Resumen del Precio</h5>
             <div className="space-y-1 text-sm">
               <div className="flex justify-between">
                 <span>Cocina {currentConfig.shape || "---"} - {resultingMeters.toFixed(2)}ml:</span>
@@ -1126,8 +1126,8 @@ export function KitchenConfigurator({
                 </div>
               )}
               <div className="border-t border-emerald-400 pt-2 mt-2 flex justify-between">
-                <span className="font-bold text-emerald-900">TOTAL COCINA:</span>
-                <span className="text-2xl font-bold text-emerald-900">${totalPrice.toLocaleString()}</span>
+                <span className="font-bold text-emerald-300">TOTAL COCINA:</span>
+                <span className="text-2xl font-bold text-emerald-300">${totalPrice.toLocaleString()}</span>
               </div>
             </div>
           </div>

@@ -330,7 +330,7 @@ export function ProjectDesignPanel({ projectId }: { projectId: number }) {
               return (
                 <div className={`rounded-xl p-5 border mb-4 ${
                   statusColor === "amber" ? "bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20 border-amber-200 dark:border-amber-700" :
-                  statusColor === "green" ? "bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-green-200 dark:border-green-700" :
+                  statusColor === "green" ? "bg-green-500/10 border-green-200 dark:border-green-700" :
                   statusColor === "blue" ? "bg-gradient-to-r from-blue-50 to-sky-50 dark:from-blue-900/20 dark:to-sky-900/20 border-blue-200 dark:border-blue-700" :
                   "bg-gradient-to-r from-gray-50 to-slate-50 dark:from-gray-900/20 dark:to-slate-900/20 border-gray-200 dark:border-gray-700"
                 }`}>
@@ -360,7 +360,7 @@ export function ProjectDesignPanel({ projectId }: { projectId: number }) {
                       <CheckCircle2 className="h-4 w-4 mr-2" />Aprobar
                     </Button>
                     <Button variant="outline"
-                      className={isInDesignPhase && approvalUnlocked ? "border-orange-400 text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20" : "border-gray-300 text-gray-400 cursor-not-allowed"}
+                      className={isInDesignPhase && approvalUnlocked ? "border-orange-400 text-orange-400 hover:bg-orange-500/10" : "border-gray-300 text-gray-400 cursor-not-allowed"}
                       onClick={() => {
                         if (isInDesignPhase && approvalUnlocked) {
                           const notes = prompt("Indica qué cambios se necesitan:");
@@ -408,7 +408,7 @@ export function ProjectDesignPanel({ projectId }: { projectId: number }) {
                   <div className="flex flex-wrap items-center gap-2 text-sm">
                     <span className="font-semibold text-purple-800">{visit.clientName}</span>
                     <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full capitalize">{visit.workType}</span>
-                    {visit.status === "enviada" && <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">✓ Enviada</span>}
+                    {visit.status === "enviada" && <span className="text-xs bg-green-500/15 text-green-400 px-2 py-0.5 rounded-full">✓ Enviada</span>}
                     {geo && (
                       <a href={`https://www.google.com/maps?q=${geo.lat},${geo.lng}`} target="_blank" rel="noreferrer"
                         className="text-xs text-blue-600 underline flex items-center gap-1">
@@ -559,8 +559,8 @@ export function ProjectDesignPanel({ projectId }: { projectId: number }) {
                     ) : (
                       <div className="flex flex-col items-center justify-center py-8 text-center bg-white/[0.03] rounded-lg border-2 border-dashed border-white/[0.12]">
                         <Camera className="h-10 w-10 text-gray-300 mb-2" />
-                        <p className="text-sm text-gray-400 font-medium">Sin fotos aún</p>
-                        {canUploadToFolder(subcategory) && <p className="text-xs text-gray-400 mt-1">Haz clic en el botón de subir para agregar</p>}
+                        <p className="text-sm text-muted-foreground font-medium">Sin fotos aún</p>
+                        {canUploadToFolder(subcategory) && <p className="text-xs text-muted-foreground mt-1">Haz clic en el botón de subir para agregar</p>}
                       </div>
                     )}
                   </div>

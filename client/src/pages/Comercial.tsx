@@ -203,22 +203,22 @@ export default function Comercial() {
   // Obtener color del estado
   const getStatusColor = (status: string) => {
     const statusColors: Record<string, string> = {
-      contacto: "bg-slate-100 text-white/85",
-      cotizacion_enviada: "bg-blue-100 text-blue-700",
-      cotizacion_aprobada: "bg-emerald-100 text-emerald-700",
-      adelanto_recibido: "bg-green-100 text-green-700",
-      en_diseno: "bg-purple-100 text-purple-700",
-      pendiente_modelado: "bg-slate-100 text-white/85",
-      pendiente_render: "bg-amber-100 text-amber-700",
-      aprobacion_final: "bg-indigo-100 text-indigo-700",
-      despiece: "bg-orange-100 text-orange-700",
-      corte: "bg-amber-100 text-amber-700",
-      enchape: "bg-teal-100 text-teal-700",
-      ensamble: "bg-teal-100 text-teal-700",
+      contacto: "bg-white/[0.06] text-white/85",
+      cotizacion_enviada: "bg-blue-500/15 text-blue-700",
+      cotizacion_aprobada: "bg-emerald-500/15 text-emerald-700",
+      adelanto_recibido: "bg-green-500/15 text-green-700",
+      en_diseno: "bg-purple-500/15 text-purple-700",
+      pendiente_modelado: "bg-white/[0.06] text-white/85",
+      pendiente_render: "bg-amber-500/15 text-amber-700",
+      aprobacion_final: "bg-indigo-500/15 text-indigo-700",
+      despiece: "bg-orange-500/15 text-orange-700",
+      corte: "bg-amber-500/15 text-amber-700",
+      enchape: "bg-teal-500/15 text-teal-700",
+      ensamble: "bg-teal-500/15 text-teal-700",
       listo_instalacion: "bg-cyan-100 text-cyan-700",
-      entregado: "bg-white/[0.08] text-foreground/70",
+      entregado: "bg-white/[0.06] text-muted-foreground",
     };
-    return statusColors[status] || "bg-white/[0.08] text-foreground/70";
+    return statusColors[status] || "bg-white/[0.06] text-muted-foreground";
   };
 
   // Manejar programación de instalación
@@ -356,7 +356,7 @@ export default function Comercial() {
               </CardHeader>
               <CardContent className="space-y-2">
                 {upcomingBirthdays.slice(0, 5).map((client: any) => (
-                  <div key={client.id} className="bg-[#162828] rounded-lg p-3 border border-teal-200 shadow-sm hover:shadow-md transition-shadow">
+                  <div key={client.id} className="bg-[#162828] rounded-lg p-3 border border-teal-500/25 shadow-sm hover:shadow-md transition-shadow">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                       <div className="flex items-center gap-3">
                         <div className={`p-2 rounded-full ${client.daysUntil === 0 ? 'bg-teal-500 text-white animate-bounce' : 'bg-teal-500/20 text-teal-400'}`}>
@@ -545,7 +545,7 @@ export default function Comercial() {
               </CardHeader>
               <CardContent className="space-y-3">
                 {projectsInEnsamble.map((project: any) => (
-                  <div key={project.id} className="bg-[#162828] rounded-lg p-4 border border-orange-200 shadow-sm">
+                  <div key={project.id} className="bg-[#162828] rounded-lg p-4 border border-orange-500/25 shadow-sm">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                       <div className="flex-1">
                         <h3 className="font-semibold text-white/90">{project.name}</h3>
@@ -560,7 +560,7 @@ export default function Comercial() {
                             <span className="flex items-center gap-1">
                               <Clock className="h-4 w-4" />
                               Entrega: {formatDate(project.tentativeInstallDate)}
-                              <Badge variant="outline" className="ml-1 text-orange-600 border-orange-300">
+                              <Badge variant="outline" className="ml-1 text-orange-600 border-orange-500/30">
                                 {getDaysRemaining(project.tentativeInstallDate)}
                               </Badge>
                             </span>
@@ -782,7 +782,7 @@ export default function Comercial() {
               <CardContent>
                 <div className="space-y-2">
                   {expiringQuotations.map((quot: any) => (
-                    <div key={quot.id} className="bg-[#162828] rounded-lg p-3 border border-red-200 shadow-sm">
+                    <div key={quot.id} className="bg-[#162828] rounded-lg p-3 border border-red-500/25 shadow-sm">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <div>
                           <h3 className="font-medium text-white/90">{quot.client?.name || quot.quotationNumber}</h3>

@@ -120,13 +120,13 @@ export function DoorConfigurator({ config, onChange }: DoorConfiguratorProps) {
   const grandTotal = doorsSubtotal + (includeTransport ? transportCost : 0);
 
   return (
-    <Card className="mt-4 border-orange-300">
+    <Card className="mt-4 border-white/[0.15]">
       <CardContent className="p-4">
         {/* Header */}
-        <div className="flex items-center justify-between mb-4 pb-2 border-b border-orange-200">
+        <div className="flex items-center justify-between mb-4 pb-2 border-b border-white/[0.12]">
           <div className="flex items-center gap-2">
-            <DoorOpen className="h-5 w-5 text-orange-600" />
-            <h4 className="font-bold text-orange-800 text-lg">Configuración de Puertas</h4>
+            <DoorOpen className="h-5 w-5 text-orange-400" />
+            <h4 className="font-bold text-foreground text-lg">Configuración de Puertas</h4>
           </div>
           <Button type="button" size="sm" onClick={addDoor} className="bg-orange-600 hover:bg-orange-700">
             <Plus className="h-4 w-4 mr-1" /> Agregar Puerta
@@ -136,10 +136,10 @@ export function DoorConfigurator({ config, onChange }: DoorConfiguratorProps) {
         <div className="space-y-6">
           {/* Lista de puertas */}
           {doors.map((door, index) => (
-            <div key={door.id} className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+            <div key={door.id} className="bg-white/[0.04] p-4 rounded-lg border border-white/[0.10]">
               {/* Header de puerta */}
-              <div className="flex items-center justify-between mb-4 pb-2 border-b border-orange-200">
-                <h5 className="font-semibold text-orange-700">
+              <div className="flex items-center justify-between mb-4 pb-2 border-b border-white/[0.08]">
+                <h5 className="font-semibold text-orange-400">
                   Puerta {index + 1} - {door.type === "batiente" ? "Batiente" : "Corrediza"}
                 </h5>
                 {doors.length > 1 && (
@@ -243,9 +243,9 @@ export function DoorConfigurator({ config, onChange }: DoorConfiguratorProps) {
               </div>
 
               {/* Precio de esta puerta */}
-              <div className="bg-orange-100 rounded-lg p-3">
+              <div className="bg-orange-500/10 rounded-lg p-3">
                 <div className="flex justify-between items-center">
-                  <div className="text-sm text-orange-700">
+                  <div className="text-sm text-orange-400">
                     <span className="font-medium">{door.type === "batiente" ? "Batiente" : "Corrediza"}</span>
                     <span className="mx-2">•</span>
                     <span>{door.width}cm × {door.height}m</span>
@@ -255,10 +255,10 @@ export function DoorConfigurator({ config, onChange }: DoorConfiguratorProps) {
                     <span>{door.hasLintel ? "Con dintel" : "Sin dintel"}</span>
                   </div>
                   <div className="text-right">
-                    <div className="text-sm text-orange-600">
+                    <div className="text-sm text-orange-400">
                       ${door.pricePerUnit.toLocaleString()} × {door.quantity}
                     </div>
-                    <div className="text-xl font-bold text-orange-800">
+                    <div className="text-xl font-bold text-orange-300">
                       ${door.lineTotal.toLocaleString()}
                     </div>
                   </div>
@@ -268,7 +268,7 @@ export function DoorConfigurator({ config, onChange }: DoorConfiguratorProps) {
           ))}
 
           {/* Transporte e Imprevistos */}
-          <div className="bg-gray-50 p-4 rounded-lg border border-[rgba(106,207,199,0.12)]">
+          <div className="bg-white/[0.03] p-4 rounded-lg border border-[rgba(106,207,199,0.12)]">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Checkbox 
@@ -310,27 +310,27 @@ export function DoorConfigurator({ config, onChange }: DoorConfiguratorProps) {
           </div>
 
           {/* Resumen Total */}
-          <div className="bg-orange-200 p-4 rounded-lg border border-orange-400">
-            <h5 className="font-semibold text-orange-800 mb-3">Resumen del Precio</h5>
+          <div className="bg-[#162828] p-4 rounded-lg border border-orange-500/30">
+            <h5 className="font-semibold text-foreground mb-3">Resumen del Precio</h5>
             <div className="space-y-1 text-sm">
               <div className="flex justify-between">
                 <span>Subtotal ({totalDoors} {totalDoors === 1 ? "puerta" : "puertas"}):</span>
                 <span className="font-medium">${doorsSubtotal.toLocaleString()}</span>
               </div>
               {includeTransport && (
-                <div className="flex justify-between text-orange-700">
+                <div className="flex justify-between text-orange-400">
                   <span>+ Transporte e imprevistos:</span>
                   <span className="font-medium">${transportCost.toLocaleString()}</span>
                 </div>
               )}
-              <div className="border-t border-orange-400 pt-2 mt-2 flex justify-between">
+              <div className="border-t border-white/[0.15] pt-2 mt-2 flex justify-between">
                 <div>
-                  <span className="font-bold text-orange-900">TOTAL:</span>
-                  <p className="text-xs text-orange-700 mt-1">
+                  <span className="font-bold text-foreground">TOTAL:</span>
+                  <p className="text-xs text-muted-foreground mt-1">
                     Incluye: Marco RH, chapa gama alta, bisagras omega, tope, instalación
                   </p>
                 </div>
-                <span className="text-2xl font-bold text-orange-900">${grandTotal.toLocaleString()}</span>
+                <span className="text-2xl font-bold text-primary">${grandTotal.toLocaleString()}</span>
               </div>
             </div>
           </div>

@@ -40,13 +40,16 @@ const formatPrice = (price: number) => {
 };
 
 const getItemTypeName = (itemType: string) => {
+  // Bug F fix: agregados mueble_cocina y acabados_especiales que faltaban
   const names: Record<string, string> = {
     cocina: "Cocina Integral",
     closet: "Closet",
     puerta: "Puerta",
     centro_tv: "Centro de TV",
     herrajes: "Herrajes",
-    mesones: "Mesones",
+    mesones: "Mesón Solo",
+    mueble_cocina: "Piezas de Cocina",
+    acabados_especiales: "Acabados Especiales",
     otro: "Otro"
   };
   return names[itemType] || itemType;

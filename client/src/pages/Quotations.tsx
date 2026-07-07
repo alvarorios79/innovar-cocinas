@@ -59,6 +59,7 @@ interface AcabadosConfig {
 }
 
 interface QuotationItem {
+  _id?: string; // ID estable para React key — evita bugs de reconciliación
   itemNumber: number;
   itemType: string;
   description: string;
@@ -576,12 +577,13 @@ export default function Quotations() {
     setGeneralNotes(INNOVAR_NOTAS_DEFAULT);
     setPaymentTerms("60% anticipo — 40% a la entrega de la obra");
     setDeliveryTime("25 días hábiles a partir de la aprobación del render final");
-    setItems([{ 
-      itemNumber: 1, 
-      itemType: "", 
-      description: "", 
-      quantity: "", 
-      totalPrice: 0, 
+    setItems([{
+      _id: `item_${Date.now()}_${Math.random()}`,
+      itemNumber: 1,
+      itemType: "",
+      description: "",
+      quantity: "",
+      totalPrice: 0,
       includesFixedCosts: false,
       fixedCostsAmount: 600000, // Valor por defecto
       kitchenConfig: {
@@ -678,7 +680,8 @@ export default function Quotations() {
       
       // Cargar items si existen
       if (quotationData && quotationData.items && Array.isArray(quotationData.items)) {
-        setItems(quotationData.items.map((item: any) => ({
+        setItems(quotationData.items.map((item: any, idx: number) => ({
+          _id: `db_${item.id || idx}_${Date.now()}`,
           itemNumber: item.itemNumber,
           itemType: item.itemType || "",
           description: item.description,
@@ -875,6 +878,7 @@ export default function Quotations() {
     setItems([
       ...items,
       {
+        _id: `item_${Date.now()}_${Math.random()}`,
         itemNumber: items.length + 1,
         itemType: "",
         description: "",
@@ -931,12 +935,12 @@ export default function Quotations() {
       toast.error("Debe haber al menos un ítem");
       return;
     }
-    const newItems = items.filter((_, i) => i !== index);
-    // Renumerar items
-    newItems.forEach((item, i) => {
-      item.itemNumber = i + 1;
-    });
-    setItems(newItems);
+    // Bug A fix: usar map inmutable en lugar de forEach con mutación directa
+    setItems(
+      items
+        .filter((_, i) => i !== index)
+        .map((item, i) => ({ ...item, itemNumber: i + 1 }))
+    );
   };
 
   const updateItem = (index: number, field: keyof QuotationItem, value: any) => {
@@ -974,7 +978,9 @@ export default function Quotations() {
 
   const updateKitchenConfig = (index: number, field: string, value: any) => {
     const newItems = [...items];
-    const config = newItems[index].kitchenConfig!;
+    // Bug E fix: deep copy para no mutar el estado anidado original
+    const config = structuredClone(newItems[index].kitchenConfig!);
+    newItems[index] = { ...newItems[index], kitchenConfig: config };
     
     // Actualizar campo específico usando notación de punto
     const fields = field.split('.');
@@ -1241,11 +1247,7 @@ export default function Quotations() {
       return;
     }
 
-    if (items.some((item) => item.itemType && !item.itemType)) {
-      toast.error("Selecciona el tipo de producto para todos los items");
-      return;
-    }
-
+    // Bug G fix: validación anterior `item.itemType && !item.itemType` siempre era false (eliminada)
     // Validar campos obligatorios según tipo de item
     for (let i = 0; i < items.length; i++) {
       const item = items[i];
@@ -1657,7 +1659,7 @@ export default function Quotations() {
         id: editingQuotation,
         clientId: selectedClient,
         vendorName,
-        productType: (workType || items[0]?.itemType || "otro") as "cocina" | "closet" | "puerta" | "centro_tv" | "herrajes" | "mesones" | "mueble_cocina" | "otro",
+        productType: (() => { const validTypes = ["cocina","closet","puerta","centro_tv","herrajes","mesones","mueble_cocina","acabados_especiales","otro"] as const; const pt = workType || items[0]?.itemType || "otro"; return (validTypes.includes(pt as any) ? pt : "otro") as typeof validTypes[number]; })(),
         discountPercent,
         generalNotes: notesWithTerms,
         items: itemsWithDescriptions,
@@ -1667,7 +1669,7 @@ export default function Quotations() {
       createQuotation.mutate({
         clientId: selectedClient,
         vendorName,
-        productType: (workType || items[0]?.itemType || "otro") as "cocina" | "closet" | "puerta" | "centro_tv" | "herrajes" | "mesones" | "mueble_cocina" | "otro",
+        productType: (() => { const validTypes = ["cocina","closet","puerta","centro_tv","herrajes","mesones","mueble_cocina","acabados_especiales","otro"] as const; const pt = workType || items[0]?.itemType || "otro"; return (validTypes.includes(pt as any) ? pt : "otro") as typeof validTypes[number]; })(),
         discountPercent,
         generalNotes: notesWithTerms,
         items: itemsWithDescriptions,
@@ -2258,7 +2260,9 @@ export default function Quotations() {
 
               <div className="space-y-3 sm:space-y-4">
                 {items.map((item, index) => (
-                  <div key={index} className="bg-[#162828] rounded-lg sm:rounded-xl border border-[rgba(106,207,199,0.12)] shadow-sm overflow-hidden">
+                  // Bug B fix: usar _id estable en lugar de index — evita que React reutilice
+                  // nodos DOM incorrectos al eliminar items (causa del "selecciona 1 marca 2")
+                  <div key={item._id || `fallback_${item.itemNumber}`} className="bg-[#162828] rounded-lg sm:rounded-xl border border-[rgba(106,207,199,0.12)] shadow-sm overflow-hidden">
                     {/* Header del Item */}
                     <div className="bg-[rgba(106,207,199,0.07)] px-3 sm:px-4 py-2 sm:py-3 flex justify-between items-center border-b border-[rgba(106,207,199,0.12)]">
                       <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
@@ -2273,6 +2277,7 @@ export default function Quotations() {
                            item.itemType === 'mesones' ? 'Mesón Solo' :
                            item.itemType === 'mueble_cocina' ? 'Piezas de Cocina' :
                            item.itemType === 'herrajes' ? 'Herrajes' :
+                           item.itemType === 'acabados_especiales' ? 'Acabados Especiales' :
                            item.itemType === 'otro' ? 'Otro' : 'Nuevo Producto'}
                         </span>
                         {item.totalPrice > 0 && (

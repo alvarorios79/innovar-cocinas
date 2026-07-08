@@ -866,6 +866,11 @@ export default function Quotations() {
               golaQty: 0,
             },
           }
+        },
+          // Para mueble_cocina: la config se guardó dentro de kitchenConfig — restaurarla aquí
+          muebleCocinaConfig: item.itemType === 'mueble_cocina' && item.kitchenConfig && (item.kitchenConfig as any).tipoPieza
+            ? item.kitchenConfig as any
+            : undefined,
         })));
       }
       
@@ -1581,7 +1586,8 @@ export default function Quotations() {
           if (modActivos.length) parts.push(modActivos.join(", "));
         }
         if (cfg.notas) parts.push(cfg.notas);
-        return { ...item, description: parts.join(" · "), quantity: "1", totalPrice: cfg.total };
+        // Guardamos muebleCocinaConfig dentro de kitchenConfig (campo JSON existente en DB)
+        return { ...item, description: parts.join(" · "), quantity: "1", totalPrice: cfg.total, kitchenConfig: cfg };
       }
       // Para herrajes: generar descripción automática y cantidad basada en selecciones
       if (item.itemType === "herrajes" && item.hardwareSelections && item.hardwareSelections.length > 0) {

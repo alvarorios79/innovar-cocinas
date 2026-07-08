@@ -1391,10 +1391,9 @@ export default function ProjectDetail() {
                                     <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                       <ZoomIn className="h-6 w-6 text-white" />
                                     </div>
-                                    {/* Botón eliminar — diseñador y comercial eliminan cualquier foto en pre-producción */}
+                                    {/* Botón eliminar — solo admin/comercial/diseñador en pre-producción; jefe/operario solo ven */}
                                     {(user?.role === "super_admin" || user?.role === "admin" ||
-                                      user?.role === "comercial" || user?.role === "disenador" ||
-                                      ((user?.role === "jefe_taller" || user?.role === "operario") && photo.uploadedBy === user?.id)) && (
+                                      user?.role === "comercial" || user?.role === "disenador") && (
                                       <button
                                         className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-full p-2 opacity-100 xl:opacity-0 xl:group-hover:opacity-100 transition-opacity z-10 shadow-md"
                                         onClick={(e) => {

@@ -451,10 +451,10 @@ export default function ProjectDetail() {
   const canUploadToFolder = (folder: string) => {
     const role = user?.role;
     const uploadPermissions: Record<string, string[]> = {
-      // Pre-producción: diseñador tiene acceso completo de subida
-      documento_cotizacion: ["super_admin", "admin", "disenador"],
-      fotos_iniciales: ["super_admin", "admin", "disenador"],
-      dibujo: ["super_admin", "admin", "disenador"],
+      // Pre-producción: diseñador + comercial según su fase
+      documento_cotizacion: ["super_admin", "admin", "comercial", "disenador"],
+      fotos_iniciales: ["super_admin", "admin", "comercial", "disenador"],
+      dibujo: ["super_admin", "admin", "comercial", "disenador"],
       renders: ["super_admin", "admin", "disenador"],
       despieces: ["super_admin", "admin", "disenador"],
       detalles: ["super_admin", "admin", "disenador"],
@@ -1054,9 +1054,19 @@ export default function ProjectDetail() {
                           {photos.length > 0 ? (
                             <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2">
                               {photos.map((photo: any, idx: number) => (
-                                <div key={photo.id} className="aspect-square rounded-md overflow-hidden cursor-pointer hover:opacity-80"
+                                <div key={photo.id} className="relative group aspect-square rounded-md overflow-hidden cursor-pointer hover:opacity-80"
                                   onClick={() => fileViewer.openViewer(photos.map((p: any) => ({ url: p.photoUrl, title: p.description || "Foto" })), idx)}>
                                   <img src={photo.photoUrl || ''} alt={photo.description || "Foto"} className="w-full h-full object-cover" />
+                                  {/* Botón eliminar — jefe/operario eliminan sus propias fotos en producción */}
+                                  {(user?.role === "super_admin" || user?.role === "admin" ||
+                                    ((user?.role === "jefe_taller" || user?.role === "operario") && photo.uploadedBy === user?.id)) && (
+                                    <button
+                                      className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity z-10 shadow-md"
+                                      onClick={(e) => { e.stopPropagation(); setPhotoToDelete({ id: photo.id, description: photo.description }); }}
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </button>
+                                  )}
                                 </div>
                               ))}
                             </div>
@@ -1381,9 +1391,10 @@ export default function ProjectDetail() {
                                     <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                       <ZoomIn className="h-6 w-6 text-white" />
                                     </div>
-                                    {/* Botón eliminar - admin/comercial pueden eliminar cualquiera, colaboradores solo sus propias fotos */}
-                                    {(user?.role === "super_admin" || user?.role === "admin" || user?.role === "comercial" || 
-                                      ((user?.role === "jefe_taller" || user?.role === "operario" || user?.role === "disenador") && photo.uploadedBy === user?.id)) && (
+                                    {/* Botón eliminar — diseñador y comercial eliminan cualquier foto en pre-producción */}
+                                    {(user?.role === "super_admin" || user?.role === "admin" ||
+                                      user?.role === "comercial" || user?.role === "disenador" ||
+                                      ((user?.role === "jefe_taller" || user?.role === "operario") && photo.uploadedBy === user?.id)) && (
                                       <button
                                         className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-full p-2 opacity-100 xl:opacity-0 xl:group-hover:opacity-100 transition-opacity z-10 shadow-md"
                                         onClick={(e) => {
@@ -1659,9 +1670,19 @@ export default function ProjectDetail() {
                           {photos.length > 0 ? (
                             <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2">
                               {photos.map((photo: any, idx: number) => (
-                                <div key={photo.id} className="aspect-square rounded-md overflow-hidden cursor-pointer hover:opacity-80"
+                                <div key={photo.id} className="relative group aspect-square rounded-md overflow-hidden cursor-pointer hover:opacity-80"
                                   onClick={() => fileViewer.openViewer(photos.map((p: any) => ({ url: p.photoUrl, title: p.description || "Foto" })), idx)}>
                                   <img src={photo.photoUrl || ''} alt={photo.description || "Foto"} className="w-full h-full object-cover" />
+                                  {/* Botón eliminar — jefe/operario eliminan sus propias fotos en instalación */}
+                                  {(user?.role === "super_admin" || user?.role === "admin" ||
+                                    ((user?.role === "jefe_taller" || user?.role === "operario") && photo.uploadedBy === user?.id)) && (
+                                    <button
+                                      className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity z-10 shadow-md"
+                                      onClick={(e) => { e.stopPropagation(); setPhotoToDelete({ id: photo.id, description: photo.description }); }}
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </button>
+                                  )}
                                 </div>
                               ))}
                             </div>

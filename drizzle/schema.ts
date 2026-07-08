@@ -1,64 +1,20 @@
-import { pgTable, pgEnum, index, bigint, integer, text, foreignKey, serial, decimal, timestamp, varchar, date, json, smallint } from "drizzle-orm/pg-core"
+import { pgTable, index, foreignKey, serial, integer, bigint, text, decimal, timestamp, varchar, date, json } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
 
-// ── ENUMS ─────────────────────────────────────────────────────────────────────
-export const workTypeEnum = pgEnum('work_type', ['cocina', 'closet', 'puertas', 'centro_tv']);
-export const dataOriginEnum = pgEnum('data_origin', ['manual', 'system']);
-export const dataOriginWithTestEnum = pgEnum('data_origin_with_test', ['manual', 'system', 'test']);
-export const opExpenseCategoryEnum = pgEnum('op_expense_category', ['arriendo', 'energia', 'agua', 'internet', 'mantenimiento', 'herramientas', 'jardineria', 'reparaciones', 'transporte', 'papeleria', 'aseo', 'nomina', 'cortesia_cliente', 'gasolina_vehiculos', 'mantenimiento_moto', 'mantenimiento_bodega', 'mantenimiento_maquinaria', 'otro']);
-export const closureStatusEnum = pgEnum('closure_status', ['draft', 'confirmed']);
-export const advisoryStatusEnum = pgEnum('advisory_status', ['pendiente', 'contactado', 'completado']);
-export const appointmentStatusEnum = pgEnum('appointment_status', ['pendiente', 'confirmada', 'completada', 'cancelada']);
-export const auditActionEnum = pgEnum('audit_action', ['create', 'update', 'delete', 'restore']);
-export const backupTypeEnum = pgEnum('backup_type', ['daily', 'weekly', 'manual']);
-export const backupStatusEnum = pgEnum('backup_status', ['pending', 'completed', 'failed', 'verified']);
-export const verificationStatusEnum = pgEnum('verification_status', ['not_verified', 'verified', 'failed']);
-export const clientRevisionTypeEnum = pgEnum('client_revision_type', ['modelado_3d', 'renders']);
-export const expenseTypeEnum = pgEnum('expense_type', ['materiales_proyecto', 'gasto_operativo']);
-export const generalCategoryEnum = pgEnum('general_category', ['materiales', 'mano_de_obra', 'alquiler', 'servicios', 'transporte', 'mantenimiento', 'otros']);
-export const financialAlertTypeEnum = pgEnum('financial_alert_type', ['deliveredWithOutstanding', 'lowCollectionRate']);
-export const hardwareCategoryEnum = pgEnum('hardware_category', ['cocinas', 'closets', 'puertas']);
-export const kitchenShapeEnum = pgEnum('kitchen_shape', ['L', 'U', 'lineal']);
-export const countertopTypeEnum = pgEnum('countertop_type', ['quarzone', 'sinterizado']);
-export const notificationTypeEnum = pgEnum('notification_type', ['proyecto', 'tarea', 'cita', 'cotizacion', 'sistema']);
-export const paymentTypeEnum = pgEnum('payment_type', ['advance', 'final', 'partial', 'other']);
-export const pricingCategoryEnum = pgEnum('pricing_category', ['cocina_base', 'mesones', 'muebles_especiales', 'extras', 'puertas_tapas', 'herrajes', 'closets', 'puertas_producto', 'centros_tv', 'otros', 'acabados_especiales']);
-export const woodTypeEnum = pgEnum('wood_type', ['rh', 'estandar']);
-export const countertopMaterialEnum = pgEnum('countertop_material', ['granito', 'cuarzo', 'sinterizado']);
-export const projectPaymentTypeEnum = pgEnum('project_payment_type', ['adelanto', 'saldo_final', 'abono', 'otro']);
-export const photoStageEnum = pgEnum('photo_stage', ['inicial', 'diseno', 'corte', 'enchape', 'ensamble', 'final']);
-export const photoCategoryEnum = pgEnum('photo_category', ['cotizacion', 'medidas', 'disenos', 'avance', 'instalacion', 'entrega']);
-export const photoSubcategoryEnum = pgEnum('photo_subcategory', ['fotos_iniciales', 'dibujo', 'renders', 'despieces', 'detalles', 'modelado', 'modelado_3d', 'corte', 'enchape', 'armado', 'proceso_instalacion', 'fotos_finales', 'documento_cotizacion']);
-export const projectStatusEnum = pgEnum('project_status', ['contacto', 'cotizacion_enviada', 'cotizacion_aprobada', 'adelanto_recibido', 'en_diseno', 'pendiente_modelado', 'pendiente_render', 'aprobacion_final', 'despiece', 'corte', 'enchape', 'ensamble', 'listo_instalacion', 'entregado']);
-export const productTypeEnum = pgEnum('product_type', ['cocina', 'closet', 'puerta', 'centro_tv', 'herrajes', 'mesones', 'acabados_especiales', 'otro']);
-export const quotationStatusEnum = pgEnum('quotation_status', ['draft', 'sent', 'approved', 'rejected']);
-export const clientResponseStatusEnum = pgEnum('client_response_status', ['aprobado', 'rechazado', 'revision']);
-export const reminderTypeEnum = pgEnum('reminder_type', ['cotizacion_sin_respuesta', 'diseno_pendiente', 'aprobacion_pendiente', 'produccion_retrasada', 'instalacion_proxima']);
-export const reminderStatusEnum = pgEnum('reminder_status', ['pendiente', 'enviado', 'completado', 'cancelado']);
-export const taskPriorityEnum = pgEnum('task_priority', ['alta', 'media', 'baja']);
-export const taskStatusEnum = pgEnum('task_status', ['pendiente', 'en_progreso', 'completada']);
-export const userRoleEnum = pgEnum('user_role', ['user', 'admin', 'super_admin', 'comercial', 'disenador', 'jefe_taller', 'operario', 'medidor']);
-export const closureAuditActionEnum = pgEnum('closure_audit_action', ['created', 'confirmed', 'deleted']);
-export const projectDetailTypeEnum = pgEnum('project_detail_type', ['medida_especial', 'nota_importante', 'foto_referencia']);
-export const postventaTypeEnum = pgEnum('postventa_type', ['reclamacion', 'seguimiento_30d', 'revision_anual']);
-export const postventaStatusEnum = pgEnum('postventa_status', ['pendiente', 'en_revision', 'resuelto', 'no_procede']);
-
-// ── TABLES ────────────────────────────────────────────────────────────────────
-
 export const drizzleMigrations = pgTable("__drizzle_migrations__", {
-	id: serial().primaryKey(),
+	id: serial('id').primaryKey(),
 	hash: text().notNull(),
 	createdAt: bigint("created_at", { mode: "number" }),
 },
 (table) => [
-	index("drizzle_id_idx").on(table.id),
+	index("id").on(table.id),
 ]);
 
 export const accountingClosureOperationalExpenses = pgTable("accounting_op_expenses", {
-	id: serial().primaryKey(),
-	closureId: integer().notNull().references(() => accountingClosures.id, { onDelete: "cascade" }),
-	expenseId: integer().notNull().references(() => expenses.id),
-	category: opExpenseCategoryEnum().notNull(),
+	id: serial('id').primaryKey(),
+	closureId: integer().notNull().references(() => accountingClosures.id, { onDelete: "cascade", name: "fk_acoe_closure" }),
+	expenseId: integer().notNull().references(() => expenses.id, { name: "fk_acoe_expense" }),
+	category: text().notNull(),
 	description: text().notNull(),
 	amount: decimal({ precision: 12, scale: 2 }).notNull(),
 	expenseDate: timestamp({ mode: 'string' }).notNull(),
@@ -71,8 +27,8 @@ export const accountingClosureOperationalExpenses = pgTable("accounting_op_expen
 ]);
 
 export const accountingClosureProjects = pgTable("accountingClosureProjects", {
-	id: serial().primaryKey(),
-	closureId: integer().notNull().references(() => accountingClosures.id, { onDelete: "cascade" }),
+	id: serial('id').primaryKey(),
+	closureId: integer().notNull().references(() => accountingClosures.id, { onDelete: "cascade" } ),
 	projectId: integer().notNull().references(() => projects.id),
 	projectName: varchar({ length: 255 }).notNull(),
 	projectValue: decimal({ precision: 15, scale: 2 }).notNull(),
@@ -87,10 +43,12 @@ export const accountingClosureProjects = pgTable("accountingClosureProjects", {
 ]);
 
 export const accountingClosures = pgTable("accountingClosures", {
-	id: serial().primaryKey(),
-	periodStart: date({ mode: 'string' }).notNull(),
-	periodEnd: date({ mode: 'string' }).notNull(),
-	status: closureStatusEnum().default('draft').notNull(),
+	id: serial('id').primaryKey(),
+	// you can use { mode: 'date' }, if you want to have Date as type for this column
+	periodStart: date().notNull(),
+	// you can use { mode: 'date' }, if you want to have Date as type for this column
+	periodEnd: date().notNull(),
+	status: text().default('draft').notNull(),
 	createdBy: integer().notNull().references(() => users.id),
 	confirmedBy: integer(),
 	totalSales: decimal({ precision: 15, scale: 2 }).default('0').notNull(),
@@ -109,10 +67,10 @@ export const accountingClosures = pgTable("accountingClosures", {
 ]);
 
 export const advisoryRequests = pgTable("advisoryRequests", {
-	id: serial().primaryKey(),
+	id: serial('id').primaryKey(),
 	clientId: integer().notNull().references(() => clients.id),
-	workType: workTypeEnum().notNull(),
-	status: advisoryStatusEnum().default('pendiente').notNull(),
+	workType: text().notNull(),
+	status: text().default('pendiente').notNull(),
 	notes: text(),
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
@@ -124,9 +82,9 @@ export const advisoryRequests = pgTable("advisoryRequests", {
 ]);
 
 export const appointmentWorkTypes = pgTable("appointmentWorkTypes", {
-	id: serial().primaryKey(),
-	appointmentId: integer().notNull().references(() => appointments.id, { onDelete: "cascade" }),
-	workType: workTypeEnum().notNull(),
+	id: serial('id').primaryKey(),
+	appointmentId: integer().notNull().references(() => appointments.id, { onDelete: "cascade" } ),
+	workType: text().notNull(),
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 },
 (table) => [
@@ -134,15 +92,15 @@ export const appointmentWorkTypes = pgTable("appointmentWorkTypes", {
 ]);
 
 export const appointments = pgTable("appointments", {
-	id: serial().primaryKey(),
+	id: serial('id').primaryKey(),
 	clientId: integer().notNull().references(() => clients.id),
 	scheduledDate: timestamp({ mode: 'string' }),
-	status: appointmentStatusEnum().default('pendiente').notNull(),
+	status: text().default('pendiente').notNull(),
 	notes: text(),
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	deletedAt: timestamp({ mode: 'string' }),
-	dataOrigin: dataOriginEnum().default('manual').notNull(),
+	dataOrigin: text().default('manual').notNull(),
 },
 (table) => [
 	index("appointments_clientId_idx").on(table.clientId),
@@ -152,9 +110,9 @@ export const appointments = pgTable("appointments", {
 ]);
 
 export const auditLogs = pgTable("auditLogs", {
-	id: serial().primaryKey(),
+	id: serial('id').primaryKey(),
 	userId: integer().notNull().references(() => users.id),
-	action: auditActionEnum().notNull(),
+	action: text().notNull(),
 	tableName: varchar({ length: 100 }).notNull(),
 	recordId: integer().notNull(),
 	changes: json(),
@@ -173,16 +131,16 @@ export const auditLogs = pgTable("auditLogs", {
 ]);
 
 export const backupMetadata = pgTable("backupMetadata", {
-	id: serial().primaryKey(),
+	id: serial('id').primaryKey(),
 	backupName: varchar({ length: 255 }).notNull(),
-	backupType: backupTypeEnum().notNull(),
+	backupType: text().notNull(),
 	s3Key: varchar({ length: 500 }).notNull(),
 	s3Url: text().notNull(),
 	fileSize: bigint({ mode: "number" }),
 	rowCounts: json(),
 	checksums: json(),
-	status: backupStatusEnum().default('pending').notNull(),
-	verificationStatus: verificationStatusEnum().default('not_verified').notNull(),
+	status: text().default('pending').notNull(),
+	verificationStatus: text().default('not_verified').notNull(),
 	errorMessage: text(),
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	completedAt: timestamp({ mode: 'string' }),
@@ -200,9 +158,9 @@ export const backupMetadata = pgTable("backupMetadata", {
 ]);
 
 export const clientRevisionHistory = pgTable("client_revision_history", {
-	id: serial().primaryKey(),
-	projectId: integer().notNull().references(() => projects.id, { onDelete: "cascade" }),
-	type: clientRevisionTypeEnum().notNull(),
+	id: serial('id').primaryKey(),
+	projectId: integer().notNull().references(() => projects.id, { onDelete: "cascade" } ),
+	type: text().notNull(),
 	revisionNumber: integer().notNull(),
 	clientName: varchar({ length: 255 }).notNull(),
 	changes: text().notNull(),
@@ -213,7 +171,7 @@ export const clientRevisionHistory = pgTable("client_revision_history", {
 ]);
 
 export const clients = pgTable("clients", {
-	id: serial().primaryKey(),
+	id: serial('id').primaryKey(),
 	userId: integer().references(() => users.id),
 	name: varchar({ length: 255 }).notNull(),
 	email: varchar({ length: 320 }),
@@ -221,9 +179,9 @@ export const clients = pgTable("clients", {
 	address: text(),
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
-	internalManagement: smallint().default(0).notNull(),
+	internalManagement: integer().default(0).notNull(),
 	deletedAt: timestamp({ mode: 'string' }),
-	dataOrigin: dataOriginEnum().default('manual').notNull(),
+	dataOrigin: text().default('manual').notNull(),
 },
 (table) => [
 	index("clients_userId_idx").on(table.userId),
@@ -231,9 +189,9 @@ export const clients = pgTable("clients", {
 ]);
 
 export const closureAuditLog = pgTable("closureAuditLog", {
-	id: serial().primaryKey(),
-	closureId: integer().notNull().references(() => accountingClosures.id, { onDelete: "cascade" }),
-	action: closureAuditActionEnum().notNull(),
+	id: serial('id').primaryKey(),
+	closureId: integer().notNull().references(() => accountingClosures.id, { onDelete: "cascade" } ),
+	action: text().notNull(),
 	performedBy: integer().notNull().references(() => users.id),
 	actionDetails: json(),
 	timestamp: timestamp({ mode: 'string' }).defaultNow(),
@@ -248,7 +206,7 @@ export const closureAuditLog = pgTable("closureAuditLog", {
 ]);
 
 export const colombianHolidays = pgTable("colombianHolidays", {
-	id: serial().primaryKey(),
+	id: serial('id').primaryKey(),
 	date: timestamp({ mode: 'string' }).notNull(),
 	name: varchar({ length: 255 }).notNull(),
 	year: integer().notNull(),
@@ -259,11 +217,11 @@ export const colombianHolidays = pgTable("colombianHolidays", {
 ]);
 
 export const expenses = pgTable("expenses", {
-	id: serial().primaryKey(),
-	expenseType: expenseTypeEnum().notNull(),
-	projectId: integer().references(() => projects.id, { onDelete: "set null" }),
+	id: serial('id').primaryKey(),
+	expenseType: text().notNull(),
+	projectId: integer().references(() => projects.id, { onDelete: "set null" } ),
 	projectClientName: varchar({ length: 255 }),
-	operativeCategory: opExpenseCategoryEnum(),
+	operativeCategory: text(),
 	description: text().notNull(),
 	amount: decimal({ precision: 12, scale: 2 }).notNull(),
 	expenseDate: timestamp({ mode: 'string' }).notNull(),
@@ -272,11 +230,11 @@ export const expenses = pgTable("expenses", {
 	createdBy: integer().notNull().references(() => users.id),
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
-	generalCategory: generalCategoryEnum().notNull(),
+	generalCategory: text().notNull(),
 	subcategory: varchar({ length: 255 }),
 	receiptUrl: text(),
 	deletedAt: timestamp({ mode: 'string' }),
-	dataOrigin: dataOriginWithTestEnum().default('manual').notNull(),
+	dataOrigin: text().default('manual').notNull(),
 },
 (table) => [
 	index("expenses_projectId_idx").on(table.projectId),
@@ -285,9 +243,9 @@ export const expenses = pgTable("expenses", {
 ]);
 
 export const financialAlerts = pgTable("financialAlerts", {
-	id: serial().primaryKey(),
-	alertType: financialAlertTypeEnum().notNull(),
-	isActive: smallint().default(0).notNull(),
+	id: serial('id').primaryKey(),
+	alertType: text().notNull(),
+	isActive: integer().default(0).notNull(),
 	lastTriggeredAt: timestamp({ mode: 'string' }),
 	lastMessageSentAt: timestamp({ mode: 'string' }),
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
@@ -298,7 +256,7 @@ export const financialAlerts = pgTable("financialAlerts", {
 ]);
 
 export const financialSettings = pgTable("financialSettings", {
-	id: serial().primaryKey(),
+	id: serial('id').primaryKey(),
 	outstandingThresholdPercent: integer().default(40).notNull(),
 	collectionThresholdPercent: integer().default(70).notNull(),
 	lowProfitThresholdPercent: integer().default(10).notNull(),
@@ -307,14 +265,14 @@ export const financialSettings = pgTable("financialSettings", {
 });
 
 export const hardwareCatalog = pgTable("hardwareCatalog", {
-	id: serial().primaryKey(),
-	category: hardwareCategoryEnum().notNull(),
+	id: serial('id').primaryKey(),
+	category: text().notNull(),
 	name: varchar({ length: 255 }).notNull(),
 	description: text(),
 	options: text(),
 	photoUrl: text(),
 	sortOrder: integer().default(0).notNull(),
-	active: smallint().default(1).notNull(),
+	active: integer().default(1).notNull(),
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	price: decimal({ precision: 12, scale: 2 }).default('0').notNull(),
@@ -326,52 +284,52 @@ export const hardwareCatalog = pgTable("hardwareCatalog", {
 ]);
 
 export const kitchenQuotations = pgTable("kitchenQuotations", {
-	id: serial().primaryKey(),
+	id: serial('id').primaryKey(),
 	quotationId: integer().notNull(),
-	shape: kitchenShapeEnum().notNull(),
+	shape: text().notNull(),
 	totalMeters: decimal({ precision: 10, scale: 2 }).notNull(),
 	resultingMeters: decimal({ precision: 10, scale: 2 }).notNull(),
 	lowerCabinetsMeters: decimal({ precision: 10, scale: 2 }).notNull(),
 	lowerCabinetsPrice: decimal({ precision: 12, scale: 2 }).notNull(),
 	upperCabinetsMeters: decimal({ precision: 10, scale: 2 }).notNull(),
 	upperCabinetsPrice: decimal({ precision: 12, scale: 2 }).notNull(),
-	hasNichoNevecon: smallint().default(0).notNull(),
+	hasNichoNevecon: integer().default(0).notNull(),
 	nichoNeveconPrice: decimal({ precision: 12, scale: 2 }),
-	hasNichoNeveraStandard: smallint().default(0).notNull(),
+	hasNichoNeveraStandard: integer().default(0).notNull(),
 	nichoNeveraStandardPrice: decimal({ precision: 12, scale: 2 }),
-	hasAlacenaEntrepanos: smallint().default(0).notNull(),
+	hasAlacenaEntrepanos: integer().default(0).notNull(),
 	alacenaEntrepanosPrice: decimal({ precision: 12, scale: 2 }),
-	hasAlacenaHerraje: smallint().default(0).notNull(),
+	hasAlacenaHerraje: integer().default(0).notNull(),
 	alacenaHerrajePrice: decimal({ precision: 12, scale: 2 }),
-	hasHerrajeItem: smallint().default(0).notNull(),
+	hasHerrajeItem: integer().default(0).notNull(),
 	herrajePrice: decimal({ precision: 12, scale: 2 }),
-	hasTorreHornos: smallint().default(0).notNull(),
+	hasTorreHornos: integer().default(0).notNull(),
 	torreHornosPrice: decimal({ precision: 12, scale: 2 }),
-	countertopType: countertopTypeEnum().notNull(),
+	countertopType: text().notNull(),
 	countertopMeters: decimal({ precision: 10, scale: 2 }).notNull(),
-	countertopSurcharge30: smallint().default(0).notNull(),
-	countertopDouble: smallint().default(0).notNull(),
+	countertopSurcharge30: integer().default(0).notNull(),
+	countertopDouble: integer().default(0).notNull(),
 	countertopPrice: decimal({ precision: 12, scale: 2 }).notNull(),
-	hasIsland: smallint().default(0).notNull(),
+	hasIsland: integer().default(0).notNull(),
 	islandCabinetsMeters: decimal({ precision: 10, scale: 2 }),
 	islandCabinetsPrice: decimal({ precision: 12, scale: 2 }),
 	islandCountertopMeters: decimal({ precision: 10, scale: 2 }),
-	islandCountertopType: countertopTypeEnum(),
+	islandCountertopType: text(),
 	islandCountertopPrice: decimal({ precision: 12, scale: 2 }),
-	islandHasLaterals: smallint().default(0).notNull(),
+	islandHasLaterals: integer().default(0).notNull(),
 	islandLateralPrice: decimal({ precision: 12, scale: 2 }),
 	islandRegruesoPrice: decimal({ precision: 12, scale: 2 }),
 	islandTotalPrice: decimal({ precision: 12, scale: 2 }),
-	hasBar: smallint().default(0).notNull(),
+	hasBar: integer().default(0).notNull(),
 	barCabinetsMeters: decimal({ precision: 10, scale: 2 }),
 	barCabinetsPrice: decimal({ precision: 12, scale: 2 }),
 	barCountertopMeters: decimal({ precision: 10, scale: 2 }),
-	barCountertopType: countertopTypeEnum(),
+	barCountertopType: text(),
 	barCountertopPrice: decimal({ precision: 12, scale: 2 }),
-	barHasLateral: smallint().default(0).notNull(),
+	barHasLateral: integer().default(0).notNull(),
 	barLateralPrice: decimal({ precision: 12, scale: 2 }),
 	barTotalPrice: decimal({ precision: 12, scale: 2 }),
-	hasLed: smallint().default(0).notNull(),
+	hasLed: integer().default(0).notNull(),
 	ledMeters: decimal({ precision: 10, scale: 2 }),
 	ledPrice: decimal({ precision: 12, scale: 2 }),
 	transportCost: decimal({ precision: 12, scale: 2 }).default('600000').notNull(),
@@ -379,7 +337,7 @@ export const kitchenQuotations = pgTable("kitchenQuotations", {
 	total: decimal({ precision: 12, scale: 2 }).notNull(),
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
-	hasPaintedDoors: smallint().default(0).notNull(),
+	hasPaintedDoors: integer().default(0).notNull(),
 	paintedDoorsUpperQty: integer().default(0),
 	paintedDoorsUpperPrice: decimal({ precision: 12, scale: 2 }),
 	paintedDoorsLowerQty: integer().default(0),
@@ -399,15 +357,15 @@ export const kitchenQuotations = pgTable("kitchenQuotations", {
 ]);
 
 export const notifications = pgTable("notifications", {
-	id: serial().primaryKey(),
+	id: serial('id').primaryKey(),
 	userId: integer().notNull().references(() => users.id),
 	title: varchar({ length: 255 }).notNull(),
 	body: text().notNull(),
-	type: notificationTypeEnum().default('sistema').notNull(),
+	type: text().default('sistema').notNull(),
 	referenceId: integer(),
 	referenceType: varchar({ length: 50 }),
-	read: smallint().default(0).notNull(),
-	sentPush: smallint().default(0).notNull(),
+	read: integer().default(0).notNull(),
+	sentPush: integer().default(0).notNull(),
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 },
 (table) => [
@@ -417,10 +375,10 @@ export const notifications = pgTable("notifications", {
 ]);
 
 export const payments = pgTable("payments", {
-	id: serial().primaryKey(),
-	projectId: integer().notNull().references(() => projects.id, { onDelete: "cascade" }),
+	id: serial('id').primaryKey(),
+	projectId: integer().notNull().references(() => projects.id, { onDelete: "cascade" } ),
 	amount: decimal({ precision: 12, scale: 2 }).notNull(),
-	type: paymentTypeEnum().notNull(),
+	type: text().notNull(),
 	receivedAt: timestamp({ mode: 'string' }).notNull(),
 	method: varchar({ length: 100 }),
 	notes: text(),
@@ -434,27 +392,27 @@ export const payments = pgTable("payments", {
 ]);
 
 export const pricingConfig = pgTable("pricingConfig", {
-	id: serial().primaryKey(),
-	category: pricingCategoryEnum().notNull(),
+	id: serial('id').primaryKey(),
+	category: text().notNull(),
 	code: varchar({ length: 100 }).notNull(),
 	name: varchar({ length: 255 }).notNull(),
 	description: text(),
 	value: decimal({ precision: 12, scale: 2 }).notNull(),
 	unit: varchar({ length: 50 }),
 	sortOrder: integer().default(0).notNull(),
-	active: smallint().default(1).notNull(),
+	active: integer().default(1).notNull(),
 	updatedBy: integer(),
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	descriptionTemplate: text(),
 },
 (table) => [
-	index("pricingConfig_code_idx").on(table.code),
+	index("code").on(table.code),
 	index("pricingConfig_category_idx").on(table.category),
 ]);
 
 export const pricingHistory = pgTable("pricingHistory", {
-	id: serial().primaryKey(),
+	id: serial('id').primaryKey(),
 	pricingConfigId: integer().notNull(),
 	previousValue: decimal({ precision: 12, scale: 2 }).notNull(),
 	newValue: decimal({ precision: 12, scale: 2 }).notNull(),
@@ -467,13 +425,13 @@ export const pricingHistory = pgTable("pricingHistory", {
 ]);
 
 export const priorEstimates = pgTable("priorEstimates", {
-	id: serial().primaryKey(),
+	id: serial('id').primaryKey(),
 	clientId: integer().notNull().references(() => clients.id),
-	workType: workTypeEnum().notNull(),
+	workType: text().notNull(),
 	additionalDetails: text(),
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
-	kitchenShape: kitchenShapeEnum(),
-	materialType: countertopTypeEnum(),
+	kitchenShape: text(),
+	materialType: text(),
 	linearLength: decimal({ precision: 10, scale: 2 }),
 	height: decimal({ precision: 10, scale: 2 }),
 },
@@ -482,9 +440,9 @@ export const priorEstimates = pgTable("priorEstimates", {
 ]);
 
 export const projectDetails = pgTable("projectDetails", {
-	id: serial().primaryKey(),
+	id: serial('id').primaryKey(),
 	projectId: integer().notNull().references(() => projects.id),
-	type: projectDetailTypeEnum().notNull(),
+	type: text().notNull(),
 	title: varchar({ length: 255 }).notNull(),
 	content: text().notNull(),
 	photoUrl: text(),
@@ -497,7 +455,7 @@ export const projectDetails = pgTable("projectDetails", {
 ]);
 
 export const projectHardwareSelections = pgTable("projectHardwareSelections", {
-	id: serial().primaryKey(),
+	id: serial('id').primaryKey(),
 	projectId: integer().notNull(),
 	hardwareId: integer().notNull(),
 	selectedOption: text(),
@@ -513,12 +471,12 @@ export const projectHardwareSelections = pgTable("projectHardwareSelections", {
 ]);
 
 export const projectMaterials = pgTable("projectMaterials", {
-	id: serial().primaryKey(),
+	id: serial('id').primaryKey(),
 	projectId: integer().notNull(),
-	woodType: woodTypeEnum(),
+	woodType: text(),
 	woodColor: varchar({ length: 255 }),
 	woodPhotoUrl: text(),
-	countertopType: countertopMaterialEnum(),
+	countertopType: text(),
 	countertopName: varchar({ length: 255 }),
 	countertopPhotoUrl: text(),
 	sinkMeasure: varchar({ length: 100 }),
@@ -533,9 +491,9 @@ export const projectMaterials = pgTable("projectMaterials", {
 ]);
 
 export const projectPayments = pgTable("projectPayments", {
-	id: serial().primaryKey(),
-	projectId: integer().notNull().references(() => projects.id, { onDelete: "cascade" }),
-	type: projectPaymentTypeEnum().notNull(),
+	id: serial('id').primaryKey(),
+	projectId: integer().notNull().references(() => projects.id, { onDelete: "cascade" } ),
+	type: text().notNull(),
 	amount: decimal({ precision: 12, scale: 2 }).notNull(),
 	paymentDate: timestamp({ mode: 'string' }).notNull(),
 	receiptUrl: text(),
@@ -548,15 +506,15 @@ export const projectPayments = pgTable("projectPayments", {
 ]);
 
 export const projectPhotos = pgTable("projectPhotos", {
-	id: serial().primaryKey(),
+	id: serial('id').primaryKey(),
 	projectId: integer().notNull().references(() => projects.id),
-	stage: photoStageEnum().notNull(),
+	stage: text().notNull(),
 	photoUrl: text().notNull(),
 	description: text(),
 	uploadedBy: integer().notNull().references(() => users.id),
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
-	category: photoCategoryEnum().default('medidas').notNull(),
-	subcategory: photoSubcategoryEnum(),
+	category: text().default('medidas').notNull(),
+	subcategory: text(),
 },
 (table) => [
 	index("projectPhotos_projectId_idx").on(table.projectId),
@@ -565,13 +523,12 @@ export const projectPhotos = pgTable("projectPhotos", {
 ]);
 
 export const projectStatusHistory = pgTable("projectStatusHistory", {
-	id: serial().primaryKey(),
+	id: serial('id').primaryKey(),
 	projectId: integer().notNull().references(() => projects.id),
 	fromStatus: varchar({ length: 50 }),
 	toStatus: varchar({ length: 50 }).notNull(),
 	changedBy: integer().notNull().references(() => users.id),
 	notes: text(),
-	evidenceUrl: text(), // URL del archivo adjunto como evidencia (captura WhatsApp, correo, etc.)
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 },
 (table) => [
@@ -579,12 +536,12 @@ export const projectStatusHistory = pgTable("projectStatusHistory", {
 ]);
 
 export const projects = pgTable("projects", {
-	id: serial().primaryKey(),
+	id: serial('id').primaryKey(),
 	quotationId: integer(),
 	clientId: integer().notNull().references(() => clients.id),
 	name: varchar({ length: 255 }).notNull(),
-	workType: workTypeEnum().notNull(),
-	status: projectStatusEnum().default('contacto').notNull(),
+	workType: text().notNull(),
+	status: text().default('contacto').notNull(),
 	initialMeasurements: text(),
 	design3DFiles: text(),
 	despieceFiles: text(),
@@ -610,7 +567,7 @@ export const projects = pgTable("projects", {
 	advanceReceiptUrl: text("advance_receipt_url"),
 	quotationPdfUrl: text(),
 	tentativeInstallDate: timestamp({ mode: 'string' }),
-	isInstallDateOfficial: smallint().default(0),
+	isInstallDateOfficial: integer().default(0),
 	modeladoApprovedAt: timestamp({ mode: 'string' }),
 	modeladoApprovedBy: varchar({ length: 255 }),
 	rendersApprovedAt: timestamp({ mode: 'string' }),
@@ -620,12 +577,11 @@ export const projects = pgTable("projects", {
 	changesRequestedAt: timestamp({ mode: 'string' }),
 	deletedAt: timestamp({ mode: 'string' }),
 	currentApprovedQuotationId: integer(),
-	dataOrigin: dataOriginEnum().default('manual').notNull(),
-	isArchived: smallint().default(0).notNull(),
-	skipDesignProcess: smallint().default(0).notNull(),
+	dataOrigin: text().default('manual').notNull(),
+	isArchived: integer().default(0).notNull(),
+	skipDesignProcess: integer().default(0).notNull(),
 	accountingClosureId: integer().references(() => accountingClosures.id),
 	publicToken: varchar({ length: 64 }),
-	approvalReminderCount: integer().default(0),
 },
 (table) => [
 	index("projects_quotationId_quotations_id_fk").on(table.quotationId),
@@ -639,59 +595,8 @@ export const projects = pgTable("projects", {
 	index("projects_publicToken_idx").on(table.publicToken),
 ]);
 
-// ── VISITAS TÉCNICAS (Portal del Medidor) ────────────────────────────────────
-
-export const visitStatusEnum = pgEnum('visit_status', ['borrador', 'enviada', 'convertida']);
-
-export const technicalVisits = pgTable("technicalVisits", {
-	id: serial().primaryKey(),
-	// Datos del cliente (puede ser existente o nuevo)
-	clientId: integer().references(() => clients.id),
-	clientName: varchar({ length: 255 }).notNull(),
-	clientPhone: varchar({ length: 50 }),
-	clientAddress: text(),
-	// Tipo de trabajo
-	workType: workTypeEnum().notNull(),
-	// Medidas en JSON (flexible por tipo de trabajo)
-	measurements: json(),
-	// Notas libres
-	notes: text(),
-	// Estado
-	status: visitStatusEnum().default('borrador').notNull(),
-	// Quién creó/asignó la visita (admin/comercial)
-	createdBy: integer().notNull().references(() => users.id),
-	// Medidor asignado para realizar la visita
-	assignedTo: integer().references(() => users.id),
-	// Fecha programada de la visita
-	scheduledDate: timestamp({ mode: 'string' }),
-	// Timestamps
-	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
-	updatedAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
-	// Cotización generada desde esta visita (nullable)
-	quotationId: integer(),
-},
-(table) => [
-	index("technicalVisits_createdBy_idx").on(table.createdBy),
-	index("technicalVisits_status_idx").on(table.status),
-	index("technicalVisits_clientId_idx").on(table.clientId),
-	index("technicalVisits_assignedTo_idx").on(table.assignedTo),
-]);
-
-export const visitPhotos = pgTable("visitPhotos", {
-	id: serial().primaryKey(),
-	visitId: integer().notNull().references(() => technicalVisits.id, { onDelete: "cascade" }),
-	photoUrl: text().notNull(),
-	// 'foto' | 'pdf_plano' | 'pdf_medidas'
-	category: varchar({ length: 50 }).default('foto'),
-	description: text(),
-	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
-},
-(table) => [
-	index("visitPhotos_visitId_idx").on(table.visitId),
-]);
-
 export const pushSubscriptions = pgTable("pushSubscriptions", {
-	id: serial().primaryKey(),
+	id: serial('id').primaryKey(),
 	userId: integer().notNull().references(() => users.id),
 	endpoint: text().notNull(),
 	p256Dh: varchar({ length: 255 }).notNull(),
@@ -699,17 +604,17 @@ export const pushSubscriptions = pgTable("pushSubscriptions", {
 	userAgent: text(),
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
-	isActive: smallint().default(1).notNull(),
+	isActive: integer().default(1).notNull(),
 	lastUsedAt: timestamp({ mode: 'string' }),
-	dataOrigin: dataOriginEnum().default('manual').notNull(),
+	dataOrigin: text().default('manual').notNull(),
 },
 (table) => [
 	index("pushSubscriptions_userId_idx").on(table.userId),
 ]);
 
 export const quotationItems = pgTable("quotationItems", {
-	id: serial().primaryKey(),
-	quotationId: integer().notNull().references(() => quotations.id, { onDelete: "cascade" }),
+	id: serial('id').primaryKey(),
+	quotationId: integer().notNull().references(() => quotations.id, { onDelete: "cascade" } ),
 	itemNumber: integer().notNull(),
 	itemType: varchar({ length: 50 }).default('otro').notNull(),
 	description: text().notNull(),
@@ -717,7 +622,7 @@ export const quotationItems = pgTable("quotationItems", {
 	unitPrice: varchar({ length: 50 }),
 	totalPrice: decimal({ precision: 12, scale: 2 }).notNull(),
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
-	includesFixedCosts: smallint().default(0).notNull(),
+	includesFixedCosts: integer().default(0).notNull(),
 	kitchenConfig: json(),
 	hardwareSelections: json(),
 	closetConfig: json(),
@@ -731,12 +636,12 @@ export const quotationItems = pgTable("quotationItems", {
 ]);
 
 export const quotations = pgTable("quotations", {
-	id: serial().primaryKey(),
+	id: serial('id').primaryKey(),
 	quotationNumber: varchar({ length: 50 }).notNull(),
-	clientId: integer().notNull().references(() => clients.id, { onDelete: "cascade" }),
+	clientId: integer().notNull().references(() => clients.id, { onDelete: "cascade" } ),
 	vendorName: varchar({ length: 255 }).notNull(),
-	productType: productTypeEnum().default('otro').notNull(),
-	status: quotationStatusEnum().default('draft').notNull(),
+	productType: text().default('otro').notNull(),
+	status: text().default('draft').notNull(),
 	validUntil: timestamp({ mode: 'string' }),
 	subtotal: decimal({ precision: 12, scale: 2 }).notNull(),
 	transportCost: decimal({ precision: 12, scale: 2 }).default('600000').notNull(),
@@ -752,24 +657,24 @@ export const quotations = pgTable("quotations", {
 	generalNotes: text(),
 	discountPercent: decimal({ precision: 5, scale: 2 }).default('0'),
 	discountAmount: decimal({ precision: 15, scale: 2 }).default('0'),
-	isLocked: smallint().default(0).notNull(),
+	isLocked: integer().default(0).notNull(),
 	lockedAt: timestamp({ mode: 'string' }),
 	lockedBy: integer(),
 	deletedAt: timestamp({ mode: 'string' }),
 	parentQuotationId: integer(),
-	isAdditional: smallint().default(0).notNull(),
+	isAdditional: integer().default(0).notNull(),
 	baseQuotationId: integer(),
 	versionNumber: integer().default(1).notNull(),
-	isHistoricalCopy: smallint().default(0).notNull(),
-	clientResponseStatus: clientResponseStatusEnum(),
+	isHistoricalCopy: integer().default(0).notNull(),
+	clientResponseStatus: text(),
 	clientResponseNotes: text(),
 	clientResponseAt: timestamp({ mode: 'string' }),
 	whatsappApiSentAt: timestamp({ mode: 'string' }),
-	dataOrigin: dataOriginEnum().default('manual').notNull(),
-	isArchived: smallint().default(0).notNull(),
+	dataOrigin: text().default('manual').notNull(),
+	isArchived: integer().default(0).notNull(),
 },
 (table) => [
-	index("quotations_quotationNumber_idx").on(table.quotationNumber),
+	index("quotationNumber").on(table.quotationNumber),
 	index("quotations_clientId_idx").on(table.clientId),
 	index("quotations_status_idx").on(table.status),
 	index("quotations_createdBy_idx").on(table.createdBy),
@@ -777,29 +682,29 @@ export const quotations = pgTable("quotations", {
 	index("quotations_parentQuotationId_idx").on(table.parentQuotationId),
 	index("quotations_baseQuotationId_idx").on(table.baseQuotationId),
 	foreignKey({
-		columns: [table.parentQuotationId],
-		foreignColumns: [table.id],
-		name: "quotations_parentQuotationId_fk"
-	}),
+			columns: [table.parentQuotationId],
+			foreignColumns: [table.id],
+			name: "quotations_parentQuotationId_fk"
+		}),
 	foreignKey({
-		columns: [table.baseQuotationId],
-		foreignColumns: [table.id],
-		name: "quotations_baseQuotationId_fk"
-	}),
+			columns: [table.baseQuotationId],
+			foreignColumns: [table.id],
+			name: "quotations_baseQuotationId_fk"
+		}),
 ]);
 
 export const reminders = pgTable("reminders", {
-	id: serial().primaryKey(),
+	id: serial('id').primaryKey(),
 	projectId: integer().references(() => projects.id),
-	type: reminderTypeEnum().notNull(),
+	type: text().notNull(),
 	assignedTo: integer().notNull().references(() => users.id),
 	dueDate: timestamp({ mode: 'string' }).notNull(),
-	status: reminderStatusEnum().default('pendiente').notNull(),
+	status: text().default('pendiente').notNull(),
 	message: text(),
 	sentAt: timestamp({ mode: 'string' }),
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	scheduledFor: timestamp({ mode: 'string' }),
-	sent: smallint().default(0).notNull(),
+	sent: integer().default(0).notNull(),
 },
 (table) => [
 	index("reminders_projectId_idx").on(table.projectId),
@@ -809,20 +714,20 @@ export const reminders = pgTable("reminders", {
 ]);
 
 export const taskReminders = pgTable("taskReminders", {
-	id: serial().primaryKey(),
-	taskId: integer().notNull().references(() => tasks.id, { onDelete: "cascade" }),
+	id: serial('id').primaryKey(),
+	taskId: integer().notNull().references(() => tasks.id, { onDelete: "cascade" } ),
 	sentBy: integer().notNull().references(() => users.id),
 	sentTo: integer().notNull().references(() => users.id),
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 });
 
 export const tasks = pgTable("tasks", {
-	id: serial().primaryKey(),
+	id: serial('id').primaryKey(),
 	projectId: integer().references(() => projects.id),
 	title: varchar({ length: 255 }).notNull(),
 	description: text(),
-	priority: taskPriorityEnum().default('media').notNull(),
-	status: taskStatusEnum().default('pendiente').notNull(),
+	priority: text().default('media').notNull(),
+	status: text().default('pendiente').notNull(),
 	dueDate: timestamp({ mode: 'string' }),
 	assignedTo: integer().notNull().references(() => users.id),
 	assignedBy: integer().notNull().references(() => users.id),
@@ -833,7 +738,7 @@ export const tasks = pgTable("tasks", {
 	lastReminderSentBy: integer(),
 	reminderCount: integer().default(0).notNull(),
 	deletedAt: timestamp({ mode: 'string' }),
-	dataOrigin: dataOriginEnum().default('manual').notNull(),
+	dataOrigin: text().default('manual').notNull(),
 },
 (table) => [
 	index("tasks_assignedTo_idx").on(table.assignedTo),
@@ -844,12 +749,12 @@ export const tasks = pgTable("tasks", {
 ]);
 
 export const users = pgTable("users", {
-	id: serial().primaryKey(),
+	id: serial('id').primaryKey(),
 	openId: varchar({ length: 64 }).notNull(),
 	name: text(),
 	email: varchar({ length: 320 }),
 	loginMethod: varchar({ length: 64 }),
-	role: userRoleEnum().default('user').notNull(),
+	role: text().default('user').notNull(),
 	phone: varchar({ length: 20 }),
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
@@ -858,9 +763,9 @@ export const users = pgTable("users", {
 	passwordResetToken: varchar({ length: 100 }),
 	passwordResetExpires: timestamp({ mode: 'string' }),
 	birthDate: timestamp({ mode: 'string' }),
-	dataOrigin: dataOriginEnum().default('manual').notNull(),
+	dataOrigin: text().default('manual').notNull(),
 	deletedAt: timestamp({ mode: 'string' }),
-	isTeamMember: smallint().default(0).notNull(),
+	isTeamMember: integer().default(0).notNull(),
 },
 (table) => [
 	index("users_openId_unique").on(table.openId),
@@ -870,19 +775,20 @@ export const users = pgTable("users", {
 
 // ── POSTVENTA ─────────────────────────────────────────────────────────────────
 export const postventaReclamaciones = pgTable("postventaReclamaciones", {
-	id: serial().primaryKey(),
+	id: serial('id').primaryKey(),
 	projectId: integer().notNull().references(() => projects.id, { onDelete: "cascade" }),
 	title: varchar({ length: 255 }).notNull(),
 	description: text(),
-	type: postventaTypeEnum().default('reclamacion').notNull(),
-	status: postventaStatusEnum().default('pendiente').notNull(),
-	priority: taskPriorityEnum().default('media').notNull(),
+	// reclamacion = cliente reporta problema, seguimiento_30d = llamada de satisfacción, revision_anual = oferta de revisión al año
+	type: text().default('reclamacion').notNull(),
+	status: text().default('pendiente').notNull(),
+	priority: text().default('media').notNull(),
 	assignedTo: integer().references(() => users.id),
 	createdBy: integer().notNull().references(() => users.id),
 	resolvedBy: integer().references(() => users.id),
 	resolvedAt: timestamp({ mode: 'string' }),
 	resolvedNotes: text(),
-	scheduledFor: timestamp({ mode: 'string' }),
+	scheduledFor: timestamp({ mode: 'string' }), // fecha programada para seguimiento/revisión
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 },
@@ -892,34 +798,3 @@ export const postventaReclamaciones = pgTable("postventaReclamaciones", {
 	index("postventa_type_idx").on(table.type),
 	index("postventa_scheduledFor_idx").on(table.scheduledFor),
 ]);
-
-// ── INFERRED TYPES ────────────────────────────────────────────────────────────
-export type InsertUser = typeof users.$inferInsert;
-export type InsertClient = typeof clients.$inferInsert;
-export type InsertAppointment = typeof appointments.$inferInsert;
-export type InsertAppointmentWorkType = typeof appointmentWorkTypes.$inferInsert;
-export type InsertAdvisoryRequest = typeof advisoryRequests.$inferInsert;
-export type InsertPriorEstimate = typeof priorEstimates.$inferInsert;
-export type InsertQuotation = typeof quotations.$inferInsert;
-export type InsertQuotationItem = typeof quotationItems.$inferInsert;
-export type InsertColombianHoliday = typeof colombianHolidays.$inferInsert;
-export type InsertReminder = typeof reminders.$inferInsert;
-export type InsertProject = typeof projects.$inferInsert;
-export type InsertProjectPhoto = typeof projectPhotos.$inferInsert;
-export type InsertProjectDetail = typeof projectDetails.$inferInsert;
-export type InsertTask = typeof tasks.$inferInsert;
-export type InsertProjectStatusHistory = typeof projectStatusHistory.$inferInsert;
-export type InsertPushSubscription = typeof pushSubscriptions.$inferInsert;
-export type InsertNotification = typeof notifications.$inferInsert;
-export type InsertPayment = typeof payments.$inferInsert;
-export type InsertPricingConfig = typeof pricingConfig.$inferInsert;
-export type InsertPricingHistory = typeof pricingHistory.$inferInsert;
-export type InsertExpense = typeof expenses.$inferInsert;
-export type InsertClientRevisionHistory = typeof clientRevisionHistory.$inferInsert;
-export type InsertFinancialAlert = typeof financialAlerts.$inferInsert;
-export type InsertFinancialSettings = typeof financialSettings.$inferInsert;
-export type InsertAuditLog = typeof auditLogs.$inferInsert;
-export type InsertAccountingClosure = typeof accountingClosures.$inferInsert;
-export type InsertAccountingClosureProject = typeof accountingClosureProjects.$inferInsert;
-export type InsertAccountingClosureOperationalExpense = typeof accountingClosureOperationalExpenses.$inferInsert;
-export type InsertClosureAuditLog = typeof closureAuditLog.$inferInsert;

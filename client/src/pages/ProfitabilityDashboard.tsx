@@ -135,8 +135,8 @@ export default function ProfitabilityDashboard() {
   const scale = maxValue > 0 ? 100 / maxValue : 1;
 
   return (
-    <div className="pb-20 md:pb-0">
-      <div>
+    <div className="min-h-screen pb-20 md:pb-0 bg-background p-6">
+      <div className="max-w-7xl mx-auto">
         <Breadcrumbs
           items={[
             { label: "Panel Admin", href: "/admin" },
@@ -226,7 +226,7 @@ export default function ProfitabilityDashboard() {
                   {/* Barras de Ingresos y Gastos */}
                   <div className="flex gap-2 h-8">
                     {/* Ingresos */}
-                    <div className="flex-1 bg-gray-200 rounded overflow-hidden">
+                    <div className="flex-1 bg-white/[0.10] rounded overflow-hidden">
                       <div
                         className="bg-green-500 h-full rounded transition-all"
                         style={{
@@ -237,7 +237,7 @@ export default function ProfitabilityDashboard() {
                     </div>
 
                     {/* Gastos */}
-                    <div className="flex-1 bg-gray-200 rounded overflow-hidden">
+                    <div className="flex-1 bg-white/[0.10] rounded overflow-hidden">
                       <div
                         className="bg-red-500 h-full rounded transition-all"
                         style={{

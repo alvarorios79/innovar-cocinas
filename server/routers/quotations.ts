@@ -22,10 +22,9 @@ export const quotationsRouter = router({
       .input(z.object({
         clientId: z.number(),
         vendorName: z.string(),
-        productType: z.enum(["cocina", "closet", "puerta", "centro_tv", "herrajes", "mesones", "acabados_especiales", "otro"]).optional(),
+        productType: z.enum(["cocina", "closet", "puerta", "centro_tv", "herrajes", "mesones", "acabados_especiales", "mueble_cocina", "otro"]).optional(),
         discountPercent: z.number().min(0).max(100).optional().default(0),
         generalNotes: z.string().optional(),
-        visitId: z.number().optional(), // visita técnica origen (si aplica)
         items: z.array(z.object({
           itemNumber: z.number(),
           itemType: z.string(),
@@ -113,19 +112,6 @@ export const quotationsRouter = router({
           return qId;
         });
 
-        // Si la cotización viene de una visita técnica, marcarla como convertida
-        if (input.visitId) {
-          try {
-            await db.updateTechnicalVisit(input.visitId, {
-              status: "convertida" as any,
-              quotationId: quotationId,
-            });
-            console.log(`[Quotations] Visita técnica ${input.visitId} marcada como convertida → cotización ${quotationId}`);
-          } catch (visitErr) {
-            console.error("[Quotations] Error marcando visita como convertida:", visitErr);
-          }
-        }
-
         // Generar PDF automaticamente
         try {
           console.log("[PDF] Iniciando generación de PDF para cotización:", quotationId);
@@ -175,8 +161,6 @@ export const quotationsRouter = router({
               discountPercent: quotation.discountPercent || undefined,
               discountAmount: quotation.discountAmount || undefined,
               total: quotation.total,
-              // Bug fix #3: incluir observaciones en el PDF de creación guardado en S3
-              generalNotes: (quotation as any).generalNotes || undefined,
             };
             
             console.log("[PDF] Generando PDF...");
@@ -210,7 +194,7 @@ export const quotationsRouter = router({
         id: z.number(),
         clientId: z.number().optional(),
         vendorName: z.string().optional(),
-        productType: z.enum(["cocina", "closet", "puerta", "centro_tv", "herrajes", "mesones", "acabados_especiales", "otro"]).optional(),
+        productType: z.enum(["cocina", "closet", "puerta", "centro_tv", "herrajes", "mesones", "acabados_especiales", "mueble_cocina", "otro"]).optional(),
         discountPercent: z.number().min(0).max(100).optional(),
         customDescriptions: z.record(z.string(), z.string()).optional(),
         generalNotes: z.string().optional(),
@@ -623,7 +607,7 @@ export const quotationsRouter = router({
               : item.hardwareSelections;
             
             // Parsear closetConfig si es string JSON (manejar doble serialización)
-            let closetConfig: any = item.closetConfig;
+            let closetConfig = item.closetConfig;
             if (closetConfig && typeof closetConfig === 'string') {
               try {
                 closetConfig = JSON.parse(closetConfig);
@@ -1591,7 +1575,7 @@ export const quotationsRouter = router({
               : item.hardwareSelections;
             
             // Parsear closetConfig si es string JSON (manejar doble serialización)
-            let closetConfig: any = item.closetConfig;
+            let closetConfig = item.closetConfig;
             if (closetConfig && typeof closetConfig === 'string') {
               try {
                 closetConfig = JSON.parse(closetConfig);

@@ -135,15 +135,6 @@ export function PDFPreviewBeforeSave({
           </DialogDescription>
         </DialogHeader>
 
-        {/* Botón de cierre en esquina superior derecha */}
-        <button
-          onClick={() => onOpenChange(false)}
-          className="absolute top-4 right-4 z-50 p-2 bg-white/[0.12] rounded-full shadow-lg hover:bg-white/[0.20]"
-          title="Cerrar"
-        >
-          <X className="h-5 w-5 text-foreground" />
-        </button>
-
         {!isPdfUrlAvailable ? (
           // Si no hay URL, mostrar mensaje de error
           <div className="flex-1 flex flex-col items-center justify-center gap-4 p-6">

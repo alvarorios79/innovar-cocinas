@@ -169,56 +169,22 @@ export const authRouter = router({
         // Generar enlace de recuperación
         const resetLink = `${process.env.VITE_APP_URL || 'https://innovar-cocinas.onrender.com'}/reset-password?token=${resetToken}`;
         
-        // Enviar email de recuperación con Resend
-        if (user.email) {
-          try {
-            const { sendEmail, generateEmailHTML } = await import("../email");
-            const emailHtml = generateEmailHTML(`
-              <h2 style="color: #1DB5A8;">🔐 Recuperación de Contraseña</h2>
-              <p>Hola <strong>${sanitizeText(user.name || 'Cliente')}</strong>,</p>
-              <p>Recibimos una solicitud para restablecer la contraseña de tu cuenta en INNOVAR Cocinas.</p>
-              <p style="margin: 24px 0; text-align: center;">
-                <a href="${resetLink}"
-                   style="background: #1DB5A8; color: white; padding: 14px 28px; border-radius: 8px;
-                          text-decoration: none; font-weight: bold; display: inline-block;">
-                  Restablecer contraseña
-                </a>
-              </p>
-              <p style="color: #888; font-size: 14px;">
-                Este enlace expira en <strong>1 hora</strong>. Si no solicitaste este cambio, puedes ignorar este mensaje.
-              </p>
-              <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0;" />
-              <p style="color: #aaa; font-size: 12px;">
-                Si el botón no funciona, copia y pega este enlace en tu navegador:<br/>
-                <a href="${resetLink}" style="color: #1DB5A8;">${resetLink}</a>
-              </p>
-            `, 'Recuperación de Contraseña - INNOVAR Cocinas');
-
-            await sendEmail({
-              to: user.email,
-              subject: '🔐 Recupera tu contraseña - INNOVAR Cocinas',
-              html: emailHtml,
-            });
-            console.log(`[Auth] Email de recuperación enviado a ${user.email}`);
-          } catch (emailErr) {
-            console.error("[Auth] Error enviando email de recuperación:", emailErr);
-          }
-        }
-
-        // WhatsApp como canal adicional si el cliente tiene teléfono
+        // Preparar mensaje de WhatsApp
         if (client?.whatsappPhone) {
           const message = `🔐 *Recuperación de Contraseña - INNOVAR Cocinas*\n\nHola ${user.name || 'Cliente'},\n\nRecibimos una solicitud para restablecer tu contraseña.\n\nHaz clic en el siguiente enlace para crear una nueva contraseña:\n${resetLink}\n\nEste enlace expira en 1 hora.\n\nSi no solicitaste este cambio, puedes ignorar este mensaje.`;
-
+          
           return {
             success: true,
-            message: "Te hemos enviado instrucciones por email y WhatsApp",
+            message: "Se enviarán instrucciones a tu WhatsApp",
             whatsappLink: `https://wa.me/57${client.whatsappPhone}?text=${encodeURIComponent(message)}`,
+            resetLink, // Para desarrollo/testing
           };
         }
 
-        return {
+        return { 
           success: true,
           message: "Si el email existe, recibirás instrucciones para restablecer tu contraseña",
+          resetLink, // Para desarrollo/testing
         };
       }),
 

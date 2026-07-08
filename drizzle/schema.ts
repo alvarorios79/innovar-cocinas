@@ -798,3 +798,32 @@ export const postventaReclamaciones = pgTable("postventaReclamaciones", {
 	index("postventa_type_idx").on(table.type),
 	index("postventa_scheduledFor_idx").on(table.scheduledFor),
 ]);
+
+// ── Módulo Contador ───────────────────────────────────────────────────────────
+export const taxObligations = pgTable("taxObligations", {
+	id: serial('id').primaryKey(),
+	type: text().notNull(), // 'seguridad_social' | 'retencion' | 'ica' | 'iva'
+	year: integer().notNull(),
+	period: integer().notNull(),
+	periodType: text().notNull(), // 'mensual' | 'bimestral' | 'cuatrimestral'
+	dueDate: timestamp({ mode: 'string' }),
+	status: text().default('pendiente').notNull(), // 'pendiente' | 'pagado' | 'declarado'
+	amount: decimal({ precision: 14, scale: 2 }),
+	notes: text(),
+	completedAt: timestamp({ mode: 'string' }),
+	completedBy: integer().references(() => users.id, { onDelete: 'set null' }),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
+});
+
+export const taxDocuments = pgTable("taxDocuments", {
+	id: serial('id').primaryKey(),
+	obligationType: text().notNull(), // 'seguridad_social' | 'retencion' | 'ica' | 'iva' | 'nomina' | 'otro'
+	year: integer().notNull(),
+	month: integer().notNull(),
+	fileName: text().notNull(),
+	fileUrl: text().notNull(),
+	description: text(),
+	uploadedBy: integer().references(() => users.id, { onDelete: 'set null' }),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
+});

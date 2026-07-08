@@ -44,6 +44,7 @@ import {
   Trash2,
   BarChart3,
   Package,
+  BookOpen,
 } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
@@ -105,6 +106,8 @@ const menuSections: MenuSection[] = [
         roles: ["super_admin", "admin"], iconColor: "#10b981" },
       { icon: BarChart3,  label: "Rentabilidad", path: "/profitability-dashboard",
         roles: ["super_admin", "admin"], iconColor: "#06b6d4" },
+      { icon: BookOpen,   label: "Contador",      path: "/contador",
+        roles: ["super_admin", "admin", "contador"], iconColor: "#34d399" },
     ],
   },
   {
@@ -159,6 +162,8 @@ const roleLabels: Record<string, { label: string; color: string }> = {
   disenador:   { label: "Diseñador",   color: "bg-indigo-500/15 text-indigo-300 border-indigo-400/25" },
   jefe_taller: { label: "Jefe Taller", color: "bg-amber-500/15 text-amber-300 border-amber-400/25" },
   operario:    { label: "Operario",    color: "bg-white/10 text-white/60 border-white/15" },
+  medidor:     { label: "Medidor",     color: "bg-orange-500/15 text-orange-300 border-orange-400/25" },
+  contador:    { label: "Contador",    color: "bg-emerald-500/15 text-emerald-300 border-emerald-400/25" },
   user:        { label: "Usuario",     color: "bg-white/10 text-white/60 border-white/15" },
 };
 

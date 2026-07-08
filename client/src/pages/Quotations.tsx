@@ -672,12 +672,31 @@ export default function Quotations() {
       setDiscountPercent(quotationDiscount ? parseFloat(quotationDiscount) : 0);
 
       // Cargar notas y condiciones
+      // generalNotes en DB puede tener "Condiciones de pago:" y "Tiempo de entrega:" ya appended
+      // (se concatenaron al guardar). Al cargar, separamos para evitar duplicación.
       const loadedNotes = (quotationData as any)?.generalNotes;
-      setGeneralNotes(loadedNotes && loadedNotes.trim() ? loadedNotes : INNOVAR_NOTAS_DEFAULT);
-      const loadedPayment = (quotationData as any)?.paymentTerms;
-      setPaymentTerms(loadedPayment && loadedPayment.trim() ? loadedPayment : "60% anticipo — 40% a la entrega de la obra");
-      const loadedDelivery = (quotationData as any)?.deliveryTime;
-      setDeliveryTime(loadedDelivery && loadedDelivery.trim() ? loadedDelivery : "25 días hábiles a partir de la aprobación del render final");
+      if (loadedNotes && loadedNotes.trim()) {
+        const SEP = '\n\nCondiciones de pago:';
+        const sepIdx = loadedNotes.lastIndexOf(SEP);
+        if (sepIdx !== -1) {
+          // Extraer notas limpias (antes del separador)
+          const cleanNotes = loadedNotes.substring(0, sepIdx);
+          const condPart = loadedNotes.substring(sepIdx + 2); // "\nCondiciones de pago:..."
+          const pagoMatch = condPart.match(/Condiciones de pago:\s*(.+?)(?:\n|$)/);
+          const entregaMatch = condPart.match(/Tiempo de entrega:\s*(.+?)(?:\n|$)/);
+          setGeneralNotes(cleanNotes.trim() || INNOVAR_NOTAS_DEFAULT);
+          setPaymentTerms(pagoMatch?.[1]?.trim() || "60% anticipo — 40% a la entrega de la obra");
+          setDeliveryTime(entregaMatch?.[1]?.trim() || "25 días hábiles a partir de la aprobación del render final");
+        } else {
+          setGeneralNotes(loadedNotes);
+          setPaymentTerms("60% anticipo — 40% a la entrega de la obra");
+          setDeliveryTime("25 días hábiles a partir de la aprobación del render final");
+        }
+      } else {
+        setGeneralNotes(INNOVAR_NOTAS_DEFAULT);
+        setPaymentTerms("60% anticipo — 40% a la entrega de la obra");
+        setDeliveryTime("25 días hábiles a partir de la aprobación del render final");
+      }
       
       // Cargar items si existen
       if (quotationData && quotationData.items && Array.isArray(quotationData.items)) {

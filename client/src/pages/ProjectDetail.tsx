@@ -451,18 +451,20 @@ export default function ProjectDetail() {
   const canUploadToFolder = (folder: string) => {
     const role = user?.role;
     const uploadPermissions: Record<string, string[]> = {
-      documento_cotizacion: ["super_admin", "admin"],
-      fotos_iniciales: ["super_admin", "admin"],
-      dibujo: ["super_admin", "admin"],
-      renders: ["disenador"],
-      despieces: ["disenador"],
-      detalles: ["disenador"],
-      modelado_3d: ["disenador"],
-      corte: ["jefe_taller", "operario"],
-      enchape: ["jefe_taller", "operario"],
-      armado: ["jefe_taller", "operario"],
-      proceso_instalacion: ["jefe_taller", "operario"],
-      fotos_finales: ["jefe_taller", "operario"],
+      // Pre-producción: diseñador tiene acceso completo de subida
+      documento_cotizacion: ["super_admin", "admin", "disenador"],
+      fotos_iniciales: ["super_admin", "admin", "disenador"],
+      dibujo: ["super_admin", "admin", "disenador"],
+      renders: ["super_admin", "admin", "disenador"],
+      despieces: ["super_admin", "admin", "disenador"],
+      detalles: ["super_admin", "admin", "disenador"],
+      modelado_3d: ["super_admin", "admin", "disenador"],
+      // Producción: jefe_taller y operario suben fotos
+      corte: ["super_admin", "admin", "jefe_taller", "operario"],
+      enchape: ["super_admin", "admin", "jefe_taller", "operario"],
+      armado: ["super_admin", "admin", "jefe_taller", "operario"],
+      proceso_instalacion: ["super_admin", "admin", "jefe_taller", "operario"],
+      fotos_finales: ["super_admin", "admin", "jefe_taller", "operario"],
     };
     const allowedRoles = uploadPermissions[folder] || [];
     return allowedRoles.includes(role || "");
@@ -487,9 +489,10 @@ export default function ProjectDetail() {
     Object.entries(allFolders).forEach(([category, subcategories]) => {
       const allowedSubs = subcategories.filter((sub) => {
         const viewPermissions: Record<string, string[]> = {
-          documento_cotizacion: ["super_admin", "admin", "comercial"],
-          fotos_iniciales: ["super_admin", "admin", "comercial", "disenador"],
-          dibujo: ["super_admin", "admin", "comercial", "disenador"],
+          // Todos ven todo (jefe/operario ven pre-producción en solo lectura)
+          documento_cotizacion: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"],
+          fotos_iniciales: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"],
+          dibujo: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"],
           renders: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"],
           despieces: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"],
           detalles: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"],

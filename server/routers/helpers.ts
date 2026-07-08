@@ -99,15 +99,14 @@ export function validatePhotoDeletePermission(role: string, category: string, up
   }
 
   if (role === "comercial") {
-    // Comercial puede eliminar sus propias fotos en cotizacion y medidas
-    return uploadedByUserId === currentUserId;
+    // Comercial puede eliminar cualquier foto en cotizacion y medidas
+    return ["cotizacion", "medidas"].includes(category);
   }
 
   if (role === "disenador") {
-    // Diseñador puede eliminar sus propias fotos en fases pre-producción
+    // Diseñador puede eliminar cualquier foto en fases pre-producción
     // En producción (avance/instalacion/entrega) solo puede ver
-    const preProductionCategories = ["cotizacion", "medidas", "disenos"];
-    return preProductionCategories.includes(category) && uploadedByUserId === currentUserId;
+    return ["cotizacion", "medidas", "disenos"].includes(category);
   }
 
   if (role === "jefe_taller" || role === "operario") {

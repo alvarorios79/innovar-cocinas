@@ -197,9 +197,9 @@ export default function Quotations() {
   const [vendorName, setVendorName] = useState(() => resolveVendor(user?.name));
   const [workType, setWorkType] = useState("");
 
-  // Sync vendorName when auth loads asynchronously
+  // Sync vendorName when auth loads asynchronously — solo si NO hay cotización en edición
   useEffect(() => {
-    if (user?.name) setVendorName(resolveVendor(user.name));
+    if (user?.name && !editingQuotation) setVendorName(resolveVendor(user.name));
   }, [user?.name]);
   
   // Estados para vista previa antes de guardar
@@ -662,9 +662,10 @@ export default function Quotations() {
       });
       
       setEditingQuotation(quotationId);
-      setSelectedClient(quotationGroup.clientId);
-      setVendorName(quotationGroup.vendorName);
-      setWorkType(quotationGroup.productType);
+      // Usar selectedVersion (el row real de la cotización) — quotationGroup no tiene estos campos directamente
+      setSelectedClient(selectedVersion.clientId ?? quotationData?.clientId ?? null);
+      setVendorName(resolveVendor(selectedVersion.vendorName ?? quotationData?.vendorName));
+      setWorkType(selectedVersion.productType ?? quotationData?.productType ?? "otro");
       
       // Cargar descuento si existe
       const quotationDiscount = (quotationData as any)?.discountPercent;

@@ -149,7 +149,7 @@ const menuSections: MenuSection[] = [
       { icon: Package,    label: "Herrajes",            path: "/herrajes",
         roles: ["super_admin", "admin"], iconColor: "#a78bfa" },
       { icon: ImageIcon,  label: "Galerías",            path: "/galerias",
-        roles: ["super_admin", "admin", "comercial", "disenador", "jefe_taller"], iconColor: "#a855f7" },
+        roles: ["super_admin", "admin", "comercial"], iconColor: "#a855f7" },
     ],
   },
 ];

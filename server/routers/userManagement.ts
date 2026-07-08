@@ -30,7 +30,7 @@ export const userManagementRouter = router({
       .input(z.object({
         name: z.string().min(1, "El nombre es requerido"),
         email: z.string().email("Email inválido"),
-        role: z.enum(["user", "admin", "super_admin", "comercial", "disenador", "jefe_taller", "operario", "medidor"]),
+        role: z.enum(["user", "admin", "super_admin", "comercial", "disenador", "jefe_taller", "operario", "medidor", "contador"]),
         password: z.string().min(8, "La contraseña debe tener al menos 8 caracteres").optional(),
       }))
       .mutation(async ({ ctx, input }) => {
@@ -96,7 +96,7 @@ export const userManagementRouter = router({
     updateRole: protectedProcedure
       .input(z.object({
         userId: z.number(),
-        newRole: z.enum(["user", "admin", "super_admin"]),
+        newRole: z.enum(["user", "admin", "super_admin", "comercial", "disenador", "jefe_taller", "operario", "medidor", "contador"]),
       }))
       .mutation(async ({ ctx, input }) => {
         if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "comercial") {

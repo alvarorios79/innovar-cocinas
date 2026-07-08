@@ -884,8 +884,7 @@ export default function Quotations() {
               spiceQty: 0,
               golaQty: 0,
             },
-          }
-        },
+          },
           // Para mueble_cocina: la config se guardó dentro de kitchenConfig — restaurarla aquí
           muebleCocinaConfig: item.itemType === 'mueble_cocina' && item.kitchenConfig && (item.kitchenConfig as any).tipoPieza
             ? item.kitchenConfig as any

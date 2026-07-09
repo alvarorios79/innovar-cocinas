@@ -77,14 +77,14 @@ export default function ForgotPassword() {
                   setSubmitted(false);
                   setWhatsappLink(null);
                 }}
-                className="text-teal-600 hover:text-teal-700"
+                className="text-teal-400 hover:text-teal-300"
               >
                 Intentar de nuevo
               </Button>
             </div>
 
             <div className="text-center pt-4 border-t">
-              <Link href="/login" className="text-sm text-gray-500 hover:text-teal-600 transition-colors inline-flex items-center gap-1">
+              <Link href="/login" className="text-sm text-gray-500 hover:text-teal-400 transition-colors inline-flex items-center gap-1">
                 <ArrowLeft className="h-4 w-4" />
                 Volver a iniciar sesión
               </Link>
@@ -144,13 +144,13 @@ export default function ForgotPassword() {
           <div className="mt-6 text-center space-y-2">
             <p className="text-sm text-muted-foreground">
               ¿Recordaste tu contraseña?{" "}
-              <Link href="/login" className="text-teal-600 hover:text-teal-700 font-medium">
+              <Link href="/login" className="text-teal-400 hover:text-teal-300 font-medium">
                 Inicia sesión
               </Link>
             </p>
             <button
               onClick={() => window.history.back()}
-              className="text-sm text-gray-500 hover:text-teal-600 transition-colors"
+              className="text-sm text-gray-500 hover:text-teal-400 transition-colors"
             >
               ← Volver a la página principal
             </button>

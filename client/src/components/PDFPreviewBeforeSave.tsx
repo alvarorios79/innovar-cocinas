@@ -127,7 +127,7 @@ export function PDFPreviewBeforeSave({
       <DialogContent className="max-w-5xl w-[95vw] h-[95vh] flex flex-col p-4">
         <DialogHeader className="pb-2">
           <DialogTitle className="flex items-center gap-2">
-            <Eye className="h-5 w-5 text-teal-600" />
+            <Eye className="h-5 w-5 text-teal-400" />
             Vista Previa del PDF
           </DialogTitle>
           <DialogDescription>
@@ -228,7 +228,7 @@ export function PDFPreviewBeforeSave({
             >
               {(isGenerating || isLoading) && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center z-10 bg-white/[0.10]">
-                  <Loader2 className="h-8 w-8 animate-spin text-teal-600 mb-2" />
+                  <Loader2 className="h-8 w-8 animate-spin text-teal-400 mb-2" />
                   <div className="text-gray-500">
                     {isGenerating ? "Generando vista previa..." : "Cargando PDF..."}
                   </div>
@@ -243,7 +243,7 @@ export function PDFPreviewBeforeSave({
                     onLoadError={onDocumentLoadError}
                     loading={
                       <div className="flex flex-col items-center justify-center py-8">
-                        <Loader2 className="h-8 w-8 animate-spin text-teal-600 mb-2" />
+                        <Loader2 className="h-8 w-8 animate-spin text-teal-400 mb-2" />
                         <span className="text-gray-500">Cargando documento...</span>
                       </div>
                     }

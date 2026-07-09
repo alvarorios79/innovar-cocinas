@@ -47,15 +47,16 @@ const movementTypeLabels: Record<string, string> = {
 };
 
 const movementTypeColors: Record<string, { bg: string; text: string }> = {
-  payment: { bg: "bg-blue-500/15", text: "text-blue-700" },
-  discount: { bg: "bg-green-500/15", text: "text-green-700" },
-  surcharge: { bg: "bg-orange-500/15", text: "text-orange-700" },
+  payment: { bg: "bg-blue-500/15", text: "text-blue-300" },
+  discount: { bg: "bg-green-500/15", text: "text-green-300" },
+  surcharge: { bg: "bg-orange-500/15", text: "text-orange-300" },
 };
 
+// dark: variants removed — ThemeProvider uses defaultTheme="light", .dark class never added
 const movementTypeDarkColors: Record<string, { bg: string; text: string }> = {
-  payment: { bg: "dark:bg-blue-900", text: "dark:text-blue-300" },
-  discount: { bg: "dark:bg-green-900", text: "dark:text-green-300" },
-  surcharge: { bg: "dark:bg-orange-900", text: "dark:text-orange-300" },
+  payment: { bg: "", text: "" },
+  discount: { bg: "", text: "" },
+  surcharge: { bg: "", text: "" },
 };
 
 function formatCurrency(value: number): string {
@@ -111,7 +112,7 @@ export function PaymentsTable({
   return (
     <>
       <Card>
-        <CardHeader className="py-3 bg-emerald-500/10 dark:bg-emerald-950">
+        <CardHeader className="py-3 bg-emerald-500/10">
           <CardTitle className="text-sm">Historial de Movimientos</CardTitle>
         </CardHeader>
         <CardContent className="pt-4">
@@ -138,11 +139,11 @@ export function PaymentsTable({
                           {movementTypeLabels[payment.movementType] || payment.movementType}
                         </span>
                       ) : (
-                        <span className="inline-block px-2 py-1 rounded-full text-xs bg-blue-500/15 text-blue-700 dark:bg-blue-900 dark:text-blue-300">Pago</span>
+                        <span className="inline-block px-2 py-1 rounded-full text-xs bg-blue-500/15 text-blue-300">Pago</span>
                       )}
                     </td>
                     <td className="py-3 px-2">
-                      <span className="inline-block px-2 py-1 rounded-full text-xs bg-blue-500/15 text-blue-700 dark:bg-blue-900 dark:text-blue-300">
+                      <span className="inline-block px-2 py-1 rounded-full text-xs bg-blue-500/15 text-blue-300">
                         {typeLabels[payment.type] || payment.type}
                       </span>
                     </td>
@@ -162,7 +163,7 @@ export function PaymentsTable({
                             variant="ghost"
                             size="sm"
                             onClick={() => setDeleteId(payment.id)}
-                            className="text-red-600 hover:text-red-700 hover:bg-red-500/10"
+                            className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>

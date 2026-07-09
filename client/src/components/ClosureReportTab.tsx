@@ -142,9 +142,9 @@ export function ClosureReportTab() {
 
   const getStatusBadge = (status: "draft" | "confirmed") => {
     if (status === "draft") {
-      return <Badge variant="outline" className="bg-yellow-500/10 text-yellow-700">Borrador</Badge>;
+      return <Badge variant="outline" className="bg-yellow-500/10 text-yellow-300">Borrador</Badge>;
     }
-    return <Badge className="bg-green-500/15 text-green-700">Confirmado</Badge>;
+    return <Badge className="bg-green-500/15 text-green-300">Confirmado</Badge>;
   };
 
   return (
@@ -166,12 +166,12 @@ export function ClosureReportTab() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <TrendingUp className="h-4 w-4 text-teal-600" />
+              <TrendingUp className="h-4 w-4 text-teal-400" />
               Total Ventas
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-teal-600">
+            <div className="text-2xl font-bold text-teal-400">
               ${Number(summary?.totalSales || 0).toLocaleString("es-CO", { maximumFractionDigits: 0 })}
             </div>
             <p className="text-xs text-gray-500 mt-1">De todos los cierres</p>
@@ -181,12 +181,12 @@ export function ClosureReportTab() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <TrendingDown className="h-4 w-4 text-orange-600" />
+              <TrendingDown className="h-4 w-4 text-orange-400" />
               Total Gastos
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-orange-600">
+            <div className="text-2xl font-bold text-orange-400">
               ${Number(summary?.totalExpenses || 0).toLocaleString("es-CO", { maximumFractionDigits: 0 })}
             </div>
             <p className="text-xs text-gray-500 mt-1">De todos los cierres</p>
@@ -196,12 +196,12 @@ export function ClosureReportTab() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <DollarSign className="h-4 w-4 text-green-600" />
+              <DollarSign className="h-4 w-4 text-green-400" />
               Ganancia Total
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">
+            <div className="text-2xl font-bold text-green-400">
               ${Number(summary?.totalProfit || 0).toLocaleString("es-CO", { maximumFractionDigits: 0 })}
             </div>
             <p className="text-xs text-gray-500 mt-1">De todos los cierres</p>
@@ -222,7 +222,7 @@ export function ClosureReportTab() {
                 size="sm"
                 variant="outline"
                 onClick={handleClearFilters}
-                className="text-red-600 hover:text-red-700 hover:bg-red-500/10"
+                className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
               >
                 <X className="h-4 w-4 mr-1" />
                 Limpiar
@@ -308,19 +308,19 @@ export function ClosureReportTab() {
                   <div className="grid grid-cols-3 gap-4 mb-3">
                     <div>
                       <p className="text-xs text-muted-foreground">Ventas</p>
-                      <p className="text-lg font-semibold text-teal-600">
+                      <p className="text-lg font-semibold text-teal-400">
                         ${Number(closure.totalSales).toLocaleString("es-CO", { maximumFractionDigits: 0 })}
                       </p>
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground">Gastos</p>
-                      <p className="text-lg font-semibold text-orange-600">
+                      <p className="text-lg font-semibold text-orange-400">
                         ${Number(closure.totalExpenses).toLocaleString("es-CO", { maximumFractionDigits: 0 })}
                       </p>
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground">Ganancia</p>
-                      <p className="text-lg font-semibold text-green-600">
+                      <p className="text-lg font-semibold text-green-400">
                         ${Number(closure.totalProfit).toLocaleString("es-CO", { maximumFractionDigits: 0 })}
                       </p>
                     </div>
@@ -337,7 +337,7 @@ export function ClosureReportTab() {
                         variant="outline"
                         onClick={() => handleDownloadPDF(closure.id)}
                         disabled={downloadingId === closure.id}
-                        className="text-teal-600 hover:text-teal-700 hover:bg-teal-500/10 border-teal-500/25"
+                        className="text-teal-400 hover:text-teal-300 hover:bg-teal-500/10 border-teal-500/25"
                       >
                         <Download className="h-4 w-4 mr-1" />
                         {downloadingId === closure.id ? "Generando..." : "PDF"}
@@ -347,7 +347,7 @@ export function ClosureReportTab() {
                         variant="outline"
                         onClick={() => handleDownloadExcel(closure.id)}
                         disabled={downloadingId === closure.id}
-                        className="text-green-600 hover:text-green-700 hover:bg-green-500/10 border-green-500/25"
+                        className="text-green-400 hover:text-green-300 hover:bg-green-500/10 border-green-500/25"
                       >
                         <Download className="h-4 w-4 mr-1" />
                         {downloadingId === closure.id ? "Generando..." : "Excel"}
@@ -382,7 +382,7 @@ export function ClosureReportTab() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <div className="flex items-center gap-3">
-              <AlertCircle className="h-6 w-6 text-amber-600" />
+              <AlertCircle className="h-6 w-6 text-amber-400" />
               <AlertDialogTitle>Confirmar Cierre Contable</AlertDialogTitle>
             </div>
             <AlertDialogDescription className="mt-2">

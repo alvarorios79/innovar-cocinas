@@ -72,7 +72,7 @@ export function QuotationVersioning({
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
-              <Copy className="h-4 w-4 text-blue-600" />
+              <Copy className="h-4 w-4 text-blue-400" />
               Versionado de Cotización
             </CardTitle>
             {isLocked && (
@@ -88,7 +88,7 @@ export function QuotationVersioning({
           <div className="grid grid-cols-2 gap-2 text-xs">
             <div>
               <span className="text-muted-foreground">Versión actual:</span>
-              <p className="font-semibold text-blue-700">v{versionNumber}</p>
+              <p className="font-semibold text-blue-300">v{versionNumber}</p>
             </div>
             <div>
               <span className="text-muted-foreground">Tipo:</span>
@@ -108,7 +108,7 @@ export function QuotationVersioning({
                     className={
                       version.id === quotationId
                         ? "bg-blue-600 text-white"
-                        : "border-blue-500/25 text-blue-700"
+                        : "border-blue-500/25 text-blue-300"
                     }
                   >
                     v{version.versionNumber}

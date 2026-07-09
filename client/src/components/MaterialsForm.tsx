@@ -241,7 +241,7 @@ export function MaterialsForm({ projectId, readOnly = false }: MaterialsFormProp
     <div className="space-y-6">
       {/* Banner de solo lectura para diseñador */}
       {readOnly && (
-        <div className="bg-blue-500/10 border border-blue-500/25 rounded-lg p-3 flex items-center gap-2 text-blue-700">
+        <div className="bg-blue-500/10 border border-blue-500/25 rounded-lg p-3 flex items-center gap-2 text-blue-300">
           <span className="text-lg">🔒</span>
           <span className="text-sm">Modo solo lectura - Los materiales y herrajes fueron seleccionados previamente para este proyecto</span>
         </div>
@@ -251,7 +251,7 @@ export function MaterialsForm({ projectId, readOnly = false }: MaterialsFormProp
         <CardHeader className="pb-2 sm:pb-3">
           <CardTitle className="text-base sm:text-lg flex items-center gap-2">
             <div className="w-8 h-8 rounded-full bg-amber-500/15 flex items-center justify-center">
-              <span className="text-amber-700">🪵</span>
+              <span className="text-amber-300">🪵</span>
             </div>
             Madera
           </CardTitle>

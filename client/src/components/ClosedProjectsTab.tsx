@@ -65,7 +65,7 @@ export function ClosedProjectsTab() {
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Archive className="h-5 w-5 text-teal-600" />
+            <Archive className="h-5 w-5 text-teal-400" />
             Filtrar Proyectos Cerrados
           </CardTitle>
           <CardDescription>Busca proyectos cerrados por cliente o nombre</CardDescription>
@@ -112,7 +112,7 @@ export function ClosedProjectsTab() {
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <CheckCircle2 className="h-5 w-5 text-green-600" />
+            <CheckCircle2 className="h-5 w-5 text-green-400" />
             Proyectos Cerrados
           </CardTitle>
           <CardDescription>
@@ -122,7 +122,7 @@ export function ClosedProjectsTab() {
         <CardContent>
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-6 w-6 animate-spin text-teal-600" />
+              <Loader2 className="h-6 w-6 animate-spin text-teal-400" />
               <span className="ml-2 text-muted-foreground">Cargando proyectos...</span>
             </div>
           ) : filteredProjects.length === 0 ? (
@@ -159,19 +159,19 @@ export function ClosedProjectsTab() {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1">
-                          <DollarSign className="h-4 w-4 text-green-600" />
-                          <span className="font-semibold text-green-600">
+                          <DollarSign className="h-4 w-4 text-green-400" />
+                          <span className="font-semibold text-green-400">
                             {formatCurrency(project.totalAmount || "0")}
                           </span>
                         </div>
                       </TableCell>
                       <TableCell className="text-right">
-                        <span className="text-orange-600 font-semibold">-</span>
+                        <span className="text-orange-400 font-semibold">-</span>
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1">
-                          <TrendingUp className="h-4 w-4 text-blue-600" />
-                          <span className="font-bold text-blue-600">-</span>
+                          <TrendingUp className="h-4 w-4 text-blue-400" />
+                          <span className="font-bold text-blue-400">-</span>
                         </div>
                       </TableCell>
                       <TableCell>
@@ -203,7 +203,7 @@ export function ClosedProjectsTab() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">
+              <div className="text-2xl font-bold text-green-400">
                 {formatCurrency(
                   filteredProjects.reduce((sum, p) => sum + parseFloat(p.totalAmount || "0"), 0)
                 )}
@@ -244,7 +244,7 @@ export function ClosedProjectsTab() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-teal-600">
+              <div className="text-2xl font-bold text-teal-400">
                 {filteredProjects.length}
               </div>
             </CardContent>

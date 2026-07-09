@@ -260,7 +260,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       defaultOpen={true}
       style={{ "--sidebar-width": `${sidebarWidth}px`, "--sidebar-background": "#0A1616" } as CSSProperties}
     >
-      <DashboardLayoutContent setSidebarWidth={setSidebarWidth}>
+      <DashboardLayoutContent setSidebarWidth={setSidebarWidth} sidebarWidth={sidebarWidth}>
         {children}
       </DashboardLayoutContent>
     </SidebarProvider>
@@ -271,9 +271,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 type DashboardLayoutContentProps = {
   children: React.ReactNode;
   setSidebarWidth: (width: number) => void;
+  sidebarWidth: number;
 };
 
-function DashboardLayoutContent({ children, setSidebarWidth }: DashboardLayoutContentProps) {
+function DashboardLayoutContent({ children, setSidebarWidth, sidebarWidth }: DashboardLayoutContentProps) {
   const { user, logout } = useAuth();
   const [location, setLocation] = useLocation();
   const { state, toggleSidebar } = useSidebar();
@@ -467,7 +468,13 @@ function DashboardLayoutContent({ children, setSidebarWidth }: DashboardLayoutCo
       </div>
 
       {/* Contenido principal */}
-      <SidebarInset>
+      <SidebarInset
+        style={{
+          marginLeft: isMobile ? undefined : (isCollapsed ? 78 : sidebarWidth),
+          transition: "margin-left 0.2s ease",
+          minWidth: 0,
+        }}
+      >
         {isMobile && (
           <div className="flex border-b h-14 items-center justify-between px-3 sticky top-0 z-40"
             style={{ backgroundColor: "#0C1A1A", borderColor: "rgba(106,207,199,0.10)" }}>

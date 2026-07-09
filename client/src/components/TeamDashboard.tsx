@@ -1,3 +1,4 @@
+// ERP v2.1 — dark theme rebuild
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";

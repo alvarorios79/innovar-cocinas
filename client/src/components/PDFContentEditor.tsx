@@ -253,7 +253,7 @@ export function PDFContentEditor({
           {/* Lista de productos */}
           <div className="space-y-4">
             <h3 className="font-semibold text-lg flex items-center gap-2">
-              <Package className="h-5 w-5 text-emerald-600" />
+              <Package className="h-5 w-5 text-emerald-400" />
               Productos de la Cotización
             </h3>
             
@@ -295,7 +295,7 @@ export function PDFContentEditor({
           <Card className="border-l-4 border-l-amber-500">
             <CardHeader className="pb-2">
               <CardTitle className="text-base flex items-center gap-2">
-                <StickyNote className="h-5 w-5 text-amber-600" />
+                <StickyNote className="h-5 w-5 text-amber-400" />
                 Observaciones Generales
               </CardTitle>
             </CardHeader>

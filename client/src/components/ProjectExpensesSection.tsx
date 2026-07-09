@@ -114,11 +114,11 @@ export function ProjectExpensesSection({ projectId, isAdmin, onTotalChange }: Pr
       <Card className="border-orange-500/20">
         <CardHeader className="py-3 bg-orange-500/10">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-sm flex items-center gap-2 text-orange-700">
+            <CardTitle className="text-sm flex items-center gap-2 text-orange-300">
               <TrendingDown className="h-4 w-4" />
               Gastos del Proyecto
             </CardTitle>
-            <span className="text-base font-bold text-orange-700">{fmt(total)}</span>
+            <span className="text-base font-bold text-orange-300">{fmt(total)}</span>
           </div>
         </CardHeader>
 
@@ -150,7 +150,7 @@ export function ProjectExpensesSection({ projectId, isAdmin, onTotalChange }: Pr
         <Button
           onClick={() => setOpen(true)}
           variant="outline"
-          className="w-full border-orange-500/25 text-orange-700 hover:bg-orange-500/10 gap-2"
+          className="w-full border-orange-500/25 text-orange-300 hover:bg-orange-500/10 gap-2"
         >
           <Plus className="h-4 w-4" />
           Registrar Gasto
@@ -179,7 +179,7 @@ export function ProjectExpensesSection({ projectId, isAdmin, onTotalChange }: Pr
             return (
               <div
                 key={exp.id}
-                className="flex items-center gap-3 p-3 rounded-lg border bg-white hover:bg-white/[0.03] transition-colors"
+                className="flex items-center gap-3 p-3 rounded-lg border bg-white/[0.03] hover:bg-white/[0.06] transition-colors"
               >
                 <div
                   className="w-7 h-7 rounded-full flex items-center justify-center shrink-0"
@@ -194,7 +194,7 @@ export function ProjectExpensesSection({ projectId, isAdmin, onTotalChange }: Pr
                     {exp.subcategory && ` · ${exp.subcategory}`}
                   </p>
                 </div>
-                <span className="text-sm font-semibold text-orange-600 shrink-0">
+                <span className="text-sm font-semibold text-orange-400 shrink-0">
                   {fmt(parseFloat(exp.amount))}
                 </span>
                 {isAdmin && (

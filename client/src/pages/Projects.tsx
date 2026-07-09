@@ -731,7 +731,7 @@ export default function Projects() {
                   setShowOverdueOnly(!showOverdueOnly);
                   if (!showOverdueOnly) setShowPendingPaymentOnly(false);
                 }}
-                className={showOverdueOnly ? "bg-red-500 hover:bg-red-600 text-white" : "border-red-300 text-red-600 hover:bg-red-500/10"}
+                className={showOverdueOnly ? "bg-red-500 hover:bg-red-600 text-white" : "border-red-300 text-red-400 hover:bg-red-500/10"}
               >
                 <AlertCircle className="h-4 w-4 mr-2" />
                 ⚠️ Atrasados (+5 días)
@@ -964,10 +964,10 @@ export default function Projects() {
                               variant="outline" 
                               className={`text-xs ${
                                 (project as any).renderRevisionNumber >= 3 
-                                  ? "border-red-500 text-red-600 bg-red-500/10" 
+                                  ? "border-red-500 text-red-400 bg-red-500/10" 
                                   : (project as any).renderRevisionNumber >= 2 
-                                    ? "border-amber-500 text-amber-600 bg-amber-500/10" 
-                                    : "border-blue-500 text-blue-600 bg-blue-500/10"
+                                    ? "border-amber-500 text-amber-400 bg-amber-500/10" 
+                                    : "border-blue-500 text-blue-400 bg-blue-500/10"
                               }`}
                             >
                               🎨 {(project as any).renderRevisionNumber} Rev{(project as any).renderRevisionNumber > 1 ? "s" : ""}
@@ -991,11 +991,11 @@ export default function Projects() {
                                 const rent = Number((project as any).rentabilidad ?? 0)
                                 let colorClass = "text-gray-500";
                                 if (rent > 20) {
-                                  colorClass = "text-green-600 font-semibold";
+                                  colorClass = "text-green-400 font-semibold";
                                 } else if (rent >= 10) {
-                                  colorClass = "text-yellow-600 font-semibold";
+                                  colorClass = "text-yellow-400 font-semibold";
                                 } else {
-                                  colorClass = "text-red-600 font-semibold";
+                                  colorClass = "text-red-400 font-semibold";
                                 }
                                 return <span className={colorClass}>{rent.toFixed(1)}%</span>;
                               })()}
@@ -1003,7 +1003,7 @@ export default function Projects() {
                           )}
                           {/* Fecha tentativa (rojo) */}
                           {(project as any).tentativeInstallDate && !(project as any).isInstallDateOfficial && project.status !== "entregado" && (
-                            <p className="flex items-center gap-1 font-medium text-red-600">
+                            <p className="flex items-center gap-1 font-medium text-red-400">
                               <Truck className="h-3 w-3" />
                               🟥 Tentativa: {new Date((project as any).tentativeInstallDate).toLocaleDateString("es-CO")}
                             </p>
@@ -1012,8 +1012,8 @@ export default function Projects() {
                           {project.estimatedInstallDate && (project as any).isInstallDateOfficial && project.status !== "entregado" && (
                             <p className={`flex items-center gap-1 font-medium ${
                               new Date(project.estimatedInstallDate) < new Date() 
-                                ? "text-red-600" 
-                                : "text-green-600"
+                                ? "text-red-400" 
+                                : "text-green-400"
                             }`}>
                               <Truck className="h-3 w-3" />
                               🟩 Oficial: {new Date(project.estimatedInstallDate).toLocaleDateString("es-CO")}
@@ -1024,8 +1024,8 @@ export default function Projects() {
                           {project.estimatedInstallDate && (project as any).isInstallDateOfficial === undefined && project.status !== "entregado" && (
                             <p className={`flex items-center gap-1 font-medium ${
                               new Date(project.estimatedInstallDate) < new Date() 
-                                ? "text-red-600" 
-                                : "text-green-600"
+                                ? "text-red-400" 
+                                : "text-green-400"
                             }`}>
                               <Truck className="h-3 w-3" />
                               Entrega: {new Date(project.estimatedInstallDate).toLocaleDateString("es-CO")}
@@ -1114,7 +1114,7 @@ export default function Projects() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="text-red-500 hover:text-red-700 hover:bg-red-500/10"
+                              className="text-red-500 hover:text-red-300 hover:bg-red-500/10"
                               onClick={() => {
                                 setProjectToDelete(project);
                                 setShowDeleteDialog(true);
@@ -1171,7 +1171,7 @@ export default function Projects() {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="text-green-600 border-green-600 hover:bg-green-500/10"
+                      className="text-green-400 border-green-600 hover:bg-green-500/10"
                       onClick={() => {
                         const baseUrl = window.location.origin;
                         const portalUrl = `${baseUrl}/portal?project=${selectedProject.id}`;
@@ -1210,7 +1210,7 @@ export default function Projects() {
                   <AlertCircle className="h-4 w-4" />
                   Pendiente de Aprobación del Cliente
                 </h4>
-                <p className="text-sm text-yellow-700 mb-4">
+                <p className="text-sm text-yellow-300 mb-4">
                   Puedes aprobar el diseño en nombre del cliente si este no usa la aplicación.
                 </p>
                 <div className="flex gap-2">
@@ -1332,7 +1332,7 @@ export default function Projects() {
                             href={(projectDetail as any).quotationPdfUrl} 
                             target="_blank" 
                             rel="noopener noreferrer"
-                            className="text-sm text-blue-600 hover:underline flex items-center gap-1"
+                            className="text-sm text-blue-400 hover:underline flex items-center gap-1"
                           >
                             <FileText className="h-4 w-4" />
                             Ver PDF de cotización
@@ -1340,7 +1340,7 @@ export default function Projects() {
                         </div>
                       )}
                       {projectDetail.designDeadline && (
-                        <p className={new Date(projectDetail.designDeadline) < new Date() && projectDetail.status === "en_diseno" ? "text-red-600 font-medium" : ""}>
+                        <p className={new Date(projectDetail.designDeadline) < new Date() && projectDetail.status === "en_diseno" ? "text-red-400 font-medium" : ""}>
                           <strong>Límite diseño:</strong> {new Date(projectDetail.designDeadline).toLocaleDateString("es-CO")}
                           {new Date(projectDetail.designDeadline) < new Date() && projectDetail.status === "en_diseno" && " (Vencido)"}
                         </p>
@@ -1353,7 +1353,7 @@ export default function Projects() {
                       )}
                       {/* Fecha TENTATIVA (rojo) - solo si no hay fecha oficial */}
                       {(projectDetail as any).tentativeInstallDate && !(projectDetail as any).isInstallDateOfficial && projectDetail.status !== "entregado" && (
-                        <p className="font-medium text-red-600">
+                        <p className="font-medium text-red-400">
                           <strong>🟥 Fecha tentativa:</strong> {new Date((projectDetail as any).tentativeInstallDate).toLocaleDateString("es-CO")}
                           <span className="text-xs ml-1">(pendiente aprobación diseños)</span>
                         </p>
@@ -1362,10 +1362,10 @@ export default function Projects() {
                       {projectDetail.estimatedInstallDate && (projectDetail as any).isInstallDateOfficial && projectDetail.status !== "entregado" && (
                         <p className={`font-medium ${
                           new Date(projectDetail.estimatedInstallDate) < new Date() 
-                            ? "text-red-600" 
+                            ? "text-red-400" 
                             : new Date(projectDetail.estimatedInstallDate) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-                              ? "text-yellow-600"
-                              : "text-green-600"
+                              ? "text-yellow-400"
+                              : "text-green-400"
                         }`}>
                           <strong>🟩 Fecha oficial:</strong> {new Date(projectDetail.estimatedInstallDate).toLocaleDateString("es-CO")}
                           {new Date(projectDetail.estimatedInstallDate) < new Date() && " (Vencida)"}
@@ -1375,22 +1375,22 @@ export default function Projects() {
                       {projectDetail.estimatedInstallDate && (projectDetail as any).isInstallDateOfficial === undefined && projectDetail.status !== "entregado" && (
                         <p className={`font-medium ${
                           new Date(projectDetail.estimatedInstallDate) < new Date() 
-                            ? "text-red-600" 
+                            ? "text-red-400" 
                             : new Date(projectDetail.estimatedInstallDate) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-                              ? "text-yellow-600"
-                              : "text-green-600"
+                              ? "text-yellow-400"
+                              : "text-green-400"
                         }`}>
                           <strong>Entrega estimada:</strong> {new Date(projectDetail.estimatedInstallDate).toLocaleDateString("es-CO")}
                           {new Date(projectDetail.estimatedInstallDate) < new Date() && " (Vencida)"}
                         </p>
                       )}
                       {projectDetail.scheduledInstallDate && projectDetail.status !== "entregado" && (
-                        <p className="text-blue-600 font-medium">
+                        <p className="text-blue-400 font-medium">
                           <strong>Instalación programada:</strong> {new Date(projectDetail.scheduledInstallDate).toLocaleDateString("es-CO")}
                         </p>
                       )}
                       {projectDetail.deliveredAt && (
-                        <p className="text-green-600 font-medium">
+                        <p className="text-green-400 font-medium">
                           <strong>Entregado:</strong> {new Date(projectDetail.deliveredAt).toLocaleDateString("es-CO")}
                         </p>
                       )}
@@ -1769,7 +1769,7 @@ export default function Projects() {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                className="text-emerald-600 border-emerald-600 hover:bg-emerald-500/10"
+                                className="text-emerald-400 border-emerald-600 hover:bg-emerald-500/10"
                                 onClick={() => {
                                   // Mapear folder a stage para el formulario
                                   const folderToStageMap: Record<string, string> = {
@@ -1832,7 +1832,7 @@ export default function Projects() {
                                     )}
                                   >
                                     {isPdf ? (
-                                      <div className="w-full h-24 bg-white/[0.06] dark:bg-gray-800 rounded flex flex-col items-center justify-center hover:bg-white/[0.10] dark:hover:bg-gray-700 transition-colors">
+                                      <div className="w-full h-24 bg-white/[0.06] rounded flex flex-col items-center justify-center hover:bg-white/[0.10] transition-colors">
                                         <FileText className="h-8 w-8 text-red-500" />
                                         <span className="text-xs text-muted-foreground mt-1">PDF</span>
                                       </div>
@@ -2318,7 +2318,7 @@ export default function Projects() {
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="text-red-600">Eliminar Proyecto</DialogTitle>
+            <DialogTitle className="text-red-400">Eliminar Proyecto</DialogTitle>
             <DialogDescription>
               ¿Estás seguro de que deseas eliminar el proyecto <strong>"{projectToDelete?.name}"</strong>?
               <br /><br />
@@ -2329,7 +2329,7 @@ export default function Projects() {
                 <li>Todo el historial</li>
               </ul>
               <br />
-              <strong className="text-red-600">Esta acción no se puede deshacer.</strong>
+              <strong className="text-red-400">Esta acción no se puede deshacer.</strong>
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end gap-2 mt-4">
@@ -2351,13 +2351,13 @@ export default function Projects() {
       <Dialog open={showBulkDeleteDialog} onOpenChange={setShowBulkDeleteDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="text-red-600">Eliminar {selectedProjects.length} Proyecto(s)</DialogTitle>
+            <DialogTitle className="text-red-400">Eliminar {selectedProjects.length} Proyecto(s)</DialogTitle>
             <DialogDescription>
               ¿Estás seguro de que deseas eliminar <strong>{selectedProjects.length} proyecto(s)</strong>?
               <br /><br />
               Esta acción eliminará permanentemente todos los datos asociados a estos proyectos.
               <br /><br />
-              <strong className="text-red-600">Esta acción no se puede deshacer.</strong>
+              <strong className="text-red-400">Esta acción no se puede deshacer.</strong>
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end gap-2 mt-4">
@@ -2379,7 +2379,7 @@ export default function Projects() {
       <Dialog open={showAdvanceConfirmDialog} onOpenChange={setShowAdvanceConfirmDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="text-amber-600 flex items-center gap-2">
+            <DialogTitle className="text-amber-400 flex items-center gap-2">
               <AlertTriangle className="h-5 w-5" />
               Confirmar Aprobación Final
             </DialogTitle>
@@ -2388,7 +2388,7 @@ export default function Projects() {
                 Estás a punto de marcar el proyecto <strong>"{projectToAdvance?.clientName}"</strong> como <strong>Aprobación Final</strong>.
               </p>
               {projectToAdvance?.renderRevisionNumber && projectToAdvance.renderRevisionNumber > 1 && (
-                <p className="text-amber-600 font-medium">
+                <p className="text-amber-400 font-medium">
                   ⚠️ Este proyecto ha tenido {projectToAdvance.renderRevisionNumber} revisiones de renders.
                 </p>
               )}

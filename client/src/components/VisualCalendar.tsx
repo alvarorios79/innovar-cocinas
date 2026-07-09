@@ -182,7 +182,7 @@ export function VisualCalendar({
         {/* Leyenda */}
         <div className="mt-4 flex flex-wrap gap-4 text-xs">
           <div className="flex items-center gap-1">
-            <div className="h-3 w-3 rounded bg-white border border-white/[0.15]"></div>
+            <div className="h-3 w-3 rounded bg-white/[0.08] border border-white/[0.25]"></div>
             <span>Disponible</span>
           </div>
           <div className="flex items-center gap-1">

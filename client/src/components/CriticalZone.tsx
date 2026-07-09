@@ -451,7 +451,7 @@ export function CriticalZone() {
             </div>
           ) : (
             <div className="space-y-3">
-              <div className="bg-white p-4 rounded border border-red-500/25 space-y-2">
+              <div className="bg-red-500/5 p-4 rounded border border-red-500/25 space-y-2">
                 <p className="text-sm font-medium text-foreground">Vista Previa de Datos a Eliminar:</p>
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-2 text-sm">
                   <div className="bg-red-500/10 p-2 rounded">

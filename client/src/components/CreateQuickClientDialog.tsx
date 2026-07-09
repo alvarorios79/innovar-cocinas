@@ -192,7 +192,7 @@ Te hemos creado una cuenta en INNOVAR Cocinas para que puedas seguir el estado d
                     <Building2 className="h-4 w-4" />
                     Gestión interna
                   </Label>
-                  <p className="text-xs text-amber-700">
+                  <p className="text-xs text-amber-300">
                     El cliente no maneja tecnología. Las aprobaciones y seguimiento serán gestionados por el equipo comercial.
                   </p>
                 </div>
@@ -212,7 +212,7 @@ Te hemos creado una cuenta en INNOVAR Cocinas para que puedas seguir el estado d
         ) : (
           <>
             <DialogHeader>
-              <DialogTitle className="flex items-center gap-2 text-green-600">
+              <DialogTitle className="flex items-center gap-2 text-green-400">
                 <Check className="h-5 w-5" />
                 ¡Cliente Creado!
               </DialogTitle>
@@ -233,7 +233,7 @@ Te hemos creado una cuenta en INNOVAR Cocinas para que puedas seguir el estado d
                     onClick={() => handleCopy(credentials?.email || "", "email")}
                   >
                     {copiedField === "email" ? (
-                      <Check className="h-4 w-4 text-green-600" />
+                      <Check className="h-4 w-4 text-green-400" />
                     ) : (
                       <Copy className="h-4 w-4" />
                     )}
@@ -250,7 +250,7 @@ Te hemos creado una cuenta en INNOVAR Cocinas para que puedas seguir el estado d
                     onClick={() => handleCopy(credentials?.password || "", "password")}
                   >
                     {copiedField === "password" ? (
-                      <Check className="h-4 w-4 text-green-600" />
+                      <Check className="h-4 w-4 text-green-400" />
                     ) : (
                       <Copy className="h-4 w-4" />
                     )}
@@ -259,7 +259,7 @@ Te hemos creado una cuenta en INNOVAR Cocinas para que puedas seguir el estado d
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-xs text-muted-foreground">Enlace de acceso</p>
-                    <p className="font-medium text-sm text-blue-600">{window.location.origin}/login</p>
+                    <p className="font-medium text-sm text-blue-400">{window.location.origin}/login</p>
                   </div>
                   <Button
                     variant="ghost"
@@ -267,7 +267,7 @@ Te hemos creado una cuenta en INNOVAR Cocinas para que puedas seguir el estado d
                     onClick={() => handleCopy(`${window.location.origin}/login`, "link")}
                   >
                     {copiedField === "link" ? (
-                      <Check className="h-4 w-4 text-green-600" />
+                      <Check className="h-4 w-4 text-green-400" />
                     ) : (
                       <Copy className="h-4 w-4" />
                     )}

@@ -60,7 +60,7 @@ function LogoutButton() {
       size="sm"
       onClick={() => logout.mutate()}
       disabled={logout.isPending}
-      className="text-red-600 hover:text-red-700 hover:bg-red-500/10"
+      className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
       title="Cerrar sesión"
     >
       <LogOut className="h-4 w-4" />
@@ -81,56 +81,56 @@ const roleConfig: Record<string, {
     title: "Portal del Diseñador",
     subtitle: "Crea diseños que transforman hogares",
     color: "from-purple-500 to-indigo-600",
-    bgGradient: "bg-gradient-to-br from-purple-50 via-white to-indigo-50",
+    bgGradient: "bg-gradient-to-br from-purple-950/30 via-transparent to-indigo-950/30",
     icon: <Palette className="h-8 w-8" />,
   },
   comercial: {
     title: "Portal Comercial",
     subtitle: "Conecta clientes con sus sueños",
     color: "from-pink-500 to-rose-600",
-    bgGradient: "bg-gradient-to-br from-pink-50 via-white to-rose-50",
+    bgGradient: "bg-gradient-to-br from-pink-950/30 via-transparent to-rose-950/30",
     icon: <Briefcase className="h-8 w-8" />,
   },
   jefe_taller: {
     title: "Portal Jefe de Taller",
     subtitle: "Lidera la producción con excelencia",
     color: "from-orange-500 to-amber-600",
-    bgGradient: "bg-gradient-to-br from-orange-50 via-white to-amber-50",
+    bgGradient: "bg-gradient-to-br from-orange-950/30 via-transparent to-amber-950/30",
     icon: <Wrench className="h-8 w-8" />,
   },
   operario: {
     title: "Portal del Operario",
     subtitle: "Construye calidad en cada detalle",
     color: "from-blue-500 to-cyan-600",
-    bgGradient: "bg-gradient-to-br from-blue-50 via-white to-cyan-50",
+    bgGradient: "bg-gradient-to-br from-blue-950/30 via-transparent to-cyan-950/30",
     icon: <Package className="h-8 w-8" />,
   },
   admin: {
     title: "Panel Administrativo",
     subtitle: "Gestiona clientes, citas y cotizaciones",
     color: "from-teal-500 to-emerald-600",
-    bgGradient: "bg-gradient-to-br from-teal-50 via-white to-emerald-50",
+    bgGradient: "bg-gradient-to-br from-teal-950/30 via-transparent to-emerald-950/30",
     icon: <LayoutDashboard className="h-8 w-8" />,
   },
   super_admin: {
     title: "Panel CEO",
     subtitle: "Control total del negocio",
     color: "from-gray-700 to-slate-900",
-    bgGradient: "bg-gradient-to-br from-slate-50 via-white to-gray-100",
+    bgGradient: "bg-gradient-to-br from-slate-950/30 via-transparent to-gray-900/30",
     icon: <Settings className="h-8 w-8" />,
   },
   medidor: {
     title: "Portal del Medidor",
     subtitle: "Precisión en cada visita",
     color: "from-amber-500 to-yellow-600",
-    bgGradient: "bg-gradient-to-br from-amber-50 via-white to-yellow-50",
+    bgGradient: "bg-gradient-to-br from-amber-950/30 via-transparent to-yellow-950/30",
     icon: <MapPin className="h-8 w-8" />,
   },
   contador: {
     title: "Portal del Contador",
     subtitle: "Orden y control financiero",
     color: "from-violet-500 to-fuchsia-600",
-    bgGradient: "bg-gradient-to-br from-violet-50 via-white to-fuchsia-50",
+    bgGradient: "bg-gradient-to-br from-violet-950/30 via-transparent to-fuchsia-950/30",
     icon: <BookOpen className="h-8 w-8" />,
   },
 };
@@ -561,18 +561,18 @@ export function TeamDashboard() {
   const getStatusColor = (status: string) => {
     const statusColors: Record<string, string> = {
       contacto: "bg-[#0F2222] text-white/85 border-[rgba(106,207,199,0.12)]",
-      cotizacion_enviada: "bg-blue-500/15 text-blue-700 border-blue-500/25",
-      cotizacion_aprobada: "bg-emerald-500/15 text-emerald-700 border-emerald-200",
-      adelanto_recibido: "bg-green-500/15 text-green-700 border-green-500/25",
-      en_diseno: "bg-purple-500/15 text-purple-700 border-purple-500/25",
-      pendiente_modelado: "bg-violet-100 text-violet-700 border-violet-200",
-      pendiente_render: "bg-amber-500/15 text-amber-700 border-amber-500/25",
-      aprobacion_final: "bg-indigo-500/15 text-indigo-700 border-indigo-200",
-      despiece: "bg-orange-500/15 text-orange-700 border-orange-500/25",
-      corte: "bg-amber-500/15 text-amber-700 border-amber-500/25",
-      enchape: "bg-rose-500/15 text-rose-700 border-rose-500/25",
-      ensamble: "bg-pink-500/15 text-pink-700 border-pink-200",
-      listo_instalacion: "bg-cyan-100 text-cyan-700 border-cyan-200",
+      cotizacion_enviada: "bg-blue-500/15 text-blue-300 border-blue-500/25",
+      cotizacion_aprobada: "bg-emerald-500/15 text-emerald-300 border-emerald-200",
+      adelanto_recibido: "bg-green-500/15 text-green-300 border-green-500/25",
+      en_diseno: "bg-purple-500/15 text-purple-300 border-purple-500/25",
+      pendiente_modelado: "bg-violet-100 text-violet-300 border-violet-200",
+      pendiente_render: "bg-amber-500/15 text-amber-300 border-amber-500/25",
+      aprobacion_final: "bg-indigo-500/15 text-indigo-300 border-indigo-200",
+      despiece: "bg-orange-500/15 text-orange-300 border-orange-500/25",
+      corte: "bg-amber-500/15 text-amber-300 border-amber-500/25",
+      enchape: "bg-rose-500/15 text-rose-300 border-rose-500/25",
+      ensamble: "bg-pink-500/15 text-pink-300 border-pink-200",
+      listo_instalacion: "bg-cyan-100 text-cyan-300 border-cyan-200",
       entregado: "bg-white/[0.06] text-white/85 border-[rgba(106,207,199,0.12)]",
     };
     return statusColors[status] || "bg-white/[0.06] text-white/85 border-[rgba(106,207,199,0.12)]";
@@ -608,7 +608,7 @@ export function TeamDashboard() {
         <div>
           <div>
             <h2 className="text-sm font-semibold text-white/45 uppercase tracking-wider mb-3 flex items-center gap-2">
-              <TrendingUp className="h-4 w-4 text-teal-600" />
+              <TrendingUp className="h-4 w-4 text-teal-400" />
               Resumen del Día
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
@@ -637,7 +637,7 @@ export function TeamDashboard() {
         <div>
           <div>
             <h2 className="text-sm font-semibold text-white/45 uppercase tracking-wider mb-3 flex items-center gap-2">
-              <Target className="h-4 w-4 text-teal-600" />
+              <Target className="h-4 w-4 text-teal-400" />
               Acciones Rápidas
             </h2>
             <div className={`grid ${quickActions.length <= 3 ? 'grid-cols-1 sm:grid-cols-3' : 'grid-cols-1 sm:grid-cols-2 md:grid-cols-4'} gap-3`}>
@@ -711,11 +711,11 @@ export function TeamDashboard() {
           <div>
               <div className="flex items-center justify-between mb-3">
                 <h2 className="text-base md:text-lg font-bold text-foreground flex items-center gap-2">
-                  <Briefcase className="h-5 w-5 text-teal-600" />
+                  <Briefcase className="h-5 w-5 text-teal-400" />
                   Proyectos Recientes
                 </h2>
                 <Link href="/projects">
-                  <Button variant="ghost" size="sm" className="text-teal-600 font-semibold">
+                  <Button variant="ghost" size="sm" className="text-teal-400 font-semibold">
                     Ver todos <ArrowRight className="h-4 w-4 ml-1" />
                   </Button>
                 </Link>
@@ -770,11 +770,11 @@ export function TeamDashboard() {
           <div>
               <div className="flex items-center justify-between mb-3">
                 <h2 className="text-base md:text-lg font-bold text-foreground flex items-center gap-2">
-                  <ClipboardList className="h-5 w-5 text-teal-600" />
+                  <ClipboardList className="h-5 w-5 text-teal-400" />
                   Tareas Pendientes
                 </h2>
                 <Link href="/tasks">
-                  <Button variant="ghost" size="sm" className="text-teal-600 font-semibold">
+                  <Button variant="ghost" size="sm" className="text-teal-400 font-semibold">
                     Ver todas <ArrowRight className="h-4 w-4 ml-1" />
                   </Button>
                 </Link>
@@ -832,7 +832,7 @@ export function TeamDashboard() {
           <div>
             <div>
               <h2 className="text-base md:text-lg font-bold text-foreground mb-3 flex items-center gap-2">
-                <AlertTriangle className="h-5 w-5 text-orange-600" />
+                <AlertTriangle className="h-5 w-5 text-orange-400" />
                 🔄 Cambios Solicitados por Clientes
               </h2>
               <div className="space-y-3">
@@ -909,7 +909,7 @@ export function TeamDashboard() {
       {role === "disenador" && myProjects.filter(p => ["adelanto_recibido", "en_diseno"].includes(p.status)).length > 0 && (
         <section className="mb-6">
           <h2 className="text-base md:text-lg font-bold text-foreground mb-3 flex items-center gap-2">
-            <Palette className="h-5 w-5 text-purple-600" />
+            <Palette className="h-5 w-5 text-purple-400" />
             Proyectos en Diseño - Checklist de Entregables
           </h2>
           <div className="space-y-4">

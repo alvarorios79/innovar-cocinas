@@ -98,7 +98,7 @@ export default function RecordListView({ tableName, onRefresh }: RecordListViewP
       {/* Status Messages */}
       {deleteSuccess && (
         <Alert className="border-green-500 bg-green-500/10">
-          <CheckCircle className="h-4 w-4 text-green-600" />
+          <CheckCircle className="h-4 w-4 text-green-400" />
           <AlertDescription className="text-green-300">
             ✅ Registros eliminados exitosamente
           </AlertDescription>
@@ -255,7 +255,7 @@ export default function RecordListView({ tableName, onRefresh }: RecordListViewP
                       ¿Está seguro de que desea eliminar todos los {totalCount} registros de esta tabla?
                     </div>
                     <Alert className="border-red-500 bg-red-500/10">
-                      <AlertTriangle className="h-4 w-4 text-red-600" />
+                      <AlertTriangle className="h-4 w-4 text-red-400" />
                       <AlertDescription className="text-red-300">
                         Esta acción no se puede deshacer
                       </AlertDescription>

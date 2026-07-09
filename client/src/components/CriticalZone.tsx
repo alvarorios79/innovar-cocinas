@@ -141,7 +141,7 @@ export function CriticalZone() {
     <div className="space-y-6">
       {/* Warning Banner */}
       <div className="bg-red-500/10 border border-red-500/25 rounded-lg p-4 flex items-start gap-3">
-        <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+        <AlertTriangle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
         <div>
           <h3 className="font-semibold text-red-300">Zona Crítica - Gestión de Datos del Sistema</h3>
           <p className="text-sm text-red-300 mt-1">
@@ -158,8 +158,8 @@ export function CriticalZone() {
             <CardTitle className="text-sm font-medium text-red-300">Clientes</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">{String(systemClientsCount)}</div>
-            <p className="text-xs text-red-700 mt-1">del sistema</p>
+            <div className="text-2xl font-bold text-red-400">{String(systemClientsCount)}</div>
+            <p className="text-xs text-red-300 mt-1">del sistema</p>
           </CardContent>
         </Card>
 
@@ -168,8 +168,8 @@ export function CriticalZone() {
             <CardTitle className="text-sm font-medium text-red-300">Cotizaciones</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">{String(systemQuotationsCount)}</div>
-            <p className="text-xs text-red-700 mt-1">del sistema</p>
+            <div className="text-2xl font-bold text-red-400">{String(systemQuotationsCount)}</div>
+            <p className="text-xs text-red-300 mt-1">del sistema</p>
           </CardContent>
         </Card>
 
@@ -178,8 +178,8 @@ export function CriticalZone() {
             <CardTitle className="text-sm font-medium text-red-300">Proyectos</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">{String(systemProjectsCount)}</div>
-            <p className="text-xs text-red-700 mt-1">del sistema</p>
+            <div className="text-2xl font-bold text-red-400">{String(systemProjectsCount)}</div>
+            <p className="text-xs text-red-300 mt-1">del sistema</p>
           </CardContent>
         </Card>
 
@@ -188,8 +188,8 @@ export function CriticalZone() {
             <CardTitle className="text-sm font-medium text-red-300">Citas</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">{String(systemAppointmentsCount)}</div>
-            <p className="text-xs text-red-700 mt-1">del sistema</p>
+            <div className="text-2xl font-bold text-red-400">{String(systemAppointmentsCount)}</div>
+            <p className="text-xs text-red-300 mt-1">del sistema</p>
           </CardContent>
         </Card>
 
@@ -201,7 +201,7 @@ export function CriticalZone() {
         <CardHeader>
           <CardTitle className="text-red-300">Gestión de Datos del Sistema</CardTitle>
           <CardDescription>
-            Total de registros del sistema: <span className="font-semibold text-red-600">{String(totalSystemData)}</span>
+            Total de registros del sistema: <span className="font-semibold text-red-400">{String(totalSystemData)}</span>
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -456,23 +456,23 @@ export function CriticalZone() {
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-2 text-sm">
                   <div className="bg-red-500/10 p-2 rounded">
                     <p className="text-xs text-muted-foreground">Clientes</p>
-                    <p className="font-semibold text-red-600">{String(systemClientsCount)}</p>
+                    <p className="font-semibold text-red-400">{String(systemClientsCount)}</p>
                   </div>
                   <div className="bg-red-500/10 p-2 rounded">
                     <p className="text-xs text-muted-foreground">Cotizaciones</p>
-                    <p className="font-semibold text-red-600">{String(systemQuotationsCount)}</p>
+                    <p className="font-semibold text-red-400">{String(systemQuotationsCount)}</p>
                   </div>
                   <div className="bg-red-500/10 p-2 rounded">
                     <p className="text-xs text-muted-foreground">Proyectos</p>
-                    <p className="font-semibold text-red-600">{String(systemProjectsCount)}</p>
+                    <p className="font-semibold text-red-400">{String(systemProjectsCount)}</p>
                   </div>
                   <div className="bg-red-500/10 p-2 rounded">
                     <p className="text-xs text-muted-foreground">Citas</p>
-                    <p className="font-semibold text-red-600">{String(systemAppointmentsCount)}</p>
+                    <p className="font-semibold text-red-400">{String(systemAppointmentsCount)}</p>
                   </div>
                   <div className="bg-red-500/10 p-2 rounded">
                     <p className="text-xs text-muted-foreground">Total</p>
-                    <p className="font-semibold text-red-600">{String(totalSystemData)}</p>
+                    <p className="font-semibold text-red-400">{String(totalSystemData)}</p>
                   </div>
                 </div>
               </div>

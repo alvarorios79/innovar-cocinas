@@ -146,7 +146,7 @@ export function PDFPreviewDialog({
               {error && (
                 <div className="absolute inset-0 flex items-center justify-center z-10 bg-red-500/10 flex-col gap-2">
                   <AlertCircle className="h-8 w-8 text-red-500" />
-                  <div className="text-red-700 text-center px-4">
+                  <div className="text-red-300 text-center px-4">
                     <p className="font-semibold">Error al cargar PDF</p>
                     <p className="text-sm mt-1">{error}</p>
                   </div>

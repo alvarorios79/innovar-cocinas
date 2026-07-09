@@ -182,10 +182,10 @@ export function ProjectCard({
                 {project.estimatedInstallDate && project.status !== "entregado" && (
                   <p className={`flex items-center gap-1 font-medium ${
                     new Date(project.estimatedInstallDate) < new Date() 
-                      ? "text-red-600" 
+                      ? "text-red-400" 
                       : new Date(project.estimatedInstallDate) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-                        ? "text-yellow-600"
-                        : "text-green-600"
+                        ? "text-yellow-400"
+                        : "text-green-400"
                   }`}>
                     <Truck className="h-3 w-3" />
                     Entrega: {new Date(project.estimatedInstallDate).toLocaleDateString("es-CO")}
@@ -240,7 +240,7 @@ export function ProjectCard({
                 <Button
                   variant="outline"
                   size="sm"
-                  className="text-green-600 border-green-600 hover:bg-green-500/10"
+                  className="text-green-400 border-green-600 hover:bg-green-500/10"
                   onClick={() => onWhatsApp(project)}
                 >
                   <MessageCircle className="h-4 w-4 mr-1" />
@@ -289,7 +289,7 @@ export function ProjectCard({
                   <AlertCircle className="h-4 w-4" />
                   Pendiente de Aprobación del Cliente
                 </h4>
-                <p className="text-sm text-yellow-700 mb-3">
+                <p className="text-sm text-yellow-300 mb-3">
                   Puedes aprobar el diseño en nombre del cliente si este no usa la aplicación.
                 </p>
                 <div className="flex gap-2">
@@ -404,7 +404,7 @@ export function ProjectCard({
                       <p><strong>Adelanto recibido:</strong> {new Date(detail.advanceReceivedAt).toLocaleDateString("es-CO")}</p>
                     )}
                     {detail.designDeadline && (
-                      <p className={new Date(detail.designDeadline) < new Date() && detail.status === "en_diseno" ? "text-red-600 font-medium" : ""}>
+                      <p className={new Date(detail.designDeadline) < new Date() && detail.status === "en_diseno" ? "text-red-400 font-medium" : ""}>
                         <strong>Límite diseño:</strong> {new Date(detail.designDeadline).toLocaleDateString("es-CO")}
                         {new Date(detail.designDeadline) < new Date() && detail.status === "en_diseno" && " (Vencido)"}
                       </p>
@@ -418,21 +418,21 @@ export function ProjectCard({
                     {detail.estimatedInstallDate && detail.status !== "entregado" && (
                       <p className={`font-medium ${
                         new Date(detail.estimatedInstallDate) < new Date() 
-                          ? "text-red-600" 
+                          ? "text-red-400" 
                           : new Date(detail.estimatedInstallDate) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-                            ? "text-yellow-600"
-                            : "text-green-600"
+                            ? "text-yellow-400"
+                            : "text-green-400"
                       }`}>
                         <strong>Entrega estimada:</strong> {new Date(detail.estimatedInstallDate).toLocaleDateString("es-CO")}
                       </p>
                     )}
                     {detail.scheduledInstallDate && detail.status !== "entregado" && (
-                      <p className="text-blue-600 font-medium">
+                      <p className="text-blue-400 font-medium">
                         <strong>Instalación:</strong> {new Date(detail.scheduledInstallDate).toLocaleDateString("es-CO")}
                       </p>
                     )}
                     {detail.deliveredAt && (
-                      <p className="text-green-600 font-medium">
+                      <p className="text-green-400 font-medium">
                         <strong>Entregado:</strong> {new Date(detail.deliveredAt).toLocaleDateString("es-CO")}
                       </p>
                     )}
@@ -445,7 +445,7 @@ export function ProjectCard({
                         href={detail.advanceReceiptUrl} 
                         target="_blank" 
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-sm text-green-600 hover:underline bg-green-500/10 px-2 py-1 rounded"
+                        className="inline-flex items-center gap-1 text-sm text-green-400 hover:underline bg-green-500/10 px-2 py-1 rounded"
                       >
                         <FileText className="h-4 w-4" />
                         Ver comprobante
@@ -456,7 +456,7 @@ export function ProjectCard({
                         href={(detail as any).quotationPdfUrl} 
                         target="_blank" 
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-sm text-blue-600 hover:underline bg-blue-500/10 px-2 py-1 rounded"
+                        className="inline-flex items-center gap-1 text-sm text-blue-400 hover:underline bg-blue-500/10 px-2 py-1 rounded"
                       >
                         <FileText className="h-4 w-4" />
                         Ver cotización PDF

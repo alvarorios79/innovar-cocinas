@@ -162,8 +162,8 @@ export function OperatorDailyProjects({ className }: OperatorDailyProjectsProps)
   return (
     <>
       <Card className={`${className} border-orange-500/25`}>
-        <CardHeader className="pb-3 bg-gradient-to-r from-orange-50 to-amber-50">
-          <CardTitle className="text-lg flex items-center gap-2 text-orange-700">
+        <CardHeader className="pb-3 bg-gradient-to-r from-orange-950/30 to-amber-950/30">
+          <CardTitle className="text-lg flex items-center gap-2 text-orange-300">
             <Hammer className="h-5 w-5" />
             Mis Proyectos de Hoy
           </CardTitle>
@@ -240,7 +240,7 @@ export function OperatorDailyProjects({ className }: OperatorDailyProjectsProps)
                     {isExpanded && (
                       <div className="p-3 bg-white/[0.03] border-t">
                         <h5 className="font-medium text-sm mb-3 flex items-center gap-2">
-                          <CheckCircle2 className="h-4 w-4 text-green-600" />
+                          <CheckCircle2 className="h-4 w-4 text-green-400" />
                           Checklist de {OPERATOR_STATUSES[project.status as keyof typeof OPERATOR_STATUSES]?.label}
                         </h5>
                         
@@ -251,7 +251,7 @@ export function OperatorDailyProjects({ className }: OperatorDailyProjectsProps)
                               <div 
                                 key={item.id}
                                 className={`flex items-start gap-3 p-2 rounded-lg border transition-colors ${
-                                  isChecked ? "bg-green-500/10 border-green-500/25" : "bg-white border-white/[0.10]"
+                                  isChecked ? "bg-green-500/10 border-green-500/25" : "bg-white/[0.05] border-white/[0.10]"
                                 }`}
                               >
                                 <Checkbox
@@ -285,7 +285,7 @@ export function OperatorDailyProjects({ className }: OperatorDailyProjectsProps)
                             <Button 
                               variant="outline" 
                               size="sm"
-                              className="text-green-600 border-green-300 hover:bg-green-500/10"
+                              className="text-green-400 border-green-300 hover:bg-green-500/10"
                             >
                               <Camera className="h-4 w-4 mr-1" />
                               Subir Fotos
@@ -294,7 +294,7 @@ export function OperatorDailyProjects({ className }: OperatorDailyProjectsProps)
                           <Button 
                             variant="outline" 
                             size="sm"
-                            className="text-amber-600 border-amber-300 hover:bg-amber-500/10"
+                            className="text-amber-400 border-amber-300 hover:bg-amber-500/10"
                             onClick={(e) => {
                               e.stopPropagation();
                               setSelectedProject(project);
@@ -320,7 +320,7 @@ export function OperatorDailyProjects({ className }: OperatorDailyProjectsProps)
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Wrench className="h-5 w-5 text-amber-600" />
+              <Wrench className="h-5 w-5 text-amber-400" />
               Solicitar Materiales
             </DialogTitle>
             <DialogDescription>

@@ -1,4 +1,3 @@
-// ERP v2.1 — dark theme rebuild
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -583,7 +582,7 @@ export function TeamDashboard() {
     <div>
       {/* Banner de bienvenida — reemplaza header + hero con logo */}
       <div
-        className={`rounded-xl p-5 mb-6 bg-gradient-to-r ${config.color} text-white shadow-sm`}
+        className={`rounded-xl p-4 md:p-5 mb-4 md:mb-6 bg-gradient-to-r ${config.color} text-white shadow-sm`}
       >
         <div className="flex items-start gap-4">
           <div className="bg-[#162828]/20 p-2.5 rounded-xl shrink-0">
@@ -612,18 +611,18 @@ export function TeamDashboard() {
               <TrendingUp className="h-4 w-4 text-teal-600" />
               Resumen del Día
             </h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
               {stats.map((stat, index) => (
                 <Link key={index} href={stat.link}>
                   <Card className={`hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-[1.02] overflow-hidden bg-[#162828] ${(stat as any).highlight ? 'border border-green-400/60 shadow-lg shadow-green-400/15' : 'border border-[rgba(106,207,199,0.12)] hover:border-[rgba(106,207,199,0.35)]'}`}>
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className={`${stat.color} p-2.5 rounded-lg`}>
+                    <CardContent className="p-3 md:p-4">
+                      <div className="flex items-center justify-between mb-2 md:mb-3">
+                        <div className={`${stat.color} p-2 md:p-2.5 rounded-lg`}>
                           {stat.icon}
                         </div>
-                        <span className="text-3xl md:text-4xl font-bold text-white">{stat.value}</span>
+                        <span className="text-2xl md:text-3xl lg:text-4xl font-bold text-white">{stat.value}</span>
                       </div>
-                      <p className="text-xs font-semibold text-white/55 uppercase tracking-wide">{stat.label}</p>
+                      <p className="text-[10px] md:text-xs font-semibold text-white/55 uppercase tracking-wide">{stat.label}</p>
                     </CardContent>
                   </Card>
                 </Link>
@@ -647,7 +646,7 @@ export function TeamDashboard() {
                   <Dialog key={index}>
                     <DialogTrigger asChild>
                       <Button 
-                        className={`w-full h-auto py-5 md:py-6 flex flex-col items-center gap-2 ${action.color} text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] border-0`}
+                        className={`w-full h-auto py-3 md:py-5 lg:py-6 flex flex-col items-center gap-2 ${action.color} text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] border-0`}
                       >
                         <div className="bg-[#162828]/20 p-2 rounded-lg">
                           {action.icon}

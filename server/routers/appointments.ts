@@ -62,59 +62,6 @@ export const appointmentsRouter = router({
           });
         }
 
-        // Auto-crear visita técnica vinculada al cliente
-        // La cita ES la visita técnica: queda pendiente de asignar medidor
-        try {
-          const clientForVisit = await db.getClientById(input.clientId);
-          if (clientForVisit) {
-            // Buscar un super_admin o admin como createdBy de sistema
-            const [admins, superAdmins] = await Promise.all([
-              db.getUsersByRole("admin"),
-              db.getUsersByRole("super_admin"),
-            ]);
-            const systemUser = [...superAdmins, ...admins][0];
-            if (systemUser) {
-              const visitNotes = input.notes
-                ? `Cita agendada online. ${sanitizeText(input.notes)}`
-                : "Cita agendada desde portal público. Pendiente de asignar medidor.";
-
-              // Si hay varios tipos de trabajo, guardarlos todos en measurements._workTypes
-              const visitMeasurements = input.workTypes.length > 1
-                ? { _workTypes: input.workTypes }
-                : undefined;
-
-              await db.createTechnicalVisit({
-                clientId:      input.clientId,
-                clientName:    clientForVisit.name,
-                clientPhone:   clientForVisit.whatsappPhone ?? undefined,
-                clientAddress: clientForVisit.address ?? undefined,
-                workType:      input.workTypes[0] as any,
-                measurements:  visitMeasurements,
-                notes:         visitNotes,
-                scheduledDate: scheduledDate ? new Date(scheduledDate as any).toISOString() : undefined,
-                createdBy:     systemUser.id,
-                // assignedTo = null: pendiente de asignar por admin/comercial
-              });
-
-              // Notificar a admin y comerciales que hay visita pendiente de asignar
-              const { createAndSendNotification } = await import("../push-notifications");
-              const comerciales = await db.getUsersByRole("comercial");
-              const recipients = [...superAdmins, ...admins, ...comerciales];
-              for (const recipient of recipients) {
-                await createAndSendNotification(recipient.id, {
-                  title: `📅 Nueva visita técnica pendiente`,
-                  body:  `${clientForVisit.name} agendó cita. Asigna un medidor en Visitas Técnicas.`,
-                  type:  "proyecto",
-                  url:   `/visitas-tecnicas`,
-                });
-              }
-            }
-          }
-        } catch (visitErr) {
-          console.error("[appointments.create] Error creando visita técnica automática:", visitErr);
-          // No bloquear la cita si falla la visita
-        }
-
         // Obtener datos del cliente para notificación
         const client = await db.getClientById(input.clientId);
         if (client) {
@@ -539,7 +486,7 @@ export const appointmentsRouter = router({
 
     list: protectedProcedure
       .query(async ({ ctx }) => {
-        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "comercial") {
+        if (!["admin", "super_admin", "comercial", "medidor"].includes(ctx.user.role)) {
           throw new TRPCError({ code: "FORBIDDEN" });
         }
         

@@ -133,6 +133,13 @@ const menuSections: MenuSection[] = [
     ],
   },
   {
+    title: "Visitas Técnicas",
+    items: [
+      { icon: CalendarCheck, label: "Visitas Técnicas", path: "/appointments-calendar",
+        roles: ["medidor"], iconColor: "#f59e0b" },
+    ],
+  },
+  {
     title: "Postventa",
     items: [
       { icon: Star, label: "Postventa", path: "/postventa",

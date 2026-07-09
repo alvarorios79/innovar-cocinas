@@ -72,7 +72,7 @@ export function InitialPaymentModal({
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <CreditCard className="w-5 h-5 text-emerald-600" />
+            <CreditCard className="w-5 h-5 text-emerald-400" />
             Registrar Pago Inicial
           </DialogTitle>
           <DialogDescription>
@@ -150,7 +150,7 @@ export function InitialPaymentModal({
               <div className="space-y-2">
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-muted-foreground">Saldo Pendiente:</span>
-                  <span className="font-semibold text-emerald-700">
+                  <span className="font-semibold text-emerald-300">
                     {formatPrice(Math.max(0, remainingBalance))}
                   </span>
                 </div>
@@ -164,8 +164,8 @@ export function InitialPaymentModal({
           {/* Validación */}
           {parseFloat(paymentAmount || "0") > totalAmount && (
             <div className="flex gap-2 p-3 bg-amber-500/10 border border-amber-500/25 rounded-md">
-              <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
-              <p className="text-xs text-amber-700">
+              <AlertCircle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
+              <p className="text-xs text-amber-300">
                 El monto no puede ser mayor al total del proyecto
               </p>
             </div>

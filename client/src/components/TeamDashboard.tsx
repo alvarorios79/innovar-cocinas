@@ -10,6 +10,7 @@ import {
   Palette,
   ClipboardList,
   Calendar,
+  CalendarCheck,
   Users,
   FileText,
   Wrench,
@@ -145,7 +146,7 @@ export function TeamDashboard() {
     enabled: ["admin", "super_admin", "comercial", "jefe_taller", "disenador", "medidor", "contador"].includes(role),
   });
   const { data: appointments = [] } = trpc.appointments.list.useQuery(undefined, {
-    enabled: ["comercial", "admin", "super_admin"].includes(role),
+    enabled: ["comercial", "admin", "super_admin", "medidor"].includes(role),
   });
   const { data: quotations = [] } = trpc.quotations.list.useQuery(undefined, {
     enabled: ["comercial", "admin", "super_admin"].includes(role),
@@ -429,8 +430,9 @@ export function TeamDashboard() {
       }
       case "medidor":
         return [
-          { label: "Proyectos", value: myProjects.length, icon: <Briefcase className="h-6 w-6" />, color: "bg-gradient-to-br from-amber-500 to-yellow-500", link: "/projects" },
-          { label: "Mis Tareas", value: myTasks.length, icon: <ClipboardList className="h-6 w-6" />, color: "bg-gradient-to-br from-yellow-500 to-amber-600", link: "/tasks" },
+          { label: "Visitas Pendientes", value: pendingAppointments.length, icon: <CalendarCheck className="h-6 w-6" />, color: "bg-gradient-to-br from-amber-500 to-orange-500", link: "/appointments-calendar" },
+          { label: "Proyectos", value: myProjects.length, icon: <Briefcase className="h-6 w-6" />, color: "bg-gradient-to-br from-yellow-500 to-amber-500", link: "/projects" },
+          { label: "Mis Tareas", value: myTasks.length, icon: <ClipboardList className="h-6 w-6" />, color: "bg-gradient-to-br from-amber-600 to-yellow-600", link: "/tasks" },
         ];
       case "contador":
         return [
@@ -511,8 +513,9 @@ export function TeamDashboard() {
         ];
       case "medidor":
         return [
-          { label: "Proyectos", href: "/projects", icon: <Briefcase className="h-6 w-6" />, color: "bg-gradient-to-br from-amber-600 to-yellow-600 hover:from-amber-700 hover:to-yellow-700" },
-          { label: "Mis Tareas", href: "/tasks", icon: <ClipboardList className="h-6 w-6" />, color: "bg-gradient-to-br from-yellow-600 to-amber-600 hover:from-yellow-700 hover:to-amber-700" },
+          { label: "Visitas Técnicas", href: "/appointments-calendar", icon: <CalendarCheck className="h-6 w-6" />, color: "bg-gradient-to-br from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700" },
+          { label: "Proyectos", href: "/projects", icon: <Briefcase className="h-6 w-6" />, color: "bg-gradient-to-br from-yellow-600 to-amber-600 hover:from-yellow-700 hover:to-amber-700" },
+          { label: "Mis Tareas", href: "/tasks", icon: <ClipboardList className="h-6 w-6" />, color: "bg-gradient-to-br from-amber-600 to-yellow-600 hover:from-amber-700 hover:to-yellow-700" },
         ];
       case "contador":
         return [
@@ -611,17 +614,15 @@ export function TeamDashboard() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {stats.map((stat, index) => (
                 <Link key={index} href={stat.link}>
-                  <Card className={`hover:shadow-xl transition-all duration-300 cursor-pointer border-0 shadow-md hover:scale-[1.02] overflow-hidden ${(stat as any).highlight ? 'ring-2 ring-green-400 ring-offset-2 animate-pulse' : ''}`}>
-                    <CardContent className="p-0">
-                      <div className={`${stat.color} p-4 text-white`}>
-                        <div className="flex items-center justify-between">
-                          <div className="bg-[#162828]/20 p-2 rounded-lg">
-                            {stat.icon}
-                          </div>
-                          <span className="text-3xl md:text-4xl font-bold">{stat.value}</span>
+                  <Card className={`hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-[1.02] overflow-hidden bg-[#162828] ${(stat as any).highlight ? 'border border-green-400/60 shadow-lg shadow-green-400/15' : 'border border-[rgba(106,207,199,0.12)] hover:border-[rgba(106,207,199,0.35)]'}`}>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className={`${stat.color} p-2.5 rounded-lg`}>
+                          {stat.icon}
                         </div>
-                        <p className="text-xs md:text-sm font-semibold mt-2 text-white/90">{stat.label}</p>
+                        <span className="text-3xl md:text-4xl font-bold text-white">{stat.value}</span>
                       </div>
+                      <p className="text-xs font-semibold text-white/55 uppercase tracking-wide">{stat.label}</p>
                     </CardContent>
                   </Card>
                 </Link>
@@ -729,25 +730,25 @@ export function TeamDashboard() {
                   ];
                   return (
                     <Link key={project.id} href="/projects">
-                      <Card className={`${projectColors[index % 4]} hover:shadow-xl transition-all duration-300 cursor-pointer border-0 shadow-md hover:scale-[1.02] overflow-hidden`}>
-                        <CardContent className="p-4 text-white">
+                      <Card className="bg-[#162828] border border-[rgba(106,207,199,0.12)] hover:border-[rgba(106,207,199,0.35)] hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-[1.02] overflow-hidden">
+                        <CardContent className="p-4">
                           <div className="flex items-center justify-between gap-2 mb-2">
-                            <div className="bg-[#162828]/20 p-2 rounded-lg">
+                            <div className={`${projectColors[index % 4]} p-2 rounded-lg`}>
                               {project.workType === "cocina" && <span className="text-xl">🍳</span>}
                               {project.workType === "closet" && <span className="text-xl">👔</span>}
                               {project.workType === "puertas" && <span className="text-xl">🛏</span>}
                               {project.workType === "centro_tv" && <span className="text-xl">📺</span>}
-                              {!project.workType && <Briefcase className="h-5 w-5" />}
+                              {!project.workType && <Briefcase className="h-5 w-5 text-white" />}
                             </div>
-                            <Badge 
-                              variant="outline" 
-                              className="bg-[#162828]/20 text-white border-white/30 font-semibold text-xs"
+                            <Badge
+                              variant="outline"
+                              className={`${getStatusColor(project.status)} font-semibold text-xs`}
                             >
                               {getStatusLabel(project.status)}
                             </Badge>
                           </div>
                           <h3 className="font-bold text-white truncate text-sm md:text-base">{project.name}</h3>
-                          <p className="text-xs text-white/80 mt-1">
+                          <p className="text-xs text-white/55 mt-1">
                             {project.workType === "cocina" && "Cocina Integral"}
                             {project.workType === "closet" && "Closet"}
                             {project.workType === "puertas" && "Puertas"}
@@ -786,6 +787,11 @@ export function TeamDashboard() {
                     "bg-gradient-to-br from-rose-500 to-pink-600",
                     "bg-gradient-to-br from-amber-500 to-orange-600",
                   ];
+                  const priorityColors: Record<string, string> = {
+                    alta: "bg-red-500/20 text-red-300 border-red-400/30",
+                    media: "bg-amber-500/20 text-amber-300 border-amber-400/30",
+                    baja: "bg-green-500/20 text-green-300 border-green-400/30",
+                  };
                   const priorityIcons: Record<string, string> = {
                     alta: "🔥",
                     media: "⚡",
@@ -793,21 +799,21 @@ export function TeamDashboard() {
                   };
                   return (
                     <Link key={task.id} href="/tasks">
-                      <Card className={`${taskColors[index % 4]} hover:shadow-xl transition-all duration-300 cursor-pointer border-0 shadow-md hover:scale-[1.02] overflow-hidden`}>
-                        <CardContent className="p-4 text-white">
+                      <Card className="bg-[#162828] border border-[rgba(106,207,199,0.12)] hover:border-[rgba(106,207,199,0.35)] hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-[1.02] overflow-hidden">
+                        <CardContent className="p-4">
                           <div className="flex items-center justify-between gap-2 mb-2">
-                            <div className="bg-[#162828]/20 p-2 rounded-lg">
-                              <ClipboardList className="h-5 w-5" />
+                            <div className={`${taskColors[index % 4]} p-2 rounded-lg`}>
+                              <ClipboardList className="h-5 w-5 text-white" />
                             </div>
-                            <Badge 
-                              variant="outline" 
-                              className="bg-[#162828]/20 text-white border-white/30 font-semibold text-xs"
+                            <Badge
+                              variant="outline"
+                              className={`${priorityColors[task.priority || "media"]} font-semibold text-xs`}
                             >
                               {priorityIcons[task.priority || "media"]} {task.priority === "alta" ? "Urgente" : task.priority === "media" ? "Media" : "Baja"}
                             </Badge>
                           </div>
                           <h3 className="font-bold text-white truncate text-sm md:text-base">{task.title}</h3>
-                          <p className="text-xs text-white/80 mt-1 line-clamp-1">
+                          <p className="text-xs text-white/55 mt-1 line-clamp-1">
                             {task.description || "Sin descripción"}
                           </p>
                         </CardContent>
@@ -822,9 +828,9 @@ export function TeamDashboard() {
 
       {/* Sección especial para Diseñador: Cambios Pendientes */}
       {role === "disenador" && myProjects.filter(p => p.status === "en_diseno" && (p as any).clientApprovalNotes).length > 0 && (
-        <section className="py-3 md:py-4">
-          <div className="container">
-            <div className="max-w-4xl mx-auto">
+        <section className="mb-6">
+          <div>
+            <div>
               <h2 className="text-base md:text-lg font-bold text-foreground mb-3 flex items-center gap-2">
                 <AlertTriangle className="h-5 w-5 text-orange-600" />
                 🔄 Cambios Solicitados por Clientes
@@ -901,49 +907,37 @@ export function TeamDashboard() {
 
       {/* Sección especial para Diseñador: Checklist de Entregables */}
       {role === "disenador" && myProjects.filter(p => ["adelanto_recibido", "en_diseno"].includes(p.status)).length > 0 && (
-        <section className="py-3 md:py-4">
-          <div className="container">
-            <div className="max-w-4xl mx-auto">
-              <h2 className="text-base md:text-lg font-bold text-foreground mb-3 flex items-center gap-2">
-                <Palette className="h-5 w-5 text-purple-600" />
-                Proyectos en Diseño - Checklist de Entregables
-              </h2>
-              <div className="space-y-4">
-                {myProjects.filter(p => ["adelanto_recibido", "en_diseno"].includes(p.status)).slice(0, 3).map((project: any) => (
-                  <DesignerChecklist
-                    key={project.id}
-                    projectId={project.id}
-                    projectName={project.name}
-                    advanceReceivedAt={project.advanceReceivedAt || project.createdAt}
-                    designDeadline={project.designDeadline}
-                    status={project.status}
-                  />
-                ))}
-              </div>
-            </div>
+        <section className="mb-6">
+          <h2 className="text-base md:text-lg font-bold text-foreground mb-3 flex items-center gap-2">
+            <Palette className="h-5 w-5 text-purple-600" />
+            Proyectos en Diseño - Checklist de Entregables
+          </h2>
+          <div className="space-y-4">
+            {myProjects.filter(p => ["adelanto_recibido", "en_diseno"].includes(p.status)).slice(0, 3).map((project: any) => (
+              <DesignerChecklist
+                key={project.id}
+                projectId={project.id}
+                projectName={project.name}
+                advanceReceivedAt={project.advanceReceivedAt || project.createdAt}
+                designDeadline={project.designDeadline}
+                status={project.status}
+              />
+            ))}
           </div>
         </section>
       )}
 
       {/* Sección especial para Jefe de Taller: Calendario de Producción */}
       {role === "jefe_taller" && (
-        <section className="py-3 md:py-4">
-          <div className="container">
-            <div className="max-w-4xl mx-auto">
-              <ProductionCalendar />
-            </div>
-          </div>
+        <section className="mb-6">
+          <ProductionCalendar />
         </section>
       )}
 
       {/* Sección especial para Operario: Proyectos del Día con Checklist */}
       {role === "operario" && (
-        <section className="py-3 md:py-4">
-          <div className="container">
-            <div className="max-w-4xl mx-auto">
-              <OperatorDailyProjects />
-            </div>
-          </div>
+        <section className="mb-6">
+          <OperatorDailyProjects />
         </section>
       )}
 

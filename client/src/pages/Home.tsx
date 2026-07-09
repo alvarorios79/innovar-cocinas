@@ -12,6 +12,7 @@ import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { Calendar, Phone, Calculator, CheckCircle2, ArrowRight, MapPin, MessageCircle, Globe } from "lucide-react";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { getLoginUrl } from "@/const";
 import { Link, useLocation } from "wouter";
 import { NotificationBell } from "@/components/NotificationBell";
 import { MobileNav } from "@/components/MobileNav";
@@ -310,23 +311,23 @@ export default function Home() {
   };
 
   // Roles del equipo de trabajo que ven el TeamDashboard
-  const teamRoles = ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"];
+  const teamRoles = ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario", "medidor", "contador"];
   const isTeamMember = isAuthenticated && user?.role && teamRoles.includes(user.role);
+
+  // Redirigir comercial via useEffect (no durante render)
+  useEffect(() => {
+    if (isAuthenticated && user?.role === "comercial") {
+      setLocation("/comercial");
+    }
+  }, [isAuthenticated, user?.role]);
 
   // Si es operario, mostrar el OperarioDashboard simplificado
   if (isAuthenticated && user?.role === "operario") {
     return <OperarioDashboard />;
   }
 
-  // Si es comercial, redirigir automáticamente al Panel Comercial
+  // Si es comercial, mostrar null mientras redirige
   if (isAuthenticated && user?.role === "comercial") {
-    setLocation("/comercial");
-    return null;
-  }
-
-  // Si es medidor, redirigir al portal de visitas
-  if (isAuthenticated && user?.role === "medidor") {
-    setLocation("/medidor");
     return null;
   }
 

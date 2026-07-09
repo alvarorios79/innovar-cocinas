@@ -358,7 +358,7 @@ export function CountertopConfigurator({ config, onChange }: CountertopConfigura
                   variant="ghost"
                   size="sm"
                   onClick={() => handleRemoveMeson(index)}
-                  className="text-red-500 hover:text-red-700 hover:bg-red-500/10"
+                  className="text-red-500 hover:text-red-300 hover:bg-red-500/10"
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
@@ -545,7 +545,7 @@ export function CountertopConfigurator({ config, onChange }: CountertopConfigura
               <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-white/60">
                 {includedItems.map((item, i) => (
                   <div key={i} className="flex items-center gap-1">
-                    <span className="text-green-600">✓</span>
+                    <span className="text-green-400">✓</span>
                     {item.text}
                   </div>
                 ))}

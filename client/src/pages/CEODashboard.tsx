@@ -48,7 +48,7 @@ export function CEODashboard() {
         <div className="text-center max-w-lg">
           <AlertCircle className="h-12 w-12 text-red-400 mx-auto mb-4" />
           <p className="text-red-500 font-semibold mb-3">Error al cargar el dashboard</p>
-          <pre className="bg-red-500/10 text-red-600 text-xs p-4 rounded-lg overflow-auto text-left max-h-60">
+          <pre className="bg-red-500/10 text-red-400 text-xs p-4 rounded-lg overflow-auto text-left max-h-60">
             {JSON.stringify(error, null, 2)}
           </pre>
         </div>
@@ -163,9 +163,9 @@ export function CEODashboard() {
             <div className="space-y-3">
               <p className="text-xs font-semibold uppercase tracking-wider text-white/35">Ingresos</p>
               {[
-                { label: "Recibidos",     value: formatCurrency(ingresosRecibidos), color: "text-teal-600" },
-                { label: "Total Vendido", value: formatCurrency(totalVendido),      color: "text-teal-700" },
-                { label: "Por Cobrar",    value: formatCurrency(porCobrar),         color: "text-amber-600" },
+                { label: "Recibidos",     value: formatCurrency(ingresosRecibidos), color: "text-teal-400" },
+                { label: "Total Vendido", value: formatCurrency(totalVendido),      color: "text-teal-300" },
+                { label: "Por Cobrar",    value: formatCurrency(porCobrar),         color: "text-amber-400" },
               ].map((row) => (
                 <div key={row.label} className="flex justify-between items-center py-2 border-b border-slate-50 last:border-0">
                   <span className="text-sm text-white/45">{row.label}</span>
@@ -192,8 +192,8 @@ export function CEODashboard() {
             <div className="space-y-3">
               <p className="text-xs font-semibold uppercase tracking-wider text-white/35">Resultado</p>
               {[
-                { label: "Margen Neto",    value: formatCurrency(margen),       color: "text-teal-600" },
-                { label: "Rentabilidad",   value: `${rentabilidad.toFixed(1)}%`, color: "text-amber-600" },
+                { label: "Margen Neto",    value: formatCurrency(margen),       color: "text-teal-400" },
+                { label: "Rentabilidad",   value: `${rentabilidad.toFixed(1)}%`, color: "text-amber-400" },
               ].map((row) => (
                 <div key={row.label} className="flex justify-between items-center py-2 border-b border-slate-50 last:border-0">
                   <span className="text-sm text-white/45">{row.label}</span>
@@ -206,11 +206,11 @@ export function CEODashboard() {
           {/* Summary highlights */}
           <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 gap-3">
             {[
-              { label: "Ingresos",     value: formatCurrency(ingresosRecibidos), bg: "rgba(29,181,168,0.06)",  border: "rgba(29,181,168,0.2)",  text: "text-teal-700" },
-              { label: "Por Cobrar",   value: formatCurrency(porCobrar),         bg: "rgba(245,158,11,0.06)", border: "rgba(245,158,11,0.2)",  text: "text-amber-700" },
-              { label: "Gastos",       value: formatCurrency(gastos),            bg: "rgba(239,68,68,0.06)",  border: "rgba(239,68,68,0.2)",   text: "text-red-600" },
-              { label: "Margen Neto",  value: formatCurrency(margen),            bg: "rgba(29,181,168,0.06)", border: "rgba(29,181,168,0.2)",  text: "text-teal-700" },
-              { label: "Rentabilidad", value: `${rentabilidad.toFixed(1)}%`,     bg: "rgba(245,158,11,0.06)", border: "rgba(245,158,11,0.2)",  text: "text-amber-700" },
+              { label: "Ingresos",     value: formatCurrency(ingresosRecibidos), bg: "rgba(29,181,168,0.06)",  border: "rgba(29,181,168,0.2)",  text: "text-teal-300" },
+              { label: "Por Cobrar",   value: formatCurrency(porCobrar),         bg: "rgba(245,158,11,0.06)", border: "rgba(245,158,11,0.2)",  text: "text-amber-300" },
+              { label: "Gastos",       value: formatCurrency(gastos),            bg: "rgba(239,68,68,0.06)",  border: "rgba(239,68,68,0.2)",   text: "text-red-400" },
+              { label: "Margen Neto",  value: formatCurrency(margen),            bg: "rgba(29,181,168,0.06)", border: "rgba(29,181,168,0.2)",  text: "text-teal-300" },
+              { label: "Rentabilidad", value: `${rentabilidad.toFixed(1)}%`,     bg: "rgba(245,158,11,0.06)", border: "rgba(245,158,11,0.2)",  text: "text-amber-300" },
             ].map((item) => (
               <div
                 key={item.label}

@@ -162,8 +162,8 @@ const roleLabels: Record<string, { label: string; color: string }> = {
   disenador:   { label: "Diseñador",   color: "bg-indigo-500/15 text-indigo-300 border-indigo-400/25" },
   jefe_taller: { label: "Jefe Taller", color: "bg-amber-500/15 text-amber-300 border-amber-400/25" },
   operario:    { label: "Operario",    color: "bg-white/10 text-white/60 border-white/15" },
-  medidor:     { label: "Medidor",     color: "bg-orange-500/15 text-orange-300 border-orange-400/25" },
-  contador:    { label: "Contador",    color: "bg-emerald-500/15 text-emerald-300 border-emerald-400/25" },
+  medidor:     { label: "Medidor",     color: "bg-amber-500/15 text-amber-300 border-amber-400/25" },
+  contador:    { label: "Contador",    color: "bg-violet-500/15 text-violet-300 border-violet-400/25" },
   user:        { label: "Usuario",     color: "bg-white/10 text-white/60 border-white/15" },
 };
 

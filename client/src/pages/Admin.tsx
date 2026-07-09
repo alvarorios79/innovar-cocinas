@@ -580,7 +580,7 @@ export default function Admin() {
             </TabsTrigger>
             {(user?.role === "super_admin" || user?.role === "admin") && (
               <Link href="/profitability-dashboard">
-                <Button variant="outline" className="text-xs sm:text-sm px-2 py-2 bg-teal-500/10 hover:bg-teal-500/15 text-teal-700 border-teal-300">
+                <Button variant="outline" className="text-xs sm:text-sm px-2 py-2 bg-teal-500/10 hover:bg-teal-500/15 text-teal-300 border-teal-300">
                   <DollarSign className="h-4 w-4 mr-1" />
                   Rentabilidad
                 </Button>
@@ -939,11 +939,11 @@ export default function Admin() {
 
           {/* Quotations Tab */}
           <TabsContent value="quotations" className="space-y-3">
-            <Card className="border-teal-500/25 bg-gradient-to-br from-teal-50 to-white">
+            <Card className="border-teal-500/25 bg-gradient-to-br from-teal-950/30 to-white">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle className="text-teal-700">Sistema de Cotizaciones</CardTitle>
+                    <CardTitle className="text-teal-300">Sistema de Cotizaciones</CardTitle>
                     <CardDescription>Crea y gestiona cotizaciones profesionales con PDF y envío automático</CardDescription>
                   </div>
                   <Link href="/quotations">
@@ -957,7 +957,7 @@ export default function Admin() {
               <CardContent className="pt-3">
                 <div className="grid gap-3 md:grid-cols-3">
                   <div className="flex items-start gap-3 p-3 rounded-lg bg-[#162828] border border-teal-100">
-                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-teal-500/15 flex items-center justify-center text-teal-600 font-bold">
+                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-teal-500/15 flex items-center justify-center text-teal-400 font-bold">
                       1
                     </div>
                     <div>
@@ -966,7 +966,7 @@ export default function Admin() {
                     </div>
                   </div>
                   <div className="flex items-start gap-3 p-3 rounded-lg bg-[#162828] border border-teal-100">
-                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-teal-500/15 flex items-center justify-center text-teal-600 font-bold">
+                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-teal-500/15 flex items-center justify-center text-teal-400 font-bold">
                       2
                     </div>
                     <div>
@@ -975,7 +975,7 @@ export default function Admin() {
                     </div>
                   </div>
                   <div className="flex items-start gap-3 p-3 rounded-lg bg-[#162828] border border-teal-100">
-                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-teal-500/15 flex items-center justify-center text-teal-600 font-bold">
+                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-teal-500/15 flex items-center justify-center text-teal-400 font-bold">
                       3
                     </div>
                     <div>
@@ -1699,7 +1699,7 @@ export default function Admin() {
                                     <Button
                                       size="sm"
                                       variant="outline"
-                                      className="border-red-400 text-red-600 hover:bg-red-500/10"
+                                      className="border-red-400 text-red-400 hover:bg-red-500/10"
                                       onClick={() => handleBulkDelete('users')}
                                     >
                                       <Trash2 className="h-4 w-4 mr-2" />
@@ -1787,7 +1787,7 @@ export default function Admin() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5 text-teal-600" />
+                  <FileText className="h-5 w-5 text-teal-400" />
                   Gestión de Proyectos
                 </CardTitle>
                 <CardDescription>
@@ -1811,7 +1811,7 @@ export default function Admin() {
               <Card className="border-emerald-200 bg-emerald-500/10/50">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <DollarSign className="h-5 w-5 text-emerald-600" />
+                    <DollarSign className="h-5 w-5 text-emerald-400" />
                     Configuración de Precios
                   </CardTitle>
                   <CardDescription>
@@ -1867,7 +1867,7 @@ export default function Admin() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Key className="h-5 w-5 text-emerald-600" />
+              <Key className="h-5 w-5 text-emerald-400" />
               Contraseña Reseteada
             </DialogTitle>
             <DialogDescription>
@@ -1891,7 +1891,7 @@ export default function Admin() {
                 </p>
               </div>
             </div>
-            <p className="text-xs text-amber-600 bg-amber-500/10 p-2 rounded">
+            <p className="text-xs text-amber-400 bg-amber-500/10 p-2 rounded">
               ⚠️ Esta contraseña solo se mostrará una vez. Asegúrate de guardarla o compartirla ahora.
             </p>
           </div>

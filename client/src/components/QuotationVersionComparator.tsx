@@ -197,19 +197,19 @@ export function QuotationVersionComparator({ open, onClose, quotationId, quotati
           {!loading && diff.length > 0 && (
             <div className="flex flex-wrap gap-2">
               {changedCount > 0 && (
-                <Badge className="bg-amber-500/15 text-amber-700 border-amber-500/25 border gap-1">
+                <Badge className="bg-amber-500/15 text-amber-300 border-amber-500/25 border gap-1">
                   <AlertTriangle className="h-3 w-3" />
                   {changedCount} modificado{changedCount > 1 ? "s" : ""}
                 </Badge>
               )}
               {addedCount > 0 && (
-                <Badge className="bg-emerald-500/15 text-emerald-700 border-emerald-200 border gap-1">
+                <Badge className="bg-emerald-500/15 text-emerald-300 border-emerald-200 border gap-1">
                   <Plus className="h-3 w-3" />
                   {addedCount} agregado{addedCount > 1 ? "s" : ""}
                 </Badge>
               )}
               {removedCount > 0 && (
-                <Badge className="bg-red-500/15 text-red-700 border-red-500/25 border gap-1">
+                <Badge className="bg-red-500/15 text-red-300 border-red-500/25 border gap-1">
                   <Minus className="h-3 w-3" />
                   {removedCount} eliminado{removedCount > 1 ? "s" : ""}
                 </Badge>
@@ -258,7 +258,7 @@ export function QuotationVersionComparator({ open, onClose, quotationId, quotati
               </div>
               <div className="flex justify-between text-sm font-semibold border-t pt-2 mt-1">
                 <span>Diferencia</span>
-                <span className={delta > 0 ? "text-emerald-600" : delta < 0 ? "text-red-600" : "text-slate-500"}>
+                <span className={delta > 0 ? "text-emerald-400" : delta < 0 ? "text-red-400" : "text-slate-500"}>
                   {delta > 0 ? "+" : ""}{fmt(delta)}
                 </span>
               </div>
@@ -281,12 +281,12 @@ function DiffRow({ row, fromV, toV }: { row: DiffRow; fromV: any; toV: any }) {
   if (row.kind === "added") {
     return (
       <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-emerald-500/10 border border-emerald-100">
-        <Plus className="h-3.5 w-3.5 text-emerald-600 mt-0.5 shrink-0" />
+        <Plus className="h-3.5 w-3.5 text-emerald-400 mt-0.5 shrink-0" />
         <div className="flex-1 min-w-0">
           <p className="text-xs font-medium text-emerald-300 truncate">{row.item.description}</p>
-          <p className="text-[10px] text-emerald-600">Agregado en V{toV?.versionNumber}</p>
+          <p className="text-[10px] text-emerald-400">Agregado en V{toV?.versionNumber}</p>
         </div>
-        <span className="text-xs font-semibold text-emerald-700 shrink-0">{fmt(row.item.totalPrice)}</span>
+        <span className="text-xs font-semibold text-emerald-300 shrink-0">{fmt(row.item.totalPrice)}</span>
       </div>
     );
   }
@@ -296,7 +296,7 @@ function DiffRow({ row, fromV, toV }: { row: DiffRow; fromV: any; toV: any }) {
       <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-red-500/10 border border-red-100">
         <Minus className="h-3.5 w-3.5 text-red-500 mt-0.5 shrink-0" />
         <div className="flex-1 min-w-0">
-          <p className="text-xs font-medium text-red-700 line-through truncate">{row.item.description}</p>
+          <p className="text-xs font-medium text-red-300 line-through truncate">{row.item.description}</p>
           <p className="text-[10px] text-red-500">Eliminado en V{toV?.versionNumber}</p>
         </div>
         <span className="text-xs font-semibold text-red-500 line-through shrink-0">{fmt(row.item.totalPrice)}</span>
@@ -311,14 +311,14 @@ function DiffRow({ row, fromV, toV }: { row: DiffRow; fromV: any; toV: any }) {
         <AlertTriangle className="h-3.5 w-3.5 text-amber-500 mt-0.5 shrink-0" />
         <div className="flex-1 min-w-0">
           <p className="text-xs font-medium text-amber-300 truncate">{row.new.description}</p>
-          <p className="text-[10px] text-amber-600">
+          <p className="text-[10px] text-amber-400">
             {fmt(row.old.totalPrice)} → {fmt(row.new.totalPrice)}
-            <span className={`ml-1 font-semibold ${delta > 0 ? "text-emerald-600" : "text-red-600"}`}>
+            <span className={`ml-1 font-semibold ${delta > 0 ? "text-emerald-400" : "text-red-400"}`}>
               ({delta > 0 ? "+" : ""}{fmt(delta)})
             </span>
           </p>
         </div>
-        <span className="text-xs font-semibold text-amber-700 shrink-0">{fmt(row.new.totalPrice)}</span>
+        <span className="text-xs font-semibold text-amber-300 shrink-0">{fmt(row.new.totalPrice)}</span>
       </div>
     );
   }

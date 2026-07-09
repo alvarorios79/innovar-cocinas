@@ -443,7 +443,7 @@ function ProjectPostventaCard({
                 {WORK_TYPE_LABELS[project.workType] ?? project.workType}
               </Badge>
               {overdueRecs.length > 0 && (
-                <Badge className="text-[10px] px-1.5 py-0 shrink-0 bg-amber-500/15 text-amber-700 border-amber-500/25">
+                <Badge className="text-[10px] px-1.5 py-0 shrink-0 bg-amber-500/15 text-amber-300 border-amber-500/25">
                   {overdueRecs.length} vencido{overdueRecs.length > 1 ? "s" : ""}
                 </Badge>
               )}
@@ -550,13 +550,13 @@ function ReclamacionRow({
           {scheduledLabel && (
             <>
               <span className="text-[11px] text-slate-400">·</span>
-              <span className={`text-[11px] ${isOverdue ? "text-amber-600 font-semibold" : "text-slate-500"}`}>
+              <span className={`text-[11px] ${isOverdue ? "text-amber-400 font-semibold" : "text-slate-500"}`}>
                 {isOverdue ? "⚠ Vence " : ""}{scheduledLabel}
               </span>
             </>
           )}
           {rec.resolvedAt && rec.resolvedNotes && (
-            <span className="text-[11px] text-emerald-600 italic">"{rec.resolvedNotes}"</span>
+            <span className="text-[11px] text-emerald-400 italic">"{rec.resolvedNotes}"</span>
           )}
         </div>
       </div>

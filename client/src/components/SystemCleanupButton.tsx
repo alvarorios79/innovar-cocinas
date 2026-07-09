@@ -54,7 +54,7 @@ export function SystemCleanupButton() {
       <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-red-700">
+            <DialogTitle className="flex items-center gap-2 text-red-300">
               <AlertTriangle className="h-5 w-5" />
               Confirmar Limpieza del Sistema
             </DialogTitle>
@@ -73,7 +73,7 @@ export function SystemCleanupButton() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="confirm-text" className="text-red-700 font-semibold">
+                <Label htmlFor="confirm-text" className="text-red-300 font-semibold">
                   Escribe "CONFIRMAR" para proceder:
                 </Label>
                 <Input

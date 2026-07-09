@@ -124,7 +124,7 @@ export function ProductionCalendar({ className }: ProductionCalendarProps) {
     return (
       <div 
         key={day}
-        className={`min-h-[80px] p-1 border rounded-md ${
+        className={`min-h-[50px] sm:min-h-[80px] p-1 border rounded-md ${
           isToday ? "bg-blue-500/10 border-blue-300" : 
           isPast ? "bg-white/[0.03]" : "bg-[#162828]"
         }`}
@@ -195,24 +195,26 @@ export function ProductionCalendar({ className }: ProductionCalendarProps) {
             </div>
             
             {/* Días de la semana */}
-            <div className="grid grid-cols-7 gap-1 mb-2">
+            <div className="overflow-x-auto -mx-1">
+            <div className="grid grid-cols-7 gap-1 mb-2 min-w-[320px]">
               {["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"].map(day => (
                 <div key={day} className="text-center text-xs font-medium text-muted-foreground py-1">
                   {day}
                 </div>
               ))}
             </div>
-            
+
             {/* Días del mes */}
-            <div className="grid grid-cols-7 gap-1">
+            <div className="grid grid-cols-7 gap-1 min-w-[320px]">
               {/* Espacios vacíos antes del primer día */}
               {Array.from({ length: startingDay }).map((_, i) => (
-                <div key={`empty-${i}`} className="min-h-[80px]" />
+                <div key={`empty-${i}`} className="min-h-[50px] sm:min-h-[80px]" />
               ))}
               {/* Días del mes */}
               {Array.from({ length: daysInMonth }).map((_, i) => renderCalendarDay(i + 1))}
             </div>
-            
+            </div>{/* end overflow-x-auto */}
+
             {/* Leyenda */}
             <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t">
               {Object.entries(PRODUCTION_STATUSES).map(([key, value]) => (

@@ -58,7 +58,7 @@ function LogoutButton() {
       size="sm"
       onClick={() => logout.mutate()}
       disabled={logout.isPending}
-      className="text-red-600 hover:text-red-700 hover:bg-red-500/10"
+      className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
       title="Cerrar sesión"
     >
       <LogOut className="h-4 w-4" />
@@ -369,7 +369,7 @@ export function OperarioDashboard() {
         <div className="container">
           <div className="max-w-4xl mx-auto">
             <h2 className="text-lg font-bold text-foreground mb-3 flex items-center gap-2">
-              <ClipboardList className="h-5 w-5 text-blue-600" />
+              <ClipboardList className="h-5 w-5 text-blue-400" />
               Mis Tareas
             </h2>
             
@@ -503,7 +503,7 @@ export function OperarioDashboard() {
         <div className="container">
           <div className="max-w-4xl mx-auto">
             <h2 className="text-lg font-bold text-foreground mb-3 flex items-center gap-2">
-              <Camera className="h-5 w-5 text-blue-600" />
+              <Camera className="h-5 w-5 text-blue-400" />
               Proyectos en Producción
             </h2>
             
@@ -579,7 +579,7 @@ export function OperarioDashboard() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Upload className="h-5 w-5 text-blue-600" />
+              <Upload className="h-5 w-5 text-blue-400" />
               Subir Foto al Proyecto
             </DialogTitle>
             <DialogDescription>
@@ -822,7 +822,7 @@ function ProjectPhotoCard({
                             e.stopPropagation();
                             onUploadPhoto(project.id);
                           }}
-                          className="p-1 hover:bg-blue-500/15 rounded transition-colors text-blue-600 hover:text-blue-700 cursor-pointer"
+                          className="p-1 hover:bg-blue-500/15 rounded transition-colors text-blue-400 hover:text-blue-300 cursor-pointer"
                           title="Subir foto para esta etapa"
                         >
                           <Camera className="h-4 w-4" />

@@ -860,7 +860,7 @@ export function TeamDashboard() {
                   }
                   
                   return (
-                    <Card key={project.id} className={`border-l-4 ${esUrgente ? 'border-l-red-500 bg-gradient-to-r from-red-50 to-orange-50' : 'border-l-orange-500 bg-gradient-to-r from-orange-50 to-amber-50'} hover:shadow-lg transition-all`}>
+                    <Card key={project.id} className={`border-l-4 ${esUrgente ? 'border-l-red-500 bg-red-500/10' : 'border-l-orange-500 bg-orange-500/10'} hover:shadow-lg transition-all`}>
                       <CardContent className="p-4">
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex-1">
@@ -872,7 +872,7 @@ export function TeamDashboard() {
                                 Rev. {project.renderRevisionNumber || 1}
                               </span>
                               {tiempoTranscurrido && (
-                                <Badge variant="outline" className={`text-xs ${esUrgente ? 'border-red-300 text-red-700 bg-red-500/10' : 'border-orange-500/30 text-orange-700 bg-orange-500/10'}`}>
+                                <Badge variant="outline" className={`text-xs ${esUrgente ? 'border-red-500/30 text-red-400 bg-red-500/10' : 'border-orange-500/30 text-orange-400 bg-orange-500/10'}`}>
                                   ⏰ {tiempoTranscurrido}
                                 </Badge>
                               )}

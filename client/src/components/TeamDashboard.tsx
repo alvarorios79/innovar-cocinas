@@ -121,15 +121,15 @@ const roleConfig: Record<string, {
   medidor: {
     title: "Portal del Medidor",
     subtitle: "Precisión en cada visita",
-    color: "from-cyan-500 to-blue-600",
-    bgGradient: "bg-gradient-to-br from-cyan-50 via-white to-blue-50",
+    color: "from-amber-500 to-yellow-600",
+    bgGradient: "bg-gradient-to-br from-amber-50 via-white to-yellow-50",
     icon: <MapPin className="h-8 w-8" />,
   },
   contador: {
     title: "Portal del Contador",
     subtitle: "Orden y control financiero",
-    color: "from-emerald-500 to-teal-600",
-    bgGradient: "bg-gradient-to-br from-emerald-50 via-white to-teal-50",
+    color: "from-violet-500 to-fuchsia-600",
+    bgGradient: "bg-gradient-to-br from-violet-50 via-white to-fuchsia-50",
     icon: <BookOpen className="h-8 w-8" />,
   },
 };
@@ -429,13 +429,13 @@ export function TeamDashboard() {
       }
       case "medidor":
         return [
-          { label: "Proyectos", value: myProjects.length, icon: <Briefcase className="h-6 w-6" />, color: "bg-gradient-to-br from-cyan-500 to-blue-500", link: "/projects" },
-          { label: "Mis Tareas", value: myTasks.length, icon: <ClipboardList className="h-6 w-6" />, color: "bg-gradient-to-br from-blue-500 to-indigo-500", link: "/tasks" },
+          { label: "Proyectos", value: myProjects.length, icon: <Briefcase className="h-6 w-6" />, color: "bg-gradient-to-br from-amber-500 to-yellow-500", link: "/projects" },
+          { label: "Mis Tareas", value: myTasks.length, icon: <ClipboardList className="h-6 w-6" />, color: "bg-gradient-to-br from-yellow-500 to-amber-600", link: "/tasks" },
         ];
       case "contador":
         return [
-          { label: "Contabilidad", value: 0, icon: <BookOpen className="h-6 w-6" />, color: "bg-gradient-to-br from-emerald-500 to-teal-500", link: "/contador" },
-          { label: "Mis Tareas", value: myTasks.length, icon: <ClipboardList className="h-6 w-6" />, color: "bg-gradient-to-br from-teal-500 to-cyan-500", link: "/tasks" },
+          { label: "Contabilidad", value: 0, icon: <BookOpen className="h-6 w-6" />, color: "bg-gradient-to-br from-violet-500 to-fuchsia-500", link: "/contador" },
+          { label: "Mis Tareas", value: myTasks.length, icon: <ClipboardList className="h-6 w-6" />, color: "bg-gradient-to-br from-fuchsia-500 to-violet-600", link: "/tasks" },
         ];
       default: // super_admin
         return [
@@ -511,13 +511,13 @@ export function TeamDashboard() {
         ];
       case "medidor":
         return [
-          { label: "Proyectos", href: "/projects", icon: <Briefcase className="h-6 w-6" />, color: "bg-gradient-to-br from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700" },
-          { label: "Mis Tareas", href: "/tasks", icon: <ClipboardList className="h-6 w-6" />, color: "bg-gradient-to-br from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700" },
+          { label: "Proyectos", href: "/projects", icon: <Briefcase className="h-6 w-6" />, color: "bg-gradient-to-br from-amber-600 to-yellow-600 hover:from-amber-700 hover:to-yellow-700" },
+          { label: "Mis Tareas", href: "/tasks", icon: <ClipboardList className="h-6 w-6" />, color: "bg-gradient-to-br from-yellow-600 to-amber-600 hover:from-yellow-700 hover:to-amber-700" },
         ];
       case "contador":
         return [
-          { label: "Contabilidad", href: "/contador", icon: <BookOpen className="h-6 w-6" />, color: "bg-gradient-to-br from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700" },
-          { label: "Proyectos", href: "/projects", icon: <Briefcase className="h-6 w-6" />, color: "bg-gradient-to-br from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700" },
+          { label: "Contabilidad", href: "/contador", icon: <BookOpen className="h-6 w-6" />, color: "bg-gradient-to-br from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700" },
+          { label: "Proyectos", href: "/projects", icon: <Briefcase className="h-6 w-6" />, color: "bg-gradient-to-br from-fuchsia-600 to-violet-600 hover:from-fuchsia-700 hover:to-violet-700" },
         ];
       default: // super_admin
         return [

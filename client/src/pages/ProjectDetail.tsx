@@ -613,7 +613,7 @@ export default function ProjectDetail() {
             <Button
               variant="outline"
               size="sm"
-              className="bg-green-500/10 hover:bg-green-500/15 text-green-700 border-green-500/25"
+              className="bg-green-500/10 hover:bg-green-500/15 text-green-300 border-green-500/25"
               onClick={() => {
                 const phone = projectDetail.client?.whatsappPhone?.replace(/\D/g, "");
                 window.open(`https://wa.me/57${phone}`, "_blank");
@@ -635,7 +635,7 @@ export default function ProjectDetail() {
             <Button
               variant="outline"
               size="sm"
-              className="bg-yellow-400 hover:bg-yellow-500 text-yellow-900 border-yellow-500"
+              className="bg-yellow-400 hover:bg-yellow-500 text-yellow-100 border-yellow-500"
               onClick={() => {
                 setEditDateForm({
                   estimatedInstallDate: projectDetail.estimatedInstallDate 
@@ -684,7 +684,7 @@ export default function ProjectDetail() {
           <TabsList className="flex overflow-x-auto w-full gap-1 h-auto p-1 bg-muted/50 mb-4 scrollbar-hide">
             <TabsTrigger
               value="info"
-              className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 bg-blue-500/15 text-blue-700 data-[state=active]:bg-blue-500 data-[state=active]:text-white hover:bg-blue-500/20 transition-colors rounded-md whitespace-nowrap"
+              className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 bg-blue-500/15 text-blue-300 data-[state=active]:bg-blue-500 data-[state=active]:text-white hover:bg-blue-500/20 transition-colors rounded-md whitespace-nowrap"
             >
               <Info className="h-3.5 w-3.5 mr-1" />
               <span>Info</span>
@@ -692,7 +692,7 @@ export default function ProjectDetail() {
             {user?.role !== "disenador" && user?.role !== "jefe_taller" && user?.role !== "operario" && (
               <TabsTrigger
                 value="financiero"
-                className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 bg-emerald-500/15 text-emerald-700 data-[state=active]:bg-emerald-500 data-[state=active]:text-white hover:bg-emerald-200 transition-colors rounded-md whitespace-nowrap"
+                className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 bg-emerald-500/15 text-emerald-300 data-[state=active]:bg-emerald-500 data-[state=active]:text-white hover:bg-emerald-200 transition-colors rounded-md whitespace-nowrap"
               >
                 <DollarSign className="h-3.5 w-3.5 mr-1" />
                 <span>Financiero</span>
@@ -700,28 +700,28 @@ export default function ProjectDetail() {
             )}
             <TabsTrigger
               value="diseno"
-              className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 bg-purple-500/15 text-purple-700 data-[state=active]:bg-purple-500 data-[state=active]:text-white hover:bg-purple-500/20 transition-colors rounded-md whitespace-nowrap"
+              className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 bg-purple-500/15 text-purple-300 data-[state=active]:bg-purple-500 data-[state=active]:text-white hover:bg-purple-500/20 transition-colors rounded-md whitespace-nowrap"
             >
               <Palette className="h-3.5 w-3.5 mr-1" />
               <span>Diseño</span>
             </TabsTrigger>
             <TabsTrigger
               value="produccion"
-              className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 bg-orange-500/15 text-orange-700 data-[state=active]:bg-orange-500 data-[state=active]:text-white hover:bg-orange-500/20 transition-colors rounded-md whitespace-nowrap"
+              className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 bg-orange-500/15 text-orange-300 data-[state=active]:bg-orange-500 data-[state=active]:text-white hover:bg-orange-500/20 transition-colors rounded-md whitespace-nowrap"
             >
               <Hammer className="h-3.5 w-3.5 mr-1" />
               <span>Producción</span>
             </TabsTrigger>
             <TabsTrigger
               value="instalacion"
-              className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 bg-teal-500/15 text-teal-700 data-[state=active]:bg-teal-500 data-[state=active]:text-white hover:bg-teal-200 transition-colors rounded-md whitespace-nowrap"
+              className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 bg-teal-500/15 text-teal-300 data-[state=active]:bg-teal-500 data-[state=active]:text-white hover:bg-teal-200 transition-colors rounded-md whitespace-nowrap"
             >
               <Truck className="h-3.5 w-3.5 mr-1" />
               <span>Instalación</span>
             </TabsTrigger>
             <TabsTrigger
               value="postventa"
-              className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 bg-pink-500/15 text-pink-700 data-[state=active]:bg-pink-500 data-[state=active]:text-white hover:bg-pink-200 transition-colors rounded-md whitespace-nowrap"
+              className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 bg-pink-500/15 text-pink-300 data-[state=active]:bg-pink-500 data-[state=active]:text-white hover:bg-pink-200 transition-colors rounded-md whitespace-nowrap"
             >
               <CheckCircle2 className="h-3.5 w-3.5 mr-1" />
               <span>Postventa</span>
@@ -741,7 +741,7 @@ export default function ProjectDetail() {
               <Card style={{ background: "#162828", border: "1px solid rgba(255,255,255,0.08)" }}>
                 <CardHeader className="py-3 bg-blue-500/10">
                   <CardTitle className="text-sm flex items-center gap-2">
-                    <User className="h-4 w-4 text-blue-600" />
+                    <User className="h-4 w-4 text-blue-400" />
                     Información del Cliente
                   </CardTitle>
                 </CardHeader>
@@ -774,7 +774,7 @@ export default function ProjectDetail() {
                   <CardHeader className="py-3 bg-green-500/10">
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-sm flex items-center gap-2">
-                        <DollarSign className="h-4 w-4 text-green-600" />
+                        <DollarSign className="h-4 w-4 text-green-400" />
                         Información Financiera
                       </CardTitle>
                       <Button
@@ -811,8 +811,8 @@ export default function ProjectDetail() {
                       
                       {/* Desglose de Pagos Dinámico */}
                       <div className="bg-blue-500/10 border border-blue-500/25 rounded-lg p-3 mb-3">
-                        <p className="text-xs font-semibold text-blue-700 mb-2">Desglose de Pagos</p>
-                        <div className="space-y-1 text-xs text-blue-600">
+                        <p className="text-xs font-semibold text-blue-300 mb-2">Desglose de Pagos</p>
+                        <div className="space-y-1 text-xs text-blue-400">
                           {(projectDetail as any).payments && (projectDetail as any).payments.length > 0 ? (
                             (projectDetail as any).payments.map((payment: any, idx: number) => (
                               <p key={idx}>
@@ -833,7 +833,7 @@ export default function ProjectDetail() {
                       {/* Total Pagado */}
                       <div className="flex justify-between items-center py-2 border-b">
                         <span className="text-muted-foreground">Total Pagado ({Math.round(((projectDetail as any).financialInfo?.totalCobrado || 0) / ((projectDetail as any).financialInfo?.totalAmount || 1) * 100)}%)</span>
-                        <span className="font-semibold text-green-600">{formatCurrency((projectDetail as any).financialInfo?.totalCobrado || 0)}</span>
+                        <span className="font-semibold text-green-400">{formatCurrency((projectDetail as any).financialInfo?.totalCobrado || 0)}</span>
                       </div>
                       
                       {/* Saldo pendiente - DESTACADO */}
@@ -854,8 +854,8 @@ export default function ProjectDetail() {
                           </span>
                           <span className={`font-bold text-xl ${
                             (projectDetail as any).financialInfo?.remainingAmount > 0
-                              ? "text-amber-600"
-                              : "text-green-600"
+                              ? "text-amber-400"
+                              : "text-green-400"
                           }`}>
                             {(projectDetail as any).financialInfo?.remainingAmount > 0
                               ? formatCurrency((projectDetail as any).financialInfo?.remainingAmount || 0)
@@ -863,7 +863,7 @@ export default function ProjectDetail() {
                           </span>
                         </div>
                         {projectDetail.status === "entregado" && (projectDetail as any).financialInfo?.remainingAmount > 0 && (
-                          <p className="text-xs text-amber-700 mt-1">
+                          <p className="text-xs text-amber-300 mt-1">
                             ⚠️ Proyecto entregado - Pendiente de cobro
                           </p>
                         )}
@@ -897,8 +897,8 @@ export default function ProjectDetail() {
                     </CardContent>
                   ) : (
                     <CardContent className="py-8 flex flex-col items-center justify-center">
-                      <div className="w-20 h-20 rounded-full bg-gradient-to-br from-green-100 to-emerald-200 flex items-center justify-center mb-2">
-                        <DollarSign className="h-10 w-10 text-green-600" />
+                      <div className="w-20 h-20 rounded-full bg-gradient-to-br from-green-900/30 to-emerald-200 flex items-center justify-center mb-2">
+                        <DollarSign className="h-10 w-10 text-green-400" />
                       </div>
                     </CardContent>
                   )}
@@ -916,19 +916,19 @@ export default function ProjectDetail() {
               <Card style={{ background: "#162828", border: "1px solid rgba(255,255,255,0.08)" }}>
                 <CardHeader className="py-3 bg-purple-500/10">
                   <CardTitle className="text-sm flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-purple-600" />
+                    <Calendar className="h-4 w-4 text-purple-400" />
                     Fechas del Proyecto
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="text-sm space-y-2 pt-4">
                   {/* Fechas de la cotización */}
                   {(projectDetail as any).quotation?.createdAt && (
-                    <p className="text-blue-600">
+                    <p className="text-blue-400">
                       <strong>📋 Cotización creada:</strong> {formatDate((projectDetail as any).quotation.createdAt)}
                     </p>
                   )}
                   {(projectDetail as any).quotation?.validUntil && (
-                    <p className={new Date((projectDetail as any).quotation.validUntil) < new Date() ? "text-red-500" : "text-blue-600"}>
+                    <p className={new Date((projectDetail as any).quotation.validUntil) < new Date() ? "text-red-500" : "text-blue-400"}>
                       <strong>📅 Válida hasta:</strong> {formatDate((projectDetail as any).quotation.validUntil)}
                       {new Date((projectDetail as any).quotation.validUntil) < new Date() && " (Vencida)"}
                     </p>
@@ -939,12 +939,12 @@ export default function ProjectDetail() {
                   
                   {/* Fechas de instalación - Tentativa (roja) y Oficial (verde) - Siempre visibles */}
                   {projectDetail.tentativeInstallDate && (
-                    <p className="text-red-600 font-medium">
+                    <p className="text-red-400 font-medium">
                       <strong>🔴 Instalación tentativa:</strong> {formatDate(projectDetail.tentativeInstallDate)}
                     </p>
                   )}
                   {projectDetail.estimatedInstallDate && projectDetail.isInstallDateOfficial && (
-                    <p className="text-green-600 font-medium">
+                    <p className="text-green-400 font-medium">
                       <strong>🟢 Instalación oficial:</strong> {formatDate(projectDetail.estimatedInstallDate)}
                     </p>
                   )}
@@ -992,7 +992,7 @@ export default function ProjectDetail() {
             <Card>
               <CardHeader className="py-3 bg-orange-500/10">
                 <CardTitle className="text-sm flex items-center gap-2">
-                  <Palette className="h-4 w-4 text-orange-600" />
+                  <Palette className="h-4 w-4 text-orange-400" />
                   Materiales Seleccionados
                 </CardTitle>
               </CardHeader>
@@ -1006,7 +1006,7 @@ export default function ProjectDetail() {
             <Card>
               <CardHeader className="py-3 bg-orange-500/10">
                 <CardTitle className="text-sm flex items-center gap-2">
-                  <Box className="h-4 w-4 text-orange-600" />
+                  <Box className="h-4 w-4 text-orange-400" />
                   Herrajes
                 </CardTitle>
               </CardHeader>
@@ -1034,10 +1034,10 @@ export default function ProjectDetail() {
                       return (
                         <div key={subcategory} className="border rounded-lg p-3">
                           <div className="flex items-center justify-between mb-2">
-                            <h5 className="font-semibold text-sm text-orange-700 flex items-center gap-2">
+                            <h5 className="font-semibold text-sm text-orange-300 flex items-center gap-2">
                               <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
                               {subcategoryLabels[subcategory] || subcategory}
-                              <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${photos.length > 0 ? 'bg-orange-500/15 text-orange-700' : 'bg-white/[0.06] text-gray-500'}`}>
+                              <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${photos.length > 0 ? 'bg-orange-500/15 text-orange-300' : 'bg-white/[0.06] text-gray-500'}`}>
                                 {photos.length} fotos
                               </span>
                             </h5>
@@ -1094,7 +1094,7 @@ export default function ProjectDetail() {
 
             {/* Centro de Control de Diseño */}
             {(user?.role === "admin" || user?.role === "super_admin" || user?.role === "comercial") && (
-              <div className="mb-4 rounded-xl overflow-hidden shadow-lg border border-white/[0.10] dark:border-gray-700">
+              <div className="mb-4 rounded-xl overflow-hidden shadow-lg border border-white/[0.10]">
                 {/* Header del Panel */}
                 <div className="bg-gradient-to-r from-teal-600 to-teal-500 px-6 py-4">
                   <h3 className="text-lg font-bold text-white flex items-center gap-2">
@@ -1104,7 +1104,7 @@ export default function ProjectDetail() {
                   <p className="text-teal-100 text-sm mt-1">Gestiona el envío y aprobación de diseños del cliente</p>
                 </div>
                 
-                <div className="bg-[#162828] dark:bg-gray-900 p-6">
+                <div className="bg-[#162828] p-6">
                   {/* Grid de Tarjetas de Acción */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                     
@@ -1227,18 +1227,18 @@ export default function ProjectDetail() {
                           </div>
                           <div>
                             <h4 className={`font-semibold ${
-                              statusColor === "amber" ? "text-amber-300 dark:text-amber-200" :
-                              statusColor === "green" ? "text-green-300 dark:text-green-200" :
-                              statusColor === "blue" ? "text-blue-300 dark:text-blue-200" :
-                              "text-muted-foreground dark:text-gray-400"
+                              statusColor === "amber" ? "text-amber-300" :
+                              statusColor === "green" ? "text-green-300" :
+                              statusColor === "blue" ? "text-blue-300" :
+                              "text-muted-foreground"
                             }`}>
                               {isPendingApproval ? "Pendiente de Aprobación" : isApproved ? "Diseño Aprobado" : "Aprobar en Nombre del Cliente"}
                             </h4>
                             <p className={`text-sm ${
-                              statusColor === "amber" ? "text-amber-600 dark:text-amber-400" :
-                              statusColor === "green" ? "text-green-600 dark:text-green-400" :
-                              statusColor === "blue" ? "text-blue-600 dark:text-blue-400" :
-                              "text-gray-500 dark:text-gray-500"
+                              statusColor === "amber" ? "text-amber-400" :
+                              statusColor === "green" ? "text-green-400" :
+                              statusColor === "blue" ? "text-blue-400" :
+                              "text-gray-500"
                             }`}>{statusMessage}</p>
                           </div>
                         </div>
@@ -1250,7 +1250,7 @@ export default function ProjectDetail() {
                               onClick={() => setApprovalUnlocked(!approvalUnlocked)}
                               className={`${
                                 approvalUnlocked 
-                                  ? "border-green-500 text-green-700 bg-green-500/10 hover:bg-green-500/15 dark:bg-green-900/20" 
+                                  ? "border-green-500 text-green-300 bg-green-500/10 hover:bg-green-500/15" 
                                   : "border-white/[0.15] text-gray-500 hover:bg-white/[0.03]"
                               }`}
                               title={approvalUnlocked ? "Clic para bloquear" : "Clic para desbloquear y poder aprobar"}
@@ -1278,7 +1278,7 @@ export default function ProjectDetail() {
                             variant="outline"
                             className={`${
                               isInDesignPhase && approvalUnlocked
-                                ? "border-orange-500/40 text-orange-700 hover:bg-orange-500/10 dark:hover:bg-orange-900/20" 
+                                ? "border-orange-500/40 text-orange-300 hover:bg-orange-500/10" 
                                 : "border-white/[0.15] text-gray-400 cursor-not-allowed"
                             }`}
                             onClick={() => {
@@ -1298,8 +1298,8 @@ export default function ProjectDetail() {
                           </Button>
                         </div>
                         {projectDetail.clientApprovalNotes && (
-                          <div className="mt-4 p-3 bg-orange-500/15 dark:bg-orange-900/30 rounded-lg border border-orange-500/25 dark:border-orange-700">
-                            <p className="text-sm text-orange-300 dark:text-orange-200">
+                          <div className="mt-4 p-3 bg-orange-500/15 rounded-lg border border-orange-500/25">
+                            <p className="text-sm text-orange-300">
                               <strong>📝 Últimos cambios solicitados:</strong> {projectDetail.clientApprovalNotes}
                             </p>
                           </div>
@@ -1327,10 +1327,10 @@ export default function ProjectDetail() {
                       return (
                         <div key={subcategory} className="border rounded-lg p-3">
                           <div className="flex items-center justify-between mb-2">
-                            <h5 className="font-semibold text-base text-emerald-700 flex items-center gap-2">
+                            <h5 className="font-semibold text-base text-emerald-300 flex items-center gap-2">
                               <span className="w-2 h-2 bg-emerald-500 rounded-full"></span>
                               {subcategoryLabels[subcategory] || subcategory}
-                              <span className={`ml-2 px-2 py-0.5 rounded-full text-xs font-medium ${photos.length > 0 ? 'bg-emerald-500/15 text-emerald-700' : 'bg-white/[0.06] text-gray-500'}`}>
+                              <span className={`ml-2 px-2 py-0.5 rounded-full text-xs font-medium ${photos.length > 0 ? 'bg-emerald-500/15 text-emerald-300' : 'bg-white/[0.06] text-gray-500'}`}>
                                 {photos.length} {photos.length === 1 ? 'foto' : 'fotos'}
                               </span>
                             </h5>
@@ -1376,7 +1376,7 @@ export default function ProjectDetail() {
                                     {photo.photoUrl?.toLowerCase().endsWith('.pdf') || photo.photoUrl?.includes('application/pdf') ? (
                                       <div className="w-full h-full bg-red-500/10 flex flex-col items-center justify-center">
                                         <FileText className="h-10 w-10 text-red-500" />
-                                        <span className="text-xs text-red-600 mt-1 font-medium">PDF</span>
+                                        <span className="text-xs text-red-400 mt-1 font-medium">PDF</span>
                                       </div>
                                     ) : (
                                       <img
@@ -1504,7 +1504,7 @@ export default function ProjectDetail() {
                     {projectDetail.clientRevisions.map((revision: any, index: number) => (
                       <div key={revision.id || index} className="p-3 bg-[#162828] rounded-lg border border-orange-500/25">
                         <div className="flex items-center justify-between mb-2">
-                          <span className={`text-xs font-medium px-2 py-1 rounded ${revision.type === 'modelado_3d' ? 'bg-blue-500/15 text-blue-700' : 'bg-purple-500/15 text-purple-700'}`}>
+                          <span className={`text-xs font-medium px-2 py-1 rounded ${revision.type === 'modelado_3d' ? 'bg-blue-500/15 text-blue-300' : 'bg-purple-500/15 text-purple-300'}`}>
                             {revision.type === 'modelado_3d' ? '📎 Modelado 3D' : '🎨 Renders'} - Rev. {revision.revisionNumber}
                           </span>
                           <span className="text-xs text-gray-500">
@@ -1612,18 +1612,18 @@ export default function ProjectDetail() {
               <Card>
                 <CardHeader className="py-3 bg-teal-500/10">
                   <CardTitle className="text-sm flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-teal-600" />
+                    <Calendar className="h-4 w-4 text-teal-400" />
                     Fechas de Instalación
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="text-sm space-y-2 pt-4">
                   {projectDetail.tentativeInstallDate && (
-                    <p className="text-red-600 font-medium">
+                    <p className="text-red-400 font-medium">
                       <strong>🔴 Fecha tentativa:</strong> {formatDate(projectDetail.tentativeInstallDate)}
                     </p>
                   )}
                   {projectDetail.estimatedInstallDate && projectDetail.isInstallDateOfficial && (
-                    <p className="text-green-600 font-medium">
+                    <p className="text-green-400 font-medium">
                       <strong>🟢 Fecha oficial:</strong> {formatDate(projectDetail.estimatedInstallDate)}
                     </p>
                   )}
@@ -1649,10 +1649,10 @@ export default function ProjectDetail() {
                       return (
                         <div key={subcategory} className="border rounded-lg p-3">
                           <div className="flex items-center justify-between mb-2">
-                            <h5 className="font-semibold text-sm text-teal-700 flex items-center gap-2">
+                            <h5 className="font-semibold text-sm text-teal-300 flex items-center gap-2">
                               <span className="w-2 h-2 bg-teal-500 rounded-full"></span>
                               {subcategoryLabels[subcategory] || subcategory}
-                              <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${photos.length > 0 ? 'bg-teal-500/15 text-teal-700' : 'bg-white/[0.06] text-gray-500'}`}>
+                              <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${photos.length > 0 ? 'bg-teal-500/15 text-teal-300' : 'bg-white/[0.06] text-gray-500'}`}>
                                 {photos.length} fotos
                               </span>
                             </h5>
@@ -1834,7 +1834,7 @@ export default function ProjectDetail() {
             <Card>
               <CardHeader className="py-3 bg-pink-500/10">
                 <CardTitle className="text-sm flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-pink-600" />
+                  <CheckCircle2 className="h-4 w-4 text-pink-400" />
                   Seguimiento Postventa
                 </CardTitle>
               </CardHeader>
@@ -2206,7 +2206,7 @@ export default function ProjectDetail() {
                 Esto es útil para proyectos pequeños que se fabrican directamente en el taller sin 
                 necesidad de diseño formal.
               </p>
-              <p className="text-amber-600 dark:text-amber-400 font-medium">
+              <p className="text-amber-400 font-medium">
                 ⚠️ Las secciones de diseño seguirán disponibles si deseas subir archivos después.
               </p>
             </AlertDialogDescription>

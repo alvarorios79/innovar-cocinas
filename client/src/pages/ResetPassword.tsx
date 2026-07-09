@@ -79,7 +79,7 @@ export default function ResetPassword() {
   };
 
   const PasswordCheck = ({ valid, text }: { valid: boolean; text: string }) => (
-    <div className={`flex items-center gap-2 text-xs ${valid ? "text-green-600" : "text-gray-400"}`}>
+    <div className={`flex items-center gap-2 text-xs ${valid ? "text-green-400" : "text-gray-400"}`}>
       {valid ? <CheckCircle2 className="h-3 w-3" /> : <XCircle className="h-3 w-3" />}
       {text}
     </div>
@@ -105,7 +105,7 @@ export default function ResetPassword() {
               </Button>
             </Link>
             <div className="mt-4 text-center">
-              <Link href="/login" className="text-sm text-gray-500 hover:text-teal-600 transition-colors">
+              <Link href="/login" className="text-sm text-gray-500 hover:text-teal-400 transition-colors">
                 ← Volver a iniciar sesión
               </Link>
             </div>
@@ -171,7 +171,7 @@ export default function ResetPassword() {
                 className="h-11"
               />
               {confirmPassword.length > 0 && (
-                <div className={`flex items-center gap-2 text-xs ${passwordsMatch ? "text-green-600" : "text-red-500"}`}>
+                <div className={`flex items-center gap-2 text-xs ${passwordsMatch ? "text-green-400" : "text-red-500"}`}>
                   {passwordsMatch ? <CheckCircle2 className="h-3 w-3" /> : <XCircle className="h-3 w-3" />}
                   {passwordsMatch ? "Las contraseñas coinciden" : "Las contraseñas no coinciden"}
                 </div>
@@ -198,7 +198,7 @@ export default function ResetPassword() {
           </form>
 
           <div className="mt-6 text-center">
-            <Link href="/login" className="text-sm text-gray-500 hover:text-teal-600 transition-colors">
+            <Link href="/login" className="text-sm text-gray-500 hover:text-teal-400 transition-colors">
               ← Volver a iniciar sesión
             </Link>
           </div>

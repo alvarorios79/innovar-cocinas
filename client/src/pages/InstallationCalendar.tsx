@@ -296,7 +296,7 @@ export default function InstallationCalendar() {
                       >
                         <div className={`
                           text-sm font-medium mb-1
-                          ${isToday ? "text-teal-600" : ""}
+                          ${isToday ? "text-teal-400" : ""}
                           ${date.getDay() === 0 ? "text-red-500" : ""}
                           ${isHoliday(date) ? "text-red-500" : ""}
                         `}>
@@ -404,7 +404,7 @@ export default function InstallationCalendar() {
                       return (
                         <div className="text-center py-4">
                           <AlertTriangle className="h-8 w-8 text-red-500 mx-auto mb-2" />
-                          <p className="text-sm text-red-600">
+                          <p className="text-sm text-red-400">
                             {isHoliday(selectedDate) ? "Día festivo" : "Domingo - No laboral"}
                           </p>
                         </div>
@@ -428,7 +428,7 @@ export default function InstallationCalendar() {
                     return (
                       <div className="space-y-3">
                         {dayInstallations.length > 1 && (
-                          <div className="flex items-center gap-2 p-2 bg-orange-500/10 rounded text-orange-700 text-sm">
+                          <div className="flex items-center gap-2 p-2 bg-orange-500/10 rounded text-orange-300 text-sm">
                             <AlertTriangle className="h-4 w-4" />
                             <span>Múltiples instalaciones</span>
                           </div>

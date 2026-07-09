@@ -204,18 +204,18 @@ export default function Comercial() {
   const getStatusColor = (status: string) => {
     const statusColors: Record<string, string> = {
       contacto: "bg-white/[0.06] text-white/85",
-      cotizacion_enviada: "bg-blue-500/15 text-blue-700",
-      cotizacion_aprobada: "bg-emerald-500/15 text-emerald-700",
-      adelanto_recibido: "bg-green-500/15 text-green-700",
-      en_diseno: "bg-purple-500/15 text-purple-700",
+      cotizacion_enviada: "bg-blue-500/15 text-blue-300",
+      cotizacion_aprobada: "bg-emerald-500/15 text-emerald-300",
+      adelanto_recibido: "bg-green-500/15 text-green-300",
+      en_diseno: "bg-purple-500/15 text-purple-300",
       pendiente_modelado: "bg-white/[0.06] text-white/85",
-      pendiente_render: "bg-amber-500/15 text-amber-700",
-      aprobacion_final: "bg-indigo-500/15 text-indigo-700",
-      despiece: "bg-orange-500/15 text-orange-700",
-      corte: "bg-amber-500/15 text-amber-700",
-      enchape: "bg-teal-500/15 text-teal-700",
-      ensamble: "bg-teal-500/15 text-teal-700",
-      listo_instalacion: "bg-cyan-100 text-cyan-700",
+      pendiente_render: "bg-amber-500/15 text-amber-300",
+      aprobacion_final: "bg-indigo-500/15 text-indigo-300",
+      despiece: "bg-orange-500/15 text-orange-300",
+      corte: "bg-amber-500/15 text-amber-300",
+      enchape: "bg-teal-500/15 text-teal-300",
+      ensamble: "bg-teal-500/15 text-teal-300",
+      listo_instalacion: "bg-cyan-100 text-cyan-300",
       entregado: "bg-white/[0.06] text-muted-foreground",
     };
     return statusColors[status] || "bg-white/[0.06] text-muted-foreground";
@@ -287,7 +287,7 @@ export default function Comercial() {
             
             {/* Información de contacto */}
             <div className="flex flex-wrap items-center justify-center gap-2 md:gap-4 text-xs md:text-sm text-muted-foreground">
-              <a href="tel:3136802025" className="flex items-center gap-1 hover:text-teal-600 transition-colors">
+              <a href="tel:3136802025" className="flex items-center gap-1 hover:text-teal-400 transition-colors">
                 <Phone className="h-3.5 w-3.5" />
                 <span>313 680 2025</span>
               </a>
@@ -296,7 +296,7 @@ export default function Comercial() {
                 <span className="hidden sm:inline">K9 vía Cerritos a Pereira</span>
                 <span className="sm:hidden">Cerritos, Pereira</span>
               </span>
-              <a href="https://innovarcocinasintegrales.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 hover:text-teal-600 transition-colors">
+              <a href="https://innovarcocinasintegrales.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 hover:text-teal-400 transition-colors">
                 <Globe className="h-3.5 w-3.5" />
                 <span>Sitio Web</span>
               </a>
@@ -364,7 +364,7 @@ export default function Comercial() {
                         </div>
                         <div>
                           <h3 className="font-semibold text-white/90">{client.name}</h3>
-                          <p className="text-sm text-teal-600">
+                          <p className="text-sm text-teal-400">
                             {client.daysUntil === 0 ? (
                               <span className="font-bold">🎉 ¡Hoy es su cumpleaños!</span>
                             ) : client.daysUntil === 1 ? (
@@ -474,7 +474,7 @@ export default function Comercial() {
                 Proyectos Activos
               </h2>
               <Link href="/projects">
-                <Button variant="ghost" size="sm" className="text-teal-600 font-semibold">
+                <Button variant="ghost" size="sm" className="text-teal-400 font-semibold">
                   Ver todos <ArrowRight className="h-4 w-4 ml-1" />
                 </Button>
               </Link>
@@ -551,7 +551,7 @@ export default function Comercial() {
                         <h3 className="font-semibold text-white/90">{project.name}</h3>
                         <div className="flex flex-wrap items-center gap-3 mt-1 text-sm text-white/60">
                           {project.client?.whatsappPhone && (
-                            <a href={`tel:${project.client.whatsappPhone}`} className="flex items-center gap-1 hover:text-teal-600">
+                            <a href={`tel:${project.client.whatsappPhone}`} className="flex items-center gap-1 hover:text-teal-400">
                               <Phone className="h-4 w-4" />
                               {project.client.whatsappPhone}
                             </a>
@@ -560,7 +560,7 @@ export default function Comercial() {
                             <span className="flex items-center gap-1">
                               <Clock className="h-4 w-4" />
                               Entrega: {formatDate(project.tentativeInstallDate)}
-                              <Badge variant="outline" className="ml-1 text-orange-600 border-orange-500/30">
+                              <Badge variant="outline" className="ml-1 text-orange-400 border-orange-500/30">
                                 {getDaysRemaining(project.tentativeInstallDate)}
                               </Badge>
                             </span>
@@ -786,7 +786,7 @@ export default function Comercial() {
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <div>
                           <h3 className="font-medium text-white/90">{quot.client?.name || quot.quotationNumber}</h3>
-                          <p className="text-sm text-red-600">
+                          <p className="text-sm text-red-400">
                             {formatPrice(quot.total)} • Vence: {formatDate(quot.validUntil)}
                           </p>
                         </div>
@@ -823,7 +823,7 @@ export default function Comercial() {
                 Mis Tareas Pendientes
               </h2>
               <Link href="/tasks">
-                <Button variant="ghost" size="sm" className="text-teal-600 font-semibold">
+                <Button variant="ghost" size="sm" className="text-teal-400 font-semibold">
                   Ver todas <ArrowRight className="h-4 w-4 ml-1" />
                 </Button>
               </Link>

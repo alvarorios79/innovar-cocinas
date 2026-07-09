@@ -244,7 +244,7 @@ export default function PublicGallery() {
       <main className="max-w-6xl mx-auto px-4 py-8">
         {/* Info del proyecto */}
         <div className="text-center mb-8">
-          <Badge className="mb-3 bg-teal-500/15 text-teal-700 hover:bg-teal-500/15">
+          <Badge className="mb-3 bg-teal-500/15 text-teal-300 hover:bg-teal-500/15">
             {WORK_TYPES[project.workType] || project.workType}
           </Badge>
           <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
@@ -261,14 +261,14 @@ export default function PublicGallery() {
         {isAlreadyApproved && !actionCompleted && (
           <Card className="mb-6 p-6 bg-green-500/10 border-green-500/25">
             <div className="flex items-center gap-3">
-              <CheckCircle className="h-8 w-8 text-green-600" />
+              <CheckCircle className="h-8 w-8 text-green-400" />
               <div>
                 <h3 className="font-semibold text-green-300">¡{designTypeLabel} Aprobado!</h3>
-                <p className="text-green-700 text-sm">
+                <p className="text-green-300 text-sm">
                   {approvedBy && `Aprobado por ${approvedBy}`}
                   {approvedAt && ` el ${new Date(approvedAt).toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' })}`}
                 </p>
-                <p className="text-green-600 text-sm mt-1">
+                <p className="text-green-400 text-sm mt-1">
                   {photoType === "modelado_3d" 
                     ? "Nuestro equipo está preparando los renders finales."
                     : "Tu proyecto está en producción. Pronto te contactaremos."}
@@ -284,20 +284,20 @@ export default function PublicGallery() {
             <div className="flex items-center gap-3">
               {actionCompleted === "approved" ? (
                 <>
-                  <CheckCircle className="h-8 w-8 text-green-600" />
+                  <CheckCircle className="h-8 w-8 text-green-400" />
                   <div>
                     <h3 className="font-semibold text-green-300">¡Diseño Aprobado!</h3>
-                    <p className="text-green-700 text-sm">
+                    <p className="text-green-300 text-sm">
                       Gracias por aprobar el {designTypeLabel}. Nuestro equipo continuará con los siguientes pasos.
                     </p>
                   </div>
                 </>
               ) : (
                 <>
-                  <MessageSquare className="h-8 w-8 text-blue-600" />
+                  <MessageSquare className="h-8 w-8 text-blue-400" />
                   <div>
                     <h3 className="font-semibold text-blue-300">Cambios Solicitados</h3>
-                    <p className="text-blue-700 text-sm">
+                    <p className="text-blue-300 text-sm">
                       Hemos recibido tu solicitud. Nuestro equipo de diseño revisará los cambios y te contactará pronto.
                     </p>
                   </div>
@@ -375,7 +375,7 @@ export default function PublicGallery() {
 
         {/* Sección de aprobación - Solo mostrar si hay fotos, no se ha completado una acción y no está ya aprobado */}
         {filteredPhotos.length > 0 && !actionCompleted && !isAlreadyApproved && (
-          <Card className="mt-8 p-6 bg-gradient-to-r from-amber-50 to-orange-50 border-amber-500/25">
+          <Card className="mt-8 p-6 bg-gradient-to-r from-amber-950/30 to-orange-950/30 border-amber-500/25">
             <div className="text-center">
               <h3 className="text-lg font-semibold text-foreground mb-2">
                 ¿Qué te parece el {designTypeLabel}?
@@ -395,7 +395,7 @@ export default function PublicGallery() {
                 <Button
                   size="lg"
                   variant="outline"
-                  className="border-amber-500 text-amber-700 hover:bg-amber-500/15"
+                  className="border-amber-500 text-amber-300 hover:bg-amber-500/15"
                   onClick={() => setShowChangesDialog(true)}
                 >
                   <MessageSquare className="h-5 w-5 mr-2" />
@@ -408,11 +408,11 @@ export default function PublicGallery() {
 
         {/* Mensaje de contacto */}
         <div className="mt-12 text-center">
-          <Card className="inline-block p-6 bg-gradient-to-r from-teal-50 to-emerald-50 border-teal-500/25">
+          <Card className="inline-block p-6 bg-gradient-to-r from-teal-950/30 to-emerald-950/30 border-teal-500/25">
             <p className="text-muted-foreground mb-2">
               ¿Tienes alguna pregunta?
             </p>
-            <p className="text-teal-700 font-medium">
+            <p className="text-teal-300 font-medium">
               Contáctanos por WhatsApp: <a href="https://wa.me/573136802025" className="underline">313 680 2025</a>
             </p>
           </Card>
@@ -455,7 +455,7 @@ export default function PublicGallery() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <CheckCircle className="h-5 w-5 text-green-600" />
+              <CheckCircle className="h-5 w-5 text-green-400" />
               Aprobar {designTypeLabel}
             </DialogTitle>
             <DialogDescription>
@@ -511,7 +511,7 @@ export default function PublicGallery() {
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <MessageSquare className="h-5 w-5 text-amber-600" />
+              <MessageSquare className="h-5 w-5 text-amber-400" />
               Solicitar Cambios
             </DialogTitle>
             <DialogDescription>

@@ -133,14 +133,14 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
       <CardContent className="p-4">
         {/* Header */}
         <div className="flex items-center gap-2 mb-4 pb-2 border-b border-blue-500/25">
-          <LayoutGrid className="h-5 w-5 text-blue-600" />
+          <LayoutGrid className="h-5 w-5 text-blue-400" />
           <h4 className="font-bold text-blue-300 text-lg">Configuración del Closet</h4>
         </div>
 
         <div className="space-y-6">
           {/* Tipo de Closet */}
           <div className="bg-blue-500/10 p-4 rounded-lg border border-blue-500/25">
-            <h5 className="font-semibold text-blue-700 mb-3">Tipo de Closet</h5>
+            <h5 className="font-semibold text-blue-300 mb-3">Tipo de Closet</h5>
             <Select value={type} onValueChange={(value) => setType(value as ClosetConfig["type"])}>
               <SelectTrigger className="h-10 bg-[#162828]">
                 <SelectValue placeholder="Selecciona el tipo" />
@@ -154,10 +154,10 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
               </SelectContent>
             </Select>
             <div className="mt-3 p-3 bg-blue-500/15 rounded">
-              <p className="text-sm text-blue-700">
+              <p className="text-sm text-blue-300">
                 <strong>Profundidad:</strong> {closetType.depth}
               </p>
-              <p className="text-sm text-blue-700 mt-1">
+              <p className="text-sm text-blue-300 mt-1">
                 <strong>Incluye:</strong> Maletero, divisor, doble colgadero, entrepaños, doble cajonero, zapatero y puertas
               </p>
             </div>
@@ -219,8 +219,8 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
 
           {/* Accesorios del closet */}
           <div className="bg-blue-500/10 p-4 rounded-lg border border-blue-500/25">
-            <h5 className="font-semibold text-blue-700 mb-3">Componentes (para descripción)</h5>
-            <p className="text-xs text-blue-600 mb-3">Selecciona los componentes que lleva este closet — se generará la descripción automáticamente.</p>
+            <h5 className="font-semibold text-blue-300 mb-3">Componentes (para descripción)</h5>
+            <p className="text-xs text-blue-400 mb-3">Selecciona los componentes que lleva este closet — se generará la descripción automáticamente.</p>
             <div className="grid grid-cols-2 gap-2">
               {([
                 { state: accMaletero,       setState: setAccMaletero,       label: "Maletero" },
@@ -295,7 +295,7 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
                   <span className="font-medium">${baseSubtotal.toLocaleString()}</span>
                 </div>
                 {includeTransport && (
-                  <div className="flex justify-between text-blue-700">
+                  <div className="flex justify-between text-blue-300">
                     <span>+ Transporte e imprevistos:</span>
                     <span className="font-medium">${transport.toLocaleString()}</span>
                   </div>

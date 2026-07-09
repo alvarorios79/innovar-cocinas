@@ -270,7 +270,7 @@ export function AccountingClosureTab() {
             <CardContent>
               {loadingPending ? (
                 <div className="flex items-center justify-center py-8">
-                  <Loader2 className="h-6 w-6 animate-spin text-teal-600" />
+                  <Loader2 className="h-6 w-6 animate-spin text-teal-400" />
                 </div>
               ) : !pendingProjects || pendingProjects.length === 0 ? (
                 <div className="py-8 text-center text-gray-500">
@@ -303,7 +303,7 @@ export function AccountingClosureTab() {
                             </span>
                           </div>
                           {parseFloat(project.discountsApplied?.toString() || "0") > 0 && (
-                            <div className="flex justify-between text-red-600">
+                            <div className="flex justify-between text-red-400">
                               <span>- Descuentos:</span>
                               <span className="font-semibold">
                                 -${parseFloat(project.discountsApplied?.toString() || "0").toFixed(2)}
@@ -311,14 +311,14 @@ export function AccountingClosureTab() {
                             </div>
                           )}
                           {parseFloat(project.surchargesApplied?.toString() || "0") > 0 && (
-                            <div className="flex justify-between text-green-600">
+                            <div className="flex justify-between text-green-400">
                               <span>+ Recargos:</span>
                               <span className="font-semibold">
                                 +${parseFloat(project.surchargesApplied?.toString() || "0").toFixed(2)}
                               </span>
                             </div>
                           )}
-                          <div className="border-t border-white/[0.15] pt-2 mt-2 flex justify-between font-bold text-teal-700 bg-teal-500/10 p-2 rounded">
+                          <div className="border-t border-white/[0.15] pt-2 mt-2 flex justify-between font-bold text-teal-300 bg-teal-500/10 p-2 rounded">
                             <span>💰 PRECIO NETO:</span>
                             <span>
                               ${parseFloat(project.netPrice?.toString() || "0").toFixed(2)}
@@ -338,7 +338,7 @@ export function AccountingClosureTab() {
             <Card className="bg-teal-500/10 border-teal-500/25">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <DollarSign className="h-5 w-5 text-teal-600" />
+                  <DollarSign className="h-5 w-5 text-teal-400" />
                   Resumen del Cierre
                 </CardTitle>
               </CardHeader>
@@ -350,15 +350,15 @@ export function AccountingClosureTab() {
                       <span className="text-muted-foreground">Precio de Cotización Original:</span>
                       <span className="font-semibold">-</span>
                     </div>
-                    <div className="flex justify-between text-red-600">
+                    <div className="flex justify-between text-red-400">
                       <span>Menos: Descuentos Aplicados</span>
                       <span className="font-semibold">-</span>
                     </div>
-                    <div className="flex justify-between text-green-600">
+                    <div className="flex justify-between text-green-400">
                       <span>Más: Recargos Aplicados</span>
                       <span className="font-semibold">-</span>
                     </div>
-                    <div className="border-t border-white/[0.10] pt-2 mt-2 flex justify-between font-bold text-teal-700">
+                    <div className="border-t border-white/[0.10] pt-2 mt-2 flex justify-between font-bold text-teal-300">
                       <span>= PRECIO NETO (Dinero Real):</span>
                       <span>${Number(previewTotals.totalSales).toFixed(2)}</span>
                     </div>
@@ -368,19 +368,19 @@ export function AccountingClosureTab() {
                 <div className="grid grid-cols-3 gap-4">
                   <div className="bg-[#162828] p-4 rounded-lg">
                     <p className="text-sm text-muted-foreground">Ventas Netas</p>
-                    <p className="text-2xl font-bold text-teal-600">
+                    <p className="text-2xl font-bold text-teal-400">
                       ${Number(previewTotals.totalSales).toFixed(2)}
                     </p>
                   </div>
                   <div className="bg-[#162828] p-4 rounded-lg">
                     <p className="text-sm text-muted-foreground">Gastos Totales</p>
-                    <p className="text-2xl font-bold text-orange-600">
+                    <p className="text-2xl font-bold text-orange-400">
                       ${Number(previewTotals.totalExpenses).toFixed(2)}
                     </p>
                   </div>
                   <div className="bg-[#162828] p-4 rounded-lg">
                     <p className="text-sm text-muted-foreground">Ganancia Neta</p>
-                    <p className="text-2xl font-bold text-green-600">
+                    <p className="text-2xl font-bold text-green-400">
                       ${Number(previewTotals.totalProfit).toFixed(2)}
                     </p>
                   </div>
@@ -416,7 +416,7 @@ export function AccountingClosureTab() {
         <div className="space-y-4">
           {loadingClosures ? (
             <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin text-teal-600" />
+              <Loader2 className="h-6 w-6 animate-spin text-teal-400" />
             </div>
           ) : !closures || closures.length === 0 ? (
             <Card>
@@ -452,19 +452,19 @@ export function AccountingClosureTab() {
                     <div className="grid grid-cols-3 gap-4">
                       <div className="bg-teal-500/10 p-4 rounded-lg">
                         <p className="text-sm text-muted-foreground">Ventas Totales</p>
-                        <p className="text-2xl font-bold text-teal-600">
+                        <p className="text-2xl font-bold text-teal-400">
                           ${Number(closureDetails.totalSales).toFixed(2)}
                         </p>
                       </div>
                       <div className="bg-orange-500/10 p-4 rounded-lg">
                         <p className="text-sm text-muted-foreground">Gastos Totales</p>
-                        <p className="text-2xl font-bold text-orange-600">
+                        <p className="text-2xl font-bold text-orange-400">
                           ${Number(closureDetails.totalExpenses).toFixed(2)}
                         </p>
                       </div>
                       <div className="bg-green-500/10 p-4 rounded-lg">
                         <p className="text-sm text-muted-foreground">Ganancia Neta</p>
-                        <p className="text-2xl font-bold text-green-600">
+                        <p className="text-2xl font-bold text-green-400">
                           ${Number(closureDetails.totalProfit).toFixed(2)}
                         </p>
                       </div>

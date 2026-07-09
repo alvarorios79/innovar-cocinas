@@ -119,7 +119,7 @@ function ProjectApprovalView({
                   onClick={() => setShowRejectForm(true)}
                   disabled={isSubmitting}
                   variant="outline"
-                  className="flex-1 border-orange-500 text-orange-600 hover:bg-orange-500/10"
+                  className="flex-1 border-orange-500 text-orange-400 hover:bg-orange-500/10"
                   size="lg"
                 >
                   <Wrench className="h-5 w-5 mr-2" />
@@ -176,7 +176,7 @@ function ProjectApprovalView({
         {project.clientApprovalNotes && (
           <div className="mt-4 p-4 bg-orange-500/10 border border-orange-500/25 rounded-lg">
             <h4 className="font-medium text-orange-300 mb-2">📝 Cambios solicitados anteriormente:</h4>
-            <p className="text-orange-700 text-sm">{project.clientApprovalNotes}</p>
+            <p className="text-orange-300 text-sm">{project.clientApprovalNotes}</p>
           </div>
         )}
       </CardContent>
@@ -518,8 +518,8 @@ export default function Portal() {
               <Card className="mb-4 md:mb-8 border-red-500/25 bg-red-500/10">
                 <CardContent className="p-4 md:p-8 text-center">
                   <AlertCircle className="h-12 w-12 mx-auto text-red-500 mb-4" />
-                  <h2 className="text-xl font-bold text-red-700 mb-2">Proyecto no encontrado</h2>
-                  <p className="text-red-600 mb-4">No pudimos encontrar el proyecto solicitado o no tienes acceso a él.</p>
+                  <h2 className="text-xl font-bold text-red-300 mb-2">Proyecto no encontrado</h2>
+                  <p className="text-red-400 mb-4">No pudimos encontrar el proyecto solicitado o no tienes acceso a él.</p>
                   <Button onClick={() => setLocation("/portal")} variant="outline">
                     Ver mis proyectos
                   </Button>
@@ -665,10 +665,10 @@ export default function Portal() {
                           }`}>
                             <Truck className={`h-5 w-5 ${
                               new Date(project.estimatedInstallDate) < new Date() 
-                                ? "text-red-600" 
+                                ? "text-red-400" 
                                 : new Date(project.estimatedInstallDate) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-                                  ? "text-yellow-600"
-                                  : "text-green-600"
+                                  ? "text-yellow-400"
+                                  : "text-green-400"
                             }`} />
                             <div>
                               <p className={`text-sm font-medium ${
@@ -684,10 +684,10 @@ export default function Portal() {
                               </p>
                               <p className={`text-sm ${
                                 new Date(project.estimatedInstallDate) < new Date() 
-                                  ? "text-red-600" 
+                                  ? "text-red-400" 
                                   : new Date(project.estimatedInstallDate) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-                                    ? "text-yellow-600"
-                                    : "text-green-600"
+                                    ? "text-yellow-400"
+                                    : "text-green-400"
                               }`}>
                                 {new Date(project.estimatedInstallDate).toLocaleDateString("es-CO", {
                                   weekday: "long",
@@ -703,10 +703,10 @@ export default function Portal() {
                         {/* Fecha de instalación programada */}
                         {project.scheduledInstallDate && project.status !== "entregado" && (
                           <div className="flex items-center gap-2 p-3 rounded-lg bg-blue-500/10 border border-blue-500/25">
-                            <Calendar className="h-5 w-5 text-blue-600" />
+                            <Calendar className="h-5 w-5 text-blue-400" />
                             <div>
                               <p className="text-sm font-medium text-blue-300">Instalación Programada</p>
-                              <p className="text-sm text-blue-600">
+                              <p className="text-sm text-blue-400">
                                 {new Date(project.scheduledInstallDate).toLocaleDateString("es-CO", {
                                   weekday: "long",
                                   year: "numeric",
@@ -721,7 +721,7 @@ export default function Portal() {
                         {/* Comprobante de pago */}
                         {project.advanceReceiptUrl && (
                           <div className="flex items-center gap-2 p-3 rounded-lg bg-green-500/10 border border-green-500/25">
-                            <FileText className="h-5 w-5 text-green-600" />
+                            <FileText className="h-5 w-5 text-green-400" />
                             <div className="flex-1">
                               <p className="text-sm font-medium text-green-300">Comprobante de Pago</p>
                               <a 
@@ -739,14 +739,14 @@ export default function Portal() {
                         {/* PDF de cotización aprobada */}
                         {(project as any).quotationPdfUrl && (
                           <div className="flex items-center gap-2 p-3 rounded-lg bg-blue-500/10 border border-blue-500/25">
-                            <FileText className="h-5 w-5 text-blue-600" />
+                            <FileText className="h-5 w-5 text-blue-400" />
                             <div className="flex-1">
                               <p className="text-sm font-medium text-blue-300">Cotización Aprobada</p>
                               <a 
                                 href={(project as any).quotationPdfUrl} 
                                 target="_blank" 
                                 rel="noopener noreferrer"
-                                className="text-sm text-blue-600 hover:underline"
+                                className="text-sm text-blue-400 hover:underline"
                               >
                                 Ver PDF de cotización
                               </a>
@@ -757,10 +757,10 @@ export default function Portal() {
                         {/* Proyecto entregado */}
                         {project.status === "entregado" && project.deliveredAt && (
                           <div className="flex items-center gap-2 p-3 rounded-lg bg-green-500/10 border border-green-500/25">
-                            <CheckCircle2 className="h-5 w-5 text-green-600" />
+                            <CheckCircle2 className="h-5 w-5 text-green-400" />
                             <div>
                               <p className="text-sm font-medium text-green-300">¡Proyecto Entregado!</p>
-                              <p className="text-sm text-green-600">
+                              <p className="text-sm text-green-400">
                                 Entregado el {new Date(project.deliveredAt).toLocaleDateString("es-CO", {
                                   weekday: "long",
                                   year: "numeric",
@@ -796,7 +796,7 @@ export default function Portal() {
                               <AlertCircle className="h-4 w-4" />
                               Acción Requerida: Aprobar Diseño
                             </h4>
-                            <p className="text-sm text-yellow-700 mb-4">
+                            <p className="text-sm text-yellow-300 mb-4">
                               El diseño 3D de tu proyecto está listo. Por favor revísalo y apruébalo para continuar con la producción.
                             </p>
                             <div className="flex gap-2">
@@ -1020,8 +1020,8 @@ export default function Portal() {
                                   {rescheduleDate && rescheduleTime && (
                                     <div className="bg-green-500/10 border border-green-500/25 rounded-lg p-4 text-center">
                                       <p className="text-sm font-semibold text-green-300">Confirma tu nueva fecha</p>
-                                      <p className="text-green-700 font-medium mt-1">{formatRescheduleConfirmation()}</p>
-                                      <p className="text-xs text-green-600 mt-1">Duración aproximada: 1 hora y 30 minutos</p>
+                                      <p className="text-green-300 font-medium mt-1">{formatRescheduleConfirmation()}</p>
+                                      <p className="text-xs text-green-400 mt-1">Duración aproximada: 1 hora y 30 minutos</p>
                                     </div>
                                   )}
 
@@ -1049,7 +1049,7 @@ export default function Portal() {
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  className="border-red-300 text-red-600 hover:bg-red-500/10"
+                                  className="border-red-300 text-red-400 hover:bg-red-500/10"
                                   onClick={() => {
                                     setSelectedAppointment(apt);
                                     setCancelReason("");
@@ -1061,7 +1061,7 @@ export default function Portal() {
                               </DialogTrigger>
                               <DialogContent>
                                 <DialogHeader>
-                                  <DialogTitle className="text-red-600">❌ Cancelar Cita</DialogTitle>
+                                  <DialogTitle className="text-red-400">❌ Cancelar Cita</DialogTitle>
                                   <DialogDescription>
                                     {getWorkTypeLabel(apt.workTypes)} - {formatDate(apt.scheduledDate)}
                                   </DialogDescription>
@@ -1069,7 +1069,7 @@ export default function Portal() {
                                 <div className="space-y-4">
                                   <div className="bg-red-500/10 border border-red-500/25 rounded-lg p-4">
                                     <p className="text-sm text-red-300 font-medium">¿Estás seguro de que deseas cancelar esta cita?</p>
-                                    <p className="text-xs text-red-600 mt-1">El horario quedará libre para que otro cliente pueda agendar.</p>
+                                    <p className="text-xs text-red-400 mt-1">El horario quedará libre para que otro cliente pueda agendar.</p>
                                   </div>
                                   <div>
                                     <label className="text-sm font-medium">Motivo de cancelación (opcional)</label>
@@ -1236,10 +1236,10 @@ export default function Portal() {
                         {/* Mensaje para cotizaciones aprobadas */}
                         {isApproved && (
                           <div className="flex items-center gap-2 p-3 rounded-lg bg-green-500/10 border border-green-500/25">
-                            <CheckCircle2 className="h-5 w-5 text-green-600" />
+                            <CheckCircle2 className="h-5 w-5 text-green-400" />
                             <div>
                               <p className="text-sm font-medium text-green-300">¡Cotización Aprobada!</p>
-                              <p className="text-xs text-green-600">Nos pondremos en contacto contigo para los siguientes pasos.</p>
+                              <p className="text-xs text-green-400">Nos pondremos en contacto contigo para los siguientes pasos.</p>
                             </div>
                           </div>
                         )}
@@ -1247,11 +1247,11 @@ export default function Portal() {
                         {/* Mensaje para cotizaciones rechazadas */}
                         {isRejected && (
                           <div className="flex items-center gap-2 p-3 rounded-lg bg-red-500/10 border border-red-500/25">
-                            <X className="h-5 w-5 text-red-600" />
+                            <X className="h-5 w-5 text-red-400" />
                             <div>
                               <p className="text-sm font-medium text-red-300">Cotización Rechazada</p>
                               {quot.rejectionReason && (
-                                <p className="text-xs text-red-600">Motivo: {quot.rejectionReason}</p>
+                                <p className="text-xs text-red-400">Motivo: {quot.rejectionReason}</p>
                               )}
                             </div>
                           </div>
@@ -1380,7 +1380,7 @@ export default function Portal() {
         <DialogContent className="max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <CheckCircle2 className="h-5 w-5 text-green-600" />
+              <CheckCircle2 className="h-5 w-5 text-green-400" />
               Aprobar Cotización
             </DialogTitle>
             <DialogDescription>
@@ -1410,19 +1410,19 @@ export default function Portal() {
               <Label>Monto del Adelanto (60% del total)</Label>
               <div className="p-4 bg-blue-500/10 border border-blue-500/25 rounded-lg">
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm text-blue-700">Total de la cotización:</span>
+                  <span className="text-sm text-blue-300">Total de la cotización:</span>
                   <span className="font-medium text-blue-300">
                     ${selectedQuotation?.total?.toLocaleString('es-CO') || '0'}
                   </span>
                 </div>
                 <div className="flex justify-between items-center pt-2 border-t border-blue-500/25">
-                  <span className="text-sm font-medium text-blue-700">Adelanto requerido (60%):</span>
+                  <span className="text-sm font-medium text-blue-300">Adelanto requerido (60%):</span>
                   <span className="text-lg font-bold text-blue-300">
                     ${selectedQuotation?.total ? Math.round(selectedQuotation.total * 0.6).toLocaleString('es-CO') : '0'}
                   </span>
                 </div>
                 <div className="flex justify-between items-center mt-2 pt-2 border-t border-blue-500/25">
-                  <span className="text-sm text-blue-600">Saldo restante (40%):</span>
+                  <span className="text-sm text-blue-400">Saldo restante (40%):</span>
                   <span className="font-medium text-blue-300">
                     ${selectedQuotation?.total ? Math.round(selectedQuotation.total * 0.4).toLocaleString('es-CO') : '0'}
                   </span>
@@ -1450,8 +1450,8 @@ export default function Portal() {
               />
               {receiptUrl && (
                 <div className="flex items-center gap-2 p-2 bg-green-500/10 rounded-lg">
-                  <CheckCircle2 className="h-4 w-4 text-green-600" />
-                  <span className="text-sm text-green-700">Comprobante adjuntado</span>
+                  <CheckCircle2 className="h-4 w-4 text-green-400" />
+                  <span className="text-sm text-green-300">Comprobante adjuntado</span>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -1514,7 +1514,7 @@ export default function Portal() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <X className="h-5 w-5 text-red-600" />
+              <X className="h-5 w-5 text-red-400" />
               Rechazar Cotización
             </DialogTitle>
             <DialogDescription>

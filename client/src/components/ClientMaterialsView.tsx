@@ -94,7 +94,7 @@ export function ClientMaterialsView({ projectId }: ClientMaterialsViewProps) {
                 </div>
                 <div className="flex-1">
                   <h4 className="font-medium flex items-center gap-2">
-                    <TreePine className="h-4 w-4 text-amber-600" />
+                    <TreePine className="h-4 w-4 text-amber-400" />
                     Madera
                   </h4>
                   <p className="text-sm text-muted-foreground mt-1">

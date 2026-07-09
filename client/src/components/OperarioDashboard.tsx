@@ -249,7 +249,7 @@ export function OperarioDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50">
+    <div className="min-h-screen bg-background">
       {/* Header Simplificado */}
       <header className="border-b bg-[#162828]/95 backdrop-blur-md sticky top-0 z-50 shadow-sm">
         <div className="container">
@@ -265,7 +265,7 @@ export function OperarioDashboard() {
             <div className="flex items-center gap-2 md:gap-4">
               <NotificationBell />
               <div className="hidden md:flex items-center gap-2 text-sm">
-                <Badge variant="outline" className="bg-blue-500/10 text-blue-700 border-blue-500/25">
+                <Badge variant="outline" className="bg-teal-500/15 text-teal-400 border-teal-500/25">
                   Operario
                 </Badge>
                 <span className="font-medium text-white/85">{user?.name}</span>
@@ -310,25 +310,31 @@ export function OperarioDashboard() {
         <div className="container">
           <div className="max-w-4xl mx-auto">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <Card className="border-0 shadow-md bg-gradient-to-br from-blue-500 to-cyan-500 text-white">
+              <Card className="border border-white/[0.08] shadow-md bg-card">
                 <CardContent className="p-4 text-center">
-                  <ClipboardList className="h-6 w-6 mx-auto mb-1" />
-                  <p className="text-2xl font-bold">{pendingTasks.length}</p>
-                  <p className="text-xs text-white/80">Tareas</p>
+                  <div className="p-2 rounded-xl bg-teal-500/15 w-fit mx-auto mb-2">
+                    <ClipboardList className="h-5 w-5 text-teal-400" />
+                  </div>
+                  <p className="text-2xl font-bold text-foreground">{pendingTasks.length}</p>
+                  <p className="text-xs text-muted-foreground">Tareas</p>
                 </CardContent>
               </Card>
-              <Card className="border-0 shadow-md bg-gradient-to-br from-red-500 to-rose-500 text-white">
+              <Card className="border border-white/[0.08] shadow-md bg-card">
                 <CardContent className="p-4 text-center">
-                  <AlertTriangle className="h-6 w-6 mx-auto mb-1" />
-                  <p className="text-2xl font-bold">{urgentTasks.length}</p>
-                  <p className="text-xs text-white/80">Urgentes</p>
+                  <div className="p-2 rounded-xl bg-red-500/15 w-fit mx-auto mb-2">
+                    <AlertTriangle className="h-5 w-5 text-red-400" />
+                  </div>
+                  <p className="text-2xl font-bold text-foreground">{urgentTasks.length}</p>
+                  <p className="text-xs text-muted-foreground">Urgentes</p>
                 </CardContent>
               </Card>
-              <Card className="border-0 shadow-md bg-gradient-to-br from-green-500 to-emerald-500 text-white">
+              <Card className="border border-white/[0.08] shadow-md bg-card">
                 <CardContent className="p-4 text-center">
-                  <Play className="h-6 w-6 mx-auto mb-1" />
-                  <p className="text-2xl font-bold">{inProgressTasks.length}</p>
-                  <p className="text-xs text-white/80">En Proceso</p>
+                  <div className="p-2 rounded-xl bg-green-500/15 w-fit mx-auto mb-2">
+                    <Play className="h-5 w-5 text-green-400" />
+                  </div>
+                  <p className="text-2xl font-bold text-foreground">{inProgressTasks.length}</p>
+                  <p className="text-xs text-muted-foreground">En Proceso</p>
                 </CardContent>
               </Card>
             </div>
@@ -336,20 +342,19 @@ export function OperarioDashboard() {
             {/* Botón Ver Todos los Proyectos - Tarjeta Grande */}
             <div className="mt-4">
               <Link href="/projects">
-                <Card className="border-0 shadow-lg bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 text-white cursor-pointer hover:shadow-xl hover:scale-[1.02] transition-all duration-300 overflow-hidden relative">
-                  <div className="absolute inset-0 bg-[#162828]/10 opacity-0 hover:opacity-100 transition-opacity" />
+                <Card className="border border-[rgba(106,207,199,0.25)] shadow-lg bg-[#162828] cursor-pointer hover:shadow-xl hover:border-[rgba(106,207,199,0.45)] transition-all duration-300 overflow-hidden">
                   <CardContent className="p-6 flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                      <div className="p-3 bg-[#162828]/20 rounded-xl">
-                        <Package className="h-8 w-8" />
+                      <div className="p-3 bg-teal-500/15 rounded-xl">
+                        <Package className="h-8 w-8 text-teal-400" />
                       </div>
                       <div>
-                        <h3 className="text-xl font-bold">Ver Todos los Proyectos</h3>
-                        <p className="text-sm text-white/80">Accede a la lista completa de proyectos</p>
+                        <h3 className="text-xl font-bold text-foreground">Ver Todos los Proyectos</h3>
+                        <p className="text-sm text-muted-foreground">Accede a la lista completa de proyectos</p>
                       </div>
                     </div>
-                    <div className="p-2 bg-[#162828]/20 rounded-full">
-                      <ArrowRight className="h-6 w-6" />
+                    <div className="p-2 bg-teal-500/15 rounded-full">
+                      <ArrowRight className="h-6 w-6 text-teal-400" />
                     </div>
                   </CardContent>
                 </Card>
@@ -760,23 +765,23 @@ function ProjectPhotoCard({
     <Card className="border-0 shadow-md overflow-hidden">
       <CardContent className="p-0">
         {/* Header del proyecto */}
-        <div 
-          className="p-4 bg-gradient-to-r from-blue-500 to-cyan-500 text-white cursor-pointer"
+        <div
+          className="p-4 bg-[#162828] border-b border-teal-500/25 cursor-pointer"
           onClick={onToggle}
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <span className="text-2xl">{workTypeEmoji[project.workType] || "📦"}</span>
               <div>
-                <h3 className="font-bold">{project.name}</h3>
-                <p className="text-sm text-white/80">{project.client?.name || "Cliente"}</p>
+                <h3 className="font-bold text-foreground">{project.name}</h3>
+                <p className="text-sm text-muted-foreground">{project.client?.name || "Cliente"}</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Badge variant="outline" className="bg-[#162828]/20 text-white border-white/30 text-xs">
+              <Badge variant="outline" className="bg-teal-500/15 text-teal-400 border-teal-500/25 text-xs">
                 {getStatusLabel(project.status)}
               </Badge>
-              {isExpanded ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+              {isExpanded ? <ChevronUp className="h-5 w-5 text-teal-400" /> : <ChevronDown className="h-5 w-5 text-teal-400" />}
             </div>
           </div>
         </div>

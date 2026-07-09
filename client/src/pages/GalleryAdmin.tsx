@@ -220,7 +220,7 @@ function ProjectGalleryCard({
                 {WORK_LABELS[project.workType] ?? project.workType}
               </Badge>
               {isPending && (
-                <Badge className="text-[10px] px-1.5 py-0 bg-amber-500/15 text-amber-700 border-amber-500/25 shrink-0">
+                <Badge className="text-[10px] px-1.5 py-0 bg-amber-500/15 text-amber-300 border-amber-500/25 shrink-0">
                   ⏳ Esperando aprobación
                 </Badge>
               )}
@@ -294,7 +294,7 @@ function GalleryRow({
 
       {/* Estado */}
       {approved ? (
-        <span className="flex items-center gap-1 text-[11px] text-emerald-600 font-medium shrink-0">
+        <span className="flex items-center gap-1 text-[11px] text-emerald-400 font-medium shrink-0">
           <CheckCircle2 className="h-3 w-3" />
           {approvedBy ? `Aprobado por ${approvedBy}` : "Aprobado"}
         </span>
@@ -313,7 +313,7 @@ function GalleryRow({
         <Button
           variant="ghost" size="sm"
           onClick={onOpen}
-          className="h-7 px-2 text-slate-500 hover:text-teal-600"
+          className="h-7 px-2 text-slate-500 hover:text-teal-400"
           title="Ver galería del cliente"
         >
           <ExternalLink className="h-3.5 w-3.5" />
@@ -321,7 +321,7 @@ function GalleryRow({
         <Button
           variant="ghost" size="sm"
           onClick={onCopy}
-          className="h-7 px-2 text-slate-500 hover:text-teal-600"
+          className="h-7 px-2 text-slate-500 hover:text-teal-400"
           title="Copiar link"
         >
           <Copy className="h-3.5 w-3.5" />
@@ -330,7 +330,7 @@ function GalleryRow({
           <Button
             variant="ghost" size="sm"
             onClick={() => window.open(waUrl, "_blank")}
-            className="h-7 px-2 text-slate-500 hover:text-green-600"
+            className="h-7 px-2 text-slate-500 hover:text-green-400"
             title="Enviar por WhatsApp"
           >
             <MessageCircle className="h-3.5 w-3.5" />

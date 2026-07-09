@@ -358,7 +358,7 @@ export function ProjectInlineDetail({
   const getMarginColor = (rentabilidad: number) => {
     if (rentabilidad >= 20) return { bg: "bg-green-500/15", text: "text-green-400", border: "border-green-300" };
     if (rentabilidad >= 10) return { bg: "bg-yellow-500/15", text: "text-yellow-400", border: "border-yellow-300" };
-    return { bg: "bg-red-500/15/50", text: "text-red-700", border: "border-red-300" };
+    return { bg: "bg-red-500/15/50", text: "text-red-300", border: "border-red-300" };
   };
 
   // Helper function to format currency
@@ -539,7 +539,7 @@ export function ProjectInlineDetail({
             <Button
               variant="outline"
               size="sm"
-              className="text-green-600 border-green-600 hover:bg-green-500/10"
+              className="text-green-400 border-green-600 hover:bg-green-500/10"
               onClick={() => {
                 const baseUrl = window.location.origin;
                 const portalUrl = `${baseUrl}/portal?project=${project.id}`;
@@ -804,7 +804,7 @@ export function ProjectInlineDetail({
             <AlertCircle className="h-4 w-4" />
             Proyecto en Ensamble
           </h4>
-          <p className="text-sm text-teal-700 mb-4">
+          <p className="text-sm text-teal-300 mb-4">
             Cuando termines el ensamble, marca el proyecto como listo para instalación.
           </p>
           <Button
@@ -827,7 +827,7 @@ export function ProjectInlineDetail({
             <CheckCircle2 className="h-4 w-4" />
             Proyecto En Instalación
           </h4>
-          <p className="text-sm text-teal-700 mb-4">
+          <p className="text-sm text-teal-300 mb-4">
             Coordina con el cliente la fecha de instalación y programa la entrega.
           </p>
           <Button
@@ -1197,7 +1197,7 @@ export function ProjectInlineDetail({
               {/* Sección Renders */}
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <Palette className="h-4 w-4 text-amber-600" />
+                  <Palette className="h-4 w-4 text-amber-400" />
                   <span className="font-semibold text-sm text-foreground">Renders Finales</span>
                   <Badge variant="outline" className="text-xs">
                     {projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length || 0} fotos
@@ -1244,7 +1244,7 @@ export function ProjectInlineDetail({
             {(projectDetail.photos?.filter((p: any) => p.subcategory === "despieces").length || 0) > 0 && (
               <div className="mt-4 pt-4 border-t border-white/[0.10]">
                 <div className="flex items-center gap-2 mb-2">
-                  <FileText className="h-4 w-4 text-blue-600" />
+                  <FileText className="h-4 w-4 text-blue-400" />
                   <span className="font-semibold text-sm text-foreground">Despieces</span>
                   <Badge variant="outline" className="text-xs">
                     {projectDetail.photos?.filter((p: any) => p.subcategory === "despieces").length} archivos
@@ -1399,7 +1399,7 @@ export function ProjectInlineDetail({
                                    payment.type === 'saldo_final' ? '• Pago 2 (Final)' :
                                    payment.type === 'abono' ? '• Abono' : '• Otro Pago'}
                                 </span>
-                                <span className="font-medium text-green-600">
+                                <span className="font-medium text-green-400">
                                   {new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(Number(payment.amount))}
                                 </span>
                               </div>
@@ -1411,7 +1411,7 @@ export function ProjectInlineDetail({
                         <div className="pt-2 border-t space-y-2">
                           <div className="flex justify-between">
                             <span className="text-muted-foreground">Total Pagado</span>
-                            <span className="font-bold text-green-600">
+                            <span className="font-bold text-green-400">
                               {new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(totalPaid)} ({percentagePaid}%)
                             </span>
                           </div>
@@ -1442,7 +1442,7 @@ export function ProjectInlineDetail({
                               href={projectDetail.advanceReceiptUrl} 
                               target="_blank" 
                               rel="noopener noreferrer"
-                              className="flex items-center gap-2 text-blue-600 hover:text-blue-300 hover:underline"
+                              className="flex items-center gap-2 text-blue-400 hover:text-blue-300 hover:underline"
                             >
                               <FileText className="h-4 w-4" />
                               Ver Recibo del Adelanto
@@ -1486,12 +1486,12 @@ export function ProjectInlineDetail({
               <CardContent className="text-sm space-y-1">
                 {/* Fechas de la cotización */}
                 {(projectDetail as any).quotation?.createdAt && user?.role !== "disenador" && user?.role !== "jefe_taller" && (
-                  <p className="text-blue-600">
+                  <p className="text-blue-400">
                     <strong>📋 Cotización creada:</strong> {new Date((projectDetail as any).quotation.createdAt).toLocaleDateString("es-CO")}
                   </p>
                 )}
                 {(projectDetail as any).quotation?.validUntil && user?.role !== "disenador" && user?.role !== "jefe_taller" && (
-                  <p className={new Date((projectDetail as any).quotation.validUntil) < new Date() ? "text-red-500" : "text-blue-600"}>
+                  <p className={new Date((projectDetail as any).quotation.validUntil) < new Date() ? "text-red-500" : "text-blue-400"}>
                     <strong>📅 Válida hasta:</strong> {new Date((projectDetail as any).quotation.validUntil).toLocaleDateString("es-CO")}
                     {new Date((projectDetail as any).quotation.validUntil) < new Date() && " (Vencida)"}
                   </p>
@@ -1508,26 +1508,26 @@ export function ProjectInlineDetail({
                 
                 {/* Fechas de instalación - Tentativa (roja) u Oficial (verde) */}
                 {projectDetail.tentativeInstallDate && !projectDetail.isInstallDateOfficial && projectDetail.status !== "entregado" && (
-                  <p className="text-red-600 font-medium">
+                  <p className="text-red-400 font-medium">
                     <strong>🔴 Instalación tentativa:</strong> {new Date(projectDetail.tentativeInstallDate).toLocaleDateString("es-CO")}
                   </p>
                 )}
                 {projectDetail.estimatedInstallDate && projectDetail.isInstallDateOfficial && projectDetail.status !== "entregado" && (
-                  <p className="text-green-600 font-medium">
+                  <p className="text-green-400 font-medium">
                     <strong>🟢 Instalación oficial:</strong> {new Date(projectDetail.estimatedInstallDate).toLocaleDateString("es-CO")}
                   </p>
                 )}
                 {projectDetail.estimatedInstallDate && !projectDetail.isInstallDateOfficial && !projectDetail.tentativeInstallDate && projectDetail.status !== "entregado" && (
                   <p className={`font-medium ${
                     new Date(projectDetail.estimatedInstallDate) < new Date() 
-                      ? "text-red-600" 
-                      : "text-green-600"
+                      ? "text-red-400" 
+                      : "text-green-400"
                   }`}>
                     <strong>Entrega estimada:</strong> {new Date(projectDetail.estimatedInstallDate).toLocaleDateString("es-CO")}
                   </p>
                 )}
                 {projectDetail.deliveredAt && (
-                  <p className="text-green-600 font-medium">
+                  <p className="text-green-400 font-medium">
                     <strong>Entregado:</strong> {new Date(projectDetail.deliveredAt).toLocaleDateString("es-CO")}
                   </p>
                 )}
@@ -1586,7 +1586,7 @@ export function ProjectInlineDetail({
                   {/* Desglose de Pagos Dinámico */}
                   <div className="text-center p-3 bg-blue-500/10 rounded-lg border border-blue-500/25">
                     <p className="text-xs font-semibold text-blue-300 mb-2">Desglose de Pagos</p>
-                    <div className="space-y-1 text-xs text-blue-600">
+                    <div className="space-y-1 text-xs text-blue-400">
                       {projectDetail.payments && projectDetail.payments.length > 0 ? (
                         projectDetail.payments.map((payment: any, idx: number) => (
                           <p key={idx}>
@@ -1635,7 +1635,7 @@ export function ProjectInlineDetail({
                      </p>
                      <p className={`text-xl font-bold ${
                        (projectDetail as any).financialInfo.remainingAmount > 0
-                         ? "text-red-700"
+                         ? "text-red-300"
                          : "text-green-400"
                      }`}>
                        {(projectDetail as any).financialInfo.remainingAmount > 0
@@ -1644,7 +1644,7 @@ export function ProjectInlineDetail({
                        }
                      </p>
                      {projectDetail.status === "entregado" && (projectDetail as any).financialInfo.remainingAmount > 0 && (
-                       <p className="text-xs text-red-600 mt-1 font-medium">
+                       <p className="text-xs text-red-400 mt-1 font-medium">
                          ⚠️ Pendiente de cobro
                       </p>
                     )}
@@ -1678,9 +1678,9 @@ export function ProjectInlineDetail({
                         <div key={payment.id} className="flex justify-between items-center text-sm p-2 bg-[#162828]/50 rounded">
                           <div>
                             <span className={`font-medium ${
-                              payment.type === 'adelanto' ? 'text-blue-600' :
-                              payment.type === 'saldo_final' ? 'text-green-600' :
-                              payment.type === 'abono' ? 'text-purple-600' : 'text-muted-foreground'
+                              payment.type === 'adelanto' ? 'text-blue-400' :
+                              payment.type === 'saldo_final' ? 'text-green-400' :
+                              payment.type === 'abono' ? 'text-purple-400' : 'text-muted-foreground'
                             }`}>
                               {payment.type === 'adelanto' ? 'Adelanto' :
                                payment.type === 'saldo_final' ? 'Saldo Final' :
@@ -1871,7 +1871,7 @@ export function ProjectInlineDetail({
                     </p>
                     <p className={`text-lg font-bold ${
                       financialSummary.saldoPendiente > 0
-                        ? "text-yellow-900"
+                        ? "text-yellow-100"
                         : "text-green-300"
                     }`}>
                       {formatCurrency(financialSummary.saldoPendiente)}
@@ -1954,7 +1954,7 @@ export function ProjectInlineDetail({
                       href={projectDetail.advanceReceiptUrl} 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="text-sm text-green-600 hover:underline flex items-center gap-1"
+                      className="text-sm text-green-400 hover:underline flex items-center gap-1"
                     >
                       <FileText className="h-4 w-4" />
                       Ver comprobante
@@ -1970,7 +1970,7 @@ export function ProjectInlineDetail({
                       href={(projectDetail as any).quotationPdfUrl} 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="text-sm text-blue-600 hover:underline flex items-center gap-1"
+                      className="text-sm text-blue-400 hover:underline flex items-center gap-1"
                     >
                       <FileText className="h-4 w-4" />
                       Ver PDF de cotización
@@ -2062,7 +2062,7 @@ export function ProjectInlineDetail({
                       <Button
                         size="sm"
                         variant="outline"
-                        className="text-emerald-600 border-emerald-600 hover:bg-emerald-500/10"
+                        className="text-emerald-400 border-emerald-600 hover:bg-emerald-500/10"
                         onClick={() => {
                           const folderToStageMap: Record<string, string> = {
                             documento_cotizacion: "inicial",
@@ -2595,7 +2595,7 @@ export function ProjectInlineDetail({
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <MessageCircle className="h-5 w-5 text-green-600" />
+              <MessageCircle className="h-5 w-5 text-green-400" />
               Notificar al Diseñador
             </DialogTitle>
             <DialogDescription>

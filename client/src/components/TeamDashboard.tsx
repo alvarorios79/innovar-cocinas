@@ -6,18 +6,19 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { Link } from "wouter";
 import { NotificationBell } from "@/components/NotificationBell";
 import { MobileNav } from "@/components/MobileNav";
-import { 
-  Palette, 
-  ClipboardList, 
-  Calendar, 
-  Users, 
-  FileText, 
+import {
+  Palette,
+  ClipboardList,
+  Calendar,
+  Users,
+  FileText,
   Wrench,
   Package,
   Truck,
   Clock,
   AlertTriangle,
   ArrowRight,
+  BookOpen,
   Phone,
   MapPin,
   Globe,
@@ -117,6 +118,20 @@ const roleConfig: Record<string, {
     bgGradient: "bg-gradient-to-br from-slate-50 via-white to-gray-100",
     icon: <Settings className="h-8 w-8" />,
   },
+  medidor: {
+    title: "Portal del Medidor",
+    subtitle: "Precisión en cada visita",
+    color: "from-cyan-500 to-blue-600",
+    bgGradient: "bg-gradient-to-br from-cyan-50 via-white to-blue-50",
+    icon: <MapPin className="h-8 w-8" />,
+  },
+  contador: {
+    title: "Portal del Contador",
+    subtitle: "Orden y control financiero",
+    color: "from-emerald-500 to-teal-600",
+    bgGradient: "bg-gradient-to-br from-emerald-50 via-white to-teal-50",
+    icon: <BookOpen className="h-8 w-8" />,
+  },
 };
 
 export function TeamDashboard() {
@@ -126,7 +141,9 @@ export function TeamDashboard() {
 
   // Queries para obtener datos
   const { data: projects = [] } = trpc.projects.list.useQuery();
-  const { data: tasks = [] } = trpc.tasks.list.useQuery();
+  const { data: tasks = [] } = trpc.tasks.list.useQuery(undefined, {
+    enabled: ["admin", "super_admin", "comercial", "jefe_taller", "disenador", "medidor", "contador"].includes(role),
+  });
   const { data: appointments = [] } = trpc.appointments.list.useQuery(undefined, {
     enabled: ["comercial", "admin", "super_admin"].includes(role),
   });
@@ -180,7 +197,7 @@ export function TeamDashboard() {
   // Estadísticas por rol
   const getStats = () => {
     switch (role) {
-      case "disenador":
+      case "disenador": {
         const cambiosPendientes = myProjects.filter(p => p.status === "en_diseno" && (p as any).clientApprovalNotes).length;
         return [
           { 
@@ -205,8 +222,8 @@ export function TeamDashboard() {
             color: "bg-gradient-to-br from-indigo-500 to-indigo-600",
             link: "/tasks"
           },
-          { 
-            label: "✨ Nuevos para Diseñar", 
+          {
+            label: "✨ Nuevos para Diseñar",
             value: myProjects.filter(p => p.status === "adelanto_recibido").length,
             icon: <Target className="h-6 w-6" />,
             color: "bg-gradient-to-br from-green-500 to-emerald-500",
@@ -214,6 +231,7 @@ export function TeamDashboard() {
             highlight: myProjects.filter(p => p.status === "adelanto_recibido").length > 0
           },
         ];
+      }
       case "comercial":
         return [
           { 
@@ -276,7 +294,7 @@ export function TeamDashboard() {
             link: "/tasks"
           },
         ];
-      case "jefe_taller":
+      case "jefe_taller": {
         // Contar proyectos atrasados (más de 5 días en la misma etapa de producción)
         const overdueProjects = myProjects.filter(p => {
           if (!["despiece", "corte", "enchape", "ensamble"].includes(p.status)) return false;
@@ -368,9 +386,10 @@ export function TeamDashboard() {
             link: "/tasks"
           },
         ];
-      case "operario":
+      }
+      case "operario": {
         // Proyectos en producción por etapa para el operario
-        const enProduccion = myProjects.filter(p => 
+        const enProduccion = myProjects.filter(p =>
           ["despiece", "corte", "enchape", "ensamble"].includes(p.status)
         );
         const listosInstalar = myProjects.filter(p => 
@@ -406,6 +425,17 @@ export function TeamDashboard() {
             link: "/tasks",
             highlight: myTasks.filter(t => t.priority === "alta").length > 0
           },
+        ];
+      }
+      case "medidor":
+        return [
+          { label: "Proyectos", value: myProjects.length, icon: <Briefcase className="h-6 w-6" />, color: "bg-gradient-to-br from-cyan-500 to-blue-500", link: "/projects" },
+          { label: "Mis Tareas", value: myTasks.length, icon: <ClipboardList className="h-6 w-6" />, color: "bg-gradient-to-br from-blue-500 to-indigo-500", link: "/tasks" },
+        ];
+      case "contador":
+        return [
+          { label: "Contabilidad", value: 0, icon: <BookOpen className="h-6 w-6" />, color: "bg-gradient-to-br from-emerald-500 to-teal-500", link: "/contador" },
+          { label: "Mis Tareas", value: myTasks.length, icon: <ClipboardList className="h-6 w-6" />, color: "bg-gradient-to-br from-teal-500 to-cyan-500", link: "/tasks" },
         ];
       default: // super_admin
         return [
@@ -478,6 +508,16 @@ export function TeamDashboard() {
           { label: "Producción", href: "/projects", icon: <Wrench className="h-6 w-6" />, color: "bg-gradient-to-br from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700" },
           { label: "Mis Tareas", href: "/tasks", icon: <ClipboardList className="h-6 w-6" />, color: "bg-gradient-to-br from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700" },
           { label: "Calendario", href: "/calendar", icon: <Calendar className="h-6 w-6" />, color: "bg-gradient-to-br from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700" },
+        ];
+      case "medidor":
+        return [
+          { label: "Proyectos", href: "/projects", icon: <Briefcase className="h-6 w-6" />, color: "bg-gradient-to-br from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700" },
+          { label: "Mis Tareas", href: "/tasks", icon: <ClipboardList className="h-6 w-6" />, color: "bg-gradient-to-br from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700" },
+        ];
+      case "contador":
+        return [
+          { label: "Contabilidad", href: "/contador", icon: <BookOpen className="h-6 w-6" />, color: "bg-gradient-to-br from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700" },
+          { label: "Proyectos", href: "/projects", icon: <Briefcase className="h-6 w-6" />, color: "bg-gradient-to-br from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700" },
         ];
       default: // super_admin
         return [

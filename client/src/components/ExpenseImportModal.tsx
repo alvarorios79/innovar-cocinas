@@ -328,7 +328,7 @@ export function ExpenseImportModal({
               </div>
             </div>
 
-            <div className="rounded-lg bg-blue-500/10 p-3 text-sm text-blue-700">
+            <div className="rounded-lg bg-blue-500/10 p-3 text-sm text-blue-300">
               <p>Formatos soportados: CSV, XLSX</p>
               <p>Máximo: 500 filas por archivo</p>
             </div>
@@ -351,11 +351,11 @@ export function ExpenseImportModal({
                   <span>Total de filas:</span>
                   <span className="font-semibold">{result.total}</span>
                 </div>
-                <div className="flex justify-between text-green-700">
+                <div className="flex justify-between text-green-300">
                   <span>Importadas:</span>
                   <span className="font-semibold">{result.successful}</span>
                 </div>
-                <div className="flex justify-between text-red-700">
+                <div className="flex justify-between text-red-300">
                   <span>Errores:</span>
                   <span className="font-semibold">{result.failed}</span>
                 </div>
@@ -367,7 +367,7 @@ export function ExpenseImportModal({
                 <h3 className="font-semibold text-sm">Errores encontrados:</h3>
                 <div className="max-h-48 space-y-1 overflow-y-auto rounded-lg bg-red-500/10 p-3">
                   {result.errors.map((error, idx) => (
-                    <div key={idx} className="flex gap-2 text-xs text-red-700">
+                    <div key={idx} className="flex gap-2 text-xs text-red-300">
                       <AlertCircle className="h-4 w-4 flex-shrink-0" />
                       <span>
                         Fila {error.row}: {error.error}

@@ -172,7 +172,7 @@ export function InitialPaymentModal({
           )}
 
           {/* Botones */}
-          <div className="flex gap-3 pt-4 sticky bottom-0 bg-white border-t">
+          <div className="flex gap-3 pt-4 sticky bottom-0 bg-card border-t border-white/[0.08]">
             <Button
               variant="outline"
               onClick={onCancel}

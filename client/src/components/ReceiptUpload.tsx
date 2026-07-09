@@ -94,9 +94,9 @@ export function ReceiptUpload({
         <div className="flex items-center justify-between p-3 bg-green-500/10 border border-green-500/25 rounded-lg">
           <div className="flex items-center gap-2">
             {previewUrl.endsWith(".pdf") ? (
-              <FileText className="h-5 w-5 text-red-600" />
+              <FileText className="h-5 w-5 text-red-400" />
             ) : (
-              <Image className="h-5 w-5 text-blue-600" />
+              <Image className="h-5 w-5 text-blue-400" />
             )}
             <div className="flex-1">
               <p className="text-sm font-medium text-foreground">{fileName}</p>
@@ -104,7 +104,7 @@ export function ReceiptUpload({
                 href={previewUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs text-teal-600 hover:underline"
+                className="text-xs text-teal-400 hover:underline"
               >
                 Ver archivo
               </a>

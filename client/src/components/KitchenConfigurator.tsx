@@ -218,14 +218,14 @@ export function KitchenConfigurator({
       <CardContent className="p-4">
         {/* Header */}
         <div className="flex items-center gap-2 mb-4 pb-2 border-b border-emerald-200">
-          <ChefHat className="h-5 w-5 text-emerald-600" />
+          <ChefHat className="h-5 w-5 text-emerald-400" />
           <h4 className="font-bold text-emerald-300 text-lg">Configuración de Cocina Integral</h4>
         </div>
 
         <div className="space-y-6">
           {/* Dimensiones */}
           <div className="bg-emerald-500/10 p-4 rounded-lg border border-emerald-200">
-            <h5 className="font-semibold text-emerald-700 mb-3">Dimensiones del Proyecto</h5>
+            <h5 className="font-semibold text-emerald-300 mb-3">Dimensiones del Proyecto</h5>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label className="text-sm font-medium text-white/85 block mb-2">Tipo de Cocina</Label>
@@ -261,10 +261,10 @@ export function KitchenConfigurator({
               </div>
             </div>
             <div className="mt-3 p-3 bg-emerald-500/15 rounded">
-              <p className="text-sm text-emerald-700">
+              <p className="text-sm text-emerald-300">
                 <strong>Metraje resultante:</strong> {resultingMeters.toFixed(2)} ml
               </p>
-              <p className="text-xs text-emerald-600 mt-1">
+              <p className="text-xs text-emerald-400 mt-1">
                 Muebles Inferiores: {resultingMeters.toFixed(2)} ml | Muebles Superiores: {resultingMeters.toFixed(2)} ml
               </p>
             </div>
@@ -290,7 +290,7 @@ export function KitchenConfigurator({
                     </Label>
                   </div>
                 </div>
-                <span className={`font-semibold ${currentConfig.specialModules.nichoNevecon ? 'text-emerald-700' : 'text-gray-400'}`}>
+                <span className={`font-semibold ${currentConfig.specialModules.nichoNevecon ? 'text-emerald-300' : 'text-gray-400'}`}>
                   $1,200,000
                 </span>
               </div>
@@ -310,7 +310,7 @@ export function KitchenConfigurator({
                     </Label>
                   </div>
                 </div>
-                <span className={`font-semibold ${currentConfig.specialModules.nichoNevera ? 'text-emerald-700' : 'text-gray-400'}`}>
+                <span className={`font-semibold ${currentConfig.specialModules.nichoNevera ? 'text-emerald-300' : 'text-gray-400'}`}>
                   $1,200,000
                 </span>
               </div>
@@ -330,7 +330,7 @@ export function KitchenConfigurator({
                     </Label>
                   </div>
                 </div>
-                <span className={`font-semibold ${currentConfig.specialModules.alacenaEntrepanos ? 'text-emerald-700' : 'text-gray-400'}`}>
+                <span className={`font-semibold ${currentConfig.specialModules.alacenaEntrepanos ? 'text-emerald-300' : 'text-gray-400'}`}>
                   $1,250,000
                 </span>
               </div>
@@ -350,7 +350,7 @@ export function KitchenConfigurator({
                     </Label>
                   </div>
                 </div>
-                <span className={`font-semibold ${currentConfig.specialModules.alacenaHerraje ? 'text-emerald-700' : 'text-gray-400'}`}>
+                <span className={`font-semibold ${currentConfig.specialModules.alacenaHerraje ? 'text-emerald-300' : 'text-gray-400'}`}>
                   $900,000
                 </span>
               </div>
@@ -370,7 +370,7 @@ export function KitchenConfigurator({
                     </Label>
                   </div>
                 </div>
-                <span className={`font-semibold ${currentConfig.specialModules.torreHornos ? 'text-emerald-700' : 'text-gray-400'}`}>
+                <span className={`font-semibold ${currentConfig.specialModules.torreHornos ? 'text-emerald-300' : 'text-gray-400'}`}>
                   $1,350,000
                 </span>
               </div>
@@ -379,8 +379,8 @@ export function KitchenConfigurator({
 
           {/* Módulos de Cocina — checklist descriptivo */}
           <div className="bg-teal-500/10 p-4 rounded-lg border border-teal-500/25">
-            <h5 className="font-semibold text-teal-700 mb-3">Módulos de Cocina (para descripción)</h5>
-            <p className="text-xs text-teal-600 mb-3">Selecciona los módulos que lleva esta cocina — se usan para generar la descripción automática de la cotización.</p>
+            <h5 className="font-semibold text-teal-300 mb-3">Módulos de Cocina (para descripción)</h5>
+            <p className="text-xs text-teal-400 mb-3">Selecciona los módulos que lleva esta cocina — se usan para generar la descripción automática de la cotización.</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {([
                 { key: "esquinero1x1",       label: "Esquinero 1×1 (inferior)" },
@@ -412,7 +412,7 @@ export function KitchenConfigurator({
 
           {/* Mesón Principal */}
           <div className="bg-emerald-500/10 p-4 rounded-lg border border-emerald-200">
-            <h5 className="font-semibold text-emerald-700 mb-3">Mesón Principal</h5>
+            <h5 className="font-semibold text-emerald-300 mb-3">Mesón Principal</h5>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label className="text-sm font-medium text-white/85 block mb-2">Tipo de Mesón *</Label>
@@ -603,8 +603,8 @@ export function KitchenConfigurator({
                   onCheckedChange={(c) => updateConfig("paintedDoors.enabled", c === true)} 
                 />
                 <div className="flex items-center gap-2">
-                  <Paintbrush className="h-4 w-4 text-pink-600" />
-                  <Label htmlFor="painted-doors-enabled" className="cursor-pointer font-semibold text-pink-700">
+                  <Paintbrush className="h-4 w-4 text-pink-400" />
+                  <Label htmlFor="painted-doors-enabled" className="cursor-pointer font-semibold text-pink-300">
                     Pintado Puertas Alto Brillo
                   </Label>
                 </div>
@@ -613,7 +613,7 @@ export function KitchenConfigurator({
             
             {currentConfig.paintedDoors?.enabled && (
               <div className="space-y-3 mt-3 pt-3 border-t border-pink-200">
-                <p className="text-xs text-pink-600 mb-2">Ingrese la cantidad de cada tipo de puerta</p>
+                <p className="text-xs text-pink-400 mb-2">Ingrese la cantidad de cada tipo de puerta</p>
                 
                 {/* Puertas Superiores */}
                 <div className="flex items-center justify-between p-2 bg-[#162828] rounded border">
@@ -630,7 +630,7 @@ export function KitchenConfigurator({
                       placeholder="0"
                       className="h-8 w-20 text-right bg-[#162828]"
                     />
-                    <span className="text-sm text-pink-700 font-medium w-28 text-right">
+                    <span className="text-sm text-pink-300 font-medium w-28 text-right">
                       ${((currentConfig.paintedDoors?.upperQty || 0) * 120000).toLocaleString()}
                     </span>
                   </div>
@@ -651,7 +651,7 @@ export function KitchenConfigurator({
                       placeholder="0"
                       className="h-8 w-20 text-right bg-[#162828]"
                     />
-                    <span className="text-sm text-pink-700 font-medium w-28 text-right">
+                    <span className="text-sm text-pink-300 font-medium w-28 text-right">
                       ${((currentConfig.paintedDoors?.lowerQty || 0) * 150000).toLocaleString()}
                     </span>
                   </div>
@@ -672,7 +672,7 @@ export function KitchenConfigurator({
                       placeholder="0"
                       className="h-8 w-20 text-right bg-[#162828]"
                     />
-                    <span className="text-sm text-pink-700 font-medium w-28 text-right">
+                    <span className="text-sm text-pink-300 font-medium w-28 text-right">
                       ${((currentConfig.paintedDoors?.pantryQty || 0) * 250000).toLocaleString()}
                     </span>
                   </div>
@@ -693,7 +693,7 @@ export function KitchenConfigurator({
                       placeholder="0"
                       className="h-8 w-20 text-right bg-[#162828]"
                     />
-                    <span className="text-sm text-pink-700 font-medium w-28 text-right">
+                    <span className="text-sm text-pink-300 font-medium w-28 text-right">
                       ${((currentConfig.paintedDoors?.drawerQty || 0) * 80000).toLocaleString()}
                     </span>
                   </div>
@@ -714,7 +714,7 @@ export function KitchenConfigurator({
                       placeholder="0"
                       className="h-8 w-20 text-right bg-[#162828]"
                     />
-                    <span className="text-sm text-pink-700 font-medium w-28 text-right">
+                    <span className="text-sm text-pink-300 font-medium w-28 text-right">
                       ${((currentConfig.paintedDoors?.spiceQty || 0) * 100000).toLocaleString()}
                     </span>
                   </div>
@@ -735,7 +735,7 @@ export function KitchenConfigurator({
                       placeholder="0"
                       className="h-8 w-20 text-right bg-[#162828]"
                     />
-                    <span className="text-sm text-pink-700 font-medium w-28 text-right">
+                    <span className="text-sm text-pink-300 font-medium w-28 text-right">
                       ${((currentConfig.paintedDoors?.golaQty || 0) * 45000).toLocaleString()}
                     </span>
                   </div>
@@ -743,8 +743,8 @@ export function KitchenConfigurator({
 
                 {/* Total Pintado */}
                 <div className="flex items-center justify-between p-2 bg-pink-500/15 rounded border border-pink-300 mt-2">
-                  <Label className="text-sm font-bold text-pink-800">Total Pintado Alto Brillo:</Label>
-                  <span className="text-lg font-bold text-pink-800">
+                  <Label className="text-sm font-bold text-pink-200">Total Pintado Alto Brillo:</Label>
+                  <span className="text-lg font-bold text-pink-200">
                     ${((
                       (currentConfig.paintedDoors?.upperQty || 0) * 120000 +
                       (currentConfig.paintedDoors?.lowerQty || 0) * 150000 +
@@ -813,12 +813,12 @@ export function KitchenConfigurator({
                 {/* Lista de Puertas de Aluminio + Vidrio */}
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <Label className="text-sm font-medium text-amber-700">Puertas en Marco de Aluminio + Vidrio Ahumado</Label>
+                    <Label className="text-sm font-medium text-amber-300">Puertas en Marco de Aluminio + Vidrio Ahumado</Label>
                     <Button
                       type="button"
                       size="sm"
                       variant="outline"
-                      className="border-amber-400 text-amber-700 hover:bg-amber-500/15"
+                      className="border-amber-400 text-amber-300 hover:bg-amber-500/15"
                       onClick={() => {
                         const newDoor = {
                           id: `door-${Date.now()}`,
@@ -839,7 +839,7 @@ export function KitchenConfigurator({
                   </div>
                   
                   {(currentConfig.specialFinishes?.aluminumGlassDoors || []).length === 0 ? (
-                    <p className="text-sm text-amber-600 italic">No hay puertas agregadas. Haz clic en "Agregar Puerta" para comenzar.</p>
+                    <p className="text-sm text-amber-400 italic">No hay puertas agregadas. Haz clic en "Agregar Puerta" para comenzar.</p>
                   ) : (
                     <div className="space-y-2">
                       {(currentConfig.specialFinishes?.aluminumGlassDoors || []).map((door, index) => {
@@ -851,7 +851,7 @@ export function KitchenConfigurator({
                         
                         return (
                           <div key={door.id} className="flex items-center gap-2 bg-[#162828] p-2 rounded border border-amber-500/25">
-                            <span className="text-sm font-medium text-amber-700 w-16">Puerta {index + 1}:</span>
+                            <span className="text-sm font-medium text-amber-300 w-16">Puerta {index + 1}:</span>
                             <div className="flex items-center gap-1">
                               <Label className="text-xs text-white/45">Alto:</Label>
                               <Input
@@ -904,9 +904,9 @@ export function KitchenConfigurator({
                               <span className="text-xs">m</span>
                             </div>
                             <div className="flex-1 text-right text-sm">
-                              <span className="text-amber-700">{sqm.toFixed(2)} m²</span>
+                              <span className="text-amber-300">{sqm.toFixed(2)} m²</span>
                               {extraHinges > 0 && (
-                                <span className="text-orange-600 ml-2">+{extraHinges} par bisagras</span>
+                                <span className="text-orange-400 ml-2">+{extraHinges} par bisagras</span>
                               )}
                               <span className="font-semibold text-amber-300 ml-2">${totalDoorPrice.toLocaleString()}</span>
                             </div>
@@ -914,7 +914,7 @@ export function KitchenConfigurator({
                               type="button"
                               size="sm"
                               variant="ghost"
-                              className="text-red-500 hover:text-red-700 hover:bg-red-500/10 h-8 w-8 p-0"
+                              className="text-red-500 hover:text-red-300 hover:bg-red-500/10 h-8 w-8 p-0"
                               onClick={() => {
                                 const newDoors = (currentConfig.specialFinishes?.aluminumGlassDoors || []).filter((_, i) => i !== index);
                                 updateConfig("specialFinishes", {
@@ -932,7 +932,7 @@ export function KitchenConfigurator({
                       {/* Subtotal Puertas */}
                       {(currentConfig.specialFinishes?.aluminumGlassDoors || []).length > 0 && (
                         <div className="flex justify-between items-center pt-2 border-t border-amber-500/25">
-                          <span className="text-sm text-amber-700">Subtotal Puertas Aluminio + Vidrio:</span>
+                          <span className="text-sm text-amber-300">Subtotal Puertas Aluminio + Vidrio:</span>
                           <span className="font-semibold text-amber-300">
                             ${(currentConfig.specialFinishes?.aluminumGlassDoors || []).reduce((sum, door) => {
                               const sqm = door.height * door.width;
@@ -962,7 +962,7 @@ export function KitchenConfigurator({
                         });
                       }} 
                     />
-                    <Label htmlFor="led-alacenas" className="cursor-pointer text-sm font-medium text-amber-700 flex items-center gap-2">
+                    <Label htmlFor="led-alacenas" className="cursor-pointer text-sm font-medium text-amber-300 flex items-center gap-2">
                       <Lightbulb className="h-4 w-4" />
                       Luz LED para Alacenas ($180,000/ml)
                     </Label>
@@ -1037,55 +1037,55 @@ export function KitchenConfigurator({
                 <span className="font-medium">Calculado</span>
               </div>
               {currentConfig.specialModules.nichoNevecon && (
-                <div className="flex justify-between text-emerald-700">
+                <div className="flex justify-between text-emerald-300">
                   <span>+ Nicho nevecon:</span>
                   <span className="font-medium">$1,200,000</span>
                 </div>
               )}
               {currentConfig.specialModules.nichoNevera && (
-                <div className="flex justify-between text-emerald-700">
+                <div className="flex justify-between text-emerald-300">
                   <span>+ Nicho nevera:</span>
                   <span className="font-medium">$1,200,000</span>
                 </div>
               )}
               {currentConfig.specialModules.alacenaEntrepanos && (
-                <div className="flex justify-between text-emerald-700">
+                <div className="flex justify-between text-emerald-300">
                   <span>+ Alacena entrepaños:</span>
                   <span className="font-medium">$1,250,000</span>
                 </div>
               )}
               {currentConfig.specialModules.alacenaHerraje && (
-                <div className="flex justify-between text-emerald-700">
+                <div className="flex justify-between text-emerald-300">
                   <span>+ Alacena herraje:</span>
                   <span className="font-medium">$900,000</span>
                 </div>
               )}
               {currentConfig.specialModules.torreHornos && (
-                <div className="flex justify-between text-emerald-700">
+                <div className="flex justify-between text-emerald-300">
                   <span>+ Torre de hornos:</span>
                   <span className="font-medium">$1,350,000</span>
                 </div>
               )}
               {currentConfig.island.enabled && (
-                <div className="flex justify-between text-emerald-700">
+                <div className="flex justify-between text-emerald-300">
                   <span>+ Isla ({currentConfig.island.meters}ml):</span>
                   <span className="font-medium">Incluido</span>
                 </div>
               )}
               {currentConfig.bar.enabled && (
-                <div className="flex justify-between text-emerald-700">
+                <div className="flex justify-between text-emerald-300">
                   <span>+ Barra ({currentConfig.bar.meters}ml):</span>
                   <span className="font-medium">Incluido</span>
                 </div>
               )}
               {currentConfig.ledLighting > 0 && (
-                <div className="flex justify-between text-emerald-700">
+                <div className="flex justify-between text-emerald-300">
                   <span>+ LED ({currentConfig.ledLighting}ml × $180,000):</span>
                   <span className="font-medium">${(currentConfig.ledLighting * precioLedMl).toLocaleString()}</span>
                 </div>
               )}
               {currentConfig.paintedDoors?.enabled && (
-                <div className="flex justify-between text-pink-700">
+                <div className="flex justify-between text-pink-300">
                   <span>+ Pintado Alto Brillo:</span>
                   <span className="font-medium">
                     ${((
@@ -1100,7 +1100,7 @@ export function KitchenConfigurator({
                 </div>
               )}
               {currentConfig.specialFinishes?.enabled && (currentConfig.specialFinishes?.aluminumGlassDoors || []).length > 0 && (
-                <div className="flex justify-between text-amber-700">
+                <div className="flex justify-between text-amber-300">
                   <span>+ Puertas Aluminio+Vidrio ({(currentConfig.specialFinishes?.aluminumGlassDoors || []).length}):</span>
                   <span className="font-medium">
                     ${(currentConfig.specialFinishes?.aluminumGlassDoors || []).reduce((sum, door) => {
@@ -1112,7 +1112,7 @@ export function KitchenConfigurator({
                 </div>
               )}
               {currentConfig.specialFinishes?.enabled && currentConfig.specialFinishes?.ledLighting?.enabled && (currentConfig.specialFinishes?.ledLighting?.meters || 0) > 0 && (
-                <div className="flex justify-between text-amber-700">
+                <div className="flex justify-between text-amber-300">
                   <span>+ LED Alacenas ({currentConfig.specialFinishes?.ledLighting?.meters}ml):</span>
                   <span className="font-medium">
                     ${((currentConfig.specialFinishes?.ledLighting?.meters || 0) * precioLedMl).toLocaleString()}
@@ -1120,7 +1120,7 @@ export function KitchenConfigurator({
                 </div>
               )}
               {includesFixedCosts && (
-                <div className="flex justify-between text-emerald-700">
+                <div className="flex justify-between text-emerald-300">
                   <span>+ Transporte e imprevistos:</span>
                   <span className="font-medium">${fixedCostsAmount.toLocaleString()}</span>
                 </div>

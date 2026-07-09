@@ -119,10 +119,10 @@ export function DesignerChecklist({
   }
   
   return (
-    <Card className="border-purple-500/25 bg-gradient-to-br from-purple-50 to-white">
+    <Card className="border-purple-500/25 bg-gradient-to-br from-purple-950/30 to-white">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg flex items-center gap-2 text-purple-700">
+          <CardTitle className="text-lg flex items-center gap-2 text-purple-300">
             <CheckCircle2 className="h-5 w-5" />
             Checklist de Entregables
           </CardTitle>
@@ -131,12 +131,12 @@ export function DesignerChecklist({
               variant="outline" 
               className={`flex items-center gap-1 ${
                 timeRemaining.expired 
-                  ? "bg-red-500/15 text-red-700 border-red-300 animate-pulse" 
+                  ? "bg-red-500/15 text-red-300 border-red-300 animate-pulse" 
                   : timeRemaining.urgency === "critical"
-                    ? "bg-orange-500/15 text-orange-700 border-orange-500/30"
+                    ? "bg-orange-500/15 text-orange-300 border-orange-500/30"
                     : timeRemaining.urgency === "warning"
-                      ? "bg-yellow-500/15 text-yellow-700 border-yellow-300"
-                      : "bg-green-500/15 text-green-700 border-green-300"
+                      ? "bg-yellow-500/15 text-yellow-300 border-yellow-300"
+                      : "bg-green-500/15 text-green-300 border-green-300"
               }`}
             >
               <Timer className="h-3 w-3" />
@@ -171,9 +171,9 @@ export function DesignerChecklist({
           }`}>
             <div className="flex items-center gap-3">
               <Clock className={`h-8 w-8 ${
-                timeRemaining.expired ? "text-red-600" : 
-                timeRemaining.urgency === "critical" ? "text-orange-600" :
-                timeRemaining.urgency === "warning" ? "text-yellow-600" : "text-green-600"
+                timeRemaining.expired ? "text-red-400" : 
+                timeRemaining.urgency === "critical" ? "text-orange-400" :
+                timeRemaining.urgency === "warning" ? "text-yellow-400" : "text-green-400"
               }`} />
               <div>
                 <p className="font-semibold text-sm">
@@ -208,16 +208,16 @@ export function DesignerChecklist({
                 }`}
               >
                 <div className={`p-2 rounded-full ${isChecked ? "bg-green-500/15" : "bg-white/[0.06]"}`}>
-                  <Icon className={`h-4 w-4 ${isChecked ? "text-green-600" : "text-gray-400"}`} />
+                  <Icon className={`h-4 w-4 ${isChecked ? "text-green-400" : "text-gray-400"}`} />
                 </div>
                 <div className="flex-1">
-                  <p className={`font-medium text-sm ${isChecked ? "text-green-700" : "text-muted-foreground"}`}>
+                  <p className={`font-medium text-sm ${isChecked ? "text-green-300" : "text-muted-foreground"}`}>
                     {item.label}
                   </p>
                   <p className="text-xs text-muted-foreground">{item.description}</p>
                 </div>
                 {isChecked ? (
-                  <CheckCircle2 className="h-5 w-5 text-green-600" />
+                  <CheckCircle2 className="h-5 w-5 text-green-400" />
                 ) : (
                   <AlertTriangle className="h-5 w-5 text-yellow-500" />
                 )}

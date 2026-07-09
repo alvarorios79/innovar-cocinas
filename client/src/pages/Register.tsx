@@ -71,7 +71,7 @@ export default function Register() {
   };
 
   const PasswordCheck = ({ valid, text }: { valid: boolean; text: string }) => (
-    <div className={`flex items-center gap-2 text-xs ${valid ? "text-green-600" : "text-gray-400"}`}>
+    <div className={`flex items-center gap-2 text-xs ${valid ? "text-green-400" : "text-gray-400"}`}>
       {valid ? <CheckCircle2 className="h-3 w-3" /> : <XCircle className="h-3 w-3" />}
       {text}
     </div>
@@ -172,7 +172,7 @@ export default function Register() {
                 className="h-11"
               />
               {confirmPassword.length > 0 && (
-                <div className={`flex items-center gap-2 text-xs ${passwordsMatch ? "text-green-600" : "text-red-500"}`}>
+                <div className={`flex items-center gap-2 text-xs ${passwordsMatch ? "text-green-400" : "text-red-500"}`}>
                   {passwordsMatch ? <CheckCircle2 className="h-3 w-3" /> : <XCircle className="h-3 w-3" />}
                   {passwordsMatch ? "Las contraseñas coinciden" : "Las contraseñas no coinciden"}
                 </div>
@@ -201,13 +201,13 @@ export default function Register() {
           <div className="mt-6 text-center space-y-2">
             <p className="text-sm text-muted-foreground">
               ¿Ya tienes cuenta?{" "}
-              <Link href="/login" className="text-teal-600 hover:text-teal-700 font-medium">
+              <Link href="/login" className="text-teal-400 hover:text-teal-300 font-medium">
                 Inicia sesión
               </Link>
             </p>
             <button
               onClick={() => window.history.back()}
-              className="text-sm text-gray-500 hover:text-teal-600 transition-colors"
+              className="text-sm text-gray-500 hover:text-teal-400 transition-colors"
             >
               ← Volver a la página principal
             </button>

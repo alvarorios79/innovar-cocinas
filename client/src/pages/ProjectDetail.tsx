@@ -1109,20 +1109,20 @@ export default function ProjectDetail() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                     
                     {/* Tarjeta Modelado 3D */}
-                    <div className={`relative rounded-xl p-5 transition-all duration-300 ${projectDetail.photos?.filter((p: any) => p.subcategory === "modelado_3d").length > 0 ? 'bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/30 border-2 border-purple-500/25 dark:border-purple-700 hover:shadow-md' : 'bg-white/[0.03] dark:bg-gray-800 border-2 border-dashed border-white/[0.15] dark:border-gray-600'}`}>
+                    <div className={`relative rounded-xl p-5 transition-all duration-300 ${projectDetail.photos?.filter((p: any) => p.subcategory === "modelado_3d").length > 0 ? 'bg-purple-500/15 border-2 border-purple-500/25 hover:shadow-md' : 'bg-white/[0.03] border-2 border-dashed border-white/[0.15]'}`}>
                       <div className="flex items-start gap-4">
-                        <div className={`p-3 rounded-xl ${projectDetail.photos?.filter((p: any) => p.subcategory === "modelado_3d").length > 0 ? 'bg-purple-500 text-white' : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400'}`}>
+                        <div className={`p-3 rounded-xl ${projectDetail.photos?.filter((p: any) => p.subcategory === "modelado_3d").length > 0 ? 'bg-purple-500 text-white' : 'bg-white/[0.10] text-muted-foreground'}`}>
                           <Box className="h-6 w-6" />
                         </div>
                         <div className="flex-1">
-                          <h4 className="font-semibold text-foreground dark:text-gray-200">Modelado 3D</h4>
-                          <p className="text-sm text-muted-foreground dark:text-gray-400 mt-1">
-                            {projectDetail.photos?.filter((p: any) => p.subcategory === "modelado_3d").length > 0 
+                          <h4 className="font-semibold text-foreground">Modelado 3D</h4>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            {projectDetail.photos?.filter((p: any) => p.subcategory === "modelado_3d").length > 0
                               ? `${projectDetail.photos?.filter((p: any) => p.subcategory === "modelado_3d").length} imagen(es) listas`
                               : 'Sin imágenes aún'}
                           </p>
                           {projectDetail.modeladoApprovedAt && (
-                            <div className="mt-2 flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
+                            <div className="mt-2 flex items-center gap-1 text-xs text-green-400">
                               <CheckCircle2 className="h-3 w-3" />
                               Aprobado por {projectDetail.modeladoApprovedBy}
                             </div>
@@ -1144,20 +1144,20 @@ export default function ProjectDetail() {
                     </div>
                     
                     {/* Tarjeta Renders */}
-                    <div className={`relative rounded-xl p-5 transition-all duration-300 ${projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length > 0 ? 'bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/30 dark:to-emerald-800/30 border-2 border-emerald-200 dark:border-emerald-700 hover:shadow-md' : 'bg-white/[0.03] dark:bg-gray-800 border-2 border-dashed border-white/[0.15] dark:border-gray-600'}`}>
+                    <div className={`relative rounded-xl p-5 transition-all duration-300 ${projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length > 0 ? 'bg-emerald-500/15 border-2 border-emerald-500/25 hover:shadow-md' : 'bg-white/[0.03] border-2 border-dashed border-white/[0.15]'}`}>
                       <div className="flex items-start gap-4">
-                        <div className={`p-3 rounded-xl ${projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length > 0 ? 'bg-emerald-500 text-white' : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400'}`}>
+                        <div className={`p-3 rounded-xl ${projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length > 0 ? 'bg-emerald-500 text-white' : 'bg-white/[0.10] text-muted-foreground'}`}>
                           <ImageIcon className="h-6 w-6" />
                         </div>
                         <div className="flex-1">
-                          <h4 className="font-semibold text-foreground dark:text-gray-200">Renders Finales</h4>
-                          <p className="text-sm text-muted-foreground dark:text-gray-400 mt-1">
-                            {projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length > 0 
+                          <h4 className="font-semibold text-foreground">Renders Finales</h4>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            {projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length > 0
                               ? `${projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length} imagen(es) listas`
                               : 'Sin imágenes aún'}
                           </p>
                           {projectDetail.rendersApprovedAt && (
-                            <div className="mt-2 flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
+                            <div className="mt-2 flex items-center gap-1 text-xs text-green-400">
                               <CheckCircle2 className="h-3 w-3" />
                               Aprobado por {projectDetail.rendersApprovedBy}
                             </div>
@@ -1211,10 +1211,10 @@ export default function ProjectDetail() {
                     
                     return (
                       <div className={`rounded-xl p-5 border mb-4 ${
-                        statusColor === "amber" ? "bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20 border-amber-500/25 dark:border-amber-700" :
-                        statusColor === "green" ? "bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-green-500/25 dark:border-green-700" :
-                        statusColor === "blue" ? "bg-gradient-to-r from-blue-50 to-sky-50 dark:from-blue-900/20 dark:to-sky-900/20 border-blue-500/25 dark:border-blue-700" :
-                        "bg-gradient-to-r from-gray-50 to-slate-50 dark:from-gray-900/20 dark:to-slate-900/20 border-white/[0.10] dark:border-gray-700"
+                        statusColor === "amber" ? "bg-amber-500/10 border-amber-500/25" :
+                        statusColor === "green" ? "bg-green-500/10 border-green-500/25" :
+                        statusColor === "blue" ? "bg-blue-500/10 border-blue-500/25" :
+                        "bg-white/[0.03] border-white/[0.10]"
                       }`}>
                         <div className="flex items-center gap-3 mb-4">
                           <div className={`p-2 rounded-lg text-white ${

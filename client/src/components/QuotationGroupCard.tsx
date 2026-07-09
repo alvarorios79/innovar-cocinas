@@ -174,7 +174,7 @@ export function QuotationGroupCard({
               {group.versionCount > 1 && (
                 <button
                   onClick={() => setShowComparator(true)}
-                  className="flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-300 border border-indigo-200 hover:border-indigo-400 rounded-full px-2 py-0 transition-colors"
+                  className="flex items-center gap-1 text-xs text-indigo-400 hover:text-indigo-300 border border-indigo-200 hover:border-indigo-400 rounded-full px-2 py-0 transition-colors"
                   title="Comparar versiones"
                 >
                   <GitCompare className="w-3 h-3" />
@@ -206,7 +206,7 @@ export function QuotationGroupCard({
                 </Badge>
               )}
               {group.hasProject && selectedVersion.id === group.activeProjectQuotationId && (
-                <Badge className="bg-indigo-500/15 text-indigo-700 text-xs py-0 px-2 border border-indigo-200 flex items-center gap-1">
+                <Badge className="bg-indigo-500/15 text-indigo-300 text-xs py-0 px-2 border border-indigo-200 flex items-center gap-1">
                   <span>💰 Precio vigente</span>
                 </Badge>
               )}
@@ -500,7 +500,7 @@ export function QuotationGroupCard({
 
         {/* Indicador de versión histórica */}
         {!isActiveVersion && (
-          <div className="text-xs text-amber-700 bg-amber-500/10 border border-amber-500/25 rounded px-2 py-1">
+          <div className="text-xs text-amber-300 bg-amber-500/10 border border-amber-500/25 rounded px-2 py-1">
             Versión histórica - Solo lectura
           </div>
         )}

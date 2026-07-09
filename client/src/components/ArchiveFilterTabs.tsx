@@ -20,7 +20,7 @@ export function ArchiveFilterTabs({ activeTab, onTabChange, tabs }: ArchiveFilte
           onClick={() => onTabChange(tab.id)}
           className={`text-sm font-medium transition-colors ${
             activeTab === tab.id
-              ? "bg-white shadow-sm text-foreground"
+              ? "bg-[#162828] shadow-sm text-foreground border border-white/[0.08]"
               : "text-muted-foreground hover:text-foreground hover:bg-accent"
           }`}
         >

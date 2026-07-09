@@ -233,7 +233,7 @@ export function ProjectTimeline({
                   "flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center border-2 z-10",
                   completed && "bg-green-500 border-green-500 text-white",
                   current && "bg-blue-500 border-blue-500 text-white animate-pulse",
-                  pending && "bg-white border-red-400 text-red-400"
+                  pending && "bg-red-400/20 border-red-400 text-red-400"
                 )}
               >
                 {completed ? (
@@ -249,8 +249,8 @@ export function ProjectTimeline({
                   <h4
                     className={cn(
                       "font-semibold",
-                      completed && "text-green-700",
-                      current && "text-blue-700",
+                      completed && "text-green-300",
+                      current && "text-blue-300",
                       pending && "text-red-500"
                     )}
                   >
@@ -260,8 +260,8 @@ export function ProjectTimeline({
                     <span
                       className={cn(
                         "text-xs",
-                        completed && "text-green-600",
-                        current && "text-blue-600",
+                        completed && "text-green-400",
+                        current && "text-blue-400",
                         pending && "text-gray-400"
                       )}
                     >
@@ -272,8 +272,8 @@ export function ProjectTimeline({
                 <p
                   className={cn(
                     "text-sm",
-                    completed && "text-green-600",
-                    current && "text-blue-600",
+                    completed && "text-green-400",
+                    current && "text-blue-400",
                     pending && "text-gray-400"
                   )}
                 >

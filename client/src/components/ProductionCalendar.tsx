@@ -129,7 +129,7 @@ export function ProductionCalendar({ className }: ProductionCalendarProps) {
           isPast ? "bg-white/[0.03]" : "bg-[#162828]"
         }`}
       >
-        <div className={`text-xs font-medium mb-1 ${isToday ? "text-blue-600" : "text-muted-foreground"}`}>
+        <div className={`text-xs font-medium mb-1 ${isToday ? "text-blue-400" : "text-muted-foreground"}`}>
           {day}
         </div>
         <div className="space-y-1">
@@ -170,7 +170,7 @@ export function ProductionCalendar({ className }: ProductionCalendarProps) {
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg flex items-center gap-2">
-            <CalendarIcon className="h-5 w-5 text-teal-600" />
+            <CalendarIcon className="h-5 w-5 text-teal-400" />
             Calendario de Producción
           </CardTitle>
           <div className="flex items-center gap-2">
@@ -267,9 +267,9 @@ export function ProductionCalendar({ className }: ProductionCalendarProps) {
                             </span>
                           </div>
                           <div className={`flex items-center gap-1 font-medium ${
-                            isOverdue ? "text-red-600" :
-                            isWarning ? "text-yellow-600" :
-                            "text-green-600"
+                            isOverdue ? "text-red-400" :
+                            isWarning ? "text-yellow-400" :
+                            "text-green-400"
                           }`}>
                             {isOverdue ? (
                               <AlertTriangle className="h-4 w-4" />

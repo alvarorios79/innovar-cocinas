@@ -98,7 +98,7 @@ export function QuotationVersioning({
 
           {/* Listado de versiones */}
           {versionChain && versionChain.length > 0 && (
-            <div className="bg-white rounded p-2 border border-blue-100">
+            <div className="bg-card rounded p-2 border border-white/[0.08]">
               <p className="text-xs font-medium text-muted-foreground mb-2">Historial de versiones:</p>
               <div className="flex flex-wrap gap-2">
                 {versionChain.map((version: any, index: number) => (

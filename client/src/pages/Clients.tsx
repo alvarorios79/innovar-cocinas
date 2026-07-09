@@ -274,7 +274,7 @@ export default function Clients() {
       <Dialog open={!!createdCreds} onOpenChange={(v) => !v && setCreatedCreds(null)}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-teal-700">
+            <DialogTitle className="flex items-center gap-2 text-teal-300">
               <CheckCircle className="h-5 w-5" /> Credenciales generadas
             </DialogTitle>
           </DialogHeader>
@@ -486,7 +486,7 @@ function CredRow({ label, value }: { label: string; value: string }) {
         <p className="text-sm font-mono font-medium text-white/80 truncate">{value}</p>
       </div>
       <button onClick={copy} className="text-white/35 hover:text-teal-400 shrink-0 transition-colors">
-        {copied ? <Check className="h-4 w-4 text-teal-600" /> : <Copy className="h-4 w-4" />}
+        {copied ? <Check className="h-4 w-4 text-teal-400" /> : <Copy className="h-4 w-4" />}
       </button>
     </div>
   );

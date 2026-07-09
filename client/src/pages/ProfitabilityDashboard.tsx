@@ -106,7 +106,7 @@ export default function ProfitabilityDashboard() {
   if (!isAuthenticated || (user?.role !== "admin" && user?.role !== "super_admin")) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <p className="text-red-600">
+        <p className="text-red-400">
           No tienes permiso para acceder a este dashboard
         </p>
       </div>
@@ -260,7 +260,7 @@ export default function ProfitabilityDashboard() {
                       Margen:{" "}
                       <strong
                         className={
-                          month.margen >= 0 ? "text-green-600" : "text-red-600"
+                          month.margen >= 0 ? "text-green-400" : "text-red-400"
                         }
                       >
                         {formatPrice(month.margen)}
@@ -315,17 +315,17 @@ export default function ProfitabilityDashboard() {
                       <td className="py-3 px-3 font-medium text-white/85">
                         {monthNames[month.month]} {month.year}
                       </td>
-                      <td className="text-right py-3 px-3 text-green-600 font-semibold">
+                      <td className="text-right py-3 px-3 text-green-400 font-semibold">
                         {formatPrice(month.ingresos)}
                       </td>
-                      <td className="text-right py-3 px-3 text-red-600 font-semibold">
+                      <td className="text-right py-3 px-3 text-red-400 font-semibold">
                         {formatPrice(month.gastos)}
                       </td>
                       <td
                         className={`text-right py-3 px-3 font-semibold ${
                           month.margen >= 0
-                            ? "text-blue-600"
-                            : "text-red-600"
+                            ? "text-blue-400"
+                            : "text-red-400"
                         }`}
                       >
                         {formatPrice(month.margen)}

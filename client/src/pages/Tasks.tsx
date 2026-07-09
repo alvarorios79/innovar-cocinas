@@ -513,7 +513,7 @@ export default function Tasks() {
               {/* Historial de recordatorios */}
               {task.reminderCount > 0 && (
                 <div className="mt-2 pt-2 border-t border-dashed border-amber-500/25">
-                  <p className="flex items-center gap-1 text-amber-600">
+                  <p className="flex items-center gap-1 text-amber-400">
                     <Bell className="h-3 w-3" />
                     <strong>Recordatorios enviados:</strong> {task.reminderCount}
                   </p>
@@ -565,7 +565,7 @@ export default function Tasks() {
               <Button
                 size="sm"
                 variant="ghost"
-                className="text-amber-600 hover:text-amber-700 hover:bg-amber-500/10"
+                className="text-amber-400 hover:text-amber-300 hover:bg-amber-500/10"
                 onClick={() => setReminderConfirm({
                   open: true,
                   taskId: task.id,
@@ -625,7 +625,7 @@ export default function Tasks() {
                   variant="outline"
                   size="sm"
                   onClick={() => setShowReassignDialog(true)}
-                  className="border-blue-500 text-blue-600 hover:bg-blue-500/10"
+                  className="border-blue-500 text-blue-400 hover:bg-blue-500/10"
                 >
                   <Users className="mr-2 h-4 w-4" />
                   Reasignar ({selectedTasks.length})
@@ -667,14 +667,14 @@ export default function Tasks() {
 
       {/* Filtro por vencimiento */}
       <Select value={dueDateFilter} onValueChange={setDueDateFilter}>
-        <SelectTrigger className={`w-[160px] ${dueDateFilter !== 'all' ? 'border-amber-500 bg-amber-500/10 dark:bg-amber-950' : ''}`}>
+        <SelectTrigger className={`w-[160px] ${dueDateFilter !== 'all' ? 'border-amber-500 bg-amber-500/10' : ''}`}>
           <Clock className="h-4 w-4 mr-2" />
           <SelectValue placeholder="Vencimiento" />
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="all">Todas las fechas</SelectItem>
           <SelectItem value="urgentes">
-            <span className="flex items-center gap-2 text-red-600">
+            <span className="flex items-center gap-2 text-red-400">
               <AlertTriangle className="h-4 w-4" />
               Urgentes (vencidas/hoy)
             </span>
@@ -685,12 +685,12 @@ export default function Tasks() {
             </span>
           </SelectItem>
           <SelectItem value="hoy">
-            <span className="flex items-center gap-2 text-amber-600">
+            <span className="flex items-center gap-2 text-amber-400">
               Vencen hoy
             </span>
           </SelectItem>
           <SelectItem value="proximas">
-            <span className="flex items-center gap-2 text-yellow-600">
+            <span className="flex items-center gap-2 text-yellow-400">
               Próximas (3 días)
             </span>
           </SelectItem>
@@ -1119,11 +1119,11 @@ export default function Tasks() {
                               <Clock className="h-3 w-3 mr-1" />
                               {stat.pending}
                             </Badge>
-                            <Badge variant="outline" className="bg-blue-500/15 text-blue-700">
+                            <Badge variant="outline" className="bg-blue-500/15 text-blue-300">
                               <Play className="h-3 w-3 mr-1" />
                               {stat.inProgress}
                             </Badge>
-                            <Badge variant="outline" className="bg-green-500/15 text-green-700">
+                            <Badge variant="outline" className="bg-green-500/15 text-green-300">
                               <CheckCircle2 className="h-3 w-3 mr-1" />
                               {stat.completed}
                             </Badge>
@@ -1214,7 +1214,7 @@ export default function Tasks() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <MessageCircle className="h-5 w-5 text-green-600" />
+              <MessageCircle className="h-5 w-5 text-green-400" />
               {whatsAppDialogType === "recordatorio" ? "Enviar Recordatorio por WhatsApp" : "Notificar por WhatsApp"}
             </DialogTitle>
             <DialogDescription>

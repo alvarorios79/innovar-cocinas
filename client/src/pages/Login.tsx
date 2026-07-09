@@ -109,7 +109,7 @@ export default function Login() {
           </form>
 
           <div className="mt-4 text-center">
-            <Link href="/forgot-password" className="text-sm text-amber-600 hover:text-amber-700">
+            <Link href="/forgot-password" className="text-sm text-amber-400 hover:text-amber-300">
               ¿Olvidaste tu contraseña?
             </Link>
           </div>
@@ -117,13 +117,13 @@ export default function Login() {
           <div className="mt-6 text-center space-y-2 pt-4 border-t">
             <p className="text-sm text-muted-foreground">
               ¿No tienes cuenta?{" "}
-              <Link href="/register" className="text-amber-600 hover:text-amber-700 font-medium">
+              <Link href="/register" className="text-amber-400 hover:text-amber-300 font-medium">
                 Regístrate aquí
               </Link>
             </p>
             <button
               onClick={() => window.history.back()}
-              className="text-sm text-gray-500 hover:text-amber-600 transition-colors"
+              className="text-sm text-gray-500 hover:text-amber-400 transition-colors"
             >
               ← Volver a la página principal
             </button>

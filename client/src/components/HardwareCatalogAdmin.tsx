@@ -230,7 +230,7 @@ export function HardwareCatalogAdmin() {
                       <SelectItem value="puertas">Puertas</SelectItem>
                     </SelectContent>
                   </Select>
-                  <p className="text-xs text-blue-700">El herraje se agregará a la categoría: <strong>{categoryLabels[form.category]}</strong></p>
+                  <p className="text-xs text-blue-300">El herraje se agregará a la categoría: <strong>{categoryLabels[form.category]}</strong></p>
                 </div>
                 <div className="space-y-2">
                   <Label>Nombre</Label>

@@ -71,8 +71,8 @@ const menuSections: MenuSection[] = [
     title: "Principal",
     items: [
       { icon: Home,            label: "Inicio",    path: "/", iconColor: "#1DB5A8" },
-      { icon: LayoutDashboard, label: "Panel CEO", path: "/ceo-dashboard",
-        roles: ["super_admin"], iconColor: "#0ea5e9" },
+      { icon: LayoutDashboard, label: "Financiero", path: "/ceo-dashboard",
+        roles: ["super_admin", "admin"], iconColor: "#0ea5e9" },
     ],
   },
   {
@@ -104,8 +104,6 @@ const menuSections: MenuSection[] = [
     items: [
       { icon: DollarSign, label: "Contabilidad", path: "/accounting",
         roles: ["super_admin", "admin"], iconColor: "#10b981" },
-      { icon: BarChart3,  label: "Rentabilidad", path: "/profitability-dashboard",
-        roles: ["super_admin", "admin"], iconColor: "#06b6d4" },
       { icon: BookOpen,   label: "Contador",      path: "/contador",
         roles: ["super_admin", "admin", "contador"], iconColor: "#34d399" },
     ],

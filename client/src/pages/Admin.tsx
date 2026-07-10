@@ -625,7 +625,7 @@ export default function Admin() {
                         Eliminar ({selectedAppointments.length})
                       </Button>
                     )}
-                    <Link href="/#agendar-cita">
+                    <Link href="/">
                       <Button>
                         <Plus className="mr-2 h-4 w-4" />
                         Crear Cita

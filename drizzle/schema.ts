@@ -101,12 +101,14 @@ export const appointments = pgTable("appointments", {
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	deletedAt: timestamp({ mode: 'string' }),
 	dataOrigin: text().default('manual').notNull(),
+	assignedMedidorId: integer().references(() => users.id),
 },
 (table) => [
 	index("appointments_clientId_idx").on(table.clientId),
 	index("appointments_scheduledDate_idx").on(table.scheduledDate),
 	index("appointments_status_idx").on(table.status),
 	index("appointments_client_status_idx").on(table.clientId, table.status),
+	index("appointments_assignedMedidor_idx").on(table.assignedMedidorId),
 ]);
 
 export const auditLogs = pgTable("auditLogs", {

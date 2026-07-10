@@ -7,8 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { 
-  Calculator, 
+import {
+  Calculator,
   DollarSign,
   TrendingUp,
   Download,
@@ -17,6 +17,7 @@ import {
   ArrowLeft,
   Edit2,
   Trash2,
+  CreditCard,
 } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { Link } from "wouter";
@@ -33,6 +34,9 @@ import {
 import { useAuth } from "@/_core/hooks/useAuth";
 import { ExpenseImportModal } from "@/components/ExpenseImportModal";
 import { ReceiptUpload } from "@/components/ReceiptUpload";
+import { Textarea } from "@/components/ui/textarea";
+import { PaymentsSummary } from "@/components/PaymentsSummary";
+import { PaymentsTable } from "@/components/PaymentsTable";
 import { AccountingClosureTab } from "@/components/AccountingClosureTab";
 import { ClosureReportTab } from "@/components/ClosureReportTab";
 import { ConfirmedClosuresTab } from "@/components/ConfirmedClosuresTab";
@@ -85,13 +89,55 @@ export default function Accounting() {
   const [importModalOpen, setImportModalOpen] = useState(false);
   const [receiptUrl, setReceiptUrl] = useState<string>("");
   const [receiptFileName, setReceiptFileName] = useState<string>("");
-  const [activeTab, setActiveTab] = useState<"expenses" | "closure" | "confirmed" | "closed" | "reports">("expenses");
+  const [activeTab, setActiveTab] = useState<"expenses" | "movimientos" | "closure" | "confirmed" | "closed" | "reports">("expenses");
+
+  // ── Movimientos state ──────────────────────────────────────────────────────
+  const [movClientId, setMovClientId] = useState<string>("");
+  const [movProjectId, setMovProjectId] = useState<string>("");
+  const [movAmount, setMovAmount] = useState("");
+  const [movMovementType, setMovMovementType] = useState<"payment" | "discount" | "surcharge">("payment");
+  const [movType, setMovType] = useState<"advance" | "final" | "partial" | "other">("advance");
+  const [movMethod, setMovMethod] = useState<"transfer" | "cash" | "check" | "other">("transfer");
+  const [movDate, setMovDate] = useState(new Date().toISOString().split("T")[0]);
+  const [movNotes, setMovNotes] = useState("");
+  const [movSubmitting, setMovSubmitting] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [filterProjectId, setFilterProjectId] = useState<string>("");
 
   // Queries
   const { data: projects } = trpc.projects.list.useQuery();
   const { data: expenses } = trpc.expenses.getAll.useQuery();
+
+  // ── Movimientos queries ────────────────────────────────────────────────────
+  const movProjectIdNum = movProjectId ? parseInt(movProjectId) : 0;
+  const { data: movPayments = [], refetch: refetchMovPayments } = trpc.payments.getByProject.useQuery(
+    { projectId: movProjectIdNum },
+    { enabled: movProjectIdNum > 0 }
+  );
+  const { data: movProjectDetail, refetch: refetchMovProjectDetail } = trpc.projects.getById.useQuery(
+    { id: movProjectIdNum },
+    { enabled: movProjectIdNum > 0 }
+  );
+
+  // Clientes únicos derivados de los proyectos ya cargados
+  const uniqueClients = useMemo(() => {
+    if (!projects) return [];
+    const seen = new Set<number>();
+    const clients: { id: number; name: string }[] = [];
+    for (const p of projects as any[]) {
+      if (p.client && !seen.has(p.client.id)) {
+        seen.add(p.client.id);
+        clients.push({ id: p.client.id, name: p.client.name });
+      }
+    }
+    return clients.sort((a, b) => a.name.localeCompare(b.name));
+  }, [projects]);
+
+  // Proyectos del cliente seleccionado
+  const clientFilteredProjects = useMemo(() => {
+    if (!projects || !movClientId) return [];
+    return (projects as any[]).filter(p => p.client?.id?.toString() === movClientId);
+  }, [projects, movClientId]);
 
   // Check if user has permission to import
   const canImport = user?.role === "admin" || user?.role === "super_admin";
@@ -142,6 +188,48 @@ export default function Accounting() {
       toast.error(`Error: ${error.message}`);
     },
   });
+
+  // ── Movimientos mutations ──────────────────────────────────────────────────
+  const createMovMutation = trpc.payments.create.useMutation({
+    onSuccess: () => {
+      toast.success("Movimiento registrado correctamente");
+      refetchMovPayments();
+      refetchMovProjectDetail();
+      setMovAmount("");
+      setMovNotes("");
+    },
+    onError: (error: any) => toast.error(error.message || "Error al registrar movimiento"),
+  });
+
+  const deleteMovMutation = trpc.payments.delete.useMutation({
+    onSuccess: () => {
+      toast.success("Movimiento eliminado");
+      refetchMovPayments();
+      refetchMovProjectDetail();
+    },
+    onError: (error: any) => toast.error(error.message || "Error al eliminar movimiento"),
+  });
+
+  const handleMovSubmit = async () => {
+    if (!movProjectId || !movAmount || parseFloat(movAmount) <= 0) {
+      toast.error("Selecciona un proyecto y un monto válido");
+      return;
+    }
+    setMovSubmitting(true);
+    try {
+      await createMovMutation.mutateAsync({
+        projectId: movProjectIdNum,
+        amount: parseFloat(movAmount),
+        type: movType,
+        receivedAt: new Date(movDate),
+        method: movMethod,
+        movementType: movMovementType,
+        notes: movNotes || undefined,
+      });
+    } finally {
+      setMovSubmitting(false);
+    }
+  };
 
   // Export handler
   const handleExportExpenses = async () => {
@@ -332,6 +420,15 @@ export default function Accounting() {
               <DollarSign className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
               <span className="hidden sm:inline">Gastos</span>
               <span className="sm:hidden">Gastos</span>
+            </Button>
+            <Button
+              variant={activeTab === "movimientos" ? "default" : "ghost"}
+              onClick={() => setActiveTab("movimientos")}
+              className="rounded-b-none whitespace-nowrap text-xs sm:text-sm md:text-base px-2 sm:px-3 md:px-4"
+            >
+              <CreditCard className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Movimientos</span>
+              <span className="sm:hidden">Mov.</span>
             </Button>
             <Button
               variant={activeTab === "closure" ? "default" : "ghost"}
@@ -750,6 +847,181 @@ export default function Accounting() {
           </AlertDialogContent>
         </AlertDialog>
         </>
+        )}
+
+        {/* MOVIMIENTOS TAB */}
+        {activeTab === "movimientos" && (
+          <div className="space-y-6">
+            {/* Formulario de registro */}
+            <Card className="shadow-lg">
+              <CardHeader>
+                <CardTitle>Registrar Movimiento</CardTitle>
+                <CardDescription>Registra un abono, descuento o recargo y asígnalo al proyecto del cliente</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {/* Cliente → Proyecto */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label>Cliente *</Label>
+                      <Select
+                        value={movClientId}
+                        onValueChange={(v) => { setMovClientId(v); setMovProjectId(""); }}
+                      >
+                        <SelectTrigger className="h-12">
+                          <SelectValue placeholder="Selecciona un cliente" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {uniqueClients.map((c) => (
+                            <SelectItem key={c.id} value={c.id.toString()}>{c.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label>Proyecto *</Label>
+                      <Select
+                        value={movProjectId}
+                        onValueChange={setMovProjectId}
+                        disabled={!movClientId}
+                      >
+                        <SelectTrigger className="h-12">
+                          <SelectValue placeholder={movClientId ? "Selecciona un proyecto" : "Primero selecciona un cliente"} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {clientFilteredProjects.map((p: any) => (
+                            <SelectItem key={p.id} value={p.id.toString()}>{p.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  {/* Tipo de movimiento + Tipo de pago */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label>Tipo de Movimiento *</Label>
+                      <Select value={movMovementType} onValueChange={(v: any) => setMovMovementType(v)}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="payment">Pago / Abono</SelectItem>
+                          <SelectItem value="discount">Descuento</SelectItem>
+                          <SelectItem value="surcharge">Recargo</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label>Tipo de Pago *</Label>
+                      <Select value={movType} onValueChange={(v: any) => setMovType(v)}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="advance">Adelanto (60%)</SelectItem>
+                          <SelectItem value="final">Final (40%)</SelectItem>
+                          <SelectItem value="partial">Parcial</SelectItem>
+                          <SelectItem value="other">Otro</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  {/* Monto + Fecha */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label>Monto *</Label>
+                      <Input
+                        type="number"
+                        placeholder="0"
+                        value={movAmount}
+                        onChange={(e: any) => setMovAmount(e.target.value)}
+                        min="0"
+                        step="100"
+                        className="h-12"
+                      />
+                    </div>
+                    <div>
+                      <Label>Fecha *</Label>
+                      <Input
+                        type="date"
+                        value={movDate}
+                        onChange={(e: any) => setMovDate(e.target.value)}
+                        className="h-12"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Método */}
+                  <div>
+                    <Label>Método de Pago</Label>
+                    <Select value={movMethod} onValueChange={(v: any) => setMovMethod(v)}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="transfer">Transferencia</SelectItem>
+                        <SelectItem value="cash">Efectivo</SelectItem>
+                        <SelectItem value="check">Cheque</SelectItem>
+                        <SelectItem value="other">Otro</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Notas */}
+                  <div>
+                    <Label>Notas (opcional)</Label>
+                    <Textarea
+                      placeholder="Notas sobre este movimiento..."
+                      value={movNotes}
+                      onChange={(e: any) => setMovNotes(e.target.value)}
+                      rows={2}
+                    />
+                  </div>
+
+                  <div className="flex justify-end pt-2">
+                    <Button
+                      onClick={handleMovSubmit}
+                      disabled={movSubmitting || !movProjectId || !movAmount || parseFloat(movAmount || "0") <= 0}
+                      className="h-12 px-8 text-base font-semibold bg-green-600 hover:bg-green-700 text-white"
+                    >
+                      {movSubmitting ? "Registrando..." : "Registrar Movimiento"}
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Resumen financiero del proyecto seleccionado */}
+            {movProjectId && (movProjectDetail as any)?.financialInfo && (
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-white/45 mb-3">Resumen del Proyecto</p>
+                <PaymentsSummary
+                  totalAmount={(movProjectDetail as any).financialInfo.totalAmount || 0}
+                  totalPaid={(movProjectDetail as any).financialInfo.totalPaid || 0}
+                  balance={(movProjectDetail as any).financialInfo.dynamicBalance || 0}
+                  discounts={(movProjectDetail as any).financialInfo.totalDiscounts || 0}
+                  surcharges={(movProjectDetail as any).financialInfo.totalSurcharges || 0}
+                  totalCobrado={(movProjectDetail as any).financialInfo.totalCobrado || 0}
+                />
+              </div>
+            )}
+
+            {/* Historial de movimientos del proyecto */}
+            {movProjectId && (
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-white/45 mb-3">Historial de Movimientos</p>
+                <PaymentsTable
+                  payments={movPayments as any}
+                  isLoading={false}
+                  isAdmin={canEditDelete ?? false}
+                  onDelete={async (paymentId) => { await deleteMovMutation.mutateAsync({ paymentId }); }}
+                  isDeleting={deleteMovMutation.isPending}
+                />
+              </div>
+            )}
+          </div>
         )}
 
         {/* CLOSURE TAB */}

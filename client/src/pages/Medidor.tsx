@@ -1,5 +1,6 @@
 // client/src/pages/Medidor.tsx
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
+import { useSearch } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -330,10 +331,32 @@ function SignaturePad({ onSave, onCancel }: { onSave: (signature: string) => voi
 
 // ── Componente principal ─────────────────────────────────────────────────────
 export default function Medidor() {
+  const searchStr = useSearch();
+
+  // Pre-fill desde cita agendada: /medidor?from=apt&id=X&name=...&phone=...&address=...&workType=...
+  const prefill = useMemo(() => {
+    const p = new URLSearchParams(searchStr);
+    if (p.get("from") === "apt") {
+      return {
+        appointmentId: p.get("id") || "",
+        name: p.get("name") || "",
+        phone: p.get("phone") || "",
+        address: p.get("address") || "",
+        workType: (p.get("workType") || "") as WorkType | "",
+      };
+    }
+    return null;
+  }, [searchStr]);
+
   const [view, setView] = useState<"list" | "new" | "detail">("list");
   const [selectedVisit, setSelectedVisit] = useState<Visit | null>(null);
   const [visitDetail, setVisitDetail] = useState<Visit | null>(null);
   const [showSignature, setShowSignature] = useState(false);
+
+  // Auto-abrir formulario nuevo si viene desde cita
+  useEffect(() => {
+    if (prefill) setView("new");
+  }, [prefill]);
   const [showSummary, setShowSummary] = useState(false);
   const [selectedPhotoCategory, setSelectedPhotoCategory] = useState<PhotoCategory>("general");
 
@@ -349,7 +372,7 @@ export default function Medidor() {
     enabled: view === "list",
   });
 
-  const { data: detailData } = trpc.technicalVisits.getById.useQuery(
+  const { data: detailData, refetch: refetchDetail } = trpc.technicalVisits.getById.useQuery(
     { visitId: selectedVisit?.id || "" },
     {
       enabled: view === "detail" && !!selectedVisit,
@@ -468,6 +491,7 @@ export default function Medidor() {
           category: selectedPhotoCategory,
         });
         toast.success("Foto subida");
+        refetchDetail();
         refetchVisits();
       };
       reader.readAsDataURL(file);
@@ -480,6 +504,7 @@ export default function Medidor() {
     try {
       await deletePhoto.mutateAsync({ photoId });
       toast.success("Foto eliminada");
+      refetchDetail();
       refetchVisits();
     } catch (error) {
       toast.error("Error al eliminar foto");
@@ -632,21 +657,27 @@ export default function Medidor() {
             <h1 className="text-2xl font-bold text-white">Nueva Visita Técnica</h1>
           </div>
 
+          {prefill && (
+            <div className="bg-teal-900/30 border border-teal-500/40 rounded-lg p-3 mb-4 text-sm text-teal-300">
+              Datos pre-llenados desde cita agendada #{prefill.appointmentId}
+            </div>
+          )}
+
           <form onSubmit={handleCreateVisit} className="space-y-4">
             <div className="bg-[#162828] border border-[#1DB5A8]/20 rounded-lg p-4 space-y-4">
               <div>
                 <label className="block text-sm font-semibold text-[#1DB5A8] mb-2">Nombre del cliente *</label>
-                <Input name="clientName" required className="bg-[#0C1A1A] border-[#1DB5A8]/20 text-white" />
+                <Input name="clientName" required defaultValue={prefill?.name || ""} className="bg-[#0C1A1A] border-[#1DB5A8]/20 text-white" />
               </div>
 
               <div>
                 <label className="block text-sm font-semibold text-[#1DB5A8] mb-2">Teléfono WhatsApp *</label>
-                <Input name="clientPhone" required className="bg-[#0C1A1A] border-[#1DB5A8]/20 text-white" />
+                <Input name="clientPhone" required defaultValue={prefill?.phone || ""} className="bg-[#0C1A1A] border-[#1DB5A8]/20 text-white" />
               </div>
 
               <div>
                 <label className="block text-sm font-semibold text-[#1DB5A8] mb-2">Dirección *</label>
-                <Input name="clientAddress" required className="bg-[#0C1A1A] border-[#1DB5A8]/20 text-white" />
+                <Input name="clientAddress" required defaultValue={prefill?.address || ""} className="bg-[#0C1A1A] border-[#1DB5A8]/20 text-white" />
               </div>
 
               <div>
@@ -654,7 +685,14 @@ export default function Medidor() {
                 <div className="grid grid-cols-2 gap-3">
                   {(Object.keys(WORK_TYPE_LABELS) as WorkType[]).map((type) => (
                     <label key={type} className="relative">
-                      <input type="radio" name="workType" value={type} required className="peer sr-only" />
+                      <input
+                        type="radio"
+                        name="workType"
+                        value={type}
+                        required
+                        defaultChecked={prefill?.workType === type}
+                        className="peer sr-only"
+                      />
                       <div className="border border-[#1DB5A8]/20 rounded-lg p-3 cursor-pointer peer-checked:bg-[#1DB5A8]/20 peer-checked:border-[#1DB5A8] transition-colors">
                         <p className="text-sm font-medium text-white">{WORK_TYPE_LABELS[type]}</p>
                       </div>

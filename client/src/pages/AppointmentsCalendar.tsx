@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import {
   ChevronLeft,
   ChevronRight,
@@ -26,6 +26,7 @@ import {
   Pencil,
   Check,
   X,
+  ClipboardList,
 } from "lucide-react";
 import { VisualCalendar } from "@/components/VisualCalendar";
 import { PageHeader } from "@/components/PageHeader";
@@ -92,6 +93,7 @@ interface Appointment {
 
 export default function AppointmentsCalendar() {
   const { user } = useAuth();
+  const [, navigate] = useLocation();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
@@ -261,12 +263,14 @@ export default function AppointmentsCalendar() {
           icon={<Calendar className="h-5 w-5" />}
           showBack={true}
           actions={
-            <Link href="/calendar">
-              <Button variant="outline" size="sm" className="gap-2">
-                <Calendar className="h-4 w-4" />
-                <span>Instalaciones</span>
-              </Button>
-            </Link>
+            user?.role !== "medidor" ? (
+              <Link href="/calendar">
+                <Button variant="outline" size="sm" className="gap-2">
+                  <Calendar className="h-4 w-4" />
+                  <span>Instalaciones</span>
+                </Button>
+              </Link>
+            ) : undefined
           }
         />
       </div>
@@ -586,6 +590,29 @@ export default function AppointmentsCalendar() {
                   >
                     <Pencil className="h-4 w-4" />
                     Editar Fecha
+                  </Button>
+                </DialogFooter>
+              )}
+
+              {user?.role === "medidor" && (
+                <DialogFooter>
+                  <Button
+                    onClick={() => {
+                      const apt = selectedAppointment;
+                      const params = new URLSearchParams({
+                        from: "apt",
+                        id: String(apt.id),
+                        name: apt.clientName || "",
+                        phone: apt.clientPhone || "",
+                        address: apt.clientAddress || "",
+                        workType: apt.workTypes?.[0] || "",
+                      });
+                      navigate(`/medidor?${params.toString()}`);
+                    }}
+                    className="gap-2 bg-teal-600 hover:bg-teal-700 text-white"
+                  >
+                    <ClipboardList className="h-4 w-4" />
+                    Iniciar Levantamiento
                   </Button>
                 </DialogFooter>
               )}

@@ -100,14 +100,22 @@ function Router() {
 function App() {
   React.useEffect(() => {
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker
-        .register('/service-worker.js')
-        .then((registration) => {
-          console.log('[App] Service Worker registrado:', registration);
-        })
-        .catch((error) => {
-          console.error('[App] Error al registrar Service Worker:', error);
-        });
+      // Desregistrar el service-worker.js antiguo: interceptaba fetch con caché agresivo
+      // y competía con sw.js por el scope /, causando que cookies de sesión no se
+      // enviaran correctamente en iOS Safari (ITP). El sw.js moderno (registrado
+      // en index.html) maneja push notifications de forma segura sin cachear APIs.
+      navigator.serviceWorker.getRegistrations().then((registrations) => {
+        for (const registration of registrations) {
+          const scriptUrl =
+            registration.active?.scriptURL ||
+            registration.installing?.scriptURL ||
+            registration.waiting?.scriptURL ||
+            '';
+          if (scriptUrl.includes('service-worker.js')) {
+            registration.unregister();
+          }
+        }
+      });
     }
   }, []);
 

@@ -129,7 +129,7 @@ const menuSections: MenuSection[] = [
     title: "Instalaciones",
     items: [
       { icon: Truck, label: "Instalaciones", path: "/calendar",
-        roles: ["super_admin", "admin", "comercial", "jefe_taller", "operario", "medidor"], iconColor: "#f97316" },
+        roles: ["super_admin", "admin", "comercial", "jefe_taller", "operario"], iconColor: "#f97316" },
     ],
   },
   {

@@ -38,6 +38,7 @@ import Postventa from "./pages/Postventa";
 import Herrajes from "./pages/Herrajes";
 import GalleryAdmin from "./pages/GalleryAdmin";
 import Contador from "./pages/Contador";
+import Medidor from "./pages/Medidor";
 
 
 function LayoutWrapper({ children }: { children: React.ReactNode }) {
@@ -90,6 +91,7 @@ function Router() {
         <Route path={"/postventa"}><Postventa /></Route>
         <Route path={"/galerias"}><GalleryAdmin /></Route>
         <Route path={"/contador"}><Contador /></Route>
+        <Route path={"/medidor"}><Medidor /></Route>
         <Route path={"/404"} component={NotFound} />
         <Route component={NotFound} />
       </Switch>

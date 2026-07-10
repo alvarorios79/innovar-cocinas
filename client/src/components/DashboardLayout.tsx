@@ -45,6 +45,7 @@ import {
   BarChart3,
   Package,
   BookOpen,
+  ClipboardCheck,
 } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
@@ -96,7 +97,8 @@ const menuSections: MenuSection[] = [
   {
     title: "Proyectos",
     items: [
-      { icon: FolderKanban, label: "Proyectos", path: "/projects", iconColor: "#8b5cf6" },
+      { icon: FolderKanban, label: "Proyectos", path: "/projects", iconColor: "#8b5cf6",
+        roles: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario", "contador"] },
     ],
   },
   {
@@ -135,6 +137,13 @@ const menuSections: MenuSection[] = [
     items: [
       { icon: CalendarCheck, label: "Visitas Técnicas", path: "/appointments-calendar",
         roles: ["medidor"], iconColor: "#f59e0b" },
+    ],
+  },
+  {
+    title: "Levantamientos",
+    items: [
+      { icon: ClipboardCheck, label: "Levantamientos", path: "/medidor",
+        roles: ["medidor"], iconColor: "#1DB5A8" },
     ],
   },
   {

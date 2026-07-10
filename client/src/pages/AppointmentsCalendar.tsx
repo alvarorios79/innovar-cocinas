@@ -195,7 +195,7 @@ export default function AppointmentsCalendar() {
   };
 
   // Verificar permisos
-  const canViewCalendar = user && ["super_admin", "admin", "comercial"].includes(user.role);
+  const canViewCalendar = user && ["super_admin", "admin", "comercial", "medidor"].includes(user.role);
   const canEditDates = user && ["super_admin", "admin"].includes(user.role);
 
   if (!canViewCalendar) {

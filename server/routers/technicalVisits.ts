@@ -1,524 +1,577 @@
-/**
- * Router de Visitas Técnicas — Portal del Medidor
- * Gestiona visitas de campo: medidas, fotos, PDFs anotados y envío a admin.
- */
-
-import { protectedProcedure, router } from "../_core/trpc";
+import { router, protectedProcedure } from "../_core/trpc";
 import { z } from "zod";
-import * as db from "../db";
 import { TRPCError } from "@trpc/server";
-import { storagePut } from "../storage";
+import { getDb } from "../db";
+import {
+  technicalVisits,
+  technicalVisitPhotos,
+  technicalVisitPdfs,
+  appointments,
+  clients,
+} from "../../drizzle/schema";
+import { eq, and, desc, isNull } from "drizzle-orm";
+import { exec } from "child_process";
+import { promisify } from "util";
+import { writeFile, readFile, unlink } from "fs/promises";
+import { tmpdir } from "os";
+import { join } from "path";
+import { randomUUID } from "crypto";
 
-// ── Compresión PDF con MuPDF (WASM, sin dependencias de sistema) ──────────────
+const execAsync = promisify(exec);
 
-async function compressPdfWithMupdf(inputBuffer: Buffer, dpi = 100, jpegQuality = 75): Promise<Buffer> {
-  const mupdf = (await import("mupdf")).default;
+// Roles que pueden ver todos los levantamientos
+const MANAGER_ROLES = ["super_admin", "admin", "comercial"];
+// Roles que pueden ver levantamientos vinculados a proyectos (diseñador)
+const PROJECT_ROLES = [...MANAGER_ROLES, "disenador"];
 
-  const srcDoc = mupdf.Document.openDocument(inputBuffer, "application/pdf");
-  const numPages = srcDoc.countPages();
-  const outDoc = new mupdf.PDFDocument();
-  const scale = dpi / 72;
+function requireRole(role: string, allowed: string[]) {
+  if (!allowed.includes(role)) {
+    throw new TRPCError({ code: "FORBIDDEN", message: "Sin permisos para esta acción" });
+  }
+}
 
-  for (let i = 0; i < numPages; i++) {
-    const page = srcDoc.loadPage(i);
-    const [x0, y0, x1, y1] = page.getBounds();
-    const w = x1 - x0;
-    const h = y1 - y0;
+// ── Comprimir PDF con ghostscript (fallback: original) ──────────────────────
+async function compressPdfBuffer(inputBuffer: Buffer): Promise<{ buffer: Buffer; savedPercent: number }> {
+  const id = randomUUID();
+  const inputPath = join(tmpdir(), `tv_input_${id}.pdf`);
+  const outputPath = join(tmpdir(), `tv_output_${id}.pdf`);
 
-    // Renderizar página a pixmap a DPI reducido
-    const pixmap = page.toPixmap(
-      mupdf.Matrix.scale(scale, scale),
-      mupdf.ColorSpace.DeviceRGB,
-      false,
-      true
+  try {
+    await writeFile(inputPath, inputBuffer);
+
+    // ghostscript: /ebook = 150 DPI — buena calidad para planos GoodNotes
+    await execAsync(
+      `gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/ebook ` +
+      `-dNOPAUSE -dQUIET -dBATCH -sOutputFile="${outputPath}" "${inputPath}"`
     );
 
-    // Convertir a JPEG con compresión
-    const jpegData = pixmap.asJPEG(jpegQuality, false);
+    const outputBuffer = await readFile(outputPath);
+    const originalSize = inputBuffer.length;
+    const compressedSize = outputBuffer.length;
+    const savedPercent = compressedSize < originalSize
+      ? Math.round(((originalSize - compressedSize) / originalSize) * 100)
+      : 0;
 
-    // Agregar imagen JPEG como recurso XObject del PDF de salida
-    const imgBuf = new mupdf.Buffer();
-    imgBuf.writeBuffer(jpegData);
-    const pdfImage = outDoc.addImage(new mupdf.Image(imgBuf));
-
-    const resources = outDoc.newDictionary();
-    const xobjects = outDoc.newDictionary();
-    xobjects.put("Im0", pdfImage);
-    resources.put("XObject", xobjects);
-
-    // Content stream que escala la imagen para ocupar toda la página
-    const contentStream = `q ${w} 0 0 ${h} 0 0 cm /Im0 Do Q`;
-
-    const pageRef = outDoc.addPage([0, 0, w, h], 0, resources, contentStream);
-    outDoc.insertPage(-1, pageRef);
-  }
-
-  const result = outDoc.saveToBuffer("compress");
-  return Buffer.from(result.asUint8Array());
-}
-
-const ALLOWED_ROLES = ["medidor", "admin", "super_admin", "comercial"] as const;
-
-// ── Helpers ──────────────────────────────────────────────────────────────────
-
-function assertMedidorOrAdmin(role: string) {
-  if (!(ALLOWED_ROLES as readonly string[]).includes(role)) {
-    throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para visitas técnicas" });
+    return { buffer: outputBuffer, savedPercent };
+  } catch {
+    // Si ghostscript falla, retornar el original sin error
+    return { buffer: inputBuffer, savedPercent: 0 };
+  } finally {
+    // Limpiar archivos temporales
+    await unlink(inputPath).catch(() => {});
+    await unlink(outputPath).catch(() => {});
   }
 }
-
-// ── Router ───────────────────────────────────────────────────────────────────
 
 export const technicalVisitsRouter = router({
 
-  /** Admin/comercial crean visita asignada a un medidor con cliente ya existente */
-  create: protectedProcedure
-    .input(z.object({
-      clientId:      z.number(),
-      workType:      z.enum(["cocina", "closet", "puertas", "centro_tv"]),
-      assignedTo:    z.number().optional(), // medidor asignado
-      scheduledDate: z.string().optional(), // ISO date string
-      notes:         z.string().optional(),
-    }))
-    .mutation(async ({ ctx, input }) => {
-      if (!["admin", "super_admin", "comercial"].includes(ctx.user.role)) {
-        throw new TRPCError({ code: "FORBIDDEN", message: "Solo admin o comercial pueden crear visitas" });
-      }
-
-      // Auto-poblar datos del cliente desde la BD
-      const client = await db.getClientById(input.clientId);
-      if (!client) throw new TRPCError({ code: "NOT_FOUND", message: "Cliente no encontrado" });
-
-      const id = await db.createTechnicalVisit({
-        clientId:      input.clientId,
-        clientName:    client.name,
-        clientPhone:   client.whatsappPhone ?? undefined,
-        clientAddress: client.address ?? undefined,
-        workType:      input.workType,
-        notes:         input.notes,
-        assignedTo:    input.assignedTo,
-        scheduledDate: input.scheduledDate,
-        createdBy:     ctx.user.id,
-      });
-
-      // Notificar al medidor asignado
-      if (input.assignedTo) {
-        try {
-          const { createAndSendNotification } = await import("../push-notifications");
-          const workTypeLabel: Record<string, string> = {
-            cocina: "Cocina", closet: "Closet", puertas: "Puertas", centro_tv: "Centro TV",
-          };
-          await createAndSendNotification(input.assignedTo, {
-            title: `📐 Nueva visita técnica asignada`,
-            body:  `Cliente: ${client.name} — ${workTypeLabel[input.workType]}${client.address ? ` · ${client.address}` : ""}`,
-            type:  "proyecto",
-            url:   `/medidor`,
-          });
-        } catch (err) {
-          console.error("[technicalVisits.create] Error notificando medidor:", err);
-        }
-      }
-
-      return { id };
-    }),
-
-  /** Admin/comercial asignan medidor a una visita existente */
-  assign: protectedProcedure
-    .input(z.object({
-      visitId:       z.number(),
-      assignedTo:    z.number(),
-      scheduledDate: z.string().optional(),
-    }))
-    .mutation(async ({ ctx, input }) => {
-      if (!["admin", "super_admin", "comercial"].includes(ctx.user.role)) {
-        throw new TRPCError({ code: "FORBIDDEN", message: "Solo admin o comercial pueden asignar visitas" });
-      }
-
-      const visit = await db.getTechnicalVisitById(input.visitId);
-      if (!visit) throw new TRPCError({ code: "NOT_FOUND", message: "Visita no encontrada" });
-
-      await db.updateTechnicalVisit(input.visitId, {
-        assignedTo:    input.assignedTo,
-        scheduledDate: input.scheduledDate,
-      } as any);
-
-      // Notificar al medidor (push)
-      try {
-        const { createAndSendNotification } = await import("../push-notifications");
-        await createAndSendNotification(input.assignedTo, {
-          title: `📐 Visita técnica asignada`,
-          body:  `Cliente: ${visit.clientName}${visit.clientAddress ? ` · ${visit.clientAddress}` : ""}`,
-          type:  "proyecto",
-          url:   `/medidor`,
-        });
-      } catch (err) {
-        console.error("[technicalVisits.assign] Error notificando medidor:", err);
-      }
-
-      // Notificar al cliente por WhatsApp con nombre del medidor y fecha
-      if (visit.clientPhone) {
-        try {
-          const medidor = await db.getUserById(input.assignedTo);
-          const scheduledDate = input.scheduledDate ? new Date(input.scheduledDate) : null;
-          const dateFormatted = scheduledDate
-            ? scheduledDate.toLocaleDateString("es-CO", {
-                weekday: "long", day: "2-digit", month: "long",
-                hour: "2-digit", minute: "2-digit", timeZone: "America/Bogota",
-              })
-            : null;
-
-          const medidorName = medidor?.name || "nuestro técnico de medidas";
-          let mensaje = `📐 *INNOVAR Cocinas de Diseño*\n\n` +
-            `Hola *${visit.clientName}*, queremos informarte que hemos programado tu visita técnica.\n\n` +
-            `👤 *Técnico asignado:* ${medidorName}\n`;
-
-          if (dateFormatted) {
-            mensaje += `📅 *Fecha:* ${dateFormatted}\n`;
-          }
-          if (visit.clientAddress) {
-            mensaje += `📍 *Dirección:* ${visit.clientAddress}\n`;
-          }
-
-          mensaje += `\nPor favor asegúrate de estar en casa en esa fecha y hora. Si necesitas reagendar, comunícate con nosotros.\n\n_INNOVAR Cocinas de Diseño_`;
-
-          const whatsappCloud = await import("../whatsapp-cloud");
-          if (whatsappCloud.isWhatsAppCloudConfigured()) {
-            await whatsappCloud.sendTextMessage(visit.clientPhone, mensaje);
-          }
-        } catch (waErr) {
-          console.error("[technicalVisits.assign] Error enviando WhatsApp al cliente:", waErr);
-        }
-      }
-
-      return { success: true };
-    }),
-
-  /** Actualizar medidas, notas (medidor completa la visita) */
-  update: protectedProcedure
-    .input(z.object({
-      visitId:       z.number(),
-      clientName:    z.string().min(1).optional(),
-      clientPhone:   z.string().optional(),
-      clientAddress: z.string().optional(),
-      workType:      z.enum(["cocina", "closet", "puertas", "centro_tv"]).optional(),
-      measurements:  z.record(z.string(), z.unknown()).optional(),
-      notes:         z.string().optional(),
-    }))
-    .mutation(async ({ ctx, input }) => {
-      assertMedidorOrAdmin(ctx.user.role);
-
-      const visit = await db.getTechnicalVisitById(input.visitId);
-      if (!visit) throw new TRPCError({ code: "NOT_FOUND", message: "Visita no encontrada" });
-
-      // Medidor solo puede editar visitas asignadas a él
-      if (ctx.user.role === "medidor" && (visit as any).assignedTo !== ctx.user.id) {
-        throw new TRPCError({ code: "FORBIDDEN", message: "No puedes editar esta visita" });
-      }
-
-      if (visit.status === "convertida") {
-        throw new TRPCError({ code: "BAD_REQUEST", message: "Esta visita ya fue convertida en cotización" });
-      }
-
-      const { visitId, ...updateData } = input;
-      await db.updateTechnicalVisit(visitId, updateData as any);
-
-      return { success: true };
-    }),
-
-  /** Obtener visita con fotos */
-  getById: protectedProcedure
-    .input(z.object({ visitId: z.number() }))
-    .query(async ({ ctx, input }) => {
-      assertMedidorOrAdmin(ctx.user.role);
-
-      const visit = await db.getTechnicalVisitById(input.visitId);
-      if (!visit) throw new TRPCError({ code: "NOT_FOUND", message: "Visita no encontrada" });
-
-      // Medidor solo ve visitas asignadas a él
-      if (ctx.user.role === "medidor" && (visit as any).assignedTo !== ctx.user.id) {
-        throw new TRPCError({ code: "FORBIDDEN", message: "No tienes acceso a esta visita" });
-      }
-
-      return visit;
-    }),
-
-  /** Listar visitas — medidor ve solo las asignadas a él; admin/comercial ve todas */
+  // ── Listar visitas ─────────────────────────────────────────────────────────
   list: protectedProcedure
-    .input(z.object({
-      status: z.enum(["borrador", "enviada", "convertida"]).optional(),
-    }).optional())
-    .query(async ({ ctx, input }) => {
-      assertMedidorOrAdmin(ctx.user.role);
+    .query(async ({ ctx }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB no disponible" });
 
-      const filters: { assignedTo?: number; status?: string } = {};
+      const role = ctx.user.role;
+      const userId = ctx.user.id;
 
-      if (ctx.user.role === "medidor") {
-        filters.assignedTo = ctx.user.id;
+      let rows;
+      if (MANAGER_ROLES.includes(role)) {
+        // Admin / comercial / super_admin ven todos los levantamientos activos
+        rows = await db
+          .select()
+          .from(technicalVisits)
+          .where(isNull(technicalVisits.deletedAt))
+          .orderBy(desc(technicalVisits.createdAt));
+      } else if (role === "medidor") {
+        // Medidor solo ve sus propias visitas
+        rows = await db
+          .select()
+          .from(technicalVisits)
+          .where(and(
+            eq(technicalVisits.createdBy, userId),
+            isNull(technicalVisits.deletedAt)
+          ))
+          .orderBy(desc(technicalVisits.createdAt));
+      } else {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Sin acceso a levantamientos" });
       }
-      if (input?.status) {
-        filters.status = input.status;
-      }
 
-      // Enriquecer con nombre del medidor asignado
-      const visits = await db.listTechnicalVisits(filters);
-      const allUsers = await db.getAllUsers();
-      const userMap = new Map(allUsers.map(u => [u.id, u]));
-
-      return visits.map(v => ({
-        ...v,
-        assignedToUser: (v as any).assignedTo ? userMap.get((v as any).assignedTo) ?? null : null,
-        createdByUser:  userMap.get(v.createdBy) ?? null,
+      return rows.map(r => ({
+        ...r,
+        id: String(r.id),
       }));
     }),
 
-  /** Subir foto o PDF a una visita (base64 → S3) */
-  addPhoto: protectedProcedure
-    .input(z.object({
-      visitId:     z.number(),
-      fileName:    z.string(),
-      fileData:    z.string(), // base64
-      contentType: z.string(),
-      category:    z.enum(["foto", "pdf_plano", "pdf_medidas", "firma", "foto_frontal", "foto_lateral", "foto_techo", "foto_electrico", "foto_plomeria"]).default("foto"),
-      description: z.string().optional(),
-    }))
-    .mutation(async ({ ctx, input }) => {
-      assertMedidorOrAdmin(ctx.user.role);
+  // ── Obtener por ID ──────────────────────────────────────────────────────────
+  getById: protectedProcedure
+    .input(z.object({ visitId: z.coerce.number() }))
+    .query(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB no disponible" });
 
-      const visit = await db.getTechnicalVisitById(input.visitId);
-      if (!visit) throw new TRPCError({ code: "NOT_FOUND", message: "Visita no encontrada" });
+      const role = ctx.user.role;
+      const userId = ctx.user.id;
 
-      if (ctx.user.role === "medidor" && (visit as any).assignedTo !== ctx.user.id) {
-        throw new TRPCError({ code: "FORBIDDEN", message: "No puedes editar esta visita" });
+      const [visit] = await db
+        .select()
+        .from(technicalVisits)
+        .where(and(
+          eq(technicalVisits.id, input.visitId),
+          isNull(technicalVisits.deletedAt)
+        ));
+
+      if (!visit) throw new TRPCError({ code: "NOT_FOUND", message: "Levantamiento no encontrado" });
+
+      // Control de acceso
+      if (role === "medidor" && visit.createdBy !== userId) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Sin acceso a este levantamiento" });
+      }
+      if (role === "disenador" && !visit.projectId) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Sin acceso: levantamiento no vinculado a proyecto" });
+      }
+      if (!PROJECT_ROLES.includes(role) && role !== "medidor") {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Sin acceso" });
       }
 
-      // Validar tipo de archivo
-      const isImage = input.contentType.startsWith("image/");
-      const isPdf   = input.contentType === "application/pdf";
-      if (!isImage && !isPdf) {
-        throw new TRPCError({ code: "BAD_REQUEST", message: "Solo se permiten imágenes y PDFs" });
-      }
+      const photos = await db
+        .select()
+        .from(technicalVisitPhotos)
+        .where(eq(technicalVisitPhotos.visitId, input.visitId))
+        .orderBy(technicalVisitPhotos.createdAt);
 
-      // Validar tamaño (12MB)
-      const base64Data = input.fileData.replace(/^data:[^;]+;base64,/, "");
-      const buffer = Buffer.from(base64Data, "base64");
-      if (buffer.length > 12 * 1024 * 1024) {
-        throw new TRPCError({ code: "BAD_REQUEST", message: "El archivo supera el límite de 12MB" });
-      }
-
-      const timestamp = Date.now();
-      const random    = Math.random().toString(36).substring(2, 8);
-      const extension = input.fileName.split(".").pop() || "jpg";
-      const fileKey   = `visits/${input.visitId}/${timestamp}-${random}.${extension}`;
-      const { url }   = await storagePut(fileKey, buffer, input.contentType);
-
-      const photoId = await db.createVisitPhoto({
-        visitId:     input.visitId,
-        photoUrl:    url,
-        category:    input.category,
-        description: input.description,
-      });
-
-      return { id: photoId, url };
-    }),
-
-  /** Eliminar foto de una visita */
-  deletePhoto: protectedProcedure
-    .input(z.object({ photoId: z.number() }))
-    .mutation(async ({ ctx, input }) => {
-      assertMedidorOrAdmin(ctx.user.role);
-
-      const photo = await db.getVisitPhotoById(input.photoId);
-      if (!photo) throw new TRPCError({ code: "NOT_FOUND", message: "Foto no encontrada" });
-
-      if (ctx.user.role === "medidor") {
-        const visit = await db.getTechnicalVisitById(photo.visitId);
-        if (!visit || (visit as any).assignedTo !== ctx.user.id) {
-          throw new TRPCError({ code: "FORBIDDEN", message: "No puedes eliminar esta foto" });
-        }
-      }
-
-      await db.deleteVisitPhoto(input.photoId);
-      return { success: true };
-    }),
-
-  /**
-   * Comprimir PDF usando Ghostscript y subirlo a S3.
-   * Recibe base64, comprime con /ebook (150dpi), devuelve URL del PDF comprimido.
-   */
-  compressPdf: protectedProcedure
-    .input(z.object({
-      visitId:  z.number(),
-      fileName: z.string(),
-      fileData: z.string(), // base64 del PDF original
-      category: z.enum(["pdf_plano", "pdf_medidas"]).default("pdf_plano"),
-      description: z.string().optional(),
-    }))
-    .mutation(async ({ ctx, input }) => {
-      assertMedidorOrAdmin(ctx.user.role);
-
-      const visit = await db.getTechnicalVisitById(input.visitId);
-      if (!visit) throw new TRPCError({ code: "NOT_FOUND", message: "Visita no encontrada" });
-
-      if (ctx.user.role === "medidor" && (visit as any).assignedTo !== ctx.user.id) {
-        throw new TRPCError({ code: "FORBIDDEN", message: "No puedes editar esta visita" });
-      }
-
-      const base64Data = input.fileData.replace(/^data:[^;]+;base64,/, "");
-      const inputBuffer = Buffer.from(base64Data, "base64");
-
-      if (inputBuffer.length > 50 * 1024 * 1024) {
-        throw new TRPCError({ code: "BAD_REQUEST", message: "El PDF supera el límite de 50MB" });
-      }
-
-      const { writeFileSync, readFileSync, unlinkSync, existsSync } = await import("fs");
-      const { execFileSync } = await import("child_process");
-      const { join } = await import("path");
-      const tmpId    = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
-      const inputPath  = join("/tmp", `visit-input-${tmpId}.pdf`);
-      const outputPath = join("/tmp", `visit-output-${tmpId}.pdf`);
-
-      let outputBuffer: Buffer;
-
-      try {
-        // Intentar primero con Ghostscript (disponible en Docker/local)
-        writeFileSync(inputPath, inputBuffer);
-        execFileSync("gs", [
-          "-sDEVICE=pdfwrite",
-          "-dCompatibilityLevel=1.4",
-          "-dPDFSETTINGS=/ebook",
-          "-dNOPAUSE",
-          "-dBATCH",
-          "-dQUIET",
-          `-sOutputFile=${outputPath}`,
-          inputPath,
-        ], { timeout: 60000 });
-        outputBuffer = existsSync(outputPath) ? readFileSync(outputPath) : inputBuffer;
-        console.log("[compressPdf] Ghostscript OK");
-      } catch (_gsErr) {
-        // Ghostscript no disponible → usar MuPDF WASM (sin dependencias de sistema)
-        console.log("[compressPdf] Ghostscript no disponible, usando MuPDF WASM...");
-        try {
-          outputBuffer = await compressPdfWithMupdf(inputBuffer, 120, 78);
-          console.log("[compressPdf] MuPDF OK:", inputBuffer.length, "→", outputBuffer.length, "bytes");
-        } catch (mupdfErr) {
-          console.error("[compressPdf] MuPDF falló también:", mupdfErr);
-          outputBuffer = inputBuffer; // último fallback: subir sin comprimir
-        }
-      } finally {
-        try { if (existsSync(inputPath))  unlinkSync(inputPath);  } catch (_) {}
-        try { if (existsSync(outputPath)) unlinkSync(outputPath); } catch (_) {}
-      }
-
-      const originalKb   = Math.round(inputBuffer.length / 1024);
-      const compressedKb = Math.round(outputBuffer.length / 1024);
-
-      const timestamp = Date.now();
-      const random    = Math.random().toString(36).substring(2, 8);
-      const fileKey   = `visits/${input.visitId}/${timestamp}-${random}-compressed.pdf`;
-      const { url }   = await storagePut(fileKey, outputBuffer, "application/pdf");
-
-      const photoId = await db.createVisitPhoto({
-        visitId:     input.visitId,
-        photoUrl:    url,
-        category:    input.category,
-        description: input.description ?? `PDF comprimido (${originalKb}KB → ${compressedKb}KB)`,
-      });
+      const pdfs = await db
+        .select()
+        .from(technicalVisitPdfs)
+        .where(eq(technicalVisitPdfs.visitId, input.visitId))
+        .orderBy(technicalVisitPdfs.createdAt);
 
       return {
-        id:           photoId,
-        url,
-        originalKb,
-        compressedKb,
-        savedPercent: Math.round((1 - compressedKb / originalKb) * 100),
+        ...visit,
+        id: String(visit.id),
+        geoLocation: (visit.latitude && visit.longitude) ? {
+          latitude: parseFloat(String(visit.latitude)),
+          longitude: parseFloat(String(visit.longitude)),
+          timestamp: visit.createdAt,
+        } : undefined,
+        photos: photos.map(p => ({ ...p, id: String(p.id) })),
+        pdfs: pdfs.map(p => ({ ...p, id: String(p.id), fileName: p.originalFileName })),
       };
     }),
 
-  /** Marcar visita como convertida en cotización */
-  markConverted: protectedProcedure
+  // ── Obtener por projectId (para el diseñador en ProjectDetail) ─────────────
+  getByProjectId: protectedProcedure
+    .input(z.object({ projectId: z.number() }))
+    .query(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB no disponible" });
+
+      const role = ctx.user.role;
+      if (!PROJECT_ROLES.includes(role) && role !== "medidor") {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Sin acceso" });
+      }
+
+      const [visit] = await db
+        .select()
+        .from(technicalVisits)
+        .where(and(
+          eq(technicalVisits.projectId, input.projectId),
+          isNull(technicalVisits.deletedAt)
+        ))
+        .orderBy(desc(technicalVisits.createdAt));
+
+      if (!visit) return null;
+
+      const photos = await db
+        .select()
+        .from(technicalVisitPhotos)
+        .where(eq(technicalVisitPhotos.visitId, visit.id))
+        .orderBy(technicalVisitPhotos.createdAt);
+
+      const pdfs = await db
+        .select()
+        .from(technicalVisitPdfs)
+        .where(eq(technicalVisitPdfs.visitId, visit.id))
+        .orderBy(technicalVisitPdfs.createdAt);
+
+      return {
+        ...visit,
+        id: String(visit.id),
+        geoLocation: (visit.latitude && visit.longitude) ? {
+          latitude: parseFloat(String(visit.latitude)),
+          longitude: parseFloat(String(visit.longitude)),
+          timestamp: visit.createdAt,
+        } : undefined,
+        photos: photos.map(p => ({ ...p, id: String(p.id) })),
+        pdfs: pdfs.map(p => ({ ...p, id: String(p.id), fileName: p.originalFileName })),
+      };
+    }),
+
+  // ── Crear visita técnica ────────────────────────────────────────────────────
+  create: protectedProcedure
     .input(z.object({
-      visitId:     z.number(),
-      quotationId: z.number().optional(),
+      clientName: z.string().min(1),
+      clientPhone: z.string().optional(),
+      clientAddress: z.string().optional(),
+      visitCity: z.string().optional(),
+      workType: z.enum(["cocina", "closet", "puertas", "centro_tv"]),
+      appointmentId: z.number().optional(),
+      clientId: z.number().optional(),
+      geoLocation: z.object({
+        latitude: z.number(),
+        longitude: z.number(),
+        timestamp: z.string(),
+      }).optional().nullable(),
     }))
     .mutation(async ({ ctx, input }) => {
-      if (!["admin", "super_admin", "comercial"].includes(ctx.user.role)) {
-        throw new TRPCError({ code: "FORBIDDEN", message: "Solo admin o comercial pueden convertir visitas" });
-      }
-      const visit = await db.getTechnicalVisitById(input.visitId);
-      if (!visit) throw new TRPCError({ code: "NOT_FOUND", message: "Visita no encontrada" });
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB no disponible" });
 
-      await db.updateTechnicalVisit(input.visitId, {
-        status: "convertida" as any,
-        ...(input.quotationId ? { quotationId: input.quotationId } : {}),
-      });
+      const role = ctx.user.role;
+      if (!["medidor", "admin", "super_admin"].includes(role)) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Solo el medidor puede crear levantamientos" });
+      }
+
+      const now = new Date().toISOString().replace('T', ' ').replace('Z', '');
+
+      const [created] = await db
+        .insert(technicalVisits)
+        .values({
+          clientName: input.clientName,
+          clientPhone: input.clientPhone,
+          clientAddress: input.clientAddress,
+          visitCity: input.visitCity,
+          workType: input.workType,
+          appointmentId: input.appointmentId,
+          clientId: input.clientId,
+          createdBy: ctx.user.id,
+          status: "borrador",
+          latitude: input.geoLocation ? String(input.geoLocation.latitude) : undefined,
+          longitude: input.geoLocation ? String(input.geoLocation.longitude) : undefined,
+          createdAt: now,
+          updatedAt: now,
+        })
+        .returning();
+
+      return { id: String(created.id) };
+    }),
+
+  // ── Actualizar medidas, checklist, notas, evaluación y datos de cliente ─────
+  update: protectedProcedure
+    .input(z.object({
+      visitId: z.coerce.number(),
+      // Datos del cliente (editables en borrador)
+      clientName: z.string().optional(),
+      clientPhone: z.string().optional(),
+      clientAddress: z.string().optional(),
+      visitCity: z.string().optional(),
+      // Contenido técnico
+      measurements: z.record(z.string(), z.any()).optional(),
+      checklist: z.record(z.string(), z.any()).optional(),
+      technicalEvaluation: z.enum(["viable", "requiere_revision", "requiere_visita"]).optional().nullable(),
+      criticalObservations: z.string().optional(),
+      notes: z.string().optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB no disponible" });
+
+      const [visit] = await db
+        .select()
+        .from(technicalVisits)
+        .where(eq(technicalVisits.id, input.visitId));
+
+      if (!visit) throw new TRPCError({ code: "NOT_FOUND", message: "Levantamiento no encontrado" });
+      if (visit.status !== "borrador") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Solo se puede editar un levantamiento en borrador" });
+      }
+      if (ctx.user.role === "medidor" && visit.createdBy !== ctx.user.id) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Sin acceso" });
+      }
+
+      const now = new Date().toISOString().replace('T', ' ').replace('Z', '');
+      const updateData: Record<string, any> = { updatedAt: now };
+      if (input.clientName !== undefined) updateData.clientName = input.clientName;
+      if (input.clientPhone !== undefined) updateData.clientPhone = input.clientPhone;
+      if (input.clientAddress !== undefined) updateData.clientAddress = input.clientAddress;
+      if (input.visitCity !== undefined) updateData.visitCity = input.visitCity;
+      if (input.measurements !== undefined) updateData.measurements = input.measurements;
+      if (input.checklist !== undefined) updateData.checklist = input.checklist;
+      if (input.technicalEvaluation !== undefined) updateData.technicalEvaluation = input.technicalEvaluation;
+      if (input.criticalObservations !== undefined) updateData.criticalObservations = input.criticalObservations;
+      if (input.notes !== undefined) updateData.notes = input.notes;
+
+      await db
+        .update(technicalVisits)
+        .set(updateData)
+        .where(eq(technicalVisits.id, input.visitId));
+
       return { success: true };
     }),
 
-  /** Listar visitas por clientId (para diseñador/admin que necesita ver datos de medición) */
-  listByClientId: protectedProcedure
-    .input(z.object({ clientId: z.number() }))
-    .query(async ({ ctx, input }) => {
-      const allowed = ["admin", "super_admin", "comercial", "disenador", "jefe_taller"];
-      if (!allowed.includes(ctx.user.role)) {
+  // ── Subir foto ─────────────────────────────────────────────────────────────
+  addPhoto: protectedProcedure
+    .input(z.object({
+      visitId: z.coerce.number(),
+      fileName: z.string(),
+      fileData: z.string(), // base64
+      contentType: z.string(),
+      category: z.enum(["general", "ventana", "punto_hidraulico", "punto_gas", "tomacorrientes", "detalle_tecnico"]),
+      caption: z.string().optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB no disponible" });
+
+      const [visit] = await db
+        .select()
+        .from(technicalVisits)
+        .where(eq(technicalVisits.id, input.visitId));
+
+      if (!visit) throw new TRPCError({ code: "NOT_FOUND", message: "Levantamiento no encontrado" });
+      if (visit.status !== "borrador") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "No se pueden agregar fotos a un levantamiento enviado" });
+      }
+      if (ctx.user.role === "medidor" && visit.createdBy !== ctx.user.id) {
         throw new TRPCError({ code: "FORBIDDEN", message: "Sin acceso" });
       }
-      const all = await db.listTechnicalVisits({});
-      const visits = all.filter((v: any) => v.clientId === input.clientId);
-      // Adjuntar fotos a cada visita
-      const withPhotos = await Promise.all(
-        visits.map(async (v: any) => {
-          // getTechnicalVisitById ya incluye las fotos
-          const full = await db.getTechnicalVisitById(v.id);
-          return full ?? v;
+
+      const { storagePut } = await import("../storage");
+
+      const timestamp = Date.now();
+      const randomSuffix = Math.random().toString(36).substring(2, 8);
+      const extension = input.fileName.split(".").pop() || "jpg";
+      const fileKey = `technical_visits/${input.visitId}/photos/${timestamp}-${randomSuffix}.${extension}`;
+
+      const base64Data = input.fileData.replace(/^data:[^;]+;base64,/, "");
+      let buffer = Buffer.from(base64Data, "base64");
+
+      // Comprimir imagen
+      if (input.contentType.startsWith("image/")) {
+        try {
+          const { compressImage } = await import("../image-utils");
+          const compressed = await compressImage(buffer, { maxWidth: 1920, maxHeight: 1080, quality: 82, format: "jpeg" });
+          buffer = Buffer.from(compressed.buffer);
+        } catch {
+          // fallback: usar original
+        }
+      }
+
+      const { url } = await storagePut(fileKey, buffer, input.contentType.startsWith("image/") ? "image/jpeg" : input.contentType);
+
+      const now = new Date().toISOString().replace('T', ' ').replace('Z', '');
+      const [photo] = await db
+        .insert(technicalVisitPhotos)
+        .values({
+          visitId: input.visitId,
+          url,
+          s3Key: fileKey,
+          category: input.category,
+          caption: input.caption,
+          uploadedBy: ctx.user.id,
+          createdAt: now,
         })
-      );
-      return withPhotos;
+        .returning();
+
+      // Actualizar updatedAt de la visita
+      await db.update(technicalVisits).set({ updatedAt: now }).where(eq(technicalVisits.id, input.visitId));
+
+      return { id: String(photo.id), url };
     }),
 
-  /** Enviar visita al admin para cotización */
-  submit: protectedProcedure
-    .input(z.object({ visitId: z.number() }))
+  // ── Eliminar foto ──────────────────────────────────────────────────────────
+  deletePhoto: protectedProcedure
+    .input(z.object({ photoId: z.coerce.number() }))
     .mutation(async ({ ctx, input }) => {
-      assertMedidorOrAdmin(ctx.user.role);
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB no disponible" });
 
-      const visit = await db.getTechnicalVisitById(input.visitId);
-      if (!visit) throw new TRPCError({ code: "NOT_FOUND", message: "Visita no encontrada" });
+      const [photo] = await db
+        .select()
+        .from(technicalVisitPhotos)
+        .where(eq(technicalVisitPhotos.id, input.photoId));
 
-      if (ctx.user.role === "medidor" && (visit as any).assignedTo !== ctx.user.id) {
-        throw new TRPCError({ code: "FORBIDDEN", message: "No puedes enviar esta visita" });
+      if (!photo) throw new TRPCError({ code: "NOT_FOUND", message: "Foto no encontrada" });
+
+      // Verificar que la visita es del medidor
+      const [visit] = await db
+        .select()
+        .from(technicalVisits)
+        .where(eq(technicalVisits.id, photo.visitId));
+
+      if (visit && ctx.user.role === "medidor" && visit.createdBy !== ctx.user.id) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Sin acceso" });
+      }
+      if (visit && visit.status !== "borrador") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "No se puede eliminar fotos de un levantamiento enviado" });
       }
 
+      await db.delete(technicalVisitPhotos).where(eq(technicalVisitPhotos.id, input.photoId));
+
+      return { success: true };
+    }),
+
+  // ── Comprimir y subir PDF (GoodNotes) ─────────────────────────────────────
+  compressPdf: protectedProcedure
+    .input(z.object({
+      visitId: z.coerce.number(),
+      fileName: z.string(),
+      fileData: z.string(), // base64
+      category: z.string().optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB no disponible" });
+
+      const [visit] = await db
+        .select()
+        .from(technicalVisits)
+        .where(eq(technicalVisits.id, input.visitId));
+
+      if (!visit) throw new TRPCError({ code: "NOT_FOUND", message: "Levantamiento no encontrado" });
       if (visit.status !== "borrador") {
-        throw new TRPCError({ code: "BAD_REQUEST", message: "Esta visita ya fue enviada" });
+        throw new TRPCError({ code: "BAD_REQUEST", message: "No se pueden agregar PDFs a un levantamiento enviado" });
+      }
+      if (ctx.user.role === "medidor" && visit.createdBy !== ctx.user.id) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Sin acceso" });
       }
 
-      await db.updateTechnicalVisit(input.visitId, { status: "enviada" });
+      const { storagePut } = await import("../storage");
 
-      // Notificar a admin y comerciales
-      try {
-        const { createAndSendNotification } = await import("../push-notifications");
-        const admins     = await db.getUsersByRole("admin");
-        const superAdmins = await db.getUsersByRole("super_admin");
-        const comerciales = await db.getUsersByRole("comercial");
-        const recipients = [...admins, ...superAdmins, ...comerciales];
+      const base64Data = input.fileData.replace(/^data:[^;]+;base64,/, "");
+      const originalBuffer = Buffer.from(base64Data, "base64");
+      const originalSize = originalBuffer.length;
 
-        const workTypeLabel: Record<string, string> = {
-          cocina:    "Cocina",
-          closet:    "Closet",
-          puertas:   "Puertas",
-          centro_tv: "Centro TV",
-        };
+      // Comprimir con ghostscript
+      const { buffer: compressedBuffer, savedPercent } = await compressPdfBuffer(originalBuffer);
 
-        for (const recipient of recipients) {
-          await createAndSendNotification(recipient.id, {
-            title: `📐 Nueva visita técnica: ${visit.clientName}`,
-            body:  `${workTypeLabel[visit.workType] ?? visit.workType} — ${visit.clientAddress ?? "Sin dirección"}. Lista para cotizar.`,
-            type:  "proyecto",
-            url:   `/visitas-tecnicas`,
-          });
-        }
-      } catch (err) {
-        console.error("[technicalVisits.submit] Error enviando notificaciones:", err);
+      const timestamp = Date.now();
+      const randomSuffix = Math.random().toString(36).substring(2, 8);
+      const fileKey = `technical_visits/${input.visitId}/pdfs/${timestamp}-${randomSuffix}.pdf`;
+
+      const { url } = await storagePut(fileKey, compressedBuffer, "application/pdf");
+
+      const now = new Date().toISOString().replace('T', ' ').replace('Z', '');
+      const [pdf] = await db
+        .insert(technicalVisitPdfs)
+        .values({
+          visitId: input.visitId,
+          url,
+          s3Key: fileKey,
+          originalFileName: input.fileName,
+          originalSizeBytes: originalSize,
+          compressedSizeBytes: compressedBuffer.length,
+          savedPercent,
+          uploadedBy: ctx.user.id,
+          createdAt: now,
+        })
+        .returning();
+
+      await db.update(technicalVisits).set({ updatedAt: now }).where(eq(technicalVisits.id, input.visitId));
+
+      return { id: String(pdf.id), url, savedPercent };
+    }),
+
+  // ── Guardar firma del cliente ───────────────────────────────────────────────
+  saveSignature: protectedProcedure
+    .input(z.object({
+      visitId: z.coerce.number(),
+      signature: z.string(), // base64 PNG
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB no disponible" });
+
+      const [visit] = await db
+        .select()
+        .from(technicalVisits)
+        .where(eq(technicalVisits.id, input.visitId));
+
+      if (!visit) throw new TRPCError({ code: "NOT_FOUND", message: "Levantamiento no encontrado" });
+      if (visit.status !== "borrador") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "No se puede modificar un levantamiento enviado" });
       }
+      if (ctx.user.role === "medidor" && visit.createdBy !== ctx.user.id) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Sin acceso" });
+      }
+
+      const now = new Date().toISOString().replace('T', ' ').replace('Z', '');
+      await db
+        .update(technicalVisits)
+        .set({
+          clientSignature: input.signature,
+          clientSignedAt: now,
+          updatedAt: now,
+        })
+        .where(eq(technicalVisits.id, input.visitId));
+
+      return { success: true };
+    }),
+
+  // ── Enviar levantamiento (borrador → enviada) ──────────────────────────────
+  submit: protectedProcedure
+    .input(z.object({ visitId: z.coerce.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB no disponible" });
+
+      const [visit] = await db
+        .select()
+        .from(technicalVisits)
+        .where(eq(technicalVisits.id, input.visitId));
+
+      if (!visit) throw new TRPCError({ code: "NOT_FOUND", message: "Levantamiento no encontrado" });
+      if (visit.status !== "borrador") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "El levantamiento ya fue enviado" });
+      }
+      if (ctx.user.role === "medidor" && visit.createdBy !== ctx.user.id) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Sin acceso" });
+      }
+
+      // Validar: fotos obligatorias
+      const photos = await db
+        .select()
+        .from(technicalVisitPhotos)
+        .where(eq(technicalVisitPhotos.visitId, input.visitId));
+
+      if (photos.length === 0) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Debes agregar al menos una foto del sitio antes de enviar",
+        });
+      }
+
+      const now = new Date().toISOString().replace('T', ' ').replace('Z', '');
+      await db
+        .update(technicalVisits)
+        .set({ status: "enviada", submittedAt: now, updatedAt: now })
+        .where(eq(technicalVisits.id, input.visitId));
+
+      return { success: true };
+    }),
+
+  // ── Vincular levantamiento a proyecto (admin/comercial — post aprobación) ──
+  linkToProject: protectedProcedure
+    .input(z.object({
+      visitId: z.coerce.number(),
+      projectId: z.number(),
+      quotationId: z.number().optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB no disponible" });
+
+      requireRole(ctx.user.role, MANAGER_ROLES);
+
+      const now = new Date().toISOString().replace('T', ' ').replace('Z', '');
+      await db
+        .update(technicalVisits)
+        .set({
+          projectId: input.projectId,
+          quotationId: input.quotationId,
+          status: "convertida",
+          updatedAt: now,
+        })
+        .where(eq(technicalVisits.id, input.visitId));
 
       return { success: true };
     }),

@@ -827,3 +827,74 @@ export const taxDocuments = pgTable("taxDocuments", {
 	uploadedBy: integer().references(() => users.id, { onDelete: 'set null' }),
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 });
+
+// ── Módulo Medidor — Levantamiento Técnico ────────────────────────────────────
+export const technicalVisits = pgTable("technical_visits", {
+	id: serial('id').primaryKey(),
+	appointmentId: integer().references(() => appointments.id), // opcional — si viene de cita agendada
+	clientId: integer().references(() => clients.id),           // opcional — si ya existe en el CRM
+	createdBy: integer().notNull().references(() => users.id),
+	status: text().default('borrador').notNull(),               // borrador | enviada | convertida
+	workType: text().notNull(),                                 // cocina | closet | puertas | centro_tv
+	// Datos del cliente (pre-llenados de cita o ingresados manualmente)
+	clientName: varchar({ length: 255 }).notNull(),
+	clientPhone: varchar({ length: 20 }),
+	clientAddress: text(),
+	visitCity: varchar({ length: 100 }),
+	// GPS capturado al crear la visita
+	latitude: decimal({ precision: 10, scale: 7 }),
+	longitude: decimal({ precision: 10, scale: 7 }),
+	// Medidas por tipo de trabajo (JSON flexible)
+	measurements: json(),
+	// Checklist técnico (JSON)
+	checklist: json(),
+	// Evaluación técnica
+	technicalEvaluation: text(),                               // viable | requiere_revision | requiere_visita
+	criticalObservations: text(),                              // observaciones críticas adicionales
+	// Notas generales
+	notes: text(),
+	// Firma del cliente (base64 PNG — trazabilidad de visita)
+	clientSignature: text(),
+	clientSignedAt: timestamp({ mode: 'string' }),
+	// Vinculación post-aprobación
+	quotationId: integer().references(() => quotations.id),
+	projectId: integer().references(() => projects.id),
+	submittedAt: timestamp({ mode: 'string' }),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
+	deletedAt: timestamp({ mode: 'string' }),
+}, (table) => [
+	index("technicalVisits_createdBy_idx").on(table.createdBy),
+	index("technicalVisits_clientId_idx").on(table.clientId),
+	index("technicalVisits_status_idx").on(table.status),
+	index("technicalVisits_appointmentId_idx").on(table.appointmentId),
+	index("technicalVisits_projectId_idx").on(table.projectId),
+]);
+
+export const technicalVisitPhotos = pgTable("technical_visit_photos", {
+	id: serial('id').primaryKey(),
+	visitId: integer().notNull().references(() => technicalVisits.id, { onDelete: 'cascade' }),
+	url: text().notNull(),
+	s3Key: text().notNull(),
+	category: text().notNull(), // general | ventana | punto_hidraulico | punto_gas | tomacorrientes | detalle_tecnico
+	caption: text(),
+	uploadedBy: integer().notNull().references(() => users.id),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
+}, (table) => [
+	index("technicalVisitPhotos_visitId_idx").on(table.visitId),
+]);
+
+export const technicalVisitPdfs = pgTable("technical_visit_pdfs", {
+	id: serial('id').primaryKey(),
+	visitId: integer().notNull().references(() => technicalVisits.id, { onDelete: 'cascade' }),
+	url: text().notNull(),
+	s3Key: text().notNull(),
+	originalFileName: text().notNull(),
+	originalSizeBytes: integer(),
+	compressedSizeBytes: integer(),
+	savedPercent: integer().default(0),
+	uploadedBy: integer().notNull().references(() => users.id),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
+}, (table) => [
+	index("technicalVisitPdfs_visitId_idx").on(table.visitId),
+]);

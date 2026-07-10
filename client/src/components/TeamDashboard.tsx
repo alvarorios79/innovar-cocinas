@@ -430,7 +430,7 @@ export function TeamDashboard() {
       case "medidor":
         return [
           { label: "Visitas Pendientes", value: pendingAppointments.length, icon: <CalendarCheck className="h-6 w-6" />, color: "bg-gradient-to-br from-amber-500 to-orange-500", link: "/appointments-calendar" },
-          { label: "Proyectos", value: myProjects.length, icon: <Briefcase className="h-6 w-6" />, color: "bg-gradient-to-br from-yellow-500 to-amber-500", link: "/projects" },
+          { label: "Levantamientos", value: 0, icon: <ClipboardList className="h-6 w-6" />, color: "bg-gradient-to-br from-teal-500 to-emerald-500", link: "/medidor" },
           { label: "Mis Tareas", value: myTasks.length, icon: <ClipboardList className="h-6 w-6" />, color: "bg-gradient-to-br from-amber-600 to-yellow-600", link: "/tasks" },
         ];
       case "contador":
@@ -512,8 +512,8 @@ export function TeamDashboard() {
         ];
       case "medidor":
         return [
+          { label: "Levantamientos", href: "/medidor", icon: <ClipboardList className="h-6 w-6" />, color: "bg-gradient-to-br from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700" },
           { label: "Visitas Técnicas", href: "/appointments-calendar", icon: <CalendarCheck className="h-6 w-6" />, color: "bg-gradient-to-br from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700" },
-          { label: "Proyectos", href: "/projects", icon: <Briefcase className="h-6 w-6" />, color: "bg-gradient-to-br from-yellow-600 to-amber-600 hover:from-yellow-700 hover:to-amber-700" },
           { label: "Mis Tareas", href: "/tasks", icon: <ClipboardList className="h-6 w-6" />, color: "bg-gradient-to-br from-amber-600 to-yellow-600 hover:from-amber-700 hover:to-yellow-700" },
         ];
       case "contador":

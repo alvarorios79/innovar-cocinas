@@ -153,6 +153,12 @@ export default function ProjectDetail() {
     }
   );
 
+  // Levantamiento técnico vinculado al proyecto (para diseñador y admins)
+  const { data: technicalVisit } = trpc.technicalVisits.getByProjectId.useQuery(
+    { projectId },
+    { enabled: !!projectId, staleTime: 30000 }
+  );
+
   // Cargar gastos de materiales del proyecto
   const { data: expensesData } = trpc.expenses.getProjectMaterialExpenses.useQuery(
     { projectId },
@@ -515,7 +521,7 @@ export default function ProjectDetail() {
 
   const filteredFolders = getFilteredFolders();
   const disenoFolders = Object.fromEntries(
-    Object.entries(filteredFolders).filter(([cat]) => ['cotizacion', 'medidas', 'disenos'].includes(cat))
+    Object.entries(filteredFolders).filter(([cat]) => ['cotizacion', 'disenos'].includes(cat))
   );
   const produccionFolders = Object.fromEntries(
     Object.entries(filteredFolders).filter(([cat]) => ['avance'].includes(cat))
@@ -1309,6 +1315,114 @@ export default function ProjectDetail() {
                   })()}
                 </div>
               </div>
+            )}
+
+            {/* ── Levantamiento Técnico del Medidor ─────────────────────────── */}
+            {technicalVisit && (
+              <Card>
+                <CardHeader className="py-3 bg-gradient-to-r from-teal-600 to-emerald-600">
+                  <CardTitle className="text-base font-bold text-white tracking-wide flex items-center gap-2">
+                    📋 Levantamiento Técnico
+                    <span className="text-xs font-normal bg-white/20 px-2 py-0.5 rounded-full">
+                      {technicalVisit.clientName}
+                    </span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-4 space-y-4">
+                  {/* Medidas */}
+                  {technicalVisit.measurements != null && Object.keys(technicalVisit.measurements as Record<string, unknown>).length > 0 ? (
+                    <div>
+                      <h5 className="text-sm font-semibold text-teal-300 mb-2">Medidas</h5>
+                      <div className="grid grid-cols-2 gap-2">
+                        {Object.entries(technicalVisit.measurements as Record<string, unknown>).map(([key, val]) => (
+                          <div key={key} className="bg-white/[0.04] rounded p-2 text-xs">
+                            <span className="text-gray-400">{key}: </span>
+                            <span className="text-white font-medium">{String(val)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+                  {/* Checklist técnico */}
+                  {technicalVisit.checklist != null && Object.keys(technicalVisit.checklist as Record<string, unknown>).length > 0 ? (
+                    <div>
+                      <h5 className="text-sm font-semibold text-teal-300 mb-2">Checklist técnico</h5>
+                      <div className="grid grid-cols-2 gap-1">
+                        {Object.entries(technicalVisit.checklist as Record<string, unknown>).map(([key, val]) => (
+                          <div key={key} className="flex items-center gap-1 text-xs">
+                            <span className={val === true ? "text-emerald-400" : "text-red-400"}>{val === true ? "✓" : "✗"}</span>
+                            <span className="text-gray-300">{key.replace(/([A-Z])/g, ' $1').toLowerCase()}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+                  {/* Evaluación técnica */}
+                  {technicalVisit.technicalEvaluation && (
+                    <div>
+                      <h5 className="text-sm font-semibold text-teal-300 mb-1">Evaluación técnica</h5>
+                      <span className={`text-xs px-2 py-1 rounded-full ${
+                        technicalVisit.technicalEvaluation === 'viable' ? 'bg-emerald-500/20 text-emerald-300' :
+                        technicalVisit.technicalEvaluation === 'requiere_revision' ? 'bg-amber-500/20 text-amber-300' :
+                        'bg-red-500/20 text-red-300'
+                      }`}>
+                        {technicalVisit.technicalEvaluation === 'viable' ? 'Viable' :
+                         technicalVisit.technicalEvaluation === 'requiere_revision' ? 'Requiere revisión' :
+                         'Requiere visita adicional'}
+                      </span>
+                    </div>
+                  )}
+                  {/* Observaciones críticas */}
+                  {technicalVisit.criticalObservations && (
+                    <div>
+                      <h5 className="text-sm font-semibold text-amber-300 mb-1">Observaciones críticas</h5>
+                      <p className="text-xs text-gray-300 bg-amber-500/10 rounded p-2">{technicalVisit.criticalObservations}</p>
+                    </div>
+                  )}
+                  {/* Notas */}
+                  {technicalVisit.notes && (
+                    <div>
+                      <h5 className="text-sm font-semibold text-teal-300 mb-1">Notas del medidor</h5>
+                      <p className="text-xs text-gray-300 bg-white/[0.04] rounded p-2">{technicalVisit.notes}</p>
+                    </div>
+                  )}
+                  {/* Fotos del sitio */}
+                  {technicalVisit.photos && (technicalVisit.photos as any[]).length > 0 && (
+                    <div>
+                      <h5 className="text-sm font-semibold text-teal-300 mb-2">
+                        Fotos del sitio <span className="text-xs text-gray-400">({(technicalVisit.photos as any[]).length})</span>
+                      </h5>
+                      <div className="grid grid-cols-3 gap-2">
+                        {(technicalVisit.photos as any[]).map((photo: any) => (
+                          <a key={photo.id} href={photo.url} target="_blank" rel="noopener noreferrer">
+                            <img src={photo.url} alt={photo.category} className="rounded-lg object-cover w-full h-20 hover:opacity-80 transition-opacity" />
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {/* PDFs de planos */}
+                  {technicalVisit.pdfs && (technicalVisit.pdfs as any[]).length > 0 && (
+                    <div>
+                      <h5 className="text-sm font-semibold text-teal-300 mb-2">Planos GoodNotes</h5>
+                      <div className="space-y-2">
+                        {(technicalVisit.pdfs as any[]).map((pdf: any) => (
+                          <a key={pdf.id} href={pdf.url} target="_blank" rel="noopener noreferrer"
+                            className="flex items-center gap-2 bg-white/[0.04] rounded-lg p-2 hover:bg-white/[0.08] transition-colors">
+                            <span className="text-red-400 text-lg">📄</span>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs text-white truncate">{pdf.fileName}</p>
+                              {pdf.savedPercent > 0 && (
+                                <p className="text-[10px] text-emerald-400">Comprimido {pdf.savedPercent}%</p>
+                              )}
+                            </div>
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             )}
 
             {Object.entries(disenoFolders).map(([category, subcategories]) => (

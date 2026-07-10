@@ -102,7 +102,7 @@ export default function AppointmentsCalendar() {
   // Obtener citas
   const { data: appointmentsData = [], refetch } = trpc.appointments.list.useQuery(
     undefined,
-    { enabled: user?.role === "admin" || user?.role === "super_admin" || user?.role === "comercial" }
+    { enabled: user?.role === "admin" || user?.role === "super_admin" || user?.role === "comercial" || user?.role === "medidor" }
   );
 
   // Mutación para actualizar fecha

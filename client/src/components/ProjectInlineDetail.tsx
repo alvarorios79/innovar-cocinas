@@ -1830,15 +1830,6 @@ export function ProjectInlineDetail({
                   </p>
                 </div>
               </div>
-              <Button
-                size="sm"
-                variant="outline"
-                className="text-xs border-white/20 hover:bg-white/10"
-                onClick={() => { window.location.href = `/accounting?projectId=${project.id}`; }}
-              >
-                <Plus className="h-3 w-3 mr-1" />
-                Registrar Gasto
-              </Button>
             </div>
           )}
 

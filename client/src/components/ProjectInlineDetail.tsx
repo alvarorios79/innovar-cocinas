@@ -151,7 +151,6 @@ export function ProjectInlineDetail({
   
   // Toggle para ocultar información financiera (CEO, admin, comercial)
   const [showFinancialInfo, setShowFinancialInfo] = useState(false);
-  const [showFinancialSummary, setShowFinancialSummary] = useState(true);
   
   // Estados para alertas inteligentes
   const [closedAlerts, setClosedAlerts] = useState<Set<string>>(new Set());
@@ -1800,147 +1799,47 @@ export function ProjectInlineDetail({
             </div>
           )}
 
-          {/* NUEVA SECCIÓN: Resumen Financiero Detallado */}
+          {/* Resumen financiero compacto */}
           {user?.role !== "disenador" && user?.role !== "jefe_taller" && user?.role !== "operario" && financialSummary && (
-            <Card className={`border-2 ${
+            <div className={`flex flex-wrap items-center justify-between gap-3 px-4 py-3 rounded-lg border ${
               financialSummary.margen < 0
-                ? "border-red-400 bg-red-500/10"
+                ? "border-red-500/30 bg-red-500/10"
                 : financialSummary.rentabilidad < 10
-                ? "border-yellow-400 bg-yellow-500/10"
-                : "border-green-400 bg-green-500/10"
+                ? "border-yellow-500/30 bg-yellow-500/10"
+                : "border-green-500/30 bg-green-500/10"
             }`}>
-              <CardHeader className="py-3">
-                <CardTitle className="text-sm flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">💰</span>
-                    Resumen Financiero Detallado
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setShowFinancialSummary(!showFinancialSummary)}
-                    className="h-8 px-2"
-                  >
-                    {showFinancialSummary ? (
-                      <><EyeOff className="h-4 w-4 mr-1" /> Ocultar</>
-                    ) : (
-                      <><Eye className="h-4 w-4 mr-1" /> Mostrar</>
-                    )}
-                  </Button>
-                </CardTitle>
-              </CardHeader>
-              {showFinancialSummary && (
-              <CardContent>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {/* Total del Proyecto */}
-                  <div className="text-center p-3 bg-blue-500/15/50 rounded-lg border border-blue-300">
-                    <p className="text-xs text-blue-300 mb-1 font-medium">Total del Proyecto</p>
-                    <p className="text-lg font-bold text-blue-300">
-                      {formatCurrency(financialSummary.totalAmount)}
-                    </p>
-                  </div>
-
-                  {/* Total Pagado */}
-                  <div className="text-center p-3 bg-green-500/15/50 rounded-lg border border-green-300">
-                    <p className="text-xs text-green-400 mb-1 font-medium">Total Pagado</p>
-                    <p className="text-lg font-bold text-green-300">
-                      {formatCurrency(financialSummary.totalPagado)}
-                    </p>
-                  </div>
-
-                  {/* Total Gastos */}
-                  <div className="text-center p-3 bg-orange-500/15/50 rounded-lg border border-orange-500/30">
-                    <p className="text-xs text-orange-300 mb-1 font-medium">Total Gastos</p>
-                    <p className="text-lg font-bold text-orange-300">
-                      {formatCurrency(financialSummary.totalGastos)}
-                    </p>
-                  </div>
-
-                  {/* Saldo Pendiente */}
-                  <div className={`text-center p-3 rounded-lg border ${
-                    financialSummary.saldoPendiente > 0
-                      ? "bg-yellow-500/15/50 border-yellow-300"
-                      : "bg-green-500/15/50 border-green-300"
-                  }`}>
-                    <p className={`text-xs mb-1 font-medium ${
-                      financialSummary.saldoPendiente > 0
-                        ? "text-yellow-400"
-                        : "text-green-400"
-                    }`}>
-                      Saldo Pendiente
-                    </p>
-                    <p className={`text-lg font-bold ${
-                      financialSummary.saldoPendiente > 0
-                        ? "text-yellow-100"
-                        : "text-green-300"
-                    }`}>
-                      {formatCurrency(financialSummary.saldoPendiente)}
-                    </p>
-                  </div>
-
-                  {/* Margen */}
-                  <div className={`text-center p-3 rounded-lg border ${getMarginColor(financialSummary.rentabilidad).bg} border-opacity-50`}>
-                    <p className={`text-xs mb-1 font-medium ${getMarginColor(financialSummary.rentabilidad).text}`}>
-                      Margen
-                    </p>
-                    <p className={`text-lg font-bold ${getMarginColor(financialSummary.rentabilidad).text}`}>
-                      {formatCurrency(financialSummary.margen)}
-                    </p>
-                  </div>
-
-                  {/* Rentabilidad % */}
-                  <div className={`text-center p-3 rounded-lg border ${getMarginColor(financialSummary.rentabilidad).bg} border-opacity-50`}>
-                    <p className={`text-xs mb-1 font-medium ${getMarginColor(financialSummary.rentabilidad).text}`}>
-                      Rentabilidad
-                    </p>
-                    <p className={`text-lg font-bold ${getMarginColor(financialSummary.rentabilidad).text}`}>
-                      {financialSummary.rentabilidad.toFixed(2)}%
-                    </p>
-                  </div>
+              <div className="flex items-center gap-4 flex-wrap">
+                <div>
+                  <p className="text-xs text-white/45 mb-0.5">Saldo pendiente</p>
+                  <p className={`text-base font-bold ${financialSummary.saldoPendiente > 0 ? "text-yellow-300" : "text-green-300"}`}>
+                    {financialSummary.saldoPendiente > 0 ? formatCurrency(financialSummary.saldoPendiente) : "✓ Pagado"}
+                  </p>
                 </div>
-
-                {/* Botones de acción rápida */}
-                <div className="mt-4 pt-4 border-t flex flex-wrap gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="text-xs"
-                    onClick={() => {
-                      // Redirigir a Accounting con proyecto preseleccionado
-                      window.location.href = `/accounting?projectId=${project.id}`;
-                    }}
-                  >
-                    <Plus className="h-3 w-3 mr-1" />
-                    Registrar Gasto
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="text-xs"
-                    onClick={() => {
-                      // TODO: Abrir modal de pago rápido
-                      toast.info("Funcionalidad en desarrollo");
-                    }}
-                  >
-                    <Plus className="h-3 w-3 mr-1" />
-                    Registrar Pago
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="text-xs"
-                    onClick={() => {
-                      // TODO: Mostrar historial de gastos y pagos
-                      toast.info("Funcionalidad en desarrollo");
-                    }}
-                  >
-                    <History className="h-3 w-3 mr-1" />
-                    Ver Historial
-                  </Button>
+                <div className="w-px h-8 bg-white/10 hidden sm:block" />
+                <div>
+                  <p className="text-xs text-white/45 mb-0.5">Rentabilidad</p>
+                  <p className={`text-base font-bold ${getMarginColor(financialSummary.rentabilidad).text}`}>
+                    {financialSummary.rentabilidad.toFixed(1)}%
+                  </p>
                 </div>
-              </CardContent>
-              )}
-            </Card>
+                <div className="w-px h-8 bg-white/10 hidden sm:block" />
+                <div>
+                  <p className="text-xs text-white/45 mb-0.5">Gastos registrados</p>
+                  <p className="text-base font-bold text-orange-300">
+                    {formatCurrency(financialSummary.totalGastos)}
+                  </p>
+                </div>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                className="text-xs border-white/20 hover:bg-white/10"
+                onClick={() => { window.location.href = `/accounting?projectId=${project.id}`; }}
+              >
+                <Plus className="h-3 w-3 mr-1" />
+                Registrar Gasto
+              </Button>
+            </div>
           )}
 
           {/* Comprobante de pago y PDF de cotización - Solo si ya pagó el 60% */}

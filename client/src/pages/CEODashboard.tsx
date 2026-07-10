@@ -70,7 +70,7 @@ export function CEODashboard() {
   return (
     <div>
       <PageHeader
-        title="Panel Financiero"
+        title="Financiero"
         subtitle="Métricas del negocio en tiempo real"
         icon={<BarChart3 className="h-5 w-5" />}
       />

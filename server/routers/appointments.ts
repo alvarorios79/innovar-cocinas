@@ -4,7 +4,9 @@ import { systemRouter } from "../_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "../_core/trpc";
 import { z } from "zod";
 import * as db from "../db";
-import { withTransaction } from "../db";
+import { withTransaction, getDb } from "../db";
+import { appointmentWorkTypes, appointments as appointmentsTable } from "../../drizzle/schema";
+import { eq } from "drizzle-orm";
 import * as whatsapp from "../whatsapp";
 import { TRPCError } from "@trpc/server";
 import { getAvailableTimeSlots, isTimeSlotAvailable, APPOINTMENT_CONFIG } from "../availability";
@@ -489,21 +491,50 @@ export const appointmentsRouter = router({
         if (!["admin", "super_admin", "comercial", "medidor"].includes(ctx.user.role)) {
           throw new TRPCError({ code: "FORBIDDEN" });
         }
-        
+
         // Optimización: ejecutar consultas en paralelo
-        const [appointments, clients] = await Promise.all([
+        const [allApts, clients] = await Promise.all([
           db.getAllAppointments(),
           db.getAllClients(),
         ]);
-        
+
+        // Medidor solo ve las citas que le han sido asignadas
+        const filteredApts = ctx.user.role === "medidor"
+          ? allApts.filter((a: any) => a.assignedMedidorId === ctx.user.id)
+          : allApts;
+
+        // Para medidor: incluir workTypes (necesita saber qué medir)
+        if (ctx.user.role === "medidor") {
+          const enriched = await Promise.all(filteredApts.map(async (apt: any) => {
+            const client = clients.find(c => c.id === apt.clientId);
+            const workTypes = await db.getAppointmentWorkTypes(apt.id);
+            return { ...apt, client, workTypes: workTypes.map((wt: any) => wt.workType) };
+          }));
+          return enriched;
+        }
+
         // Combinar datos de citas con clientes
-        return appointments.map(apt => {
+        return filteredApts.map((apt: any) => {
           const client = clients.find(c => c.id === apt.clientId);
-          return {
-            ...apt,
-            client,
-          };
+          return { ...apt, client };
         });
+      }),
+
+    assignMedidor: protectedProcedure
+      .input(z.object({
+        appointmentId: z.coerce.number(),
+        medidorId: z.coerce.number().nullable(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        if (!["admin", "super_admin", "comercial"].includes(ctx.user.role)) {
+          throw new TRPCError({ code: "FORBIDDEN" });
+        }
+        const drizzleDb = await getDb();
+        if (!drizzleDb) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+        await drizzleDb.update(appointmentsTable)
+          .set({ assignedMedidorId: input.medidorId })
+          .where(eq(appointmentsTable.id, input.appointmentId));
+        return { success: true };
       }),
 
     listPaginated: protectedProcedure

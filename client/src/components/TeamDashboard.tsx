@@ -150,6 +150,9 @@ export function TeamDashboard() {
   const { data: quotations = [] } = trpc.quotations.list.useQuery(undefined, {
     enabled: ["comercial", "admin", "super_admin"].includes(role),
   });
+  const { data: myVisits = [] } = trpc.technicalVisits.list.useQuery(undefined, {
+    enabled: role === "medidor",
+  });
 
   // Filtrar datos según el rol
   const getProjectsForRole = () => {
@@ -430,7 +433,7 @@ export function TeamDashboard() {
       case "medidor":
         return [
           { label: "Visitas Pendientes", value: pendingAppointments.length, icon: <CalendarCheck className="h-6 w-6" />, color: "bg-gradient-to-br from-amber-500 to-orange-500", link: "/appointments-calendar" },
-          { label: "Levantamientos", value: 0, icon: <ClipboardList className="h-6 w-6" />, color: "bg-gradient-to-br from-teal-500 to-emerald-500", link: "/medidor" },
+          { label: "Levantamientos", value: (myVisits as any[]).length, icon: <ClipboardList className="h-6 w-6" />, color: "bg-gradient-to-br from-teal-500 to-emerald-500", link: "/medidor" },
           { label: "Mis Tareas", value: myTasks.length, icon: <ClipboardList className="h-6 w-6" />, color: "bg-gradient-to-br from-amber-600 to-yellow-600", link: "/tasks" },
         ];
       case "contador":

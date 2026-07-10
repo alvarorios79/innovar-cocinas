@@ -141,7 +141,7 @@ const menuSections: MenuSection[] = [
     title: "Postventa",
     items: [
       { icon: Star, label: "Postventa", path: "/postventa",
-        roles: ["super_admin", "admin", "comercial", "jefe_taller"], iconColor: "#eab308" },
+        roles: ["super_admin", "admin", "comercial"], iconColor: "#eab308" },
     ],
   },
   {

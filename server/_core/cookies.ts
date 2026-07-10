@@ -25,13 +25,15 @@ export function getSessionCookieOptions(
   req: Request
 ): CookieOptions {
   const isSecure = isSecureRequest(req);
-  
+
   return {
     httpOnly: true,
     path: "/",
-    // En producción (HTTPS): sameSite: "none" requiere secure: true
-    // En desarrollo (HTTP): sameSite: "lax" para permitir cookies sin secure
-    sameSite: isSecure ? "none" : "lax",
+    // "lax" funciona en todos los navegadores incluyendo iOS Safari/ITP.
+    // "none" era innecesario: frontend y API comparten el mismo dominio
+    // (innovar-cocinas.onrender.com), no es un caso cross-site.
+    // iOS Safari bloquea cookies SameSite=None via ITP impidiendo el login.
+    sameSite: "lax",
     secure: isSecure,
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días
   };

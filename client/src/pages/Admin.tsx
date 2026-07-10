@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
-import { Calendar, Phone, FileText, Users, Trash2, Plus, Bell, Key, Wrench, CheckSquare, Square, Eye, EyeOff, Search, Cake, DollarSign } from "lucide-react";
+import { Calendar, Phone, FileText, Users, Trash2, Plus, Bell, Key, Wrench, CheckSquare, Square, Eye, EyeOff, Search, Cake, DollarSign, ClipboardList } from "lucide-react";
 import { KpiCard, KpiGrid } from "@/components/KpiCard";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RemindersPanel } from "@/components/RemindersPanel";
@@ -23,6 +23,138 @@ import { SystemCleanupButton } from "@/components/SystemCleanupButton";
 import { formatPrice } from "@/lib/formatters";
 import { PageHeader } from "@/components/PageHeader";
 import { WhatsAppStatusPanel } from "@/components/WhatsAppStatusPanel";
+
+// ── Levantamientos Tab ────────────────────────────────────────────────────────
+const WORK_LABELS: Record<string, string> = {
+  cocina: "Cocina",
+  closet: "Closet",
+  puertas: "Puertas",
+  centro_tv: "Centro TV",
+};
+
+const STATUS_LABELS: Record<string, { label: string; className: string }> = {
+  borrador: { label: "Borrador", className: "bg-yellow-500/15 text-yellow-400" },
+  enviada: { label: "Enviado", className: "bg-teal-500/15 text-teal-400" },
+  convertida: { label: "Convertido", className: "bg-green-500/15 text-green-400" },
+};
+
+function LevantamientosTab() {
+  const [selectedVisit, setSelectedVisit] = useState<any>(null);
+  const { data: visits = [] } = trpc.technicalVisits.list.useQuery(undefined);
+
+  if ((visits as any[]).length === 0) {
+    return (
+      <Card>
+        <CardContent className="pt-10 pb-10 text-center text-muted-foreground">
+          <ClipboardList className="h-10 w-10 mx-auto mb-3 opacity-30" />
+          <p>No hay levantamientos registrados aún.</p>
+          <p className="text-sm mt-1">Los medidores enviarán sus visitas técnicas aquí.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (selectedVisit) {
+    return (
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-3">
+            <Button variant="outline" size="sm" onClick={() => setSelectedVisit(null)}>← Volver</Button>
+            <CardTitle className="flex items-center gap-2">
+              <ClipboardList className="h-5 w-5 text-teal-400" />
+              Levantamiento — {selectedVisit.clientName}
+            </CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div><span className="text-muted-foreground">Trabajo:</span> <span className="font-medium">{WORK_LABELS[selectedVisit.workType] || selectedVisit.workType}</span></div>
+            <div><span className="text-muted-foreground">Estado:</span> <Badge className={(STATUS_LABELS[selectedVisit.status] || STATUS_LABELS.borrador).className}>{(STATUS_LABELS[selectedVisit.status] || STATUS_LABELS.borrador).label}</Badge></div>
+            <div><span className="text-muted-foreground">Teléfono:</span> <span className="font-medium">{selectedVisit.clientPhone || "—"}</span></div>
+            <div><span className="text-muted-foreground">Dirección:</span> <span className="font-medium">{selectedVisit.clientAddress || "—"}</span></div>
+            <div><span className="text-muted-foreground">Medidor:</span> <span className="font-medium">{selectedVisit.createdByName || "—"}</span></div>
+            <div><span className="text-muted-foreground">Fecha:</span> <span className="font-medium">{selectedVisit.createdAt ? new Date(selectedVisit.createdAt).toLocaleDateString("es-CO") : "—"}</span></div>
+          </div>
+
+          {selectedVisit.measurements && Object.keys(selectedVisit.measurements).length > 0 && (
+            <div>
+              <h4 className="font-semibold text-teal-400 mb-2">Medidas</h4>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {Object.entries(selectedVisit.measurements).map(([k, v]: any) => (
+                  <div key={k} className="bg-white/[0.04] rounded p-2 text-sm">
+                    <div className="text-muted-foreground text-xs">{k}</div>
+                    <div className="font-medium">{String(v)}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {selectedVisit.notes && (
+            <div>
+              <h4 className="font-semibold text-teal-400 mb-2">Notas</h4>
+              <p className="text-sm bg-white/[0.04] rounded p-3">{selectedVisit.notes}</p>
+            </div>
+          )}
+
+          {selectedVisit.technicalEvaluation && (
+            <div>
+              <h4 className="font-semibold text-teal-400 mb-2">Evaluación técnica</h4>
+              <p className="text-sm">{selectedVisit.technicalEvaluation}</p>
+            </div>
+          )}
+
+          {(selectedVisit.photos || []).length > 0 && (
+            <div>
+              <h4 className="font-semibold text-teal-400 mb-2">Fotos ({(selectedVisit.photos || []).length})</h4>
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                {(selectedVisit.photos || []).map((photo: any) => (
+                  <a key={photo.id} href={photo.url} target="_blank" rel="noopener noreferrer">
+                    <img src={photo.url} alt={photo.fileName} className="w-full aspect-square object-cover rounded border border-white/10 hover:border-teal-400 transition-colors" />
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <ClipboardList className="h-5 w-5 text-teal-400" />
+          Levantamientos Técnicos
+        </CardTitle>
+        <CardDescription>Visitas técnicas enviadas por el equipo de medidores.</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-2">
+          {(visits as any[]).map((visit: any) => (
+            <div
+              key={visit.id}
+              onClick={() => setSelectedVisit(visit)}
+              className="flex items-center justify-between p-3 rounded-lg border border-white/[0.06] hover:border-teal-500/30 bg-white/[0.02] hover:bg-white/[0.04] cursor-pointer transition-colors"
+            >
+              <div>
+                <p className="font-medium text-sm">{visit.clientName}</p>
+                <p className="text-xs text-muted-foreground">{WORK_LABELS[visit.workType] || visit.workType} · {visit.clientAddress || "Sin dirección"}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge className={(STATUS_LABELS[visit.status] || STATUS_LABELS.borrador).className}>
+                  {(STATUS_LABELS[visit.status] || STATUS_LABELS.borrador).label}
+                </Badge>
+                <span className="text-xs text-muted-foreground">{visit.createdAt ? new Date(visit.createdAt).toLocaleDateString("es-CO") : ""}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
 export default function Admin() {
   const { user, isAuthenticated, loading } = useAuth();
@@ -572,11 +704,18 @@ export default function Admin() {
             >
               Herrajes
             </TabsTrigger>
-            <TabsTrigger 
-              value="projects" 
+            <TabsTrigger
+              value="projects"
               className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-teal-600 data-[state=active]:text-white hover:bg-teal-500/10 transition-colors"
             >
               Proyectos
+            </TabsTrigger>
+            <TabsTrigger
+              value="levantamientos"
+              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-teal-600 data-[state=active]:text-white hover:bg-teal-500/10 transition-colors"
+            >
+              <ClipboardList className="h-3 w-3 mr-1 inline" />
+              Levantamientos
             </TabsTrigger>
             {(user?.role === "super_admin" || user?.role === "admin") && (
               <Link href="/profitability-dashboard">
@@ -1803,6 +1942,11 @@ export default function Admin() {
                 </Link>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Levantamientos Tab */}
+          <TabsContent value="levantamientos" className="space-y-4">
+            <LevantamientosTab />
           </TabsContent>
 
           {/* Pricing Config Tab - Solo Super Admin */}

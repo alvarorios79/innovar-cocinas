@@ -488,7 +488,7 @@ export function TeamDashboard() {
         return [
           { label: "Calendario", href: "/calendar", icon: <Calendar className="h-6 w-6" />, color: "bg-gradient-to-br from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700" },
           { label: "Cotizaciones", href: "/quotations", icon: <FileText className="h-6 w-6" />, color: "bg-gradient-to-br from-rose-600 to-pink-600 hover:from-rose-700 hover:to-pink-700" },
-          { label: "Clientes", href: "/admin/clients", icon: <Users className="h-6 w-6" />, color: "bg-gradient-to-br from-fuchsia-600 to-pink-600 hover:from-fuchsia-700 hover:to-pink-700" },
+          { label: "Clientes", href: "/clients", icon: <Users className="h-6 w-6" />, color: "bg-gradient-to-br from-fuchsia-600 to-pink-600 hover:from-fuchsia-700 hover:to-pink-700" },
           { label: "Mis Tareas", href: "/tasks", icon: <ClipboardList className="h-6 w-6" />, color: "bg-gradient-to-br from-purple-600 to-fuchsia-600 hover:from-purple-700 hover:to-fuchsia-700" },
         ];
       case "admin":
@@ -497,7 +497,7 @@ export function TeamDashboard() {
           { label: "Proyectos", href: "/projects", icon: <Briefcase className="h-6 w-6" />, color: "bg-gradient-to-br from-slate-700 to-gray-800 hover:from-slate-800 hover:to-gray-900" },
           { label: "Calendario", href: "#calendar-selector", icon: <Calendar className="h-6 w-6" />, color: "bg-gradient-to-br from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700", isCalendarSelector: true },
           { label: "Cotizaciones", href: "/quotations", icon: <FileText className="h-6 w-6" />, color: "bg-gradient-to-br from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700" },
-          { label: "Clientes", href: "/admin/clients", icon: <Users className="h-6 w-6" />, color: "bg-gradient-to-br from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700" },
+          { label: "Clientes", href: "/clients", icon: <Users className="h-6 w-6" />, color: "bg-gradient-to-br from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700" },
           { label: "Tareas", href: "/tasks", icon: <ClipboardList className="h-6 w-6" />, color: "bg-gradient-to-br from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700" },
           { label: "Contabilidad", href: "/accounting", icon: <DollarSign className="h-6 w-6" />, color: "bg-gradient-to-br from-green-600 to-lime-600 hover:from-green-700 hover:to-lime-700" },
         ];

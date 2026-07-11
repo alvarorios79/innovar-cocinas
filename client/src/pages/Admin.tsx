@@ -262,6 +262,16 @@ export default function Admin() {
     },
   });
 
+  const medidores = (allUsers as any[]).filter((u: any) => u.role === "medidor");
+
+  const assignMedidorMutation = trpc.appointments.assignMedidor.useMutation({
+    onSuccess: () => {
+      utils.appointments.listPaginated.invalidate();
+      toast.success("Medidor asignado");
+    },
+    onError: () => toast.error("Error al asignar medidor"),
+  });
+
   const updateUserRole = trpc.userManagement.updateRole.useMutation({
     onSuccess: () => {
       utils.userManagement.listAll.invalidate();
@@ -830,6 +840,32 @@ export default function Admin() {
                               <p className="text-sm break-words min-w-0">
                                 <span className="font-medium">Notas:</span> {apt.notes}
                               </p>
+                            )}
+
+                            {/* Asignación de medidor */}
+                            {medidores.length > 0 && (
+                              <div className="flex items-center gap-2 pt-1">
+                                <span className="text-sm font-medium text-muted-foreground shrink-0">Medidor:</span>
+                                <Select
+                                  value={apt.assignedMedidorId ? String(apt.assignedMedidorId) : "none"}
+                                  onValueChange={(val) =>
+                                    assignMedidorMutation.mutate({
+                                      appointmentId: apt.id,
+                                      medidorId: val === "none" ? null : Number(val),
+                                    })
+                                  }
+                                >
+                                  <SelectTrigger className="h-7 text-xs w-[140px]">
+                                    <SelectValue placeholder="Sin asignar" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="none">Sin asignar</SelectItem>
+                                    {medidores.map((m: any) => (
+                                      <SelectItem key={m.id} value={String(m.id)}>{m.name}</SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
                             )}
                           </div>
                           <div className="flex flex-col gap-2">

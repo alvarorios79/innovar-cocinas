@@ -402,6 +402,54 @@ export default function Admin() {
     },
   });
 
+  // ── Crear Cita Dialog ────────────────────────────────────────────────────────
+  const [showCrearCitaDialog, setShowCrearCitaDialog] = useState(false);
+  const [crearCitaForm, setCrearCitaForm] = useState({
+    name: "", phone: "", address: "", workTypes: [] as string[], date: "", time: "",
+  });
+  const [crearCitaMedidorId, setCrearCitaMedidorId] = useState<number | null>(null);
+  const [crearCitaLoading, setCrearCitaLoading] = useState(false);
+
+  const getOrCreateClientMutation = trpc.clients.getOrCreateByWhatsApp.useMutation();
+  const createAppointmentMutation = trpc.appointments.create.useMutation({
+    onSuccess: () => {
+      utils.appointments.listPaginated.invalidate();
+    },
+  });
+
+  const handleCrearCita = async () => {
+    if (!crearCitaForm.name.trim() || !crearCitaForm.phone.trim() || crearCitaForm.workTypes.length === 0) {
+      toast.error("Completa nombre, teléfono y al menos un tipo de trabajo");
+      return;
+    }
+    setCrearCitaLoading(true);
+    try {
+      const client = await getOrCreateClientMutation.mutateAsync({
+        name: crearCitaForm.name,
+        whatsappPhone: crearCitaForm.phone,
+        address: crearCitaForm.address || undefined,
+      });
+      if (!client) throw new Error("No se pudo crear el cliente");
+      const result = await createAppointmentMutation.mutateAsync({
+        clientId: client.id,
+        workTypes: crearCitaForm.workTypes as any[],
+        scheduledDateStr: crearCitaForm.date || undefined,
+        scheduledTimeStr: crearCitaForm.time || undefined,
+      });
+      if (crearCitaMedidorId && (result as any)?.id) {
+        await assignMedidorMutation.mutateAsync({ appointmentId: (result as any).id, medidorId: crearCitaMedidorId });
+      }
+      toast.success("Cita creada exitosamente");
+      setShowCrearCitaDialog(false);
+      setCrearCitaForm({ name: "", phone: "", address: "", workTypes: [], date: "", time: "" });
+      setCrearCitaMedidorId(null);
+    } catch (e: any) {
+      toast.error(e.message || "Error al crear la cita");
+    } finally {
+      setCrearCitaLoading(false);
+    }
+  };
+
   // Funciones para selección múltiple
   const toggleSelectAppointment = (id: number) => {
     setSelectedAppointments(prev => 
@@ -774,12 +822,111 @@ export default function Admin() {
                         Eliminar ({selectedAppointments.length})
                       </Button>
                     )}
-                    <Link href="/">
-                      <Button>
-                        <Plus className="mr-2 h-4 w-4" />
-                        Crear Cita
-                      </Button>
-                    </Link>
+                    <Dialog open={showCrearCitaDialog} onOpenChange={setShowCrearCitaDialog}>
+                      <DialogTrigger asChild>
+                        <Button>
+                          <Plus className="mr-2 h-4 w-4" />
+                          Crear Cita
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                          <DialogTitle>Nueva Cita</DialogTitle>
+                          <DialogDescription>Agenda una visita de medición para un cliente</DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4 py-2">
+                          <div className="space-y-1">
+                            <Label>Nombre del cliente *</Label>
+                            <Input
+                              value={crearCitaForm.name}
+                              onChange={e => setCrearCitaForm(f => ({ ...f, name: e.target.value }))}
+                              placeholder="Nombre completo"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <Label>WhatsApp *</Label>
+                            <Input
+                              value={crearCitaForm.phone}
+                              onChange={e => setCrearCitaForm(f => ({ ...f, phone: e.target.value }))}
+                              placeholder="3XXXXXXXXX"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <Label>Dirección</Label>
+                            <Input
+                              value={crearCitaForm.address}
+                              onChange={e => setCrearCitaForm(f => ({ ...f, address: e.target.value }))}
+                              placeholder="Dirección del proyecto"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <Label>Tipo de trabajo *</Label>
+                            <div className="grid grid-cols-2 gap-2 pt-1">
+                              {(["cocina", "closet", "puertas", "centro_tv"] as const).map(wt => (
+                                <label key={wt} className="flex items-center gap-2 cursor-pointer">
+                                  <Checkbox
+                                    checked={crearCitaForm.workTypes.includes(wt)}
+                                    onCheckedChange={checked => setCrearCitaForm(f => ({
+                                      ...f,
+                                      workTypes: checked
+                                        ? [...f.workTypes, wt]
+                                        : f.workTypes.filter(w => w !== wt),
+                                    }))}
+                                  />
+                                  <span className="text-sm">
+                                    {wt === "centro_tv" ? "Centro TV" : wt.charAt(0).toUpperCase() + wt.slice(1)}
+                                  </span>
+                                </label>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-1">
+                              <Label>Fecha</Label>
+                              <Input
+                                type="date"
+                                value={crearCitaForm.date}
+                                onChange={e => setCrearCitaForm(f => ({ ...f, date: e.target.value }))}
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label>Hora</Label>
+                              <Input
+                                type="time"
+                                value={crearCitaForm.time}
+                                onChange={e => setCrearCitaForm(f => ({ ...f, time: e.target.value }))}
+                              />
+                            </div>
+                          </div>
+                          {medidores.length > 0 && (
+                            <div className="space-y-1">
+                              <Label>Medidor (opcional)</Label>
+                              <Select
+                                value={crearCitaMedidorId ? String(crearCitaMedidorId) : "none"}
+                                onValueChange={v => setCrearCitaMedidorId(v === "none" ? null : Number(v))}
+                              >
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Sin asignar" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="none">Sin asignar</SelectItem>
+                                  {medidores.map((m: any) => (
+                                    <SelectItem key={m.id} value={String(m.id)}>{m.name}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          )}
+                          <Button
+                            onClick={handleCrearCita}
+                            disabled={crearCitaLoading}
+                            className="w-full bg-teal-600 hover:bg-teal-700 text-white"
+                          >
+                            {crearCitaLoading ? "Creando..." : "Crear Cita"}
+                          </Button>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
                   </div>
                 </div>
               </CardHeader>

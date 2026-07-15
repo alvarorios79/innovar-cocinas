@@ -839,37 +839,10 @@ export default function Quotations() {
               hasLateral: item.kitchenConfig.bar?.hasLateral ?? false,
             },
             ledLighting: item.kitchenConfig.ledLighting ?? 0,
-            paintedDoors: {
-              enabled: item.kitchenConfig.paintedDoors?.enabled ?? false,
-              upperQty: item.kitchenConfig.paintedDoors?.upperQty ?? 0,
-              lowerQty: item.kitchenConfig.paintedDoors?.lowerQty ?? 0,
-              pantryQty: item.kitchenConfig.paintedDoors?.pantryQty ?? 0,
-              drawerQty: item.kitchenConfig.paintedDoors?.drawerQty ?? 0,
-              spiceQty: item.kitchenConfig.paintedDoors?.spiceQty ?? 0,
-              golaQty: item.kitchenConfig.paintedDoors?.golaQty ?? 0,
-            },
             kitchenModules: item.kitchenConfig.kitchenModules ? {
               ...item.kitchenConfig.kitchenModules,
               luzLed: item.kitchenConfig.kitchenModules.luzLed ?? false,
             } : undefined,
-            doorsAndCovers: item.kitchenConfig.doorsAndCovers ? {
-              upperDoors70: item.kitchenConfig.doorsAndCovers.upperDoors70 ?? 0,
-              upperDoors90: item.kitchenConfig.doorsAndCovers.upperDoors90 ?? 0,
-              upperDoors100: item.kitchenConfig.doorsAndCovers.upperDoors100 ?? 0,
-              lowerDoors: item.kitchenConfig.doorsAndCovers.lowerDoors ?? 0,
-              pantryDoors: item.kitchenConfig.doorsAndCovers.pantryDoors ?? 0,
-              drawerCovers: item.kitchenConfig.doorsAndCovers.drawerCovers ?? 0,
-              smallCovers: item.kitchenConfig.doorsAndCovers.smallCovers ?? 0,
-            } : undefined,
-            specialFinishes: item.kitchenConfig.specialFinishes ? {
-              enabled: item.kitchenConfig.specialFinishes.enabled ?? false,
-              aluminumGlassDoors: item.kitchenConfig.specialFinishes.aluminumGlassDoors ?? [],
-              ledLighting: {
-                enabled: item.kitchenConfig.specialFinishes.ledLighting?.enabled ?? false,
-                meters: item.kitchenConfig.specialFinishes.ledLighting?.meters ?? 0,
-              },
-            } : undefined,
-            notes: item.kitchenConfig.notes ?? "",
           } : {
             shape: "",
             totalMeters: 0,
@@ -916,7 +889,7 @@ export default function Quotations() {
           muebleCocinaConfig: item.itemType === 'mueble_cocina' && item.kitchenConfig && (item.kitchenConfig as any).tipoPieza
             ? item.kitchenConfig as any
             : undefined,
-          // Para acabados_especiales: la config se guardó dentro de kitchenConfig — restaurarla aquí
+          // Para acabados_especiales: la config también se guardó dentro de kitchenConfig
           acabadosConfig: item.itemType === 'acabados_especiales' && item.kitchenConfig
             ? item.kitchenConfig as any
             : undefined,
@@ -1387,17 +1360,16 @@ export default function Quotations() {
           return;
         }
       } else if (item.itemType === "mueble_cocina") {
-        // Fallback: cotizaciones guardadas antes del fix de restauración permiten guardar si hay precio
+        // Backward compat: cotizaciones antiguas sin muebleCocinaConfig en DB → permitir si hay precio
         if ((!item.muebleCocinaConfig || item.muebleCocinaConfig.total <= 0) && item.totalPrice <= 0) {
           toast.error(`Item ${i + 1}: Configura el mueble de cocina`);
           return;
         }
       } else if (item.itemType === "acabados_especiales") {
-        // Para acabados especiales: validar que tenga al menos un acabado
         const config = item.acabadosConfig;
         const hasDoors = config?.aluminumGlassDoors && config.aluminumGlassDoors.length > 0;
         const hasLed = config?.ledLighting?.enabled && config.ledLighting.meters > 0;
-        // Fallback: cotizaciones guardadas antes del fix no tienen config en DB — si hay precio, permitir guardar
+        // Backward compat: cotizaciones antiguas sin config en DB → permitir si hay precio
         if (!hasDoors && !hasLed && item.totalPrice <= 0) {
           toast.error(`Item ${i + 1}: Agrega al menos una puerta de aluminio o metros de LED`);
           return;
@@ -1600,7 +1572,7 @@ export default function Quotations() {
         return {
           ...item,
           description,
-          quantity: "1",
+          quantity: config.mesones.length.toString(),
           totalPrice: config.total,
         };
       }
@@ -1681,9 +1653,7 @@ export default function Quotations() {
           quantity: "1",
           totalPrice: item.totalPrice,
           includesFixedCosts: item.includesFixedCosts,
-          fixedCostsAmount: item.fixedCostsAmount,
-          // Guardar acabadosConfig dentro de kitchenConfig (única columna JSON disponible para este tipo)
-          kitchenConfig: item.acabadosConfig as any,
+          fixedCostsAmount: item.fixedCostsAmount
         };
       }
       return item;

@@ -1387,7 +1387,8 @@ export default function Quotations() {
           return;
         }
       } else if (item.itemType === "mueble_cocina") {
-        if (!item.muebleCocinaConfig || item.muebleCocinaConfig.total <= 0) {
+        // Fallback: cotizaciones guardadas antes del fix de restauración permiten guardar si hay precio
+        if ((!item.muebleCocinaConfig || item.muebleCocinaConfig.total <= 0) && item.totalPrice <= 0) {
           toast.error(`Item ${i + 1}: Configura el mueble de cocina`);
           return;
         }
@@ -1396,7 +1397,8 @@ export default function Quotations() {
         const config = item.acabadosConfig;
         const hasDoors = config?.aluminumGlassDoors && config.aluminumGlassDoors.length > 0;
         const hasLed = config?.ledLighting?.enabled && config.ledLighting.meters > 0;
-        if (!hasDoors && !hasLed) {
+        // Fallback: cotizaciones guardadas antes del fix no tienen config en DB — si hay precio, permitir guardar
+        if (!hasDoors && !hasLed && item.totalPrice <= 0) {
           toast.error(`Item ${i + 1}: Agrega al menos una puerta de aluminio o metros de LED`);
           return;
         }

@@ -1567,7 +1567,7 @@ export default function Quotations() {
         return {
           ...item,
           description,
-          quantity: config.mesones.length.toString(),
+          quantity: "1",
           totalPrice: config.total,
         };
       }

@@ -852,6 +852,24 @@ export default function Quotations() {
               ...item.kitchenConfig.kitchenModules,
               luzLed: item.kitchenConfig.kitchenModules.luzLed ?? false,
             } : undefined,
+            doorsAndCovers: item.kitchenConfig.doorsAndCovers ? {
+              upperDoors70: item.kitchenConfig.doorsAndCovers.upperDoors70 ?? 0,
+              upperDoors90: item.kitchenConfig.doorsAndCovers.upperDoors90 ?? 0,
+              upperDoors100: item.kitchenConfig.doorsAndCovers.upperDoors100 ?? 0,
+              lowerDoors: item.kitchenConfig.doorsAndCovers.lowerDoors ?? 0,
+              pantryDoors: item.kitchenConfig.doorsAndCovers.pantryDoors ?? 0,
+              drawerCovers: item.kitchenConfig.doorsAndCovers.drawerCovers ?? 0,
+              smallCovers: item.kitchenConfig.doorsAndCovers.smallCovers ?? 0,
+            } : undefined,
+            specialFinishes: item.kitchenConfig.specialFinishes ? {
+              enabled: item.kitchenConfig.specialFinishes.enabled ?? false,
+              aluminumGlassDoors: item.kitchenConfig.specialFinishes.aluminumGlassDoors ?? [],
+              ledLighting: {
+                enabled: item.kitchenConfig.specialFinishes.ledLighting?.enabled ?? false,
+                meters: item.kitchenConfig.specialFinishes.ledLighting?.meters ?? 0,
+              },
+            } : undefined,
+            notes: item.kitchenConfig.notes ?? "",
           } : {
             shape: "",
             totalMeters: 0,

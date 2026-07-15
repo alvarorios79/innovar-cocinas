@@ -1,13 +1,11 @@
 import PDFDocument from "pdfkit";
-import { createWriteStream, readFileSync } from "fs";
+import { createWriteStream, existsSync } from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import { dirname } from "path";
 
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const __dirname = path.dirname(__filename);
 
-// console.log("🔥 PDFKIT RENDER FILE EXECUTED 🔥");
 interface QuotationItem {
   itemNumber: number;
   description: string;
@@ -23,358 +21,305 @@ interface QuotationData {
   clientName: string;
   clientPhone?: string;
   clientAddress?: string;
+  clientEmail?: string;
   vendorName: string;
   productType: string;
   validUntil: string;
   items: QuotationItem[];
   subtotal: string;
   transportCost: string;
-  discountPercent?: string; // Porcentaje de descuento
-  discountAmount?: string; // Monto del descuento
+  discountPercent?: string;
+  discountAmount?: string;
   total: string;
-  generalNotes?: string; // Notas generales personalizadas
-  versionNumber?: number; // Número de versión (v1, v2, etc.)
-  baseQuotationNumber?: string; // Número de cotización base si es versión adicional
+  generalNotes?: string;
+  versionNumber?: number;
+  baseQuotationNumber?: string;
 }
 
-export async function generateQuotationPDF(
-  data: QuotationData,
-  outputPath: string
-): Promise<void> {
-  console.log("🔥 generateQuotationPDF FUNCTION CALLED 🔥");
-  console.log("📊 Items count:", data.items.length);
-  console.log("📄 First item description length:", data.items[0]?.description?.length || 0);
+const TEAL   = "#00BCD4";
+const TDARK  = "#0097A7";
+const DARK   = "#1E2A3A";
+const DGRAY  = "#3A3A3A";
+const MGRAY  = "#6B7280";
+const LGRAY  = "#F4F6F8";
+const BORDER = "#D1D9E0";
+const RED    = "#DC2626";
+const WHITE  = "#FFFFFF";
+
+function findLogo(): string | null {
+  const tries = [
+    path.join(__dirname, "public", "logo-original.png"),
+    path.join(__dirname, "public", "logo-dark.jpg"),
+    path.join(__dirname, "..", "client", "public", "logo-original.png"),
+    path.join(__dirname, "..", "client", "public", "logo-dark.jpg"),
+    path.join(__dirname, "..", "..", "client", "public", "logo-original.png"),
+    path.join(process.cwd(), "client", "public", "logo-original.png"),
+    path.join(process.cwd(), "innovar_logo.png"),
+    path.join(__dirname, "..", "innovar_logo.png"),
+    path.join(__dirname, "..", "..", "innovar_logo.png"),
+  ];
+  return tries.find(p => existsSync(p)) ?? null;
+}
+
+function fmt(v: string | number): string {
+  const n = typeof v === "string" ? parseFloat(v.replace(/[^0-9.-]/g, "")) || 0 : (v || 0);
+  return isNaN(n) ? "$0" : `$${n.toLocaleString("es-CO", { minimumFractionDigits: 0 })}`;
+}
+
+export async function generateQuotationPDF(data: QuotationData, outputPath: string): Promise<void> {
   return new Promise((resolve, reject) => {
     try {
-      // Crear documento PDF
-      const doc = new PDFDocument({
-        size: "LETTER",
-        margins: { top: 50, bottom: 50, left: 50, right: 50 },
-      });
-
-      // Stream para guardar el archivo
+      const doc = new PDFDocument({ size: "LETTER", margins: { top: 0, bottom: 0, left: 0, right: 0 }, bufferPages: true });
       const stream = createWriteStream(outputPath);
       doc.pipe(stream);
 
-      // Colores corporativos
-      const turquoise = "#14B8A6";
-      const gray = "#6B7280";
-      const darkGray = "#374151";
+      const PW = 612, PH = 792;
+      const ML = 40, MR = 40, CW = PW - ML - MR; // 532px de contenido
 
-      // Logo (izquierda)
-      const logoPath = path.join(__dirname, "../innovar_logo.png");
-      try {
-        doc.image(logoPath, 50, 35, { width: 70, height: 90 });
-      } catch (e) {
-        // Logo no encontrado, continuar sin logo
+      // ══════════════════════════════════════════════════════════════════════
+      // HEADER compacto — 82px
+      // ══════════════════════════════════════════════════════════════════════
+      const HDR = 82;
+      doc.rect(0, 0, PW, HDR).fill(DARK);
+      doc.rect(0, HDR, PW, 2).fill(TEAL);
+
+      const logoPath = findLogo();
+      if (logoPath) {
+        try { doc.image(logoPath, ML, 8, { height: 52, fit: [76, 52] }); }
+        catch { /* sin logo */ }
       }
 
-      // Información de contacto (centro-izquierda, al lado del logo)
-      doc.fontSize(8).fillColor(darkGray).font("Helvetica");
-      doc.text("Km 9 vía Cerritos a Pereira", 130, 45);
-      doc.text("313 680 2025", 130, 57);
-      doc.text("ventas@cocinasintegralespereira.co", 130, 69);
-      doc.text("Bancolombia Ahorros: 11533034332", 130, 81);
+      const LX = logoPath ? ML + 82 : ML;
+      if (!logoPath) {
+        doc.fontSize(16).fillColor(TEAL).font("Helvetica-Bold").text("INNOVAR", ML, 14);
+        doc.fontSize(7).fillColor(WHITE).font("Helvetica").text("COCINAS DE DISEÑO", ML, 33);
+      } else {
+        doc.fontSize(16).fillColor(TEAL).font("Helvetica-Bold").text("INNOVAR", LX, 14);
+        doc.fontSize(7).fillColor(WHITE).font("Helvetica").text("COCINAS DE DISEÑO", LX, 33);
+      }
+      doc.fontSize(6.5).fillColor("#78909C").font("Helvetica")
+         .text("Km 9 vía Cerritos · Pereira, Risaralda · NIT: 10021456-1", LX, 45, { width: 210 })
+         .text("313 680 2025 · cocinasintegralespereira.co", LX, 55, { width: 210 });
 
-      // Numero de cotizacion (derecha, destacado) - separado en dos lineas
-      doc.fontSize(13).fillColor(turquoise).font("Helvetica-Bold");
-      doc.text(`Cotizacion N°`, 350, 38, {
-        align: "right",
-        width: 200,
-      });
-      doc.fontSize(9).fillColor(turquoise).font("Helvetica-Bold");
-      doc.text(`${data.quotationNumber}`, 350, 55, {
-        align: "right",
-        width: 200,
-      });
-      
-      // Numero de version si aplica
-      let versionY = 68;
+      // Bloque cotización — derecha del header
+      const BW = 190, BX = PW - MR - BW;
+      doc.rect(BX, 10, BW, HDR - 18).fill("#162030");
+      doc.rect(BX, 10, BW, 18).fill(TEAL);
+      doc.fontSize(8).fillColor(WHITE).font("Helvetica-Bold").text("COTIZACIÓN", BX + 8, 15);
+      doc.fontSize(7).fillColor(TEAL).font("Helvetica-Bold")
+         .text(data.quotationNumber, BX + 8, 33, { width: BW - 16 });
       if (data.versionNumber && data.versionNumber > 1) {
-        doc.fontSize(8).fillColor(darkGray).font("Helvetica");
-        doc.text(`Version: v${data.versionNumber}`, 350, versionY, { align: "right", width: 200 });
-        versionY += 11;
-        
-        // Referencia a cotizacion base si es version adicional
-        if (data.baseQuotationNumber) {
-          doc.fontSize(7).fillColor("#9CA3AF").font("Helvetica");
-          doc.text(`(Base: COT-${data.baseQuotationNumber})`, 350, versionY, { align: "right", width: 200 });
-          versionY += 11;
-        }
+        doc.fontSize(6.5).fillColor("#90CAF9").font("Helvetica")
+           .text(`Versión v${data.versionNumber}`, BX + 8, 44, { width: BW - 16 });
       }
-      
-      // Fecha y validez (derecha, mas abajo)
-      doc.fontSize(9).fillColor(darkGray).font("Helvetica");
-      doc.text(`Fecha: ${data.date}`, 350, versionY + 8, { align: "right", width: 200 });
-      doc.text(`Valida hasta: ${data.validUntil}`, 350, versionY + 22, { align: "right", width: 200 });
+      doc.fontSize(6.5).fillColor("#B0BEC5").font("Helvetica")
+         .text(`Fecha:         ${data.date}`, BX + 8, 54, { width: BW - 16 })
+         .text(`Válida hasta: ${data.validUntil}`, BX + 8, 64, { width: BW - 16 });
 
-      // Línea separadora
-      doc.strokeColor(turquoise).lineWidth(1);
-      doc.moveTo(50, 130).lineTo(562, 130).stroke();
+      // ══════════════════════════════════════════════════════════════════════
+      // CUERPO — empieza en Y = 96
+      // ══════════════════════════════════════════════════════════════════════
+      let Y = HDR + 12;
 
-      // Cliente
-      const clientY = 140;
-      doc
-        .fillColor(turquoise)
-        .rect(50, clientY, 512, 25)
-        .fill();
-      doc
-        .fontSize(11)
-        .fillColor("white")
-        .font("Helvetica-Bold")
-        .text("CLIENTE", 60, clientY + 8);
-      // Nombre + teléfono + dirección en el mismo renglón
-      const clientInfoParts = [data.clientName];
-      if (data.clientPhone) clientInfoParts.push(`Tel: ${data.clientPhone}`);
-      if (data.clientAddress) clientInfoParts.push(`Dirección: ${data.clientAddress}`);
-      doc
-        .fontSize(10)
-        .fillColor(darkGray)
-        .font("Helvetica")
-        .text(clientInfoParts.join("    "), 50, clientY + 35);
+      // ── CLIENTE + PROYECTO ─────────────────────────────────────────────────
+      const HF = (CW - 8) / 2; // ~262px cada columna
+      const RX = ML + HF + 8;
 
-      // Información del proyecto
-      const infoY = clientY + 60;
-      doc
-        .fillColor(turquoise)
-        .rect(50, infoY, 512, 20)
-        .fill();
-      doc.fontSize(9).fillColor("white").font("Helvetica-Bold");
-      doc.text("VENDEDOR", 60, infoY + 6);
-      doc.text("TRABAJO", 200, infoY + 6);
-      doc.text("FORMA DE PAGO", 340, infoY + 6);
+      // Cabeceras de sección
+      doc.rect(ML, Y, HF, 18).fill(TEAL);
+      doc.fontSize(8.5).fillColor(WHITE).font("Helvetica-Bold").text("CLIENTE", ML + 8, Y + 5);
+      doc.rect(RX, Y, HF, 18).fill(DGRAY);
+      doc.fontSize(8.5).fillColor(WHITE).font("Helvetica-Bold").text("PROYECTO", RX + 8, Y + 5);
+      Y += 18;
 
-      doc.fontSize(9).fillColor(darkGray).font("Helvetica");
-      doc.text(data.vendorName, 60, infoY + 25);
-      doc.text(data.productType, 200, infoY + 25);
-      doc.text("60% inicial, 40% final", 340, infoY + 25);
+      // Calcular alturas de caja
+      const clientLines: string[] = [];
+      if (data.clientPhone)   clientLines.push(`Tel: ${data.clientPhone}`);
+      if (data.clientAddress) clientLines.push(`Dir: ${data.clientAddress}`);
+      if (data.clientEmail)   clientLines.push(data.clientEmail);
+      const clientBoxH = 14 + clientLines.length * 13 + 8;
+      const projBoxH   = 78;
+      const boxH       = Math.max(clientBoxH, projBoxH);
 
-      // Tabla de items
-      let currentY = infoY + 55;
+      // Caja cliente
+      doc.rect(ML, Y, HF, boxH).fill(WHITE).stroke(BORDER);
+      doc.rect(ML, Y, 3, boxH).fill(TEAL);
+      doc.fontSize(10).fillColor(DGRAY).font("Helvetica-Bold")
+         .text(data.clientName, ML + 10, Y + 7, { width: HF - 18 });
+      let cy = Y + 22;
+      for (const l of clientLines) {
+        doc.fontSize(8).fillColor(MGRAY).font("Helvetica")
+           .text(l, ML + 10, cy, { width: HF - 18 });
+        cy += 13;
+      }
 
-      // Encabezado de tabla - Reorganizado para mejor legibilidad
-      doc
-        .fillColor(turquoise)
-        .rect(50, currentY, 512, 20)
-        .fill();
-      doc.fontSize(8).fillColor("white").font("Helvetica-Bold");
-      doc.text("ÍTEM", 55, currentY + 7);
-      doc.text("DESCRIPCIÓN", 85, currentY + 7);
-      doc.text("CANT.", 430, currentY + 7);
-      doc.text("TOTAL", 480, currentY + 7, { align: "right" });
+      // Caja proyecto
+      doc.rect(RX, Y, HF, boxH).fill(WHITE).stroke(BORDER);
+      doc.rect(RX, Y, 3, boxH).fill(DGRAY);
+      doc.fontSize(7.5).fillColor(MGRAY).font("Helvetica")
+         .text("ASESOR",          RX + 10, Y + 6)
+         .text("TIPO DE TRABAJO", RX + 10, Y + 32)
+         .text("FORMA DE PAGO",   RX + 10, Y + 58);
+      doc.fontSize(9).fillColor(DGRAY).font("Helvetica-Bold")
+         .text(data.vendorName,  RX + 10, Y + 16, { width: HF - 18 })
+         .text(data.productType, RX + 10, Y + 42, { width: HF - 18 });
+      doc.fontSize(8.5).fillColor(TDARK).font("Helvetica-Bold")
+         .text("60% inicial · 40% al finalizar obra", RX + 10, Y + 68, { width: HF - 18 });
 
-      currentY += 25;
+      Y += boxH + 10;
 
-      // Items
-      doc.fontSize(8).fillColor(darkGray).font("Helvetica");
-      let rowBackground = false;
+      // ── TABLA DE ÍTEMS ─────────────────────────────────────────────────────
+      // Función para dibujar cabecera de tabla
+      const drawTableHeader = (ty: number) => {
+        doc.rect(ML, ty, CW, 20).fill(TEAL);
+        doc.fontSize(8.5).fillColor(WHITE).font("Helvetica-Bold")
+           .text("#",           ML + 6,   ty + 6, { width: 20 })
+           .text("DESCRIPCIÓN", ML + 30,  ty + 6, { width: 336 })
+           .text("CANT.",       ML + 374, ty + 6, { width: 44, align: "center" })
+           .text("VALOR TOTAL", ML + 424, ty + 6, { width: 96, align: "right" });
+      };
 
+      drawTableHeader(Y);
+      Y += 20;
+
+      let alt = false;
       for (const item of data.items) {
-        // Calcular altura necesaria para la descripción
-        const descriptionHeight = doc.heightOfString(item.description, { width: 340, lineGap: 2 });
-        const rowHeight = Math.max(descriptionHeight + 8, 20);
+        const descH = doc.heightOfString(item.description, { width: 336, lineGap: 1.5 });
+        const rowH  = Math.max(descH + 12, 26);
 
-        // Verificar si necesitamos nueva página
-        if (currentY + rowHeight > doc.page.height - 80) {
+        if (Y + rowH > PH - 58) {
           doc.addPage();
-          currentY = 60;
+          doc.rect(0, 0, PW, 5).fill(TEAL);
+          Y = 18;
+          drawTableHeader(Y);
+          Y += 20;
+          alt = false;
         }
 
-        // Dibujar fondo alternado con altura correcta
-        if (rowBackground) {
-          doc.fillColor("#F3F4F6").rect(50, currentY, 512, rowHeight).fill();
-        }
-
-        // Dibujar todas las columnas con la MISMA coordenada Y (alineación vertical)
-        doc.fillColor(darkGray);
-        doc.fontSize(8).font("Helvetica");
-        
-        // Número de ítem
-        doc.text(item.itemNumber.toString(), 55, currentY + 4, { width: 25 });
-
-        // Descripción (puede ocupar múltiples líneas)
+        doc.rect(ML, Y, CW, rowH).fill(alt ? LGRAY : WHITE).stroke(BORDER);
+        doc.fontSize(9).fillColor(TEAL).font("Helvetica-Bold")
+           .text(String(item.itemNumber), ML + 6, Y + 7, { width: 20, align: "center" });
+        // FIX Bug 1: rastrear página para detectar auto-paginación de PDFKit en descripciones largas
         const pageBeforeDesc = doc.page;
-        doc.text(item.description, 85, currentY + 4, { width: 340, lineGap: 2 });
-
-        // Cantidad y total — siempre en la Y de inicio de fila
-        doc.text(item.quantity, 430, currentY + 4, { width: 35, align: "center" });
-        doc.text(formatCurrency(item.totalPrice), 480, currentY + 4, { width: 70, align: "right" });
-
-        // FIX Bug 1: si PDFKit paginó automáticamente durante la descripción larga,
-        // sincronizar currentY con la posición real en lugar de usar el cálculo manual.
-        // Esto evita que el próximo ítem agregue una página extra (en blanco).
+        doc.fontSize(8.5).fillColor(DGRAY).font("Helvetica")
+           .text(item.description, ML + 30, Y + 6, { width: 336, lineGap: 1.5 });
+        doc.fontSize(8.5).fillColor(MGRAY).font("Helvetica")
+           .text(item.quantity, ML + 374, Y + 7, { width: 44, align: "center" });
+        doc.fontSize(9).fillColor(DGRAY).font("Helvetica-Bold")
+           .text(fmt(item.totalPrice), ML + 424, Y + 7, { width: 96, align: "right" });
+        // FIX Bug 1: sincronizar Y si PDFKit paginó automáticamente → evita página en blanco
         if (doc.page !== pageBeforeDesc) {
-          currentY = doc.y + 4;
+          Y = doc.y + 4;
         } else {
-          currentY += rowHeight + 4;
+          Y += rowH;
         }
-        rowBackground = !rowBackground;
+        alt = !alt;
       }
 
-      // Sección de totales (subtotal, descuento, total)
-      currentY += 15;
-      
-      // Verificar si hay espacio para los totales (necesita ~80 puntos)
-      if (currentY + 80 > doc.page.height - 80) {
-        doc.addPage();
-        currentY = 60;
-      }
-      
-      // Subtotal
-      doc.fontSize(10).fillColor(darkGray).font("Helvetica");
-      doc.text("Subtotal:", 360, currentY);
-      doc.text(formatCurrency(data.subtotal), 360, currentY, {
-        width: 195,
-        align: "right",
-      });
-      currentY += 18;
-      
-      // Descuento (solo si hay descuento)
-      const discountPercent = parseFloat(data.discountPercent || '0');
-      const discountAmount = parseFloat(data.discountAmount || '0');
-      if (discountPercent > 0 && discountAmount > 0) {
-        doc.fillColor("#DC2626"); // Rojo para el descuento
-        doc.text(`Descuento (${discountPercent}%):`, 360, currentY);
-        doc.text(`-${formatCurrency(discountAmount.toString())}`, 360, currentY, {
-          width: 195,
-          align: "right",
-        });
-        currentY += 18;
-      }
-      
-      // Total final
-      currentY += 5;
-      doc
-        .fillColor(turquoise)
-        .rect(350, currentY, 212, 32)
-        .fill();
-      doc.fontSize(13).fillColor("white").font("Helvetica-Bold");
-      doc.text("TOTAL:", 360, currentY + 9);
-      doc.text(formatCurrency(data.total), 360, currentY + 9, {
-        width: 195,
-        align: "right",
-      });
-      // FIX Bug 2: avanzar currentY por la altura del rect (32pt) + margen
-      currentY += 42;
+      Y += 8;
 
-      // Observaciones Generales (si existen)
+      // ── TOTALES ────────────────────────────────────────────────────────────
+      if (Y + 95 > PH - 48) { doc.addPage(); Y = 28; }
+
+      const TW = 220, TX = PW - MR - TW;
+
+      doc.rect(TX, Y, TW, 22).fill(WHITE).stroke(BORDER);
+      doc.fontSize(9).fillColor(MGRAY).font("Helvetica").text("Subtotal:", TX + 10, Y + 7);
+      doc.fontSize(9).fillColor(DGRAY).font("Helvetica-Bold")
+         .text(fmt(data.subtotal), TX + 10, Y + 7, { width: TW - 20, align: "right" });
+      Y += 22;
+
+      const dp = parseFloat(data.discountPercent || "0");
+      const da = parseFloat(data.discountAmount  || "0");
+      if (dp > 0 && da > 0) {
+        doc.rect(TX, Y, TW, 22).fill(WHITE).stroke(BORDER);
+        doc.fontSize(9).fillColor(RED).font("Helvetica").text(`Descuento (${dp}%):`, TX + 10, Y + 7);
+        doc.fontSize(9).fillColor(RED).font("Helvetica-Bold")
+           .text(`-${fmt(da)}`, TX + 10, Y + 7, { width: TW - 20, align: "right" });
+        Y += 22;
+      }
+
+      doc.rect(TX, Y, TW, 34).fill(TEAL);
+      doc.fontSize(10).fillColor(WHITE).font("Helvetica-Bold").text("TOTAL:", TX + 10, Y + 10);
+      doc.fontSize(14).fillColor(WHITE).font("Helvetica-Bold")
+         .text(fmt(data.total), TX + 10, Y + 10, { width: TW - 20, align: "right" });
+      Y += 34 + 12;
+
+      // ── OBSERVACIONES ──────────────────────────────────────────────────────
       if (data.generalNotes && data.generalNotes.trim()) {
-        currentY += 20;
-        if (currentY + 60 > doc.page.height - 50) {
-          doc.addPage();
-          currentY = 60;
+        if (Y + 48 > PH - 48) { doc.addPage(); Y = 28; }
+        doc.rect(ML, Y, CW, 18).fill(DGRAY);
+        doc.fontSize(8.5).fillColor(WHITE).font("Helvetica-Bold")
+           .text("OBSERVACIONES", ML + 8, Y + 5);
+        Y += 18;
+        const nLines = data.generalNotes.split("\n").filter(l => l.trim());
+        const noteH  = nLines.reduce((a, l) => a + doc.heightOfString(l, { width: CW - 16, lineGap: 1.5 }) + 5, 12);
+        doc.rect(ML, Y, CW, noteH).fill(LGRAY).stroke(BORDER);
+        let ny = Y + 7;
+        for (const l of nLines) {
+          doc.fontSize(8.5).fillColor(MGRAY).font("Helvetica")
+             .text(l, ML + 8, ny, { width: CW - 16, lineGap: 1.5 });
+          ny += doc.heightOfString(l, { width: CW - 16, lineGap: 1.5 }) + 5;
         }
-
-        doc.fontSize(11).fillColor(turquoise).font("Helvetica-Bold");
-        doc.text("OBSERVACIONES", 50, currentY);
-
-        currentY += 20;
-        doc.fontSize(9).fillColor(darkGray).font("Helvetica");
-        
-        // Dividir las notas en líneas
-        const noteLines = data.generalNotes.split('\n');
-        for (const line of noteLines) {
-          if (line.trim()) {
-            doc.text(line.trim(), 50, currentY, { width: 512 });
-            currentY += 14;
-            
-            if (currentY + 14 > doc.page.height - 50) {
-              doc.addPage();
-              currentY = 50;
-            }
-          }
-        }
+        Y += noteH + 10;
       }
 
-      // Terminos y condiciones
-      currentY += 10;
-      // FIX Bug 3: usar espacio real requerido (~200pt: términos + firmas + saludo)
-      // en lugar del umbral hardcodeado 650
-      if (currentY + 200 > doc.page.height - 50) {
-        doc.addPage();
-        currentY = 50;
-      }
-
-      doc.fontSize(11).fillColor(turquoise).font("Helvetica-Bold");
-      doc.text("TÉRMINOS Y CONDICIONES", 50, currentY);
-
-      currentY += 20;
-      doc.fontSize(9).fillColor(darkGray).font("Helvetica");
-
+      // ── TÉRMINOS Y CONDICIONES ─────────────────────────────────────────────
       const terms = [
-        `• Forma de pago: 60% inicial, 40% al finalizar obra`,
-        `• Tiempo de entrega: 25 días hábiles después de aprobar el diseño`,
-        `• NO incluye: Obra civil, plomería, instalación de gas`,
-        `• Validez de la cotización: 1 semana`,
-        `• Garantía: 6 meses en herrajes`,
+        "Tiempo de entrega: 3 a 4 semanas hábiles desde la aprobación del diseño y el primer abono.",
+        "NO incluye obra civil, plomería, instalación de gas ni trabajos de albañilería.",
+        "Validez de la cotización: 1 semana desde la fecha de emisión.",
+        "Garantía: 6 meses en herrajes. Los materiales cuentan con garantía del fabricante.",
+        "Los diseños y renders son propiedad exclusiva de Innovar Cocinas de Diseño.",
       ];
+      const tH = terms.length * 16 + 10;
+      if (Y + 18 + tH + 10 > PH - 48) { doc.addPage(); Y = 28; }
+      doc.rect(ML, Y, CW, 18).fill(DGRAY);
+      doc.fontSize(8.5).fillColor(WHITE).font("Helvetica-Bold")
+         .text("TÉRMINOS Y CONDICIONES", ML + 8, Y + 5);
+      Y += 18;
+      doc.rect(ML, Y, CW, tH).fill(WHITE).stroke(BORDER);
+      let ty = Y + 8;
+      for (const t of terms) {
+        doc.fontSize(8).fillColor(MGRAY).font("Helvetica")
+           .text(`• ${t}`, ML + 8, ty, { width: CW - 16 });
+        ty += 16;
+      }
+      Y += tH + 16;
 
-      for (const term of terms) {
-        doc.text(term, 50, currentY, { width: 512 });
-        currentY += 18;
+      // ── FIRMAS ─────────────────────────────────────────────────────────────
+      if (Y + 80 > PH - 38) { doc.addPage(); doc.rect(0, 0, PW, 4).fill(TEAL); Y = 36; }
+      doc.moveTo(ML,            Y + 28).lineTo(ML + 190,        Y + 28).strokeColor("#9CA3AF").lineWidth(0.8).stroke();
+      doc.moveTo(PW - MR - 190, Y + 28).lineTo(PW - MR,         Y + 28).strokeColor("#9CA3AF").lineWidth(0.8).stroke();
+      doc.fontSize(8.5).fillColor(DGRAY).font("Helvetica-Bold")
+         .text("Firma del Cliente",        ML,            Y + 33)
+         .text("INNOVAR Cocinas de Diseño", PW - MR - 190, Y + 33, { width: 190, align: "right" });
+      doc.fontSize(8).fillColor(MGRAY).font("Helvetica")
+         .text(data.clientName, ML, Y + 46)
+         .text("NIT: 10021456-1 · @cocinasintegralesenpereira", PW - MR - 190, Y + 46, { width: 190, align: "right" });
+      // Línea de fecha bajo firma del cliente
+      doc.moveTo(ML, Y + 62).lineTo(ML + 130, Y + 62).strokeColor("#9CA3AF").lineWidth(0.8).stroke();
+      doc.fontSize(7.5).fillColor(MGRAY).font("Helvetica").text("Fecha", ML, Y + 65);
+
+      // ── FOOTER en todas las páginas ────────────────────────────────────────
+      const { start, count } = doc.bufferedPageRange();
+      for (let p = 0; p < count; p++) {
+        doc.switchToPage(start + p);
+        const FY = doc.page.height - 28;
+        const PW2 = doc.page.width;
+        doc.rect(0, FY, PW2, 28).fill(DARK);
+        doc.rect(0, FY, PW2, 2).fill(TEAL);
+        doc.fontSize(7).fillColor(TEAL).font("Helvetica-Bold")
+           .text("Innovar Cocinas de Diseño", ML, FY + 7);
+        doc.fontSize(6.5).fillColor("#90A4AE").font("Helvetica")
+           .text("cocinasintegralespereira.co  ·  313 680 2025  ·  Km 9 vía Cerritos, Pereira, Colombia", ML, FY + 17);
+        doc.fontSize(7).fillColor(TEAL).font("Helvetica-Bold")
+           .text("Gracias por confiar en nosotros", ML, FY + 7, { width: CW, align: "right" });
       }
 
-      // Firmas
-      currentY += 12;
-      if (currentY > doc.page.height - 80) {
-        doc.addPage();
-        currentY = 60;
-      }
-
-      doc.fontSize(10).font("Helvetica-Bold");
-      doc.text("_______________________", 80, currentY);
-      doc.text("_______________________", 350, currentY);
-
-      currentY += 20;
-      doc.fontSize(9).font("Helvetica");
-      doc.text("Firma del Cliente", 80, currentY);
-      doc.text("INNOVAR Cocinas de Diseño", 350, currentY);
-      
-      // NIT debajo de la firma de INNOVAR
-      currentY += 18;
-      doc.fontSize(8).fillColor("#9CA3AF").font("Helvetica");
-      doc.text("NIT: 10021456-1", 350, currentY);
-
-      // Mensaje de agradecimiento (debajo de las firmas)
-      currentY += 40;
-      doc.fontSize(10).fillColor(turquoise).font("Helvetica-Bold");
-      doc.text(
-        "Gracias por contar con nuestros servicios",
-        0,
-        currentY,
-        { align: "center", width: 612 }
-      );
-
-      // Finalizar documento
       doc.end();
-
-      stream.on("finish", () => {
-        resolve();
-      });
-
-      stream.on("error", (error) => {
-        console.error(`[PDF] Error al guardar: ${error.message}`);
-        reject(error);
-      });
-    } catch (error: any) {
-      console.error(`[PDF] Error al generar: ${error.message}`);
-      reject(error);
-    }
+      stream.on("finish", resolve);
+      stream.on("error", reject);
+    } catch (e: any) { reject(e); }
   });
-}
-
-function formatCurrency(value: string | number): string {
-  let num: number;
-  if (typeof value === "string") {
-    // Limpiar el string de caracteres no numéricos excepto punto y guión
-    const cleanValue = value.replace(/[^0-9.-]/g, '');
-    num = parseFloat(cleanValue) || 0;
-  } else {
-    num = value || 0;
-  }
-  // Manejar NaN
-  if (isNaN(num)) {
-    num = 0;
-  }
-  return `$${num.toLocaleString("es-CO", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
 }

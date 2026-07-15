@@ -252,16 +252,45 @@ export async function generateQuotationPDF(data: QuotationData, outputPath: stri
         doc.fontSize(8.5).fillColor(WHITE).font("Helvetica-Bold")
            .text("OBSERVACIONES", ML + 8, Y + 5);
         Y += 18;
-        const nLines = data.generalNotes.split("\n").filter(l => l.trim());
-        const noteH  = nLines.reduce((a, l) => a + doc.heightOfString(l, { width: CW - 16, lineGap: 1.5 }) + 5, 12);
-        doc.rect(ML, Y, CW, noteH).fill(LGRAY).stroke(BORDER);
-        let ny = Y + 7;
+        const nLines = data.generalNotes.split("\n").filter((l: string) => l.trim());
+        // FIX: renderizar línea a línea con control explícito de páginas.
+        // La versión anterior calculaba noteH y dibujaba un solo rect, pero si las notas
+        // superaban la página, PDFKit auto-paginaba y ny quedaba desincronizado,
+        // generando páginas en blanco y líneas duplicadas.
+        let obsStartY = Y;
+        let obsPageStart = doc.page;
+        // Calcular si todo cabe en la página actual
+        const noteHEst = nLines.reduce((a: number, l: string) =>
+          a + doc.heightOfString(l, { width: CW - 16, lineGap: 1.5 }) + 5, 8);
+        if (Y + noteHEst <= PH - 48) {
+          // Cabe todo en esta página: dibujar rect único como antes
+          doc.rect(ML, Y, CW, noteHEst).fill(LGRAY).stroke(BORDER);
+        }
+        let ny = Y + 5;
         for (const l of nLines) {
+          const lineH = doc.heightOfString(l, { width: CW - 16, lineGap: 1.5 });
+          // Si esta línea no cabe en la página actual, abrir nueva página
+          if (ny + lineH + 6 > PH - 48) {
+            doc.addPage();
+            doc.rect(0, 0, PW, 4).fill(TEAL);
+            ny = 28;
+            // Dibujar fondo para el resto de notas en la nueva página
+            const remH = nLines.slice(nLines.indexOf(l)).reduce((a: number, ln: string) =>
+              a + doc.heightOfString(ln, { width: CW - 16, lineGap: 1.5 }) + 5, 8);
+            const remFit = Math.min(remH, PH - 48 - ny);
+            if (remFit > 0) doc.rect(ML, ny, CW, remFit).fill(LGRAY).stroke(BORDER);
+          }
+          const pageBefore = doc.page;
           doc.fontSize(8.5).fillColor(MGRAY).font("Helvetica")
              .text(l, ML + 8, ny, { width: CW - 16, lineGap: 1.5 });
-          ny += doc.heightOfString(l, { width: CW - 16, lineGap: 1.5 }) + 5;
+          // FIX Bug 1 (obs): sincronizar ny con posición real de PDFKit
+          if (doc.page !== pageBefore) {
+            ny = doc.y + 5;
+          } else {
+            ny += lineH + 5;
+          }
         }
-        Y += noteH + 10;
+        Y = ny + 8;
       }
 
       // ── TÉRMINOS Y CONDICIONES ─────────────────────────────────────────────

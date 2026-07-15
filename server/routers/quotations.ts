@@ -1031,58 +1031,60 @@ export const quotationsRouter = router({
               description = lines.join('\n');
             }
             // Si es mueble_cocina y kitchenConfig tiene tipoPieza, generar descripción
-            else if (item.itemType === 'mueble_cocina' && config?.tipoPieza) {
-              const cfg = config;
-              const PIECE_LABELS: Record<string, string> = {
-                isla: "Isla de Cocina", barra: "Barra de Cocina",
-                mueble_alto: "Muebles Altos", mueble_bajo: "Muebles Bajos",
-                nicho_nevecon: "Nicho Nevecón (100cm)", nicho_nevera: "Nicho Nevera (75cm)",
-                alacena_entrepanos: "Alacena Entrepaños (50cm)", alacena_herraje: "Alacena Herraje (50cm)",
-                torre_hornos: "Torre de Hornos (70cm)",
-              };
-              const MAT_LABELS: Record<string, string> = { granito: "Granito", cuarzo: "Cuarzo", sinterizado: "Sinterizado" };
-              const piezasFijas = ["nicho_nevecon","nicho_nevera","alacena_entrepanos","alacena_herraje","torre_hornos"];
-              const clines: string[] = [];
-              clines.push(PIECE_LABELS[cfg.tipoPieza] || cfg.tipoPieza);
-              if (!piezasFijas.includes(cfg.tipoPieza)) {
-                if (cfg.tipoPieza !== "barra" && cfg.madreraML > 0) clines.push(`• Madera: ${cfg.madreraML}ml`);
-                if ((cfg.incluyeMeson || cfg.tipoPieza === "barra") && cfg.mesonML > 0) {
-                  let mesonDesc = `• Mesón ${MAT_LABELS[cfg.mesonMaterial] || cfg.mesonMaterial}: ${cfg.mesonML}ml`;
-                  if (cfg.mesonFondo && cfg.mesonFondo !== 60) mesonDesc += ` (fondo ${cfg.mesonFondo}cm)`;
-                  if (cfg.mesonIncluyeLaterales) mesonDesc += ' + laterales';
-                  if (cfg.mesonIncluyeRegrueso) mesonDesc += ' + regrueso';
-                  if (cfg.mesonIncluyeSalpicaderoAlto) mesonDesc += ' + salpicadero alto';
-                  clines.push(mesonDesc);
-                }
-                if (cfg.tipoPieza === "mueble_alto" && cfg.incluyeLed && cfg.ledML > 0) clines.push(`• LED: ${cfg.ledML}ml`);
-                if (cfg.incluyeLavaplatos && cfg.lavaprecio > 0) clines.push('• Incluye lavaplatos');
-                if (cfg.tipoPieza === "barra") {
-                  if (cfg.incluyePedestal) clines.push('• Pedestal');
-                  if (cfg.incluyeHerraje) clines.push('• Herraje barra');
-                }
-                if (cfg.incluyePintado && cfg.subtotalPintado > 0) {
-                  const pd = cfg.pintadoPuertas || {};
-                  const ptParts: string[] = [];
-                  if (pd.superiores > 0) ptParts.push(`sup: ${pd.superiores}`);
-                  if (pd.inferiores > 0) ptParts.push(`inf: ${pd.inferiores}`);
-                  if (pd.alacena > 0) ptParts.push(`alacena: ${pd.alacena}`);
-                  if (pd.cajon > 0) ptParts.push(`cajón: ${pd.cajon}`);
-                  if (pd.especiero > 0) ptParts.push(`especiero: ${pd.especiero}`);
-                  if (pd.gola > 0) ptParts.push(`gola: ${pd.gola}`);
-                  if (ptParts.length > 0) clines.push(`• Pintado alto brillo: ${ptParts.join(', ')}`);
-                }
-                const mods = cfg.modulosDescriptivos || {};
-                const MOD_MAP: Record<string,string> = {
-                  esquineroSuperior: "esquinero sup", moduloExtractor: "extractor", moduloMicroondas: "microondas",
-                  especiero: "especiero", botellero: "botellero", moduloRepisa: "repisa", moduloAlmacSup: "almac. sup",
-                  esquinero1x1: "esquinero 1×1", cajoneroTriple: "cajonero triple", cajoneroDoble: "cajonero doble",
-                  basurero: "basurero", moduloEstufaHorno: "estufa/horno", moduloAlmacInf: "almac. inf",
+            else if (item.itemType === 'mueble_cocina' && item.kitchenConfig) {
+              const cfg: any = typeof item.kitchenConfig === 'string' ? JSON.parse(item.kitchenConfig) : item.kitchenConfig;
+              if (cfg?.tipoPieza) {
+                const PIECE_LABELS: Record<string, string> = {
+                  isla: "Isla de Cocina", barra: "Barra de Cocina",
+                  mueble_alto: "Muebles Altos", mueble_bajo: "Muebles Bajos",
+                  nicho_nevecon: "Nicho Nevecón (100cm)", nicho_nevera: "Nicho Nevera (75cm)",
+                  alacena_entrepanos: "Alacena Entrepaños (50cm)", alacena_herraje: "Alacena Herraje (50cm)",
+                  torre_hornos: "Torre de Hornos (70cm)",
                 };
-                const modActivos = Object.entries(mods).filter(([,v]) => v).map(([k]) => MOD_MAP[k] || k);
-                if (modActivos.length) clines.push(`• Módulos: ${modActivos.join(', ')}`);
+                const MAT_LABELS: Record<string, string> = { granito: "Granito", cuarzo: "Cuarzo", sinterizado: "Sinterizado" };
+                const piezasFijas = ["nicho_nevecon","nicho_nevera","alacena_entrepanos","alacena_herraje","torre_hornos"];
+                const clines: string[] = [];
+                clines.push(PIECE_LABELS[cfg.tipoPieza] || cfg.tipoPieza);
+                if (!piezasFijas.includes(cfg.tipoPieza)) {
+                  if (cfg.tipoPieza !== "barra" && cfg.madreraML > 0) clines.push(`• Madera: ${cfg.madreraML}ml`);
+                  if ((cfg.incluyeMeson || cfg.tipoPieza === "barra") && cfg.mesonML > 0) {
+                    let mesonDesc = `• Mesón ${MAT_LABELS[cfg.mesonMaterial] || cfg.mesonMaterial}: ${cfg.mesonML}ml`;
+                    if (cfg.mesonFondo && cfg.mesonFondo !== 60) mesonDesc += ` (fondo ${cfg.mesonFondo}cm)`;
+                    if (cfg.mesonIncluyeLaterales) mesonDesc += ' + laterales';
+                    if (cfg.mesonIncluyeRegrueso) mesonDesc += ' + regrueso';
+                    if (cfg.mesonIncluyeSalpicaderoAlto) mesonDesc += ' + salpicadero alto';
+                    clines.push(mesonDesc);
+                  }
+                  if (cfg.tipoPieza === "mueble_alto" && cfg.incluyeLed && cfg.ledML > 0) clines.push(`• LED: ${cfg.ledML}ml`);
+                  if (cfg.incluyeLavaplatos && cfg.lavaprecio > 0) clines.push('• Incluye lavaplatos');
+                  if (cfg.tipoPieza === "barra") {
+                    if (cfg.incluyePedestal) clines.push('• Pedestal');
+                    if (cfg.incluyeHerraje) clines.push('• Herraje barra');
+                  }
+                  if (cfg.incluyePintado && cfg.subtotalPintado > 0) {
+                    const pd = cfg.pintadoPuertas || {};
+                    const ptParts: string[] = [];
+                    if (pd.superiores > 0) ptParts.push(`sup: ${pd.superiores}`);
+                    if (pd.inferiores > 0) ptParts.push(`inf: ${pd.inferiores}`);
+                    if (pd.alacena > 0) ptParts.push(`alacena: ${pd.alacena}`);
+                    if (pd.cajon > 0) ptParts.push(`cajón: ${pd.cajon}`);
+                    if (pd.especiero > 0) ptParts.push(`especiero: ${pd.especiero}`);
+                    if (pd.gola > 0) ptParts.push(`gola: ${pd.gola}`);
+                    if (ptParts.length > 0) clines.push(`• Pintado alto brillo: ${ptParts.join(', ')}`);
+                  }
+                  const mods = cfg.modulosDescriptivos || {};
+                  const MOD_MAP: Record<string,string> = {
+                    esquineroSuperior: "esquinero sup", moduloExtractor: "extractor", moduloMicroondas: "microondas",
+                    especiero: "especiero", botellero: "botellero", moduloRepisa: "repisa", moduloAlmacSup: "almac. sup",
+                    esquinero1x1: "esquinero 1×1", cajoneroTriple: "cajonero triple", cajoneroDoble: "cajonero doble",
+                    basurero: "basurero", moduloEstufaHorno: "estufa/horno", moduloAlmacInf: "almac. inf",
+                  };
+                  const modActivos = Object.entries(mods).filter(([,v]) => v).map(([k]) => MOD_MAP[k] || k);
+                  if (modActivos.length) clines.push(`• Módulos: ${modActivos.join(', ')}`);
+                }
+                if (cfg.notas && cfg.notas.trim()) clines.push(`Nota: ${cfg.notas}`);
+                description = clines.join('\n');
               }
-              if (cfg.notas && cfg.notas.trim()) clines.push(`Nota: ${cfg.notas}`);
-              description = clines.join('\n');
             }
 
             // Usar descripción personalizada si existe
@@ -1432,58 +1434,60 @@ export const quotationsRouter = router({
             description = lines.join('\n');
           }
           // Si es mueble_cocina y kitchenConfig tiene tipoPieza, generar descripción
-          else if (item.itemType === 'mueble_cocina' && config?.tipoPieza) {
-            const cfg = config;
-            const PIECE_LABELS: Record<string, string> = {
-              isla: "Isla de Cocina", barra: "Barra de Cocina",
-              mueble_alto: "Muebles Altos", mueble_bajo: "Muebles Bajos",
-              nicho_nevecon: "Nicho Nevecón (100cm)", nicho_nevera: "Nicho Nevera (75cm)",
-              alacena_entrepanos: "Alacena Entrepaños (50cm)", alacena_herraje: "Alacena Herraje (50cm)",
-              torre_hornos: "Torre de Hornos (70cm)",
-            };
-            const MAT_LABELS: Record<string, string> = { granito: "Granito", cuarzo: "Cuarzo", sinterizado: "Sinterizado" };
-            const piezasFijas = ["nicho_nevecon","nicho_nevera","alacena_entrepanos","alacena_herraje","torre_hornos"];
-            const clines: string[] = [];
-            clines.push(PIECE_LABELS[cfg.tipoPieza] || cfg.tipoPieza);
-            if (!piezasFijas.includes(cfg.tipoPieza)) {
-              if (cfg.tipoPieza !== "barra" && cfg.madreraML > 0) clines.push(`• Madera: ${cfg.madreraML}ml`);
-              if ((cfg.incluyeMeson || cfg.tipoPieza === "barra") && cfg.mesonML > 0) {
-                let mesonDesc = `• Mesón ${MAT_LABELS[cfg.mesonMaterial] || cfg.mesonMaterial}: ${cfg.mesonML}ml`;
-                if (cfg.mesonFondo && cfg.mesonFondo !== 60) mesonDesc += ` (fondo ${cfg.mesonFondo}cm)`;
-                if (cfg.mesonIncluyeLaterales) mesonDesc += ' + laterales';
-                if (cfg.mesonIncluyeRegrueso) mesonDesc += ' + regrueso';
-                if (cfg.mesonIncluyeSalpicaderoAlto) mesonDesc += ' + salpicadero alto';
-                clines.push(mesonDesc);
-              }
-              if (cfg.tipoPieza === "mueble_alto" && cfg.incluyeLed && cfg.ledML > 0) clines.push(`• LED: ${cfg.ledML}ml`);
-              if (cfg.incluyeLavaplatos && cfg.lavaprecio > 0) clines.push('• Incluye lavaplatos');
-              if (cfg.tipoPieza === "barra") {
-                if (cfg.incluyePedestal) clines.push('• Pedestal');
-                if (cfg.incluyeHerraje) clines.push('• Herraje barra');
-              }
-              if (cfg.incluyePintado && cfg.subtotalPintado > 0) {
-                const pd = cfg.pintadoPuertas || {};
-                const ptParts: string[] = [];
-                if (pd.superiores > 0) ptParts.push(`sup: ${pd.superiores}`);
-                if (pd.inferiores > 0) ptParts.push(`inf: ${pd.inferiores}`);
-                if (pd.alacena > 0) ptParts.push(`alacena: ${pd.alacena}`);
-                if (pd.cajon > 0) ptParts.push(`cajón: ${pd.cajon}`);
-                if (pd.especiero > 0) ptParts.push(`especiero: ${pd.especiero}`);
-                if (pd.gola > 0) ptParts.push(`gola: ${pd.gola}`);
-                if (ptParts.length > 0) clines.push(`• Pintado alto brillo: ${ptParts.join(', ')}`);
-              }
-              const mods = cfg.modulosDescriptivos || {};
-              const MOD_MAP: Record<string,string> = {
-                esquineroSuperior: "esquinero sup", moduloExtractor: "extractor", moduloMicroondas: "microondas",
-                especiero: "especiero", botellero: "botellero", moduloRepisa: "repisa", moduloAlmacSup: "almac. sup",
-                esquinero1x1: "esquinero 1×1", cajoneroTriple: "cajonero triple", cajoneroDoble: "cajonero doble",
-                basurero: "basurero", moduloEstufaHorno: "estufa/horno", moduloAlmacInf: "almac. inf",
+          else if (item.itemType === 'mueble_cocina' && item.kitchenConfig) {
+            const cfg: any = typeof item.kitchenConfig === 'string' ? JSON.parse(item.kitchenConfig) : item.kitchenConfig;
+            if (cfg?.tipoPieza) {
+              const PIECE_LABELS: Record<string, string> = {
+                isla: "Isla de Cocina", barra: "Barra de Cocina",
+                mueble_alto: "Muebles Altos", mueble_bajo: "Muebles Bajos",
+                nicho_nevecon: "Nicho Nevecón (100cm)", nicho_nevera: "Nicho Nevera (75cm)",
+                alacena_entrepanos: "Alacena Entrepaños (50cm)", alacena_herraje: "Alacena Herraje (50cm)",
+                torre_hornos: "Torre de Hornos (70cm)",
               };
-              const modActivos = Object.entries(mods).filter(([,v]) => v).map(([k]) => MOD_MAP[k] || k);
-              if (modActivos.length) clines.push(`• Módulos: ${modActivos.join(', ')}`);
+              const MAT_LABELS: Record<string, string> = { granito: "Granito", cuarzo: "Cuarzo", sinterizado: "Sinterizado" };
+              const piezasFijas = ["nicho_nevecon","nicho_nevera","alacena_entrepanos","alacena_herraje","torre_hornos"];
+              const clines: string[] = [];
+              clines.push(PIECE_LABELS[cfg.tipoPieza] || cfg.tipoPieza);
+              if (!piezasFijas.includes(cfg.tipoPieza)) {
+                if (cfg.tipoPieza !== "barra" && cfg.madreraML > 0) clines.push(`• Madera: ${cfg.madreraML}ml`);
+                if ((cfg.incluyeMeson || cfg.tipoPieza === "barra") && cfg.mesonML > 0) {
+                  let mesonDesc = `• Mesón ${MAT_LABELS[cfg.mesonMaterial] || cfg.mesonMaterial}: ${cfg.mesonML}ml`;
+                  if (cfg.mesonFondo && cfg.mesonFondo !== 60) mesonDesc += ` (fondo ${cfg.mesonFondo}cm)`;
+                  if (cfg.mesonIncluyeLaterales) mesonDesc += ' + laterales';
+                  if (cfg.mesonIncluyeRegrueso) mesonDesc += ' + regrueso';
+                  if (cfg.mesonIncluyeSalpicaderoAlto) mesonDesc += ' + salpicadero alto';
+                  clines.push(mesonDesc);
+                }
+                if (cfg.tipoPieza === "mueble_alto" && cfg.incluyeLed && cfg.ledML > 0) clines.push(`• LED: ${cfg.ledML}ml`);
+                if (cfg.incluyeLavaplatos && cfg.lavaprecio > 0) clines.push('• Incluye lavaplatos');
+                if (cfg.tipoPieza === "barra") {
+                  if (cfg.incluyePedestal) clines.push('• Pedestal');
+                  if (cfg.incluyeHerraje) clines.push('• Herraje barra');
+                }
+                if (cfg.incluyePintado && cfg.subtotalPintado > 0) {
+                  const pd = cfg.pintadoPuertas || {};
+                  const ptParts: string[] = [];
+                  if (pd.superiores > 0) ptParts.push(`sup: ${pd.superiores}`);
+                  if (pd.inferiores > 0) ptParts.push(`inf: ${pd.inferiores}`);
+                  if (pd.alacena > 0) ptParts.push(`alacena: ${pd.alacena}`);
+                  if (pd.cajon > 0) ptParts.push(`cajón: ${pd.cajon}`);
+                  if (pd.especiero > 0) ptParts.push(`especiero: ${pd.especiero}`);
+                  if (pd.gola > 0) ptParts.push(`gola: ${pd.gola}`);
+                  if (ptParts.length > 0) clines.push(`• Pintado alto brillo: ${ptParts.join(', ')}`);
+                }
+                const mods = cfg.modulosDescriptivos || {};
+                const MOD_MAP: Record<string,string> = {
+                  esquineroSuperior: "esquinero sup", moduloExtractor: "extractor", moduloMicroondas: "microondas",
+                  especiero: "especiero", botellero: "botellero", moduloRepisa: "repisa", moduloAlmacSup: "almac. sup",
+                  esquinero1x1: "esquinero 1×1", cajoneroTriple: "cajonero triple", cajoneroDoble: "cajonero doble",
+                  basurero: "basurero", moduloEstufaHorno: "estufa/horno", moduloAlmacInf: "almac. inf",
+                };
+                const modActivos = Object.entries(mods).filter(([,v]) => v).map(([k]) => MOD_MAP[k] || k);
+                if (modActivos.length) clines.push(`• Módulos: ${modActivos.join(', ')}`);
+              }
+              if (cfg.notas && cfg.notas.trim()) clines.push(`Nota: ${cfg.notas}`);
+              description = clines.join('\n');
             }
-            if (cfg.notas && cfg.notas.trim()) clines.push(`Nota: ${cfg.notas}`);
-            description = clines.join('\n');
           }
 
           // Usar descripción personalizada si existe
@@ -1492,7 +1496,7 @@ export const quotationsRouter = router({
           if (customDescriptions && customDescriptions[itemIndex]) {
             description = customDescriptions[itemIndex];
           }
-          
+
           return description;
         };
         

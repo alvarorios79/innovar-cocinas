@@ -839,6 +839,15 @@ export default function Quotations() {
               hasLateral: item.kitchenConfig.bar?.hasLateral ?? false,
             },
             ledLighting: item.kitchenConfig.ledLighting ?? 0,
+            paintedDoors: {
+              enabled: item.kitchenConfig.paintedDoors?.enabled ?? false,
+              upperQty: item.kitchenConfig.paintedDoors?.upperQty ?? 0,
+              lowerQty: item.kitchenConfig.paintedDoors?.lowerQty ?? 0,
+              pantryQty: item.kitchenConfig.paintedDoors?.pantryQty ?? 0,
+              drawerQty: item.kitchenConfig.paintedDoors?.drawerQty ?? 0,
+              spiceQty: item.kitchenConfig.paintedDoors?.spiceQty ?? 0,
+              golaQty: item.kitchenConfig.paintedDoors?.golaQty ?? 0,
+            },
             kitchenModules: item.kitchenConfig.kitchenModules ? {
               ...item.kitchenConfig.kitchenModules,
               luzLed: item.kitchenConfig.kitchenModules.luzLed ?? false,
@@ -887,6 +896,10 @@ export default function Quotations() {
           },
           // Para mueble_cocina: la config se guardó dentro de kitchenConfig — restaurarla aquí
           muebleCocinaConfig: item.itemType === 'mueble_cocina' && item.kitchenConfig && (item.kitchenConfig as any).tipoPieza
+            ? item.kitchenConfig as any
+            : undefined,
+          // Para acabados_especiales: la config se guardó dentro de kitchenConfig — restaurarla aquí
+          acabadosConfig: item.itemType === 'acabados_especiales' && item.kitchenConfig
             ? item.kitchenConfig as any
             : undefined,
         })));
@@ -1648,7 +1661,9 @@ export default function Quotations() {
           quantity: "1",
           totalPrice: item.totalPrice,
           includesFixedCosts: item.includesFixedCosts,
-          fixedCostsAmount: item.fixedCostsAmount
+          fixedCostsAmount: item.fixedCostsAmount,
+          // Guardar acabadosConfig dentro de kitchenConfig (única columna JSON disponible para este tipo)
+          kitchenConfig: item.acabadosConfig as any,
         };
       }
       return item;

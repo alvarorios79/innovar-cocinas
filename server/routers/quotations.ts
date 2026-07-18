@@ -1159,11 +1159,21 @@ export const quotationsRouter = router({
             if (customDescriptions && customDescriptions[itemIndex]) {
               description = customDescriptions[itemIndex];
             }
-            
+
+          // Para puerta: mostrar cantidad real de puertas desde doorConfig
+          let pdfQuantity = item.quantity;
+          if (item.itemType === 'puerta' && doorConfig) {
+            if (doorConfig.doors && Array.isArray(doorConfig.doors)) {
+              const totalDoors = doorConfig.doors.reduce((s: number, d: any) => s + (d.quantity || 1), 0);
+              pdfQuantity = String(totalDoors);
+            } else if (doorConfig.quantity) {
+              pdfQuantity = String(doorConfig.quantity);
+            }
+          }
             return {
               itemNumber: item.itemNumber,
               description,
-              quantity: item.quantity,
+              quantity: pdfQuantity,
               unitPrice: item.unitPrice || '',
               totalPrice: item.totalPrice,
             };
@@ -1609,10 +1619,21 @@ export const quotationsRouter = router({
           productType: quotation.productType,
           validUntil: quotation.validUntil ? new Date(quotation.validUntil).toLocaleDateString('es-CO', { timeZone: 'America/Bogota' }) : '',
           items: items.map(item => {
+            // Para puerta: mostrar cantidad real desde doorConfig
+            const dc = item.doorConfig && typeof item.doorConfig === 'string'
+              ? JSON.parse(item.doorConfig) : item.doorConfig;
+            let pdfQty = item.quantity;
+            if (item.itemType === 'puerta' && dc) {
+              if (dc.doors && Array.isArray(dc.doors)) {
+                pdfQty = String(dc.doors.reduce((s: number, d: any) => s + (d.quantity || 1), 0));
+              } else if (dc.quantity) {
+                pdfQty = String(dc.quantity);
+              }
+            }
             return {
               itemNumber: item.itemNumber,
               description: generateItemDescription(item, quotation),
-              quantity: item.quantity,
+              quantity: pdfQty,
               unitPrice: item.unitPrice || undefined,
               totalPrice: item.totalPrice,
             };
@@ -2137,10 +2158,21 @@ export const quotationsRouter = router({
               description = lines.join('\n');
             }
             
+
+          // Para puerta: mostrar cantidad real de puertas desde doorConfig
+          let pdfQuantity3 = item.quantity;
+          if (item.itemType === 'puerta' && doorConfig) {
+            if (doorConfig.doors && Array.isArray(doorConfig.doors)) {
+              const totalDoors3 = doorConfig.doors.reduce((s: number, d: any) => s + (d.quantity || 1), 0);
+              pdfQuantity3 = String(totalDoors3);
+            } else if (doorConfig.quantity) {
+              pdfQuantity3 = String(doorConfig.quantity);
+            }
+          }
             return {
               itemNumber: item.itemNumber,
               description,
-              quantity: item.quantity,
+              quantity: pdfQuantity3,
               unitPrice: item.unitPrice || '',
               totalPrice: item.totalPrice,
             };

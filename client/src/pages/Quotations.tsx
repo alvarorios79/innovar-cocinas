@@ -1137,9 +1137,13 @@ export default function Quotations() {
       total += (dc.smallCovers || 0) * getPrice('TAPA_PEQUENA');
     } else {
       // Cocinas completas: inferior y superior cobrados por separado al mismo precio/ml
-      // El precio/ml viene del código guardado al seleccionar la forma.
-      // Si no existe (cotizaciones antiguas), fallback a ESTANDAR para no cambiar precios históricos.
-      const mlPriceCode = config.mlPriceCode || 'COCINA_ML_ESTANDAR';
+      // Precio/ml: usa mlPriceCode guardado (si existe), si no, deriva desde shape.
+      // shape 'U'->Premium, 'lineal'->Deluxe, cualquier otra->Estándar
+      const mlPriceCode = config.mlPriceCode || (
+        config.shape === 'U'      ? 'COCINA_ML_PREMIUM' :
+        config.shape === 'lineal' ? 'COCINA_ML_DELUXE'  :
+                                    'COCINA_ML_ESTANDAR'
+      );
       const mlPrice = getPrice(mlPriceCode);
       total += resultingMeters * mlPrice; // mueble inferior
       total += resultingMeters * mlPrice; // mueble superior

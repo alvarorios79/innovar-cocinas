@@ -4,6 +4,11 @@ import { trpc } from "@/lib/trpc";
 // Sincronizados con el Motor de Cotización INNOVAR — actualizar via /pricing-config
 const DEFAULT_PRICES: Record<string, { value: number; unit: string | null }> = {
   // Cocina Base — precio por metro lineal (inferior + superior)
+  // Códigos con nombre de referencia (usados por mlPriceCode en el configurador)
+  COCINA_ML_ESTANDAR:   { value: 900000,  unit: "ml" },  // fallback BD: mismo valor
+  COCINA_ML_PREMIUM:    { value: 1000000, unit: "ml" },  // fallback BD: mismo valor
+  COCINA_ML_DELUXE:     { value: 1100000, unit: "ml" },  // fallback BD: mismo valor
+  // Códigos legacy (por forma de cocina)
   COCINA_ML_L:          { value: 1800000, unit: "ml" },
   COCINA_ML_U:          { value: 1800000, unit: "ml" },
   COCINA_ML_LINEAL:     { value: 1800000, unit: "ml" },

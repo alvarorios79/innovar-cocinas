@@ -810,6 +810,7 @@ export default function Quotations() {
             transportCost: item.countertopConfig.transportCost ?? 150000,
           } : undefined,
           kitchenConfig: item.kitchenConfig ? {
+            ...item.kitchenConfig, // preserva notes, mlPriceCode, layout, paintedDoors, specialFinishes, doorsAndCovers
             shape: item.kitchenConfig.shape ?? "",
             totalMeters: item.kitchenConfig.totalMeters ?? 0,
             includeUpperModule: item.kitchenConfig.includeUpperModule ?? false,
@@ -3295,6 +3296,20 @@ export default function Quotations() {
                               <p className="text-sm sm:text-lg font-bold text-green-300">
                                 Total Cocina: {formatPrice(item.totalPrice)}
                               </p>
+                            </div>
+
+                            {/* Notas adicionales — aparecen en la descripción del PDF */}
+                            <div className="space-y-2">
+                              <Label className="text-sm font-medium text-white/60">
+                                Notas adicionales <span className="text-xs text-gray-400 font-normal">(aparecen en el PDF)</span>
+                              </Label>
+                              <Textarea
+                                value={item.kitchenConfig?.notes || ""}
+                                onChange={(e) => updateKitchenConfig(index, "notes", e.target.value)}
+                                placeholder="Ej: color de puertas, acabado especial, materiales adicionales..."
+                                rows={2}
+                                className="text-sm bg-[#162828] border-[rgba(106,207,199,0.18)] text-white/85"
+                              />
                             </div>
 
                             {/* Descripción auto-generada (editable) */}

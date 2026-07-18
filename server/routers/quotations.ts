@@ -933,16 +933,21 @@ export const quotationsRouter = router({
               
               // Título según la forma
               const shapeLabels: Record<string, string> = {
-                'L': 'en L',
-                'U': 'en U',
-                'lineal': 'Lineal',
+                'estandar': 'Estándar',
+                'premium': 'Premium',
+                'deluxe': 'Deluxe',
+                'L': 'Estándar (en L)',
+                'U': 'Premium (en U)',
+                'lineal': 'Deluxe (Lineal)',
                 'frente_pll': 'Frente PLL (Solo Inferiores)',
                 'solo_superiores': 'Solo Muebles Superiores',
                 'solo_inferiores': 'Solo Muebles Inferiores',
                 'puertas_tapas': 'Puertas y Tapas'
               };
               const shapeLabel = shapeLabels[config.shape] || config.shape;
-              lines.push(`COCINA INTEGRAL - ${shapeLabel}`);
+              const layoutLabels: Record<string, string> = { L: 'en L', U: 'en U', lineal: 'Lineal / Recta', cuadrada: 'Cuadrada / Paralela', isla: 'Con isla central', otra: 'Otra' };
+              const layoutSuffix = config.layout && layoutLabels[config.layout] ? ` • Forma: ${layoutLabels[config.layout]}` : '';
+              lines.push(`COCINA INTEGRAL - ${shapeLabel}${layoutSuffix}`);
               lines.push(`Metraje total: ${config.totalMeters.toFixed(2)}ml`);
               lines.push('');
               
@@ -1092,7 +1097,14 @@ export const quotationsRouter = router({
                   if (pd.golaQty > 0) lines.push(`• Gola: ${pd.golaQty}`);
                 }
               }
-              
+
+              // Notas adicionales del ítem de cocina
+              if (config.notes && config.notes.trim()) {
+                lines.push('');
+                lines.push('Notas adicionales:');
+                lines.push(config.notes);
+              }
+
               description = lines.join('\n');
             }
             // Si es mueble_cocina y tiene kitchenConfig, generar descripción
@@ -1538,7 +1550,14 @@ export const quotationsRouter = router({
                 if (pd.golaQty > 0) lines.push(`• Gola: ${pd.golaQty}`);
               }
             }
-            
+
+            // Notas adicionales del ítem de cocina
+            if (config.notes && config.notes.trim()) {
+              lines.push('');
+              lines.push('Notas adicionales:');
+              lines.push(config.notes);
+            }
+
             description = lines.join('\n');
           }
           // Si es mueble_cocina y tiene kitchenConfig, generar descripción
@@ -2036,16 +2055,21 @@ export const quotationsRouter = router({
               
               // Título según la forma
               const shapeLabels: Record<string, string> = {
-                'L': 'en L',
-                'U': 'en U',
-                'lineal': 'Lineal',
+                'estandar': 'Estándar',
+                'premium': 'Premium',
+                'deluxe': 'Deluxe',
+                'L': 'Estándar (en L)',
+                'U': 'Premium (en U)',
+                'lineal': 'Deluxe (Lineal)',
                 'frente_pll': 'Frente PLL (Solo Inferiores)',
                 'solo_superiores': 'Solo Muebles Superiores',
                 'solo_inferiores': 'Solo Muebles Inferiores',
                 'puertas_tapas': 'Puertas y Tapas'
               };
               const shapeLabel = shapeLabels[config.shape] || config.shape;
-              lines.push(`COCINA INTEGRAL - ${shapeLabel}`);
+              const layoutLabels: Record<string, string> = { L: 'en L', U: 'en U', lineal: 'Lineal / Recta', cuadrada: 'Cuadrada / Paralela', isla: 'Con isla central', otra: 'Otra' };
+              const layoutSuffix = config.layout && layoutLabels[config.layout] ? ` • Forma: ${layoutLabels[config.layout]}` : '';
+              lines.push(`COCINA INTEGRAL - ${shapeLabel}${layoutSuffix}`);
               lines.push(`Metraje total: ${config.totalMeters.toFixed(2)}ml`);
               lines.push('');
               
@@ -2154,10 +2178,17 @@ export const quotationsRouter = router({
               if (config.ledLighting > 0) {
                 lines.push(`• Luz LED: ${config.ledLighting.toFixed(2)}ml`);
               }
-              
+
+              // Notas adicionales del ítem de cocina
+              if (config.notes && config.notes.trim()) {
+                lines.push('');
+                lines.push('Notas adicionales:');
+                lines.push(config.notes);
+              }
+
               description = lines.join('\n');
             }
-            
+
 
           // Para puerta: mostrar cantidad real de puertas desde doorConfig
           let pdfQuantity3 = item.quantity;

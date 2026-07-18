@@ -1035,13 +1035,14 @@ export default function Quotations() {
       }
     }
     
-    // Guardar código de precio explícito para proteger cotizaciones existentes
-    // Las cotizaciones sin mlPriceCode siguen usando ESTANDAR (comportamiento anterior)
+    // Guardar código de precio explícito al cambiar el tipo de cocina.
+    // Soporta valores nuevos (estandar/premium/deluxe) y legacy (L/U/lineal).
+    // El campo layout (forma física) no afecta el precio.
     if (field === 'shape') {
       config.mlPriceCode =
-        value === 'U'      ? 'COCINA_ML_PREMIUM' :
-        value === 'lineal' ? 'COCINA_ML_DELUXE'  :
-                             'COCINA_ML_ESTANDAR';
+        (value === 'premium' || value === 'U')      ? 'COCINA_ML_PREMIUM' :
+        (value === 'deluxe'  || value === 'lineal') ? 'COCINA_ML_DELUXE'  :
+                                                      'COCINA_ML_ESTANDAR';
     }
     
     // Recalcular automaticamente con el item actualizado
@@ -1137,12 +1138,13 @@ export default function Quotations() {
       total += (dc.smallCovers || 0) * getPrice('TAPA_PEQUENA');
     } else {
       // Cocinas completas: inferior y superior cobrados por separado al mismo precio/ml
-      // Precio/ml: usa mlPriceCode guardado (si existe), si no, deriva desde shape.
-      // shape 'U'->Premium, 'lineal'->Deluxe, cualquier otra->Estándar
+      // Precio/ml: usa mlPriceCode guardado (si existe).
+      // Fallback: soporta valores nuevos (premium/deluxe) y legacy (U/lineal).
+      // El layout físico (L/U/lineal como forma) NO afecta el precio — solo el tipo lo hace.
       const mlPriceCode = config.mlPriceCode || (
-        config.shape === 'U'      ? 'COCINA_ML_PREMIUM' :
-        config.shape === 'lineal' ? 'COCINA_ML_DELUXE'  :
-                                    'COCINA_ML_ESTANDAR'
+        (config.shape === 'premium' || config.shape === 'U')      ? 'COCINA_ML_PREMIUM' :
+        (config.shape === 'deluxe'  || config.shape === 'lineal') ? 'COCINA_ML_DELUXE'  :
+                                                                    'COCINA_ML_ESTANDAR'
       );
       const mlPrice = getPrice(mlPriceCode);
       total += resultingMeters * mlPrice; // mueble inferior
@@ -1453,9 +1455,16 @@ export default function Quotations() {
           total += (dc.drawerCovers || 0) * getPrice('TAPA_CAJON');
           total += (dc.smallCovers || 0) * getPrice('TAPA_PEQUENA');
         } else {
-          // Cocinas completas (Lineal, L, U, etc.): inferiores + superiores
-          total += resultingMeters * getPrice('MUEBLE_INFERIOR_ML');
-          total += resultingMeters * getPrice('MUEBLE_SUPERIOR_ML');
+          // Cocinas completas: inferior y superior al mismo precio/ml según tipo.
+          // Fallback soporta valores nuevos (estandar/premium/deluxe) y legacy (L/U/lineal).
+          const mlPriceCode2 = config.mlPriceCode || (
+            (config.shape === 'premium' || config.shape === 'U')      ? 'COCINA_ML_PREMIUM' :
+            (config.shape === 'deluxe'  || config.shape === 'lineal') ? 'COCINA_ML_DELUXE'  :
+                                                                        'COCINA_ML_ESTANDAR'
+          );
+          const mlPrice2 = getPrice(mlPriceCode2);
+          total += resultingMeters * mlPrice2; // mueble inferior
+          total += resultingMeters * mlPrice2; // mueble superior
         }
 
         // Muebles especiales (para cocinas completas y puertas_tapas) - precios dinámicos
@@ -2396,20 +2405,20 @@ export default function Quotations() {
                               Configuración de Cocina Integral
                             </h3>
                             
-                            {/* 1. Forma */}
+                            {/* 1. Tipo de Cocina (define el precio) */}
                             <div className="space-y-2">
                               <Label className="text-sm font-medium text-white/60">Tipo de Cocina</Label>
-                              <Select 
-                                value={item.kitchenConfig?.shape || ""} 
+                              <Select
+                                value={item.kitchenConfig?.shape || ""}
                                 onValueChange={(value) => updateKitchenConfig(index, "shape", value)}
                               >
                                 <SelectTrigger className="bg-[#162828] border-[rgba(106,207,199,0.18)] hover:border-orange-500/40 transition-colors">
-                                  <SelectValue placeholder="Selecciona la forma" />
+                                  <SelectValue placeholder="Selecciona el tipo" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value="L">Cocina Estándar</SelectItem>
-                                  <SelectItem value="U">Cocina Premium</SelectItem>
-                                  <SelectItem value="lineal">Cocina Deluxe</SelectItem>
+                                  <SelectItem value="estandar">Cocina Estándar</SelectItem>
+                                  <SelectItem value="premium">Cocina Premium</SelectItem>
+                                  <SelectItem value="deluxe">Cocina Deluxe</SelectItem>
                                   <SelectItem value="frente_pll">Frente PLL ($650,000/ml)</SelectItem>
                                   <SelectItem value="solo_superiores">Solo Muebles Superiores ($900,000/ml)</SelectItem>
                                   <SelectItem value="solo_inferiores">Solo Muebles Inferiores ($900,000/ml)</SelectItem>
@@ -2418,6 +2427,29 @@ export default function Quotations() {
                                 </SelectContent>
                               </Select>
                             </div>
+
+                            {/* 1b. Forma física (informativo, no afecta precio) */}
+                            {!['puertas_tapas', 'solo_acabados'].includes(item.kitchenConfig?.shape || '') && (
+                            <div className="space-y-2">
+                              <Label className="text-sm font-medium text-white/60">Forma de la Cocina</Label>
+                              <Select
+                                value={item.kitchenConfig?.layout || ""}
+                                onValueChange={(value) => updateKitchenConfig(index, "layout", value)}
+                              >
+                                <SelectTrigger className="bg-[#162828] border-[rgba(106,207,199,0.18)] hover:border-orange-500/40 transition-colors">
+                                  <SelectValue placeholder="Selecciona la forma (opcional)" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="L">En L</SelectItem>
+                                  <SelectItem value="U">En U</SelectItem>
+                                  <SelectItem value="lineal">Lineal / Recta</SelectItem>
+                                  <SelectItem value="cuadrada">Cuadrada / Paralela</SelectItem>
+                                  <SelectItem value="isla">Con isla central</SelectItem>
+                                  <SelectItem value="otra">Otra</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            )}
 
                             {/* 2. Metraje total - No aplica para puertas_tapas ni solo_acabados */}
                             {!['puertas_tapas', 'solo_acabados'].includes(item.kitchenConfig?.shape || '') && (

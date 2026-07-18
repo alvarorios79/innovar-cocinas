@@ -88,6 +88,7 @@ export interface KitchenConfig {
     };
   };
   notes?: string;
+  mlPriceCode?: string; // Código de precio guardado: COCINA_ML_ESTANDAR | COCINA_ML_PREMIUM | COCINA_ML_DELUXE
 }
 
 interface KitchenConfiguratorProps {

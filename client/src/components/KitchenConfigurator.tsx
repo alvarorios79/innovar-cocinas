@@ -9,6 +9,7 @@ import { ChefHat, Refrigerator, UtensilsCrossed, Lightbulb, LayoutGrid, Paintbru
 
 export interface KitchenConfig {
   shape: string;
+  layout?: string; // Forma física: L, U, lineal, cuadrada (informativo, no afecta precio)
   totalMeters: number;
   specialModules: {
     nichoNevecon: boolean;
@@ -249,6 +250,27 @@ export function KitchenConfigurator({
                   </SelectContent>
                 </Select>
               </div>
+              <div>
+                <Label className="text-sm font-medium text-white/85 block mb-2">Forma de la Cocina</Label>
+                <Select
+                  value={currentConfig.layout || ""}
+                  onValueChange={(value) => updateConfig("layout", value)}
+                >
+                  <SelectTrigger className="h-10 bg-[#162828]">
+                    <SelectValue placeholder="Selecciona la forma" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="L">En L</SelectItem>
+                    <SelectItem value="U">En U</SelectItem>
+                    <SelectItem value="lineal">Lineal / Recta</SelectItem>
+                    <SelectItem value="cuadrada">Cuadrada / Paralela</SelectItem>
+                    <SelectItem value="isla">Con isla central</SelectItem>
+                    <SelectItem value="otra">Otra</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
               <div>
                 <Label className="text-sm font-medium text-white/85 block mb-2">Metraje Total (ml)</Label>
                 <Input

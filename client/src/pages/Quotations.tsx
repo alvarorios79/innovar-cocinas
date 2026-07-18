@@ -1035,6 +1035,15 @@ export default function Quotations() {
       }
     }
     
+    // Guardar código de precio explícito para proteger cotizaciones existentes
+    // Las cotizaciones sin mlPriceCode siguen usando ESTANDAR (comportamiento anterior)
+    if (field === 'shape') {
+      config.mlPriceCode =
+        value === 'U'      ? 'COCINA_ML_PREMIUM' :
+        value === 'lineal' ? 'COCINA_ML_DELUXE'  :
+                             'COCINA_ML_ESTANDAR';
+    }
+    
     // Recalcular automaticamente con el item actualizado
     calculateKitchenTotal(index, newItems);
   };
@@ -1128,11 +1137,9 @@ export default function Quotations() {
       total += (dc.smallCovers || 0) * getPrice('TAPA_PEQUENA');
     } else {
       // Cocinas completas: inferior y superior cobrados por separado al mismo precio/ml
-      // El precio/ml varía según la referencia (Estándar / Premium / Deluxe)
-      const mlPriceCode =
-        config.shape === 'premium' ? 'COCINA_ML_PREMIUM' :
-        config.shape === 'deluxe'  ? 'COCINA_ML_DELUXE'  :
-                                     'COCINA_ML_ESTANDAR'; // estandar + legacy (lineal/L/U)
+      // El precio/ml viene del código guardado al seleccionar la forma.
+      // Si no existe (cotizaciones antiguas), fallback a ESTANDAR para no cambiar precios históricos.
+      const mlPriceCode = config.mlPriceCode || 'COCINA_ML_ESTANDAR';
       const mlPrice = getPrice(mlPriceCode);
       total += resultingMeters * mlPrice; // mueble inferior
       total += resultingMeters * mlPrice; // mueble superior
@@ -1246,7 +1253,7 @@ export default function Quotations() {
     }
 
     // Actualizar total e descripción del item
-    const finalItems = [...items];
+    const finalItems = [...itemsArray];
     finalItems[index].totalPrice = total;
     // Auto-generar descripción si está vacía
     if (!finalItems[index].description?.trim()) {

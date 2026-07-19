@@ -1106,6 +1106,11 @@ export const quotationsRouter = router({
               }
 
               description = lines.join('\n');
+              // Descripción adicional editada manualmente en el formulario
+              const _itemDescManual = typeof item.description === 'string' ? item.description.trim() : '';
+              if (_itemDescManual && !_itemDescManual.startsWith('COCINA INTEGRAL')) {
+                description += '\n\n' + _itemDescManual;
+              }
             }
             // Si es mueble_cocina y tiene kitchenConfig, generar descripción
             else if (item.itemType === 'mueble_cocina' && item.kitchenConfig) {
@@ -1559,6 +1564,11 @@ export const quotationsRouter = router({
             }
 
             description = lines.join('\n');
+            // Descripción adicional editada manualmente en el formulario
+            const _itemDescManual = typeof item.description === 'string' ? item.description.trim() : '';
+            if (_itemDescManual && !_itemDescManual.startsWith('COCINA INTEGRAL')) {
+              description += '\n\n' + _itemDescManual;
+            }
           }
           // Si es mueble_cocina y tiene kitchenConfig, generar descripción
           else if (item.itemType === 'mueble_cocina' && item.kitchenConfig) {
@@ -2187,6 +2197,11 @@ export const quotationsRouter = router({
               }
 
               description = lines.join('\n');
+              // Descripción adicional editada manualmente en el formulario
+              const _itemDescManual = typeof item.description === 'string' ? item.description.trim() : '';
+              if (_itemDescManual && !_itemDescManual.startsWith('COCINA INTEGRAL')) {
+                description += '\n\n' + _itemDescManual;
+              }
             }
 
 

@@ -2452,6 +2452,33 @@ export default function Quotations() {
                             </div>
                             )}
 
+                            {/* 1c. Módulos incluidos — checkboxes para inferiores y superiores */}
+                            {!['puertas_tapas', 'solo_acabados', 'solo_superiores', 'solo_inferiores', 'frente_pll'].includes(item.kitchenConfig?.shape || '') && (
+                            <div className="space-y-2">
+                              <Label className="text-sm font-medium text-white/60">Módulos incluidos</Label>
+                              <div className="flex gap-6">
+                                <label className="flex items-center gap-2 text-sm text-white/80 cursor-pointer">
+                                  <input
+                                    type="checkbox"
+                                    checked={item.kitchenConfig?.includeLower !== false}
+                                    onChange={(e) => updateKitchenConfig(index, "includeLower", e.target.checked)}
+                                    className="h-4 w-4 accent-[#00BCD4]"
+                                  />
+                                  Muebles Inferiores
+                                </label>
+                                <label className="flex items-center gap-2 text-sm text-white/80 cursor-pointer">
+                                  <input
+                                    type="checkbox"
+                                    checked={item.kitchenConfig?.includeUpper !== false}
+                                    onChange={(e) => updateKitchenConfig(index, "includeUpper", e.target.checked)}
+                                    className="h-4 w-4 accent-[#00BCD4]"
+                                  />
+                                  Muebles Superiores
+                                </label>
+                              </div>
+                            </div>
+                            )}
+
                             {/* 2. Metraje total - No aplica para puertas_tapas ni solo_acabados */}
                             {!['puertas_tapas', 'solo_acabados'].includes(item.kitchenConfig?.shape || '') && (
                             <div className="space-y-2">

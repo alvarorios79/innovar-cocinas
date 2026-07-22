@@ -272,6 +272,34 @@ export function KitchenConfigurator({
                 </Select>
               </div>
             </div>
+
+            {/* Módulos incluidos — solo para cocinas completas */}
+            {!['puertas_tapas', 'solo_acabados', 'solo_superiores', 'solo_inferiores', 'frente_pll'].includes(currentConfig.shape || '') && (
+            <div className="mt-4">
+              <Label className="text-sm font-medium text-white/60 block mb-2">Módulos incluidos</Label>
+              <div className="flex gap-6">
+                <label className="flex items-center gap-2 text-sm text-white/80 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={currentConfig.includeLower !== false}
+                    onChange={(e) => updateConfig("includeLower", e.target.checked)}
+                    className="h-4 w-4 accent-[#00BCD4]"
+                  />
+                  Muebles Inferiores
+                </label>
+                <label className="flex items-center gap-2 text-sm text-white/80 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={currentConfig.includeUpper !== false}
+                    onChange={(e) => updateConfig("includeUpper", e.target.checked)}
+                    className="h-4 w-4 accent-[#00BCD4]"
+                  />
+                  Muebles Superiores
+                </label>
+              </div>
+            </div>
+            )}
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
               <div>
                 <Label className="text-sm font-medium text-white/85 block mb-2">Metraje Total (ml)</Label>
@@ -290,7 +318,7 @@ export function KitchenConfigurator({
                 <strong>Metraje resultante:</strong> {resultingMeters.toFixed(2)} ml
               </p>
               <p className="text-xs text-emerald-400 mt-1">
-                Muebles Inferiores: {resultingMeters.toFixed(2)} ml | Muebles Superiores: {resultingMeters.toFixed(2)} ml
+                {currentConfig.includeLower !== false && `Muebles Inferiores: ${resultingMeters.toFixed(2)} ml`}{currentConfig.includeLower !== false && currentConfig.includeUpper !== false && ' | '}{currentConfig.includeUpper !== false && `Muebles Superiores: ${resultingMeters.toFixed(2)} ml`}
               </p>
             </div>
           </div>

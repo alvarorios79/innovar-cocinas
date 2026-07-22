@@ -24,6 +24,7 @@ import { backupScheduler } from "../services/backupScheduler";
 import { apiRateLimiter, authRateLimiter, uploadRateLimiter } from "../rate-limiter";
 import cors from "cors";
 import quotationPdfRouter from "../routes/quotation-pdf";
+import { runMigrations } from "../migrations";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -45,6 +46,9 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 }
 
 async function startServer() {
+  // Ejecutar migraciones de DB al arrancar el servidor
+  await runMigrations();
+
   const app = express();
   const server = createServer(app);
   // Configure body parser with larger size limit for file uploads

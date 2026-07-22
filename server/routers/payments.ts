@@ -1,5 +1,6 @@
 import { router, protectedProcedure, adminProcedure } from "../_core/trpc";
 import { generateReceiptPDF } from "../receipt-pdf-generator";
+import { generateAccountStatementPDF, AccountStatementData, MovementEntry } from "../account-statement-pdf-generator";
 import { readFileSync, unlinkSync, existsSync } from "fs";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
@@ -215,4 +216,121 @@ export const paymentsRouter = router({
       await db.deletePayment(input.paymentId);
       return { message: "Pago eliminado exitosamente" };
     }),
+
+  /**
+   * Generate account statement PDF for a project (all movements)
+   */
+  generateStatement: protectedProcedure
+    .input(z.object({ projectId: z.number().int().positive() }))
+    .mutation(async ({ input, ctx }) => {
+      const project = await db.getProjectById(input.projectId);
+      if (!project) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Proyecto no encontrado" });
+      }
+
+      const client = await db.getClientById(project.clientId);
+      if (!client) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Cliente no encontrado" });
+      }
+
+      const allPayments = await db.getPaymentsByProject(input.projectId);
+
+      // Build movements sorted by date
+      const typeLabels: Record<string, Record<string, string>> = {
+        payment:   { advance: "Anticipo", final: "Pago Final", partial: "Pago Parcial", other: "Otro Pago" },
+        discount:  { advance: "Descuento", final: "Descuento", partial: "Descuento", other: "Descuento" },
+        surcharge: { advance: "Recargo", final: "Recargo", partial: "Recargo", other: "Recargo" },
+      };
+
+      const methodLabel = (m: string | null) => {
+        if (!m) return "—";
+        const map: Record<string, string> = {
+          transfer: "Transferencia", cash: "Efectivo",
+          check: "Cheque", other: "Otro",
+        };
+        return map[m] || m;
+      };
+
+      const sorted = [...allPayments].sort((a, b) =>
+        new Date(a.receivedAt).getTime() - new Date(b.receivedAt).getTime()
+      );
+
+      const totalAgreed = parseFloat(String(project.totalAmount || 0));
+      let balance = totalAgreed;
+      let totalPaid = 0;
+      let totalDiscounts = 0;
+      let totalSurcharges = 0;
+
+      const movements: MovementEntry[] = sorted.map((p, i) => {
+        const amount = parseFloat(String(p.amount));
+        const movType = p.movementType || "payment";
+        const typeLabel = typeLabels[movType]?.[p.type] ?? p.type;
+
+        if (movType === "payment") {
+          balance -= amount;
+          totalPaid += amount;
+        } else if (movType === "discount") {
+          balance -= amount;
+          totalDiscounts += amount;
+        } else if (movType === "surcharge") {
+          balance += amount;
+          totalSurcharges += amount;
+        }
+
+        const dateObj = new Date(p.receivedAt);
+        const dateStr = dateObj.toLocaleDateString("es-CO", {
+          day: "2-digit", month: "short", year: "numeric"
+        });
+
+        return {
+          id: p.id,
+          date: dateStr,
+          typeLabel,
+          method: methodLabel(p.method),
+          amount,
+          movementType: movType,
+          notes: p.notes || undefined,
+          runningBalance: balance,
+        };
+      });
+
+      const today = new Date().toLocaleDateString("es-CO", {
+        day: "2-digit", month: "long", year: "numeric"
+      });
+
+      const stmtData: AccountStatementData = {
+        generatedDate: today,
+        clientName: client.name,
+        clientPhone: client.phone || client.whatsappPhone || undefined,
+        clientAddress: client.address || undefined,
+        projectName: project.name,
+        workType: project.workType,
+        totalAgreed,
+        movements,
+        totalPaid,
+        totalDiscounts,
+        totalSurcharges,
+        finalBalance: balance,
+      };
+
+      const { tmpdir } = await import("os");
+      const { join } = await import("path");
+      const { readFileSync, unlinkSync, existsSync } = await import("fs");
+
+      const outputPath = join(tmpdir(), `estado-cuenta-${input.projectId}-${Date.now()}.pdf`);
+      await generateAccountStatementPDF(stmtData, outputPath);
+
+      if (!existsSync(outputPath)) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Error generando PDF" });
+      }
+
+      const pdfBuffer = readFileSync(outputPath);
+      try { unlinkSync(outputPath); } catch { /* */ }
+
+      return {
+        base64: pdfBuffer.toString("base64"),
+        filename: `estado-cuenta-${project.name.replace(/\s+/g, "-")}.pdf`,
+      };
+    }),
+
 });

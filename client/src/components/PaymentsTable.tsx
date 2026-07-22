@@ -1,4 +1,4 @@
-import { Trash2, FileDown } from "lucide-react";
+import { Trash2, FileDown, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
@@ -22,6 +22,7 @@ interface Payment {
 
 interface PaymentsTableProps {
   payments: Payment[];
+  projectId?: number;
   isLoading?: boolean;
   isAdmin?: boolean;
   onDelete: (paymentId: number) => Promise<void>;
@@ -80,6 +81,7 @@ function formatDate(date: Date): string {
 
 export function PaymentsTable({
   payments,
+  projectId,
   isLoading = false,
   isAdmin = false,
   onDelete,
@@ -88,6 +90,31 @@ export function PaymentsTable({
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [downloadingId, setDownloadingId] = useState<number | null>(null);
   const generateReceipt = trpc.payments.generateReceipt.useMutation();
+  const generateStatement = trpc.payments.generateStatement.useMutation();
+  const [downloadingStatement, setDownloadingStatement] = useState(false);
+
+  const handleDownloadStatement = async () => {
+    if (!projectId) return;
+    setDownloadingStatement(true);
+    try {
+      const result = await generateStatement.mutateAsync({ projectId });
+      const bytes = Uint8Array.from(atob(result.base64), c => c.charCodeAt(0));
+      const blob = new Blob([bytes], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = result.filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast.success("✅ Estado de cuenta descargado");
+    } catch (err: any) {
+      toast.error("Error al generar estado de cuenta: " + (err.message || "Intente de nuevo"));
+    } finally {
+      setDownloadingStatement(false);
+    }
+  };
 
   const handleDownloadReceipt = async (paymentId: number) => {
     setDownloadingId(paymentId);
@@ -141,6 +168,18 @@ export function PaymentsTable({
       <Card>
         <CardHeader className="py-3 bg-emerald-500/10">
           <CardTitle className="text-sm">Historial de Movimientos</CardTitle>
+          {projectId && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleDownloadStatement}
+              disabled={downloadingStatement}
+              className="h-7 px-2 text-xs border-teal-500/40 text-teal-400 hover:bg-teal-500/10"
+            >
+              <FileText className="h-3.5 w-3.5 mr-1" />
+              {downloadingStatement ? "Generando..." : "Estado de Cuenta"}
+            </Button>
+          )}
         </CardHeader>
         <CardContent className="pt-4">
           <div className="overflow-x-auto">

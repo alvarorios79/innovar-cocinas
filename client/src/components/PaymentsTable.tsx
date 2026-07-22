@@ -1,5 +1,7 @@
-import { Trash2 } from "lucide-react";
+import { Trash2, FileDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { trpc } from "@/lib/trpc";
+import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useState } from "react";
@@ -84,6 +86,31 @@ export function PaymentsTable({
   isDeleting = false,
 }: PaymentsTableProps) {
   const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [downloadingId, setDownloadingId] = useState<number | null>(null);
+  const generateReceipt = trpc.payments.generateReceipt.useMutation();
+
+  const handleDownloadReceipt = async (paymentId: number) => {
+    setDownloadingId(paymentId);
+    try {
+      const result = await generateReceipt.mutateAsync({ paymentId });
+      // Convertir base64 a blob y descargar
+      const bytes = Uint8Array.from(atob(result.pdfBase64), c => c.charCodeAt(0));
+      const blob = new Blob([bytes], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = result.filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast.success(`✅ Recibo ${result.receiptNumber} descargado`);
+    } catch (err: any) {
+      toast.error("Error al generar el recibo: " + (err.message || "Intente de nuevo"));
+    } finally {
+      setDownloadingId(null);
+    }
+  };
 
   const sortedPayments = [...payments].sort(
     (a, b) => new Date(b.receivedAt).getTime() - new Date(a.receivedAt).getTime()
@@ -126,6 +153,7 @@ export function PaymentsTable({
                   <th className="text-right py-2 px-2">Monto</th>
                   <th className="text-left py-2 px-2">Método</th>
                   <th className="text-left py-2 px-2">Registrado Por</th>
+                  <th className="text-center py-2 px-2">Recibo</th>
                   {isAdmin && <th className="text-center py-2 px-2">Acciones</th>}
                 </tr>
               </thead>

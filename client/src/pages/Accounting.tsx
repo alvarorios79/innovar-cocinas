@@ -1017,7 +1017,6 @@ nto"),
                 <div className="flex items-center justify-between mb-3">
                   <p className="text-xs font-semibold uppercase tracking-wider text-white/45">Historial de Movimientos</p>
                   <Button
-                    variant="outline"
                     size="sm"
                     onClick={async () => {
                       if (!movProjectIdNum) return;
@@ -1038,10 +1037,10 @@ nto"),
                       }
                     }}
                     disabled={generateStatementMut.isPending}
-                    className="h-7 px-3 text-xs border-teal-500/50 text-teal-400 hover:bg-teal-500/10"
+                    className="bg-teal-600 hover:bg-teal-700 text-white h-8 px-4 text-sm font-semibold"
                   >
-                    <FileText className="h-3.5 w-3.5 mr-1.5" />
-                    {generateStatementMut.isPending ? "Generando..." : "Estado de Cuenta PDF"}
+                    <FileText className="h-4 w-4 mr-2" />
+                    {generateStatementMut.isPending ? "Generando..." : "📄 Estado de Cuenta PDF"}
                   </Button>
                 </div>
                 <PaymentsTable

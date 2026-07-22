@@ -983,8 +983,12 @@ export const quotationsRouter = router({
                 if (dc.smallCovers > 0) lines.push(`• Tapas pequeñas: ${dc.smallCovers} und`);
               } else {
                 // Cocinas completas (L, U, Lineal)
-                lines.push(`• Muebles Inferiores: ${resultingMeters.toFixed(2)}ml`);
-                lines.push(`• Muebles Superiores: ${resultingMeters.toFixed(2)}ml`);
+                if (config.includeLower !== false) {
+                  lines.push(`• Muebles Inferiores: ${resultingMeters.toFixed(2)}ml`);
+                }
+                if (config.includeUpper !== false) {
+                  lines.push(`• Muebles Superiores: ${resultingMeters.toFixed(2)}ml`);
+                }
               }
               
               // Muebles especiales
@@ -1471,8 +1475,12 @@ export const quotationsRouter = router({
               if (dc.drawerCovers > 0) lines.push(`• Tapas cajón: ${dc.drawerCovers} und`);
               if (dc.smallCovers > 0) lines.push(`• Tapas pequeñas: ${dc.smallCovers} und`);
             } else {
-              lines.push(`• Muebles Inferiores: ${resultingMeters.toFixed(2)}ml`);
-              lines.push(`• Muebles Superiores: ${resultingMeters.toFixed(2)}ml`);
+              if (config.includeLower !== false) {
+                lines.push(`• Muebles Inferiores: ${resultingMeters.toFixed(2)}ml`);
+              }
+              if (config.includeUpper !== false) {
+                lines.push(`• Muebles Superiores: ${resultingMeters.toFixed(2)}ml`);
+              }
             }
             
             if (config.specialModules?.nichoNevecon) lines.push(`• Nicho para nevecon 100cm`);
@@ -2115,8 +2123,12 @@ export const quotationsRouter = router({
                 if (dc.smallCovers > 0) lines.push(`• Tapas pequeñas: ${dc.smallCovers} und`);
               } else {
                 // Cocinas completas (L, U, Lineal)
-                lines.push(`• Muebles Inferiores: ${resultingMeters.toFixed(2)}ml`);
-                lines.push(`• Muebles Superiores: ${resultingMeters.toFixed(2)}ml`);
+                if (config.includeLower !== false) {
+                  lines.push(`• Muebles Inferiores: ${resultingMeters.toFixed(2)}ml`);
+                }
+                if (config.includeUpper !== false) {
+                  lines.push(`• Muebles Superiores: ${resultingMeters.toFixed(2)}ml`);
+                }
               }
               
               // Muebles especiales

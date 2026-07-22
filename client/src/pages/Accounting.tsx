@@ -18,6 +18,7 @@ import {
   Edit2,
   Trash2,
   CreditCard,
+  FileText,
 } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { Link } from "wouter";
@@ -207,7 +208,9 @@ export default function Accounting() {
       refetchMovPayments();
       refetchMovProjectDetail();
     },
-    onError: (error: any) => toast.error(error.message || "Error al eliminar movimiento"),
+    onError: (error: any) => toast.error(error.message || "Error al eliminar movimie
+  const generateStatementMut = trpc.payments.generateStatement.useMutation();
+nto"),
   });
 
   const handleMovSubmit = async () => {
@@ -1011,7 +1014,36 @@ export default function Accounting() {
             {/* Historial de movimientos del proyecto */}
             {movProjectId && (
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-white/45 mb-3">Historial de Movimientos</p>
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-white/45">Historial de Movimientos</p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={async () => {
+                      if (!movProjectIdNum) return;
+                      try {
+                        toast.info("Generando estado de cuenta...");
+                        const result = await generateStatementMut.mutateAsync({ projectId: movProjectIdNum });
+                        const bytes = Uint8Array.from(atob(result.base64), c => c.charCodeAt(0));
+                        const blob = new Blob([bytes], { type: "application/pdf" });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement("a");
+                        a.href = url; a.download = result.filename;
+                        document.body.appendChild(a); a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                        toast.success("✅ Estado de cuenta descargado");
+                      } catch (err: any) {
+                        toast.error("Error: " + (err.message || "Intente de nuevo"));
+                      }
+                    }}
+                    disabled={generateStatementMut.isPending}
+                    className="h-7 px-3 text-xs border-teal-500/50 text-teal-400 hover:bg-teal-500/10"
+                  >
+                    <FileText className="h-3.5 w-3.5 mr-1.5" />
+                    {generateStatementMut.isPending ? "Generando..." : "Estado de Cuenta PDF"}
+                  </Button>
+                </div>
                 <PaymentsTable
                   payments={movPayments as any}
                   projectId={movProjectIdNum > 0 ? movProjectIdNum : undefined}

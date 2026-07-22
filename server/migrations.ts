@@ -20,6 +20,10 @@ export async function runMigrations() {
       name: "technicalVisits_scheduledDate",
       sql: `ALTER TABLE "technicalVisits" ADD COLUMN IF NOT EXISTS "scheduledDate" timestamp`,
     },
+    {
+      name: "users_isTeamMember",
+      sql: `ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "isTeamMember" integer NOT NULL DEFAULT 0`,
+    },
   ];
 
   for (const m of migrations) {

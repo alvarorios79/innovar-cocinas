@@ -1,4 +1,6 @@
 import { router, protectedProcedure, adminProcedure } from "../_core/trpc";
+import { generateReceiptPDF } from "../receipt-pdf-generator";
+import { readFileSync, unlinkSync, existsSync } from "fs";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import * as db from "../db";
@@ -113,6 +115,91 @@ export const paymentsRouter = router({
   /**
    * Delete a payment (admin/super_admin only)
    */
+
+  /**
+   * Generar PDF de recibo de pago
+   */
+  generateReceipt: protectedProcedure
+    .input(z.object({ paymentId: z.number().int().positive() }))
+    .mutation(async ({ input }) => {
+      const payment = await db.getPaymentById(input.paymentId);
+      if (!payment) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Pago no encontrado" });
+      }
+
+      const project = await db.getProjectById(payment.projectId);
+      if (!project) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Proyecto no encontrado" });
+      }
+
+      const client = await db.getClientById(project.clientId);
+      if (!client) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Cliente no encontrado" });
+      }
+
+      // Calcular totales pagados para este proyecto
+      const allPayments = await db.getPaymentsByProject(payment.projectId);
+      const totalPaid = allPayments
+        .filter((p: any) => p.movementType === "payment" || !p.movementType)
+        .reduce((sum: number, p: any) => sum + parseFloat(p.amount || "0"), 0);
+
+      const thisAmount = parseFloat(payment.amount || "0");
+      const previousPayments = totalPaid - thisAmount;
+      const totalProject = parseFloat(project.totalAmount || "0");
+      const balance = totalProject - totalPaid;
+
+      // Formatear fecha del pago
+      const paymentDateObj = new Date(payment.receivedAt);
+      const paymentDate = paymentDateObj.toLocaleDateString("es-CO", {
+        day: "numeric", month: "long", year: "numeric"
+      });
+
+      const year = paymentDateObj.getFullYear();
+      const receiptNumber = `REC-${year}-${payment.id.toString().padStart(6, "0")}`;
+
+      const typeLabels: Record<string, string> = {
+        advance: "Adelanto",
+        final: "Pago Final",
+        partial: "Pago Parcial",
+        other: "Otro",
+      };
+      const methodLabels: Record<string, string> = {
+        transfer: "Transferencia",
+        cash: "Efectivo",
+        check: "Cheque",
+        other: "Otro",
+      };
+
+      const outputPath = `/tmp/recibo_${payment.id}_${Date.now()}.pdf`;
+      await generateReceiptPDF({
+        receiptNumber,
+        paymentDate,
+        clientName: client.name,
+        clientPhone: client.whatsappPhone || undefined,
+        clientAddress: client.address || undefined,
+        projectName: project.name,
+        workType: project.workType || "",
+        paymentType: typeLabels[payment.type] || payment.type,
+        paymentMethod: methodLabels[payment.method || "other"] || payment.method || "No especificado",
+        totalProject,
+        previousPayments: Math.max(0, previousPayments),
+        thisPayment: thisAmount,
+        balance,
+        notes: payment.notes || undefined,
+      }, outputPath);
+
+      const pdfBuffer = readFileSync(outputPath);
+      const pdfBase64 = pdfBuffer.toString("base64");
+
+      // Limpiar archivo temporal
+      try { if (existsSync(outputPath)) unlinkSync(outputPath); } catch {}
+
+      const cleanClientName = client.name.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ0-9 ]/g, "").replace(/\s+/g, "_");
+      const filename = `${receiptNumber}_${cleanClientName}.pdf`;
+
+      return { pdfBase64, filename, receiptNumber };
+    }),
+
   delete: adminProcedure
     .input(z.object({ paymentId: z.number().int().positive() }))
     .mutation(async ({ input }) => {

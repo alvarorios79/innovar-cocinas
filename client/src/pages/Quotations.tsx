@@ -1148,8 +1148,8 @@ export default function Quotations() {
                                                                     'COCINA_ML_ESTANDAR'
       );
       const mlPrice = getPrice(mlPriceCode);
-      total += resultingMeters * mlPrice; // mueble inferior
-      total += resultingMeters * mlPrice; // mueble superior
+      if (config.includeLower !== false) total += resultingMeters * mlPrice; // mueble inferior
+      if (config.includeUpper !== false) total += resultingMeters * mlPrice; // mueble superior
     }
 
     // 3. Muebles especiales (para cocinas completas y puertas_tapas) - precios dinámicos
@@ -1464,8 +1464,8 @@ export default function Quotations() {
                                                                         'COCINA_ML_ESTANDAR'
           );
           const mlPrice2 = getPrice(mlPriceCode2);
-          total += resultingMeters * mlPrice2; // mueble inferior
-          total += resultingMeters * mlPrice2; // mueble superior
+          if (config.includeLower !== false) total += resultingMeters * mlPrice2; // mueble inferior
+          if (config.includeUpper !== false) total += resultingMeters * mlPrice2; // mueble superior
         }
 
         // Muebles especiales (para cocinas completas y puertas_tapas) - precios dinámicos

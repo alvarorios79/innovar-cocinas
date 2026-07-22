@@ -751,7 +751,7 @@ export async function getDesignerWithLeastActiveProjects() {
   const db = await getDb();
   if (!db) return undefined;
 
-  const result = await db.select().from(users)
+  const result = await db.select({ id: users.id }).from(users)
     .where(and(eq(users.role, 'disenador'), isNull(users.deletedAt)))
     .orderBy(asc(sql`(SELECT COUNT(*) FROM projects WHERE designerId = users.id AND status NOT IN ('entregado', 'cancelado'))`))
     .limit(1);

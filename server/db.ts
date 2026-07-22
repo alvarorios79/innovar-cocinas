@@ -751,12 +751,30 @@ export async function getDesignerWithLeastActiveProjects() {
   const db = await getDb();
   if (!db) return undefined;
 
-  const result = await db.select({ id: users.id }).from(users)
-    .where(and(eq(users.role, 'disenador'), isNull(users.deletedAt)))
-    .orderBy(asc(sql`(SELECT COUNT(*) FROM projects WHERE "designerId" = users.id AND status NOT IN ('entregado', 'cancelado'))`))
-    .limit(1);
+  try {
+    // LEFT JOIN para contar proyectos activos por diseñador.
+    // Usar eq(projects.designerId, users.id) permite que Drizzle
+    // maneje el nombre de columna correctamente (sin raw SQL con comillas).
+    const result = await db
+      .select({ id: users.id })
+      .from(users)
+      .leftJoin(
+        projects,
+        and(
+          eq(projects.designerId, users.id),
+          sql`${projects.status} NOT IN ('entregado', 'cancelado')`
+        )
+      )
+      .where(and(eq(users.role, 'disenador'), isNull(users.deletedAt)))
+      .groupBy(users.id)
+      .orderBy(sql`count(${projects.id}) asc`)
+      .limit(1);
 
-  return result.length > 0 ? result[0].id : undefined;
+    return result.length > 0 ? result[0].id : undefined;
+  } catch (err) {
+    console.error('[getDesignerWithLeastActiveProjects] Error al asignar diseñador:', err);
+    return undefined; // No bloquear la creación del proyecto si falla la asignación
+  }
 }
 
 // ============ PROJECT DETAILS ============

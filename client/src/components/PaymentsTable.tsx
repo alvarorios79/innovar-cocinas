@@ -166,9 +166,9 @@ export function PaymentsTable({
   return (
     <>
       <Card>
-        <CardHeader className="py-3 bg-emerald-500/10">
+        <CardHeader className="py-3 bg-emerald-500/10 flex flex-row items-center justify-between">
           <CardTitle className="text-sm">Historial de Movimientos</CardTitle>
-          {projectId && (
+          {projectId != null && (
             <Button
               variant="outline"
               size="sm"

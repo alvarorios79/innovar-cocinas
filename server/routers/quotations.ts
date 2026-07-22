@@ -1124,28 +1124,64 @@ export const quotationsRouter = router({
               if (cfg?.tipoPieza) {
                 const lines: string[] = [];
                 const pieceLabels: Record<string, string> = {
-                  'closet': 'Closet',
-                  'bano': 'Mueble de Baño',
-                  'escritorio': 'Escritorio',
-                  'librero': 'Librero',
-                  'recepcion': 'Mueble de Recepción',
-                  'otro': 'Mueble a Medida',
+                  'isla': 'Isla',
+                  'barra': 'Barra',
+                  'mueble_alto': 'Mueble Alto',
+                  'mueble_bajo': 'Mueble Bajo',
+                  'nicho_nevecon': 'Nicho Nevecon',
+                  'nicho_nevera': 'Nicho Nevera',
+                  'alacena_entrepanos': 'Alacena (Entrepaños)',
+                  'alacena_herraje': 'Alacena (Herraje)',
+                  'torre_hornos': 'Torre de Hornos',
                 };
                 const pieceLabel = pieceLabels[cfg.tipoPieza] || cfg.tipoPieza;
-                lines.push(`${pieceLabel.toUpperCase()} A MEDIDA`);
-                if (cfg.alto || cfg.ancho || cfg.fondo) {
-                  const dims = [];
-                  if (cfg.alto) dims.push(`Alto: ${cfg.alto}cm`);
-                  if (cfg.ancho) dims.push(`Ancho: ${cfg.ancho}cm`);
-                  if (cfg.fondo) dims.push(`Fondo: ${cfg.fondo}cm`);
-                  lines.push(dims.join(' | '));
+                const madreraStr = cfg.madreraML ? ` — ${cfg.madreraML}ml` : '';
+                lines.push(`${pieceLabel.toUpperCase()} A MEDIDA${madreraStr}`);
+                const moduloLabels: Record<string, string> = {
+                  'esquineroSuperior': 'Esquinero superior',
+                  'moduloExtractor': 'Módulo extractor',
+                  'moduloMicroondas': 'Módulo microondas',
+                  'especiero': 'Especiero',
+                  'botellero': 'Botellero',
+                  'moduloRepisa': 'Módulo repisa',
+                  'moduloAlmacSup': 'Módulo almacenamiento sup.',
+                  'esquinero1x1': 'Esquinero 1×1 inferior',
+                  'cajoneroTriple': 'Cajonero triple',
+                  'cajoneroDoble': 'Cajonero doble',
+                  'basurero': 'Basurero integrado',
+                  'moduloEstufaHorno': 'Módulo estufa/horno',
+                  'moduloAlmacInf': 'Módulo almacenamiento inf.',
+                };
+                const mods = cfg.modulosDescriptivos || {};
+                const activeModulos = Object.entries(moduloLabels)
+                  .filter(([key]) => (mods as any)[key] === true)
+                  .map(([, label]) => `  • ${label}`);
+                if (activeModulos.length > 0) {
+                  lines.push('Módulos:');
+                  lines.push(...activeModulos);
                 }
-                if (cfg.material) lines.push(`Material: ${cfg.material}`);
-                if (cfg.color) lines.push(`Color: ${cfg.color}`);
-                if (cfg.acabado) lines.push(`Acabado: ${cfg.acabado}`);
-                if (cfg.descripcionAdicional?.trim()) {
+                if (cfg.incluyeMeson) {
+                  const mesonMaterials: Record<string, string> = { 'granito': 'Granito', 'cuarzo': 'Cuarzo', 'sinterizado': 'Sinterizado' };
+                  const matLabel = mesonMaterials[cfg.mesonMaterial] || cfg.mesonMaterial || '';
+                  const mesonParts: string[] = [`Mesón: ${matLabel}`];
+                  if (cfg.mesonML) mesonParts.push(`${cfg.mesonML}ml`);
+                  if (cfg.mesonFondo) mesonParts.push(`fondo ${cfg.mesonFondo}cm`);
+                  lines.push(mesonParts.join(' — '));
+                  const mesonExtras: string[] = [];
+                  if (cfg.mesonIncluyeLaterales) mesonExtras.push('laterales');
+                  if (cfg.mesonIncluyeRegrueso) mesonExtras.push('regrueso');
+                  if (cfg.mesonIncluyeSalpicaderoAlto) mesonExtras.push('salpicadero alto');
+                  if (mesonExtras.length > 0) lines.push(`  Extras mesón: ${mesonExtras.join(', ')}`);
+                }
+                if (cfg.incluyeLed && cfg.ledML) {
+                  lines.push(`LED: ${cfg.ledML}ml`);
+                }
+                if (cfg.incluyePintado) {
+                  lines.push('Incluye pintado');
+                }
+                if (cfg.notas?.trim()) {
                   lines.push('');
-                  lines.push(cfg.descripcionAdicional.trim());
+                  lines.push(cfg.notas.trim());
                 }
                 description = lines.join('\n');
               }
@@ -1586,28 +1622,64 @@ export const quotationsRouter = router({
             if (cfg?.tipoPieza) {
               const lines: string[] = [];
               const pieceLabels: Record<string, string> = {
-                'closet': 'Closet',
-                'bano': 'Mueble de Baño',
-                'escritorio': 'Escritorio',
-                'librero': 'Librero',
-                'recepcion': 'Mueble de Recepción',
-                'otro': 'Mueble a Medida',
+                'isla': 'Isla',
+                'barra': 'Barra',
+                'mueble_alto': 'Mueble Alto',
+                'mueble_bajo': 'Mueble Bajo',
+                'nicho_nevecon': 'Nicho Nevecon',
+                'nicho_nevera': 'Nicho Nevera',
+                'alacena_entrepanos': 'Alacena (Entrepaños)',
+                'alacena_herraje': 'Alacena (Herraje)',
+                'torre_hornos': 'Torre de Hornos',
               };
               const pieceLabel = pieceLabels[cfg.tipoPieza] || cfg.tipoPieza;
-              lines.push(`${pieceLabel.toUpperCase()} A MEDIDA`);
-              if (cfg.alto || cfg.ancho || cfg.fondo) {
-                const dims = [];
-                if (cfg.alto) dims.push(`Alto: ${cfg.alto}cm`);
-                if (cfg.ancho) dims.push(`Ancho: ${cfg.ancho}cm`);
-                if (cfg.fondo) dims.push(`Fondo: ${cfg.fondo}cm`);
-                lines.push(dims.join(' | '));
+              const madreraStr = cfg.madreraML ? ` — ${cfg.madreraML}ml` : '';
+              lines.push(`${pieceLabel.toUpperCase()} A MEDIDA${madreraStr}`);
+              const moduloLabels: Record<string, string> = {
+                'esquineroSuperior': 'Esquinero superior',
+                'moduloExtractor': 'Módulo extractor',
+                'moduloMicroondas': 'Módulo microondas',
+                'especiero': 'Especiero',
+                'botellero': 'Botellero',
+                'moduloRepisa': 'Módulo repisa',
+                'moduloAlmacSup': 'Módulo almacenamiento sup.',
+                'esquinero1x1': 'Esquinero 1×1 inferior',
+                'cajoneroTriple': 'Cajonero triple',
+                'cajoneroDoble': 'Cajonero doble',
+                'basurero': 'Basurero integrado',
+                'moduloEstufaHorno': 'Módulo estufa/horno',
+                'moduloAlmacInf': 'Módulo almacenamiento inf.',
+              };
+              const mods = cfg.modulosDescriptivos || {};
+              const activeModulos = Object.entries(moduloLabels)
+                .filter(([key]) => (mods as any)[key] === true)
+                .map(([, label]) => `  • ${label}`);
+              if (activeModulos.length > 0) {
+                lines.push('Módulos:');
+                lines.push(...activeModulos);
               }
-              if (cfg.material) lines.push(`Material: ${cfg.material}`);
-              if (cfg.color) lines.push(`Color: ${cfg.color}`);
-              if (cfg.acabado) lines.push(`Acabado: ${cfg.acabado}`);
-              if (cfg.descripcionAdicional?.trim()) {
+              if (cfg.incluyeMeson) {
+                const mesonMaterials: Record<string, string> = { 'granito': 'Granito', 'cuarzo': 'Cuarzo', 'sinterizado': 'Sinterizado' };
+                const matLabel = mesonMaterials[cfg.mesonMaterial] || cfg.mesonMaterial || '';
+                const mesonParts: string[] = [`Mesón: ${matLabel}`];
+                if (cfg.mesonML) mesonParts.push(`${cfg.mesonML}ml`);
+                if (cfg.mesonFondo) mesonParts.push(`fondo ${cfg.mesonFondo}cm`);
+                lines.push(mesonParts.join(' — '));
+                const mesonExtras: string[] = [];
+                if (cfg.mesonIncluyeLaterales) mesonExtras.push('laterales');
+                if (cfg.mesonIncluyeRegrueso) mesonExtras.push('regrueso');
+                if (cfg.mesonIncluyeSalpicaderoAlto) mesonExtras.push('salpicadero alto');
+                if (mesonExtras.length > 0) lines.push(`  Extras mesón: ${mesonExtras.join(', ')}`);
+              }
+              if (cfg.incluyeLed && cfg.ledML) {
+                lines.push(`LED: ${cfg.ledML}ml`);
+              }
+              if (cfg.incluyePintado) {
+                lines.push('Incluye pintado');
+              }
+              if (cfg.notas?.trim()) {
                 lines.push('');
-                lines.push(cfg.descripcionAdicional.trim());
+                lines.push(cfg.notas.trim());
               }
               description = lines.join('\n');
             }

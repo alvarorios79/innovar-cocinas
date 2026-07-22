@@ -10,6 +10,8 @@ import { ChefHat, Refrigerator, UtensilsCrossed, Lightbulb, LayoutGrid, Paintbru
 export interface KitchenConfig {
   shape: string;
   layout?: string; // Forma física: L, U, lineal, cuadrada (informativo, no afecta precio)
+  includeLower?: boolean; // Incluir muebles inferiores (default true)
+  includeUpper?: boolean; // Incluir muebles superiores (default true)
   totalMeters: number;
   specialModules: {
     nichoNevecon: boolean;

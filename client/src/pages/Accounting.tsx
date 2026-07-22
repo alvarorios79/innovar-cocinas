@@ -1014,6 +1014,7 @@ export default function Accounting() {
                 <p className="text-xs font-semibold uppercase tracking-wider text-white/45 mb-3">Historial de Movimientos</p>
                 <PaymentsTable
                   payments={movPayments as any}
+                  projectId={movProjectId ?? undefined}
                   isLoading={false}
                   isAdmin={canEditDelete ?? false}
                   onDelete={async (paymentId) => { await deleteMovMutation.mutateAsync({ paymentId }); }}

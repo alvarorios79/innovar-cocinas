@@ -184,6 +184,20 @@ export function PaymentsTable({
                     <td className="py-3 px-2 text-xs">
                       {payment.user?.name || "Sistema"}
                     </td>
+                    <td className="py-3 px-2 text-center">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDownloadReceipt(payment.id)}
+                        disabled={downloadingId === payment.id}
+                        title="Descargar recibo"
+                      >
+                        {downloadingId === payment.id
+                          ? <span className="text-xs text-white/40">...</span>
+                          : <FileDown className="h-4 w-4 text-teal-400" />
+                        }
+                      </Button>
+                    </td>
                     {isAdmin && (
                       <td className="py-3 px-2 text-center">
                         <AlertDialog open={deleteId === payment.id} onOpenChange={(open) => !open && setDeleteId(null)}>

@@ -2,12 +2,13 @@
  * Runtime migrations — se ejecutan al arrancar el servidor.
  * Usan ADD COLUMN IF NOT EXISTS para ser idempotentes (seguro correrlas N veces).
  */
-import { getPool } from "./db";
+import { getDb } from "./db";
+import { sql } from "drizzle-orm";
 
 export async function runMigrations() {
-  const pool = await getPool();
-  if (!pool) {
-    console.warn("[migrations] No DB pool — skipping migrations");
+  const db = await getDb();
+  if (!db) {
+    console.warn("[migrations] No DB disponible — skipping migrations");
     return;
   }
 
@@ -28,7 +29,7 @@ export async function runMigrations() {
 
   for (const m of migrations) {
     try {
-      await pool.query(m.sql);
+      await db.execute(sql.raw(m.sql));
       console.log(`[migrations] ✓ ${m.name}`);
     } catch (err) {
       console.error(`[migrations] ✗ ${m.name}:`, err);

@@ -44,7 +44,7 @@ export function PaymentsSummary({ totalAmount, totalPaid, balance, discounts = 0
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-4">
-          <p className="text-2xl font-bold text-blue-400">
+          <p className="text-lg font-bold text-blue-400 break-all">
             {formatCurrency(totalAmount)}
           </p>
         </CardContent>
@@ -59,7 +59,7 @@ export function PaymentsSummary({ totalAmount, totalPaid, balance, discounts = 0
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-4">
-          <p className="text-2xl font-bold text-green-400">
+          <p className="text-lg font-bold text-green-400 break-all">
             {formatCurrency(totalCobrado || 0)}
           </p>
           <p className="text-xs text-muted-foreground mt-1">
@@ -77,7 +77,7 @@ export function PaymentsSummary({ totalAmount, totalPaid, balance, discounts = 0
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-4">
-          <p className="text-2xl font-bold text-green-400">
+          <p className="text-lg font-bold text-green-400 break-all">
             {formatCurrency(totalPaid)}
           </p>
           <p className="text-xs text-muted-foreground mt-1">
@@ -95,7 +95,7 @@ export function PaymentsSummary({ totalAmount, totalPaid, balance, discounts = 0
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-4">
-          <p className="text-2xl font-bold text-purple-400">
+          <p className="text-lg font-bold text-purple-400 break-all">
             -{formatCurrency(discounts)}
           </p>
           <p className="text-xs text-muted-foreground mt-1">
@@ -113,7 +113,7 @@ export function PaymentsSummary({ totalAmount, totalPaid, balance, discounts = 0
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-4">
-          <p className="text-2xl font-bold text-orange-400">
+          <p className="text-lg font-bold text-orange-400 break-all">
             +{formatCurrency(surcharges)}
           </p>
           <p className="text-xs text-muted-foreground mt-1">
@@ -131,7 +131,7 @@ export function PaymentsSummary({ totalAmount, totalPaid, balance, discounts = 0
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-4">
-          <p className={`text-2xl font-bold ${balanceColor.text}`}>
+          <p className={`text-lg font-bold break-all ${balanceColor.text}`}>
             {formatCurrency(balance)}
           </p>
           {balance < 0 && (

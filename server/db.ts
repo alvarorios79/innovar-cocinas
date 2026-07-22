@@ -973,6 +973,59 @@ export async function getPaymentsByProjectId(projectId: number) {
   return getPaymentsByProject(projectId);
 }
 
+export async function getAllPaymentsWithDetails(filters?: {
+  month?: number;
+  year?: number;
+  projectId?: number | string;
+  movementType?: string;
+}) {
+  const db = await getDb();
+  if (!db) return [];
+
+  const conditions = [];
+
+  if (filters?.projectId) {
+    conditions.push(eq(payments.projectId, Number(filters.projectId)));
+  }
+  if (filters?.movementType) {
+    conditions.push(eq(payments.movementType, filters.movementType));
+  }
+  if (filters?.month && filters?.year) {
+    const start = `${filters.year}-${String(filters.month).padStart(2, '0')}-01`;
+    const end = `${filters.year}-${String(filters.month).padStart(2, '0')}-31`;
+    conditions.push(gte(payments.receivedAt, start));
+    conditions.push(lte(payments.receivedAt, end));
+  } else if (filters?.year) {
+    const start = `${filters.year}-01-01`;
+    const end = `${filters.year}-12-31`;
+    conditions.push(gte(payments.receivedAt, start));
+    conditions.push(lte(payments.receivedAt, end));
+  }
+
+  const rows = await db
+    .select({
+      id: payments.id,
+      projectId: payments.projectId,
+      amount: payments.amount,
+      type: payments.type,
+      receivedAt: payments.receivedAt,
+      method: payments.method,
+      notes: payments.notes,
+      movementType: payments.movementType,
+      createdAt: payments.createdAt,
+      projectName: projects.name,
+      clientId: clients.id,
+      clientName: clients.name,
+    })
+    .from(payments)
+    .leftJoin(projects, eq(payments.projectId, projects.id))
+    .leftJoin(clients, eq(projects.clientId, clients.id))
+    .where(conditions.length > 0 ? and(...conditions) : undefined)
+    .orderBy(desc(payments.receivedAt));
+
+  return rows;
+}
+
 export async function updatePayment(id: number, data: Partial<InsertPayment>) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");

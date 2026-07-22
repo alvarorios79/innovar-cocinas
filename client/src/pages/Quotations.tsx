@@ -1688,7 +1688,10 @@ export default function Quotations() {
       }
       if (item.itemType === "closet" && item.closetConfig) {
         const desc = item.description?.trim() || buildClosetDescription(item.closetConfig);
-        return { ...item, description: desc, quantity: item.quantity || "1" };
+        const qty = parseInt(item.quantity || "1") || 1;
+        const transport = item.includesFixedCosts ? (item.fixedCostsAmount ?? 600000) : 0;
+        const correctedTotal = item.closetConfig.subtotal * qty + transport;
+        return { ...item, description: desc, quantity: String(qty), totalPrice: correctedTotal };
       }
       if (item.itemType === "puerta" && item.doorConfig) {
         const desc = item.description?.trim() || buildDoorDescription(item.doorConfig);

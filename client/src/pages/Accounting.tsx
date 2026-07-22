@@ -871,7 +871,7 @@ export default function Accounting() {
                         <SelectTrigger className="h-12">
                           <SelectValue placeholder="Selecciona un cliente" />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="max-h-72 overflow-y-auto">
                           {uniqueClients.map((c) => (
                             <SelectItem key={c.id} value={c.id.toString()}>{c.name}</SelectItem>
                           ))}

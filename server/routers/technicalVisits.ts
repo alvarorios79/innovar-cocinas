@@ -548,12 +548,6 @@ export const technicalVisitsRouter = router({
 
       // ── Notificar al equipo (admin, comercial, super_admin) ──────────────────
       try {
-        const [admins, comerciales, superAdmins] = await Promise.all([
-          getDb().then(d => d ? d.query?.users?.findMany?.({ where: (u: any, { eq: e }: any) => e(u.role, 'admin') }) : []),
-          getDb().then(d => d ? d.query?.users?.findMany?.({ where: (u: any, { eq: e }: any) => e(u.role, 'comercial') }) : []),
-          getDb().then(d => d ? d.query?.users?.findMany?.({ where: (u: any, { eq: e }: any) => e(u.role, 'super_admin') }) : []),
-        ]);
-
         const { getUsersByRole, createNotification } = await import('../db');
         const [a, c, s] = await Promise.all([
           getUsersByRole('admin'),
@@ -567,29 +561,34 @@ export const technicalVisitsRouter = router({
           puertas: 'Puertas', centro_tv: 'Centro de TV',
         };
         const tipoTrabajo = workLabels[visit.workType] || visit.workType;
-        const direccion = visit.clientAddress || 'Sin dirección';
+        const clientName = visit.clientName;
+        const direccion = visit.clientAddress || 'Sin direcci\u00f3n';
+        const telefono = visit.clientPhone || '';
 
         for (const user of teamUsers) {
           // Campanilla
-          await createNotification({
-            userId: user.id,
-            type: 'levantamiento',
-            title: '📐 Levantamiento técnico enviado',
-            body: ,
-            referenceId: input.visitId,
-          });
+          try {
+            await createNotification({
+              userId: user.id,
+              type: 'cita' as any,
+              title: '\u{1F4D0} Levantamiento t\u00e9cnico enviado',
+              body: clientName + ' \u2014 ' + tipoTrabajo + '. Direcci\u00f3n: ' + direccion,
+              referenceId: input.visitId,
+            });
+          } catch (notifErr2) {
+            console.error('[Levantamiento submit] Error campanilla:', notifErr2);
+          }
 
           // WhatsApp
           if (user.phone) {
             try {
               const wac = await import('../whatsapp-cloud');
-              const msg =
-                 +
-                 +
-                 +
-                 +
-                (visit.clientPhone ?  : '') +
-                ;
+              let msg = '\u{1F4D0} *Nuevo levantamiento t\u00e9cnico enviado*\n\n';
+              msg += '\u{1F464} *Cliente:* ' + clientName + '\n';
+              msg += '\u{1F6E0}\uFE0F *Tipo:* ' + tipoTrabajo + '\n';
+              msg += '\u{1F4CD} *Direcci\u00f3n:* ' + direccion + '\n';
+              if (telefono) msg += '\u{1F4F1} *Tel cliente:* ' + telefono + '\n';
+              msg += '\nRevisa la pesta\u00f1a Levantamientos en el panel.';
               await wac.sendTextMessage(user.phone, msg);
             } catch (waErr) {
               console.error('[Levantamiento submit] Error WhatsApp:', waErr);

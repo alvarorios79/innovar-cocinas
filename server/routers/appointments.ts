@@ -534,6 +534,36 @@ export const appointmentsRouter = router({
         await drizzleDb.update(appointmentsTable)
           .set({ assignedMedidorId: input.medidorId })
           .where(eq(appointmentsTable.id, input.appointmentId));
+
+        // -- Notificar al medidor cuando le asignan una cita
+        if (input.medidorId) {
+          try {
+            const { createNotification, getAppointmentById, getClientById, getAppointmentWorkTypes } = await import('../db');
+            const apt = await getAppointmentById(input.appointmentId);
+            const client = apt?.clientId ? await getClientById(apt.clientId) : null;
+            const workTypes = await getAppointmentWorkTypes(input.appointmentId);
+            const wtLabels: Record<string, string> = { cocina: 'Cocina Integral', closet: 'Closet', puertas: 'Puertas', centro_tv: 'Centro de TV' };
+            const tipoStr = workTypes.map((wt: any) => wtLabels[wt.workType] || wt.workType).join(', ');
+            let fechaStr = 'Sin fecha';
+            if (apt?.scheduledDate) {
+              const d = new Date(apt.scheduledDate as string);
+              fechaStr = d.toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'America/Bogota' })
+                + ' a las '
+                + d.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'America/Bogota' });
+            }
+            await createNotification({
+              userId: input.medidorId,
+              title: `Visita asignada — ${client?.name || 'Cliente'}`,
+              body: `${tipoStr ? tipoStr + ' — ' : ''}${fechaStr}`,
+              type: 'cita',
+              referenceId: input.appointmentId,
+              referenceType: 'appointment',
+            });
+          } catch (notifErr) {
+            console.error('[assignMedidor] Error notificando medidor:', notifErr);
+          }
+        }
+
         return { success: true };
       }),
 

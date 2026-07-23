@@ -348,15 +348,24 @@ export default function Medidor() {
     return null;
   }, [searchStr]);
 
+  const [manualPrefill, setManualPrefill] = useState<{
+    appointmentId: string;
+    name: string;
+    phone: string;
+    address: string;
+    workType: WorkType | "";
+  } | null>(null);
+  const effectivePrefill = manualPrefill || prefill;
+
   const [view, setView] = useState<"list" | "new" | "detail">("list");
   const [selectedVisit, setSelectedVisit] = useState<Visit | null>(null);
   const [visitDetail, setVisitDetail] = useState<Visit | null>(null);
   const [showSignature, setShowSignature] = useState(false);
 
-  // Auto-abrir formulario nuevo si viene desde cita
+  // Auto-abrir formulario nuevo si viene desde cita (URL o clic en cita asignada)
   useEffect(() => {
-    if (prefill) setView("new");
-  }, [prefill]);
+    if (effectivePrefill) setView("new");
+  }, [effectivePrefill]);
   const [showSummary, setShowSummary] = useState(false);
   const [selectedPhotoCategory, setSelectedPhotoCategory] = useState<PhotoCategory>("general");
 
@@ -371,6 +380,14 @@ export default function Medidor() {
   const { data: visits = [], refetch: refetchVisits } = trpc.technicalVisits.list.useQuery(undefined, {
     enabled: view === "list",
   });
+
+  // Citas asignadas al medidor (filtradas por el servidor)
+  const { data: assignedAppointments = [] } = trpc.appointments.list.useQuery(undefined, {
+    enabled: view === "list",
+  });
+  const pendingAppointments = (assignedAppointments as any[]).filter(
+    (a: any) => a.status === "pendiente" || a.status === "confirmada"
+  );
 
   const { data: detailData, refetch: refetchDetail } = trpc.technicalVisits.getById.useQuery(
     { visitId: selectedVisit?.id || "" },
@@ -606,6 +623,80 @@ export default function Medidor() {
             </Button>
           </div>
 
+          {/* Citas asignadas pendientes */}
+          {pendingAppointments.length > 0 && (
+            <div className="mb-6">
+              <h2 className="text-sm font-semibold text-[#1DB5A8] uppercase tracking-wide mb-3 flex items-center gap-2">
+                <Calendar className="h-4 w-4" />
+                Citas asignadas ({pendingAppointments.length})
+              </h2>
+              <div className="space-y-3">
+                {pendingAppointments.map((apt: any) => {
+                  const aptDate = apt.scheduledDate ? new Date(apt.scheduledDate) : null;
+                  const wtLabels: Record<string, string> = {
+                    cocina: "Cocina Integral", closet: "Closet",
+                    puertas: "Puertas", centro_tv: "Centro de TV",
+                  };
+                  const workTypeText = apt.workTypes?.map((wt: string) => wtLabels[wt] || wt).join(", ") || "";
+                  return (
+                    <div key={apt.id} className="bg-teal-900/25 border border-[#1DB5A8]/50 rounded-lg p-4">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-white truncate">{apt.client?.name || "Cliente"}</h3>
+                          {workTypeText && <p className="text-sm text-[#1DB5A8]">{workTypeText}</p>}
+                          {apt.client?.address && (
+                            <p className="text-xs text-slate-400 mt-1 flex items-center gap-1">
+                              <MapPin className="h-3 w-3 flex-shrink-0" />
+                              <span className="truncate">{apt.client.address}</span>
+                            </p>
+                          )}
+                          {apt.client?.whatsappPhone && (
+                            <p className="text-xs text-slate-400 flex items-center gap-1 mt-0.5">
+                              <Phone className="h-3 w-3 flex-shrink-0" />
+                              {apt.client.whatsappPhone}
+                            </p>
+                          )}
+                        </div>
+                        {aptDate && (
+                          <div className="ml-3 text-right flex-shrink-0">
+                            <p className="text-xs text-slate-300 font-medium">
+                              {aptDate.toLocaleDateString('es-CO', { weekday: 'short', day: 'numeric', month: 'short' })}
+                            </p>
+                            <p className="text-sm text-[#1DB5A8] font-semibold">
+                              {aptDate.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: true })}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                      <Button
+                        onClick={() => {
+                          setManualPrefill({
+                            appointmentId: String(apt.id),
+                            name: apt.client?.name || "",
+                            phone: apt.client?.whatsappPhone || "",
+                            address: apt.client?.address || "",
+                            workType: (apt.workTypes?.[0] || "") as WorkType | "",
+                          });
+                          setView("new");
+                        }}
+                        className="w-full h-9 bg-[#1DB5A8] hover:bg-[#17a396] text-white text-sm"
+                      >
+                        <ClipboardList className="h-4 w-4 mr-2" />
+                        Iniciar levantamiento
+                      </Button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {visits.length > 0 && (
+            <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wide mb-2">
+              Levantamientos
+            </h2>
+          )}
+
           <div className="space-y-3">
             {(visits as any[]).map((visit: Visit) => (
               <div
@@ -651,15 +742,15 @@ export default function Medidor() {
       <div className="min-h-screen bg-[#0C1A1A] pb-24">
         <div className="max-w-lg mx-auto p-4">
           <div className="flex items-center gap-3 mb-6">
-            <Button onClick={() => setView("list")} variant="outline" size="icon" className="border-[#1DB5A8]/40 text-[#1DB5A8]">
+            <Button onClick={() => { setView("list"); setManualPrefill(null); }} variant="outline" size="icon" className="border-[#1DB5A8]/40 text-[#1DB5A8]">
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <h1 className="text-2xl font-bold text-white">Nueva Visita Técnica</h1>
           </div>
 
-          {prefill && (
+          {effectivePrefill && (
             <div className="bg-teal-900/30 border border-teal-500/40 rounded-lg p-3 mb-4 text-sm text-teal-300">
-              Datos pre-llenados desde cita agendada #{prefill.appointmentId}
+              Datos pre-llenados desde cita agendada #{effectivePrefill.appointmentId}
             </div>
           )}
 
@@ -667,17 +758,17 @@ export default function Medidor() {
             <div className="bg-[#162828] border border-[#1DB5A8]/20 rounded-lg p-4 space-y-4">
               <div>
                 <label className="block text-sm font-semibold text-[#1DB5A8] mb-2">Nombre del cliente *</label>
-                <Input name="clientName" required defaultValue={prefill?.name || ""} className="bg-[#0C1A1A] border-[#1DB5A8]/20 text-white" />
+                <Input name="clientName" required defaultValue={effectivePrefill?.name || ""} className="bg-[#0C1A1A] border-[#1DB5A8]/20 text-white" />
               </div>
 
               <div>
                 <label className="block text-sm font-semibold text-[#1DB5A8] mb-2">Teléfono WhatsApp *</label>
-                <Input name="clientPhone" required defaultValue={prefill?.phone || ""} className="bg-[#0C1A1A] border-[#1DB5A8]/20 text-white" />
+                <Input name="clientPhone" required defaultValue={effectivePrefill?.phone || ""} className="bg-[#0C1A1A] border-[#1DB5A8]/20 text-white" />
               </div>
 
               <div>
                 <label className="block text-sm font-semibold text-[#1DB5A8] mb-2">Dirección *</label>
-                <Input name="clientAddress" required defaultValue={prefill?.address || ""} className="bg-[#0C1A1A] border-[#1DB5A8]/20 text-white" />
+                <Input name="clientAddress" required defaultValue={effectivePrefill?.address || ""} className="bg-[#0C1A1A] border-[#1DB5A8]/20 text-white" />
               </div>
 
               <div>
@@ -690,7 +781,7 @@ export default function Medidor() {
                         name="workType"
                         value={type}
                         required
-                        defaultChecked={prefill?.workType === type}
+                        defaultChecked={effectivePrefill?.workType === type}
                         className="peer sr-only"
                       />
                       <div className="border border-[#1DB5A8]/20 rounded-lg p-3 cursor-pointer peer-checked:bg-[#1DB5A8]/20 peer-checked:border-[#1DB5A8] transition-colors">

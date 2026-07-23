@@ -184,9 +184,20 @@ export default function Quotations() {
   const [lockConfirmDialog, setLockConfirmDialog] = useState<{ open: boolean; quotationId: number | null; isLocking: boolean }>({ open: false, quotationId: null, isLocking: false });
   
   // Abrir diálogo automáticamente si viene con ?new en la URL
+  // También pre-llena clientId y workType si vienen de un levantamiento técnico
   useEffect(() => {
-    if (location.includes("?new") || location.includes("&new")) {
-      setShowCreateDialog(true);
+    if (location.includes("?new") || location.includes("&new") ||
+        location.includes("?clientId") || location.includes("new=1")) {
+      const queryStr = location.includes("?") ? location.split("?")[1] : "";
+      const params = new URLSearchParams(queryStr);
+      const hasNew = params.has("new") || location.includes("?new") || location.includes("&new");
+      if (hasNew) {
+        setShowCreateDialog(true);
+        const clientId = params.get("clientId");
+        const wt = params.get("workType");
+        if (clientId) setSelectedClient(parseInt(clientId));
+        if (wt) setWorkType(wt);
+      }
     }
   }, [location]);
   const [editingQuotation, setEditingQuotation] = useState<number | null>(null);

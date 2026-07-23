@@ -367,7 +367,7 @@ export default function Medidor() {
     if (effectivePrefill) setView("new");
   }, [effectivePrefill]);
   const [showSummary, setShowSummary] = useState(false);
-  const [tab, setTab] = useState<"hoy" | "proximas" | "historial">("hoy");
+  const [tab, setTab] = useState<"hoy" | "proximas" | "historial" | "tareas">("hoy");
   const [selectedPhotoCategory, setSelectedPhotoCategory] = useState<PhotoCategory>("general");
 
   // Estados locales
@@ -390,6 +390,12 @@ export default function Medidor() {
     (a: any) => a.status === "pendiente" || a.status === "confirmada"
   );
 
+  // Tareas asignadas al medidor
+  const { data: myTasks = [], refetch: refetchTasks } = trpc.tasks.getMyTasks.useQuery(undefined, {
+    enabled: view === "list",
+  });
+  const pendingTasks = (myTasks as any[]).filter((t: any) => t.status !== "completada");
+
   const { data: detailData, refetch: refetchDetail } = trpc.technicalVisits.getById.useQuery(
     { visitId: selectedVisit?.id || "" },
     {
@@ -410,6 +416,7 @@ export default function Medidor() {
   const compressPdf = trpc.technicalVisits.compressPdf.useMutation();
   const submitVisit = trpc.technicalVisits.submit.useMutation();
   const saveSignature = trpc.technicalVisits.saveSignature.useMutation();
+  const updateTaskStatus = trpc.tasks.updateStatus.useMutation();
 
   // Efecto para inicializar datos
   useEffect(() => {
@@ -710,6 +717,7 @@ export default function Medidor() {
               { key: "hoy", label: "Hoy", count: todayApts.length + borradorVisits.length },
               { key: "proximas", label: "Próximas", count: proximasApts.length },
               { key: "historial", label: "Historial", count: historialVisits.length },
+              { key: "tareas", label: "Tareas", count: pendingTasks.length },
             ] as const).map(({ key, label, count }) => (
               <button
                 key={key}
@@ -831,6 +839,77 @@ export default function Medidor() {
                     </p>
                   </div>
                 ))
+              )}
+            </div>
+          )}
+
+          {/* Tab: Tareas */}
+          {tab === "tareas" && (
+            <div className="space-y-3">
+              {(myTasks as any[]).length === 0 ? (
+                <div className="text-center py-12 text-slate-500">
+                  <CheckSquare className="h-12 w-12 mx-auto mb-3 opacity-30" />
+                  <p className="font-medium">Sin tareas asignadas</p>
+                  <p className="text-sm mt-1">Las tareas que te asignen aparecerán aquí</p>
+                </div>
+              ) : (
+                (myTasks as any[]).map((task: any) => {
+                  const priorityConfig: Record<string, { color: string; label: string }> = {
+                    alta:  { color: "text-red-400",   label: "Alta" },
+                    media: { color: "text-amber-400", label: "Media" },
+                    baja:  { color: "text-green-400", label: "Baja" },
+                  };
+                  const isCompleted = task.status === "completada";
+                  const pc = priorityConfig[task.priority] || priorityConfig.media;
+                  const overdue = task.dueDate && !isCompleted && new Date(task.dueDate) < new Date();
+                  return (
+                    <div
+                      key={task.id}
+                      className={`bg-[#162828] border rounded-lg p-4 transition-colors ${
+                        isCompleted
+                          ? "border-[#1DB5A8]/10 opacity-60"
+                          : overdue
+                          ? "border-red-500/30"
+                          : "border-[#1DB5A8]/20"
+                      }`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <button
+                          onClick={() => updateTaskStatus.mutate(
+                            { taskId: task.id, status: isCompleted ? "pendiente" : "completada" },
+                            { onSuccess: () => refetchTasks() }
+                          )}
+                          className="mt-0.5 flex-shrink-0"
+                        >
+                          {isCompleted
+                            ? <CheckSquare className="h-5 w-5 text-[#1DB5A8]" />
+                            : <Square className="h-5 w-5 text-slate-500 hover:text-slate-300" />
+                          }
+                        </button>
+                        <div className="flex-1 min-w-0">
+                          <p className={`font-medium text-sm ${isCompleted ? "line-through text-slate-500" : "text-white"}`}>
+                            {task.title}
+                          </p>
+                          {task.description && (
+                            <p className="text-xs text-slate-400 mt-0.5 line-clamp-2">{task.description}</p>
+                          )}
+                          <div className="flex items-center gap-3 mt-2 text-xs">
+                            <span className={pc.color}>{pc.label}</span>
+                            {task.dueDate && (
+                              <span className={`flex items-center gap-1 ${overdue ? "text-red-400" : "text-slate-500"}`}>
+                                <Clock className="h-3 w-3" />
+                                {new Date(task.dueDate).toLocaleDateString('es-CO', { day: 'numeric', month: 'short' })}
+                              </span>
+                            )}
+                            {task.status === "en_progreso" && (
+                              <span className="text-blue-400">En progreso</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
               )}
             </div>
           )}

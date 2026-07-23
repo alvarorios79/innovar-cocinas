@@ -23,6 +23,11 @@ export interface KitchenConfig {
   countertop: {
     type: string;
     depthSurcharge: string;
+    incluyeLaterales?: boolean;
+    cantLaterales?: number;      // cuántos laterales (default 1)
+    incluyeRegrueso?: boolean;
+    incluyeLavaplatos?: boolean;
+    lavaprecio?: number;         // precio lavaplatos (default 130000)
   };
   island: {
     enabled: boolean;
@@ -132,6 +137,11 @@ export function KitchenConfigurator({
     countertop: {
       type: "",
       depthSurcharge: "none",
+      incluyeLaterales: false,
+      cantLaterales: 1,
+      incluyeRegrueso: false,
+      incluyeLavaplatos: false,
+      lavaprecio: 130000,
     },
     island: {
       enabled: false,
@@ -519,10 +529,81 @@ export function KitchenConfigurator({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Sin recargo (≤60cm)</SelectItem>
-                    <SelectItem value="30percent">+30% (61-90cm)</SelectItem>
-                    <SelectItem value="double">×2 (91-120cm)</SelectItem>
+                    <SelectItem value="30percent">+30% fondo (61-90cm)</SelectItem>
+                    <SelectItem value="double">×2 fondo (91-120cm)</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+            </div>
+
+            {/* Info metros mesón */}
+            {currentConfig.countertop.type && (
+              <div className="mt-3 p-2 bg-emerald-900/40 rounded text-xs text-emerald-300 flex flex-wrap gap-2">
+                <span>Metros mesón: <strong>{resultingMeters.toFixed(2)} ml</strong></span>
+                {currentConfig.countertop.incluyeLaterales && (
+                  <span className="text-white/60">+ {((currentConfig.countertop.cantLaterales || 1) * 0.9).toFixed(2)} ml lateral{(currentConfig.countertop.cantLaterales || 1) > 1 ? 'es' : ''}</span>
+                )}
+                {currentConfig.countertop.incluyeRegrueso && (
+                  <span className="text-white/60">+ 0.90 ml regrueso</span>
+                )}
+                {currentConfig.countertop.depthSurcharge === '30percent' && (
+                  <span className="text-amber-300">· +30% por fondo</span>
+                )}
+                {currentConfig.countertop.depthSurcharge === 'double' && (
+                  <span className="text-amber-300">· ×2 por fondo</span>
+                )}
+              </div>
+            )}
+
+            {/* Laterales, regrueso, lavaplatos */}
+            <div className="mt-3 space-y-2">
+              <div className="flex items-center gap-3 flex-wrap">
+                <Checkbox
+                  id="meson-laterales"
+                  checked={currentConfig.countertop.incluyeLaterales ?? false}
+                  onCheckedChange={(c) => updateConfig("countertop.incluyeLaterales", c === true)}
+                />
+                <Label htmlFor="meson-laterales" className="cursor-pointer text-sm">Laterales (+0.90ml c/u)</Label>
+                {currentConfig.countertop.incluyeLaterales && (
+                  <>
+                    <Input
+                      type="number" min="1" max="4" step="1"
+                      value={currentConfig.countertop.cantLaterales || 1}
+                      onChange={(e) => updateConfig("countertop.cantLaterales", parseInt(e.target.value) || 1)}
+                      className="h-8 w-16 text-center bg-[#162828]"
+                    />
+                    <span className="text-xs text-white/50">ud.</span>
+                  </>
+                )}
+              </div>
+
+              <div className="flex items-center gap-3">
+                <Checkbox
+                  id="meson-regrueso"
+                  checked={currentConfig.countertop.incluyeRegrueso ?? false}
+                  onCheckedChange={(c) => updateConfig("countertop.incluyeRegrueso", c === true)}
+                />
+                <Label htmlFor="meson-regrueso" className="cursor-pointer text-sm">Regrueso (+0.90ml)</Label>
+              </div>
+
+              <div className="flex items-center gap-3 flex-wrap">
+                <Checkbox
+                  id="meson-lavaplatos"
+                  checked={currentConfig.countertop.incluyeLavaplatos ?? false}
+                  onCheckedChange={(c) => updateConfig("countertop.incluyeLavaplatos", c === true)}
+                />
+                <Label htmlFor="meson-lavaplatos" className="cursor-pointer text-sm">Lavaplatos y pegado</Label>
+                {currentConfig.countertop.incluyeLavaplatos && (
+                  <div className="flex items-center gap-1">
+                    <span className="text-xs text-white/50">$</span>
+                    <Input
+                      type="number" step="1000" min="0"
+                      value={currentConfig.countertop.lavaprecio ?? 130000}
+                      onChange={(e) => updateConfig("countertop.lavaprecio", parseInt(e.target.value) || 130000)}
+                      className="h-8 w-32 bg-[#162828]"
+                    />
+                  </div>
+                )}
               </div>
             </div>
           </div>

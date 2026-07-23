@@ -252,6 +252,28 @@ export const technicalVisitsRouter = router({
         })
         .returning();
 
+      // -- Registrar cliente en CRM si el medidor crea la visita manualmente
+      if (!input.clientId && input.clientPhone) {
+        try {
+          const { createClient, getClientByWhatsApp } = await import('../db');
+          let existingClient = await getClientByWhatsApp(input.clientPhone);
+          if (!existingClient) {
+            existingClient = await createClient({
+              name: input.clientName,
+              whatsappPhone: input.clientPhone,
+              address: input.clientAddress || null,
+            } as any, 'system');
+          }
+          if (existingClient?.id) {
+            await db.update(technicalVisits)
+              .set({ clientId: existingClient.id })
+              .where(eq(technicalVisits.id, created.id));
+          }
+        } catch (clientErr) {
+          console.error('[TechnicalVisits create] Error registrando cliente en CRM:', clientErr);
+        }
+      }
+
       return { id: String(created.id) };
     }),
 

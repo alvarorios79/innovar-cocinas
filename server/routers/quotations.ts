@@ -1679,6 +1679,7 @@ export const quotationsRouter = router({
                 if (cfg.mesonIncluyeRegrueso) mesonExtras.push('regrueso');
                 if (cfg.mesonIncluyeSalpicaderoAlto) mesonExtras.push('salpicadero alto');
                 if (mesonExtras.length > 0) lines.push(`  Extras mesón: ${mesonExtras.join(', ')}`);
+                if (cfg.incluyeLavaplatos) lines.push(`  Lavaplatos y pegado${cfg.lavaprecio ? ' $' + cfg.lavaprecio.toLocaleString('es-CO') : ''}`);
               }
               if (cfg.incluyeLed && cfg.ledML) {
                 lines.push(`LED: ${cfg.ledML}ml`);

@@ -1165,7 +1165,7 @@ export const quotationsRouter = router({
                   const matLabel = mesonMaterials[cfg.mesonMaterial] || cfg.mesonMaterial || '';
                   const mesonParts: string[] = [`Mesón: ${matLabel}`];
                   if (cfg.mesonML) mesonParts.push(`${cfg.mesonML}ml`);
-                  if (cfg.mesonFondo) mesonParts.push(`fondo ${cfg.mesonFondo}cm`);
+                  if (cfg.mesonFondo) { const f = cfg.mesonFondo > 5 ? (cfg.mesonFondo / 100).toFixed(2) : cfg.mesonFondo; mesonParts.push(`fondo ${f}m`); }
                   lines.push(mesonParts.join(' — '));
                   const mesonExtras: string[] = [];
                   if (cfg.mesonIncluyeLaterales) mesonExtras.push('laterales');
@@ -1663,7 +1663,7 @@ export const quotationsRouter = router({
                 const matLabel = mesonMaterials[cfg.mesonMaterial] || cfg.mesonMaterial || '';
                 const mesonParts: string[] = [`Mesón: ${matLabel}`];
                 if (cfg.mesonML) mesonParts.push(`${cfg.mesonML}ml`);
-                if (cfg.mesonFondo) mesonParts.push(`fondo ${cfg.mesonFondo}cm`);
+                if (cfg.mesonFondo) { const f = cfg.mesonFondo > 5 ? (cfg.mesonFondo / 100).toFixed(2) : cfg.mesonFondo; mesonParts.push(`fondo ${f}m`); }
                 lines.push(mesonParts.join(' — '));
                 const mesonExtras: string[] = [];
                 if (cfg.mesonIncluyeLaterales) mesonExtras.push('laterales');

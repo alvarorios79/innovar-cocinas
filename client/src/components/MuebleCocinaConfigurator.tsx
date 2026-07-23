@@ -149,7 +149,7 @@ export function defaultMuebleCocinaConfig(tipo: TipoPieza = "isla"): MuebleCocin
     incluyeMeson:              tipo === "isla" || tipo === "barra",
     mesonMaterial:             "cuarzo",
     mesonML:                   1,
-    mesonFondo:                60,
+    mesonFondo:                0.60,
     mesonIncluyeLaterales:     tipo === "isla",
     mesonIncluyeRegrueso:      tipo === "isla",
     mesonIncluyeSalpicaderoAlto: false,
@@ -176,8 +176,9 @@ export function defaultMuebleCocinaConfig(tipo: TipoPieza = "isla"): MuebleCocin
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 function getMultiplicadorFondo(fondo: number): number {
-  if (fondo >= 66 && fondo <= 90)  return PRECIOS.RECARGO_FONDO_30;
-  if (fondo >= 91 && fondo <= 120) return PRECIOS.RECARGO_FONDO_DOBLE;
+  // fondo en metros (valores legacy en cm se normalizan antes de llegar aqui)
+  if (fondo >= 0.66 && fondo <= 0.90) return PRECIOS.RECARGO_FONDO_30;
+  if (fondo > 0.90 && fondo <= 1.20)  return PRECIOS.RECARGO_FONDO_DOBLE;
   return 1;
 }
 
@@ -221,6 +222,8 @@ export function calcularMuebleCocina(cfg: MuebleCocinaConfig): MuebleCocinaConfi
     return c;
   }
 
+  // Compatibilidad: si mesonFondo > 5 asumimos que esta en cm (legacy) y convertimos a metros
+  if (c.mesonFondo > 5) c.mesonFondo = c.mesonFondo / 100;
   const mult     = getMultiplicadorFondo(c.mesonFondo);
   const precioMat = precioMesonML(c.mesonMaterial);
 
@@ -376,7 +379,9 @@ export function MuebleCocinaConfigurator({ config, onChange }: Props) {
     onChange(calcularMuebleCocina(next));
   };
 
-  const mult    = getMultiplicadorFondo(config.mesonFondo);
+  // Compatibilidad: si mesonFondo > 5 asumimos que esta en cm (legacy) y convertimos a metros
+  const fondoNorm = config.mesonFondo > 5 ? config.mesonFondo / 100 : config.mesonFondo;
+  const mult    = getMultiplicadorFondo(fondoNorm);
   const recTexto = mult === 1 ? "Normal" : mult === 1.3 ? "+30%" : "×2";
   const esBarra      = config.tipoPieza === "barra";
   const esIsla       = config.tipoPieza === "isla";
@@ -656,11 +661,11 @@ export function MuebleCocinaConfigurator({ config, onChange }: Props) {
                   />
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-xs text-white/70">Fondo (cm)</Label>
+                  <Label className="text-xs text-white/70">Fondo (m)</Label>
                   <Input
-                    type="number" min="35" max="120"
-                    value={config.mesonFondo}
-                    onChange={(e) => update("mesonFondo", parseInt(e.target.value) || 60)}
+                    type="number" min="0.35" max="2.00" step="0.01"
+                    value={config.mesonFondo > 5 ? (config.mesonFondo / 100).toFixed(2) : config.mesonFondo}
+                    onChange={(e) => update("mesonFondo", parseFloat(e.target.value) || 0.60)}
                     className="h-9 bg-transparent border-white/15 text-white"
                   />
                   <p className="text-[10px] text-white/40">Recargo: {recTexto}</p>

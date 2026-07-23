@@ -130,9 +130,18 @@ function buildKitchenDescription(config: KitchenConfig): string {
     quarzone: "Quarzone", sinterizado: "porcelanato sinterizado",
     granito: "granito", acero: "acero inoxidable",
   };
-  const mesonText = config.countertop?.type
-    ? ` Mesón en ${countertopNames[config.countertop.type] || config.countertop.type}.`
-    : "";
+  const ct = config.countertop;
+  let mesonText = "";
+  if (ct?.type) {
+    const mesonNombre = countertopNames[ct.type] || ct.type;
+    const mesonExtras: string[] = [];
+    if (ct.incluyeLaterales) mesonExtras.push(`${ct.cantLaterales || 1} lateral${(ct.cantLaterales || 1) > 1 ? 'es' : ''}`);
+    if (ct.incluyeRegrueso) mesonExtras.push("regrueso");
+    if (ct.incluyeLavaplatos) mesonExtras.push("lavaplatos y pegado");
+    if (ct.depthSurcharge === "30percent") mesonExtras.push("fondo 61-90cm (+30%)");
+    if (ct.depthSurcharge === "double") mesonExtras.push("fondo 91-120cm (×2)");
+    mesonText = ` Mesón en ${mesonNombre}${mesonExtras.length > 0 ? ' con ' + mesonExtras.join(', ') : ''}.`;
+  }
 
   return `Cocina integral ${clase}${meters}. Material aglomerado tipo RH, color a elegir por el cliente.${modulosText}${mesonText} (Diseño por definir)`;
 }
@@ -1190,6 +1199,18 @@ export default function Quotations() {
       // Usar metraje resultante automáticamente (o totalMeters para formas especiales)
       const metersForCountertop = isSpecialShape ? config.totalMeters : resultingMeters;
       total += metersForCountertop * countertopPrice;
+
+      // Extras del mesón: laterales, regrueso, lavaplatos
+      if (config.countertop.incluyeLaterales) {
+        const cantLat = config.countertop.cantLaterales || 1;
+        total += cantLat * 0.9 * countertopPrice;
+      }
+      if (config.countertop.incluyeRegrueso) {
+        total += 0.9 * countertopPrice;
+      }
+      if (config.countertop.incluyeLavaplatos) {
+        total += config.countertop.lavaprecio || getPrice('LAVAPLATOS_MESON');
+      }
     }
 
     // 5. Isla (para cocinas completas y puertas_tapas) - precios dinámicos
@@ -1506,6 +1527,18 @@ export default function Quotations() {
           // Usar metraje resultante automáticamente (o totalMeters para formas especiales)
           const metersForCountertop = isSpecialShape ? config.totalMeters : resultingMeters;
           total += metersForCountertop * countertopPrice;
+
+          // Extras del mesón: laterales, regrueso, lavaplatos
+          if (config.countertop.incluyeLaterales) {
+            const cantLat = config.countertop.cantLaterales || 1;
+            total += cantLat * 0.9 * countertopPrice;
+          }
+          if (config.countertop.incluyeRegrueso) {
+            total += 0.9 * countertopPrice;
+          }
+          if (config.countertop.incluyeLavaplatos) {
+            total += config.countertop.lavaprecio || getPrice('LAVAPLATOS_MESON');
+          }
         }
 
         // Isla (para cocinas completas y puertas_tapas) - precios dinámicos

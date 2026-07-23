@@ -432,34 +432,59 @@ export function KitchenConfigurator({
 
           {/* Módulos de Cocina — checklist descriptivo */}
           <div className="bg-teal-500/10 p-4 rounded-lg border border-teal-500/25">
-            <h5 className="font-semibold text-teal-300 mb-3">Módulos de Cocina (para descripción)</h5>
+            <h5 className="font-semibold text-teal-300 mb-1">Módulos de Cocina (para descripción)</h5>
             <p className="text-xs text-teal-400 mb-3">Selecciona los módulos que lleva esta cocina — se usan para generar la descripción automática de la cotización.</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {([
-                { key: "esquinero1x1",       label: "Esquinero 1×1 (inferior)" },
-                { key: "esquineroSuperior",   label: "Esquinero superior" },
-                { key: "cajoneroTriple",      label: "Cajonero triple" },
-                { key: "cajoneroDoble",       label: "Cajonero doble" },
-                { key: "basurero",            label: "Basurero integrado" },
-                { key: "moduloEstufaHorno",   label: "Módulo estufa y horno" },
-                { key: "moduloAlmacInf",      label: "Módulo almacenamiento inferior" },
-                { key: "moduloAlmacSup",      label: "Módulo almacenamiento superior" },
-                { key: "moduloExtractor",     label: "Módulo extractor" },
-                { key: "moduloMicroondas",    label: "Módulo de microondas" },
-                { key: "especiero",           label: "Especiero" },
-                { key: "botellero",           label: "Botellero" },
-                { key: "moduloRepisa",        label: "Módulo repisa" },
-                { key: "luzLed",             label: "Luz LED" },
-              ] as { key: keyof NonNullable<KitchenConfig["kitchenModules"]>; label: string }[]).map(({ key, label }) => (
-                <div key={key} className="flex items-center gap-2 p-2 bg-[#162828] rounded border border-teal-100 hover:border-teal-300 transition-colors">
-                  <Checkbox
-                    id={`km-${key}`}
-                    checked={currentConfig.kitchenModules?.[key] ?? false}
-                    onCheckedChange={(c) => updateConfig(`kitchenModules.${key}`, c === true)}
-                  />
-                  <Label htmlFor={`km-${key}`} className="cursor-pointer text-sm text-white/85">{label}</Label>
+
+            <div className="space-y-4">
+              {/* Módulos Superiores */}
+              <div>
+                <p className="text-xs font-semibold text-white/50 uppercase tracking-wide mb-2">Módulos superiores</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {([
+                    { key: "esquineroSuperior",  label: "Esquinero superior" },
+                    { key: "moduloAlmacSup",     label: "Módulo almacenamiento sup." },
+                    { key: "moduloExtractor",    label: "Módulo extractor" },
+                    { key: "moduloMicroondas",   label: "Módulo de microondas" },
+                    { key: "especiero",          label: "Especiero" },
+                    { key: "botellero",          label: "Botellero" },
+                    { key: "moduloRepisa",       label: "Módulo repisa" },
+                    { key: "luzLed",             label: "Luz LED" },
+                  ] as { key: keyof NonNullable<KitchenConfig["kitchenModules"]>; label: string }[]).map(({ key, label }) => (
+                    <div key={key} className="flex items-center gap-2 p-2 bg-[#162828] rounded border border-teal-100 hover:border-teal-300 transition-colors">
+                      <Checkbox
+                        id={`km-sup-${key}`}
+                        checked={currentConfig.kitchenModules?.[key] ?? false}
+                        onCheckedChange={(c) => updateConfig(`kitchenModules.${key}`, c === true)}
+                      />
+                      <Label htmlFor={`km-sup-${key}`} className="cursor-pointer text-sm text-white/85">{label}</Label>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              </div>
+
+              {/* Módulos Inferiores */}
+              <div>
+                <p className="text-xs font-semibold text-white/50 uppercase tracking-wide mb-2">Módulos inferiores</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {([
+                    { key: "esquinero1x1",       label: "Esquinero 1×1 inferior" },
+                    { key: "cajoneroTriple",     label: "Cajonero triple" },
+                    { key: "cajoneroDoble",      label: "Cajonero doble" },
+                    { key: "basurero",           label: "Basurero integrado" },
+                    { key: "moduloEstufaHorno",  label: "Módulo estufa y horno" },
+                    { key: "moduloAlmacInf",     label: "Módulo almacenamiento inf." },
+                  ] as { key: keyof NonNullable<KitchenConfig["kitchenModules"]>; label: string }[]).map(({ key, label }) => (
+                    <div key={key} className="flex items-center gap-2 p-2 bg-[#162828] rounded border border-teal-100 hover:border-teal-300 transition-colors">
+                      <Checkbox
+                        id={`km-inf-${key}`}
+                        checked={currentConfig.kitchenModules?.[key] ?? false}
+                        onCheckedChange={(c) => updateConfig(`kitchenModules.${key}`, c === true)}
+                      />
+                      <Label htmlFor={`km-inf-${key}`} className="cursor-pointer text-sm text-white/85">{label}</Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
 

@@ -1010,16 +1010,20 @@ export const quotationsRouter = router({
               
               // Mesón principal
               if (config.countertop.type) {
-                const countertopType = config.countertop.type === 'quarzone' ? 'Quarzone' : 'Sinterizado';
+                const ct = config.countertop;
+                const countertopType = ct.type === 'quarzone' ? 'Quarzone' : ct.type === 'granito' ? 'Granito' : 'Sinterizado';
                 let surchargeText = '';
                 
-                if (config.countertop.depthSurcharge === '30percent') {
-                  surchargeText = ' (fondo 61-90cm)';
-                } else if (config.countertop.depthSurcharge === 'double') {
-                  surchargeText = ' (fondo 91-120cm)';
+                if (ct.depthSurcharge === '30percent') {
+                  surchargeText = ' — fondo 61-90cm (+30%)';
+                } else if (ct.depthSurcharge === 'double') {
+                  surchargeText = ' — fondo 91-120cm (×2)';
                 }
                 
                 lines.push(`• Mesón ${countertopType}: ${resultingMeters.toFixed(2)}ml${surchargeText}`);
+                if (ct.incluyeLaterales) lines.push(`  - ${ct.cantLaterales || 1} lateral${(ct.cantLaterales || 1) > 1 ? 'es' : ''}: ${((ct.cantLaterales || 1) * 0.9).toFixed(2)}ml`);
+                if (ct.incluyeRegrueso) lines.push(`  - Regrueso: 0.90ml`);
+                if (ct.incluyeLavaplatos) lines.push(`  - Lavaplatos y pegado`);
               }
               
               // Isla
@@ -1172,6 +1176,7 @@ export const quotationsRouter = router({
                   if (cfg.mesonIncluyeRegrueso) mesonExtras.push('regrueso');
                   if (cfg.mesonIncluyeSalpicaderoAlto) mesonExtras.push('salpicadero alto');
                   if (mesonExtras.length > 0) lines.push(`  Extras mesón: ${mesonExtras.join(', ')}`);
+                  if (cfg.incluyeLavaplatos) lines.push(`  Lavaplatos y pegado${cfg.lavaprecio ? ' $' + cfg.lavaprecio.toLocaleString('es-CO') : ''}`);
                 }
                 if (cfg.incluyeLed && cfg.ledML) {
                   lines.push(`LED: ${cfg.ledML}ml`);
@@ -1526,11 +1531,15 @@ export const quotationsRouter = router({
             if (config.specialModules?.torreHornos) lines.push(`• Torre de hornos 70cm`);
             
             if (config.countertop?.type) {
-              const countertopType = config.countertop.type === 'quarzone' ? 'Quarzone' : 'Sinterizado';
+              const ct = config.countertop;
+              const countertopType = ct.type === 'quarzone' ? 'Quarzone' : ct.type === 'granito' ? 'Granito' : 'Sinterizado';
               let surchargeText = '';
-              if (config.countertop.depthSurcharge === '30percent') surchargeText = ' (fondo 61-90cm)';
-              else if (config.countertop.depthSurcharge === 'double') surchargeText = ' (fondo 91-120cm)';
+              if (ct.depthSurcharge === '30percent') surchargeText = ' — fondo 61-90cm (+30%)';
+              else if (ct.depthSurcharge === 'double') surchargeText = ' — fondo 91-120cm (×2)';
               lines.push(`• Mesón ${countertopType}: ${resultingMeters.toFixed(2)}ml${surchargeText}`);
+              if (ct.incluyeLaterales) lines.push(`  - ${ct.cantLaterales || 1} lateral${(ct.cantLaterales || 1) > 1 ? 'es' : ''}: ${((ct.cantLaterales || 1) * 0.9).toFixed(2)}ml`);
+              if (ct.incluyeRegrueso) lines.push(`  - Regrueso: 0.90ml`);
+              if (ct.incluyeLavaplatos) lines.push(`  - Lavaplatos y pegado`);
             }
             
             if (config.island?.enabled && config.island.meters > 0) {
@@ -2222,16 +2231,20 @@ export const quotationsRouter = router({
               
               // Mesón principal
               if (config.countertop.type) {
-                const countertopType = config.countertop.type === 'quarzone' ? 'Quarzone' : 'Sinterizado';
+                const ct = config.countertop;
+                const countertopType = ct.type === 'quarzone' ? 'Quarzone' : ct.type === 'granito' ? 'Granito' : 'Sinterizado';
                 let surchargeText = '';
                 
-                if (config.countertop.depthSurcharge === '30percent') {
-                  surchargeText = ' (fondo 61-90cm)';
-                } else if (config.countertop.depthSurcharge === 'double') {
-                  surchargeText = ' (fondo 91-120cm)';
+                if (ct.depthSurcharge === '30percent') {
+                  surchargeText = ' — fondo 61-90cm (+30%)';
+                } else if (ct.depthSurcharge === 'double') {
+                  surchargeText = ' — fondo 91-120cm (×2)';
                 }
                 
                 lines.push(`• Mesón ${countertopType}: ${resultingMeters.toFixed(2)}ml${surchargeText}`);
+                if (ct.incluyeLaterales) lines.push(`  - ${ct.cantLaterales || 1} lateral${(ct.cantLaterales || 1) > 1 ? 'es' : ''}: ${((ct.cantLaterales || 1) * 0.9).toFixed(2)}ml`);
+                if (ct.incluyeRegrueso) lines.push(`  - Regrueso: 0.90ml`);
+                if (ct.incluyeLavaplatos) lines.push(`  - Lavaplatos y pegado`);
               }
               
               // Isla

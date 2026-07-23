@@ -23,6 +23,8 @@ export interface KitchenConfig {
   countertop: {
     type: string;
     depthSurcharge: string;
+    esImportado?: boolean;       // quarzo/sinterizado importado
+    precioImportadoML?: number;  // precio/ml cuando es importado
     incluyeLaterales?: boolean;
     cantLaterales?: number;      // cuántos laterales (default 1)
     incluyeRegrueso?: boolean;
@@ -137,6 +139,8 @@ export function KitchenConfigurator({
     countertop: {
       type: "",
       depthSurcharge: "none",
+      esImportado: false,
+      precioImportadoML: 0,
       incluyeLaterales: false,
       cantLaterales: 1,
       incluyeRegrueso: false,
@@ -535,6 +539,49 @@ export function KitchenConfigurator({
                 </Select>
               </div>
             </div>
+
+            {/* Standard / Importado — solo para quarzo y sinterizado */}
+            {['quarzone', 'sinterizado'].includes(currentConfig.countertop.type) && (
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <Label className="text-sm font-medium text-white/70 mr-1">Variante:</Label>
+                <button
+                  type="button"
+                  onClick={() => updateConfig("countertop.esImportado", false)}
+                  className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                    !currentConfig.countertop.esImportado
+                      ? 'bg-emerald-600 text-white'
+                      : 'bg-[#162828] text-white/50 hover:text-white/80'
+                  }`}
+                >
+                  Standard
+                </button>
+                <button
+                  type="button"
+                  onClick={() => updateConfig("countertop.esImportado", true)}
+                  className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                    currentConfig.countertop.esImportado
+                      ? 'bg-amber-600 text-white'
+                      : 'bg-[#162828] text-white/50 hover:text-white/80'
+                  }`}
+                >
+                  Importado
+                </button>
+                {currentConfig.countertop.esImportado && (
+                  <div className="flex items-center gap-2 ml-1">
+                    <span className="text-sm text-white/50">$/ml</span>
+                    <Input
+                      type="number"
+                      step="50000"
+                      min="0"
+                      placeholder="Precio por ml"
+                      value={currentConfig.countertop.precioImportadoML || ""}
+                      onChange={(e) => updateConfig("countertop.precioImportadoML", parseInt(e.target.value) || 0)}
+                      className="h-9 w-36 bg-[#162828]"
+                    />
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Info metros mesón */}
             {currentConfig.countertop.type && (

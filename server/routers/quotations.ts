@@ -1011,7 +1011,7 @@ export const quotationsRouter = router({
               // Mesón principal
               if (config.countertop.type) {
                 const ct = config.countertop;
-                const countertopType = ct.type === 'quarzone' ? 'Quarzone' : ct.type === 'granito' ? 'Granito' : 'Sinterizado';
+                const countertopType = (ct.esImportado && ct.type !== 'granito') ? (ct.type === 'quarzone' ? 'Quarzone Importado' : 'Sinterizado Importado') : ct.type === 'quarzone' ? 'Quarzone' : ct.type === 'granito' ? 'Granito' : 'Sinterizado';
                 let surchargeText = '';
                 
                 if (ct.depthSurcharge === '30percent') {
@@ -1166,7 +1166,8 @@ export const quotationsRouter = router({
                 }
                 if (cfg.incluyeMeson) {
                   const mesonMaterials: Record<string, string> = { 'granito': 'Granito', 'cuarzo': 'Cuarzo', 'sinterizado': 'Sinterizado' };
-                  const matLabel = mesonMaterials[cfg.mesonMaterial] || cfg.mesonMaterial || '';
+                  const matBase = mesonMaterials[cfg.mesonMaterial] || cfg.mesonMaterial || '';
+                  const matLabel = cfg.mesonEsImportado ? `${matBase} Importado` : matBase;
                   const mesonParts: string[] = [`Mesón: ${matLabel}`];
                   if (cfg.mesonML) mesonParts.push(`${cfg.mesonML}ml`);
                   if (cfg.mesonFondo) { const f = cfg.mesonFondo > 5 ? (cfg.mesonFondo / 100).toFixed(2) : cfg.mesonFondo; mesonParts.push(`fondo ${f}m`); }
@@ -1532,7 +1533,7 @@ export const quotationsRouter = router({
             
             if (config.countertop?.type) {
               const ct = config.countertop;
-              const countertopType = ct.type === 'quarzone' ? 'Quarzone' : ct.type === 'granito' ? 'Granito' : 'Sinterizado';
+              const countertopType = (ct.esImportado && ct.type !== 'granito') ? (ct.type === 'quarzone' ? 'Quarzone Importado' : 'Sinterizado Importado') : ct.type === 'quarzone' ? 'Quarzone' : ct.type === 'granito' ? 'Granito' : 'Sinterizado';
               let surchargeText = '';
               if (ct.depthSurcharge === '30percent') surchargeText = ' — fondo 61-90cm (+30%)';
               else if (ct.depthSurcharge === 'double') surchargeText = ' — fondo 91-120cm (×2)';
@@ -1669,7 +1670,8 @@ export const quotationsRouter = router({
               }
               if (cfg.incluyeMeson) {
                 const mesonMaterials: Record<string, string> = { 'granito': 'Granito', 'cuarzo': 'Cuarzo', 'sinterizado': 'Sinterizado' };
-                const matLabel = mesonMaterials[cfg.mesonMaterial] || cfg.mesonMaterial || '';
+                const matBase = mesonMaterials[cfg.mesonMaterial] || cfg.mesonMaterial || '';
+                const matLabel = cfg.mesonEsImportado ? `${matBase} Importado` : matBase;
                 const mesonParts: string[] = [`Mesón: ${matLabel}`];
                 if (cfg.mesonML) mesonParts.push(`${cfg.mesonML}ml`);
                 if (cfg.mesonFondo) { const f = cfg.mesonFondo > 5 ? (cfg.mesonFondo / 100).toFixed(2) : cfg.mesonFondo; mesonParts.push(`fondo ${f}m`); }
@@ -2233,7 +2235,7 @@ export const quotationsRouter = router({
               // Mesón principal
               if (config.countertop.type) {
                 const ct = config.countertop;
-                const countertopType = ct.type === 'quarzone' ? 'Quarzone' : ct.type === 'granito' ? 'Granito' : 'Sinterizado';
+                const countertopType = (ct.esImportado && ct.type !== 'granito') ? (ct.type === 'quarzone' ? 'Quarzone Importado' : 'Sinterizado Importado') : ct.type === 'quarzone' ? 'Quarzone' : ct.type === 'granito' ? 'Granito' : 'Sinterizado';
                 let surchargeText = '';
                 
                 if (ct.depthSurcharge === '30percent') {

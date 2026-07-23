@@ -546,6 +546,60 @@ export const technicalVisitsRouter = router({
         .set({ status: "enviada", submittedAt: now, updatedAt: now })
         .where(eq(technicalVisits.id, input.visitId));
 
+      // ── Notificar al equipo (admin, comercial, super_admin) ──────────────────
+      try {
+        const [admins, comerciales, superAdmins] = await Promise.all([
+          getDb().then(d => d ? d.query?.users?.findMany?.({ where: (u: any, { eq: e }: any) => e(u.role, 'admin') }) : []),
+          getDb().then(d => d ? d.query?.users?.findMany?.({ where: (u: any, { eq: e }: any) => e(u.role, 'comercial') }) : []),
+          getDb().then(d => d ? d.query?.users?.findMany?.({ where: (u: any, { eq: e }: any) => e(u.role, 'super_admin') }) : []),
+        ]);
+
+        const { getUsersByRole, createNotification } = await import('../db');
+        const [a, c, s] = await Promise.all([
+          getUsersByRole('admin'),
+          getUsersByRole('comercial'),
+          getUsersByRole('super_admin'),
+        ]);
+        const teamUsers = [...a, ...c, ...s];
+
+        const workLabels: Record<string, string> = {
+          cocina: 'Cocina Integral', closet: 'Closet',
+          puertas: 'Puertas', centro_tv: 'Centro de TV',
+        };
+        const tipoTrabajo = workLabels[visit.workType] || visit.workType;
+        const direccion = visit.clientAddress || 'Sin dirección';
+
+        for (const user of teamUsers) {
+          // Campanilla
+          await createNotification({
+            userId: user.id,
+            type: 'levantamiento',
+            title: '📐 Levantamiento técnico enviado',
+            body: ,
+            referenceId: input.visitId,
+          });
+
+          // WhatsApp
+          if (user.phone) {
+            try {
+              const wac = await import('../whatsapp-cloud');
+              const msg =
+                 +
+                 +
+                 +
+                 +
+                (visit.clientPhone ?  : '') +
+                ;
+              await wac.sendTextMessage(user.phone, msg);
+            } catch (waErr) {
+              console.error('[Levantamiento submit] Error WhatsApp:', waErr);
+            }
+          }
+        }
+      } catch (notifErr) {
+        console.error('[Levantamiento submit] Error notificando equipo:', notifErr);
+      }
+
       return { success: true };
     }),
 

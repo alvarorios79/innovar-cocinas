@@ -208,10 +208,10 @@ export default function Accounting() {
       refetchMovPayments();
       refetchMovProjectDetail();
     },
-    onError: (error: any) => toast.error(error.message || "Error al eliminar movimie
-  const generateStatementMut = trpc.payments.generateStatement.useMutation();
-nto"),
+    onError: (error: any) => toast.error(error.message || "Error al eliminar movimiento"),
   });
+
+  const generateStatementMut = trpc.payments.generateStatement.useMutation();
 
   const handleMovSubmit = async () => {
     if (!movProjectId || !movAmount || parseFloat(movAmount) <= 0) {

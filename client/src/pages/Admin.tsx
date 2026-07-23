@@ -116,6 +116,35 @@ function LevantamientosTab() {
               </div>
             </div>
           )}
+
+          {/* Acciones */}
+          <div className="flex flex-wrap gap-2 pt-4 border-t border-white/10">
+            {selectedVisit.status !== "convertida" && (
+              <Button
+                className="bg-teal-600 hover:bg-teal-700 text-white"
+                onClick={() => {
+                  const params = new URLSearchParams();
+                  params.set("new", "1");
+                  if (selectedVisit.clientId) params.set("clientId", String(selectedVisit.clientId));
+                  if (selectedVisit.workType) params.set("workType", selectedVisit.workType);
+                  window.location.href = "/cotizaciones?" + params.toString();
+                }}
+              >
+                <FileText className="h-4 w-4 mr-2" />
+                Crear cotización
+              </Button>
+            )}
+            {selectedVisit.status === "enviada" && (
+              <span className="text-xs text-amber-400 self-center">
+                ⚠️ Pendiente de cotización
+              </span>
+            )}
+            {selectedVisit.status === "convertida" && (
+              <span className="text-xs text-emerald-400 self-center">
+                ✓ Convertido a proyecto
+              </span>
+            )}
+          </div>
         </CardContent>
       </Card>
     );

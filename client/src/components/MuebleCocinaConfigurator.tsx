@@ -100,6 +100,8 @@ export interface MuebleCocinaConfig {
   // Mesón (isla, barra)
   incluyeMeson:              boolean;
   mesonMaterial:             MaterialMeson;
+  mesonEsImportado?:         boolean;       // cuarzo/sinterizado importado
+  mesonPrecioImportadoML?:   number;        // precio/ml cuando es importado
   mesonML:                   number;
   mesonFondo:                number;
   mesonIncluyeLaterales:     boolean;
@@ -148,6 +150,8 @@ export function defaultMuebleCocinaConfig(tipo: TipoPieza = "isla"): MuebleCocin
     ledML:       1,
     incluyeMeson:              tipo === "isla" || tipo === "barra",
     mesonMaterial:             "cuarzo",
+    mesonEsImportado:          false,
+    mesonPrecioImportadoML:    0,
     mesonML:                   1,
     mesonFondo:                0.60,
     mesonIncluyeLaterales:     tipo === "isla",
@@ -225,7 +229,9 @@ export function calcularMuebleCocina(cfg: MuebleCocinaConfig): MuebleCocinaConfi
   // Compatibilidad: si mesonFondo > 5 asumimos que esta en cm (legacy) y convertimos a metros
   if (c.mesonFondo > 5) c.mesonFondo = c.mesonFondo / 100;
   const mult     = getMultiplicadorFondo(c.mesonFondo);
-  const precioMat = precioMesonML(c.mesonMaterial);
+  const precioMat = (c.mesonEsImportado && c.mesonPrecioImportadoML)
+    ? c.mesonPrecioImportadoML
+    : precioMesonML(c.mesonMaterial);
 
   // Madera
   if (c.tipoPieza === "isla") {
@@ -640,7 +646,13 @@ export function MuebleCocinaConfigurator({ config, onChange }: Props) {
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 <div className="space-y-1">
                   <Label className="text-xs text-white/70">Material</Label>
-                  <Select value={config.mesonMaterial} onValueChange={(v) => update("mesonMaterial", v as MaterialMeson)}>
+                  <Select
+                    value={config.mesonMaterial}
+                    onValueChange={(v) => {
+                      update("mesonMaterial", v as MaterialMeson);
+                      if (v === "granito") update("mesonEsImportado", false);
+                    }}
+                  >
                     <SelectTrigger className="h-9 bg-transparent border-white/15 text-white">
                       <SelectValue />
                     </SelectTrigger>
@@ -650,6 +662,29 @@ export function MuebleCocinaConfigurator({ config, onChange }: Props) {
                       <SelectItem value="sinterizado">Sinterizado — {formatPrice(1200000)}/ml</SelectItem>
                     </SelectContent>
                   </Select>
+                  {/* Standard / Importado — solo cuarzo y sinterizado */}
+                  {['cuarzo', 'sinterizado'].includes(config.mesonMaterial) && (
+                    <div className="flex flex-wrap items-center gap-1 pt-1">
+                      <button type="button"
+                        onClick={() => update("mesonEsImportado", false)}
+                        className={`px-2 py-0.5 rounded text-xs font-medium transition-colors ${
+                          !config.mesonEsImportado ? 'bg-emerald-600 text-white' : 'bg-white/10 text-white/50 hover:text-white/80'
+                        }`}>Standard</button>
+                      <button type="button"
+                        onClick={() => update("mesonEsImportado", true)}
+                        className={`px-2 py-0.5 rounded text-xs font-medium transition-colors ${
+                          config.mesonEsImportado ? 'bg-amber-600 text-white' : 'bg-white/10 text-white/50 hover:text-white/80'
+                        }`}>Importado</button>
+                      {config.mesonEsImportado && (
+                        <Input
+                          type="number" step="50000" min="0" placeholder="$/ml"
+                          value={config.mesonPrecioImportadoML || ""}
+                          onChange={(e) => update("mesonPrecioImportadoML", parseInt(e.target.value) || 0)}
+                          className="h-7 w-24 bg-transparent border-white/15 text-white text-xs ml-1"
+                        />
+                      )}
+                    </div>
+                  )}
                 </div>
                 <div className="space-y-1">
                   <Label className="text-xs text-white/70">Metros Lineales</Label>

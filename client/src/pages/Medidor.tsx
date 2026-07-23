@@ -367,6 +367,7 @@ export default function Medidor() {
     if (effectivePrefill) setView("new");
   }, [effectivePrefill]);
   const [showSummary, setShowSummary] = useState(false);
+  const [tab, setTab] = useState<"hoy" | "proximas" | "historial">("hoy");
   const [selectedPhotoCategory, setSelectedPhotoCategory] = useState<PhotoCategory>("general");
 
   // Estados locales
@@ -612,126 +613,227 @@ export default function Medidor() {
   // ── Vistas ────────────────────────────────────────────────────────────────
 
   if (view === "list") {
+    // Filtros de fecha
+    const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
+    const tomorrowStart = new Date(todayStart); tomorrowStart.setDate(todayStart.getDate() + 1);
+
+    const todayApts = pendingAppointments.filter((apt: any) => {
+      if (!apt.scheduledDate) return true; // sin fecha = aparece hoy
+      const d = new Date(apt.scheduledDate);
+      return d >= todayStart && d < tomorrowStart;
+    });
+    const proximasApts = pendingAppointments.filter((apt: any) => {
+      if (!apt.scheduledDate) return false;
+      const d = new Date(apt.scheduledDate);
+      return d >= tomorrowStart;
+    });
+    const borradorVisits = (visits as Visit[]).filter(v => v.status === "borrador");
+    const historialVisits = (visits as Visit[]).filter(v => v.status !== "borrador");
+
+    // Agrupar próximas por fecha
+    const proximasByDate: Record<string, any[]> = {};
+    proximasApts.forEach((apt: any) => {
+      const d = new Date(apt.scheduledDate);
+      const key = d.toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long' });
+      if (!proximasByDate[key]) proximasByDate[key] = [];
+      proximasByDate[key].push(apt);
+    });
+
+    // Render de tarjeta de cita
+    const AptCard = ({ apt }: { apt: any }) => {
+      const aptDate = apt.scheduledDate ? new Date(apt.scheduledDate) : null;
+      const wtLabels: Record<string, string> = { cocina: "Cocina Integral", closet: "Closet", puertas: "Puertas", centro_tv: "Centro de TV" };
+      const workTypeText = apt.workTypes?.map((wt: string) => wtLabels[wt] || wt).join(", ") || "";
+      return (
+        <div className="bg-teal-900/25 border border-[#1DB5A8]/50 rounded-xl p-4 space-y-3">
+          <div className="flex items-start justify-between">
+            <div className="flex-1 min-w-0">
+              <h3 className="font-bold text-white text-lg truncate">{apt.client?.name || "Cliente"}</h3>
+              {workTypeText && <p className="text-sm text-[#1DB5A8] font-medium">{workTypeText}</p>}
+              {apt.client?.address && (
+                <p className="text-xs text-slate-400 mt-1 flex items-center gap-1">
+                  <MapPin className="h-3 w-3 flex-shrink-0" />
+                  <span className="truncate">{apt.client.address}</span>
+                </p>
+              )}
+              {apt.client?.whatsappPhone && (
+                <p className="text-xs text-slate-400 flex items-center gap-1 mt-0.5">
+                  <Phone className="h-3 w-3 flex-shrink-0" />
+                  {apt.client.whatsappPhone}
+                </p>
+              )}
+            </div>
+            {aptDate && (
+              <div className="ml-3 text-right flex-shrink-0">
+                <p className="text-xs text-slate-300">{aptDate.toLocaleDateString('es-CO', { weekday: 'short', day: 'numeric', month: 'short' })}</p>
+                <p className="text-lg text-[#1DB5A8] font-bold">
+                  {aptDate.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: true })}
+                </p>
+              </div>
+            )}
+          </div>
+          <Button
+            onClick={() => {
+              setManualPrefill({
+                appointmentId: String(apt.id),
+                name: apt.client?.name || "",
+                phone: apt.client?.whatsappPhone || "",
+                address: apt.client?.address || "",
+                workType: (apt.workTypes?.[0] || "") as WorkType | "",
+              });
+              setView("new");
+            }}
+            className="w-full h-11 bg-[#1DB5A8] hover:bg-[#17a396] text-white font-semibold"
+          >
+            <ClipboardList className="h-4 w-4 mr-2" />
+            Abrir cuestionario
+          </Button>
+        </div>
+      );
+    };
+
     return (
       <div className="min-h-screen bg-[#0C1A1A] pb-24">
         <div className="max-w-lg mx-auto p-4">
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-bold text-white">Levantamientos Técnicos</h1>
+          {/* Header */}
+          <div className="flex items-center justify-between mb-5">
+            <h1 className="text-2xl font-bold text-white">Portal Medidor</h1>
             <Button onClick={() => setView("new")} className="bg-[#1DB5A8] hover:bg-[#17a396] text-white">
               <Plus className="h-4 w-4 mr-2" />
-              Nuevo
+              Nueva visita
             </Button>
           </div>
 
-          {/* Citas asignadas pendientes */}
-          {pendingAppointments.length > 0 && (
-            <div className="mb-6">
-              <h2 className="text-sm font-semibold text-[#1DB5A8] uppercase tracking-wide mb-3 flex items-center gap-2">
-                <Calendar className="h-4 w-4" />
-                Citas asignadas ({pendingAppointments.length})
-              </h2>
-              <div className="space-y-3">
-                {pendingAppointments.map((apt: any) => {
-                  const aptDate = apt.scheduledDate ? new Date(apt.scheduledDate) : null;
-                  const wtLabels: Record<string, string> = {
-                    cocina: "Cocina Integral", closet: "Closet",
-                    puertas: "Puertas", centro_tv: "Centro de TV",
-                  };
-                  const workTypeText = apt.workTypes?.map((wt: string) => wtLabels[wt] || wt).join(", ") || "";
-                  return (
-                    <div key={apt.id} className="bg-teal-900/25 border border-[#1DB5A8]/50 rounded-lg p-4">
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold text-white truncate">{apt.client?.name || "Cliente"}</h3>
-                          {workTypeText && <p className="text-sm text-[#1DB5A8]">{workTypeText}</p>}
-                          {apt.client?.address && (
-                            <p className="text-xs text-slate-400 mt-1 flex items-center gap-1">
-                              <MapPin className="h-3 w-3 flex-shrink-0" />
-                              <span className="truncate">{apt.client.address}</span>
-                            </p>
-                          )}
-                          {apt.client?.whatsappPhone && (
-                            <p className="text-xs text-slate-400 flex items-center gap-1 mt-0.5">
-                              <Phone className="h-3 w-3 flex-shrink-0" />
-                              {apt.client.whatsappPhone}
-                            </p>
-                          )}
-                        </div>
-                        {aptDate && (
-                          <div className="ml-3 text-right flex-shrink-0">
-                            <p className="text-xs text-slate-300 font-medium">
-                              {aptDate.toLocaleDateString('es-CO', { weekday: 'short', day: 'numeric', month: 'short' })}
-                            </p>
-                            <p className="text-sm text-[#1DB5A8] font-semibold">
-                              {aptDate.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: true })}
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                      <Button
-                        onClick={() => {
-                          setManualPrefill({
-                            appointmentId: String(apt.id),
-                            name: apt.client?.name || "",
-                            phone: apt.client?.whatsappPhone || "",
-                            address: apt.client?.address || "",
-                            workType: (apt.workTypes?.[0] || "") as WorkType | "",
-                          });
-                          setView("new");
-                        }}
-                        className="w-full h-9 bg-[#1DB5A8] hover:bg-[#17a396] text-white text-sm"
+          {/* Tabs */}
+          <div className="flex gap-1 bg-[#162828] rounded-xl p-1 mb-5">
+            {([
+              { key: "hoy", label: "Hoy", count: todayApts.length + borradorVisits.length },
+              { key: "proximas", label: "Próximas", count: proximasApts.length },
+              { key: "historial", label: "Historial", count: historialVisits.length },
+            ] as const).map(({ key, label, count }) => (
+              <button
+                key={key}
+                onClick={() => setTab(key)}
+                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-1.5 ${
+                  tab === key
+                    ? "bg-[#1DB5A8] text-white"
+                    : "text-slate-400 hover:text-white"
+                }`}
+              >
+                {label}
+                {count > 0 && (
+                  <span className={`text-xs px-1.5 py-0.5 rounded-full ${
+                    tab === key ? "bg-white/20" : "bg-[#1DB5A8]/20 text-[#1DB5A8]"
+                  }`}>{count}</span>
+                )}
+              </button>
+            ))}
+          </div>
+
+          {/* Tab: Hoy */}
+          {tab === "hoy" && (
+            <div className="space-y-4">
+              {todayApts.length === 0 && borradorVisits.length === 0 && (
+                <div className="text-center py-12 text-slate-500">
+                  <Calendar className="h-12 w-12 mx-auto mb-3 opacity-30" />
+                  <p className="font-medium">Sin visitas para hoy</p>
+                  <p className="text-sm mt-1">Las citas asignadas aparecerán aquí</p>
+                </div>
+              )}
+
+              {/* Citas de hoy */}
+              {todayApts.length > 0 && (
+                <>
+                  <p className="text-xs font-semibold text-[#1DB5A8] uppercase tracking-wide">
+                    Citas del día ({todayApts.length})
+                  </p>
+                  {todayApts.map((apt: any) => <AptCard key={apt.id} apt={apt} />)}
+                </>
+              )}
+
+              {/* Levantamientos en proceso */}
+              {borradorVisits.length > 0 && (
+                <>
+                  <p className="text-xs font-semibold text-amber-400 uppercase tracking-wide mt-2">
+                    En proceso ({borradorVisits.length})
+                  </p>
+                  <div className="space-y-2">
+                    {borradorVisits.map((visit: Visit) => (
+                      <div
+                        key={visit.id}
+                        onClick={() => { setSelectedVisit(visit); setView("detail"); }}
+                        className="bg-[#162828] border border-amber-500/30 rounded-lg p-3 cursor-pointer hover:border-amber-500/60 transition-colors flex items-center justify-between"
                       >
-                        <ClipboardList className="h-4 w-4 mr-2" />
-                        Iniciar levantamiento
-                      </Button>
-                    </div>
-                  );
-                })}
-              </div>
+                        <div>
+                          <h3 className="font-semibold text-white text-sm">{visit.clientName}</h3>
+                          <p className="text-xs text-[#1DB5A8]">{WORK_TYPE_LABELS[visit.workType]}</p>
+                        </div>
+                        <div className="text-amber-400">
+                          <AlertCircle className="h-5 w-5" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
           )}
 
-          {visits.length > 0 && (
-            <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wide mb-2">
-              Levantamientos
-            </h2>
+          {/* Tab: Próximas */}
+          {tab === "proximas" && (
+            <div className="space-y-5">
+              {proximasApts.length === 0 ? (
+                <div className="text-center py-12 text-slate-500">
+                  <Calendar className="h-12 w-12 mx-auto mb-3 opacity-30" />
+                  <p className="font-medium">Sin visitas próximas</p>
+                </div>
+              ) : (
+                Object.entries(proximasByDate).map(([fecha, apts]) => (
+                  <div key={fecha}>
+                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2 capitalize">{fecha}</p>
+                    <div className="space-y-3">
+                      {apts.map((apt: any) => <AptCard key={apt.id} apt={apt} />)}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           )}
 
-          <div className="space-y-3">
-            {(visits as any[]).map((visit: Visit) => (
-              <div
-                key={visit.id}
-                onClick={() => {
-                  setSelectedVisit(visit);
-                  setView("detail");
-                }}
-                className="bg-[#162828] border border-[#1DB5A8]/20 rounded-lg p-4 cursor-pointer hover:border-[#1DB5A8]/40 transition-colors"
-              >
-                <div className="flex items-start justify-between mb-2">
-                  <div>
-                    <h3 className="font-semibold text-white">{visit.clientName}</h3>
-                    <p className="text-sm text-[#1DB5A8]">{WORK_TYPE_LABELS[visit.workType]}</p>
-                  </div>
-                  <div className={`px-2 py-1 rounded-full text-xs font-medium ${STATUS_CONFIG[visit.status].bg} ${STATUS_CONFIG[visit.status].color} flex items-center gap-1`}>
-                    {STATUS_CONFIG[visit.status].icon}
-                    {STATUS_CONFIG[visit.status].label}
-                  </div>
+          {/* Tab: Historial */}
+          {tab === "historial" && (
+            <div className="space-y-2">
+              {historialVisits.length === 0 ? (
+                <div className="text-center py-12 text-slate-500">
+                  <FileText className="h-12 w-12 mx-auto mb-3 opacity-30" />
+                  <p className="font-medium">Sin historial aún</p>
                 </div>
-                <div className="flex items-center gap-4 text-xs text-slate-400">
-                  <span className="flex items-center gap-1">
-                    <Calendar className="h-3 w-3" />
-                    {new Date(visit.createdAt).toLocaleDateString()}
-                  </span>
-                  {visit.geoLocation && (
-                    <span className="flex items-center gap-1">
-                      <Navigation className="h-3 w-3" />
-                      GPS
-                    </span>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
+              ) : (
+                historialVisits.map((visit: Visit) => (
+                  <div
+                    key={visit.id}
+                    onClick={() => { setSelectedVisit(visit); setView("detail"); }}
+                    className="bg-[#162828] border border-[#1DB5A8]/20 rounded-lg p-4 cursor-pointer hover:border-[#1DB5A8]/40 transition-colors"
+                  >
+                    <div className="flex items-start justify-between mb-1">
+                      <div>
+                        <h3 className="font-semibold text-white">{visit.clientName}</h3>
+                        <p className="text-sm text-[#1DB5A8]">{WORK_TYPE_LABELS[visit.workType]}</p>
+                      </div>
+                      <div className={`px-2 py-1 rounded-full text-xs font-medium ${STATUS_CONFIG[visit.status].bg} ${STATUS_CONFIG[visit.status].color} flex items-center gap-1`}>
+                        {STATUS_CONFIG[visit.status].icon}
+                        {STATUS_CONFIG[visit.status].label}
+                      </div>
+                    </div>
+                    <p className="text-xs text-slate-500 flex items-center gap-1 mt-1">
+                      <Calendar className="h-3 w-3" />
+                      {new Date(visit.createdAt).toLocaleDateString('es-CO')}
+                    </p>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
         </div>
       </div>
     );

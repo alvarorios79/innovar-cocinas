@@ -1184,7 +1184,9 @@ export default function Quotations() {
     // 4. Mesón principal (usa metraje resultante automáticamente) - precios dinámicos
     // No aplica para solo_superiores ni puertas_tapas
     if (config.shape !== 'solo_superiores' && config.shape !== 'puertas_tapas' && config.countertop.type) {
-      const basePrice = config.countertop.type === "quarzone" ? getPrice('MESON_CUARZO')
+      const basePrice = (config.countertop.esImportado && config.countertop.precioImportadoML)
+                      ? config.countertop.precioImportadoML
+                      : config.countertop.type === "quarzone" ? getPrice('MESON_CUARZO')
                       : config.countertop.type === "granito"  ? getPrice('MESON_GRANITO')
                       : getPrice('MESON_SINTERIZADO');
       let countertopPrice = basePrice;
@@ -1512,7 +1514,9 @@ export default function Quotations() {
         // Mesón principal (usa metraje resultante automáticamente) - precios dinámicos
         // No aplica para solo_superiores ni puertas_tapas
         if (config.shape !== 'solo_superiores' && config.shape !== 'puertas_tapas' && config.countertop.type) {
-          const basePrice = config.countertop.type === "quarzone" ? getPrice('MESON_CUARZO')
+          const basePrice = (config.countertop.esImportado && config.countertop.precioImportadoML)
+                      ? config.countertop.precioImportadoML
+                      : config.countertop.type === "quarzone" ? getPrice('MESON_CUARZO')
                       : config.countertop.type === "granito"  ? getPrice('MESON_GRANITO')
                       : getPrice('MESON_SINTERIZADO');
           let countertopPrice = basePrice;

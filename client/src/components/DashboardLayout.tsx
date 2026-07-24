@@ -71,7 +71,8 @@ const menuSections: MenuSection[] = [
   {
     title: "Principal",
     items: [
-      { icon: Home,            label: "Inicio",    path: "/", iconColor: "#1DB5A8" },
+      { icon: Home,            label: "Inicio",    path: "/", iconColor: "#1DB5A8",
+        roles: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario", "contador"] },
       { icon: LayoutDashboard, label: "Financiero", path: "/ceo-dashboard",
         roles: ["super_admin", "admin"], iconColor: "#0ea5e9" },
     ],
@@ -145,8 +146,6 @@ const menuSections: MenuSection[] = [
     items: [
       { icon: ClipboardCheck, label: "Levantamientos", path: "/medidor",
         roles: ["medidor"], iconColor: "#1DB5A8" },
-      { icon: ClipboardList,  label: "Tareas",         path: "/medidor",
-        roles: ["medidor"], iconColor: "#22c55e" },
     ],
   },
   {

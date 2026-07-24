@@ -368,6 +368,11 @@ export default function Medidor() {
   }, [effectivePrefill]);
   const [showSummary, setShowSummary] = useState(false);
   const [tab, setTab] = useState<"hoy" | "proximas" | "historial" | "tareas">("hoy");
+  const [showNewTask, setShowNewTask] = useState(false);
+  const [newTaskTitle, setNewTaskTitle] = useState("");
+  const [newTaskDesc, setNewTaskDesc] = useState("");
+  const [newTaskPriority, setNewTaskPriority] = useState<"alta" | "media" | "baja">("media");
+  const [newTaskAssignedTo, setNewTaskAssignedTo] = useState<number | null>(null);
   const [selectedPhotoCategory, setSelectedPhotoCategory] = useState<PhotoCategory>("general");
 
   // Estados locales
@@ -396,6 +401,11 @@ export default function Medidor() {
   });
   const pendingTasks = (myTasks as any[]).filter((t: any) => t.status !== "completada");
 
+  // Usuarios a quienes medidor puede asignar tareas
+  const { data: assignableUsers = [] } = trpc.tasks.getAssignableUsers.useQuery(undefined, {
+    enabled: view === "list" && tab === "tareas",
+  });
+
   const { data: detailData, refetch: refetchDetail } = trpc.technicalVisits.getById.useQuery(
     { visitId: selectedVisit?.id || "" },
     {
@@ -417,6 +427,7 @@ export default function Medidor() {
   const submitVisit = trpc.technicalVisits.submit.useMutation();
   const saveSignature = trpc.technicalVisits.saveSignature.useMutation();
   const updateTaskStatus = trpc.tasks.updateStatus.useMutation();
+  const createTask = trpc.tasks.create.useMutation();
 
   // Efecto para inicializar datos
   useEffect(() => {
@@ -846,7 +857,80 @@ export default function Medidor() {
           {/* Tab: Tareas */}
           {tab === "tareas" && (
             <div className="space-y-3">
-              {(myTasks as any[]).length === 0 ? (
+              {/* Botón nueva tarea */}
+              <Button
+                onClick={() => { setShowNewTask(true); setNewTaskTitle(""); setNewTaskDesc(""); setNewTaskPriority("media"); setNewTaskAssignedTo(null); }}
+                className="w-full h-10 bg-[#162828] border border-[#1DB5A8]/30 hover:border-[#1DB5A8] text-[#1DB5A8] hover:text-white hover:bg-[#1DB5A8]/20 transition-colors"
+                variant="outline"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Asignar tarea a un colaborador
+              </Button>
+
+              {/* Formulario nueva tarea */}
+              {showNewTask && (
+                <div className="bg-[#162828] border border-[#1DB5A8]/40 rounded-xl p-4 space-y-3">
+                  <p className="text-sm font-semibold text-white">Nueva tarea</p>
+                  <Input
+                    placeholder="Título de la tarea *"
+                    value={newTaskTitle}
+                    onChange={(e) => setNewTaskTitle(e.target.value)}
+                    className="bg-[#0C1A1A] border-[#1DB5A8]/30 text-white placeholder:text-slate-500"
+                  />
+                  <Textarea
+                    placeholder="Descripción o contexto (opcional)"
+                    value={newTaskDesc}
+                    onChange={(e) => setNewTaskDesc(e.target.value)}
+                    rows={2}
+                    className="bg-[#0C1A1A] border-[#1DB5A8]/30 text-white placeholder:text-slate-500 resize-none"
+                  />
+                  <div className="grid grid-cols-2 gap-2">
+                    <select
+                      value={newTaskPriority}
+                      onChange={(e) => setNewTaskPriority(e.target.value as any)}
+                      className="bg-[#0C1A1A] border border-[#1DB5A8]/30 text-white rounded-md px-3 py-2 text-sm"
+                    >
+                      <option value="alta">🔴 Alta</option>
+                      <option value="media">🟡 Media</option>
+                      <option value="baja">🟢 Baja</option>
+                    </select>
+                    <select
+                      value={newTaskAssignedTo ?? ""}
+                      onChange={(e) => setNewTaskAssignedTo(e.target.value ? Number(e.target.value) : null)}
+                      className="bg-[#0C1A1A] border border-[#1DB5A8]/30 text-white rounded-md px-3 py-2 text-sm"
+                    >
+                      <option value="">Asignar a…</option>
+                      {(assignableUsers as any[]).map((u: any) => (
+                        <option key={u.id} value={u.id}>{u.name || u.email}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() => setShowNewTask(false)}
+                      variant="outline"
+                      className="flex-1 border-slate-600 text-slate-400"
+                    >
+                      Cancelar
+                    </Button>
+                    <Button
+                      disabled={!newTaskTitle.trim() || !newTaskAssignedTo || createTask.isPending}
+                      onClick={() => {
+                        if (!newTaskTitle.trim() || !newTaskAssignedTo) return;
+                        createTask.mutate(
+                          { title: newTaskTitle.trim(), description: newTaskDesc || undefined, priority: newTaskPriority, assignedTo: newTaskAssignedTo },
+                          { onSuccess: () => { setShowNewTask(false); toast.success("Tarea asignada"); refetchTasks(); } }
+                        );
+                      }}
+                      className="flex-1 bg-[#1DB5A8] hover:bg-[#17a396] text-white"
+                    >
+                      {createTask.isPending ? "Enviando…" : "Asignar"}
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {(myTasks as any[]).length === 0 && !showNewTask ? (
                 <div className="text-center py-12 text-slate-500">
                   <CheckSquare className="h-12 w-12 mx-auto mb-3 opacity-30" />
                   <p className="font-medium">Sin tareas asignadas</p>

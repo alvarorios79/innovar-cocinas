@@ -130,6 +130,7 @@ export function validateTaskAssignmentPermission(assignerRole: string, assignedT
     disenador: ["super_admin", "admin", "jefe_taller"],
     jefe_taller: ["super_admin", "admin", "comercial", "disenador", "operario"],
     operario: ["disenador", "jefe_taller"],
+    medidor: ["super_admin", "admin", "comercial", "disenador"],
   };
 
   const allowedRoles = permissionMatrix[assignerRole];

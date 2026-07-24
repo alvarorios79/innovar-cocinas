@@ -337,6 +337,13 @@ export default function Home() {
     }
   }, [isAuthenticated, user?.role]);
 
+  // Redirigir medidor a su portal
+  useEffect(() => {
+    if (isAuthenticated && user?.role === "medidor") {
+      setLocation("/medidor");
+    }
+  }, [isAuthenticated, user?.role]);
+
   // Si es operario, mostrar el OperarioDashboard simplificado
   if (isAuthenticated && user?.role === "operario") {
     return <OperarioDashboard />;
@@ -344,6 +351,11 @@ export default function Home() {
 
   // Si es comercial, mostrar null mientras redirige
   if (isAuthenticated && user?.role === "comercial") {
+    return null;
+  }
+
+  // Si es medidor, mostrar null mientras redirige a su portal
+  if (isAuthenticated && user?.role === "medidor") {
     return null;
   }
 

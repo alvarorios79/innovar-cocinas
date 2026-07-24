@@ -122,7 +122,8 @@ const menuSections: MenuSection[] = [
     items: [
       { icon: Wrench,        label: "Producción", path: "/production",
         roles: ["super_admin", "admin", "disenador", "jefe_taller", "operario"], iconColor: "#f59e0b" },
-      { icon: ClipboardList, label: "Tareas",     path: "/tasks", iconColor: "#22c55e" },
+      { icon: ClipboardList, label: "Tareas",     path: "/tasks", iconColor: "#22c55e",
+        roles: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario", "contador"] },
     ],
   },
   {
@@ -144,6 +145,8 @@ const menuSections: MenuSection[] = [
     items: [
       { icon: ClipboardCheck, label: "Levantamientos", path: "/medidor",
         roles: ["medidor"], iconColor: "#1DB5A8" },
+      { icon: ClipboardList,  label: "Tareas",         path: "/medidor",
+        roles: ["medidor"], iconColor: "#22c55e" },
     ],
   },
   {

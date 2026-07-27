@@ -581,6 +581,7 @@ export const projects = pgTable("projects", {
 	currentApprovedQuotationId: integer(),
 	dataOrigin: text().default('manual').notNull(),
 	isArchived: integer().default(0).notNull(),
+	includeIva: integer().default(0).notNull(),
 	skipDesignProcess: integer().default(0).notNull(),
 	accountingClosureId: integer().references(() => accountingClosures.id),
 	publicToken: varchar({ length: 64 }),

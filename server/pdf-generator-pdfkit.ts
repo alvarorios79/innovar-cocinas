@@ -30,6 +30,8 @@ interface QuotationData {
   transportCost: string;
   discountPercent?: string;
   discountAmount?: string;
+  includeIva?: boolean;
+  ivaAmount?: string;
   total: string;
   generalNotes?: string;
   versionNumber?: number;
@@ -236,6 +238,16 @@ export async function generateQuotationPDF(data: QuotationData, outputPath: stri
         doc.fontSize(9).fillColor(RED).font("Helvetica").text(`Descuento (${dp}%):`, TX + 10, Y + 7);
         doc.fontSize(9).fillColor(RED).font("Helvetica-Bold")
            .text(`-${fmt(da)}`, TX + 10, Y + 7, { width: TW - 20, align: "right" });
+        Y += 22;
+      }
+
+      // IVA row (si se aplica)
+      const iva = data.includeIva ? parseFloat(data.ivaAmount || "0") : 0;
+      if (data.includeIva && iva > 0) {
+        doc.rect(TX, Y, TW, 22).fill(WHITE).stroke(BORDER);
+        doc.fontSize(9).fillColor(MGRAY).font("Helvetica").text("IVA (19%):", TX + 10, Y + 7);
+        doc.fontSize(9).fillColor(DGRAY).font("Helvetica-Bold")
+           .text(`+${fmt(iva)}`, TX + 10, Y + 7, { width: TW - 20, align: "right" });
         Y += 22;
       }
 

@@ -25,6 +25,10 @@ export async function runMigrations() {
       name: "users_isTeamMember",
       sql: `ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "isTeamMember" integer NOT NULL DEFAULT 0`,
     },
+    {
+      name: "quotations_includeIva",
+      sql: `ALTER TABLE "quotations" ADD COLUMN IF NOT EXISTS "includeIva" integer NOT NULL DEFAULT 0`,
+    },
   ];
 
   for (const m of migrations) {

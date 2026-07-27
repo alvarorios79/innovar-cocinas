@@ -24,6 +24,7 @@ export const quotationsRouter = router({
         vendorName: z.string(),
         productType: z.enum(["cocina", "closet", "puerta", "centro_tv", "herrajes", "mesones", "acabados_especiales", "mueble_cocina", "otro"]).optional(),
         discountPercent: z.number().min(0).max(100).optional().default(0),
+        includeIva: z.boolean().optional().default(false),
         generalNotes: z.string().optional(),
         items: z.array(z.object({
           itemNumber: z.number(),
@@ -62,11 +63,13 @@ export const quotationsRouter = router({
         // Calcular descuento
         const discountPercent = input.discountPercent || 0;
         const discountAmount = subtotal * (discountPercent / 100);
+        const baseAfterDiscount = subtotal - discountAmount;
+        const ivaAmount = input.includeIva ? baseAfterDiscount * 0.19 : 0;
         
         // El transporte ya está incluido en el totalPrice de cada item si includesFixedCosts=true
         // Por lo tanto, el total es simplemente la suma de todos los items menos el descuento
         const transportCost = 0; // No agregar transporte adicional
-        const total = subtotal - discountAmount;
+        const total = baseAfterDiscount + ivaAmount;
 
         // Fecha de validez: 7 días desde hoy
         const validUntil = new Date();
@@ -84,6 +87,7 @@ export const quotationsRouter = router({
             transportCost: transportCost.toString(),
             discountPercent: discountPercent.toString(),
             discountAmount: discountAmount.toString(),
+            includeIva: (input.includeIva ? 1 : 0) as any,
             total: total.toString(),
             createdBy: ctx.user.id,
             generalNotes: input.generalNotes || null,
@@ -160,6 +164,10 @@ export const quotationsRouter = router({
               transportCost: quotation.transportCost,
               discountPercent: quotation.discountPercent || undefined,
               discountAmount: quotation.discountAmount || undefined,
+              includeIva: (quotation as any).includeIva === 1,
+              ivaAmount: (quotation as any).includeIva === 1
+                ? String((parseFloat(String(quotation.subtotal)) - parseFloat(String(quotation.discountAmount || "0"))) * 0.19)
+                : undefined,
               total: quotation.total,
             };
             
@@ -196,6 +204,7 @@ export const quotationsRouter = router({
         vendorName: z.string().optional(),
         productType: z.enum(["cocina", "closet", "puerta", "centro_tv", "herrajes", "mesones", "acabados_especiales", "mueble_cocina", "otro"]).optional(),
         discountPercent: z.number().min(0).max(100).optional(),
+        includeIva: z.boolean().optional(),
         customDescriptions: z.record(z.string(), z.string()).optional(),
         generalNotes: z.string().optional(),
         items: z.array(z.object({
@@ -242,7 +251,10 @@ export const quotationsRouter = router({
           const transportCost = 0;
           const discountPercent = input.discountPercent ?? 0;
           const discountAmount = subtotal * (discountPercent / 100);
-          const total = subtotal - discountAmount;
+          const baseAfterDiscount = subtotal - discountAmount;
+          const includeIvaItems = input.includeIva !== undefined ? input.includeIva : (currentQuotation as any).includeIva === 1;
+          const ivaAmountItems = includeIvaItems ? baseAfterDiscount * 0.19 : 0;
+          const total = baseAfterDiscount + ivaAmountItems;
 
           await withTransaction(async (tx) => {
             await db.deleteQuotationItems(id);
@@ -271,6 +283,7 @@ export const quotationsRouter = router({
               transportCost: transportCost.toString(),
               discountPercent: discountPercent.toString(),
               discountAmount: discountAmount.toString(),
+              includeIva: (includeIvaItems ? 1 : 0) as any,
               total: total.toString(),
             });
           });
@@ -280,15 +293,19 @@ export const quotationsRouter = router({
             await db.updateProject(linkedProject1.id, { totalAmount: total.toString() });
             console.log(`[QUOTATION-SYNC] Proyecto ${linkedProject1.id} actualizado con totalAmount=${total} por edición de ítems en cotización ${id}`);
           }
-        } else if (input.discountPercent !== undefined) {
+        } else if (input.discountPercent !== undefined || input.includeIva !== undefined) {
           const subtotal = parseFloat(currentQuotation.subtotal);
-          const discountPercent = input.discountPercent;
+          const discountPercent = input.discountPercent !== undefined ? input.discountPercent : parseFloat(currentQuotation.discountPercent || "0");
           const discountAmount = subtotal * (discountPercent / 100);
-          const total = subtotal - discountAmount;
+          const baseAfterDiscountB2 = subtotal - discountAmount;
+          const includeIvaB2 = input.includeIva !== undefined ? input.includeIva : (currentQuotation as any).includeIva === 1;
+          const ivaAmountB2 = includeIvaB2 ? baseAfterDiscountB2 * 0.19 : 0;
+          const total = baseAfterDiscountB2 + ivaAmountB2;
           await db.updateQuotation(id, {
             ...quotationData,
             discountPercent: discountPercent.toString(),
             discountAmount: discountAmount.toString(),
+            includeIva: (includeIvaB2 ? 1 : 0) as any,
             total: total.toString(),
           });
           // Sincronizar totalAmount del proyecto si esta cotización está vinculada
@@ -298,7 +315,7 @@ export const quotationsRouter = router({
             console.log(`[QUOTATION-SYNC] Proyecto ${linkedProject2.id} actualizado con totalAmount=${total} por cambio de descuento en cotización ${id}`);
           }
         } else {
-          const { discountPercent: _, ...safeQuotationData } = quotationData;
+          const { discountPercent: _, includeIva: _iva, ...safeQuotationData } = quotationData;
           await db.updateQuotation(id, safeQuotationData);
         }
         return { success: true, quotationId: id };
@@ -1245,6 +1262,10 @@ export const quotationsRouter = router({
           transportCost: String(parseFloat(String(quotation.transportCost)) || 0),
           discountPercent: String(parseFloat(String(quotation.discountPercent)) || 0),
           discountAmount: String(parseFloat(String(quotation.discountAmount)) || 0),
+          includeIva: (quotation as any).includeIva === 1,
+          ivaAmount: (quotation as any).includeIva === 1
+            ? String((parseFloat(String(quotation.subtotal)) - parseFloat(String(quotation.discountAmount || "0"))) * 0.19)
+            : undefined,
           total: String(parseFloat(String(quotation.total)) || 0),
           generalNotes: quotation.generalNotes || '',
           versionNumber: quotation.versionNumber || 1,
@@ -1763,6 +1784,10 @@ export const quotationsRouter = router({
           transportCost: String(parseFloat(String(quotation.transportCost)) || 0),
           discountPercent: String(parseFloat(String(quotation.discountPercent)) || 0),
           discountAmount: String(parseFloat(String(quotation.discountAmount)) || 0),
+          includeIva: (quotation as any).includeIva === 1,
+          ivaAmount: (quotation as any).includeIva === 1
+            ? String((parseFloat(String(quotation.subtotal)) - parseFloat(String(quotation.discountAmount || "0"))) * 0.19)
+            : undefined,
           total: String(parseFloat(String(quotation.total)) || 0),
           generalNotes: quotation.generalNotes || '',
           versionNumber: quotation.versionNumber || 1,
@@ -2325,6 +2350,10 @@ export const quotationsRouter = router({
           }),
           subtotal: quotation.subtotal,
           transportCost: quotation.transportCost,
+          includeIva: (quotation as any).includeIva === 1,
+          ivaAmount: (quotation as any).includeIva === 1
+            ? String((parseFloat(String(quotation.subtotal)) - parseFloat(String(quotation.discountAmount || "0"))) * 0.19)
+            : undefined,
           total: quotation.total,
         };
 
@@ -2585,6 +2614,10 @@ export const quotationsRouter = router({
             })),
             subtotal: formatCurrency(Number(quotation.subtotal)),
             transportCost: formatCurrency(Number(quotation.transportCost || 0)),
+            includeIva: (quotation as any).includeIva === 1,
+            ivaAmount: (quotation as any).includeIva === 1
+              ? formatCurrency((Number(quotation.subtotal) - Number(quotation.discountAmount || 0)) * 0.19)
+              : undefined,
             total: formatCurrency(Number(quotation.total)),
           };
           

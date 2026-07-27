@@ -255,6 +255,7 @@ export default function Quotations() {
   
   // Estado para descuento
   const [discountPercent, setDiscountPercent] = useState<number>(0);
+  const [includeIva, setIncludeIva] = useState<boolean>(false);
 
   // Notas y condiciones
   const [generalNotes, setGeneralNotes] = useState<string>(INNOVAR_NOTAS_DEFAULT);
@@ -690,6 +691,7 @@ export default function Quotations() {
       // Cargar descuento si existe
       const quotationDiscount = (quotationData as any)?.discountPercent;
       setDiscountPercent(quotationDiscount ? parseFloat(quotationDiscount) : 0);
+      setIncludeIva((quotationData as any)?.includeIva === 1);
 
       // Cargar notas y condiciones
       // generalNotes en DB puede tener "Condiciones de pago:" y "Tiempo de entrega:" ya appended
@@ -1763,6 +1765,7 @@ export default function Quotations() {
         vendorName,
         productType: (() => { const validTypes = ["cocina","closet","puerta","centro_tv","herrajes","mesones","mueble_cocina","acabados_especiales","otro"] as const; const pt = workType || items[0]?.itemType || "otro"; return (validTypes.includes(pt as any) ? pt : "otro") as typeof validTypes[number]; })(),
         discountPercent,
+        includeIva,
         generalNotes: notesWithTerms,
         items: itemsWithDescriptions,
       });
@@ -1773,6 +1776,7 @@ export default function Quotations() {
         vendorName,
         productType: (() => { const validTypes = ["cocina","closet","puerta","centro_tv","herrajes","mesones","mueble_cocina","acabados_especiales","otro"] as const; const pt = workType || items[0]?.itemType || "otro"; return (validTypes.includes(pt as any) ? pt : "otro") as typeof validTypes[number]; })(),
         discountPercent,
+        includeIva,
         generalNotes: notesWithTerms,
         items: itemsWithDescriptions,
       });
@@ -4132,6 +4136,24 @@ export default function Quotations() {
                   </div>
                 </div>
                 
+                {/* IVA */}
+                <div className="flex justify-between items-center gap-3">
+                  <label className="flex items-center gap-2 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={includeIva}
+                      onChange={(e) => setIncludeIva(e.target.checked)}
+                      className="w-4 h-4 rounded accent-white cursor-pointer"
+                    />
+                    <span className="text-white/90 text-sm sm:text-base">IVA 19%</span>
+                  </label>
+                  {includeIva && (
+                    <span className="text-base sm:text-lg font-semibold text-white/90">
+                      +{formatPrice(calculateTotal() * (1 - discountPercent / 100) * 0.19)}
+                    </span>
+                  )}
+                </div>
+
                 {/* Separador */}
                 <div className="border-t border-white/30"></div>
                 
@@ -4142,9 +4164,9 @@ export default function Quotations() {
                       <CircleDollarSign className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                     </div>
                     <div>
-                      <p className="text-white/80 text-xs sm:text-sm font-medium">Total Final</p>
+                      <p className="text-white/80 text-xs sm:text-sm font-medium">Total Final{includeIva ? " (con IVA)" : ""}</p>
                       <p className="text-white text-lg sm:text-xl md:text-2xl font-bold">
-                        {formatPrice(calculateTotal() * (1 - discountPercent / 100))}
+                        {formatPrice(calculateTotal() * (1 - discountPercent / 100) * (includeIva ? 1.19 : 1))}
                       </p>
                     </div>
                   </div>

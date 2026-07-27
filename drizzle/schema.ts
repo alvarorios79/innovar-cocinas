@@ -675,6 +675,7 @@ export const quotations = pgTable("quotations", {
 	whatsappApiSentAt: timestamp({ mode: 'string' }),
 	dataOrigin: text().default('manual').notNull(),
 	isArchived: integer().default(0).notNull(),
+	includeIva: integer().default(0).notNull(),
 },
 (table) => [
 	index("quotationNumber").on(table.quotationNumber),

@@ -33,6 +33,22 @@ export async function runMigrations() {
       name: "projects_includeIva",
       sql: `ALTER TABLE "projects" ADD COLUMN IF NOT EXISTS "includeIva" integer NOT NULL DEFAULT 0`,
     },
+    {
+      name: "user_role_daniel_operario",
+      sql: `UPDATE "users" SET "role" = 'operario' WHERE "email" = 'daniel07beltran11@gmail.com' AND "role" NOT IN ('admin', 'super_admin')`,
+    },
+    {
+      name: "user_role_luis_jefe_taller",
+      sql: `UPDATE "users" SET "role" = 'jefe_taller' WHERE "email" = 'luis2019cardozo@gmail.com' AND "role" NOT IN ('admin', 'super_admin')`,
+    },
+    {
+      name: "user_role_felipe_contador",
+      sql: `UPDATE "users" SET "role" = 'contador' WHERE "email" = 'pipeton015@hotmail.com' AND "role" NOT IN ('admin', 'super_admin')`,
+    },
+    {
+      name: "user_role_medidor",
+      sql: `UPDATE "users" SET "role" = 'medidor' WHERE "email" = 'medidor@innovarcocinas.co' AND "role" NOT IN ('admin', 'super_admin')`,
+    },
   ];
 
   for (const m of migrations) {

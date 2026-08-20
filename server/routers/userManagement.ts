@@ -221,20 +221,9 @@ export const userManagementRouter = router({
           });
         }
 
-        // Equipo de trabajo real - no se pueden eliminar
-        const realTeamEmails = [
-          'mcfy8jgnym@privaterelay.appleid.com',
-          'alejoile300@gmail.com',
-          'martha79s@hotmail.com',
-          'jefe.taller@innovar.temp',
-          'operario@innovar.temp',
-          // Equipo real registrado
-          'alvarorios79@gmail.com',
-          'daniel07beltran11@gmail.com',
-          'luis2019cardozo@gmail.com',
-          'pipeton015@hotmail.com',
-          'medidor@innovarcocinas.co',
-        ];
+        // Roles que pertenecen al equipo de trabajo real — nunca se eliminan.
+        // Al asignar el rol correcto a un colaborador queda protegido automáticamente.
+        const PROTECTED_ROLES = ['super_admin', 'admin', 'comercial', 'disenador', 'jefe_taller', 'operario', 'medidor', 'contador'];
 
         // Clientes reales - no se pueden eliminar
         const realClientEmails = [
@@ -257,7 +246,7 @@ export const userManagementRouter = router({
         const testUserIds = input.userIds.filter(userId => {
           const user = allUsers.find(u => u.id === userId);
           if (!user) return false;
-          if (realTeamEmails.includes(user.email?.toLowerCase() || '')) return false;
+          if (PROTECTED_ROLES.includes(user.role || '')) return false;
           if (user.id === ctx.user.id) return false;
           return true;
         });

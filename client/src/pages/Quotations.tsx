@@ -1219,8 +1219,13 @@ export default function Quotations() {
 
     // 5. Isla (para cocinas completas y puertas_tapas) - precios dinámicos
     if ((!isSpecialShape || config.shape === 'puertas_tapas') && config.island.enabled && config.island.meters > 0) {
-      // Muebles de isla
-      total += config.island.meters * getPrice('ISLA_ML');
+      // Muebles de isla — usa el mismo precio/ml que la cocina principal
+      const islaMlPriceCode = config.mlPriceCode || (
+        (config.shape === 'premium' || config.shape === 'U')      ? 'COCINA_ML_PREMIUM' :
+        (config.shape === 'deluxe'  || config.shape === 'lineal') ? 'COCINA_ML_DELUXE'  :
+                                                                    'COCINA_ML_ESTANDAR'
+      );
+      total += config.island.meters * getPrice(islaMlPriceCode);
       
       // Mesón superior de isla
       if (config.island.countertopType) {
@@ -1549,8 +1554,13 @@ export default function Quotations() {
 
         // Isla (para cocinas completas y puertas_tapas) - precios dinámicos
         if ((!isSpecialShape || config.shape === 'puertas_tapas') && config.island.enabled && config.island.meters > 0) {
-          // Muebles de isla
-          total += config.island.meters * getPrice('ISLA_ML');
+          // Muebles de isla — usa el mismo precio/ml que la cocina principal
+          const islaMlPriceCode2 = config.mlPriceCode || (
+            (config.shape === 'premium' || config.shape === 'U')      ? 'COCINA_ML_PREMIUM' :
+            (config.shape === 'deluxe'  || config.shape === 'lineal') ? 'COCINA_ML_DELUXE'  :
+                                                                        'COCINA_ML_ESTANDAR'
+          );
+          total += config.island.meters * getPrice(islaMlPriceCode2);
           
           // Mesón superior de isla
           if (config.island.countertopType) {

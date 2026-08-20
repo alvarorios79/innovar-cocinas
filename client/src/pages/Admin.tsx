@@ -1767,7 +1767,9 @@ export default function Admin() {
                                               usr.role === "comercial" ? "bg-green-600" :
                                               usr.role === "disenador" ? "bg-cyan-600" :
                                               usr.role === "jefe_taller" ? "bg-orange-600" :
-                                              usr.role === "operario" ? "bg-yellow-600 text-black" : ""
+                                              usr.role === "operario" ? "bg-yellow-600 text-black" :
+                                              usr.role === "medidor" ? "bg-purple-600" :
+                                              usr.role === "contador" ? "bg-teal-600" : ""
                                             }
                                           >
                                             {usr.role === "super_admin" ? "Super Admin" :
@@ -1775,7 +1777,9 @@ export default function Admin() {
                                              usr.role === "comercial" ? "Comercial" :
                                              usr.role === "disenador" ? "Diseñador" :
                                              usr.role === "jefe_taller" ? "Jefe de Taller" :
-                                             usr.role === "operario" ? "Operario" : "Usuario"}
+                                             usr.role === "operario" ? "Operario" :
+                                             usr.role === "medidor" ? "Medidor" :
+                                             usr.role === "contador" ? "Contador" : "Usuario"}
                                           </Badge>
                                           {usr.id === user?.id && (
                                             <Badge variant="outline" className="text-xs">Tú</Badge>
@@ -1906,7 +1910,9 @@ export default function Admin() {
                                               usr.role === "comercial" ? "bg-green-600" :
                                               usr.role === "disenador" ? "bg-cyan-600" :
                                               usr.role === "jefe_taller" ? "bg-orange-600" :
-                                              usr.role === "operario" ? "bg-yellow-600 text-black" : ""
+                                              usr.role === "operario" ? "bg-yellow-600 text-black" :
+                                              usr.role === "medidor" ? "bg-purple-600" :
+                                              usr.role === "contador" ? "bg-teal-600" : ""
                                             }
                                           >
                                             {usr.role === "super_admin" ? "Super Admin" :
@@ -1914,7 +1920,9 @@ export default function Admin() {
                                              usr.role === "comercial" ? "Comercial" :
                                              usr.role === "disenador" ? "Diseñador" :
                                              usr.role === "jefe_taller" ? "Jefe de Taller" :
-                                             usr.role === "operario" ? "Operario" : "Usuario"}
+                                             usr.role === "operario" ? "Operario" :
+                                             usr.role === "medidor" ? "Medidor" :
+                                             usr.role === "contador" ? "Contador" : "Usuario"}
                                           </Badge>
                                           {usr.id === user?.id && (
                                             <Badge variant="outline" className="text-xs">Tú</Badge>

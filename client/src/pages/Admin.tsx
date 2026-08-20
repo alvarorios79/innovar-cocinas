@@ -1682,57 +1682,38 @@ export default function Admin() {
                   <div className="space-y-6">
                     {/* Equipo de Trabajo, Clientes Reales y Usuarios de Prueba */}
                     {(() => {
-                      // Equipo de trabajo REAL - definido por emails específicos
-                      const realTeamEmails = [
-                        'mcfy8jgnym@privaterelay.appleid.com', // Alvaro Rios - Super Admin (Apple ID)
-                        'alvarorios79@gmail.com',               // Alvaro Rios - Super Admin
-                        'alejoile300@gmail.com',                // Alejandro Gutiérrez - Diseñador
-                        'martha79s@hotmail.com',                // Martha Serna - Administrador
-                        'jefe.taller@innovar.temp',             // email temporal (legacy)
-                        'operario@innovar.temp',                // email temporal (legacy)
-                        'luis2019cardozo@gmail.com',            // Luis Cardozo - Jefe de Taller
-                        'daniel07beltran11@gmail.com',          // Daniel Beltrán - Operario
-                        'pipeton015@hotmail.com',               // Felipe Idárraga - Contador
-                        'medidor@innovarcocinas.co',            // Medidor Innovar - Medidor
-                      ];
-                      
-                      // Función para verificar si es del equipo de trabajo real
+                      // Roles que pertenecen al equipo de trabajo.
+                      // Al agregar un nuevo colaborador con uno de estos roles, aparece
+                      // automáticamente en "Equipo de Trabajo" sin modificar código.
+                      const TEAM_ROLES = ['super_admin', 'admin', 'comercial', 'disenador', 'jefe_taller', 'operario', 'medidor', 'contador'];
+
+                      // Un usuario ES del equipo si tiene un rol de equipo asignado
                       const isRealTeamMember = (u: typeof allUsers[0]) => {
-                        const email = (u.email || '').toLowerCase();
-                        return realTeamEmails.includes(email);
+                        return TEAM_ROLES.includes(u.role);
                       };
-                      
-                      // Función para detectar usuarios de prueba
+
+                      // Un usuario ES de prueba si tiene patrones de test en email/nombre
+                      // (los miembros del equipo nunca son de prueba)
                       const isTestUser = (u: typeof allUsers[0]) => {
-                        // Si es del equipo real, NO es usuario de prueba
                         if (isRealTeamMember(u)) return false;
-                        
+
                         const email = (u.email || '').toLowerCase();
                         const name = (u.name || '').toLowerCase();
-                        
-                        // Lista de usuarios excluidos adicionales (clientes reales que podrían parecer de prueba)
+
                         const excludedNames = ['alvaro pruebas'];
                         if (excludedNames.some(n => name === n)) return false;
-                        
-                        // Cualquier usuario con rol del equipo que NO esté en la lista real es de prueba
-                        const teamRoles = ['super_admin', 'admin', 'comercial', 'disenador', 'jefe_taller', 'operario'];
-                        if (teamRoles.includes(u.role)) return true;
-                        
-                        // Patrones específicos en email
+
                         const testEmailPatterns = ['test@', 'test.', 'prueba@', 'ejemplo@', 'example@', 'demo@', 'fake@', 'dummy@', 'admin-bulk', 'newadmin', 'newsuperadmin'];
                         const hasTestEmailPattern = testEmailPatterns.some(p => email.includes(p));
-                        
-                        // Dominios de prueba (excluye @innovar.temp porque el equipo real lo usa)
+
                         const testDomains = ['@test.com', '@example.com', '@prueba.com', '@demo.com', '@fake.com', '@testing.com'];
                         const hasTestDomain = testDomains.some(d => email.endsWith(d));
-                        
-                        // Nombres que claramente son de prueba
+
                         const testNamePatterns = ['cliente test', 'test client', 'usuario test', 'test user', 'cliente prueba', 'usuario prueba', 'cliente de prueba', 'test timezone', 'admin test', 'new admin', 'new super admin'];
                         const hasTestNamePattern = testNamePatterns.some(p => name.includes(p));
-                        
-                        // Email genérico de prueba
+
                         const isGenericTestEmail = (email.startsWith('test') || email.startsWith('prueba') || email.startsWith('cliente-test') || email.startsWith('admin-bulk') || email.startsWith('newadmin') || email.startsWith('newsuperadmin'));
-                        
+
                         return hasTestEmailPattern || hasTestDomain || hasTestNamePattern || isGenericTestEmail;
                       };
                       

@@ -34,20 +34,20 @@ export async function runMigrations() {
       sql: `ALTER TABLE "projects" ADD COLUMN IF NOT EXISTS "includeIva" integer NOT NULL DEFAULT 0`,
     },
     {
-      name: "user_role_daniel_operario",
-      sql: `UPDATE "users" SET "role" = 'operario' WHERE "email" = 'daniel07beltran11@gmail.com' AND "role" NOT IN ('admin', 'super_admin')`,
+      name: "user_role_daniel_operario_v2",
+      sql: `UPDATE "users" SET "role" = 'operario' WHERE LOWER("email") = 'daniel07beltran11@gmail.com' AND "role" NOT IN ('admin', 'super_admin')`,
     },
     {
-      name: "user_role_luis_jefe_taller",
-      sql: `UPDATE "users" SET "role" = 'jefe_taller' WHERE "email" = 'luis2019cardozo@gmail.com' AND "role" NOT IN ('admin', 'super_admin')`,
+      name: "user_role_luis_jefe_taller_v2",
+      sql: `UPDATE "users" SET "role" = 'jefe_taller' WHERE LOWER("email") = 'luis2019cardozo@gmail.com' AND "role" NOT IN ('admin', 'super_admin')`,
     },
     {
-      name: "user_role_felipe_contador",
-      sql: `UPDATE "users" SET "role" = 'contador' WHERE "email" = 'pipeton015@hotmail.com' AND "role" NOT IN ('admin', 'super_admin')`,
+      name: "user_role_felipe_contador_v2",
+      sql: `UPDATE "users" SET "role" = 'contador' WHERE LOWER("email") = 'pipeton015@hotmail.com' AND "role" NOT IN ('admin', 'super_admin')`,
     },
     {
-      name: "user_role_medidor",
-      sql: `UPDATE "users" SET "role" = 'medidor' WHERE "email" = 'medidor@innovarcocinas.co' AND "role" NOT IN ('admin', 'super_admin')`,
+      name: "user_role_medidor_v2",
+      sql: `UPDATE "users" SET "role" = 'medidor' WHERE LOWER("email") = 'medidor@innovarcocinas.co' AND "role" NOT IN ('admin', 'super_admin')`,
     },
   ];
 

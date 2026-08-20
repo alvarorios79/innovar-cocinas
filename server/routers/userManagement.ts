@@ -227,7 +227,13 @@ export const userManagementRouter = router({
           'alejoile300@gmail.com',
           'martha79s@hotmail.com',
           'jefe.taller@innovar.temp',
-          'operario@innovar.temp'
+          'operario@innovar.temp',
+          // Equipo real registrado
+          'alvarorios79@gmail.com',
+          'daniel07beltran11@gmail.com',
+          'luis2019cardozo@gmail.com',
+          'pipeton015@hotmail.com',
+          'medidor@innovarcocinas.co',
         ];
 
         // Clientes reales - no se pueden eliminar

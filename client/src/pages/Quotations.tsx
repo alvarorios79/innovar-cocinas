@@ -2871,6 +2871,7 @@ export default function Quotations() {
                                       <SelectValue placeholder="Selecciona tipo" />
                                     </SelectTrigger>
                                     <SelectContent>
+                                      <SelectItem value="granito">Granito ($750k/ml)</SelectItem>
                                       <SelectItem value="quarzone">Quarzone ($850k/ml)</SelectItem>
                                       <SelectItem value="sinterizado">Sinterizado ($1.2M/ml)</SelectItem>
                                     </SelectContent>
@@ -2936,6 +2937,7 @@ export default function Quotations() {
                                           <SelectValue placeholder="Tipo" />
                                         </SelectTrigger>
                                         <SelectContent>
+                                          <SelectItem value="granito">Granito</SelectItem>
                                           <SelectItem value="quarzone">Quarzone</SelectItem>
                                           <SelectItem value="sinterizado">Sinterizado</SelectItem>
                                         </SelectContent>
@@ -2999,6 +3001,7 @@ export default function Quotations() {
                                           <SelectValue placeholder="Tipo" />
                                         </SelectTrigger>
                                         <SelectContent>
+                                          <SelectItem value="granito">Granito</SelectItem>
                                           <SelectItem value="quarzone">Quarzone</SelectItem>
                                           <SelectItem value="sinterizado">Sinterizado</SelectItem>
                                         </SelectContent>

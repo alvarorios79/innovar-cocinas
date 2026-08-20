@@ -19,7 +19,7 @@ const PRECIOS = {
   BARRA_PEDESTAL:          250000,
   BARRA_HERRAJE:           380000,
   // Mesón materiales
-  MESON_GRANITO:           700000,
+  MESON_GRANITO:           750000,
   MESON_CUARZO:            850000,
   MESON_SINTERIZADO:      1200000,
   // Recargos mesón
@@ -650,20 +650,20 @@ export function MuebleCocinaConfigurator({ config, onChange }: Props) {
                     value={config.mesonMaterial}
                     onValueChange={(v) => {
                       update("mesonMaterial", v as MaterialMeson);
-                      if (v === "granito") update("mesonEsImportado", false);
+                      if (v === "granito" && config.mesonEsImportado) update("mesonPrecioImportadoML", 950000);
                     }}
                   >
                     <SelectTrigger className="h-9 bg-transparent border-white/15 text-white">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="granito">Granito — {formatPrice(700000)}/ml</SelectItem>
+                      <SelectItem value="granito">Granito — {formatPrice(750000)}/ml</SelectItem>
                       <SelectItem value="cuarzo">Cuarzo — {formatPrice(850000)}/ml</SelectItem>
                       <SelectItem value="sinterizado">Sinterizado — {formatPrice(1200000)}/ml</SelectItem>
                     </SelectContent>
                   </Select>
-                  {/* Standard / Importado — solo cuarzo y sinterizado */}
-                  {['cuarzo', 'sinterizado'].includes(config.mesonMaterial) && (
+                  {/* Standard / Importado — cuarzo, sinterizado y granito */}
+                  {['cuarzo', 'sinterizado', 'granito'].includes(config.mesonMaterial) && (
                     <div className="flex flex-wrap items-center gap-1 pt-1">
                       <button type="button"
                         onClick={() => update("mesonEsImportado", false)}
@@ -671,7 +671,12 @@ export function MuebleCocinaConfigurator({ config, onChange }: Props) {
                           !config.mesonEsImportado ? 'bg-emerald-600 text-white' : 'bg-white/10 text-white/50 hover:text-white/80'
                         }`}>Standard</button>
                       <button type="button"
-                        onClick={() => update("mesonEsImportado", true)}
+                        onClick={() => {
+                          update("mesonEsImportado", true);
+                          if (config.mesonMaterial === "granito" && !config.mesonPrecioImportadoML) {
+                            update("mesonPrecioImportadoML", 950000);
+                          }
+                        }}
                         className={`px-2 py-0.5 rounded text-xs font-medium transition-colors ${
                           config.mesonEsImportado ? 'bg-amber-600 text-white' : 'bg-white/10 text-white/50 hover:text-white/80'
                         }`}>Importado</button>

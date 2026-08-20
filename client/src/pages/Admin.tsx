@@ -1684,11 +1684,16 @@ export default function Admin() {
                     {(() => {
                       // Equipo de trabajo REAL - definido por emails específicos
                       const realTeamEmails = [
-                        'mcfy8jgnym@privaterelay.appleid.com', // Alvaro Rios - Super Admin
-                        'alejoile300@gmail.com',                // Alejo Gutiérrez - Diseñador
-                        'martha79s@hotmail.com',                // Martha Serna - Comercial
-                        'jefe.taller@innovar.temp',             // Luis Cardoso - Jefe de Taller
-                        'operario@innovar.temp'                 // Daniel Beltran - Operario
+                        'mcfy8jgnym@privaterelay.appleid.com', // Alvaro Rios - Super Admin (Apple ID)
+                        'alvarorios79@gmail.com',               // Alvaro Rios - Super Admin
+                        'alejoile300@gmail.com',                // Alejandro Gutiérrez - Diseñador
+                        'martha79s@hotmail.com',                // Martha Serna - Administrador
+                        'jefe.taller@innovar.temp',             // email temporal (legacy)
+                        'operario@innovar.temp',                // email temporal (legacy)
+                        'luis2019cardozo@gmail.com',            // Luis Cardozo - Jefe de Taller
+                        'daniel07beltran11@gmail.com',          // Daniel Beltrán - Operario
+                        'pipeton015@hotmail.com',               // Felipe Idárraga - Contador
+                        'medidor@innovarcocinas.co',            // Medidor Innovar - Medidor
                       ];
                       
                       // Función para verificar si es del equipo de trabajo real

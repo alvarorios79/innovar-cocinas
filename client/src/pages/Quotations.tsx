@@ -121,7 +121,12 @@ function buildKitchenDescription(config: KitchenConfig): string {
   if (km.luzLed || config.ledLighting > 0) parts.push("luz LED");
   if (sm.nichoNevecon)        parts.push("nicho para nevecón");
   if (sm.nichoNevera)         parts.push("nicho para nevera");
-  if (config.island?.enabled && config.island.meters > 0) parts.push(`isla ${config.island.meters}ml`);
+  if (config.island?.enabled && config.island.meters > 0) {
+    const islandCtNames: Record<string, string> = { quarzone: "Quarzone", sinterizado: "sinterizado", granito: "granito" };
+    const islandMesonText = config.island.countertopType ? ` con mesón en ${islandCtNames[config.island.countertopType] || config.island.countertopType}` : "";
+    const islandLateralsText = config.island.hasLaterals ? " y laterales" : "";
+    parts.push(`isla ${config.island.meters}ml${islandMesonText}${islandLateralsText}`);
+  }
   if (config.bar?.enabled && config.bar.meters > 0)       parts.push(`barra ${config.bar.meters}ml`);
 
   const modulosText = parts.length > 0 ? ` Módulos: ${parts.join(", ")}.` : "";

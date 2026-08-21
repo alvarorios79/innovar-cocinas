@@ -22,77 +22,76 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
     <script>
-      // Suppress Vite HMR errors immediately
       (function() {
-        const originalError = console.error;
-        console.error = function(...args) {
-          const msg = String(args[0] || '');
-          if (msg.includes('[vite]') || msg.includes('WebSocket') || msg.includes('failed to connect')) {
-            return;
-          }
-          originalError.apply(console, args);
+        var ua = navigator.userAgent;
+        var log = [];
+        var shown = false;
+
+        function showDiag(msg) {
+          if (shown) return;
+          var root = document.getElementById('root');
+          if (!root) return;
+          // Only show if React didn't mount
+          if (root.children.length > 0) return;
+          shown = true;
+          root.innerHTML =
+            '<div style="padding:20px;font-family:monospace;font-size:13px;color:#0f0;background:#000;min-height:100vh;word-break:break-all">' +
+            '<b style="color:#f00">ERROR — React no montó</b><br><br>' +
+            '<b>UA:</b> ' + ua + '<br><br>' +
+            '<b>Detalle:</b><br>' + msg + '<br><br>' +
+            '<b>Log:</b><br>' + log.join('<br>') +
+            '</div>';
+        }
+
+        // Catch module-level script errors (capture phase)
+        document.addEventListener('error', function(e) {
+          var src = (e.target && e.target.src) ? e.target.src : 'unknown-src';
+          var msg = (e.message || '') + ' | src: ' + src;
+          log.push('SCRIPT ERR: ' + msg);
+          setTimeout(function(){ showDiag('Script error: ' + msg); }, 100);
+        }, true);
+
+        // Catch promise rejections
+        window.addEventListener('unhandledrejection', function(e) {
+          var r = e.reason ? (e.reason.stack || e.reason.message || String(e.reason)) : 'unknown';
+          log.push('REJECT: ' + r);
+        });
+
+        // Catch general JS errors
+        window.onerror = function(msg, src, line, col, err) {
+          var detail = msg + ' @' + src + ':' + line + ':' + col;
+          log.push('ERR: ' + detail);
         };
+
+        // Timeout: if React not mounted in 10s, show diagnostics
+        setTimeout(function() {
+          var root = document.getElementById('root');
+          if (!root || root.children.length === 0) {
+            showDiag(log.length ? log.join(' | ') : 'Sin errores capturados — posible fallo silencioso al cargar módulos');
+          }
+        }, 10000);
       })();
     </script>
   </head>
 
   <body>
     <div id="root"></div>
-    <script>
-      // Intercept Vite HMR before it loads
-      (function() {
-        const originalFetch = window.fetch;
-        window.fetch = function(...args) {
-          const url = args[0];
-          if (typeof url === 'string' && url.includes('@vite/client')) {
-            return originalFetch.apply(this, args).then(response => {
-              if (response.ok) {
-                return response.text().then(text => {
-                  const modifiedText = text.replace(
-                    /protocol:\s*['"]wss?['"]/g,
-                    "protocol: 'wss'"
-                  ).replace(
-                    /host:\s*['"]localhost['"]/g,
-                    "host: 'invalid'"
-                  );
-                  return new Response(modifiedText, response);
-                });
-              }
-              return response;
-            });
-          }
-          return originalFetch.apply(this, args);
-        };
-        
-        const originalError = console.error;
-        console.error = function(...args) {
-          const msg = String(args[0] || '');
-          if (msg.includes('[vite]') || msg.includes('WebSocket')) {
-            return;
-          }
-          originalError.apply(console, args);
-        };
-      })();
-    </script>
     <script type="module" src="/src/main.tsx"></script>
     <script>
-      // En desarrollo: desregistrar SWs para que Vite HMR funcione sin caché
       if ('serviceWorker' in navigator) {
-        const isDev = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+        var isDev = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
         if (isDev) {
-          navigator.serviceWorker.getRegistrations().then(regs => {
-            regs.forEach(r => r.unregister());
+          navigator.serviceWorker.getRegistrations().then(function(regs) {
+            regs.forEach(function(r){ r.unregister(); });
           });
-          // Limpiar todas las caches del browser en dev
           if ('caches' in window) {
-            caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
+            caches.keys().then(function(keys){ keys.forEach(function(k){ caches.delete(k); }); });
           }
         } else {
-          // Solo registrar SW en producción
-          window.addEventListener('load', () => {
+          window.addEventListener('load', function() {
             navigator.serviceWorker.register('/sw.js')
-              .then(r => console.log('SW registrado:', r))
-              .catch(e => console.log('SW error:', e));
+              .then(function(r){ console.log('SW registrado:', r); })
+              .catch(function(e){ console.log('SW error:', e); });
           });
         }
       }

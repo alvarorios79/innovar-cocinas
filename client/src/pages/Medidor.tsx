@@ -599,7 +599,9 @@ export default function Medidor() {
           category: "pdf_plano",
         });
         toast.success(`PDF comprimido: ${result.savedPercent}% de reducción`);
+        refetchDetail();
         refetchVisits();
+        if (pdfInputRef.current) pdfInputRef.current.value = "";
       };
       reader.readAsDataURL(file);
     } catch (error) {

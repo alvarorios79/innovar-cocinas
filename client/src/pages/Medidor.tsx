@@ -367,13 +367,18 @@ export default function Medidor() {
     if (effectivePrefill) setView("new");
   }, [effectivePrefill]);
   const [showSummary, setShowSummary] = useState(false);
-  const initialTab = (() => {
+  const [tab, setTab] = useState<"hoy" | "proximas" | "historial" | "tareas">("hoy");
+
+  // Sincronizar tab con ?tab= en la URL (para que Levantamientos y Visitas Técnicas abran pestañas distintas)
+  useEffect(() => {
     const p = new URLSearchParams(searchStr);
     const t = p.get("tab");
-    if (t === "historial" || t === "proximas" || t === "tareas") return t;
-    return "hoy";
-  })();
-  const [tab, setTab] = useState<"hoy" | "proximas" | "historial" | "tareas">(initialTab);
+    if (t === "historial" || t === "proximas" || t === "tareas") {
+      setTab(t);
+    } else if (!t) {
+      setTab("hoy");
+    }
+  }, [searchStr]);
   const [showNewTask, setShowNewTask] = useState(false);
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [newTaskDesc, setNewTaskDesc] = useState("");

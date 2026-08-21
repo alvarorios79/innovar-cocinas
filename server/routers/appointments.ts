@@ -654,7 +654,18 @@ export const appointmentsRouter = router({
         return { success: true };
       }),
 
-    getOccupiedSlots: publicProcedure
+    listMedidores: protectedProcedure
+      .query(async ({ ctx }) => {
+        if (!["admin", "super_admin", "comercial"].includes(ctx.user.role)) {
+          throw new TRPCError({ code: "FORBIDDEN" });
+        }
+        const allUsers = await db.getAllUsers();
+        return allUsers
+          .filter((u: any) => u.role === "medidor")
+          .map((u: any) => ({ id: u.id, name: u.name || u.email }));
+      }),
+
+        getOccupiedSlots: publicProcedure
       .input(z.object({
         date: z.string(), // Fecha en formato ISO (YYYY-MM-DD)
       }))

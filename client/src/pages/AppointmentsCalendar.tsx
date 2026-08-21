@@ -105,6 +105,8 @@ export default function AppointmentsCalendar() {
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
   const [newDate, setNewDate] = useState("");
   const [newTime, setNewTime] = useState("");
+  const [assigningMedidor, setAssigningMedidor] = useState(false);
+  const [selectedMedidorId, setSelectedMedidorId] = useState<number | null>(null);
 
   // Estado para nueva cita
   const [showNewDialog, setShowNewDialog] = useState(false);
@@ -138,6 +140,25 @@ export default function AppointmentsCalendar() {
       toast.error(error.message || "Error al actualizar la fecha");
     },
   });
+
+  // Asignar medidor desde detalle
+  const assignMedidorDetailMutation = trpc.appointments.assignMedidor.useMutation({
+    onSuccess: () => {
+      toast.success("Medidor asignado");
+      refetch();
+      setAssigningMedidor(false);
+      setSelectedAppointment(null);
+    },
+    onError: (error) => {
+      toast.error(error.message || "Error al asignar medidor");
+    },
+  });
+
+  // Medidores para detalle (load when dialog open)
+  const { data: detailMedidoresData = [] } = trpc.appointments.listMedidores.useQuery(undefined, {
+    enabled: !!selectedAppointment && canEditDates,
+  });
+  const detailMedidores = detailMedidoresData as { id: number; name: string }[];
 
   // Buscar clientes para nueva cita
   const { data: clientsData } = trpc.clients.listPaginated.useQuery(
@@ -901,16 +922,51 @@ export default function AppointmentsCalendar() {
               )}
 
               {canEditDates && (
-                <DialogFooter>
-                  <Button
-                    variant="outline"
-                    onClick={() => handleEditClick(selectedAppointment)}
-                    className="gap-2"
-                  >
-                    <Pencil className="h-4 w-4" />
-                    Editar Fecha
-                  </Button>
-                </DialogFooter>
+                <div className="space-y-3">
+                  {/* Asignar medidor */}
+                  <div>
+                    <p className="text-sm text-white/45 mb-1 flex items-center gap-1">
+                      <UserCheck className="h-3.5 w-3.5" />
+                      Asignar medidor
+                    </p>
+                    <div className="flex gap-2">
+                      <select
+                        value={selectedMedidorId ?? ""}
+                        onChange={(e) => setSelectedMedidorId(e.target.value ? Number(e.target.value) : null)}
+                        className="flex-1 bg-[#162828] border border-white/[0.10] text-white rounded-md px-3 py-2 text-sm"
+                      >
+                        <option value="">Sin asignar</option>
+                        {detailMedidores.map((m) => (
+                          <option key={m.id} value={m.id}>{m.name}</option>
+                        ))}
+                      </select>
+                      <Button
+                        size="sm"
+                        disabled={assignMedidorDetailMutation.isPending}
+                        onClick={() => {
+                          if (!selectedAppointment) return;
+                          assignMedidorDetailMutation.mutate({
+                            appointmentId: selectedAppointment.id,
+                            medidorId: selectedMedidorId,
+                          });
+                        }}
+                        className="bg-teal-600 hover:bg-teal-700 text-white"
+                      >
+                        {assignMedidorDetailMutation.isPending ? "..." : "Asignar"}
+                      </Button>
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button
+                      variant="outline"
+                      onClick={() => handleEditClick(selectedAppointment)}
+                      className="gap-2"
+                    >
+                      <Pencil className="h-4 w-4" />
+                      Editar Fecha
+                    </Button>
+                  </DialogFooter>
+                </div>
               )}
 
               {user?.role === "medidor" && (

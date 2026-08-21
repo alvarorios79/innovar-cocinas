@@ -27,10 +27,14 @@ import {
   Check,
   X,
   ClipboardList,
+  Plus,
+  Search,
 } from "lucide-react";
 import { VisualCalendar } from "@/components/VisualCalendar";
 import { PageHeader } from "@/components/PageHeader";
 import { toast } from "sonner";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 
 // Nombres de los días y meses en español
 const DAYS_SHORT = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
@@ -101,6 +105,16 @@ export default function AppointmentsCalendar() {
   const [newDate, setNewDate] = useState("");
   const [newTime, setNewTime] = useState("");
 
+  // Estado para nueva cita
+  const [showNewDialog, setShowNewDialog] = useState(false);
+  const [newClientSearch, setNewClientSearch] = useState("");
+  const [newClientId, setNewClientId] = useState<number | null>(null);
+  const [newClientName, setNewClientName] = useState("");
+  const [newWorkTypes, setNewWorkTypes] = useState<string[]>([]);
+  const [newAptDate, setNewAptDate] = useState("");
+  const [newAptTime, setNewAptTime] = useState("");
+  const [newNotes, setNewNotes] = useState("");
+
   // Obtener citas
   const { data: appointmentsData = [], refetch } = trpc.appointments.list.useQuery(
     undefined,
@@ -119,6 +133,45 @@ export default function AppointmentsCalendar() {
       toast.error(error.message || "Error al actualizar la fecha");
     },
   });
+
+  // Buscar clientes para nueva cita
+  const { data: clientsData } = trpc.clients.listPaginated.useQuery(
+    { search: newClientSearch || undefined, limit: 10, page: 1 },
+    { enabled: showNewDialog && newClientSearch.length >= 2 }
+  );
+  const clientResults = (clientsData?.clients ?? []) as { id: number; name: string; whatsappPhone?: string }[];
+
+  // Mutación para crear cita
+  const createMutation = trpc.appointments.create.useMutation({
+    onSuccess: () => {
+      toast.success("Cita creada exitosamente");
+      refetch();
+      setShowNewDialog(false);
+      setNewClientSearch("");
+      setNewClientId(null);
+      setNewClientName("");
+      setNewWorkTypes([]);
+      setNewAptDate("");
+      setNewAptTime("");
+      setNewNotes("");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Error al crear la cita");
+    },
+  });
+
+  const handleCreateAppointment = () => {
+    if (!newClientId || newWorkTypes.length === 0) return;
+    createMutation.mutate({
+      clientId: newClientId,
+      workTypes: newWorkTypes as any,
+      scheduledDateStr: newAptDate || undefined,
+      scheduledTimeStr: newAptTime || undefined,
+      notes: newNotes || undefined,
+    });
+  };
+
+  const canCreateAppointment = user && ["super_admin", "admin", "comercial"].includes(user.role);
 
   // Procesar citas - filtrar solo citas de hoy en adelante
   const appointments = useMemo(() => {
@@ -263,14 +316,22 @@ export default function AppointmentsCalendar() {
           icon={<Calendar className="h-5 w-5" />}
           showBack={true}
           actions={
-            user?.role !== "medidor" ? (
-              <Link href="/calendar">
-                <Button variant="outline" size="sm" className="gap-2">
-                  <Calendar className="h-4 w-4" />
-                  <span>Instalaciones</span>
+            <div className="flex items-center gap-2">
+              {canCreateAppointment && (
+                <Button size="sm" className="gap-2 bg-teal-600 hover:bg-teal-700 text-white" onClick={() => setShowNewDialog(true)}>
+                  <Plus className="h-4 w-4" />
+                  <span>Nueva Cita</span>
                 </Button>
-              </Link>
-            ) : undefined
+              )}
+              {user?.role !== "medidor" && (
+                <Link href="/calendar">
+                  <Button variant="outline" size="sm" className="gap-2">
+                    <Calendar className="h-4 w-4" />
+                    <span>Instalaciones</span>
+                  </Button>
+                </Link>
+              )}
+            </div>
           }
         />
       </div>
@@ -496,7 +557,117 @@ export default function AppointmentsCalendar() {
         </div>
       </main>
 
-      {/* Dialog de detalle de cita */}
+      {/* Dialog Nueva Cita */}
+      <Dialog open={showNewDialog} onOpenChange={setShowNewDialog}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Plus className="h-5 w-5 text-teal-400" />
+              Nueva Cita
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {/* Buscar cliente */}
+            <div>
+              <Label>Cliente *</Label>
+              {newClientId ? (
+                <div className="flex items-center justify-between p-2 bg-teal-500/10 border border-teal-500/30 rounded-lg mt-1">
+                  <span className="font-medium text-sm">{newClientName}</span>
+                  <Button variant="ghost" size="sm" onClick={() => { setNewClientId(null); setNewClientName(""); setNewClientSearch(""); }}>
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="relative mt-1">
+                  <Search className="absolute left-3 top-2.5 h-4 w-4 text-white/40" />
+                  <Input
+                    placeholder="Buscar cliente por nombre..."
+                    value={newClientSearch}
+                    onChange={(e) => setNewClientSearch(e.target.value)}
+                    className="pl-9"
+                  />
+                  {newClientSearch.length >= 2 && clientResults.length > 0 && (
+                    <div className="absolute z-50 w-full mt-1 bg-[#162828] border border-white/10 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                      {clientResults.map((c) => (
+                        <button
+                          key={c.id}
+                          className="w-full text-left px-3 py-2 hover:bg-white/5 text-sm"
+                          onClick={() => { setNewClientId(c.id); setNewClientName(c.name); setNewClientSearch(""); }}
+                        >
+                          <div className="font-medium">{c.name}</div>
+                          {c.whatsappPhone && <div className="text-xs text-white/40">{c.whatsappPhone}</div>}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Tipos de trabajo */}
+            <div>
+              <Label>Tipos de trabajo *</Label>
+              <div className="grid grid-cols-2 gap-2 mt-2">
+                {Object.entries(WORK_TYPE_LABELS).map(([key, label]) => (
+                  <div key={key} className="flex items-center gap-2">
+                    <Checkbox
+                      id={`wt-${key}`}
+                      checked={newWorkTypes.includes(key)}
+                      onCheckedChange={(checked) => {
+                        setNewWorkTypes(checked
+                          ? [...newWorkTypes, key]
+                          : newWorkTypes.filter((w) => w !== key)
+                        );
+                      }}
+                    />
+                    <label htmlFor={`wt-${key}`} className="text-sm cursor-pointer">{label}</label>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Fecha y hora */}
+            <div>
+              <Label>Fecha y hora (opcional)</Label>
+              <div className="mt-2">
+                <VisualCalendar
+                  selectedDate={newAptDate}
+                  selectedTime={newAptTime}
+                  onDateChange={(date) => { setNewAptDate(date); setNewAptTime(""); }}
+                  onTimeChange={(time) => setNewAptTime(time)}
+                />
+              </div>
+            </div>
+
+            {/* Notas */}
+            <div>
+              <Label>Notas</Label>
+              <Textarea
+                placeholder="Notas adicionales..."
+                value={newNotes}
+                onChange={(e) => setNewNotes(e.target.value)}
+                className="mt-1"
+                rows={3}
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2 mt-4">
+            <Button variant="outline" onClick={() => setShowNewDialog(false)}>
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleCreateAppointment}
+              disabled={!newClientId || newWorkTypes.length === 0 || createMutation.isPending}
+              className="bg-teal-600 hover:bg-teal-700 text-white"
+            >
+              {createMutation.isPending ? "Creando..." : "Crear Cita"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+            {/* Dialog de detalle de cita */}
       <Dialog open={!!selectedAppointment && !editingAppointment} onOpenChange={() => setSelectedAppointment(null)}>
         <DialogContent className="max-w-md">
           <DialogHeader>

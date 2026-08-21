@@ -157,7 +157,7 @@ export default function AppointmentsCalendar() {
 
   // Medidores para detalle (load when dialog open)
   const { data: detailMedidoresData = [] } = trpc.appointments.listMedidores.useQuery(undefined, {
-    enabled: (!!selectedAppointment || !!editingAppointment) && canEditDates,
+    enabled: !!selectedAppointment || !!editingAppointment,
   });
   const detailMedidores = detailMedidoresData as { id: number; name: string }[];
 

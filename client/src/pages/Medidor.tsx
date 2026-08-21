@@ -669,7 +669,7 @@ export default function Medidor() {
     const proximasByDate: Record<string, any[]> = {};
     proximasApts.forEach((apt: any) => {
       const d = new Date(apt.scheduledDate);
-      const key = d.toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long' });
+      const key = d.toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'America/Bogota' });
       if (!proximasByDate[key]) proximasByDate[key] = [];
       proximasByDate[key].push(apt);
     });
@@ -700,9 +700,9 @@ export default function Medidor() {
             </div>
             {aptDate && (
               <div className="ml-3 text-right flex-shrink-0">
-                <p className="text-xs text-slate-300">{aptDate.toLocaleDateString('es-CO', { weekday: 'short', day: 'numeric', month: 'short' })}</p>
+                <p className="text-xs text-slate-300">{aptDate.toLocaleDateString('es-CO', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'America/Bogota' })}</p>
                 <p className="text-lg text-[#1DB5A8] font-bold">
-                  {aptDate.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: true })}
+                  {aptDate.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'America/Bogota' })}
                 </p>
               </div>
             )}

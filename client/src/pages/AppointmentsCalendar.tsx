@@ -420,13 +420,14 @@ export default function AppointmentsCalendar() {
                           ${availability === "none" ? "bg-transparent" : availability === "blocked" ? "bg-white/[0.03]" : "bg-white/[0.07]"}
                         `}
                       >
-                        <span className={`
-                          text-sm font-medium
-                          ${isToday ? "text-teal-400" : "text-white/75"}
-                          ${availability === "none" ? "text-white/20" : availability === "blocked" ? "text-white/30" : "text-white/80"}
-                        `}>
-                          {date.getDate()}
-                        </span>
+                        <div className="flex flex-col items-start leading-tight">
+                          <span className={`text-[10px] font-normal ${availability === "none" ? "text-white/15" : availability === "blocked" ? "text-white/20" : "text-white/35"}`}>
+                            {DAYS_SHORT[date.getDay()]}
+                          </span>
+                          <span className={`text-sm font-semibold ${isToday ? "text-teal-400" : availability === "none" ? "text-white/20" : availability === "blocked" ? "text-white/30" : "text-white/85"}`}>
+                            {date.getDate()}
+                          </span>
+                        </div>
 
                         {/* Indicadores de citas */}
                         {dayAppointments.length > 0 && (

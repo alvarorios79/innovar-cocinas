@@ -114,6 +114,8 @@ export default function AppointmentsCalendar() {
   const [newAptDate, setNewAptDate] = useState("");
   const [newAptTime, setNewAptTime] = useState("");
   const [newNotes, setNewNotes] = useState("");
+  const [newClientPhone, setNewClientPhone] = useState("");
+  const [newClientAddress, setNewClientAddress] = useState("");
 
   // Obtener citas
   const { data: appointmentsData = [], refetch } = trpc.appointments.list.useQuery(
@@ -139,7 +141,7 @@ export default function AppointmentsCalendar() {
     { search: newClientSearch || undefined, limit: 10, page: 1 },
     { enabled: showNewDialog && newClientSearch.length >= 2 }
   );
-  const clientResults = (clientsData?.clients ?? []) as { id: number; name: string; whatsappPhone?: string }[];
+  const clientResults = (clientsData?.clients ?? []) as { id: number; name: string; whatsappPhone?: string; phone?: string; address?: string }[];
 
   // Mutación para crear cita
   const createMutation = trpc.appointments.create.useMutation({
@@ -154,6 +156,8 @@ export default function AppointmentsCalendar() {
       setNewAptDate("");
       setNewAptTime("");
       setNewNotes("");
+      setNewClientPhone("");
+      setNewClientAddress("");
     },
     onError: (error) => {
       toast.error(error.message || "Error al crear la cita");
@@ -573,7 +577,7 @@ export default function AppointmentsCalendar() {
               {newClientId ? (
                 <div className="flex items-center justify-between p-2 bg-teal-500/10 border border-teal-500/30 rounded-lg mt-1">
                   <span className="font-medium text-sm">{newClientName}</span>
-                  <Button variant="ghost" size="sm" onClick={() => { setNewClientId(null); setNewClientName(""); setNewClientSearch(""); }}>
+                  <Button variant="ghost" size="sm" onClick={() => { setNewClientId(null); setNewClientName(""); setNewClientSearch(""); setNewClientPhone(""); setNewClientAddress(""); }}>
                     <X className="h-4 w-4" />
                   </Button>
                 </div>
@@ -592,7 +596,7 @@ export default function AppointmentsCalendar() {
                         <button
                           key={c.id}
                           className="w-full text-left px-3 py-2 hover:bg-white/5 text-sm"
-                          onClick={() => { setNewClientId(c.id); setNewClientName(c.name); setNewClientSearch(""); }}
+                          onClick={() => { setNewClientId(c.id); setNewClientName(c.name); setNewClientPhone(c.whatsappPhone || c.phone || ""); setNewClientAddress(c.address || ""); setNewClientSearch(""); }}
                         >
                           <div className="font-medium">{c.name}</div>
                           {c.whatsappPhone && <div className="text-xs text-white/40">{c.whatsappPhone}</div>}
@@ -602,6 +606,34 @@ export default function AppointmentsCalendar() {
                   )}
                 </div>
               )}
+            </div>
+
+            {/* Teléfono */}
+            <div>
+              <Label className="flex items-center gap-1">
+                <Phone className="h-3.5 w-3.5 text-white/40" />
+                Teléfono
+              </Label>
+              <Input
+                placeholder="Número de teléfono o WhatsApp"
+                value={newClientPhone}
+                onChange={(e) => setNewClientPhone(e.target.value)}
+                className="mt-1"
+              />
+            </div>
+
+            {/* Dirección */}
+            <div>
+              <Label className="flex items-center gap-1">
+                <MapPin className="h-3.5 w-3.5 text-white/40" />
+                Dirección
+              </Label>
+              <Input
+                placeholder="Dirección del proyecto"
+                value={newClientAddress}
+                onChange={(e) => setNewClientAddress(e.target.value)}
+                className="mt-1"
+              />
             </div>
 
             {/* Tipos de trabajo */}

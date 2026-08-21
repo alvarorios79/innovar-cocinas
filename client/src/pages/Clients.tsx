@@ -45,6 +45,8 @@ const EMPTY_FORM: FormState = {
 };
 
 // ── Página principal ──────────────────────────────────────────────────────────
+const PAGE_SIZE = 50;
+
 export default function Clients() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -66,7 +68,7 @@ export default function Clients() {
 
   const { data, isLoading, refetch } = trpc.clients.listPaginated.useQuery({
     search: debouncedSearch || undefined,
-    limit: 50,
+    limit: PAGE_SIZE,
     page,
   });
 
@@ -112,7 +114,7 @@ export default function Clients() {
 
   const clients: Client[] = (data?.clients ?? []) as Client[];
   const total = data?.total ?? 0;
-  const totalPages = Math.ceil(total / 50);
+  const totalPages = Math.ceil(total / PAGE_SIZE);
 
   const now = new Date();
   const newThisMonth = clients.filter((c) => {
@@ -216,6 +218,7 @@ export default function Clients() {
           </button>
           <span className="text-sm" style={{ color: "rgba(255,255,255,0.6)" }}>
             Página <strong style={{ color: "#fff" }}>{page}</strong> de <strong style={{ color: "#fff" }}>{totalPages}</strong>
+            <span style={{ color: "rgba(255,255,255,0.35)", fontSize: "0.75rem", marginLeft: "6px" }}>({clients.length} de {total})</span>
           </span>
           <button
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}

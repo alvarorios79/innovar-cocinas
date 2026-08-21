@@ -35,25 +35,40 @@
       })();
     </script>
     <script>
-      // Capturador de errores JS visible en pantalla (diagnóstico iPad)
-      window.__errors = [];
+      // === DIAGNÓSTICO iPad ===
+      var __diagEl = function() { return document.getElementById('app-loading'); };
+
+      // 1. Errores JS clásicos
       window.onerror = function(msg, src, line, col, err) {
-        window.__errors.push({ msg, src, line, col, stack: err && err.stack });
-        var el = document.getElementById('app-loading');
-        if (el) {
-          el.style.color = '#ff6b6b';
-          el.innerHTML = '<b>ERROR JS:</b><br>' + msg + '<br><small>' + (src||'') + ':' + line + ':' + col + '</small><br><small style="word-break:break-all">' + ((err&&err.stack)||'').substring(0,300) + '</small>';
-        }
+        var el = __diagEl();
+        if (el) { el.style.color='#ff6b6b'; el.innerHTML='<b>ERROR JS:</b><br>'+msg+'<br><small>'+src+':'+line+'</small><br><pre style="font-size:10px;word-break:break-all">'+((err&&err.stack)||'').slice(0,400)+'</pre>'; }
+        return false;
       };
+
+      // 2. Promesas sin capturar
       window.addEventListener('unhandledrejection', function(e) {
-        var msg = e.reason && e.reason.message ? e.reason.message : String(e.reason);
-        var stack = e.reason && e.reason.stack ? e.reason.stack : '';
-        var el = document.getElementById('app-loading');
-        if (el) {
-          el.style.color = '#ff6b6b';
-          el.innerHTML = '<b>ERROR PROMISE:</b><br>' + msg + '<br><small style="word-break:break-all">' + stack.substring(0,300) + '</small>';
-        }
+        var el = __diagEl();
+        var msg = (e.reason&&e.reason.message)||String(e.reason);
+        var stk = (e.reason&&e.reason.stack)||'';
+        if (el) { el.style.color='#ff6b6b'; el.innerHTML='<b>ERROR PROMISE:</b><br>'+msg+'<pre style="font-size:10px;word-break:break-all">'+stk.slice(0,400)+'</pre>'; }
       });
+
+      // 3. Errores de carga de scripts/módulos (captura de fase)
+      document.addEventListener('error', function(e) {
+        var el = __diagEl();
+        if (e.target && (e.target.tagName==='SCRIPT'||e.target.tagName==='LINK')) {
+          if (el) { el.style.color='#f97316'; el.innerHTML='<b>SCRIPT NO CARGÓ:</b><br>'+(e.target.src||e.target.href||'desconocido'); }
+        }
+      }, true);
+
+      // 4. Timeout: si en 8 segundos React no montó, mostrar diagnóstico
+      setTimeout(function() {
+        var el = __diagEl();
+        if (el && el.parentNode && el.parentNode.id==='root') {
+          el.style.color='#facc15';
+          el.innerHTML='<b>JS no montó React (8s)</b><br>UA: '+navigator.userAgent.slice(0,200);
+        }
+      }, 8000);
     </script>
   </head>
 

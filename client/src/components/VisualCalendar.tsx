@@ -97,12 +97,12 @@ export function VisualCalendar({
     const isToday = date.toDateString() === new Date().toDateString();
 
     return cn(
-      "h-10 sm:h-12 w-full rounded-md flex flex-col items-center justify-center text-sm sm:text-base cursor-pointer transition-colors touch-manipulation",
+      "h-10 sm:h-12 w-full rounded-md flex flex-col items-center justify-center text-sm sm:text-base cursor-pointer transition-colors touch-manipulation border",
       {
-        "bg-white/[0.03] text-white/20 cursor-not-allowed": !isAllowed,
-        "bg-teal-500/15 text-teal-200 hover:bg-teal-500/25 active:bg-teal-500/35 font-medium": isAllowed && !isSelected,
-        "bg-teal-500 text-white font-bold": isSelected,
-        "ring-2 ring-teal-400": isToday && !isSelected,
+        "bg-transparent border-transparent text-white/20 cursor-not-allowed": !isAllowed,
+        "bg-white/[0.07] border-white/[0.08] text-white/80 hover:bg-white/[0.12] hover:border-white/[0.18]": isAllowed && !isSelected,
+        "bg-teal-500/20 border-teal-500/50 text-teal-300 font-semibold": isSelected,
+        "ring-2 ring-teal-500": isToday && !isSelected,
       }
     );
   };
@@ -216,8 +216,8 @@ export function VisualCalendar({
                   className={cn(
                     "justify-start",
                     {
-                      "bg-white/[0.04] text-white/25 hover:bg-white/[0.04] border-white/[0.08] cursor-not-allowed": !isAvailable,
-                      "bg-teal-500/15 text-teal-200 hover:bg-teal-500/25 border-teal-500/30 font-medium": isAvailable && !isSelected,
+                      "bg-white/[0.02] text-white/20 border-white/[0.05] cursor-not-allowed": !isAvailable,
+                      "bg-white/[0.07] text-white/75 hover:bg-white/[0.12] border-white/[0.10]": isAvailable && !isSelected,
                     }
                   )}
                 >
@@ -236,11 +236,11 @@ export function VisualCalendar({
 
           <div className="mt-4 flex flex-wrap gap-4 text-xs">
             <div className="flex items-center gap-1">
-              <div className="h-3 w-3 rounded bg-teal-500/15 border border-teal-500/30"></div>
+              <div className="h-3 w-3 rounded bg-white/[0.07] border border-white/[0.15]"></div>
               <span>Libre</span>
             </div>
             <div className="flex items-center gap-1">
-              <div className="h-3 w-3 rounded bg-white/[0.06] border border-white/[0.12]"></div>
+              <div className="h-3 w-3 rounded bg-white/[0.02] border border-white/[0.06]"></div>
               <span>Ocupado</span>
             </div>
           </div>

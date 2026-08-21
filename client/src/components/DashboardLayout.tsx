@@ -137,7 +137,7 @@ const menuSections: MenuSection[] = [
   {
     title: "Visitas Técnicas",
     items: [
-      { icon: CalendarCheck, label: "Visitas Técnicas", path: "/appointments-calendar",
+      { icon: CalendarCheck, label: "Visitas Técnicas", path: "/medidor",
         roles: ["medidor"], iconColor: "#f59e0b" },
     ],
   },

@@ -7,7 +7,14 @@ import { defineConfig } from "vite";
 import { vitePluginManusRuntime } from "vite-plugin-manus-runtime";
 
 
-const plugins = [react(), tailwindcss(), jsxLocPlugin(), vitePluginManusRuntime()];
+// En producción solo usamos los plugins esenciales.
+// jsxLocPlugin y vitePluginManusRuntime son exclusivos del entorno Manus dev.
+const isDev = process.env.NODE_ENV !== 'production';
+const plugins = [
+  react(),
+  tailwindcss(),
+  ...(isDev ? [jsxLocPlugin(), vitePluginManusRuntime()] : []),
+];
 
 export default defineConfig({
   plugins,
@@ -25,6 +32,7 @@ export default defineConfig({
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
+    target: ["es2020", "safari14"],
   },
   server: {
     host: true,

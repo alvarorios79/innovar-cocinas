@@ -469,15 +469,21 @@ export default function Medidor() {
       clientName: form.get("clientName") as string,
       clientPhone: form.get("clientPhone") as string,
       clientAddress: form.get("clientAddress") as string,
+      visitCity: (form.get("visitCity") as string) || undefined,
       workType: form.get("workType") as WorkType,
     };
+    const initialNotes = (form.get("initialNotes") as string) || "";
 
     try {
       const geo = await captureGeoLocation();
       const { id } = await createVisit.mutateAsync({ ...formData, geoLocation: geo ?? undefined });
+      // Guardar notas iniciales si se ingresaron
+      if (initialNotes.trim()) {
+        await updateVisit.mutateAsync({ visitId: id, notes: initialNotes });
+      }
       setSelectedVisit({ id, ...formData, status: "borrador", createdAt: new Date().toISOString(), geoLocation: geo ?? undefined });
       setLocalMeasurements({});
-      setLocalNotes("");
+      setLocalNotes(initialNotes);
       setLocalEvaluation(undefined);
       setLocalCriticalObservations("");
       setLocalChecklist({});
@@ -1034,6 +1040,16 @@ export default function Medidor() {
               <div>
                 <label className="block text-sm font-semibold text-[#1DB5A8] mb-2">Dirección *</label>
                 <Input name="clientAddress" required defaultValue={effectivePrefill?.address || ""} className="bg-[#0C1A1A] border-[#1DB5A8]/20 text-white" />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-[#1DB5A8] mb-2">Ciudad</label>
+                <Input name="visitCity" placeholder="Ej: Pereira, Dosquebradas..." className="bg-[#0C1A1A] border-[#1DB5A8]/20 text-white placeholder:text-slate-500" />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-[#1DB5A8] mb-2">Notas iniciales</label>
+                <Textarea name="initialNotes" rows={3} placeholder="Observaciones previas a la visita..." className="bg-[#0C1A1A] border-[#1DB5A8]/20 text-white placeholder:text-slate-500 resize-none" />
               </div>
 
               <div>

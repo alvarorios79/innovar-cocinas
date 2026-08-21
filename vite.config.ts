@@ -32,7 +32,7 @@ export default defineConfig({
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
-    target: ["es2020", "safari14"],
+    target: ["es2022", "safari17"],
   },
   server: {
     host: true,

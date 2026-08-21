@@ -34,6 +34,27 @@
         };
       })();
     </script>
+    <script>
+      // Capturador de errores JS visible en pantalla (diagnóstico iPad)
+      window.__errors = [];
+      window.onerror = function(msg, src, line, col, err) {
+        window.__errors.push({ msg, src, line, col, stack: err && err.stack });
+        var el = document.getElementById('app-loading');
+        if (el) {
+          el.style.color = '#ff6b6b';
+          el.innerHTML = '<b>ERROR JS:</b><br>' + msg + '<br><small>' + (src||'') + ':' + line + ':' + col + '</small><br><small style="word-break:break-all">' + ((err&&err.stack)||'').substring(0,300) + '</small>';
+        }
+      };
+      window.addEventListener('unhandledrejection', function(e) {
+        var msg = e.reason && e.reason.message ? e.reason.message : String(e.reason);
+        var stack = e.reason && e.reason.stack ? e.reason.stack : '';
+        var el = document.getElementById('app-loading');
+        if (el) {
+          el.style.color = '#ff6b6b';
+          el.innerHTML = '<b>ERROR PROMISE:</b><br>' + msg + '<br><small style="word-break:break-all">' + stack.substring(0,300) + '</small>';
+        }
+      });
+    </script>
   </head>
 
   <body>

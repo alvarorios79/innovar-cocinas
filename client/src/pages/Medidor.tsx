@@ -367,7 +367,13 @@ export default function Medidor() {
     if (effectivePrefill) setView("new");
   }, [effectivePrefill]);
   const [showSummary, setShowSummary] = useState(false);
-  const [tab, setTab] = useState<"hoy" | "proximas" | "historial" | "tareas">("hoy");
+  const initialTab = (() => {
+    const p = new URLSearchParams(searchStr);
+    const t = p.get("tab");
+    if (t === "historial" || t === "proximas" || t === "tareas") return t;
+    return "hoy";
+  })();
+  const [tab, setTab] = useState<"hoy" | "proximas" | "historial" | "tareas">(initialTab);
   const [showNewTask, setShowNewTask] = useState(false);
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [newTaskDesc, setNewTaskDesc] = useState("");

@@ -107,6 +107,7 @@ export default function AppointmentsCalendar() {
   const [newTime, setNewTime] = useState("");
   const [assigningMedidor, setAssigningMedidor] = useState(false);
   const [selectedMedidorId, setSelectedMedidorId] = useState<number | null>(null);
+  const [editMedidorId, setEditMedidorId] = useState<number | null>(null);
 
   // Estado para nueva cita
   const [showNewDialog, setShowNewDialog] = useState(false);
@@ -156,7 +157,7 @@ export default function AppointmentsCalendar() {
 
   // Medidores para detalle (load when dialog open)
   const { data: detailMedidoresData = [] } = trpc.appointments.listMedidores.useQuery(undefined, {
-    enabled: !!selectedAppointment && canEditDates,
+    enabled: (!!selectedAppointment || !!editingAppointment) && canEditDates,
   });
   const detailMedidores = detailMedidoresData as { id: number; name: string }[];
 
@@ -345,20 +346,35 @@ export default function AppointmentsCalendar() {
   const handleEditClick = (apt: Appointment) => {
     setEditingAppointment(apt);
     const date = new Date(apt.scheduledDate);
-    setNewDate(date.toISOString().split("T")[0]);
-    const hours = date.getHours().toString().padStart(2, "0");
-    const minutes = date.getMinutes().toString().padStart(2, "0");
-    setNewTime(`${hours}:${minutes}`);
+    // Extraer fecha y hora en zona horaria de Colombia
+    const colombiaDate = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "America/Bogota",
+      year: "numeric", month: "2-digit", day: "2-digit",
+    }).format(date);
+    const colombiaTime = new Intl.DateTimeFormat("en-GB", {
+      timeZone: "America/Bogota",
+      hour: "2-digit", minute: "2-digit", hour12: false,
+    }).format(date);
+    setNewDate(colombiaDate);
+    setNewTime(colombiaTime === "24:00" ? "00:00" : colombiaTime);
+    // Pre-cargar medidor asignado
+    setEditMedidorId((apt as any).assignedMedidorId ?? null);
   };
 
-  const handleSaveDate = () => {
+  const handleSaveDate = async () => {
     if (!editingAppointment || !newDate || !newTime) return;
-    
-    updateDateMutation.mutate({
+    await updateDateMutation.mutateAsync({
       id: editingAppointment.id,
       scheduledDateStr: newDate,
       scheduledTimeStr: newTime,
     });
+    // Asignar medidor si cambió
+    if (editMedidorId !== ((editingAppointment as any).assignedMedidorId ?? null)) {
+      assignMedidorDetailMutation.mutate({
+        appointmentId: editingAppointment.id,
+        medidorId: editMedidorId,
+      });
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -571,6 +587,7 @@ export default function AppointmentsCalendar() {
                                   {new Date(apt.scheduledDate).toLocaleTimeString("es-CO", {
                                     hour: "2-digit",
                                     minute: "2-digit",
+                                    timeZone: "America/Bogota",
                                   })}
                                 </p>
                               </div>
@@ -866,6 +883,7 @@ export default function AppointmentsCalendar() {
                       weekday: "long",
                       day: "numeric",
                       month: "long",
+                      timeZone: "America/Bogota",
                     })}
                   </div>
                 </div>
@@ -878,6 +896,7 @@ export default function AppointmentsCalendar() {
                     {new Date(selectedAppointment.scheduledDate).toLocaleTimeString("es-CO", {
                       hour: "2-digit",
                       minute: "2-digit",
+                      timeZone: "America/Bogota",
                     })}
                   </div>
                 </div>
@@ -1020,6 +1039,26 @@ export default function AppointmentsCalendar() {
                 }}
                 onTimeChange={(time) => setNewTime(time)}
               />
+
+              {/* Selector de medidor */}
+              {canEditDates && (
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-white/60 uppercase tracking-wider">Asignar medidor</label>
+                  <select
+                    value={editMedidorId ?? ""}
+                    onChange={(e) => setEditMedidorId(e.target.value ? Number(e.target.value) : null)}
+                    className="w-full rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-teal-500"
+                  >
+                    <option value="">Sin asignar</option>
+                    {detailMedidores.length === 0
+                      ? <option disabled>Cargando...</option>
+                      : detailMedidores.map(m => (
+                          <option key={m.id} value={m.id}>{m.name}</option>
+                        ))
+                    }
+                  </select>
+                </div>
+              )}
 
               {newDate && newTime && (
                 <div className="bg-teal-500/10 border border-teal-500/25 rounded-lg p-3 text-sm">

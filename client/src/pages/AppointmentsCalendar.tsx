@@ -178,7 +178,7 @@ export default function AppointmentsCalendar() {
 
   // Medidores disponibles
   const { data: medidoresData = [] } = trpc.appointments.listMedidores.useQuery(undefined, {
-    enabled: showNewDialog && canCreateAppointment === true,
+    enabled: showNewDialog && !!canCreateAppointment,
   });
   const medidores = medidoresData as { id: number; name: string }[];
 
@@ -729,7 +729,7 @@ export default function AppointmentsCalendar() {
             </div>
 
             {/* Asignar medidor */}
-            {medidores.length > 0 && (
+            {canCreateAppointment && (
               <div>
                 <Label className="flex items-center gap-1">
                   <UserCheck className="h-3.5 w-3.5 text-white/40" />
@@ -741,9 +741,13 @@ export default function AppointmentsCalendar() {
                   className="w-full mt-1 bg-[#162828] border border-white/[0.10] text-white rounded-md px-3 py-2 text-sm"
                 >
                   <option value="">Sin asignar</option>
-                  {medidores.map((m) => (
-                    <option key={m.id} value={m.id}>{m.name}</option>
-                  ))}
+                  {medidores.length === 0 ? (
+                    <option disabled>Cargando medidores...</option>
+                  ) : (
+                    medidores.map((m) => (
+                      <option key={m.id} value={m.id}>{m.name}</option>
+                    ))
+                  )}
                 </select>
               </div>
             )}

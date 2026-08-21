@@ -361,6 +361,8 @@ export default function Medidor() {
   const [selectedVisit, setSelectedVisit] = useState<Visit | null>(null);
   const [visitDetail, setVisitDetail] = useState<Visit | null>(null);
   const [showSignature, setShowSignature] = useState(false);
+  const photoInputRef = useRef<HTMLInputElement>(null);
+  const pdfInputRef = useRef<HTMLInputElement>(null);
 
   // Auto-abrir formulario nuevo si viene desde cita (URL o clic en cita asignada)
   useEffect(() => {
@@ -523,8 +525,8 @@ export default function Medidor() {
   };
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
 
     const visitId = visitDetail?.id ?? selectedVisit?.id;
     if (!visitId) {
@@ -532,25 +534,37 @@ export default function Medidor() {
       return;
     }
 
-    try {
-      const reader = new FileReader();
-      reader.onload = async () => {
-        const base64 = reader.result as string;
-        await addPhoto.mutateAsync({
-          visitId,
-          fileName: file.name,
-          fileData: base64,
-          contentType: file.type,
-          category: selectedPhotoCategory,
+    let uploaded = 0;
+    for (const file of files) {
+      try {
+        await new Promise<void>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = async () => {
+            try {
+              await addPhoto.mutateAsync({
+                visitId,
+                fileName: file.name,
+                fileData: reader.result as string,
+                contentType: file.type,
+                category: selectedPhotoCategory,
+              });
+              uploaded++;
+              resolve();
+            } catch (err) { reject(err); }
+          };
+          reader.onerror = () => reject(new Error("Error leyendo archivo"));
+          reader.readAsDataURL(file);
         });
-        toast.success("Foto subida");
-        refetchDetail();
-        refetchVisits();
-      };
-      reader.readAsDataURL(file);
-    } catch (error) {
-      toast.error("Error al subir foto");
+      } catch {
+        toast.error(`Error al subir ${file.name}`);
+      }
     }
+    if (uploaded > 0) {
+      toast.success(uploaded === 1 ? "Foto subida" : `${uploaded} fotos subidas`);
+      refetchDetail();
+      refetchVisits();
+    }
+    if (photoInputRef.current) photoInputRef.current.value = "";
   };
 
   const handleDeletePhoto = async (photoId: string) => {
@@ -599,6 +613,8 @@ export default function Medidor() {
       await saveSignature.mutateAsync({ visitId: visitDetail.id, signature });
       toast.success("Firma guardada");
       setShowSignature(false);
+      refetchDetail();
+      refetchVisits();
     } catch (error) {
       toast.error("Error al guardar firma");
     }
@@ -1309,13 +1325,28 @@ export default function Medidor() {
               ))}
             </div>
             {isEditable && (
-              <label className="relative block overflow-hidden rounded-lg border-2 border-dashed border-[#1DB5A8]/40 hover:border-[#1DB5A8] transition-colors cursor-pointer">
-                <div className="flex flex-col items-center justify-center py-8">
-                  <Camera className="h-8 w-8 text-[#1DB5A8] mb-2" />
-                  <span className="text-sm text-[#1DB5A8] font-medium">Subir fotos</span>
-                </div>
-                <input type="file" accept="image/*" multiple onChange={handlePhotoUpload} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
-              </label>
+              <>
+                <button
+                  type="button"
+                  onClick={() => photoInputRef.current?.click()}
+                  className="w-full rounded-lg border-2 border-dashed border-[#1DB5A8]/40 hover:border-[#1DB5A8] transition-colors cursor-pointer bg-transparent"
+                >
+                  <div className="flex flex-col items-center justify-center py-8">
+                    <Camera className="h-8 w-8 text-[#1DB5A8] mb-2" />
+                    <span className="text-sm text-[#1DB5A8] font-medium">
+                      {addPhoto.isPending ? "Subiendo..." : "Subir fotos"}
+                    </span>
+                  </div>
+                </button>
+                <input
+                  ref={photoInputRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handlePhotoUpload}
+                  className="hidden"
+                />
+              </>
             )}
           </div>
 
@@ -1339,13 +1370,27 @@ export default function Medidor() {
               ))}
             </div>
             {isEditable && (
-              <label className="relative block overflow-hidden rounded-lg border-2 border-dashed border-[#1DB5A8]/40 hover:border-[#1DB5A8] transition-colors cursor-pointer">
-                <div className="flex flex-col items-center justify-center py-6">
-                  <FileText className="h-8 w-8 text-[#1DB5A8] mb-2" />
-                  <span className="text-sm text-[#1DB5A8] font-medium">Subir PDF (GoodNotes, planos, etc.)</span>
-                </div>
-                <input type="file" accept=".pdf" onChange={handlePdfUpload} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
-              </label>
+              <>
+                <button
+                  type="button"
+                  onClick={() => pdfInputRef.current?.click()}
+                  className="w-full rounded-lg border-2 border-dashed border-[#1DB5A8]/40 hover:border-[#1DB5A8] transition-colors cursor-pointer bg-transparent"
+                >
+                  <div className="flex flex-col items-center justify-center py-6">
+                    <FileText className="h-8 w-8 text-[#1DB5A8] mb-2" />
+                    <span className="text-sm text-[#1DB5A8] font-medium">
+                      {compressPdf.isPending ? "Subiendo PDF..." : "Subir PDF (GoodNotes, planos, etc.)"}
+                    </span>
+                  </div>
+                </button>
+                <input
+                  ref={pdfInputRef}
+                  type="file"
+                  accept=".pdf"
+                  onChange={handlePdfUpload}
+                  className="hidden"
+                />
+              </>
             )}
           </div>
 

@@ -555,8 +555,10 @@ export default function Medidor() {
           reader.onerror = () => reject(new Error("Error leyendo archivo"));
           reader.readAsDataURL(file);
         });
-      } catch {
-        toast.error(`Error al subir ${file.name}`);
+      } catch (err: any) {
+        const msg = err?.message || "Error desconocido";
+        toast.error(`Error al subir ${file.name}: ${msg}`);
+        console.error("Photo upload error:", err);
       }
     }
     if (uploaded > 0) {
@@ -588,9 +590,9 @@ export default function Medidor() {
       return;
     }
 
-    try {
-      const reader = new FileReader();
-      reader.onload = async () => {
+    const reader = new FileReader();
+    reader.onload = async () => {
+      try {
         const base64 = reader.result as string;
         const result = await compressPdf.mutateAsync({
           visitId,
@@ -602,11 +604,14 @@ export default function Medidor() {
         refetchDetail();
         refetchVisits();
         if (pdfInputRef.current) pdfInputRef.current.value = "";
-      };
-      reader.readAsDataURL(file);
-    } catch (error) {
-      toast.error("Error al subir PDF");
-    }
+      } catch (err: any) {
+        const msg = err?.message || "Error desconocido";
+        toast.error(`Error al subir PDF: ${msg}`);
+        console.error("PDF upload error:", err);
+      }
+    };
+    reader.onerror = () => toast.error("Error al leer el archivo PDF");
+    reader.readAsDataURL(file);
   };
 
   const handleSaveSignature = async (signature: string) => {

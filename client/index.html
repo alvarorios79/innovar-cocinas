@@ -21,62 +21,57 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-    <script>
-      (function() {
-        var ua = navigator.userAgent;
-        var log = [];
-        var shown = false;
-
-        function showDiag(msg) {
-          if (shown) return;
-          var root = document.getElementById('root');
-          if (!root) return;
-          // Only show if React didn't mount
-          if (root.children.length > 0) return;
-          shown = true;
-          root.innerHTML =
-            '<div style="padding:20px;font-family:monospace;font-size:13px;color:#0f0;background:#000;min-height:100vh;word-break:break-all">' +
-            '<b style="color:#f00">ERROR — React no montó</b><br><br>' +
-            '<b>UA:</b> ' + ua + '<br><br>' +
-            '<b>Detalle:</b><br>' + msg + '<br><br>' +
-            '<b>Log:</b><br>' + log.join('<br>') +
-            '</div>';
-        }
-
-        // Catch module-level script errors (capture phase)
-        document.addEventListener('error', function(e) {
-          var src = (e.target && e.target.src) ? e.target.src : 'unknown-src';
-          var msg = (e.message || '') + ' | src: ' + src;
-          log.push('SCRIPT ERR: ' + msg);
-          setTimeout(function(){ showDiag('Script error: ' + msg); }, 100);
-        }, true);
-
-        // Catch promise rejections
-        window.addEventListener('unhandledrejection', function(e) {
-          var r = e.reason ? (e.reason.stack || e.reason.message || String(e.reason)) : 'unknown';
-          log.push('REJECT: ' + r);
-        });
-
-        // Catch general JS errors
-        window.onerror = function(msg, src, line, col, err) {
-          var detail = msg + ' @' + src + ':' + line + ':' + col;
-          log.push('ERR: ' + detail);
-        };
-
-        // Timeout: if React not mounted in 10s, show diagnostics
-        setTimeout(function() {
-          var root = document.getElementById('root');
-          if (!root || root.children.length === 0) {
-            showDiag(log.length ? log.join(' | ') : 'Sin errores capturados — posible fallo silencioso al cargar módulos');
-          }
-        }, 10000);
-      })();
-    </script>
   </head>
 
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+
+    <!-- Diagnóstico: captura error real del bundle via dynamic import() -->
+    <script type="module">
+    (async function() {
+      // Esperar un momento para que el módulo estático intente cargarse
+      await new Promise(function(r){ setTimeout(r, 3000); });
+      var root = document.getElementById('root');
+      if (root && root.children.length > 0) return; // React montó OK
+
+      function showErr(msg) {
+        if (!root || root.children.length > 0) return;
+        root.innerHTML =
+          '<div style="padding:20px;font-family:monospace;font-size:12px;background:#000;color:#0f0;min-height:100vh;word-break:break-all">' +
+          '<b style="color:#f44">ERROR — React no montó</b><br><br>' +
+          '<b>UA:</b> ' + navigator.userAgent + '<br><br>' +
+          '<b>Error:</b><br>' + String(msg) +
+          '</div>';
+      }
+
+      // Buscar el bundle principal en el DOM
+      var scripts = document.querySelectorAll('script[type=module][src]');
+      var mainSrc = null;
+      for (var i = 0; i < scripts.length; i++) {
+        var s = scripts[i];
+        if (s.src && (s.src.indexOf('/assets/index-') !== -1 || s.src.indexOf('/src/main') !== -1)) {
+          mainSrc = s.src;
+          break;
+        }
+      }
+
+      if (mainSrc) {
+        try {
+          // dynamic import() en Safari SÍ da el error real (a diferencia del event listener)
+          await import(mainSrc);
+          // Si llegó aquí sin error pero React no montó, es un problema de ejecución
+          showErr('Bundle cargado sin error pero React no montó. URL: ' + mainSrc);
+        } catch(e) {
+          showErr((e && e.stack) ? e.stack : (e && e.message ? e.message : String(e)));
+        }
+      } else {
+        showErr('No se encontró el bundle principal en el DOM. Scripts: ' +
+          Array.from(document.querySelectorAll('script[src]')).map(function(s){ return s.src; }).join(', '));
+      }
+    })();
+    </script>
+
     <script>
       if ('serviceWorker' in navigator) {
         var isDev = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
@@ -96,10 +91,6 @@
         }
       }
     </script>
-    <script
-      defer
-      src="%VITE_ANALYTICS_ENDPOINT%/umami"
-      data-website-id="%VITE_ANALYTICS_WEBSITE_ID%"></script>
   </body>
 
 </html>

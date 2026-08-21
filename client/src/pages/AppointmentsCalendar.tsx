@@ -116,6 +116,7 @@ export default function AppointmentsCalendar() {
   const [newNotes, setNewNotes] = useState("");
   const [newClientPhone, setNewClientPhone] = useState("");
   const [newClientAddress, setNewClientAddress] = useState("");
+  const [isNewClient, setIsNewClient] = useState(false);
 
   // Obtener citas
   const { data: appointmentsData = [], refetch } = trpc.appointments.list.useQuery(
@@ -158,16 +159,42 @@ export default function AppointmentsCalendar() {
       setNewNotes("");
       setNewClientPhone("");
       setNewClientAddress("");
+      setIsNewClient(false);
     },
     onError: (error) => {
       toast.error(error.message || "Error al crear la cita");
     },
   });
 
-  const handleCreateAppointment = () => {
-    if (!newClientId || newWorkTypes.length === 0) return;
+  // Mutación para crear cliente nuevo
+  const createClientMutation = trpc.clients.createQuick.useMutation({
+    onError: (error) => {
+      toast.error(error.message || "Error al crear el cliente");
+    },
+  });
+
+  const handleCreateAppointment = async () => {
+    if (newWorkTypes.length === 0) return;
+    let clientId = newClientId;
+
+    if (isNewClient) {
+      if (!newClientName || newClientName.length < 2 || !newClientPhone || newClientPhone.length < 10) return;
+      try {
+        const newClient = await createClientMutation.mutateAsync({
+          name: newClientName,
+          whatsappPhone: newClientPhone,
+          address: newClientAddress || undefined,
+          internalManagement: true,
+        });
+        clientId = newClient?.id ?? null;
+      } catch {
+        return;
+      }
+    }
+
+    if (!clientId) return;
     createMutation.mutate({
-      clientId: newClientId,
+      clientId,
       workTypes: newWorkTypes as any,
       scheduledDateStr: newAptDate || undefined,
       scheduledTimeStr: newAptTime || undefined,
@@ -571,17 +598,47 @@ export default function AppointmentsCalendar() {
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            {/* Buscar cliente */}
+            {/* Buscar / crear cliente */}
             <div>
-              <Label>Cliente *</Label>
-              {newClientId ? (
+              <div className="flex items-center justify-between mb-1">
+                <Label>Cliente *</Label>
+                <button
+                  type="button"
+                  className="text-xs text-teal-400 hover:text-teal-300 underline"
+                  onClick={() => {
+                    setIsNewClient(!isNewClient);
+                    setNewClientId(null);
+                    setNewClientName("");
+                    setNewClientSearch("");
+                    setNewClientPhone("");
+                    setNewClientAddress("");
+                  }}
+                >
+                  {isNewClient ? "Buscar cliente existente" : "Crear nuevo cliente"}
+                </button>
+              </div>
+
+              {isNewClient ? (
+                /* Modo nuevo cliente */
+                <Input
+                  placeholder="Nombre completo del cliente *"
+                  value={newClientName}
+                  onChange={(e) => setNewClientName(e.target.value)}
+                  className="mt-1"
+                />
+              ) : newClientId ? (
+                /* Cliente seleccionado */
                 <div className="flex items-center justify-between p-2 bg-teal-500/10 border border-teal-500/30 rounded-lg mt-1">
-                  <span className="font-medium text-sm">{newClientName}</span>
+                  <div>
+                    <span className="font-medium text-sm">{newClientName}</span>
+                    {newClientPhone && <div className="text-xs text-white/40">{newClientPhone}</div>}
+                  </div>
                   <Button variant="ghost" size="sm" onClick={() => { setNewClientId(null); setNewClientName(""); setNewClientSearch(""); setNewClientPhone(""); setNewClientAddress(""); }}>
                     <X className="h-4 w-4" />
                   </Button>
                 </div>
               ) : (
+                /* Búsqueda */
                 <div className="relative mt-1">
                   <Search className="absolute left-3 top-2.5 h-4 w-4 text-white/40" />
                   <Input
@@ -590,18 +647,30 @@ export default function AppointmentsCalendar() {
                     onChange={(e) => setNewClientSearch(e.target.value)}
                     className="pl-9"
                   />
-                  {newClientSearch.length >= 2 && clientResults.length > 0 && (
+                  {newClientSearch.length >= 2 && (
                     <div className="absolute z-50 w-full mt-1 bg-[#162828] border border-white/10 rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                      {clientResults.map((c) => (
-                        <button
-                          key={c.id}
-                          className="w-full text-left px-3 py-2 hover:bg-white/5 text-sm"
-                          onClick={() => { setNewClientId(c.id); setNewClientName(c.name); setNewClientPhone(c.whatsappPhone || c.phone || ""); setNewClientAddress(c.address || ""); setNewClientSearch(""); }}
-                        >
-                          <div className="font-medium">{c.name}</div>
-                          {c.whatsappPhone && <div className="text-xs text-white/40">{c.whatsappPhone}</div>}
-                        </button>
-                      ))}
+                      {clientResults.length > 0 ? (
+                        clientResults.map((c) => (
+                          <button
+                            key={c.id}
+                            className="w-full text-left px-3 py-2 hover:bg-white/5 text-sm"
+                            onClick={() => { setNewClientId(c.id); setNewClientName(c.name); setNewClientPhone(c.whatsappPhone || c.phone || ""); setNewClientAddress(c.address || ""); setNewClientSearch(""); }}
+                          >
+                            <div className="font-medium">{c.name}</div>
+                            {c.whatsappPhone && <div className="text-xs text-white/40">{c.whatsappPhone}</div>}
+                          </button>
+                        ))
+                      ) : (
+                        <div className="px-3 py-2 text-sm text-white/40">
+                          No encontrado —{" "}
+                          <button
+                            className="text-teal-400 underline"
+                            onClick={() => { setIsNewClient(true); setNewClientName(newClientSearch); setNewClientSearch(""); }}
+                          >
+                            crear como nuevo
+                          </button>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -690,10 +759,10 @@ export default function AppointmentsCalendar() {
             </Button>
             <Button
               onClick={handleCreateAppointment}
-              disabled={!newClientId || newWorkTypes.length === 0 || createMutation.isPending}
+              disabled={(!newClientId && !isNewClient) || (isNewClient && (!newClientName || newClientName.length < 2 || !newClientPhone || newClientPhone.length < 10)) || newWorkTypes.length === 0 || createMutation.isPending || createClientMutation.isPending}
               className="bg-teal-600 hover:bg-teal-700 text-white"
             >
-              {createMutation.isPending ? "Creando..." : "Crear Cita"}
+              {createMutation.isPending || createClientMutation.isPending ? "Creando..." : "Crear Cita"}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -4,6 +4,7 @@ import react from "@vitejs/plugin-react";
 import fs from "node:fs";
 import path from "path";
 import { defineConfig } from "vite";
+import legacy from "@vitejs/plugin-legacy";
 import { vitePluginManusRuntime } from "vite-plugin-manus-runtime";
 
 
@@ -13,6 +14,11 @@ const isDev = process.env.NODE_ENV !== 'production';
 const plugins = [
   react(),
   tailwindcss(),
+  // Bundle de compatibilidad para Safari/Chrome iOS
+  legacy({
+    targets: ['ios >= 14', 'safari >= 14', 'chrome >= 87'],
+    modernPolyfills: true,
+  }),
   ...(isDev ? [jsxLocPlugin(), vitePluginManusRuntime()] : []),
 ];
 

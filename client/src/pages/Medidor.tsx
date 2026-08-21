@@ -663,7 +663,7 @@ export default function Medidor() {
       return d >= tomorrowStart;
     });
     const borradorVisits = (visits as Visit[]).filter(v => v.status === "borrador");
-    const historialVisits = (visits as Visit[]).filter(v => v.status !== "borrador");
+    const historialVisits = (visits as Visit[]).filter(v => ["completada", "enviado", "aprobado"].includes(v.status));
 
     // Agrupar próximas por fecha
     const proximasByDate: Record<string, any[]> = {};

@@ -256,9 +256,9 @@ export default function AppointmentsCalendar() {
     return appointmentsData
       .filter((apt: any) => {
         if (!apt.scheduledDate) return false;
-        const aptDate = new Date(apt.scheduledDate);
-        aptDate.setHours(0, 0, 0, 0);
-        return aptDate >= today; // Solo citas de hoy en adelante
+        const aptStr = new Date(apt.scheduledDate).toLocaleDateString("en-CA", { timeZone: "America/Bogota" });
+        const todayStr = today.toLocaleDateString("en-CA", { timeZone: "America/Bogota" });
+        return aptStr >= todayStr;
       })
       .map((apt: any) => ({
         id: apt.id,
@@ -275,9 +275,10 @@ export default function AppointmentsCalendar() {
 
   // Obtener citas para una fecha específica
   const getAppointmentsForDate = (date: Date): Appointment[] => {
+    const targetStr = date.toLocaleDateString("en-CA", { timeZone: "America/Bogota" });
     return appointments.filter(apt => {
-      const aptDate = new Date(apt.scheduledDate);
-      return aptDate.toDateString() === date.toDateString();
+      const aptStr = new Date(apt.scheduledDate).toLocaleDateString("en-CA", { timeZone: "America/Bogota" });
+      return aptStr === targetStr;
     });
   };
 

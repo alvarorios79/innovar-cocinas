@@ -29,6 +29,7 @@ import {
   ClipboardList,
   Plus,
   Search,
+  UserCheck,
 } from "lucide-react";
 import { VisualCalendar } from "@/components/VisualCalendar";
 import { PageHeader } from "@/components/PageHeader";
@@ -117,6 +118,7 @@ export default function AppointmentsCalendar() {
   const [newClientPhone, setNewClientPhone] = useState("");
   const [newClientAddress, setNewClientAddress] = useState("");
   const [isNewClient, setIsNewClient] = useState(false);
+  const [newMedidorId, setNewMedidorId] = useState<number | null>(null);
 
   // Obtener citas
   const { data: appointmentsData = [], refetch } = trpc.appointments.list.useQuery(
@@ -160,6 +162,7 @@ export default function AppointmentsCalendar() {
       setNewClientPhone("");
       setNewClientAddress("");
       setIsNewClient(false);
+      setNewMedidorId(null);
     },
     onError: (error) => {
       toast.error(error.message || "Error al crear la cita");
@@ -172,6 +175,15 @@ export default function AppointmentsCalendar() {
       toast.error(error.message || "Error al crear el cliente");
     },
   });
+
+  // Medidores disponibles
+  const { data: medidoresData = [] } = trpc.appointments.listMedidores.useQuery(undefined, {
+    enabled: showNewDialog && canCreateAppointment === true,
+  });
+  const medidores = medidoresData as { id: number; name: string }[];
+
+  // Asignar medidor
+  const assignMedidorMutation = trpc.appointments.assignMedidor.useMutation();
 
   const handleCreateAppointment = async () => {
     if (newWorkTypes.length === 0) return;
@@ -193,13 +205,23 @@ export default function AppointmentsCalendar() {
     }
 
     if (!clientId) return;
-    createMutation.mutate({
-      clientId,
-      workTypes: newWorkTypes as any,
-      scheduledDateStr: newAptDate || undefined,
-      scheduledTimeStr: newAptTime || undefined,
-      notes: newNotes || undefined,
-    });
+    try {
+      const result = await createMutation.mutateAsync({
+        clientId,
+        workTypes: newWorkTypes as any,
+        scheduledDateStr: newAptDate || undefined,
+        scheduledTimeStr: newAptTime || undefined,
+        notes: newNotes || undefined,
+      });
+      if (newMedidorId && result?.id) {
+        await assignMedidorMutation.mutateAsync({
+          appointmentId: result.id,
+          medidorId: newMedidorId,
+        });
+      }
+    } catch {
+      // errors handled by mutations
+    }
   };
 
   const canCreateAppointment = user && ["super_admin", "admin", "comercial"].includes(user.role);
@@ -705,6 +727,26 @@ export default function AppointmentsCalendar() {
                 className="mt-1"
               />
             </div>
+
+            {/* Asignar medidor */}
+            {medidores.length > 0 && (
+              <div>
+                <Label className="flex items-center gap-1">
+                  <UserCheck className="h-3.5 w-3.5 text-white/40" />
+                  Asignar medidor
+                </Label>
+                <select
+                  value={newMedidorId ?? ""}
+                  onChange={(e) => setNewMedidorId(e.target.value ? Number(e.target.value) : null)}
+                  className="w-full mt-1 bg-[#162828] border border-white/[0.10] text-white rounded-md px-3 py-2 text-sm"
+                >
+                  <option value="">Sin asignar</option>
+                  {medidores.map((m) => (
+                    <option key={m.id} value={m.id}>{m.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             {/* Tipos de trabajo */}
             <div>

@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import {
   Users, Phone, Mail, MapPin, Plus, Search, Edit2, Trash2,
-  CheckCircle, X, UserPlus, Copy, Check,
+  CheckCircle, X, UserPlus, Copy, Check, ChevronLeft, ChevronRight,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -53,15 +53,21 @@ export default function Clients() {
   const [deleteTarget, setDeleteTarget] = useState<Client | null>(null);
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [createdCreds, setCreatedCreds] = useState<{ email: string; password: string } | null>(null);
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search), 350);
     return () => clearTimeout(t);
   }, [search]);
 
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch]);
+
   const { data, isLoading, refetch } = trpc.clients.listPaginated.useQuery({
     search: debouncedSearch || undefined,
-    limit: 200,
+    limit: 50,
+    page,
   });
 
   const createMutation = trpc.clients.createQuick.useMutation({
@@ -106,6 +112,7 @@ export default function Clients() {
 
   const clients: Client[] = (data?.clients ?? []) as Client[];
   const total = data?.total ?? 0;
+  const totalPages = Math.ceil(total / 50);
 
   const now = new Date();
   const newThisMonth = clients.filter((c) => {
@@ -194,6 +201,30 @@ export default function Clients() {
               onDelete={() => setDeleteTarget(c)}
             />
           ))}
+        </div>
+      )}
+      {/* ── Paginación ── */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-3 mt-6">
+          <button
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={page === 1}
+            className="p-2 rounded-lg disabled:opacity-30 hover:bg-white/10 transition-colors"
+            style={{ color: "#1DB5A8" }}
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+          <span className="text-sm" style={{ color: "rgba(255,255,255,0.6)" }}>
+            Página <strong style={{ color: "#fff" }}>{page}</strong> de <strong style={{ color: "#fff" }}>{totalPages}</strong>
+          </span>
+          <button
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            disabled={page === totalPages}
+            className="p-2 rounded-lg disabled:opacity-30 hover:bg-white/10 transition-colors"
+            style={{ color: "#1DB5A8" }}
+          >
+            <ChevronRight className="h-5 w-5" />
+          </button>
         </div>
       )}
 

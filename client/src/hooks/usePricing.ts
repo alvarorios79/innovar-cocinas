@@ -44,6 +44,8 @@ const DEFAULT_PRICES: Record<string, { value: number; unit: string | null }> = {
   ISLA_LATERAL:         { value: 350000,  unit: "unidad" },
   BARRA_ML:             { value: 900000,  unit: "ml" },
   BARRA_LATERAL:        { value: 350000,  unit: "unidad" },
+  BARRA_PEDESTAL:       { value: 250000,  unit: "unidad" },
+  BARRA_HERRAJE:        { value: 380000,  unit: "unidad" },
   LED_ML:               { value: 220000,  unit: "ml" },
   TRANSPORTE_IMPREVISTOS: { value: 600000, unit: "fijo" },
 

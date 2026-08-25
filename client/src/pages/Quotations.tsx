@@ -303,6 +303,13 @@ export default function Quotations() {
           meters: 0,
           countertopType: "",
           hasLateral: false,
+          barraAlturaLateral: 90,
+          incluyePedestal: false,
+          incluyeHerraje: false,
+          incluyeLavaplatos: false,
+          lavaprecio: undefined,
+          esImportado: false,
+          precioImportadoML: undefined,
         },
         ledLighting: 0,
         paintedDoors: {
@@ -639,6 +646,13 @@ export default function Quotations() {
           meters: 0,
           countertopType: "",
           hasLateral: false,
+          barraAlturaLateral: 90,
+          incluyePedestal: false,
+          incluyeHerraje: false,
+          incluyeLavaplatos: false,
+          lavaprecio: undefined,
+          esImportado: false,
+          precioImportadoML: undefined,
         },
         ledLighting: 0,
         paintedDoors: {
@@ -872,6 +886,13 @@ export default function Quotations() {
               meters: item.kitchenConfig.bar?.meters ?? 0,
               countertopType: item.kitchenConfig.bar?.countertopType ?? "",
               hasLateral: item.kitchenConfig.bar?.hasLateral ?? false,
+              barraAlturaLateral: item.kitchenConfig.bar?.barraAlturaLateral ?? 90,
+              incluyePedestal: item.kitchenConfig.bar?.incluyePedestal ?? false,
+              incluyeHerraje: item.kitchenConfig.bar?.incluyeHerraje ?? false,
+              incluyeLavaplatos: item.kitchenConfig.bar?.incluyeLavaplatos ?? false,
+              lavaprecio: item.kitchenConfig.bar?.lavaprecio ?? undefined,
+              esImportado: item.kitchenConfig.bar?.esImportado ?? false,
+              precioImportadoML: item.kitchenConfig.bar?.precioImportadoML ?? undefined,
             },
             ledLighting: item.kitchenConfig.ledLighting ?? 0,
             kitchenModules: item.kitchenConfig.kitchenModules ? {
@@ -908,6 +929,13 @@ export default function Quotations() {
               meters: 0,
               countertopType: "",
               hasLateral: false,
+              barraAlturaLateral: 90,
+              incluyePedestal: false,
+              incluyeHerraje: false,
+              incluyeLavaplatos: false,
+              lavaprecio: undefined,
+              esImportado: false,
+              precioImportadoML: undefined,
             },
             ledLighting: 0,
             paintedDoors: {
@@ -976,6 +1004,13 @@ export default function Quotations() {
             meters: 0,
             countertopType: "",
             hasLateral: false,
+            barraAlturaLateral: 90,
+            incluyePedestal: false,
+            incluyeHerraje: false,
+            incluyeLavaplatos: false,
+            lavaprecio: undefined,
+            esImportado: false,
+            precioImportadoML: undefined,
           },
           ledLighting: 0,
           paintedDoors: {
@@ -1259,17 +1294,33 @@ export default function Quotations() {
       // Muebles de barra
       total += config.bar.meters * getPrice('BARRA_ML');
       
+      // Pedestal metálico
+      if (config.bar.incluyePedestal) total += getPrice('BARRA_PEDESTAL');
+      
+      // Herraje de barra
+      if (config.bar.incluyeHerraje) total += getPrice('BARRA_HERRAJE');
+      
       // Mesón superior de barra
       if (config.bar.countertopType) {
-        const barCountertopPrice = config.bar.countertopType === "quarzone" ? getPrice('MESON_CUARZO')
-                                 : config.bar.countertopType === "granito"  ? getPrice('MESON_GRANITO')
-                                 : getPrice('MESON_SINTERIZADO');
-        total += config.bar.meters * barCountertopPrice;
+        const barBasePrice = (config.bar.esImportado && config.bar.precioImportadoML)
+          ? config.bar.precioImportadoML
+          : config.bar.countertopType === "quarzone" ? getPrice('MESON_CUARZO')
+          : config.bar.countertopType === "granito"  ? getPrice('MESON_GRANITO')
+          : getPrice('MESON_SINTERIZADO');
+        total += config.bar.meters * barBasePrice;
         
-        // Lateral de barra
+        // Lateral de barra (altura configurable)
         if (config.bar.hasLateral) {
-          total += 0.9 * barCountertopPrice;
+          const lateralML = (config.bar.barraAlturaLateral && config.bar.barraAlturaLateral > 0)
+            ? config.bar.barraAlturaLateral / 100
+            : 0.9;
+          total += lateralML * barBasePrice;
         }
+      }
+      
+      // Lavaplatos de barra
+      if (config.bar.incluyeLavaplatos) {
+        total += (config.bar.lavaprecio ?? getPrice('LAVAPLATOS_MESON'));
       }
     }
 
@@ -1594,17 +1645,33 @@ export default function Quotations() {
           // Muebles de barra
           total += config.bar.meters * getPrice('BARRA_ML');
           
+          // Pedestal metálico
+          if (config.bar.incluyePedestal) total += getPrice('BARRA_PEDESTAL');
+          
+          // Herraje de barra
+          if (config.bar.incluyeHerraje) total += getPrice('BARRA_HERRAJE');
+          
           // Mesón superior de barra
           if (config.bar.countertopType) {
-            const barCountertopPrice = config.bar.countertopType === "quarzone" ? getPrice('MESON_CUARZO')
-                                 : config.bar.countertopType === "granito"  ? getPrice('MESON_GRANITO')
-                                 : getPrice('MESON_SINTERIZADO');
-            total += config.bar.meters * barCountertopPrice;
+            const barBasePrice = (config.bar.esImportado && config.bar.precioImportadoML)
+              ? config.bar.precioImportadoML
+              : config.bar.countertopType === "quarzone" ? getPrice('MESON_CUARZO')
+              : config.bar.countertopType === "granito"  ? getPrice('MESON_GRANITO')
+              : getPrice('MESON_SINTERIZADO');
+            total += config.bar.meters * barBasePrice;
             
-            // Lateral de barra
+            // Lateral de barra (altura configurable)
             if (config.bar.hasLateral) {
-              total += 0.9 * barCountertopPrice;
+              const lateralML = (config.bar.barraAlturaLateral && config.bar.barraAlturaLateral > 0)
+                ? config.bar.barraAlturaLateral / 100
+                : 0.9;
+              total += lateralML * barBasePrice;
             }
+          }
+          
+          // Lavaplatos de barra
+          if (config.bar.incluyeLavaplatos) {
+            total += (config.bar.lavaprecio ?? getPrice('LAVAPLATOS_MESON'));
           }
         }
 
@@ -3107,18 +3174,118 @@ export default function Quotations() {
                                       </Select>
                                     </div>
                                   </div>
+                                  {/* Lateral con altura configurable */}
+                                  <div className="space-y-1">
+                                    <div className="flex items-center space-x-2">
+                                      <input
+                                        type="checkbox"
+                                        id={`barLateral-${index}`}
+                                        checked={item.kitchenConfig?.bar.hasLateral || false}
+                                        onChange={(e) => updateKitchenConfig(index, "bar.hasLateral", e.target.checked)}
+                                        className="h-4 w-4"
+                                      />
+                                      <Label htmlFor={`barLateral-${index}`} className="text-sm font-normal cursor-pointer">
+                                        Incluir lateral
+                                      </Label>
+                                    </div>
+                                    {item.kitchenConfig?.bar.hasLateral && (
+                                      <div className="flex items-center gap-2 pl-6">
+                                        <Label className="text-sm text-white/70">Altura:</Label>
+                                        <Input
+                                          type="number"
+                                          step="1"
+                                          value={item.kitchenConfig?.bar.barraAlturaLateral ?? 90}
+                                          onChange={(e) => updateKitchenConfig(index, "bar.barraAlturaLateral", parseInt(e.target.value) || 90)}
+                                          className="h-8 w-20"
+                                        />
+                                        <span className="text-sm text-white/60">cm</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                  {/* Pedestal metálico */}
                                   <div className="flex items-center space-x-2">
                                     <input
                                       type="checkbox"
-                                      id={`barLateral-${index}`}
-                                      checked={item.kitchenConfig?.bar.hasLateral || false}
-                                      onChange={(e) => updateKitchenConfig(index, "bar.hasLateral", e.target.checked)}
+                                      id={`barPedestal-${index}`}
+                                      checked={item.kitchenConfig?.bar.incluyePedestal || false}
+                                      onChange={(e) => updateKitchenConfig(index, "bar.incluyePedestal", e.target.checked)}
                                       className="h-4 w-4"
                                     />
-                                    <Label htmlFor={`barLateral-${index}`} className="text-sm font-normal cursor-pointer">
-                                      Incluir lateral (+0.90ml fijo)
+                                    <Label htmlFor={`barPedestal-${index}`} className="text-sm font-normal cursor-pointer">
+                                      Pedestal metálico (+$250,000)
                                     </Label>
                                   </div>
+                                  {/* Herraje de barra */}
+                                  <div className="flex items-center space-x-2">
+                                    <input
+                                      type="checkbox"
+                                      id={`barHerraje-${index}`}
+                                      checked={item.kitchenConfig?.bar.incluyeHerraje || false}
+                                      onChange={(e) => updateKitchenConfig(index, "bar.incluyeHerraje", e.target.checked)}
+                                      className="h-4 w-4"
+                                    />
+                                    <Label htmlFor={`barHerraje-${index}`} className="text-sm font-normal cursor-pointer">
+                                      Herraje de barra (+$380,000)
+                                    </Label>
+                                  </div>
+                                  {/* Lavaplatos */}
+                                  <div className="space-y-1">
+                                    <div className="flex items-center space-x-2">
+                                      <input
+                                        type="checkbox"
+                                        id={`barLavaplatos-${index}`}
+                                        checked={item.kitchenConfig?.bar.incluyeLavaplatos || false}
+                                        onChange={(e) => updateKitchenConfig(index, "bar.incluyeLavaplatos", e.target.checked)}
+                                        className="h-4 w-4"
+                                      />
+                                      <Label htmlFor={`barLavaplatos-${index}`} className="text-sm font-normal cursor-pointer">
+                                        Lavaplatos
+                                      </Label>
+                                    </div>
+                                    {item.kitchenConfig?.bar.incluyeLavaplatos && (
+                                      <div className="flex items-center gap-2 pl-6">
+                                        <Label className="text-sm text-white/70">Precio:</Label>
+                                        <Input
+                                          type="number"
+                                          step="1000"
+                                          value={item.kitchenConfig?.bar.lavaprecio ?? ""}
+                                          onChange={(e) => updateKitchenConfig(index, "bar.lavaprecio", parseFloat(e.target.value) || undefined)}
+                                          placeholder="130,000"
+                                          className="h-8 w-32"
+                                        />
+                                      </div>
+                                    )}
+                                  </div>
+                                  {/* Mesón importado */}
+                                  {item.kitchenConfig?.bar.countertopType && (
+                                    <div className="space-y-1">
+                                      <div className="flex items-center space-x-2">
+                                        <input
+                                          type="checkbox"
+                                          id={`barImportado-${index}`}
+                                          checked={item.kitchenConfig?.bar.esImportado || false}
+                                          onChange={(e) => updateKitchenConfig(index, "bar.esImportado", e.target.checked)}
+                                          className="h-4 w-4"
+                                        />
+                                        <Label htmlFor={`barImportado-${index}`} className="text-sm font-normal cursor-pointer">
+                                          Mesón importado
+                                        </Label>
+                                      </div>
+                                      {item.kitchenConfig?.bar.esImportado && (
+                                        <div className="flex items-center gap-2 pl-6">
+                                          <Label className="text-sm text-white/70">Precio/ml:</Label>
+                                          <Input
+                                            type="number"
+                                            step="1000"
+                                            value={item.kitchenConfig?.bar.precioImportadoML ?? ""}
+                                            onChange={(e) => updateKitchenConfig(index, "bar.precioImportadoML", parseFloat(e.target.value) || undefined)}
+                                            placeholder="precio/ml"
+                                            className="h-8 w-32"
+                                          />
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
                                 </div>
                               )}
                             </div>

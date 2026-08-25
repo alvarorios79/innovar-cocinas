@@ -2631,6 +2631,8 @@ export const quotationsRouter = router({
               totalPrice: formatCurrency(Number(item.totalPrice)),
             })),
             subtotal: formatCurrency(Number(quotation.subtotal)),
+            discountPercent: String(parseFloat(String(quotation.discountPercent)) || 0),
+            discountAmount: String(parseFloat(String(quotation.discountAmount)) || 0),
             transportCost: formatCurrency(Number(quotation.transportCost || 0)),
             includeIva: (quotation as any).includeIva === 1,
             ivaAmount: (quotation as any).includeIva === 1

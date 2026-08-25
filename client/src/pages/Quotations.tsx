@@ -2909,6 +2909,36 @@ export default function Quotations() {
                                   </Select>
                                 </div>
                               </div>
+                              {/* Importado mesón — todos los materiales */}
+                              {item.kitchenConfig?.countertop.type && (
+                                <div className="flex flex-wrap items-center gap-2 pt-1">
+                                  <Label className="text-xs text-white/60 mr-1">Variante:</Label>
+                                  <button
+                                    type="button"
+                                    onClick={() => updateKitchenConfig(index, "countertop.esImportado", false)}
+                                    className={`px-2 py-1 rounded text-xs font-medium transition-colors ${!item.kitchenConfig?.countertop.esImportado ? 'bg-emerald-600 text-white' : 'bg-[#0C1A1A] text-white/50 hover:text-white/70'}`}
+                                  >Standard</button>
+                                  <button
+                                    type="button"
+                                    onClick={() => updateKitchenConfig(index, "countertop.esImportado", true)}
+                                    className={`px-2 py-1 rounded text-xs font-medium transition-colors ${item.kitchenConfig?.countertop.esImportado ? 'bg-amber-600 text-white' : 'bg-[#0C1A1A] text-white/50 hover:text-white/70'}`}
+                                  >Importado</button>
+                                  {item.kitchenConfig?.countertop.esImportado && (
+                                    <div className="flex items-center gap-1">
+                                      <span className="text-xs text-white/50">$/ml</span>
+                                      <Input
+                                        type="number"
+                                        step="50000"
+                                        min="0"
+                                        placeholder="Precio/ml"
+                                        value={item.kitchenConfig?.countertop.precioImportadoML || ""}
+                                        onChange={(e) => updateKitchenConfig(index, "countertop.precioImportadoML", parseInt(e.target.value) || 0)}
+                                        className="h-7 w-32 text-xs"
+                                      />
+                                    </div>
+                                  )}
+                                </div>
+                              )}
                             </div>
                             )}
 
@@ -2959,6 +2989,53 @@ export default function Quotations() {
                                       </Select>
                                     </div>
                                   </div>
+                                  {/* Fondo isla */}
+                                  <div>
+                                    <Label className="text-xs text-white/70">Profundidad (fondo) del mesón</Label>
+                                    <Select
+                                      value={item.kitchenConfig?.island.depthSurcharge || "none"}
+                                      onValueChange={(value) => updateKitchenConfig(index, "island.depthSurcharge", value)}
+                                    >
+                                      <SelectTrigger className="h-8 text-xs">
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="none">≤90cm — sin recargo</SelectItem>
+                                        <SelectItem value="30percent">91-100cm — +30%</SelectItem>
+                                        <SelectItem value="double">101-120cm — ×2</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                  {/* Importado isla */}
+                                  {item.kitchenConfig?.island.countertopType && (
+                                    <div className="flex flex-wrap items-center gap-2">
+                                      <Label className="text-xs text-white/60 mr-1">Variante:</Label>
+                                      <button
+                                        type="button"
+                                        onClick={() => updateKitchenConfig(index, "island.esImportado", false)}
+                                        className={`px-2 py-1 rounded text-xs font-medium transition-colors ${!item.kitchenConfig?.island.esImportado ? 'bg-emerald-600 text-white' : 'bg-[#0C1A1A] text-white/50 hover:text-white/70'}`}
+                                      >Standard</button>
+                                      <button
+                                        type="button"
+                                        onClick={() => updateKitchenConfig(index, "island.esImportado", true)}
+                                        className={`px-2 py-1 rounded text-xs font-medium transition-colors ${item.kitchenConfig?.island.esImportado ? 'bg-amber-600 text-white' : 'bg-[#0C1A1A] text-white/50 hover:text-white/70'}`}
+                                      >Importado</button>
+                                      {item.kitchenConfig?.island.esImportado && (
+                                        <div className="flex items-center gap-1">
+                                          <span className="text-xs text-white/50">$/ml</span>
+                                          <Input
+                                            type="number"
+                                            step="50000"
+                                            min="0"
+                                            placeholder="Precio/ml"
+                                            value={item.kitchenConfig?.island.precioImportadoML || ""}
+                                            onChange={(e) => updateKitchenConfig(index, "island.precioImportadoML", parseInt(e.target.value) || 0)}
+                                            className="h-7 w-32 text-xs"
+                                          />
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
                                   <div className="flex items-center space-x-2">
                                     <input
                                       type="checkbox"

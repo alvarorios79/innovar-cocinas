@@ -1071,14 +1071,23 @@ export const quotationsRouter = router({
                 const barLines: string[] = [];
                 barLines.push(`${config.bar.meters.toFixed(2)}ml muebles`);
                 
+                if (config.bar.incluyePedestal) barLines.push('pedestal metálico');
+                if (config.bar.incluyeHerraje) barLines.push('herraje');
+                
                 if (config.bar.countertopType) {
-                  const barCountertopType = config.bar.countertopType === 'quarzone' ? 'Quarzone' : 'Sinterizado';
-                  barLines.push(`mesón ${barCountertopType}`);
+                  const barCtBase = config.bar.countertopType === 'quarzone' ? 'Quarzone'
+                                  : config.bar.countertopType === 'granito' ? 'Granito'
+                                  : 'Sinterizado';
+                  const barCtLabel = config.bar.esImportado ? `${barCtBase} Importado` : barCtBase;
+                  barLines.push(`mesón ${barCtLabel}`);
                 }
                 
                 if (config.bar.hasLateral) {
-                  barLines.push('con lateral');
+                  const altCm = config.bar.barraAlturaLateral ?? 90;
+                  barLines.push(`con lateral (${altCm}cm)`);
                 }
+                
+                if (config.bar.incluyeLavaplatos) barLines.push('lavaplatos');
                 
                 lines.push(`• Barra: ${barLines.join(', ')}`);
               }
@@ -1590,11 +1599,20 @@ export const quotationsRouter = router({
             if (config.bar?.enabled && config.bar.meters > 0) {
               const barLines: string[] = [];
               barLines.push(`${config.bar.meters.toFixed(2)}ml muebles`);
+              if (config.bar.incluyePedestal) barLines.push('pedestal metálico');
+              if (config.bar.incluyeHerraje) barLines.push('herraje');
               if (config.bar.countertopType) {
-                const barCountertopType = config.bar.countertopType === 'quarzone' ? 'Quarzone' : 'Sinterizado';
-                barLines.push(`mesón ${barCountertopType}`);
+                const barCtBase = config.bar.countertopType === 'quarzone' ? 'Quarzone'
+                                : config.bar.countertopType === 'granito' ? 'Granito'
+                                : 'Sinterizado';
+                const barCtLabel = config.bar.esImportado ? `${barCtBase} Importado` : barCtBase;
+                barLines.push(`mesón ${barCtLabel}`);
               }
-              if (config.bar.hasLateral) barLines.push('con lateral');
+              if (config.bar.hasLateral) {
+                const altCm = config.bar.barraAlturaLateral ?? 90;
+                barLines.push(`con lateral (${altCm}cm)`);
+              }
+              if (config.bar.incluyeLavaplatos) barLines.push('lavaplatos');
               lines.push(`• Barra: ${barLines.join(', ')}`);
             }
             
@@ -2315,14 +2333,23 @@ export const quotationsRouter = router({
                 const barLines: string[] = [];
                 barLines.push(`${config.bar.meters.toFixed(2)}ml muebles`);
                 
+                if (config.bar.incluyePedestal) barLines.push('pedestal metálico');
+                if (config.bar.incluyeHerraje) barLines.push('herraje');
+                
                 if (config.bar.countertopType) {
-                  const barCountertopType = config.bar.countertopType === 'quarzone' ? 'Quarzone' : 'Sinterizado';
-                  barLines.push(`mesón ${barCountertopType}`);
+                  const barCtBase = config.bar.countertopType === 'quarzone' ? 'Quarzone'
+                                  : config.bar.countertopType === 'granito' ? 'Granito'
+                                  : 'Sinterizado';
+                  const barCtLabel = config.bar.esImportado ? `${barCtBase} Importado` : barCtBase;
+                  barLines.push(`mesón ${barCtLabel}`);
                 }
                 
                 if (config.bar.hasLateral) {
-                  barLines.push('con lateral');
+                  const altCm = config.bar.barraAlturaLateral ?? 90;
+                  barLines.push(`con lateral (${altCm}cm)`);
                 }
+                
+                if (config.bar.incluyeLavaplatos) barLines.push('lavaplatos');
                 
                 lines.push(`• Barra: ${barLines.join(', ')}`);
               }

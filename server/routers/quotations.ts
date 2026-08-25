@@ -1028,7 +1028,7 @@ export const quotationsRouter = router({
               // Mesón principal
               if (config.countertop.type) {
                 const ct = config.countertop;
-                const countertopType = (ct.esImportado && ct.type !== 'granito') ? (ct.type === 'quarzone' ? 'Quarzone Importado' : 'Sinterizado Importado') : ct.type === 'quarzone' ? 'Quarzone' : ct.type === 'granito' ? 'Granito' : 'Sinterizado';
+                const countertopType = ct.esImportado ? (ct.type === 'quarzone' ? 'Quarzone Importado' : ct.type === 'granito' ? 'Granito Importado' : 'Sinterizado Importado') : ct.type === 'quarzone' ? 'Quarzone' : ct.type === 'granito' ? 'Granito' : 'Sinterizado';
                 let surchargeText = '';
                 
                 if (ct.depthSurcharge === '30percent') {
@@ -1049,8 +1049,14 @@ export const quotationsRouter = router({
                 islandLines.push(`${config.island.meters.toFixed(2)}ml muebles`);
                 
                 if (config.island.countertopType) {
-                  const islandCountertopType = config.island.countertopType === 'quarzone' ? 'Quarzone' : 'Sinterizado';
-                  islandLines.push(`mesón ${islandCountertopType}`);
+                  const isl = config.island;
+                  const islandCtType = isl.esImportado
+                    ? (isl.countertopType === 'quarzone' ? 'Quarzone Importado' : isl.countertopType === 'granito' ? 'Granito Importado' : 'Sinterizado Importado')
+                    : (isl.countertopType === 'quarzone' ? 'Quarzone' : isl.countertopType === 'granito' ? 'Granito' : 'Sinterizado');
+                  let islandSurchargeText = '';
+                  if (isl.depthSurcharge === '30percent') islandSurchargeText = ' +30% fondo';
+                  else if (isl.depthSurcharge === 'double') islandSurchargeText = ' ×2 fondo';
+                  islandLines.push(`mesón ${islandCtType}${islandSurchargeText}`);
                 }
                 
                 if (config.island.hasLaterals) {
@@ -1554,7 +1560,7 @@ export const quotationsRouter = router({
             
             if (config.countertop?.type) {
               const ct = config.countertop;
-              const countertopType = (ct.esImportado && ct.type !== 'granito') ? (ct.type === 'quarzone' ? 'Quarzone Importado' : 'Sinterizado Importado') : ct.type === 'quarzone' ? 'Quarzone' : ct.type === 'granito' ? 'Granito' : 'Sinterizado';
+              const countertopType = ct.esImportado ? (ct.type === 'quarzone' ? 'Quarzone Importado' : ct.type === 'granito' ? 'Granito Importado' : 'Sinterizado Importado') : ct.type === 'quarzone' ? 'Quarzone' : ct.type === 'granito' ? 'Granito' : 'Sinterizado';
               let surchargeText = '';
               if (ct.depthSurcharge === '30percent') surchargeText = ' — fondo 61-90cm (+30%)';
               else if (ct.depthSurcharge === 'double') surchargeText = ' — fondo 91-120cm (×2)';
@@ -1568,8 +1574,14 @@ export const quotationsRouter = router({
               const islandLines: string[] = [];
               islandLines.push(`${config.island.meters.toFixed(2)}ml muebles`);
               if (config.island.countertopType) {
-                const islandCountertopType = config.island.countertopType === 'quarzone' ? 'Quarzone' : 'Sinterizado';
-                islandLines.push(`mesón ${islandCountertopType}`);
+                const isl2 = config.island;
+                const islandCtType2 = isl2.esImportado
+                  ? (isl2.countertopType === 'quarzone' ? 'Quarzone Importado' : isl2.countertopType === 'granito' ? 'Granito Importado' : 'Sinterizado Importado')
+                  : (isl2.countertopType === 'quarzone' ? 'Quarzone' : isl2.countertopType === 'granito' ? 'Granito' : 'Sinterizado');
+                let islandSurchargeText2 = '';
+                if (isl2.depthSurcharge === '30percent') islandSurchargeText2 = ' +30% fondo';
+                else if (isl2.depthSurcharge === 'double') islandSurchargeText2 = ' ×2 fondo';
+                islandLines.push(`mesón ${islandCtType2}${islandSurchargeText2}`);
               }
               if (config.island.hasLaterals) islandLines.push('con laterales');
               lines.push(`• Isla: ${islandLines.join(', ')}`);

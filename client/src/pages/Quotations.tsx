@@ -727,6 +727,13 @@ export default function Quotations() {
       
       // Cargar items si existen
       if (quotationData && quotationData.items && Array.isArray(quotationData.items)) {
+        // Aviso si la cotización tiene closets, puertas o centro TV
+        const hasAutoCalcItems = quotationData.items.some((it: any) =>
+          ['closet', 'puerta', 'centro_tv'].includes(it.itemType)
+        );
+        if (hasAutoCalcItems) {
+          toast.info("Esta cotización tiene closets, puertas o centros de TV. Si modificas su configuración, el precio se recalculará con las tarifas actuales.");
+        }
         setItems(quotationData.items.map((item: any, idx: number) => ({
           _id: `db_${item.id || idx}_${Date.now()}`,
           itemNumber: item.itemNumber,
@@ -1218,7 +1225,7 @@ export default function Quotations() {
         total += 0.9 * countertopPrice;
       }
       if (config.countertop.incluyeLavaplatos) {
-        total += config.countertop.lavaprecio || getPrice('LAVAPLATOS_MESON');
+        total += config.countertop.lavaprecio ?? getPrice('LAVAPLATOS_MESON');
       }
     }
 
@@ -1553,7 +1560,7 @@ export default function Quotations() {
             total += 0.9 * countertopPrice;
           }
           if (config.countertop.incluyeLavaplatos) {
-            total += config.countertop.lavaprecio || getPrice('LAVAPLATOS_MESON');
+            total += config.countertop.lavaprecio ?? getPrice('LAVAPLATOS_MESON');
           }
         }
 

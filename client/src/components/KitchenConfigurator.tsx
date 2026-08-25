@@ -36,6 +36,9 @@ export interface KitchenConfig {
     meters: number;
     countertopType: string;
     hasLaterals: boolean;
+    depthSurcharge?: string;       // none | 30percent | double
+    esImportado?: boolean;
+    precioImportadoML?: number;
   };
   bar: {
     enabled: boolean;
@@ -541,7 +544,7 @@ export function KitchenConfigurator({
             </div>
 
             {/* Standard / Importado — solo para quarzo y sinterizado */}
-            {['quarzone', 'sinterizado'].includes(currentConfig.countertop.type) && (
+            {currentConfig.countertop.type && (
               <div className="mt-3 flex flex-wrap items-center gap-2">
                 <Label className="text-sm font-medium text-white/70 mr-1">Variante:</Label>
                 <button
@@ -701,6 +704,68 @@ export function KitchenConfigurator({
                     </Select>
                   </div>
                 </div>
+
+                {/* Recargo por fondo de isla */}
+                <div>
+                  <Label className="text-sm font-medium text-white/85 block mb-2">Profundidad (fondo) del mesón de isla</Label>
+                  <Select
+                    value={currentConfig.island.depthSurcharge || "none"}
+                    onValueChange={(value) => updateConfig("island.depthSurcharge", value)}
+                  >
+                    <SelectTrigger className="h-10 bg-[#162828]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Estándar ≤90cm (sin recargo)</SelectItem>
+                      <SelectItem value="30percent">+30% — fondo 91-100cm</SelectItem>
+                      <SelectItem value="double">×2 — fondo 101-120cm</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Importado isla */}
+                {currentConfig.island.countertopType && (
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Label className="text-sm font-medium text-white/70 mr-1">Variante mesón isla:</Label>
+                    <button
+                      type="button"
+                      onClick={() => updateConfig("island.esImportado", false)}
+                      className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                        !currentConfig.island.esImportado
+                          ? 'bg-emerald-600 text-white'
+                          : 'bg-[#162828] text-white/50 hover:text-white/80'
+                      }`}
+                    >
+                      Standard
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => updateConfig("island.esImportado", true)}
+                      className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                        currentConfig.island.esImportado
+                          ? 'bg-amber-600 text-white'
+                          : 'bg-[#162828] text-white/50 hover:text-white/80'
+                      }`}
+                    >
+                      Importado
+                    </button>
+                    {currentConfig.island.esImportado && (
+                      <div className="flex items-center gap-2 ml-1">
+                        <span className="text-sm text-white/50">$/ml</span>
+                        <Input
+                          type="number"
+                          step="50000"
+                          min="0"
+                          placeholder="Precio por ml"
+                          value={currentConfig.island.precioImportadoML || ""}
+                          onChange={(e) => updateConfig("island.precioImportadoML", parseInt(e.target.value) || 0)}
+                          className="h-9 w-36 bg-[#162828]"
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <div className="flex items-center gap-3">
                   <Checkbox 
                     id="isla-laterales" 

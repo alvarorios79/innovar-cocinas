@@ -2272,7 +2272,7 @@ export const quotationsRouter = router({
               // Mesón principal
               if (config.countertop.type) {
                 const ct = config.countertop;
-                const countertopType = (ct.esImportado && ct.type !== 'granito') ? (ct.type === 'quarzone' ? 'Quarzone Importado' : 'Sinterizado Importado') : ct.type === 'quarzone' ? 'Quarzone' : ct.type === 'granito' ? 'Granito' : 'Sinterizado';
+                const countertopType = ct.esImportado ? (ct.type === 'quarzone' ? 'Quarzone Importado' : ct.type === 'granito' ? 'Granito Importado' : 'Sinterizado Importado') : ct.type === 'quarzone' ? 'Quarzone' : ct.type === 'granito' ? 'Granito' : 'Sinterizado';
                 let surchargeText = '';
                 
                 if (ct.depthSurcharge === '30percent') {
@@ -2293,8 +2293,14 @@ export const quotationsRouter = router({
                 islandLines.push(`${config.island.meters.toFixed(2)}ml muebles`);
                 
                 if (config.island.countertopType) {
-                  const islandCountertopType = config.island.countertopType === 'quarzone' ? 'Quarzone' : 'Sinterizado';
-                  islandLines.push(`mesón ${islandCountertopType}`);
+                  const isl3 = config.island;
+                  const islandCtType3 = isl3.esImportado
+                    ? (isl3.countertopType === 'quarzone' ? 'Quarzone Importado' : isl3.countertopType === 'granito' ? 'Granito Importado' : 'Sinterizado Importado')
+                    : (isl3.countertopType === 'quarzone' ? 'Quarzone' : isl3.countertopType === 'granito' ? 'Granito' : 'Sinterizado');
+                  let islandSurchargeText3 = '';
+                  if (isl3.depthSurcharge === '30percent') islandSurchargeText3 = ' +30% fondo';
+                  else if (isl3.depthSurcharge === 'double') islandSurchargeText3 = ' ×2 fondo';
+                  islandLines.push(`mesón ${islandCtType3}${islandSurchargeText3}`);
                 }
                 
                 if (config.island.hasLaterals) {

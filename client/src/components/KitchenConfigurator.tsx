@@ -45,6 +45,13 @@ export interface KitchenConfig {
     meters: number;
     countertopType: string;
     hasLateral: boolean;
+    barraAlturaLateral?: number;
+    incluyePedestal?: boolean;
+    incluyeHerraje?: boolean;
+    incluyeLavaplatos?: boolean;
+    lavaprecio?: number;
+    esImportado?: boolean;
+    precioImportadoML?: number;
   };
   ledLighting: number;
   includeUpperModule?: boolean; // Solo para Frente PLL - Módulo superior +$750,000/ml
@@ -161,6 +168,13 @@ export function KitchenConfigurator({
       meters: 0,
       countertopType: "",
       hasLateral: false,
+      barraAlturaLateral: 90,
+      incluyePedestal: false,
+      incluyeHerraje: false,
+      incluyeLavaplatos: false,
+      lavaprecio: undefined,
+      esImportado: false,
+      precioImportadoML: undefined,
     },
     ledLighting: 0,
     paintedDoors: {
@@ -826,16 +840,103 @@ export function KitchenConfigurator({
                     </Select>
                   </div>
                 </div>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-3">
+                    <Checkbox 
+                      id="barra-lateral" 
+                      checked={currentConfig.bar.hasLateral} 
+                      onCheckedChange={(c) => updateConfig("bar.hasLateral", c === true)} 
+                    />
+                    <Label htmlFor="barra-lateral" className="cursor-pointer text-sm">
+                      Incluir lateral
+                    </Label>
+                  </div>
+                  {currentConfig.bar.hasLateral && (
+                    <div className="flex items-center gap-2 pl-8">
+                      <Label className="text-sm text-white/70">Altura:</Label>
+                      <Input
+                        type="number"
+                        step="1"
+                        value={currentConfig.bar.barraAlturaLateral ?? 90}
+                        onChange={(e) => updateConfig("bar.barraAlturaLateral", parseInt(e.target.value) || 90)}
+                        className="h-8 w-20 bg-[#162828]"
+                      />
+                      <span className="text-sm text-white/60">cm</span>
+                    </div>
+                  )}
+                </div>
                 <div className="flex items-center gap-3">
                   <Checkbox 
-                    id="barra-lateral" 
-                    checked={currentConfig.bar.hasLateral} 
-                    onCheckedChange={(c) => updateConfig("bar.hasLateral", c === true)} 
+                    id="barra-pedestal" 
+                    checked={currentConfig.bar.incluyePedestal ?? false} 
+                    onCheckedChange={(c) => updateConfig("bar.incluyePedestal", c === true)} 
                   />
-                  <Label htmlFor="barra-lateral" className="cursor-pointer text-sm">
-                    Incluir lateral (+0.90ml fijo)
+                  <Label htmlFor="barra-pedestal" className="cursor-pointer text-sm">
+                    Pedestal metálico (+$250,000)
                   </Label>
                 </div>
+                <div className="flex items-center gap-3">
+                  <Checkbox 
+                    id="barra-herraje" 
+                    checked={currentConfig.bar.incluyeHerraje ?? false} 
+                    onCheckedChange={(c) => updateConfig("bar.incluyeHerraje", c === true)} 
+                  />
+                  <Label htmlFor="barra-herraje" className="cursor-pointer text-sm">
+                    Herraje de barra (+$380,000)
+                  </Label>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-3">
+                    <Checkbox 
+                      id="barra-lavaplatos" 
+                      checked={currentConfig.bar.incluyeLavaplatos ?? false} 
+                      onCheckedChange={(c) => updateConfig("bar.incluyeLavaplatos", c === true)} 
+                    />
+                    <Label htmlFor="barra-lavaplatos" className="cursor-pointer text-sm">
+                      Lavaplatos
+                    </Label>
+                  </div>
+                  {currentConfig.bar.incluyeLavaplatos && (
+                    <div className="flex items-center gap-2 pl-8">
+                      <Label className="text-sm text-white/70">Precio:</Label>
+                      <Input
+                        type="number"
+                        step="1000"
+                        value={currentConfig.bar.lavaprecio ?? ""}
+                        onChange={(e) => updateConfig("bar.lavaprecio", parseFloat(e.target.value) || undefined)}
+                        placeholder="130,000"
+                        className="h-8 w-32 bg-[#162828]"
+                      />
+                    </div>
+                  )}
+                </div>
+                {currentConfig.bar.countertopType && (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-3">
+                      <Checkbox 
+                        id="barra-importado" 
+                        checked={currentConfig.bar.esImportado ?? false} 
+                        onCheckedChange={(c) => updateConfig("bar.esImportado", c === true)} 
+                      />
+                      <Label htmlFor="barra-importado" className="cursor-pointer text-sm">
+                        Mesón importado
+                      </Label>
+                    </div>
+                    {currentConfig.bar.esImportado && (
+                      <div className="flex items-center gap-2 pl-8">
+                        <Label className="text-sm text-white/70">Precio/ml:</Label>
+                        <Input
+                          type="number"
+                          step="1000"
+                          value={currentConfig.bar.precioImportadoML ?? ""}
+                          onChange={(e) => updateConfig("bar.precioImportadoML", parseFloat(e.target.value) || undefined)}
+                          placeholder="precio/ml"
+                          className="h-8 w-32 bg-[#162828]"
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
           </div>

@@ -1069,9 +1069,7 @@ export const quotationsRouter = router({
                   islandLines.push(`LED ${(config.island as any).ledMLIsla}ml`);
                 }
                 const islandModLabels: Record<string, string> = {
-                  esquineroSuperior: 'Esquinero superior', moduloExtractor: 'Módulo extractor',
-                  moduloMicroondas: 'Módulo microondas', especiero: 'Especiero',
-                  botellero: 'Botellero', moduloRepisa: 'Módulo repisa',
+                  especiero: 'Especiero', botellero: 'Botellero',
                   cajoneroTriple: 'Cajonero triple', cajoneroDoble: 'Cajonero doble',
                   basurero: 'Basurero',
                 };
@@ -1104,11 +1102,36 @@ export const quotationsRouter = router({
                   barLines.push(`con lateral (${altCm}cm)`);
                 }
                 
-                if (config.bar.incluyeLavaplatos) barLines.push('lavaplatos');
-                
                 lines.push(`• Barra: ${barLines.join(', ')}`);
               }
               
+
+              // Módulos de cocina descriptivos
+              if (config.kitchenModules) {
+                const km_d = config.kitchenModules as any;
+                const toQty_d = (v: any) => typeof v === 'boolean' ? (v ? 1 : 0) : (v || 0);
+                const KM_LABELS: Record<string, string> = {
+                  esquineroSuperior:'Esq. superior', moduloAlmacSup:'Alm. superior',
+                  moduloExtractor:'Extractor', moduloMicroondas:'Microondas',
+                  especiero:'Especiero', botellero:'Botellero', moduloRepisa:'Repisa',
+                  esquinero1x1:'Esq. 1×1 inf.', cajoneroTriple:'Caj. triple',
+                  cajoneroDoble:'Caj. doble', basurero:'Basurero',
+                  moduloEstufaHorno:'Estufa/horno', moduloAlmacInf:'Alm. inferior',
+                };
+                const kmEntries: string[] = [];
+                for (const [k, lbl] of Object.entries(KM_LABELS)) {
+                  const q = toQty_d(km_d[k]);
+                  if (q > 0) kmEntries.push(q > 1 ? `${q}× ${lbl}` : lbl);
+                }
+                const latNN = toQty_d(km_d.lateralNichoNevera);
+                const latSup = toQty_d(km_d.lateralMuebleSuperior);
+                const latInf = toQty_d(km_d.lateralMuebleInferior);
+                if (latNN  > 0) kmEntries.push(`${latNN} lat. nicho nevera`);
+                if (latSup > 0) kmEntries.push(`${latSup} lat. sup.`);
+                if (latInf > 0) kmEntries.push(`${latInf} lat. inf.`);
+                if (km_d.luzLed) kmEntries.push('Luz LED');
+                if (kmEntries.length > 0) lines.push(`• Módulos: ${kmEntries.join(', ')}`);
+              }
               // LED
               if (config.ledLighting > 0) {
                 lines.push(`• Luz LED: ${config.ledLighting.toFixed(2)}ml`);
@@ -1622,9 +1645,7 @@ export const quotationsRouter = router({
                 islandLines.push(`LED ${(config.island as any).ledMLIsla}ml`);
               }
               const islandModLabels2: Record<string, string> = {
-                esquineroSuperior: 'Esquinero superior', moduloExtractor: 'Módulo extractor',
-                moduloMicroondas: 'Módulo microondas', especiero: 'Especiero',
-                botellero: 'Botellero', moduloRepisa: 'Módulo repisa',
+                especiero: 'Especiero', botellero: 'Botellero',
                 cajoneroTriple: 'Cajonero triple', cajoneroDoble: 'Cajonero doble',
                 basurero: 'Basurero',
               };
@@ -1651,10 +1672,36 @@ export const quotationsRouter = router({
                 const altCm = config.bar.barraAlturaLateral ?? 90;
                 barLines.push(`con lateral (${altCm}cm)`);
               }
-              if (config.bar.incluyeLavaplatos) barLines.push('lavaplatos');
               lines.push(`• Barra: ${barLines.join(', ')}`);
             }
             
+
+            // Módulos de cocina descriptivos
+            if (config.kitchenModules) {
+              const km_d = config.kitchenModules as any;
+              const toQty_d = (v: any) => typeof v === 'boolean' ? (v ? 1 : 0) : (v || 0);
+              const KM_LABELS: Record<string, string> = {
+                esquineroSuperior:'Esq. superior', moduloAlmacSup:'Alm. superior',
+                moduloExtractor:'Extractor', moduloMicroondas:'Microondas',
+                especiero:'Especiero', botellero:'Botellero', moduloRepisa:'Repisa',
+                esquinero1x1:'Esq. 1×1 inf.', cajoneroTriple:'Caj. triple',
+                cajoneroDoble:'Caj. doble', basurero:'Basurero',
+                moduloEstufaHorno:'Estufa/horno', moduloAlmacInf:'Alm. inferior',
+              };
+              const kmEntries: string[] = [];
+              for (const [k, lbl] of Object.entries(KM_LABELS)) {
+                const q = toQty_d(km_d[k]);
+                if (q > 0) kmEntries.push(q > 1 ? `${q}× ${lbl}` : lbl);
+              }
+              const latNN = toQty_d(km_d.lateralNichoNevera);
+              const latSup = toQty_d(km_d.lateralMuebleSuperior);
+              const latInf = toQty_d(km_d.lateralMuebleInferior);
+              if (latNN  > 0) kmEntries.push(`${latNN} lat. nicho nevera`);
+              if (latSup > 0) kmEntries.push(`${latSup} lat. sup.`);
+              if (latInf > 0) kmEntries.push(`${latInf} lat. inf.`);
+              if (km_d.luzLed) kmEntries.push('Luz LED');
+              if (kmEntries.length > 0) lines.push(`• Módulos: ${kmEntries.join(', ')}`);
+            }
             if (config.ledLighting > 0) {
               lines.push(`• Luz LED: ${config.ledLighting.toFixed(2)}ml`);
             }
@@ -2373,9 +2420,7 @@ export const quotationsRouter = router({
                   islandLines.push(`LED ${(config.island as any).ledMLIsla}ml`);
                 }
                 const islandModLabels3: Record<string, string> = {
-                  esquineroSuperior: 'Esquinero superior', moduloExtractor: 'Módulo extractor',
-                  moduloMicroondas: 'Módulo microondas', especiero: 'Especiero',
-                  botellero: 'Botellero', moduloRepisa: 'Módulo repisa',
+                  especiero: 'Especiero', botellero: 'Botellero',
                   cajoneroTriple: 'Cajonero triple', cajoneroDoble: 'Cajonero doble',
                   basurero: 'Basurero',
                 };
@@ -2408,11 +2453,35 @@ export const quotationsRouter = router({
                   barLines.push(`con lateral (${altCm}cm)`);
                 }
                 
-                if (config.bar.incluyeLavaplatos) barLines.push('lavaplatos');
-                
                 lines.push(`• Barra: ${barLines.join(', ')}`);
               }
-              
+
+              // Módulos de cocina descriptivos
+              if (config.kitchenModules) {
+                const km_d = config.kitchenModules as any;
+                const toQty_d = (v: any) => typeof v === 'boolean' ? (v ? 1 : 0) : (v || 0);
+                const KM_LABELS: Record<string, string> = {
+                  esquineroSuperior:'Esq. superior', moduloAlmacSup:'Alm. superior',
+                  moduloExtractor:'Extractor', moduloMicroondas:'Microondas',
+                  especiero:'Especiero', botellero:'Botellero', moduloRepisa:'Repisa',
+                  esquinero1x1:'Esq. 1×1 inf.', cajoneroTriple:'Caj. triple',
+                  cajoneroDoble:'Caj. doble', basurero:'Basurero',
+                  moduloEstufaHorno:'Estufa/horno', moduloAlmacInf:'Alm. inferior',
+                };
+                const kmEntries: string[] = [];
+                for (const [k, lbl] of Object.entries(KM_LABELS)) {
+                  const q = toQty_d(km_d[k]);
+                  if (q > 0) kmEntries.push(q > 1 ? `${q}× ${lbl}` : lbl);
+                }
+                const latNN = toQty_d(km_d.lateralNichoNevera);
+                const latSup = toQty_d(km_d.lateralMuebleSuperior);
+                const latInf = toQty_d(km_d.lateralMuebleInferior);
+                if (latNN  > 0) kmEntries.push(`${latNN} lat. nicho nevera`);
+                if (latSup > 0) kmEntries.push(`${latSup} lat. sup.`);
+                if (latInf > 0) kmEntries.push(`${latInf} lat. inf.`);
+                if (km_d.luzLed) kmEntries.push('Luz LED');
+                if (kmEntries.length > 0) lines.push(`• Módulos: ${kmEntries.join(', ')}`);
+              }
               // LED
               if (config.ledLighting > 0) {
                 lines.push(`• Luz LED: ${config.ledLighting.toFixed(2)}ml`);

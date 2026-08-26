@@ -105,19 +105,23 @@ function buildKitchenDescription(config: KitchenConfig): string {
   const parts: string[] = [];
   const km = config.kitchenModules || {};
   const sm = config.specialModules || {};
-  if (km.esquinero1x1)        parts.push("esquinero 1×1");
-  if (km.esquineroSuperior)   parts.push("esquinero superior");
-  if (km.cajoneroTriple)      parts.push("cajonero triple");
-  if (km.cajoneroDoble)       parts.push("cajonero doble");
-  if (km.basurero)            parts.push("basurero integrado");
-  if (km.moduloEstufaHorno || sm.torreHornos) parts.push("módulo estufa y horno");
-  if (km.moduloAlmacInf)      parts.push("módulo almacenamiento inferior");
-  if (km.moduloAlmacSup || sm.alacenaEntrepanos || sm.alacenaHerraje) parts.push("módulo almacenamiento superior");
-  if (km.moduloExtractor)     parts.push("módulo extractor");
-  if (km.moduloMicroondas)    parts.push("módulo de microondas");
-  if (km.especiero)           parts.push("especiero");
-  if (km.botellero)           parts.push("botellero");
-  if (km.moduloRepisa)        parts.push("módulo repisa");
+  const kmQ = (v: any) => typeof v === 'boolean' ? (v ? 1 : 0) : (v || 0);
+  if (kmQ(km.esquinero1x1) > 0)      parts.push(`${kmQ(km.esquinero1x1) > 1 ? kmQ(km.esquinero1x1)+"× " : ""}esquinero 1×1`);
+  if (kmQ(km.esquineroSuperior) > 0) parts.push(`${kmQ(km.esquineroSuperior) > 1 ? kmQ(km.esquineroSuperior)+"× " : ""}esquinero superior`);
+  if (kmQ(km.cajoneroTriple) > 0)    parts.push(`${kmQ(km.cajoneroTriple) > 1 ? kmQ(km.cajoneroTriple)+"× " : ""}cajonero triple`);
+  if (kmQ(km.cajoneroDoble) > 0)     parts.push(`${kmQ(km.cajoneroDoble) > 1 ? kmQ(km.cajoneroDoble)+"× " : ""}cajonero doble`);
+  if (kmQ(km.basurero) > 0)          parts.push(`${kmQ(km.basurero) > 1 ? kmQ(km.basurero)+"× " : ""}basurero integrado`);
+  if (kmQ(km.moduloEstufaHorno) > 0 || sm.torreHornos) parts.push("módulo estufa y horno");
+  if (kmQ(km.moduloAlmacInf) > 0)   parts.push(`${kmQ(km.moduloAlmacInf) > 1 ? kmQ(km.moduloAlmacInf)+"× " : ""}alm. inferior`);
+  if (kmQ(km.moduloAlmacSup) > 0 || sm.alacenaEntrepanos || sm.alacenaHerraje) parts.push("alm. superior");
+  if (kmQ(km.moduloExtractor) > 0)  parts.push("extractor");
+  if (kmQ(km.moduloMicroondas) > 0) parts.push("microondas");
+  if (kmQ(km.especiero) > 0)        parts.push(`${kmQ(km.especiero) > 1 ? kmQ(km.especiero)+"× " : ""}especiero`);
+  if (kmQ(km.botellero) > 0)        parts.push(`${kmQ(km.botellero) > 1 ? kmQ(km.botellero)+"× " : ""}botellero`);
+  if (kmQ(km.moduloRepisa) > 0)     parts.push(`${kmQ(km.moduloRepisa) > 1 ? kmQ(km.moduloRepisa)+"× " : ""}repisa`);
+  if (kmQ((km as any).lateralNichoNevera) > 0)    parts.push(`${kmQ((km as any).lateralNichoNevera)}× lat. nicho nevera`);
+  if (kmQ((km as any).lateralMuebleSuperior) > 0) parts.push(`${kmQ((km as any).lateralMuebleSuperior)}× lat. sup.`);
+  if (kmQ((km as any).lateralMuebleInferior) > 0) parts.push(`${kmQ((km as any).lateralMuebleInferior)}× lat. inf.`);
   if (km.luzLed || config.ledLighting > 0) parts.push("luz LED");
   if (sm.nichoNevecon)        parts.push("nicho para nevecón");
   if (sm.nichoNevera)         parts.push("nicho para nevera");
@@ -313,8 +317,6 @@ export default function Quotations() {
           barraAlturaLateral: 90,
           incluyePedestal: false,
           incluyeHerraje: false,
-          incluyeLavaplatos: false,
-          lavaprecio: undefined,
           esImportado: false,
           precioImportadoML: undefined,
         },
@@ -663,8 +665,6 @@ export default function Quotations() {
           barraAlturaLateral: 90,
           incluyePedestal: false,
           incluyeHerraje: false,
-          incluyeLavaplatos: false,
-          lavaprecio: undefined,
           esImportado: false,
           precioImportadoML: undefined,
         },
@@ -910,16 +910,33 @@ export default function Quotations() {
               barraAlturaLateral: item.kitchenConfig.bar?.barraAlturaLateral ?? 90,
               incluyePedestal: item.kitchenConfig.bar?.incluyePedestal ?? false,
               incluyeHerraje: item.kitchenConfig.bar?.incluyeHerraje ?? false,
-              incluyeLavaplatos: item.kitchenConfig.bar?.incluyeLavaplatos ?? false,
-              lavaprecio: item.kitchenConfig.bar?.lavaprecio ?? undefined,
               esImportado: item.kitchenConfig.bar?.esImportado ?? false,
               precioImportadoML: item.kitchenConfig.bar?.precioImportadoML ?? undefined,
             },
             ledLighting: item.kitchenConfig.ledLighting ?? 0,
-            kitchenModules: item.kitchenConfig.kitchenModules ? {
-              ...item.kitchenConfig.kitchenModules,
-              luzLed: item.kitchenConfig.kitchenModules.luzLed ?? false,
-            } : undefined,
+            kitchenModules: item.kitchenConfig.kitchenModules ? (() => {
+              const km = item.kitchenConfig.kitchenModules!;
+              const toNum = (v: any) => typeof v === 'boolean' ? (v ? 1 : 0) : (v ?? 0);
+              return {
+                esquineroSuperior:     toNum(km.esquineroSuperior),
+                moduloAlmacSup:        toNum(km.moduloAlmacSup),
+                moduloExtractor:       toNum(km.moduloExtractor),
+                moduloMicroondas:      toNum(km.moduloMicroondas),
+                especiero:             toNum(km.especiero),
+                botellero:             toNum(km.botellero),
+                moduloRepisa:          toNum(km.moduloRepisa),
+                esquinero1x1:          toNum(km.esquinero1x1),
+                cajoneroTriple:        toNum(km.cajoneroTriple),
+                cajoneroDoble:         toNum(km.cajoneroDoble),
+                basurero:              toNum(km.basurero),
+                moduloEstufaHorno:     toNum(km.moduloEstufaHorno),
+                moduloAlmacInf:        toNum(km.moduloAlmacInf),
+                lateralNichoNevera:    toNum((km as any).lateralNichoNevera),
+                lateralMuebleSuperior: toNum((km as any).lateralMuebleSuperior),
+                lateralMuebleInferior: toNum((km as any).lateralMuebleInferior),
+                luzLed: km.luzLed ?? false,
+              };
+            })() : undefined,
           } : {
             shape: "",
             totalMeters: 0,
@@ -960,8 +977,6 @@ export default function Quotations() {
               barraAlturaLateral: 90,
               incluyePedestal: false,
               incluyeHerraje: false,
-              incluyeLavaplatos: false,
-              lavaprecio: undefined,
               esImportado: false,
               precioImportadoML: undefined,
             },
@@ -1042,8 +1057,6 @@ export default function Quotations() {
             barraAlturaLateral: 90,
             incluyePedestal: false,
             incluyeHerraje: false,
-            incluyeLavaplatos: false,
-            lavaprecio: undefined,
             esImportado: false,
             precioImportadoML: undefined,
           },
@@ -1379,10 +1392,6 @@ export default function Quotations() {
         }
       }
       
-      // Lavaplatos de barra
-      if (config.bar.incluyeLavaplatos) {
-        total += (config.bar.lavaprecio ?? getPrice('LAVAPLATOS_MESON'));
-      }
     }
 
     // 7. Luz LED (no aplica para solo_inferiores ni puertas_tapas) - precio dinámico
@@ -1756,10 +1765,6 @@ export default function Quotations() {
             }
           }
           
-          // Lavaplatos de barra
-          if (config.bar.incluyeLavaplatos) {
-            total += (config.bar.lavaprecio ?? getPrice('LAVAPLATOS_MESON'));
-          }
         }
 
         // Luz LED (no aplica para solo_inferiores ni puertas_tapas) - precio dinámico
@@ -3391,34 +3396,6 @@ export default function Quotations() {
                                       Herraje de barra (+$380,000)
                                     </Label>
                                   </div>
-                                  {/* Lavaplatos */}
-                                  <div className="space-y-1">
-                                    <div className="flex items-center space-x-2">
-                                      <input
-                                        type="checkbox"
-                                        id={`barLavaplatos-${index}`}
-                                        checked={item.kitchenConfig?.bar.incluyeLavaplatos || false}
-                                        onChange={(e) => updateKitchenConfig(index, "bar.incluyeLavaplatos", e.target.checked)}
-                                        className="h-4 w-4"
-                                      />
-                                      <Label htmlFor={`barLavaplatos-${index}`} className="text-sm font-normal cursor-pointer">
-                                        Lavaplatos
-                                      </Label>
-                                    </div>
-                                    {item.kitchenConfig?.bar.incluyeLavaplatos && (
-                                      <div className="flex items-center gap-2 pl-6">
-                                        <Label className="text-sm text-white/70">Precio:</Label>
-                                        <Input
-                                          type="number"
-                                          step="1000"
-                                          value={item.kitchenConfig?.bar.lavaprecio ?? ""}
-                                          onChange={(e) => updateKitchenConfig(index, "bar.lavaprecio", parseFloat(e.target.value) || undefined)}
-                                          placeholder="130,000"
-                                          className="h-8 w-32"
-                                        />
-                                      </div>
-                                    )}
-                                  </div>
                                   {/* Mesón importado */}
                                   {item.kitchenConfig?.bar.countertopType && (
                                     <div className="space-y-1">
@@ -3480,7 +3457,45 @@ export default function Quotations() {
                                   id={`paintedDoors-${index}`}
                                   checked={item.kitchenConfig?.paintedDoors?.enabled || false}
                                   onChange={(e) => {
-                                    updateKitchenConfig(index, "paintedDoors.enabled", e.target.checked);
+                                    const enabling = e.target.checked;
+                                    updateKitchenConfig(index, "paintedDoors.enabled", enabling);
+                                    if (enabling && item.kitchenConfig) {
+                                      const cfg = item.kitchenConfig;
+                                      const km2 = cfg.kitchenModules || {};
+                                      const sm2 = cfg.specialModules || {};
+                                      const q2 = (v: any) => typeof v === 'boolean' ? (v ? 1 : 0) : (v || 0);
+                                      // [ptaSup, ptaInf, alacena, cajon, especiero, gola]
+                                      const P: Record<string, number[]> = {
+                                        esquineroSuperior:     [1,0,0,0,0,0],
+                                        moduloAlmacSup:        [2,0,0,0,0,1],
+                                        especiero:             [0,0,0,0,1,1],
+                                        botellero:             [0,1,0,0,0,1],
+                                        esquinero1x1:          [0,2,0,0,0,0],
+                                        cajoneroTriple:        [0,0,0,3,0,1],
+                                        cajoneroDoble:         [0,0,0,2,0,1],
+                                        basurero:              [0,1,0,0,0,1],
+                                        moduloEstufaHorno:     [0,1,0,0,0,1],
+                                        moduloAlmacInf:        [0,2,0,0,0,1],
+                                        lateralMuebleSuperior: [1,0,0,0,0,0],
+                                        lateralMuebleInferior: [0,1,0,0,0,0],
+                                      };
+                                      let up=0,lo=0,al=0,ca=0,es=0,go=0;
+                                      for (const [k,[ps,pi,a2,c2,e2,g2]] of Object.entries(P)) {
+                                        const qty=q2((km2 as any)[k]);
+                                        up+=qty*ps; lo+=qty*pi; al+=qty*a2; ca+=qty*c2; es+=qty*e2; go+=qty*g2;
+                                      }
+                                      if (sm2.nichoNevecon)      up+=1;
+                                      if (sm2.nichoNevera)       up+=1;
+                                      if (sm2.alacenaEntrepanos) al+=1;
+                                      if (sm2.alacenaHerraje)    al+=1;
+                                      if (sm2.torreHornos)       { up+=1; ca+=1; go+=2; }
+                                      updateKitchenConfig(index, "paintedDoors.upperQty",  up);
+                                      updateKitchenConfig(index, "paintedDoors.lowerQty",  lo);
+                                      updateKitchenConfig(index, "paintedDoors.pantryQty", al);
+                                      updateKitchenConfig(index, "paintedDoors.drawerQty", ca);
+                                      updateKitchenConfig(index, "paintedDoors.spiceQty",  es);
+                                      updateKitchenConfig(index, "paintedDoors.golaQty",   go);
+                                    }
                                     calculateKitchenTotal(index);
                                   }}
                                   className="h-4 w-4 accent-pink-500"

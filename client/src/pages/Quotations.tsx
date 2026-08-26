@@ -3099,7 +3099,7 @@ export default function Quotations() {
                                       const qty = typeof raw==='boolean'?(raw?1:0):(raw||0);
                                       const curML = ((item.kitchenConfig as any)?.kitchenModulesML?.[key]) ?? ml;
                                       return (
-                                        <div key={key} className={`flex ${editable?'flex-col':'items-center'} gap-0.5 bg-black/25 rounded px-1.5 py-1`}>
+                                        <div key={key} className={`flex ${editable?'flex-col':'items-center'} gap-0.5 rounded px-1.5 py-1 transition-colors ${qty>0?'bg-teal-900/40 border border-teal-500/40':'bg-black/25 border border-transparent'}`}>
                                           <div className="flex items-center gap-1">
                                             <button type="button"
                                               className="w-5 h-5 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 rounded text-sm leading-none"
@@ -3110,7 +3110,7 @@ export default function Quotations() {
                                                 (c.kitchenModules as any)[key]=Math.max(0,qty-1);
                                                 calculateKitchenTotal(index,ni);
                                               }}>−</button>
-                                            <span className="text-xs text-white font-mono w-5 text-center">{qty}</span>
+                                            <span className={`text-xs font-mono w-5 text-center ${qty>0?'text-teal-300 font-bold':'text-white/60'}`}>{qty}</span>
                                             <button type="button"
                                               className="w-5 h-5 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 rounded text-sm leading-none"
                                               onClick={() => {

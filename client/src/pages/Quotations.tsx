@@ -3034,6 +3034,135 @@ export default function Quotations() {
                             </div>
                             )}
 
+                            {/* 3.5 Módulos de Cocina — cantidades para descuento ML y pintura */}
+                            {!['frente_pll', 'solo_superiores', 'solo_inferiores', 'puertas_tapas', 'solo_acabados'].includes(item.kitchenConfig?.shape || '') && (
+                            <div className="bg-[#162828] rounded-lg p-3 sm:p-4 border border-teal-500/20 space-y-3">
+                              <Label className="text-xs sm:text-sm font-semibold text-teal-300 flex items-center gap-2">
+                                Módulos de Cocina
+                              </Label>
+                              <p className="text-xs text-teal-400/70">Indica cuántos de cada módulo. Descuenta del ML disponible y calcula piezas de pintura automáticamente.</p>
+
+                              {/* Tracker ML consumido */}
+                              {(() => {
+                                const kmT = (item.kitchenConfig?.kitchenModules || {}) as any;
+                                const smT = item.kitchenConfig?.specialModules || {};
+                                const ML_MAP: Record<string, number> = {
+                                  esquineroSuperior:0.60, moduloAlmacSup:0.65, moduloExtractor:0.70,
+                                  moduloMicroondas:0.60, especiero:0.25, botellero:0.35, moduloRepisa:0.30,
+                                  esquinero1x1:0, cajoneroTriple:0.70, cajoneroDoble:0.60,
+                                  basurero:0.50, moduloEstufaHorno:0.70, moduloAlmacInf:0.70,
+                                };
+                                const toQ = (v: any) => typeof v==='boolean'?(v?1:0):(v||0);
+                                const specialML = (smT.nichoNevecon?1.00:0)+(smT.nichoNevera?0.75:0)+(smT.alacenaEntrepanos?0.55:0)+(smT.alacenaHerraje?0.55:0)+(smT.torreHornos?0.70:0);
+                                const modulesML = Object.entries(ML_MAP).reduce((acc,[k,ml])=>acc+toQ(kmT[k])*ml, 0);
+                                const total = item.kitchenConfig?.totalMeters||0;
+                                const remaining = total - specialML - modulesML;
+                                return (
+                                  <div className="flex flex-wrap gap-3 text-xs bg-black/20 rounded p-2">
+                                    <span className="text-white/50">Total: <span className="text-white font-semibold">{total}ml</span></span>
+                                    <span className="text-white/50">Especiales: <span className="text-amber-300">{specialML.toFixed(2)}ml</span></span>
+                                    <span className="text-white/50">Módulos: <span className="text-teal-300">{modulesML.toFixed(2)}ml</span></span>
+                                    <span className="text-white/50">Restante: <span className={remaining<0?"text-red-400 font-bold":"text-emerald-400"}>{remaining.toFixed(2)}ml</span></span>
+                                  </div>
+                                );
+                              })()}
+
+                              {/* Superiores e Inferiores */}
+                              {([
+                                { title: "Superiores", mods: [
+                                  { key:"esquineroSuperior", label:"Esq. superior",  ml:0.60 },
+                                  { key:"moduloAlmacSup",    label:"Alm. superior",  ml:0.65 },
+                                  { key:"moduloExtractor",   label:"Extractor",      ml:0.70 },
+                                  { key:"moduloMicroondas",  label:"Microondas",     ml:0.60 },
+                                  { key:"especiero",         label:"Especiero",      ml:0.25 },
+                                  { key:"botellero",         label:"Botellero",      ml:0.35 },
+                                  { key:"moduloRepisa",      label:"Repisa",         ml:0.30 },
+                                ]},
+                                { title: "Inferiores", mods: [
+                                  { key:"esquinero1x1",      label:"Esq. 1×1",       ml:0    },
+                                  { key:"cajoneroTriple",    label:"Caj. triple",    ml:0.70 },
+                                  { key:"cajoneroDoble",     label:"Caj. doble",     ml:0.60 },
+                                  { key:"basurero",          label:"Basurero",       ml:0.50 },
+                                  { key:"moduloEstufaHorno", label:"Estufa/horno",   ml:0.70 },
+                                  { key:"moduloAlmacInf",    label:"Alm. inferior",  ml:0.70 },
+                                ]},
+                              ] as {title:string, mods:{key:string,label:string,ml:number}[]}[]).map(group => (
+                                <div key={group.title}>
+                                  <p className="text-xs font-semibold text-white/40 uppercase tracking-wide mb-1.5">{group.title}</p>
+                                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                                    {group.mods.map(({ key, label, ml }) => {
+                                      const raw = (item.kitchenConfig?.kitchenModules as any)?.[key];
+                                      const qty = typeof raw==='boolean'?(raw?1:0):(raw||0);
+                                      return (
+                                        <div key={key} className="flex items-center gap-1 bg-black/25 rounded px-1.5 py-1">
+                                          <button type="button"
+                                            className="w-5 h-5 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 rounded text-sm leading-none"
+                                            onClick={() => {
+                                              const ni=[...items]; const c=structuredClone(ni[index].kitchenConfig!);
+                                              ni[index]={...ni[index],kitchenConfig:c};
+                                              if(!c.kitchenModules)(c as any).kitchenModules={};
+                                              (c.kitchenModules as any)[key]=Math.max(0,qty-1);
+                                              calculateKitchenTotal(index,ni);
+                                            }}>−</button>
+                                          <span className="text-xs text-white font-mono w-5 text-center">{qty}</span>
+                                          <button type="button"
+                                            className="w-5 h-5 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 rounded text-sm leading-none"
+                                            onClick={() => {
+                                              const ni=[...items]; const c=structuredClone(ni[index].kitchenConfig!);
+                                              ni[index]={...ni[index],kitchenConfig:c};
+                                              if(!c.kitchenModules)(c as any).kitchenModules={};
+                                              (c.kitchenModules as any)[key]=qty+1;
+                                              calculateKitchenTotal(index,ni);
+                                            }}>+</button>
+                                          <span className="text-xs text-white/60 flex-1 truncate">{label}{ml>0?<span className="text-white/25"> {ml}ml</span>:""}</span>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              ))}
+
+                              {/* Laterales — no descuentan ML */}
+                              <div>
+                                <p className="text-xs font-semibold text-white/40 uppercase tracking-wide mb-1.5">Laterales <span className="normal-case text-white/25">(no descuentan ML)</span></p>
+                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                                  {([
+                                    { key:"lateralNichoNevera",    label:"Lat. nicho nevera" },
+                                    { key:"lateralMuebleSuperior", label:"Lat. mueble sup."  },
+                                    { key:"lateralMuebleInferior", label:"Lat. mueble inf."  },
+                                  ] as {key:string,label:string}[]).map(({ key, label }) => {
+                                    const raw2 = (item.kitchenConfig?.kitchenModules as any)?.[key];
+                                    const qty2 = typeof raw2==='boolean'?(raw2?1:0):(raw2||0);
+                                    return (
+                                      <div key={key} className="flex items-center gap-1 bg-black/25 rounded px-1.5 py-1">
+                                        <button type="button"
+                                          className="w-5 h-5 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 rounded text-sm leading-none"
+                                          onClick={() => {
+                                            const ni=[...items]; const c=structuredClone(ni[index].kitchenConfig!);
+                                            ni[index]={...ni[index],kitchenConfig:c};
+                                            if(!c.kitchenModules)(c as any).kitchenModules={};
+                                            (c.kitchenModules as any)[key]=Math.max(0,qty2-1);
+                                            calculateKitchenTotal(index,ni);
+                                          }}>−</button>
+                                        <span className="text-xs text-white font-mono w-5 text-center">{qty2}</span>
+                                        <button type="button"
+                                          className="w-5 h-5 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 rounded text-sm leading-none"
+                                          onClick={() => {
+                                            const ni=[...items]; const c=structuredClone(ni[index].kitchenConfig!);
+                                            ni[index]={...ni[index],kitchenConfig:c};
+                                            if(!c.kitchenModules)(c as any).kitchenModules={};
+                                            (c.kitchenModules as any)[key]=qty2+1;
+                                            calculateKitchenTotal(index,ni);
+                                          }}>+</button>
+                                        <span className="text-xs text-white/60 flex-1 truncate">{label}</span>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            </div>
+                            )}
+
                             {/* 4. Mesón principal - Solo para cocinas completas y solo_inferiores */}
                             {!['solo_superiores', 'puertas_tapas'].includes(item.kitchenConfig?.shape || '') && (
                             <div className="bg-[#162828] rounded-lg p-3 sm:p-4 border border-[rgba(106,207,199,0.12)] space-y-2 sm:space-y-3">

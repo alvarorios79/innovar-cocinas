@@ -39,6 +39,24 @@ export interface KitchenConfig {
     depthSurcharge?: string;       // none | 30percent | double
     esImportado?: boolean;
     precioImportadoML?: number;
+    incluyeLateralesIsla?: boolean;
+    incluyeRegrueso?: boolean;
+    incluyeSalpicaderoAlto?: boolean;
+    incluyeLavaplatos?: boolean;
+    lavaprecio?: number;
+    incluyeLedIsla?: boolean;
+    ledMLIsla?: number;
+    modulosDescriptivos?: {
+      esquineroSuperior?: boolean;
+      moduloExtractor?: boolean;
+      moduloMicroondas?: boolean;
+      especiero?: boolean;
+      botellero?: boolean;
+      moduloRepisa?: boolean;
+      cajoneroTriple?: boolean;
+      cajoneroDoble?: boolean;
+      basurero?: boolean;
+    };
   };
   bar: {
     enabled: boolean;
@@ -162,6 +180,13 @@ export function KitchenConfigurator({
       meters: 0,
       countertopType: "",
       hasLaterals: false,
+      incluyeLateralesIsla: false,
+      incluyeRegrueso: false,
+      incluyeSalpicaderoAlto: false,
+      incluyeLavaplatos: false,
+      incluyeLedIsla: false,
+      ledMLIsla: 0,
+      modulosDescriptivos: {},
     },
     bar: {
       enabled: false,
@@ -780,15 +805,83 @@ export function KitchenConfigurator({
                   </div>
                 )}
 
+                {/* Laterales y regrueso separados */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="flex items-center gap-2">
+                    <Checkbox id="isla-laterales" checked={currentConfig.island.incluyeLateralesIsla ?? false}
+                      onCheckedChange={(c) => updateConfig("island.incluyeLateralesIsla", c === true)} />
+                    <Label htmlFor="isla-laterales" className="cursor-pointer text-sm">Laterales (+1.80ml)</Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Checkbox id="isla-regrueso" checked={currentConfig.island.incluyeRegrueso ?? false}
+                      onCheckedChange={(c) => updateConfig("island.incluyeRegrueso", c === true)} />
+                    <Label htmlFor="isla-regrueso" className="cursor-pointer text-sm">Regrueso (+0.90ml)</Label>
+                  </div>
+                </div>
                 <div className="flex items-center gap-3">
-                  <Checkbox 
-                    id="isla-laterales" 
-                    checked={currentConfig.island.hasLaterals} 
-                    onCheckedChange={(c) => updateConfig("island.hasLaterals", c === true)} 
-                  />
-                  <Label htmlFor="isla-laterales" className="cursor-pointer text-sm">
-                    Incluir laterales (+0.90ml × 2 lados)
-                  </Label>
+                  <Checkbox id="isla-salpicadero" checked={currentConfig.island.incluyeSalpicaderoAlto ?? false}
+                    onCheckedChange={(c) => updateConfig("island.incluyeSalpicaderoAlto", c === true)} />
+                  <Label htmlFor="isla-salpicadero" className="cursor-pointer text-sm">Salpicadero alto</Label>
+                </div>
+                {/* Lavaplatos isla */}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-3">
+                    <Checkbox id="isla-lavaplatos" checked={currentConfig.island.incluyeLavaplatos ?? false}
+                      onCheckedChange={(c) => updateConfig("island.incluyeLavaplatos", c === true)} />
+                    <Label htmlFor="isla-lavaplatos" className="cursor-pointer text-sm">Lavaplatos</Label>
+                  </div>
+                  {currentConfig.island.incluyeLavaplatos && (
+                    <div className="flex items-center gap-2 pl-8">
+                      <Label className="text-sm text-white/70">Precio:</Label>
+                      <Input type="number" step="1000"
+                        value={currentConfig.island.lavaprecio ?? ""}
+                        onChange={(e) => updateConfig("island.lavaprecio", parseFloat(e.target.value) || undefined)}
+                        placeholder="130,000" className="h-8 w-32 bg-[#162828]" />
+                    </div>
+                  )}
+                </div>
+                {/* LED isla */}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-3">
+                    <Checkbox id="isla-led" checked={currentConfig.island.incluyeLedIsla ?? false}
+                      onCheckedChange={(c) => updateConfig("island.incluyeLedIsla", c === true)} />
+                    <Label htmlFor="isla-led" className="cursor-pointer text-sm">Luz LED isla</Label>
+                  </div>
+                  {currentConfig.island.incluyeLedIsla && (
+                    <div className="flex items-center gap-2 pl-8">
+                      <Input type="number" step="0.01"
+                        value={currentConfig.island.ledMLIsla ?? ""}
+                        onChange={(e) => updateConfig("island.ledMLIsla", parseFloat(e.target.value) || 0)}
+                        placeholder="0.00" className="h-8 w-20 bg-[#162828]" />
+                      <span className="text-sm text-white/60">ml</span>
+                    </div>
+                  )}
+                </div>
+                {/* Módulos descriptivos */}
+                <div>
+                  <Label className="text-sm text-white/60 block mb-2">Módulos (solo descriptivos)</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {([
+                      ['esquineroSuperior', 'Esquinero sup.'],
+                      ['moduloExtractor', 'Extractor'],
+                      ['moduloMicroondas', 'Microondas'],
+                      ['especiero', 'Especiero'],
+                      ['botellero', 'Botellero'],
+                      ['moduloRepisa', 'Repisa'],
+                      ['cajoneroTriple', 'Cajonero triple'],
+                      ['cajoneroDoble', 'Cajonero doble'],
+                      ['basurero', 'Basurero'],
+                    ] as [string, string][]).map(([key, label]) => (
+                      <div key={key} className="flex items-center gap-2">
+                        <Checkbox
+                          id={`isla-mod-${key}`}
+                          checked={(currentConfig.island.modulosDescriptivos as any)?.[key] ?? false}
+                          onCheckedChange={(c) => updateConfig(`island.modulosDescriptivos.${key}`, c === true)}
+                        />
+                        <Label htmlFor={`isla-mod-${key}`} className="text-xs cursor-pointer">{label}</Label>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             )}

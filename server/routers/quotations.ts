@@ -1059,9 +1059,26 @@ export const quotationsRouter = router({
                   islandLines.push(`mesón ${islandCtType}${islandSurchargeText}`);
                 }
                 
-                if (config.island.hasLaterals) {
-                  islandLines.push('con laterales');
+                const islAddLat = (config.island as any).incluyeLateralesIsla ?? config.island.hasLaterals;
+                const islAddReg = (config.island as any).incluyeRegrueso ?? config.island.hasLaterals;
+                if (islAddLat) islandLines.push('con laterales');
+                if (islAddReg) islandLines.push('regrueso');
+                if ((config.island as any).incluyeSalpicaderoAlto) islandLines.push('salpicadero alto');
+                if ((config.island as any).incluyeLavaplatos) islandLines.push('lavaplatos');
+                if ((config.island as any).incluyeLedIsla && (config.island as any).ledMLIsla > 0) {
+                  islandLines.push(`LED ${(config.island as any).ledMLIsla}ml`);
                 }
+                const islandModLabels: Record<string, string> = {
+                  esquineroSuperior: 'Esquinero superior', moduloExtractor: 'Módulo extractor',
+                  moduloMicroondas: 'Módulo microondas', especiero: 'Especiero',
+                  botellero: 'Botellero', moduloRepisa: 'Módulo repisa',
+                  cajoneroTriple: 'Cajonero triple', cajoneroDoble: 'Cajonero doble',
+                  basurero: 'Basurero',
+                };
+                const islandMods = (config.island as any).modulosDescriptivos || {};
+                Object.entries(islandModLabels).forEach(([k, lbl]) => {
+                  if ((islandMods as any)[k]) islandLines.push(lbl);
+                });
                 
                 lines.push(`• Isla: ${islandLines.join(', ')}`);
               }
@@ -1173,6 +1190,9 @@ export const quotationsRouter = router({
                 const pieceLabel = pieceLabels[cfg.tipoPieza] || cfg.tipoPieza;
                 const madreraStr = cfg.madreraML ? ` — ${cfg.madreraML}ml` : '';
                 lines.push(`${pieceLabel.toUpperCase()} A MEDIDA${madreraStr}`);
+                if (cfg.tipoPieza === 'alacena_herraje' && cfg.alacenaHerrajePrecio > 0) {
+                  lines.push(`• Precio herraje: $${Number(cfg.alacenaHerrajePrecio).toLocaleString('es-CO')}`);
+                }
                 const moduloLabels: Record<string, string> = {
                   'esquineroSuperior': 'Esquinero superior',
                   'moduloExtractor': 'Módulo extractor',
@@ -1592,7 +1612,26 @@ export const quotationsRouter = router({
                 else if (isl2.depthSurcharge === 'double') islandSurchargeText2 = ' ×2 fondo';
                 islandLines.push(`mesón ${islandCtType2}${islandSurchargeText2}`);
               }
-              if (config.island.hasLaterals) islandLines.push('con laterales');
+              const islAddLat2 = (config.island as any).incluyeLateralesIsla ?? config.island.hasLaterals;
+              const islAddReg2 = (config.island as any).incluyeRegrueso ?? config.island.hasLaterals;
+              if (islAddLat2) islandLines.push('con laterales');
+              if (islAddReg2) islandLines.push('regrueso');
+              if ((config.island as any).incluyeSalpicaderoAlto) islandLines.push('salpicadero alto');
+              if ((config.island as any).incluyeLavaplatos) islandLines.push('lavaplatos');
+              if ((config.island as any).incluyeLedIsla && (config.island as any).ledMLIsla > 0) {
+                islandLines.push(`LED ${(config.island as any).ledMLIsla}ml`);
+              }
+              const islandModLabels2: Record<string, string> = {
+                esquineroSuperior: 'Esquinero superior', moduloExtractor: 'Módulo extractor',
+                moduloMicroondas: 'Módulo microondas', especiero: 'Especiero',
+                botellero: 'Botellero', moduloRepisa: 'Módulo repisa',
+                cajoneroTriple: 'Cajonero triple', cajoneroDoble: 'Cajonero doble',
+                basurero: 'Basurero',
+              };
+              const islandMods2 = (config.island as any).modulosDescriptivos || {};
+              Object.entries(islandModLabels2).forEach(([k, lbl]) => {
+                if ((islandMods2 as any)[k]) islandLines.push(lbl);
+              });
               lines.push(`• Isla: ${islandLines.join(', ')}`);
             }
             
@@ -1696,6 +1735,9 @@ export const quotationsRouter = router({
               const pieceLabel = pieceLabels[cfg.tipoPieza] || cfg.tipoPieza;
               const madreraStr = cfg.madreraML ? ` — ${cfg.madreraML}ml` : '';
               lines.push(`${pieceLabel.toUpperCase()} A MEDIDA${madreraStr}`);
+              if (cfg.tipoPieza === 'alacena_herraje' && cfg.alacenaHerrajePrecio > 0) {
+                lines.push(`• Precio herraje: $${Number(cfg.alacenaHerrajePrecio).toLocaleString('es-CO')}`);
+              }
               const moduloLabels: Record<string, string> = {
                 'esquineroSuperior': 'Esquinero superior',
                 'moduloExtractor': 'Módulo extractor',
@@ -2321,9 +2363,26 @@ export const quotationsRouter = router({
                   islandLines.push(`mesón ${islandCtType3}${islandSurchargeText3}`);
                 }
                 
-                if (config.island.hasLaterals) {
-                  islandLines.push('con laterales');
+                const islAddLat3 = (config.island as any).incluyeLateralesIsla ?? config.island.hasLaterals;
+                const islAddReg3 = (config.island as any).incluyeRegrueso ?? config.island.hasLaterals;
+                if (islAddLat3) islandLines.push('con laterales');
+                if (islAddReg3) islandLines.push('regrueso');
+                if ((config.island as any).incluyeSalpicaderoAlto) islandLines.push('salpicadero alto');
+                if ((config.island as any).incluyeLavaplatos) islandLines.push('lavaplatos');
+                if ((config.island as any).incluyeLedIsla && (config.island as any).ledMLIsla > 0) {
+                  islandLines.push(`LED ${(config.island as any).ledMLIsla}ml`);
                 }
+                const islandModLabels3: Record<string, string> = {
+                  esquineroSuperior: 'Esquinero superior', moduloExtractor: 'Módulo extractor',
+                  moduloMicroondas: 'Módulo microondas', especiero: 'Especiero',
+                  botellero: 'Botellero', moduloRepisa: 'Módulo repisa',
+                  cajoneroTriple: 'Cajonero triple', cajoneroDoble: 'Cajonero doble',
+                  basurero: 'Basurero',
+                };
+                const islandMods3 = (config.island as any).modulosDescriptivos || {};
+                Object.entries(islandModLabels3).forEach(([k, lbl]) => {
+                  if ((islandMods3 as any)[k]) islandLines.push(lbl);
+                });
                 
                 lines.push(`• Isla: ${islandLines.join(', ')}`);
               }

@@ -3048,7 +3048,7 @@ export default function Quotations() {
                                 const smT = item.kitchenConfig?.specialModules || {};
                                 // Solo inferiores definen el ancho (los superiores van encima sin sumar ML)
                                 const INF_ML_DEFAULT: Record<string, number> = {
-                                  especiero:0.25, botellero:0.35, esquinero1x1:0, cajoneroTriple:0.70,
+                                  especiero:0.25, botellero:0.35, esquinero1x1:2.00, cajoneroTriple:0.70,
                                   cajoneroDoble:0.60, basurero:0.50, moduloEstufaPuerta:0.70, moduloEstufaHorno:0.70, moduloAlmacInf:0.70,
                                 };
                                 const customMLMap = (item.kitchenConfig as any)?.kitchenModulesML || {};
@@ -3081,7 +3081,7 @@ export default function Quotations() {
                                 { title: "Inferiores", mods: [
                                   { key:"especiero",         label:"Especiero",    ml:0.25, editable:true },
                                   { key:"botellero",         label:"Botellero",    ml:0.35, editable:true },
-                                  { key:"esquinero1x1",      label:"Esq. 1×1",    ml:0,    editable:true },
+                                  { key:"esquinero1x1",      label:"Esq. 1×1",    ml:2.00, editable:true },
                                   { key:"cajoneroTriple",    label:"Caj. triple",  ml:0.70, editable:true },
                                   { key:"cajoneroDoble",     label:"Caj. doble",   ml:0.60, editable:true },
                                   { key:"basurero",          label:"Basurero",     ml:0.50, editable:true },

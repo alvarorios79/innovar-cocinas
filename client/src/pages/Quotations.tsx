@@ -3070,21 +3070,21 @@ export default function Quotations() {
                               {/* Superiores e Inferiores */}
                               {([
                                 { title: "Superiores", mods: [
-                                  { key:"esquineroSuperior", label:"Esq. superior",  ml:0.60 },
-                                  { key:"moduloAlmacSup",    label:"Alm. superior",  ml:0.65 },
-                                  { key:"moduloExtractor",   label:"Extractor",      ml:0.70 },
-                                  { key:"moduloMicroondas",  label:"Microondas",     ml:0.60 },
-                                  { key:"especiero",         label:"Especiero",      ml:0.25 },
-                                  { key:"botellero",         label:"Botellero",      ml:0.35 },
-                                  { key:"moduloRepisa",      label:"Repisa",         ml:0.30 },
+                                  { key:"esquineroSuperior", label:"Esq. sup. (0.60×0.60)", ml:0.60 },
+                                  { key:"moduloAlmacSup",    label:"Alm. superior",          ml:0.65 },
+                                  { key:"moduloExtractor",   label:"Extractor",              ml:0.70 },
+                                  { key:"moduloMicroondas",  label:"Microondas",             ml:0.60 },
+                                  { key:"moduloRepisa",      label:"Repisa",                 ml:0.30 },
                                 ]},
                                 { title: "Inferiores", mods: [
-                                  { key:"esquinero1x1",      label:"Esq. 1×1",       ml:0    },
-                                  { key:"cajoneroTriple",    label:"Caj. triple",    ml:0.70 },
-                                  { key:"cajoneroDoble",     label:"Caj. doble",     ml:0.60 },
-                                  { key:"basurero",          label:"Basurero",       ml:0.50 },
-                                  { key:"moduloEstufaHorno", label:"Estufa/horno",   ml:0.70 },
-                                  { key:"moduloAlmacInf",    label:"Alm. inferior",  ml:0.70 },
+                                  { key:"especiero",         label:"Especiero",       ml:0.25 },
+                                  { key:"botellero",         label:"Botellero",       ml:0.35 },
+                                  { key:"esquinero1x1",      label:"Esq. 1×1 (1×1)", ml:0    },
+                                  { key:"cajoneroTriple",    label:"Caj. triple",     ml:0.70 },
+                                  { key:"cajoneroDoble",     label:"Caj. doble",      ml:0.60 },
+                                  { key:"basurero",          label:"Basurero",        ml:0.50 },
+                                  { key:"moduloEstufaHorno", label:"Estufa/horno",    ml:0.70 },
+                                  { key:"moduloAlmacInf",    label:"Alm. inferior",   ml:0.70 },
                                 ]},
                               ] as {title:string, mods:{key:string,label:string,ml:number}[]}[]).map(group => (
                                 <div key={group.title}>

@@ -124,7 +124,7 @@ function buildKitchenDescription(config: KitchenConfig): string {
   if (config.island?.enabled && config.island.meters > 0) {
     const islandCtNames: Record<string, string> = { quarzone: "Quarzone", sinterizado: "sinterizado", granito: "granito" };
     const islandMesonText = config.island.countertopType ? ` con mesón en ${islandCtNames[config.island.countertopType] || config.island.countertopType}` : "";
-    const islandLateralsText = config.island.hasLaterals ? " y laterales" : "";
+    const islandLateralsText = (config.island.incluyeLateralesIsla ?? config.island.hasLaterals) ? " y laterales" : "";
     parts.push(`isla ${config.island.meters}ml${islandMesonText}${islandLateralsText}`);
   }
   if (config.bar?.enabled && config.bar.meters > 0)       parts.push(`barra ${config.bar.meters}ml`);
@@ -297,6 +297,13 @@ export default function Quotations() {
           meters: 0,
           countertopType: "",
           hasLaterals: false,
+          incluyeLateralesIsla: false,
+          incluyeRegrueso: false,
+          incluyeSalpicaderoAlto: false,
+          incluyeLavaplatos: false,
+          incluyeLedIsla: false,
+          ledMLIsla: 0,
+          modulosDescriptivos: {},
         },
         bar: {
           enabled: false,
@@ -640,6 +647,13 @@ export default function Quotations() {
           meters: 0,
           countertopType: "",
           hasLaterals: false,
+          incluyeLateralesIsla: false,
+          incluyeRegrueso: false,
+          incluyeSalpicaderoAlto: false,
+          incluyeLavaplatos: false,
+          incluyeLedIsla: false,
+          ledMLIsla: 0,
+          modulosDescriptivos: {},
         },
         bar: {
           enabled: false,
@@ -880,6 +894,13 @@ export default function Quotations() {
               meters: item.kitchenConfig.island?.meters ?? 0,
               countertopType: item.kitchenConfig.island?.countertopType ?? "",
               hasLaterals: item.kitchenConfig.island?.hasLaterals ?? false,
+              incluyeLateralesIsla: item.kitchenConfig.island?.incluyeLateralesIsla ?? item.kitchenConfig.island?.hasLaterals ?? false,
+              incluyeRegrueso: item.kitchenConfig.island?.incluyeRegrueso ?? item.kitchenConfig.island?.hasLaterals ?? false,
+              incluyeSalpicaderoAlto: item.kitchenConfig.island?.incluyeSalpicaderoAlto ?? false,
+              incluyeLavaplatos: item.kitchenConfig.island?.incluyeLavaplatos ?? false,
+              incluyeLedIsla: item.kitchenConfig.island?.incluyeLedIsla ?? false,
+              ledMLIsla: item.kitchenConfig.island?.ledMLIsla ?? 0,
+              modulosDescriptivos: item.kitchenConfig.island?.modulosDescriptivos ?? {},
             },
             bar: {
               enabled: item.kitchenConfig.bar?.enabled ?? false,
@@ -923,6 +944,13 @@ export default function Quotations() {
               meters: 0,
               countertopType: "",
               hasLaterals: false,
+              incluyeLateralesIsla: false,
+              incluyeRegrueso: false,
+              incluyeSalpicaderoAlto: false,
+              incluyeLavaplatos: false,
+              incluyeLedIsla: false,
+              ledMLIsla: 0,
+              modulosDescriptivos: {},
             },
             bar: {
               enabled: false,
@@ -998,6 +1026,13 @@ export default function Quotations() {
             meters: 0,
             countertopType: "",
             hasLaterals: false,
+            incluyeLateralesIsla: false,
+            incluyeRegrueso: false,
+            incluyeSalpicaderoAlto: false,
+            incluyeLavaplatos: false,
+            incluyeLedIsla: false,
+            ledMLIsla: 0,
+            modulosDescriptivos: {},
           },
           bar: {
             enabled: false,
@@ -1274,17 +1309,43 @@ export default function Quotations() {
       );
       total += config.island.meters * getPrice(islaMlPriceCode);
       
+      // LED de isla
+      if (config.island.incluyeLedIsla && config.island.ledMLIsla && config.island.ledMLIsla > 0) {
+        total += config.island.ledMLIsla * getPrice('LED_ML');
+      }
+      
+      // Lavaplatos de isla
+      if (config.island.incluyeLavaplatos) {
+        total += config.island.lavaprecio ?? getPrice('LAVAPLATOS_MESON');
+      }
+      
       // Mesón superior de isla
       if (config.island.countertopType) {
-        const islandCountertopPrice = config.island.countertopType === "quarzone" ? getPrice('MESON_CUARZO')
-                                    : config.island.countertopType === "granito"  ? getPrice('MESON_GRANITO')
-                                    : getPrice('MESON_SINTERIZADO');
+        // Precio base del material (importado o estándar)
+        const islandMatBasePrice = (config.island.esImportado && config.island.precioImportadoML)
+          ? config.island.precioImportadoML
+          : config.island.countertopType === "quarzone" ? getPrice('MESON_CUARZO')
+          : config.island.countertopType === "granito"  ? getPrice('MESON_GRANITO')
+          : getPrice('MESON_SINTERIZADO');
+        
+        // Recargo por fondo
+        const fondoMult = config.island.depthSurcharge === 'double' ? 2
+                        : config.island.depthSurcharge === '30percent' ? (1 + getPrice('MESON_RECARGO_FONDO') / 100)
+                        : 1;
+        const islandCountertopPrice = islandMatBasePrice * fondoMult;
         total += config.island.meters * islandCountertopPrice;
         
-        // Laterales de isla
-        if (config.island.hasLaterals) {
-          total += 1.8 * islandCountertopPrice; // Lateral
-          total += 0.9 * islandCountertopPrice; // Regrueso
+        // Laterales (1.80ml = 0.90×2, CON recargo de fondo)
+        const islaAddLaterales = config.island.incluyeLateralesIsla ?? config.island.hasLaterals;
+        if (islaAddLaterales) total += 1.8 * islandCountertopPrice;
+        
+        // Regrueso (0.90ml, SIN recargo de fondo)
+        const islaAddRegrueso = config.island.incluyeRegrueso ?? config.island.hasLaterals;
+        if (islaAddRegrueso) total += 0.9 * islandMatBasePrice;
+        
+        // Salpicadero alto (metros × precio con fondo)
+        if (config.island.incluyeSalpicaderoAlto) {
+          total += config.island.meters * islandCountertopPrice;
         }
       }
     }
@@ -1625,17 +1686,43 @@ export default function Quotations() {
           );
           total += config.island.meters * getPrice(islaMlPriceCode2);
           
+          // LED de isla
+          if (config.island.incluyeLedIsla && config.island.ledMLIsla && config.island.ledMLIsla > 0) {
+            total += config.island.ledMLIsla * getPrice('LED_ML');
+          }
+          
+          // Lavaplatos de isla
+          if (config.island.incluyeLavaplatos) {
+            total += config.island.lavaprecio ?? getPrice('LAVAPLATOS_MESON');
+          }
+          
           // Mesón superior de isla
           if (config.island.countertopType) {
-            const islandCountertopPrice = config.island.countertopType === "quarzone" ? getPrice('MESON_CUARZO')
-                                    : config.island.countertopType === "granito"  ? getPrice('MESON_GRANITO')
-                                    : getPrice('MESON_SINTERIZADO');
-            total += config.island.meters * islandCountertopPrice;
+            // Precio base del material (importado o estándar)
+            const islandMatBasePrice2 = (config.island.esImportado && config.island.precioImportadoML)
+              ? config.island.precioImportadoML
+              : config.island.countertopType === "quarzone" ? getPrice('MESON_CUARZO')
+              : config.island.countertopType === "granito"  ? getPrice('MESON_GRANITO')
+              : getPrice('MESON_SINTERIZADO');
             
-            // Laterales de isla
-            if (config.island.hasLaterals) {
-              total += 1.8 * islandCountertopPrice; // Lateral
-              total += 0.9 * islandCountertopPrice; // Regrueso
+            // Recargo por fondo
+            const fondoMult2 = config.island.depthSurcharge === 'double' ? 2
+                            : config.island.depthSurcharge === '30percent' ? (1 + getPrice('MESON_RECARGO_FONDO') / 100)
+                            : 1;
+            const islandCountertopPrice2 = islandMatBasePrice2 * fondoMult2;
+            total += config.island.meters * islandCountertopPrice2;
+            
+            // Laterales (1.80ml = 0.90×2, CON recargo de fondo)
+            const islaAddLaterales2 = config.island.incluyeLateralesIsla ?? config.island.hasLaterals;
+            if (islaAddLaterales2) total += 1.8 * islandCountertopPrice2;
+            
+            // Regrueso (0.90ml, SIN recargo de fondo)
+            const islaAddRegrueso2 = config.island.incluyeRegrueso ?? config.island.hasLaterals;
+            if (islaAddRegrueso2) total += 0.9 * islandMatBasePrice2;
+            
+            // Salpicadero alto (metros × precio con fondo)
+            if (config.island.incluyeSalpicaderoAlto) {
+              total += config.island.meters * islandCountertopPrice2;
             }
           }
         }
@@ -3110,17 +3197,93 @@ export default function Quotations() {
                                       )}
                                     </div>
                                   )}
+                                  {/* Laterales y regrueso separados */}
+                                  <div className="grid grid-cols-2 gap-2">
+                                    <div className="flex items-center space-x-2">
+                                      <input type="checkbox" id={`islandLaterales-${index}`}
+                                        checked={item.kitchenConfig?.island.incluyeLateralesIsla ?? false}
+                                        onChange={(e) => updateKitchenConfig(index, "island.incluyeLateralesIsla", e.target.checked)}
+                                        className="h-4 w-4" />
+                                      <Label htmlFor={`islandLaterales-${index}`} className="text-sm font-normal cursor-pointer">Laterales (+1.80ml)</Label>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                      <input type="checkbox" id={`islandRegrueso-${index}`}
+                                        checked={item.kitchenConfig?.island.incluyeRegrueso ?? false}
+                                        onChange={(e) => updateKitchenConfig(index, "island.incluyeRegrueso", e.target.checked)}
+                                        className="h-4 w-4" />
+                                      <Label htmlFor={`islandRegrueso-${index}`} className="text-sm font-normal cursor-pointer">Regrueso (+0.90ml)</Label>
+                                    </div>
+                                  </div>
                                   <div className="flex items-center space-x-2">
-                                    <input
-                                      type="checkbox"
-                                      id={`islandLaterals-${index}`}
-                                      checked={item.kitchenConfig?.island.hasLaterals || false}
-                                      onChange={(e) => updateKitchenConfig(index, "island.hasLaterals", e.target.checked)}
-                                      className="h-4 w-4"
-                                    />
-                                    <Label htmlFor={`islandLaterals-${index}`} className="text-sm font-normal cursor-pointer">
-                                      Incluir laterales (+1.80ml lateral + 0.90ml regrueso)
-                                    </Label>
+                                    <input type="checkbox" id={`islandSalpicadero-${index}`}
+                                      checked={item.kitchenConfig?.island.incluyeSalpicaderoAlto ?? false}
+                                      onChange={(e) => updateKitchenConfig(index, "island.incluyeSalpicaderoAlto", e.target.checked)}
+                                      className="h-4 w-4" />
+                                    <Label htmlFor={`islandSalpicadero-${index}`} className="text-sm font-normal cursor-pointer">Salpicadero alto</Label>
+                                  </div>
+                                  {/* Lavaplatos isla */}
+                                  <div className="space-y-1">
+                                    <div className="flex items-center space-x-2">
+                                      <input type="checkbox" id={`islandLavaplatos-${index}`}
+                                        checked={item.kitchenConfig?.island.incluyeLavaplatos ?? false}
+                                        onChange={(e) => updateKitchenConfig(index, "island.incluyeLavaplatos", e.target.checked)}
+                                        className="h-4 w-4" />
+                                      <Label htmlFor={`islandLavaplatos-${index}`} className="text-sm font-normal cursor-pointer">Lavaplatos</Label>
+                                    </div>
+                                    {item.kitchenConfig?.island.incluyeLavaplatos && (
+                                      <div className="flex items-center gap-2 pl-6">
+                                        <Label className="text-xs text-white/60">Precio:</Label>
+                                        <Input type="number" step="1000"
+                                          value={item.kitchenConfig?.island.lavaprecio ?? ""}
+                                          onChange={(e) => updateKitchenConfig(index, "island.lavaprecio", parseFloat(e.target.value) || undefined)}
+                                          placeholder="130,000" className="h-7 w-28 text-xs" />
+                                      </div>
+                                    )}
+                                  </div>
+                                  {/* LED isla */}
+                                  <div className="space-y-1">
+                                    <div className="flex items-center space-x-2">
+                                      <input type="checkbox" id={`islandLed-${index}`}
+                                        checked={item.kitchenConfig?.island.incluyeLedIsla ?? false}
+                                        onChange={(e) => updateKitchenConfig(index, "island.incluyeLedIsla", e.target.checked)}
+                                        className="h-4 w-4" />
+                                      <Label htmlFor={`islandLed-${index}`} className="text-sm font-normal cursor-pointer">Luz LED isla</Label>
+                                    </div>
+                                    {item.kitchenConfig?.island.incluyeLedIsla && (
+                                      <div className="flex items-center gap-2 pl-6">
+                                        <Input type="number" step="0.01"
+                                          value={item.kitchenConfig?.island.ledMLIsla ?? ""}
+                                          onChange={(e) => updateKitchenConfig(index, "island.ledMLIsla", parseFloat(e.target.value) || 0)}
+                                          placeholder="0.00" className="h-7 w-20 text-xs" />
+                                        <span className="text-xs text-white/60">ml</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                  {/* Módulos descriptivos isla */}
+                                  <div>
+                                    <Label className="text-xs text-white/60 block mb-1">Módulos (solo descriptivos)</Label>
+                                    <div className="grid grid-cols-3 gap-1">
+                                      {([
+                                        ['esquineroSuperior', 'Esq. sup.'],
+                                        ['moduloExtractor', 'Extractor'],
+                                        ['moduloMicroondas', 'Microondas'],
+                                        ['especiero', 'Especiero'],
+                                        ['botellero', 'Botellero'],
+                                        ['moduloRepisa', 'Repisa'],
+                                        ['cajoneroTriple', 'Caj. triple'],
+                                        ['cajoneroDoble', 'Caj. doble'],
+                                        ['basurero', 'Basurero'],
+                                      ] as [string, string][]).map(([key, label]) => (
+                                        <div key={key} className="flex items-center gap-1">
+                                          <input type="checkbox"
+                                            id={`isla-mod-${index}-${key}`}
+                                            checked={(item.kitchenConfig?.island.modulosDescriptivos as any)?.[key] ?? false}
+                                            onChange={(e) => updateKitchenConfig(index, `island.modulosDescriptivos.${key}`, e.target.checked)}
+                                            className="h-3 w-3" />
+                                          <Label htmlFor={`isla-mod-${index}-${key}`} className="text-xs cursor-pointer">{label}</Label>
+                                        </div>
+                                      ))}
+                                    </div>
                                   </div>
                                 </div>
                               )}

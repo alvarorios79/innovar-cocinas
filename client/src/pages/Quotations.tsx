@@ -3049,7 +3049,7 @@ export default function Quotations() {
                                 // Solo inferiores definen el ancho (los superiores van encima sin sumar ML)
                                 const INF_ML_DEFAULT: Record<string, number> = {
                                   especiero:0.25, botellero:0.35, esquinero1x1:2.00, cajoneroTriple:0.70,
-                                  cajoneroDoble:0.60, basurero:0.50, moduloLavaplatos:0.70, moduloEstufaPuerta:0.70, moduloEstufaHorno:0.70, moduloAlmacInf:0.70,
+                                  cajoneroDoble:0.60, basurero:0.50, moduloLavaplatos:0.70, moduloEstufaPuerta:0.70, moduloEstufaHorno:0.70, moduloAlmacInf:0.60,
                                 };
                                 const customMLMap = (item.kitchenConfig as any)?.kitchenModulesML || {};
                                 const toQ = (v: any) => typeof v==='boolean'?(v?1:0):(v||0);
@@ -3088,7 +3088,7 @@ export default function Quotations() {
                                   { key:"moduloLavaplatos",   label:"Lavaplatos",      ml:0.70, editable:true },
                                   { key:"moduloEstufaPuerta", label:"Estufa c/puerta", ml:0.70, editable:true },
                                   { key:"moduloEstufaHorno",  label:"Estufa c/horno",  ml:0.70, editable:true },
-                                  { key:"moduloAlmacInf",    label:"Alm. inferior",ml:0.70, editable:true },
+                                  { key:"moduloAlmacInf",    label:"Almacenamiento", ml:0.60, editable:true },
                                 ]},
                               ] as {title:string, mods:{key:string,label:string,ml:number,editable?:boolean}[]}[]).map(group => (
                                 <div key={group.title}>

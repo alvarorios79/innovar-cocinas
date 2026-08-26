@@ -47,12 +47,8 @@ export interface KitchenConfig {
     incluyeLedIsla?: boolean;
     ledMLIsla?: number;
     modulosDescriptivos?: {
-      esquineroSuperior?: boolean;
-      moduloExtractor?: boolean;
-      moduloMicroondas?: boolean;
       especiero?: boolean;
       botellero?: boolean;
-      moduloRepisa?: boolean;
       cajoneroTriple?: boolean;
       cajoneroDoble?: boolean;
       basurero?: boolean;
@@ -66,8 +62,6 @@ export interface KitchenConfig {
     barraAlturaLateral?: number;
     incluyePedestal?: boolean;
     incluyeHerraje?: boolean;
-    incluyeLavaplatos?: boolean;
-    lavaprecio?: number;
     esImportado?: boolean;
     precioImportadoML?: number;
   };
@@ -83,22 +77,28 @@ export interface KitchenConfig {
     spiceQty: number; // Tapa de especiero - $100,000
     golaQty: number; // Tapas pequeña/gola - $45,000
   };
-  // Módulos de cocina — para descripción automática de la cotización
+  // Módulos de cocina — descripción + ML consumido + piezas pintadas
   kitchenModules?: {
-    esquinero1x1?: boolean;        // Esquinero inferior 1x1
-    esquineroSuperior?: boolean;   // Esquinero superior
-    cajoneroTriple?: boolean;      // Cajonero triple
-    cajoneroDoble?: boolean;       // Cajonero doble
-    basurero?: boolean;            // Basurero integrado
-    moduloEstufaHorno?: boolean;   // Módulo estufa y horno
-    moduloAlmacInf?: boolean;      // Módulo almacenamiento inferior
-    moduloAlmacSup?: boolean;      // Módulo almacenamiento superior
-    moduloExtractor?: boolean;     // Módulo extractor
-    moduloMicroondas?: boolean;    // Módulo de microondas
-    especiero?: boolean;           // Especiero
-    botellero?: boolean;           // Botellero
-    moduloRepisa?: boolean;        // Módulo repisa
-    luzLed?: boolean;              // Luz LED
+    // Superiores
+    esquineroSuperior?: number;    // 0.60ml, 1 pta sup
+    moduloAlmacSup?: number;       // 0.65ml, 2 ptas sup + 1 gola
+    moduloExtractor?: number;      // 0.70ml
+    moduloMicroondas?: number;     // 0.60ml
+    especiero?: number;            // 0.25ml, 1 especiero + 1 gola
+    botellero?: number;            // 0.35ml, 1 pta inf + 1 gola
+    moduloRepisa?: number;         // 0.30ml
+    // Inferiores
+    esquinero1x1?: number;         // 1×1 (no descuenta ML), 2 ptas inf
+    cajoneroTriple?: number;       // 0.70ml, 3 tapas cajón + 1 gola
+    cajoneroDoble?: number;        // 0.60ml, 2 tapas cajón + 1 gola
+    basurero?: number;             // 0.50ml, 1 pta inf + 1 gola
+    moduloEstufaHorno?: number;    // 0.70ml, 1 pta inf + 1 gola
+    moduloAlmacInf?: number;       // 0.70ml, 2 ptas inf + 1 gola
+    // Laterales (no descuentan ML — solo piezas, cantidad por proyecto)
+    lateralNichoNevera?: number;    // qty, sin piezas pintadas
+    lateralMuebleSuperior?: number; // qty, 1 pta sup c/u
+    lateralMuebleInferior?: number; // qty, 1 pta inf c/u
+    luzLed?: boolean;
   };
   // Para forma "Puertas y Tapas (solo cambio)"
   doorsAndCovers?: {
@@ -220,19 +220,22 @@ export function KitchenConfigurator({
       },
     },
     kitchenModules: {
-      esquinero1x1: false,
-      esquineroSuperior: false,
-      cajoneroTriple: false,
-      cajoneroDoble: false,
-      basurero: false,
-      moduloEstufaHorno: false,
-      moduloAlmacInf: false,
-      moduloAlmacSup: false,
-      moduloExtractor: false,
-      moduloMicroondas: false,
-      especiero: false,
-      botellero: false,
-      moduloRepisa: false,
+      esquineroSuperior: 0,
+      moduloAlmacSup: 0,
+      moduloExtractor: 0,
+      moduloMicroondas: 0,
+      especiero: 0,
+      botellero: 0,
+      moduloRepisa: 0,
+      esquinero1x1: 0,
+      cajoneroTriple: 0,
+      cajoneroDoble: 0,
+      basurero: 0,
+      moduloEstufaHorno: 0,
+      moduloAlmacInf: 0,
+      lateralNichoNevera: 0,
+      lateralMuebleSuperior: 0,
+      lateralMuebleInferior: 0,
       luzLed: false,
     },
     notes: "",
@@ -486,59 +489,128 @@ export function KitchenConfigurator({
             </div>
           </div>
 
-          {/* Módulos de Cocina — checklist descriptivo */}
+          {/* Módulos de Cocina — con cantidades y ML */}
           <div className="bg-teal-500/10 p-4 rounded-lg border border-teal-500/25">
-            <h5 className="font-semibold text-teal-300 mb-1">Módulos de Cocina (para descripción)</h5>
-            <p className="text-xs text-teal-400 mb-3">Selecciona los módulos que lleva esta cocina — se usan para generar la descripción automática de la cotización.</p>
+            <h5 className="font-semibold text-teal-300 mb-1">Módulos de Cocina</h5>
+            <p className="text-xs text-teal-400 mb-3">Indica cuántos de cada módulo lleva la cocina. Se descuenta el ML y se calculan piezas de pintura automáticamente.</p>
+
+            {/* ML consumido / restante */}
+            {(() => {
+              const km = currentConfig.kitchenModules || {};
+              const sm = currentConfig.specialModules || {};
+              const ML_MAP: Record<string, number> = {
+                esquineroSuperior:0.60, moduloAlmacSup:0.65, moduloExtractor:0.70,
+                moduloMicroondas:0.60, especiero:0.25, botellero:0.35, moduloRepisa:0.30,
+                esquinero1x1:0, cajoneroTriple:0.70, cajoneroDoble:0.60,
+                basurero:0.50, moduloEstufaHorno:0.70, moduloAlmacInf:0.70,
+              };
+              const specialML = (sm.nichoNevecon?1.00:0)+(sm.nichoNevera?0.75:0)+(sm.alacenaEntrepanos?0.55:0)+(sm.alacenaHerraje?0.55:0)+(sm.torreHornos?0.70:0);
+              const modulesML = Object.entries(ML_MAP).reduce((acc,[k,ml])=>{
+                const q = typeof (km as any)[k]==='boolean'?((km as any)[k]?1:0):((km as any)[k]||0);
+                return acc+q*ml;
+              },0);
+              const total = currentConfig.totalMeters||0;
+              const remaining = total - specialML - modulesML;
+              return (
+                <div className="flex gap-4 mb-3 text-xs">
+                  <span className="text-white/50">Total: <span className="text-white font-semibold">{total}ml</span></span>
+                  <span className="text-white/50">Especiales: <span className="text-amber-300">{specialML.toFixed(2)}ml</span></span>
+                  <span className="text-white/50">Módulos: <span className="text-teal-300">{modulesML.toFixed(2)}ml</span></span>
+                  <span className="text-white/50">Restante: <span className={remaining<0?"text-red-400":"text-emerald-400"}>{remaining.toFixed(2)}ml</span></span>
+                </div>
+              );
+            })()}
 
             <div className="space-y-4">
-              {/* Módulos Superiores */}
+              {/* Superiores */}
               <div>
                 <p className="text-xs font-semibold text-white/50 uppercase tracking-wide mb-2">Módulos superiores</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {([
-                    { key: "esquineroSuperior",  label: "Esquinero superior" },
-                    { key: "moduloAlmacSup",     label: "Módulo almacenamiento sup." },
-                    { key: "moduloExtractor",    label: "Módulo extractor" },
-                    { key: "moduloMicroondas",   label: "Módulo de microondas" },
-                    { key: "especiero",          label: "Especiero" },
-                    { key: "botellero",          label: "Botellero" },
-                    { key: "moduloRepisa",       label: "Módulo repisa" },
-                    { key: "luzLed",             label: "Luz LED" },
-                  ] as { key: keyof NonNullable<KitchenConfig["kitchenModules"]>; label: string }[]).map(({ key, label }) => (
-                    <div key={key} className="flex items-center gap-2 p-2 bg-[#162828] rounded border border-teal-100 hover:border-teal-300 transition-colors">
-                      <Checkbox
-                        id={`km-sup-${key}`}
-                        checked={currentConfig.kitchenModules?.[key] ?? false}
-                        onCheckedChange={(c) => updateConfig(`kitchenModules.${key}`, c === true)}
-                      />
-                      <Label htmlFor={`km-sup-${key}`} className="cursor-pointer text-sm text-white/85">{label}</Label>
-                    </div>
-                  ))}
+                    { key:"esquineroSuperior", label:"Esquinero superior",    ml:0.60 },
+                    { key:"moduloAlmacSup",    label:"Alm. superior",         ml:0.65 },
+                    { key:"moduloExtractor",   label:"Módulo extractor",      ml:0.70 },
+                    { key:"moduloMicroondas",  label:"Módulo microondas",     ml:0.60 },
+                    { key:"especiero",         label:"Especiero",             ml:0.25 },
+                    { key:"botellero",         label:"Botellero",             ml:0.35 },
+                    { key:"moduloRepisa",      label:"Módulo repisa",         ml:0.30 },
+                  ]).map(({ key, label, ml }) => {
+                    const qty = typeof (currentConfig.kitchenModules as any)?.[key]==='boolean'
+                      ? ((currentConfig.kitchenModules as any)?.[key]?1:0)
+                      : ((currentConfig.kitchenModules as any)?.[key]||0);
+                    return (
+                      <div key={key} className="flex items-center gap-2 p-2 bg-[#162828] rounded border border-teal-100">
+                        <Button type="button" variant="ghost" size="sm" className="h-6 w-6 p-0 text-white/50"
+                          onClick={()=>updateConfig(`kitchenModules.${key}`,Math.max(0,qty-1))}>−</Button>
+                        <span className="w-5 text-center text-sm font-semibold text-white">{qty}</span>
+                        <Button type="button" variant="ghost" size="sm" className="h-6 w-6 p-0 text-white/50"
+                          onClick={()=>updateConfig(`kitchenModules.${key}`,qty+1)}>+</Button>
+                        <span className="text-sm text-white/85 flex-1">{label}</span>
+                        <span className="text-xs text-teal-400/70">{ml}ml</span>
+                      </div>
+                    );
+                  })}
+                  {/* Luz LED — sigue siendo boolean */}
+                  <div className="flex items-center gap-2 p-2 bg-[#162828] rounded border border-teal-100">
+                    <Checkbox id="km-luzLed" checked={currentConfig.kitchenModules?.luzLed??false}
+                      onCheckedChange={(c)=>updateConfig("kitchenModules.luzLed",c===true)} />
+                    <Label htmlFor="km-luzLed" className="cursor-pointer text-sm text-white/85">Luz LED</Label>
+                  </div>
                 </div>
               </div>
 
-              {/* Módulos Inferiores */}
+              {/* Inferiores */}
               <div>
                 <p className="text-xs font-semibold text-white/50 uppercase tracking-wide mb-2">Módulos inferiores</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {([
-                    { key: "esquinero1x1",       label: "Esquinero 1×1 inferior" },
-                    { key: "cajoneroTriple",     label: "Cajonero triple" },
-                    { key: "cajoneroDoble",      label: "Cajonero doble" },
-                    { key: "basurero",           label: "Basurero integrado" },
-                    { key: "moduloEstufaHorno",  label: "Módulo estufa y horno" },
-                    { key: "moduloAlmacInf",     label: "Módulo almacenamiento inf." },
-                  ] as { key: keyof NonNullable<KitchenConfig["kitchenModules"]>; label: string }[]).map(({ key, label }) => (
-                    <div key={key} className="flex items-center gap-2 p-2 bg-[#162828] rounded border border-teal-100 hover:border-teal-300 transition-colors">
-                      <Checkbox
-                        id={`km-inf-${key}`}
-                        checked={currentConfig.kitchenModules?.[key] ?? false}
-                        onCheckedChange={(c) => updateConfig(`kitchenModules.${key}`, c === true)}
-                      />
-                      <Label htmlFor={`km-inf-${key}`} className="cursor-pointer text-sm text-white/85">{label}</Label>
-                    </div>
-                  ))}
+                    { key:"esquinero1x1",      label:"Esquinero 1×1 inf.",   ml:0    },
+                    { key:"cajoneroTriple",    label:"Cajonero triple",       ml:0.70 },
+                    { key:"cajoneroDoble",     label:"Cajonero doble",        ml:0.60 },
+                    { key:"basurero",          label:"Basurero integrado",    ml:0.50 },
+                    { key:"moduloEstufaHorno", label:"Estufa / horno",        ml:0.70 },
+                    { key:"moduloAlmacInf",    label:"Alm. inferior",         ml:0.70 },
+                  ]).map(({ key, label, ml }) => {
+                    const qty = typeof (currentConfig.kitchenModules as any)?.[key]==='boolean'
+                      ? ((currentConfig.kitchenModules as any)?.[key]?1:0)
+                      : ((currentConfig.kitchenModules as any)?.[key]||0);
+                    return (
+                      <div key={key} className="flex items-center gap-2 p-2 bg-[#162828] rounded border border-teal-100">
+                        <Button type="button" variant="ghost" size="sm" className="h-6 w-6 p-0 text-white/50"
+                          onClick={()=>updateConfig(`kitchenModules.${key}`,Math.max(0,qty-1))}>−</Button>
+                        <span className="w-5 text-center text-sm font-semibold text-white">{qty}</span>
+                        <Button type="button" variant="ghost" size="sm" className="h-6 w-6 p-0 text-white/50"
+                          onClick={()=>updateConfig(`kitchenModules.${key}`,qty+1)}>+</Button>
+                        <span className="text-sm text-white/85 flex-1">{label}</span>
+                        <span className="text-xs text-teal-400/70">{ml>0?`${ml}ml`:"—"}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Laterales */}
+              <div>
+                <p className="text-xs font-semibold text-white/50 uppercase tracking-wide mb-2">Laterales <span className="text-teal-500/60 normal-case">(no descuentan ML — solo piezas)</span></p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {([
+                    { key:"lateralNichoNevera",    label:"Lateral nicho nevera"  },
+                    { key:"lateralMuebleSuperior", label:"Lateral mueble sup."   },
+                    { key:"lateralMuebleInferior", label:"Lateral mueble inf."   },
+                  ]).map(({ key, label }) => {
+                    const qty = (currentConfig.kitchenModules as any)?.[key]||0;
+                    return (
+                      <div key={key} className="flex items-center gap-2 p-2 bg-[#162828] rounded border border-teal-100">
+                        <Button type="button" variant="ghost" size="sm" className="h-6 w-6 p-0 text-white/50"
+                          onClick={()=>updateConfig(`kitchenModules.${key}`,Math.max(0,qty-1))}>−</Button>
+                        <span className="w-5 text-center text-sm font-semibold text-white">{qty}</span>
+                        <Button type="button" variant="ghost" size="sm" className="h-6 w-6 p-0 text-white/50"
+                          onClick={()=>updateConfig(`kitchenModules.${key}`,qty+1)}>+</Button>
+                        <span className="text-sm text-white/85 flex-1">{label}</span>
+                        <span className="text-xs text-teal-400/70">—</span>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             </div>
@@ -862,12 +934,8 @@ export function KitchenConfigurator({
                   <Label className="text-sm text-white/60 block mb-2">Módulos (solo descriptivos)</Label>
                   <div className="grid grid-cols-2 gap-2">
                     {([
-                      ['esquineroSuperior', 'Esquinero sup.'],
-                      ['moduloExtractor', 'Extractor'],
-                      ['moduloMicroondas', 'Microondas'],
                       ['especiero', 'Especiero'],
                       ['botellero', 'Botellero'],
-                      ['moduloRepisa', 'Repisa'],
                       ['cajoneroTriple', 'Cajonero triple'],
                       ['cajoneroDoble', 'Cajonero doble'],
                       ['basurero', 'Basurero'],
@@ -977,31 +1045,6 @@ export function KitchenConfigurator({
                   <Label htmlFor="barra-herraje" className="cursor-pointer text-sm">
                     Herraje de barra (+$380,000)
                   </Label>
-                </div>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-3">
-                    <Checkbox 
-                      id="barra-lavaplatos" 
-                      checked={currentConfig.bar.incluyeLavaplatos ?? false} 
-                      onCheckedChange={(c) => updateConfig("bar.incluyeLavaplatos", c === true)} 
-                    />
-                    <Label htmlFor="barra-lavaplatos" className="cursor-pointer text-sm">
-                      Lavaplatos
-                    </Label>
-                  </div>
-                  {currentConfig.bar.incluyeLavaplatos && (
-                    <div className="flex items-center gap-2 pl-8">
-                      <Label className="text-sm text-white/70">Precio:</Label>
-                      <Input
-                        type="number"
-                        step="1000"
-                        value={currentConfig.bar.lavaprecio ?? ""}
-                        onChange={(e) => updateConfig("bar.lavaprecio", parseFloat(e.target.value) || undefined)}
-                        placeholder="130,000"
-                        className="h-8 w-32 bg-[#162828]"
-                      />
-                    </div>
-                  )}
                 </div>
                 {currentConfig.bar.countertopType && (
                   <div className="space-y-2">

@@ -3458,13 +3458,14 @@ export default function Quotations() {
                                   checked={item.kitchenConfig?.paintedDoors?.enabled || false}
                                   onChange={(e) => {
                                     const enabling = e.target.checked;
-                                    updateKitchenConfig(index, "paintedDoors.enabled", enabling);
-                                    if (enabling && item.kitchenConfig) {
-                                      const cfg = item.kitchenConfig;
-                                      const km2 = cfg.kitchenModules || {};
-                                      const sm2 = cfg.specialModules || {};
+                                    const ni = [...items];
+                                    const cfgPD = structuredClone(ni[index].kitchenConfig!);
+                                    ni[index] = { ...ni[index], kitchenConfig: cfgPD };
+                                    cfgPD.paintedDoors = { ...(cfgPD.paintedDoors || { enabled:false,upperQty:0,lowerQty:0,pantryQty:0,drawerQty:0,spiceQty:0,golaQty:0 }), enabled: enabling };
+                                    if (enabling) {
+                                      const km2 = cfgPD.kitchenModules || {};
+                                      const sm2 = cfgPD.specialModules || {};
                                       const q2 = (v: any) => typeof v === 'boolean' ? (v ? 1 : 0) : (v || 0);
-                                      // [ptaSup, ptaInf, alacena, cajon, especiero, gola]
                                       const P: Record<string, number[]> = {
                                         esquineroSuperior:     [1,0,0,0,0,0],
                                         moduloAlmacSup:        [2,0,0,0,0,1],
@@ -3480,23 +3481,24 @@ export default function Quotations() {
                                         lateralMuebleInferior: [0,1,0,0,0,0],
                                       };
                                       let up=0,lo=0,al=0,ca=0,es=0,go=0;
-                                      for (const [k,[ps,pi,a2,c2,e2,g2]] of Object.entries(P)) {
-                                        const qty=q2((km2 as any)[k]);
-                                        up+=qty*ps; lo+=qty*pi; al+=qty*a2; ca+=qty*c2; es+=qty*e2; go+=qty*g2;
+                                      for (const [k, arr] of Object.entries(P)) {
+                                        const qty = q2((km2 as any)[k]);
+                                        up+=qty*arr[0]; lo+=qty*arr[1]; al+=qty*arr[2];
+                                        ca+=qty*arr[3]; es+=qty*arr[4]; go+=qty*arr[5];
                                       }
                                       if (sm2.nichoNevecon)      up+=1;
                                       if (sm2.nichoNevera)       up+=1;
                                       if (sm2.alacenaEntrepanos) al+=1;
                                       if (sm2.alacenaHerraje)    al+=1;
                                       if (sm2.torreHornos)       { up+=1; ca+=1; go+=2; }
-                                      updateKitchenConfig(index, "paintedDoors.upperQty",  up);
-                                      updateKitchenConfig(index, "paintedDoors.lowerQty",  lo);
-                                      updateKitchenConfig(index, "paintedDoors.pantryQty", al);
-                                      updateKitchenConfig(index, "paintedDoors.drawerQty", ca);
-                                      updateKitchenConfig(index, "paintedDoors.spiceQty",  es);
-                                      updateKitchenConfig(index, "paintedDoors.golaQty",   go);
+                                      cfgPD.paintedDoors.upperQty  = up;
+                                      cfgPD.paintedDoors.lowerQty  = lo;
+                                      cfgPD.paintedDoors.pantryQty = al;
+                                      cfgPD.paintedDoors.drawerQty = ca;
+                                      cfgPD.paintedDoors.spiceQty  = es;
+                                      cfgPD.paintedDoors.golaQty   = go;
                                     }
-                                    calculateKitchenTotal(index);
+                                    calculateKitchenTotal(index, ni);
                                   }}
                                   className="h-4 w-4 accent-pink-500"
                                 />
@@ -3515,7 +3517,6 @@ export default function Quotations() {
                                       value={item.kitchenConfig?.paintedDoors?.upperQty || ""}
                                       onChange={(e) => {
                                         updateKitchenConfig(index, "paintedDoors.upperQty", parseInt(e.target.value) || 0);
-                                        calculateKitchenTotal(index);
                                       }}
                                       placeholder="0"
                                       className="h-8"
@@ -3529,7 +3530,6 @@ export default function Quotations() {
                                       value={item.kitchenConfig?.paintedDoors?.lowerQty || ""}
                                       onChange={(e) => {
                                         updateKitchenConfig(index, "paintedDoors.lowerQty", parseInt(e.target.value) || 0);
-                                        calculateKitchenTotal(index);
                                       }}
                                       placeholder="0"
                                       className="h-8"
@@ -3543,7 +3543,6 @@ export default function Quotations() {
                                       value={item.kitchenConfig?.paintedDoors?.pantryQty || ""}
                                       onChange={(e) => {
                                         updateKitchenConfig(index, "paintedDoors.pantryQty", parseInt(e.target.value) || 0);
-                                        calculateKitchenTotal(index);
                                       }}
                                       placeholder="0"
                                       className="h-8"
@@ -3557,7 +3556,6 @@ export default function Quotations() {
                                       value={item.kitchenConfig?.paintedDoors?.drawerQty || ""}
                                       onChange={(e) => {
                                         updateKitchenConfig(index, "paintedDoors.drawerQty", parseInt(e.target.value) || 0);
-                                        calculateKitchenTotal(index);
                                       }}
                                       placeholder="0"
                                       className="h-8"
@@ -3571,7 +3569,6 @@ export default function Quotations() {
                                       value={item.kitchenConfig?.paintedDoors?.spiceQty || ""}
                                       onChange={(e) => {
                                         updateKitchenConfig(index, "paintedDoors.spiceQty", parseInt(e.target.value) || 0);
-                                        calculateKitchenTotal(index);
                                       }}
                                       placeholder="0"
                                       className="h-8"
@@ -3585,7 +3582,6 @@ export default function Quotations() {
                                       value={item.kitchenConfig?.paintedDoors?.golaQty || ""}
                                       onChange={(e) => {
                                         updateKitchenConfig(index, "paintedDoors.golaQty", parseInt(e.target.value) || 0);
-                                        calculateKitchenTotal(index);
                                       }}
                                       placeholder="0"
                                       className="h-8"
@@ -3604,7 +3600,6 @@ export default function Quotations() {
                                   checked={item.kitchenConfig?.specialFinishes?.enabled || false}
                                   onChange={(e) => {
                                     updateKitchenConfig(index, "specialFinishes.enabled", e.target.checked);
-                                    calculateKitchenTotal(index);
                                   }}
                                   className="h-4 w-4 accent-purple-500"
                                 />
@@ -3730,7 +3725,6 @@ export default function Quotations() {
                                         checked={item.kitchenConfig?.specialFinishes?.ledLighting?.enabled || false}
                                         onChange={(e) => {
                                           updateKitchenConfig(index, "specialFinishes.ledLighting.enabled", e.target.checked);
-                                          calculateKitchenTotal(index);
                                         }}
                                         className="h-4 w-4 accent-yellow-500"
                                       />
@@ -3749,7 +3743,6 @@ export default function Quotations() {
                                           value={item.kitchenConfig?.specialFinishes?.ledLighting?.meters || ""}
                                           onChange={(e) => {
                                             updateKitchenConfig(index, "specialFinishes.ledLighting.meters", parseFloat(e.target.value) || 0);
-                                            calculateKitchenTotal(index);
                                           }}
                                           className="w-24 h-8"
                                           placeholder="0"

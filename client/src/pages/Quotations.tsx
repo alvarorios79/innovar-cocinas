@@ -3049,7 +3049,7 @@ export default function Quotations() {
                                 // Solo inferiores definen el ancho (los superiores van encima sin sumar ML)
                                 const INF_ML_DEFAULT: Record<string, number> = {
                                   especiero:0.25, botellero:0.35, esquinero1x1:0, cajoneroTriple:0.70,
-                                  cajoneroDoble:0.60, basurero:0.50, moduloEstufaHorno:0.70, moduloAlmacInf:0.70,
+                                  cajoneroDoble:0.60, basurero:0.50, moduloEstufaPuerta:0.70, moduloEstufaHorno:0.70, moduloAlmacInf:0.70,
                                 };
                                 const customMLMap = (item.kitchenConfig as any)?.kitchenModulesML || {};
                                 const toQ = (v: any) => typeof v==='boolean'?(v?1:0):(v||0);
@@ -3085,7 +3085,8 @@ export default function Quotations() {
                                   { key:"cajoneroTriple",    label:"Caj. triple",  ml:0.70, editable:true },
                                   { key:"cajoneroDoble",     label:"Caj. doble",   ml:0.60, editable:true },
                                   { key:"basurero",          label:"Basurero",     ml:0.50, editable:true },
-                                  { key:"moduloEstufaHorno", label:"Estufa/horno", ml:0.70, editable:true },
+                                  { key:"moduloEstufaPuerta", label:"Estufa c/puerta", ml:0.70, editable:true },
+                                  { key:"moduloEstufaHorno",  label:"Estufa c/horno",  ml:0.70, editable:true },
                                   { key:"moduloAlmacInf",    label:"Alm. inferior",ml:0.70, editable:true },
                                 ]},
                               ] as {title:string, mods:{key:string,label:string,ml:number,editable?:boolean}[]}[]).map(group => (
@@ -3630,6 +3631,7 @@ export default function Quotations() {
                                         cajoneroTriple:            [0,0,0,3,0,1],
                                         cajoneroDoble:             [0,0,0,2,0,1],
                                         basurero:                  [0,1,0,0,0,1],
+                                        moduloEstufaPuerta:         [0,1,0,0,0,1],
                                         moduloEstufaHorno:         [0,1,0,0,0,1],
                                         moduloAlmacInf:            [0,2,0,0,0,1],
                                         lateralMuebleSuperior:     [1,0,0,0,0,0],

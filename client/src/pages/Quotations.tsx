@@ -3046,7 +3046,11 @@ export default function Quotations() {
                               {(() => {
                                 const kmT = (item.kitchenConfig?.kitchenModules || {}) as any;
                                 const smT = item.kitchenConfig?.specialModules || {};
-                                // Solo inferiores definen el ancho (los superiores van encima sin sumar ML)
+                                // Superiores e inferiores tracked por separado
+                                const SUP_ML_DEFAULT: Record<string, number> = {
+                                  esquineroSuperior:1.20, moduloAlmacSup:0.65, moduloExtractor:0.70,
+                                  moduloMicroondas:0.60, moduloExtractorMicroondas:0.70, moduloRepisa:0.30, moduloPlatero:0.70,
+                                };
                                 const INF_ML_DEFAULT: Record<string, number> = {
                                   especiero:0.25, botellero:0.35, esquinero1x1:2.00, cajoneroTriple:0.70,
                                   cajoneroDoble:0.60, basurero:0.50, moduloLavaplatos:0.70, moduloEstufaPuerta:0.70, moduloEstufaHorno:0.70, moduloAlmacInf:0.60,
@@ -3054,6 +3058,7 @@ export default function Quotations() {
                                 const customMLMap = (item.kitchenConfig as any)?.kitchenModulesML || {};
                                 const toQ = (v: any) => typeof v==='boolean'?(v?1:0):(v||0);
                                 const specialML = (smT.nichoNevecon?1.00:0)+(smT.nichoNevera?0.75:0)+(smT.alacenaEntrepanos?0.55:0)+(smT.alacenaHerraje?0.55:0)+(smT.torreHornos?0.70:0);
+                                const supML = Object.entries(SUP_ML_DEFAULT).reduce((acc,[k,dflt])=>acc+toQ(kmT[k])*(customMLMap[k]??dflt), 0);
                                 const modulesML = Object.entries(INF_ML_DEFAULT).reduce((acc,[k,dflt])=>acc+toQ(kmT[k])*(customMLMap[k]??dflt), 0);
                                 const total = item.kitchenConfig?.totalMeters||0;
                                 const remaining = total - specialML - modulesML;
@@ -3061,7 +3066,8 @@ export default function Quotations() {
                                   <div className="flex flex-wrap gap-3 text-xs bg-black/20 rounded p-2">
                                     <span className="text-white/50">Total: <span className="text-white font-semibold">{total}ml</span></span>
                                     <span className="text-white/50">Especiales: <span className="text-amber-300">{specialML.toFixed(2)}ml</span></span>
-                                    <span className="text-white/50">Módulos: <span className="text-teal-300">{modulesML.toFixed(2)}ml</span></span>
+                                    <span className="text-white/50">Sup: <span className="text-purple-300">{supML.toFixed(2)}ml</span></span>
+                                    <span className="text-white/50">Inf: <span className="text-teal-300">{modulesML.toFixed(2)}ml</span></span>
                                     <span className="text-white/50">Restante: <span className={remaining<0?"text-red-400 font-bold":"text-emerald-400"}>{remaining.toFixed(2)}ml</span></span>
                                   </div>
                                 );
@@ -3070,13 +3076,13 @@ export default function Quotations() {
                               {/* Superiores e Inferiores */}
                               {([
                                 { title: "Superiores", mods: [
-                                  { key:"esquineroSuperior",         label:"Esq. sup. (0.60×0.60)", ml:0 },
-                                  { key:"moduloAlmacSup",            label:"Alm. superior",         ml:0 },
-                                  { key:"moduloExtractor",           label:"Extractor",             ml:0 },
-                                  { key:"moduloMicroondas",          label:"Microondas",            ml:0 },
-                                  { key:"moduloExtractorMicroondas", label:"Extractor+Microondas",  ml:0 },
-                                  { key:"moduloRepisa",              label:"Repisa (6 pzas)",       ml:0 },
-                                  { key:"moduloPlatero",             label:"Platero 2 puertas",     ml:0 },
+                                  { key:"esquineroSuperior",         label:"Esq. sup. (0.60×0.60)", ml:1.20, editable:true },
+                                  { key:"moduloAlmacSup",            label:"Alm. superior",         ml:0.65, editable:true },
+                                  { key:"moduloExtractor",           label:"Extractor",             ml:0.70, editable:true },
+                                  { key:"moduloMicroondas",          label:"Microondas",            ml:0.60, editable:true },
+                                  { key:"moduloExtractorMicroondas", label:"Extractor+Microondas",  ml:0.70, editable:true },
+                                  { key:"moduloRepisa",              label:"Repisa (6 pzas)",       ml:0.30, editable:true },
+                                  { key:"moduloPlatero",             label:"Platero 2 puertas",     ml:0.70, editable:true },
                                 ]},
                                 { title: "Inferiores", mods: [
                                   { key:"especiero",         label:"Especiero",    ml:0.25, editable:true },

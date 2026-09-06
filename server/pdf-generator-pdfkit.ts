@@ -181,6 +181,12 @@ export async function generateQuotationPDF(data: QuotationData, outputPath: stri
            .text("VALOR TOTAL", ML + 424, ty + 6, { width: 96, align: "right" });
       };
 
+      // Si queda poco espacio para header + al menos 1 fila, saltar a nueva página
+      if (Y + 80 > PH - 58) {
+        doc.addPage();
+        doc.rect(0, 0, PW, 5).fill(TEAL);
+        Y = 18;
+      }
       drawTableHeader(Y);
       Y += 20;
 

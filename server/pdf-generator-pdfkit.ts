@@ -190,26 +190,32 @@ export async function generateQuotationPDF(data: QuotationData, outputPath: stri
       drawTableHeader(Y);
       Y += 20;
 
+      // Listener: dibuja encabezado de tabla en cada nueva página (auto-paginación o explícita)
+      // Al modificar doc.page.margins.top DENTRO del evento, PDFKit posiciona el cursor
+      // justo debajo del encabezado cuando reanuda el texto en la nueva página.
       let alt = false;
+      const onPageAdded = () => {
+        doc.rect(0, 0, PW, 5).fill(TEAL);
+        drawTableHeader(18);
+        doc.page.margins.top = 38; // PDFKit fija doc.y = margins.top DESPUÉS del evento
+        Y = 38;
+        alt = false;
+      };
+      doc.on('pageAdded', onPageAdded);
+
       for (const item of data.items) {
         const descH = doc.heightOfString(item.description, { width: 336, lineGap: 1.5 });
         const rowH  = Math.max(descH + 12, 26);
 
-        // Si el ítem es más largo que una página, no hacer page-break preventivo — PDFKit lo pagina solo
+        // Salto explícito si queda poco espacio O si el ítem cabe en una página pero no en lo que queda
         const spaceLeft = PH - 58 - Y;
-        if (spaceLeft < 40 || (rowH <= PH - 78 && Y + rowH > PH - 58)) {
-          doc.addPage();
-          doc.rect(0, 0, PW, 5).fill(TEAL);
-          Y = 18;
-          drawTableHeader(Y);
-          Y += 20;
-          alt = false;
+        if (spaceLeft < 60 || (rowH <= PH - 78 && Y + rowH > PH - 58)) {
+          doc.addPage(); // onPageAdded dibuja encabezado y actualiza Y=38 y alt=false
         }
 
         doc.rect(ML, Y, CW, rowH).fill(alt ? LGRAY : WHITE).stroke(BORDER);
         doc.fontSize(9).fillColor(TEAL).font("Helvetica-Bold")
            .text(String(item.itemNumber), ML + 6, Y + 7, { width: 20, align: "center" });
-        // FIX Bug 1: rastrear página para detectar auto-paginación de PDFKit en descripciones largas
         const pageBeforeDesc = doc.page;
         doc.fontSize(8.5).fillColor(DGRAY).font("Helvetica")
            .text(item.description, ML + 30, Y + 6, { width: 336, lineGap: 1.5 });
@@ -217,7 +223,7 @@ export async function generateQuotationPDF(data: QuotationData, outputPath: stri
            .text(item.quantity, ML + 374, Y + 7, { width: 44, align: "center" });
         doc.fontSize(9).fillColor(DGRAY).font("Helvetica-Bold")
            .text(fmt(item.totalPrice), ML + 424, Y + 7, { width: 96, align: "right" });
-        // FIX Bug 1: sincronizar Y si PDFKit paginó automáticamente → evita página en blanco
+        // Sincronizar Y: si PDFKit paginó automáticamente usa su posición; si no, avanza rowH
         if (doc.page !== pageBeforeDesc) {
           Y = doc.y + 4;
         } else {
@@ -225,6 +231,8 @@ export async function generateQuotationPDF(data: QuotationData, outputPath: stri
         }
         alt = !alt;
       }
+
+      doc.removeListener('pageAdded', onPageAdded);
 
       Y += 8;
 

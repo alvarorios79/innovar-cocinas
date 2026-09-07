@@ -195,7 +195,9 @@ export async function generateQuotationPDF(data: QuotationData, outputPath: stri
         const descH = doc.heightOfString(item.description, { width: 336, lineGap: 1.5 });
         const rowH  = Math.max(descH + 12, 26);
 
-        if (Y + rowH > PH - 58) {
+        // Si el ítem es más largo que una página, no hacer page-break preventivo — PDFKit lo pagina solo
+        const spaceLeft = PH - 58 - Y;
+        if (spaceLeft < 40 || (rowH <= PH - 78 && Y + rowH > PH - 58)) {
           doc.addPage();
           doc.rect(0, 0, PW, 5).fill(TEAL);
           Y = 18;

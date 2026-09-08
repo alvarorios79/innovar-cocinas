@@ -181,55 +181,35 @@ export async function generateQuotationPDF(data: QuotationData, outputPath: stri
            .text("VALOR TOTAL", ML + 424, ty + 6, { width: 96, align: "right" });
       };
 
-      // Si queda poco espacio para header + al menos 1 fila, saltar a nueva página
-      if (Y + 80 > PH - 58) {
-        doc.addPage();
-        doc.rect(0, 0, PW, 5).fill(TEAL);
-        Y = 18;
-      }
       drawTableHeader(Y);
       Y += 20;
 
-      // Márgenes para la página actual (ítems): detiene auto-paginación antes del footer (Y=764)
-      doc.page.margins.bottom = 62;
-
-      // Listener: dibuja encabezado de tabla en cada nueva página (auto-paginación o explícita)
-      // margins.top=50 → PDFKit fija doc.y=50 después del evento (12px respiro bajo el header que termina en 38)
-      // margins.bottom=62 → PDFKit para de escribir antes del footer en Y=764
       let alt = false;
-      const onPageAdded = () => {
-        doc.rect(0, 0, PW, 5).fill(TEAL);
-        drawTableHeader(18);
-        doc.page.margins.top = 56; // PDFKit fija doc.y = margins.top DESPUÉS del evento (18px respiro bajo header)
-        doc.page.margins.bottom = 28; // Detiene auto-paginación justo antes del footer (footer en Y=764)
-        Y = 56;
-        alt = false;
-      };
-      doc.on('pageAdded', onPageAdded);
-
       for (const item of data.items) {
         const descH = doc.heightOfString(item.description, { width: 336, lineGap: 1.5 });
         const rowH  = Math.max(descH + 12, 26);
 
-        // Salto explícito si queda poco espacio O si el ítem cabe en una página pero no en lo que queda
-        const spaceLeft = PH - 58 - Y;
-        if (spaceLeft < 60 || (rowH <= PH - 78 && Y + rowH > PH - 58)) {
-          doc.addPage(); // onPageAdded dibuja encabezado y actualiza Y=38 y alt=false
+        if (Y + rowH > PH - 58) {
+          doc.addPage();
+          doc.rect(0, 0, PW, 5).fill(TEAL);
+          Y = 18;
+          drawTableHeader(Y);
+          Y += 20;
+          alt = false;
         }
 
         doc.rect(ML, Y, CW, rowH).fill(alt ? LGRAY : WHITE).stroke(BORDER);
-        // Dibujar #, cantidad y precio ANTES de la descripción → quedan en la página actual al Y correcto
         doc.fontSize(9).fillColor(TEAL).font("Helvetica-Bold")
            .text(String(item.itemNumber), ML + 6, Y + 7, { width: 20, align: "center" });
+        // FIX Bug 1: rastrear página para detectar auto-paginación de PDFKit en descripciones largas
+        const pageBeforeDesc = doc.page;
+        doc.fontSize(8.5).fillColor(DGRAY).font("Helvetica")
+           .text(item.description, ML + 30, Y + 6, { width: 336, lineGap: 1.5 });
         doc.fontSize(8.5).fillColor(MGRAY).font("Helvetica")
            .text(item.quantity, ML + 374, Y + 7, { width: 44, align: "center" });
         doc.fontSize(9).fillColor(DGRAY).font("Helvetica-Bold")
            .text(fmt(item.totalPrice), ML + 424, Y + 7, { width: 96, align: "right" });
-        // Descripción al final: puede auto-paginar a páginas de continuación
-        const pageBeforeDesc = doc.page;
-        doc.fontSize(8.5).fillColor(DGRAY).font("Helvetica")
-           .text(item.description, ML + 30, Y + 6, { width: 336, lineGap: 1.5 });
-        // Sincronizar Y: si PDFKit paginó automáticamente usa su posición; si no, avanza rowH
+        // FIX Bug 1: sincronizar Y si PDFKit paginó automáticamente → evita página en blanco
         if (doc.page !== pageBeforeDesc) {
           Y = doc.y + 4;
         } else {
@@ -237,8 +217,6 @@ export async function generateQuotationPDF(data: QuotationData, outputPath: stri
         }
         alt = !alt;
       }
-
-      doc.removeListener('pageAdded', onPageAdded);
 
       Y += 8;
 

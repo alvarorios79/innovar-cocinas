@@ -190,15 +190,19 @@ export async function generateQuotationPDF(data: QuotationData, outputPath: stri
       drawTableHeader(Y);
       Y += 20;
 
+      // Márgenes para la página actual (ítems): detiene auto-paginación antes del footer (Y=764)
+      doc.page.margins.bottom = 62;
+
       // Listener: dibuja encabezado de tabla en cada nueva página (auto-paginación o explícita)
-      // Al modificar doc.page.margins.top DENTRO del evento, PDFKit posiciona el cursor
-      // justo debajo del encabezado cuando reanuda el texto en la nueva página.
+      // margins.top=50 → PDFKit fija doc.y=50 después del evento (12px respiro bajo el header que termina en 38)
+      // margins.bottom=62 → PDFKit para de escribir antes del footer en Y=764
       let alt = false;
       const onPageAdded = () => {
         doc.rect(0, 0, PW, 5).fill(TEAL);
         drawTableHeader(18);
-        doc.page.margins.top = 38; // PDFKit fija doc.y = margins.top DESPUÉS del evento
-        Y = 38;
+        doc.page.margins.top = 50;    // PDFKit fija doc.y = margins.top DESPUÉS del evento
+        doc.page.margins.bottom = 62; // detiene auto-paginación antes del footer (PH-62=730)
+        Y = 50;
         alt = false;
       };
       doc.on('pageAdded', onPageAdded);

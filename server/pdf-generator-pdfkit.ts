@@ -200,9 +200,8 @@ export async function generateQuotationPDF(data: QuotationData, outputPath: stri
       const onPageAdded = () => {
         doc.rect(0, 0, PW, 5).fill(TEAL);
         drawTableHeader(18);
-        doc.page.margins.top = 50;    // PDFKit fija doc.y = margins.top DESPUÉS del evento
-        doc.page.margins.bottom = 62; // detiene auto-paginación antes del footer (PH-62=730)
-        Y = 50;
+        doc.page.margins.top = 56; // PDFKit fija doc.y = margins.top DESPUÉS del evento (18px respiro bajo header)
+        Y = 56;
         alt = false;
       };
       doc.on('pageAdded', onPageAdded);

@@ -201,6 +201,7 @@ export async function generateQuotationPDF(data: QuotationData, outputPath: stri
         doc.rect(0, 0, PW, 5).fill(TEAL);
         drawTableHeader(18);
         doc.page.margins.top = 56; // PDFKit fija doc.y = margins.top DESPUÉS del evento (18px respiro bajo header)
+        doc.page.margins.bottom = 28; // Detiene auto-paginación justo antes del footer (footer en Y=764)
         Y = 56;
         alt = false;
       };
@@ -217,15 +218,17 @@ export async function generateQuotationPDF(data: QuotationData, outputPath: stri
         }
 
         doc.rect(ML, Y, CW, rowH).fill(alt ? LGRAY : WHITE).stroke(BORDER);
+        // Dibujar #, cantidad y precio ANTES de la descripción → quedan en la página actual al Y correcto
         doc.fontSize(9).fillColor(TEAL).font("Helvetica-Bold")
            .text(String(item.itemNumber), ML + 6, Y + 7, { width: 20, align: "center" });
-        const pageBeforeDesc = doc.page;
-        doc.fontSize(8.5).fillColor(DGRAY).font("Helvetica")
-           .text(item.description, ML + 30, Y + 6, { width: 336, lineGap: 1.5 });
         doc.fontSize(8.5).fillColor(MGRAY).font("Helvetica")
            .text(item.quantity, ML + 374, Y + 7, { width: 44, align: "center" });
         doc.fontSize(9).fillColor(DGRAY).font("Helvetica-Bold")
            .text(fmt(item.totalPrice), ML + 424, Y + 7, { width: 96, align: "right" });
+        // Descripción al final: puede auto-paginar a páginas de continuación
+        const pageBeforeDesc = doc.page;
+        doc.fontSize(8.5).fillColor(DGRAY).font("Helvetica")
+           .text(item.description, ML + 30, Y + 6, { width: 336, lineGap: 1.5 });
         // Sincronizar Y: si PDFKit paginó automáticamente usa su posición; si no, avanza rowH
         if (doc.page !== pageBeforeDesc) {
           Y = doc.y + 4;

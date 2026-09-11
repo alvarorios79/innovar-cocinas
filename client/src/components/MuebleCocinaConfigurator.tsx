@@ -33,6 +33,16 @@ const PRECIOS = {
   ALACENA_ENTREPANOS:     1250000,
   ALACENA_HERRAJE:         900000,
   TORRE_HORNOS:           1350000,
+  // Frente de Cocina (Tapas) — precios por unidad
+  PUERTA_SUP_70:           120000,
+  PUERTA_SUP_90:           150000,
+  PUERTA_SUP_100:          180000,
+  PUERTA_INF:              150000,
+  PUERTA_ALACENA:          180000,
+  TAPA_CAJON_FC:            90000,
+  TAPA_PEQUENA_FC:          45000,
+  // Frente Pollo
+  FRENTE_POLLO_ML:         750000,
   // Pintado alto brillo
   PINTADO_SUPERIOR:        120000,
   PINTADO_INFERIOR:        150000,
@@ -48,6 +58,8 @@ export type TipoPieza =
   | "barra"
   | "mueble_alto"
   | "mueble_bajo"
+  | "frente_cocina"
+  | "frente_pollo"
   | "nicho_nevecon"
   | "nicho_nevera"
   | "alacena_entrepanos"
@@ -71,6 +83,7 @@ export interface ModulosDescriptivos {
   esquineroSuperior?:    boolean;
   moduloExtractor?:      boolean;
   moduloMicroondas?:     boolean;
+  moduloPlatero?:        boolean;
   especiero?:            boolean;
   botellero?:            boolean;
   moduloRepisa?:         boolean;
@@ -129,6 +142,23 @@ export interface MuebleCocinaConfig {
 
   notas: string;
 
+  // Frente de Cocina — conteo puertas y tapas
+  puertas: {
+    superiores70:  number;
+    superiores90:  number;
+    superiores100: number;
+    inferiores:    number;
+    alacena:       number;
+    tapasCarjon:   number;
+    tapasPequenas: number;
+  };
+
+  // Frente Pollo — metros lineales + cajonero opcional
+  frentePolloML:              number;
+  frentePolloIncluyeCajonero: boolean;
+  frentePolloCajoneroPrecio:  number;
+  frentePolloCajoneroNombre:  string;
+
   // Calculados
   subtotalMadera:    number;
   subtotalLed:       number;
@@ -167,6 +197,11 @@ export function defaultMuebleCocinaConfig(tipo: TipoPieza = "isla"): MuebleCocin
     incluyePintado: false,
     pintadoPuertas: { superiores: 0, inferiores: 0, alacena: 0, cajon: 0, especiero: 0, gola: 0 },
     notas: "",
+    puertas: { superiores70: 0, superiores90: 0, superiores100: 0, inferiores: 0, alacena: 0, tapasCarjon: 0, tapasPequenas: 0 },
+    frentePolloML: 1,
+    frentePolloIncluyeCajonero: false,
+    frentePolloCajoneroPrecio: 0,
+    frentePolloCajoneroNombre: "",
     subtotalMadera:    0,
     subtotalLed:       0,
     subtotalMeson:     0,
@@ -240,6 +275,18 @@ export function calcularMuebleCocina(cfg: MuebleCocinaConfig): MuebleCocinaConfi
     c.subtotalMadera = c.madreraML * (c.incluyeLed ? PRECIOS.MUEBLE_ALTO_LED_ML : PRECIOS.MUEBLE_ALTO_ML);
   } else if (c.tipoPieza === "mueble_bajo") {
     c.subtotalMadera = c.madreraML * PRECIOS.MUEBLE_BAJO_ML;
+  } else if (c.tipoPieza === "frente_cocina") {
+    const p = c.puertas || {} as any;
+    c.subtotalMadera =
+      (p.superiores70  || 0) * PRECIOS.PUERTA_SUP_70  +
+      (p.superiores90  || 0) * PRECIOS.PUERTA_SUP_90  +
+      (p.superiores100 || 0) * PRECIOS.PUERTA_SUP_100 +
+      (p.inferiores    || 0) * PRECIOS.PUERTA_INF     +
+      (p.alacena       || 0) * PRECIOS.PUERTA_ALACENA +
+      (p.tapasCarjon   || 0) * PRECIOS.TAPA_CAJON_FC  +
+      (p.tapasPequenas || 0) * PRECIOS.TAPA_PEQUENA_FC;
+  } else if (c.tipoPieza === "frente_pollo") {
+    c.subtotalMadera = (c.frentePolloML || 0) * PRECIOS.FRENTE_POLLO_ML;
   } else {
     c.subtotalMadera = 0; // barra
   }
@@ -273,9 +320,17 @@ export function calcularMuebleCocina(cfg: MuebleCocinaConfig): MuebleCocinaConfi
   // Lavaplatos
   c.subtotalLavaplatos = c.incluyeLavaplatos ? c.lavaprecio + PRECIOS.PEGADO_LAVAPLATOS : 0;
 
-  // Barra
-  c.subtotalPedestal = c.incluyePedestal ? PRECIOS.BARRA_PEDESTAL : 0;
-  c.subtotalHerraje  = c.incluyeHerraje  ? PRECIOS.BARRA_HERRAJE  : 0;
+  // Barra / Cajonero frente pollo
+  if (c.tipoPieza === "barra") {
+    c.subtotalPedestal = c.incluyePedestal ? PRECIOS.BARRA_PEDESTAL : 0;
+    c.subtotalHerraje  = c.incluyeHerraje  ? PRECIOS.BARRA_HERRAJE  : 0;
+  } else if (c.tipoPieza === "frente_pollo") {
+    c.subtotalPedestal = 0;
+    c.subtotalHerraje  = c.frentePolloIncluyeCajonero ? (c.frentePolloCajoneroPrecio || 0) : 0;
+  } else {
+    c.subtotalPedestal = 0;
+    c.subtotalHerraje  = 0;
+  }
 
   // Pintado
   if (c.incluyePintado) {
@@ -309,6 +364,8 @@ const LABELS_PIEZA: Record<TipoPieza, string> = {
   barra:              "Barra",
   mueble_alto:        "Muebles Altos",
   mueble_bajo:        "Muebles Bajos",
+  frente_cocina:      "Frente de Cocina",
+  frente_pollo:       "Frente Pollo",
   nicho_nevecon:      "Nicho Nevecón",
   nicho_nevera:       "Nicho Nevera",
   alacena_entrepanos: "Alacena Entrepaños",
@@ -320,6 +377,10 @@ const PIEZAS_GRUPOS = [
   {
     label: "Muebles",
     items: ["isla", "barra", "mueble_alto", "mueble_bajo"] as TipoPieza[],
+  },
+  {
+    label: "Frentes",
+    items: ["frente_cocina", "frente_pollo"] as TipoPieza[],
   },
   {
     label: "Piezas especiales",
@@ -390,13 +451,16 @@ export function MuebleCocinaConfigurator({ config, onChange }: Props) {
   const fondoNorm = config.mesonFondo > 5 ? config.mesonFondo / 100 : config.mesonFondo;
   const mult    = getMultiplicadorFondo(fondoNorm);
   const recTexto = mult === 1 ? "Normal" : mult === 1.3 ? "+30%" : "×2";
-  const esBarra      = config.tipoPieza === "barra";
-  const esIsla       = config.tipoPieza === "isla";
-  const esMuebleAlto = config.tipoPieza === "mueble_alto";
-  const esMuebleBajo = config.tipoPieza === "mueble_bajo";
-  const esPieza      = esPiezaFija(config.tipoPieza);
-  const piezaInfo    = INFO_PIEZA_FIJA[config.tipoPieza];
-  const tieneMueble  = esMuebleAlto || esMuebleBajo;
+  const esBarra        = config.tipoPieza === "barra";
+  const esIsla         = config.tipoPieza === "isla";
+  const esMuebleAlto   = config.tipoPieza === "mueble_alto";
+  const esMuebleBajo   = config.tipoPieza === "mueble_bajo";
+  const esFrenteCocina = config.tipoPieza === "frente_cocina";
+  const esFrentePollo  = config.tipoPieza === "frente_pollo";
+  const esPieza        = esPiezaFija(config.tipoPieza);
+  const piezaInfo      = INFO_PIEZA_FIJA[config.tipoPieza];
+  const tieneMueble    = esMuebleAlto || esMuebleBajo;
+  const tienePintado   = tieneMueble || esFrenteCocina || esFrentePollo;
 
   return (
     <div className="space-y-4 rounded-xl p-4"
@@ -470,7 +534,7 @@ export function MuebleCocinaConfigurator({ config, onChange }: Props) {
       )}
 
       {/* ── MADERA (isla / muebles) ── */}
-      {!esBarra && !esPieza && (
+      {!esBarra && !esPieza && !esFrenteCocina && !esFrentePollo && (
         <div className="p-3 rounded-lg space-y-3" style={{ background: "rgba(255,255,255,0.04)" }}>
           <p className="text-xs font-semibold text-white/60 uppercase tracking-wide">
             {esIsla ? "Estructura de madera" : "Mueble"}
@@ -545,6 +609,157 @@ export function MuebleCocinaConfigurator({ config, onChange }: Props) {
               <span className="font-semibold" style={{ color: "#fbbf24" }}>{formatPrice(config.subtotalLed)}</span>
             </div>
           )}
+        </div>
+      )}
+
+      {/* ── FRENTE DE COCINA (Tapas) ── */}
+      {esFrenteCocina && (
+        <div className="p-3 rounded-lg space-y-3" style={{ background: "rgba(255,255,255,0.04)" }}>
+          <p className="text-xs font-semibold text-white/60 uppercase tracking-wide">Puertas y Tapas</p>
+          <p className="text-[11px] text-white/40">Cambio de frente en cocina existente — rieles y bisagras van por separado</p>
+
+          <div className="space-y-2">
+            <p className="text-xs font-medium text-white/70">Puertas Superiores</p>
+            <div className="grid grid-cols-3 gap-2">
+              {([
+                { field: "superiores70",  label: "≤70cm",  precio: PRECIOS.PUERTA_SUP_70 },
+                { field: "superiores90",  label: "≤90cm",  precio: PRECIOS.PUERTA_SUP_90 },
+                { field: "superiores100", label: "+100cm", precio: PRECIOS.PUERTA_SUP_100 },
+              ] as const).map(({ field, label, precio }) => (
+                <div key={field} className="space-y-0.5">
+                  <Label className="text-[10px] text-white/50">{label} — {formatPrice(precio)}</Label>
+                  <Input type="number" min="0" placeholder="0"
+                    value={config.puertas?.[field] || ""}
+                    onChange={(e) => {
+                      const next = { ...config, puertas: { ...config.puertas, [field]: parseInt(e.target.value) || 0 } };
+                      onChange(calcularMuebleCocina(next));
+                    }}
+                    className="h-8 bg-transparent border-white/15 text-white text-sm"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-xs font-medium text-white/70">Puertas Inferiores y Alacena</p>
+            <div className="grid grid-cols-2 gap-2">
+              {([
+                { field: "inferiores", label: "Inferiores", precio: PRECIOS.PUERTA_INF },
+                { field: "alacena",    label: "Alacena",    precio: PRECIOS.PUERTA_ALACENA },
+              ] as const).map(({ field, label, precio }) => (
+                <div key={field} className="space-y-0.5">
+                  <Label className="text-[10px] text-white/50">{label} — {formatPrice(precio)}</Label>
+                  <Input type="number" min="0" placeholder="0"
+                    value={config.puertas?.[field] || ""}
+                    onChange={(e) => {
+                      const next = { ...config, puertas: { ...config.puertas, [field]: parseInt(e.target.value) || 0 } };
+                      onChange(calcularMuebleCocina(next));
+                    }}
+                    className="h-8 bg-transparent border-white/15 text-white text-sm"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-xs font-medium text-white/70">Tapas</p>
+            <div className="grid grid-cols-2 gap-2">
+              {([
+                { field: "tapasCarjon",   label: "Tapas cajón",    precio: PRECIOS.TAPA_CAJON_FC },
+                { field: "tapasPequenas", label: "Tapas pequeñas", precio: PRECIOS.TAPA_PEQUENA_FC },
+              ] as const).map(({ field, label, precio }) => (
+                <div key={field} className="space-y-0.5">
+                  <Label className="text-[10px] text-white/50">{label} — {formatPrice(precio)}</Label>
+                  <Input type="number" min="0" placeholder="0"
+                    value={config.puertas?.[field] || ""}
+                    onChange={(e) => {
+                      const next = { ...config, puertas: { ...config.puertas, [field]: parseInt(e.target.value) || 0 } };
+                      onChange(calcularMuebleCocina(next));
+                    }}
+                    className="h-8 bg-transparent border-white/15 text-white text-sm"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex justify-between items-center pt-1 text-sm">
+            <span className="text-white/50">Subtotal puertas/tapas:</span>
+            <span className="font-semibold text-white">{formatPrice(config.subtotalMadera)}</span>
+          </div>
+        </div>
+      )}
+
+      {/* ── FRENTE POLLO ── */}
+      {esFrentePollo && (
+        <div className="p-3 rounded-lg space-y-3" style={{ background: "rgba(255,255,255,0.04)" }}>
+          <p className="text-xs font-semibold text-white/60 uppercase tracking-wide">Frente Pollo</p>
+          <p className="text-[11px] text-white/40">Cocina vaciada en concreto — solo el frente</p>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <Label className="text-xs text-white/70">Metros Lineales</Label>
+              <Input type="number" step="0.1" min="0.1"
+                value={config.frentePolloML}
+                onChange={(e) => onChange(calcularMuebleCocina({ ...config, frentePolloML: parseFloat(e.target.value) || 0 }))}
+                className="h-9 bg-transparent border-white/15 text-white"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs text-white/70">Precio ML</Label>
+              <div className="h-9 flex items-center px-3 rounded-md text-sm font-semibold"
+                style={{ background: "rgba(29,181,168,0.15)", color: "#6ACFC7" }}>
+                {formatPrice(PRECIOS.FRENTE_POLLO_ML)}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-between items-center pt-1 text-sm">
+            <span className="text-white/50">Subtotal frente:</span>
+            <span className="font-semibold text-white">{formatPrice(config.subtotalMadera)}</span>
+          </div>
+
+          <div className="space-y-2 pt-1" style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="cajonero-check"
+                checked={config.frentePolloIncluyeCajonero}
+                onCheckedChange={(v) => onChange(calcularMuebleCocina({ ...config, frentePolloIncluyeCajonero: v === true }))}
+              />
+              <Label htmlFor="cajonero-check" className="text-sm cursor-pointer text-white/80">
+                Incluye cajonero
+              </Label>
+            </div>
+            {config.frentePolloIncluyeCajonero && (
+              <div className="grid grid-cols-2 gap-3 pl-2">
+                <div className="space-y-1">
+                  <Label className="text-xs text-white/70">Descripción</Label>
+                  <Input
+                    placeholder="Ej: Cajonero triple"
+                    value={config.frentePolloCajoneroNombre}
+                    onChange={(e) => onChange(calcularMuebleCocina({ ...config, frentePolloCajoneroNombre: e.target.value }))}
+                    className="h-9 bg-transparent border-white/15 text-white text-sm"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-white/70">Precio</Label>
+                  <Input type="number" step="10000" min="0" placeholder="0"
+                    value={config.frentePolloCajoneroPrecio || ""}
+                    onChange={(e) => onChange(calcularMuebleCocina({ ...config, frentePolloCajoneroPrecio: parseInt(e.target.value) || 0 }))}
+                    className="h-9 bg-transparent border-white/15 text-white"
+                  />
+                </div>
+              </div>
+            )}
+            {config.frentePolloIncluyeCajonero && config.subtotalHerraje > 0 && (
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-white/50">Cajonero:</span>
+                <span className="font-semibold text-white">{formatPrice(config.subtotalHerraje)}</span>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
@@ -760,8 +975,8 @@ export function MuebleCocinaConfigurator({ config, onChange }: Props) {
         </div>
       )}
 
-      {/* ── PINTADO PUERTAS ALTO BRILLO (muebles altos y bajos) ── */}
-      {tieneMueble && (
+      {/* ── PINTADO PUERTAS ALTO BRILLO ── */}
+      {tienePintado && (
         <div className="p-3 rounded-lg space-y-3" style={{ background: "rgba(255,255,255,0.04)" }}>
           <div className="flex items-center gap-2">
             <Checkbox id="pintado-check" checked={config.incluyePintado}
@@ -777,9 +992,9 @@ export function MuebleCocinaConfigurator({ config, onChange }: Props) {
           {config.incluyePintado && (
             <div className="space-y-2 pt-1">
               {([
-                { field: "superiores",  label: "Puertas superiores",  precio: PRECIOS.PINTADO_SUPERIOR,  show: esMuebleAlto },
-                { field: "inferiores",  label: "Puertas inferiores",  precio: PRECIOS.PINTADO_INFERIOR,  show: esMuebleBajo },
-                { field: "alacena",     label: "Puertas de alacena",  precio: PRECIOS.PINTADO_ALACENA,   show: esMuebleAlto },
+                { field: "superiores",  label: "Puertas superiores",  precio: PRECIOS.PINTADO_SUPERIOR,  show: esMuebleAlto || esFrenteCocina || esFrentePollo },
+                { field: "inferiores",  label: "Puertas inferiores",  precio: PRECIOS.PINTADO_INFERIOR,  show: esMuebleBajo || esFrenteCocina || esFrentePollo },
+                { field: "alacena",     label: "Puertas de alacena",  precio: PRECIOS.PINTADO_ALACENA,   show: esMuebleAlto || esFrenteCocina || esFrentePollo },
                 { field: "cajon",       label: "Tapas de cajón",      precio: PRECIOS.PINTADO_CAJON,     show: true },
                 { field: "especiero",   label: "Tapa de especiero",   precio: PRECIOS.PINTADO_ESPECIERO, show: esMuebleAlto },
                 { field: "gola",        label: "Tapas gola/pequeñas", precio: PRECIOS.PINTADO_GOLA,      show: true },
@@ -833,7 +1048,7 @@ export function MuebleCocinaConfigurator({ config, onChange }: Props) {
         </div>
         {config.subtotalMadera > 0 && (
           <div className="flex justify-between text-sm text-[#0C1A1A]/80">
-            <span>{esIsla ? "Madera isla" : LABELS_PIEZA[config.tipoPieza]} ({config.madreraML} ml):</span>
+            <span>{esIsla ? "Madera isla" : esFrenteCocina ? "Puertas y tapas" : LABELS_PIEZA[config.tipoPieza]}{!esFrenteCocina && ` (${config.madreraML} ml)`}:</span>
             <span>{formatPrice(config.subtotalMadera)}</span>
           </div>
         )}

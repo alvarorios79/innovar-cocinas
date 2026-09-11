@@ -10,8 +10,8 @@ import { Hammer, Calculator, Refrigerator, LayoutGrid, UtensilsCrossed, Paintbru
 const PRECIOS = {
   // Madera
   ISLA_MADERA_ML:         1200000,
-  MUEBLE_ALTO_ML:          900000,
-  MUEBLE_ALTO_LED_ML:     1000000,
+  MUEBLE_ALTO_ML:          1000000,
+  MUEBLE_ALTO_LED_ML:     1100000,
   MUEBLE_BAJO_ML:         1100000,
   // LED
   LED_ML:                  220000,
@@ -491,7 +491,7 @@ export function MuebleCocinaConfigurator({ config, onChange }: Props) {
                 {esIsla
                   ? formatPrice(1200000)
                   : esMuebleAlto
-                    ? formatPrice(config.incluyeLed ? 1000000 : 900000)
+                    ? formatPrice(config.incluyeLed ? 1100000 : 1000000)
                     : formatPrice(1100000)}
               </div>
             </div>

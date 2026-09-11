@@ -11,7 +11,7 @@ const PRECIOS = {
   // Madera
   ISLA_MADERA_ML:         1200000,
   MUEBLE_ALTO_ML:          1000000,
-  MUEBLE_ALTO_LED_ML:     1100000,
+  MUEBLE_ALTO_LED_ML:     1000000,
   MUEBLE_BAJO_ML:         1100000,
   // LED
   LED_ML:                  220000,
@@ -339,8 +339,7 @@ const MODULOS_ALTOS = [
   { key: "esquineroSuperior",  label: "Esquinero superior" },
   { key: "moduloExtractor",    label: "Módulo extractor" },
   { key: "moduloMicroondas",   label: "Módulo microondas" },
-  { key: "especiero",          label: "Especiero" },
-  { key: "botellero",          label: "Botellero" },
+  { key: "moduloPlatero",      label: "Platero" },
   { key: "moduloRepisa",       label: "Módulo repisa" },
   { key: "moduloAlmacSup",     label: "Módulo almacenamiento sup." },
 ] as const;
@@ -349,6 +348,8 @@ const MODULOS_BAJOS = [
   { key: "esquinero1x1",       label: "Esquinero 1×1 inferior" },
   { key: "cajoneroTriple",     label: "Cajonero triple" },
   { key: "cajoneroDoble",      label: "Cajonero doble" },
+  { key: "especiero",          label: "Especiero" },
+  { key: "botellero",          label: "Botellero" },
   { key: "basurero",           label: "Basurero integrado" },
   { key: "moduloEstufaHorno",  label: "Módulo estufa/horno" },
   { key: "moduloAlmacInf",     label: "Módulo almacenamiento inf." },
@@ -491,7 +492,7 @@ export function MuebleCocinaConfigurator({ config, onChange }: Props) {
                 {esIsla
                   ? formatPrice(1200000)
                   : esMuebleAlto
-                    ? formatPrice(config.incluyeLed ? 1100000 : 1000000)
+                    ? formatPrice(1000000)
                     : formatPrice(1100000)}
               </div>
             </div>

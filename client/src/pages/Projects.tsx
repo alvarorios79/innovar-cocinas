@@ -2232,15 +2232,16 @@ export default function Projects() {
               </Button>
               <Button
                 className="bg-green-600 hover:bg-green-700"
-                disabled={sendWhatsappMutation.isPending}
                 onClick={() => {
-                  if (currentProjectId) {
-                    sendWhatsappMutation.mutate({ id: currentProjectId });
-                  }
+                  const phone = whatsAppPhone.replace(/\D/g, "");
+                  const phoneWithCountry = phone.startsWith("57") ? phone : `57${phone}`;
+                  const url = `https://wa.me/${phoneWithCountry}?text=${encodeURIComponent(whatsAppMessage)}`;
+                  window.open(url, "_blank");
+                  setShowWhatsAppDialog(false);
                 }}
               >
                 <Send className="h-4 w-4 mr-2" />
-                {sendWhatsappMutation.isPending ? "Enviando..." : "Enviar por WhatsApp"}
+                Enviar por WhatsApp
               </Button>
             </div>
           </div>

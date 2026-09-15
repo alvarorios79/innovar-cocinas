@@ -9,6 +9,7 @@ import { TVCenterConfigurator, TVCenterConfig } from "@/components/TVCenterConfi
 import { KitchenConfigurator, KitchenConfig } from "@/components/KitchenConfigurator";
 import { CountertopConfigurator, CountertopConfig, defaultCountertopConfig } from "@/components/CountertopConfigurator";
 import { MuebleCocinaConfigurator, MuebleCocinaConfig, defaultMuebleCocinaConfig, calcularMuebleCocina } from "@/components/MuebleCocinaConfigurator";
+import { BathroomConfigurator, BathroomConfig } from "@/components/BathroomConfigurator";
 import { PDFPreviewBeforeSave } from "@/components/PDFPreviewBeforeSave";
 import { PDFContentEditor } from "@/components/PDFContentEditor";
 import { Button } from "@/components/ui/button";
@@ -75,6 +76,7 @@ interface QuotationItem {
   tvCenterConfig?: TVCenterConfig;
   countertopConfig?: CountertopConfig;
   muebleCocinaConfig?: MuebleCocinaConfig;
+  bathroomConfig?: BathroomConfig;
   acabadosConfig?: AcabadosConfig;
 }
 
@@ -188,6 +190,20 @@ function buildDoorDescription(config: import("@/components/DoorConfigurator").Do
 
 function buildTVDescription(_config: import("@/components/TVCenterConfigurator").TVCenterConfig): string {
   return "Material aglomerado tipo RH, color a elegir por el cliente con: mueble flotante, pantalla para soporte TV, alistonado, repisas. (Diseño por definir)";
+}
+
+function buildBathroomDescription(config: BathroomConfig): string {
+  const typeLabel = config.furnitureType === 'flotante' ? 'Mueble de Baño Flotante' : 'Mueble de Baño de Piso con Pata';
+  let desc = `${typeLabel} — ${config.width}cm ancho × ${config.depth}cm prof. × ${config.height}cm alto. `;
+  desc += 'Madera aglomerada tipo RH de alta presión, cantos rígidos en puertas y tapas. ';
+  desc += config.sinkType === 'excavado' ? 'Con lavamanos excavado integrado. ' : 'Para lavamanos de sobreponer. ';
+  if (config.hasExcavado && config.excavadoMaterial) {
+    desc += `Excavado en ${config.excavadoMaterial} — incluye salpicadero 10cm, llave/grifo no incluida. `;
+  }
+  if (config.hasMeson && config.mesonMaterial) {
+    desc += `Mesón en ${config.mesonMaterial} — incluye salpicadero 10cm, llave/grifo y lavamanos no incluidos. `;
+  }
+  return desc.trim();
 }
 
 export default function Quotations() {
@@ -847,6 +863,7 @@ export default function Quotations() {
             transportCost: item.doorConfig.transportCost ?? 150000,
             notes: item.doorConfig.notes || "",
           } : undefined,
+          bathroomConfig: item.bathroomConfig || undefined,
           countertopConfig: item.countertopConfig ? {
             mesones: item.countertopConfig.mesones || [{
               id: `meson-legacy-${Date.now()}`,
@@ -2563,6 +2580,7 @@ export default function Quotations() {
                            item.itemType === 'centro_tv' ? 'Centro de TV' :
                            item.itemType === 'mesones' ? 'Mesón Solo' :
                            item.itemType === 'mueble_cocina' ? 'Piezas de Cocina' :
+                           item.itemType === 'baño' ? 'Mueble de Baño' :
                            item.itemType === 'herrajes' ? 'Herrajes' :
                            item.itemType === 'acabados_especiales' ? 'Acabados Especiales' :
                            item.itemType === 'otro' ? 'Otro' : 'Nuevo Producto'}
@@ -2611,6 +2629,9 @@ export default function Quotations() {
                               </SelectItem>
                               <SelectItem value="puerta">
                                 <span className="flex items-center gap-2"><DoorOpen className="h-4 w-4 text-amber-500" /> Puerta</span>
+                              </SelectItem>
+                              <SelectItem value="baño">
+                                <span className="flex items-center gap-2">🚿 Mueble de Baño</span>
                               </SelectItem>
                               <SelectItem value="centro_tv">
                                 <span className="flex items-center gap-2"><Tv className="h-4 w-4 text-blue-500" /> Centro de TV</span>
@@ -4502,6 +4523,28 @@ export default function Quotations() {
                                 className="text-sm bg-[#162828] border-[rgba(106,207,199,0.18)] text-white/85"
                               />
                             </div>
+                          </>
+                        )}
+
+                        {/* Campos dinámicos para MUEBLE DE BAÑO */}
+                        {item.itemType === "baño" && (
+                          <>
+                            <BathroomConfigurator
+                              config={item.bathroomConfig || null}
+                              onChange={(config: BathroomConfig) => {
+                                const newItems = [...items];
+                                const autoDesc = buildBathroomDescription(config);
+                                newItems[index] = {
+                                  ...newItems[index],
+                                  bathroomConfig: config,
+                                  totalPrice: config.subtotal,
+                                  description: newItems[index].description?.trim()
+                                    ? newItems[index].description
+                                    : autoDesc,
+                                };
+                                setItems(newItems);
+                              }}
+                            />
                           </>
                         )}
 

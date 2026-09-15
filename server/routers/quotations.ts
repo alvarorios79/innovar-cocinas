@@ -727,6 +727,9 @@ export const quotationsRouter = router({
                   const lineTotal = door.lineTotal || (door.pricePerUnit * qty);
                   lines.push(`Puerta ${idx + 1}: ${typeLabels[door.type] || door.type}`);
                   lines.push(`  • Medidas: ${door.width}cm × ${door.height}m`);
+                  if (door.height > 2.40) {
+                    lines.push(`  • Plus empate extra (altura >2.40m): $300.000 / unidad`);
+                  }
                   lines.push(`  • Cantidad: ${qty} ${qty === 1 ? 'unidad' : 'unidades'}`);
                   lines.push(`  • Accesorios: ${colorLabels[door.hardwareColor] || door.hardwareColor}`);
                   lines.push(`  • Dintel: ${door.hasLintel ? 'Sí' : 'No'}`);
@@ -744,12 +747,7 @@ export const quotationsRouter = router({
                 });
                 
                 lines.push('');
-                lines.push('Todas incluyen:');
-                lines.push('• Marco RH');
-                lines.push('• Chapa gama alta');
-                lines.push('• Bisagras omega');
-                lines.push('• Tope de puerta');
-                lines.push('• Instalación completa');
+                lines.push('Puertas macizas de 36 mm de espesor, enchapada a 4 lados con marco y material RH. con chapa gama alta, tope de puerta y totalmente instalada.');
                 
                 // Transporte e imprevistos
                 if (doorConfig.includeTransport && doorConfig.transportCost) {
@@ -1476,6 +1474,9 @@ export const quotationsRouter = router({
                 const lineTotal = door.lineTotal || (door.pricePerUnit * qty);
                 lines.push(`Puerta ${idx + 1}: ${typeLabels[door.type] || door.type}`);
                 lines.push(`  • Medidas: ${door.width}cm × ${door.height}m`);
+                if (door.height > 2.40) {
+                  lines.push(`  • Plus empate extra (altura >2.40m): $300.000 / unidad`);
+                }
                 lines.push(`  • Cantidad: ${qty} ${qty === 1 ? 'unidad' : 'unidades'}`);
                 lines.push(`  • Accesorios: ${colorLabels[door.hardwareColor] || door.hardwareColor}`);
                 lines.push(`  • Dintel: ${door.hasLintel ? 'Sí' : 'No'}`);
@@ -1487,12 +1488,7 @@ export const quotationsRouter = router({
               });
               
               lines.push('');
-              lines.push('Todas incluyen:');
-              lines.push('• Marco RH');
-              lines.push('• Chapa gama alta');
-              lines.push('• Bisagras omega');
-              lines.push('• Tope de puerta');
-              lines.push('• Instalación completa');
+              lines.push('Puertas macizas de 36 mm de espesor, enchapada a 4 lados con marco y material RH. con chapa gama alta, tope de puerta y totalmente instalada.');
               
               if (doorConfig.includeTransport && doorConfig.transportCost) {
                 lines.push('');
@@ -2078,6 +2074,9 @@ export const quotationsRouter = router({
                   const lineTotal = door.lineTotal || (door.pricePerUnit * qty);
                   lines.push(`Puerta ${idx + 1}: ${typeLabels[door.type] || door.type}`);
                   lines.push(`  • Medidas: ${door.width}cm × ${door.height}m`);
+                  if (door.height > 2.40) {
+                    lines.push(`  • Plus empate extra (altura >2.40m): $300.000 / unidad`);
+                  }
                   lines.push(`  • Cantidad: ${qty} ${qty === 1 ? 'unidad' : 'unidades'}`);
                   lines.push(`  • Accesorios: ${colorLabels[door.hardwareColor] || door.hardwareColor}`);
                   lines.push(`  • Dintel: ${door.hasLintel ? 'Sí' : 'No'}`);
@@ -2095,12 +2094,7 @@ export const quotationsRouter = router({
                 });
                 
                 lines.push('');
-                lines.push('Todas incluyen:');
-                lines.push('• Marco RH');
-                lines.push('• Chapa gama alta');
-                lines.push('• Bisagras omega');
-                lines.push('• Tope de puerta');
-                lines.push('• Instalación completa');
+                lines.push('Puertas macizas de 36 mm de espesor, enchapada a 4 lados con marco y material RH. con chapa gama alta, tope de puerta y totalmente instalada.');
                 
                 // Transporte e imprevistos
                 if (doorConfig.includeTransport && doorConfig.transportCost) {

@@ -321,7 +321,7 @@ export function DoorConfigurator({ config, onChange }: DoorConfiguratorProps) {
                 <span className="font-medium">${doorsSubtotal.toLocaleString()}</span>
               </div>
               {doors.some(d => (d.tallDoorSurcharge || 0) > 0) && (
-                <div className="flex justify-between text-yellow-400">
+                <div className="flex justify-between">
                   <span>+ Plus altura extra (&gt;2.40m):</span>
                   <span className="font-medium">${doors.reduce((s, d) => s + (d.tallDoorSurcharge || 0) * d.quantity, 0).toLocaleString()}</span>
                 </div>

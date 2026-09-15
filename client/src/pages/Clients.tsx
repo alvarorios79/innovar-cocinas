@@ -242,7 +242,7 @@ export default function Clients() {
             <Button variant="outline" onClick={() => setNewOpen(false)}>Cancelar</Button>
             <Button
               onClick={() => createMutation.mutate({ ...form, email: form.email || undefined })}
-              disabled={createMutation.isPending || !form.name.trim()}
+              disabled={createMutation.isPending || !form.name.trim() || !form.whatsappPhone.trim()}
               className="text-white"
               style={{ background: "linear-gradient(135deg, #1DB5A8, #0D9B8F)" }}
             >
@@ -272,7 +272,7 @@ export default function Clients() {
                   address: form.address || undefined,
                 })
               }
-              disabled={updateMutation.isPending || !form.name.trim()}
+              disabled={updateMutation.isPending || !form.name.trim() || !form.whatsappPhone.trim()}
               className="text-white"
               style={{ background: "linear-gradient(135deg, #1DB5A8, #0D9B8F)" }}
             >

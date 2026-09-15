@@ -95,7 +95,9 @@ Te hemos creado una cuenta en INNOVAR Cocinas para que puedas seguir el estado d
 
 ¡Gracias por confiar en nosotros!`;
 
-    const whatsappUrl = `https://wa.me/57${formData.whatsappPhone.replace(/\D/g, "")}?text=${encodeURIComponent(message)}`;
+    const rawPhone = formData.whatsappPhone.replace(/\D/g, "");
+    const phoneWithCode = rawPhone.startsWith("57") || rawPhone.length > 10 ? rawPhone : `57${rawPhone}`;
+    const whatsappUrl = `https://wa.me/${phoneWithCode}?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, "_blank");
   };
 
@@ -161,13 +163,12 @@ Te hemos creado una cuenta en INNOVAR Cocinas para que puedas seguir el estado d
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="whatsappPhone">WhatsApp *</Label>
+                <Label htmlFor="whatsappPhone">WhatsApp</Label>
                 <Input
                   id="whatsappPhone"
                   value={formData.whatsappPhone}
                   onChange={(e) => setFormData({ ...formData, whatsappPhone: e.target.value })}
                   placeholder="3001234567"
-                  required
                 />
               </div>
               <div className="space-y-2">

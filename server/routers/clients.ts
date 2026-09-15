@@ -34,7 +34,7 @@ export const clientsRouter = router({
             userId: ctx.user?.id, // Asociar con usuario autenticado si existe
           name: sanitizeText(input.name),
           email: input.email && input.email.trim() !== "" ? sanitizeEmail(input.email) : undefined,
-          whatsappPhone: input.whatsappPhone ? sanitizePhone(input.whatsappPhone) : undefined,
+          whatsappPhone: sanitizePhone(input.whatsappPhone),
           address: input.address ? sanitizeText(input.address) : undefined,
           });
           client = await db.getClientById(clientId);
@@ -104,7 +104,7 @@ export const clientsRouter = router({
       .input(z.object({
         name: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
         email: z.string().email("Email inválido").optional().or(z.literal("")),
-        whatsappPhone: z.string().min(1, "Número de WhatsApp inválido").optional(),
+        whatsappPhone: z.string().min(6, "Número de WhatsApp inválido"),
         address: z.string().optional(),
         internalManagement: z.boolean().optional().default(false),
       }))
@@ -114,8 +114,8 @@ export const clientsRouter = router({
           throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para crear clientes" });
         }
 
-        // Verificar que el WhatsApp no esté duplicado (solo si se proporcionó)
-        const existingClient = input.whatsappPhone ? await db.getClientByWhatsApp(input.whatsappPhone) : null;
+        // Verificar que el WhatsApp no esté duplicado
+        const existingClient = await db.getClientByWhatsApp(input.whatsappPhone);
         if (existingClient) {
           throw new TRPCError({ 
             code: "BAD_REQUEST", 

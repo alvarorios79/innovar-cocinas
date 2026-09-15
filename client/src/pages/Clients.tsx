@@ -242,7 +242,7 @@ export default function Clients() {
             <Button variant="outline" onClick={() => setNewOpen(false)}>Cancelar</Button>
             <Button
               onClick={() => createMutation.mutate({ ...form, email: form.email || undefined })}
-              disabled={createMutation.isPending || !form.name.trim() || !form.whatsappPhone.trim()}
+              disabled={createMutation.isPending || !form.name.trim()}
               className="text-white"
               style={{ background: "linear-gradient(135deg, #1DB5A8, #0D9B8F)" }}
             >
@@ -272,7 +272,7 @@ export default function Clients() {
                   address: form.address || undefined,
                 })
               }
-              disabled={updateMutation.isPending || !form.name.trim() || !form.whatsappPhone.trim()}
+              disabled={updateMutation.isPending || !form.name.trim()}
               className="text-white"
               style={{ background: "linear-gradient(135deg, #1DB5A8, #0D9B8F)" }}
             >
@@ -345,7 +345,10 @@ function ClientCard({
     .slice(0, 2)
     .toUpperCase();
 
-  const waNumber = `57${client.whatsappPhone.replace(/\D/g, "")}`;
+  const rawPhone = (client.whatsappPhone || "").replace(/\D/g, "");
+  const waNumber = rawPhone.startsWith("57") || rawPhone.startsWith("1") || rawPhone.length > 10
+    ? rawPhone
+    : `57${rawPhone}`;
 
   return (
     <Card className="hover:shadow-md transition-all" style={{ borderColor: "rgba(106,207,199,0.15)" }}>

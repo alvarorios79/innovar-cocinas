@@ -50,6 +50,10 @@ const DEFAULT_PRICES: Record<string, { value: number; unit: string | null }> = {
   TRANSPORTE_IMPREVISTOS: { value: 600000, unit: "fijo" },
 
   // Puertas y Tapas (para cocinas)
+  BANO_50_60:           { value: 750000,  unit: "unidad" },
+  BANO_60_80:           { value: 900000,  unit: "unidad" },
+  BANO_80_100:          { value: 1200000, unit: "unidad" },
+  BANO_100_120:         { value: 1400000, unit: "unidad" },
   PUERTA_SUP_70:        { value: 120000,  unit: "unidad" },
   PUERTA_SUP_90:        { value: 150000,  unit: "unidad" },
   PUERTA_SUP_100:       { value: 180000,  unit: "unidad" },

@@ -36,6 +36,7 @@ type FormState = {
   name: string;
   email: string;
   whatsappPhone: string;
+  countryCode: string;
   address: string;
   internalManagement: boolean;
 };
@@ -254,7 +255,7 @@ export default function Clients() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setNewOpen(false)}>Cancelar</Button>
             <Button
-              onClick={() => createMutation.mutate({ ...form, email: form.email || undefined })}
+              onClick={() => createMutation.mutate({ ...form, email: form.email || undefined, whatsappPhone: `${form.countryCode}${form.whatsappPhone.replace(/\D/g, "")}` })}
               disabled={createMutation.isPending || !form.name.trim() || !form.whatsappPhone.trim()}
               className="text-white"
               style={{ background: "linear-gradient(135deg, #1DB5A8, #0D9B8F)" }}

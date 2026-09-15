@@ -112,7 +112,7 @@ export function DoorConfigurator({ config, onChange }: DoorConfiguratorProps) {
         updatedDoor.widthRange = updates.width <= 85 ? "50-85" : "85-110";
       }
       updatedDoor.pricePerUnit = getDoorPrice(updatedDoor.type, updatedDoor.widthRange);
-      updatedDoor.tallDoorSurcharge = updatedDoor.height > 2.40 ? 300000 : 0;
+      updatedDoor.tallDoorSurcharge = updatedDoor.height > 2.40 ? 350000 : 0;
       updatedDoor.lineTotal = (updatedDoor.pricePerUnit + updatedDoor.tallDoorSurcharge) * updatedDoor.quantity;
       return updatedDoor;
     }));

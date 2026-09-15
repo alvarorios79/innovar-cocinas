@@ -163,12 +163,13 @@ Te hemos creado una cuenta en INNOVAR Cocinas para que puedas seguir el estado d
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="whatsappPhone">WhatsApp</Label>
+                <Label htmlFor="whatsappPhone">WhatsApp *</Label>
                 <Input
                   id="whatsappPhone"
                   value={formData.whatsappPhone}
                   onChange={(e) => setFormData({ ...formData, whatsappPhone: e.target.value })}
                   placeholder="3001234567"
+                  required
                 />
               </div>
               <div className="space-y-2">

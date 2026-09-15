@@ -40,8 +40,21 @@ type FormState = {
   internalManagement: boolean;
 };
 
+const COUNTRY_CODES = [
+  { code: "57",  flag: "🇨🇴", label: "Colombia (+57)" },
+  { code: "1",   flag: "🇺🇸", label: "EEUU (+1)" },
+  { code: "34",  flag: "🇪🇸", label: "España (+34)" },
+  { code: "41",  flag: "🇨🇭", label: "Suiza (+41)" },
+  { code: "54",  flag: "🇦🇷", label: "Argentina (+54)" },
+  { code: "52",  flag: "🇲🇽", label: "México (+52)" },
+  { code: "44",  flag: "🇬🇧", label: "Reino Unido (+44)" },
+  { code: "49",  flag: "🇩🇪", label: "Alemania (+49)" },
+  { code: "33",  flag: "🇫🇷", label: "Francia (+33)" },
+  { code: "39",  flag: "🇮🇹", label: "Italia (+39)" },
+];
+
 const EMPTY_FORM: FormState = {
-  name: "", email: "", whatsappPhone: "", address: "", internalManagement: false,
+  name: "", email: "", whatsappPhone: "", countryCode: "57", address: "", internalManagement: false,
 };
 
 // ── Página principal ──────────────────────────────────────────────────────────
@@ -268,7 +281,7 @@ export default function Clients() {
                   id: editTarget.id,
                   name: form.name,
                   email: form.email || undefined,
-                  whatsappPhone: form.whatsappPhone,
+                  whatsappPhone: `${form.countryCode}${form.whatsappPhone.replace(/\D/g, "")}`,
                   address: form.address || undefined,
                 })
               }
@@ -465,12 +478,27 @@ function ClientForm({
       </div>
       <div className="space-y-1.5">
         <Label>WhatsApp *</Label>
-        <Input
-          value={form.whatsappPhone}
-          onChange={(e) => update("whatsappPhone", e.target.value)}
-          placeholder="Ej: 3001234567"
-          type="tel"
-        />
+        <div className="flex gap-2">
+          <select
+            value={form.countryCode}
+            onChange={(e) => update("countryCode", e.target.value)}
+            className="rounded-md border border-input bg-background px-2 py-2 text-sm w-40 shrink-0"
+            style={{ borderColor: "rgba(106,207,199,0.25)", background: "rgba(255,255,255,0.05)", color: "white" }}
+          >
+            {COUNTRY_CODES.map(c => (
+              <option key={c.code} value={c.code} style={{ background: "#1a1a2e" }}>
+                {c.flag} {c.label}
+              </option>
+            ))}
+          </select>
+          <Input
+            value={form.whatsappPhone}
+            onChange={(e) => update("whatsappPhone", e.target.value)}
+            placeholder="Ej: 3001234567"
+            type="tel"
+            className="flex-1"
+          />
+        </div>
       </div>
       <div className="space-y-1.5">
         <Label>Email</Label>

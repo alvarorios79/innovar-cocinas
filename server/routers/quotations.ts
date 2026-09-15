@@ -727,9 +727,6 @@ export const quotationsRouter = router({
                   const lineTotal = door.lineTotal || (door.pricePerUnit * qty);
                   lines.push(`Puerta ${idx + 1}: ${typeLabels[door.type] || door.type}`);
                   lines.push(`  • Medidas: ${door.width}cm × ${door.height}m`);
-                  if (door.height > 2.40) {
-                    lines.push(`  • Plus empate extra (altura >2.40m): $300.000 / unidad`);
-                  }
                   lines.push(`  • Cantidad: ${qty} ${qty === 1 ? 'unidad' : 'unidades'}`);
                   lines.push(`  • Accesorios: ${colorLabels[door.hardwareColor] || door.hardwareColor}`);
                   lines.push(`  • Dintel: ${door.hasLintel ? 'Sí' : 'No'}`);
@@ -739,7 +736,13 @@ export const quotationsRouter = router({
                   if (door.notes) {
                     lines.push(`  • Notas: ${door.notes}`);
                   }
-                  lines.push(`  • Precio unitario: ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(door.pricePerUnit)}`);
+                  if (door.height > 2.40) {
+                    lines.push(`  • Precio base: ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(door.pricePerUnit)}`);
+                    lines.push(`  • Plus empate extra (altura >2.40m): ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(350000)} / unidad`);
+                    lines.push(`  • Precio total c/plus: ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(door.pricePerUnit + 350000)}`);
+                  } else {
+                    lines.push(`  • Precio unitario: ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(door.pricePerUnit)}`);
+                  }
                   if (qty > 1) {
                     lines.push(`  • Subtotal: ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(lineTotal)}`);
                   }
@@ -1474,15 +1477,18 @@ export const quotationsRouter = router({
                 const lineTotal = door.lineTotal || (door.pricePerUnit * qty);
                 lines.push(`Puerta ${idx + 1}: ${typeLabels[door.type] || door.type}`);
                 lines.push(`  • Medidas: ${door.width}cm × ${door.height}m`);
-                if (door.height > 2.40) {
-                  lines.push(`  • Plus empate extra (altura >2.40m): $300.000 / unidad`);
-                }
                 lines.push(`  • Cantidad: ${qty} ${qty === 1 ? 'unidad' : 'unidades'}`);
                 lines.push(`  • Accesorios: ${colorLabels[door.hardwareColor] || door.hardwareColor}`);
                 lines.push(`  • Dintel: ${door.hasLintel ? 'Sí' : 'No'}`);
                 if (door.location) lines.push(`  • Ubicación: ${door.location}`);
                 if (door.notes) lines.push(`  • Notas: ${door.notes}`);
-                lines.push(`  • Precio unitario: ${formatCurrency(door.pricePerUnit)}`);
+                if (door.height > 2.40) {
+                  lines.push(`  • Precio base: ${formatCurrency(door.pricePerUnit)}`);
+                  lines.push(`  • Plus empate extra (altura >2.40m): ${formatCurrency(350000)} / unidad`);
+                  lines.push(`  • Precio total c/plus: ${formatCurrency(door.pricePerUnit + 350000)}`);
+                } else {
+                  lines.push(`  • Precio unitario: ${formatCurrency(door.pricePerUnit)}`);
+                }
                 if (qty > 1) lines.push(`  • Subtotal: ${formatCurrency(lineTotal)}`);
                 if (idx < doorConfig.doors.length - 1) lines.push('');
               });
@@ -2074,9 +2080,6 @@ export const quotationsRouter = router({
                   const lineTotal = door.lineTotal || (door.pricePerUnit * qty);
                   lines.push(`Puerta ${idx + 1}: ${typeLabels[door.type] || door.type}`);
                   lines.push(`  • Medidas: ${door.width}cm × ${door.height}m`);
-                  if (door.height > 2.40) {
-                    lines.push(`  • Plus empate extra (altura >2.40m): $300.000 / unidad`);
-                  }
                   lines.push(`  • Cantidad: ${qty} ${qty === 1 ? 'unidad' : 'unidades'}`);
                   lines.push(`  • Accesorios: ${colorLabels[door.hardwareColor] || door.hardwareColor}`);
                   lines.push(`  • Dintel: ${door.hasLintel ? 'Sí' : 'No'}`);
@@ -2086,7 +2089,13 @@ export const quotationsRouter = router({
                   if (door.notes) {
                     lines.push(`  • Notas: ${door.notes}`);
                   }
-                  lines.push(`  • Precio unitario: ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(door.pricePerUnit)}`);
+                  if (door.height > 2.40) {
+                    lines.push(`  • Precio base: ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(door.pricePerUnit)}`);
+                    lines.push(`  • Plus empate extra (altura >2.40m): ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(350000)} / unidad`);
+                    lines.push(`  • Precio total c/plus: ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(door.pricePerUnit + 350000)}`);
+                  } else {
+                    lines.push(`  • Precio unitario: ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(door.pricePerUnit)}`);
+                  }
                   if (qty > 1) {
                     lines.push(`  • Subtotal: ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(lineTotal)}`);
                   }

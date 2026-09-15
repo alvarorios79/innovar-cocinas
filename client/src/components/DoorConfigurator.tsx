@@ -27,6 +27,7 @@ export interface DoorItem {
   location?: string;
   notes?: string;
   pricePerUnit: number;
+  tallDoorSurcharge: number;
   lineTotal: number;
 }
 
@@ -57,6 +58,7 @@ const createNewDoor = (defaultPrice = 890000): DoorItem => ({
   location: "",
   notes: "",
   pricePerUnit: defaultPrice,
+  tallDoorSurcharge: 0,
   lineTotal: defaultPrice,
 });
 
@@ -110,7 +112,8 @@ export function DoorConfigurator({ config, onChange }: DoorConfiguratorProps) {
         updatedDoor.widthRange = updates.width <= 85 ? "50-85" : "85-110";
       }
       updatedDoor.pricePerUnit = getDoorPrice(updatedDoor.type, updatedDoor.widthRange);
-      updatedDoor.lineTotal = updatedDoor.pricePerUnit * updatedDoor.quantity;
+      updatedDoor.tallDoorSurcharge = updatedDoor.height > 2.40 ? 300000 : 0;
+      updatedDoor.lineTotal = (updatedDoor.pricePerUnit + updatedDoor.tallDoorSurcharge) * updatedDoor.quantity;
       return updatedDoor;
     }));
   };
@@ -179,11 +182,11 @@ export function DoorConfigurator({ config, onChange }: DoorConfiguratorProps) {
                     type="number" 
                     step="0.01" 
                     min="1.80" 
-                    max="2.40" 
+                    max="2.60" 
                     value={door.height || ""} 
                     onChange={(e) => updateDoor(door.id, { height: parseFloat(e.target.value) || 0 })} 
                     className="h-10 bg-[#162828]"
-                    placeholder="máx 2.40"
+                    placeholder="máx 2.60"
                   />
                 </div>
                 <div>
@@ -317,6 +320,12 @@ export function DoorConfigurator({ config, onChange }: DoorConfiguratorProps) {
                 <span>Subtotal ({totalDoors} {totalDoors === 1 ? "puerta" : "puertas"}):</span>
                 <span className="font-medium">${doorsSubtotal.toLocaleString()}</span>
               </div>
+              {doors.some(d => (d.tallDoorSurcharge || 0) > 0) && (
+                <div className="flex justify-between text-yellow-400">
+                  <span>+ Plus altura extra (&gt;2.40m):</span>
+                  <span className="font-medium">${doors.reduce((s, d) => s + (d.tallDoorSurcharge || 0) * d.quantity, 0).toLocaleString()}</span>
+                </div>
+              )}
               {includeTransport && (
                 <div className="flex justify-between text-orange-400">
                   <span>+ Transporte e imprevistos:</span>

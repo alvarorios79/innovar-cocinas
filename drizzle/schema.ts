@@ -633,6 +633,7 @@ export const quotationItems = pgTable("quotationItems", {
 	doorConfig: json(),
 	tvCenterConfig: json(),
 	countertopConfig: json(),
+	bathroomConfig: json(),
 },
 (table) => [
 	index("quotationItems_quotationId_idx").on(table.quotationId),

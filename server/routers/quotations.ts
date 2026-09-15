@@ -47,6 +47,7 @@ export const quotationsRouter = router({
           doorConfig: z.any().optional(),
           tvCenterConfig: z.any().optional(),
           countertopConfig: z.any().optional(),
+          bathroomConfig: z.any().optional(),
         })),
       }))
       .mutation(async ({ ctx, input }) => {
@@ -110,6 +111,7 @@ export const quotationsRouter = router({
               doorConfig: item.doorConfig ? JSON.stringify(item.doorConfig) : null,
               tvCenterConfig: item.tvCenterConfig ? JSON.stringify(item.tvCenterConfig) : null,
               countertopConfig: item.countertopConfig ? JSON.stringify(item.countertopConfig) : null,
+              bathroomConfig: item.bathroomConfig ? JSON.stringify(item.bathroomConfig) : null,
             });
           }
 
@@ -228,6 +230,7 @@ export const quotationsRouter = router({
           doorConfig: z.any().optional(),
           tvCenterConfig: z.any().optional(),
           countertopConfig: z.any().optional(),
+          bathroomConfig: z.any().optional(),
         })).optional(),
       }))
       .mutation(async ({ ctx, input }) => {
@@ -275,6 +278,8 @@ export const quotationsRouter = router({
                 doorConfig: item.doorConfig ? JSON.stringify(item.doorConfig) : null,
                 tvCenterConfig: item.tvCenterConfig ? JSON.stringify(item.tvCenterConfig) : null,
                 countertopConfig: item.countertopConfig ? JSON.stringify(item.countertopConfig) : null,
+                bathroomConfig: item.bathroomConfig ? JSON.stringify(item.bathroomConfig) : null,
+              bathroomConfig: item.bathroomConfig ? JSON.stringify(item.bathroomConfig) : null,
               });
             }
             await db.updateQuotation(id, {
@@ -785,6 +790,35 @@ export const quotationsRouter = router({
                 lines.push(doorConfig.notes);
               }
               
+              description = lines.join('\n');
+            }
+            // Si es baño y tiene bathroomConfig, generar descripción detallada
+            else if (item.itemType === 'baño' && item.bathroomConfig) {
+              const bc = item.bathroomConfig;
+              const fmtCOP = (n: number) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(n);
+              const typeLabel = bc.furnitureType === 'flotante' ? 'Mueble de Baño Flotante' : 'Mueble de Baño de Piso con Pata';
+              const lines: string[] = [];
+              lines.push(typeLabel.toUpperCase());
+              lines.push(`Medidas: ${bc.width}cm (ancho) × ${bc.depth}cm (prof.) × ${bc.height}cm (alto)`);
+              lines.push(`Tipo de lavabo: ${bc.sinkType === 'excavado' ? 'Excavado (lavamanos integrado en piedra)' : 'Lavamanos de sobreponer'}`);
+              if (bc.widthRange === 'mayor-120') {
+                lines.push(`Ancho superior a 120cm — precio calculado proporcionalmente`);
+              }
+              lines.push('');
+              lines.push('Madera aglomerada tipo RH de alta presión, cantos rígidos en puertas y tapas.');
+              if (bc.hasExcavado && bc.excavadoMaterial) {
+                lines.push(`Excavado en ${bc.excavadoMaterial} — incluye salpicadero de 10cm. Llave/grifo no incluida.`);
+              }
+              if (bc.hasMeson && bc.mesonMaterial) {
+                lines.push(`Mesón en ${bc.mesonMaterial} — incluye salpicadero de 10cm. Llave/grifo no incluida. Lavamanos de sobreponer no incluido.`);
+              }
+              lines.push('');
+              lines.push(`Precio madera: ${fmtCOP(bc.pricePerUnit)} / unidad`);
+              if (bc.quantity > 1) lines.push(`Cantidad: ${bc.quantity} unidades`);
+              if (bc.notes && bc.notes.trim()) {
+                lines.push('');
+                lines.push(`Notas: ${bc.notes}`);
+              }
               description = lines.join('\n');
             }
             // Si es centro_tv y tiene tvCenterConfig, generar descripción detallada
@@ -2138,6 +2172,35 @@ export const quotationsRouter = router({
                 lines.push(doorConfig.notes);
               }
               
+              description = lines.join('\n');
+            }
+            // Si es baño y tiene bathroomConfig, generar descripción detallada
+            else if (item.itemType === 'baño' && item.bathroomConfig) {
+              const bc = item.bathroomConfig;
+              const fmtCOP = (n: number) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(n);
+              const typeLabel = bc.furnitureType === 'flotante' ? 'Mueble de Baño Flotante' : 'Mueble de Baño de Piso con Pata';
+              const lines: string[] = [];
+              lines.push(typeLabel.toUpperCase());
+              lines.push(`Medidas: ${bc.width}cm (ancho) × ${bc.depth}cm (prof.) × ${bc.height}cm (alto)`);
+              lines.push(`Tipo de lavabo: ${bc.sinkType === 'excavado' ? 'Excavado (lavamanos integrado en piedra)' : 'Lavamanos de sobreponer'}`);
+              if (bc.widthRange === 'mayor-120') {
+                lines.push(`Ancho superior a 120cm — precio calculado proporcionalmente`);
+              }
+              lines.push('');
+              lines.push('Madera aglomerada tipo RH de alta presión, cantos rígidos en puertas y tapas.');
+              if (bc.hasExcavado && bc.excavadoMaterial) {
+                lines.push(`Excavado en ${bc.excavadoMaterial} — incluye salpicadero de 10cm. Llave/grifo no incluida.`);
+              }
+              if (bc.hasMeson && bc.mesonMaterial) {
+                lines.push(`Mesón en ${bc.mesonMaterial} — incluye salpicadero de 10cm. Llave/grifo no incluida. Lavamanos de sobreponer no incluido.`);
+              }
+              lines.push('');
+              lines.push(`Precio madera: ${fmtCOP(bc.pricePerUnit)} / unidad`);
+              if (bc.quantity > 1) lines.push(`Cantidad: ${bc.quantity} unidades`);
+              if (bc.notes && bc.notes.trim()) {
+                lines.push('');
+                lines.push(`Notas: ${bc.notes}`);
+              }
               description = lines.join('\n');
             }
             // Si es centro_tv y tiene tvCenterConfig, generar descripción detallada

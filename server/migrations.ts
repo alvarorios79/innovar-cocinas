@@ -49,6 +49,10 @@ export async function runMigrations() {
       name: "user_role_medidor_v2",
       sql: `UPDATE "users" SET "role" = 'medidor' WHERE LOWER("email") = 'medidor@innovarcocinas.co' AND "role" NOT IN ('admin', 'super_admin')`,
     },
+    {
+      name: "quotationItems_bathroomConfig",
+      sql: `ALTER TABLE "quotationItems" ADD COLUMN IF NOT EXISTS "bathroomConfig" json`,
+    },
   ];
 
   for (const m of migrations) {

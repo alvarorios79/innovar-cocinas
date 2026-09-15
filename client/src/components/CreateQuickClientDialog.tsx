@@ -13,6 +13,16 @@ interface CreateQuickClientDialogProps {
   onClientCreated?: (client: any) => void;
 }
 
+const COUNTRY_CODES_QUICK = [
+  { code: "57", flag: "🇨🇴", label: "Colombia (+57)" },
+  { code: "1",  flag: "🇺🇸", label: "EEUU (+1)" },
+  { code: "34", flag: "🇪🇸", label: "España (+34)" },
+  { code: "41", flag: "🇨🇭", label: "Suiza (+41)" },
+  { code: "54", flag: "🇦🇷", label: "Argentina (+54)" },
+  { code: "52", flag: "🇲🇽", label: "México (+52)" },
+  { code: "44", flag: "🇬🇧", label: "UK (+44)" },
+];
+
 export function CreateQuickClientDialog({ trigger, onClientCreated }: CreateQuickClientDialogProps) {
   const [open, setOpen] = useState(false);
   const [showCredentials, setShowCredentials] = useState(false);
@@ -23,6 +33,7 @@ export function CreateQuickClientDialog({ trigger, onClientCreated }: CreateQuic
     name: "",
     email: "",
     whatsappPhone: "",
+    countryCode: "57",
     address: "",
     internalManagement: false,
   });
@@ -65,7 +76,7 @@ export function CreateQuickClientDialog({ trigger, onClientCreated }: CreateQuic
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    createQuickMutation.mutate(formData);
+    createQuickMutation.mutate({ ...formData, whatsappPhone: `${formData.countryCode}${formData.whatsappPhone.replace(/\D/g, "")}` });
   };
 
   const handleCopy = async (text: string, field: string) => {
@@ -164,13 +175,25 @@ Te hemos creado una cuenta en INNOVAR Cocinas para que puedas seguir el estado d
               </div>
               <div className="space-y-2">
                 <Label htmlFor="whatsappPhone">WhatsApp *</Label>
-                <Input
-                  id="whatsappPhone"
-                  value={formData.whatsappPhone}
-                  onChange={(e) => setFormData({ ...formData, whatsappPhone: e.target.value })}
-                  placeholder="3001234567"
-                  required
-                />
+                <div className="flex gap-2">
+                  <select
+                    value={formData.countryCode}
+                    onChange={(e) => setFormData({ ...formData, countryCode: e.target.value })}
+                    className="rounded-md border border-input bg-background px-2 py-2 text-sm w-36 shrink-0"
+                  >
+                    {COUNTRY_CODES_QUICK.map(c => (
+                      <option key={c.code} value={c.code}>{c.flag} {c.label}</option>
+                    ))}
+                  </select>
+                  <Input
+                    id="whatsappPhone"
+                    value={formData.whatsappPhone}
+                    onChange={(e) => setFormData({ ...formData, whatsappPhone: e.target.value })}
+                    placeholder="3001234567"
+                    required
+                    className="flex-1"
+                  />
+                </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="address">Dirección (opcional)</Label>

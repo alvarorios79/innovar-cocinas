@@ -13,6 +13,9 @@ export interface KitchenConfig {
   includeLower?: boolean; // Incluir muebles inferiores (default true)
   includeUpper?: boolean; // Incluir muebles superiores (default true)
   totalMeters: number;
+  independentMeters?: boolean;  // superiores e inferiores con metraje distinto
+  upperMeters?: number;         // ML superiores (solo cuando independentMeters=true)
+  lowerMeters?: number;         // ML inferiores (solo cuando independentMeters=true)
   specialModules: {
     nichoNevecon: boolean;
     nichoNevera: boolean;
@@ -271,6 +274,9 @@ export function KitchenConfigurator({
     if (currentConfig.specialModules.alacenaEntrepanos) deductions += 0.5;
     if (currentConfig.specialModules.alacenaHerraje) deductions += 0.5;
     if (currentConfig.specialModules.torreHornos) deductions += 0.7;
+    if (currentConfig.independentMeters) {
+      return Math.max(0, (currentConfig.lowerMeters || 0) - deductions);
+    }
     return Math.max(0, currentConfig.totalMeters - deductions);
   };
 
@@ -359,7 +365,26 @@ export function KitchenConfigurator({
             </div>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                        {/* Toggle: medidas independientes superiores/inferiores */}
+            <div className="flex items-center gap-2 mt-4 mb-2">
+              <Checkbox
+                id="independentMeters"
+                checked={currentConfig.independentMeters || false}
+                onCheckedChange={(checked) => {
+                  updateConfig("independentMeters", !!checked);
+                  if (!checked) {
+                    updateConfig("upperMeters", undefined);
+                    updateConfig("lowerMeters", undefined);
+                  }
+                }}
+              />
+              <label htmlFor="independentMeters" className="text-sm text-white/70 cursor-pointer">
+                Superiores e inferiores con medidas distintas
+              </label>
+            </div>
+
+            {!currentConfig.independentMeters ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
               <div>
                 <Label className="text-sm font-medium text-white/85 block mb-2">Metraje Total (ml)</Label>
                 <Input
@@ -372,9 +397,38 @@ export function KitchenConfigurator({
                 />
               </div>
             </div>
+            ) : (
+            <div className="grid grid-cols-2 gap-4 mt-2">
+              <div>
+                <Label className="text-sm font-medium text-white/85 block mb-2">ML Inferiores</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={currentConfig.lowerMeters ?? ""}
+                  onChange={(e) => updateConfig("lowerMeters", parseFloat(e.target.value) || 0)}
+                  placeholder="Ej: 3.61"
+                  className="h-10 bg-[#162828]"
+                />
+              </div>
+              <div>
+                <Label className="text-sm font-medium text-white/85 block mb-2">ML Superiores</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={currentConfig.upperMeters ?? ""}
+                  onChange={(e) => updateConfig("upperMeters", parseFloat(e.target.value) || 0)}
+                  placeholder="Ej: 1.88"
+                  className="h-10 bg-[#162828]"
+                />
+              </div>
+            </div>
+            )}
             <div className="mt-3 p-3 bg-emerald-500/15 rounded">
               <p className="text-sm text-emerald-300">
-                <strong>Metraje resultante:</strong> {resultingMeters.toFixed(2)} ml
+                {currentConfig.independentMeters
+                  ? (<><strong>ML inferiores (resultante):</strong> {resultingMeters.toFixed(2)} ml &nbsp;|&nbsp; <strong>ML superiores:</strong> {(currentConfig.upperMeters || 0).toFixed(2)} ml</>
+                  ) : (<><strong>Metraje resultante:</strong> {resultingMeters.toFixed(2)} ml</>)
+                }
               </p>
               <p className="text-xs text-emerald-400 mt-1">
                 {currentConfig.includeLower !== false && `Muebles Inferiores: ${resultingMeters.toFixed(2)} ml`}{currentConfig.includeLower !== false && currentConfig.includeUpper !== false && ' | '}{currentConfig.includeUpper !== false && `Muebles Superiores: ${resultingMeters.toFixed(2)} ml`}

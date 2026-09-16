@@ -279,7 +279,6 @@ export const quotationsRouter = router({
                 tvCenterConfig: item.tvCenterConfig ? JSON.stringify(item.tvCenterConfig) : null,
                 countertopConfig: item.countertopConfig ? JSON.stringify(item.countertopConfig) : null,
                 bathroomConfig: item.bathroomConfig ? JSON.stringify(item.bathroomConfig) : null,
-              bathroomConfig: item.bathroomConfig ? JSON.stringify(item.bathroomConfig) : null,
               });
             }
             await db.updateQuotation(id, {

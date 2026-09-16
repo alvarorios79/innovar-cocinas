@@ -4639,14 +4639,11 @@ export default function Quotations() {
                               config={item.bathroomConfig || null}
                               onChange={(config: BathroomConfig) => {
                                 const newItems = [...items];
-                                const autoDesc = buildBathroomDescription(config);
                                 newItems[index] = {
                                   ...newItems[index],
                                   bathroomConfig: config,
                                   totalPrice: config.subtotal,
-                                  description: newItems[index].description?.trim()
-                                    ? newItems[index].description
-                                    : autoDesc,
+                                  description: buildBathroomDescription(config),
                                 };
                                 setItems(newItems);
                               }}

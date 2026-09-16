@@ -1153,6 +1153,11 @@ export default function Quotations() {
       current = current[fields[i]];
     }
     current[fields[fields.length - 1]] = value;
+
+    // Auto-suma: cuando cambia lowerMeters o upperMeters, actualizar totalMeters
+    if (field === 'lowerMeters' || field === 'upperMeters') {
+      config.totalMeters = (config.lowerMeters || 0) + (config.upperMeters || 0);
+    }
     
     // Autocompletar descripcion si se selecciona shape y la descripcion esta vacia
     if (field === 'shape' && (!newItems[index].description || newItems[index].description.trim() === '')) {
@@ -2734,7 +2739,7 @@ export default function Quotations() {
                             )}
 
                             {/* 1c. Módulos incluidos — checkboxes para inferiores y superiores */}
-                            {!['puertas_tapas', 'solo_acabados', 'solo_superiores', 'solo_inferiores', 'frente_pll'].includes(item.kitchenConfig?.shape || '') && (
+                            {!['puertas_tapas', 'solo_acabados', 'solo_superiores', 'solo_inferiores', 'frente_pll'].includes(item.kitchenConfig?.shape || '') && !item.kitchenConfig?.independentMeters && (
                             <div className="space-y-2">
                               <Label className="text-sm font-medium text-white/60">Módulos incluidos</Label>
                               <div className="flex gap-6">

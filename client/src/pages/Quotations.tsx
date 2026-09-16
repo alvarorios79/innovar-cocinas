@@ -2757,8 +2757,31 @@ export default function Quotations() {
                             </div>
                             )}
 
-                            {/* 2. Metraje total - No aplica para puertas_tapas ni solo_acabados */}
+                            {/* Toggle: superiores e inferiores con metraje distinto */}
                             {!['puertas_tapas', 'solo_acabados'].includes(item.kitchenConfig?.shape || '') && (
+                            <div className="flex items-center gap-2 mt-1">
+                              <input
+                                type="checkbox"
+                                id={`independentMeters-${index}`}
+                                checked={item.kitchenConfig?.independentMeters || false}
+                                onChange={(e) => {
+                                  updateKitchenConfig(index, "independentMeters", e.target.checked);
+                                  if (!e.target.checked) {
+                                    updateKitchenConfig(index, "upperMeters", undefined);
+                                    updateKitchenConfig(index, "lowerMeters", undefined);
+                                  }
+                                }}
+                                className="h-4 w-4 accent-[#00BCD4]"
+                              />
+                              <label htmlFor={`independentMeters-${index}`} className="text-sm text-white/70 cursor-pointer">
+                                Superiores e inferiores con medidas distintas
+                              </label>
+                            </div>
+                            )}
+
+                            {/* 2. Metraje - No aplica para puertas_tapas ni solo_acabados */}
+                            {!['puertas_tapas', 'solo_acabados'].includes(item.kitchenConfig?.shape || '') && (
+                            !item.kitchenConfig?.independentMeters ? (
                             <div className="space-y-2">
                               <Label className="text-sm font-medium text-white/60 flex items-center gap-2">
                                 <Ruler className="h-4 w-4" />
@@ -2773,6 +2796,38 @@ export default function Quotations() {
                                 className="bg-[#162828] border-[rgba(106,207,199,0.18)] hover:border-orange-500/40 transition-colors"
                               />
                             </div>
+                            ) : (
+                            <div className="grid grid-cols-2 gap-4">
+                              <div className="space-y-2">
+                                <Label className="text-sm font-medium text-white/60 flex items-center gap-2">
+                                  <Ruler className="h-4 w-4" />
+                                  ML Inferiores
+                                </Label>
+                                <Input
+                                  type="number"
+                                  step="0.01"
+                                  value={item.kitchenConfig?.lowerMeters ?? ""}
+                                  onChange={(e) => updateKitchenConfig(index, "lowerMeters", parseFloat(e.target.value) || 0)}
+                                  placeholder="Ej: 1.80"
+                                  className="bg-[#162828] border-[rgba(106,207,199,0.18)] hover:border-orange-500/40 transition-colors"
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label className="text-sm font-medium text-white/60 flex items-center gap-2">
+                                  <Ruler className="h-4 w-4" />
+                                  ML Superiores
+                                </Label>
+                                <Input
+                                  type="number"
+                                  step="0.01"
+                                  value={item.kitchenConfig?.upperMeters ?? ""}
+                                  onChange={(e) => updateKitchenConfig(index, "upperMeters", parseFloat(e.target.value) || 0)}
+                                  placeholder="Ej: 1.88"
+                                  className="bg-[#162828] border-[rgba(106,207,199,0.18)] hover:border-orange-500/40 transition-colors"
+                                />
+                              </div>
+                            </div>
+                            )
                             )}
 
                             {/* Checkbox módulo superior para Frente PLL */}

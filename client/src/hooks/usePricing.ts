@@ -54,6 +54,16 @@ const DEFAULT_PRICES: Record<string, { value: number; unit: string | null }> = {
   BANO_60_80:           { value: 900000,  unit: "unidad" },
   BANO_80_100:          { value: 1200000, unit: "unidad" },
   BANO_100_120:         { value: 1400000, unit: "unidad" },
+
+  // Excavados de lavamanos (precio por ML de ancho del mueble)
+  BANO_EXCAVADO_GRANITO:       { value: 1200000, unit: "ml" },
+  BANO_EXCAVADO_CUARZO:        { value: 1500000, unit: "ml" },
+  BANO_EXCAVADO_SINTERIZADO:   { value: 2100000, unit: "ml" },
+
+  // Mesones de baño — plancha de piedra (precio por ML de ancho)
+  BANO_MESON_GRANITO:          { value: 820000,  unit: "ml" },
+  BANO_MESON_CUARZO:           { value: 1000000, unit: "ml" },
+  BANO_MESON_SINTERIZADO:      { value: 1400000, unit: "ml" },
   PUERTA_SUP_70:        { value: 120000,  unit: "unidad" },
   PUERTA_SUP_90:        { value: 150000,  unit: "unidad" },
   PUERTA_SUP_100:       { value: 180000,  unit: "unidad" },

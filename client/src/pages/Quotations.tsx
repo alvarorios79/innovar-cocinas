@@ -1371,6 +1371,7 @@ export default function Quotations() {
         
         // Recargo por fondo
         const fondoMult = config.island.depthSurcharge === 'double' ? 2
+                        : config.island.depthSurcharge === '40percent' ? 1.4
                         : config.island.depthSurcharge === '30percent' ? (1 + getPrice('MESON_RECARGO_FONDO') / 100)
                         : 1;
         const islandCountertopPrice = islandMatBasePrice * fondoMult;
@@ -1754,6 +1755,7 @@ export default function Quotations() {
             
             // Recargo por fondo
             const fondoMult2 = config.island.depthSurcharge === 'double' ? 2
+                            : config.island.depthSurcharge === '40percent' ? 1.4
                             : config.island.depthSurcharge === '30percent' ? (1 + getPrice('MESON_RECARGO_FONDO') / 100)
                             : 1;
             const islandCountertopPrice2 = islandMatBasePrice2 * fondoMult2;

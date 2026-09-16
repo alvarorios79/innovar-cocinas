@@ -262,7 +262,7 @@ export const technicalVisitsRouter = router({
               name: input.clientName,
               whatsappPhone: input.clientPhone,
               address: input.clientAddress || null,
-            } as any, 'system');
+            } as any, 'manual');
           }
           if (existingClient?.id) {
             await db.update(technicalVisits)

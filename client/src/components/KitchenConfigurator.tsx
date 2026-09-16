@@ -881,8 +881,9 @@ export function KitchenConfigurator({
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="none">Estándar ≤90cm (sin recargo)</SelectItem>
-                      <SelectItem value="30percent">+30% — fondo 91-100cm</SelectItem>
+                      <SelectItem value="none">≤62cm (sin recargo)</SelectItem>
+                      <SelectItem value="30percent">+30% — fondo 63-90cm</SelectItem>
+                      <SelectItem value="40percent">+40% — fondo 91-100cm</SelectItem>
                       <SelectItem value="double">×2 — fondo 101-120cm</SelectItem>
                     </SelectContent>
                   </Select>

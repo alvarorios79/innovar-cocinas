@@ -3424,8 +3424,9 @@ export default function Quotations() {
                                         <SelectValue />
                                       </SelectTrigger>
                                       <SelectContent>
-                                        <SelectItem value="none">≤90cm — sin recargo</SelectItem>
-                                        <SelectItem value="30percent">91-100cm — +30%</SelectItem>
+                                        <SelectItem value="none">≤62cm — sin recargo</SelectItem>
+                                        <SelectItem value="30percent">63-90cm — +30%</SelectItem>
+                                        <SelectItem value="40percent">91-100cm — +40%</SelectItem>
                                         <SelectItem value="double">101-120cm — ×2</SelectItem>
                                       </SelectContent>
                                     </Select>

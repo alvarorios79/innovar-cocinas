@@ -1000,7 +1000,11 @@ export const quotationsRouter = router({
               const layoutLabels: Record<string, string> = { L: 'en L', U: 'en U', lineal: 'Lineal / Recta', cuadrada: 'Cuadrada / Paralela', isla: 'Con isla central', otra: 'Otra' };
               const layoutSuffix = config.layout && layoutLabels[config.layout] ? ` • Forma: ${layoutLabels[config.layout]}` : '';
               lines.push(`COCINA INTEGRAL - ${shapeLabel}${layoutSuffix}`);
-              lines.push(`Metraje total: ${config.totalMeters.toFixed(2)}ml`);
+              if (config.independentMeters && (config.lowerMeters !== undefined || config.upperMeters !== undefined)) {
+                lines.push(`Metraje inferiores: ${(config.lowerMeters || 0).toFixed(2)}ml — superiores: ${(config.upperMeters || 0).toFixed(2)}ml`);
+              } else {
+                lines.push(`Metraje total: ${config.totalMeters.toFixed(2)}ml`);
+              }
               lines.push('');
               
               // Calcular metraje resultante (solo para cocinas completas)
@@ -1600,7 +1604,11 @@ export const quotationsRouter = router({
             };
             const shapeLabel = shapeLabels[config.shape] || config.shape;
             lines.push(`COCINA INTEGRAL - ${shapeLabel}`);
-            lines.push(`Metraje total: ${config.totalMeters.toFixed(2)}ml`);
+            if (config.independentMeters && (config.lowerMeters !== undefined || config.upperMeters !== undefined)) {
+                lines.push(`Metraje inferiores: ${(config.lowerMeters || 0).toFixed(2)}ml — superiores: ${(config.upperMeters || 0).toFixed(2)}ml`);
+              } else {
+                lines.push(`Metraje total: ${config.totalMeters.toFixed(2)}ml`);
+              }
             lines.push('');
             
             let deductions = 0;
@@ -2382,7 +2390,11 @@ export const quotationsRouter = router({
               const layoutLabels: Record<string, string> = { L: 'en L', U: 'en U', lineal: 'Lineal / Recta', cuadrada: 'Cuadrada / Paralela', isla: 'Con isla central', otra: 'Otra' };
               const layoutSuffix = config.layout && layoutLabels[config.layout] ? ` • Forma: ${layoutLabels[config.layout]}` : '';
               lines.push(`COCINA INTEGRAL - ${shapeLabel}${layoutSuffix}`);
-              lines.push(`Metraje total: ${config.totalMeters.toFixed(2)}ml`);
+              if (config.independentMeters && (config.lowerMeters !== undefined || config.upperMeters !== undefined)) {
+                lines.push(`Metraje inferiores: ${(config.lowerMeters || 0).toFixed(2)}ml — superiores: ${(config.upperMeters || 0).toFixed(2)}ml`);
+              } else {
+                lines.push(`Metraje total: ${config.totalMeters.toFixed(2)}ml`);
+              }
               lines.push('');
               
               // Calcular metraje resultante (solo para cocinas completas)

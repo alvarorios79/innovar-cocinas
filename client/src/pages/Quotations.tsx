@@ -1282,8 +1282,16 @@ export default function Quotations() {
                                                                     'COCINA_ML_ESTANDAR'
       );
       const mlPrice = getPrice(mlPriceCode);
-      if (config.includeLower !== false) total += resultingMeters * mlPrice; // mueble inferior
-      if (config.includeUpper !== false) total += resultingMeters * mlPrice; // mueble superior
+      if (config.independentMeters && (config.lowerMeters !== undefined || config.upperMeters !== undefined)) {
+        // Modo medidas independientes: inferiores y superiores con ML distintos
+        const lowerR = Math.max(0, (config.lowerMeters || 0) - deductions);
+        const upperR = config.upperMeters || 0;
+        if (config.includeLower !== false) total += lowerR * mlPrice;
+        if (config.includeUpper !== false) total += upperR * mlPrice;
+      } else {
+        if (config.includeLower !== false) total += resultingMeters * mlPrice; // mueble inferior
+        if (config.includeUpper !== false) total += resultingMeters * mlPrice; // mueble superior
+      }
     }
 
     // 3. Muebles especiales (para cocinas completas y puertas_tapas) - precios dinámicos
@@ -1313,7 +1321,10 @@ export default function Quotations() {
       }
       
       // Usar metraje resultante automáticamente (o totalMeters para formas especiales)
-      const metersForCountertop = isSpecialShape ? config.totalMeters : resultingMeters;
+      const metersForCountertop = isSpecialShape ? config.totalMeters
+      : (config.independentMeters && config.lowerMeters !== undefined)
+        ? Math.max(0, (config.lowerMeters || 0) - deductions)
+        : resultingMeters;
       total += metersForCountertop * countertopPrice;
 
       // Extras del mesón: laterales, regrueso, lavaplatos
@@ -1655,8 +1666,15 @@ export default function Quotations() {
                                                                         'COCINA_ML_ESTANDAR'
           );
           const mlPrice2 = getPrice(mlPriceCode2);
-          if (config.includeLower !== false) total += resultingMeters * mlPrice2; // mueble inferior
-          if (config.includeUpper !== false) total += resultingMeters * mlPrice2; // mueble superior
+          if (config.independentMeters && (config.lowerMeters !== undefined || config.upperMeters !== undefined)) {
+            const lowerR2 = Math.max(0, (config.lowerMeters || 0) - deductions);
+            const upperR2 = config.upperMeters || 0;
+            if (config.includeLower !== false) total += lowerR2 * mlPrice2;
+            if (config.includeUpper !== false) total += upperR2 * mlPrice2;
+          } else {
+            if (config.includeLower !== false) total += resultingMeters * mlPrice2; // mueble inferior
+            if (config.includeUpper !== false) total += resultingMeters * mlPrice2; // mueble superior
+          }
         }
 
         // Muebles especiales (para cocinas completas y puertas_tapas) - precios dinámicos
@@ -1686,7 +1704,10 @@ export default function Quotations() {
           }
           
           // Usar metraje resultante automáticamente (o totalMeters para formas especiales)
-          const metersForCountertop = isSpecialShape ? config.totalMeters : resultingMeters;
+          const metersForCountertop = isSpecialShape ? config.totalMeters
+      : (config.independentMeters && config.lowerMeters !== undefined)
+        ? Math.max(0, (config.lowerMeters || 0) - deductions)
+        : resultingMeters;
           total += metersForCountertop * countertopPrice;
 
           // Extras del mesón: laterales, regrueso, lavaplatos

@@ -14,6 +14,7 @@ export interface BathroomConfig {
   height: number;
   widthRange: "50-60" | "60-80" | "80-100" | "100-120" | "mayor-120";
   sinkType: "lavamanos_sobreponer" | "excavado";
+  includeMadera: boolean;
   hasExcavado: boolean;
   excavadoMaterial: "granito" | "cuarzo" | "sinterizado" | "";
   hasMeson: boolean;
@@ -57,15 +58,16 @@ function autoHeight(furnitureType: string, sinkType: string): number | null {
 const DEFAULT_CFG: BathroomConfig = {
   furnitureType: "flotante", width: 60, depth: 45, height: 55,
   widthRange: "50-60", sinkType: "lavamanos_sobreponer",
+  includeMadera: true,
   hasExcavado: false, excavadoMaterial: "", hasMeson: false, mesonMaterial: "",
   quantity: 1, pricePerUnit: 750000, subtotal: 750000,
 };
 
 export function BathroomConfigurator({ config, onChange }: BathroomConfiguratorProps) {
   const { getPrice } = usePricing();
-  const [cfg, setCfg] = useState<BathroomConfig>(config || DEFAULT_CFG);
+  const [cfg, setCfg] = useState<BathroomConfig>({ ...DEFAULT_CFG, ...config });
 
-  useEffect(() => { if (config) setCfg(config); }, []);
+  useEffect(() => { if (config) setCfg({ ...DEFAULT_CFG, ...config }); }, []);
 
   const getBathroomPrice = (range: BathroomConfig["widthRange"], width: number): number => {
     const base = getPrice(PRICE_CODES[range]) || FALLBACK[range] || 750000;
@@ -75,26 +77,42 @@ export function BathroomConfigurator({ config, onChange }: BathroomConfiguratorP
     return base;
   };
 
+  const calcExcavadoTotal = (next: BathroomConfig): number => {
+    if (!next.hasExcavado || !next.excavadoMaterial) return 0;
+    const priceML = getPrice(`BANO_EXCAVADO_${next.excavadoMaterial.toUpperCase()}`) || 0;
+    return Math.round(priceML * (next.width / 100) * next.quantity);
+  };
+
+  const calcMesonTotal = (next: BathroomConfig): number => {
+    if (!next.hasMeson || !next.mesonMaterial) return 0;
+    const priceML = getPrice(`BANO_MESON_${next.mesonMaterial.toUpperCase()}`) || 0;
+    return Math.round(priceML * (next.width / 100) * next.quantity);
+  };
+
   const update = (updates: Partial<BathroomConfig>) => {
     const next = { ...cfg, ...updates };
     if (updates.width !== undefined) next.widthRange = getWidthRange(updates.width);
     const ah = autoHeight(next.furnitureType, next.sinkType);
     if (ah !== null) next.height = ah;
     next.pricePerUnit = getBathroomPrice(next.widthRange, next.width);
-    next.subtotal = next.pricePerUnit * next.quantity;
+    const woodTotal = (next.includeMadera !== false) ? next.pricePerUnit * next.quantity : 0;
+    next.subtotal = woodTotal + calcExcavadoTotal(next) + calcMesonTotal(next);
     setCfg(next);
     onChange(next);
   };
 
   const isAuto = cfg.furnitureType === "piso_con_pata";
   const ah = autoHeight(cfg.furnitureType, cfg.sinkType);
+  const woodTotal = (cfg.includeMadera !== false) ? cfg.pricePerUnit * cfg.quantity : 0;
+  const excTotal = calcExcavadoTotal(cfg);
+  const mesTotal = calcMesonTotal(cfg);
 
   return (
     <Card className="mt-4 border-white/[0.15]">
       <CardContent className="p-4">
         <div className="flex items-center gap-2 mb-4 pb-2 border-b border-white/[0.12]">
           <Bath className="h-5 w-5 text-cyan-400" />
-          <h4 className="font-bold text-foreground text-lg">Mueble de Ba\u00f1o</h4>
+          <h4 className="font-bold text-foreground text-lg">Mueble de Baño</h4>
         </div>
         <div className="space-y-4">
           {/* Tipo + Lavabo */}
@@ -155,17 +173,41 @@ export function BathroomConfigurator({ config, onChange }: BathroomConfiguratorP
               onChange={(e) => update({ quantity: parseInt(e.target.value) || 1 })}
               className="h-10 bg-[#162828]" />
           </div>
-          {/* Add-ons */}
+          {/* Componentes a cotizar */}
           <div className="border border-white/[0.12] rounded-lg p-3 space-y-4">
-            <p className="text-xs font-medium text-white/50 uppercase tracking-wide">Complementos (para cotizar aparte)</p>
+            <p className="text-xs font-medium text-white/50 uppercase tracking-wide">Componentes a cotizar</p>
+            {/* Madera */}
+            <div className="space-y-1">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Checkbox id="includeMadera" checked={cfg.includeMadera !== false}
+                    onCheckedChange={(v) => update({ includeMadera: !!v })} />
+                  <Label htmlFor="includeMadera" className="text-sm cursor-pointer">Mueble de madera (carcasa)</Label>
+                </div>
+                {cfg.includeMadera !== false && (
+                  <span className="text-sm font-medium text-white/80">${woodTotal.toLocaleString()}</span>
+                )}
+              </div>
+              {cfg.includeMadera !== false && (
+                <p className="text-xs text-muted-foreground ml-6">
+                  ${cfg.pricePerUnit.toLocaleString()} × {cfg.quantity} ud — rango {cfg.widthRange} cm
+                </p>
+              )}
+            </div>
+            {/* Excavado */}
             <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <Checkbox id="hasExcavado" checked={cfg.hasExcavado}
-                  onCheckedChange={(v) => update({ hasExcavado: !!v, excavadoMaterial: v ? (cfg.excavadoMaterial || "granito") : "" })} />
-                <Label htmlFor="hasExcavado" className="text-sm cursor-pointer">Lleva excavado (lavamanos integrado en piedra)</Label>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Checkbox id="hasExcavado" checked={cfg.hasExcavado}
+                    onCheckedChange={(v) => update({ hasExcavado: !!v, excavadoMaterial: v ? (cfg.excavadoMaterial || "granito") : "" })} />
+                  <Label htmlFor="hasExcavado" className="text-sm cursor-pointer">Excavado (lavamanos integrado en piedra)</Label>
+                </div>
+                {cfg.hasExcavado && excTotal > 0 && (
+                  <span className="text-sm font-medium text-white/80">${excTotal.toLocaleString()}</span>
+                )}
               </div>
               {cfg.hasExcavado && (
-                <div className="ml-6">
+                <div className="ml-6 space-y-1">
                   <Select value={cfg.excavadoMaterial} onValueChange={(v) => update({ excavadoMaterial: v as any })}>
                     <SelectTrigger className="h-9 bg-[#162828] w-44"><SelectValue placeholder="Material" /></SelectTrigger>
                     <SelectContent>
@@ -174,17 +216,28 @@ export function BathroomConfigurator({ config, onChange }: BathroomConfiguratorP
                       <SelectItem value="sinterizado">Sinterizado</SelectItem>
                     </SelectContent>
                   </Select>
+                  {cfg.excavadoMaterial && (
+                    <p className="text-xs text-muted-foreground">
+                      ${(getPrice(`BANO_EXCAVADO_${cfg.excavadoMaterial.toUpperCase()}`) || 0).toLocaleString()}/ml × {(cfg.width/100).toFixed(2)}m × {cfg.quantity} ud
+                    </p>
+                  )}
                 </div>
               )}
             </div>
+            {/* Mesón */}
             <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <Checkbox id="hasMeson" checked={cfg.hasMeson}
-                  onCheckedChange={(v) => update({ hasMeson: !!v, mesonMaterial: v ? (cfg.mesonMaterial || "granito") : "" })} />
-                <Label htmlFor="hasMeson" className="text-sm cursor-pointer">Lleva mes\u00f3n (plancha de piedra + lavamanos sobreponer)</Label>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Checkbox id="hasMeson" checked={cfg.hasMeson}
+                    onCheckedChange={(v) => update({ hasMeson: !!v, mesonMaterial: v ? (cfg.mesonMaterial || "granito") : "" })} />
+                  <Label htmlFor="hasMeson" className="text-sm cursor-pointer">Mesón (plancha de piedra)</Label>
+                </div>
+                {cfg.hasMeson && mesTotal > 0 && (
+                  <span className="text-sm font-medium text-white/80">${mesTotal.toLocaleString()}</span>
+                )}
               </div>
               {cfg.hasMeson && (
-                <div className="ml-6">
+                <div className="ml-6 space-y-1">
                   <Select value={cfg.mesonMaterial} onValueChange={(v) => update({ mesonMaterial: v as any })}>
                     <SelectTrigger className="h-9 bg-[#162828] w-44"><SelectValue placeholder="Material" /></SelectTrigger>
                     <SelectContent>
@@ -193,6 +246,11 @@ export function BathroomConfigurator({ config, onChange }: BathroomConfiguratorP
                       <SelectItem value="sinterizado">Sinterizado</SelectItem>
                     </SelectContent>
                   </Select>
+                  {cfg.mesonMaterial && (
+                    <p className="text-xs text-muted-foreground">
+                      ${(getPrice(`BANO_MESON_${cfg.mesonMaterial.toUpperCase()}`) || 0).toLocaleString()}/ml × {(cfg.width/100).toFixed(2)}m × {cfg.quantity} ud
+                    </p>
+                  )}
                 </div>
               )}
             </div>
@@ -210,27 +268,35 @@ export function BathroomConfigurator({ config, onChange }: BathroomConfiguratorP
             <div className="space-y-1 text-sm">
               <div className="flex justify-between text-white/60">
                 <span>{cfg.width}cm ancho × {cfg.depth}cm prof. × {isAuto ? (ah ?? cfg.height) : cfg.height}cm alto</span>
-                <span>Rango {cfg.widthRange} cm</span>
+                <span>× {cfg.quantity} ud</span>
               </div>
               {cfg.widthRange === "mayor-120" && (
                 <p className="text-xs text-cyan-400">Precio calculado proporcionalmente (ancho &gt; 120 cm)</p>
               )}
-              <div className="flex justify-between">
-                <span>Precio unitario (madera):</span>
-                <span className="font-medium">${cfg.pricePerUnit.toLocaleString()}</span>
-              </div>
-              {cfg.quantity > 1 && (
+              {cfg.includeMadera !== false && (
                 <div className="flex justify-between">
-                  <span>× {cfg.quantity} unidades:</span>
-                  <span className="font-medium">${cfg.subtotal.toLocaleString()}</span>
+                  <span>Madera (rango {cfg.widthRange} cm):</span>
+                  <span className="font-medium">${woodTotal.toLocaleString()}</span>
+                </div>
+              )}
+              {cfg.hasExcavado && excTotal > 0 && (
+                <div className="flex justify-between">
+                  <span>Excavado en {cfg.excavadoMaterial}:</span>
+                  <span className="font-medium">${excTotal.toLocaleString()}</span>
+                </div>
+              )}
+              {cfg.hasMeson && mesTotal > 0 && (
+                <div className="flex justify-between">
+                  <span>Mesón en {cfg.mesonMaterial}:</span>
+                  <span className="font-medium">${mesTotal.toLocaleString()}</span>
                 </div>
               )}
               <div className="border-t border-white/[0.15] pt-2 mt-2 flex justify-between items-start">
                 <div>
-                  <span className="font-bold text-foreground">TOTAL MADERA:</span>
-                  <p className="text-xs text-muted-foreground mt-1">Madera aglomerada tipo RH de alta presi\u00f3n, cantos r\u00edgidos en puertas y tapas</p>
-                  {cfg.hasExcavado && <p className="text-xs text-cyan-300 mt-0.5">+ Excavado en {cfg.excavadoMaterial} (por cotizar)</p>}
-                  {cfg.hasMeson && <p className="text-xs text-cyan-300 mt-0.5">+ Mes\u00f3n en {cfg.mesonMaterial} (por cotizar)</p>}
+                  <span className="font-bold text-foreground">TOTAL:</span>
+                  <p className="text-xs text-muted-foreground mt-1">Madera aglomerada tipo RH de alta presión, cantos rígidos en puertas y tapas</p>
+                  {cfg.hasExcavado && cfg.excavadoMaterial && <p className="text-xs text-cyan-300 mt-0.5">Excavado incluye salpicadero 10cm — llave/grifería no incluida</p>}
+                  {cfg.hasMeson && cfg.mesonMaterial && <p className="text-xs text-cyan-300 mt-0.5">Mesón incluye salpicadero 10cm — llave/grifería y lavamanos no incluidos</p>}
                 </div>
                 <span className="text-2xl font-bold text-primary">${cfg.subtotal.toLocaleString()}</span>
               </div>

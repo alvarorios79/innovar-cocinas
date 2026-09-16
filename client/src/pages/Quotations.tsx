@@ -194,8 +194,11 @@ function buildTVDescription(_config: import("@/components/TVCenterConfigurator")
 
 function buildBathroomDescription(config: BathroomConfig): string {
   const typeLabel = config.furnitureType === 'flotante' ? 'Mueble de Baño Flotante' : 'Mueble de Baño de Piso con Pata';
-  let desc = `${typeLabel} — ${config.width}cm ancho × ${config.depth}cm prof. × ${config.height}cm alto. `;
-  desc += 'Madera aglomerada tipo RH de alta presión, cantos rígidos en puertas y tapas. ';
+  const qty = config.quantity > 1 ? `${config.quantity} unidades — ` : '';
+  let desc = `${qty}${typeLabel} — ${config.width}cm ancho × ${config.depth}cm prof. × ${config.height}cm alto. `;
+  if (config.includeMadera !== false) {
+    desc += 'Madera aglomerada tipo RH de alta presión, cantos rígidos en puertas y tapas. ';
+  }
   desc += config.sinkType === 'excavado' ? 'Con lavamanos excavado integrado. ' : 'Para lavamanos de sobreponer. ';
   if (config.hasExcavado && config.excavadoMaterial) {
     desc += `Excavado en ${config.excavadoMaterial} — incluye salpicadero 10cm, llave/grifo no incluida. `;

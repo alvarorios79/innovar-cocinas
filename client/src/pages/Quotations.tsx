@@ -31,7 +31,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-import { Plus, Trash2, FileText, Send, Eye, Pencil, Mail, Search, X, UserPlus, FolderPlus, ChefHat, Ruler, Package, Sofa, DoorOpen, Tv, Wrench, LayoutGrid, Calendar, User, Building2, Truck, Sparkles, CircleDollarSign, Lightbulb, Palette, Edit3, Lock, Unlock, ArrowLeft, Copy, Archive, SlidersHorizontal, ChevronDown } from "lucide-react";
+import { Plus, Trash2, FileText, Send, Eye, Pencil, Mail, Search, X, UserPlus, FolderPlus, ChefHat, Ruler, Package, Sofa, DoorOpen, Tv, Wrench, LayoutGrid, Calendar, User, Building2, Truck, Sparkles, CircleDollarSign, Lightbulb, Palette, Edit3, Lock, Unlock, ArrowLeft, Copy, Archive, SlidersHorizontal } from "lucide-react";
 import { toast } from "sonner";
 import { formatPrice } from "@/lib/formatters";
 import { CreateQuickClientDialog } from "@/components/CreateQuickClientDialog";
@@ -3136,23 +3136,26 @@ export default function Quotations() {
 
                             {/* 3.5 Módulos pintado de puertas y tapas */}
                             {!['frente_pll', 'solo_superiores', 'solo_inferiores', 'puertas_tapas', 'solo_acabados'].includes(item.kitchenConfig?.shape || '') && (
-                            <div className="bg-[#162828] rounded-lg border border-teal-500/20">
-                              <button
-                                type="button"
-                                className="w-full flex items-center justify-between p-3 sm:p-4"
-                                onClick={() => setModulosOpenSet(prev => {
-                                  const next = new Set(prev);
-                                  if (next.has(index)) next.delete(index); else next.add(index);
-                                  return next;
-                                })}
-                              >
-                                <span className="text-xs sm:text-sm font-semibold text-teal-300">
+                            <div className="bg-[#162828] rounded-lg p-3 sm:p-4 border border-[rgba(106,207,199,0.12)] space-y-2 sm:space-y-3">
+                              <div className="flex items-center space-x-2">
+                                <input
+                                  type="checkbox"
+                                  id={`modulosPintado-${index}`}
+                                  checked={modulosOpenSet.has(index)}
+                                  onChange={(e) => setModulosOpenSet(prev => {
+                                    const next = new Set(prev);
+                                    if (e.target.checked) next.add(index); else next.delete(index);
+                                    return next;
+                                  })}
+                                  className="h-4 w-4 accent-teal-500"
+                                />
+                                <Label htmlFor={`modulosPintado-${index}`} className="text-xs sm:text-sm font-semibold text-white/85 cursor-pointer flex items-center gap-2">
+                                  <Palette className="h-3 w-3 sm:h-4 sm:w-4 text-teal-400" />
                                   Módulos pintado de puertas y tapas
-                                </span>
-                                <ChevronDown className={`h-4 w-4 text-teal-400 transition-transform duration-200 ${modulosOpenSet.has(index) ? 'rotate-180' : ''}`} />
-                              </button>
+                                </Label>
+                              </div>
                               {modulosOpenSet.has(index) && (
-                              <div className="px-3 sm:px-4 pb-3 sm:pb-4 space-y-3">
+                              <div className="pl-4 sm:pl-6 space-y-3">
                               <p className="text-xs text-teal-400/70">Indica cuántos de cada módulo. Descuenta del ML disponible y calcula piezas de pintura automáticamente.</p>
 
                               {/* Tracker ML consumido */}

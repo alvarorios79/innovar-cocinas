@@ -1092,8 +1092,9 @@ export const quotationsRouter = router({
                     ? (isl.countertopType === 'quarzone' ? 'Quarzone Importado' : isl.countertopType === 'granito' ? 'Granito Importado' : 'Sinterizado Importado')
                     : (isl.countertopType === 'quarzone' ? 'Quarzone' : isl.countertopType === 'granito' ? 'Granito' : 'Sinterizado');
                   let islandSurchargeText = '';
-                  if (isl.depthSurcharge === '30percent') islandSurchargeText = ' +30% fondo';
-                  else if (isl.depthSurcharge === 'double') islandSurchargeText = ' ×2 fondo';
+                  if (isl.depthSurcharge === '30percent') islandSurchargeText = ' +30% fondo (63-90cm)';
+                  else if (isl.depthSurcharge === '40percent') islandSurchargeText = ' +40% fondo (91-100cm)';
+                  else if (isl.depthSurcharge === 'double') islandSurchargeText = ' ×2 fondo (101-120cm)';
                   islandLines.push(`mesón ${islandCtType}${islandSurchargeText}`);
                 }
                 
@@ -1674,8 +1675,9 @@ export const quotationsRouter = router({
                   ? (isl2.countertopType === 'quarzone' ? 'Quarzone Importado' : isl2.countertopType === 'granito' ? 'Granito Importado' : 'Sinterizado Importado')
                   : (isl2.countertopType === 'quarzone' ? 'Quarzone' : isl2.countertopType === 'granito' ? 'Granito' : 'Sinterizado');
                 let islandSurchargeText2 = '';
-                if (isl2.depthSurcharge === '30percent') islandSurchargeText2 = ' +30% fondo';
-                else if (isl2.depthSurcharge === 'double') islandSurchargeText2 = ' ×2 fondo';
+                if (isl2.depthSurcharge === '30percent') islandSurchargeText2 = ' +30% fondo (63-90cm)';
+                else if (isl2.depthSurcharge === '40percent') islandSurchargeText2 = ' +40% fondo (91-100cm)';
+                else if (isl2.depthSurcharge === 'double') islandSurchargeText2 = ' ×2 fondo (101-120cm)';
                 islandLines.push(`mesón ${islandCtType2}${islandSurchargeText2}`);
               }
               const islAddLat2 = (config.island as any).incluyeLateralesIsla ?? config.island.hasLaterals;
@@ -2482,8 +2484,9 @@ export const quotationsRouter = router({
                     ? (isl3.countertopType === 'quarzone' ? 'Quarzone Importado' : isl3.countertopType === 'granito' ? 'Granito Importado' : 'Sinterizado Importado')
                     : (isl3.countertopType === 'quarzone' ? 'Quarzone' : isl3.countertopType === 'granito' ? 'Granito' : 'Sinterizado');
                   let islandSurchargeText3 = '';
-                  if (isl3.depthSurcharge === '30percent') islandSurchargeText3 = ' +30% fondo';
-                  else if (isl3.depthSurcharge === 'double') islandSurchargeText3 = ' ×2 fondo';
+                  if (isl3.depthSurcharge === '30percent') islandSurchargeText3 = ' +30% fondo (63-90cm)';
+                  else if (isl3.depthSurcharge === '40percent') islandSurchargeText3 = ' +40% fondo (91-100cm)';
+                  else if (isl3.depthSurcharge === 'double') islandSurchargeText3 = ' ×2 fondo (101-120cm)';
                   islandLines.push(`mesón ${islandCtType3}${islandSurchargeText3}`);
                 }
                 

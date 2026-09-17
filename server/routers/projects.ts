@@ -556,7 +556,8 @@ export const projectsRouter = router({
         // Validación general: Etapas productivas requieren fotos antes de avanzar
         const stagesRequiringPhotos = ["corte", "enchape", "ensamble", "listo_instalacion"];
         
-        if (stagesRequiringPhotos.includes(currentStatus)) {
+        // super_admin puede omitir fotos para cerrar proyectos simples
+        if (stagesRequiringPhotos.includes(currentStatus) && role !== "super_admin") {
           try {
             const dbInstance = await db.getDb();
             if (!dbInstance) {
@@ -603,7 +604,7 @@ export const projectsRouter = router({
         }
 
         // Validación especial: Fotos de instalación requeridas antes de marcar como entregado
-        if (currentStatus === "listo_instalacion" && newStatus === "entregado") {
+        if (currentStatus === "listo_instalacion" && newStatus === "entregado" && role !== "super_admin") {
           try {
             const dbInstance = await db.getDb();
             if (!dbInstance) {

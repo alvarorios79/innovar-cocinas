@@ -521,7 +521,7 @@ export default function ProjectDetail() {
 
   const filteredFolders = getFilteredFolders();
   const disenoFolders = Object.fromEntries(
-    Object.entries(filteredFolders).filter(([cat]) => ['cotizacion', 'disenos'].includes(cat))
+    Object.entries(filteredFolders).filter(([cat]) => ['cotizacion', 'medidas', 'disenos'].includes(cat))
   );
   const produccionFolders = Object.fromEntries(
     Object.entries(filteredFolders).filter(([cat]) => ['avance'].includes(cat))
@@ -1099,7 +1099,7 @@ export default function ProjectDetail() {
           <TabsContent value="diseno" className="space-y-4">
 
             {/* Centro de Control de Diseño */}
-            {(user?.role === "admin" || user?.role === "super_admin" || user?.role === "comercial") && (
+            {(user?.role === "admin" || user?.role === "super_admin" || user?.role === "comercial" || user?.role === "disenador") && (
               <div className="mb-4 rounded-xl overflow-hidden shadow-lg border border-white/[0.10]">
                 {/* Header del Panel */}
                 <div className="bg-gradient-to-r from-teal-600 to-teal-500 px-6 py-4">
@@ -2009,12 +2009,24 @@ export default function ProjectDetail() {
               >
                 <SelectTrigger><SelectValue placeholder="Selecciona la categoría" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="cotizacion">Cotización</SelectItem>
-                  <SelectItem value="medidas">Medidas</SelectItem>
-                  <SelectItem value="disenos">Diseños</SelectItem>
-                  <SelectItem value="avance">Avance</SelectItem>
-                  <SelectItem value="instalacion">Instalación</SelectItem>
-                  <SelectItem value="entrega">Entrega</SelectItem>
+                  {["super_admin", "admin", "comercial", "disenador"].includes(user?.role || "") && (
+                    <SelectItem value="cotizacion">Cotización</SelectItem>
+                  )}
+                  {["super_admin", "admin", "comercial", "disenador"].includes(user?.role || "") && (
+                    <SelectItem value="medidas">Medidas</SelectItem>
+                  )}
+                  {["super_admin", "admin", "disenador"].includes(user?.role || "") && (
+                    <SelectItem value="disenos">Diseños</SelectItem>
+                  )}
+                  {["super_admin", "admin", "jefe_taller", "operario"].includes(user?.role || "") && (
+                    <SelectItem value="avance">Avance</SelectItem>
+                  )}
+                  {["super_admin", "admin", "jefe_taller", "operario"].includes(user?.role || "") && (
+                    <SelectItem value="instalacion">Instalación</SelectItem>
+                  )}
+                  {["super_admin", "admin", "jefe_taller", "operario"].includes(user?.role || "") && (
+                    <SelectItem value="entrega">Entrega</SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             </div>

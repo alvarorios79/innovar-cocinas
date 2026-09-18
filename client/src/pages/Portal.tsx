@@ -848,12 +848,11 @@ export default function Portal() {
                               <ImageIcon className="h-4 w-4" />
                               Fotos del Proceso
                             </h4>
-                            {["inicial", "diseno", "corte", "enchape", "ensamble", "final"].map((stage) => {
+                            {["diseno", "corte", "enchape", "ensamble", "final"].map((stage) => {
                               const stagePhotos = project.photos.filter((p: any) => p.stage === stage);
                               if (stagePhotos.length === 0) return null;
                               
                               const stageLabels: Record<string, string> = {
-                                inicial: "Fotos Iniciales",
                                 diseno: "Diseño",
                                 corte: "Corte",
                                 enchape: "Enchape",

@@ -14,6 +14,7 @@ import { createRemindersForStatusChange } from "../reminders-service";
 import * as whatsappCloud from "../whatsapp-cloud";
 import { addBusinessDays, calculateEstimatedDeliveryDate } from "../business-days";
 import { sanitizeText, sanitizeHtml, sanitizeForEmail, sanitizePhone, sanitizeEmail } from "../sanitize";
+import { randomBytes } from "crypto";
 
 
 export const publicGalleryRouter = router({
@@ -647,7 +648,13 @@ export const publicGalleryRouter = router({
 
         // Construir URL de galería pública
         const baseUrl = process.env.VITE_APP_URL || "https://innovar-cocinas.onrender.com";
-        const portalLink = `${baseUrl}/gallery?project=${input.projectId}&token=${project.publicToken ?? ""}&type=modelado_3d`;
+        // Auto-generar publicToken si el proyecto no lo tiene (proyectos creados antes del fix)
+        let modeladoPublicToken = project.publicToken;
+        if (!modeladoPublicToken) {
+          modeladoPublicToken = randomBytes(24).toString('hex');
+          await db.updateProject(input.projectId, { publicToken: modeladoPublicToken });
+        }
+        const portalLink = `${baseUrl}/gallery?project=${input.projectId}&token=${modeladoPublicToken}&type=modelado_3d`;
 
         // Construir mensaje de WhatsApp
         const message = 
@@ -732,7 +739,13 @@ export const publicGalleryRouter = router({
 
         // Construir URL de galería pública
         const baseUrl = process.env.VITE_APP_URL || "https://innovar-cocinas.onrender.com";
-        const portalLink = `${baseUrl}/gallery?project=${input.projectId}&token=${project.publicToken ?? ""}&type=renders`;
+        // Auto-generar publicToken si el proyecto no lo tiene (proyectos creados antes del fix)
+        let rendersPublicToken = project.publicToken;
+        if (!rendersPublicToken) {
+          rendersPublicToken = randomBytes(24).toString('hex');
+          await db.updateProject(input.projectId, { publicToken: rendersPublicToken });
+        }
+        const portalLink = `${baseUrl}/gallery?project=${input.projectId}&token=${rendersPublicToken}&type=renders`;
 
         // Construir mensaje de WhatsApp
         const message = 

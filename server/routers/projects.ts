@@ -18,6 +18,7 @@ import { addBusinessDays, calculateEstimatedDeliveryDate } from "../business-day
 import { sanitizeText, sanitizeHtml, sanitizeForEmail, sanitizePhone, sanitizeEmail } from "../sanitize";
 import { eq, and, desc } from "drizzle-orm";
 import { projects, projectDetails, projectPhotos } from "../../drizzle/schema";
+import { randomBytes } from "crypto";
 
 
 export const projectsRouter = router({
@@ -61,6 +62,7 @@ export const projectsRouter = router({
           tentativeInstallDate: tentativeDate instanceof Date ? tentativeDate.toISOString() : tentativeDate,
           isInstallDateOfficial: 0,
           designerId: autoAssignedDesignerId,
+          publicToken: randomBytes(24).toString('hex'),
         });
 
         // Registrar en historial

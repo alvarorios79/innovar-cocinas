@@ -732,13 +732,15 @@ export default function ProjectDetail() {
               <CheckCircle2 className="h-3.5 w-3.5 mr-1" />
               <span>Postventa</span>
             </TabsTrigger>
-            <TabsTrigger
-              value="history"
-              className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 bg-white/[0.10] text-muted-foreground data-[state=active]:bg-gray-600 data-[state=active]:text-white hover:bg-gray-300 transition-colors rounded-md whitespace-nowrap"
-            >
-              <History className="h-3.5 w-3.5 mr-1" />
-              <span>Historial</span>
-            </TabsTrigger>
+            {user?.role !== "jefe_taller" && user?.role !== "operario" && (
+              <TabsTrigger
+                value="history"
+                className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 bg-white/[0.10] text-muted-foreground data-[state=active]:bg-gray-600 data-[state=active]:text-white hover:bg-gray-300 transition-colors rounded-md whitespace-nowrap"
+              >
+                <History className="h-3.5 w-3.5 mr-1" />
+                <span>Historial</span>
+              </TabsTrigger>
+            )}
           </TabsList>
 
           {/* Tab Información */}
@@ -1828,7 +1830,8 @@ export default function ProjectDetail() {
             )}
           </TabsContent>
 
-          {/* Tab Historial */}
+          {/* Tab Historial — oculto para jefe_taller y operario */}
+          {user?.role !== "jefe_taller" && user?.role !== "operario" && (
           <TabsContent value="history" className="space-y-4">
             <Card>
               <CardHeader className="py-3 bg-gradient-to-r from-slate-600 to-slate-700">
@@ -1942,6 +1945,7 @@ export default function ProjectDetail() {
               </CardContent>
             </Card>
           </TabsContent>
+          )}
 
           {/* Tab Postventa */}
           <TabsContent value="postventa" className="space-y-4">

@@ -1890,8 +1890,8 @@ export function ProjectInlineDetail({
             </div>
           )}
 
-          {/* Comprobante de pago y PDF de cotización - Solo si ya pagó el 60% */}
-          {user?.role !== "disenador" && user?.role !== "jefe_taller" && PAID_ADVANCE_STATUSES.includes(projectDetail.status) && (
+          {/* Comprobante de pago y PDF de cotización - Solo si ya pagó el 60%, ocultar a colaboradores */}
+          {user?.role !== "disenador" && user?.role !== "jefe_taller" && user?.role !== "operario" && PAID_ADVANCE_STATUSES.includes(projectDetail.status) && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {projectDetail.advanceReceiptUrl && (
                 <Card className="bg-green-500/10 border-green-500/25">

@@ -789,7 +789,7 @@ ${whatsAppLink}` : "⚠️ El cliente no tiene número de WhatsApp registrado.")
           `Ya puedes revisar el modelado 3D aquí:\n` +
           `${portalLink}\n\n` +
           `Por favor déjanos tus comentarios o aprobación.\n\n` +
-          `INNOVAR Cocinas Integrales`;
+          `INNOVAR Cocinas de Diseño`;
 
         // Enviar por WhatsApp Cloud API
         const phone = client.whatsappPhone.replace(/\D/g, '');
@@ -881,7 +881,7 @@ ${whatsAppLink}` : "⚠️ El cliente no tiene número de WhatsApp registrado.")
           `Puedes verlos aquí:\n` +
           `${portalLink}\n\n` +
           `Quedamos atentos a tu aprobación.\n\n` +
-          `INNOVAR Cocinas Integrales`;
+          `INNOVAR Cocinas de Diseño`;
 
         // Enviar por WhatsApp Cloud API
         const phone = client.whatsappPhone.replace(/\D/g, '');

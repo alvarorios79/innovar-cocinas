@@ -353,6 +353,15 @@ export function ProjectInlineDetail({
     },
   });
 
+  const notifyStageAdvance = trpc.publicGallery.notifyStageAdvance.useMutation({
+    onSuccess: (result) => {
+      toast.success(result.message);
+    },
+    onError: (error) => {
+      toast.error(error.message || "Error al notificar al admin");
+    },
+  });
+
   // Helper function to get margin color
   const getMarginColor = (rentabilidad: number) => {
     if (rentabilidad >= 20) return { bg: "bg-green-500/15", text: "text-green-400", border: "border-green-300" };
@@ -760,15 +769,27 @@ export function ProjectInlineDetail({
           <p className="text-sm text-orange-300 mb-4">
             Cuando termines el corte de todas las piezas, avanza a la etapa de enchape.
           </p>
-          <Button
-            size="sm"
-            className="bg-orange-600 hover:bg-orange-700"
-            onClick={() => updateStatus.mutate({ projectId: projectDetail.id, newStatus: "enchape" })}
-            disabled={updateStatus.isPending}
-          >
-            <CheckCircle2 className="h-4 w-4 mr-1" />
-            Pasar a Enchape
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              size="sm"
+              className="bg-orange-600 hover:bg-orange-700"
+              onClick={() => updateStatus.mutate({ projectId: projectDetail.id, newStatus: "enchape" })}
+              disabled={updateStatus.isPending}
+            >
+              <CheckCircle2 className="h-4 w-4 mr-1" />
+              Pasar a Enchape
+            </Button>
+            <Button
+              size="sm"
+              className="bg-emerald-700 hover:bg-emerald-800"
+              onClick={() => notifyStageAdvance.mutate({ projectId: projectDetail.id, stageName: "corte" })}
+              disabled={notifyStageAdvance.isPending}
+              title="Notifica al admin para que envíe el avance al cliente desde WhatsApp oficial"
+            >
+              <MessageCircle className={`h-4 w-4 mr-1 ${notifyStageAdvance.isPending ? 'animate-pulse' : ''}`} />
+              {notifyStageAdvance.isPending ? 'Notificando...' : 'Notificar al Cliente'}
+            </Button>
+          </div>
         </div>
       )}
 
@@ -783,15 +804,27 @@ export function ProjectInlineDetail({
           <p className="text-sm text-orange-300 mb-4">
             Cuando termines el enchape de todas las piezas, avanza a la etapa de ensamble.
           </p>
-          <Button
-            size="sm"
-            className="bg-orange-600 hover:bg-orange-700"
-            onClick={() => updateStatus.mutate({ projectId: projectDetail.id, newStatus: "ensamble" })}
-            disabled={updateStatus.isPending}
-          >
-            <CheckCircle2 className="h-4 w-4 mr-1" />
-            Pasar a Ensamble
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              size="sm"
+              className="bg-orange-600 hover:bg-orange-700"
+              onClick={() => updateStatus.mutate({ projectId: projectDetail.id, newStatus: "ensamble" })}
+              disabled={updateStatus.isPending}
+            >
+              <CheckCircle2 className="h-4 w-4 mr-1" />
+              Pasar a Ensamble
+            </Button>
+            <Button
+              size="sm"
+              className="bg-emerald-700 hover:bg-emerald-800"
+              onClick={() => notifyStageAdvance.mutate({ projectId: projectDetail.id, stageName: "enchape" })}
+              disabled={notifyStageAdvance.isPending}
+              title="Notifica al admin para que envíe el avance al cliente desde WhatsApp oficial"
+            >
+              <MessageCircle className={`h-4 w-4 mr-1 ${notifyStageAdvance.isPending ? 'animate-pulse' : ''}`} />
+              {notifyStageAdvance.isPending ? 'Notificando...' : 'Notificar al Cliente'}
+            </Button>
+          </div>
         </div>
       )}
 
@@ -806,15 +839,27 @@ export function ProjectInlineDetail({
           <p className="text-sm text-teal-300 mb-4">
             Cuando termines el ensamble, marca el proyecto como listo para instalación.
           </p>
-          <Button
-            size="sm"
-            className="bg-teal-600 hover:bg-teal-700"
-            onClick={() => updateStatus.mutate({ projectId: projectDetail.id, newStatus: "listo_instalacion" })}
-            disabled={updateStatus.isPending}
-          >
-            <CheckCircle2 className="h-4 w-4 mr-1" />
-            Marcar En Instalación
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              size="sm"
+              className="bg-teal-600 hover:bg-teal-700"
+              onClick={() => updateStatus.mutate({ projectId: projectDetail.id, newStatus: "listo_instalacion" })}
+              disabled={updateStatus.isPending}
+            >
+              <CheckCircle2 className="h-4 w-4 mr-1" />
+              Marcar En Instalación
+            </Button>
+            <Button
+              size="sm"
+              className="bg-emerald-700 hover:bg-emerald-800"
+              onClick={() => notifyStageAdvance.mutate({ projectId: projectDetail.id, stageName: "ensamble" })}
+              disabled={notifyStageAdvance.isPending}
+              title="Notifica al admin para que envíe el avance al cliente desde WhatsApp oficial"
+            >
+              <MessageCircle className={`h-4 w-4 mr-1 ${notifyStageAdvance.isPending ? 'animate-pulse' : ''}`} />
+              {notifyStageAdvance.isPending ? 'Notificando...' : 'Notificar al Cliente'}
+            </Button>
+          </div>
         </div>
       )}
 
@@ -829,15 +874,27 @@ export function ProjectInlineDetail({
           <p className="text-sm text-teal-300 mb-4">
             Coordina con el cliente la fecha de instalación y programa la entrega.
           </p>
-          <Button
-            size="sm"
-            className="bg-teal-600 hover:bg-teal-700"
-            onClick={() => updateStatus.mutate({ projectId: projectDetail.id, newStatus: "listo_instalacion" })}
-            disabled={updateStatus.isPending}
-          >
-            <CheckCircle2 className="h-4 w-4 mr-1" />
-            Programar Instalación
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              size="sm"
+              className="bg-teal-600 hover:bg-teal-700"
+              onClick={() => updateStatus.mutate({ projectId: projectDetail.id, newStatus: "listo_instalacion" })}
+              disabled={updateStatus.isPending}
+            >
+              <CheckCircle2 className="h-4 w-4 mr-1" />
+              Programar Instalación
+            </Button>
+            <Button
+              size="sm"
+              className="bg-emerald-700 hover:bg-emerald-800"
+              onClick={() => notifyStageAdvance.mutate({ projectId: projectDetail.id, stageName: "listo_instalacion" })}
+              disabled={notifyStageAdvance.isPending}
+              title="Notifica al admin para que envíe el avance al cliente desde WhatsApp oficial"
+            >
+              <MessageCircle className={`h-4 w-4 mr-1 ${notifyStageAdvance.isPending ? 'animate-pulse' : ''}`} />
+              {notifyStageAdvance.isPending ? 'Notificando...' : 'Notificar al Cliente'}
+            </Button>
+          </div>
         </div>
       )}
 

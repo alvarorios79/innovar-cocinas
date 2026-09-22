@@ -1366,13 +1366,15 @@ export function ProjectInlineDetail({
             <ListTodo className="h-4 w-4 mr-1 hidden sm:inline" />
             Detalles
           </TabsTrigger>
-          <TabsTrigger 
-            value="history" 
-            className="flex-1 min-w-[80px] text-xs sm:text-sm px-2 sm:px-3 py-2 bg-white/[0.10] text-muted-foreground data-[state=active]:bg-gray-600 data-[state=active]:text-white hover:bg-gray-300 transition-colors"
-          >
-            <History className="h-4 w-4 mr-1 hidden sm:inline" />
-            Historial
-          </TabsTrigger>
+          {user?.role !== "jefe_taller" && user?.role !== "operario" && (
+            <TabsTrigger 
+              value="history" 
+              className="flex-1 min-w-[80px] text-xs sm:text-sm px-2 sm:px-3 py-2 bg-white/[0.10] text-muted-foreground data-[state=active]:bg-gray-600 data-[state=active]:text-white hover:bg-gray-300 transition-colors"
+            >
+              <History className="h-4 w-4 mr-1 hidden sm:inline" />
+              Historial
+            </TabsTrigger>
+          )}
         </TabsList>
 
         {/* Tab Información */}
@@ -2204,7 +2206,8 @@ export function ProjectInlineDetail({
           )}
         </TabsContent>
 
-        {/* Tab Historial */}
+        {/* Tab Historial — solo para admin/comercial/disenador/medidor */}
+        {user?.role !== "jefe_taller" && user?.role !== "operario" && (
         <TabsContent value="history" className="space-y-2 mt-4">
           {projectDetail.history?.length === 0 ? (
             <Card>
@@ -2274,6 +2277,7 @@ export function ProjectInlineDetail({
             })
           )}
         </TabsContent>
+        )}
       </Tabs>
 
       {/* Diálogo para subir foto */}

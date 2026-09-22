@@ -8,7 +8,7 @@ const MESSAGE_TEMPLATES: Record<string, (data: ProjectMessageData) => string> = 
   // Proyecto creado
   pendiente: (data) => `🏠 *¡Hola ${data.clientName}!*
 
-Gracias por confiar en *INNOVAR Cocinas Integrales* para tu proyecto de ${data.workType}.
+Gracias por confiar en *INNOVAR Cocinas de Diseño* para tu proyecto de ${data.workType}.
 
 Tu proyecto *"${data.projectName}"* ha sido registrado exitosamente. Pronto te contactaremos para coordinar los siguientes pasos.
 
@@ -31,7 +31,7 @@ Tu proyecto *"${data.projectName}"* ha sido aprobado y nuestro equipo de diseño
 Sigue el progreso en:
 ${data.portalUrl}
 
-*INNOVAR Cocinas Integrales*`,
+*INNOVAR Cocinas de Diseño*`,
 
   // En diseño
   en_diseno: (data) => `🎨 *Hola ${data.clientName}*
@@ -44,7 +44,7 @@ Te notificaremos cuando estén listos para tu revisión.
 
 ${data.portalUrl}
 
-*INNOVAR Cocinas Integrales*`,
+*INNOVAR Cocinas de Diseño*`,
 
   // Pendiente aprobación del cliente (renders listos)
   pendiente_render: (data) => {
@@ -67,7 +67,7 @@ ${data.portalUrl}
 
 Si tienes alguna pregunta o necesitas cambios, no dudes en contactarnos.
 
-*INNOVAR Cocinas Integrales*
+*INNOVAR Cocinas de Diseño*
 📞 313 680 2025`;
   },
 
@@ -81,7 +81,7 @@ Tu proyecto *"${data.projectName}"* ha entrado en la etapa de *CORTE*.
 Puedes ver fotos del avance en:
 ${data.portalUrl}
 
-*INNOVAR Cocinas Integrales*`,
+*INNOVAR Cocinas de Diseño*`,
 
   // En enchape
   enchape: (data) => `🎯 *Avance de tu proyecto, ${data.clientName}*
@@ -93,7 +93,7 @@ Tu proyecto *"${data.projectName}"* está en la etapa de *ENCHAPE*.
 Ve las fotos del proceso:
 ${data.portalUrl}
 
-*INNOVAR Cocinas Integrales*`,
+*INNOVAR Cocinas de Diseño*`,
 
   // En ensamble
   ensamble: (data) => `🔧 *¡Ya casi está listo, ${data.clientName}!*
@@ -105,7 +105,7 @@ Tu proyecto *"${data.projectName}"* está en la etapa de *ENSAMBLE*.
 Mira el progreso:
 ${data.portalUrl}
 
-*INNOVAR Cocinas Integrales*`,
+*INNOVAR Cocinas de Diseño*`,
 
   // Listo para instalación
   listo_instalacion: (data) => `🚚 *¡${data.clientName}, tu ${data.workType} está lista!*
@@ -119,7 +119,7 @@ ${data.portalUrl}
 
 ¡Estamos emocionados de entregarte tu nuevo espacio! 🏠
 
-*INNOVAR Cocinas Integrales*
+*INNOVAR Cocinas de Diseño*
 📞 313 680 2025`,
 
   // Entregado
@@ -136,7 +136,7 @@ https://g.page/r/CZ41O10XEQCQEBk/review
 
 ¡Gracias por confiar en nosotros!
 
-*INNOVAR Cocinas Integrales*
+*INNOVAR Cocinas de Diseño*
 📞 313 680 2025`,
 };
 
@@ -193,7 +193,7 @@ export function generateProjectMessage(data: ProjectMessageData): string {
 
 Revisa el estado en: ${data.portalUrl}
 
-INNOVAR Cocinas Integrales`;
+INNOVAR Cocinas de Diseño`;
   }
 
   // Convertir el tipo de trabajo a etiqueta legible

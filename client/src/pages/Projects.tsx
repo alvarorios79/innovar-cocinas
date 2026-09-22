@@ -759,8 +759,8 @@ export default function Projects() {
               )}
             </div>
 
-            {/* Gráfico de Distribución de Rentabilidad */}
-            {(() => {
+            {/* Gráfico de Distribución de Rentabilidad — solo admin, super_admin y comercial */}
+            {(user?.role === "admin" || user?.role === "super_admin" || user?.role === "comercial") && (() => {
               const healthy = projects.filter((p: any) => (p.rentabilidad ?? 0) > 20).length;
               const moderate = projects.filter((p: any) => (p.rentabilidad ?? 0) >= 10 && (p.rentabilidad ?? 0) <= 20).length;
               const risk = projects.filter((p: any) => (p.rentabilidad ?? 0) >= 5 && (p.rentabilidad ?? 0) < 10).length;
@@ -1294,11 +1294,11 @@ export default function Projects() {
                       </div>
                     </CardHeader>
                     <CardContent className="text-sm space-y-2">
-                      {/* Fechas de la cotización */}
-                      {(projectDetail as any).quotation?.createdAt && (
+                      {/* Fechas de la cotización — ocultar a operario */}
+                      {(projectDetail as any).quotation?.createdAt && user?.role !== "operario" && (
                         <p><strong>Cotización creada:</strong> {new Date((projectDetail as any).quotation.createdAt).toLocaleDateString("es-CO")}</p>
                       )}
-                      {(projectDetail as any).quotation?.validUntil && (
+                      {(projectDetail as any).quotation?.validUntil && user?.role !== "operario" && (
                         <p><strong>Validez cotización:</strong> {new Date((projectDetail as any).quotation.validUntil).toLocaleDateString("es-CO")}</p>
                       )}
                       <p><strong>Proyecto creado:</strong> {new Date(projectDetail.createdAt).toLocaleDateString("es-CO")}</p>
@@ -1308,10 +1308,10 @@ export default function Projects() {
                       {projectDetail.quotationApprovedAt && user?.role !== "disenador" && user?.role !== "jefe_taller" && (
                         <p><strong>Cotización aprobada:</strong> {new Date(projectDetail.quotationApprovedAt).toLocaleDateString("es-CO")}</p>
                       )}
-                      {projectDetail.advanceReceivedAt && user?.role !== "disenador" && user?.role !== "jefe_taller" && (
+                      {projectDetail.advanceReceivedAt && user?.role !== "disenador" && user?.role !== "jefe_taller" && user?.role !== "operario" && (
                         <p><strong>Adelanto recibido:</strong> {new Date(projectDetail.advanceReceivedAt).toLocaleDateString("es-CO")}</p>
                       )}
-                      {projectDetail.advanceReceiptUrl && user?.role !== "disenador" && user?.role !== "jefe_taller" && (
+                      {projectDetail.advanceReceiptUrl && user?.role !== "disenador" && user?.role !== "jefe_taller" && user?.role !== "operario" && (
                         <div className="mt-2 p-2 bg-green-500/10 rounded-lg">
                           <p className="text-sm font-medium text-green-300 mb-1">Comprobante de pago:</p>
                           <a 
@@ -1325,7 +1325,7 @@ export default function Projects() {
                           </a>
                         </div>
                       )}
-                      {(projectDetail as any).quotationPdfUrl && user?.role !== "disenador" && user?.role !== "jefe_taller" && (
+                      {(projectDetail as any).quotationPdfUrl && user?.role !== "disenador" && user?.role !== "jefe_taller" && user?.role !== "operario" && (
                         <div className="mt-2 p-2 bg-blue-500/10 rounded-lg">
                           <p className="text-sm font-medium text-blue-300 mb-1">Cotización aprobada:</p>
                           <a 

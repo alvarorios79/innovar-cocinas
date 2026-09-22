@@ -637,6 +637,21 @@ export async function getProjectById(id: number) {
   return result.length > 0 ? result[0] : undefined;
 }
 
+/**
+ * Busca un proyecto por ID sin filtrar por dataOrigin.
+ * Para uso en galería pública — el token es la seguridad, no el origen.
+ */
+export async function getProjectByIdPublic(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db.select().from(projects).where(and(
+    eq(projects.id, id),
+    isNull(projects.deletedAt)
+  )).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
 export async function getAllProjects() {
   const db = await getDb();
   if (!db) return [];

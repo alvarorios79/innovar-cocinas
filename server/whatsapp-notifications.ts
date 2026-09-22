@@ -225,9 +225,10 @@ export function generateWhatsAppLink(phone: string, message: string): string {
  * Genera la URL de la galería pública del cliente para un proyecto específico
  * Usa /gallery para acceso sin login
  */
-export function generatePortalUrl(projectId: number, baseUrl: string, type?: "modelado_3d" | "renders"): string {
+export function generatePortalUrl(projectId: number, baseUrl: string, token?: string | null, type?: "modelado_3d" | "renders"): string {
+  const tokenParam = token ? `&token=${token}` : "";
   const typeParam = type ? `&type=${type}` : "";
-  return `${baseUrl}/gallery?project=${projectId}${typeParam}`;
+  return `${baseUrl}/gallery?project=${projectId}${tokenParam}${typeParam}`;
 }
 
 /**
@@ -316,6 +317,7 @@ export function prepareWhatsAppNotification(
     name: string;
     status: string;
     workType: string;
+    publicToken?: string | null;
     client: {
       name: string;
       whatsappPhone: string;
@@ -329,7 +331,7 @@ export function prepareWhatsAppNotification(
   phone: string;
   statusLabel: string;
 } {
-  const portalUrl = generatePortalUrl(project.id, baseUrl);
+  const portalUrl = generatePortalUrl(project.id, baseUrl, project.publicToken);
   
   const messageData: ProjectMessageData = {
     clientName: project.client.name,

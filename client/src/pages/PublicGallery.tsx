@@ -272,7 +272,7 @@ export default function PublicGallery() {
           {/* Sin fotos aún */}
           {!hasAnyPhotos && (
             <div className="text-center py-16 rounded-2xl" style={{ background: "#141414", border: "1px solid #222" }}>
-              <div className="text-5xl mb-4">🏗️</div>
+              <div className="text-5xl mb-4">🪵</div>
               <h3 className="text-white text-xl font-bold mb-2">Tu proyecto está en marcha</h3>
               <p className="text-sm" style={{ color: "#777" }}>
                 Pronto verás aquí las fotos y avances de tu {WORK_TYPES[project.workType as string]?.toLowerCase() || "proyecto"}.

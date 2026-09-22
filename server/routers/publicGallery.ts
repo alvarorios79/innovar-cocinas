@@ -12,6 +12,7 @@ import { hashPassword, validatePasswordStrength, authenticateWithPassword } from
 import { prepareWhatsAppNotification, generateTeamWhatsAppLink } from "../whatsapp-notifications";
 import { createRemindersForStatusChange } from "../reminders-service";
 import * as whatsappCloud from "../whatsapp-cloud";
+import { createAndSendNotification, sendPushToRole } from "../push-notifications";
 import { addBusinessDays, calculateEstimatedDeliveryDate } from "../business-days";
 import { sanitizeText, sanitizeHtml, sanitizeForEmail, sanitizePhone, sanitizeEmail } from "../sanitize";
 import { randomBytes } from "crypto";
@@ -599,7 +600,7 @@ export const publicGalleryRouter = router({
       }),
 
 
-    // Notificar avance de etapa al cliente — crea tarea para admin/super_admin
+    // Notificar avance de etapa al cliente — crea tarea + push para admin/super_admin
     // para que envíen el mensaje desde el número oficial de WhatsApp
     notifyStageAdvance: protectedProcedure
       .input(z.object({
@@ -615,78 +616,104 @@ export const publicGalleryRouter = router({
         // Obtener cliente
         const client = project.clientId ? await db.getClientById(project.clientId) : null;
         const clientName = client?.name || "el cliente";
-        const clientPhone = client?.whatsappPhone || null;
+        const clientPhone = (client as any)?.whatsappPhone || null;
 
-        // URL del portal del cliente
+        // URL del portal del cliente (sin ?type= → portal completo de avances)
         const baseUrl = process.env.VITE_APP_URL || "https://innovar-cocinas.onrender.com";
-        const portalLink = `${baseUrl}/gallery?project=${input.projectId}&token=${project.publicToken ?? ""}`;
-
-        // Mensaje preescrito según etapa
-        const stageMessages: Record<string, string> = {
-          corte: `🔧 Hola ${clientName}! 👋\n\nTe informamos que tu proyecto *"${project.name}"* ya está en la etapa de *corte de materiales*.\n\nEstamos trabajando con los mejores materiales para ti. Puedes ver el avance aquí:\n${portalLink}\n\nCualquier pregunta, estamos a tu servicio. — INNOVAR Cocinas de Diseño 🏡`,
-          enchape: `🔩 Hola ${clientName}! 👋\n\nTu proyecto *"${project.name}"* avanzó a la etapa de *enchape*. Todo está tomando su forma perfecta.\n\nPuedes ver el avance aquí:\n${portalLink}\n\n¡Gracias por tu confianza! — INNOVAR Cocinas de Diseño 🏡`,
-          ensamble: `🔨 Hola ${clientName}! 👋\n\nExcelentes noticias: tu proyecto *"${project.name}"* está en *ensamble*, ¡ya casi está listo!\n\nVe cómo va quedando:\n${portalLink}\n\nProto nos pondremos en contacto. — INNOVAR Cocinas de Diseño 🏡`,
-          listo_instalacion: `🏠 Hola ${clientName}! 👋\n\n¡Tu proyecto *"${project.name}"* está *listo para instalación*!\n\nEn los próximos días nos comunicamos para coordinar la fecha de instalación.\n\nPuedes ver el resultado aquí:\n${portalLink}\n\n¡Gracias por elegirnos! — INNOVAR Cocinas de Diseño 🏡`,
-        };
+        let publicToken = project.publicToken;
+        if (!publicToken) {
+          publicToken = randomBytes(24).toString('hex');
+          await db.updateProject(input.projectId, { publicToken });
+        }
+        const portalLink = `${baseUrl}/gallery?project=${input.projectId}&token=${publicToken}`;
 
         const stageLabels: Record<string, string> = {
-          corte: "Corte",
+          corte: "Corte de materiales",
           enchape: "Enchape",
           ensamble: "Ensamble",
-          listo_instalacion: "Listo para Instalación",
+          listo_instalacion: "Listo para instalación",
+        };
+        const stageEmojis: Record<string, string> = {
+          corte: "🔧", enchape: "🔩", ensamble: "🔨", listo_instalacion: "🏠",
         };
 
-        const message = stageMessages[input.stageName];
         const stageLabel = stageLabels[input.stageName];
+        const emoji = stageEmojis[input.stageName];
 
-        // Generar enlace de WhatsApp para que admin lo toque desde el celular oficial
+        // Mensaje preescrito para que admin lo copie/pegue en WhatsApp oficial
+        const waMessage =
+          `${emoji} Hola ${clientName}! 👋
+
+` +
+          `Tu proyecto *"${project.name}"* avanzó a la etapa de *${stageLabel}*.
+
+` +
+          `Puedes ver el avance aquí:
+${portalLink}
+
+` +
+          `Cualquier pregunta, estamos a tu servicio.
+— INNOVAR Cocinas de Diseño 🏡`;
+
+        // Enlace directo wa.me para que admin toque y envíe desde el celular oficial
         let whatsAppLink: string | null = null;
         if (clientPhone) {
           const phone = clientPhone.replace(/\D/g, '');
           const phoneWithCountry = phone.startsWith('57') ? phone : `57${phone}`;
-          whatsAppLink = `https://wa.me/${phoneWithCountry}?text=${encodeURIComponent(message)}`;
+          whatsAppLink = `https://wa.me/${phoneWithCountry}?text=${encodeURIComponent(waMessage)}`;
         }
 
-        // Crear tarea para admin y super_admin con el mensaje listo
+        const collaboratorName = ctx.user.name || "Un colaborador";
         const taskTitle = `📱 Enviar avance "${stageLabel}" a ${clientName}`;
-        const taskDescription = `El colaborador ${ctx.user.name || ctx.user.username} subió fotos de la etapa "${stageLabel}" del proyecto "${project.name}" y solicita notificar al cliente.\n\n**Mensaje listo para enviar desde WhatsApp oficial:**\n\n${message}\n\n${whatsAppLink ? `**Enlace directo (toca para enviar):**\n${whatsAppLink}` : 'El cliente no tiene número de WhatsApp registrado.'}`;
+        const taskDescription =
+          `${collaboratorName} subió fotos de *${stageLabel}* en el proyecto "${project.name}".
 
-        const admins = await db.getUsersByRole('admin');
-        const superAdmins = await db.getUsersByRole('super_admin');
+` +
+          `**Mensaje listo — copiar y enviar desde WhatsApp oficial:**
+
+${waMessage}
+
+` +
+          (whatsAppLink ? `**Enlace directo (toca para abrir WhatsApp):**
+${whatsAppLink}` : "⚠️ El cliente no tiene número de WhatsApp registrado.");
+
+        // Crear tarea para cada admin y super_admin
+        const [admins, superAdmins] = await Promise.all([
+          db.getUsersByRole('admin'),
+          db.getUsersByRole('super_admin'),
+        ]);
         const allAdmins = [...admins, ...superAdmins];
+
+        const now = new Date();
+        const dueIn2h = new Date(now.getTime() + 2 * 60 * 60 * 1000).toISOString();
 
         for (const admin of allAdmins) {
           await db.createTask({
             projectId: input.projectId,
             title: taskTitle,
             description: taskDescription,
-            priority: "alta",
+            priority: "alta" as any,
+            status: "pendiente" as any,
             assignedTo: admin.id,
             assignedBy: ctx.user.id,
-            dueDate: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(), // 2 horas
+            dueDate: dueIn2h,
+            dataOrigin: "manual" as any,
           });
-        }
 
-        // Enviar notificación push a admin/super_admin
-        try {
-          const { createAndSendNotification } = await import("../push-notifications");
-          for (const admin of allAdmins) {
-            await createAndSendNotification(admin.id, {
-              title: `📱 Avance "${stageLabel}" para enviar a ${clientName}`,
-              body: `${ctx.user.name || "Un colaborador"} subió fotos de ${stageLabel} en "${project.name}". ¡Notifica al cliente!`,
-              type: "proyecto",
-              referenceId: input.projectId,
-              referenceType: "project",
-              url: `/projects/${input.projectId}`,
-            });
-          }
-        } catch (e) {
-          console.error("Error enviando push notification:", e);
+          // Notificación in-app + push
+          await createAndSendNotification(admin.id, {
+            title: `📱 ${stageLabel} de "${project.name}"`,
+            body: `${collaboratorName} subió fotos. Envía el avance a ${clientName} desde WhatsApp oficial.`,
+            type: "proyecto",
+            referenceId: input.projectId,
+            referenceType: "project",
+            url: `/projects/${input.projectId}`,
+          });
         }
 
         return {
           success: true,
-          message: `Se notificó al equipo administrativo para enviar la actualización al cliente.`,
+          message: `✅ Admin notificado. Enviarán el avance a ${clientName} desde el número oficial.`,
           whatsAppLink,
           stageLabel,
           adminsNotified: allAdmins.length,

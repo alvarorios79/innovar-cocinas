@@ -1072,7 +1072,7 @@ export const projectsRouter = router({
                         </div>
                         <div style="background: #1F2937; padding: 20px; text-align: center;">
                           <p style="color: #9CA3AF; margin: 0; font-size: 12px;">
-                            INNOVAR Cocinas Integrales | K9 vía Cerritos a Pereira | Tel: 313 680 2025
+                            INNOVAR Cocinas de Diseño | K9 vía Cerritos a Pereira | Tel: 313 680 2025
                           </p>
                         </div>
                       </div>
@@ -1228,7 +1228,7 @@ Nos complace informarte que tu proyecto "${project.name}" ha sido *entregado exi
 
 Por favor, realiza el pago del saldo restante para completar tu proyecto.
 
-¡Gracias por confiar en INNOVAR Cocinas Integrales! 🙏`;
+¡Gracias por confiar en INNOVAR Cocinas de Diseño! 🙏`;
             
             const cleanPhone = client.whatsappPhone?.replace(/\D/g, '') || '';
             const phoneWithCountry = cleanPhone.startsWith('57') ? cleanPhone : `57${cleanPhone}`;

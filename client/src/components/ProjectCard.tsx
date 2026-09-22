@@ -320,11 +320,13 @@ export function ProjectCard({
 
             {/* Tabs de contenido */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-3">
-              <TabsList className="grid grid-cols-4 w-full">
+              <TabsList className={`grid ${user?.role === "jefe_taller" || user?.role === "operario" ? "grid-cols-3" : "grid-cols-4"} w-full`}>
                 <TabsTrigger value="info" className="text-xs sm:text-sm">Info</TabsTrigger>
                 <TabsTrigger value="dates" className="text-xs sm:text-sm">Fechas</TabsTrigger>
                 <TabsTrigger value="photos" className="text-xs sm:text-sm">Fotos</TabsTrigger>
-                <TabsTrigger value="history" className="text-xs sm:text-sm">Historial</TabsTrigger>
+                {user?.role !== "jefe_taller" && user?.role !== "operario" && (
+                  <TabsTrigger value="history" className="text-xs sm:text-sm">Historial</TabsTrigger>
+                )}
               </TabsList>
 
               <TabsContent value="info" className="mt-3 space-y-3">
@@ -499,35 +501,37 @@ export function ProjectCard({
                 )}
               </TabsContent>
 
-              <TabsContent value="history" className="mt-3">
-                {detail.history?.length === 0 ? (
-                  <div className="text-center py-6 text-muted-foreground">
-                    <Clock className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                    <p className="text-sm">Sin historial de cambios</p>
-                  </div>
-                ) : (
-                  <div className="space-y-2 max-h-48 overflow-y-auto">
-                    {detail.history?.map((entry: any) => (
-                      <div key={entry.id} className="flex items-start gap-2 text-sm p-2 bg-muted/30 rounded">
-                        <div className="h-2 w-2 mt-1.5 rounded-full bg-primary flex-shrink-0" />
-                        <div className="min-w-0">
-                          <p>
-                            <span className="font-medium">{entry.fromStatus || "Inicio"}</span>
-                            {" → "}
-                            <span className="font-medium">{entry.toStatus}</span>
-                          </p>
-                          {entry.notes && (
-                            <p className="text-muted-foreground text-xs truncate">{entry.notes}</p>
-                          )}
-                          <p className="text-xs text-muted-foreground">
-                            {new Date(entry.createdAt).toLocaleString("es-CO")}
-                          </p>
+              {user?.role !== "jefe_taller" && user?.role !== "operario" && (
+                <TabsContent value="history" className="mt-3">
+                  {detail.history?.length === 0 ? (
+                    <div className="text-center py-6 text-muted-foreground">
+                      <Clock className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                      <p className="text-sm">Sin historial de cambios</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2 max-h-48 overflow-y-auto">
+                      {detail.history?.map((entry: any) => (
+                        <div key={entry.id} className="flex items-start gap-2 text-sm p-2 bg-muted/30 rounded">
+                          <div className="h-2 w-2 mt-1.5 rounded-full bg-primary flex-shrink-0" />
+                          <div className="min-w-0">
+                            <p>
+                              <span className="font-medium">{entry.fromStatus || "Inicio"}</span>
+                              {" → "}
+                              <span className="font-medium">{entry.toStatus}</span>
+                            </p>
+                            {entry.notes && (
+                              <p className="text-muted-foreground text-xs truncate">{entry.notes}</p>
+                            )}
+                            <p className="text-xs text-muted-foreground">
+                              {new Date(entry.createdAt).toLocaleString("es-CO")}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </TabsContent>
+                      ))}
+                    </div>
+                  )}
+                </TabsContent>
+              )}
             </Tabs>
           </div>
         )}

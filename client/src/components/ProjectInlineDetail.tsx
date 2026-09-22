@@ -554,7 +554,7 @@ export function ProjectInlineDetail({
                 const workTypeLabel = WORK_TYPES[project.workType as keyof typeof WORK_TYPES] || project.workType;
                 const statusLabel = getStatusLabel(project.status, (project as any).modeladoRevisionNumber, (project as any).renderRevisionNumber);
                 
-                const message = `Hola ${projectDetail.client?.name}, te escribimos de INNOVAR Cocinas Integrales.\n\nTu proyecto "${project.name}" (${workTypeLabel}) está en estado: ${statusLabel}.\n\nPuedes ver el seguimiento en:\n${portalUrl}\n\n¿Tienes alguna pregunta?`;
+                const message = `Hola ${projectDetail.client?.name}, te escribimos de INNOVAR Cocinas de Diseño.\n\nTu proyecto "${project.name}" (${workTypeLabel}) está en estado: ${statusLabel}.\n\nPuedes ver el seguimiento en:\n${portalUrl}\n\n¿Tienes alguna pregunta?`;
                 
                 setWhatsAppMessage(message);
                 setWhatsAppPhone(projectDetail.client?.whatsappPhone || "");

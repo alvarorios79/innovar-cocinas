@@ -1246,7 +1246,9 @@ export default function Projects() {
                   <TabsTrigger value="materials" className="text-xs sm:text-sm px-2 sm:px-3 data-[state=active]:bg-purple-500 data-[state=active]:text-white">Materiales</TabsTrigger>
                   <TabsTrigger value="photos" className="text-xs sm:text-sm px-2 sm:px-3 data-[state=active]:bg-green-500 data-[state=active]:text-white">Fotos</TabsTrigger>
                   <TabsTrigger value="details" className="text-xs sm:text-sm px-2 sm:px-3 data-[state=active]:bg-orange-500 data-[state=active]:text-white">Detalles</TabsTrigger>
-                  <TabsTrigger value="history" className="text-xs sm:text-sm px-2 sm:px-3 data-[state=active]:bg-gray-600 data-[state=active]:text-white">Historial</TabsTrigger>
+                  {user?.role !== "jefe_taller" && user?.role !== "operario" && (
+                    <TabsTrigger value="history" className="text-xs sm:text-sm px-2 sm:px-3 data-[state=active]:bg-gray-600 data-[state=active]:text-white">Historial</TabsTrigger>
+                  )}
                 </TabsList>
 
                 <TabsContent value="info" className="space-y-4">
@@ -1939,26 +1941,28 @@ export default function Projects() {
                   )}
                 </TabsContent>
 
-                <TabsContent value="history" className="space-y-2">
-                  {projectDetail.history?.map((entry: any, index: number) => (
-                    <div key={entry.id} className="flex items-start gap-3 p-3 bg-muted/50 rounded">
-                      <div className="h-2 w-2 mt-2 rounded-full bg-primary" />
-                      <div className="flex-1">
-                        <p className="text-sm">
-                          <strong>{entry.fromStatus || "Inicio"}</strong>
-                          {" → "}
-                          <strong>{entry.toStatus}</strong>
-                        </p>
-                        {entry.notes && (
-                          <p className="text-sm text-muted-foreground">{entry.notes}</p>
-                        )}
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {new Date(entry.createdAt).toLocaleString("es-CO")}
-                        </p>
+                {user?.role !== "jefe_taller" && user?.role !== "operario" && (
+                  <TabsContent value="history" className="space-y-2">
+                    {projectDetail.history?.map((entry: any, index: number) => (
+                      <div key={entry.id} className="flex items-start gap-3 p-3 bg-muted/50 rounded">
+                        <div className="h-2 w-2 mt-2 rounded-full bg-primary" />
+                        <div className="flex-1">
+                          <p className="text-sm">
+                            <strong>{entry.fromStatus || "Inicio"}</strong>
+                            {" → "}
+                            <strong>{entry.toStatus}</strong>
+                          </p>
+                          {entry.notes && (
+                            <p className="text-sm text-muted-foreground">{entry.notes}</p>
+                          )}
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {new Date(entry.createdAt).toLocaleString("es-CO")}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </TabsContent>
+                    ))}
+                  </TabsContent>
+                )}
               </Tabs>
             )}
           </DialogContent>

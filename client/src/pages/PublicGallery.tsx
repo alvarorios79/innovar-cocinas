@@ -44,7 +44,8 @@ export default function PublicGallery() {
   const params = new URLSearchParams(search);
   const projectId = parseInt(params.get("project") || "0");
   const token = params.get("token") || "";
-  const photoType = params.get("type") as "modelado_3d" | "renders" | undefined;
+  const typeParam = params.get("type");
+  const photoType = (typeParam === "modelado_3d" || typeParam === "renders") ? typeParam : undefined;
 
   const [selectedPhoto, setSelectedPhoto] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState<string>(photoType || "all");
@@ -149,8 +150,9 @@ export default function PublicGallery() {
       <div className="min-h-screen bg-white/[0.02] flex items-center justify-center p-4">
         <Card className="max-w-md w-full text-center p-8">
           <ImageIcon className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-          <h1 className="text-xl font-semibold text-muted-foreground mb-2">Proyecto no encontrado</h1>
-          <p className="text-gray-500">No pudimos encontrar el proyecto solicitado.</p>
+          <h1 className="text-xl font-semibold text-muted-foreground mb-2">Enlace no disponible</h1>
+          <p className="text-gray-500 mb-3">Este enlace ha expirado o el proyecto ya no está disponible.</p>
+          <p className="text-gray-500 text-sm">Contacta a <strong>INNOVAR Cocinas de Diseño</strong> al <a href="https://wa.me/573136802025" className="text-teal-500 underline">313 680 2025</a> para más información.</p>
         </Card>
       </div>
     );

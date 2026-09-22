@@ -43,10 +43,11 @@ export const publicGalleryRouter = router({
         let photos = allPhotos;
         
         if (input.type) {
+          // Modo aprobación: solo fotos del tipo solicitado
           photos = allPhotos.filter(p => p.subcategory === input.type);
         } else {
-          // Por defecto, mostrar modelado y renders
-          photos = allPhotos.filter(p => p.subcategory === "modelado_3d" || p.subcategory === "renders");
+          // Portal completo: todas las fotos excepto privadas (stage inicial)
+          photos = allPhotos.filter(p => p.stage !== "inicial");
         }
 
         return {
@@ -54,6 +55,7 @@ export const publicGalleryRouter = router({
             id: project.id,
             name: project.name,
             workType: project.workType,
+            status: project.status,
           },
           client: client ? {
             name: client.name,
@@ -62,6 +64,8 @@ export const publicGalleryRouter = router({
             id: p.id,
             photoUrl: p.photoUrl,
             subcategory: p.subcategory,
+            stage: p.stage,
+            category: p.category,
             description: p.description,
             createdAt: p.createdAt,
           })),

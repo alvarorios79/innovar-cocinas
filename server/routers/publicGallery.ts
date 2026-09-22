@@ -598,6 +598,101 @@ export const publicGalleryRouter = router({
         };
       }),
 
+
+    // Notificar avance de etapa al cliente — crea tarea para admin/super_admin
+    // para que envíen el mensaje desde el número oficial de WhatsApp
+    notifyStageAdvance: protectedProcedure
+      .input(z.object({
+        projectId: z.number(),
+        stageName: z.enum(["corte", "enchape", "ensamble", "listo_instalacion"]),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const project = await db.getProjectByIdPublic(input.projectId);
+        if (!project) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Proyecto no encontrado" });
+        }
+
+        // Obtener cliente
+        const client = project.clientId ? await db.getClientById(project.clientId) : null;
+        const clientName = client?.name || "el cliente";
+        const clientPhone = client?.whatsappPhone || null;
+
+        // URL del portal del cliente
+        const baseUrl = process.env.VITE_APP_URL || "https://innovar-cocinas.onrender.com";
+        const portalLink = `${baseUrl}/gallery?project=${input.projectId}&token=${project.publicToken ?? ""}`;
+
+        // Mensaje preescrito según etapa
+        const stageMessages: Record<string, string> = {
+          corte: `🔧 Hola ${clientName}! 👋\n\nTe informamos que tu proyecto *"${project.name}"* ya está en la etapa de *corte de materiales*.\n\nEstamos trabajando con los mejores materiales para ti. Puedes ver el avance aquí:\n${portalLink}\n\nCualquier pregunta, estamos a tu servicio. — INNOVAR Cocinas de Diseño 🏡`,
+          enchape: `🔩 Hola ${clientName}! 👋\n\nTu proyecto *"${project.name}"* avanzó a la etapa de *enchape*. Todo está tomando su forma perfecta.\n\nPuedes ver el avance aquí:\n${portalLink}\n\n¡Gracias por tu confianza! — INNOVAR Cocinas de Diseño 🏡`,
+          ensamble: `🔨 Hola ${clientName}! 👋\n\nExcelentes noticias: tu proyecto *"${project.name}"* está en *ensamble*, ¡ya casi está listo!\n\nVe cómo va quedando:\n${portalLink}\n\nProto nos pondremos en contacto. — INNOVAR Cocinas de Diseño 🏡`,
+          listo_instalacion: `🏠 Hola ${clientName}! 👋\n\n¡Tu proyecto *"${project.name}"* está *listo para instalación*!\n\nEn los próximos días nos comunicamos para coordinar la fecha de instalación.\n\nPuedes ver el resultado aquí:\n${portalLink}\n\n¡Gracias por elegirnos! — INNOVAR Cocinas de Diseño 🏡`,
+        };
+
+        const stageLabels: Record<string, string> = {
+          corte: "Corte",
+          enchape: "Enchape",
+          ensamble: "Ensamble",
+          listo_instalacion: "Listo para Instalación",
+        };
+
+        const message = stageMessages[input.stageName];
+        const stageLabel = stageLabels[input.stageName];
+
+        // Generar enlace de WhatsApp para que admin lo toque desde el celular oficial
+        let whatsAppLink: string | null = null;
+        if (clientPhone) {
+          const phone = clientPhone.replace(/\D/g, '');
+          const phoneWithCountry = phone.startsWith('57') ? phone : `57${phone}`;
+          whatsAppLink = `https://wa.me/${phoneWithCountry}?text=${encodeURIComponent(message)}`;
+        }
+
+        // Crear tarea para admin y super_admin con el mensaje listo
+        const taskTitle = `📱 Enviar avance "${stageLabel}" a ${clientName}`;
+        const taskDescription = `El colaborador ${ctx.user.name || ctx.user.username} subió fotos de la etapa "${stageLabel}" del proyecto "${project.name}" y solicita notificar al cliente.\n\n**Mensaje listo para enviar desde WhatsApp oficial:**\n\n${message}\n\n${whatsAppLink ? `**Enlace directo (toca para enviar):**\n${whatsAppLink}` : 'El cliente no tiene número de WhatsApp registrado.'}`;
+
+        const admins = await db.getUsersByRole('admin');
+        const superAdmins = await db.getUsersByRole('super_admin');
+        const allAdmins = [...admins, ...superAdmins];
+
+        for (const admin of allAdmins) {
+          await db.createTask({
+            projectId: input.projectId,
+            title: taskTitle,
+            description: taskDescription,
+            priority: "alta",
+            assignedTo: admin.id,
+            assignedBy: ctx.user.id,
+            dueDate: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(), // 2 horas
+          });
+        }
+
+        // Enviar notificación push a admin/super_admin
+        try {
+          const { createAndSendNotification } = await import("../push-notifications");
+          for (const admin of allAdmins) {
+            await createAndSendNotification(admin.id, {
+              title: `📱 Avance "${stageLabel}" para enviar a ${clientName}`,
+              body: `${ctx.user.name || "Un colaborador"} subió fotos de ${stageLabel} en "${project.name}". ¡Notifica al cliente!`,
+              type: "proyecto",
+              referenceId: input.projectId,
+              referenceType: "project",
+              url: `/projects/${input.projectId}`,
+            });
+          }
+        } catch (e) {
+          console.error("Error enviando push notification:", e);
+        }
+
+        return {
+          success: true,
+          message: `Se notificó al equipo administrativo para enviar la actualización al cliente.`,
+          whatsAppLink,
+          stageLabel,
+          adminsNotified: allAdmins.length,
+        };
+      }),
+
     // Enviar modelado al cliente por WhatsApp Cloud API (cambia estado a pendiente_modelado)
     sendModeladoToClient: protectedProcedure
       .input(z.object({

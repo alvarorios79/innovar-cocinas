@@ -1178,7 +1178,7 @@ export default function Projects() {
                         const workTypeLabel = WORK_TYPES[selectedProject.workType as keyof typeof WORK_TYPES] || selectedProject.workType;
                         const statusLabel = PROJECT_STATUSES[selectedProject.status as keyof typeof PROJECT_STATUSES]?.label || selectedProject.status;
                         
-                        const message = `Hola ${selectedProject.client.name}, te escribimos de INNOVAR Cocinas Integrales.\n\nTu proyecto "${selectedProject.name}" (${workTypeLabel}) está en estado: ${statusLabel}.\n\nPuedes ver el seguimiento en:\n${portalUrl}\n\n¿Tienes alguna pregunta?`;
+                        const message = `Hola ${selectedProject.client.name}, te escribimos de INNOVAR Cocinas de Diseño.\n\nTu proyecto "${selectedProject.name}" (${workTypeLabel}) está en estado: ${statusLabel}.\n\nPuedes ver el seguimiento en:\n${portalUrl}\n\n¿Tienes alguna pregunta?`;
                         
                         setWhatsAppMessage(message);
                         setWhatsAppPhone(selectedProject.client.whatsappPhone);

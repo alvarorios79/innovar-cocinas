@@ -53,6 +53,18 @@ export async function runMigrations() {
       name: "quotationItems_bathroomConfig",
       sql: `ALTER TABLE "quotationItems" ADD COLUMN IF NOT EXISTS "bathroomConfig" json`,
     },
+    {
+      // Asegura que la columna exista en caso de que la migración Drizzle no se haya aplicado
+      name: "projects_publicToken_column",
+      sql: `ALTER TABLE "projects" ADD COLUMN IF NOT EXISTS "publicToken" varchar(64)`,
+    },
+    {
+      // Genera tokens únicos para todos los proyectos existentes que no tengan uno.
+      // Idempotente: solo afecta filas con publicToken NULL.
+      // md5 doble = 48 chars hex, único por fila gracias a random() + clock_timestamp() + id.
+      name: "projects_publicToken_backfill",
+      sql: `UPDATE "projects" SET "publicToken" = md5(random()::text || id::text || clock_timestamp()::text) || left(md5(random()::text || clock_timestamp()::text), 16) WHERE "publicToken" IS NULL`,
+    },
   ];
 
   for (const m of migrations) {

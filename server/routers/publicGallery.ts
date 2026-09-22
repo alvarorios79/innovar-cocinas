@@ -27,7 +27,7 @@ export const publicGalleryRouter = router({
       }))
       .query(async ({ input }) => {
         // Obtener proyecto y validar token público
-        const project = await db.getProjectById(input.projectId);
+        const project = await db.getProjectByIdPublic(input.projectId);
         if (!project) {
           throw new TRPCError({ code: "NOT_FOUND", message: "Proyecto no encontrado" });
         }
@@ -80,7 +80,7 @@ export const publicGalleryRouter = router({
       }))
       .mutation(async ({ input }) => {
         // Obtener proyecto con cliente y validar token
-        const project = await db.getProjectById(input.projectId);
+        const project = await db.getProjectByIdPublic(input.projectId);
         if (!project) {
           throw new TRPCError({ code: "NOT_FOUND", message: "Proyecto no encontrado" });
         }
@@ -242,7 +242,7 @@ export const publicGalleryRouter = router({
       }))
       .mutation(async ({ input }) => {
         // Obtener proyecto y validar token
-        const project = await db.getProjectById(input.projectId);
+        const project = await db.getProjectByIdPublic(input.projectId);
         if (!project) {
           throw new TRPCError({ code: "NOT_FOUND", message: "Proyecto no encontrado" });
         }
@@ -412,7 +412,7 @@ export const publicGalleryRouter = router({
         token: z.string().min(1),
       }))
       .query(async ({ input }) => {
-        const project = await db.getProjectById(input.projectId);
+        const project = await db.getProjectByIdPublic(input.projectId);
         if (!project || !project.publicToken || project.publicToken !== input.token) {
           return { modeladoApproved: false, rendersApproved: false };
         }
@@ -439,7 +439,7 @@ export const publicGalleryRouter = router({
           throw new TRPCError({ code: "FORBIDDEN", message: "Solo administradores pueden solicitar nueva aprobación" });
         }
 
-        const project = await db.getProjectById(input.projectId);
+        const project = await db.getProjectByIdPublic(input.projectId);
         if (!project) {
           throw new TRPCError({ code: "NOT_FOUND", message: "Proyecto no encontrado" });
         }
@@ -523,7 +523,7 @@ export const publicGalleryRouter = router({
           throw new TRPCError({ code: "FORBIDDEN", message: "Solo administradores pueden solicitar nueva aprobación" });
         }
 
-        const project = await db.getProjectById(input.projectId);
+        const project = await db.getProjectByIdPublic(input.projectId);
         if (!project) {
           throw new TRPCError({ code: "NOT_FOUND", message: "Proyecto no encontrado" });
         }
@@ -606,7 +606,7 @@ export const publicGalleryRouter = router({
           throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para enviar modelado" });
         }
 
-        const project = await db.getProjectById(input.projectId);
+        const project = await db.getProjectByIdPublic(input.projectId);
         if (!project) {
           throw new TRPCError({ code: "NOT_FOUND", message: "Proyecto no encontrado" });
         }
@@ -697,7 +697,7 @@ export const publicGalleryRouter = router({
           throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para enviar renders" });
         }
 
-        const project = await db.getProjectById(input.projectId);
+        const project = await db.getProjectByIdPublic(input.projectId);
         if (!project) {
           throw new TRPCError({ code: "NOT_FOUND", message: "Proyecto no encontrado" });
         }

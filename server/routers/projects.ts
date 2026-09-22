@@ -1164,11 +1164,18 @@ export const projectsRouter = router({
         
         if (client) {
           const baseUrl = ctx.req.headers.origin || `https://${ctx.req.headers.host}`;
+          // Auto-generar publicToken si el proyecto no tiene (creados antes del fix)
+          let projectPublicToken = project.publicToken;
+          if (!projectPublicToken) {
+            projectPublicToken = randomBytes(24).toString('hex');
+            await db.updateProject(project.id, { publicToken: projectPublicToken });
+          }
           const projectWithClient = {
             id: project.id,
             name: project.name,
             status: newStatus,
             workType: project.workType,
+            publicToken: projectPublicToken,
             client: {
               name: client.name,
               whatsappPhone: client.whatsappPhone,

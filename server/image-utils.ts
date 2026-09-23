@@ -155,3 +155,43 @@ export async function getImageDimensions(buffer: Buffer): Promise<{ width: numbe
     return null;
   }
 }
+
+/**
+ * Comprime un PDF usando ghostscript (fallback: retorna original sin error)
+ * /ebook = 150 DPI — buena calidad para planos GoodNotes
+ */
+export async function compressPdf(
+  inputBuffer: Buffer
+): Promise<{ buffer: Buffer; savedPercent: number }> {
+  const { join } = await import("path");
+  const { tmpdir } = await import("os");
+  const { exec } = await import("child_process");
+  const { promisify } = await import("util");
+  const { readFileSync, writeFileSync, unlinkSync, existsSync } = await import("fs");
+  const execAsync = promisify(exec);
+
+  const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const inputPath = join(tmpdir(), `pdf_input_${id}.pdf`);
+  const outputPath = join(tmpdir(), `pdf_output_${id}.pdf`);
+
+  try {
+    writeFileSync(inputPath, inputBuffer);
+    await execAsync(
+      `gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/ebook ` +
+      `-dNOPAUSE -dQUIET -dBATCH -sOutputFile="${outputPath}" "${inputPath}"`
+    );
+    const outputBuffer = readFileSync(outputPath);
+    const originalSize = inputBuffer.length;
+    const compressedSize = outputBuffer.length;
+    const savedPercent = compressedSize < originalSize
+      ? Math.round(((originalSize - compressedSize) / originalSize) * 100)
+      : 0;
+    return { buffer: outputBuffer, savedPercent };
+  } catch {
+    // ghostscript no disponible o falló — retornar original sin error
+    return { buffer: inputBuffer, savedPercent: 0 };
+  } finally {
+    if (existsSync(inputPath)) unlinkSync(inputPath);
+    if (existsSync(outputPath)) unlinkSync(outputPath);
+  }
+}

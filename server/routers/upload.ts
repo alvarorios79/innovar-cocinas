@@ -65,11 +65,11 @@ export const uploadRouter = router({
         let buffer = Buffer.from(base64Data, "base64");
 
         // Validar tamaño máximo (10MB)
-        const maxSize = 10 * 1024 * 1024;
+        const maxSize = 20 * 1024 * 1024;
         if (buffer.length > maxSize) {
           throw new TRPCError({ 
             code: "BAD_REQUEST", 
-            message: "El archivo es demasiado grande. Máximo 10MB." 
+            message: "El archivo es demasiado grande. Máximo 20MB." 
           });
         }
 
@@ -160,9 +160,9 @@ export const uploadRouter = router({
             let buffer = Buffer.from(base64Data, "base64");
 
             // Validar tamaño
-            const maxSize = 10 * 1024 * 1024;
+            const maxSize = 20 * 1024 * 1024;
             if (buffer.length > maxSize) {
-              errors.push({ fileName: file.fileName, error: "Archivo muy grande (máx 10MB)" });
+              errors.push({ fileName: file.fileName, error: "Archivo muy grande (máx 20MB)" });
               continue;
             }
 

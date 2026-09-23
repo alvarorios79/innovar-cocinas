@@ -92,7 +92,19 @@ export const uploadRouter = router({
             console.warn('Error comprimiendo imagen, usando original:', compressionError);
           }
         }
-        // Para PDFs, subir sin modificar
+        // Para PDFs: comprimir con ghostscript si está disponible
+        if (input.contentType === 'application/pdf') {
+          try {
+            const { compressPdf } = await import('../image-utils');
+            const { buffer: compressed, savedPercent } = await compressPdf(buffer);
+            if (savedPercent > 0) {
+              buffer = compressed;
+              console.log(`PDF comprimido: ${savedPercent}% de reducción`);
+            }
+          } catch (pdfError) {
+            console.warn('Error comprimiendo PDF, usando original:', pdfError);
+          }
+        }
 
         try {
           const { url } = await storagePut(fileKey, buffer, finalContentType);

@@ -356,9 +356,13 @@ export function ProjectInlineDetail({
   const notifyStageAdvance = trpc.publicGallery.notifyStageAdvance.useMutation({
     onSuccess: (result) => {
       toast.success(result.message);
+      // Abrir WhatsApp directamente con el cliente si hay enlace disponible
+      if (result.whatsAppLink) {
+        window.open(result.whatsAppLink, "_blank");
+      }
     },
     onError: (error) => {
-      toast.error(error.message || "Error al notificar al admin");
+      toast.error(error.message || "Error al notificar al cliente");
     },
   });
 
@@ -784,7 +788,7 @@ export function ProjectInlineDetail({
               className="bg-emerald-700 hover:bg-emerald-800"
               onClick={() => notifyStageAdvance.mutate({ projectId: projectDetail.id, stageName: "corte" })}
               disabled={notifyStageAdvance.isPending}
-              title="Notifica al admin para que envíe el avance al cliente desde WhatsApp oficial"
+              title="Abre WhatsApp con mensaje listo para enviar al cliente"
             >
               <MessageCircle className={`h-4 w-4 mr-1 ${notifyStageAdvance.isPending ? 'animate-pulse' : ''}`} />
               {notifyStageAdvance.isPending ? 'Notificando...' : 'Notificar al Cliente'}
@@ -819,7 +823,7 @@ export function ProjectInlineDetail({
               className="bg-emerald-700 hover:bg-emerald-800"
               onClick={() => notifyStageAdvance.mutate({ projectId: projectDetail.id, stageName: "enchape" })}
               disabled={notifyStageAdvance.isPending}
-              title="Notifica al admin para que envíe el avance al cliente desde WhatsApp oficial"
+              title="Abre WhatsApp con mensaje listo para enviar al cliente"
             >
               <MessageCircle className={`h-4 w-4 mr-1 ${notifyStageAdvance.isPending ? 'animate-pulse' : ''}`} />
               {notifyStageAdvance.isPending ? 'Notificando...' : 'Notificar al Cliente'}
@@ -854,7 +858,7 @@ export function ProjectInlineDetail({
               className="bg-emerald-700 hover:bg-emerald-800"
               onClick={() => notifyStageAdvance.mutate({ projectId: projectDetail.id, stageName: "ensamble" })}
               disabled={notifyStageAdvance.isPending}
-              title="Notifica al admin para que envíe el avance al cliente desde WhatsApp oficial"
+              title="Abre WhatsApp con mensaje listo para enviar al cliente"
             >
               <MessageCircle className={`h-4 w-4 mr-1 ${notifyStageAdvance.isPending ? 'animate-pulse' : ''}`} />
               {notifyStageAdvance.isPending ? 'Notificando...' : 'Notificar al Cliente'}
@@ -889,7 +893,7 @@ export function ProjectInlineDetail({
               className="bg-emerald-700 hover:bg-emerald-800"
               onClick={() => notifyStageAdvance.mutate({ projectId: projectDetail.id, stageName: "listo_instalacion" })}
               disabled={notifyStageAdvance.isPending}
-              title="Notifica al admin para que envíe el avance al cliente desde WhatsApp oficial"
+              title="Abre WhatsApp con mensaje listo para enviar al cliente"
             >
               <MessageCircle className={`h-4 w-4 mr-1 ${notifyStageAdvance.isPending ? 'animate-pulse' : ''}`} />
               {notifyStageAdvance.isPending ? 'Notificando...' : 'Notificar al Cliente'}

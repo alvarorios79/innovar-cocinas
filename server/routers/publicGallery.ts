@@ -605,7 +605,7 @@ export const publicGalleryRouter = router({
     notifyStageAdvance: protectedProcedure
       .input(z.object({
         projectId: z.number(),
-        stageName: z.enum(["corte", "enchape", "ensamble", "listo_instalacion"]),
+        stageName: z.enum(["corte", "enchape", "ensamble", "listo_instalacion", "trabajando_instalacion"]),
       }))
       .mutation(async ({ ctx, input }) => {
         const project = await db.getProjectByIdPublic(input.projectId);
@@ -632,6 +632,7 @@ export const publicGalleryRouter = router({
           enchape: "Enchape",
           ensamble: "Ensamble / Armado",
           listo_instalacion: "Listo para instalación",
+          trabajando_instalacion: "Trabajando en Instalación",
         };
 
         const stageLabel = stageLabels[input.stageName];
@@ -685,6 +686,19 @@ ${portalLink}
 
 ` +
             `— INNOVAR Cocinas de Diseño 🌟`,
+
+          trabajando_instalacion:
+            `🏠 Hola ${clientName}! Ya estamos instalando tu espacio!
+
+` +
+            `Nuestro equipo está trabajando con dedicación para que todo quede perfecto.
+
+` +
+            `Puedes ver el avance aquí:
+${portalLink}
+
+` +
+            `— INNOVAR Cocinas de Diseño ✨`,
         };
 
         const waMessage = stageMessages[input.stageName] ||

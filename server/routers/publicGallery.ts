@@ -630,30 +630,68 @@ export const publicGalleryRouter = router({
         const stageLabels: Record<string, string> = {
           corte: "Corte de materiales",
           enchape: "Enchape",
-          ensamble: "Ensamble",
+          ensamble: "Ensamble / Armado",
           listo_instalacion: "Listo para instalación",
-        };
-        const stageEmojis: Record<string, string> = {
-          corte: "🔧", enchape: "🔩", ensamble: "🔨", listo_instalacion: "🏠",
         };
 
         const stageLabel = stageLabels[input.stageName];
-        const emoji = stageEmojis[input.stageName];
 
-        // Mensaje preescrito para que admin lo copie/pegue en WhatsApp oficial
-        const waMessage =
-          `${emoji} Hola ${clientName}! 👋
-
-` +
-          `Tu proyecto *"${project.name}"* avanzó a la etapa de *${stageLabel}*.
+        // Mensajes aprobados por etapa — se envían desde el WhatsApp oficial de Innovar
+        const stageMessages: Record<string, string> = {
+          corte:
+            `🔧 Hola ${clientName}! Excelentes noticias!
 
 ` +
-          `Puedes ver el avance aquí:
+            `Hemos iniciado el corte de todos los materiales de tu proyecto *"${project.name}"*. Tu cocina está tomando forma!
+
+` +
+            `Puedes seguir el avance aquí:
 ${portalLink}
 
 ` +
-          `Cualquier pregunta, estamos a tu servicio.
-— INNOVAR Cocinas de Diseño 🏡`;
+            `— INNOVAR Cocinas de Diseño ✨`,
+
+          enchape:
+            `🚪 Hola ${clientName}! Tu proyecto avanza muy bien.
+
+` +
+            `Estamos en la etapa de enchape, cada detalle cuidado con dedicación.
+
+` +
+            `Avance:
+${portalLink}
+
+` +
+            `— INNOVAR Cocinas de Diseño ✨`,
+
+          ensamble:
+            `🔨 Hola ${clientName}! Las piezas están tomando su forma final.
+
+` +
+            `Tu proyecto está en ensamble y se ve increíble!
+
+` +
+            `Avance:
+${portalLink}
+
+` +
+            `— INNOVAR Cocinas de Diseño ✨`,
+
+          listo_instalacion:
+            `🚚 Hola ${clientName}! Gran noticia!
+
+` +
+            `Tu proyecto *"${project.name}"* está completamente fabricado y listo para instalación. Pronto coordinaremos contigo la fecha perfecta.
+
+` +
+            `— INNOVAR Cocinas de Diseño 🌟`,
+        };
+
+        const waMessage = stageMessages[input.stageName] ||
+          `Hola ${clientName}! Tu proyecto *"${project.name}"* avanzó a la etapa de *${stageLabel}*.
+` +
+          `Avance: ${portalLink}
+— INNOVAR Cocinas de Diseño`;
 
         // Enlace directo wa.me para que admin toque y envíe desde el celular oficial
         let whatsAppLink: string | null = null;
@@ -782,30 +820,30 @@ ${whatsAppLink}` : "⚠️ El cliente no tiene número de WhatsApp registrado.")
         }
         const portalLink = `${baseUrl}/gallery?project=${input.projectId}&token=${modeladoPublicToken}&type=modelado_3d`;
 
-        // Construir mensaje de WhatsApp
-        const message = 
-          `📐 *Modelado 3D de tu proyecto*\n\n` +
-          `Hola ${client.name},\n\n` +
-          `Ya puedes revisar el modelado 3D aquí:\n` +
-          `${portalLink}\n\n` +
-          `Por favor déjanos tus comentarios o aprobación.\n\n` +
-          `INNOVAR Cocinas de Diseño`;
+        // Mensaje elegante para enviar desde el WhatsApp oficial de Innovar
+        const message =
+          `🎨 Hola ${client.name}! Tu modelado 3D está listo.
 
-        // Enviar por WhatsApp Cloud API
+` +
+          `Revisa el diseño y compártenos tus comentarios o cambios desde aquí:
+` +
+          `${portalLink}
+
+` +
+          `Queremos que el resultado sea exactamente lo que imaginaste!
+` +
+          `— INNOVAR Cocinas de Diseño ✨`;
+
+        // Enlace wa.me para abrir WhatsApp oficial y enviar al cliente
         const phone = client.whatsappPhone.replace(/\D/g, '');
         const phoneWithCountry = phone.startsWith('57') ? phone : `57${phone}`;
-        
-        try {
-          const result = await whatsappCloud.sendTextMessage(phoneWithCountry, message);
-        } catch (error) {
-          console.error(`[MODELADO] Error enviando mensaje:`, error);
-          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Error al enviar mensaje por WhatsApp" });
-        }
+        const whatsAppLink = `https://wa.me/${phoneWithCountry}?text=${encodeURIComponent(message)}`;
 
         return {
           success: true,
-          message: `Modelado 3D enviado al cliente por WhatsApp (Revisión #${newRevision})`,
+          message: `📲 Toca el enlace para enviar el modelado al cliente desde WhatsApp oficial (Revisión #${newRevision})`,
           portalLink,
+          whatsAppLink,
           clientName: client?.name,
           revisionNumber: newRevision,
         };
@@ -873,31 +911,30 @@ ${whatsAppLink}` : "⚠️ El cliente no tiene número de WhatsApp registrado.")
         }
         const portalLink = `${baseUrl}/gallery?project=${input.projectId}&token=${rendersPublicToken}&type=renders`;
 
-        // Construir mensaje de WhatsApp
-        const message = 
-          `🗸️ *Renders de tu proyecto*\n\n` +
-          `Hola ${client.name},\n\n` +
-          `Tus renders están listos.\n` +
-          `Puedes verlos aquí:\n` +
-          `${portalLink}\n\n` +
-          `Quedamos atentos a tu aprobación.\n\n` +
-          `INNOVAR Cocinas de Diseño`;
+        // Mensaje elegante para enviar desde el WhatsApp oficial de Innovar
+        const message =
+          `✨ Hola ${client.name}! Ya puedes ver cómo quedará tu espacio.
 
-        // Enviar por WhatsApp Cloud API
+` +
+          `Revisa los renders y si estás de acuerdo, apuébalos aquí:
+` +
+          `${portalLink}
+
+` +
+          `Si necesitas algún ajuste, con gusto lo hacemos!
+` +
+          `— INNOVAR Cocinas de Diseño 🏡`;
+
+        // Enlace wa.me para abrir WhatsApp oficial y enviar al cliente
         const phone = client.whatsappPhone.replace(/\D/g, '');
         const phoneWithCountry = phone.startsWith('57') ? phone : `57${phone}`;
-        
-        try {
-          const result = await whatsappCloud.sendTextMessage(phoneWithCountry, message);
-        } catch (error) {
-          console.error(`[RENDERS] Error enviando mensaje:`, error);
-          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Error al enviar mensaje por WhatsApp" });
-        }
+        const whatsAppLink = `https://wa.me/${phoneWithCountry}?text=${encodeURIComponent(message)}`;
 
         return {
           success: true,
-          message: `Renders enviados al cliente por WhatsApp (Revisión #${newRevision})`,
+          message: `📲 Toca el enlace para enviar los renders al cliente desde WhatsApp oficial (Revisión #${newRevision})`,
           portalLink,
+          whatsAppLink,
           clientName: client?.name,
           revisionNumber: newRevision,
         };

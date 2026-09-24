@@ -356,13 +356,19 @@ export function ProjectInlineDetail({
   const notifyStageAdvance = trpc.publicGallery.notifyStageAdvance.useMutation({
     onSuccess: (result) => {
       toast.success(result.message);
-      // Abrir WhatsApp directamente con el cliente si hay enlace disponible
-      if (result.whatsAppLink) {
+      if (user?.role === "jefe_taller" || user?.role === "operario") {
+        // Jefe/operario: abre WhatsApp de la empresa para que admin reenvie al cliente
+        const msg = `📋 Avance listo: *${result.stageLabel}* - Proyecto "${projectDetail.name}"
+
+Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${result.whatsAppLink ? `\n\nEnlace directo al cliente:\n${result.whatsAppLink}` : ''}`;
+        window.open(`https://wa.me/573136802025?text=${encodeURIComponent(msg)}`, "_blank");
+      } else if (result.whatsAppLink) {
+        // Admin/super_admin/comercial: abrir directamente al cliente
         window.open(result.whatsAppLink, "_blank");
       }
     },
     onError: (error) => {
-      toast.error(error.message || "Error al notificar al cliente");
+      toast.error(error.message || "Error al notificar");
     },
   });
 

@@ -287,6 +287,19 @@ export default function ProjectDetail() {
     },
   });
 
+  const notifyStageAdvanceFromDetail = trpc.publicGallery.notifyStageAdvance.useMutation({
+    onSuccess: (result) => {
+      toast.success(result.message);
+      // Abrir WhatsApp directamente al cliente
+      if (result.whatsAppLink) {
+        window.open(result.whatsAppLink, "_blank");
+      }
+    },
+    onError: (error) => {
+      toast.error(error.message || "Error al notificar al cliente");
+    },
+  });
+
   // Funcion para enviar notificacion de seccion
   const handleSendSectionNotification = (subcategory: string) => {
     if (!projectId) return;
@@ -298,10 +311,32 @@ export default function ProjectDetail() {
     });
   };
 
+  // Mapeo de subcategory a stageName para notifyStageAdvance
+  const subcategoryToStageName: Record<string, "corte" | "enchape" | "ensamble" | "listo_instalacion"> = {
+    corte: "corte",
+    enchape: "enchape",
+    armado: "ensamble",
+    proceso_instalacion: "listo_instalacion",
+    fotos_iniciales: "corte",
+    renders: "corte",
+    despieces: "corte",
+    detalles: "corte",
+    modelado_3d: "corte",
+    dibujo: "corte",
+    fotos_finales: "listo_instalacion",
+  };
+
+  // Funcion para notificar via WhatsApp directo al cliente (todos los roles)
+  const handleNotifyViaWhatsApp = (subcategory: string) => {
+    if (!projectId) return;
+    const stageName = subcategoryToStageName[subcategory] || "corte";
+    notifyStageAdvanceFromDetail.mutate({ projectId, stageName });
+  };
+
   // Verificar si el usuario puede enviar notificaciones de seccion
   const canSendSectionNotification = () => {
     const role = user?.role;
-    return role === "super_admin" || role === "admin";
+    return role === "super_admin" || role === "admin" || role === "comercial" || role === "jefe_taller" || role === "operario";
   };
 
   // Mapeo de subcategory a sectionKey válido para el backend
@@ -1545,11 +1580,11 @@ export default function ProjectDetail() {
                                     <Button
                                       size="sm"
                                       variant="outline"
-                                      disabled={sendSectionNotification.isPending}
-                                      onClick={() => handleSendSectionNotification(subcategory)}
+                                      disabled={notifyStageAdvanceFromDetail.isPending}
+                                      onClick={() => handleNotifyViaWhatsApp(subcategory)}
                                       className="w-full sm:w-auto mt-2 text-xs sm:text-sm"
                                     >
-                                      {sendSectionNotification.isPending ? "Enviando..." : "📲 Notificar al cliente"}
+                                      {notifyStageAdvanceFromDetail.isPending ? "Enviando..." : "📲 Enviar a cliente por WhatsApp"}
                                     </Button>
                                   )}
                                 </div>
@@ -1587,11 +1622,11 @@ export default function ProjectDetail() {
                                     <Button
                                       size="sm"
                                       variant="outline"
-                                      disabled={sendSectionNotification.isPending}
-                                      onClick={() => handleSendSectionNotification(subcategory)}
+                                      disabled={notifyStageAdvanceFromDetail.isPending}
+                                      onClick={() => handleNotifyViaWhatsApp(subcategory)}
                                       className="w-full sm:w-auto mt-2 text-xs sm:text-sm"
                                     >
-                                      {sendSectionNotification.isPending ? "Enviando..." : "📲 Notificar al cliente"}
+                                      {notifyStageAdvanceFromDetail.isPending ? "Enviando..." : "📲 Enviar a cliente por WhatsApp"}
                                     </Button>
                                   )}
                                 </div>

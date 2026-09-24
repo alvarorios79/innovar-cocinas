@@ -184,6 +184,7 @@ export const clients = pgTable("clients", {
 	internalManagement: integer().default(0).notNull(),
 	deletedAt: timestamp({ mode: 'string' }),
 	dataOrigin: text().default('manual').notNull(),
+	identificationNumber: varchar({ length: 50 }),
 },
 (table) => [
 	index("clients_userId_idx").on(table.userId),

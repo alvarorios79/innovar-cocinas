@@ -184,7 +184,6 @@ export const clients = pgTable("clients", {
 	internalManagement: integer().default(0).notNull(),
 	deletedAt: timestamp({ mode: 'string' }),
 	dataOrigin: text().default('manual').notNull(),
-	identificationNumber: varchar({ length: 50 }),
 },
 (table) => [
 	index("clients_userId_idx").on(table.userId),
@@ -238,7 +237,6 @@ export const expenses = pgTable("expenses", {
 	receiptUrl: text(),
 	deletedAt: timestamp({ mode: 'string' }),
 	dataOrigin: text().default('manual').notNull(),
-	identificationNumber: varchar({ length: 50 }),
 },
 (table) => [
 	index("expenses_projectId_idx").on(table.projectId),
@@ -612,7 +610,6 @@ export const pushSubscriptions = pgTable("pushSubscriptions", {
 	isActive: integer().default(1).notNull(),
 	lastUsedAt: timestamp({ mode: 'string' }),
 	dataOrigin: text().default('manual').notNull(),
-	identificationNumber: varchar({ length: 50 }),
 },
 (table) => [
 	index("pushSubscriptions_userId_idx").on(table.userId),
@@ -747,7 +744,6 @@ export const tasks = pgTable("tasks", {
 	reminderCount: integer().default(0).notNull(),
 	deletedAt: timestamp({ mode: 'string' }),
 	dataOrigin: text().default('manual').notNull(),
-	identificationNumber: varchar({ length: 50 }),
 },
 (table) => [
 	index("tasks_assignedTo_idx").on(table.assignedTo),

@@ -181,12 +181,12 @@ export const projectsRouter = router({
         }
         if (role === "jefe_taller") {
           filteredData = filteredData.filter(p =>
-            ["despiece", "corte", "enchape", "ensamble", "listo_instalacion", "entregado"].includes(p.status)
+            ["aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "entregado"].includes(p.status)
           );
         }
         if (role === "operario") {
           filteredData = filteredData.filter(p =>
-            ["despiece", "corte", "enchape", "ensamble", "listo_instalacion", "entregado"].includes(p.status)
+            ["aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "entregado"].includes(p.status)
           );
         }
         const allClients = await db.getAllClients();

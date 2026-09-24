@@ -381,8 +381,8 @@ export default function ProjectDetail() {
 
   // Verificar si se puede subir fotos a esta etapa
   const canUploadToStage = (subcategory: string): { allowed: boolean; message?: string } => {
-    // Siempre permitir para admin y super_admin
-    if (user?.role === "super_admin" || user?.role === "admin") {
+    // Siempre permitir para admin, super_admin, jefe_taller y operario
+    if (user?.role === "super_admin" || user?.role === "admin" || user?.role === "jefe_taller" || user?.role === "operario") {
       return { allowed: true };
     }
     

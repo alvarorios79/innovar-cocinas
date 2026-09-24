@@ -107,6 +107,7 @@ export const clientsRouter = router({
         whatsappPhone: z.string().min(6, "Número de WhatsApp inválido"),
         address: z.string().optional(),
         internalManagement: z.boolean().optional().default(false),
+        identificationNumber: z.string().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         // Solo admin, super_admin y comercial pueden crear clientes
@@ -164,6 +165,7 @@ export const clientsRouter = router({
             whatsappPhone: sanitizePhone(input.whatsappPhone),
             address: input.address ? sanitizeText(input.address) : undefined,
             internalManagement: input.internalManagement ? 1 : 0,
+            identificationNumber: input.identificationNumber ? sanitizeText(input.identificationNumber) : undefined,
           });
           return cid;
         });
@@ -188,6 +190,7 @@ export const clientsRouter = router({
         email: z.string().email().optional().or(z.literal("")),
         whatsappPhone: z.string().optional(),
         address: z.string().optional(),
+        identificationNumber: z.string().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "comercial") {
@@ -198,6 +201,7 @@ export const clientsRouter = router({
         const sanitizedData = {
           name: updateData.name ? sanitizeText(updateData.name) : undefined,
           email: updateData.email && updateData.email.trim() !== "" ? sanitizeEmail(updateData.email) : null,
+          identificationNumber: updateData.identificationNumber !== undefined ? (updateData.identificationNumber || null) : undefined,
           whatsappPhone: updateData.whatsappPhone ? sanitizePhone(updateData.whatsappPhone) : undefined,
           address: updateData.address ? sanitizeText(updateData.address) : undefined,
         };

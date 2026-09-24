@@ -30,6 +30,7 @@ type Client = {
   createdAt: string;
   internalManagement: number;
   userId: number | null;
+  identificationNumber: string | null;
 };
 
 type FormState = {
@@ -39,6 +40,7 @@ type FormState = {
   countryCode: string;
   address: string;
   internalManagement: boolean;
+  identificationNumber: string;
 };
 
 const COUNTRY_CODES = [
@@ -55,7 +57,7 @@ const COUNTRY_CODES = [
 ];
 
 const EMPTY_FORM: FormState = {
-  name: "", email: "", whatsappPhone: "", countryCode: "57", address: "", internalManagement: false,
+  name: "", email: "", whatsappPhone: "", countryCode: "57", address: "", internalManagement: false, identificationNumber: "",
 };
 
 // ── Página principal ──────────────────────────────────────────────────────────
@@ -122,6 +124,7 @@ export default function Clients() {
       email: c.email ?? "",
       whatsappPhone: c.whatsappPhone,
       address: c.address ?? "",
+      identificationNumber: c.identificationNumber ?? "",
       internalManagement: c.internalManagement === 1,
     });
   };
@@ -255,7 +258,7 @@ export default function Clients() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setNewOpen(false)}>Cancelar</Button>
             <Button
-              onClick={() => createMutation.mutate({ ...form, email: form.email || undefined, whatsappPhone: `${form.countryCode}${form.whatsappPhone.replace(/\D/g, "")}` })}
+              onClick={() => createMutation.mutate({ ...form, email: form.email || undefined, whatsappPhone: `${form.countryCode}${form.whatsappPhone.replace(/\D/g, "")}`, identificationNumber: form.identificationNumber || undefined })}
               disabled={createMutation.isPending || !form.name.trim() || !form.whatsappPhone.trim()}
               className="text-white"
               style={{ background: "linear-gradient(135deg, #1DB5A8, #0D9B8F)" }}
@@ -410,6 +413,11 @@ function ClientCard({
                   {client.email}
                 </p>
               )}
+              {client.identificationNumber && (
+                <p className="text-xs text-slate-400">
+                  📋 {client.identificationNumber}
+                </p>
+              )}
               {client.address && (
                 <p className="flex items-center gap-1.5 text-xs truncate" style={{ color: "rgba(255,255,255,0.38)" }}>
                   <MapPin className="h-3 w-3 shrink-0" />
@@ -520,6 +528,15 @@ function ClientForm({
           onChange={(e) => update("address", e.target.value)}
           placeholder="Ej: Calle 15 # 32-10, Pereira"
         />
+      </div>
+      <div className="space-y-1.5">
+        <Label>Número de Identificación</Label>
+        <Input
+          value={form.identificationNumber}
+          onChange={(e) => update("identificationNumber", e.target.value)}
+          placeholder="Ej: CC 1234567890"
+        />
+        <p className="text-[11px] text-slate-400">Cédula, NIT u otro documento. Opcional.</p>
       </div>
       <div className="flex items-center gap-2 pt-1">
         <Checkbox

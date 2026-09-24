@@ -56,7 +56,8 @@ const PROJECT_STATUSES: Record<string, { label: string; color: string; icon: any
   corte: { label: "En Corte", color: "bg-orange-500", icon: AlertCircle },
   enchape: { label: "En Enchape", color: "bg-orange-600", icon: AlertCircle },
   ensamble: { label: "En Ensamble", color: "bg-orange-700", icon: AlertCircle },
-  listo_instalacion: { label: "En Instalación", color: "bg-teal-500", icon: AlertCircle },
+  listo_instalacion: { label: "Listo para Instalación", color: "bg-teal-500", icon: AlertCircle },
+  trabajando_instalacion: { label: "Instalando", color: "bg-cyan-600", icon: AlertCircle },
   entregado: { label: "Entregado", color: "bg-green-700", icon: CheckCircle2 },
 };
 
@@ -83,7 +84,8 @@ const PAID_ADVANCE_STATUSES = [
   "enchape",
   "ensamble",
   "listo_instalacion",
-  "listo_instalacion",
+  "trabajando_instalacion",
+  "trabajando_instalacion",
   "entregado"
 ];
 
@@ -510,7 +512,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
     
     // Carpetas de producción que se habilitan desde aprobacion_final
     const productionFolders = ["corte", "enchape", "armado", "proceso_instalacion", "fotos_finales"];
-    const productionStates = ["aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "entregado"];
+    const productionStates = ["aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "trabajando_instalacion", "entregado"];
     
     const uploadPermissions: Record<string, string[]> = {
       documento_cotizacion: ["super_admin", "admin", "comercial"],
@@ -873,26 +875,26 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
         </div>
       )}
 
-      {/* En Instalación -> Instalación Programada */}
+      {/* Listo para Instalación -> Trabajando en Instalación */}
       {projectDetail.status === "listo_instalacion" && 
         (user?.role === "jefe_taller" || user?.role === "admin" || user?.role === "super_admin") && (
         <div className="bg-teal-500/10 border border-teal-500/25 rounded-lg p-4 mb-4">
           <h4 className="font-medium text-teal-300 mb-2 flex items-center gap-2">
             <CheckCircle2 className="h-4 w-4" />
-            Proyecto En Instalación
+            Listo para Instalación
           </h4>
           <p className="text-sm text-teal-300 mb-4">
-            Coordina con el cliente la fecha de instalación y programa la entrega.
+            Coordina con el cliente la fecha. Cuando inicie la instalación, márcalo como "Instalando".
           </p>
           <div className="flex flex-wrap gap-2">
             <Button
               size="sm"
               className="bg-teal-600 hover:bg-teal-700"
-              onClick={() => updateStatus.mutate({ projectId: projectDetail.id, newStatus: "listo_instalacion" })}
+              onClick={() => updateStatus.mutate({ projectId: projectDetail.id, newStatus: "trabajando_instalacion" })}
               disabled={updateStatus.isPending}
             >
               <CheckCircle2 className="h-4 w-4 mr-1" />
-              Programar Instalación
+              Iniciar Instalación
             </Button>
             <Button
               size="sm"
@@ -908,26 +910,38 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
         </div>
       )}
 
-      {/* Instalación Programada -> Entregado */}
-      {projectDetail.status === "listo_instalacion" && 
+      {/* Trabajando en Instalación -> Entregado */}
+      {projectDetail.status === "trabajando_instalacion" && 
         (user?.role === "jefe_taller" || user?.role === "admin" || user?.role === "super_admin") && (
-        <div className="bg-green-500/10 border border-green-500/25 rounded-lg p-4 mb-4">
-          <h4 className="font-medium text-green-300 mb-2 flex items-center gap-2">
+        <div className="bg-cyan-500/10 border border-cyan-500/25 rounded-lg p-4 mb-4">
+          <h4 className="font-medium text-cyan-300 mb-2 flex items-center gap-2">
             <CheckCircle2 className="h-4 w-4" />
-            Instalación Programada
+            Instalación en Curso
           </h4>
-          <p className="text-sm text-green-300 mb-4">
-            Cuando completes la instalación, marca el proyecto como entregado.
+          <p className="text-sm text-cyan-300 mb-4">
+            Estamos instalando tu espacio. Cuando se complete, marca el proyecto como entregado.
           </p>
-          <Button
-            size="sm"
-            className="bg-green-600 hover:bg-green-700"
-            onClick={() => updateStatus.mutate({ projectId: projectDetail.id, newStatus: "entregado" })}
-            disabled={updateStatus.isPending}
-          >
-            <CheckCircle2 className="h-4 w-4 mr-1" />
-            Marcar como Entregado
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              size="sm"
+              className="bg-green-600 hover:bg-green-700"
+              onClick={() => updateStatus.mutate({ projectId: projectDetail.id, newStatus: "entregado" })}
+              disabled={updateStatus.isPending}
+            >
+              <CheckCircle2 className="h-4 w-4 mr-1" />
+              Marcar como Entregado
+            </Button>
+            <Button
+              size="sm"
+              className="bg-emerald-700 hover:bg-emerald-800"
+              onClick={() => notifyStageAdvance.mutate({ projectId: projectDetail.id, stageName: "trabajando_instalacion" })}
+              disabled={notifyStageAdvance.isPending}
+              title="Abre WhatsApp con mensaje listo para enviar al cliente"
+            >
+              <MessageCircle className={`h-4 w-4 mr-1 ${notifyStageAdvance.isPending ? 'animate-pulse' : ''}`} />
+              {notifyStageAdvance.isPending ? 'Notificando...' : 'Notificar al Cliente'}
+            </Button>
+          </div>
         </div>
       )}
 

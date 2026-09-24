@@ -241,6 +241,9 @@ export default function ProjectDetail() {
     onSuccess: (data) => {
       utils.projects.getById.invalidate({ id: projectId });
       toast.success(data.message);
+      if ((data as any).whatsAppLink) {
+        window.open((data as any).whatsAppLink, "_blank");
+      }
     },
     onError: (error) => {
       toast.error(error.message || "Error al enviar modelado");
@@ -251,6 +254,9 @@ export default function ProjectDetail() {
     onSuccess: (data) => {
       utils.projects.getById.invalidate({ id: projectId });
       toast.success(data.message);
+      if ((data as any).whatsAppLink) {
+        window.open((data as any).whatsAppLink, "_blank");
+      }
     },
     onError: (error) => {
       toast.error(error.message || "Error al enviar renders");

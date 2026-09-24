@@ -670,9 +670,9 @@ export default function Projects() {
                     if (user?.role === "disenador") {
                       return ["adelanto_recibido", "en_diseno", "pendiente_modelado", "pendiente_render", "pendiente_render", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "listo_instalacion", "entregado"].includes(key);
                     }
-                    // Operario: solo etapas de producción
+                    // Operario: desde aprobacion_final hasta entrega
                     if (user?.role === "operario") {
-                      return ["despiece", "corte", "enchape", "ensamble", "listo_instalacion"].includes(key);
+                      return ["aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion"].includes(key);
                     }
                     // Admin y super_admin ven todos
                     return true;

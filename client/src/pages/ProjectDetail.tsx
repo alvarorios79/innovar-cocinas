@@ -79,7 +79,8 @@ const PROJECT_STATUSES: Record<string, { label: string; color: string; icon: any
   corte: { label: "En Corte", color: "bg-orange-500", icon: AlertCircle },
   enchape: { label: "En Enchape", color: "bg-orange-600", icon: AlertCircle },
   ensamble: { label: "En Ensamble", color: "bg-orange-700", icon: AlertCircle },
-  listo_instalacion: { label: "En Instalación", color: "bg-teal-500", icon: AlertCircle },
+  listo_instalacion: { label: "Listo para Instalación", color: "bg-teal-500", icon: AlertCircle },
+  trabajando_instalacion: { label: "Instalando", color: "bg-cyan-600", icon: AlertCircle },
   entregado: { label: "Entregado", color: "bg-green-700", icon: CheckCircle2 },
 };
 
@@ -325,18 +326,18 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
   };
 
   // Mapeo de subcategory a stageName para notifyStageAdvance
-  const subcategoryToStageName: Record<string, "corte" | "enchape" | "ensamble" | "listo_instalacion"> = {
+  const subcategoryToStageName: Record<string, "corte" | "enchape" | "ensamble" | "listo_instalacion" | "trabajando_instalacion"> = {
     corte: "corte",
     enchape: "enchape",
     armado: "ensamble",
-    proceso_instalacion: "listo_instalacion",
+    proceso_instalacion: "trabajando_instalacion",
     fotos_iniciales: "corte",
     renders: "corte",
     despieces: "corte",
     detalles: "corte",
     modelado_3d: "corte",
     dibujo: "corte",
-    fotos_finales: "listo_instalacion",
+    fotos_finales: "trabajando_instalacion",
   };
 
   // Funcion para notificar via WhatsApp directo al cliente (todos los roles)
@@ -386,7 +387,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
     corte: "enchape",
     enchape: "ensamble",
     armado: "listo_instalacion",
-    proceso_instalacion: "entregado",
+    proceso_instalacion: "trabajando_instalacion",
     fotos_finales: "entregado",
   };
 
@@ -397,8 +398,8 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
     corte: ["corte", "despiece"],
     enchape: ["enchape", "corte"],
     armado: ["ensamble", "enchape"],
-    proceso_instalacion: ["listo_instalacion", "listo_instalacion"],
-    fotos_finales: ["listo_instalacion", "entregado"],
+    proceso_instalacion: ["trabajando_instalacion", "listo_instalacion"],
+    fotos_finales: ["trabajando_instalacion", "entregado"],
   };
 
   // Verificar si el usuario tiene rol permitido para avanzar
@@ -1603,7 +1604,8 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
                                     Avanzar a {photoToNextStatus[subcategory] === "corte" ? "Corte" :
                                                photoToNextStatus[subcategory] === "enchape" ? "Enchape" :
                                                photoToNextStatus[subcategory] === "ensamble" ? "Ensamble" :
-                                               photoToNextStatus[subcategory] === "listo_instalacion" ? "En Instalación" :
+                                               photoToNextStatus[subcategory] === "listo_instalacion" ? "Listo Instalación" :
+                                               photoToNextStatus[subcategory] === "trabajando_instalacion" ? "Instalando" :
                                                photoToNextStatus[subcategory] === "entregado" ? "Entregado" : "Siguiente Etapa"}
                                   </Button>
                                   {canSendSectionNotification() && (
@@ -1645,7 +1647,8 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
                                     Avanzar a {photoToNextStatus[subcategory] === "corte" ? "Corte" :
                                                photoToNextStatus[subcategory] === "enchape" ? "Enchape" :
                                                photoToNextStatus[subcategory] === "ensamble" ? "Ensamble" :
-                                               photoToNextStatus[subcategory] === "listo_instalacion" ? "En Instalación" :
+                                               photoToNextStatus[subcategory] === "listo_instalacion" ? "Listo Instalación" :
+                                               photoToNextStatus[subcategory] === "trabajando_instalacion" ? "Instalando" :
                                                photoToNextStatus[subcategory] === "entregado" ? "Entregado" : "Siguiente Etapa"}
                                   </Button>
                                   {canSendSectionNotification() && (
@@ -2352,7 +2355,8 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
                     {advanceConfirmDialog.nextStatus === "corte" ? "Corte" :
                      advanceConfirmDialog.nextStatus === "enchape" ? "Enchape" :
                      advanceConfirmDialog.nextStatus === "ensamble" ? "Ensamble" :
-                     advanceConfirmDialog.nextStatus === "listo_instalacion" ? "En Instalación" :
+                     advanceConfirmDialog.nextStatus === "listo_instalacion" ? "Listo para Instalación" :
+                     advanceConfirmDialog.nextStatus === "trabajando_instalacion" ? "Instalando" :
                      advanceConfirmDialog.nextStatus === "entregado" ? "Entregado" : "Siguiente Etapa"}
                   </strong>.
                   <br /><br />

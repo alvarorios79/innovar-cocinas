@@ -127,7 +127,7 @@ export const projectsRouter = router({
         // (necesita ver proyectos en producción para responder consultas del jefe de taller/operario)
         if (role === "disenador") {
           projectsList = projectsList.filter(p => 
-            ["adelanto_recibido", "en_diseno", "pendiente_modelado", "pendiente_render", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "entregado"].includes(p.status)
+            ["adelanto_recibido", "en_diseno", "pendiente_modelado", "pendiente_render", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "trabajando_instalacion", "entregado"].includes(p.status)
           );
         }
 
@@ -135,14 +135,14 @@ export const projectsRouter = router({
         // No ve proyectos en diseño ni pendientes de aprobación
         if (role === "jefe_taller") {
           projectsList = projectsList.filter(p =>
-            ["despiece", "corte", "enchape", "ensamble", "listo_instalacion", "entregado"].includes(p.status)
+            ["despiece", "corte", "enchape", "ensamble", "listo_instalacion", "trabajando_instalacion", "entregado"].includes(p.status)
           );
         }
 
         // Operario ve los mismos proyectos que el jefe de taller (solo producción)
         if (role === "operario") {
           projectsList = projectsList.filter(p =>
-            ["despiece", "corte", "enchape", "ensamble", "listo_instalacion", "entregado"].includes(p.status)
+            ["despiece", "corte", "enchape", "ensamble", "listo_instalacion", "trabajando_instalacion", "entregado"].includes(p.status)
           );
         }
 
@@ -176,17 +176,17 @@ export const projectsRouter = router({
         let filteredData: typeof result.data = result.data || [];
         if (role === "disenador") {
           filteredData = filteredData.filter(p => 
-            ["adelanto_recibido", "en_diseno", "pendiente_modelado", "pendiente_render", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "entregado"].includes(p.status)
+            ["adelanto_recibido", "en_diseno", "pendiente_modelado", "pendiente_render", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "trabajando_instalacion", "entregado"].includes(p.status)
           );
         }
         if (role === "jefe_taller") {
           filteredData = filteredData.filter(p =>
-            ["aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "entregado"].includes(p.status)
+            ["aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "trabajando_instalacion", "entregado"].includes(p.status)
           );
         }
         if (role === "operario") {
           filteredData = filteredData.filter(p =>
-            ["aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "entregado"].includes(p.status)
+            ["aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "trabajando_instalacion", "entregado"].includes(p.status)
           );
         }
         const allClients = await db.getAllClients();
@@ -234,7 +234,7 @@ export const projectsRouter = router({
 
         // jefe_taller y operario solo pueden ver proyectos en fase de producción
         const role = ctx.user.role;
-        const productionStatuses = ["despiece", "corte", "enchape", "ensamble", "listo_instalacion", "entregado"];
+        const productionStatuses = ["despiece", "corte", "enchape", "ensamble", "listo_instalacion", "trabajando_instalacion", "entregado"];
         if ((role === "jefe_taller" || role === "operario") && !productionStatuses.includes(project.status)) {
           throw new TRPCError({ code: "FORBIDDEN", message: "Sin acceso a este proyecto" });
         }
@@ -525,7 +525,7 @@ export const projectsRouter = router({
           "cotizacion_enviada", "cotizacion_aprobada", "adelanto_recibido",
           "en_diseno", "pendiente_modelado", "pendiente_render", "aprobacion_final",
           "despiece", "corte", "enchape", "ensamble",
-          "listo_instalacion", "entregado"
+          "listo_instalacion", "trabajando_instalacion", "entregado"
         ]),
         notes: z.string().optional(),
         advanceAmount: z.number().optional(),
@@ -556,7 +556,7 @@ export const projectsRouter = router({
         }
 
         // Validación general: Etapas productivas requieren fotos antes de avanzar
-        const stagesRequiringPhotos = ["corte", "enchape", "ensamble", "listo_instalacion"];
+        const stagesRequiringPhotos = ["corte", "enchape", "ensamble", "trabajando_instalacion"];
         
         // super_admin puede omitir fotos para cerrar proyectos simples
         if (stagesRequiringPhotos.includes(currentStatus) && role !== "super_admin") {
@@ -571,7 +571,7 @@ export const projectsRouter = router({
 
             // Mapear estado del proyecto a categoría de fotos
             let photoCategory = "avance"; // corte, enchape, ensamble usan "avance"
-            if (currentStatus === "listo_instalacion") {
+            if (currentStatus === "trabajando_instalacion") {
               photoCategory = "instalacion";
             }
 
@@ -606,7 +606,7 @@ export const projectsRouter = router({
         }
 
         // Validación especial: Fotos de instalación requeridas antes de marcar como entregado
-        if (currentStatus === "listo_instalacion" && newStatus === "entregado" && role !== "super_admin") {
+        if (currentStatus === "trabajando_instalacion" && newStatus === "entregado" && role !== "super_admin") {
           try {
             const dbInstance = await db.getDb();
             if (!dbInstance) {
@@ -835,7 +835,7 @@ export const projectsRouter = router({
         }
 
         // Notificar al jefe de taller cuando el operario avanza una etapa de producción
-        const productionStages = ["enchape", "ensamble", "listo_instalacion"];
+        const productionStages = ["enchape", "ensamble", "listo_instalacion", "trabajando_instalacion"];
         if (role === "operario" && productionStages.includes(newStatus)) {
           try {
             const allUsers = await db.getAllUsers();
@@ -845,6 +845,7 @@ export const projectsRouter = router({
               enchape: "Enchape",
               ensamble: "Ensamble",
               listo_instalacion: "Listo para Instalación",
+              trabajando_instalacion: "Trabajando en Instalación",
             };
             
             for (const jefe of jefesTaller) {
@@ -1767,7 +1768,8 @@ ${input.notes || "No se especificaron detalles"}
 
           // 3. Flujo inverso de estados
           const reverseFlow: Record<string, string | null> = {
-            entregado: "listo_instalacion",
+            entregado: "trabajando_instalacion",
+            trabajando_instalacion: "listo_instalacion",
             listo_instalacion: "ensamble",
             ensamble: "enchape",
             enchape: "corte",
@@ -2023,11 +2025,11 @@ export const projectPhotosRouter = router({
 
         // Cambiar estado del proyecto automáticamente según la subcategoría de foto subida
         // Solo cambiar si el proyecto está en un estado anterior o igual
-        const statusOrder = ["contacto", "cotizacion_enviada", "cotizacion_aprobada", "adelanto_recibido", "en_diseno", "pendiente_modelado", "pendiente_render", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "entregado"];
+        const statusOrder = ["contacto", "cotizacion_enviada", "cotizacion_aprobada", "adelanto_recibido", "en_diseno", "pendiente_modelado", "pendiente_render", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "trabajando_instalacion", "entregado"];
         const currentStatusIndex = statusOrder.indexOf(project.status);
         
         // Mapeo de subcategoría a estado de proyecto
-        type ProjectStatus = "contacto" | "cotizacion_enviada" | "cotizacion_aprobada" | "adelanto_recibido" | "en_diseno" | "pendiente_modelado" | "pendiente_render" | "aprobacion_final" | "despiece" | "corte" | "enchape" | "ensamble" | "listo_instalacion" | "entregado";
+        type ProjectStatus = "contacto" | "cotizacion_enviada" | "cotizacion_aprobada" | "adelanto_recibido" | "en_diseno" | "pendiente_modelado" | "pendiente_render" | "aprobacion_final" | "despiece" | "corte" | "enchape" | "ensamble" | "listo_instalacion" | "trabajando_instalacion" | "entregado";
         
         const subcategoryToStatus: Record<string, ProjectStatus> = {
           "despieces": "despiece",

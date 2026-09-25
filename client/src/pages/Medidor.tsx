@@ -378,13 +378,13 @@ export default function Medidor() {
     if (effectivePrefill) setView("new");
   }, [effectivePrefill]);
   const [showSummary, setShowSummary] = useState(false);
-  const [tab, setTab] = useState<"hoy" | "proximas" | "historial" | "tareas">("hoy");
+  const [tab, setTab] = useState<"hoy" | "proximas" | "tareas">("hoy");
 
   // Sincronizar tab con ?tab= en la URL (para que Levantamientos y Visitas Técnicas abran pestañas distintas)
   useEffect(() => {
     const p = new URLSearchParams(searchStr);
     const t = p.get("tab");
-    if (t === "historial" || t === "proximas" || t === "tareas") {
+    if (t === "proximas" || t === "tareas") {
       setTab(t);
     } else if (!t) {
       setTab("hoy");
@@ -789,7 +789,10 @@ export default function Medidor() {
         <div className="max-w-lg mx-auto p-4">
           {/* Header */}
           <div className="flex items-center justify-between mb-5">
-            <h1 className="text-2xl font-bold text-white">Portal Medidor</h1>
+            <div>
+            <p className="text-xs font-semibold text-[#1DB5A8] uppercase tracking-widest mb-0.5">Portal de Medidor</p>
+            <h1 className="text-2xl font-bold text-white">Visitas</h1>
+          </div>
             <Button onClick={() => setView("new")} className="bg-[#1DB5A8] hover:bg-[#17a396] text-white">
               <Plus className="h-4 w-4 mr-2" />
               Nueva visita
@@ -801,7 +804,6 @@ export default function Medidor() {
             {([
               { key: "hoy", label: "Visitas", count: todayApts.length + borradorVisits.length },
               { key: "proximas", label: "Próximas", count: proximasApts.length },
-              { key: "historial", label: "Levantamientos", count: historialVisits.length },
               { key: "tareas", label: "Tareas", count: pendingTasks.length },
             ] as const).map(({ key, label, count }) => (
               <button
@@ -907,41 +909,6 @@ export default function Medidor() {
                     <div className="space-y-3">
                       {apts.map((apt: any) => <AptCard key={apt.id} apt={apt} />)}
                     </div>
-                  </div>
-                ))
-              )}
-            </div>
-          )}
-
-          {/* Tab: Historial */}
-          {tab === "historial" && (
-            <div className="space-y-2">
-              {historialVisits.length === 0 ? (
-                <div className="text-center py-12 text-slate-500">
-                  <FileText className="h-12 w-12 mx-auto mb-3 opacity-30" />
-                  <p className="font-medium">Sin historial aún</p>
-                </div>
-              ) : (
-                historialVisits.map((visit: Visit) => (
-                  <div
-                    key={visit.id}
-                    onClick={() => { setSelectedVisit(visit); setView("detail"); }}
-                    className="bg-[#162828] border border-[#1DB5A8]/20 rounded-lg p-4 cursor-pointer hover:border-[#1DB5A8]/40 transition-colors"
-                  >
-                    <div className="flex items-start justify-between mb-1">
-                      <div>
-                        <h3 className="font-semibold text-white">{visit.clientName}</h3>
-                        <p className="text-sm text-[#1DB5A8]">{WORK_TYPE_LABELS[visit.workType]}</p>
-                      </div>
-                      <div className={`px-2 py-1 rounded-full text-xs font-medium ${STATUS_CONFIG[visit.status].bg} ${STATUS_CONFIG[visit.status].color} flex items-center gap-1`}>
-                        {STATUS_CONFIG[visit.status].icon}
-                        {STATUS_CONFIG[visit.status].label}
-                      </div>
-                    </div>
-                    <p className="text-xs text-slate-500 flex items-center gap-1 mt-1">
-                      <Calendar className="h-3 w-3" />
-                      {new Date(visit.createdAt).toLocaleDateString('es-CO')}
-                    </p>
                   </div>
                 ))
               )}

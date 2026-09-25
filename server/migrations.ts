@@ -15,11 +15,11 @@ export async function runMigrations() {
   const migrations: { name: string; sql: string }[] = [
     {
       name: "technicalVisits_assignedTo",
-      sql: `ALTER TABLE "technicalVisits" ADD COLUMN IF NOT EXISTS "assignedTo" integer REFERENCES users(id)`,
+      sql: `ALTER TABLE "technical_visits" ADD COLUMN IF NOT EXISTS "assignedTo" integer REFERENCES users(id)`,
     },
     {
       name: "technicalVisits_scheduledDate",
-      sql: `ALTER TABLE "technicalVisits" ADD COLUMN IF NOT EXISTS "scheduledDate" timestamp`,
+      sql: `ALTER TABLE "technical_visits" ADD COLUMN IF NOT EXISTS "scheduledDate" timestamp`,
     },
     {
       name: "users_isTeamMember",

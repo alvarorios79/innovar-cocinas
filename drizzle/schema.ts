@@ -840,7 +840,7 @@ export const technicalVisits = pgTable("technical_visits", {
 	appointmentId: integer().references(() => appointments.id), // opcional — si viene de cita agendada
 	clientId: integer().references(() => clients.id),           // opcional — si ya existe en el CRM
 	createdBy: integer().notNull().references(() => users.id),
-	status: text().default('borrador').notNull(),               // borrador | enviada | convertida
+	status: text().default('borrador').notNull(),               // borrador | enviada | cot_hecha | cot_enviada
 	workType: text().notNull(),                                 // cocina | closet | puertas | centro_tv
 	// Datos del cliente (pre-llenados de cita o ingresados manualmente)
 	clientName: varchar({ length: 255 }).notNull(),

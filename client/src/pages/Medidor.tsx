@@ -38,7 +38,7 @@ import {
 
 // ── Tipos ────────────────────────────────────────────────────────────────────
 type WorkType = "cocina" | "closet" | "puertas" | "centro_tv" | "mueble_bano" | "otro";
-type VisitStatus = "borrador" | "enviada" | "convertida";
+type VisitStatus = "borrador" | "enviada" | "cot_hecha" | "cot_enviada" | "convertida";
 type TechnicalEvaluation = "viable" | "requiere_revision" | "requiere_visita";
 type PhotoCategory = "general" | "ventana" | "punto_hidraulico" | "punto_gas" | "tomacorrientes" | "detalle_tecnico";
 
@@ -212,6 +212,8 @@ const WORK_TYPE_LABELS: Record<WorkType, string> = {
 const STATUS_CONFIG: Record<VisitStatus, { label: string; color: string; bg: string; icon: React.ReactNode }> = {
   borrador: { label: "Borrador", color: "text-slate-400", bg: "bg-slate-500/20", icon: <Clock className="h-4 w-4" /> },
   enviada: { label: "Enviada", color: "text-blue-400", bg: "bg-blue-500/20", icon: <Send className="h-4 w-4" /> },
+  cot_hecha: { label: "Cot. Hecha", color: "text-emerald-400", bg: "bg-emerald-500/20", icon: <CheckCircle2 className="h-4 w-4" /> },
+  cot_enviada: { label: "Cot. Enviada", color: "text-blue-400", bg: "bg-blue-500/20", icon: <CheckCircle2 className="h-4 w-4" /> },
   convertida: { label: "Convertida", color: "text-emerald-400", bg: "bg-emerald-500/20", icon: <CheckCircle2 className="h-4 w-4" /> },
 };
 
@@ -744,7 +746,7 @@ export default function Medidor() {
       return d >= tomorrowStart;
     });
     const borradorVisits = (visits as Visit[]).filter(v => v.status === "borrador");
-    const historialVisits = (visits as Visit[]).filter(v => ["enviada", "convertida"].includes(v.status));
+    const historialVisits = (visits as Visit[]).filter(v => ["enviada", "cot_hecha", "cot_enviada", "convertida"].includes(v.status));
 
     // Agrupar próximas por fecha
     const proximasByDate: Record<string, any[]> = {};
@@ -1205,8 +1207,8 @@ export default function Medidor() {
               <h1 className="text-xl font-bold text-white">{visit.clientName}</h1>
               <p className="text-sm text-[#1DB5A8]">{WORK_TYPE_LABELS[visit.workType]}</p>
             </div>
-            <div className={`px-2 py-1 rounded-full text-xs font-medium ${STATUS_CONFIG[visit.status].bg} ${STATUS_CONFIG[visit.status].color}`}>
-              {STATUS_CONFIG[visit.status].label}
+            <div className={`px-2 py-1 rounded-full text-xs font-medium ${(STATUS_CONFIG[visit.status as VisitStatus] ?? STATUS_CONFIG.enviada).bg} ${(STATUS_CONFIG[visit.status as VisitStatus] ?? STATUS_CONFIG.enviada).color}`}>
+              {(STATUS_CONFIG[visit.status as VisitStatus] ?? STATUS_CONFIG.enviada).label}
             </div>
           </div>
 
@@ -1711,7 +1713,7 @@ export default function Medidor() {
             </div>
           )}
 
-          {visit.status === "convertida" && (
+          {visit.status === "cot_hecha" || visit.status === "cot_enviada" || visit.status === "convertida" && (
             <div className="bg-emerald-500/20 border border-emerald-500/40 rounded-lg p-4 flex items-center gap-3">
               <CheckCircle2 className="h-5 w-5 text-emerald-400" />
               <div>

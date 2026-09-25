@@ -39,6 +39,7 @@ import Herrajes from "./pages/Herrajes";
 import GalleryAdmin from "./pages/GalleryAdmin";
 import Contador from "./pages/Contador";
 import Medidor from "./pages/Medidor";
+import VisitasTecnicas from "./pages/VisitasTecnicas";
 
 
 function LayoutWrapper({ children }: { children: React.ReactNode }) {
@@ -92,6 +93,7 @@ function Router() {
         <Route path={"/galerias"}><GalleryAdmin /></Route>
         <Route path={"/contador"}><Contador /></Route>
         <Route path={"/medidor"}><Medidor /></Route>
+        <Route path={"/levantamientos"}><VisitasTecnicas /></Route>
         <Route path={"/404"} component={NotFound} />
         <Route component={NotFound} />
       </Switch>

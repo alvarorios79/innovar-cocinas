@@ -540,7 +540,7 @@ export default function VisitasTecnicas() {
 
           {/* Filtros */}
           <div className="flex gap-2 mt-4 flex-wrap">
-            {(["todas", "enviada", "convertida"] as const).map((s) => (
+            {((isManager ? ["todas", "enviada", "convertida"] : ["todas", "borrador", "enviada", "convertida"]) as const).map((s) => (
               <button
                 key={s}
                 onClick={() => setStatusFilter(s)}
@@ -564,7 +564,7 @@ export default function VisitasTecnicas() {
           </div>
         )}
 
-        {!isLoading && (visits as Visit[]).filter(v => v.status !== "borrador").length === 0 && (
+        {!isLoading && (visits as Visit[]).filter(v => isManager ? v.status !== "borrador" : true).length === 0 && (
           <div className="text-center py-20 text-gray-400">
             <Ruler className="h-12 w-12 mx-auto mb-4 opacity-30" />
             <p className="text-lg">Sin visitas en esta categoría</p>
@@ -572,7 +572,7 @@ export default function VisitasTecnicas() {
         )}
 
         <div className="space-y-3">
-          {(visits as Visit[]).filter(v => v.status !== "borrador").map(visit => {
+          {(visits as Visit[]).filter(v => isManager ? v.status !== "borrador" : true).map(visit => {
             const cfg = STATUS_CONFIG[visit.status];
             const photoCount = visit.photos?.length ?? 0;
             return (

@@ -448,6 +448,8 @@ export default function Medidor() {
   const compressPdf = trpc.technicalVisits.compressPdf.useMutation();
   const submitVisit = trpc.technicalVisits.submit.useMutation();
   const saveSignature = trpc.technicalVisits.saveSignature.useMutation();
+  const deleteVisitMutation = trpc.technicalVisits.delete.useMutation();
+  const deleteAppointmentMutation = trpc.appointments.delete.useMutation();
   const updateTaskStatus = trpc.tasks.updateStatus.useMutation();
   const createTask = trpc.tasks.create.useMutation();
 
@@ -743,22 +745,41 @@ export default function Medidor() {
               </div>
             )}
           </div>
-          <Button
-            onClick={() => {
-              setManualPrefill({
-                appointmentId: String(apt.id),
-                name: apt.client?.name || "",
-                phone: apt.client?.whatsappPhone || "",
-                address: apt.client?.address || "",
-                workType: (apt.workTypes?.[0] || "") as WorkType | "",
-              });
-              setView("new");
-            }}
-            className="w-full h-11 bg-[#1DB5A8] hover:bg-[#17a396] text-white font-semibold"
-          >
-            <ClipboardList className="h-4 w-4 mr-2" />
-            Abrir cuestionario
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              onClick={() => {
+                setManualPrefill({
+                  appointmentId: String(apt.id),
+                  name: apt.client?.name || "",
+                  phone: apt.client?.whatsappPhone || "",
+                  address: apt.client?.address || "",
+                  workType: (apt.workTypes?.[0] || "") as WorkType | "",
+                });
+                setView("new");
+              }}
+              className="flex-1 h-11 bg-[#1DB5A8] hover:bg-[#17a396] text-white font-semibold"
+            >
+              <ClipboardList className="h-4 w-4 mr-2" />
+              Abrir cuestionario
+            </Button>
+            <Button
+              variant="outline"
+              onClick={async (e) => {
+                e.stopPropagation();
+                if (!confirm("¿Eliminar esta cita? Esta acción no se puede deshacer.")) return;
+                try {
+                  await deleteAppointmentMutation.mutateAsync({ id: apt.id });
+                  refetchVisits();
+                  toast.success("Cita eliminada");
+                } catch (err: any) {
+                  toast.error(err?.message || "Error al eliminar cita");
+                }
+              }}
+              className="h-11 w-11 border-red-500/40 text-red-400 hover:bg-red-500/10 hover:border-red-500/70 p-0 flex items-center justify-center flex-shrink-0"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       );
     };
@@ -833,15 +854,35 @@ export default function Medidor() {
                     {borradorVisits.map((visit: Visit) => (
                       <div
                         key={visit.id}
-                        onClick={() => { setSelectedVisit(visit); setView("detail"); }}
-                        className="bg-[#162828] border border-amber-500/30 rounded-lg p-3 cursor-pointer hover:border-amber-500/60 transition-colors flex items-center justify-between"
+                        className="bg-[#162828] border border-amber-500/30 rounded-lg p-3 hover:border-amber-500/60 transition-colors flex items-center justify-between"
                       >
-                        <div>
+                        <div
+                          className="flex-1 min-w-0 cursor-pointer"
+                          onClick={() => { setSelectedVisit(visit); setView("detail"); }}
+                        >
                           <h3 className="font-semibold text-white text-sm">{visit.clientName}</h3>
                           <p className="text-xs text-[#1DB5A8]">{WORK_TYPE_LABELS[visit.workType]}</p>
                         </div>
-                        <div className="text-amber-400">
-                          <AlertCircle className="h-5 w-5" />
+                        <div className="flex items-center gap-2 ml-2">
+                          <div className="text-amber-400">
+                            <AlertCircle className="h-5 w-5" />
+                          </div>
+                          <button
+                            onClick={async (e) => {
+                              e.stopPropagation();
+                              if (!confirm("¿Eliminar este levantamiento en borrador?")) return;
+                              try {
+                                await deleteVisitMutation.mutateAsync({ id: visit.id });
+                                refetchVisits();
+                                toast.success("Levantamiento eliminado");
+                              } catch (err: any) {
+                                toast.error(err?.message || "Error al eliminar");
+                              }
+                            }}
+                            className="text-red-400 hover:text-red-300 p-1 rounded hover:bg-red-500/10"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
                         </div>
                       </div>
                     ))}
@@ -1251,15 +1292,26 @@ export default function Medidor() {
               </h2>
               <div className="grid grid-cols-1 gap-2">
                 {TECHNICAL_CHECKLIST[visit.workType].map((item) => (
-                  <label key={item.key} className="flex items-center gap-3 p-2 rounded hover:bg-[#0C1A1A] cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={!!localChecklist[item.key]}
-                      onChange={(e) => setLocalChecklist({ ...localChecklist, [item.key]: e.target.checked })}
-                      className="h-4 w-4 rounded border-[#1DB5A8]/40 text-[#1DB5A8] focus:ring-[#1DB5A8]"
-                    />
-                    <span className="text-sm text-white">{item.label}</span>
-                  </label>
+                  <div key={item.key}>
+                    <label className="flex items-center gap-3 p-2 rounded hover:bg-[#0C1A1A] cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={!!localChecklist[item.key]}
+                        onChange={(e) => setLocalChecklist({ ...localChecklist, [item.key]: e.target.checked })}
+                        className="h-4 w-4 rounded border-[#1DB5A8]/40 text-[#1DB5A8] focus:ring-[#1DB5A8]"
+                      />
+                      <span className="text-sm text-white">{item.label}</span>
+                    </label>
+                    {item.key === "otro" && !!localChecklist["otro"] && (
+                      <input
+                        type="text"
+                        placeholder="Describe qué es..."
+                        value={(localChecklist["otroDescripcion"] as string) || ""}
+                        onChange={(e) => setLocalChecklist({ ...localChecklist, otroDescripcion: e.target.value })}
+                        className="mt-1 ml-9 w-[calc(100%-2.25rem)] px-3 py-1.5 rounded bg-[#0C1A1A] border border-[#1DB5A8]/30 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#1DB5A8]"
+                      />
+                    )}
+                  </div>
                 ))}
               </div>
             </div>

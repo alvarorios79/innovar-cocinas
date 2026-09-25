@@ -380,11 +380,18 @@ export default function Medidor() {
   const [showSummary, setShowSummary] = useState(false);
   const [tab, setTab] = useState<"hoy" | "proximas" | "tareas">("hoy");
 
-  // Sincronizar tab con ?tab= en la URL (para que Levantamientos y Visitas Técnicas abran pestañas distintas)
+  // Sincronizar tab con ?tab= y abrir visita directa con ?visitId=
   useEffect(() => {
     const p = new URLSearchParams(searchStr);
     const t = p.get("tab");
-    if (t === "proximas" || t === "tareas") {
+    const visitIdParam = p.get("visitId");
+    if (visitIdParam) {
+      const id = parseInt(visitIdParam, 10);
+      if (!isNaN(id)) {
+        setSelectedVisit({ id, clientName: "Cargando...", workType: "cocina", status: "enviada", createdAt: new Date().toISOString() } as any);
+        setView("detail");
+      }
+    } else if (t === "proximas" || t === "tareas") {
       setTab(t);
     } else if (!t) {
       setTab("hoy");

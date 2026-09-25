@@ -18,7 +18,7 @@ import {
   Ruler, Camera, FileText, ChevronRight, Loader2,
   CheckCircle2, Clock, Send, User, MapPin, Phone,
   FileSpreadsheet, Eye, Maximize2, X, ArrowLeft,
-  ClipboardList, PenLine, Square, Plus, UserCheck,
+  ClipboardList, PenLine, Square, Plus, UserCheck, Trash2,
 } from "lucide-react";
 import { useLocation } from "wouter";
 
@@ -117,7 +117,7 @@ export default function VisitasTecnicas() {
   const [, navigate] = useLocation();
   const [selectedVisitId, setSelectedVisitId] = useState<number | null>(null);
   const [lightboxUrl, setLightboxUrl]         = useState<string | null>(null);
-  const [statusFilter, setStatusFilter]       = useState<VisitStatus | "todas">("enviada");
+  const [statusFilter, setStatusFilter]       = useState<VisitStatus | "todas">("todas");
 
   // Modal nueva visita técnica
   const [showNewVisit, setShowNewVisit]       = useState(false);
@@ -506,22 +506,14 @@ export default function VisitasTecnicas() {
         <div className="max-w-5xl mx-auto">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <h1 className="text-xl font-bold text-[#1DB5A8] flex items-center gap-2">
-                <Ruler className="h-6 w-6" /> Visitas Técnicas
-              </h1>
-              <p className="text-sm text-gray-400 mt-0.5">Medidas y fotos de campo para cotización</p>
+              <p className="text-xs font-semibold text-[#1DB5A8] uppercase tracking-widest mb-0.5">Portal de Medidor</p>
+              <h1 className="text-xl font-bold text-white">Levantamientos</h1>
             </div>
-            <Button
-              onClick={() => setShowNewVisit(true)}
-              className="bg-[#1DB5A8] hover:bg-[#17a396] text-white shrink-0"
-            >
-              <Plus className="h-4 w-4 mr-1" /> Nueva visita
-            </Button>
           </div>
 
           {/* Filtros */}
           <div className="flex gap-2 mt-4 flex-wrap">
-            {(["todas", "borrador", "enviada", "convertida"] as const).map((s) => (
+            {(["todas", "enviada", "convertida"] as const).map((s) => (
               <button
                 key={s}
                 onClick={() => setStatusFilter(s)}
@@ -531,7 +523,7 @@ export default function VisitasTecnicas() {
                     : "border-[#1DB5A8]/20 text-gray-400 hover:border-[#1DB5A8]/40"
                 }`}
               >
-                {s === "todas" ? "Todas" : s === "borrador" ? "Sin asignar / Pendientes" : s === "enviada" ? "Listas para cotizar" : "Cotizadas"}
+                {s === "todas" ? "Todas" : s === "enviada" ? "Listas para cotizar" : "Cotizadas"}
               </button>
             ))}
           </div>
@@ -545,7 +537,7 @@ export default function VisitasTecnicas() {
           </div>
         )}
 
-        {!isLoading && (visits as Visit[]).length === 0 && (
+        {!isLoading && (visits as Visit[]).filter(v => v.status !== "borrador").length === 0 && (
           <div className="text-center py-20 text-gray-400">
             <Ruler className="h-12 w-12 mx-auto mb-4 opacity-30" />
             <p className="text-lg">Sin visitas en esta categoría</p>
@@ -553,7 +545,7 @@ export default function VisitasTecnicas() {
         )}
 
         <div className="space-y-3">
-          {(visits as Visit[]).map(visit => {
+          {(visits as Visit[]).filter(v => v.status !== "borrador").map(visit => {
             const cfg = STATUS_CONFIG[visit.status];
             const photoCount = visit.photos?.length ?? 0;
             return (
@@ -620,6 +612,21 @@ export default function VisitasTecnicas() {
                         Lista para cotizar
                       </span>
                     )}
+                    <button
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        if (!confirm("¿Eliminar este levantamiento? Esta acción no se puede deshacer.")) return;
+                        try {
+                          await deleteVisitMutation.mutateAsync({ id: visit.id });
+                        } catch (err: any) {
+                          // onError handles toast
+                        }
+                      }}
+                      className="text-red-400 hover:text-red-300 p-1 rounded hover:bg-red-500/10 ml-1"
+                      title="Eliminar levantamiento"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
                     <ChevronRight className="h-5 w-5 text-gray-500" />
                   </div>
                 </div>

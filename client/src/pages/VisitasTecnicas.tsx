@@ -30,14 +30,15 @@ type VisitStatus = "borrador" | "enviada" | "cot_hecha" | "cot_enviada";
 
 type Photo = {
   id: number;
-  photoUrl: string;
+  url: string;
   category: string;
+  caption?: string | null;
   description?: string | null;
 };
 
 type Pdf = {
   id: string;
-  pdfUrl: string;
+  url: string;
   fileName?: string | null;
   originalFileName?: string | null;
   createdAt: string;
@@ -436,7 +437,7 @@ export default function VisitasTecnicas() {
                 </h2>
                 {firmas.map(f => (
                   <div key={f.id} className="bg-white rounded-lg overflow-hidden">
-                    <img src={f.photoUrl} alt="Firma" className="w-full h-24 object-contain p-2" />
+                    <img src={f.url} alt="Firma" className="w-full h-24 object-contain p-2" />
                   </div>
                 ))}
                 {firmas.length === 0 && visit?.clientSignature && (
@@ -457,10 +458,10 @@ export default function VisitasTecnicas() {
                   {fotos.map(photo => (
                     <div key={photo.id} className="relative aspect-square">
                       <img
-                        src={photo.photoUrl}
+                        src={photo.url}
                         alt=""
                         className="w-full h-full object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-                        onClick={() => setLightboxUrl(photo.photoUrl)}
+                        onClick={() => setLightboxUrl(photo.url)}
                       />
                       {photo.category !== "foto" && (
                         <span className="absolute bottom-1 left-1 bg-black/70 text-white text-[9px] px-1 py-0.5 rounded">
@@ -468,7 +469,7 @@ export default function VisitasTecnicas() {
                         </span>
                       )}
                       <button
-                        onClick={() => setLightboxUrl(photo.photoUrl)}
+                        onClick={() => setLightboxUrl(photo.url)}
                         className="absolute bottom-1 right-1 bg-black/60 rounded-full p-1"
                       >
                         <Maximize2 className="h-3 w-3 text-white" />
@@ -493,7 +494,7 @@ export default function VisitasTecnicas() {
                         <p className="text-sm text-white truncate">{pdf.description ?? "Plano"}</p>
                       </div>
                       <a
-                        href={pdf.pdfUrl}
+                        href={pdf.url}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-[#1DB5A8] hover:text-[#17a396] flex items-center gap-1 text-sm"

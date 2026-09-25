@@ -481,7 +481,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
 
   const categoryLabels: Record<string, string> = {
     cotizacion: "Cotización",
-    medidas: "Medidas",
+    medidas: "Levantamiento de proyecto",
     disenos: "Diseños",
     avance: "Avance",
     instalacion: "Instalación",

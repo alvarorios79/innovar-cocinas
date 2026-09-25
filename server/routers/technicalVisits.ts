@@ -348,8 +348,8 @@ export const technicalVisitsRouter = router({
         .where(eq(technicalVisits.id, input.visitId));
 
       if (!visit) throw new TRPCError({ code: "NOT_FOUND", message: "Levantamiento no encontrado" });
-      if (visit.status === "convertida") {
-        throw new TRPCError({ code: "BAD_REQUEST", message: "No se puede editar un levantamiento ya convertido en proyecto" });
+      if (visit.status === "cot_hecha" || visit.status === "cot_enviada") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "No se puede editar un levantamiento con cotización generada" });
       }
       if (ctx.user.role === "medidor" && visit.createdBy !== ctx.user.id) {
         throw new TRPCError({ code: "FORBIDDEN", message: "Sin acceso" });
@@ -406,8 +406,8 @@ export const technicalVisitsRouter = router({
         .where(eq(technicalVisits.id, input.visitId));
 
       if (!visit) throw new TRPCError({ code: "NOT_FOUND", message: "Levantamiento no encontrado" });
-      if (visit.status === "convertida") {
-        throw new TRPCError({ code: "BAD_REQUEST", message: "No se pueden agregar fotos a un levantamiento enviado" });
+      if (visit.status === "cot_hecha" || visit.status === "cot_enviada") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "No se pueden agregar fotos a un levantamiento con cotización generada" });
       }
       if (ctx.user.role === "medidor" && visit.createdBy !== ctx.user.id) {
         throw new TRPCError({ code: "FORBIDDEN", message: "Sin acceso" });
@@ -479,8 +479,8 @@ export const technicalVisitsRouter = router({
       if (visit && ctx.user.role === "medidor" && visit.createdBy !== ctx.user.id) {
         throw new TRPCError({ code: "FORBIDDEN", message: "Sin acceso" });
       }
-      if (visit && visit.status === "convertida") {
-        throw new TRPCError({ code: "BAD_REQUEST", message: "No se puede eliminar fotos de un levantamiento ya convertido en proyecto" });
+      if (visit && (visit.status === "cot_hecha" || visit.status === "cot_enviada")) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "No se puede eliminar fotos de un levantamiento con cotización generada" });
       }
 
       await db.delete(technicalVisitPhotos).where(eq(technicalVisitPhotos.id, input.photoId));
@@ -506,8 +506,8 @@ export const technicalVisitsRouter = router({
         .where(eq(technicalVisits.id, input.visitId));
 
       if (!visit) throw new TRPCError({ code: "NOT_FOUND", message: "Levantamiento no encontrado" });
-      if (visit.status === "convertida") {
-        throw new TRPCError({ code: "BAD_REQUEST", message: "No se pueden agregar PDFs a un levantamiento ya convertido en proyecto" });
+      if (visit.status === "cot_hecha" || visit.status === "cot_enviada") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "No se pueden agregar PDFs a un levantamiento con cotización generada" });
       }
       if (ctx.user.role === "medidor" && visit.createdBy !== ctx.user.id) {
         throw new TRPCError({ code: "FORBIDDEN", message: "Sin acceso" });
@@ -565,8 +565,8 @@ export const technicalVisitsRouter = router({
         .where(eq(technicalVisits.id, input.visitId));
 
       if (!visit) throw new TRPCError({ code: "NOT_FOUND", message: "Levantamiento no encontrado" });
-      if (visit.status === "convertida") {
-        throw new TRPCError({ code: "BAD_REQUEST", message: "No se puede modificar un levantamiento enviado" });
+      if (visit.status === "cot_hecha" || visit.status === "cot_enviada") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "No se puede modificar un levantamiento con cotización generada" });
       }
       if (ctx.user.role === "medidor" && visit.createdBy !== ctx.user.id) {
         throw new TRPCError({ code: "FORBIDDEN", message: "Sin acceso" });
@@ -687,8 +687,8 @@ export const technicalVisitsRouter = router({
       if (isMedidor && visit.createdBy !== ctx.user.id) {
         throw new TRPCError({ code: "FORBIDDEN", message: "Solo puedes eliminar tus propios levantamientos" });
       }
-      if (isMedidor && visit.status === "convertida") {
-        throw new TRPCError({ code: "FORBIDDEN", message: "No se puede eliminar un levantamiento ya convertido en cotización" });
+      if (isMedidor && (visit.status === "cot_hecha" || visit.status === "cot_enviada")) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "No se puede eliminar un levantamiento con cotización generada" });
       }
       if (!isManager && !isMedidor) {
         throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para eliminar levantamientos" });
@@ -722,7 +722,6 @@ export const technicalVisitsRouter = router({
         .set({
           projectId: input.projectId,
           quotationId: input.quotationId,
-          status: "convertida",
           updatedAt: now,
         })
         .where(eq(technicalVisits.id, input.visitId));

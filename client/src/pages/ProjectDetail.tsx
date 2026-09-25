@@ -1397,12 +1397,25 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
                     {/* Levantamiento del medidor — solo en la sección Medidas */}
                     {category === "medidas" && technicalVisit && (
                       <div className="mb-4 pb-4 border-b border-teal-500/20 space-y-3">
-                        <h5 className="text-sm font-semibold text-teal-300 flex items-center gap-2">
-                          📋 Levantamiento del Medidor
-                          <span className="text-xs font-normal bg-teal-500/20 text-teal-400 px-2 py-0.5 rounded-full">
-                            {technicalVisit.clientName}
-                          </span>
-                        </h5>
+                        <div className="flex items-center justify-between gap-2">
+                          <h5 className="text-sm font-semibold text-teal-300 flex items-center gap-2">
+                            📋 Levantamiento del Medidor
+                            <span className="text-xs font-normal bg-teal-500/20 text-teal-400 px-2 py-0.5 rounded-full">
+                              {technicalVisit.clientName}
+                            </span>
+                          </h5>
+                          {(technicalVisit as any).geoLocation && (
+                            <a
+                              href={`https://www.google.com/maps/dir//${(technicalVisit as any).geoLocation.latitude},${(technicalVisit as any).geoLocation.longitude}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-lg transition-colors shrink-0"
+                              title="Abrir navegación a domicilio del cliente"
+                            >
+                              📍 Navegar al domicilio
+                            </a>
+                          )}
+                        </div>
                         {technicalVisit.measurements != null && Object.keys(technicalVisit.measurements as Record<string, unknown>).length > 0 && (
                           <div>
                             <p className="text-xs text-gray-400 mb-1">Dimensiones</p>

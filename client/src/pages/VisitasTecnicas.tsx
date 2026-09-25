@@ -323,25 +323,7 @@ export default function VisitasTecnicas() {
                     <MapPin className="h-4 w-4 text-gray-500" /> {visit.clientAddress}
                   </div>
                 )}
-                {geo && (
-                  <div className="flex items-center gap-2 pt-1">
-                    <MapPin className="h-3.5 w-3.5 text-[#1DB5A8] shrink-0" />
-                    <div>
-                      <a
-                        href={`https://maps.google.com/?q=${geo.lat},${geo.lng}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-[#1DB5A8] underline text-xs font-medium"
-                      >
-                        Ver en Google Maps
-                      </a>
-                      <p className="text-gray-500 text-xs">{geo.lat.toFixed(6)}, {geo.lng.toFixed(6)}</p>
-                    </div>
-                  </div>
-                )}
-                {!geo && !loadingDetail && visit && (
-                  <p className="text-xs text-gray-600 pt-1 italic">Sin ubicación GPS</p>
-                )}
+
                 {(visit as any)?.assignedToUser?.name && (
                   <div className="flex items-center gap-2 text-gray-300">
                     <UserCheck className="h-4 w-4 text-[#1DB5A8]" />
@@ -364,6 +346,26 @@ export default function VisitasTecnicas() {
                 </div>
               </div>
             </div>
+
+            {/* GPS */}
+            {geo && (
+              <div className="bg-[#162828] rounded-xl p-5 border border-[#1DB5A8]/20 md:col-span-2">
+                <h2 className="text-sm font-semibold text-[#1DB5A8] uppercase tracking-wide mb-3 flex items-center gap-2">
+                  <MapPin className="h-4 w-4" /> Ubicación GPS
+                </h2>
+                <div className="flex items-center gap-3">
+                  <a
+                    href={`https://maps.google.com/?q=${geo.lat},${geo.lng}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-[#1DB5A8] hover:bg-[#17a396] text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+                  >
+                    Ver en Google Maps
+                  </a>
+                  <span className="text-gray-400 text-sm font-mono">{geo.lat.toFixed(6)}, {geo.lng.toFixed(6)}</span>
+                </div>
+              </div>
+            )}
 
             {/* Medidas */}
             <div className="bg-[#162828] rounded-xl p-5 border border-[#1DB5A8]/10">

@@ -60,6 +60,7 @@ type Measurements = {
 };
 
 type TechnicalChecklist = {
+  otroDescripcion?: string;
   puntoGas?: boolean;
   puntoHidraulico?: boolean;
   desague?: boolean;
@@ -118,12 +119,13 @@ type Visit = {
 // ── Constantes ──────────────────────────────────────────────────────────────
 const MEASUREMENT_FIELDS: Record<WorkType, Array<{ key: keyof Measurements; label: string; unit: string }>> = {
   cocina: [
-    { key: "anchoTotal", label: "Ancho total", unit: "cm" },
-    { key: "altoCielo", label: "Alto cielo", unit: "cm" },
+    { key: "ancho", label: "Ancho", unit: "cm" },
+    { key: "alto", label: "Alto", unit: "cm" },
     { key: "profundidad", label: "Profundidad", unit: "cm" },
+    { key: "anchoTotal", label: "Ancho total espacio", unit: "cm" },
+    { key: "altoCielo", label: "Alto al cielo", unit: "cm" },
     { key: "anchoVentana", label: "Ancho ventana", unit: "cm" },
     { key: "altoVentana", label: "Alto ventana", unit: "cm" },
-    { key: "altoVentanaPiso", label: "Ventana al piso", unit: "cm" },
   ],
   closet: [
     { key: "ancho", label: "Ancho", unit: "cm" },
@@ -131,13 +133,16 @@ const MEASUREMENT_FIELDS: Record<WorkType, Array<{ key: keyof Measurements; labe
     { key: "profundidad", label: "Profundidad", unit: "cm" },
   ],
   puertas: [
+    { key: "ancho", label: "Ancho", unit: "cm" },
+    { key: "alto", label: "Alto", unit: "cm" },
+    { key: "profundidad", label: "Profundidad / Grosor pared", unit: "cm" },
     { key: "anchoPaso", label: "Ancho paso", unit: "cm" },
     { key: "altoPaso", label: "Alto paso", unit: "cm" },
-    { key: "grosorPared", label: "Grosor pared", unit: "cm" },
   ],
   centro_tv: [
-    { key: "anchoEspacio", label: "Ancho espacio", unit: "cm" },
-    { key: "altoEspacio", label: "Alto espacio", unit: "cm" },
+    { key: "ancho", label: "Ancho", unit: "cm" },
+    { key: "alto", label: "Alto", unit: "cm" },
+    { key: "profundidad", label: "Profundidad", unit: "cm" },
     { key: "tamanoTV", label: "Tamaño TV", unit: "pulg" },
   ],
 };
@@ -152,23 +157,27 @@ const TECHNICAL_CHECKLIST: Record<WorkType, Array<{ key: keyof TechnicalChecklis
     { key: "columnas", label: "Columnas" },
     { key: "pisoNivelado", label: "Piso nivelado" },
     { key: "techoNivelado", label: "Techo nivelado" },
+    { key: "otro", label: "Otro" },
   ],
   closet: [
     { key: "murosTerminados", label: "Muros terminados" },
     { key: "pisoTerminado", label: "Piso terminado" },
     { key: "tomasElectricas", label: "Tomas eléctricas" },
     { key: "ventanas", label: "Ventanas cercanas" },
+    { key: "otro", label: "Otro" },
   ],
   puertas: [
     { key: "escuadraValidada", label: "Escuadra validada" },
     { key: "grosorMuroValidado", label: "Grosor de muro validado" },
     { key: "aperturaValidada", label: "Apertura validada" },
+    { key: "otro", label: "Otro" },
   ],
   centro_tv: [
     { key: "tomasElectricas", label: "Tomas eléctricas" },
     { key: "puntoTV", label: "Punto TV" },
     { key: "internet", label: "Internet" },
     { key: "canalizaciones", label: "Canalizaciones" },
+    { key: "otro", label: "Otro" },
   ],
 };
 
@@ -643,24 +652,27 @@ export default function Medidor() {
 
   // Calcular completitud
   const calculateCompletion = (): number => {
-    if (!visitDetail) return 0;
+    const v = visitDetail ?? selectedVisit;
+    if (!v) return 0;
     let score = 0;
-    let max = 0;
+    const max = 100;
 
-    if (visitDetail.measurements && Object.keys(visitDetail.measurements).length > 0) score += 20;
-    max += 20;
+    // Cliente + dirección: 20 pts
+    if (v.clientName && v.clientPhone) score += 10;
+    if (v.clientAddress) score += 10;
 
-    if (visitDetail.photos && visitDetail.photos.length > 0) score += 30;
-    max += 30;
+    // Medidas: 20 pts
+    if (v.measurements && Object.keys(v.measurements).length > 0) score += 20;
 
-    if (visitDetail.pdfs && visitDetail.pdfs.length > 0) score += 20;
-    max += 20;
+    // Fotos: 25 pts
+    if (v.photos && v.photos.length > 0) score += 25;
 
-    if (visitDetail.checklist && Object.keys(visitDetail.checklist).length > 0) score += 15;
-    max += 15;
+    // Checklist: 15 pts
+    const checklistKeys = v.checklist ? Object.keys(v.checklist).filter(k => k !== 'otroDescripcion') : [];
+    if (checklistKeys.length > 0) score += 15;
 
-    if (visitDetail.clientSignature) score += 15;
-    max += 15;
+    // Firma: 10 pts
+    if (v.clientSignature) score += 10;
 
     return Math.round((score / max) * 100);
   };

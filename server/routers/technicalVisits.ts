@@ -611,6 +611,42 @@ export const technicalVisitsRouter = router({
       return { success: true };
     }),
 
+  // ── Eliminar levantamiento (medidor solo borradores propios; admin/comercial cualquiera) ──
+  delete: protectedProcedure
+    .input(z.object({ id: z.coerce.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB no disponible" });
+
+      const [visit] = await db
+        .select()
+        .from(technicalVisits)
+        .where(eq(technicalVisits.id, input.visitId ?? input.id))
+        .limit(1);
+
+      const isManager = ["admin", "super_admin", "comercial"].includes(ctx.user.role);
+      const isMedidor = ctx.user.role === "medidor";
+
+      if (!visit) throw new TRPCError({ code: "NOT_FOUND", message: "Levantamiento no encontrado" });
+      if (isMedidor && visit.createdBy !== ctx.user.id) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Solo puedes eliminar tus propios levantamientos" });
+      }
+      if (isMedidor && visit.status !== "borrador") {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Solo se pueden eliminar levantamientos en borrador" });
+      }
+      if (!isManager && !isMedidor) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para eliminar levantamientos" });
+      }
+
+      const now = new Date().toISOString().replace('T', ' ').replace('Z', '');
+      await db
+        .update(technicalVisits)
+        .set({ deletedAt: now })
+        .where(eq(technicalVisits.id, input.id));
+
+      return { success: true };
+    }),
+
   // ── Vincular levantamiento a proyecto (admin/comercial — post aprobación) ──
   linkToProject: protectedProcedure
     .input(z.object({

@@ -37,7 +37,7 @@ import {
 } from "lucide-react";
 
 // ── Tipos ────────────────────────────────────────────────────────────────────
-type WorkType = "cocina" | "closet" | "puertas" | "centro_tv";
+type WorkType = "cocina" | "closet" | "puertas" | "centro_tv" | "mueble_bano" | "otro";
 type VisitStatus = "borrador" | "enviada" | "convertida";
 type TechnicalEvaluation = "viable" | "requiere_revision" | "requiere_visita";
 type PhotoCategory = "general" | "ventana" | "punto_hidraulico" | "punto_gas" | "tomacorrientes" | "detalle_tecnico";
@@ -145,6 +145,16 @@ const MEASUREMENT_FIELDS: Record<WorkType, Array<{ key: keyof Measurements; labe
     { key: "profundidad", label: "Profundidad", unit: "cm" },
     { key: "tamanoTV", label: "Tamaño TV", unit: "pulg" },
   ],
+  mueble_bano: [
+    { key: "ancho", label: "Ancho", unit: "cm" },
+    { key: "alto", label: "Alto", unit: "cm" },
+    { key: "profundidad", label: "Profundidad", unit: "cm" },
+  ],
+  otro: [
+    { key: "ancho", label: "Ancho", unit: "cm" },
+    { key: "alto", label: "Alto", unit: "cm" },
+    { key: "profundidad", label: "Profundidad", unit: "cm" },
+  ],
 };
 
 const TECHNICAL_CHECKLIST: Record<WorkType, Array<{ key: keyof TechnicalChecklist; label: string }>> = {
@@ -195,6 +205,8 @@ const WORK_TYPE_LABELS: Record<WorkType, string> = {
   closet: "Closet",
   puertas: "Puertas",
   centro_tv: "Centro de TV",
+  mueble_bano: "Mueble de Baño",
+  otro: "Otro",
 };
 
 const STATUS_CONFIG: Record<VisitStatus, { label: string; color: string; bg: string; icon: React.ReactNode }> = {
@@ -496,12 +508,15 @@ export default function Medidor() {
   const handleCreateVisit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = new FormData(e.currentTarget);
+    const selectedWorkTypes = Array.from(document.querySelectorAll('input[name="workTypes"]:checked')).map(el => (el as HTMLInputElement).value);
     const formData = {
       clientName: form.get("clientName") as string,
       clientPhone: form.get("clientPhone") as string,
       clientAddress: form.get("clientAddress") as string,
       visitCity: (form.get("visitCity") as string) || undefined,
-      workType: form.get("workType") as WorkType,
+      workType: (selectedWorkTypes[0] || form.get("workType")) as WorkType,
+      identificationNumber: (form.get("identificationNumber") as string) || undefined,
+      workTypes: selectedWorkTypes.length > 0 ? selectedWorkTypes : undefined,
     };
     const initialNotes = (form.get("initialNotes") as string) || "";
 
@@ -1088,6 +1103,11 @@ export default function Medidor() {
               </div>
 
               <div>
+                <label className="block text-sm font-semibold text-[#1DB5A8] mb-2">Cédula / Identificación</label>
+                <Input name="identificationNumber" placeholder="Ej: 1234567890" className="bg-[#0C1A1A] border-[#1DB5A8]/20 text-white placeholder:text-slate-500" />
+              </div>
+
+              <div>
                 <label className="block text-sm font-semibold text-[#1DB5A8] mb-2">Teléfono WhatsApp *</label>
                 <Input name="clientPhone" required defaultValue={effectivePrefill?.phone || ""} className="bg-[#0C1A1A] border-[#1DB5A8]/20 text-white" />
               </div>
@@ -1108,19 +1128,20 @@ export default function Medidor() {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-[#1DB5A8] mb-2">Tipo de trabajo *</label>
+                <label className="block text-sm font-semibold text-[#1DB5A8] mb-2">Tipo de trabajo * <span className="text-xs text-slate-400 font-normal">(selecciona uno o más)</span></label>
                 <div className="grid grid-cols-2 gap-3">
                   {(Object.keys(WORK_TYPE_LABELS) as WorkType[]).map((type) => (
-                    <label key={type} className="relative">
+                    <label key={type} className="relative flex items-center gap-2 cursor-pointer">
                       <input
-                        type="radio"
-                        name="workType"
+                        type="checkbox"
+                        name="workTypes"
                         value={type}
-                        required
                         defaultChecked={effectivePrefill?.workType === type}
                         className="peer sr-only"
                       />
-                      <div className="border border-[#1DB5A8]/20 rounded-lg p-3 cursor-pointer peer-checked:bg-[#1DB5A8]/20 peer-checked:border-[#1DB5A8] transition-colors">
+                      <div className="w-full border border-[#1DB5A8]/20 rounded-lg p-3 cursor-pointer peer-checked:bg-[#1DB5A8]/20 peer-checked:border-[#1DB5A8] transition-colors flex items-center gap-2">
+                        <div className="w-4 h-4 rounded border border-[#1DB5A8]/40 peer-checked:bg-[#1DB5A8] flex-shrink-0 flex items-center justify-center">
+                        </div>
                         <p className="text-sm font-medium text-white">{WORK_TYPE_LABELS[type]}</p>
                       </div>
                     </label>
@@ -1220,23 +1241,79 @@ export default function Medidor() {
             <div className="bg-[#162828] border border-[#1DB5A8]/20 rounded-lg p-4 space-y-4">
               <h2 className="text-lg font-semibold text-white flex items-center gap-2">
                 <Ruler className="h-5 w-5 text-[#1DB5A8]" />
-                Medidas
+                Tipos de trabajo y medidas
               </h2>
-              <div className="grid grid-cols-2 gap-3">
-                {MEASUREMENT_FIELDS[visit.workType].map((field) => (
-                  <div key={field.key}>
-                    <label className="block text-xs font-semibold text-[#1DB5A8] mb-1">{field.label}</label>
-                    <Input
-                      type="number"
-                      value={localMeasurements[field.key] || ""}
-                      onChange={(e) => setLocalMeasurements({ ...localMeasurements, [field.key]: parseFloat(e.target.value) })}
-                      placeholder="0"
-                      className="bg-[#0C1A1A] border-[#1DB5A8]/20 text-white h-10"
-                    />
-                    <span className="text-xs text-slate-400">{field.unit}</span>
+
+              {/* Checklist de tipos de trabajo */}
+              {(Object.keys(WORK_TYPE_LABELS) as WorkType[]).map((wt) => {
+                const isChecked = !!(localMeasurements as any)[`_tipo_${wt}`];
+                return (
+                  <div key={wt} className="border border-[#1DB5A8]/15 rounded-lg overflow-hidden">
+                    {/* Cabecera tipo de trabajo */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const key = `_tipo_${wt}`;
+                        setLocalMeasurements({ ...localMeasurements, [key]: isChecked ? undefined : true });
+                      }}
+                      className={`w-full flex items-center gap-3 p-3 text-left transition-colors ${isChecked ? "bg-[#1DB5A8]/15" : "bg-[#0C1A1A]/60"}`}
+                    >
+                      <div className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 ${isChecked ? "bg-[#1DB5A8] border-[#1DB5A8]" : "border-[#1DB5A8]/40"}`}>
+                        {isChecked && <CheckCircle2 className="h-3 w-3 text-white" />}
+                      </div>
+                      <span className="text-sm font-semibold text-white">{WORK_TYPE_LABELS[wt]}</span>
+                    </button>
+
+                    {/* Campos de medidas cuando está seleccionado */}
+                    {isChecked && (
+                      <div className="p-3 space-y-3 bg-[#162828]/50">
+                        {/* Selector de forma — solo cocina */}
+                        {wt === "cocina" && (
+                          <div>
+                            <label className="block text-xs font-semibold text-[#1DB5A8] mb-2">Forma de la cocina *</label>
+                            <div className="flex gap-2">
+                              {(["L", "Lineal", "U"] as const).map((forma) => (
+                                <button
+                                  key={forma}
+                                  type="button"
+                                  onClick={() => setLocalMeasurements({ ...localMeasurements, [`_cocina_forma`]: forma })}
+                                  className={`flex-1 py-2 rounded-lg border text-sm font-bold transition-colors ${
+                                    (localMeasurements as any)[`_cocina_forma`] === forma
+                                      ? "bg-[#1DB5A8] border-[#1DB5A8] text-white"
+                                      : "border-[#1DB5A8]/30 text-slate-300 hover:border-[#1DB5A8]/60"
+                                  }`}
+                                >
+                                  {forma}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Medidas: ancho / alto / profundo — todos los tipos */}
+                        <div className="grid grid-cols-3 gap-2">
+                          {[
+                            { key: `_${wt}_ancho`, label: "Ancho" },
+                            { key: `_${wt}_alto`, label: "Alto" },
+                            { key: `_${wt}_profundo`, label: "Profundo" },
+                          ].map(({ key, label }) => (
+                            <div key={key}>
+                              <label className="block text-xs font-semibold text-[#1DB5A8] mb-1">{label} (cm)</label>
+                              <Input
+                                type="number"
+                                value={(localMeasurements as any)[key] || ""}
+                                onChange={(e) => setLocalMeasurements({ ...localMeasurements, [key]: e.target.value ? parseFloat(e.target.value) : undefined })}
+                                placeholder="0"
+                                className="bg-[#0C1A1A] border-[#1DB5A8]/20 text-white h-9 text-sm"
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
-                ))}
-              </div>
+                );
+              })}
               <Textarea
                 value={localNotes}
                 onChange={(e) => setLocalNotes(e.target.value)}

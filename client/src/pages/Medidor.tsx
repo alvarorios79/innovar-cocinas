@@ -893,10 +893,7 @@ export default function Medidor() {
                   </div>
                 </>
               )}
-            </div>
-          )}
-
-              {/* Levantamientos enviados (no convertidos) — medidor puede eliminar */}
+              {/* Levantamientos enviados — medidor puede eliminar si no está convertido */}
               {historialVisits.filter(v => v.status === "enviada").length > 0 && (
                 <>
                   <p className="text-xs font-semibold text-green-400 uppercase tracking-wide mt-2">

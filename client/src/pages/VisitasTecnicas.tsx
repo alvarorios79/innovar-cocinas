@@ -645,7 +645,7 @@ export default function VisitasTecnicas() {
                         Lista para cotizar
                       </span>
                     )}
-                    {isManager && (
+                    {(isManager || visit.status !== "convertida") && (
                       <button
                         onClick={async (e) => {
                           e.stopPropagation();

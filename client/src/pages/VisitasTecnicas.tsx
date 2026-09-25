@@ -241,7 +241,12 @@ export default function VisitasTecnicas() {
     const criticalObs   = visit?.criticalObservations ?? null;
     const visiblePdfs   = visit?.pdfs ?? [];
     const geoRaw = (visit as any)?.geoLocation ?? null;
-    const geo: { lat: number; lng: number } | null = geoRaw ? { lat: geoRaw.latitude, lng: geoRaw.longitude } : null;
+    const rawLat = (visit as any)?.latitude ?? (visit as any)?.lat;
+    const rawLng = (visit as any)?.longitude ?? (visit as any)?.lng;
+    const geo: { lat: number; lng: number } | null =
+      geoRaw ? { lat: geoRaw.latitude, lng: geoRaw.longitude } :
+      (rawLat && rawLng) ? { lat: parseFloat(String(rawLat)), lng: parseFloat(String(rawLng)) } :
+      null;
     // Tipos de trabajo activos en el levantamiento (estructura nueva del Medidor)
     const ALL_WORK_TYPES = ["cocina", "closet", "puertas", "centro_tv", "mueble_bano", "otro"] as const;
     const WORK_TYPE_LABELS_LOCAL: Record<string, string> = {

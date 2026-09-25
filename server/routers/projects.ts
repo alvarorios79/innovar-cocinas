@@ -232,12 +232,8 @@ export const projectsRouter = router({
           throw new TRPCError({ code: "NOT_FOUND", message: "Proyecto no encontrado" });
         }
 
-        // jefe_taller y operario solo pueden ver proyectos en fase de producción
+        // jefe_taller y operario pueden ver cualquier proyecto (solo ven nombre y dirección del cliente)
         const role = ctx.user.role;
-        const productionStatuses = ["despiece", "corte", "enchape", "ensamble", "listo_instalacion", "trabajando_instalacion", "entregado"];
-        if ((role === "jefe_taller" || role === "operario") && !productionStatuses.includes(project.status)) {
-          throw new TRPCError({ code: "FORBIDDEN", message: "Sin acceso a este proyecto" });
-        }
 
         // Optimización: ejecutar consultas en paralelo
         // ESTRATEGIA: Obtener la cotización original para acceder a baseQuotationId

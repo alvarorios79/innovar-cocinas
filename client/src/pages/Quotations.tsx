@@ -31,7 +31,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-import { Plus, Trash2, FileText, Send, Eye, Pencil, Mail, Search, X, UserPlus, FolderPlus, ChefHat, Ruler, Package, Sofa, DoorOpen, Tv, Wrench, LayoutGrid, Calendar, User, Building2, Truck, Sparkles, CircleDollarSign, Lightbulb, Palette, Edit3, Lock, Unlock, ArrowLeft, Copy, Archive, SlidersHorizontal } from "lucide-react";
+import { Plus, Trash2, FileText, Send, Eye, Pencil, Mail, Search, X, UserPlus, FolderPlus, ChefHat, Ruler, Package, Sofa, DoorOpen, Tv, Wrench, LayoutGrid, Calendar, User, Building2, Truck, Sparkles, CircleDollarSign, Lightbulb, Palette, Edit3, Lock, Unlock, ArrowLeft, Copy, Archive, SlidersHorizontal, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import { formatPrice } from "@/lib/formatters";
 import { CreateQuickClientDialog } from "@/components/CreateQuickClientDialog";
@@ -512,13 +512,25 @@ export default function Quotations() {
   });
 
   const sendWhatsApp = trpc.quotations.sendByWhatsApp.useMutation({
-    onSuccess: () => {
+    onSuccess: (data) => {
       utils.quotations.list.invalidate();
       utils.quotations.listPaginatedGrouped.invalidate();
-      toast.success("Cotizacion enviada por WhatsApp");
+      // Descargar PDF automáticamente
+      const link = document.createElement('a');
+      link.href = data.pdfUrl;
+      link.download = 'Cotizacion.pdf';
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      // Abrir WhatsApp con mensaje y número pre-cargados
+      const phone = (data.clientPhone || '').replace(/\D/g, '');
+      const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(data.message)}`;
+      window.open(waUrl, '_blank');
+      toast.success("PDF descargado. WhatsApp abierto — solo envía el PDF adjunto junto al mensaje.");
     },
     onError: (error) => {
-      toast.error(error.message || "Error al enviar por WhatsApp");
+      toast.error(error.message || "Error al preparar el envío por WhatsApp");
     },
   });
 
@@ -2422,7 +2434,19 @@ export default function Quotations() {
                   </Button>
 
 
-                  <Button className="bg-red-500 text-white">TEST</Button>
+                  <Button
+                    size="sm"
+                    className="bg-green-600 hover:bg-green-700 text-white"
+                    onClick={() => sendWhatsApp.mutate({ id: quot.id })}
+                    disabled={sendWhatsApp.isPending || !quot.client?.whatsappPhone}
+                    title={!quot.client?.whatsappPhone ? "El cliente no tiene teléfono WhatsApp registrado" : "Enviar cotización por WhatsApp"}
+                  >
+                    {sendWhatsApp.isPending
+                      ? <span className="h-4 w-4 mr-1 inline-block animate-spin">⏳</span>
+                      : <MessageCircle className="h-4 w-4 mr-1" />
+                    }
+                    WhatsApp
+                  </Button>
                 </div>
               </CardContent>
             </Card>

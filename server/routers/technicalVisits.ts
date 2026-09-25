@@ -145,9 +145,25 @@ export const technicalVisitsRouter = router({
         .where(eq(technicalVisitPdfs.visitId, input.visitId))
         .orderBy(technicalVisitPdfs.createdAt);
 
+      // Fetch linked client data (identificationNumber, email)
+      let clientIdentificationNumber: string | null = null;
+      let clientEmail: string | null = null;
+      if (visit.clientId) {
+        const [linkedClient] = await db
+          .select({ identificationNumber: clients.identificationNumber, email: clients.email })
+          .from(clients)
+          .where(eq(clients.id, visit.clientId));
+        if (linkedClient) {
+          clientIdentificationNumber = linkedClient.identificationNumber ?? null;
+          clientEmail = linkedClient.email ?? null;
+        }
+      }
+
       return {
         ...visit,
         id: String(visit.id),
+        clientIdentificationNumber,
+        clientEmail,
         geoLocation: (visit.latitude && visit.longitude) ? {
           latitude: parseFloat(String(visit.latitude)),
           longitude: parseFloat(String(visit.longitude)),
@@ -313,6 +329,8 @@ export const technicalVisitsRouter = router({
       clientPhone: z.string().optional(),
       clientAddress: z.string().optional(),
       visitCity: z.string().optional(),
+      clientIdentificationNumber: z.string().optional(),
+      clientEmail: z.string().optional(),
       // Contenido técnico
       measurements: z.record(z.string(), z.any()).optional(),
       checklist: z.record(z.string(), z.any()).optional(),
@@ -353,6 +371,17 @@ export const technicalVisitsRouter = router({
         .update(technicalVisits)
         .set(updateData)
         .where(eq(technicalVisits.id, input.visitId));
+
+      // Update linked client record if identification or email changed
+      if (visit.clientId && (input.clientIdentificationNumber !== undefined || input.clientEmail !== undefined)) {
+        try {
+          const { updateClient } = await import('../db');
+          const clientUpdates: Record<string, string> = {};
+          if (input.clientIdentificationNumber !== undefined) clientUpdates.identificationNumber = input.clientIdentificationNumber;
+          if (input.clientEmail !== undefined) clientUpdates.email = input.clientEmail;
+          if (Object.keys(clientUpdates).length > 0) await updateClient(visit.clientId, clientUpdates as any);
+        } catch (e) { console.error('[update] Error actualizando cliente:', e); }
+      }
 
       return { success: true };
     }),

@@ -159,16 +159,20 @@ export const technicalVisitsRouter = router({
         }
       }
 
+      console.log('[getById] visit', visit.id, 'lat:', visit.latitude, 'lng:', visit.longitude);
+      const geoComputed = (visit.latitude && visit.longitude) ? {
+        latitude: parseFloat(String(visit.latitude)),
+        longitude: parseFloat(String(visit.longitude)),
+        timestamp: visit.createdAt,
+      } : undefined;
       return {
         ...visit,
         id: String(visit.id),
         clientIdentificationNumber,
         clientEmail,
-        geoLocation: (visit.latitude && visit.longitude) ? {
-          latitude: parseFloat(String(visit.latitude)),
-          longitude: parseFloat(String(visit.longitude)),
-          timestamp: visit.createdAt,
-        } : undefined,
+        geoLocation: geoComputed,
+        geoLat: visit.latitude ? parseFloat(String(visit.latitude)) : null,
+        geoLng: visit.longitude ? parseFloat(String(visit.longitude)) : null,
         photos: photos.map(p => ({ ...p, id: String(p.id) })),
         pdfs: pdfs.map(p => ({ ...p, id: String(p.id), fileName: p.originalFileName })),
       };

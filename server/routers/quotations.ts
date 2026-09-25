@@ -128,7 +128,7 @@ export const quotationsRouter = router({
               const { eq, and: andOp } = await import("drizzle-orm");
               const nowTs = new Date().toISOString().replace('T', ' ').replace('Z', '');
               await drizzleDb.update(tvTable)
-                .set({ quotationId: quotationId, updatedAt: nowTs })
+                .set({ quotationId: quotationId, status: 'cot_hecha' as any, updatedAt: nowTs })
                 .where(andOp(
                   eq(tvTable.id, input.technicalVisitId),
                   eq(tvTable.status, 'enviada' as any)
@@ -2820,7 +2820,7 @@ export const quotationsRouter = router({
             message: "Cotizacion enviada exitosamente por WhatsApp en un solo mensaje",
           };
 
-          // Marcar visita técnica vinculada como convertida
+          // Marcar visita técnica vinculada como cot_enviada
           try {
             const drizzleDb2 = await db.getDb();
             if (drizzleDb2) {
@@ -2828,15 +2828,15 @@ export const quotationsRouter = router({
               const { eq: eq2, and: and2, isNull: isNull2 } = await import("drizzle-orm");
               const nowTs2 = new Date().toISOString().replace('T', ' ').replace('Z', '');
               await drizzleDb2.update(tvTable2)
-                .set({ status: 'convertida' as any, updatedAt: nowTs2 })
+                .set({ status: 'cot_enviada' as any, updatedAt: nowTs2 })
                 .where(and2(
                   eq2(tvTable2.quotationId, input.id),
-                  eq2(tvTable2.status, 'enviada' as any),
+                  eq2(tvTable2.status, 'cot_hecha' as any),
                   isNull2(tvTable2.deletedAt)
                 ));
             }
           } catch (tvErr2) {
-            console.error('[sendByWhatsApp] Error marcando visita como convertida:', tvErr2);
+            console.error('[sendByWhatsApp] Error marcando visita como cot_enviada:', tvErr2);
           }
 
           return result;

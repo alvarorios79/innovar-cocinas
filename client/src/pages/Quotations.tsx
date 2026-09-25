@@ -223,22 +223,22 @@ export default function Quotations() {
   
   // Abrir diálogo automáticamente si viene con ?new en la URL
   // También pre-llena clientId y workType si vienen de un levantamiento técnico
+  // Nota: useLocation() de Wouter solo devuelve el path — los query params se leen de window.location.search
   useEffect(() => {
-    if (location.includes("?new") || location.includes("&new") ||
-        location.includes("?clientId") || location.includes("new=1") ||
-        location.includes("fromVisit=")) {
-      const queryStr = location.includes("?") ? location.split("?")[1] : "";
-      const params = new URLSearchParams(queryStr);
-      const hasNew = params.has("new") || location.includes("?new") || location.includes("&new");
-      const visitIdParam = params.get("fromVisit");
-      if (visitIdParam) setFromVisitId(parseInt(visitIdParam));
-      if (hasNew || visitIdParam) {
-        setShowCreateDialog(true);
-        const clientId = params.get("clientId");
-        const wt = params.get("workType");
-        if (clientId) setSelectedClient(parseInt(clientId));
-        if (wt) setWorkType(wt);
-      }
+    const search = window.location.search;
+    if (!search) return;
+    const params = new URLSearchParams(search);
+    const hasNew = params.has("new");
+    const visitIdParam = params.get("fromVisit");
+    if (visitIdParam) setFromVisitId(parseInt(visitIdParam));
+    if (hasNew || visitIdParam) {
+      setShowCreateDialog(true);
+      const clientId = params.get("clientId");
+      const wt = params.get("workType");
+      const workTypesParam = params.get("workTypes");
+      if (clientId) setSelectedClient(parseInt(clientId));
+      if (wt) setWorkType(wt);
+      else if (workTypesParam) setWorkType(workTypesParam.split(",")[0]);
     }
   }, [location]);
   const [editingQuotation, setEditingQuotation] = useState<number | null>(null);

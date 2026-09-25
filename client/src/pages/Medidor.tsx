@@ -572,9 +572,9 @@ export default function Medidor() {
         criticalObservations: localCriticalObservations,
         checklist: localChecklist,
       });
-      toast.success("Medidas guardadas");
+      toast.success("Cambios actualizados en levantamiento");
     } catch (error) {
-      toast.error("Error al guardar medidas");
+      toast.error("Error al guardar cambios");
     }
   };
 

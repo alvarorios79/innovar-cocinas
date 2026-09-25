@@ -593,10 +593,28 @@ export const appointmentsRouter = router({
     delete: protectedProcedure
       .input(z.object({ id: z.number() }))
       .mutation(async ({ ctx, input }) => {
-        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "comercial") {
+        const isManager = ["admin", "super_admin", "comercial"].includes(ctx.user.role);
+        const isMedidor = ctx.user.role === "medidor";
+        if (!isManager && !isMedidor) {
           throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para eliminar citas" });
         }
-        
+        // Medidor solo puede eliminar citas que le fueron asignadas y están pendientes
+        if (isMedidor) {
+          const dbConn = await getDb();
+          if (!dbConn) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB no disponible" });
+          const [apt] = await dbConn
+            .select()
+            .from(appointments)
+            .where(eq(appointments.id, input.id))
+            .limit(1);
+          if (!apt) throw new TRPCError({ code: "NOT_FOUND", message: "Cita no encontrada" });
+          if (apt.medidorId !== ctx.user.id) {
+            throw new TRPCError({ code: "FORBIDDEN", message: "Solo puedes eliminar citas asignadas a ti" });
+          }
+          if (apt.status !== "pendiente" && apt.status !== "confirmada") {
+            throw new TRPCError({ code: "FORBIDDEN", message: "Solo se pueden eliminar citas pendientes o confirmadas" });
+          }
+        }
         await db.deleteAppointment(input.id);
         return { success: true };
       }),

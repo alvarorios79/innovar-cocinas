@@ -545,7 +545,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
       const allowedSubs = subcategories.filter((sub) => {
         const viewPermissions: Record<string, string[]> = {
           // Todos ven todo (jefe/operario ven pre-producción en solo lectura)
-          documento_cotizacion: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"],
+          documento_cotizacion: ["super_admin", "admin", "comercial", "jefe_taller", "operario"],
           fotos_iniciales: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"],
           dibujo: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"],
           renders: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"],

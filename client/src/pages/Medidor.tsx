@@ -516,6 +516,7 @@ export default function Medidor() {
       visitCity: (form.get("visitCity") as string) || undefined,
       workType: (selectedWorkTypes[0] || form.get("workType")) as WorkType,
       identificationNumber: (form.get("identificationNumber") as string) || undefined,
+      clientEmail: (form.get("clientEmail") as string) || undefined,
       workTypes: selectedWorkTypes.length > 0 ? selectedWorkTypes : undefined,
     };
     const initialNotes = (form.get("initialNotes") as string) || "";
@@ -1105,6 +1106,11 @@ export default function Medidor() {
               <div>
                 <label className="block text-sm font-semibold text-[#1DB5A8] mb-2">Cédula / Identificación</label>
                 <Input name="identificationNumber" placeholder="Ej: 1234567890" className="bg-[#0C1A1A] border-[#1DB5A8]/20 text-white placeholder:text-slate-500" />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-[#1DB5A8] mb-2">Correo electrónico</label>
+                <Input name="clientEmail" type="email" placeholder="Ej: cliente@gmail.com" className="bg-[#0C1A1A] border-[#1DB5A8]/20 text-white placeholder:text-slate-500" />
               </div>
 
               <div>

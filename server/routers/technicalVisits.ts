@@ -631,8 +631,8 @@ export const technicalVisitsRouter = router({
       if (isMedidor && visit.createdBy !== ctx.user.id) {
         throw new TRPCError({ code: "FORBIDDEN", message: "Solo puedes eliminar tus propios levantamientos" });
       }
-      if (isMedidor && visit.status !== "borrador") {
-        throw new TRPCError({ code: "FORBIDDEN", message: "Solo se pueden eliminar levantamientos en borrador" });
+      if (isMedidor && visit.status === "convertida") {
+        throw new TRPCError({ code: "FORBIDDEN", message: "No se puede eliminar un levantamiento ya convertido en cotización" });
       }
       if (!isManager && !isMedidor) {
         throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para eliminar levantamientos" });

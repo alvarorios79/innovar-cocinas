@@ -243,9 +243,18 @@ export default function VisitasTecnicas() {
     const geoRaw = (visit as any)?.geoLocation ?? null;
     const rawLat = (visit as any)?.latitude ?? (visit as any)?.lat;
     const rawLng = (visit as any)?.longitude ?? (visit as any)?.lng;
+    const measGeo = (measurements as any)?._geo;
+    console.log("[VisitasTecnicas geo]", {
+      geoLocation: geoRaw,
+      latitude: rawLat,
+      longitude: rawLng,
+      measGeo,
+      visitId: selectedVisitId,
+    });
     const geo: { lat: number; lng: number } | null =
-      geoRaw ? { lat: geoRaw.latitude, lng: geoRaw.longitude } :
+      (geoRaw && geoRaw.latitude && geoRaw.longitude) ? { lat: geoRaw.latitude, lng: geoRaw.longitude } :
       (rawLat && rawLng) ? { lat: parseFloat(String(rawLat)), lng: parseFloat(String(rawLng)) } :
+      (measGeo?.latitude && measGeo?.longitude) ? { lat: parseFloat(String(measGeo.latitude)), lng: parseFloat(String(measGeo.longitude)) } :
       null;
     // Tipos de trabajo activos en el levantamiento (estructura nueva del Medidor)
     const ALL_WORK_TYPES = ["cocina", "closet", "puertas", "centro_tv", "mueble_bano", "otro"] as const;
@@ -322,17 +331,23 @@ export default function VisitasTecnicas() {
                   </div>
                 )}
                 {geo && (
-                  <div className="flex items-center gap-2 text-gray-400 text-xs pt-1">
-                    <MapPin className="h-3.5 w-3.5 text-[#1DB5A8]" />
-                    <a
-                      href={`https://maps.google.com/?q=${geo.lat},${geo.lng}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-[#1DB5A8] underline"
-                    >
-                      Ver en Google Maps ({geo.lat.toFixed(4)}, {geo.lng.toFixed(4)})
-                    </a>
+                  <div className="flex items-center gap-2 pt-1">
+                    <MapPin className="h-3.5 w-3.5 text-[#1DB5A8] shrink-0" />
+                    <div>
+                      <a
+                        href={`https://maps.google.com/?q=${geo.lat},${geo.lng}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[#1DB5A8] underline text-xs font-medium"
+                      >
+                        Ver en Google Maps
+                      </a>
+                      <p className="text-gray-500 text-xs">{geo.lat.toFixed(6)}, {geo.lng.toFixed(6)}</p>
+                    </div>
                   </div>
+                )}
+                {!geo && !loadingDetail && visit && (
+                  <p className="text-xs text-gray-600 pt-1 italic">Sin ubicación GPS</p>
                 )}
                 {(visit as any)?.assignedToUser?.name && (
                   <div className="flex items-center gap-2 text-gray-300">

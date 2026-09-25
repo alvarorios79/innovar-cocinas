@@ -26,7 +26,7 @@ import { useLocation } from "wouter";
 // ── Tipos ────────────────────────────────────────────────────────────────────
 
 type WorkType = "cocina" | "closet" | "puertas" | "centro_tv";
-type VisitStatus = "borrador" | "enviada" | "convertida";
+type VisitStatus = "borrador" | "enviada" | "cot_hecha" | "cot_enviada";
 
 type Photo = {
   id: number;
@@ -90,7 +90,8 @@ const MEASUREMENT_UNITS: Record<string, string> = {
 const STATUS_CONFIG: Record<VisitStatus, { label: string; variant: "default" | "secondary" | "outline" }> = {
   borrador:   { label: "Borrador",   variant: "outline" },
   enviada:    { label: "Enviada",    variant: "default" },
-  convertida: { label: "Convertida", variant: "secondary" },
+  cot_hecha:   { label: "Cot. Hecha",   variant: "secondary" },
+  cot_enviada: { label: "Cot. Enviada", variant: "default"   },
 };
 
 // Etiquetas legibles para la evaluación técnica
@@ -274,7 +275,7 @@ export default function VisitasTecnicas() {
                 <FileSpreadsheet className="h-4 w-4 mr-2" /> Crear cotización
               </Button>
             )}
-            {visit?.status === "convertida" && (
+            {(visit?.status === "cot_hecha" || visit?.status === "cot_enviada") && (
               <Badge className="bg-green-600 text-white">✓ Cotización creada</Badge>
             )}
           </div>
@@ -540,7 +541,7 @@ export default function VisitasTecnicas() {
 
           {/* Filtros */}
           <div className="flex gap-2 mt-4 flex-wrap">
-            {(["todas", "enviada", "convertida"] as const).map((s) => (
+            {(["todas", "enviada", "cot_hecha", "cot_enviada"] as const).map((s) => (
               <button
                 key={s}
                 onClick={() => setStatusFilter(s)}
@@ -550,7 +551,7 @@ export default function VisitasTecnicas() {
                     : "border-[#1DB5A8]/20 text-gray-400 hover:border-[#1DB5A8]/40"
                 }`}
               >
-                {s === "todas" ? "Todas" : s === "enviada" ? "Listas para cotizar" : "Cotizadas"}
+                {s === "todas" ? "Todas" : s === "enviada" ? "Listas para cotizar" : s === "cot_hecha" ? "Cot. Hecha" : "Cot. Enviada"}
               </button>
             ))}
           </div>
@@ -648,7 +649,7 @@ export default function VisitasTecnicas() {
                         Lista para cotizar
                       </span>
                     )}
-                    {(isManager || visit.status !== "convertida") && (
+                    {(isManager || (visit.status !== "cot_hecha" && visit.status !== "cot_enviada")) && (
                       <button
                         onClick={async (e) => {
                           e.stopPropagation();

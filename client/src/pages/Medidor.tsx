@@ -896,6 +896,49 @@ export default function Medidor() {
             </div>
           )}
 
+              {/* Levantamientos enviados (no convertidos) — medidor puede eliminar */}
+              {historialVisits.filter(v => v.status === "enviada").length > 0 && (
+                <>
+                  <p className="text-xs font-semibold text-green-400 uppercase tracking-wide mt-2">
+                    Enviados ({historialVisits.filter(v => v.status === "enviada").length})
+                  </p>
+                  <div className="space-y-2">
+                    {historialVisits.filter(v => v.status === "enviada").map((visit: Visit) => (
+                      <div
+                        key={visit.id}
+                        className="bg-[#162828] border border-green-500/30 rounded-lg p-3 flex items-center justify-between"
+                      >
+                        <div
+                          className="flex-1 min-w-0 cursor-pointer"
+                          onClick={() => { setSelectedVisit(visit); setView("detail"); }}
+                        >
+                          <h3 className="font-semibold text-white text-sm">{visit.clientName}</h3>
+                          <p className="text-xs text-green-400">{WORK_TYPE_LABELS[visit.workType]} · Enviado</p>
+                        </div>
+                        <button
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            if (!confirm("¿Eliminar este levantamiento enviado? Esta acción no se puede deshacer.")) return;
+                            try {
+                              await deleteVisitMutation.mutateAsync({ id: visit.id });
+                              refetchVisits();
+                              toast.success("Levantamiento eliminado");
+                            } catch (err: any) {
+                              toast.error(err?.message || "Error al eliminar");
+                            }
+                          }}
+                          className="text-red-400 hover:text-red-300 p-1 rounded hover:bg-red-500/10 ml-2"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
           {/* Tab: Próximas */}
           {tab === "proximas" && (
             <div className="space-y-5">

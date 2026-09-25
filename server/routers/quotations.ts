@@ -2762,11 +2762,17 @@ export const quotationsRouter = router({
             ? new Date(quotation.validUntil).toLocaleDateString("es-CO", { timeZone: "America/Bogota" })
             : "30 días";
 
-          const waMessage = `Hola ${client.name}, 👋\n\nAdjunto encontrará la cotización *${quotation.quotationNumber}* de *Innovar Cocinas de Diseño* con un valor total de *${formattedAmount}*.\n\n📋 Esta cotización está vigente hasta el *${validUntilStr}*.\n\n⏱️ Tiempo estimado de entrega: *3 a 4 semanas* desde la aprobación del diseño.\n\nPara aprobarla o resolver cualquier inquietud, no dude en contactarnos.\n\n¡Gracias por confiar en Innovar Cocinas! 🙌`;
+          // Generar token único para el portal público del cliente
+          const { randomUUID } = await import("crypto");
+          const publicToken = randomUUID().replace(/-/g, '');
+          const publicLink = `https://cocinasintegralespereira.co/cotizacion?token=${publicToken}`;
 
-          // Actualizar estado de la cotización a "sent"
+          const waMessage = `Hola ${client.name}, 👋\n\nLe enviamos la cotización *${quotation.quotationNumber}* de *Innovar Cocinas de Diseño* por un valor de *${formattedAmount}*.\n\n📄 Vea el detalle y apruébela desde aquí:\n${publicLink}\n\n📋 Válida hasta: *${validUntilStr}*\n⏱️ Entrega estimada: *3 a 4 semanas* desde aprobación.\n\n¡Gracias por confiar en Innovar Cocinas! 🙌`;
+
+          // Actualizar estado de la cotización a "sent" y guardar token
           await db.updateQuotation(input.id, {
             status: "sent",
+            publicToken,
           });
 
           // Marcar visita técnica vinculada como cot_enviada
@@ -3513,4 +3519,92 @@ export const quotationsRouter = router({
             clientName: client?.name || 'Proyecto',
           };
         }),
+
+
+    // ── Portal público del cliente ─────────────────────────────────────────────
+
+    publicGetByToken: publicProcedure
+      .input(z.object({ token: z.string().min(1) }))
+      .query(async ({ input }) => {
+        const drizzleDb = await db.getDb();
+        if (!drizzleDb) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+        const { quotations: qTable } = await import("../../drizzle/schema");
+        const { eq, and, isNull } = await import("drizzle-orm");
+
+        const rows = await drizzleDb
+          .select()
+          .from(qTable)
+          .where(and(eq((qTable as any).publicToken, input.token), isNull(qTable.deletedAt)))
+          .limit(1);
+
+        if (!rows.length) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Enlace no válido o expirado" });
+        }
+
+        const quotation = rows[0];
+        const client = await db.getClientById(quotation.clientId);
+        const items = await db.getQuotationItems(quotation.id);
+
+        const formatCurrency = (v: number) =>
+          new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", minimumFractionDigits: 0 }).format(v);
+
+        return {
+          quotationNumber: quotation.quotationNumber,
+          clientName: client?.name ?? "Cliente",
+          total: formatCurrency(Number(quotation.total)),
+          validUntil: quotation.validUntil
+            ? new Date(quotation.validUntil).toLocaleDateString("es-CO", { timeZone: "America/Bogota" })
+            : null,
+          status: quotation.status,
+          pdfUrl: quotation.pdfUrl ?? null,
+          items: (items as any[]).map((it: any) => ({
+            description: it.description ?? it.itemType ?? "",
+            quantity: it.quantity ?? 1,
+            unitPrice: formatCurrency(Number(it.unitPrice ?? 0)),
+            total: formatCurrency(Number(it.totalPrice ?? 0)),
+          })),
+          createdAt: quotation.createdAt,
+        };
+      }),
+
+    publicApprove: publicProcedure
+      .input(z.object({ token: z.string().min(1), notes: z.string().optional() }))
+      .mutation(async ({ input }) => {
+        const drizzleDb = await db.getDb();
+        if (!drizzleDb) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+        const { quotations: qTable } = await import("../../drizzle/schema");
+        const { eq, and, isNull } = await import("drizzle-orm");
+
+        const rows = await drizzleDb
+          .select()
+          .from(qTable)
+          .where(and(eq((qTable as any).publicToken, input.token), isNull(qTable.deletedAt)))
+          .limit(1);
+
+        if (!rows.length) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Enlace no válido o expirado" });
+        }
+
+        const quotation = rows[0];
+
+        if (quotation.status === "approved") {
+          return { success: true, alreadyApproved: true };
+        }
+
+        if (quotation.status !== "sent") {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Esta cotización no puede aprobarse en su estado actual" });
+        }
+
+        await db.updateQuotation(quotation.id, {
+          status: "approved",
+          approvedAt: new Date().toISOString(),
+          clientResponseNotes: input.notes ?? null,
+          clientResponseAt: new Date().toISOString(),
+          clientResponseStatus: "approved",
+        });
+
+        return { success: true, alreadyApproved: false };
+      }),
 });

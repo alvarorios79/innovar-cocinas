@@ -35,6 +35,7 @@ export function CreateQuickClientDialog({ trigger, onClientCreated }: CreateQuic
     whatsappPhone: "",
     countryCode: "57",
     address: "",
+    identificationNumber: "",
     internalManagement: false,
   });
 
@@ -116,7 +117,7 @@ Te hemos creado una cuenta en INNOVAR Cocinas para que puedas seguir el estado d
     setOpen(false);
     setShowCredentials(false);
     setCredentials(null);
-    setFormData({ name: "", email: "", whatsappPhone: "", address: "", internalManagement: false });
+    setFormData({ name: "", email: "", whatsappPhone: "", countryCode: "57", address: "", identificationNumber: "", internalManagement: false });
   };
 
   const handleCopyAll = async () => {
@@ -205,6 +206,17 @@ Te hemos creado una cuenta en INNOVAR Cocinas para que puedas seguir el estado d
                 />
               </div>
               
+              <div className="space-y-2">
+                <Label htmlFor="identificationNumber">Cédula / Identificación (opcional)</Label>
+                <Input
+                  id="identificationNumber"
+                  value={formData.identificationNumber}
+                  onChange={(e) => setFormData({ ...formData, identificationNumber: e.target.value })}
+                  placeholder="Ej: CC 1234567890 o NIT 900123456"
+                />
+                <p className="text-[11px] text-muted-foreground">Cédula, NIT u otro documento.</p>
+              </div>
+
               {/* Checkbox Gestión Interna */}
               <div className="flex items-start space-x-3 p-3 bg-amber-500/10 border border-amber-500/25 rounded-lg">
                 <Checkbox

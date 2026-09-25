@@ -635,8 +635,9 @@ export default function Medidor() {
       setView("list");
       setSelectedVisit(null);
       setVisitDetail(null);
-    } catch (error) {
-      toast.error("Error al enviar levantamiento");
+    } catch (error: any) {
+      const msg = error?.message || error?.data?.message || "Error al enviar levantamiento";
+      toast.error(msg);
     }
   };
 

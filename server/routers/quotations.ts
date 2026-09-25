@@ -2751,74 +2751,23 @@ export const quotationsRouter = router({
           // Limpiar archivo temporal
           fs.unlinkSync(result.pdfPath);
 
-          // Enviar plantilla con documento en un solo mensaje
-          console.log("\n\n========== WHATSAPP QUOTATION FLOW START ==========");
-          console.log("[WHATSAPP] Enviando plantilla con documento: cotizacion_pdf");
-          console.log("[WHATSAPP] Idioma: es");
-          console.log("[WHATSAPP] Cliente nombre:", client.name);
-          console.log("[WHATSAPP] Número de teléfono destino:", client.whatsappPhone);
-          console.log("[WHATSAPP] Cotización ID:", quotation.id);
-          console.log("[WHATSAPP] Cotización número:", quotation.quotationNumber);
-          console.log("[WHATSAPP] PDF URL:", pdfUrl);
-          
-          // Formatear monto total
+          // Componer mensaje para enviar manualmente por WhatsApp
           const formattedAmount = new Intl.NumberFormat("es-CO", {
             style: "currency",
             currency: "COP",
             minimumFractionDigits: 0,
           }).format(Number(quotation.total));
-          
-          // Enviar plantilla con documento en el header (un solo mensaje)
-          const templateWithDocResponse = await whatsappCloud.sendTemplateWithDocument(
-            client.whatsappPhone,
-            "cotizacion_pdf_v3",
-            "es",
-            pdfUrl,
-            `Cotizacion_${quotation.quotationNumber.replace(/-/g, '_')}.pdf`,
-            client.name,
-            quotation.quotationNumber,
-            formattedAmount
-          );
-          
-          console.log("\n========== TEMPLATE WITH DOCUMENT RESPONSE ==========");
-          console.log("[WHATSAPP] Status: " + (templateWithDocResponse.success ? "SUCCESS" : "FAILED"));
-          console.log("[WHATSAPP] Full Response:", JSON.stringify(templateWithDocResponse, null, 2));
-          if (templateWithDocResponse.messageId) {
-            console.log("[WHATSAPP] Message ID:", templateWithDocResponse.messageId);
-          }
-          if (templateWithDocResponse.error) {
-            console.log("[WHATSAPP] Error:", templateWithDocResponse.error);
-            console.log("[WHATSAPP] Error Code:", templateWithDocResponse.errorCode);
-          }
-          console.log("========== END TEMPLATE WITH DOCUMENT RESPONSE ==========");
-          
-          if (!templateWithDocResponse.success) {
-            console.error("[WhatsApp] Fallo en envio de plantilla con documento:", {
-              success: templateWithDocResponse.success,
-              error: templateWithDocResponse.error,
-            });
-            
-            throw new TRPCError({
-              code: "INTERNAL_SERVER_ERROR",
-              message: `Error enviando plantilla con documento: ${templateWithDocResponse.error}`,
-            });
-          }
-          
-          console.log("\n========== WHATSAPP QUOTATION FLOW COMPLETED ==========");
-          console.log("[WHATSAPP] Template with document sent: ✓");
-          console.log("========== END FLOW ==========");
-          console.log("\n");
-          
+
+          const validUntilStr = quotation.validUntil
+            ? new Date(quotation.validUntil).toLocaleDateString("es-CO", { timeZone: "America/Bogota" })
+            : "30 días";
+
+          const waMessage = `Hola ${client.name}, 👋\n\nAdjunto encontrará la cotización *${quotation.quotationNumber}* de *Innovar Cocinas de Diseño* con un valor total de *${formattedAmount}*.\n\n📋 Esta cotización está vigente hasta el *${validUntilStr}*.\n\n⏱️ Tiempo estimado de entrega: *3 a 4 semanas* desde la aprobación del diseño.\n\nPara aprobarla o resolver cualquier inquietud, no dude en contactarnos.\n\n¡Gracias por confiar en Innovar Cocinas! 🙌`;
+
           // Actualizar estado de la cotización a "sent"
           await db.updateQuotation(input.id, {
             status: "sent",
           });
-          
-          return {
-            success: true,
-            templateMessage: templateWithDocResponse,
-            message: "Cotizacion enviada exitosamente por WhatsApp en un solo mensaje",
-          };
 
           // Marcar visita técnica vinculada como cot_enviada
           try {
@@ -2839,7 +2788,12 @@ export const quotationsRouter = router({
             console.error('[sendByWhatsApp] Error marcando visita como cot_enviada:', tvErr2);
           }
 
-          return result;
+          return {
+            success: true,
+            pdfUrl,
+            clientPhone: client.whatsappPhone,
+            message: waMessage,
+          };
         } catch (error: any) {
           console.error('Error enviando cotizacion por WhatsApp:', error);
           throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: error.message || "Error enviando cotizacion por WhatsApp" });

@@ -241,16 +241,9 @@ export default function VisitasTecnicas() {
     const criticalObs   = visit?.criticalObservations ?? null;
     const visiblePdfs   = visit?.pdfs ?? [];
     const geoRaw = (visit as any)?.geoLocation ?? null;
-    const rawLat = (visit as any)?.latitude ?? (visit as any)?.lat;
-    const rawLng = (visit as any)?.longitude ?? (visit as any)?.lng;
+    const rawLat = (visit as any)?.geoLat ?? (visit as any)?.latitude ?? (visit as any)?.lat;
+    const rawLng = (visit as any)?.geoLng ?? (visit as any)?.longitude ?? (visit as any)?.lng;
     const measGeo = (measurements as any)?._geo;
-    console.log("[VisitasTecnicas geo]", {
-      geoLocation: geoRaw,
-      latitude: rawLat,
-      longitude: rawLng,
-      measGeo,
-      visitId: selectedVisitId,
-    });
     const geo: { lat: number; lng: number } | null =
       (geoRaw && geoRaw.latitude && geoRaw.longitude) ? { lat: geoRaw.latitude, lng: geoRaw.longitude } :
       (rawLat && rawLng) ? { lat: parseFloat(String(rawLat)), lng: parseFloat(String(rawLng)) } :

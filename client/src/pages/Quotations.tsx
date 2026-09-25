@@ -219,6 +219,7 @@ export default function Quotations() {
   const { data: allPricing } = trpc.pricing.getAll.useQuery();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [fromVisitId, setFromVisitId] = useState<number | null>(null);
+  const [pendingWaUrl, setPendingWaUrl] = useState<string | null>(null);
   const [lockConfirmDialog, setLockConfirmDialog] = useState<{ open: boolean; quotationId: number | null; isLocking: boolean }>({ open: false, quotationId: null, isLocking: false });
   
   // Abrir diálogo automáticamente si viene con ?new en la URL
@@ -515,11 +516,9 @@ export default function Quotations() {
     onSuccess: (data) => {
       utils.quotations.list.invalidate();
       utils.quotations.listPaginatedGrouped.invalidate();
-      // Abrir WhatsApp con el mensaje que ya incluye el link del portal del cliente
       const phone = (data.clientPhone || '').replace(/\D/g, '');
       const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(data.message)}`;
-      window.open(waUrl, '_blank');
-      toast.success("WhatsApp abierto con el link de aprobación listo para enviar.");
+      setPendingWaUrl(waUrl);
     },
     onError: (error) => {
       toast.error(error.message || "Error al preparar el envío por WhatsApp");
@@ -2446,6 +2445,35 @@ export default function Quotations() {
         </div>
       )}
       {/* END LEGACY CODE */}
+
+      {/* Mini-modal: link de WhatsApp listo */}
+      {pendingWaUrl && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => setPendingWaUrl(null)}>
+          <div className="bg-[#0f2424] border border-[#1DB5A8]/30 rounded-2xl p-6 max-w-sm w-full shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="text-center mb-4">
+              <div className="text-4xl mb-2">✅</div>
+              <h3 className="text-white font-bold text-lg">Cotización enviada</h3>
+              <p className="text-gray-400 text-sm mt-1">Presiona el botón para abrir WhatsApp con el mensaje listo</p>
+            </div>
+            <a
+              href={pendingWaUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => setPendingWaUrl(null)}
+              className="flex items-center justify-center gap-2 w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl text-base transition-colors"
+            >
+              <MessageCircle className="h-5 w-5" />
+              Abrir WhatsApp
+            </a>
+            <button
+              onClick={() => setPendingWaUrl(null)}
+              className="mt-3 w-full text-gray-500 hover:text-gray-300 text-sm py-2 transition-colors"
+            >
+              Cerrar
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Dialog para crear cotización */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>

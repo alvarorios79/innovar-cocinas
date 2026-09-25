@@ -549,19 +549,6 @@ export const technicalVisitsRouter = router({
         throw new TRPCError({ code: "FORBIDDEN", message: "Sin acceso" });
       }
 
-      // Validar: fotos obligatorias
-      const photos = await db
-        .select()
-        .from(technicalVisitPhotos)
-        .where(eq(technicalVisitPhotos.visitId, input.visitId));
-
-      if (photos.length === 0) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Debes agregar al menos una foto del sitio antes de enviar",
-        });
-      }
-
       const now = new Date().toISOString().replace('T', ' ').replace('Z', '');
       await db
         .update(technicalVisits)

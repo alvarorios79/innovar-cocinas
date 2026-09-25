@@ -145,7 +145,7 @@ const menuSections: MenuSection[] = [
     title: "Levantamientos",
     items: [
       { icon: ClipboardCheck, label: "Levantamientos", path: "/levantamientos",
-        roles: ["medidor"], iconColor: "#1DB5A8" },
+        roles: ["medidor", "super_admin", "admin", "comercial"], iconColor: "#1DB5A8" },
     ],
   },
   {

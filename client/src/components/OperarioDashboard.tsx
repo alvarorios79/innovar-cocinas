@@ -715,6 +715,11 @@ function ProjectPhotoCard({
     { enabled: isExpanded }
   );
 
+  const { data: technicalVisit } = trpc.technicalVisits.getByProjectId.useQuery(
+    { projectId: project.id },
+    { enabled: isExpanded, staleTime: 60000 }
+  );
+
   const photos = projectDetail?.photos || [];
   
   // Filtrar fotos de diseño (renders, despieces, modelado)
@@ -798,6 +803,16 @@ function ProjectPhotoCard({
                     <MapPin className="h-3 w-3" />
                     {projectDetail.client.address}
                   </p>
+                )}
+                {(technicalVisit as any)?.geoLocation && (
+                  <a
+                    href={`https://www.google.com/maps/dir//${(technicalVisit as any).geoLocation.latitude},${(technicalVisit as any).geoLocation.longitude}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-2 flex items-center gap-2 px-3 py-2 bg-emerald-700/80 hover:bg-emerald-600 text-white text-sm font-semibold rounded-lg transition-colors w-full justify-center"
+                  >
+                    📍 Navegar al domicilio
+                  </a>
                 )}
               </div>
             )}

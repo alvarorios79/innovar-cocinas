@@ -515,19 +515,11 @@ export default function Quotations() {
     onSuccess: (data) => {
       utils.quotations.list.invalidate();
       utils.quotations.listPaginatedGrouped.invalidate();
-      // Descargar PDF automáticamente
-      const link = document.createElement('a');
-      link.href = data.pdfUrl;
-      link.download = 'Cotizacion.pdf';
-      link.target = '_blank';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      // Abrir WhatsApp con mensaje y número pre-cargados
+      // Abrir WhatsApp con el mensaje que ya incluye el link del portal del cliente
       const phone = (data.clientPhone || '').replace(/\D/g, '');
       const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(data.message)}`;
       window.open(waUrl, '_blank');
-      toast.success("PDF descargado. WhatsApp abierto — solo envía el PDF adjunto junto al mensaje.");
+      toast.success("WhatsApp abierto con el link de aprobación listo para enviar.");
     },
     onError: (error) => {
       toast.error(error.message || "Error al preparar el envío por WhatsApp");

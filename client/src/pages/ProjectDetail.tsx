@@ -604,17 +604,32 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
   }
 
   if (!projectDetail) {
+    // Proyecto en proceso de diseño — no disponible aún para taller/operario
+    const isEnDiseno = (error as any)?.message === "EN_DISENO";
     return (
       <div className="min-h-screen bg-background">
-        
-        <div className="container py-8">
-          <p>Proyecto no encontrado.</p>
-          {error && <p className="text-red-500 mt-2">Error: {error.message}</p>}
-          <p className="text-sm text-gray-500 mt-2">ID: {projectId} | Loading: {isLoading}</p>
-          <Button onClick={() => window.history.back()} className="mt-4">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Volver a Proyectos
-          </Button>
+        <div className="container py-8 flex items-center justify-center min-h-[60vh]">
+          <div className="text-center space-y-4 max-w-sm">
+            {isEnDiseno ? (
+              <>
+                <div className="text-6xl">🎨</div>
+                <h2 className="text-xl font-semibold text-white">En proceso de diseño</h2>
+                <p className="text-sm text-slate-400">
+                  Este proyecto aún está en etapa de diseño. Estará disponible aquí cuando sea aprobado y pase a taller.
+                </p>
+              </>
+            ) : (
+              <>
+                <div className="text-5xl">🔍</div>
+                <h2 className="text-lg font-semibold text-white">Proyecto no encontrado</h2>
+                {error && <p className="text-red-400 text-sm">{error.message}</p>}
+              </>
+            )}
+            <Button onClick={() => window.history.back()} variant="outline" className="mt-2">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Volver a Proyectos
+            </Button>
+          </div>
         </div>
       </div>
     );

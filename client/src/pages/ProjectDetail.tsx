@@ -1488,7 +1488,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
                         )}
                       </div>
                     )}
-                    {subcategories.map((subcategory) => {
+                    {category !== "medidas" && subcategories.map((subcategory) => {
                       const photos = projectDetail.photos?.filter(
                         (p: any) => p.category === category && p.subcategory === subcategory
                       ) || [];

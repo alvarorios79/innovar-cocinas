@@ -547,7 +547,7 @@ export default function Medidor() {
 
   const updateUnidad = (wt: WorkType, idx: number, dim: string, val: string) => {
     const units = [...getUnidades(wt)];
-    units[idx] = { ...units[idx], [dim]: val ? parseFloat(val) : undefined };
+    units[idx] = { ...units[idx], [dim]: dim === 'descripcion' ? val : (val ? parseFloat(val) : undefined) };
     setLocalMeasurements((prev: any) => ({ ...prev, [`_${wt}_unidades`]: units }));
   };
 

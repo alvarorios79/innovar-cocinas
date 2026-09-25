@@ -572,7 +572,10 @@ export default function VisitasTecnicas() {
         )}
 
         <div className="space-y-3">
-          {(visits as Visit[]).filter(v => v.status !== "borrador").map(visit => {
+          {(visits as Visit[]).filter(v => {
+            if (statusFilter === "todas") return v.status !== "borrador";
+            return v.status === statusFilter;
+          }).map(visit => {
             const cfg = STATUS_CONFIG[visit.status];
             const photoCount = visit.photos?.length ?? 0;
             return (

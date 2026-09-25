@@ -303,8 +303,8 @@ export const technicalVisitsRouter = router({
         .where(eq(technicalVisits.id, input.visitId));
 
       if (!visit) throw new TRPCError({ code: "NOT_FOUND", message: "Levantamiento no encontrado" });
-      if (visit.status !== "borrador") {
-        throw new TRPCError({ code: "BAD_REQUEST", message: "Solo se puede editar un levantamiento en borrador" });
+      if (visit.status === "convertida") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "No se puede editar un levantamiento ya convertido en proyecto" });
       }
       if (ctx.user.role === "medidor" && visit.createdBy !== ctx.user.id) {
         throw new TRPCError({ code: "FORBIDDEN", message: "Sin acceso" });
@@ -350,7 +350,7 @@ export const technicalVisitsRouter = router({
         .where(eq(technicalVisits.id, input.visitId));
 
       if (!visit) throw new TRPCError({ code: "NOT_FOUND", message: "Levantamiento no encontrado" });
-      if (visit.status !== "borrador") {
+      if (visit.status === "convertida") {
         throw new TRPCError({ code: "BAD_REQUEST", message: "No se pueden agregar fotos a un levantamiento enviado" });
       }
       if (ctx.user.role === "medidor" && visit.createdBy !== ctx.user.id) {
@@ -423,8 +423,8 @@ export const technicalVisitsRouter = router({
       if (visit && ctx.user.role === "medidor" && visit.createdBy !== ctx.user.id) {
         throw new TRPCError({ code: "FORBIDDEN", message: "Sin acceso" });
       }
-      if (visit && visit.status !== "borrador") {
-        throw new TRPCError({ code: "BAD_REQUEST", message: "No se puede eliminar fotos de un levantamiento enviado" });
+      if (visit && visit.status === "convertida") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "No se puede eliminar fotos de un levantamiento ya convertido en proyecto" });
       }
 
       await db.delete(technicalVisitPhotos).where(eq(technicalVisitPhotos.id, input.photoId));
@@ -450,8 +450,8 @@ export const technicalVisitsRouter = router({
         .where(eq(technicalVisits.id, input.visitId));
 
       if (!visit) throw new TRPCError({ code: "NOT_FOUND", message: "Levantamiento no encontrado" });
-      if (visit.status !== "borrador") {
-        throw new TRPCError({ code: "BAD_REQUEST", message: "No se pueden agregar PDFs a un levantamiento enviado" });
+      if (visit.status === "convertida") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "No se pueden agregar PDFs a un levantamiento ya convertido en proyecto" });
       }
       if (ctx.user.role === "medidor" && visit.createdBy !== ctx.user.id) {
         throw new TRPCError({ code: "FORBIDDEN", message: "Sin acceso" });
@@ -509,7 +509,7 @@ export const technicalVisitsRouter = router({
         .where(eq(technicalVisits.id, input.visitId));
 
       if (!visit) throw new TRPCError({ code: "NOT_FOUND", message: "Levantamiento no encontrado" });
-      if (visit.status !== "borrador") {
+      if (visit.status === "convertida") {
         throw new TRPCError({ code: "BAD_REQUEST", message: "No se puede modificar un levantamiento enviado" });
       }
       if (ctx.user.role === "medidor" && visit.createdBy !== ctx.user.id) {

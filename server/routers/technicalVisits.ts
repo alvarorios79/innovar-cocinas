@@ -213,9 +213,11 @@ export const technicalVisitsRouter = router({
       clientPhone: z.string().optional(),
       clientAddress: z.string().optional(),
       visitCity: z.string().optional(),
-      workType: z.enum(["cocina", "closet", "puertas", "centro_tv"]),
+      workType: z.enum(["cocina", "closet", "puertas", "centro_tv", "mueble_bano", "otro"]),
       appointmentId: z.number().optional(),
       clientId: z.number().optional(),
+      identificationNumber: z.string().optional(),
+      workTypes: z.array(z.string()).optional(),
       geoLocation: z.object({
         latitude: z.number(),
         longitude: z.number(),
@@ -252,17 +254,30 @@ export const technicalVisitsRouter = router({
         })
         .returning();
 
+      // Guardar workTypes en measurements si se proporcionaron varios tipos
+      if (input.workTypes && input.workTypes.length > 0) {
+        try {
+          await db.update(technicalVisits)
+            .set({ measurements: { _workTypes: input.workTypes } })
+            .where(eq(technicalVisits.id, created.id));
+        } catch (_) {}
+      }
+
       // -- Registrar cliente en CRM si el medidor crea la visita manualmente
       if (!input.clientId && input.clientPhone) {
         try {
-          const { createClient, getClientByWhatsApp } = await import('../db');
+          const { createClient, getClientByWhatsApp, updateClient } = await import('../db');
           let existingClient = await getClientByWhatsApp(input.clientPhone);
           if (!existingClient) {
-            existingClient = await createClient({
+            const newId = await createClient({
               name: input.clientName,
               whatsappPhone: input.clientPhone,
-              address: input.clientAddress || null,
+              address: input.clientAddress || undefined,
+              identificationNumber: input.identificationNumber || undefined,
             } as any, 'manual');
+            existingClient = await (await import('../db')).getClientById(newId) as any;
+          } else if (input.identificationNumber && !(existingClient as any).identificationNumber) {
+            await updateClient(existingClient.id, { identificationNumber: input.identificationNumber } as any);
           }
           if (existingClient?.id) {
             await db.update(technicalVisits)

@@ -830,7 +830,7 @@ export default function Medidor() {
           {/* Tab: Hoy */}
           {tab === "hoy" && (
             <div className="space-y-4">
-              {todayApts.length === 0 && (
+              {todayApts.length === 0 && borradorVisits.length === 0 && (
                 <div className="text-center py-12 text-slate-500">
                   <Calendar className="h-12 w-12 mx-auto mb-3 opacity-30" />
                   <p className="font-medium">Sin visitas para hoy</p>

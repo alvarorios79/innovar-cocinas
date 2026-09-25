@@ -1221,24 +1221,63 @@ export default function Medidor() {
                 <User className="h-5 w-5 text-[#1DB5A8]" />
                 Datos del cliente
               </h2>
-              <Input
-                value={visit.clientName}
-                onChange={(e) => updateVisit.mutateAsync({ visitId: visit.id, clientName: e.target.value })}
-                placeholder="Nombre"
-                className="bg-[#0C1A1A] border-[#1DB5A8]/20 text-white"
-              />
-              <Input
-                value={visit.clientPhone || ""}
-                onChange={(e) => updateVisit.mutateAsync({ visitId: visit.id, clientPhone: e.target.value })}
-                placeholder="Teléfono"
-                className="bg-[#0C1A1A] border-[#1DB5A8]/20 text-white"
-              />
-              <Input
-                value={visit.clientAddress || ""}
-                onChange={(e) => updateVisit.mutateAsync({ visitId: visit.id, clientAddress: e.target.value })}
-                placeholder="Dirección"
-                className="bg-[#0C1A1A] border-[#1DB5A8]/20 text-white"
-              />
+              <div className="grid grid-cols-1 gap-3">
+                <div>
+                  <label className="block text-xs text-[#1DB5A8]/70 mb-1">Nombre completo *</label>
+                  <Input
+                    value={visit.clientName}
+                    onChange={(e) => updateVisit.mutateAsync({ visitId: visit.id, clientName: e.target.value })}
+                    placeholder="Nombre"
+                    className="bg-[#0C1A1A] border-[#1DB5A8]/20 text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-[#1DB5A8]/70 mb-1">Cédula / Identificación</label>
+                  <Input
+                    value={(visit as any).clientIdentificationNumber || ""}
+                    onChange={(e) => updateVisit.mutateAsync({ visitId: visit.id, clientIdentificationNumber: e.target.value } as any)}
+                    placeholder="Ej: CC 1234567890"
+                    className="bg-[#0C1A1A] border-[#1DB5A8]/20 text-white placeholder:text-slate-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-[#1DB5A8]/70 mb-1">Correo electrónico</label>
+                  <Input
+                    type="email"
+                    value={(visit as any).clientEmail || ""}
+                    onChange={(e) => updateVisit.mutateAsync({ visitId: visit.id, clientEmail: e.target.value } as any)}
+                    placeholder="cliente@gmail.com"
+                    className="bg-[#0C1A1A] border-[#1DB5A8]/20 text-white placeholder:text-slate-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-[#1DB5A8]/70 mb-1">Teléfono WhatsApp *</label>
+                  <Input
+                    value={visit.clientPhone || ""}
+                    onChange={(e) => updateVisit.mutateAsync({ visitId: visit.id, clientPhone: e.target.value })}
+                    placeholder="Ej: 3001234567"
+                    className="bg-[#0C1A1A] border-[#1DB5A8]/20 text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-[#1DB5A8]/70 mb-1">Dirección</label>
+                  <Input
+                    value={visit.clientAddress || ""}
+                    onChange={(e) => updateVisit.mutateAsync({ visitId: visit.id, clientAddress: e.target.value })}
+                    placeholder="Dirección"
+                    className="bg-[#0C1A1A] border-[#1DB5A8]/20 text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-[#1DB5A8]/70 mb-1">Ciudad</label>
+                  <Input
+                    value={visit.visitCity || ""}
+                    onChange={(e) => updateVisit.mutateAsync({ visitId: visit.id, visitCity: e.target.value })}
+                    placeholder="Ej: Pereira, Dosquebradas..."
+                    className="bg-[#0C1A1A] border-[#1DB5A8]/20 text-white placeholder:text-slate-500"
+                  />
+                </div>
+              </div>
             </div>
           )}
 

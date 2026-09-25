@@ -505,14 +505,9 @@ export default function Medidor() {
       if (initialNotes.trim()) {
         await updateVisit.mutateAsync({ visitId: id, notes: initialNotes });
       }
-      setSelectedVisit({ id, ...formData, status: "borrador", createdAt: new Date().toISOString(), geoLocation: geo ?? undefined });
-      setLocalMeasurements({});
-      setLocalNotes(initialNotes);
-      setLocalEvaluation(undefined);
-      setLocalCriticalObservations("");
-      setLocalChecklist({});
-      setView("detail");
-      toast.success("Visita creada");
+      setView("list");
+      refetchVisits();
+      toast.success("Visita agendada — ábrela cuando estés en el domicilio del cliente");
     } catch (error) {
       toast.error("Error al crear visita");
     }

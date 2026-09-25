@@ -2937,6 +2937,23 @@ export const quotationsRouter = router({
           designerId: autoAssignedDesignerId,
         });
         
+        // Sincronizar publicToken: mismo link permanente para el cliente
+        const quotationPublicToken = quotation.publicToken ?? null;
+        if (quotationPublicToken) {
+          try {
+            const drizzleDbSync = await db.getDb();
+            if (drizzleDbSync) {
+              const { projects: projectsTable } = await import("../../drizzle/schema");
+              const { eq: eqSync } = await import("drizzle-orm");
+              await drizzleDbSync.update(projectsTable)
+                .set({ publicToken: quotationPublicToken })
+                .where(eqSync(projectsTable.id, projectId));
+            }
+          } catch (syncErr) {
+            console.error('[createProject] Error sincronizando publicToken al proyecto:', syncErr);
+          }
+        }
+
         // Crear historial de estado del proyecto
         await db.createProjectStatusHistory({
           projectId: projectId,
@@ -3549,6 +3566,13 @@ export const quotationsRouter = router({
         const formatCurrency = (v: number) =>
           new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", minimumFractionDigits: 0 }).format(v);
 
+        // Verificar si ya existe un proyecto vinculado a esta cotización
+        let linkedProjectId: number | null = null;
+        try {
+          const linkedProject = await db.getProjectByQuotationId(quotation.id);
+          if (linkedProject) linkedProjectId = linkedProject.id;
+        } catch (_) {}
+
         return {
           quotationNumber: quotation.quotationNumber,
           clientName: client?.name ?? "Cliente",
@@ -3565,6 +3589,7 @@ export const quotationsRouter = router({
             total: formatCurrency(Number(it.totalPrice ?? 0)),
           })),
           createdAt: quotation.createdAt,
+          projectId: linkedProjectId,
         };
       }),
 

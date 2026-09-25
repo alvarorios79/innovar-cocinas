@@ -1391,6 +1391,17 @@ export default function Medidor() {
                                     </div>
                                   ))}
                                 </div>
+                                <div>
+                                  <label className="block text-xs font-semibold text-[#1DB5A8] mb-1">
+                                    {wt === "otro" ? "¿Qué tipo de mueble? *" : "Descripción (opcional)"}
+                                  </label>
+                                  <Input
+                                    value={(unit as any).descripcion || ""}
+                                    onChange={(e) => updateUnidad(wt, uIdx, "descripcion", e.target.value)}
+                                    placeholder={wt === "otro" ? "Ej: cómoda, mueble de sala, zapatera..." : "Ej: habitación principal, sala..."}
+                                    className="bg-[#0C1A1A] border-[#1DB5A8]/20 text-white placeholder:text-slate-500 text-sm h-9"
+                                  />
+                                </div>
                               </div>
                             ))}
                             <button

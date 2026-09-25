@@ -5,6 +5,7 @@
  */
 
 import { useState } from "react";
+import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -34,6 +35,14 @@ type Photo = {
   description?: string | null;
 };
 
+type Pdf = {
+  id: string;
+  pdfUrl: string;
+  fileName?: string | null;
+  originalFileName?: string | null;
+  createdAt: string;
+};
+
 type Visit = {
   id: number;
   clientName: string;
@@ -44,7 +53,12 @@ type Visit = {
   createdAt: string;
   notes?: string | null;
   measurements?: Record<string, unknown> | null;
+  checklist?: Record<string, boolean> | null;
+  technicalEvaluation?: string | null;
+  criticalObservations?: string | null;
+  clientSignature?: string | null;
   photos?: Photo[];
+  pdfs?: Pdf[];
   quotationId?: number | null;
   createdByUser?: { name: string } | null;
 };
@@ -114,6 +128,8 @@ const PHOTO_CAT_LABELS: Record<string, string> = {
 // ── Componente principal ─────────────────────────────────────────────────────
 
 export default function VisitasTecnicas() {
+  const { user } = useAuth();
+  const isManager = ["super_admin", "admin", "comercial"].includes(user?.role ?? "");
   const [, navigate] = useLocation();
   const [selectedVisitId, setSelectedVisitId] = useState<number | null>(null);
   const [lightboxUrl, setLightboxUrl]         = useState<string | null>(null);
@@ -216,9 +232,11 @@ export default function VisitasTecnicas() {
     const pdfs   = photos.filter(p => p.category?.startsWith("pdf"));
     const firmas = photos.filter(p => p.category === "firma");
     const rawMeasurements = (visit?.measurements ?? {}) as Record<string, any>;
-    const { _checklist, _evaluacion, _geo, ...measurements } = rawMeasurements;
-    const checklist:  Record<string, boolean> = (_checklist  as any) ?? {};
-    const evaluacion: Record<string, string>  = (_evaluacion as any) ?? {};
+    const { _geo, ...measurements } = rawMeasurements;
+    const checklist: Record<string, boolean> = (visit?.checklist ?? {}) as Record<string, boolean>;
+    const technicalEval = visit?.technicalEvaluation ?? null;
+    const criticalObs   = visit?.criticalObservations ?? null;
+    const visiblePdfs   = visit?.pdfs ?? [];
     const geo: { lat: number; lng: number } | null = (_geo as any) ?? null;
     const fields = visit ? (MEASUREMENT_LABELS[visit.workType] ?? {}) : {};
 
@@ -248,7 +266,7 @@ export default function VisitasTecnicas() {
                 {visit?.clientAddress && ` · ${visit.clientAddress}`}
               </p>
             </div>
-            {visit?.status === "enviada" && (
+            {isManager && visit?.status === "enviada" && (
               <Button
                 onClick={() => visit && handleCreateQuotation(visit)}
                 className="bg-[#1DB5A8] hover:bg-[#17a396] text-white"
@@ -350,27 +368,31 @@ export default function VisitasTecnicas() {
             </div>
 
             {/* Evaluación técnica */}
-            {Object.keys(evaluacion).filter(k => !k.endsWith("_nota")).length > 0 && (
+            {(technicalEval || criticalObs) && (
               <div className="bg-[#162828] rounded-xl p-5 border border-[#1DB5A8]/10 md:col-span-2">
                 <h2 className="text-sm font-semibold text-[#1DB5A8] uppercase tracking-wide mb-4 flex items-center gap-2">
-                  <ClipboardList className="h-4 w-4" /> Evaluación técnica del espacio
+                  <ClipboardList className="h-4 w-4" /> Evaluación técnica
                 </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {Object.entries(EVAL_FIELD_LABELS).map(([key, label]) => {
-                    const val  = evaluacion[key];
-                    const nota = evaluacion[`${key}_nota`];
-                    if (!val) return null;
-                    return (
-                      <div key={key} className="bg-[#0C1A1A] rounded-lg px-4 py-3">
-                        <p className="text-xs text-gray-500 mb-1">{label}</p>
-                        <p className="text-sm text-white font-medium">
-                          {EVAL_LABELS[key]?.[val] ?? val}
-                        </p>
-                        {nota && <p className="text-xs text-gray-400 mt-1 italic">{nota}</p>}
-                      </div>
-                    );
-                  })}
-                </div>
+                {technicalEval && (
+                  <div className="mb-3">
+                    <p className="text-xs text-gray-500 mb-1">Viabilidad del proyecto</p>
+                    <span className={`text-sm font-medium px-3 py-1 rounded-full ${
+                      technicalEval === "viable" ? "bg-green-500/20 text-green-400" :
+                      technicalEval === "requiere_revision" ? "bg-amber-500/20 text-amber-400" :
+                      "bg-red-500/20 text-red-400"
+                    }`}>
+                      {technicalEval === "viable" ? "✅ Viable" :
+                       technicalEval === "requiere_revision" ? "⚠️ Requiere revisión" :
+                       "🔴 Requiere visita adicional"}
+                    </span>
+                  </div>
+                )}
+                {criticalObs && (
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">Observaciones críticas</p>
+                    <p className="text-sm text-gray-300 whitespace-pre-wrap">{criticalObs}</p>
+                  </div>
+                )}
               </div>
             )}
 
@@ -406,7 +428,7 @@ export default function VisitasTecnicas() {
             )}
 
             {/* Firma */}
-            {firmas.length > 0 && (
+            {(firmas.length > 0 || visit?.clientSignature) && (
               <div className="bg-[#162828] rounded-xl p-5 border border-[#1DB5A8]/10">
                 <h2 className="text-sm font-semibold text-[#1DB5A8] uppercase tracking-wide mb-3 flex items-center gap-2">
                   <PenLine className="h-4 w-4" /> Firma del cliente
@@ -416,6 +438,11 @@ export default function VisitasTecnicas() {
                     <img src={f.photoUrl} alt="Firma" className="w-full h-24 object-contain p-2" />
                   </div>
                 ))}
+                {firmas.length === 0 && visit?.clientSignature && (
+                  <div className="bg-white rounded-lg overflow-hidden">
+                    <img src={visit.clientSignature} alt="Firma" className="w-full h-24 object-contain p-2" />
+                  </div>
+                )}
               </div>
             )}
 
@@ -452,20 +479,20 @@ export default function VisitasTecnicas() {
             )}
 
             {/* PDFs */}
-            {pdfs.length > 0 && (
+            {visiblePdfs.length > 0 && (
               <div className="bg-[#162828] rounded-xl p-5 border border-[#1DB5A8]/10 md:col-span-2">
                 <h2 className="text-sm font-semibold text-[#1DB5A8] uppercase tracking-wide mb-4 flex items-center gap-2">
-                  <FileText className="h-4 w-4" /> Planos GoodNotes ({pdfs.length})
+                  <FileText className="h-4 w-4" /> Planos GoodNotes ({visiblePdfs.length})
                 </h2>
                 <div className="space-y-2">
-                  {pdfs.map(pdf => (
+                  {visiblePdfs.map(pdf => (
                     <div key={pdf.id} className="flex items-center gap-3 bg-[#0C1A1A] rounded-lg px-4 py-3">
                       <FileText className="h-5 w-5 text-red-400 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
                         <p className="text-sm text-white truncate">{pdf.description ?? "Plano"}</p>
                       </div>
                       <a
-                        href={pdf.photoUrl}
+                        href={pdf.pdfUrl}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-[#1DB5A8] hover:text-[#17a396] flex items-center gap-1 text-sm"
@@ -612,21 +639,23 @@ export default function VisitasTecnicas() {
                         Lista para cotizar
                       </span>
                     )}
-                    <button
-                      onClick={async (e) => {
-                        e.stopPropagation();
-                        if (!confirm("¿Eliminar este levantamiento? Esta acción no se puede deshacer.")) return;
-                        try {
-                          await deleteVisitMutation.mutateAsync({ id: visit.id });
-                        } catch (err: any) {
-                          // onError handles toast
-                        }
-                      }}
-                      className="text-red-400 hover:text-red-300 p-1 rounded hover:bg-red-500/10 ml-1"
-                      title="Eliminar levantamiento"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
+                    {isManager && (
+                      <button
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          if (!confirm("¿Eliminar este levantamiento? Esta acción no se puede deshacer.")) return;
+                          try {
+                            await deleteVisitMutation.mutateAsync({ id: visit.id });
+                          } catch (err: any) {
+                            // onError handles toast
+                          }
+                        }}
+                        className="text-red-400 hover:text-red-300 p-1 rounded hover:bg-red-500/10 ml-1"
+                        title="Eliminar levantamiento"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    )}
                     <ChevronRight className="h-5 w-5 text-gray-500" />
                   </div>
                 </div>

@@ -678,6 +678,7 @@ export const quotations = pgTable("quotations", {
 	dataOrigin: text().default('manual').notNull(),
 	isArchived: integer().default(0).notNull(),
 	includeIva: integer().default(0).notNull(),
+	publicToken: varchar({ length: 64 }),
 },
 (table) => [
 	index("quotationNumber").on(table.quotationNumber),

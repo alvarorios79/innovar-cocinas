@@ -536,7 +536,32 @@ export default function Medidor() {
     }
   };
 
-  const handleSaveMeasurements = async () => {
+  // ── Helpers para medidas por unidad ────────────────────────────────────────
+  const getUnidades = (wt: WorkType): Array<Record<string, number | undefined>> => {
+    const stored = (localMeasurements as any)[`_${wt}_unidades`];
+    if (stored && Array.isArray(stored)) return stored;
+    // Retrocompat: convertir formato plano anterior
+    const ancho = (localMeasurements as any)[`_${wt}_ancho`];
+    return [{ ancho: ancho ?? undefined, alto: (localMeasurements as any)[`_${wt}_alto`] ?? undefined, profundo: (localMeasurements as any)[`_${wt}_profundo`] ?? undefined }];
+  };
+
+  const updateUnidad = (wt: WorkType, idx: number, dim: string, val: string) => {
+    const units = [...getUnidades(wt)];
+    units[idx] = { ...units[idx], [dim]: val ? parseFloat(val) : undefined };
+    setLocalMeasurements((prev: any) => ({ ...prev, [`_${wt}_unidades`]: units }));
+  };
+
+  const addUnidad = (wt: WorkType) => {
+    const units = [...getUnidades(wt), {}];
+    setLocalMeasurements((prev: any) => ({ ...prev, [`_${wt}_unidades`]: units }));
+  };
+
+  const removeUnidad = (wt: WorkType, idx: number) => {
+    const units = getUnidades(wt).filter((_, i) => i !== idx);
+    setLocalMeasurements((prev: any) => ({ ...prev, [`_${wt}_unidades`]: units.length > 0 ? units : [{}] }));
+  };
+
+    const handleSaveMeasurements = async () => {
     if (!visitDetail) return;
     try {
       await updateVisit.mutateAsync({
@@ -1312,48 +1337,71 @@ export default function Medidor() {
                     {/* Campos de medidas cuando está seleccionado */}
                     {isChecked && (
                       <div className="p-3 space-y-3 bg-[#162828]/50">
-                        {/* Selector de forma — solo cocina */}
-                        {wt === "cocina" && (
-                          <div>
-                            <label className="block text-xs font-semibold text-[#1DB5A8] mb-2">Forma de la cocina *</label>
-                            <div className="flex gap-2">
-                              {(["L", "Lineal", "U"] as const).map((forma) => (
-                                <button
-                                  key={forma}
-                                  type="button"
-                                  onClick={() => setLocalMeasurements({ ...localMeasurements, [`_cocina_forma`]: forma })}
-                                  className={`flex-1 py-2 rounded-lg border text-sm font-bold transition-colors ${
-                                    (localMeasurements as any)[`_cocina_forma`] === forma
-                                      ? "bg-[#1DB5A8] border-[#1DB5A8] text-white"
-                                      : "border-[#1DB5A8]/30 text-slate-300 hover:border-[#1DB5A8]/60"
-                                  }`}
-                                >
-                                  {forma}
-                                </button>
+                        {wt === "cocina" ? (
+                          /* ── Cocina: forma + una sola medida ── */
+                          <>
+                            <div>
+                              <label className="block text-xs font-semibold text-[#1DB5A8] mb-2">Forma de la cocina *</label>
+                              <div className="flex gap-2">
+                                {(["L", "Lineal", "U"] as const).map((forma) => (
+                                  <button
+                                    key={forma}
+                                    type="button"
+                                    onClick={() => setLocalMeasurements((prev: any) => ({ ...prev, _cocina_forma: forma }))}
+                                    className={`flex-1 py-2 rounded-lg border text-sm font-bold transition-colors ${
+                                      (localMeasurements as any)._cocina_forma === forma
+                                        ? "bg-[#1DB5A8] border-[#1DB5A8] text-white"
+                                        : "border-[#1DB5A8]/30 text-slate-300 hover:border-[#1DB5A8]/60"
+                                    }`}
+                                  >
+                                    {forma}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-3 gap-2">
+                              {[{ key: "_cocina_ancho", label: "Ancho" }, { key: "_cocina_alto", label: "Alto" }, { key: "_cocina_profundo", label: "Profundo" }].map(({ key, label }) => (
+                                <div key={key}>
+                                  <label className="block text-xs font-semibold text-[#1DB5A8] mb-1">{label} (cm)</label>
+                                  <Input type="number" value={(localMeasurements as any)[key] || ""} onChange={(e) => setLocalMeasurements((prev: any) => ({ ...prev, [key]: e.target.value ? parseFloat(e.target.value) : undefined }))} placeholder="0" className="bg-[#0C1A1A] border-[#1DB5A8]/20 text-white h-9 text-sm" />
+                                </div>
                               ))}
                             </div>
-                          </div>
+                          </>
+                        ) : (
+                          /* ── Otros tipos: una o varias unidades con medidas independientes ── */
+                          <>
+                            {getUnidades(wt).map((unit, uIdx) => (
+                              <div key={uIdx} className="border border-[#1DB5A8]/20 rounded-lg p-3 space-y-2">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-xs font-semibold text-[#1DB5A8]">
+                                    {getUnidades(wt).length > 1 ? `${WORK_TYPE_LABELS[wt]} #${uIdx + 1}` : WORK_TYPE_LABELS[wt]}
+                                  </span>
+                                  {getUnidades(wt).length > 1 && (
+                                    <button type="button" onClick={() => removeUnidad(wt, uIdx)} className="text-red-400 hover:text-red-300 text-xs px-2 py-0.5 rounded border border-red-500/30 hover:border-red-400/50 transition-colors">
+                                      Eliminar
+                                    </button>
+                                  )}
+                                </div>
+                                <div className="grid grid-cols-3 gap-2">
+                                  {[{ dim: "ancho", label: "Ancho" }, { dim: "alto", label: "Alto" }, { dim: "profundo", label: "Profundo" }].map(({ dim, label }) => (
+                                    <div key={dim}>
+                                      <label className="block text-xs font-semibold text-[#1DB5A8] mb-1">{label} (cm)</label>
+                                      <Input type="number" value={(unit as any)[dim] ?? ""} onChange={(e) => updateUnidad(wt, uIdx, dim, e.target.value)} placeholder="0" className="bg-[#0C1A1A] border-[#1DB5A8]/20 text-white h-9 text-sm" />
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            ))}
+                            <button
+                              type="button"
+                              onClick={() => addUnidad(wt)}
+                              className="w-full py-2 border border-dashed border-[#1DB5A8]/40 rounded-lg text-xs text-[#1DB5A8] hover:bg-[#1DB5A8]/10 transition-colors flex items-center justify-center gap-1"
+                            >
+                              <span className="text-base leading-none">+</span> Agregar otra unidad ({WORK_TYPE_LABELS[wt]})
+                            </button>
+                          </>
                         )}
-
-                        {/* Medidas: ancho / alto / profundo — todos los tipos */}
-                        <div className="grid grid-cols-3 gap-2">
-                          {[
-                            { key: `_${wt}_ancho`, label: "Ancho" },
-                            { key: `_${wt}_alto`, label: "Alto" },
-                            { key: `_${wt}_profundo`, label: "Profundo" },
-                          ].map(({ key, label }) => (
-                            <div key={key}>
-                              <label className="block text-xs font-semibold text-[#1DB5A8] mb-1">{label} (cm)</label>
-                              <Input
-                                type="number"
-                                value={(localMeasurements as any)[key] || ""}
-                                onChange={(e) => setLocalMeasurements({ ...localMeasurements, [key]: e.target.value ? parseFloat(e.target.value) : undefined })}
-                                placeholder="0"
-                                className="bg-[#0C1A1A] border-[#1DB5A8]/20 text-white h-9 text-sm"
-                              />
-                            </div>
-                          ))}
-                        </div>
                       </div>
                     )}
                   </div>

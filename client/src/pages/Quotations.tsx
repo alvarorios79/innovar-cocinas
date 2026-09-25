@@ -218,17 +218,21 @@ export default function Quotations() {
   const { prices, isLoading: isPricingLoading, getPrice } = usePricing();
   const { data: allPricing } = trpc.pricing.getAll.useQuery();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [fromVisitId, setFromVisitId] = useState<number | null>(null);
   const [lockConfirmDialog, setLockConfirmDialog] = useState<{ open: boolean; quotationId: number | null; isLocking: boolean }>({ open: false, quotationId: null, isLocking: false });
   
   // Abrir diálogo automáticamente si viene con ?new en la URL
   // También pre-llena clientId y workType si vienen de un levantamiento técnico
   useEffect(() => {
     if (location.includes("?new") || location.includes("&new") ||
-        location.includes("?clientId") || location.includes("new=1")) {
+        location.includes("?clientId") || location.includes("new=1") ||
+        location.includes("fromVisit=")) {
       const queryStr = location.includes("?") ? location.split("?")[1] : "";
       const params = new URLSearchParams(queryStr);
       const hasNew = params.has("new") || location.includes("?new") || location.includes("&new");
-      if (hasNew) {
+      const visitIdParam = params.get("fromVisit");
+      if (visitIdParam) setFromVisitId(parseInt(visitIdParam));
+      if (hasNew || visitIdParam) {
         setShowCreateDialog(true);
         const clientId = params.get("clientId");
         const wt = params.get("workType");
@@ -436,6 +440,7 @@ export default function Quotations() {
       toast.success("Cotización creada exitosamente");
       setShowCreateDialog(false);
       resetForm();
+      setFromVisitId(null);
     },
     onError: (error) => {
       toast.error(error.message || "Error al crear cotización");
@@ -2009,6 +2014,7 @@ export default function Quotations() {
         includeIva,
         generalNotes: notesWithTerms,
         items: itemsWithDescriptions,
+        technicalVisitId: fromVisitId ?? undefined,
       });
     }
   };

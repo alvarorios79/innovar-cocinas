@@ -24,6 +24,7 @@ import ResetPassword from "./pages/ResetPassword";
 import ProjectDetail from "./pages/ProjectDetail";
 import Comercial from "./pages/Comercial";
 import PublicGallery from "./pages/PublicGallery";
+import PublicQuotation from "./pages/PublicQuotation";
 import PricingConfig from "./pages/PricingConfig";
 import Accounting from "./pages/Accounting";
 import AppointmentsCalendar from "./pages/AppointmentsCalendar";
@@ -47,9 +48,9 @@ function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
 
   // Rutas siempre públicas (nunca usan DashboardLayout)
-  const alwaysPublicRoutes = ["/login", "/register", "/forgot-password", "/reset-password", "/portal", "/gallery"];
+  const alwaysPublicRoutes = ["/login", "/register", "/forgot-password", "/reset-password", "/portal", "/gallery", "/cotizacion"];
   const isAlwaysPublic = alwaysPublicRoutes.some(
-    route => location === route || location.startsWith("/portal") || location.startsWith("/gallery")
+    route => location === route || location.startsWith("/portal") || location.startsWith("/gallery") || location.startsWith("/cotizacion")
   );
   if (isAlwaysPublic) return <>{children}</>;
 
@@ -79,6 +80,7 @@ function Router() {
         <Route path={"/forgot-password"} component={ForgotPassword} />
         <Route path={"/reset-password"} component={ResetPassword} />
         <Route path={"/gallery"}><PublicGallery /></Route>
+        <Route path={"/cotizacion"}><PublicQuotation /></Route>
         <Route path={"/pricing-config"}><PricingConfig /></Route>
         <Route path={"/herrajes"}><Herrajes /></Route>
         <Route path={"/accounting"}><Accounting /></Route>

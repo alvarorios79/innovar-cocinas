@@ -578,7 +578,13 @@ export default function VisitasTecnicas() {
             return (
               <button
                 key={visit.id}
-                onClick={() => setSelectedVisitId(visit.id)}
+                onClick={() => {
+                  if (!isManager) {
+                    navigate(`/medidor?visitId=${visit.id}`);
+                  } else {
+                    setSelectedVisitId(visit.id);
+                  }
+                }}
                 className="w-full bg-[#162828] border border-[#1DB5A8]/10 rounded-xl p-5 text-left hover:border-[#1DB5A8]/40 transition-colors"
               >
                 <div className="flex items-start justify-between gap-4">

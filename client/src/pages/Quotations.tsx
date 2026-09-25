@@ -516,7 +516,9 @@ export default function Quotations() {
     onSuccess: (data) => {
       utils.quotations.list.invalidate();
       utils.quotations.listPaginatedGrouped.invalidate();
-      const phone = (data.clientPhone || '').replace(/\D/g, '');
+      const rawPhone = (data.clientPhone || '').replace(/\D/g, '');
+      // Agregar código de país Colombia (57) si no lo tiene
+      const phone = rawPhone.startsWith('57') ? rawPhone : '57' + rawPhone;
       const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(data.message)}`;
       setPendingWaUrl(waUrl);
     },

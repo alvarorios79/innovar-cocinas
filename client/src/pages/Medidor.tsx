@@ -848,8 +848,49 @@ export default function Medidor() {
                 </>
               )}
 
-
-
+              {/* Visitas abiertas — borrador: en proceso, aún no enviadas */}
+              {borradorVisits.length > 0 && (
+                <>
+                  <p className="text-xs font-semibold text-amber-400 uppercase tracking-wide mt-2">
+                    Visitas abiertas ({borradorVisits.length})
+                  </p>
+                  <div className="space-y-2">
+                    {borradorVisits.map((visit: Visit) => (
+                      <div
+                        key={visit.id}
+                        className="bg-[#162828] border border-amber-500/30 rounded-lg p-3 hover:border-amber-500/60 transition-colors flex items-center justify-between"
+                      >
+                        <div
+                          className="flex-1 min-w-0 cursor-pointer"
+                          onClick={() => { setSelectedVisit(visit); setView("detail"); }}
+                        >
+                          <h3 className="font-semibold text-white text-sm">{visit.clientName}</h3>
+                          <p className="text-xs text-amber-400">{WORK_TYPE_LABELS[visit.workType]} · En proceso</p>
+                        </div>
+                        <div className="flex items-center gap-2 ml-2">
+                          <AlertCircle className="h-5 w-5 text-amber-400" />
+                          <button
+                            onClick={async (e) => {
+                              e.stopPropagation();
+                              if (!confirm("¿Eliminar esta visita? Esta acción no se puede deshacer.")) return;
+                              try {
+                                await deleteVisitMutation.mutateAsync({ id: visit.id });
+                                refetchVisits();
+                                toast.success("Visita eliminada");
+                              } catch (err: any) {
+                                toast.error(err?.message || "Error al eliminar");
+                              }
+                            }}
+                            className="text-red-400 hover:text-red-300 p-1 rounded hover:bg-red-500/10"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
           )}
 

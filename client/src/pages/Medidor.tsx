@@ -680,7 +680,7 @@ export default function Medidor() {
   };
 
   const visit = visitDetail ?? selectedVisit;
-  const isEditable = visit?.status === "borrador";
+  const isEditable = visit?.status === "borrador" || visit?.status === "enviada";
   const completion = calculateCompletion();
 
   // ── Vistas ────────────────────────────────────────────────────────────────
@@ -701,7 +701,7 @@ export default function Medidor() {
       return d >= tomorrowStart;
     });
     const borradorVisits = (visits as Visit[]).filter(v => v.status === "borrador");
-    const historialVisits = (visits as Visit[]).filter(v => ["completada", "enviado", "aprobado"].includes(v.status));
+    const historialVisits = (visits as Visit[]).filter(v => ["enviada", "convertida"].includes(v.status));
 
     // Agrupar próximas por fecha
     const proximasByDate: Record<string, any[]> = {};
@@ -799,9 +799,9 @@ export default function Medidor() {
           {/* Tabs */}
           <div className="flex gap-1 bg-[#162828] rounded-xl p-1 mb-5">
             {([
-              { key: "hoy", label: "Hoy", count: todayApts.length + borradorVisits.length },
+              { key: "hoy", label: "Visitas", count: todayApts.length + borradorVisits.length },
               { key: "proximas", label: "Próximas", count: proximasApts.length },
-              { key: "historial", label: "Historial", count: historialVisits.length },
+              { key: "historial", label: "Levantamientos", count: historialVisits.length },
               { key: "tareas", label: "Tareas", count: pendingTasks.length },
             ] as const).map(({ key, label, count }) => (
               <button

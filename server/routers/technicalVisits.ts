@@ -217,6 +217,7 @@ export const technicalVisitsRouter = router({
       appointmentId: z.number().optional(),
       clientId: z.number().optional(),
       identificationNumber: z.string().optional(),
+      clientEmail: z.string().optional(),
       workTypes: z.array(z.string()).optional(),
       geoLocation: z.object({
         latitude: z.number(),
@@ -272,12 +273,23 @@ export const technicalVisitsRouter = router({
             const newId = await createClient({
               name: input.clientName,
               whatsappPhone: input.clientPhone,
+              email: input.clientEmail || undefined,
               address: input.clientAddress || undefined,
               identificationNumber: input.identificationNumber || undefined,
             } as any, 'manual');
             existingClient = await (await import('../db')).getClientById(newId) as any;
-          } else if (input.identificationNumber && !(existingClient as any).identificationNumber) {
-            await updateClient(existingClient.id, { identificationNumber: input.identificationNumber } as any);
+          } else {
+            // Update missing fields on existing client
+            const updates: Record<string, string> = {};
+            if (input.identificationNumber && !(existingClient as any).identificationNumber) {
+              updates.identificationNumber = input.identificationNumber;
+            }
+            if (input.clientEmail && !(existingClient as any).email) {
+              updates.email = input.clientEmail;
+            }
+            if (Object.keys(updates).length > 0) {
+              await updateClient(existingClient.id, updates as any);
+            }
           }
           if (existingClient?.id) {
             await db.update(technicalVisits)

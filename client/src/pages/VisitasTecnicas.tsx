@@ -62,6 +62,7 @@ type Visit = {
   pdfs?: Pdf[];
   quotationId?: number | null;
   createdByUser?: { name: string } | null;
+  geoLocation?: { latitude: number; longitude: number; timestamp: string } | null;
 };
 
 // ── Constantes ───────────────────────────────────────────────────────────────
@@ -234,12 +235,13 @@ export default function VisitasTecnicas() {
     const pdfs   = photos.filter(p => p.category?.startsWith("pdf"));
     const firmas = photos.filter(p => p.category === "firma");
     const rawMeasurements = (visit?.measurements ?? {}) as Record<string, any>;
-    const { _geo, ...measurements } = rawMeasurements;
+    const measurements = rawMeasurements;
     const checklist: Record<string, boolean> = (visit?.checklist ?? {}) as Record<string, boolean>;
     const technicalEval = visit?.technicalEvaluation ?? null;
     const criticalObs   = visit?.criticalObservations ?? null;
     const visiblePdfs   = visit?.pdfs ?? [];
-    const geo: { lat: number; lng: number } | null = (_geo as any) ?? null;
+    const geoRaw = (visit as any)?.geoLocation ?? null;
+    const geo: { lat: number; lng: number } | null = geoRaw ? { lat: geoRaw.latitude, lng: geoRaw.longitude } : null;
     const fields = visit ? (MEASUREMENT_LABELS[visit.workType] ?? {}) : {};
 
     return (

@@ -36,7 +36,8 @@ export const clientsRouter = router({
           email: input.email && input.email.trim() !== "" ? sanitizeEmail(input.email) : undefined,
           whatsappPhone: sanitizePhone(input.whatsappPhone),
           address: input.address ? sanitizeText(input.address) : undefined,
-          });
+          identificationNumber: input.identificationNumber || undefined,
+          } as any);
           client = await db.getClientById(clientId);
         } else if (ctx.user && !client.userId) {
           // Si el cliente ya existe pero no tiene userId, asociarlo con el usuario autenticado

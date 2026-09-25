@@ -242,7 +242,13 @@ export default function VisitasTecnicas() {
     const visiblePdfs   = visit?.pdfs ?? [];
     const geoRaw = (visit as any)?.geoLocation ?? null;
     const geo: { lat: number; lng: number } | null = geoRaw ? { lat: geoRaw.latitude, lng: geoRaw.longitude } : null;
-    const fields = visit ? (MEASUREMENT_LABELS[visit.workType] ?? {}) : {};
+    // Tipos de trabajo activos en el levantamiento (estructura nueva del Medidor)
+    const ALL_WORK_TYPES = ["cocina", "closet", "puertas", "centro_tv", "mueble_bano", "otro"] as const;
+    const WORK_TYPE_LABELS_LOCAL: Record<string, string> = {
+      cocina: "Cocina Integral", closet: "Closet", puertas: "Puertas",
+      centro_tv: "Centro de TV", mueble_bano: "Mueble de Baño", otro: "Otro",
+    };
+    const activeWorkTypes = ALL_WORK_TYPES.filter(wt => !!(measurements as any)[`_tipo_${wt}`]);
 
     return (
       <div className="min-h-screen bg-[#0C1A1A] text-white">
@@ -351,17 +357,45 @@ export default function VisitasTecnicas() {
               <h2 className="text-sm font-semibold text-[#1DB5A8] uppercase tracking-wide mb-4 flex items-center gap-2">
                 <Ruler className="h-4 w-4" /> Medidas registradas
               </h2>
-              {Object.keys(fields).length > 0 ? (
-                <div className="space-y-2">
-                  {Object.entries(fields).map(([key, label]) => {
-                    const value = measurements[key];
-                    const unit  = MEASUREMENT_UNITS[key] ?? MEASUREMENT_UNITS.default;
+              {activeWorkTypes.length > 0 ? (
+                <div className="space-y-4">
+                  {activeWorkTypes.map(wt => {
+                    const wtLabel = WORK_TYPE_LABELS_LOCAL[wt] ?? wt;
+                    if (wt === "cocina") {
+                      const forma = (measurements as any)._cocina_forma;
+                      const ancho = (measurements as any)._cocina_ancho;
+                      const alto  = (measurements as any)._cocina_alto;
+                      const prof  = (measurements as any)._cocina_profundo;
+                      return (
+                        <div key={wt}>
+                          <p className="text-xs font-bold text-[#1DB5A8] mb-2">{wtLabel}</p>
+                          <div className="space-y-1 text-sm">
+                            {forma && <div className="flex justify-between"><span className="text-gray-400">Forma</span><span className="text-white font-medium">{forma}</span></div>}
+                            {ancho && <div className="flex justify-between"><span className="text-gray-400">Ancho</span><span className="text-white font-medium">{ancho} cm</span></div>}
+                            {alto  && <div className="flex justify-between"><span className="text-gray-400">Alto</span><span className="text-white font-medium">{alto} cm</span></div>}
+                            {prof  && <div className="flex justify-between"><span className="text-gray-400">Profundo</span><span className="text-white font-medium">{prof} cm</span></div>}
+                            {!forma && !ancho && !alto && !prof && <p className="text-gray-500 text-xs">Sin medidas</p>}
+                          </div>
+                        </div>
+                      );
+                    }
+                    const unidades: Array<Record<string, any>> = (measurements as any)[`_${wt}_unidades`] ?? [{}];
                     return (
-                      <div key={key} className="flex items-center justify-between text-sm">
-                        <span className="text-gray-400">{label}</span>
-                        <span className={`font-medium ${value ? "text-white" : "text-gray-600"}`}>
-                          {value ? `${value} ${unit}` : "—"}
-                        </span>
+                      <div key={wt}>
+                        <p className="text-xs font-bold text-[#1DB5A8] mb-2">{wtLabel}</p>
+                        <div className="space-y-2">
+                          {unidades.map((unit: any, idx: number) => (
+                            <div key={idx} className="bg-[#0C1A1A] rounded-lg px-3 py-2 text-sm space-y-1">
+                              {unidades.length > 1 && <p className="text-[#1DB5A8]/70 text-xs font-semibold">#{idx + 1}{unit.descripcion ? ` — ${unit.descripcion}` : ""}</p>}
+                              {unidades.length === 1 && unit.descripcion && <p className="text-gray-400 text-xs">{unit.descripcion}</p>}
+                              <div className="flex gap-4 flex-wrap">
+                                {unit.ancho   && <span className="text-gray-300">Ancho: <span className="text-white font-medium">{unit.ancho} cm</span></span>}
+                                {unit.alto    && <span className="text-gray-300">Alto: <span className="text-white font-medium">{unit.alto} cm</span></span>}
+                                {unit.profundo && <span className="text-gray-300">Profundo: <span className="text-white font-medium">{unit.profundo} cm</span></span>}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     );
                   })}

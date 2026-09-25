@@ -1582,14 +1582,25 @@ export default function Medidor() {
             </div>
           )}
 
-          {/* Botón de enviar */}
+          {/* Botón de acción según estado */}
           {isEditable && (
             <div className="fixed bottom-0 left-0 right-0 p-4 bg-[#0C1A1A]/95 backdrop-blur border-t border-[#1DB5A8]/20">
               <div className="max-w-lg mx-auto flex gap-3">
-                <Button onClick={() => setShowSummary(true)} className="flex-1 h-14 bg-[#1DB5A8] hover:bg-[#17a396] text-white font-semibold text-lg">
-                  <Send className="h-5 w-5 mr-2" />
-                  Finalizar levantamiento técnico
-                </Button>
+                {visit.status === "borrador" ? (
+                  <Button onClick={() => setShowSummary(true)} className="flex-1 h-14 bg-[#1DB5A8] hover:bg-[#17a396] text-white font-semibold text-lg">
+                    <Send className="h-5 w-5 mr-2" />
+                    Finalizar levantamiento técnico
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={handleSaveMeasurements}
+                    disabled={updateVisit.isPending}
+                    className="flex-1 h-14 bg-[#1DB5A8] hover:bg-[#17a396] text-white font-semibold text-lg"
+                  >
+                    <CheckCircle2 className="h-5 w-5 mr-2" />
+                    {updateVisit.isPending ? "Guardando..." : "Guardar cambios"}
+                  </Button>
+                )}
               </div>
             </div>
           )}

@@ -79,6 +79,14 @@ export default function PublicQuotation() {
             <p className="text-gray-300 text-sm">
               Gracias, {data.clientName}. Nos pondremos en contacto pronto para iniciar su proyecto.
             </p>
+            {(data as any).projectId && (
+              <a
+                href={`/gallery?project=${(data as any).projectId}&token=${token}`}
+                className="inline-flex items-center gap-2 mt-4 bg-[#1DB5A8] hover:bg-[#17a396] text-white font-bold px-6 py-3 rounded-xl transition-colors text-sm"
+              >
+                📷 Ver avance de tu proyecto →
+              </a>
+            )}
           </div>
         )}
 

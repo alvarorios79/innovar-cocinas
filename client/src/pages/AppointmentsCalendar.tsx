@@ -170,8 +170,18 @@ export default function AppointmentsCalendar() {
 
   // Mutación para crear cita
   const createMutation = trpc.appointments.create.useMutation({
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast.success("Cita creada exitosamente");
+      // Mostrar link de WhatsApp al admin si no se envió automáticamente
+      if (data?.whatsappLink && !data?.whatsappAutoSent) {
+        toast("Notificar al cliente por WhatsApp", {
+          duration: 15000,
+          action: {
+            label: "Abrir WhatsApp",
+            onClick: () => window.open(data.whatsappLink, "_blank"),
+          },
+        });
+      }
       refetch();
       setShowNewDialog(false);
       setNewClientSearch("");
@@ -208,7 +218,11 @@ export default function AppointmentsCalendar() {
   const medidores = medidoresData as { id: number; name: string }[];
 
   // Asignar medidor
-  const assignMedidorMutation = trpc.appointments.assignMedidor.useMutation();
+  const assignMedidorMutation = trpc.appointments.assignMedidor.useMutation({
+    onError: (error) => {
+      toast.error("Error al asignar medidor: " + (error.message || "Error desconocido"));
+    },
+  });
 
   const handleCreateAppointment = async () => {
     if (newWorkTypes.length === 0) return;

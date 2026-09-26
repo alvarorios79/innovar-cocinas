@@ -10,6 +10,7 @@ interface VisualCalendarProps {
   selectedTime: string;
   onDateChange: (date: string) => void;
   onTimeChange: (time: string) => void;
+  bypassDayRestriction?: boolean;
 }
 
 export function VisualCalendar({
@@ -17,6 +18,7 @@ export function VisualCalendar({
   selectedTime,
   onDateChange,
   onTimeChange,
+  bypassDayRestriction = false,
 }: VisualCalendarProps) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
@@ -26,7 +28,7 @@ export function VisualCalendar({
   
   // Obtener horarios disponibles para la fecha seleccionada
   const { data: slots } = trpc.availability.getAvailableSlots.useQuery(
-    { date: selectedDate },
+    { date: selectedDate, bypassDayRestriction },
     { enabled: !!selectedDate }
   );
 
@@ -61,7 +63,7 @@ export function VisualCalendar({
   };
 
   const days = getDaysInMonth();
-  const allowedDays = config?.allowedDays || [2, 4, 5];
+  const allowedDays = bypassDayRestriction ? [0,1,2,3,4,5,6] : (config?.allowedDays || [2, 4, 5]);
   const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
                       'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
   const dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
@@ -109,7 +111,7 @@ export function VisualCalendar({
 
   // Manejar clic en día
   const handleDayClick = (date: Date | null) => {
-    if (!date || !isDayAllowed(date)) return;
+    if (!date || (!bypassDayRestriction && !isDayAllowed(date))) return;
     // Generar fecha en formato YYYY-MM-DD sin usar toISOString para evitar problemas de zona horaria
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');

@@ -731,6 +731,15 @@ export default function Medidor() {
   // ── Vistas ────────────────────────────────────────────────────────────────
 
   if (view === "list") {
+    // Helper: parsear scheduledDate (Drizzle retorna string sin timezone)
+    // Chrome lo interpreta como hora local → forzar UTC con 'Z'
+    const parseScheduledDate = (ds: string): Date => {
+      if (!ds.includes('T') && !ds.includes('Z') && !ds.includes('+')) {
+        return new Date(ds.replace(' ', 'T') + 'Z');
+      }
+      return new Date(ds);
+    };
+
     // Filtros de fecha
     const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
     const tomorrowStart = new Date(todayStart); tomorrowStart.setDate(todayStart.getDate() + 1);
@@ -756,15 +765,6 @@ export default function Medidor() {
       if (!proximasByDate[key]) proximasByDate[key] = [];
       proximasByDate[key].push(apt);
     });
-
-    // Helper: parsear fecha de scheduledDate (Drizzle retorna string sin zona horaria)
-    // Chrome lo interpreta como hora local → forzar UTC con 'Z'
-    const parseScheduledDate = (dateStr: string): Date => {
-      if (!dateStr.includes('T') && !dateStr.includes('Z') && !dateStr.includes('+')) {
-        return new Date(dateStr.replace(' ', 'T') + 'Z');
-      }
-      return new Date(dateStr);
-    };
 
     // Render de tarjeta de cita
     const AptCard = ({ apt }: { apt: any }) => {

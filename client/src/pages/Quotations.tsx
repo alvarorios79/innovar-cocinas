@@ -516,17 +516,7 @@ export default function Quotations() {
     onSuccess: (data) => {
       utils.quotations.list.invalidate();
       utils.quotations.listPaginatedGrouped.invalidate();
-      const rawPhone = (data.clientPhone || '').replace(/\D/g, '');
-      const phone = rawPhone.startsWith('57') ? rawPhone : '57' + rawPhone;
-      const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(data.message)}`;
-      toast.success('Cotización enviada ✅', {
-        description: 'Presiona el botón para abrir WhatsApp con el mensaje listo',
-        action: {
-          label: '📱 Abrir WhatsApp',
-          onClick: () => window.open(waUrl, '_blank', 'noopener,noreferrer'),
-        },
-        duration: 60000,
-      });
+      toast.success('PDF generado y cotización marcada como enviada ✅');
     },
     onError: (error) => {
       toast.error(error.message || "Error al preparar el envío por WhatsApp");
@@ -2436,7 +2426,18 @@ export default function Quotations() {
                   <Button
                     size="sm"
                     className="bg-green-600 hover:bg-green-700 text-white"
-                    onClick={() => sendWhatsApp.mutate({ id: quot.id })}
+                    onClick={() => {
+                      // Generar token client-side para abrir WA sincrónicamente (sin bloqueo popup)
+                      const tok = crypto.randomUUID().replace(/-/g, '');
+                      const publicLink = `https://cocinasintegralespereira.co/cotizacion?token=${tok}`;
+                      const rawPh = (quot.client?.whatsappPhone || '').replace(/\D/g, '');
+                      const ph = rawPh.startsWith('57') ? rawPh : '57' + rawPh;
+                      const totalFmt = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(Number(quot.total || 0));
+                      const validStr = quot.validUntil ? new Date(quot.validUntil).toLocaleDateString('es-CO', { timeZone: 'America/Bogota' }) : '30 días';
+                      const msg = `Hola ${quot.client?.name || 'Cliente'}, 👋\n\nLe enviamos la cotización *${quot.quotationNumber}* de *Innovar Cocinas de Diseño* por un valor de *${totalFmt}*.\n\n📄 Vea el detalle y apruébela desde aquí:\n${publicLink}\n\n📋 Válida hasta: *${validStr}*\n⏱️ Entrega estimada: *3 a 4 semanas* desde aprobación.\n\n¡Gracias por confiar en Innovar Cocinas! 🙌`;
+                      window.open(`https://wa.me/${ph}?text=${encodeURIComponent(msg)}`, '_blank', 'noopener,noreferrer');
+                      sendWhatsApp.mutate({ id: quot.id, publicToken: tok });
+                    }}
                     disabled={sendWhatsApp.isPending || !quot.client?.whatsappPhone}
                     title={!quot.client?.whatsappPhone ? "El cliente no tiene teléfono WhatsApp registrado" : "Enviar cotización por WhatsApp"}
                   >

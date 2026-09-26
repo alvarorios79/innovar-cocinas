@@ -42,6 +42,17 @@ import { CreateQuickClientDialog } from "@/components/CreateQuickClientDialog";
 import { DailyMotivation } from "@/components/DailyMotivation";
 import { PageHeader } from "@/components/PageHeader";
 
+// Helper: Drizzle retorna timestamps sin timezone ("2026-09-28 13:30:00")
+// Chrome los parsea como hora local → forzar UTC
+const parseDBDate = (ds: string | Date | null | undefined): Date => {
+  if (!ds) return new Date();
+  if (ds instanceof Date) return ds;
+  if (!(ds as string).includes('T') && !(ds as string).includes('Z') && !(ds as string).includes('+')) {
+    return new Date((ds as string).replace(' ', 'T') + 'Z');
+  }
+  return new Date(ds as string);
+};
+
 export default function Comercial() {
   const { user, isAuthenticated, loading } = useAuth();
   const [, setLocation] = useLocation();
@@ -114,7 +125,7 @@ export default function Comercial() {
 
   // Citas del día
   const todayAppointments = appointments.filter((apt: any) => {
-    const aptDate = new Date(apt.scheduledDate);
+    const aptDate = parseDBDate(apt.scheduledDate);
     aptDate.setHours(0, 0, 0, 0);
     return aptDate.getTime() === today.getTime() && apt.status === "pending";
   });
@@ -662,7 +673,7 @@ export default function Comercial() {
                           <div>
                             <h3 className="font-medium">{apt.client?.name || "Cliente"}</h3>
                             <p className="text-sm text-white/45">
-                              {new Date(apt.scheduledDate).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })}
+                              {parseDBDate(apt.scheduledDate).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Bogota' })}
                             </p>
                           </div>
                           {apt.client?.whatsappPhone && (

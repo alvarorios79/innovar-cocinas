@@ -134,6 +134,17 @@ const roleConfig: Record<string, {
   },
 };
 
+// Helper: Drizzle retorna timestamps sin timezone ("2026-09-28 13:30:00")
+// Chrome los parsea como hora local → forzar UTC
+const parseDBDate = (ds: string | Date | null | undefined): Date => {
+  if (!ds) return new Date();
+  if (ds instanceof Date) return ds;
+  if (!(ds as string).includes('T') && !(ds as string).includes('Z') && !(ds as string).includes('+')) {
+    return new Date((ds as string).replace(' ', 'T') + 'Z');
+  }
+  return new Date(ds as string);
+};
+
 export function TeamDashboard() {
   const { user } = useAuth();
   const role = user?.role || "user";
@@ -193,7 +204,7 @@ export function TeamDashboard() {
   const todayEnd   = new Date(); todayEnd.setHours(23, 59, 59, 999);
   const todayAppointments = appointments.filter(a => {
     if (!a.scheduledDate) return false;
-    const d = new Date(a.scheduledDate);
+    const d = parseDBDate(a.scheduledDate);
     return d >= todayStart && d <= todayEnd;
   });
 

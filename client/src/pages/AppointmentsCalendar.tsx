@@ -237,6 +237,7 @@ export default function AppointmentsCalendar() {
         scheduledDateStr: newAptDate || undefined,
         scheduledTimeStr: newAptTime || undefined,
         notes: newNotes || undefined,
+        bypassDayRestriction: user?.role === "super_admin",
       });
       if (newMedidorId && result?.id) {
         await assignMedidorMutation.mutateAsync({
@@ -824,6 +825,7 @@ export default function AppointmentsCalendar() {
                   selectedTime={newAptTime}
                   onDateChange={(date) => { setNewAptDate(date); setNewAptTime(""); }}
                   onTimeChange={(time) => setNewAptTime(time)}
+                  bypassDayRestriction={user?.role === "super_admin"}
                 />
               </div>
             </div>

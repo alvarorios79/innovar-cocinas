@@ -130,6 +130,16 @@ const PHOTO_CAT_LABELS: Record<string, string> = {
 
 // ── Componente principal ─────────────────────────────────────────────────────
 
+// Helper: Drizzle retorna timestamps sin timezone → forzar UTC para Colombia
+const parseDBDate = (ds: string | Date | null | undefined): Date => {
+  if (!ds) return new Date();
+  if (ds instanceof Date) return ds;
+  if (!(ds as string).includes('T') && !(ds as string).includes('Z') && !(ds as string).includes('+')) {
+    return new Date((ds as string).replace(' ', 'T') + 'Z');
+  }
+  return new Date(ds as string);
+};
+
 export default function VisitasTecnicas() {
   const { user } = useAuth();
   const isManager = ["super_admin", "admin", "comercial"].includes(user?.role ?? "");
@@ -679,7 +689,7 @@ export default function VisitasTecnicas() {
                       )}
                       {(visit as any).scheduledDate && (
                         <span className="text-xs text-gray-400">
-                          📅 {new Date((visit as any).scheduledDate).toLocaleDateString("es-CO", { weekday: "short", day: "2-digit", month: "short" })}
+                          📅 {parseDBDate((visit as any).scheduledDate).toLocaleDateString("es-CO", { weekday: "short", day: "2-digit", month: "short", timeZone: "America/Bogota" })}
                         </span>
                       )}
                       <span className="text-xs text-gray-500">

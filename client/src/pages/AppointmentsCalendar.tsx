@@ -184,12 +184,12 @@ export default function AppointmentsCalendar() {
     onSuccess: (data) => {
       toast.success("Cita creada exitosamente");
       // Mostrar link de WhatsApp al admin si no se envió automáticamente
-      if (data?.whatsappLink && !data?.whatsappAutoSent) {
+      if (data?.whatsappClientLink && !data?.whatsappAutoSent) {
         toast("Notificar al cliente por WhatsApp", {
           duration: 15000,
           action: {
-            label: "Abrir WhatsApp",
-            onClick: () => window.open(data.whatsappLink, "_blank"),
+            label: "Enviar por WhatsApp",
+            onClick: () => window.open(data.whatsappClientLink, "_blank"),
           },
         });
       }

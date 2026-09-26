@@ -120,7 +120,7 @@ export async function getAvailableTimeSlots(dateStr: string | Date, bypassDayRes
  * @param dateStr - Fecha en formato "YYYY-MM-DD"
  * @param timeSlot - Horario en formato "HH:MM"
  */
-export async function isTimeSlotAvailable(dateStr: string | Date, timeSlot: string, excludeAppointmentId?: number): Promise<boolean> {
+export async function isTimeSlotAvailable(dateStr: string | Date, timeSlot: string, excludeAppointmentId?: number, bypassDayRestriction = false): Promise<boolean> {
   // Parsear la fecha directamente sin conversión de zona horaria
   let date: Date;
   let year: number, month: number, day: number;
@@ -137,7 +137,7 @@ export async function isTimeSlotAvailable(dateStr: string | Date, timeSlot: stri
   
   // Verificar si es un día permitido
   const dayOfWeek = date.getDay();
-  if (!isAllowedDay(dayOfWeek)) {
+  if (!isAllowedDay(dayOfWeek, bypassDayRestriction)) {
     return false;
   }
 

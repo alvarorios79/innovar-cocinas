@@ -2690,7 +2690,7 @@ export const quotationsRouter = router({
 
     // Enviar cotización por WhatsApp
     sendByWhatsApp: protectedProcedure
-      .input(z.object({ id: z.number() }))
+      .input(z.object({ id: z.number(), publicToken: z.string().optional() }))
       .mutation(async ({ ctx, input }) => {
         if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "comercial") {
           throw new TRPCError({ code: "FORBIDDEN" });
@@ -2762,9 +2762,9 @@ export const quotationsRouter = router({
             ? new Date(quotation.validUntil).toLocaleDateString("es-CO", { timeZone: "America/Bogota" })
             : "30 días";
 
-          // Generar token único para el portal público del cliente
+          // Usar token del cliente si viene (generado sincrónicamente al clic), sino generar nuevo
           const { randomUUID } = await import("crypto");
-          const publicToken = randomUUID().replace(/-/g, '');
+          const publicToken = input.publicToken || randomUUID().replace(/-/g, '');
           const publicLink = `https://cocinasintegralespereira.co/cotizacion?token=${publicToken}`;
 
           const waMessage = `Hola ${client.name}, 👋\n\nLe enviamos la cotización *${quotation.quotationNumber}* de *Innovar Cocinas de Diseño* por un valor de *${formattedAmount}*.\n\n📄 Vea el detalle y apruébela desde aquí:\n${publicLink}\n\n📋 Válida hasta: *${validUntilStr}*\n⏱️ Entrega estimada: *3 a 4 semanas* desde aprobación.\n\n¡Gracias por confiar en Innovar Cocinas! 🙌`;

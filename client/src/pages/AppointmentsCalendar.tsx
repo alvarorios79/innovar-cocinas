@@ -655,7 +655,15 @@ export default function AppointmentsCalendar() {
                                 {getStatusBadge(apt.status)}
                                 {buildWhatsAppConfirmLink(apt) && (
                                   <button
-                                    onClick={e => { e.stopPropagation(); window.open(buildWhatsAppConfirmLink(apt)!, "_blank"); markSentMutation.mutate({ id: apt.id, status: "enviada" }); }}
+                                    onClick={e => {
+                                      e.stopPropagation();
+                                      window.open(buildWhatsAppConfirmLink(apt)!, "_blank");
+                                      setTimeout(() => {
+                                        if (window.confirm(`¿Enviaste el mensaje a ${apt.clientName}?\nSi lo enviaste, la cita quedará marcada como "Enviada ✓".`)) {
+                                          markSentMutation.mutate({ id: apt.id, status: "enviada" });
+                                        }
+                                      }, 1500);
+                                    }}
                                     className="p-1 rounded-md hover:bg-green-500/20 text-green-400 hover:text-green-300 transition-colors"
                                     title="Enviar confirmación al cliente por WhatsApp"
                                   >

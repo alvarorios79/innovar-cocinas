@@ -2429,7 +2429,7 @@ export default function Quotations() {
                     onClick={() => {
                       // Generar token client-side para abrir WA sincrónicamente (sin bloqueo popup)
                       const tok = crypto.randomUUID().replace(/-/g, '');
-                      const publicLink = `https://cocinasintegralespereira.co/cotizacion?token=${tok}`;
+                      const publicLink = `https://innovar-cocinas.onrender.com/cotizacion?token=${tok}`;
                       const rawPh = (quot.client?.whatsappPhone || '').replace(/\D/g, '');
                       const ph = rawPh.startsWith('57') ? rawPh : '57' + rawPh;
                       const totalFmt = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(Number(quot.total || 0));

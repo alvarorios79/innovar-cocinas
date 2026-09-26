@@ -737,12 +737,12 @@ export default function Medidor() {
 
     const todayApts = pendingAppointments.filter((apt: any) => {
       if (!apt.scheduledDate) return true; // sin fecha = aparece hoy
-      const d = new Date(apt.scheduledDate);
+      const d = parseScheduledDate(apt.scheduledDate);
       return d >= todayStart && d < tomorrowStart;
     });
     const proximasApts = pendingAppointments.filter((apt: any) => {
       if (!apt.scheduledDate) return false;
-      const d = new Date(apt.scheduledDate);
+      const d = parseScheduledDate(apt.scheduledDate);
       return d >= tomorrowStart;
     });
     const borradorVisits = (visits as Visit[]).filter(v => v.status === "borrador");
@@ -751,15 +751,24 @@ export default function Medidor() {
     // Agrupar próximas por fecha
     const proximasByDate: Record<string, any[]> = {};
     proximasApts.forEach((apt: any) => {
-      const d = new Date(apt.scheduledDate);
+      const d = parseScheduledDate(apt.scheduledDate);
       const key = d.toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'America/Bogota' });
       if (!proximasByDate[key]) proximasByDate[key] = [];
       proximasByDate[key].push(apt);
     });
 
+    // Helper: parsear fecha de scheduledDate (Drizzle retorna string sin zona horaria)
+    // Chrome lo interpreta como hora local → forzar UTC con 'Z'
+    const parseScheduledDate = (dateStr: string): Date => {
+      if (!dateStr.includes('T') && !dateStr.includes('Z') && !dateStr.includes('+')) {
+        return new Date(dateStr.replace(' ', 'T') + 'Z');
+      }
+      return new Date(dateStr);
+    };
+
     // Render de tarjeta de cita
     const AptCard = ({ apt }: { apt: any }) => {
-      const aptDate = apt.scheduledDate ? new Date(apt.scheduledDate) : null;
+      const aptDate = apt.scheduledDate ? parseScheduledDate(apt.scheduledDate) : null;
       const wtLabels: Record<string, string> = { cocina: "Cocina Integral", closet: "Closet", puertas: "Puertas", centro_tv: "Centro de TV" };
       const workTypeText = apt.workTypes?.map((wt: string) => wtLabels[wt] || wt).join(", ") || "";
       return (

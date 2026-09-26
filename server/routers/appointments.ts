@@ -153,13 +153,12 @@ export const appointmentsRouter = router({
             }
           }
 
-          const whatsappLink = whatsapp.notifyNewAppointment({
-            clientName: client.name,
+          // Link para notificar AL CLIENTE (se abre manualmente desde el toast)
+          const whatsappClientLink = whatsapp.generateClientConfirmationLink({
             clientPhone: client.whatsappPhone,
-            clientEmail: client.email || undefined,
-            clientAddress: client.address || undefined,
-            workType: workTypesText,
+            clientName: client.name,
             scheduledDate,
+            workTypes: input.workTypes,
             notes: input.notes ? sanitizeText(input.notes) : undefined,
           });
 
@@ -200,7 +199,7 @@ export const appointmentsRouter = router({
             }
           }
           
-          return { id: appointmentId, success: true, whatsappLink, whatsappAutoSent };
+          return { id: appointmentId, success: true, whatsappClientLink, whatsappAutoSent };
         }
         
         return { id: appointmentId, success: true };

@@ -60,7 +60,6 @@ export function MobileBottomNavigation() {
   };
 
   if (!isMobile || !user) return null;
-  if (location.startsWith("/medidor")) return null;
 
   const isActive = (path: string) => location === path || (path !== "/" && location.startsWith(path));
 

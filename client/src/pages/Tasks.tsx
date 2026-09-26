@@ -471,7 +471,7 @@ export default function Tasks() {
   };
 
   const renderTaskCard = (task: any, showAssignedTo: boolean = false) => (
-    <Card key={task.id} className="hover:shadow-md transition-shadow">
+    <Card key={task.id} className="hover:shadow-md transition-shadow overflow-hidden">
       <CardContent className="p-4">
         <div className="flex items-start gap-3">
           {/* Checkbox individual */}
@@ -481,7 +481,7 @@ export default function Tasks() {
             className="mt-1"
           />
           
-          <div className="flex-1 flex flex-col sm:flex-row justify-between gap-4">
+          <div className="flex-1 min-w-0 flex flex-col sm:flex-row justify-between gap-4">
           {/* Info de la tarea */}
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2 flex-wrap">

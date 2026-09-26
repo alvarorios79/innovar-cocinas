@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Calendar as CalendarIcon, Clock } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
@@ -21,8 +21,6 @@ export function VisualCalendar({
   bypassDayRestriction = false,
 }: VisualCalendarProps) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [availableSlots, setAvailableSlots] = useState<string[]>([]);
-  
   // Obtener configuración
   const { data: config } = trpc.availability.getConfig.useQuery();
   
@@ -32,11 +30,8 @@ export function VisualCalendar({
     { enabled: !!selectedDate }
   );
 
-  useEffect(() => {
-    if (slots) {
-      setAvailableSlots(slots);
-    }
-  }, [slots]);
+  // Usar slots directamente (sin estado local) para evitar datos stale de fecha anterior
+  const availableSlots = slots ?? [];
 
   // Generar días del mes
   const getDaysInMonth = () => {
@@ -112,7 +107,7 @@ export function VisualCalendar({
 
   // Manejar clic en día
   const handleDayClick = (date: Date | null) => {
-    if (!date || (!bypassDayRestriction && !isDayAllowed(date))) return;
+    if (!date || !isDayAllowed(date)) return;
     // Generar fecha en formato YYYY-MM-DD sin usar toISOString para evitar problemas de zona horaria
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');

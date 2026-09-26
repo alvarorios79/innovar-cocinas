@@ -216,7 +216,7 @@ export const appointmentsRouter = router({
     updateStatus: protectedProcedure
       .input(z.object({
         id: z.number(),
-        status: z.enum(["pendiente", "confirmada", "completada", "cancelada"]),
+        status: z.enum(["pendiente", "confirmada", "completada", "cancelada", "enviada"]),
       }))
       .mutation(async ({ ctx, input }) => {
         if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "comercial") {

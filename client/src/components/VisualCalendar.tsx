@@ -63,7 +63,8 @@ export function VisualCalendar({
   };
 
   const days = getDaysInMonth();
-  const allowedDays = bypassDayRestriction ? [0,1,2,3,4,5,6] : (config?.allowedDays || [2, 4, 5]);
+  // Super admin: todos los días excepto miércoles (3) — pico y placa
+  const allowedDays = bypassDayRestriction ? [0,1,2,4,5,6] : (config?.allowedDays || [2, 4, 5]);
   const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
                       'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
   const dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];

@@ -952,7 +952,18 @@ export default function AppointmentsCalendar() {
                   <User className="h-4 w-4 text-white/45" />
                   <span className="font-medium">{selectedAppointment.clientName}</span>
                 </div>
-                {getStatusBadge(selectedAppointment.status)}
+                <div className="flex items-center gap-2">
+                  {getStatusBadge(selectedAppointment.status)}
+                  {selectedAppointment.status !== "enviada" && (
+                    <button
+                      onClick={() => markSentMutation.mutate({ id: selectedAppointment.id, status: "enviada" })}
+                      className="text-xs px-2 py-0.5 rounded bg-teal-500/20 text-teal-300 hover:bg-teal-500/30 border border-teal-500/30 transition-colors"
+                      title="Marcar esta cita como ya enviada al cliente"
+                    >
+                      Marcar enviada
+                    </button>
+                  )}
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">

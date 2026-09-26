@@ -198,6 +198,9 @@ export default function AppointmentsCalendar() {
     },
   });
 
+  // canCreateAppointment must be declared before medidoresData (used in 'enabled')
+  const canCreateAppointment = user && ["super_admin", "admin", "comercial"].includes(user.role);
+
   // Medidores disponibles
   const { data: medidoresData = [] } = trpc.appointments.listMedidores.useQuery(undefined, {
     enabled: showNewDialog && !!canCreateAppointment,
@@ -246,7 +249,6 @@ export default function AppointmentsCalendar() {
     }
   };
 
-  const canCreateAppointment = user && ["super_admin", "admin", "comercial"].includes(user.role);
 
   // Procesar citas - filtrar solo citas de hoy en adelante
   const appointments = useMemo(() => {

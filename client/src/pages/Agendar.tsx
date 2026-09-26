@@ -453,6 +453,18 @@ export default function Agendar() {
           </p>
         </form>
       </div>
+
+      {/* Botón flotante WhatsApp */}
+      <a
+        href="https://wa.me/573136802025?text=Hola%20INNOVAR%20Cocinas%2C%20quiero%20m%C3%A1s%20informaci%C3%B3n"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="fixed bottom-6 right-5 z-50 flex items-center gap-2.5 px-4 py-3 rounded-full text-white font-semibold text-sm shadow-2xl transition-transform hover:scale-105 active:scale-95"
+        style={{ background: "linear-gradient(135deg, #25D366, #128C7E)", boxShadow: "0 8px 24px rgba(37,211,102,0.45)" }}
+      >
+        <MessageCircle className="h-5 w-5 shrink-0" />
+        <span>¿Tienes dudas?</span>
+      </a>
     </div>
   );
 }

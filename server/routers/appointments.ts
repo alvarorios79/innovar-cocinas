@@ -26,6 +26,7 @@ export const appointmentsRouter = router({
         scheduledDateStr: z.string().optional(), // "YYYY-MM-DD"
         scheduledTimeStr: z.string().optional(), // "HH:MM"
         notes: z.string().optional(),
+        bypassDayRestriction: z.boolean().optional().default(false),
       }))
       .mutation(async ({ input }) => {
         let scheduledDate: Date | undefined;
@@ -33,7 +34,7 @@ export const appointmentsRouter = router({
         // Validar disponibilidad si se proporciona fecha/hora
         if (input.scheduledDateStr && input.scheduledTimeStr) {
           // Usar los strings directamente para validar disponibilidad
-          const isAvailable = await isTimeSlotAvailable(input.scheduledDateStr, input.scheduledTimeStr);
+          const isAvailable = await isTimeSlotAvailable(input.scheduledDateStr, input.scheduledTimeStr, undefined, input.bypassDayRestriction);
           
           if (!isAvailable) {
             throw new TRPCError({
@@ -708,10 +709,9 @@ export const availabilityRouter = router({
       return APPOINTMENT_CONFIG;
     }),
     getAvailableSlots: publicProcedure
-      .input(z.object({ date: z.string() }))
+      .input(z.object({ date: z.string(), bypassDayRestriction: z.boolean().optional().default(false) }))
       .query(async ({ input }) => {
-        // Pasar la fecha como string directamente
-        return await getAvailableTimeSlots(input.date);
+        return await getAvailableTimeSlots(input.date, input.bypassDayRestriction);
       }),
     checkSlot: publicProcedure
       .input(z.object({ date: z.string(), timeSlot: z.string() }))

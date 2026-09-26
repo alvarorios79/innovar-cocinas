@@ -30,6 +30,7 @@ import {
   Plus,
   Search,
   UserCheck,
+  MessageCircle,
 } from "lucide-react";
 import { VisualCalendar } from "@/components/VisualCalendar";
 import { PageHeader } from "@/components/PageHeader";
@@ -106,6 +107,29 @@ const parseDBDate = (ds: string | Date | null | undefined): Date => {
   }
   return new Date(ds as string);
 };
+
+// Helper: genera link de WhatsApp al cliente con mensaje de confirmación
+function buildWhatsAppConfirmLink(apt: { clientPhone?: string; clientName: string; scheduledDate: Date; workTypes: string[]; notes?: string }): string | null {
+  if (!apt.clientPhone) return null;
+  const phone = apt.clientPhone.replace(/[^0-9]/g, "");
+  const intlPhone = phone.startsWith("57") ? phone : `57${phone}`;
+  const dateStr = apt.scheduledDate.toLocaleDateString("es-CO", { weekday: "long", year: "numeric", month: "long", day: "numeric", timeZone: "America/Bogota" });
+  const timeStr = apt.scheduledDate.toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit", timeZone: "America/Bogota" });
+  const workLabel: Record<string, string> = { cocina: "Cocina Integral", closet: "Closet", puertas: "Puertas", centro_tv: "Centro de Entretenimiento", bano: "Mueble de Baño", escalera: "Escalera", empresas: "Mobiliario Empresarial", otro: "Toma de medidas" };
+  const workTypes = apt.workTypes.map(w => workLabel[w] || w).join(", ") || "Toma de medidas";
+  const msg = `Hola ${apt.clientName} 👋, le escribe *INNOVAR Cocinas de Diseño*.
+
+✅ Quedó confirmada su cita de *${workTypes}*.
+
+📅 Fecha: ${dateStr}
+⏰ Hora: ${timeStr}
+
+📍 Estaremos en su domicilio en la hora indicada.
+
+Cualquier duda, estamos a sus órdenes. ¡Gracias por confiar en nosotros! 🙏`;
+  return `https://wa.me/${intlPhone}?text=${encodeURIComponent(msg)}`;
+}
+
 
 export default function AppointmentsCalendar() {
   const { user } = useAuth();
@@ -620,7 +644,18 @@ export default function AppointmentsCalendar() {
                                   })}
                                 </p>
                               </div>
-                              {getStatusBadge(apt.status)}
+                              <div className="flex items-center gap-1">
+                                {getStatusBadge(apt.status)}
+                                {buildWhatsAppConfirmLink(apt) && (
+                                  <button
+                                    onClick={e => { e.stopPropagation(); window.open(buildWhatsAppConfirmLink(apt)!, "_blank"); }}
+                                    className="p-1 rounded-md hover:bg-green-500/20 text-green-400 hover:text-green-300 transition-colors"
+                                    title="Enviar confirmación al cliente por WhatsApp"
+                                  >
+                                    <MessageCircle className="h-4 w-4" />
+                                  </button>
+                                )}
+                              </div>
                             </div>
                             <div className="mt-2 flex flex-wrap gap-1">
                               {apt.workTypes.map((wt: string) => (

@@ -22,7 +22,7 @@ export const appointmentsRouter = router({
     create: publicProcedure
       .input(z.object({
         clientId: z.number(),
-        workTypes: z.array(z.enum(["cocina", "closet", "puertas", "centro_tv"])),
+        workTypes: z.array(z.enum(["cocina", "closet", "puertas", "centro_tv", "mueble_bano", "otro"])),
         scheduledDateStr: z.string().optional(), // "YYYY-MM-DD"
         scheduledTimeStr: z.string().optional(), // "HH:MM"
         notes: z.string().optional(),

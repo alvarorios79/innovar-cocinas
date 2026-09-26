@@ -490,7 +490,7 @@ export default function Tasks() {
               {getStatusBadge(task.status)}
             </div>
             {task.description && (
-              <p className="text-sm text-muted-foreground mb-2">{task.description}</p>
+              <p className="text-sm text-muted-foreground mb-2 break-words overflow-hidden line-clamp-3">{task.description}</p>
             )}
             <div className="text-xs text-muted-foreground space-y-1">
               {showAssignedTo && task.assignedToUser && (

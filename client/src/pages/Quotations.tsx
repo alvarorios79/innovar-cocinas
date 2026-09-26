@@ -2448,38 +2448,7 @@ export default function Quotations() {
       )}
       {/* END LEGACY CODE */}
 
-      {/* Mini-modal: link de WhatsApp listo */}
-      {pendingWaUrl && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => setPendingWaUrl(null)}>
-          <div className="bg-[#0f2424] border border-[#1DB5A8]/30 rounded-2xl p-6 max-w-sm w-full shadow-2xl" onClick={e => e.stopPropagation()}>
-            <div className="text-center mb-4">
-              <div className="text-4xl mb-2">✅</div>
-              <h3 className="text-white font-bold text-lg">Cotización enviada</h3>
-              <p className="text-gray-400 text-sm mt-1">Presiona el botón para abrir WhatsApp con el mensaje listo</p>
-            </div>
-            <a
-              href={pendingWaUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(e) => {
-                e.preventDefault();
-                window.open(pendingWaUrl!, '_blank', 'noopener,noreferrer');
-                setTimeout(() => setPendingWaUrl(null), 500);
-              }}
-              className="flex items-center justify-center gap-2 w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl text-base transition-colors"
-            >
-              <MessageCircle className="h-5 w-5" />
-              Abrir WhatsApp
-            </a>
-            <button
-              onClick={() => setPendingWaUrl(null)}
-              className="mt-3 w-full text-gray-500 hover:text-gray-300 text-sm py-2 transition-colors"
-            >
-              Cerrar
-            </button>
-          </div>
-        </div>
-      )}
+      {/* WhatsApp: se abre via toast action */}
 
       {/* Dialog para crear cotización */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>

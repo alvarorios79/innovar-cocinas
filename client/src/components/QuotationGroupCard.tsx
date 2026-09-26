@@ -413,7 +413,7 @@ export function QuotationGroupCard({
                 }
                 // Generar token y abrir WhatsApp sincrónicamente (nunca bloqueado por popup blocker)
                 const tok = crypto.randomUUID().replace(/-/g, '');
-                const publicLink = `https://cocinasintegralespereira.co/cotizacion?token=${tok}`;
+                const publicLink = `https://innovar-cocinas.onrender.com/cotizacion?token=${tok}`;
                 const rawPh = client.whatsappPhone.replace(/\D/g, '');
                 const ph = rawPh.startsWith('57') ? rawPh : '57' + rawPh;
                 const totalFmt = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(Number(selectedVersion.total || 0));

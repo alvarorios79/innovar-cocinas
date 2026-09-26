@@ -30,6 +30,7 @@ import {
   Plus,
   Search,
   UserCheck,
+  MessageCircle,
 } from "lucide-react";
 import { VisualCalendar } from "@/components/VisualCalendar";
 import { PageHeader } from "@/components/PageHeader";
@@ -134,7 +135,6 @@ export default function AppointmentsCalendar() {
   const { user } = useAuth();
   const [, navigate] = useLocation();
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [pendingConfirmId, setPendingConfirmId] = useState<number | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
@@ -662,28 +662,25 @@ export default function AppointmentsCalendar() {
                                 </Badge>
                               ))}
                             </div>
-                            {/* Botón WhatsApp + confirmación inline */}
+                            {/* Botón WhatsApp — igual que cotizaciones */}
                             {buildWhatsAppConfirmLink(apt) && apt.status !== "enviada" && (
-                              pendingConfirmId === apt.id ? (
-                                <div className="mt-2 flex items-center gap-2 flex-wrap" onClick={e => e.stopPropagation()}>
-                                  <span className="text-xs text-white/50">¿Lo enviaste?</span>
-                                  <button
-                                    onClick={() => { markSentMutation.mutate({ id: apt.id, status: "enviada" }); setPendingConfirmId(null); }}
-                                    className="text-xs px-2 py-1 rounded bg-teal-500/25 text-teal-300 hover:bg-teal-500/40 border border-teal-500/30 transition-colors font-medium"
-                                  >Sí, marcar enviada</button>
-                                  <button
-                                    onClick={() => setPendingConfirmId(null)}
-                                    className="text-xs px-2 py-1 rounded bg-white/10 text-white/50 hover:bg-white/15 transition-colors"
-                                  >No</button>
-                                </div>
-                              ) : (
-                                <button
-                                  onClick={e => { e.stopPropagation(); window.open(buildWhatsAppConfirmLink(apt)!, "_blank"); setPendingConfirmId(apt.id); }}
-                                  className="mt-2 w-full text-xs px-3 py-1.5 rounded-md bg-green-700/25 text-green-300 hover:bg-green-700/35 border border-green-600/30 transition-colors font-medium"
-                                >
-                                  Enviar por WhatsApp
-                                </button>
-                              )
+                              <Button
+                                size="sm"
+                                className="mt-2 w-full bg-green-600 hover:bg-green-700 text-white"
+                                disabled={markSentMutation.isPending || !apt.clientPhone}
+                                title={!apt.clientPhone ? "El cliente no tiene teléfono WhatsApp registrado" : "Enviar confirmación de cita por WhatsApp"}
+                                onClick={e => {
+                                  e.stopPropagation();
+                                  window.open(buildWhatsAppConfirmLink(apt)!, "_blank", "noopener,noreferrer");
+                                  markSentMutation.mutate({ id: apt.id, status: "enviada" });
+                                }}
+                              >
+                                {markSentMutation.isPending
+                                  ? <span className="h-4 w-4 mr-1 inline-block animate-spin">⏳</span>
+                                  : <MessageCircle className="h-4 w-4 mr-1" />
+                                }
+                                WhatsApp
+                              </Button>
                             )}
                           </div>
                         ))}

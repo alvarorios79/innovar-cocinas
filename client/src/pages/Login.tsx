@@ -114,19 +114,13 @@ export default function Login() {
             </Link>
           </div>
 
-          <div className="mt-6 text-center space-y-2 pt-4 border-t">
+          <div className="mt-6 text-center pt-4 border-t">
             <p className="text-sm text-muted-foreground">
-              ¿No tienes cuenta?{" "}
-              <Link href="/register" className="text-amber-400 hover:text-amber-300 font-medium">
-                Regístrate aquí
+              ¿Eres cliente?{" "}
+              <Link href="/agendar" className="text-teal-500 hover:text-teal-400 font-medium">
+                Agenda tu visita aquí →
               </Link>
             </p>
-            <button
-              onClick={() => window.history.back()}
-              className="text-sm text-gray-500 hover:text-amber-400 transition-colors"
-            >
-              ← Volver a la página principal
-            </button>
           </div>
         </CardContent>
       </Card>

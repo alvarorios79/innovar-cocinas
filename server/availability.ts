@@ -25,7 +25,8 @@ export const APPOINTMENT_CONFIG = {
  * Verifica si una fecha es un día permitido
  * @param dayOfWeek - Día de la semana (0-6)
  */
-export function isAllowedDay(dayOfWeek: number): boolean {
+export function isAllowedDay(dayOfWeek: number, bypassDayRestriction = false): boolean {
+  if (bypassDayRestriction) return true;
   return APPOINTMENT_CONFIG.allowedDays.includes(dayOfWeek);
 }
 
@@ -33,7 +34,7 @@ export function isAllowedDay(dayOfWeek: number): boolean {
  * Obtiene todos los horarios disponibles para una fecha específica
  * @param dateStr - Fecha en formato "YYYY-MM-DD"
  */
-export async function getAvailableTimeSlots(dateStr: string | Date): Promise<string[]> {
+export async function getAvailableTimeSlots(dateStr: string | Date, bypassDayRestriction = false): Promise<string[]> {
   // Parsear la fecha directamente sin conversión de zona horaria
   let year: number, month: number, day: number;
   let date: Date;
@@ -50,7 +51,7 @@ export async function getAvailableTimeSlots(dateStr: string | Date): Promise<str
   
   // Verificar si es un día permitido
   const dayOfWeek = date.getDay();
-  if (!isAllowedDay(dayOfWeek)) {
+  if (!isAllowedDay(dayOfWeek, bypassDayRestriction)) {
     return [];
   }
 

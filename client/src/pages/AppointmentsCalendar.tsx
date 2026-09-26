@@ -96,6 +96,17 @@ interface Appointment {
   notes?: string;
 }
 
+// Helper: Drizzle retorna timestamps sin timezone ("2026-09-28 13:30:00")
+// Chrome lo parsea como hora local → forzar UTC
+const parseDBDate = (ds: string | Date | null | undefined): Date => {
+  if (!ds) return new Date();
+  if (ds instanceof Date) return ds;
+  if (!ds.includes('T') && !ds.includes('Z') && !ds.includes('+')) {
+    return new Date((ds as string).replace(' ', 'T') + 'Z');
+  }
+  return new Date(ds as string);
+};
+
 export default function AppointmentsCalendar() {
   const { user } = useAuth();
   const [, navigate] = useLocation();
@@ -283,7 +294,7 @@ export default function AppointmentsCalendar() {
         clientName: apt.client?.name || "Cliente",
         clientPhone: apt.client?.whatsappPhone || apt.client?.phone,
         clientAddress: apt.client?.address,
-        scheduledDate: new Date(apt.scheduledDate),
+        scheduledDate: parseDBDate(apt.scheduledDate),
         status: apt.status,
         workTypes: apt.workTypes || [],
         notes: apt.notes,

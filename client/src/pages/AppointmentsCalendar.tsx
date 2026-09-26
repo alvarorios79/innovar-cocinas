@@ -238,7 +238,13 @@ export default function AppointmentsCalendar() {
 
   // Mutación para marcar como enviada
   const markSentMutation = trpc.appointments.updateStatus.useMutation({
-    onSuccess: () => { refetch(); },
+    onSuccess: (_, variables) => {
+      refetch();
+      // Actualizar también el modal si está abierto con esta cita
+      setSelectedAppointment(prev =>
+        prev && prev.id === variables.id ? { ...prev, status: variables.status } : prev
+      );
+    },
   });
 
   // Mutación para crear cliente nuevo

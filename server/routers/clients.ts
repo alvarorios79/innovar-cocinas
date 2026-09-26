@@ -23,6 +23,7 @@ export const clientsRouter = router({
         email: z.string().email().optional().or(z.literal("")),
         whatsappPhone: z.string().min(10),
         address: z.string().optional(),
+        identificationNumber: z.string().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         // Buscar cliente existente por WhatsApp
@@ -36,7 +37,7 @@ export const clientsRouter = router({
           email: input.email && input.email.trim() !== "" ? sanitizeEmail(input.email) : undefined,
           whatsappPhone: sanitizePhone(input.whatsappPhone),
           address: input.address ? sanitizeText(input.address) : undefined,
-          identificationNumber: input.identificationNumber || undefined,
+          identificationNumber: input.identificationNumber ? sanitizeText(input.identificationNumber) : undefined,
           } as any);
           client = await db.getClientById(clientId);
         } else if (ctx.user && !client.userId) {

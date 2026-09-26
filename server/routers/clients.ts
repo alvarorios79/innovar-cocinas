@@ -116,13 +116,10 @@ export const clientsRouter = router({
           throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para crear clientes" });
         }
 
-        // Verificar que el WhatsApp no esté duplicado
+        // Si ya existe un cliente con ese WhatsApp, retornarlo en vez de crear duplicado
         const existingClient = await db.getClientByWhatsApp(input.whatsappPhone);
         if (existingClient) {
-          throw new TRPCError({ 
-            code: "BAD_REQUEST", 
-            message: "Ya existe un cliente con este número de WhatsApp" 
-          });
+          return { ...existingClient, alreadyExisted: true };
         }
 
         let userId: number | undefined = undefined;

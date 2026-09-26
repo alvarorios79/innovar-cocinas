@@ -236,6 +236,11 @@ export default function AppointmentsCalendar() {
     },
   });
 
+  // Mutación para marcar como enviada
+  const markSentMutation = trpc.appointments.updateStatus.useMutation({
+    onSuccess: () => { refetch(); },
+  });
+
   // Mutación para crear cliente nuevo
   const createClientMutation = trpc.clients.createQuick.useMutation({
     onError: (error) => {
@@ -436,12 +441,14 @@ export default function AppointmentsCalendar() {
       confirmada: "bg-blue-500/20 text-blue-300",
       completada: "bg-green-500/15 text-green-400",
       cancelada: "bg-red-500/15 text-red-400",
+      enviada: "bg-teal-500/20 text-teal-300",
     };
     const labels: Record<string, string> = {
       pendiente: "Pendiente",
       confirmada: "Confirmada",
       completada: "Completada",
       cancelada: "Cancelada",
+      enviada: "Enviada ✓",
     };
     return (
       <Badge className={styles[status] || "bg-white/[0.08] text-white/70"}>
@@ -648,7 +655,7 @@ export default function AppointmentsCalendar() {
                                 {getStatusBadge(apt.status)}
                                 {buildWhatsAppConfirmLink(apt) && (
                                   <button
-                                    onClick={e => { e.stopPropagation(); window.open(buildWhatsAppConfirmLink(apt)!, "_blank"); }}
+                                    onClick={e => { e.stopPropagation(); window.open(buildWhatsAppConfirmLink(apt)!, "_blank"); markSentMutation.mutate({ id: apt.id, status: "enviada" }); }}
                                     className="p-1 rounded-md hover:bg-green-500/20 text-green-400 hover:text-green-300 transition-colors"
                                     title="Enviar confirmación al cliente por WhatsApp"
                                   >

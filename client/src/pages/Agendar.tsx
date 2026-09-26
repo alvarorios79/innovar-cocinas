@@ -62,14 +62,12 @@ function BookingCalendar({
 
   const firstDay = new Date(viewYear, viewMonth, 1);
   const lastDay = new Date(viewYear, viewMonth + 1, 0);
-  const startOffset = firstDay.getDay(); // 0=Dom
+  const startOffset = firstDay.getDay();
 
-  // Construir grilla: blancos iniciales + días del mes
   const cells: (Date | null)[] = Array(startOffset).fill(null);
   for (let d = 1; d <= lastDay.getDate(); d++) {
     cells.push(new Date(viewYear, viewMonth, d));
   }
-  // Rellenar hasta múltiplo de 7
   while (cells.length % 7 !== 0) cells.push(null);
 
   const prevMonth = () => {
@@ -81,93 +79,96 @@ function BookingCalendar({
     else setViewMonth(m => m + 1);
   };
 
-  // No navegar a meses anteriores al actual
   const canGoPrev = viewYear > today.getFullYear() || (viewYear === today.getFullYear() && viewMonth > today.getMonth());
 
   return (
-    <div className="rounded-xl overflow-hidden" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(0,188,212,0.25)" }}>
+    <div className="rounded-2xl overflow-hidden" style={{ background: "#0f1f2e", border: "1px solid rgba(0,188,212,0.35)" }}>
       {/* Navegación mes */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
-        <button
-          type="button"
-          onClick={prevMonth}
-          disabled={!canGoPrev || disabled}
-          className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 disabled:opacity-30 transition-colors"
-        >
+      <div className="flex items-center justify-between px-5 py-4" style={{ background: "rgba(0,188,212,0.08)" }}>
+        <button type="button" onClick={prevMonth} disabled={!canGoPrev || disabled}
+          className="w-8 h-8 rounded-lg flex items-center justify-center transition-all disabled:opacity-20"
+          style={{ background: canGoPrev ? "rgba(0,188,212,0.15)" : "transparent", color: canGoPrev ? "#00BCD4" : "#4b5563" }}>
           <ChevronLeft className="h-4 w-4" />
         </button>
-        <span className="text-white font-semibold text-sm">
+        <span className="text-white font-bold text-base tracking-wide">
           {MONTH_NAMES[viewMonth]} {viewYear}
         </span>
-        <button
-          type="button"
-          onClick={nextMonth}
-          disabled={disabled}
-          className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 disabled:opacity-30 transition-colors"
-        >
+        <button type="button" onClick={nextMonth} disabled={disabled}
+          className="w-8 h-8 rounded-lg flex items-center justify-center transition-all"
+          style={{ background: "rgba(0,188,212,0.15)", color: "#00BCD4" }}>
           <ChevronRight className="h-4 w-4" />
         </button>
       </div>
 
       {/* Cabecera días */}
-      <div className="grid grid-cols-7 border-b border-white/10">
+      <div className="grid grid-cols-7 px-3 pt-3 pb-1">
         {DAY_NAMES_SHORT.map((d, i) => (
-          <div
-            key={d}
-            className={`text-center text-xs py-2 font-medium ${
+          <div key={d} className="text-center py-1">
+            <span className={`text-xs font-bold uppercase tracking-wider ${
               ALLOWED_DAYS.includes(i) ? "text-teal-400" : "text-gray-600"
-            }`}
-          >
-            {d}
+            }`}>{d}</span>
           </div>
         ))}
       </div>
 
       {/* Días */}
-      <div className="grid grid-cols-7 gap-px p-2">
+      <div className="grid grid-cols-7 gap-1 px-3 pb-3">
         {cells.map((date, i) => {
-          if (!date) return <div key={i} />;
+          if (!date) return <div key={i} className="aspect-square" />;
 
           const dateStr = toDateStr(date);
           const dayOfWeek = date.getDay();
           const isPast = date < today;
           const isAllowed = ALLOWED_DAYS.includes(dayOfWeek);
           const isSelected = dateStr === selectedDate;
-          const isUnavailable = isPast || !isAllowed;
+          const isAvailable = isAllowed && !isPast;
+          const isUnavailable = !isAvailable;
 
+          if (isSelected) {
+            return (
+              <button key={dateStr} type="button" onClick={() => onSelect(dateStr)}
+                className="aspect-square rounded-xl flex flex-col items-center justify-center text-sm font-bold transition-all"
+                style={{ background: "linear-gradient(135deg, #00BCD4, #0097A7)", color: "#fff", boxShadow: "0 4px 16px rgba(0,188,212,0.45)" }}>
+                <span>{date.getDate()}</span>
+              </button>
+            );
+          }
+
+          if (isAvailable) {
+            return (
+              <button key={dateStr} type="button" disabled={disabled}
+                onClick={() => onSelect(dateStr)}
+                className="aspect-square rounded-xl flex flex-col items-center justify-center text-sm font-semibold transition-all group"
+                style={{ background: "rgba(0,188,212,0.1)", border: "1px solid rgba(0,188,212,0.3)", color: "#e2e8f0" }}
+                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(0,188,212,0.25)"; (e.currentTarget as HTMLButtonElement).style.color = "#00BCD4"; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(0,188,212,0.1)"; (e.currentTarget as HTMLButtonElement).style.color = "#e2e8f0"; }}>
+                <span>{date.getDate()}</span>
+                <span className="w-1 h-1 rounded-full mt-0.5" style={{ background: "#00BCD4" }} />
+              </button>
+            );
+          }
+
+          // No disponible (día incorrecto o pasado)
           return (
-            <button
-              key={dateStr}
-              type="button"
-              disabled={isUnavailable || disabled}
-              onClick={() => onSelect(dateStr)}
-              className={`
-                relative aspect-square flex flex-col items-center justify-center rounded-lg text-sm font-medium transition-all
-                ${isSelected
-                  ? "bg-teal-500 text-white shadow-lg shadow-teal-500/30 scale-105"
-                  : isUnavailable
-                    ? "text-gray-700 cursor-not-allowed"
-                    : "text-white hover:bg-teal-500/20 hover:text-teal-300 cursor-pointer"
-                }
-              `}
-            >
-              <span>{date.getDate()}</span>
-              {/* Punto indicador en días disponibles no seleccionados */}
-              {isAllowed && !isPast && !isSelected && (
-                <span className="absolute bottom-1 w-1 h-1 rounded-full bg-teal-400" />
-              )}
-            </button>
+            <div key={dateStr}
+              className="aspect-square rounded-xl flex items-center justify-center text-sm cursor-not-allowed"
+              style={{ color: "#2d3748" }}>
+              {date.getDate()}
+            </div>
           );
         })}
       </div>
 
       {/* Leyenda */}
-      <div className="flex items-center justify-center gap-4 py-2.5 border-t border-white/10 text-xs text-gray-500">
-        <span className="flex items-center gap-1">
-          <span className="w-2 h-2 rounded-full bg-teal-400 inline-block" /> Disponible
+      <div className="flex items-center justify-center gap-5 py-3 text-xs"
+        style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+        <span className="flex items-center gap-1.5 text-teal-400">
+          <span className="w-3 h-3 rounded-md inline-block" style={{ background: "rgba(0,188,212,0.3)", border: "1px solid rgba(0,188,212,0.5)" }} />
+          Disponible
         </span>
-        <span className="flex items-center gap-1">
-          <span className="w-2 h-2 rounded-full bg-gray-700 inline-block" /> No disponible
+        <span className="flex items-center gap-1.5 text-gray-600">
+          <span className="w-3 h-3 rounded-md inline-block" style={{ background: "rgba(255,255,255,0.03)" }} />
+          No disponible
         </span>
       </div>
     </div>

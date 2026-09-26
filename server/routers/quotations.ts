@@ -2765,7 +2765,7 @@ export const quotationsRouter = router({
           // Usar token del cliente si viene (generado sincrónicamente al clic), sino generar nuevo
           const { randomUUID } = await import("crypto");
           const publicToken = input.publicToken || randomUUID().replace(/-/g, '');
-          const publicLink = `https://cocinasintegralespereira.co/cotizacion?token=${publicToken}`;
+          const publicLink = `https://innovar-cocinas.onrender.com/cotizacion?token=${publicToken}`;
 
           const waMessage = `Hola ${client.name}, 👋\n\nLe enviamos la cotización *${quotation.quotationNumber}* de *Innovar Cocinas de Diseño* por un valor de *${formattedAmount}*.\n\n📄 Vea el detalle y apruébela desde aquí:\n${publicLink}\n\n📋 Válida hasta: *${validUntilStr}*\n⏱️ Entrega estimada: *3 a 4 semanas* desde aprobación.\n\n¡Gracias por confiar en Innovar Cocinas! 🙌`;
 

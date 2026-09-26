@@ -517,10 +517,16 @@ export default function Quotations() {
       utils.quotations.list.invalidate();
       utils.quotations.listPaginatedGrouped.invalidate();
       const rawPhone = (data.clientPhone || '').replace(/\D/g, '');
-      // Agregar código de país Colombia (57) si no lo tiene
       const phone = rawPhone.startsWith('57') ? rawPhone : '57' + rawPhone;
       const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(data.message)}`;
-      setPendingWaUrl(waUrl);
+      toast.success('Cotización enviada ✅', {
+        description: 'Presiona el botón para abrir WhatsApp con el mensaje listo',
+        action: {
+          label: '📱 Abrir WhatsApp',
+          onClick: () => window.open(waUrl, '_blank', 'noopener,noreferrer'),
+        },
+        duration: 60000,
+      });
     },
     onError: (error) => {
       toast.error(error.message || "Error al preparar el envío por WhatsApp");

@@ -2461,7 +2461,11 @@ export default function Quotations() {
               href={pendingWaUrl}
               target="_blank"
               rel="noopener noreferrer"
-              onClick={() => setPendingWaUrl(null)}
+              onClick={(e) => {
+                e.preventDefault();
+                window.open(pendingWaUrl!, '_blank', 'noopener,noreferrer');
+                setTimeout(() => setPendingWaUrl(null), 500);
+              }}
               className="flex items-center justify-center gap-2 w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl text-base transition-colors"
             >
               <MessageCircle className="h-5 w-5" />

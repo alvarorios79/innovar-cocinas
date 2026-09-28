@@ -2059,6 +2059,60 @@ export const projectPhotosRouter = router({
           }
         }
 
+        // ── Notificar a admin cuando diseñador sube modelado o renders ──
+        const designerUploadTypes = ["modelado_3d", "renders"];
+        if (
+          ctx.user.role === "disenador" &&
+          input.subcategory &&
+          designerUploadTypes.includes(input.subcategory)
+        ) {
+          const typeLabel = input.subcategory === "modelado_3d" ? "Modelado 3D" : "Renders";
+          const projectName = project.name || `Proyecto #${input.projectId}`;
+
+          // Push notification a super_admin y admin
+          try {
+            await sendPushToRole("super_admin", {
+              title: `📐 ${typeLabel} listo — ${projectName}`,
+              body: `El diseñador subió ${typeLabel}. Revisa y envía al cliente cuando esté listo.`,
+              url: `/projects/${input.projectId}`,
+            });
+            await sendPushToRole("admin", {
+              title: `📐 ${typeLabel} listo — ${projectName}`,
+              body: `El diseñador subió ${typeLabel}. Revisa y envía al cliente cuando esté listo.`,
+              url: `/projects/${input.projectId}`,
+            });
+          } catch (pushErr) {
+            console.error("[Notif] Error enviando push:", pushErr);
+          }
+
+          // Email a Álvaro
+          try {
+            const appUrl = process.env.VITE_APP_URL || "https://innovar-cocinas.onrender.com";
+            const projectUrl = `${appUrl}/projects/${input.projectId}`;
+            const emailHtml = generateEmailHTML(`
+              <h2>📐 ${typeLabel} listo para revisión</h2>
+              <p>El diseñador acaba de subir <strong>${typeLabel}</strong> del proyecto:</p>
+              <p style="font-size:18px; font-weight:bold; color:#1DB5A8;">${projectName}</p>
+              <p>Entra al CRM, revisa el diseño y cuando estés de acuerdo envíaselo al cliente.</p>
+              <a href="${projectUrl}" class="button" style="background:#1DB5A8;">
+                Ver proyecto →
+              </a>
+              <p style="color:#888; font-size:13px; margin-top:24px;">
+                No olvides tocar el botón <strong>"Enviar Modelado"</strong> (o "Enviar Renders") 
+                desde el detalle del proyecto para notificar al cliente.
+              </p>
+            `, `${typeLabel} listo — ${projectName}`);
+
+            await sendEmail({
+              to: "alvarorios79@gmail.com",
+              subject: `📐 ${typeLabel} listo: ${projectName}`,
+              html: emailHtml,
+            });
+          } catch (emailErr) {
+            console.error("[Notif] Error enviando email:", emailErr);
+          }
+        }
+
         return { success: true, photoId };
       }),
 

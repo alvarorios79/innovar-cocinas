@@ -18,9 +18,7 @@ export default function PublicQuotation() {
   );
 
   const approveMutation = trpc.quotations.publicApprove.useMutation({
-    onSuccess: (res) => {
-      setApproved(true);
-    },
+    onSuccess: () => { setApproved(true); },
     onError: (err) => {
       alert(err.message || "Error al aprobar. Intente de nuevo.");
       setApproving(false);
@@ -33,9 +31,7 @@ export default function PublicQuotation() {
     approveMutation.mutate({ token, notes: notes || undefined });
   };
 
-  if (!token) {
-    return <ErrorScreen message="Enlace no válido. Por favor use el enlace enviado por WhatsApp." />;
-  }
+  if (!token) return <ErrorScreen message="Enlace no válido. Por favor use el enlace enviado por WhatsApp." />;
 
   if (isLoading) {
     return (
@@ -48,20 +44,19 @@ export default function PublicQuotation() {
     );
   }
 
-  if (error || !data) {
-    return <ErrorScreen message="Este enlace no es válido o ya expiró. Contáctenos para más información." />;
-  }
+  if (error || !data) return <ErrorScreen message="Este enlace no es válido o ya expiró. Contáctenos para más información." />;
 
   const isAlreadyApproved = data.status === "approved" || approved;
+  const isRejected = data.status === "rejected";
+  const isClosed = isAlreadyApproved || isRejected; // cotización ya procesada
 
   return (
     <div className="min-h-screen bg-[#0a1a1a] text-white">
+
       {/* Header */}
       <div className="bg-gradient-to-r from-[#1DB5A8] to-[#148f84] px-4 py-6">
         <div className="max-w-2xl mx-auto flex items-center gap-3">
-          <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center text-2xl font-bold">
-            N
-          </div>
+          <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center text-2xl font-bold">N</div>
           <div>
             <h1 className="text-white font-bold text-lg leading-tight">Innovar Cocinas de Diseño</h1>
             <p className="text-white/80 text-sm">Fábrica directa · Pereira, Risaralda</p>
@@ -71,26 +66,59 @@ export default function PublicQuotation() {
 
       <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
 
-        {/* Estado aprobado */}
-        {isAlreadyApproved && (
-          <div className="bg-green-900/40 border border-green-500/40 rounded-xl p-5 text-center">
-            <div className="text-4xl mb-2">✅</div>
-            <h2 className="text-green-400 font-bold text-xl mb-1">¡Cotización Aprobada!</h2>
-            <p className="text-gray-300 text-sm">
-              Gracias, {data.clientName}. Nos pondremos en contacto pronto para iniciar su proyecto.
-            </p>
-            {(data as any).projectId && (
-              <a
-                href={`/gallery?project=${(data as any).projectId}&token=${token}`}
-                className="inline-flex items-center gap-2 mt-4 bg-[#1DB5A8] hover:bg-[#17a396] text-white font-bold px-6 py-3 rounded-xl transition-colors text-sm"
-              >
-                📷 Ver avance de tu proyecto →
-              </a>
-            )}
+        {/* ── AVISO DE DESCARGA — solo cuando está pendiente ── */}
+        {!isClosed && (
+          <div className="rounded-xl p-4 flex gap-3" style={{ background: "rgba(255,180,0,0.08)", border: "1px solid rgba(255,180,0,0.35)" }}>
+            <span className="text-2xl shrink-0">⚠️</span>
+            <div>
+              <p className="text-amber-300 font-semibold text-sm">Descarga tu cotización antes de aprobar</p>
+              <p className="text-amber-200/70 text-xs mt-0.5">
+                Una vez que apruebes o rechaces, este enlace dejará de mostrar el detalle completo.
+                Te recomendamos guardar una copia del PDF ahora.
+              </p>
+            </div>
           </div>
         )}
 
-        {/* Resumen de la cotización */}
+        {/* ── ESTADO: APROBADA ── */}
+        {isAlreadyApproved && (
+          <div className="bg-green-900/30 border border-green-500/40 rounded-xl p-6 text-center space-y-3">
+            <div className="text-5xl">✅</div>
+            <h2 className="text-green-400 font-bold text-xl">¡Cotización Aprobada!</h2>
+            <p className="text-gray-300 text-sm">
+              Gracias, <strong>{data.clientName}</strong>. Nuestro equipo se comunicará contigo pronto para iniciar tu proyecto.
+            </p>
+            <div className="pt-1 space-y-2 text-sm text-gray-400">
+              <p>📋 Número: <span className="text-white font-medium">{data.quotationNumber}</span></p>
+              <p>💰 Total aprobado: <span className="text-[#1DB5A8] font-bold">{data.total}</span></p>
+            </div>
+            {(data as any).projectId && (
+              <a href={`/gallery?project=${(data as any).projectId}&token=${token}`}
+                className="inline-flex items-center gap-2 mt-2 bg-[#1DB5A8] hover:bg-[#17a396] text-white font-bold px-6 py-3 rounded-xl transition-colors text-sm">
+                📷 Ver avance de tu proyecto →
+              </a>
+            )}
+            <p className="text-xs text-gray-600 pt-2">
+              ¿Necesitas el detalle de la cotización?{" "}
+              <a href="https://wa.me/573136802025" className="text-[#1DB5A8] hover:underline">Escríbenos por WhatsApp</a>
+            </p>
+          </div>
+        )}
+
+        {/* ── ESTADO: RECHAZADA ── */}
+        {isRejected && !isAlreadyApproved && (
+          <div className="bg-red-900/30 border border-red-500/40 rounded-xl p-6 text-center space-y-3">
+            <div className="text-5xl">❌</div>
+            <h2 className="text-red-400 font-bold text-xl">Cotización Rechazada</h2>
+            <p className="text-gray-300 text-sm">Si deseas ajustar la propuesta, contáctanos.</p>
+            <a href="https://wa.me/573136802025"
+              className="inline-flex items-center gap-2 bg-[#1DB5A8] text-white font-bold px-5 py-3 rounded-xl text-sm">
+              Hablar con nosotros
+            </a>
+          </div>
+        )}
+
+        {/* ── RESUMEN DE COTIZACIÓN ── */}
         <div className="bg-[#0f2424] border border-[#1DB5A8]/20 rounded-xl p-5 space-y-4">
           <div className="flex justify-between items-start">
             <div>
@@ -99,7 +127,6 @@ export default function PublicQuotation() {
             </div>
             <StatusBadge status={data.status} />
           </div>
-
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
               <p className="text-gray-500 text-xs">Cliente</p>
@@ -112,15 +139,14 @@ export default function PublicQuotation() {
               </div>
             )}
           </div>
-
           <div className="border-t border-[#1DB5A8]/10 pt-4 flex justify-between items-center">
             <span className="text-gray-400">Total</span>
             <span className="text-[#1DB5A8] font-bold text-2xl">{data.total}</span>
           </div>
         </div>
 
-        {/* Ítems */}
-        {data.items.length > 0 && (
+        {/* ── DETALLE DE ÍTEMS — solo si NO está cerrada ── */}
+        {!isClosed && data.items.length > 0 && (
           <div className="bg-[#0f2424] border border-[#1DB5A8]/20 rounded-xl p-5">
             <h3 className="text-gray-400 text-xs uppercase tracking-widest font-semibold mb-3">Detalle</h3>
             <div className="space-y-3">
@@ -134,38 +160,30 @@ export default function PublicQuotation() {
           </div>
         )}
 
-        {/* PDF */}
-        {data.pdfUrl && (
-          <a
-            href={data.pdfUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 w-full bg-[#162828] border border-[#1DB5A8]/30 hover:border-[#1DB5A8] rounded-xl p-4 text-[#1DB5A8] font-medium transition-colors"
-          >
-            <span>📄</span>
-            Ver cotización en PDF
+        {/* ── PDF — solo si NO está cerrada ── */}
+        {!isClosed && data.pdfUrl && (
+          <a href={data.pdfUrl} target="_blank" rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2 w-full bg-[#162828] border border-[#1DB5A8]/30 hover:border-[#1DB5A8] rounded-xl p-4 text-[#1DB5A8] font-medium transition-colors">
+            <span>📄</span> Descargar cotización PDF
           </a>
         )}
 
-        {/* Botón de aprobación */}
-        {!isAlreadyApproved && data.status === "sent" && (
+        {/* ── BOTÓN DE APROBACIÓN — solo si está pendiente ── */}
+        {!isClosed && data.status === "sent" && (
           <div className="bg-[#0f2424] border border-[#1DB5A8]/20 rounded-xl p-5 space-y-4">
-            <h3 className="text-white font-semibold">¿Desea aprobar esta cotización?</h3>
+            <h3 className="text-white font-semibold">¿Deseas aprobar esta cotización?</h3>
             <p className="text-gray-400 text-sm">
-              Al aprobar, nuestro equipo se comunicará con usted para coordinar los próximos pasos.
+              Al aprobar, nuestro equipo se comunicará contigo para coordinar los próximos pasos.
             </p>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Comentarios opcionales (ej: ajustes de diseño, preferencias de color)..."
+              placeholder="Comentarios opcionales (ajustes de diseño, preferencias de color, etc.)..."
               rows={3}
               className="w-full bg-[#0a1a1a] border border-[#1DB5A8]/20 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-[#1DB5A8]/60 resize-none"
             />
-            <button
-              onClick={handleApprove}
-              disabled={approving}
-              className="w-full bg-[#1DB5A8] hover:bg-[#17a396] disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold py-4 rounded-xl text-lg transition-colors"
-            >
+            <button onClick={handleApprove} disabled={approving}
+              className="w-full bg-[#1DB5A8] hover:bg-[#17a396] disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold py-4 rounded-xl text-lg transition-colors">
               {approving ? "Aprobando..." : "✅ Aprobar Cotización"}
             </button>
           </div>
@@ -183,17 +201,13 @@ export default function PublicQuotation() {
 
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { label: string; class: string }> = {
-    draft: { label: "Borrador", class: "bg-gray-700 text-gray-300" },
-    sent: { label: "Enviada", class: "bg-blue-900/50 text-blue-300" },
-    approved: { label: "Aprobada", class: "bg-green-900/50 text-green-400" },
+    draft:    { label: "Borrador",  class: "bg-gray-700 text-gray-300" },
+    sent:     { label: "Enviada",   class: "bg-blue-900/50 text-blue-300" },
+    approved: { label: "Aprobada",  class: "bg-green-900/50 text-green-400" },
     rejected: { label: "Rechazada", class: "bg-red-900/50 text-red-400" },
   };
   const s = map[status] ?? { label: status, class: "bg-gray-700 text-gray-300" };
-  return (
-    <span className={`text-xs font-semibold px-3 py-1 rounded-full ${s.class}`}>
-      {s.label}
-    </span>
-  );
+  return <span className={`text-xs font-semibold px-3 py-1 rounded-full ${s.class}`}>{s.label}</span>;
 }
 
 function ErrorScreen({ message }: { message: string }) {
@@ -203,10 +217,8 @@ function ErrorScreen({ message }: { message: string }) {
         <div className="text-5xl mb-4">🔗</div>
         <h1 className="text-white font-bold text-xl mb-2">Enlace no disponible</h1>
         <p className="text-gray-400 text-sm mb-6">{message}</p>
-        <a
-          href="https://wa.me/573136802025"
-          className="inline-flex items-center gap-2 bg-[#1DB5A8] text-white font-medium px-5 py-3 rounded-xl text-sm"
-        >
+        <a href="https://wa.me/573136802025"
+          className="inline-flex items-center gap-2 bg-[#1DB5A8] text-white font-medium px-5 py-3 rounded-xl text-sm">
           Contactar por WhatsApp
         </a>
       </div>

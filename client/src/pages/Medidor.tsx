@@ -802,15 +802,23 @@ export default function Medidor() {
           </div>
           <div className="flex gap-2">
             <Button
-              onClick={() => {
-                setManualPrefill({
-                  appointmentId: String(apt.id),
-                  name: apt.client?.name || "",
-                  phone: apt.client?.whatsappPhone || "",
-                  address: apt.client?.address || "",
-                  workType: (apt.workTypes?.[0] || "") as WorkType | "",
-                });
-                setView("new");
+              onClick={async () => {
+                try {
+                  const geo = await captureGeoLocation().catch(() => null);
+                  const workType = (apt.workTypes?.[0] || "cocina") as WorkType;
+                  const { id } = await createVisit.mutateAsync({
+                    clientName: apt.client?.name || "",
+                    clientPhone: apt.client?.whatsappPhone || "",
+                    clientAddress: apt.client?.address || "",
+                    workType,
+                    workTypes: apt.workTypes || [workType],
+                    geoLocation: geo ?? undefined,
+                  });
+                  setSelectedVisit({ id, clientName: apt.client?.name || "Cargando...", workType, status: "borrador", createdAt: new Date().toISOString() } as any);
+                  setView("detail");
+                } catch {
+                  toast.error("Error al iniciar visita");
+                }
               }}
               className="flex-1 h-11 bg-[#1DB5A8] hover:bg-[#17a396] text-white font-semibold"
             >

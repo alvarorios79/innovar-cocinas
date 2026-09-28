@@ -869,8 +869,8 @@ ${whatsAppLink}` : "⚠️ El cliente no tiene número de WhatsApp registrado.")
         projectId: z.number(),
       }))
       .mutation(async ({ ctx, input }) => {
-        // Solo admin, super_admin, comercial y diseñador pueden enviar renders
-        const allowedRoles = ["super_admin", "admin", "comercial", "disenador"];
+        // Solo super_admin y admin pueden enviar renders al cliente
+        const allowedRoles = ["super_admin", "admin"];
         if (!allowedRoles.includes(ctx.user.role)) {
           throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para enviar renders" });
         }

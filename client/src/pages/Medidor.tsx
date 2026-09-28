@@ -744,7 +744,8 @@ export default function Medidor() {
     const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
     const tomorrowStart = new Date(todayStart); tomorrowStart.setDate(todayStart.getDate() + 1);
 
-    const todayApts = pendingAppointments.filter((apt: any) => {
+    const todayApts = (assignedAppointments as any[]).filter((apt: any) => {
+      if (apt.status === "cancelada") return false; // canceladas nunca aparecen
       if (!apt.scheduledDate) return true; // sin fecha = aparece hoy
       const d = parseScheduledDate(apt.scheduledDate);
       return d >= todayStart && d < tomorrowStart;

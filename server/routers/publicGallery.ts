@@ -779,7 +779,7 @@ ${whatsAppLink}` : "⚠️ El cliente no tiene número de WhatsApp registrado.")
       }))
       .mutation(async ({ ctx, input }) => {
         // Solo admin, super_admin, comercial y diseñador pueden enviar modelado
-        const allowedRoles = ["super_admin", "admin", "comercial", "disenador"];
+        const allowedRoles = ["super_admin", "admin"];
         if (!allowedRoles.includes(ctx.user.role)) {
           throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para enviar modelado" });
         }

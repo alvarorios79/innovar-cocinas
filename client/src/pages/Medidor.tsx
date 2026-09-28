@@ -744,16 +744,19 @@ export default function Medidor() {
     const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
     const tomorrowStart = new Date(todayStart); tomorrowStart.setDate(todayStart.getDate() + 1);
 
-    // Citas que ya tienen levantamiento creado (cualquier estado) — ya no aparecen como pendientes
-    const sentVisitAptIds = new Set(
-      (visits as Visit[])
-        .map(v => (v as any).appointmentId)
-        .filter(Boolean)
+    // Citas que ya tienen levantamiento creado — por appointmentId o por nombre de cliente
+    const visitAptIds = new Set(
+      (visits as Visit[]).map(v => (v as any).appointmentId).filter(Boolean)
+    );
+    const visitClientNames = new Set(
+      (visits as Visit[]).map(v => v.clientName?.trim().toLowerCase()).filter(Boolean)
     );
     const todayApts = (assignedAppointments as any[]).filter((apt: any) => {
       if (apt.status === "cancelada") return false;
-      if (sentVisitAptIds.has(apt.id)) return false; // ya tiene levantamiento enviado
-      if (!apt.scheduledDate) return true; // sin fecha = aparece hoy
+      if (visitAptIds.has(apt.id)) return false;
+      const aptClientName = apt.client?.name?.trim().toLowerCase();
+      if (aptClientName && visitClientNames.has(aptClientName)) return false;
+      if (!apt.scheduledDate) return true;
       const d = parseScheduledDate(apt.scheduledDate);
       return d >= todayStart && d < tomorrowStart;
     });

@@ -744,9 +744,9 @@ export default function Medidor() {
     const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
     const tomorrowStart = new Date(todayStart); tomorrowStart.setDate(todayStart.getDate() + 1);
 
+    // Citas que ya tienen levantamiento creado (cualquier estado) — ya no aparecen como pendientes
     const sentVisitAptIds = new Set(
       (visits as Visit[])
-        .filter(v => ["enviada", "cot_hecha", "cot_enviada", "convertida"].includes(v.status))
         .map(v => (v as any).appointmentId)
         .filter(Boolean)
     );

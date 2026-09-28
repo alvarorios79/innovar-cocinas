@@ -744,8 +744,15 @@ export default function Medidor() {
     const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
     const tomorrowStart = new Date(todayStart); tomorrowStart.setDate(todayStart.getDate() + 1);
 
+    const sentVisitAptIds = new Set(
+      (visits as Visit[])
+        .filter(v => ["enviada", "cot_hecha", "cot_enviada", "convertida"].includes(v.status))
+        .map(v => (v as any).appointmentId)
+        .filter(Boolean)
+    );
     const todayApts = (assignedAppointments as any[]).filter((apt: any) => {
-      if (apt.status === "cancelada") return false; // canceladas nunca aparecen
+      if (apt.status === "cancelada") return false;
+      if (sentVisitAptIds.has(apt.id)) return false; // ya tiene levantamiento enviado
       if (!apt.scheduledDate) return true; // sin fecha = aparece hoy
       const d = parseScheduledDate(apt.scheduledDate);
       return d >= todayStart && d < tomorrowStart;
@@ -812,6 +819,7 @@ export default function Medidor() {
                     clientAddress: apt.client?.address || "",
                     workType,
                     workTypes: apt.workTypes || [workType],
+                    appointmentId: apt.id,
                     geoLocation: geo ?? undefined,
                   });
                   setSelectedVisit({ id, clientName: apt.client?.name || "Cargando...", workType, status: "borrador", createdAt: new Date().toISOString() } as any);

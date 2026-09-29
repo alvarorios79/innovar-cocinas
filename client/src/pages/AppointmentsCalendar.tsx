@@ -186,11 +186,17 @@ export default function AppointmentsCalendar() {
 
   // Mutación para actualizar fecha
   const updateDateMutation = trpc.appointments.updateDate.useMutation({
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast.success("Fecha de cita actualizada");
       refetch();
       setEditingAppointment(null);
       setSelectedAppointment(null);
+      if (data?.whatsappLink) {
+        toast("Notificar al cliente por WhatsApp", {
+          duration: 15000,
+          action: { label: "Enviar WhatsApp", onClick: () => window.open(data.whatsappLink!, "_blank") },
+        });
+      }
     },
     onError: (error) => {
       toast.error(error.message || "Error al actualizar la fecha");

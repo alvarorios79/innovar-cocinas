@@ -103,6 +103,8 @@ export const appointments = pgTable("appointments", {
 	dataOrigin: text().default('manual').notNull(),
 	assignedMedidorId: integer().references(() => users.id),
 	appointmentToken: varchar("appointmentToken", { length: 64 }),
+	rescheduleRequestedDate: varchar("rescheduleRequestedDate", { length: 10 }),
+	rescheduleRequestedTime: varchar("rescheduleRequestedTime", { length: 5 }),
 },
 (table) => [
 	index("appointments_clientId_idx").on(table.clientId),

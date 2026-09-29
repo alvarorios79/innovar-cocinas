@@ -271,6 +271,18 @@ export default function AppointmentsCalendar() {
     },
   });
 
+  // Mutación para eliminar cita
+  const deleteAppointmentMutation = trpc.appointments.delete.useMutation({
+    onSuccess: () => {
+      refetch();
+      setSelectedAppointment(null);
+      toast.success("Cita eliminada");
+    },
+    onError: (err) => {
+      toast.error(err.message || "Error al eliminar la cita");
+    },
+  });
+
   // Mutación para confirmar reagendamiento solicitado por cliente
   const confirmRescheduleMutation = trpc.appointments.confirmReschedule.useMutation({
     onSuccess: (data) => {
@@ -1158,7 +1170,20 @@ export default function AppointmentsCalendar() {
                       </Button>
                     </div>
                   </div>
-                  <DialogFooter>
+                  <DialogFooter className="flex justify-between gap-2">
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => {
+                        if (!confirm("¿Eliminar esta cita? Esta acción no se puede deshacer.")) return;
+                        deleteAppointmentMutation.mutate({ id: selectedAppointment.id });
+                      }}
+                      disabled={deleteAppointmentMutation.isPending}
+                      className="gap-2"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      {deleteAppointmentMutation.isPending ? "..." : "Eliminar"}
+                    </Button>
                     <Button
                       variant="outline"
                       onClick={() => handleEditClick(selectedAppointment)}

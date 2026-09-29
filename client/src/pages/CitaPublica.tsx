@@ -25,7 +25,6 @@ const STATUS_LABELS: Record<string, { label: string; color: string; icon: React.
 };
 
 export default function CitaPublica() {
-  const [, params] = useLocation().split("?");
   const token = new URLSearchParams(typeof window !== "undefined" ? window.location.search : "").get("token") ?? "";
 
   const [view, setView] = useState<"main" | "cancel_confirm" | "reschedule" | "done">("main");

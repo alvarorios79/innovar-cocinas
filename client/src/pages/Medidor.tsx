@@ -823,6 +823,7 @@ export default function Medidor() {
                     workType,
                     workTypes: apt.workTypes || [workType],
                     appointmentId: apt.id,
+                    clientId: apt.client?.id ?? undefined,
                     geoLocation: geo ?? undefined,
                   });
                   setSelectedVisit({ id, clientName: apt.client?.name || "Cargando...", workType, status: "borrador", createdAt: new Date().toISOString() } as any);

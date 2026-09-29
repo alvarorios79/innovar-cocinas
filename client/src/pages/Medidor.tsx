@@ -756,9 +756,9 @@ export default function Medidor() {
     const todayApts = (assignedAppointments as any[]).filter((apt: any) => {
       if (apt.status === "cancelada") return false;
       if (visitAptIds.has(apt.id)) return false;
+      if (!apt.scheduledDate) return false; // sin fecha = no mostrar
       const aptClientName = apt.client?.name?.trim().toLowerCase();
       if (aptClientName && visitClientNames.has(aptClientName)) return false;
-      if (!apt.scheduledDate) return true;
       const d = parseScheduledDate(apt.scheduledDate);
       return d >= todayStart && d < tomorrowStart;
     });

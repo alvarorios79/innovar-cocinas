@@ -437,7 +437,7 @@ export default function Medidor() {
     refetchOnWindowFocus: true,
   });
   const pendingAppointments = (assignedAppointments as any[]).filter(
-    (a: any) => a.status === "pendiente" || a.status === "confirmada"
+    (a: any) => a.status === "pendiente" || a.status === "confirmada" || a.status === "enviada"
   );
 
   // Tareas asignadas al medidor

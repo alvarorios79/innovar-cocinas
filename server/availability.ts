@@ -90,6 +90,11 @@ export async function getAvailableTimeSlots(dateStr: string | Date, bypassDayRes
           )
     );
 
+  // DEBUG: log what's blocking
+  if (existingAppointments.length > 0) {
+    console.log('[isTimeSlotAvailable] Appointments found for', dateStr, ':', existingAppointments.map(a => ({ id: a.id, status: a.status, deletedAt: a.deletedAt, scheduledDate: a.scheduledDate })));
+  }
+
   // Obtener horarios ocupados - convertir a zona horaria de Colombia
   const occupiedSlots = existingAppointments.map(apt => {
     if (!apt.scheduledDate) return null;

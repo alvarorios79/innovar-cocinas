@@ -820,9 +820,9 @@ export const availabilityRouter = router({
       }),
 
         getAvailableSlots: publicProcedure
-      .input(z.object({ date: z.string(), bypassDayRestriction: z.boolean().optional().default(false) }))
+      .input(z.object({ date: z.string(), bypassDayRestriction: z.boolean().optional().default(false), excludeId: z.number().optional() }))
       .query(async ({ input }) => {
-        return await getAvailableTimeSlots(input.date, input.bypassDayRestriction);
+        return await getAvailableTimeSlots(input.date, input.bypassDayRestriction, input.excludeId);
       }),
     checkSlot: publicProcedure
       .input(z.object({ date: z.string(), timeSlot: z.string() }))

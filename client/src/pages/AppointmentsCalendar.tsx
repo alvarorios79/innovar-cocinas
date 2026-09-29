@@ -1246,6 +1246,7 @@ export default function AppointmentsCalendar() {
                   setNewTime("");
                 }}
                 onTimeChange={(time) => setNewTime(time)}
+                excludeId={editingAppointment?.id}
               />
 
               {/* Selector de medidor */}

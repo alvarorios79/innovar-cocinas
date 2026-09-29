@@ -431,8 +431,10 @@ export default function Medidor() {
   });
 
   // Citas asignadas al medidor (filtradas por el servidor)
-  const { data: assignedAppointments = [] } = trpc.appointments.list.useQuery(undefined, {
+  const { data: assignedAppointments = [], refetch: refetchAppointments } = trpc.appointments.list.useQuery(undefined, {
     enabled: view === "list",
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
   const pendingAppointments = (assignedAppointments as any[]).filter(
     (a: any) => a.status === "pendiente" || a.status === "confirmada"
@@ -854,6 +856,7 @@ export default function Medidor() {
                 try {
                   await deleteAppointmentMutation.mutateAsync({ id: apt.id });
                   refetchVisits();
+                  refetchAppointments();
                   toast.success("Cita eliminada");
                 } catch (err: any) {
                   toast.error(err?.message || "Error al eliminar cita");

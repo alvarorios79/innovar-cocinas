@@ -70,14 +70,22 @@ export async function getAvailableTimeSlots(dateStr: string | Date, bypassDayRes
     .select()
     .from(appointments)
     .where(
-      and(
-    // @ts-ignore
-        gte(appointments.scheduledDate, startOfDay),
-    // @ts-ignore
-        lte(appointments.scheduledDate, endOfDay),
-        sql`${appointments.status} != 'cancelada'`,
-        excludeAppointmentId ? sql`${appointments.id} != ${excludeAppointmentId}` : undefined
-      )
+      excludeAppointmentId
+        ? and(
+            // @ts-ignore
+            gte(appointments.scheduledDate, startOfDay),
+            // @ts-ignore
+            lte(appointments.scheduledDate, endOfDay),
+            sql`${appointments.status} != 'cancelada'`,
+            sql`${appointments.id} != ${excludeAppointmentId}`
+          )
+        : and(
+            // @ts-ignore
+            gte(appointments.scheduledDate, startOfDay),
+            // @ts-ignore
+            lte(appointments.scheduledDate, endOfDay),
+            sql`${appointments.status} != 'cancelada'`
+          )
     );
 
   // Obtener horarios ocupados - convertir a zona horaria de Colombia

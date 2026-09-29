@@ -34,7 +34,7 @@ export function isAllowedDay(dayOfWeek: number, bypassDayRestriction = false): b
  * Obtiene todos los horarios disponibles para una fecha específica
  * @param dateStr - Fecha en formato "YYYY-MM-DD"
  */
-export async function getAvailableTimeSlots(dateStr: string | Date, bypassDayRestriction = false): Promise<string[]> {
+export async function getAvailableTimeSlots(dateStr: string | Date, bypassDayRestriction = false, excludeAppointmentId?: number): Promise<string[]> {
   // Parsear la fecha directamente sin conversión de zona horaria
   let year: number, month: number, day: number;
   let date: Date;
@@ -75,7 +75,8 @@ export async function getAvailableTimeSlots(dateStr: string | Date, bypassDayRes
         gte(appointments.scheduledDate, startOfDay),
     // @ts-ignore
         lte(appointments.scheduledDate, endOfDay),
-        sql`${appointments.status} != 'cancelada'`
+        sql`${appointments.status} != 'cancelada'`,
+        excludeAppointmentId ? sql`${appointments.id} != ${excludeAppointmentId}` : undefined
       )
     );
 

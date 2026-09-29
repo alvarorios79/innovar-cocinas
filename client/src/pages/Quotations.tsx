@@ -219,7 +219,6 @@ export default function Quotations() {
   const { data: allPricing } = trpc.pricing.getAll.useQuery();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [fromVisitId, setFromVisitId] = useState<number | null>(null);
-  const [pendingClientName, setPendingClientName] = useState<string | null>(null);
   const [pendingWaUrl, setPendingWaUrl] = useState<string | null>(null);
   const [lockConfirmDialog, setLockConfirmDialog] = useState<{ open: boolean; quotationId: number | null; isLocking: boolean }>({ open: false, quotationId: null, isLocking: false });
   
@@ -258,18 +257,6 @@ export default function Quotations() {
       else if (workTypesParam) setWorkType(workTypesParam.split(",")[0]);
     }
   }, [location]);
-
-  // Resolución diferida: si clients no estaba cargado cuando llegó el URL param clientName
-  useEffect(() => {
-    if (!pendingClientName || !(clients as any[]).length) return;
-    const found = (clients as any[]).find((cl: any) =>
-      cl.name?.toLowerCase().trim() === pendingClientName.toLowerCase().trim()
-    );
-    if (found) {
-      setSelectedClient(found.id);
-      setPendingClientName(null);
-    }
-  }, [clients, pendingClientName]);
 
   const [editingQuotation, setEditingQuotation] = useState<number | null>(null);
   const [selectedClient, setSelectedClient] = useState<number | null>(null);
@@ -404,6 +391,19 @@ export default function Quotations() {
   });
   const quotations = quotationsData?.data || [];
   const { data: clients = [] } = trpc.clients.list.useQuery();
+  const [pendingClientName, setPendingClientName] = useState<string | null>(null);
+
+  // Resolución diferida de cliente por nombre (cuando clients no estaba listo al llegar URL param)
+  useEffect(() => {
+    if (!pendingClientName || !(clients as any[]).length) return;
+    const found = (clients as any[]).find((cl: any) =>
+      cl.name?.toLowerCase().trim() === pendingClientName.toLowerCase().trim()
+    );
+    if (found) {
+      setSelectedClient(found.id);
+      setPendingClientName(null);
+    }
+  }, [clients, pendingClientName]);
 
   // Filtrar cotizaciones
   const filteredQuotations = quotations.filter((quot: any) => {

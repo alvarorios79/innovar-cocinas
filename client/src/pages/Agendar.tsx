@@ -201,7 +201,7 @@ export default function Agendar() {
   const [workTypes, setWorkTypes] = useState<WorkType[]>([]);
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
-  const [bookedInfo, setBookedInfo] = useState<{ name: string; date: string; time: string; phone: string } | null>(null);
+  const [bookedInfo, setBookedInfo] = useState<{ name: string; date: string; time: string; phone: string; citaLink?: string } | null>(null);
 
   const { data: slots } = trpc.availability.getAvailableSlots.useQuery(
     { date: selectedDate },
@@ -237,7 +237,7 @@ export default function Agendar() {
 
       if (!client) { toast.error("Error al registrar los datos"); return; }
 
-      await createAppointmentMutation.mutateAsync({
+      const apptResult = await createAppointmentMutation.mutateAsync({
         clientId: client.id,
         workTypes,
         scheduledDateStr: selectedDate,
@@ -245,11 +245,16 @@ export default function Agendar() {
         notes: form.notes.trim() || undefined,
       });
 
+      const citaLink = apptResult?.appointmentToken
+        ? `${window.location.origin}/cita?token=${apptResult.appointmentToken}`
+        : undefined;
+
       setBookedInfo({
         name: form.name,
         date: formatDateLabel(selectedDate),
         time: formatTime(selectedTime),
         phone: form.whatsappPhone,
+        citaLink,
       });
       setStep("success");
     } catch (err: any) {
@@ -279,6 +284,15 @@ export default function Agendar() {
             <div className="flex items-center gap-3 text-gray-200"><Clock className="h-4 w-4 text-teal-400 shrink-0" /><span>{bookedInfo.time}</span></div>
             <div className="flex items-center gap-3 text-gray-200"><Phone className="h-4 w-4 text-teal-400 shrink-0" /><span>{bookedInfo.phone}</span></div>
           </div>
+          {bookedInfo.citaLink && (
+            <a
+              href={bookedInfo.citaLink}
+              className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-semibold text-white"
+              style={{ background: "linear-gradient(135deg, #00BCD4, #0097A7)" }}
+            >
+              <span>📋</span> Ver / cancelar / reagendar mi cita
+            </a>
+          )}
           <p className="text-sm text-gray-400">Recibirás confirmación por WhatsApp. Nuestro equipo se comunicará contigo pronto.</p>
           <a
             href={`https://wa.me/573136802025?text=${encodeURIComponent("Hola! Acabo de agendar una visita. Mi nombre es " + bookedInfo.name)}`}

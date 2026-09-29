@@ -130,6 +130,24 @@ export interface KitchenConfig {
   };
   notes?: string;
   mlPriceCode?: string; // Código de precio guardado: COCINA_ML_ESTANDAR | COCINA_ML_PREMIUM | COCINA_ML_DELUXE
+  // Especificaciones informativas (salen en PDF para el cliente)
+  boardFinish?: string;
+  interiorFinish?: string;
+  hardware?: {
+    bisagras?: 'estandar' | 'inox';
+    rieles?: 'peso_alto' | 'cierre_lento';
+  };
+  incluyePlatero?: boolean;
+  plateroDesc?: string;
+  appliances?: {
+    estufa: boolean;
+    horno: boolean;
+    extractor: boolean;
+    llaveLavaplatos: boolean;
+    nevera: boolean;
+    microondas: boolean;
+    lavaVajillas: boolean;
+  };
 }
 
 interface KitchenConfiguratorProps {
@@ -1577,6 +1595,159 @@ export function KitchenConfigurator({
                 </div>
               </div>
             )}
+          </div>
+
+          {/* Especificaciones del Proyecto — material, color, herraje, platero, electrodomésticos */}
+          <div className="bg-blue-500/10 p-4 rounded-lg border border-blue-500/25 space-y-4">
+            <h5 className="font-semibold text-blue-300 mb-1">Especificaciones del Proyecto</h5>
+
+            {/* Material fijo */}
+            <div className="p-3 bg-[#162828] rounded border border-blue-400/30">
+              <p className="text-xs text-blue-400 font-semibold uppercase tracking-wide mb-1">Material del tablero</p>
+              <p className="text-sm text-white/85">Tablero 15mm hidrófuga alta presión RH — resistente a la humedad</p>
+              <p className="text-xs text-white/40 mt-1">Material estándar para todos los proyectos Innovar</p>
+            </div>
+
+            {/* Color exterior */}
+            <div>
+              <Label className="text-sm font-medium text-white/85 block mb-2">Color / Acabado exterior</Label>
+              <Select
+                value={currentConfig.boardFinish || ""}
+                onValueChange={(v) => updateConfig("boardFinish", v)}
+              >
+                <SelectTrigger className="h-10 bg-[#162828]">
+                  <SelectValue placeholder="Selecciona el color" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Flor Morado">Flor Morado</SelectItem>
+                  <SelectItem value="Creta">Creta</SelectItem>
+                  <SelectItem value="Tihua">Tihua</SelectItem>
+                  <SelectItem value="Yalaa">Yalaa</SelectItem>
+                  <SelectItem value="Humo">Humo</SelectItem>
+                  <SelectItem value="Mali">Mali</SelectItem>
+                  <SelectItem value="Glaze">Glaze</SelectItem>
+                  <SelectItem value="Robere Arena">Robere Arena</SelectItem>
+                  <SelectItem value="Cocuy">Cocuy</SelectItem>
+                  <SelectItem value="Ika">Ika</SelectItem>
+                  <SelectItem value="Sikuani">Sikuani</SelectItem>
+                  <SelectItem value="Roble Cenizo">Roble Cenizo</SelectItem>
+                  <SelectItem value="otro">Otro (ver notas)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Color interior */}
+            <div>
+              <Label className="text-sm font-medium text-white/85 block mb-2">Color interior de la cocina</Label>
+              <div className="flex gap-4">
+                {(["Blanco Ártico", "Yalaa"] as string[]).map((color) => (
+                  <div key={color}
+                    className="flex items-center gap-2 p-2 bg-[#162828] rounded border border-blue-400/30 cursor-pointer flex-1"
+                    onClick={() => updateConfig("interiorFinish", currentConfig.interiorFinish === color ? "" : color)}>
+                    <Checkbox
+                      checked={currentConfig.interiorFinish === color}
+                      onCheckedChange={() => updateConfig("interiorFinish", currentConfig.interiorFinish === color ? "" : color)}
+                    />
+                    <span className="text-sm text-white/85">{color}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Herraje */}
+            <div>
+              <Label className="text-sm font-medium text-white/85 block mb-2">Herraje incluido</Label>
+              <div className="space-y-2">
+                <p className="text-xs text-white/50 uppercase tracking-wide">Bisagras</p>
+                <div className="flex gap-3">
+                  {([
+                    { value: "estandar", label: "Estándar cierre lento" },
+                    { value: "inox",     label: "Acero inoxidable cierre lento" },
+                  ] as {value:string;label:string}[]).map(({ value, label }) => (
+                    <div key={value}
+                      className="flex items-center gap-2 p-2 bg-[#162828] rounded border border-blue-400/30 cursor-pointer flex-1"
+                      onClick={() => updateConfig("hardware.bisagras", currentConfig.hardware?.bisagras === value ? undefined : value)}>
+                      <Checkbox
+                        checked={currentConfig.hardware?.bisagras === value}
+                        onCheckedChange={() => updateConfig("hardware.bisagras", currentConfig.hardware?.bisagras === value ? undefined : value)}
+                      />
+                      <span className="text-xs text-white/85">{label}</span>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-white/50 uppercase tracking-wide mt-2">Rieles</p>
+                <div className="flex gap-3">
+                  {([
+                    { value: "peso_alto",     label: "Telescópico peso alto" },
+                    { value: "cierre_lento",  label: "Telescópico cierre lento" },
+                  ] as {value:string;label:string}[]).map(({ value, label }) => (
+                    <div key={value}
+                      className="flex items-center gap-2 p-2 bg-[#162828] rounded border border-blue-400/30 cursor-pointer flex-1"
+                      onClick={() => updateConfig("hardware.rieles", currentConfig.hardware?.rieles === value ? undefined : value)}>
+                      <Checkbox
+                        checked={currentConfig.hardware?.rieles === value}
+                        onCheckedChange={() => updateConfig("hardware.rieles", currentConfig.hardware?.rieles === value ? undefined : value)}
+                      />
+                      <span className="text-xs text-white/85">{label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Platero */}
+            <div>
+              <div className="flex items-center gap-3 mb-2">
+                <Checkbox
+                  id="incluye-platero"
+                  checked={currentConfig.incluyePlatero || false}
+                  onCheckedChange={(v) => updateConfig("incluyePlatero", v === true)}
+                />
+                <Label htmlFor="incluye-platero" className="text-sm font-medium text-white/85 cursor-pointer">
+                  Incluye platero en acero inoxidable
+                </Label>
+              </div>
+              {currentConfig.incluyePlatero && (
+                <input
+                  type="text"
+                  value={currentConfig.plateroDesc || ""}
+                  onChange={(e) => updateConfig("plateroDesc", e.target.value)}
+                  placeholder="Descripción del platero (medidas, tipo, etc.)"
+                  className="w-full h-9 px-3 text-sm bg-[#162828] border border-blue-400/30 rounded text-white/85 placeholder:text-white/30"
+                />
+              )}
+            </div>
+
+            {/* Electrodomésticos */}
+            <div>
+              <Label className="text-sm font-medium text-white/85 block mb-1">Electrodomésticos</Label>
+              <p className="text-xs text-white/40 mb-3">No son suministrados por Innovar — se reserva espacio según medidas estándar</p>
+              <div className="grid grid-cols-2 gap-2">
+                {([
+                  { key: "estufa",          label: "Estufa" },
+                  { key: "horno",           label: "Horno empotrable" },
+                  { key: "extractor",       label: "Extractor" },
+                  { key: "llaveLavaplatos", label: "Llave de lavaplatos" },
+                  { key: "nevera",          label: "Nevera" },
+                  { key: "microondas",      label: "Microondas" },
+                  { key: "lavaVajillas",    label: "Lavavajillas" },
+                ] as {key:string;label:string}[]).map(({ key, label }) => {
+                  const val = (currentConfig.appliances as any)?.[key] || false;
+                  return (
+                    <div key={key}
+                      className={`flex items-center gap-2 p-2 rounded border cursor-pointer ${val ? 'bg-emerald-900/30 border-emerald-500/40' : 'bg-[#162828] border-white/10'}`}
+                      onClick={() => updateConfig(`appliances.${key}`, !val)}>
+                      <Checkbox
+                        checked={val}
+                        onCheckedChange={(v) => updateConfig(`appliances.${key}`, v === true)}
+                      />
+                      <span className="text-xs text-white/85">{label}</span>
+                      <span className={`ml-auto text-xs font-semibold ${val ? 'text-emerald-400' : 'text-red-400/70'}`}>{val ? 'SÍ' : 'NO'}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
 
           {/* Notas */}

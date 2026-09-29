@@ -893,5 +893,33 @@ El cliente *${client?.name ?? 'Desconocido'}* quiere reagendar su cita.
         // Pasar la fecha como string directamente
         return await isTimeSlotAvailable(input.date, input.timeSlot);
       }),
+
+    getWhatsAppLink: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ ctx, input }) => {
+        if (!["admin", "super_admin", "comercial"].includes(ctx.user.role)) {
+          throw new TRPCError({ code: "FORBIDDEN" });
+        }
+        const apt = await db.getAppointmentById(input.id);
+        if (!apt) throw new TRPCError({ code: "NOT_FOUND", message: "Cita no encontrada" });
+        const client = await db.getClientById(apt.clientId);
+        if (!client?.whatsappPhone) return { whatsappLink: null };
+        const workTypes = await db.getWorkTypesByAppointmentId(apt.id);
+        const token = (apt as any).appointmentToken as string | null;
+        const citaUrl = token
+          ? `${process.env.APP_URL || 'https://app.cocinasintegralespereira.co'}/cita?token=${token}`
+          : undefined;
+        const scheduledDate = apt.scheduledDate
+          ? new Date(apt.scheduledDate as string)
+          : new Date();
+        const whatsappLink = whatsapp.generateClientConfirmationLink({
+          clientPhone: client.whatsappPhone,
+          clientName: client.name,
+          scheduledDate,
+          workTypes,
+          citaLink: citaUrl,
+        });
+        return { whatsappLink };
+      }),
 });
 

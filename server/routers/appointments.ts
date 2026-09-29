@@ -172,8 +172,9 @@ export const appointmentsRouter = router({
           const updatedClient = await db.getClientById(client.id);
           if (updatedClient?.userId && scheduledDate) {
             try {
-              const dateFormatted = scheduledDate.toLocaleDateString('es-CO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'America/Bogota' });
-              const timeFormatted = scheduledDate.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'America/Bogota' });
+              const _scheduledDateObj = new Date(scheduledDate as string);
+              const dateFormatted = _scheduledDateObj.toLocaleDateString('es-CO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'America/Bogota' });
+              const timeFormatted = _scheduledDateObj.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'America/Bogota' });
               await db.createNotification({
                 userId: updatedClient.userId,
                 type: 'cita',

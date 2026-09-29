@@ -32,22 +32,22 @@ export default function CitaPublica() {
   const [reqTime, setReqTime] = useState("");
   const [reqMsg, setReqMsg] = useState("");
 
-  const { data, isLoading, error } = trpc.appointments.getByToken.useQuery(
+  const { data, isLoading, error } = trpc.availability.getByToken.useQuery(
     { token },
     { enabled: token.length > 10, retry: false }
   );
 
-  const { data: slots } = trpc.appointments.getAvailableSlots.useQuery(
+  const { data: slots } = trpc.availability.getAvailableSlots.useQuery(
     { date: reqDate },
     { enabled: view === "reschedule" && reqDate.length === 10 }
   );
 
-  const cancelMutation = trpc.appointments.cancelByToken.useMutation({
+  const cancelMutation = trpc.availability.cancelByToken.useMutation({
     onSuccess: () => { setView("done"); },
     onError: (e) => toast.error(e.message),
   });
 
-  const rescheduleMutation = trpc.appointments.requestRescheduleByToken.useMutation({
+  const rescheduleMutation = trpc.availability.requestRescheduleByToken.useMutation({
     onSuccess: () => { setView("done"); },
     onError: (e) => toast.error(e.message),
   });

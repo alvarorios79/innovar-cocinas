@@ -1,4 +1,5 @@
 import { Toaster } from "sonner";
+import CitaPublica from "@/pages/CitaPublica";
 import React from "react";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
@@ -49,9 +50,9 @@ function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
 
   // Rutas siempre públicas (nunca usan DashboardLayout)
-  const alwaysPublicRoutes = ["/login", "/register", "/forgot-password", "/reset-password", "/portal", "/gallery", "/cotizacion", "/agendar"];
+  const alwaysPublicRoutes = ["/login", "/register", "/forgot-password", "/reset-password", "/portal", "/gallery", "/cotizacion", "/agendar", "/cita"];
   const isAlwaysPublic = alwaysPublicRoutes.some(
-    route => location === route || location.startsWith("/portal") || location.startsWith("/gallery") || location.startsWith("/cotizacion") || location.startsWith("/agendar")
+    route => location === route || location.startsWith("/portal") || location.startsWith("/gallery") || location.startsWith("/cotizacion") || location.startsWith("/agendar") || location.startsWith("/cita")
   );
   if (isAlwaysPublic) return <>{children}</>;
 
@@ -82,6 +83,7 @@ function Router() {
         <Route path={"/reset-password"} component={ResetPassword} />
         <Route path={"/gallery"}><PublicGallery /></Route>
         <Route path={"/agendar"} component={Agendar} />
+        <Route path={"/cita"}><CitaPublica /></Route>
         <Route path={"/cotizacion"}><PublicQuotation /></Route>
         <Route path={"/pricing-config"}><PricingConfig /></Route>
         <Route path={"/herrajes"}><Herrajes /></Route>

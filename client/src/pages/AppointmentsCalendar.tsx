@@ -95,6 +95,9 @@ interface Appointment {
   status: string;
   workTypes: string[];
   notes?: string;
+  rescheduleRequestedDate?: string | null;
+  rescheduleRequestedTime?: string | null;
+  appointmentToken?: string | null;
 }
 
 // Helper: Drizzle retorna timestamps sin timezone ("2026-09-28 13:30:00")
@@ -266,6 +269,21 @@ export default function AppointmentsCalendar() {
     onError: (err) => {
       toast.error(err.message || "Error al actualizar el estado");
     },
+  });
+
+  // Mutación para confirmar reagendamiento solicitado por cliente
+  const confirmRescheduleMutation = trpc.appointments.confirmReschedule.useMutation({
+    onSuccess: (data) => {
+      refetch();
+      toast.success("Reagendamiento confirmado ✓");
+      if (data?.whatsappLink) {
+        toast("Notificar al cliente por WhatsApp", {
+          duration: 15000,
+          action: { label: "Enviar WhatsApp", onClick: () => window.open(data.whatsappLink!, "_blank") },
+        });
+      }
+    },
+    onError: (err) => toast.error(err.message || "Error al confirmar"),
   });
 
   // Mutación para crear cliente nuevo
@@ -709,6 +727,25 @@ export default function AppointmentsCalendar() {
                                 }
                                 WhatsApp
                               </Button>
+                            )}
+                            {apt.status === "reagendamiento_solicitado" && apt.rescheduleRequestedDate && apt.rescheduleRequestedTime && (
+                              <div className="mt-2 p-2 bg-orange-500/10 border border-orange-500/30 rounded-lg">
+                                <p className="text-xs text-orange-300 font-medium mb-1">📅 Solicitud de reagendamiento</p>
+                                <p className="text-xs text-white/70 mb-2">
+                                  {apt.rescheduleRequestedDate} a las {apt.rescheduleRequestedTime}
+                                </p>
+                                <Button
+                                  size="sm"
+                                  className="w-full bg-orange-500 hover:bg-orange-600 text-white text-xs"
+                                  disabled={confirmRescheduleMutation.isPending}
+                                  onClick={e => {
+                                    e.stopPropagation();
+                                    confirmRescheduleMutation.mutate({ id: apt.id });
+                                  }}
+                                >
+                                  {confirmRescheduleMutation.isPending ? "⏳ Confirmando..." : "✓ Confirmar reagendamiento"}
+                                </Button>
+                              </div>
                             )}
                           </div>
                         ))}

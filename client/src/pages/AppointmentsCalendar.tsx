@@ -346,7 +346,7 @@ export default function AppointmentsCalendar() {
   });
 
   // Mutación para confirmar reagendamiento solicitado por cliente
-  const confirmRescheduleMutation = trpc.appointments.confirmReschedule.useMutation({
+  const confirmRescheduleMutation = trpc.availability.confirmReschedule.useMutation({
     onSuccess: (data) => {
       refetch();
       toast.success("Reagendamiento confirmado ✓");

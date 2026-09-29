@@ -256,6 +256,15 @@ export async function getAppointmentById(id: number) {
   return result.length > 0 ? result[0] : undefined;
 }
 
+export async function getAppointmentByToken(token: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(appointments)
+    .where(and(eq(appointments.appointmentToken, token), isNull(appointments.deletedAt)))
+    .limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
 export async function getAllAppointments() {
   const db = await getDb();
   if (!db) return [];

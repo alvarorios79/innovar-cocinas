@@ -108,13 +108,27 @@ const parseDBDate = (ds: string | Date | null | undefined): Date => {
   return new Date(ds as string);
 };
 
+const COUNTRY_CODES = [
+  { code: "57",  flag: "🇨🇴", label: "Colombia (+57)" },
+  { code: "1",   flag: "🇺🇸", label: "EEUU (+1)" },
+  { code: "34",  flag: "🇪🇸", label: "España (+34)" },
+  { code: "41",  flag: "🇨🇭", label: "Suiza (+41)" },
+  { code: "54",  flag: "🇦🇷", label: "Argentina (+54)" },
+  { code: "52",  flag: "🇲🇽", label: "México (+52)" },
+  { code: "44",  flag: "🇬🇧", label: "Reino Unido (+44)" },
+  { code: "49",  flag: "🇩🇪", label: "Alemania (+49)" },
+  { code: "33",  flag: "🇫🇷", label: "Francia (+33)" },
+  { code: "39",  flag: "🇮🇹", label: "Italia (+39)" },
+];
+
 // Helper: genera link de WhatsApp al cliente con mensaje de confirmación
 function buildWhatsAppConfirmLink(apt: { clientPhone?: string; clientName: string; scheduledDate: Date; workTypes: string[]; notes?: string }): string | null {
   if (!apt.clientPhone) return null;
   const phone = apt.clientPhone.replace(/[^0-9]/g, "");
   const intlPhone = phone.startsWith("57") ? phone : `57${phone}`;
-  const dateStr = apt.scheduledDate.toLocaleDateString("es-CO", { weekday: "long", year: "numeric", month: "long", day: "numeric", timeZone: "America/Bogota" });
-  const timeStr = apt.scheduledDate.toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit", timeZone: "America/Bogota" });
+  const parsedDate = parseDBDate(apt.scheduledDate as any);
+  const dateStr = parsedDate.toLocaleDateString("es-CO", { weekday: "long", year: "numeric", month: "long", day: "numeric", timeZone: "America/Bogota" });
+  const timeStr = parsedDate.toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit", timeZone: "America/Bogota" });
   const workLabel: Record<string, string> = { cocina: "Cocina Integral", closet: "Closet", puertas: "Puertas", centro_tv: "Centro de Entretenimiento", bano: "Mueble de Baño", escalera: "Escalera", empresas: "Mobiliario Empresarial", otro: "Toma de medidas" };
   const workTypes = apt.workTypes.map(w => workLabel[w] || w).join(", ") || "Toma de medidas";
   const msg = `Hola ${apt.clientName} 👋, le escribe *INNOVAR Cocinas de Diseño*.
@@ -155,6 +169,8 @@ export default function AppointmentsCalendar() {
   const [newNotes, setNewNotes] = useState("");
   const [newClientPhone, setNewClientPhone] = useState("");
   const [newClientAddress, setNewClientAddress] = useState("");
+  const [newCountryCode, setNewCountryCode] = useState("57");
+  const [newIdentificationNumber, setNewIdentificationNumber] = useState("");
   const [isNewClient, setIsNewClient] = useState(false);
   const [newMedidorId, setNewMedidorId] = useState<number | null>(null);
 
@@ -228,6 +244,8 @@ export default function AppointmentsCalendar() {
       setNewNotes("");
       setNewClientPhone("");
       setNewClientAddress("");
+      setNewCountryCode("57");
+      setNewIdentificationNumber("");
       setIsNewClient(false);
       setNewMedidorId(null);
     },
@@ -282,8 +300,9 @@ export default function AppointmentsCalendar() {
       try {
         const newClient = await createClientMutation.mutateAsync({
           name: newClientName,
-          whatsappPhone: newClientPhone,
+          whatsappPhone: `${newCountryCode}${newClientPhone.replace(/\D/g, "")}`,
           address: newClientAddress || undefined,
+          identificationNumber: newIdentificationNumber || undefined,
           internalManagement: true,
         });
         clientId = newClient?.id ?? null;
@@ -833,12 +852,36 @@ export default function AppointmentsCalendar() {
             <div>
               <Label className="flex items-center gap-1">
                 <Phone className="h-3.5 w-3.5 text-white/40" />
-                Teléfono
+                Teléfono / WhatsApp
+              </Label>
+              <div className="flex gap-2 mt-1">
+                <select
+                  value={newCountryCode}
+                  onChange={(e) => setNewCountryCode(e.target.value)}
+                  className="bg-[#162828] border border-white/[0.10] text-white rounded-md px-2 py-2 text-sm"
+                >
+                  {COUNTRY_CODES.map((cc) => (
+                    <option key={cc.code} value={cc.code}>{cc.flag} +{cc.code}</option>
+                  ))}
+                </select>
+                <Input
+                  placeholder="Número de teléfono o WhatsApp"
+                  value={newClientPhone}
+                  onChange={(e) => setNewClientPhone(e.target.value)}
+                  className="flex-1"
+                />
+              </div>
+            </div>
+
+            {/* Cédula / ID */}
+            <div>
+              <Label className="flex items-center gap-1">
+                Cédula / Identificación
               </Label>
               <Input
-                placeholder="Número de teléfono o WhatsApp"
-                value={newClientPhone}
-                onChange={(e) => setNewClientPhone(e.target.value)}
+                placeholder="Número de identificación (opcional)"
+                value={newIdentificationNumber}
+                onChange={(e) => setNewIdentificationNumber(e.target.value)}
                 className="mt-1"
               />
             </div>

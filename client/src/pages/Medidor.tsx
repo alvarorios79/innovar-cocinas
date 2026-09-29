@@ -787,14 +787,20 @@ export default function Medidor() {
       return (
         <div className="bg-teal-900/25 border border-[#1DB5A8]/50 rounded-xl p-4 space-y-3">
           {/* Fecha y hora — primera línea visible */}
-          {aptDate && (
-            <div className="flex items-center gap-2">
-              <span className="bg-[#1DB5A8] text-black font-bold text-base px-3 py-0.5 rounded-lg tabular-nums">
-                {aptTimeStr}
+          <div className="flex items-center gap-2">
+            {aptDate ? (
+              <>
+                <span className="bg-[#1DB5A8] text-black font-bold text-base px-3 py-0.5 rounded-lg tabular-nums">
+                  {aptTimeStr}
+                </span>
+                <span className="text-xs text-slate-300 capitalize">{aptDateStr}</span>
+              </>
+            ) : (
+              <span className="bg-slate-600 text-slate-300 text-xs font-medium px-3 py-0.5 rounded-lg">
+                Sin hora asignada
               </span>
-              <span className="text-xs text-slate-300 capitalize">{aptDateStr}</span>
-            </div>
-          )}
+            )}
+          </div>
           <div className="flex items-start justify-between">
             <div className="flex-1 min-w-0">
               <h3 className="font-bold text-white text-lg truncate">{apt.client?.name || "Cliente"}</h3>

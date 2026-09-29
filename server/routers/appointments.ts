@@ -677,7 +677,32 @@ export const appointmentsRouter = router({
           console.error('[UpdateDate] Error al crear notificación en campanilla:', notifError);
         }
 
-        return { success: true };
+        // Generar link de WhatsApp para notificar al cliente del reagendamiento
+        let whatsappLink: string | null = null;
+        try {
+          const updatedApt = await db.getAppointmentById(input.id);
+          if (updatedApt) {
+            const client = await db.getClientById(updatedApt.clientId);
+            if (client?.whatsappPhone) {
+              const workTypes = await db.getWorkTypesByAppointmentId(updatedApt.id);
+              const token = (updatedApt as any).appointmentToken as string | null;
+              const citaUrl = token
+                ? `${process.env.APP_URL || 'https://app.cocinasintegralespereira.co'}/cita?token=${token}`
+                : undefined;
+              whatsappLink = whatsapp.generateClientConfirmationLink({
+                clientPhone: client.whatsappPhone,
+                clientName: client.name,
+                scheduledDate,
+                workTypes,
+                citaLink: citaUrl,
+              });
+            }
+          }
+        } catch (waErr) {
+          console.error('[UpdateDate] Error al generar link WhatsApp:', waErr);
+        }
+
+        return { success: true, whatsappLink };
       }),
 
     listMedidores: protectedProcedure

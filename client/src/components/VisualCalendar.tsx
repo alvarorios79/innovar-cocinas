@@ -11,6 +11,7 @@ interface VisualCalendarProps {
   onDateChange: (date: string) => void;
   onTimeChange: (time: string) => void;
   bypassDayRestriction?: boolean;
+  excludeId?: number;
 }
 
 export function VisualCalendar({
@@ -19,6 +20,7 @@ export function VisualCalendar({
   onDateChange,
   onTimeChange,
   bypassDayRestriction = false,
+  excludeId,
 }: VisualCalendarProps) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   // Obtener configuración
@@ -26,7 +28,7 @@ export function VisualCalendar({
   
   // Obtener horarios disponibles para la fecha seleccionada
   const { data: slots } = trpc.availability.getAvailableSlots.useQuery(
-    { date: selectedDate, bypassDayRestriction },
+    { date: selectedDate, bypassDayRestriction, ...(excludeId ? { excludeId } : {}) },
     { enabled: !!selectedDate }
   );
 

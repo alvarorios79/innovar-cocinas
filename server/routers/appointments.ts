@@ -195,7 +195,8 @@ export const appointmentsRouter = router({
                 client.whatsappPhone,
                 client.name,
                 scheduledDate,
-                input.workTypes[0] || "cocina"
+                input.workTypes[0] || "cocina",
+                citaPublicUrl
               );
               whatsappAutoSent = result.success;
               if (!result.success) {
@@ -746,6 +747,24 @@ export const availabilityRouter = router({
         if (apt.status === 'cancelada') throw new TRPCError({ code: "BAD_REQUEST", message: "La cita ya estaba cancelada." });
         if (apt.status === 'completada') throw new TRPCError({ code: "BAD_REQUEST", message: "No puedes cancelar una cita ya completada." });
         await db.updateAppointment(apt.id, { status: 'cancelada' });
+        // Notificar al equipo por WhatsApp
+        try {
+          const client = await db.getClientById(apt.clientId);
+          const aptDate = apt.scheduledDate ? new Date(apt.scheduledDate).toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Bogota' }) : 'fecha no definida';
+          const aptTime = apt.scheduledDate ? new Date(apt.scheduledDate).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'America/Bogota' }) : '';
+          const teamMsg = `⚠️ *CITA CANCELADA*
+
+El cliente *${client?.name ?? 'Desconocido'}* canceló su cita.
+
+📅 Fecha: ${aptDate}
+⏰ Hora: ${aptTime}
+
+👉 Por favor contáctalo para reagendar.
+📞 ${client?.whatsappPhone ?? 'Sin teléfono'}`;
+          await whatsappCloud.sendTextMessage('573136802025', teamMsg);
+        } catch (notifErr) {
+          console.error('[cancelByToken] Error notificando al equipo:', notifErr);
+        }
         return { success: true };
       }),
 
@@ -769,6 +788,24 @@ export const availabilityRouter = router({
           rescheduleRequestedDate: input.requestedDate,
           rescheduleRequestedTime: input.requestedTime,
         } as any);
+        // Notificar al equipo por WhatsApp
+        try {
+          const client = await db.getClientById(apt.clientId);
+          const msgExtra = input.message ? ` — "${input.message}"` : '';
+          const teamMsg = `🔄 *SOLICITUD DE REAGENDAMIENTO*
+
+El cliente *${client?.name ?? 'Desconocido'}* quiere reagendar su cita.
+
+📅 Nueva fecha: ${input.requestedDate}
+⏰ Nueva hora: ${input.requestedTime}${msgExtra}
+
+📞 ${client?.whatsappPhone ?? 'Sin teléfono'}
+
+👉 Entra al ERP para confirmar o rechazar.`;
+          await whatsappCloud.sendTextMessage('573136802025', teamMsg);
+        } catch (notifErr) {
+          console.error('[requestRescheduleByToken] Error notificando al equipo:', notifErr);
+        }
         return { success: true };
       }),
 

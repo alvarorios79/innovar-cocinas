@@ -760,13 +760,63 @@ export const availabilityRouter = router({
         if (!apt) throw new TRPCError({ code: "NOT_FOUND", message: "Cita no encontrada." });
         if (apt.status === 'cancelada') throw new TRPCError({ code: "BAD_REQUEST", message: "No puedes reagendar una cita cancelada." });
         if (apt.status === 'completada') throw new TRPCError({ code: "BAD_REQUEST", message: "No puedes reagendar una cita ya completada." });
-        const noteAppend = `\n[SOLICITUD DE REAGENDAMIENTO: ${input.requestedDate} a las ${input.requestedTime}${input.message ? ` — "${input.message}"` : ''}]`;
+        const noteAppend = `\n[REAGENDAMIENTO SOLICITADO: ${input.requestedDate} a las ${input.requestedTime}${input.message ? ` — "${input.message}"` : ''}]`;
         const newNotes = (apt.notes ?? '') + noteAppend;
         await db.updateAppointment(apt.id, {
           status: 'reagendamiento_solicitado',
           notes: newNotes,
-        });
+          rescheduleRequestedDate: input.requestedDate,
+          rescheduleRequestedTime: input.requestedTime,
+        } as any);
         return { success: true };
+      }),
+
+        confirmReschedule: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        if (!["admin", "super_admin", "comercial"].includes(ctx.user.role)) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Sin permisos" });
+        }
+        const apt = await db.getAppointmentById(input.id);
+        if (!apt) throw new TRPCError({ code: "NOT_FOUND", message: "Cita no encontrada" });
+        const reqDate = (apt as any).rescheduleRequestedDate as string | null;
+        const reqTime = (apt as any).rescheduleRequestedTime as string | null;
+        if (!reqDate || !reqTime) throw new TRPCError({ code: "BAD_REQUEST", message: "No hay solicitud de reagendamiento registrada" });
+
+        // Validar disponibilidad del nuevo horario (excluir la cita actual)
+        const isAvailable = await isTimeSlotAvailable(reqDate, reqTime, input.id);
+        if (!isAvailable) throw new TRPCError({ code: "CONFLICT", message: "El horario solicitado ya está ocupado" });
+
+        // Construir nueva fecha en Colombia (UTC-5)
+        const [year, month, day] = reqDate.split('-').map(Number);
+        const [hours, minutes] = reqTime.split(':').map(Number);
+        const dateStr = `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}T${String(hours).padStart(2,'0')}:${String(minutes).padStart(2,'0')}:00-05:00`;
+        const newScheduledDate = new Date(dateStr);
+
+        await db.updateAppointment(input.id, {
+          scheduledDate: newScheduledDate.toISOString() as any,
+          status: 'confirmada',
+          notes: apt.notes ?? undefined,
+          rescheduleRequestedDate: null as any,
+          rescheduleRequestedTime: null as any,
+        } as any);
+
+        // Generar link de WhatsApp para notificar al cliente
+        const client = await db.getClientById(apt.clientId);
+        let whatsappLink: string | null = null;
+        if (client?.whatsappPhone) {
+          const workTypes = await db.getWorkTypesByAppointmentId(apt.id);
+          const token = (apt as any).appointmentToken as string | null;
+          const citaUrl = token ? `${process.env.APP_URL || 'https://app.cocinasintegralespereira.co'}/cita?token=${token}` : undefined;
+          whatsappLink = whatsapp.generateClientConfirmationLink({
+            clientPhone: client.whatsappPhone,
+            clientName: client.name,
+            scheduledDate: newScheduledDate,
+            workTypes,
+            citaLink: citaUrl,
+          });
+        }
+        return { success: true, whatsappLink };
       }),
 
         getAvailableSlots: publicProcedure

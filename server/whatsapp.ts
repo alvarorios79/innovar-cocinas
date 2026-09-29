@@ -79,6 +79,7 @@ export function generateClientConfirmationLink(data: {
   scheduledDate?: Date;
   workTypes: string[];
   notes?: string;
+  citaLink?: string;
 }): string {
   const workTypeLabels: Record<string, string> = {
     cocina: "Cocina Integral",
@@ -123,7 +124,10 @@ export function generateClientConfirmationLink(data: {
   if (data.notes) message += `📝 *Nota:* ${data.notes}
 
 `;
-  message += `Cualquier duda, estamos a sus órdenes. ¡Gracias por su confianza! 🙏`;
+  if (data.citaLink) {
+    message += `\n🔗 *Ver / cancelar / reagendar su cita:*\n${data.citaLink}\n`;
+  }
+  message += `\nCualquier duda, estamos a sus órdenes. ¡Gracias por su confianza! 🙏`;
 
   return generateWhatsAppLink(data.clientPhone, message);
 }

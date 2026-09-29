@@ -102,6 +102,7 @@ export const appointments = pgTable("appointments", {
 	deletedAt: timestamp({ mode: 'string' }),
 	dataOrigin: text().default('manual').notNull(),
 	assignedMedidorId: integer().references(() => users.id),
+	appointmentToken: varchar("appointmentToken", { length: 64 }),
 },
 (table) => [
 	index("appointments_clientId_idx").on(table.clientId),

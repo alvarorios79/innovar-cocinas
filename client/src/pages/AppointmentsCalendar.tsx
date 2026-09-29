@@ -31,6 +31,7 @@ import {
   Search,
   UserCheck,
   MessageCircle,
+  Trash2,
 } from "lucide-react";
 import { VisualCalendar } from "@/components/VisualCalendar";
 import { PageHeader } from "@/components/PageHeader";

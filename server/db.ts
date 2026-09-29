@@ -287,6 +287,13 @@ export async function getAppointmentsByClient(clientId: number) {
   return enriched;
 }
 
+export async function getWorkTypesByAppointmentId(appointmentId: number): Promise<string[]> {
+  const db = await getDb();
+  if (!db) return [];
+  const rows = await db.select().from(appointmentWorkTypes).where(eq(appointmentWorkTypes.appointmentId, appointmentId));
+  return rows.map(r => r.workType);
+}
+
 export async function updateAppointment(id: number, data: Partial<InsertAppointment>) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");

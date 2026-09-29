@@ -78,60 +78,40 @@ const menuSections: MenuSection[] = [
     ],
   },
   {
-    title: "CRM / Clientes",
+    title: "Gestión",
     items: [
-      { icon: Users, label: "Clientes", path: "/clients",
-        roles: ["super_admin", "admin", "comercial"], iconColor: "#0ea5e9" },
-    ],
-  },
-  {
-    title: "Comercial",
-    items: [
-      { icon: KanbanSquare,  label: "Pipeline",    path: "/comercial",
-        roles: ["super_admin", "admin", "comercial"], iconColor: "#1DB5A8" },
-      { icon: FileText,      label: "Cotizaciones", path: "/quotations",
-        roles: ["super_admin", "admin", "comercial"], iconColor: "#6366f1" },
-      { icon: CalendarCheck, label: "Citas",        path: "/appointments-calendar",
+      { icon: CalendarCheck, label: "Citas",         path: "/appointments-calendar",
         roles: ["super_admin", "admin", "comercial"], iconColor: "#3b82f6" },
-    ],
-  },
-  {
-    title: "Proyectos",
-    items: [
-      { icon: FolderKanban, label: "Proyectos", path: "/projects", iconColor: "#8b5cf6",
+      { icon: Users,         label: "Clientes",      path: "/clients",
+        roles: ["super_admin", "admin", "comercial"], iconColor: "#0ea5e9" },
+      { icon: ClipboardCheck, label: "Levantamientos", path: "/levantamientos",
+        roles: ["medidor", "super_admin", "admin", "comercial"], iconColor: "#1DB5A8" },
+      { icon: FileText,      label: "Cotizaciones",  path: "/quotations",
+        roles: ["super_admin", "admin", "comercial"], iconColor: "#6366f1" },
+      { icon: FolderKanban,  label: "Proyectos",     path: "/projects", iconColor: "#8b5cf6",
         roles: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario", "contador"] },
-    ],
-  },
-  {
-    title: "Financiero",
-    items: [
-      { icon: DollarSign, label: "Contabilidad", path: "/accounting",
-        roles: ["super_admin", "admin"], iconColor: "#10b981" },
-      { icon: BookOpen,   label: "Contador",      path: "/contador",
-        roles: ["super_admin", "admin", "contador"], iconColor: "#34d399" },
-    ],
-  },
-  {
-    title: "Diseño",
-    items: [
-      { icon: Palette, label: "Diseño", path: "/design",
-        roles: ["super_admin", "admin", "disenador", "jefe_taller", "operario"], iconColor: "#ec4899" },
     ],
   },
   {
     title: "Producción",
     items: [
-      { icon: Wrench,        label: "Producción", path: "/production",
+      { icon: Palette,       label: "Diseño",        path: "/design",
+        roles: ["super_admin", "admin", "disenador", "jefe_taller", "operario"], iconColor: "#ec4899" },
+      { icon: Wrench,        label: "Producción",    path: "/production",
         roles: ["super_admin", "admin", "disenador", "jefe_taller", "operario"], iconColor: "#f59e0b" },
-      { icon: ClipboardList, label: "Tareas",     path: "/tasks", iconColor: "#22c55e",
+      { icon: Truck,         label: "Instalaciones", path: "/calendar",
+        roles: ["super_admin", "admin", "comercial", "jefe_taller", "operario"], iconColor: "#f97316" },
+      { icon: ClipboardList, label: "Tareas",        path: "/tasks", iconColor: "#22c55e",
         roles: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario", "contador"] },
     ],
   },
   {
-    title: "Instalaciones",
+    title: "Comercial",
     items: [
-      { icon: Truck, label: "Instalaciones", path: "/calendar",
-        roles: ["super_admin", "admin", "comercial", "jefe_taller", "operario"], iconColor: "#f97316" },
+      { icon: KanbanSquare,  label: "Pipeline",      path: "/comercial",
+        roles: ["super_admin", "admin", "comercial"], iconColor: "#1DB5A8" },
+      { icon: Star,          label: "Postventa",     path: "/postventa",
+        roles: ["super_admin", "admin", "comercial"], iconColor: "#eab308" },
     ],
   },
   {
@@ -142,17 +122,12 @@ const menuSections: MenuSection[] = [
     ],
   },
   {
-    title: "Levantamientos",
+    title: "Financiero",
     items: [
-      { icon: ClipboardCheck, label: "Levantamientos", path: "/levantamientos",
-        roles: ["medidor", "super_admin", "admin", "comercial"], iconColor: "#1DB5A8" },
-    ],
-  },
-  {
-    title: "Postventa",
-    items: [
-      { icon: Star, label: "Postventa", path: "/postventa",
-        roles: ["super_admin", "admin", "comercial"], iconColor: "#eab308" },
+      { icon: DollarSign, label: "Contabilidad", path: "/accounting",
+        roles: ["super_admin", "admin"], iconColor: "#10b981" },
+      { icon: BookOpen,   label: "Contador",      path: "/contador",
+        roles: ["super_admin", "admin", "contador"], iconColor: "#34d399" },
     ],
   },
   {

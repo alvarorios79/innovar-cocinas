@@ -1,6 +1,6 @@
 import { getDb } from "./db";
 import { appointments } from "../drizzle/schema";
-import { and, eq, gte, lte, sql } from "drizzle-orm";
+import { and, eq, gte, isNull, lte, sql } from "drizzle-orm";
 
 /**
  * Configuración de horarios de citas
@@ -77,6 +77,7 @@ export async function getAvailableTimeSlots(dateStr: string | Date, bypassDayRes
             // @ts-ignore
             lte(appointments.scheduledDate, endOfDay),
             sql`${appointments.status} != 'cancelada'`,
+            isNull(appointments.deletedAt),
             sql`${appointments.id} != ${excludeAppointmentId}`
           )
         : and(
@@ -84,7 +85,8 @@ export async function getAvailableTimeSlots(dateStr: string | Date, bypassDayRes
             gte(appointments.scheduledDate, startOfDay),
             // @ts-ignore
             lte(appointments.scheduledDate, endOfDay),
-            sql`${appointments.status} != 'cancelada'`
+            sql`${appointments.status} != 'cancelada'`,
+            isNull(appointments.deletedAt)
           )
     );
 

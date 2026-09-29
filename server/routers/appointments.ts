@@ -720,18 +720,12 @@ export const availabilityRouter = router({
         const apt = await db.getAppointmentByToken(input.token);
         if (!apt) throw new TRPCError({ code: "NOT_FOUND", message: "Cita no encontrada o enlace inválido." });
         const client = await db.getClientById(apt.clientId);
+        const workTypes = await db.getWorkTypesByAppointmentId(apt.id);
         const workTypeLabels: Record<string, string> = {
           cocina: "Cocina Integral", closet: "Closet", puertas: "Puertas",
           centro_tv: "Centro de Entretenimiento", mueble_bano: "Mueble de Baño",
           escalera: "Escalera", empresas: "Mobiliario Empresarial", otro: "Toma de medidas",
         };
-        // Obtener workTypes desde la tabla joinada
-        const { getDb: getDbInner } = await import('../db');
-        const { appointmentWorkTypes, eq: eqInner } = await import('drizzle-orm').then(m => ({ appointmentWorkTypes: undefined, eq: m.eq }));
-        // Usamos la función enriquecida existente en getAllAppointments
-        const allApts = await db.getAllAppointments();
-        const enriched = allApts.find(a => a.id === apt.id);
-        const workTypes: string[] = (enriched as any)?.workTypes ?? [];
         return {
           id: apt.id,
           status: apt.status,

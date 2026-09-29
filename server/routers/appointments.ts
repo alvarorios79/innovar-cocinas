@@ -162,7 +162,7 @@ export const appointmentsRouter = router({
           const whatsappClientLink = whatsapp.generateClientConfirmationLink({
             clientPhone: client.whatsappPhone,
             clientName: client.name,
-            scheduledDate,
+            scheduledDate: scheduledDate ? new Date(scheduledDate as string) : undefined,
             workTypes: input.workTypes,
             notes: input.notes ? sanitizeText(input.notes) : undefined,
             citaLink: citaPublicUrl,
@@ -194,7 +194,7 @@ export const appointmentsRouter = router({
               const result = await whatsappCloud.sendAppointmentConfirmation(
                 client.whatsappPhone,
                 client.name,
-                scheduledDate,
+                new Date(scheduledDate as string),
                 input.workTypes[0] || "cocina",
                 citaPublicUrl
               );

@@ -447,6 +447,10 @@ export default function AppointmentsCalendar() {
         status: apt.status,
         workTypes: apt.workTypes || [],
         notes: apt.notes,
+        appointmentToken: apt.appointmentToken ?? null,
+        rescheduleRequestedDate: apt.rescheduleRequestedDate ?? null,
+        rescheduleRequestedTime: apt.rescheduleRequestedTime ?? null,
+        assignedMedidorId: apt.assignedMedidorId ?? null,
       }));
   }, [appointmentsData]);
 
@@ -1166,6 +1170,34 @@ export default function AppointmentsCalendar() {
                     Teléfono
                   </div>
                   <div className="font-medium">{selectedAppointment.clientPhone}</div>
+                </div>
+              )}
+
+              {(selectedAppointment as any).appointmentToken && (
+                <div>
+                  <div className="text-sm text-white/45 flex items-center gap-1">
+                    <span>🔗</span>
+                    Enlace del cliente (cancelar / reagendar)
+                  </div>
+                  <div className="flex items-center gap-2 mt-1">
+                    <a
+                      href={`${window.location.origin}/cita?token=${(selectedAppointment as any).appointmentToken}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-teal-400 text-xs underline truncate max-w-[220px]"
+                    >
+                      /cita?token={(selectedAppointment as any).appointmentToken?.slice(0, 12)}...
+                    </a>
+                    <button
+                      className="text-xs px-2 py-1 rounded bg-white/10 hover:bg-white/20 text-white/70"
+                      onClick={() => {
+                        navigator.clipboard.writeText(`${window.location.origin}/cita?token=${(selectedAppointment as any).appointmentToken}`);
+                        toast.success("Enlace copiado");
+                      }}
+                    >
+                      Copiar
+                    </button>
+                  </div>
                 </div>
               )}
 

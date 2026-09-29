@@ -11,6 +11,19 @@ import {
   ChevronLeft, ChevronRight,
 } from "lucide-react";
 
+const COUNTRY_CODES = [
+  { code: "57",  flag: "🇨🇴", label: "Colombia (+57)" },
+  { code: "1",   flag: "🇺🇸", label: "EEUU (+1)" },
+  { code: "34",  flag: "🇪🇸", label: "España (+34)" },
+  { code: "41",  flag: "🇨🇭", label: "Suiza (+41)" },
+  { code: "54",  flag: "🇦🇷", label: "Argentina (+54)" },
+  { code: "52",  flag: "🇲🇽", label: "México (+52)" },
+  { code: "44",  flag: "🇬🇧", label: "Reino Unido (+44)" },
+  { code: "49",  flag: "🇩🇪", label: "Alemania (+49)" },
+  { code: "33",  flag: "🇫🇷", label: "Francia (+33)" },
+  { code: "39",  flag: "🇮🇹", label: "Italia (+39)" },
+];
+
 type WorkType = "cocina" | "closet" | "puertas" | "centro_tv" | "mueble_bano" | "otro";
 
 const WORK_TYPES: { value: WorkType; label: string; icon: React.ReactNode }[] = [
@@ -180,6 +193,7 @@ export default function Agendar() {
   const [form, setForm] = useState({
     name: "",
     whatsappPhone: "",
+    countryCode: "57",
     address: "",
     identificationNumber: "",
     notes: "",
@@ -216,7 +230,7 @@ export default function Agendar() {
     try {
       const client = await createClientMutation.mutateAsync({
         name: form.name.trim(),
-        whatsappPhone: form.whatsappPhone.trim(),
+        whatsappPhone: `${form.countryCode}${form.whatsappPhone.trim().replace(/\D/g, "")}`.trim(),
         address: form.address.trim(),
         identificationNumber: form.identificationNumber.trim() || undefined,
       });
@@ -325,11 +339,23 @@ export default function Agendar() {
 
             <div className="space-y-1">
               <Label className="text-gray-200 text-sm">WhatsApp *</Label>
-              <div className="relative">
-                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
-                <Input placeholder="Ej: 313 680 2025" value={form.whatsappPhone} type="tel"
-                  onChange={e => setForm(f => ({ ...f, whatsappPhone: e.target.value }))}
-                  className="pl-9 h-11 bg-white/10 border-white/20 text-white placeholder:text-gray-600 focus:border-teal-400" disabled={isPending} />
+              <div className="flex gap-2">
+                <select
+                  value={form.countryCode}
+                  onChange={e => setForm(f => ({ ...f, countryCode: e.target.value }))}
+                  className="h-11 bg-white/10 border border-white/20 text-white rounded-md px-2 text-sm"
+                  disabled={isPending}
+                >
+                  {COUNTRY_CODES.map((cc) => (
+                    <option key={cc.code} value={cc.code} className="bg-gray-900">{cc.flag} +{cc.code}</option>
+                  ))}
+                </select>
+                <div className="relative flex-1">
+                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+                  <Input placeholder="Ej: 313 680 2025" value={form.whatsappPhone} type="tel"
+                    onChange={e => setForm(f => ({ ...f, whatsappPhone: e.target.value }))}
+                    className="pl-9 h-11 bg-white/10 border-white/20 text-white placeholder:text-gray-600 focus:border-teal-400 w-full" disabled={isPending} />
+                </div>
               </div>
             </div>
 

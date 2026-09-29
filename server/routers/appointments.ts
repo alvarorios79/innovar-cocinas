@@ -51,11 +51,15 @@ export const appointmentsRouter = router({
           scheduledDate = new Date(dateStr).toISOString() as any;
         }
 
+        const { randomBytes } = await import('crypto');
+        const appointmentToken = randomBytes(32).toString('hex');
+
         const appointmentId = await db.createAppointment({
           clientId: input.clientId,
           scheduledDate: scheduledDate as any,
           notes: input.notes ? sanitizeText(input.notes) : undefined,
-        });
+          appointmentToken,
+        } as any);
 
         // Insertar los tipos de trabajo en la tabla appointmentWorkTypes
         for (const workType of input.workTypes) {
@@ -154,12 +158,14 @@ export const appointmentsRouter = router({
           }
 
           // Link para notificar AL CLIENTE (se abre manualmente desde el toast)
+          const citaPublicUrl = `${process.env.APP_URL || 'https://app.cocinasintegralespereira.co'}/cita?token=${appointmentToken}`;
           const whatsappClientLink = whatsapp.generateClientConfirmationLink({
             clientPhone: client.whatsappPhone,
             clientName: client.name,
             scheduledDate,
             workTypes: input.workTypes,
             notes: input.notes ? sanitizeText(input.notes) : undefined,
+            citaLink: citaPublicUrl,
           });
 
           // Notificación en campanilla para el cliente (si tiene userId)
@@ -199,7 +205,7 @@ export const appointmentsRouter = router({
             }
           }
           
-          return { id: appointmentId, success: true, whatsappClientLink, whatsappAutoSent };
+          return { id: appointmentId, success: true, whatsappClientLink, whatsappAutoSent, appointmentToken };
         }
         
         return { id: appointmentId, success: true };
@@ -707,7 +713,69 @@ export const availabilityRouter = router({
     getConfig: publicProcedure.query(() => {
       return APPOINTMENT_CONFIG;
     }),
-    getAvailableSlots: publicProcedure
+    // ── Endpoints públicos por token (sin login) ──────────────────────────────
+    getByToken: publicProcedure
+      .input(z.object({ token: z.string().min(10) }))
+      .query(async ({ input }) => {
+        const apt = await db.getAppointmentByToken(input.token);
+        if (!apt) throw new TRPCError({ code: "NOT_FOUND", message: "Cita no encontrada o enlace inválido." });
+        const client = await db.getClientById(apt.clientId);
+        const workTypeLabels: Record<string, string> = {
+          cocina: "Cocina Integral", closet: "Closet", puertas: "Puertas",
+          centro_tv: "Centro de Entretenimiento", mueble_bano: "Mueble de Baño",
+          escalera: "Escalera", empresas: "Mobiliario Empresarial", otro: "Toma de medidas",
+        };
+        // Obtener workTypes desde la tabla joinada
+        const { getDb: getDbInner } = await import('../db');
+        const { appointmentWorkTypes, eq: eqInner } = await import('drizzle-orm').then(m => ({ appointmentWorkTypes: undefined, eq: m.eq }));
+        // Usamos la función enriquecida existente en getAllAppointments
+        const allApts = await db.getAllAppointments();
+        const enriched = allApts.find(a => a.id === apt.id);
+        const workTypes: string[] = (enriched as any)?.workTypes ?? [];
+        return {
+          id: apt.id,
+          status: apt.status,
+          scheduledDate: apt.scheduledDate,
+          notes: apt.notes,
+          clientName: client?.name ?? "Cliente",
+          workTypes,
+          workTypeLabels,
+        };
+      }),
+
+    cancelByToken: publicProcedure
+      .input(z.object({ token: z.string().min(10) }))
+      .mutation(async ({ input }) => {
+        const apt = await db.getAppointmentByToken(input.token);
+        if (!apt) throw new TRPCError({ code: "NOT_FOUND", message: "Cita no encontrada." });
+        if (apt.status === 'cancelada') throw new TRPCError({ code: "BAD_REQUEST", message: "La cita ya estaba cancelada." });
+        if (apt.status === 'completada') throw new TRPCError({ code: "BAD_REQUEST", message: "No puedes cancelar una cita ya completada." });
+        await db.updateAppointment(apt.id, { status: 'cancelada' });
+        return { success: true };
+      }),
+
+    requestRescheduleByToken: publicProcedure
+      .input(z.object({
+        token: z.string().min(10),
+        requestedDate: z.string(), // "YYYY-MM-DD"
+        requestedTime: z.string(), // "HH:MM"
+        message: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const apt = await db.getAppointmentByToken(input.token);
+        if (!apt) throw new TRPCError({ code: "NOT_FOUND", message: "Cita no encontrada." });
+        if (apt.status === 'cancelada') throw new TRPCError({ code: "BAD_REQUEST", message: "No puedes reagendar una cita cancelada." });
+        if (apt.status === 'completada') throw new TRPCError({ code: "BAD_REQUEST", message: "No puedes reagendar una cita ya completada." });
+        const noteAppend = `\n[SOLICITUD DE REAGENDAMIENTO: ${input.requestedDate} a las ${input.requestedTime}${input.message ? ` — "${input.message}"` : ''}]`;
+        const newNotes = (apt.notes ?? '') + noteAppend;
+        await db.updateAppointment(apt.id, {
+          status: 'reagendamiento_solicitado',
+          notes: newNotes,
+        });
+        return { success: true };
+      }),
+
+        getAvailableSlots: publicProcedure
       .input(z.object({ date: z.string(), bypassDayRestriction: z.boolean().optional().default(false) }))
       .query(async ({ input }) => {
         return await getAvailableTimeSlots(input.date, input.bypassDayRestriction);

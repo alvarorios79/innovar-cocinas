@@ -196,7 +196,8 @@ export async function isTimeSlotAvailable(dateStr: string | Date, timeSlot: stri
   const whereConditions = [
     gte(appointments.scheduledDate, startOfDayStr),
     lte(appointments.scheduledDate, endOfDayStr),
-    sql`${appointments.status} != 'cancelada'`
+    sql`${appointments.status} != 'cancelada'`,
+    isNull(appointments.deletedAt)  // excluir citas eliminadas (soft-delete)
   ];
   
   if (excludeAppointmentId) {

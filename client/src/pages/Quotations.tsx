@@ -219,6 +219,7 @@ export default function Quotations() {
   const { data: allPricing } = trpc.pricing.getAll.useQuery();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [fromVisitId, setFromVisitId] = useState<number | null>(null);
+  const [pendingClientName, setPendingClientName] = useState<string | null>(null);
   const [pendingWaUrl, setPendingWaUrl] = useState<string | null>(null);
   const [lockConfirmDialog, setLockConfirmDialog] = useState<{ open: boolean; quotationId: number | null; isLocking: boolean }>({ open: false, quotationId: null, isLocking: false });
   
@@ -237,11 +238,39 @@ export default function Quotations() {
       const clientId = params.get("clientId");
       const wt = params.get("workType");
       const workTypesParam = params.get("workTypes");
-      if (clientId) setSelectedClient(parseInt(clientId));
+      if (clientId) {
+        setSelectedClient(parseInt(clientId));
+      } else {
+        const clientNameParam = params.get("clientName");
+        if (clientNameParam) {
+          const decoded = decodeURIComponent(clientNameParam);
+          const found = (clients as any[]).find((cl: any) =>
+            cl.name?.toLowerCase().trim() === decoded.toLowerCase().trim()
+          );
+          if (found) {
+            setSelectedClient(found.id);
+          } else {
+            setPendingClientName(decoded);
+          }
+        }
+      }
       if (wt) setWorkType(wt);
       else if (workTypesParam) setWorkType(workTypesParam.split(",")[0]);
     }
   }, [location]);
+
+  // Resolución diferida: si clients no estaba cargado cuando llegó el URL param clientName
+  useEffect(() => {
+    if (!pendingClientName || !(clients as any[]).length) return;
+    const found = (clients as any[]).find((cl: any) =>
+      cl.name?.toLowerCase().trim() === pendingClientName.toLowerCase().trim()
+    );
+    if (found) {
+      setSelectedClient(found.id);
+      setPendingClientName(null);
+    }
+  }, [clients, pendingClientName]);
+
   const [editingQuotation, setEditingQuotation] = useState<number | null>(null);
   const [selectedClient, setSelectedClient] = useState<number | null>(null);
   const VENDOR_OPTIONS = ["Alvaro Ríos", "Martha Serna"];

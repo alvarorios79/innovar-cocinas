@@ -780,10 +780,21 @@ export default function Medidor() {
     // Render de tarjeta de cita
     const AptCard = ({ apt }: { apt: any }) => {
       const aptDate = apt.scheduledDate ? parseScheduledDate(apt.scheduledDate) : null;
+      const aptTimeStr = aptDate ? aptDate.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'America/Bogota' }) : null;
+      const aptDateStr = aptDate ? aptDate.toLocaleDateString('es-CO', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'America/Bogota' }) : null;
       const wtLabels: Record<string, string> = { cocina: "Cocina Integral", closet: "Closet", puertas: "Puertas", centro_tv: "Centro de TV" };
       const workTypeText = apt.workTypes?.map((wt: string) => wtLabels[wt] || wt).join(", ") || "";
       return (
         <div className="bg-teal-900/25 border border-[#1DB5A8]/50 rounded-xl p-4 space-y-3">
+          {/* Fecha y hora — primera línea visible */}
+          {aptDate && (
+            <div className="flex items-center gap-2">
+              <span className="bg-[#1DB5A8] text-black font-bold text-base px-3 py-0.5 rounded-lg tabular-nums">
+                {aptTimeStr}
+              </span>
+              <span className="text-xs text-slate-300 capitalize">{aptDateStr}</span>
+            </div>
+          )}
           <div className="flex items-start justify-between">
             <div className="flex-1 min-w-0">
               <h3 className="font-bold text-white text-lg truncate">{apt.client?.name || "Cliente"}</h3>
@@ -801,14 +812,6 @@ export default function Medidor() {
                 </p>
               )}
             </div>
-            {aptDate && (
-              <div className="ml-3 text-right flex-shrink-0">
-                <p className="text-xs text-slate-300">{aptDate.toLocaleDateString('es-CO', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'America/Bogota' })}</p>
-                <p className="text-lg text-[#1DB5A8] font-bold">
-                  {aptDate.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'America/Bogota' })}
-                </p>
-              </div>
-            )}
           </div>
           <div className="flex gap-2">
             <Button

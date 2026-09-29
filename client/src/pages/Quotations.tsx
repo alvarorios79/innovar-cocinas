@@ -1163,6 +1163,13 @@ export default function Quotations() {
     }
     current[fields[fields.length - 1]] = value;
 
+    // Cuando se desmarca medidas independientes, limpiar ML de superiores/inferiores en una sola operación
+    if (field === 'independentMeters' && value === false) {
+      config.upperMeters = undefined;
+      config.lowerMeters = undefined;
+      // totalMeters vuelve al valor base (campo ml general)
+    }
+
     // Auto-suma: cuando cambia lowerMeters o upperMeters, actualizar totalMeters
     if (field === 'lowerMeters' || field === 'upperMeters') {
       config.totalMeters = (config.lowerMeters || 0) + (config.upperMeters || 0);
@@ -2809,10 +2816,6 @@ export default function Quotations() {
                                 checked={item.kitchenConfig?.independentMeters || false}
                                 onChange={(e) => {
                                   updateKitchenConfig(index, "independentMeters", e.target.checked);
-                                  if (!e.target.checked) {
-                                    updateKitchenConfig(index, "upperMeters", undefined);
-                                    updateKitchenConfig(index, "lowerMeters", undefined);
-                                  }
                                 }}
                                 className="h-4 w-4 accent-[#00BCD4]"
                               />

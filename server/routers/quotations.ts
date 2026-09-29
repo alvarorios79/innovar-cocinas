@@ -1238,6 +1238,40 @@ export const quotationsRouter = router({
                 }
               }
 
+              // Especificaciones del proyecto
+              lines.push('');
+              lines.push('ESPECIFICACIONES:');
+              lines.push('• Material: Tablero 15mm hidrófuga alta presión RH (resistente a la humedad)');
+              if (config.boardFinish) lines.push(`• Color exterior: ${config.boardFinish}`);
+              if (config.interiorFinish) lines.push(`• Color interior: ${config.interiorFinish}`);
+              if (config.hardware?.bisagras) {
+                const bisLabel = config.hardware.bisagras === 'inox'
+                  ? 'Bisagras acero inoxidable cierre lento'
+                  : 'Bisagras estándar cierre lento';
+                lines.push(`• Bisagras: ${bisLabel}`);
+              }
+              if (config.hardware?.rieles) {
+                const rielLabel = config.hardware.rieles === 'peso_alto'
+                  ? 'Riel telescópico peso alto'
+                  : 'Riel telescópico cierre lento';
+                lines.push(`• Rieles: ${rielLabel}`);
+              }
+              if (config.incluyePlatero) {
+                lines.push(`• Platero: Acero inoxidable${config.plateroDesc ? ' — ' + config.plateroDesc : ''}`);
+              }
+              if (config.appliances) {
+                const ap = config.appliances as any;
+                const apList: string[] = [];
+                if (ap.estufa)          apList.push('Estufa');
+                if (ap.horno)           apList.push('Horno empotrable');
+                if (ap.extractor)       apList.push('Extractor');
+                if (ap.llaveLavaplatos) apList.push('Llave de lavaplatos');
+                if (ap.nevera)          apList.push('Nevera');
+                if (ap.microondas)      apList.push('Microondas');
+                if (ap.lavaVajillas)    apList.push('Lavavajillas');
+                if (apList.length > 0) lines.push(`• Espacios electrodomésticos (no suministrados): ${apList.join(', ')}`);
+              }
+
               // Notas adicionales del ítem de cocina
               if (config.notes && config.notes.trim()) {
                 lines.push('');
@@ -2586,6 +2620,40 @@ export const quotationsRouter = router({
               // LED
               if (config.ledLighting > 0) {
                 lines.push(`• Luz LED: ${config.ledLighting.toFixed(2)}ml`);
+              }
+
+              // Especificaciones del proyecto
+              lines.push('');
+              lines.push('ESPECIFICACIONES:');
+              lines.push('• Material: Tablero 15mm hidrófuga alta presión RH (resistente a la humedad)');
+              if (config.boardFinish) lines.push(`• Color exterior: ${config.boardFinish}`);
+              if (config.interiorFinish) lines.push(`• Color interior: ${config.interiorFinish}`);
+              if (config.hardware?.bisagras) {
+                const bisLabel = config.hardware.bisagras === 'inox'
+                  ? 'Bisagras acero inoxidable cierre lento'
+                  : 'Bisagras estándar cierre lento';
+                lines.push(`• Bisagras: ${bisLabel}`);
+              }
+              if (config.hardware?.rieles) {
+                const rielLabel = config.hardware.rieles === 'peso_alto'
+                  ? 'Riel telescópico peso alto'
+                  : 'Riel telescópico cierre lento';
+                lines.push(`• Rieles: ${rielLabel}`);
+              }
+              if (config.incluyePlatero) {
+                lines.push(`• Platero: Acero inoxidable${config.plateroDesc ? ' — ' + config.plateroDesc : ''}`);
+              }
+              if (config.appliances) {
+                const ap = config.appliances as any;
+                const apList: string[] = [];
+                if (ap.estufa)          apList.push('Estufa');
+                if (ap.horno)           apList.push('Horno empotrable');
+                if (ap.extractor)       apList.push('Extractor');
+                if (ap.llaveLavaplatos) apList.push('Llave de lavaplatos');
+                if (ap.nevera)          apList.push('Nevera');
+                if (ap.microondas)      apList.push('Microondas');
+                if (ap.lavaVajillas)    apList.push('Lavavajillas');
+                if (apList.length > 0) lines.push(`• Espacios electrodomésticos (no suministrados): ${apList.join(', ')}`);
               }
 
               // Notas adicionales del ítem de cocina

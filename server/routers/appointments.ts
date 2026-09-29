@@ -614,7 +614,7 @@ export const appointmentsRouter = router({
             .where(eq(appointments.id, input.id))
             .limit(1);
           if (!apt) throw new TRPCError({ code: "NOT_FOUND", message: "Cita no encontrada" });
-          if (apt.medidorId !== ctx.user.id) {
+          if (apt.assignedMedidorId !== ctx.user.id) {
             throw new TRPCError({ code: "FORBIDDEN", message: "Solo puedes eliminar citas asignadas a ti" });
           }
           if (apt.status !== "pendiente" && apt.status !== "confirmada") {

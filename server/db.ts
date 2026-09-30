@@ -1,4 +1,4 @@
-import { eq, desc, asc, and, or, gte, lte, gt, between, sql, inArray, isNull, isNotNull, like, ne } from "drizzle-orm";
+import { eq, desc, asc, and, or, gte, lte, gt, between, sql, inArray, isNull, isNotNull, like, ilike, ne } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 // @ts-ignore
 import { 
@@ -200,9 +200,9 @@ export async function getAllClientsPaginated(options?: { page?: number; limit?: 
     ? and(
         isNull(clients.deletedAt),
         or(
-          like(clients.name, `%${search}%`),
-          like(clients.whatsappPhone, `%${search}%`),
-          like(clients.email, `%${search}%`)
+          ilike(clients.name, `%${search}%`),
+          ilike(clients.whatsappPhone, `%${search}%`),
+          ilike(clients.email, `%${search}%`)
         )
       )
     : isNull(clients.deletedAt);

@@ -50,6 +50,7 @@ import {
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from "./DashboardLayoutSkeleton";
+import { NotificationBell } from "./NotificationBell";
 import { Button } from "./ui/button";
 
 // ── Tipos ────────────────────────────────────────────────────────────────────
@@ -469,7 +470,10 @@ function DashboardLayoutContent({ children, setSidebarWidth, sidebarWidth }: Das
                 {activeMenuItem?.label ?? "Menú"}
               </span>
             </div>
-            <img src="/logo-light.png" alt="INNOVAR" style={{ height: 32, width: 32, objectFit: "contain" }} />
+            <div className="flex items-center gap-2">
+              <NotificationBell />
+              <img src="/logo-light.png" alt="INNOVAR" style={{ height: 32, width: 32, objectFit: "contain" }} />
+            </div>
           </div>
         )}
         {/* Top header bar — desktop */}
@@ -504,6 +508,7 @@ function DashboardLayoutContent({ children, setSidebarWidth, sidebarWidth }: Das
               <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full border ${roleInfo.color}`}>
                 {roleInfo.label}
               </span>
+              <NotificationBell />
               <div
                 className="h-9 w-9 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0"
                 style={{ background: "#6ACFC7" }}

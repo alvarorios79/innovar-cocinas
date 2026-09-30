@@ -772,21 +772,21 @@ export const availabilityRouter = router({
         if (apt.status === 'cancelada') throw new TRPCError({ code: "BAD_REQUEST", message: "La cita ya estaba cancelada." });
         if (apt.status === 'completada') throw new TRPCError({ code: "BAD_REQUEST", message: "No puedes cancelar una cita ya completada." });
         await db.updateAppointment(apt.id, { status: 'cancelada' });
-        // Notificar al equipo por WhatsApp
+        // Notificar al equipo via push notification (WhatsApp Cloud no está configurado)
         try {
           const client = await db.getClientById(apt.clientId);
-          const aptDate = apt.scheduledDate ? new Date(apt.scheduledDate).toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Bogota' }) : 'fecha no definida';
-          const aptTime = apt.scheduledDate ? new Date(apt.scheduledDate).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'America/Bogota' }) : '';
-          const teamMsg = `⚠️ *CITA CANCELADA*
-
-El cliente *${client?.name ?? 'Desconocido'}* canceló su cita.
-
-📅 Fecha: ${aptDate}
-⏰ Hora: ${aptTime}
-
-👉 Por favor contáctalo para reagendar.
-📞 ${client?.whatsappPhone ?? 'Sin teléfono'}`;
-          await whatsappCloud.sendTextMessage('573136802025', teamMsg);
+          const aptDate = apt.scheduledDate ? new Date(apt.scheduledDate as string).toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Bogota' }) : 'fecha no definida';
+          const aptTime = apt.scheduledDate ? new Date(apt.scheduledDate as string).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'America/Bogota' }) : '';
+          const clientName = client?.name ?? 'Cliente';
+          const { sendPushToRole } = await import("../push-notifications");
+          const pushPayload = {
+            title: `⚠️ Cita cancelada — ${clientName}`,
+            body: `El cliente canceló su cita del ${aptDate}${aptTime ? ` a las ${aptTime}` : ''}. Contáctalo para reagendar.`,
+            url: '/calendar',
+          };
+          await sendPushToRole("super_admin", pushPayload);
+          await sendPushToRole("admin", pushPayload);
+          await sendPushToRole("comercial", pushPayload);
         } catch (notifErr) {
           console.error('[cancelByToken] Error notificando al equipo:', notifErr);
         }
@@ -813,21 +813,20 @@ El cliente *${client?.name ?? 'Desconocido'}* canceló su cita.
           rescheduleRequestedDate: input.requestedDate,
           rescheduleRequestedTime: input.requestedTime,
         } as any);
-        // Notificar al equipo por WhatsApp
+        // Notificar al equipo via push notification (WhatsApp Cloud no está configurado)
         try {
           const client = await db.getClientById(apt.clientId);
-          const msgExtra = input.message ? ` — "${input.message}"` : '';
-          const teamMsg = `🔄 *SOLICITUD DE REAGENDAMIENTO*
-
-El cliente *${client?.name ?? 'Desconocido'}* quiere reagendar su cita.
-
-📅 Nueva fecha: ${input.requestedDate}
-⏰ Nueva hora: ${input.requestedTime}${msgExtra}
-
-📞 ${client?.whatsappPhone ?? 'Sin teléfono'}
-
-👉 Entra al ERP para confirmar o rechazar.`;
-          await whatsappCloud.sendTextMessage('573136802025', teamMsg);
+          const clientName = client?.name ?? 'Cliente';
+          const msgExtra = input.message ? ` ("${input.message}")` : '';
+          const { sendPushToRole } = await import("../push-notifications");
+          const pushPayload = {
+            title: `🔄 Reagendamiento solicitado — ${clientName}`,
+            body: `Quiere mover la cita al ${input.requestedDate} a las ${input.requestedTime}${msgExtra}. Confirmar en el CRM.`,
+            url: '/calendar',
+          };
+          await sendPushToRole("super_admin", pushPayload);
+          await sendPushToRole("admin", pushPayload);
+          await sendPushToRole("comercial", pushPayload);
         } catch (notifErr) {
           console.error('[requestRescheduleByToken] Error notificando al equipo:', notifErr);
         }

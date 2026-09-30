@@ -16,6 +16,11 @@ import { addBusinessDays, calculateEstimatedDeliveryDate } from "../business-day
 import { sanitizeText, sanitizeHtml, sanitizeForEmail, sanitizePhone, sanitizeEmail } from "../sanitize";
 
 
+// Normaliza nombres: "carlos alfredo" → "Carlos Alfredo"
+function toTitleCase(str: string): string {
+  return str.trim().toLowerCase().replace(/(?:^|\s|-)\w/g, c => c.toUpperCase());
+}
+
 export const clientsRouter = router({
     getOrCreateByWhatsApp: publicProcedure
       .input(z.object({
@@ -33,7 +38,7 @@ export const clientsRouter = router({
           // Crear nuevo cliente, asociando con usuario si está autenticado
           const clientId = await db.createClient({
             userId: ctx.user?.id, // Asociar con usuario autenticado si existe
-          name: sanitizeText(input.name),
+          name: toTitleCase(sanitizeText(input.name)),
           email: input.email && input.email.trim() !== "" ? sanitizeEmail(input.email) : undefined,
           whatsappPhone: sanitizePhone(input.whatsappPhone),
           address: input.address ? sanitizeText(input.address) : undefined,
@@ -67,7 +72,7 @@ export const clientsRouter = router({
         }
         
         const sanitizedData = {
-          name: input.name ? sanitizeText(input.name) : undefined,
+          name: input.name ? toTitleCase(sanitizeText(input.name)) : undefined,
           email: input.email && input.email.trim() !== "" ? sanitizeEmail(input.email) : null,
         };
         
@@ -147,7 +152,7 @@ export const clientsRouter = router({
 
           // Crear usuario con rol "user" (cliente)
           userId = await db.createUserExtended({
-            name: sanitizeText(input.name),
+            name: toTitleCase(sanitizeText(input.name)),
             email: sanitizeEmail(input.email),
             role: "user",
             password: passwordHash,
@@ -159,7 +164,7 @@ export const clientsRouter = router({
         const clientId = await withTransaction(async (tx) => {
           const cid = await db.createClient({
             userId,
-            name: sanitizeText(input.name),
+            name: toTitleCase(sanitizeText(input.name)),
             email: input.email && input.email.trim() !== "" ? sanitizeEmail(input.email) : undefined,
             whatsappPhone: sanitizePhone(input.whatsappPhone),
             address: input.address ? sanitizeText(input.address) : undefined,

@@ -397,7 +397,7 @@ export default function AppointmentsCalendar() {
           identificationNumber: newIdentificationNumber || undefined,
           internalManagement: true,
         });
-        clientId = newClient?.id ?? null;
+        clientId = (newClient as any)?.client?.id ?? (newClient as any)?.id ?? null;
       } catch {
         return;
       }

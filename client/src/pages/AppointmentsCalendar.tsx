@@ -337,7 +337,7 @@ export default function AppointmentsCalendar() {
   // Mutación para eliminar cita
   const cancelAppointmentMutation = trpc.appointments.updateStatus.useMutation({
     onSuccess: () => {
-      utils.appointments.list.invalidate();
+      refetch();
       setSelectedAppointment(null);
       toast.success("Cita cancelada");
     },
@@ -1274,50 +1274,53 @@ export default function AppointmentsCalendar() {
                       </Button>
                     </div>
                   </div>
-                  <DialogFooter className="flex flex-col gap-2 sm:flex-row sm:justify-between">
-                    <div className="flex gap-2">
-                      {selectedAppointment.status !== "cancelada" && selectedAppointment.status !== "completada" && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            if (!confirm("¿Cancelar esta cita? El estado cambiará a Cancelada (el registro se conserva).")) return;
-                            cancelAppointmentMutation.mutate({ id: selectedAppointment.id, status: "cancelada" });
-                          }}
-                          disabled={cancelAppointmentMutation.isPending}
-                          className="gap-2 border-orange-500/50 text-orange-400 hover:bg-orange-500/10"
-                        >
-                          <XCircle className="h-4 w-4" />
-                          {cancelAppointmentMutation.isPending ? "..." : "Cancelar"}
-                        </Button>
-                      )}
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => {
-                          if (!confirm("¿Eliminar esta cita? Esta acción no se puede deshacer.")) return;
-                          deleteAppointmentMutation.mutate({ id: selectedAppointment.id });
-                        }}
-                        disabled={deleteAppointmentMutation.isPending}
-                        className="gap-2"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                        {deleteAppointmentMutation.isPending ? "..." : "Eliminar"}
-                      </Button>
-                    </div>
-                    <div className="flex gap-2">
-                      <SendWhatsAppButton apt={selectedAppointment} />
+                </div>
+              )}
+
+              {canEditDates && (
+                <DialogFooter className="flex flex-col gap-2 sm:flex-row sm:justify-between">
+                  <div className="flex gap-2">
+                    {selectedAppointment.status !== "cancelada" && selectedAppointment.status !== "completada" && (
                       <Button
                         variant="outline"
-                        onClick={() => handleEditClick(selectedAppointment)}
-                        className="gap-2"
+                        size="sm"
+                        onClick={() => {
+                          if (!confirm("¿Cancelar esta cita? El estado cambiará a Cancelada (el registro se conserva).")) return;
+                          cancelAppointmentMutation.mutate({ id: selectedAppointment.id, status: "cancelada" });
+                        }}
+                        disabled={cancelAppointmentMutation.isPending}
+                        className="gap-2 border-orange-500/50 text-orange-400 hover:bg-orange-500/10"
                       >
-                        <Pencil className="h-4 w-4" />
-                        Editar Fecha
+                        <XCircle className="h-4 w-4" />
+                        {cancelAppointmentMutation.isPending ? "..." : "Cancelar"}
                       </Button>
-                    </div>
-                  </DialogFooter>
-                </div>
+                    )}
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => {
+                        if (!confirm("¿Eliminar esta cita? Esta acción no se puede deshacer.")) return;
+                        deleteAppointmentMutation.mutate({ id: selectedAppointment.id });
+                      }}
+                      disabled={deleteAppointmentMutation.isPending}
+                      className="gap-2"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      {deleteAppointmentMutation.isPending ? "..." : "Eliminar"}
+                    </Button>
+                  </div>
+                  <div className="flex gap-2">
+                    <SendWhatsAppButton apt={selectedAppointment} />
+                    <Button
+                      variant="outline"
+                      onClick={() => handleEditClick(selectedAppointment)}
+                      className="gap-2"
+                    >
+                      <Pencil className="h-4 w-4" />
+                      Editar Fecha
+                    </Button>
+                  </div>
+                </DialogFooter>
               )}
 
               {user?.role === "medidor" && (

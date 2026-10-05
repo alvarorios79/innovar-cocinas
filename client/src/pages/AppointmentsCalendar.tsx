@@ -1374,6 +1374,7 @@ export default function AppointmentsCalendar() {
                 }}
                 onTimeChange={(time) => setNewTime(time)}
                 excludeId={editingAppointment?.id}
+                bypassDayRestriction={user?.role === "super_admin"}
               />
 
               {/* Selector de medidor */}

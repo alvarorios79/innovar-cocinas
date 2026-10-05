@@ -158,7 +158,7 @@ export const appointmentsRouter = router({
           }
 
           // Link para notificar AL CLIENTE (se abre manualmente desde el toast)
-          const citaPublicUrl = `${process.env.APP_URL || 'https://app.cocinasintegralespereira.co'}/cita?token=${appointmentToken}`;
+          const citaPublicUrl = `${process.env.APP_URL || 'https://innovar-cocinas.onrender.com'}/cita?token=${appointmentToken}`;
           const whatsappClientLink = whatsapp.generateClientConfirmationLink({
             clientPhone: client.whatsappPhone,
             clientName: client.name,
@@ -687,7 +687,7 @@ export const appointmentsRouter = router({
               const workTypes = await db.getWorkTypesByAppointmentId(updatedApt.id);
               const token = (updatedApt as any).appointmentToken as string | null;
               const citaUrl = token
-                ? `${process.env.APP_URL || 'https://app.cocinasintegralespereira.co'}/cita?token=${token}`
+                ? `${process.env.APP_URL || 'https://innovar-cocinas.onrender.com'}/cita?token=${token}`
                 : undefined;
               whatsappLink = whatsapp.generateClientConfirmationLink({
                 clientPhone: client.whatsappPhone,
@@ -869,7 +869,7 @@ export const availabilityRouter = router({
         if (client?.whatsappPhone) {
           const workTypes = await db.getWorkTypesByAppointmentId(apt.id);
           const token = (apt as any).appointmentToken as string | null;
-          const citaUrl = token ? `${process.env.APP_URL || 'https://app.cocinasintegralespereira.co'}/cita?token=${token}` : undefined;
+          const citaUrl = token ? `${process.env.APP_URL || 'https://innovar-cocinas.onrender.com'}/cita?token=${token}` : undefined;
           whatsappLink = whatsapp.generateClientConfirmationLink({
             clientPhone: client.whatsappPhone,
             clientName: client.name,
@@ -906,7 +906,7 @@ export const availabilityRouter = router({
         const workTypes = await db.getWorkTypesByAppointmentId(apt.id);
         const token = (apt as any).appointmentToken as string | null;
         const citaUrl = token
-          ? `${process.env.APP_URL || 'https://app.cocinasintegralespereira.co'}/cita?token=${token}`
+          ? `${process.env.APP_URL || 'https://innovar-cocinas.onrender.com'}/cita?token=${token}`
           : undefined;
         const scheduledDate = apt.scheduledDate
           ? new Date(apt.scheduledDate as string)

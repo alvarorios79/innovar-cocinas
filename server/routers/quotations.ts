@@ -2782,68 +2782,56 @@ export const quotationsRouter = router({
         console.log("[WHATSAPP DEBUG] Número original del cliente:", client.whatsappPhone);
 
         try {
-          console.log("[WHATSAPP DEBUG] Iniciando proceso de envío por WhatsApp...");
-          // Generar PDF de la cotizacion
-          console.log("[WHATSAPP DEBUG] Generando PDF...");
-          const formatCurrency = (value: number) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(value);
-          
-          // @ts-ignore - Propiedades opcionales del quotation
-          const pdfData = {
-            quotationNumber: quotation.quotationNumber,
-            date: new Date().toLocaleDateString('es-CO', { timeZone: 'America/Bogota' }),
-            clientName: client.name,
-            clientEmail: client.email,
-            clientPhone: client.whatsappPhone,
-            items: (quotation as any).items || [],
-            subtotal: quotation.subtotal || 0,
-            discount: (quotation as any).discount || 0,
-            tax: (quotation as any).tax || 0,
-            total: quotation.total || 0,
-            notes: (quotation as any).notes || "",
-            validUntil: quotation.validUntil,
-          };
-
-          // Generar PDF
-          const { generateQuotationPDF } = await import('../quotation-pdf-generator');
-          // @ts-ignore
-          const result = await generateQuotationPDF(pdfData, quotation.id);
-          
-          // Leer el PDF generado y subirlo a S3
-          const fs = await import('fs');
-          const pdfBuffer = fs.readFileSync(result.pdfPath);
-          const { storagePut } = await import('../storage');
-          
-          const pdfKey = `quotations/${quotation.quotationNumber}-${Date.now()}.pdf`;
-          const { url: pdfUrl } = await storagePut(pdfKey, pdfBuffer, 'application/pdf');
-          
-          // Limpiar archivo temporal
-          fs.unlinkSync(result.pdfPath);
-
-          // Componer mensaje para enviar manualmente por WhatsApp
-          const formattedAmount = new Intl.NumberFormat("es-CO", {
-            style: "currency",
-            currency: "COP",
-            minimumFractionDigits: 0,
-          }).format(Number(quotation.total));
-
-          const validUntilStr = quotation.validUntil
-            ? new Date(quotation.validUntil).toLocaleDateString("es-CO", { timeZone: "America/Bogota" })
-            : "30 días";
-
-          // Usar token del cliente si viene (generado sincrónicamente al clic), sino generar nuevo
+          // ── PASO 1: Guardar token PRIMERO — el link siempre funciona aunque PDF falle
           const { randomUUID } = await import("crypto");
           const publicToken = input.publicToken || randomUUID().replace(/-/g, '');
-          const publicLink = `${process.env.APP_URL || 'https://innovar-cocinas.onrender.com'}/cotizacion?token=${publicToken}`;
-
-          const waMessage = `Hola ${client.name}, 👋\n\nLe enviamos la cotización *${quotation.quotationNumber}* de *Innovar Cocinas de Diseño* por un valor de *${formattedAmount}*.\n\n📄 Vea el detalle y apruébela desde aquí:\n${publicLink}\n\n📋 Válida hasta: *${validUntilStr}*\n⏱️ Entrega estimada: *3 a 4 semanas* desde aprobación.\n\n¡Gracias por confiar en Innovar Cocinas! 🙌`;
-
-          // Actualizar estado de la cotización a "sent" y guardar token
           await db.updateQuotation(input.id, {
             status: "sent",
             publicToken,
           });
 
-          // Marcar visita técnica vinculada como cot_enviada
+          // ── PASO 2: Generar PDF y subir a S3 (independiente del token)
+          let pdfUrl: string | null = null;
+          try {
+            console.log("[sendByWhatsApp] Generando PDF...");
+            const formatCurrency = (value: number) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(value);
+
+            // @ts-ignore
+            const pdfData = {
+              quotationNumber: quotation.quotationNumber,
+              date: new Date().toLocaleDateString('es-CO', { timeZone: 'America/Bogota' }),
+              clientName: client.name,
+              clientEmail: client.email,
+              clientPhone: client.whatsappPhone,
+              items: (quotation as any).items || [],
+              subtotal: quotation.subtotal || 0,
+              discount: (quotation as any).discount || 0,
+              tax: (quotation as any).tax || 0,
+              total: quotation.total || 0,
+              notes: (quotation as any).notes || "",
+              validUntil: quotation.validUntil,
+            };
+
+            const { generateQuotationPDF } = await import('../quotation-pdf-generator');
+            // @ts-ignore
+            const result = await generateQuotationPDF(pdfData, quotation.id);
+
+            const fs = await import('fs');
+            const pdfBuffer = fs.readFileSync(result.pdfPath);
+            const { storagePut } = await import('../storage');
+
+            const pdfKey = `quotations/${quotation.quotationNumber}-${Date.now()}.pdf`;
+            const pdfResult = await storagePut(pdfKey, pdfBuffer, 'application/pdf');
+            pdfUrl = pdfResult.url;
+
+            fs.unlinkSync(result.pdfPath);
+            await db.updateQuotation(input.id, { pdfUrl });
+            console.log("[sendByWhatsApp] PDF generado:", pdfUrl);
+          } catch (pdfError: any) {
+            console.error('[sendByWhatsApp] PDF falló (no crítico, token ya guardado):', pdfError?.message);
+          }
+
+          // ── PASO 3: Marcar visita técnica como cot_enviada
           try {
             const drizzleDb2 = await db.getDb();
             if (drizzleDb2) {
@@ -2866,7 +2854,7 @@ export const quotationsRouter = router({
             success: true,
             pdfUrl,
             clientPhone: client.whatsappPhone,
-            message: waMessage,
+            message: "",
           };
         } catch (error: any) {
           console.error('Error enviando cotizacion por WhatsApp:', error);

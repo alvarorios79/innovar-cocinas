@@ -138,7 +138,7 @@ export function VisualCalendar({
   };
 
   // Obtener todos los horarios posibles
-  const allTimeSlots = config?.timeSlots?.map(slot => slot.start) || [];
+  const allTimeSlots = config?.timeSlots?.map(slot => slot.start) || ["08:30", "10:00", "14:00", "15:30"];
 
   return (
     <div className="space-y-6">

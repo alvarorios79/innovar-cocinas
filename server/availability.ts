@@ -100,14 +100,11 @@ export async function getAvailableTimeSlots(dateStr: string | Date, bypassDayRes
   // Obtener horarios ocupados - convertir a zona horaria de Colombia
   const occupiedSlots = existingAppointments.map(apt => {
     if (!apt.scheduledDate) return null;
-    // Convertir la fecha a zona horaria de Colombia
-    const colombiaTime = new Date(apt.scheduledDate).toLocaleString("en-US", {
-      timeZone: "America/Bogota",
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    });
-    return colombiaTime;
+    // Convertir a hora Colombia usando matemática directa UTC-5 (confiable en Node.js Linux)
+    const colombiaDate = new Date(new Date(apt.scheduledDate).getTime() + (-5 * 60 * 60 * 1000));
+    const h = String(colombiaDate.getUTCHours()).padStart(2, '0');
+    const m = String(colombiaDate.getUTCMinutes()).padStart(2, '0');
+    return `${h}:${m}`;
   }).filter(Boolean) as string[];
 
   // Filtrar horarios disponibles

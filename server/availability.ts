@@ -51,7 +51,9 @@ export async function getAvailableTimeSlots(dateStr: string | Date, bypassDayRes
   
   // Verificar si es un día permitido
   const dayOfWeek = date.getDay();
+  console.log(`[getAvailableTimeSlots] dateStr=${dateStr instanceof Date ? dateStr.toISOString() : dateStr} dayOfWeek=${dayOfWeek} bypassDayRestriction=${bypassDayRestriction}`);
   if (!isAllowedDay(dayOfWeek, bypassDayRestriction)) {
+    console.log(`[getAvailableTimeSlots] day ${dayOfWeek} NOT allowed (bypass=${bypassDayRestriction}) → returning []`);
     return [];
   }
 

@@ -222,17 +222,23 @@ export function VisualCalendar({
                   )}
                 >
                   {formatTime(slot)}
-                  {!isAvailable && " (Ocupado)"}
+                  {!isAvailable && " (No disponible)"}
                 </Button>
               );
             })}
           </div>
 
-          {availableSlots.length === 0 && (
-            <p className="text-sm text-muted-foreground mt-2">
-              No hay horarios disponibles para esta fecha
-            </p>
-          )}
+          {availableSlots.length === 0 && (() => {
+            const todayCol = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Bogota' });
+            const isToday = selectedDate === todayCol;
+            return (
+              <p className="text-sm text-muted-foreground mt-2">
+                {isToday
+                  ? "Los horarios de hoy ya pasaron. Puedes crear la cita sin hora específica, o elige otra fecha."
+                  : "No hay horarios disponibles para esta fecha (todos ocupados)."}
+              </p>
+            );
+          })()}
 
           <div className="mt-4 flex flex-wrap gap-4 text-xs">
             <div className="flex items-center gap-1">

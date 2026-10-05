@@ -218,13 +218,11 @@ export async function isTimeSlotAvailable(dateStr: string | Date, timeSlot: stri
   // Verificar si alguna cita existente tiene el mismo horario
   for (const apt of existingAppointments) {
     if (apt.scheduledDate) {
-      // Convertir la fecha a zona horaria de Colombia
-      const colombiaTime = new Date(apt.scheduledDate).toLocaleString("en-US", {
-        timeZone: "America/Bogota",
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: false,
-      });
+      // Convertir a hora Colombia usando matemática directa UTC-5 (confiable en Node.js Linux)
+      const colombiaDate2 = new Date(new Date(apt.scheduledDate).getTime() + (-5 * 60 * 60 * 1000));
+      const h2 = String(colombiaDate2.getUTCHours()).padStart(2, '0');
+      const m2 = String(colombiaDate2.getUTCMinutes()).padStart(2, '0');
+      const colombiaTime = `${h2}:${m2}`;
       if (colombiaTime === timeSlot) {
         return false; // Horario ocupado
       }

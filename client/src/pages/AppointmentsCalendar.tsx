@@ -32,6 +32,7 @@ import {
   UserCheck,
   MessageCircle,
   Trash2,
+  XCircle,
 } from "lucide-react";
 import { VisualCalendar } from "@/components/VisualCalendar";
 import { PageHeader } from "@/components/PageHeader";
@@ -334,6 +335,15 @@ export default function AppointmentsCalendar() {
   });
 
   // Mutación para eliminar cita
+  const cancelAppointmentMutation = trpc.appointments.updateStatus.useMutation({
+    onSuccess: () => {
+      utils.appointments.list.invalidate();
+      setSelectedAppointment(null);
+      toast.success("Cita cancelada");
+    },
+    onError: () => toast.error("Error al cancelar la cita"),
+  });
+
   const deleteAppointmentMutation = trpc.appointments.delete.useMutation({
     onSuccess: () => {
       refetch();
@@ -1265,19 +1275,36 @@ export default function AppointmentsCalendar() {
                     </div>
                   </div>
                   <DialogFooter className="flex flex-col gap-2 sm:flex-row sm:justify-between">
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => {
-                        if (!confirm("¿Eliminar esta cita? Esta acción no se puede deshacer.")) return;
-                        deleteAppointmentMutation.mutate({ id: selectedAppointment.id });
-                      }}
-                      disabled={deleteAppointmentMutation.isPending}
-                      className="gap-2"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                      {deleteAppointmentMutation.isPending ? "..." : "Eliminar"}
-                    </Button>
+                    <div className="flex gap-2">
+                      {selectedAppointment.status !== "cancelada" && selectedAppointment.status !== "completada" && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            if (!confirm("¿Cancelar esta cita? El estado cambiará a Cancelada (el registro se conserva).")) return;
+                            cancelAppointmentMutation.mutate({ id: selectedAppointment.id, status: "cancelada" });
+                          }}
+                          disabled={cancelAppointmentMutation.isPending}
+                          className="gap-2 border-orange-500/50 text-orange-400 hover:bg-orange-500/10"
+                        >
+                          <XCircle className="h-4 w-4" />
+                          {cancelAppointmentMutation.isPending ? "..." : "Cancelar"}
+                        </Button>
+                      )}
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => {
+                          if (!confirm("¿Eliminar esta cita? Esta acción no se puede deshacer.")) return;
+                          deleteAppointmentMutation.mutate({ id: selectedAppointment.id });
+                        }}
+                        disabled={deleteAppointmentMutation.isPending}
+                        className="gap-2"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        {deleteAppointmentMutation.isPending ? "..." : "Eliminar"}
+                      </Button>
+                    </div>
                     <div className="flex gap-2">
                       <SendWhatsAppButton apt={selectedAppointment} />
                       <Button

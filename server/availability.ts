@@ -116,18 +116,25 @@ export async function getAvailableTimeSlots(dateStr: string | Date, bypassDayRes
     .map(slot => slot.start);
 
   // Bloquear horarios que ya pasaron del día actual (zona horaria Colombia UTC-5)
-  const nowColombia = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Bogota" }));
-  const todayColombia = new Date(nowColombia.getFullYear(), nowColombia.getMonth(), nowColombia.getDate(), 12, 0, 0);
-  const requestedDate = new Date(year, month - 1, day, 12, 0, 0);
-  
-  if (requestedDate.getTime() === todayColombia.getTime()) {
-    // Es hoy: filtrar horarios que ya pasaron
-    const currentHour = nowColombia.getHours();
-    const currentMinute = nowColombia.getMinutes();
+  // Colombia es siempre UTC-5 (sin cambio de horario) — cálculo directo y confiable
+  const COLOMBIA_OFFSET_MS = -5 * 60 * 60 * 1000;
+  const nowColombia = new Date(Date.now() + COLOMBIA_OFFSET_MS);
+  const colombiaYear  = nowColombia.getUTCFullYear();
+  const colombiaMonth = nowColombia.getUTCMonth(); // 0-indexed
+  const colombiaDay   = nowColombia.getUTCDate();
+  const currentHour   = nowColombia.getUTCHours();
+  const currentMinute = nowColombia.getUTCMinutes();
+
+  console.log(`[slots] Colombia ${colombiaYear}-${colombiaMonth+1}-${colombiaDay} ${currentHour}:${String(currentMinute).padStart(2,'0')} | req: ${year}-${month}-${day} | bypass: ${bypassDayRestriction}`);
+
+  const isToday = (year === colombiaYear && (month - 1) === colombiaMonth && day === colombiaDay);
+  if (isToday) {
+    // Es hoy en Colombia: filtrar horarios que ya pasaron
     availableSlots = availableSlots.filter(slot => {
       const [slotHour, slotMinute] = slot.split(':').map(Number);
       return slotHour > currentHour || (slotHour === currentHour && slotMinute > currentMinute);
     });
+    console.log(`[slots] isToday → filtro ${currentHour}:${String(currentMinute).padStart(2,'0')} → quedan: [${availableSlots}]`);
   }
 
   return availableSlots;

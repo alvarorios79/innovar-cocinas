@@ -39,6 +39,32 @@ services:
       - key: VITE_FRONTEND_FORGE_API_URL
         sync: false
 
+      # ── Almacenamiento de archivos (Cloudflare R2 / AWS S3) ─────────────────
+      # Opción A: Cloudflare R2 (recomendado — gratis, sin costos de egreso)
+      #   S3_ENDPOINT: https://<account-id>.r2.cloudflarestorage.com
+      #   S3_PUBLIC_URL: https://pub-<hash>.r2.dev  (o dominio personalizado)
+      # Opción B: Firebase Storage
+      #   Usar FIREBASE_* vars en lugar de S3_*
+      - key: S3_ENDPOINT
+        sync: false
+      - key: S3_ACCESS_KEY_ID
+        sync: false
+      - key: S3_SECRET_ACCESS_KEY
+        sync: false
+      - key: S3_BUCKET_NAME
+        sync: false
+      - key: S3_PUBLIC_URL
+        sync: false
+      # Alternativa Firebase:
+      - key: FIREBASE_PROJECT_ID
+        sync: false
+      - key: FIREBASE_CLIENT_EMAIL
+        sync: false
+      - key: FIREBASE_PRIVATE_KEY
+        sync: false
+      - key: FIREBASE_STORAGE_BUCKET
+        sync: false
+
       # ── Email (Resend) ───────────────────────────────────────────────────
       - key: RESEND_API_KEY
         sync: false

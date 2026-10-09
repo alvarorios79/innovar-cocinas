@@ -110,10 +110,11 @@ export const uploadRouter = router({
           const { url } = await storagePut(fileKey, buffer, finalContentType);
           return { success: true, url, key: fileKey };
         } catch (error) {
-          console.error("Error uploading file:", error);
+          const errMsg = error instanceof Error ? error.message : String(error);
+          console.error("Error uploading file:", errMsg, error);
           throw new TRPCError({ 
             code: "INTERNAL_SERVER_ERROR", 
-            message: "Error al subir el archivo" 
+            message: `Error al subir el archivo: ${errMsg}` 
           });
         }
       }),

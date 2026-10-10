@@ -33,6 +33,7 @@ async function storagePutFirebase(relKey: string, data: Buffer | Uint8Array | st
 
   const { initializeApp, cert, getApps, getApp } = await import("firebase-admin/app");
   const { getStorage } = await import("firebase-admin/storage");
+  const { randomUUID } = await import("crypto");
 
   const app = getApps().length === 0
     ? initializeApp({ credential: cert({ projectId: cfg.projectId, clientEmail: cfg.clientEmail, privateKey: cfg.privateKey }), storageBucket: cfg.bucket })
@@ -40,12 +41,26 @@ async function storagePutFirebase(relKey: string, data: Buffer | Uint8Array | st
 
   const key    = normalizeKey(relKey);
   const body   = typeof data === "string" ? Buffer.from(data, "utf8") : Buffer.from(data as any);
-  const bucket = getStorage(app).bucket();
-  const file   = bucket.file(key);
+  const bucketObj = getStorage(app).bucket();
+  const file   = bucketObj.file(key);
 
-  await file.save(body, { contentType, public: true, metadata: { cacheControl: "public, max-age=31536000" } });
+  // Generar token de descarga único (compatible con uniform bucket-level access)
+  // predefinedAcl=publicRead falla con 403 en buckets con uniform access activado
+  const downloadToken = randomUUID();
 
-  const url = `https://storage.googleapis.com/${cfg.bucket}/${key}`;
+  await file.save(body, {
+    contentType,
+    metadata: {
+      cacheControl: "public, max-age=31536000",
+      metadata: {
+        firebaseStorageDownloadTokens: downloadToken,
+      },
+    },
+  });
+
+  // URL con token de descarga — permanente, no expira, acceso público sin ACL
+  const encodedKey = encodeURIComponent(key);
+  const url = `https://firebasestorage.googleapis.com/v0/b/${cfg.bucket}/o/${encodedKey}?alt=media&token=${downloadToken}`;
   return { key, url };
 }
 

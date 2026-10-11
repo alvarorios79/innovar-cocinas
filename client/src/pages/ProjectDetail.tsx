@@ -331,6 +331,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
     enchape: "enchape",
     armado: "ensamble",
     proceso_instalacion: "trabajando_instalacion",
+    fotos_finales: "trabajando_instalacion",
     fotos_iniciales: "corte",
     renders: "corte",
     despieces: "corte",
@@ -1884,10 +1885,27 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
                             <p className="text-sm text-muted-foreground">Sin fotos en esta etapa</p>
                           )}
                           {canShowAdvanceButton(subcategory) && photoToCurrentStatus[subcategory]?.includes(projectDetail.status as string) && (
-                            <Button size="sm" onClick={() => openAdvanceConfirmDialog(subcategory)} disabled={updateStatus.isPending}
-                              className="w-full mt-3 bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white font-semibold">
-                              {updateStatus.isPending ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : <ArrowRight className="h-4 w-4 mr-2" />}
-                              Avanzar a entregado
+                            <div className="flex flex-col gap-2 mt-3">
+                              <Button size="sm" onClick={() => openAdvanceConfirmDialog(subcategory)} disabled={updateStatus.isPending}
+                                className="w-full bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white font-semibold">
+                                {updateStatus.isPending ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : <ArrowRight className="h-4 w-4 mr-2" />}
+                                Avanzar a entregado
+                              </Button>
+                              {canSendSectionNotification() && (
+                                <Button size="sm" variant="outline" disabled={notifyStageAdvanceFromDetail.isPending}
+                                  onClick={() => handleNotifyViaWhatsApp(subcategory)}
+                                  className="w-full text-xs">
+                                  {notifyStageAdvanceFromDetail.isPending ? "Enviando..." : "📲 Enviar avance a cliente"}
+                                </Button>
+                              )}
+                            </div>
+                          )}
+                          {/* Botón de notificación siempre visible en instalación */}
+                          {canSendSectionNotification() && !photoToCurrentStatus[subcategory]?.includes(projectDetail.status as string) && (
+                            <Button size="sm" variant="outline" disabled={notifyStageAdvanceFromDetail.isPending}
+                              onClick={() => handleNotifyViaWhatsApp(subcategory)}
+                              className="w-full mt-2 text-xs">
+                              {notifyStageAdvanceFromDetail.isPending ? "Enviando..." : "📲 Enviar avance a cliente"}
                             </Button>
                           )}
                         </div>

@@ -230,7 +230,7 @@ export default function Agendar() {
     try {
       const client = await createClientMutation.mutateAsync({
         name: form.name.trim(),
-        whatsappPhone: `${form.countryCode}${form.whatsappPhone.trim().replace(/\D/g, "")}`.trim(),
+        whatsappPhone: ((p) => p.startsWith(form.countryCode) ? p : `${form.countryCode}${p}`)(form.whatsappPhone.trim().replace(/\D/g, "")),
         address: form.address.trim(),
         identificationNumber: form.identificationNumber.trim() || undefined,
       });

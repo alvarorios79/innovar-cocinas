@@ -686,8 +686,9 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
               size="sm"
               className="bg-green-500/10 hover:bg-green-500/15 text-green-300 border-green-500/25"
               onClick={() => {
-                const phone = projectDetail.client?.whatsappPhone?.replace(/\D/g, "");
-                window.open(`https://wa.me/57${phone}`, "_blank");
+                const rawPhone = (projectDetail.client?.whatsappPhone || "").replace(/\D/g, "");
+                const phone = rawPhone.length > 10 ? rawPhone : `57${rawPhone}`;
+                window.open(`https://wa.me/${phone}`, "_blank");
               }}
             >
               <MessageCircle className="h-4 w-4 mr-1" />

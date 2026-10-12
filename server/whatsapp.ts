@@ -19,7 +19,7 @@ export function generateWhatsAppLink(phone: string, message: string): string {
   const cleanPhone = phone.replace(/\D/g, "");
   
   // Asegurar que tenga el código de país (57 para Colombia)
-  const fullPhone = cleanPhone.startsWith("57") ? cleanPhone : `57${cleanPhone}`;
+  const fullPhone = cleanPhone.length > 10 ? cleanPhone : `57${cleanPhone}`;
   
   // Codificar el mensaje para URL
   const encodedMessage = encodeURIComponent(message);

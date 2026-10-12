@@ -130,7 +130,7 @@ const COUNTRY_CODES = [
 function buildWhatsAppConfirmLink(apt: { clientPhone?: string; clientName: string; scheduledDate: Date; workTypes: string[]; notes?: string }): string | null {
   if (!apt.clientPhone) return null;
   const phone = apt.clientPhone.replace(/[^0-9]/g, "");
-  const intlPhone = phone.startsWith("57") ? phone : `57${phone}`;
+  const intlPhone = phone.length > 10 ? phone : `57${phone}`;
   const parsedDate = parseDBDate(apt.scheduledDate as any);
   const dateStr = parsedDate.toLocaleDateString("es-CO", { weekday: "long", year: "numeric", month: "long", day: "numeric", timeZone: "America/Bogota" });
   const timeStr = parsedDate.toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit", timeZone: "America/Bogota" });
@@ -155,7 +155,7 @@ function buildWhatsAppLink(apt: any): string | null {
   const phone = apt.clientPhone;
   if (!phone) return null;
   const cleanPhone = phone.replace(/\D/g, "");
-  const fullPhone = cleanPhone.startsWith("57") ? cleanPhone : `57${cleanPhone}`;
+  const fullPhone = cleanPhone.length > 10 ? cleanPhone : `57${cleanPhone}`;
   const name = apt.clientName || "cliente";
   let dateStr = "";
   let timeStr = "";

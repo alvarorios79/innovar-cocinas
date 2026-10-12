@@ -151,17 +151,12 @@ export function formatPhoneForWhatsApp(phone: string): string {
   // Eliminar todos los caracteres no numéricos
   let cleanPhone = phone.replace(/\D/g, "");
   
-  // Si empieza con 57, ya tiene código de país
-  if (cleanPhone.startsWith("57")) {
+  // Si ya tiene código de país (>10 dígitos), usar tal cual
+  if (cleanPhone.length > 10) {
     return cleanPhone;
   }
   
-  // Si empieza con 3 (celular colombiano), agregar 57
-  if (cleanPhone.startsWith("3") && cleanPhone.length === 10) {
-    return `57${cleanPhone}`;
-  }
-  
-  // Si tiene otro formato, intentar agregar 57
+  // Número local colombiano (10 dígitos), agregar 57
   return `57${cleanPhone}`;
 }
 

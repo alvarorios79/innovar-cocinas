@@ -744,13 +744,14 @@ export default function Comercial() {
                                 onClick={(e) => {
                                   e.preventDefault();
                                   e.stopPropagation();
-                                  const phone = quot.client.whatsappPhone.replace(/\D/g, '');
+                                  const rawPh2 = quot.client.whatsappPhone.replace(/\D/g, '');
+                                  const phone = rawPh2.length > 10 ? rawPh2 : `57${rawPh2}`;
                                   const message = encodeURIComponent(
                                     `Hola ${quot.client.name}, le escribo de INNOVAR Cocinas Integrales. ` +
                                     `Quería hacer seguimiento a la cotización ${quot.quotationNumber} por valor de ${formatPrice(quot.total)}. ` +
                                     `¿Ha tenido oportunidad de revisarla?`
                                   );
-                                  window.open(`https://wa.me/57${phone}?text=${message}`, '_blank');
+                                  window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
                                 }}
                               >
                                 <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">

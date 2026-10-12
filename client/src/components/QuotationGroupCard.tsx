@@ -415,7 +415,7 @@ export function QuotationGroupCard({
                 const tok = crypto.randomUUID().replace(/-/g, '');
                 const publicLink = `https://innovar-cocinas.onrender.com/cotizacion?token=${tok}`;
                 const rawPh = client.whatsappPhone.replace(/\D/g, '');
-                const ph = rawPh.startsWith('57') ? rawPh : '57' + rawPh;
+                const ph = rawPh.length > 10 ? rawPh : '57' + rawPh;
                 const totalFmt = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(Number(selectedVersion.total || 0));
                 const validStr = selectedVersion.validUntil ? new Date(selectedVersion.validUntil).toLocaleDateString('es-CO', { timeZone: 'America/Bogota' }) : '30 días';
                 const msg = `Hola ${client.name || 'Cliente'}, 👋\n\nLe enviamos la cotización *${group.quotationNumber}* de *Innovar Cocinas de Diseño* por un valor de *${totalFmt}*.\n\n📄 Vea el detalle y apruébela desde aquí:\n${publicLink}\n\n📋 Válida hasta: *${validStr}*\n⏱️ Entrega estimada: *3 a 4 semanas* desde aprobación.\n\n¡Gracias por confiar en Innovar Cocinas! 🙌`;

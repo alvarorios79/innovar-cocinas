@@ -402,7 +402,7 @@ export default function AppointmentsCalendar() {
       try {
         const newClient = await createClientMutation.mutateAsync({
           name: newClientName,
-          whatsappPhone: `${newCountryCode}${newClientPhone.replace(/\D/g, "")}`,
+          whatsappPhone: ((p) => p.startsWith(newCountryCode) ? p : `${newCountryCode}${p}`)(newClientPhone.replace(/\D/g, "")),
           address: newClientAddress || undefined,
           identificationNumber: newIdentificationNumber || undefined,
           internalManagement: true,

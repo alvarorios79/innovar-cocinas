@@ -255,7 +255,8 @@ export default function Comercial() {
       `¡Que todos tus sueños se hagan realidad! 💕\n\n` +
       `Un abrazo,\n${user?.name || 'INNOVAR Cocinas'}`
     );
-    window.open(`https://wa.me/57${phone}?text=${message}`, '_blank');
+    const waPhone = phone.length > 10 ? phone : `57${phone}`;
+    window.open(`https://wa.me/${waPhone}?text=${message}`, '_blank');
   };
 
   if (loading) {

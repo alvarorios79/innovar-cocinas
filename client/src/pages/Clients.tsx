@@ -258,7 +258,7 @@ export default function Clients() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setNewOpen(false)}>Cancelar</Button>
             <Button
-              onClick={() => createMutation.mutate({ ...form, email: form.email || undefined, whatsappPhone: `${form.countryCode}${form.whatsappPhone.replace(/\D/g, "")}`, identificationNumber: form.identificationNumber || undefined })}
+              onClick={() => createMutation.mutate({ ...form, email: form.email || undefined, whatsappPhone: ((p) => p.startsWith(form.countryCode) ? p : `${form.countryCode}${p}`)(form.whatsappPhone.replace(/\D/g, "")), identificationNumber: form.identificationNumber || undefined })}
               disabled={createMutation.isPending || !form.name.trim() || !form.whatsappPhone.trim()}
               className="text-white"
               style={{ background: "linear-gradient(135deg, #1DB5A8, #0D9B8F)" }}
@@ -285,7 +285,7 @@ export default function Clients() {
                   id: editTarget.id,
                   name: form.name,
                   email: form.email || undefined,
-                  whatsappPhone: `${form.countryCode}${form.whatsappPhone.replace(/\D/g, "")}`,
+                  whatsappPhone: ((p) => p.startsWith(form.countryCode) ? p : `${form.countryCode}${p}`)(form.whatsappPhone.replace(/\D/g, "")),
                   address: form.address || undefined,
                 })
               }

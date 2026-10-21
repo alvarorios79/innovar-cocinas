@@ -1194,7 +1194,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
           <TabsContent value="diseno" className="space-y-4">
 
             {/* Centro de Control de Diseño */}
-            {(user?.role === "admin" || user?.role === "super_admin" || user?.role === "comercial" || user?.role === "disenador") && (
+            {(user?.role === "admin" || user?.role === "super_admin" || user?.role === "comercial" || user?.role === "disenador" || user?.role === "jefe_taller" || user?.role === "operario") && (
               <div className="mb-4 rounded-xl overflow-hidden shadow-lg border border-white/[0.10]">
                 {/* Header del Panel */}
                 <div className="bg-gradient-to-r from-teal-600 to-teal-500 px-6 py-4">
@@ -1230,7 +1230,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
                           )}
                         </div>
                       </div>
-                      {projectDetail.photos?.filter((p: any) => p.subcategory === "modelado_3d").length > 0 && (
+                      {projectDetail.photos?.filter((p: any) => p.subcategory === "modelado_3d").length > 0 && (user?.role !== "jefe_taller" && user?.role !== "operario") && (
                         <Button
                           size="sm"
                           className={`w-full mt-4 shadow-sm ${(projectDetail.modeladoRevisionNumber || 0) >= 1 ? 'bg-purple-500 hover:bg-purple-600' : 'bg-purple-600 hover:bg-purple-700'} text-white`}
@@ -1265,7 +1265,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
                           )}
                         </div>
                       </div>
-                      {projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length > 0 && (
+                      {projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length > 0 && (user?.role !== "jefe_taller" && user?.role !== "operario") && (
                         <Button
                           size="sm"
                           className={`w-full mt-4 shadow-sm ${(projectDetail.renderRevisionNumber || 0) >= 1 ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-emerald-600 hover:bg-emerald-700'} text-white`}
@@ -1280,8 +1280,8 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
                     </div>
                   </div>
                   
-                  {/* Sección de Aprobación */}
-                  {(() => {
+                  {/* Sección de Aprobación — solo admin/super_admin/comercial/disenador */}
+                  {(user?.role !== "jefe_taller" && user?.role !== "operario") && (() => {
                     const isInDesignPhase = ["en_diseno", "pendiente_modelado", "pendiente_render"].includes(projectDetail.status as string);
                     const isPendingApproval = (projectDetail.status as string) === "pendiente_modelado" || (projectDetail.status as string) === "pendiente_render";
                     const isApproved = projectDetail.rendersApprovedAt || projectDetail.modeladoApprovedAt;

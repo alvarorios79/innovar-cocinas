@@ -3187,7 +3187,10 @@ export default function Quotations() {
                                   if (config.specialModules.alacenaEntrepanos) deductions += 0.5;
                                   if (config.specialModules.alacenaHerraje) deductions += 0.5;
                                   if (config.specialModules.torreHornos) deductions += 0.7;
-                                  return Math.max(0, config.totalMeters - deductions).toFixed(2);
+                                  const resultingM = Math.max(0, config.totalMeters - deductions);
+                                  return (config.independentMeters && config.lowerMeters !== undefined)
+                                    ? Math.max(0, (config.lowerMeters || 0) - deductions).toFixed(2)
+                                    : resultingM.toFixed(2);
                                 })()} ml
                               </p>
                               <p className="text-sm text-muted-foreground">
@@ -3200,7 +3203,10 @@ export default function Quotations() {
                                   if (config.specialModules.alacenaEntrepanos) deductions += 0.5;
                                   if (config.specialModules.alacenaHerraje) deductions += 0.5;
                                   if (config.specialModules.torreHornos) deductions += 0.7;
-                                  return Math.max(0, config.totalMeters - deductions).toFixed(2);
+                                  const resultingM = Math.max(0, config.totalMeters - deductions);
+                                  return (config.independentMeters && config.upperMeters !== undefined)
+                                    ? (config.upperMeters || 0).toFixed(2)
+                                    : resultingM.toFixed(2);
                                 })()} ml
                               </p>
                             </div>

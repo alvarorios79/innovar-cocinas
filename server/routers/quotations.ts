@@ -1060,10 +1060,16 @@ export const quotationsRouter = router({
               } else {
                 // Cocinas completas (L, U, Lineal)
                 if (config.includeLower !== false) {
-                  lines.push(`• Muebles Inferiores: ${resultingMeters.toFixed(2)}ml`);
+                  const lowerML = (config.independentMeters && config.lowerMeters !== undefined)
+                    ? Math.max(0, (config.lowerMeters || 0) - deductions)
+                    : resultingMeters;
+                  lines.push(`• Muebles Inferiores: ${lowerML.toFixed(2)}ml`);
                 }
                 if (config.includeUpper !== false) {
-                  lines.push(`• Muebles Superiores: ${resultingMeters.toFixed(2)}ml`);
+                  const upperML = (config.independentMeters && config.upperMeters !== undefined)
+                    ? (config.upperMeters || 0)
+                    : resultingMeters;
+                  lines.push(`• Muebles Superiores: ${upperML.toFixed(2)}ml`);
                 }
               }
               
@@ -1096,7 +1102,10 @@ export const quotationsRouter = router({
                   surchargeText = ' — fondo 91-120cm (×2)';
                 }
                 
-                lines.push(`• Mesón ${countertopType}: ${resultingMeters.toFixed(2)}ml${surchargeText}`);
+                const mesonML = (config.independentMeters && config.lowerMeters !== undefined)
+                  ? Math.max(0, (config.lowerMeters || 0) - deductions)
+                  : resultingMeters;
+                lines.push(`• Mesón ${countertopType}: ${mesonML.toFixed(2)}ml${surchargeText}`);
                 if (ct.incluyeLaterales) lines.push(`  - ${ct.cantLaterales || 1} lateral${(ct.cantLaterales || 1) > 1 ? 'es' : ''}: ${((ct.cantLaterales || 1) * 0.9).toFixed(2)}ml`);
                 if (ct.incluyeRegrueso) lines.push(`  - Regrueso: 0.90ml`);
                 if (ct.incluyeLavaplatos) lines.push(`  - Lavaplatos y pegado`);
@@ -1696,10 +1705,16 @@ export const quotationsRouter = router({
               if (dc.smallCovers > 0) lines.push(`• Tapas pequeñas: ${dc.smallCovers} und`);
             } else {
               if (config.includeLower !== false) {
-                lines.push(`• Muebles Inferiores: ${resultingMeters.toFixed(2)}ml`);
+                const lowerML = (config.independentMeters && config.lowerMeters !== undefined)
+                  ? Math.max(0, (config.lowerMeters || 0) - deductions)
+                  : resultingMeters;
+                lines.push(`• Muebles Inferiores: ${lowerML.toFixed(2)}ml`);
               }
               if (config.includeUpper !== false) {
-                lines.push(`• Muebles Superiores: ${resultingMeters.toFixed(2)}ml`);
+                const upperML = (config.independentMeters && config.upperMeters !== undefined)
+                  ? (config.upperMeters || 0)
+                  : resultingMeters;
+                lines.push(`• Muebles Superiores: ${upperML.toFixed(2)}ml`);
               }
             }
             
@@ -1715,7 +1730,10 @@ export const quotationsRouter = router({
               let surchargeText = '';
               if (ct.depthSurcharge === '30percent') surchargeText = ' — fondo 61-90cm (+30%)';
               else if (ct.depthSurcharge === 'double') surchargeText = ' — fondo 91-120cm (×2)';
-              lines.push(`• Mesón ${countertopType}: ${resultingMeters.toFixed(2)}ml${surchargeText}`);
+              const mesonML = (config.independentMeters && config.lowerMeters !== undefined)
+                ? Math.max(0, (config.lowerMeters || 0) - deductions)
+                : resultingMeters;
+              lines.push(`• Mesón ${countertopType}: ${mesonML.toFixed(2)}ml${surchargeText}`);
               if (ct.incluyeLaterales) lines.push(`  - ${ct.cantLaterales || 1} lateral${(ct.cantLaterales || 1) > 1 ? 'es' : ''}: ${((ct.cantLaterales || 1) * 0.9).toFixed(2)}ml`);
               if (ct.incluyeRegrueso) lines.push(`  - Regrueso: 0.90ml`);
               if (ct.incluyeLavaplatos) lines.push(`  - Lavaplatos y pegado`);
@@ -2486,10 +2504,16 @@ export const quotationsRouter = router({
               } else {
                 // Cocinas completas (L, U, Lineal)
                 if (config.includeLower !== false) {
-                  lines.push(`• Muebles Inferiores: ${resultingMeters.toFixed(2)}ml`);
+                  const lowerML = (config.independentMeters && config.lowerMeters !== undefined)
+                    ? Math.max(0, (config.lowerMeters || 0) - deductions)
+                    : resultingMeters;
+                  lines.push(`• Muebles Inferiores: ${lowerML.toFixed(2)}ml`);
                 }
                 if (config.includeUpper !== false) {
-                  lines.push(`• Muebles Superiores: ${resultingMeters.toFixed(2)}ml`);
+                  const upperML = (config.independentMeters && config.upperMeters !== undefined)
+                    ? (config.upperMeters || 0)
+                    : resultingMeters;
+                  lines.push(`• Muebles Superiores: ${upperML.toFixed(2)}ml`);
                 }
               }
               
@@ -2522,7 +2546,10 @@ export const quotationsRouter = router({
                   surchargeText = ' — fondo 91-120cm (×2)';
                 }
                 
-                lines.push(`• Mesón ${countertopType}: ${resultingMeters.toFixed(2)}ml${surchargeText}`);
+                const mesonML = (config.independentMeters && config.lowerMeters !== undefined)
+                  ? Math.max(0, (config.lowerMeters || 0) - deductions)
+                  : resultingMeters;
+                lines.push(`• Mesón ${countertopType}: ${mesonML.toFixed(2)}ml${surchargeText}`);
                 if (ct.incluyeLaterales) lines.push(`  - ${ct.cantLaterales || 1} lateral${(ct.cantLaterales || 1) > 1 ? 'es' : ''}: ${((ct.cantLaterales || 1) * 0.9).toFixed(2)}ml`);
                 if (ct.incluyeRegrueso) lines.push(`  - Regrueso: 0.90ml`);
                 if (ct.incluyeLavaplatos) lines.push(`  - Lavaplatos y pegado`);

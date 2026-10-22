@@ -11,6 +11,36 @@ export default function PublicQuotation() {
   const [approved, setApproved] = useState(false);
   const [approving, setApproving] = useState(false);
   const [notes, setNotes] = useState("");
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
+
+  const downloadPdfMutation = trpc.quotationsDownload.downloadPDFByToken.useMutation({
+    onSuccess: (data) => {
+      const byteChars = atob(data.pdf);
+      const byteArr = new Uint8Array(byteChars.length);
+      for (let i = 0; i < byteChars.length; i++) byteArr[i] = byteChars.charCodeAt(i);
+      const blob = new Blob([byteArr], { type: 'application/pdf' });
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = data.fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(blobUrl);
+      setDownloadingPdf(false);
+    },
+    onError: () => {
+      setDownloadingPdf(false);
+      // Fallback al pdfUrl de S3 si el endpoint falla
+      if (token) window.open(`/api/quotation-pdf-fallback?token=${token}`, '_blank');
+    },
+  });
+
+  const handleDownloadPdf = () => {
+    if (!token) return;
+    setDownloadingPdf(true);
+    downloadPdfMutation.mutate({ token });
+  };
 
   const { data, isLoading, error } = trpc.quotations.publicGetByToken.useQuery(
     { token },
@@ -161,11 +191,13 @@ export default function PublicQuotation() {
         )}
 
         {/* ── PDF — solo si NO está cerrada ── */}
-        {!isClosed && data.pdfUrl && (
-          <a href={data.pdfUrl} target="_blank" rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 w-full bg-[#162828] border border-[#1DB5A8]/30 hover:border-[#1DB5A8] rounded-xl p-4 text-[#1DB5A8] font-medium transition-colors">
-            <span>📄</span> Descargar cotización PDF
-          </a>
+        {!isClosed && (
+          <button
+            onClick={handleDownloadPdf}
+            disabled={downloadingPdf}
+            className="flex items-center justify-center gap-2 w-full bg-[#162828] border border-[#1DB5A8]/30 hover:border-[#1DB5A8] rounded-xl p-4 text-[#1DB5A8] font-medium transition-colors disabled:opacity-60">
+            <span>📄</span> {downloadingPdf ? "Generando PDF..." : "Descargar cotización PDF"}
+          </button>
         )}
 
         {/* ── BOTÓN DE APROBACIÓN — solo si está pendiente ── */}

@@ -1971,7 +1971,11 @@ export async function updateTaskReminderHistory(taskId: number, sentBy: number) 
       sentTo: sentBy,
     });
   }
-  // For system-generated reminders (sentBy=0), just log to console
+  // SIEMPRE actualizar lastReminderSentAt para que el sistema de auto-recordatorios
+  // no reenvíe la misma notificación cada hora (deduplicación por fecha)
+  const { tasks: tasksTable } = await import("../drizzle/schema");
+  const { eq: eqFn } = await import("drizzle-orm");
+  await db.update(tasksTable).set({ lastReminderSentAt: new Date().toISOString() } as any).where(eqFn(tasksTable.id, taskId));
   console.log(`[TaskReminders] Reminder logged for task ${taskId} by ${sentBy === 0 ? 'system' : `user ${sentBy}`}`);
 }
 

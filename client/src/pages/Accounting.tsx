@@ -23,6 +23,7 @@ import {
 import { PageHeader } from "@/components/PageHeader";
 import { Link } from "wouter";
 import { ExportExpensesButton } from "@/components/ExportExpensesButton";
+import { ExportExpensesWordButton } from "@/components/ExportExpensesWordButton";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -638,19 +639,37 @@ export default function Accounting() {
                   expenses={filteredExpenses as any}
                   filter="all"
                   filename={`Gastos_INNOVAR_${new Date().toISOString().slice(0, 10)}`}
-                  label="Exportar Todo"
+                  label="Excel Todo"
                 />
                 <ExportExpensesButton
                   expenses={filteredExpenses as any}
                   filter="proyecto"
                   filename={`Gastos_Proyecto_${new Date().toISOString().slice(0, 10)}`}
-                  label="Solo Proyecto"
+                  label="Excel Proyecto"
                 />
                 <ExportExpensesButton
                   expenses={filteredExpenses as any}
                   filter="bodega"
                   filename={`Gastos_Bodega_${new Date().toISOString().slice(0, 10)}`}
-                  label="Solo Bodega"
+                  label="Excel Bodega"
+                />
+                <ExportExpensesWordButton
+                  expenses={filteredExpenses as any}
+                  filter="all"
+                  filename={`Informe_Gastos_INNOVAR_${new Date().toISOString().slice(0, 10)}`}
+                  label="Word Todo"
+                />
+                <ExportExpensesWordButton
+                  expenses={filteredExpenses as any}
+                  filter="proyecto"
+                  filename={`Informe_Gastos_Proyecto_${new Date().toISOString().slice(0, 10)}`}
+                  label="Word Proyecto"
+                />
+                <ExportExpensesWordButton
+                  expenses={filteredExpenses as any}
+                  filter="bodega"
+                  filename={`Informe_Gastos_Bodega_${new Date().toISOString().slice(0, 10)}`}
+                  label="Word Bodega"
                 />
               </div>
             </div>

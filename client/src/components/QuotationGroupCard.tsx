@@ -84,6 +84,16 @@ export function QuotationGroupCard({
       toast.error(error.message || "Error enviando cotización por WhatsApp");
     },
   });
+
+  const manualApproveMutation = trpc.quotations.manualApprove.useMutation({
+    onSuccess: () => {
+      utils.quotations.listPaginatedGrouped.invalidate();
+      toast.success("✅ Cotización marcada como Aprobada");
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Error al aprobar la cotización");
+    },
+  });
   
   const selectedVersion = group.versions.find(v => v.id === selectedVersionId) || group.activeVersion;
   const isActiveVersion = selectedVersionId === group.activeVersion.id;
@@ -451,6 +461,25 @@ export function QuotationGroupCard({
             >
               <Download className="w-3 h-3" />
               <span className="hidden sm:inline">Descar</span>
+            </Button>
+          )}
+
+          {/* Botón Aprobar — solo cuando está enviada */}
+          {isActiveVersion && (selectedVersion?.status === "sent") && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="text-xs py-1 px-2 h-7 gap-1 border-emerald-500 text-emerald-400 hover:bg-emerald-500/20"
+              onClick={() => {
+                if (window.confirm("¿Marcar esta cotización como APROBADA? Esto indica que el cliente confirmó por teléfono o WhatsApp.")) {
+                  manualApproveMutation.mutate({ quotationId: group.activeVersion.id });
+                }
+              }}
+              disabled={manualApproveMutation.isPending}
+              title="Marcar como aprobada manualmente"
+            >
+              <span>✓</span>
+              <span className="hidden sm:inline">Aprobar</span>
             </Button>
           )}
 

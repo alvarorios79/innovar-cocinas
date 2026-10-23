@@ -133,12 +133,20 @@ export function QuotationGroupCard({
   const isExpiringSoon = daysUntilExpiry <= 2 && daysUntilExpiry > 0;
   const isExpired = daysUntilExpiry <= 0;
 
-  const cardBorderClass = isExpired ? 'border-l-red-500' : isExpiringSoon ? 'border-l-yellow-500' : 'border-l-[#14B8A6]';
+  const isApprovedWithoutProject = group.activeVersion.status === "approved" && !group.hasProject;
+  const cardBorderClass = isApprovedWithoutProject ? 'border-l-amber-400' : isExpired ? 'border-l-red-500' : isExpiringSoon ? 'border-l-yellow-500' : 'border-l-[#14B8A6]';
   const cardBgClass = 'bg-[#162828]';
 
   return (
     <>
     <Card className={`w-full overflow-hidden shadow-sm border-l-2 ${cardBorderClass} ${cardBgClass}`}>
+      {/* ALERTA: APROBADA SIN PROYECTO */}
+      {isApprovedWithoutProject && (
+        <div className="bg-amber-400 text-black text-xs font-bold px-3 py-1.5 flex items-center gap-2 animate-pulse">
+          <span className="text-base">⚡</span>
+          <span>CLIENTE APROBÓ — Pendiente crear proyecto</span>
+        </div>
+      )}
       {/* HEADER COMPACTO - UNA SOLA LÍNEA */}
       <div className="px-3 py-2 md:px-3 md:py-2 border-b border-[rgba(106,207,199,0.12)] bg-[#162828]">
         <div className="flex items-center gap-2 md:gap-3 mb-2">

@@ -605,7 +605,7 @@ export const publicGalleryRouter = router({
     notifyStageAdvance: protectedProcedure
       .input(z.object({
         projectId: z.number(),
-        stageName: z.enum(["corte", "enchape", "ensamble", "listo_instalacion", "trabajando_instalacion"]),
+        stageName: z.enum(["corte", "enchape", "ensamble", "listo_instalacion", "trabajando_instalacion", "entregado"]),
       }))
       .mutation(async ({ ctx, input }) => {
         const project = await db.getProjectByIdPublic(input.projectId);

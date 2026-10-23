@@ -3713,6 +3713,26 @@ export const quotationsRouter = router({
           clientResponseStatus: "approved",
         });
 
+        // Notificar al equipo interno
+        try {
+          const clientData = quotation.clientId ? await db.getClientById(quotation.clientId) : null;
+          const allUsers = await db.getAllUsers();
+          const notifyRoles = ["super_admin", "admin", "comercial"];
+          const usersToNotify = allUsers.filter((u: any) => notifyRoles.includes(u.role));
+          for (const user of usersToNotify) {
+            await db.createNotification({
+              userId: user.id,
+              title: "✅ Cotización Aprobada por el Cliente",
+              body: `${clientData?.name || "El cliente"} aprobó la cotización ${quotation.quotationNumber}${input.notes ? `. Nota: "${input.notes}"` : ""}. Ingresa al CRM para crear el proyecto.`,
+              type: "cotizacion",
+              referenceId: quotation.id,
+              referenceType: "quotation",
+            });
+          }
+        } catch (notifErr) {
+          console.error("[publicApprove] Error enviando notificaciones:", notifErr);
+        }
+
         return { success: true, alreadyApproved: false };
       }),
 });

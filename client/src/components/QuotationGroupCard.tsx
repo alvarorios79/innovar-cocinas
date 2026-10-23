@@ -133,7 +133,8 @@ export function QuotationGroupCard({
   const isExpiringSoon = daysUntilExpiry <= 2 && daysUntilExpiry > 0;
   const isExpired = daysUntilExpiry <= 0;
 
-  const isApprovedWithoutProject = group.activeVersion.status === "approved" && !group.hasProject;
+  const approvedStatus = selectedVersion?.status === "approved" || group.activeVersion?.status === "approved" || (group as any).status === "approved";
+  const isApprovedWithoutProject = approvedStatus && !group.hasProject;
   const cardBorderClass = isApprovedWithoutProject ? 'border-l-amber-400' : isExpired ? 'border-l-red-500' : isExpiringSoon ? 'border-l-yellow-500' : 'border-l-[#14B8A6]';
   const cardBgClass = 'bg-[#162828]';
 

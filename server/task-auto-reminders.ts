@@ -45,8 +45,19 @@ export async function checkAndSendAutoReminders() {
       return dueDate >= threeDaysAgo && dueDate <= tomorrow;
     });
 
+    // Obtener proyectos entregados para excluir sus tareas
+    const allProjects = await db.getAllProjects();
+    const deliveredProjectIds = new Set(
+      allProjects.filter(p => p.status === "entregado" || p.deliveredAt).map(p => p.id)
+    );
+
     // Enviar recordatorios automáticos
     for (const task of tasksToRemind) {
+      // No recordar tareas de proyectos ya entregados
+      if (task.projectId && deliveredProjectIds.has(task.projectId)) {
+        continue;
+      }
+
       // Verificar si ya se envió un recordatorio automático hoy
       if (task.lastReminderSentAt) {
         const lastReminder = new Date(task.lastReminderSentAt);

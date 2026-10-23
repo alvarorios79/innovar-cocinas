@@ -326,19 +326,18 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
   };
 
   // Mapeo de subcategory a stageName para notifyStageAdvance
-  const subcategoryToStageName: Record<string, "corte" | "enchape" | "ensamble" | "listo_instalacion" | "trabajando_instalacion"> = {
+  const subcategoryToStageName: Record<string, "corte" | "enchape" | "ensamble" | "listo_instalacion" | "trabajando_instalacion" | "entregado"> = {
     corte: "corte",
     enchape: "enchape",
     armado: "ensamble",
     proceso_instalacion: "trabajando_instalacion",
-    fotos_finales: "trabajando_instalacion",
+    fotos_finales: "entregado",
     fotos_iniciales: "corte",
     renders: "corte",
     despieces: "corte",
     detalles: "corte",
     modelado_3d: "corte",
     dibujo: "corte",
-    fotos_finales: "trabajando_instalacion",
   };
 
   // Funcion para notificar via WhatsApp directo al cliente (todos los roles)

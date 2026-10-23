@@ -9,8 +9,8 @@ import { FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
-  AlignmentType, BorderStyle, WidthType, ShadingType, HeadingLevel,
-  Header, PageNumber, VerticalAlign,
+  AlignmentType, BorderStyle, WidthType, ShadingType,
+  Header, PageNumber, VerticalAlign, PageOrientation,
 } from 'docx';
 import { saveAs } from 'file-saver';
 import { EXPENSE_TYPE_LABELS, CATEGORY_LABELS } from '@/lib/exportUtils';
@@ -60,8 +60,9 @@ const noBorder = { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' };
 const noBorders = { top: noBorder, bottom: noBorder, left: noBorder, right: noBorder };
 
 // Anchos columnas (DXA): Fecha(1100) Tipo(1400) Descripción(2800) Categoría(1500) Monto(1500) Notas(1900) = 10200
-const COL_WIDTHS = [1100, 1400, 2800, 1500, 1500, 1900];
-const TABLE_WIDTH = COL_WIDTHS.reduce((a, b) => a + b, 0); // 10200
+// Anchos: Fecha(1400) Tipo(1800) Descripción(4200) Categoría(2200) Monto(2000) Notas(2240) = 13840 DXA (ancho útil landscape)
+const COL_WIDTHS = [1400, 1800, 4200, 2200, 2000, 2240];
+const TABLE_WIDTH = COL_WIDTHS.reduce((a, b) => a + b, 0); // 13840
 
 function cell(text: string, opts?: {
   bold?: boolean; color?: string; bg?: string; align?: (typeof AlignmentType)[keyof typeof AlignmentType]; shade?: string;
@@ -160,7 +161,7 @@ function summaryTable(totalProyecto: number, totalBodega: number, totalGeneral: 
   });
   return new Table({
     width: { size: 10200, type: WidthType.DXA },
-    columnWidths: [6000, 4200],
+    columnWidths: [8640, 5200],
     rows: [
       makeSumRow('Gastos de Proyecto', totalProyecto, false),
       makeSumRow('Gastos Operativos / Bodega', totalBodega, false),
@@ -237,7 +238,7 @@ export function ExportExpensesWordButton({ expenses, filter = 'all', filename, l
       if (filter !== 'all') {
         children.push(new Table({
           width: { size: TABLE_WIDTH, type: WidthType.DXA },
-          columnWidths: [6000, 4200],
+          columnWidths: [8640, 5200],
           rows: [new TableRow({
             children: [
               new TableCell({ borders, shading: { fill: DARK, type: ShadingType.CLEAR }, margins: { top: 100, bottom: 100, left: 120, right: 120 },
@@ -256,7 +257,8 @@ export function ExportExpensesWordButton({ expenses, filter = 'all', filename, l
         sections: [{
           properties: {
             page: {
-              size: { width: 15840, height: 12240 },
+              // Landscape: pasar el lado corto como width, largo como height; docx-js los intercambia al generar el XML
+            size: { width: 12240, height: 15840, orientation: PageOrientation.LANDSCAPE },
               margin: { top: 1000, bottom: 1000, left: 1000, right: 1000 },
             },
           },

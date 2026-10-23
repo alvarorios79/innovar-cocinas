@@ -633,11 +633,26 @@ export default function Accounting() {
                 <CardTitle>Historial de Gastos</CardTitle>
                 <CardDescription>Últimos gastos registrados</CardDescription>
               </div>
-              <ExportExpensesButton
-                expenses={filteredExpenses as any}
-                filename={`Gastos_INNOVAR_${new Date().toISOString().slice(0, 10)}`}
-                label="Exportar Excel"
-              />
+              <div className="flex gap-2 flex-wrap justify-end">
+                <ExportExpensesButton
+                  expenses={filteredExpenses as any}
+                  filter="all"
+                  filename={`Gastos_INNOVAR_${new Date().toISOString().slice(0, 10)}`}
+                  label="Exportar Todo"
+                />
+                <ExportExpensesButton
+                  expenses={filteredExpenses as any}
+                  filter="proyecto"
+                  filename={`Gastos_Proyecto_${new Date().toISOString().slice(0, 10)}`}
+                  label="Solo Proyecto"
+                />
+                <ExportExpensesButton
+                  expenses={filteredExpenses as any}
+                  filter="bodega"
+                  filename={`Gastos_Bodega_${new Date().toISOString().slice(0, 10)}`}
+                  label="Solo Bodega"
+                />
+              </div>
             </div>
           </CardHeader>
           <CardContent>

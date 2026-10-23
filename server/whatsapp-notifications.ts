@@ -33,6 +33,25 @@ ${data.portalUrl}
 
 *INNOVAR Cocinas de Diseño*`,
 
+  // Adelanto recibido — bienvenida oficial al proceso
+  adelanto_recibido: (data) => `🎉 *¡Bienvenida al equipo INNOVAR, ${data.clientName}!*
+
+Recibimos tu adelanto y estamos emocionados de comenzar a transformar tu espacio. Tu proyecto de ${data.workType} ya tiene luz verde. 🚀
+
+*¿Cómo funciona el proceso?*
+
+A lo largo de cada etapa te enviaremos un enlace personal para que puedas ver el avance en tiempo real: desde los planos y renders hasta las fotos de producción e instalación. Todo en un solo lugar, desde tu celular.
+
+🎨 *Próxima etapa: Diseño y renders 3D*
+Nuestro diseñador comenzará a trabajar en los planos de tu ${data.workType}. Cuando estén listos, te enviamos el enlace para que los revises con calma y nos digas si quieres algún ajuste. *Tu aprobación es indispensable para pasar a producción.*
+
+👉 *Tu portal de seguimiento:*
+${data.portalUrl}
+
+Ante cualquier duda, pregunta o solicitud durante el proceso, escríbenos al *313 680 2025*. ¡Estamos aquí para ti en cada paso! 🏠✨
+
+*INNOVAR Cocinas de Diseño*`,
+
   // En diseño
   en_diseno: (data) => `🎨 *Hola ${data.clientName}*
 

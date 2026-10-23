@@ -153,9 +153,9 @@ function buildTable(rows: ExpenseRow[], subtotalLabel: string): (Paragraph | Tab
 function summaryTable(totalProyecto: number, totalBodega: number, totalGeneral: number): Table {
   const makeSumRow = (label: string, val: number, highlight: boolean) => new TableRow({
     children: [
-      new TableCell({ borders, width: { size: 6000, type: WidthType.DXA }, shading: { fill: highlight ? DARK : LGRAY, type: ShadingType.CLEAR }, margins: { top: 100, bottom: 100, left: 120, right: 120 },
+      new TableCell({ borders, width: { size: 8640, type: WidthType.DXA }, shading: { fill: highlight ? DARK : LGRAY, type: ShadingType.CLEAR }, margins: { top: 100, bottom: 100, left: 120, right: 120 },
         children: [new Paragraph({ children: [new TextRun({ text: label, bold: highlight, color: highlight ? WHITE : DGRAY, size: highlight ? 22 : 20, font: 'Calibri' })] })] }),
-      new TableCell({ borders, width: { size: 4200, type: WidthType.DXA }, shading: { fill: highlight ? DARK : WHITE, type: ShadingType.CLEAR }, margins: { top: 100, bottom: 100, left: 120, right: 120 },
+      new TableCell({ borders, width: { size: 5200, type: WidthType.DXA }, shading: { fill: highlight ? DARK : WHITE, type: ShadingType.CLEAR }, margins: { top: 100, bottom: 100, left: 120, right: 120 },
         children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: fmtCOP(val), bold: highlight, color: highlight ? TEAL : DGRAY, size: highlight ? 24 : 20, font: 'Calibri' })] })] }),
     ],
   });

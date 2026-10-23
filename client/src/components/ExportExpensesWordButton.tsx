@@ -59,7 +59,6 @@ const borders = { top: border, bottom: border, left: border, right: border };
 const noBorder = { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' };
 const noBorders = { top: noBorder, bottom: noBorder, left: noBorder, right: noBorder };
 
-// Anchos columnas (DXA): Fecha(1100) Tipo(1400) Descripción(2800) Categoría(1500) Monto(1500) Notas(1900) = 10200
 // Anchos: Fecha(1400) Tipo(1800) Descripción(4200) Categoría(2200) Monto(2000) Notas(2240) = 13840 DXA (ancho útil landscape)
 const COL_WIDTHS = [1400, 1800, 4200, 2200, 2000, 2240];
 const TABLE_WIDTH = COL_WIDTHS.reduce((a, b) => a + b, 0); // 13840
@@ -160,7 +159,7 @@ function summaryTable(totalProyecto: number, totalBodega: number, totalGeneral: 
     ],
   });
   return new Table({
-    width: { size: 10200, type: WidthType.DXA },
+    width: { size: TABLE_WIDTH, type: WidthType.DXA },
     columnWidths: [8640, 5200],
     rows: [
       makeSumRow('Gastos de Proyecto', totalProyecto, false),

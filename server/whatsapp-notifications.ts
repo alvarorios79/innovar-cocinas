@@ -48,7 +48,7 @@ Nuestro diseñador comenzará a trabajar en los planos de tu ${data.workType}. C
 👉 *Tu portal de seguimiento:*
 ${data.portalUrl}
 
-Ante cualquier duda, pregunta o solicitud durante el proceso, escríbenos al *313 680 2025*. ¡Estamos aquí para ti en cada paso! 🏠✨
+Ante cualquier duda o solicitud durante el proceso, recuerda que dentro del portal encontrarás un botón de WhatsApp para contactarnos directamente. ¡Estamos aquí para ti en cada paso! 🏠✨
 
 *INNOVAR Cocinas de Diseño*`,
 

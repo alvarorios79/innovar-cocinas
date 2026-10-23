@@ -135,7 +135,7 @@ export default function ProjectDetail() {
   const [advanceConfirmDialog, setAdvanceConfirmDialog] = useState<{ open: boolean; subcategory: string; nextStatus: string; hasPhotos: boolean }>({ open: false, subcategory: "", nextStatus: "", hasPhotos: false });
   
   // Toggle para ocultar información financiera (CEO, admin, comercial)
-  const [showFinancialInfo, setShowFinancialInfo] = useState(true);
+  const [showFinancialInfo, setShowFinancialInfo] = useState(false);
   const [materialExpensesTotal, setMaterialExpensesTotal] = useState(0);
   
   // Candado para evitar clics accidentales en aprobación del cliente

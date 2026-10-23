@@ -3748,22 +3748,42 @@ export const quotationsRouter = router({
         throw new TRPCError({ code: "FORBIDDEN", message: "Sin permisos para aprobar cotizaciones" });
       }
 
-      const quotation = await db.getQuotationById(input.quotationId);
-      if (!quotation) {
+      const drizzleDb = await db.getDb();
+      if (!drizzleDb) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB no disponible" });
+
+      const { quotations: qTable } = await import("../../drizzle/schema");
+      const { eq: eqOp, isNull: isNullOp } = await import("drizzle-orm");
+
+      const rows = await drizzleDb
+        .select()
+        .from(qTable)
+        .where(eqOp(qTable.id, input.quotationId))
+        .limit(1);
+
+      if (!rows.length) {
         throw new TRPCError({ code: "NOT_FOUND", message: "Cotización no encontrada" });
       }
+      const quotation = rows[0];
 
       if (quotation.status === "approved") {
         return { success: true, alreadyApproved: true };
       }
 
-      await db.updateQuotation(input.quotationId, {
-        status: "approved",
-        approvedAt: new Date().toISOString(),
-        clientResponseStatus: "approved",
-        clientResponseAt: new Date().toISOString(),
-        clientResponseNotes: input.notes || `Aprobado manualmente por ${ctx.user.name || ctx.user.email}`,
-      });
+      const now = new Date().toISOString();
+      const notaAprobacion = input.notes || `Aprobado manualmente por ${(ctx.user as any).name || ctx.user.email}`;
+
+      try {
+        await drizzleDb
+          .update(qTable)
+          .set({
+            status: "approved",
+            approvedAt: now,
+          })
+          .where(eqOp(qTable.id, input.quotationId));
+      } catch (dbErr: any) {
+        console.error("[manualApprove] DB error code:", dbErr?.code, "detail:", dbErr?.detail, "msg:", dbErr?.message);
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: `Error DB: ${dbErr?.message || dbErr}` });
+      }
 
       // Enviar notificaciones al equipo
       try {
@@ -3775,7 +3795,7 @@ export const quotationsRouter = router({
           await db.createNotification({
             userId: user.id,
             title: "✅ Cotización Aprobada (Manual)",
-            body: `${ctx.user.name || ctx.user.email} marcó como aprobada la cotización ${quotation.quotationNumber} de ${clientData?.name || "cliente"}${input.notes ? `. Nota: "${input.notes}"` : ""}.`,
+            body: `${(ctx.user as any).name || ctx.user.email} marcó como aprobada la cotización ${quotation.quotationNumber} de ${clientData?.name || "cliente"}${input.notes ? `. Nota: "${input.notes}"` : ""}.`,
             type: "cotizacion",
             referenceId: quotation.id,
             referenceType: "quotation",

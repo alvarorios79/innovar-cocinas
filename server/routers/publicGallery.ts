@@ -699,6 +699,15 @@ ${portalLink}
 
 ` +
             `— INNOVAR Cocinas de Diseño ✨`,
+
+          entregado:
+            `🎉 ¡Hola ${clientName}! Tu proyecto está terminado y listo para disfrutar — aquí tienes las fotos finales de tu nuevo espacio:
+${portalLink}
+
+` +
+            `Fue un placer trabajar para ti y esperamos que lo disfrutes por muchos años. Recuerda que cuentas con nuestra garantía y que ante cualquier detalle estamos a una llamada al 313 680 2025. Y si conoces a alguien que quiera transformar su cocina o closet, ¡con gusto los atendemos! 🏠✨
+
+— INNOVAR Cocinas de Diseño`,
         };
 
         const waMessage = stageMessages[input.stageName] ||

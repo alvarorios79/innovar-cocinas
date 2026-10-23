@@ -3735,4 +3735,56 @@ export const quotationsRouter = router({
 
         return { success: true, alreadyApproved: false };
       }),
+  manualApprove: protectedProcedure
+    .input(
+      z.object({
+        quotationId: z.number(),
+        notes: z.string().optional(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const allowedRoles = ["super_admin", "admin", "comercial"];
+      if (!allowedRoles.includes(ctx.user.role)) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Sin permisos para aprobar cotizaciones" });
+      }
+
+      const quotation = await db.getQuotationById(input.quotationId);
+      if (!quotation) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Cotización no encontrada" });
+      }
+
+      if (quotation.status === "approved") {
+        return { success: true, alreadyApproved: true };
+      }
+
+      await db.updateQuotation(input.quotationId, {
+        status: "approved",
+        approvedAt: new Date().toISOString(),
+        clientResponseStatus: "approved",
+        clientResponseAt: new Date().toISOString(),
+        clientResponseNotes: input.notes || `Aprobado manualmente por ${ctx.user.name || ctx.user.email}`,
+      });
+
+      // Enviar notificaciones al equipo
+      try {
+        const clientData = quotation.clientId ? await db.getClientById(quotation.clientId) : null;
+        const allUsers = await db.getAllUsers();
+        const notifyRoles = ["super_admin", "admin", "comercial"];
+        const usersToNotify = allUsers.filter((u: any) => notifyRoles.includes(u.role));
+        for (const user of usersToNotify) {
+          await db.createNotification({
+            userId: user.id,
+            title: "✅ Cotización Aprobada (Manual)",
+            body: `${ctx.user.name || ctx.user.email} marcó como aprobada la cotización ${quotation.quotationNumber} de ${clientData?.name || "cliente"}${input.notes ? `. Nota: "${input.notes}"` : ""}.`,
+            type: "cotizacion",
+            referenceId: quotation.id,
+            referenceType: "quotation",
+          });
+        }
+      } catch (notifErr) {
+        console.error("[manualApprove] Error enviando notificaciones:", notifErr);
+      }
+
+      return { success: true, alreadyApproved: false };
+    }),
 });

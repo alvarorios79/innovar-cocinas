@@ -92,6 +92,16 @@ export const technicalVisitsRouter = router({
             isNull(technicalVisits.deletedAt)
           ))
           .orderBy(desc(technicalVisits.createdAt));
+      } else if (role === "disenador") {
+        // Diseñador solo ve levantamientos vinculados a proyectos aprobados (projectId != null)
+        rows = await db
+          .select()
+          .from(technicalVisits)
+          .where(and(
+            isNotNull(technicalVisits.projectId),
+            isNull(technicalVisits.deletedAt)
+          ))
+          .orderBy(desc(technicalVisits.createdAt));
       } else {
         throw new TRPCError({ code: "FORBIDDEN", message: "Sin acceso a levantamientos" });
       }

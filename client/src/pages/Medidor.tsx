@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useSearch } from "wouter";
 import { trpc } from "@/lib/trpc";
+import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -380,6 +381,7 @@ export default function Medidor() {
   } | null>(null);
   const effectivePrefill = manualPrefill || prefill;
 
+  const { user } = useAuth();
   const [view, setView] = useState<"list" | "new" | "detail">("list");
   const [selectedVisit, setSelectedVisit] = useState<Visit | null>(null);
   const [visitDetail, setVisitDetail] = useState<Visit | null>(null);

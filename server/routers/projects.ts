@@ -181,7 +181,8 @@ export const projectsRouter = router({
         }
         if (role === "jefe_taller") {
           filteredData = filteredData.filter(p =>
-            ["aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "trabajando_instalacion", "entregado"].includes(p.status)
+            ["adelanto_recibido", "en_diseno", "pendiente_modelado", "pendiente_render",
+             "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "trabajando_instalacion", "entregado"].includes(p.status)
           );
         }
         if (role === "operario") {

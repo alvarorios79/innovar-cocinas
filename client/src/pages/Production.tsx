@@ -150,59 +150,6 @@ export default function Production() {
         }
       />
 
-      {/* Próximos trabajos — solo visible si hay proyectos en diseño */}
-      {previewProjects.length > 0 && (
-        <div className="mb-6">
-          <div className="flex items-center gap-2 mb-3">
-            <Flame className="h-4 w-4 text-[#1DB5A8]" />
-            <span className="text-sm font-semibold text-[#1DB5A8] uppercase tracking-wide">
-              Próximos trabajos
-            </span>
-            <span className="text-xs text-white/40 ml-1">— en diseño</span>
-          </div>
-          <div className="flex flex-wrap gap-3">
-            {previewProjects.map((project) => {
-              const typeLabel = WORK_TYPE_LABELS[project.workType] ?? project.workType;
-              return (
-                <div
-                  key={project.id}
-                  className="rounded-xl border-2 p-4 min-w-[220px] max-w-[260px]"
-                  style={{
-                    borderColor: "#1DB5A8",
-                    background: "rgba(29,181,168,0.06)",
-                  }}
-                >
-                  {/* Banner */}
-                  <div className="flex items-center gap-1.5 mb-3">
-                    <Flame className="h-4 w-4 text-orange-400" />
-                    <span className="text-xs font-bold text-orange-400 uppercase tracking-wide">
-                      El rancho ardiendo
-                    </span>
-                  </div>
-                  {/* Tipo de trabajo */}
-                  <p className="text-sm font-semibold text-white mb-1">
-                    Nuevo {typeLabel}
-                  </p>
-                  {/* Cliente */}
-                  {project.client && (
-                    <p className="flex items-center gap-1 text-xs text-white/60 mb-1">
-                      <User className="h-3 w-3 shrink-0" />
-                      {project.client.name}
-                    </p>
-                  )}
-                  {/* Dirección */}
-                  {(project.client as any)?.address && (
-                    <p className="flex items-center gap-1 text-xs text-white/40">
-                      <MapPin className="h-3 w-3 shrink-0" />
-                      {(project.client as any).address}
-                    </p>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
 
       {/* Contador rápido */}
       <div className="flex flex-wrap gap-2 mb-5">

@@ -131,11 +131,11 @@ export const projectsRouter = router({
           );
         }
 
-        // Jefe de taller ve proyectos solo desde producción (despiece en adelante)
-        // No ve proyectos en diseño ni pendientes de aprobación
+        // Jefe de taller ve producción completa + proyectos en diseño (solo lectura, sin financiero)
         if (role === "jefe_taller") {
           projectsList = projectsList.filter(p =>
-            ["despiece", "corte", "enchape", "ensamble", "listo_instalacion", "trabajando_instalacion", "entregado"].includes(p.status)
+            ["adelanto_recibido", "en_diseno", "pendiente_modelado", "pendiente_render", "aprobacion_final",
+             "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "trabajando_instalacion", "entregado"].includes(p.status)
           );
         }
 

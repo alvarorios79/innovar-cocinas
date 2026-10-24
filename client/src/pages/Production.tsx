@@ -113,11 +113,6 @@ export default function Production() {
   );
 
   // Proyectos en diseño — visibles para jefe_taller como "próximos trabajos"
-  const DESIGN_PREVIEW_STATUSES = ["adelanto_recibido", "en_diseno", "pendiente_modelado", "pendiente_render", "aprobacion_final"];
-  const previewProjects = (projects as Project[]).filter((p) =>
-    DESIGN_PREVIEW_STATUSES.includes(p.status)
-  );
-
   const byStage = (stage: ProdStageKey) =>
     prodProjects.filter((p) => p.status === stage);
 

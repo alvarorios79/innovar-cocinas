@@ -880,10 +880,12 @@ export default function Medidor() {
             <p className="text-xs font-semibold text-[#1DB5A8] uppercase tracking-widest mb-0.5">Portal de Medidor</p>
             <h1 className="text-2xl font-bold text-white">Visitas</h1>
           </div>
-            <Button onClick={() => setView("new")} className="bg-[#1DB5A8] hover:bg-[#17a396] text-white">
-              <Plus className="h-4 w-4 mr-2" />
-              Nueva visita
-            </Button>
+            {user?.role !== "disenador" && (
+              <Button onClick={() => setView("new")} className="bg-[#1DB5A8] hover:bg-[#17a396] text-white">
+                <Plus className="h-4 w-4 mr-2" />
+                Nueva visita
+              </Button>
+            )}
           </div>
 
           {/* Tabs */}

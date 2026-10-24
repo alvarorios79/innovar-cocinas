@@ -35,7 +35,9 @@ import {
   AlertTriangle,
   Sparkles,
   Archive,
-  RotateCcw
+  RotateCcw,
+  Flame,
+  MapPin
 } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -252,8 +254,15 @@ export default function Projects() {
   // No filtrar por estado aquí - el backend ya está filtrando por archived
   const filteredByArchive = filteredByProfit;
   
-  // Aplicar filtro de busqueda por cliente
+  // Proyectos en diseño para jefe_taller (tarjetas preview no clickeables)
+  const DESIGN_PREVIEW_STATUSES = ["adelanto_recibido", "en_diseno", "pendiente_modelado", "pendiente_render", "aprobacion_final"];
+  const designPreviewProjects = user?.role === "jefe_taller"
+    ? filteredByArchive.filter(p => DESIGN_PREVIEW_STATUSES.includes((p as any).status))
+    : [];
+
+  // Aplicar filtro de busqueda por cliente (jefe_taller: excluye diseño de lista normal)
   const filteredProjects = filteredByArchive.filter(p => {
+    if (user?.role === "jefe_taller" && DESIGN_PREVIEW_STATUSES.includes((p as any).status)) return false;
     const clientName = (p as any).clientName?.toLowerCase() || "";
     return clientName.includes(searchTerm.toLowerCase());
   });
@@ -896,6 +905,45 @@ export default function Projects() {
             </div>
           </div>
         </div>
+
+        {/* Próximos trabajos — solo jefe_taller, proyectos en diseño */}
+        {user?.role === "jefe_taller" && designPreviewProjects.length > 0 && (
+          <div className="mb-6">
+            <div className="flex items-center gap-2 mb-3">
+              <Flame className="h-4 w-4 text-[#1DB5A8]" />
+              <span className="text-sm font-semibold text-[#1DB5A8] uppercase tracking-wide">Próximos trabajos</span>
+              <span className="text-xs text-white/40 ml-1">— en diseño</span>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              {designPreviewProjects.map((project: any) => {
+                const typeLabel = WORK_TYPES[(project.workType as keyof typeof WORK_TYPES)] ?? project.workType;
+                return (
+                  <div
+                    key={project.id}
+                    className="rounded-xl border-2 p-4 min-w-[220px] max-w-[260px]"
+                    style={{ borderColor: "#1DB5A8", background: "rgba(29,181,168,0.06)" }}
+                  >
+                    <div className="flex items-center gap-1.5 mb-3">
+                      <Flame className="h-4 w-4 text-orange-400" />
+                      <span className="text-xs font-bold text-orange-400 uppercase tracking-wide">El rancho ardiendo</span>
+                    </div>
+                    <p className="text-sm font-semibold text-white mb-1">Nuevo {typeLabel}</p>
+                    {project.client?.name && (
+                      <p className="flex items-center gap-1 text-xs text-white/60 mb-1">
+                        <User className="h-3 w-3 shrink-0" />{project.client.name}
+                      </p>
+                    )}
+                    {project.client?.address && (
+                      <p className="flex items-center gap-1 text-xs text-white/40">
+                        <MapPin className="h-3 w-3 shrink-0" />{project.client.address}
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Lista de proyectos - clic abre modal de detalle */}
         {loadingProjects ? (

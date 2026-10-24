@@ -86,7 +86,7 @@ const menuSections: MenuSection[] = [
       { icon: Users,         label: "Clientes",      path: "/clients",
         roles: ["super_admin", "admin", "comercial"], iconColor: "#0ea5e9" },
       { icon: ClipboardCheck, label: "Levantamientos", path: "/levantamientos",
-        roles: ["medidor", "super_admin", "admin", "comercial"], iconColor: "#1DB5A8" },
+        roles: ["medidor", "super_admin", "admin", "comercial", "disenador"], iconColor: "#1DB5A8" },
       { icon: FileText,      label: "Cotizaciones",  path: "/quotations",
         roles: ["super_admin", "admin", "comercial"], iconColor: "#6366f1" },
       { icon: FolderKanban,  label: "Proyectos",     path: "/projects", iconColor: "#8b5cf6",

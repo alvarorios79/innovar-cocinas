@@ -235,8 +235,13 @@ export const projectsRouter = router({
         // jefe_taller y operario solo pueden abrir proyectos en fase de producción
         const role = ctx.user.role;
         const productionStatuses = ["despiece", "corte", "enchape", "ensamble", "listo_instalacion", "trabajando_instalacion", "entregado"];
-        if ((role === "jefe_taller" || role === "operario") && !productionStatuses.includes(project.status)) {
-          throw new TRPCError({ code: "FORBIDDEN", message: "EN_DISENO" });
+        const designStatuses = ["adelanto_recibido", "en_diseno", "pendiente_modelado", "pendiente_render", "aprobacion_final"];
+        // Operario: solo producción. Jefe de taller: producción + diseño (solo lectura, sin financiero)
+        if (role === "operario" && !productionStatuses.includes(project.status)) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Sin acceso a este proyecto" });
+        }
+        if (role === "jefe_taller" && !productionStatuses.includes(project.status) && !designStatuses.includes(project.status)) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Sin acceso a este proyecto" });
         }
 
         // Optimización: ejecutar consultas en paralelo

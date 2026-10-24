@@ -9,7 +9,7 @@ import {
   appointments,
   clients,
 } from "../../drizzle/schema";
-import { eq, and, desc, isNull } from "drizzle-orm";
+import { eq, and, desc, isNull, isNotNull } from "drizzle-orm";
 import { exec } from "child_process";
 import { promisify } from "util";
 import { writeFile, readFile, unlink } from "fs/promises";

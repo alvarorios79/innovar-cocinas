@@ -45,21 +45,140 @@ import { ConfirmedClosuresTab } from "@/components/ConfirmedClosuresTab";
 import { ClosedProjectsTab } from "@/components/ClosedProjectsTab";
 import { Upload, CheckCircle2, Archive } from "lucide-react";
 
-// Categorías operativas
-const OPERATIVE_CATEGORIES = [
-  { value: "arriendo", label: "Arriendo" },
-  { value: "energia", label: "Energía" },
-  { value: "agua", label: "Agua" },
-  { value: "internet", label: "Internet" },
-  { value: "mantenimiento", label: "Mantenimiento" },
-  { value: "herramientas", label: "Herramientas" },
-  { value: "jardineria", label: "Jardinería" },
-  { value: "reparaciones", label: "Reparaciones" },
-  { value: "transporte", label: "Transporte" },
-  { value: "papeleria", label: "Papelería" },
-  { value: "aseo", label: "Aseo" },
-  { value: "otro", label: "Otro" },
-] as const;
+// Jerarquía de categorías operativas
+const OPERATIVE_HIERARCHY: Record<string, { label: string; subcategories: { value: string; label: string }[] }> = {
+  bodega_admin: {
+    label: "Bodega y Administración",
+    subcategories: [
+      { value: "arriendo", label: "Arriendo bodega" },
+      { value: "energia", label: "Energía" },
+      { value: "agua", label: "Agua" },
+      { value: "internet", label: "Internet" },
+      { value: "aseo", label: "Aseo e insumos" },
+      { value: "papeleria", label: "Papelería" },
+      { value: "reparaciones", label: "Reparaciones y mantenimiento" },
+      { value: "jardineria", label: "Jardinería / jardín" },
+    ],
+  },
+  vehiculos: {
+    label: "Vehículos",
+    subcategories: [
+      { value: "gasolina_moto", label: "Gasolina Moto Innovar / Remolque" },
+      { value: "gasolina_luchito", label: "Gasolina Luchito" },
+      { value: "gasolina_alvaro", label: "Gasolina Álvaro" },
+      { value: "taller_repuestos", label: "Taller y repuestos moto" },
+    ],
+  },
+  nominas: {
+    label: "Nóminas y Personal",
+    subcategories: [
+      { value: "nomina_operario", label: "Daniel Beltrán — Operario" },
+      { value: "nomina_disenador", label: "Alejandro Gutiérrez — Diseñador" },
+      { value: "nomina_contador", label: "Felipe Idárraga — Contador" },
+      { value: "nomina_jardinero", label: "Jardinero (pago suelto)" },
+      { value: "seguridad_social", label: "Seguridad social" },
+      { value: "industria_comercio", label: "Industria y comercio" },
+    ],
+  },
+  herramientas: {
+    label: "Herramientas",
+    subcategories: [
+      { value: "compra_herramientas", label: "Compra de herramientas" },
+      { value: "mantenimiento_herramientas", label: "Mantenimiento de herramientas" },
+    ],
+  },
+  dotacion_seguridad: {
+    label: "Dotación y Seguridad",
+    subcategories: [
+      { value: "dotacion", label: "Dotación" },
+      { value: "seguridad", label: "Seguridad" },
+    ],
+  },
+  viaticos_alimentacion: {
+    label: "Viáticos y Alimentación",
+    subcategories: [
+      { value: "viaticos", label: "Viáticos" },
+      { value: "alimentacion", label: "Alimentación" },
+    ],
+  },
+};
+
+// Jerarquía de categorías para proyectos (materiales_proyecto)
+const PROJECT_HIERARCHY: Record<string, { label: string; subcategories: { value: string; label: string }[] }> = {
+  madera_tableros: {
+    label: "Madera y Tableros",
+    subcategories: [
+      { value: "mademax", label: "Mademax" },
+      { value: "moduofi", label: "Moduofi" },
+      { value: "metales_maderas", label: "Metales y Maderas" },
+      { value: "aglocol", label: "Aglocol" },
+      { value: "otro_madera", label: "Otro proveedor madera" },
+    ],
+  },
+  herrajes: {
+    label: "Herrajes",
+    subcategories: [
+      { value: "el_ebanista", label: "El Ebanista" },
+      { value: "otro_herraje", label: "Otro proveedor herrajes" },
+    ],
+  },
+  mano_de_obra: {
+    label: "Mano de obra",
+    subcategories: [
+      { value: "instalacion", label: "Instalación" },
+      { value: "marmol_superficies", label: "Mármol y superficies" },
+      { value: "electricidad", label: "Electricidad" },
+      { value: "otro_mano_obra", label: "Otro subcontratista" },
+    ],
+  },
+  pintura_acabados: {
+    label: "Pintura y acabados",
+    subcategories: [
+      { value: "pintura", label: "Pintura" },
+      { value: "lacado", label: "Lacado / laminado" },
+    ],
+  },
+  transporte: {
+    label: "Transporte e instalación",
+    subcategories: [
+      { value: "transporte_materiales", label: "Transporte de materiales" },
+      { value: "flete", label: "Flete instalación" },
+    ],
+  },
+  otros_proyecto: {
+    label: "Otros materiales",
+    subcategories: [
+      { value: "tornilleria", label: "Tornillería y fijaciones" },
+      { value: "silicona_pegante", label: "Silicona y pegantes" },
+      { value: "otro_proyecto", label: "Otro" },
+    ],
+  },
+};
+
+// Helper: buscar label de una categoría/subcategoría
+function getCategoryLabel(operativeCategory: string, subcategory?: string | null): string {
+  // Primero buscar en jerarquía operativa
+  for (const [catKey, cat] of Object.entries(OPERATIVE_HIERARCHY)) {
+    if (catKey === operativeCategory) return cat.label;
+    const sub = cat.subcategories.find(s => s.value === operativeCategory || s.value === subcategory);
+    if (sub && catKey === operativeCategory) return `${cat.label} / ${sub.label}`;
+  }
+  // Buscar subcategoría directamente
+  if (subcategory) {
+    for (const cat of Object.values(OPERATIVE_HIERARCHY)) {
+      const sub = cat.subcategories.find(s => s.value === subcategory);
+      if (sub) return `${cat.label} / ${sub.label}`;
+    }
+  }
+  // Legacy fallback
+  const legacyLabels: Record<string, string> = {
+    arriendo: "Arriendo", energia: "Energía", agua: "Agua", internet: "Internet",
+    mantenimiento: "Mantenimiento", herramientas: "Herramientas", jardineria: "Jardinería",
+    reparaciones: "Reparaciones", transporte: "Transporte", papeleria: "Papelería",
+    aseo: "Aseo", otro: "Otro",
+  };
+  return legacyLabels[operativeCategory] || operativeCategory;
+}
 
 const GENERAL_CATEGORIES = [
   { value: "materiales", label: "Materiales" },
@@ -78,7 +197,10 @@ export default function Accounting() {
   const utils = trpc.useUtils();
   const [expenseType, setExpenseType] = useState<ExpenseType>("materiales_proyecto");
   const [projectId, setProjectId] = useState<string>("");
+  const [operativeCategoryGroup, setOperativeCategoryGroup] = useState<string>("");
   const [operativeCategory, setOperativeCategory] = useState<string>("");
+  const [projectCategoryGroup, setProjectCategoryGroup] = useState<string>("");
+  const [expenseSubcategory, setExpenseSubcategory] = useState<string>("");
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
   const [expenseDate, setExpenseDate] = useState(new Date().toISOString().split("T")[0]);
@@ -148,7 +270,10 @@ export default function Accounting() {
   const resetForm = () => {
     // NO resetear expenseType - el usuario lo selecciona una sola vez
     setProjectId("");
+    setOperativeCategoryGroup("");
     setOperativeCategory("");
+    setProjectCategoryGroup("");
+    setExpenseSubcategory("");
     setDescription("");
     setAmount("");
     setExpenseDate(new Date().toISOString().split("T")[0]);
@@ -253,7 +378,7 @@ export default function Accounting() {
         expense.expenseType === 'materiales_proyecto' ? 'Proyecto' : 'Operativo',
         expense.description,
         expense.amount.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-        expense.operativeCategory || expense.generalCategory || '-',
+        getCategoryLabel(expense.operativeCategory || '', expense.subcategory),
         expense.projectId ? `COT-${expense.projectId}` : '-'
       ]);
 
@@ -327,8 +452,12 @@ export default function Accounting() {
       return;
     }
 
-    if (expenseType === "gasto_operativo" && !operativeCategory) {
+    if (expenseType === "gasto_operativo" && !operativeCategoryGroup) {
       toast.error("Selecciona una categoría operativa");
+      return;
+    }
+    if (expenseType === "gasto_operativo" && !operativeCategory) {
+      toast.error("Selecciona una subcategoría operativa");
       return;
     }
 
@@ -342,19 +471,23 @@ export default function Accounting() {
           amount: parseFloat(amount),
           expenseDate,
           expenseType,
-          operativeCategory: expenseType === "gasto_operativo" ? (operativeCategory as any) : undefined,
-          generalCategory: expenseType === "materiales_proyecto" ? "materiales" : "servicios",
+          operativeCategory: expenseType === "gasto_operativo" ? operativeCategory :
+                             expenseType === "materiales_proyecto" ? projectCategoryGroup : undefined,
+          subcategory: expenseSubcategory || undefined,
+          generalCategory: expenseType === "materiales_proyecto" ? (projectCategoryGroup || "materiales") : "servicios",
           receiptUrl: receiptUrl || undefined,
         });
       } else {
         await createExpense.mutateAsync({
           expenseType,
           projectId: expenseType === "materiales_proyecto" ? parseInt(projectId) : undefined,
-          operativeCategory: expenseType === "gasto_operativo" ? (operativeCategory as any) : undefined,
+          operativeCategory: expenseType === "gasto_operativo" ? operativeCategory : 
+                             expenseType === "materiales_proyecto" ? projectCategoryGroup : undefined,
+          subcategory: expenseSubcategory || undefined,
           description: description.trim(),
           amount: parseFloat(amount),
           expenseDate,
-          generalCategory: expenseType === "materiales_proyecto" ? "materiales" : "servicios",
+          generalCategory: expenseType === "materiales_proyecto" ? (projectCategoryGroup || "materiales") : "servicios",
           receiptUrl: receiptUrl || undefined,
         });
       }
@@ -367,7 +500,14 @@ export default function Accounting() {
     setEditingId(expense.id);
     setExpenseType(expense.expenseType);
     setProjectId(expense.projectId?.toString() || "");
-    setOperativeCategory(expense.operativeCategory || "");
+    // Reconstruct group from saved operativeCategory
+    const savedOpCat = expense.operativeCategory || "";
+    const foundGroup = Object.entries(OPERATIVE_HIERARCHY).find(([, cat]) =>
+      cat.subcategories.some(s => s.value === savedOpCat)
+    );
+    setOperativeCategoryGroup(foundGroup ? foundGroup[0] : "");
+    setOperativeCategory(savedOpCat);
+    setExpenseSubcategory(expense.subcategory || "");
     setDescription(expense.description);
     setAmount(expense.amount.toString());
     setExpenseDate(new Date(expense.expenseDate).toISOString().split("T")[0]);
@@ -518,36 +658,87 @@ export default function Accounting() {
               {/* SECCIÓN 2: Campos Dinámicos */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {expenseType === "materiales_proyecto" ? (
-                  <div>
-                    <Label htmlFor="project">Proyecto *</Label>
-                    <Select value={projectId} onValueChange={(v: any) => setProjectId(v)}>
-                      <SelectTrigger id="project" className="h-12">
-                        <SelectValue placeholder="Selecciona un proyecto" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {projects?.map((p: any) => (
-                          <SelectItem key={p.id} value={p.id.toString()}>
-                            {p.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                  <div className="space-y-3">
+                    <div>
+                      <Label htmlFor="project">Proyecto *</Label>
+                      <Select value={projectId} onValueChange={(v: any) => setProjectId(v)}>
+                        <SelectTrigger id="project" className="h-12">
+                          <SelectValue placeholder="Selecciona un proyecto" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {projects?.map((p: any) => (
+                            <SelectItem key={p.id} value={p.id.toString()}>
+                              {p.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="projCatGroup">Categoría del gasto *</Label>
+                      <Select value={projectCategoryGroup} onValueChange={(v) => {
+                        setProjectCategoryGroup(v);
+                        setExpenseSubcategory("");
+                      }}>
+                        <SelectTrigger id="projCatGroup" className="h-12">
+                          <SelectValue placeholder="Tipo de gasto" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.entries(PROJECT_HIERARCHY).map(([key, cat]) => (
+                            <SelectItem key={key} value={key}>{cat.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    {projectCategoryGroup && (
+                      <div>
+                        <Label htmlFor="projCatSub">Proveedor / detalle</Label>
+                        <Select value={expenseSubcategory} onValueChange={setExpenseSubcategory}>
+                          <SelectTrigger id="projCatSub" className="h-12">
+                            <SelectValue placeholder="Selecciona proveedor o detalle" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {PROJECT_HIERARCHY[projectCategoryGroup]?.subcategories.map((s) => (
+                              <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
                   </div>
                 ) : (
-                  <div>
-                    <Label htmlFor="category">Categoría Operativa *</Label>
-                    <Select value={operativeCategory} onValueChange={(v: any) => setOperativeCategory(v)}>
-                      <SelectTrigger id="category" className="h-12">
-                        <SelectValue placeholder="Selecciona una categoría" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {OPERATIVE_CATEGORIES.map((c: any) => (
-                          <SelectItem key={c.value} value={c.value}>
-                            {c.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                  <div className="space-y-3">
+                    <div>
+                      <Label htmlFor="catGroup">Categoría *</Label>
+                      <Select value={operativeCategoryGroup} onValueChange={(v) => {
+                        setOperativeCategoryGroup(v);
+                        setOperativeCategory(""); // reset subcategoría al cambiar grupo
+                      }}>
+                        <SelectTrigger id="catGroup" className="h-12">
+                          <SelectValue placeholder="Selecciona una categoría" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.entries(OPERATIVE_HIERARCHY).map(([key, cat]) => (
+                            <SelectItem key={key} value={key}>{cat.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    {operativeCategoryGroup && (
+                      <div>
+                        <Label htmlFor="catSub">Subcategoría *</Label>
+                        <Select value={operativeCategory} onValueChange={setOperativeCategory}>
+                          <SelectTrigger id="catSub" className="h-12">
+                            <SelectValue placeholder="Selecciona una subcategoría" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {OPERATIVE_HIERARCHY[operativeCategoryGroup]?.subcategories.map((s) => (
+                              <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -752,6 +943,7 @@ export default function Accounting() {
                     <th className="text-left py-3 px-4 font-semibold text-slate-400 text-xs uppercase tracking-wide">Descripción</th>
                     <th className="text-left py-3 px-4 font-semibold text-slate-400 text-xs uppercase tracking-wide">Cliente</th>
                     <th className="text-left py-3 px-4 font-semibold text-slate-400 text-xs uppercase tracking-wide">Tipo</th>
+                    <th className="text-left py-3 px-4 font-semibold text-slate-400 text-xs uppercase tracking-wide">Categoría</th>
                     <th className="text-right py-3 px-4 font-semibold text-slate-400 text-xs uppercase tracking-wide">Monto</th>
                     <th className="text-center py-3 px-4 font-semibold text-slate-400 text-xs uppercase tracking-wide">Comprobante</th>
                     {canEditDelete && <th className="text-center py-3 px-4 font-semibold text-slate-400 text-xs uppercase tracking-wide">Acciones</th>}
@@ -771,6 +963,13 @@ export default function Accounting() {
                         <Badge variant={expense.expenseType === "materiales_proyecto" ? "default" : "secondary"}>
                           {expense.expenseType === "materiales_proyecto" ? "Proyecto" : "Operativo"}
                         </Badge>
+                      </td>
+                      <td className="py-3 px-4 text-xs text-gray-300">
+                        {expense.operativeCategory
+                          ? getCategoryLabel(expense.operativeCategory, expense.subcategory)
+                          : expense.subcategory
+                          ? expense.subcategory
+                          : <span className="text-gray-500">—</span>}
                       </td>
                       <td className="py-3 px-4 text-right font-semibold">
                         ${expense.amount.toLocaleString()}

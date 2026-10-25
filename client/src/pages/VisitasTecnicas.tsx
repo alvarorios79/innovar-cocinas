@@ -601,22 +601,24 @@ export default function VisitasTecnicas() {
             </div>
           </div>
 
-          {/* Filtros */}
-          <div className="flex gap-2 mt-4 flex-wrap">
-            {(["todas", "enviada", "cot_hecha", "cot_enviada"] as const).map((s) => (
-              <button
-                key={s}
-                onClick={() => setStatusFilter(s)}
-                className={`text-sm px-3 py-1.5 rounded-full border transition-colors ${
-                  statusFilter === s
-                    ? "border-[#1DB5A8] bg-[#1DB5A8]/10 text-[#1DB5A8]"
-                    : "border-[#1DB5A8]/20 text-gray-400 hover:border-[#1DB5A8]/40"
-                }`}
-              >
-                {s === "todas" ? "Todas" : s === "enviada" ? "Listas para cotizar" : s === "cot_hecha" ? "Cot. Hecha" : "Cot. Enviada"}
-              </button>
-            ))}
-          </div>
+          {/* Filtros — diseñador solo ve "Todas" (sus levantamientos ya tienen proyecto) */}
+          {user?.role !== "disenador" && (
+            <div className="flex gap-2 mt-4 flex-wrap">
+              {(["todas", "enviada", "cot_hecha", "cot_enviada"] as const).map((s) => (
+                <button
+                  key={s}
+                  onClick={() => setStatusFilter(s)}
+                  className={`text-sm px-3 py-1.5 rounded-full border transition-colors ${
+                    statusFilter === s
+                      ? "border-[#1DB5A8] bg-[#1DB5A8]/10 text-[#1DB5A8]"
+                      : "border-[#1DB5A8]/20 text-gray-400 hover:border-[#1DB5A8]/40"
+                  }`}
+                >
+                  {s === "todas" ? "Todas" : s === "enviada" ? "Listas para cotizar" : s === "cot_hecha" ? "Cot. Hecha" : "Cot. Enviada"}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 

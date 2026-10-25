@@ -93,13 +93,12 @@ export const technicalVisitsRouter = router({
           ))
           .orderBy(desc(technicalVisits.createdAt));
       } else if (role === "disenador") {
-        // Diseñador ve levantamientos que tienen cotización asociada (quotationId != null)
-        // Esto cubre desde que se crea la cotización → cotización aprobada → proyecto creado
+        // Diseñador solo ve levantamientos con proyecto creado (adelanto pagado)
         rows = await db
           .select()
           .from(technicalVisits)
           .where(and(
-            isNotNull(technicalVisits.quotationId),
+            isNotNull(technicalVisits.projectId),
             isNull(technicalVisits.deletedAt)
           ))
           .orderBy(desc(technicalVisits.createdAt));

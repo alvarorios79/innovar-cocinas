@@ -8,6 +8,7 @@ import {
   technicalVisitPdfs,
   appointments,
   clients,
+  projects as projectsTable,
 } from "../../drizzle/schema";
 import { eq, and, desc, isNull, isNotNull, or, inArray } from "drizzle-orm";
 import { exec } from "child_process";

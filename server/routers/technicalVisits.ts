@@ -9,7 +9,7 @@ import {
   appointments,
   clients,
 } from "../../drizzle/schema";
-import { eq, and, desc, isNull, isNotNull } from "drizzle-orm";
+import { eq, and, desc, isNull, isNotNull, or, inArray } from "drizzle-orm";
 import { exec } from "child_process";
 import { promisify } from "util";
 import { writeFile, readFile, unlink } from "fs/promises";
@@ -93,13 +93,29 @@ export const technicalVisitsRouter = router({
           ))
           .orderBy(desc(technicalVisits.createdAt));
       } else if (role === "disenador") {
-        // Diseñador solo ve levantamientos con proyecto creado (adelanto pagado)
+        // Diseñador ve levantamientos con proyecto creado (adelanto pagado)
+        // Dos condiciones OR para cubrir datos históricos sin projectId seteado:
+        // 1. projectId IS NOT NULL (futuro — autolinkeado al crear proyecto)
+        // 2. quotationId IN (quotationIds de proyectos existentes) — retrocompatibilidad
+        const projectsWithQuotation = await db
+          .select({ quotationId: projectsTable.quotationId })
+          .from(projectsTable)
+          .where(isNotNull(projectsTable.quotationId));
+        const linkedQuotationIds = projectsWithQuotation
+          .map((p: any) => p.quotationId)
+          .filter(Boolean) as number[];
+
         rows = await db
           .select()
           .from(technicalVisits)
           .where(and(
-            isNotNull(technicalVisits.projectId),
-            isNull(technicalVisits.deletedAt)
+            isNull(technicalVisits.deletedAt),
+            linkedQuotationIds.length > 0
+              ? or(
+                  isNotNull(technicalVisits.projectId),
+                  inArray(technicalVisits.quotationId, linkedQuotationIds)
+                )
+              : isNotNull(technicalVisits.projectId)
           ))
           .orderBy(desc(technicalVisits.createdAt));
       } else {
@@ -136,7 +152,7 @@ export const technicalVisitsRouter = router({
       if (role === "medidor" && visit.createdBy !== userId) {
         throw new TRPCError({ code: "FORBIDDEN", message: "Sin acceso a este levantamiento" });
       }
-      if (role === "disenador" && !visit.projectId) {
+      if (role === "disenador" && !visit.projectId && !visit.quotationId) {
         throw new TRPCError({ code: "FORBIDDEN", message: "Sin acceso: levantamiento no vinculado a proyecto" });
       }
       if (!PROJECT_ROLES.includes(role) && role !== "medidor") {

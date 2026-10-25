@@ -157,19 +157,21 @@ const PROJECT_HIERARCHY: Record<string, { label: string; subcategories: { value:
 
 // Helper: buscar label de una categoría/subcategoría
 function getCategoryLabel(operativeCategory: string, subcategory?: string | null): string {
-  // Primero buscar en jerarquía operativa
-  for (const [catKey, cat] of Object.entries(OPERATIVE_HIERARCHY)) {
-    if (catKey === operativeCategory) return cat.label;
-    const sub = cat.subcategories.find(s => s.value === operativeCategory || s.value === subcategory);
-    if (sub && catKey === operativeCategory) return `${cat.label} / ${sub.label}`;
+  // Buscar operativeCategory como valor de subcategoría dentro de la jerarquía
+  for (const [, cat] of Object.entries(OPERATIVE_HIERARCHY)) {
+    const sub = cat.subcategories.find(s => s.value === operativeCategory);
+    if (sub) return `${cat.label} / ${sub.label}`;
   }
-  // Buscar subcategoría directamente
-  if (subcategory) {
-    for (const cat of Object.values(OPERATIVE_HIERARCHY)) {
-      const sub = cat.subcategories.find(s => s.value === subcategory);
-      if (sub) return `${cat.label} / ${sub.label}`;
-    }
+  // Buscar operativeCategory como clave de categoría padre
+  const parentCat = OPERATIVE_HIERARCHY[operativeCategory];
+  if (parentCat) return parentCat.label;
+  // Buscar en PROJECT_HIERARCHY también
+  for (const [, cat] of Object.entries(PROJECT_HIERARCHY)) {
+    const sub = cat.subcategories.find(s => s.value === (subcategory || operativeCategory));
+    if (sub) return `${cat.label} / ${sub.label}`;
   }
+  const projCat = PROJECT_HIERARCHY[operativeCategory];
+  if (projCat) return projCat.label;
   // Legacy fallback
   const legacyLabels: Record<string, string> = {
     arriendo: "Arriendo", energia: "Energía", agua: "Agua", internet: "Internet",

@@ -2375,7 +2375,13 @@ export async function getRemindersByProjectId(projectId: number) {
 export async function getRemindersByUserId(userId: number) {
   const db = await getDb();
   if (!db) return [];
-  return await db.select().from(reminders).where(eq(reminders.assignedTo, userId)).orderBy(desc(reminders.createdAt));
+  const { ne } = await import("drizzle-orm");
+  return await db.select().from(reminders)
+    .where(and(
+      eq(reminders.assignedTo, userId),
+      ne(reminders.status as any, 'cancelado')
+    ))
+    .orderBy(desc(reminders.createdAt));
 }
 
 export async function updateReminderStatus(id: number, status: 'pendiente' | 'enviado' | 'completado' | 'cancelado') {

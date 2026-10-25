@@ -2375,7 +2375,6 @@ export async function getRemindersByProjectId(projectId: number) {
 export async function getRemindersByUserId(userId: number) {
   const db = await getDb();
   if (!db) return [];
-  const { ne } = await import("drizzle-orm");
   return await db.select().from(reminders)
     .where(and(
       eq(reminders.assignedTo, userId),

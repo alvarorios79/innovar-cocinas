@@ -73,6 +73,23 @@ export const projectsRouter = router({
           changedBy: ctx.user.id,
           notes: "Proyecto creado - Cotización enviada",
         });
+
+        // Vincular levantamiento técnico al proyecto (si existe via quotationId)
+        if (finalQuotationId) {
+          try {
+            const drizzleDb = await db.getDb();
+            if (drizzleDb) {
+              const { technicalVisits: tvTable } = await import("../../drizzle/schema");
+              const { eq: eqOp } = await import("drizzle-orm");
+              const nowTs = new Date().toISOString().replace('T', ' ').replace('Z', '');
+              await drizzleDb.update(tvTable)
+                .set({ projectId, updatedAt: nowTs })
+                .where(eqOp(tvTable.quotationId, finalQuotationId));
+            }
+          } catch (tvErr) {
+            console.error("[projects.create] Error vinculando levantamiento:", tvErr);
+          }
+        }
         
         // Notificar al diseñador asignado
         const clientForNotif = await db.getClientById(input.clientId);

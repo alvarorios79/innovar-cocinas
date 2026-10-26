@@ -1170,7 +1170,9 @@ async function buildPdf(region, auto) {
   const total = doc.getNumberOfPages();
   for (let p = 1; p <= total; p++) { doc.setPage(p); const w = doc.internal.pageSize.getWidth(), h = doc.internal.pageSize.getHeight(); doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(120, 130, 142); doc.text(`Página ${p} de ${total}`, w - M, h - 14, { align: 'right' }); doc.text(`Pizarra ${VERSION}`, M, h - 14); }
   const blob = doc.output('blob');
-  const name = `Levantamiento_${slug(job) || 'sin-nombre'}_${new Date().toISOString().slice(0, 10)}.pdf`;
+  const _nd = new Date();
+  const _ts = `${_nd.getFullYear()}-${String(_nd.getMonth()+1).padStart(2,'0')}-${String(_nd.getDate()).padStart(2,'0')}_${String(_nd.getHours()).padStart(2,'0')}-${String(_nd.getMinutes()).padStart(2,'0')}`;
+  const name = `Levantamiento_${slug(job) || 'sin-nombre'}_${_ts}.pdf`;
   const stretched = !region && !auto && zones.some(z => Math.max(z.W / z.H, z.H / z.W) > 4);
   return { blob, name, dpi: pick.dpi, q: pick.q, warn: (skipped ? `Se omitieron ${skipped} trazos sueltos que no eran parte del trabajo.` : '') + (stretched ? 'Aviso: hay algo muy alejado del resto y alarga la hoja. Usa «PDF: lo que veo en pantalla» o «elegir un área», o borra el trazo suelto.' : '') };
 }

@@ -60,8 +60,21 @@ body {
 }
 .sw i { width: 26px; height: 26px; border-radius: 50%; background: var(--c); box-shadow: 0 0 0 1px var(--line); }
 .sw[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
-.sz { width: 44px; padding: 0; display: grid; place-items: center; }
-.sz i { width: var(--d); height: var(--d); border-radius: 50%; background: currentColor; }
+.sz-btn { display: inline-flex; align-items: center; gap: 7px; min-width: 64px; }
+#szDot { display: inline-block; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+#szLbl { font-variant-numeric: tabular-nums; min-width: 2ch; }
+#szPanel {
+  position: fixed; z-index: 200; background: var(--panel);
+  border: 1px solid var(--line); border-radius: 14px;
+  padding: 14px 14px 10px; box-shadow: 0 8px 28px rgba(0,0,0,.18);
+  width: 224px; display: flex; flex-direction: column; gap: 10px;
+}
+#szPrev { display: block; width: 100%; height: 38px; border-radius: 8px; background: var(--paper); border: 1px solid var(--line); }
+.sz-presets { display: flex; gap: 6px; }
+.sz-presets .btn { flex: 1; padding: 0; font-variant-numeric: tabular-nums; font-size: 12px; }
+.sz-presets .btn[aria-pressed="true"] { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
+#szSlider { width: 100%; accent-color: var(--accent); cursor: pointer; }
+.sz-val { text-align: center; font-size: 12px; color: var(--muted); margin-top: -4px; }
 .scalebar { font-size: 13px; color: var(--muted); }
 .scalebar label { display: inline-flex; align-items: center; gap: 6px; }
 .scalebar input[type="number"], .scalebar select {
@@ -105,9 +118,22 @@ body {
     <button class="sw" data-color="#b54708" style="--c:#b54708" aria-label="Naranja" aria-pressed="false"><i></i></button>
   </div>
   <div class="grp" role="group" aria-label="Grosor">
-    <button class="btn sz" data-size="2" style="--d:4px" aria-label="Fino" aria-pressed="false"><i></i></button>
-    <button class="btn sz" data-size="4" style="--d:8px" aria-label="Medio" aria-pressed="true"><i></i></button>
-    <button class="btn sz" data-size="8" style="--d:14px" aria-label="Grueso" aria-pressed="false"><i></i></button>
+    <button class="btn sz-btn" id="szBtn" aria-haspopup="true" aria-expanded="false" aria-label="Grosor del trazo">
+      <span id="szDot"></span><span id="szLbl">3</span>
+    </button>
+  </div>
+  <!-- Panel de grosor (GoodNotes-style) -->
+  <div id="szPanel" hidden role="dialog" aria-label="Grosor del trazo">
+    <canvas id="szPrev" width="200" height="38" aria-hidden="true"></canvas>
+    <div class="sz-presets">
+      <button class="btn sm" data-preset="1">1</button>
+      <button class="btn sm" data-preset="2">2</button>
+      <button class="btn sm" data-preset="4">4</button>
+      <button class="btn sm" data-preset="8">8</button>
+      <button class="btn sm" data-preset="16">16</button>
+    </div>
+    <input type="range" id="szSlider" min="0.5" max="24" step="0.5" value="3" aria-label="Grosor">
+    <div class="sz-val"><span id="szValLbl">3 px</span></div>
   </div>
   <div class="grp" role="group" aria-label="Fotos">
     <button class="btn" id="shoot">Tomar foto</button>
@@ -193,7 +219,9 @@ const IDB_NAME = 'pizarra-medidor-' + _levantamientoId;
 // ───────────────────────────────────────────────────────────────────────────
 
 let view = { x: 24, y: 24, k: 1 }, items = [], hist = [], redoS = [];
-let tool = 'pen', color = '#111827', size = 4, cellVal = 0.5, unit = 'm', snap = true, fingerDraw = false;
+let tool = 'pen', color = '#111827', size = 3, cellVal = 0.5, unit = 'm', snap = true, fingerDraw = false;
+// Grosor recordado por herramienta (pen/line/measure/erase/text)
+let toolSizes = { pen: 3, line: 1.5, measure: 1.5, erase: 12, text: 3 };
 let cur = null, sel = null, drag = null, nav = null, eraseRing = null, txtState = null, scratchPrev = null;
 let penDown = false, lastPen = 0, dpr = 1, raf = 0, saveT = 0, confirmT = 0;
 let holdOn = true, holdT = 0, holdAnchor = null, holdShape = false;
@@ -223,7 +251,8 @@ function measureLabel(a, b) {
 const toWorld = (sx, sy) => [(sx - view.x) / view.k, (sy - view.y) / view.k];
 function evPos(e) { const r = cv.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; }
 function snapPt(p) { return snap ? [Math.round(p[0] / CELL) * CELL, Math.round(p[1] / CELL) * CELL] : p; }
-function textFont(fs) { return `600 ${fs}px ${T.ui}`; }
+function textFont(fs) { return \`600 \${fs}px \${T.ui}\`; }
+function textSize() { return Math.max(12, Math.round(12 + size * 2.5)); }
 
 /* ---------- geometría de elementos ---------- */
 function bounds(it) {
@@ -395,7 +424,7 @@ function save() {
   clearTimeout(saveT);
   saveT = setTimeout(() => {
     const slim = items.map(i => (i.t === 'p' && persisted.has(i.id)) ? { ...i, src: null } : i);
-    try { localStorage.setItem(KEY, JSON.stringify({ items: slim, view, cellVal, unit, snap, fingerDraw, holdOn, color, size, job, who })); }
+    try { localStorage.setItem(KEY, JSON.stringify({ items: slim, view, cellVal, unit, snap, fingerDraw, holdOn, color, size, toolSizes, job, who })); }
     catch (e) { hint.textContent = 'No se pudo guardar en este navegador. Exporta el PDF para no perder el trabajo.'; }
   }, 700);
 }
@@ -407,7 +436,8 @@ function load() {
       snap = d.snap !== false; fingerDraw = !!d.fingerDraw; holdOn = d.holdOn !== false;
       // Los params de URL tienen prioridad sobre lo guardado en localStorage
       job = _jobParam || d.job || ''; who = _whoParam || d.who || '';
-      color = d.color || color; size = d.size || size; return true;
+      color = d.color || color; size = d.size || size;
+      if (d.toolSizes) Object.assign(toolSizes, d.toolSizes); return true;
     }
   } catch (e) { /* sin almacenamiento */ }
   return false;
@@ -424,7 +454,7 @@ function openInput(mode, sx, sy, preset, extra) {
   txtState = { mode, ...extra };
   txt.className = mode === 'measure' ? 'm' : '';
   txt.value = preset || '';
-  if (mode === 'text') { const fs = TEXT_SIZES[size] * view.k; txt.style.fontSize = fs + 'px'; txt.style.left = sx + 'px'; txt.style.top = sy + 'px'; }
+  if (mode === 'text') { const fs = textSize() * view.k; txt.style.fontSize = fs + 'px'; txt.style.left = sx + 'px'; txt.style.top = sy + 'px'; }
   else { txt.style.fontSize = '15px'; txt.style.left = sx + 'px'; txt.style.top = sy + 'px'; }
   txt.hidden = false; txt.focus(); txt.select();
 }
@@ -434,7 +464,7 @@ function commitText(cancel) {
   const v = txt.value.trim(); txt.hidden = true;
   if (st.mode === 'text') {
     if (cancel || !v) { schedule(); return; }
-    const fs = TEXT_SIZES[size]; pushHist();
+    const fs = textSize(); pushHist();
     items = [...items, { t: 't', x: st.w[0], y: st.w[1] + fs * 0.95, s: v, c: color, fs }];
   } else {
     const typed = cancel ? '' : (/^[\d.,]+$/.test(v) ? v + ' ' + unit : v);
@@ -572,7 +602,7 @@ function scratchErase(pts) {
 /* ---------- puntero ---------- */
 const widthFor = e => (e.pointerType === 'pen' && e.pressure > 0) ? Math.round(size * (0.45 + 1.1 * e.pressure) * 10) / 10 : size;
 const r2 = n => Math.round(n * 100) / 100;
-const eraseRadius = () => size === 2 ? 10 : size === 4 ? 18 : 30;
+const eraseRadius = () => Math.max(4, Math.round(size * 2.5));
 
 cv.addEventListener('pointerdown', e => {
   e.preventDefault();
@@ -730,14 +760,25 @@ delBtn.addEventListener('click', () => { if (!sel) return; pushHist(); items = i
 /* ---------- controles ---------- */
 function setTool(t) {
   commitText(true); tool = t; if (t !== 'move') sel = null;
+  // Restaurar grosor de esta herramienta
+  if (toolSizes[t] !== undefined) { size = toolSizes[t]; }
   $$('[data-tool]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.tool === t)));
+  $$('[data-preset]').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.preset === size)));
+  const sl = $('#szSlider'); if (sl) sl.value = size;
+  updateSzBtn(); drawSzPreview();
   hint.textContent = HINTS[t]; cv.style.cursor = CURS[t]; syncBtns(); schedule();
 }
 $$('[data-tool]').forEach(b => b.addEventListener('click', () => setTool(b.dataset.tool)));
 function setColor(c) { color = c; $$('[data-color]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.color === c))); save(); }
 $$('[data-color]').forEach(b => b.addEventListener('click', () => setColor(b.dataset.color)));
-function setSize(s) { size = s; $$('[data-size]').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.size === s))); save(); }
-$$('[data-size]').forEach(b => b.addEventListener('click', () => setSize(+b.dataset.size)));
+function setSize(s) {
+  size = s; toolSizes[tool] = s;
+  $$('[data-preset]').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.preset === s)));
+  const sl = $('#szSlider'); if (sl) sl.value = s;
+  updateSzBtn(); drawSzPreview(); save();
+}
+$$('[data-preset]').forEach(b => b.addEventListener('click', () => { setSize(+b.dataset.preset); }));
+$('#szSlider').addEventListener('input', e => setSize(+e.target.value));
 $('#undo').addEventListener('click', undo); $('#redo').addEventListener('click', redo);
 $('#clear').addEventListener('click', e => {
   const b = e.currentTarget;
@@ -946,7 +987,43 @@ new ResizeObserver(resize).observe(board);
 if (!load()) seedExample(); else restorePhotos();
 $('#cell').value = cellVal; $('#unit').value = unit; $('#snap').checked = snap; $('#finger').checked = fingerDraw; $('#holdOn').checked = holdOn; $('#job').value = job; $('#who').value = who;
 initDownloads(3);
-setColor(color); setSize(size); setTool('pen'); syncBtns(); resize();
+setColor(color); setTool('pen'); setSize(size); syncBtns(); resize();
+// Panel de grosor: abrir/cerrar
+const szBtn = $('#szBtn'), szPanel = $('#szPanel');
+function updateSzBtn() {
+  const d = Math.max(3, Math.min(22, size)); // diámetro visual del dot
+  $('#szDot').style.cssText = \`width:\${d}px;height:\${d}px\`;
+  $('#szLbl').textContent = size % 1 === 0 ? size : size.toFixed(1);
+  const sl = $('#szSlider'); if (sl) { sl.value = size; $('#szValLbl').textContent = (size % 1===0?size:size.toFixed(1)) + ' px'; }
+}
+function drawSzPreview() {
+  const cv2 = $('#szPrev'); if (!cv2) return;
+  const ctx2 = cv2.getContext('2d'), W = cv2.width, H = cv2.height;
+  ctx2.clearRect(0, 0, W, H);
+  ctx2.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--paper').trim() || '#fff';
+  ctx2.fillRect(0, 0, W, H);
+  ctx2.strokeStyle = color; ctx2.lineCap = 'round'; ctx2.lineJoin = 'round';
+  const lw = tool === 'erase' ? eraseRadius() / 2.5 : size;
+  ctx2.lineWidth = Math.max(0.5, lw);
+  ctx2.beginPath(); ctx2.moveTo(14, H/2); ctx2.bezierCurveTo(W*0.3,H*0.2, W*0.7,H*0.8, W-14, H/2); ctx2.stroke();
+}
+function positionPanel() {
+  const br = szBtn.getBoundingClientRect();
+  szPanel.style.top  = (br.bottom + 6) + 'px';
+  szPanel.style.left = Math.min(br.left, window.innerWidth - 240) + 'px';
+}
+szBtn.addEventListener('click', () => {
+  const open = !szPanel.hidden;
+  szPanel.hidden = open;
+  szBtn.setAttribute('aria-expanded', String(!open));
+  if (!open) { positionPanel(); drawSzPreview(); }
+});
+document.addEventListener('pointerdown', e => {
+  if (!szPanel.hidden && !szPanel.contains(e.target) && e.target !== szBtn) {
+    szPanel.hidden = true; szBtn.setAttribute('aria-expanded', 'false');
+  }
+}, true);
+updateSzBtn(); drawSzPreview();
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(schedule);
 
 // Avisar al padre que la pizarra está lista

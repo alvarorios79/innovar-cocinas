@@ -740,11 +740,13 @@ export default function Medidor() {
       // Invalidar la query para que se refresque en background (funciona aunque la query esté disabled)
       utils.technicalVisits.getById.invalidate({ visitId: Number(visitId) });
     } catch (err: any) {
-      const reason = err?.message ?? "Error desconocido";
+      const reason = err?.data?.message ?? err?.message ?? "Error desconocido";
+      const httpCode = err?.data?.httpStatus;
       const msg =
         reason === "empty"       ? "La pizarra está vacía — dibuja o mide algo primero" :
         reason === "empty-area"  ? "No hay nada en el área seleccionada" :
-                                   `Error al exportar pizarra: ${reason}`;
+                                   `Error al exportar pizarra: ${reason}${httpCode ? ` (HTTP ${httpCode})` : ""}`;
+      console.error("[handleExportPizarra] Error completo:", err);
       toast.error(msg);
     } finally {
       setPizarraUploading(false);

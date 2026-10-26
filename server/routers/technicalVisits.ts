@@ -549,34 +549,63 @@ export const technicalVisitsRouter = router({
       const base64Data = input.fileData.replace(/^data:[^;]+;base64,/, "");
       const originalBuffer = Buffer.from(base64Data, "base64");
       const originalSize = originalBuffer.length;
+      console.log(`[compressPdf] visitId=${input.visitId} fileName=${input.fileName} size=${(originalSize / 1024 / 1024).toFixed(2)}MB`);
 
-      // Comprimir con ghostscript
-      const { buffer: compressedBuffer, savedPercent } = await compressPdfBuffer(originalBuffer);
+      // Comprimir con ghostscript — fallback al original si falla
+      let compressedBuffer: Buffer = originalBuffer;
+      let savedPercent = 0;
+      try {
+        const result = await compressPdfBuffer(originalBuffer);
+        compressedBuffer = result.buffer as Buffer;
+        savedPercent = result.savedPercent;
+        console.log(`[compressPdf] Ghostscript OK: ${savedPercent}% reducción → ${(compressedBuffer.length / 1024 / 1024).toFixed(2)}MB`);
+      } catch (gsErr) {
+        console.warn(`[compressPdf] Ghostscript falló, usando original:`, gsErr);
+      }
 
       const timestamp = Date.now();
       const randomSuffix = Math.random().toString(36).substring(2, 8);
       const fileKey = `technical_visits/${input.visitId}/pdfs/${timestamp}-${randomSuffix}.pdf`;
 
-      const { url } = await storagePut(fileKey, compressedBuffer, "application/pdf");
+      console.log(`[compressPdf] Subiendo a almacenamiento: ${fileKey}`);
+      let url: string;
+      try {
+        const result = await storagePut(fileKey, compressedBuffer, "application/pdf");
+        url = result.url;
+        console.log(`[compressPdf] Almacenamiento OK: ${url}`);
+      } catch (s3Err: any) {
+        console.error(`[compressPdf] Error almacenamiento:`, s3Err);
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: `Error al subir PDF: ${s3Err?.message ?? s3Err}` });
+      }
 
       const now = new Date().toISOString().replace('T', ' ').replace('Z', '');
-      const [pdf] = await db
-        .insert(technicalVisitPdfs)
-        .values({
-          visitId: input.visitId,
-          url,
-          s3Key: fileKey,
-          originalFileName: input.fileName,
-          originalSizeBytes: originalSize,
-          compressedSizeBytes: compressedBuffer.length,
-          savedPercent,
-          uploadedBy: ctx.user.id,
-          createdAt: now,
-        })
-        .returning();
+      console.log(`[compressPdf] Guardando en base de datos...`);
+      let pdf: any;
+      try {
+        const [inserted] = await db
+          .insert(technicalVisitPdfs)
+          .values({
+            visitId: input.visitId,
+            url,
+            s3Key: fileKey,
+            originalFileName: input.fileName,
+            originalSizeBytes: originalSize,
+            compressedSizeBytes: compressedBuffer.length,
+            savedPercent,
+            uploadedBy: ctx.user.id,
+            createdAt: now,
+          })
+          .returning();
+        pdf = inserted;
+        console.log(`[compressPdf] DB OK: id=${pdf.id}`);
+      } catch (dbErr: any) {
+        console.error(`[compressPdf] Error DB:`, dbErr);
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: `PDF subido pero error al guardar en base de datos: ${dbErr?.message ?? dbErr}` });
+      }
 
       await db.update(technicalVisits).set({ updatedAt: now }).where(eq(technicalVisits.id, input.visitId));
 
+      console.log(`[compressPdf] ✓ Completado visitId=${input.visitId} pdfId=${pdf.id}`);
       return { id: String(pdf.id), url, savedPercent };
     }),
 

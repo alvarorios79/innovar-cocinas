@@ -71,6 +71,7 @@ body {
   border: 1px solid var(--line); border-radius: 14px;
   padding: 6px; box-shadow: 0 6px 24px rgba(0,0,0,.25);
   min-width: 200px; flex-direction: column; gap: 2px; display: none;
+  pointer-events: auto; -webkit-overflow-scrolling: touch;
 }
 .pm-btn {
   display: block; width: 100%; text-align: left; padding: 11px 16px;
@@ -183,16 +184,16 @@ body {
 <input type="file" id="fileCam" accept="image/*" capture="environment" hidden>
 <input type="file" id="fileGal" accept="image/*" multiple hidden>
 <div id="photoMenu" hidden role="menu" aria-label="Opciones de foto">
-  <button class="pm-btn" id="pm-dup">Duplicar (con anotaciones)</button>
-  <button class="pm-btn" id="pm-dupclean">Duplicar sin anotaciones</button>
-  <button class="pm-btn" id="pm-front">Traer al frente</button>
-  <button class="pm-btn" id="pm-back">Enviar atrás</button>
+  <button type="button" class="pm-btn" id="pm-dup">Duplicar (con anotaciones)</button>
+  <button type="button" class="pm-btn" id="pm-dupclean">Duplicar sin anotaciones</button>
+  <button type="button" class="pm-btn" id="pm-front">Traer al frente</button>
+  <button type="button" class="pm-btn" id="pm-back">Enviar atrás</button>
   <div id="pm-sep"></div>
-  <button class="pm-btn pm-danger" id="pm-del">Eliminar foto…</button>
+  <button type="button" class="pm-btn pm-danger" id="pm-del">Eliminar foto…</button>
   <div id="pm-confirm" hidden>
     <p class="pm-warn">¿Eliminar esta foto?<br><small>Las anotaciones encima permanecen.</small></p>
-    <button class="pm-btn pm-danger" id="pm-delok">Sí, eliminar</button>
-    <button class="pm-btn" id="pm-delno">Cancelar</button>
+    <button type="button" class="pm-btn pm-danger" id="pm-delok">Sí, eliminar</button>
+    <button type="button" class="pm-btn" id="pm-delno">Cancelar</button>
   </div>
 </div>
 
@@ -630,6 +631,7 @@ const r2 = n => Math.round(n * 100) / 100;
 const eraseRadius = () => Math.max(4, Math.round(size * 2.5));
 
 cv.addEventListener('pointerdown', e => {
+  const _pm = $('#photoMenu'); if (_pm && _pm.style.display === 'flex') return;
   e.preventDefault();
   if (txtState) commitText(false);
   const [sx, sy] = evPos(e);

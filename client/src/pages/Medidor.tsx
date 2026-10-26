@@ -1,6 +1,7 @@
 // client/src/pages/Medidor.tsx
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useSearch } from "wouter";
+import { Pizarra, type PizarraRef } from "@/components/Pizarra";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -35,6 +36,7 @@ import {
   Signature,
   Navigation,
   Calendar,
+  PenLine,
 } from "lucide-react";
 
 // ── Tipos ────────────────────────────────────────────────────────────────────
@@ -388,6 +390,8 @@ export default function Medidor() {
   const [showSignature, setShowSignature] = useState(false);
   const photoInputRef = useRef<HTMLInputElement>(null);
   const pdfInputRef = useRef<HTMLInputElement>(null);
+  const pizarraRef = useRef<PizarraRef>(null);
+  const [pizarraUploading, setPizarraUploading] = useState(false);
 
   // Auto-abrir formulario nuevo si viene desde cita (URL o clic en cita asignada)
   useEffect(() => {
@@ -672,6 +676,29 @@ export default function Medidor() {
     };
     reader.onerror = () => toast.error("Error al leer el archivo PDF");
     reader.readAsDataURL(file);
+  };
+
+  const handleExportPizarra = async () => {
+    const visitId = visitDetail?.id ?? selectedVisit?.id;
+    if (!visitId) { toast.error("No hay visita seleccionada"); return; }
+    setPizarraUploading(true);
+    try {
+      const pdf = await pizarraRef.current?.requestPdf();
+      if (!pdf) { toast.info("La pizarra está vacía — dibuja algo primero"); return; }
+      await compressPdf.mutateAsync({
+        visitId,
+        fileName: pdf.name,
+        fileData: pdf.dataUrl,
+        category: "pdf_plano",
+      });
+      toast.success(`Pizarra exportada (${pdf.mb} MB)`);
+      refetchDetail();
+      refetchVisits();
+    } catch (err: any) {
+      toast.error(`Error al exportar pizarra: ${err?.message || "Error desconocido"}`);
+    } finally {
+      setPizarraUploading(false);
+    }
   };
 
   const handleSaveSignature = async (signature: string) => {
@@ -1661,6 +1688,35 @@ export default function Medidor() {
               </>
             )}
           </div>
+
+          {/* Pizarra del medidor */}
+          {isEditable && (
+            <div className="bg-[#162828] border border-[#1DB5A8]/20 rounded-lg overflow-hidden">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-[#1DB5A8]/20">
+                <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+                  <PenLine className="h-5 w-5 text-[#1DB5A8]" />
+                  Pizarra del medidor
+                </h2>
+                <button
+                  type="button"
+                  onClick={handleExportPizarra}
+                  disabled={pizarraUploading}
+                  className="text-sm font-medium px-3 py-1.5 rounded-lg bg-[#1DB5A8] hover:bg-[#17a396] disabled:opacity-50 text-white flex items-center gap-1.5"
+                >
+                  <FileText className="h-4 w-4" />
+                  {pizarraUploading ? "Exportando..." : "Guardar como PDF"}
+                </button>
+              </div>
+              <Pizarra
+                ref={pizarraRef}
+                levantamientoId={String(visitDetail?.id ?? selectedVisit?.id ?? "new")}
+                job={visitDetail?.clientName ?? selectedVisit?.clientName ?? ""}
+                who={user?.name ?? ""}
+                date={new Date().toISOString()}
+                height="580px"
+              />
+            </div>
+          )}
 
           {/* Firma digital */}
           {isEditable && (

@@ -107,6 +107,8 @@ body {
   font-family: var(--font-ui); font-weight: 600; outline: none; -webkit-user-select: text; user-select: text;
 }
 #txt.m { font-family: var(--font-num); text-align: center; transform: translate(-50%, -50%); width: 120px; }
+#pickBar { position: absolute; z-index: 4; top: 8px; left: 50%; transform: translateX(-50%); display: flex; flex-wrap: wrap; align-items: center; gap: 8px; justify-content: center; max-width: calc(100% - 16px); padding: 8px 10px; border-radius: 12px; background: var(--panel); border: 1px solid var(--accent); box-shadow: 0 4px 16px rgba(0,0,0,.2); font-size: 13px; color: var(--fg); }
+#pickBar[hidden] { display: none; }
 #hint { font-size: 13px; color: var(--muted); min-height: 1.35em; }
 @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
 </style>
@@ -143,6 +145,11 @@ body {
     <button class="btn danger" id="delSel" hidden>Quitar selección</button>
   </div>
   <div class="grp end" role="group" aria-label="Edición">
+    <select id="pdfArea" class="btn" aria-label="Qué parte de la hoja va al PDF" title="Qué parte de la hoja va al PDF" style="padding:0 8px">
+      <option value="view">PDF: lo que veo en pantalla</option>
+      <option value="pick">PDF: elegir un área</option>
+      <option value="all">PDF: todo, por zonas</option>
+    </select>
     <button class="btn primary" id="exportPdf">Exportar PDF</button>
     <button class="btn" id="undo" disabled>Deshacer</button>
     <button class="btn" id="redo" disabled>Rehacer</button>
@@ -179,6 +186,11 @@ body {
 
 <main id="board">
   <canvas id="cv" aria-label="Hoja de trabajo cuadriculada"></canvas>
+  <div id="pickBar" hidden>
+    <span>Arrastra para marcar el área del PDF. Dos dedos mueven y acercan la hoja.</span>
+    <button type="button" class="btn sm primary" id="pickOk">Generar PDF</button>
+    <button type="button" class="btn sm" id="pickCancel">Cancelar</button>
+  </div>
   <input id="txt" type="text" hidden autocomplete="off" autocapitalize="sentences" aria-label="Texto de la anotación">
 </main>
 <div id="hint" role="status"></div>
@@ -252,6 +264,8 @@ let toolSizes = { pen: 3, line: 1.5, measure: 1.5, erase: 12, text: 3 };
 let cur = null, sel = null, drag = null, nav = null, eraseRing = null, txtState = null, scratchPrev = null;
 let penDown = false, lastPen = 0, dpr = 1, raf = 0, saveT = 0, confirmT = 0;
 let holdOn = true, holdT = 0, holdAnchor = null, holdShape = false;
+let pdfArea = 'view', lastPick = null, pick = null;
+const VERSION = 'v6-area';
 let job = _jobParam, who = _whoParam, DL = null, exporting = false, exportNum = null;
 let T = { accent: '#0b62c4', paper: '#fff', minor: '#d6e4f2', major: '#a9c4de', num: 'monospace', ui: 'sans-serif' };
 const ptrs = new Map(), imgs = new Map();
@@ -423,6 +437,7 @@ function draw() {
     ctx.strokeRect(b[0], b[1], b[2] - b[0], b[3] - b[1]); ctx.restore();
     if (sel.t === 'p' && !sel.locked) { const s = 14 / k; ctx.fillStyle = T.accent; ctx.fillRect(b[2] - s / 2, b[3] - s / 2, s, s); }
   }
+  if (pick) drawPick();
   if (scratchPrev && scratchPrev.length) {
     ctx.save(); ctx.globalAlpha = 0.38; ctx.fillStyle = '#ef4444';
     for (const it of scratchPrev) { const b = bounds(it), pad = 6 / view.k; ctx.fillRect(b[0]-pad, b[1]-pad, b[2]-b[0]+2*pad, b[3]-b[1]+2*pad); }
@@ -470,7 +485,7 @@ function save() {
   clearTimeout(saveT);
   saveT = setTimeout(() => {
     const slim = items.map(i => (i.t === 'p' && persisted.has(i.id)) ? { ...i, src: null } : i);
-    try { localStorage.setItem(KEY, JSON.stringify({ items: slim, view, cellVal, unit, snap, fingerDraw, holdOn, color, size, toolSizes, job, who, cellPx, gridMode })); }
+    try { localStorage.setItem(KEY, JSON.stringify({ items: slim, view, cellVal, unit, snap, fingerDraw, holdOn, color, size, toolSizes, job, who, cellPx, gridMode, pdfArea, lastPick })); }
     catch (e) { hint.textContent = 'No se pudo guardar en este navegador. Exporta el PDF para no perder el trabajo.'; }
   }, 700);
 }
@@ -483,7 +498,7 @@ function load() {
       // Los params de URL tienen prioridad sobre lo guardado en localStorage
       job = _jobParam || d.job || ''; who = _whoParam || d.who || '';
       color = d.color || color; size = d.size || size;
-      if (d.toolSizes) Object.assign(toolSizes, d.toolSizes); if (d.cellPx >= 10) cellPx = d.cellPx; gridMode = d.gridMode || 'normal'; return true;
+      if (d.toolSizes) Object.assign(toolSizes, d.toolSizes); if (d.cellPx >= 10) cellPx = d.cellPx; gridMode = d.gridMode || 'normal'; pdfArea = d.pdfArea || 'view'; lastPick = d.lastPick || null; return true;
     }
   } catch (e) { /* sin almacenamiento */ }
   return false;
@@ -645,6 +660,43 @@ function scratchErase(pts) {
   pushHist(); items = items.filter(it => !toErase.includes(it)); scratchPrev = null; save();
 }
 
+/* ---------- elegir el área del PDF ---------- */
+const visibleRegion = () => [-view.x / view.k, -view.y / view.k, (board.clientWidth - view.x) / view.k, (board.clientHeight - view.y) / view.k];
+function startPick() {
+  commitText(true); sel = null; syncBtns();
+  const v = visibleRegion(), mx = (v[2] - v[0]) * 0.12, my = (v[3] - v[1]) * 0.12;
+  pick = { r: lastPick ? lastPick.slice() : [v[0] + mx, v[1] + my, v[2] - mx, v[3] - my], drag: null };
+  $('#pickBar').hidden = false; hint.textContent = 'Marca el área: arrastra las esquinas, mueve el recuadro, o dibuja uno nuevo.'; schedule();
+}
+function cancelPick() { pick = null; const pb = $('#pickBar'); if (pb) pb.hidden = true; schedule(); }
+function pickBegin(sx, sy) {
+  const w = toWorld(sx, sy), r = pick.r, h = 30 / view.k;
+  const cs = [[r[0], r[1]], [r[2], r[1]], [r[2], r[3]], [r[0], r[3]]];
+  for (let i = 0; i < 4; i++) if (Math.hypot(w[0] - cs[i][0], w[1] - cs[i][1]) < h) { const o = cs[(i + 2) % 4]; pick.drag = { m: 'corner', ox: o[0], oy: o[1] }; return; }
+  if (w[0] > r[0] && w[0] < r[2] && w[1] > r[1] && w[1] < r[3]) pick.drag = { m: 'move', sx: w[0], sy: w[1], r0: r.slice() };
+  else { pick.drag = { m: 'new', ox: w[0], oy: w[1] }; pick.r = [w[0], w[1], w[0], w[1]]; }
+}
+function pickMove(w) {
+  const d = pick.drag; if (!d) return;
+  if (d.m === 'move') { const dx = w[0] - d.sx, dy = w[1] - d.sy; pick.r = [d.r0[0] + dx, d.r0[1] + dy, d.r0[2] + dx, d.r0[3] + dy]; }
+  else pick.r = [Math.min(d.ox, w[0]), Math.min(d.oy, w[1]), Math.max(d.ox, w[0]), Math.max(d.oy, w[1])];
+  schedule();
+}
+function drawPick() {
+  const r = pick.r, k = view.k;
+  ctx.save(); ctx.fillStyle = 'rgba(15,23,42,.32)'; ctx.beginPath(); ctx.rect(-1e7, -1e7, 2e7, 2e7); ctx.rect(r[0], r[1], r[2] - r[0], r[3] - r[1]); ctx.fill('evenodd');
+  ctx.strokeStyle = T.accent; ctx.lineWidth = 2 / k; ctx.setLineDash([8 / k, 5 / k]); ctx.strokeRect(r[0], r[1], r[2] - r[0], r[3] - r[1]); ctx.setLineDash([]);
+  ctx.fillStyle = T.accent; const s = 16 / k;
+  for (const [x, y] of [[r[0], r[1]], [r[2], r[1]], [r[2], r[3]], [r[0], r[3]]]) ctx.fillRect(x - s / 2, y - s / 2, s, s);
+  ctx.restore();
+}
+$('#pickOk').addEventListener('click', () => {
+  if (!pick) return;
+  let r = pick.r; if (r[2] - r[0] < CELL * 2 || r[3] - r[1] < CELL * 2) { hint.textContent = 'El área es muy pequeña. Marca un recuadro más grande.'; return; }
+  lastPick = r.slice(); cancelPick(); save(); exportPdf({ region: lastPick });
+});
+$('#pickCancel').addEventListener('click', () => { cancelPick(); hint.textContent = HINTS[tool]; });
+
 /* ---------- puntero ---------- */
 const widthFor = e => (e.pointerType === 'pen' && e.pressure > 0) ? Math.round(size * (0.45 + 1.1 * e.pressure) * 10) / 10 : size;
 const r2 = n => Math.round(n * 100) / 100;
@@ -661,10 +713,11 @@ cv.addEventListener('pointerdown', e => {
   const touches = [...ptrs.values()].filter(p => p.type === 'touch').length;
   // Un dedo actúa como la herramienta en Mover, Borrar y Texto (seleccionar, arrastrar, tocar la foto).
   // En Lápiz/Recta/Medir un dedo mueve la hoja (salvo "Dibujar con el dedo"). Dos dedos siempre mueven/acercan.
-  const fingerIsTool = fingerDraw || tool === 'move' || tool === 'erase' || tool === 'text';
+  const fingerIsTool = !!pick || fingerDraw || tool === 'move' || tool === 'erase' || tool === 'text';
   const navTouch = e.pointerType === 'touch' && (!fingerIsTool || touches >= 2);
   if (navTouch || tool === 'hand') { cur = null; drag = null; eraseRing = null; rebase(); cv.style.cursor = 'grabbing'; return; }
   if (nav) return;
+  if (pick) { pickBegin(sx, sy); return; }
   beginTool(e, sx, sy);
 });
 function beginTool(e, sx, sy) {
@@ -700,13 +753,16 @@ cv.addEventListener('pointermove', e => {
   p.x = sx; p.y = sy;
   if (nav) { navMove(); return; }
   const w = toWorld(sx, sy);
+  if (pick) { pickMove(w); return; }
   if (cur && tool === 'pen' && holdShape) {
     if (cur.t === 'l') { cur.p = [cur.p[0], angleSnap(cur.p[0], w).map(r2)]; schedule(); }
   } else if (cur && tool === 'pen') {
     if (Math.hypot(sx - holdAnchor[0], sy - holdAnchor[1]) < 1.5) return;
     const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
     for (const ev of (evs.length ? evs : [e])) {
-      const q = toWorld(...evPos(ev));
+      const q = toWorld(...evPos(ev)), lp = cur.p[cur.p.length - 1];
+      // un punto no finito o un salto imposible (>900 px de golpe) es un fallo del puntero: se descarta
+      if (!isFinite(q[0]) || !isFinite(q[1]) || Math.hypot(q[0] - lp[0], q[1] - lp[1]) * view.k > 900) continue;
       cur.p.push([r2(q[0]), r2(q[1]), widthFor(ev)]);
     }
     if (Math.hypot(sx - holdAnchor[0], sy - holdAnchor[1]) > 4) { holdAnchor = [sx, sy]; armHold(); }
@@ -744,6 +800,7 @@ function endPointer(e, cancelled) {
     } else rebase();
     return;
   }
+  if (pick) { pick.drag = null; schedule(); return; }
   clearTimeout(holdT); holdShape = false;
   if (cur && !cancelled) {
     if (tool === 'line' && Math.hypot(cur.p[1][0] - cur.p[0][0], cur.p[1][1] - cur.p[0][1]) * view.k < 6) cur = null;
@@ -809,7 +866,7 @@ delBtn.addEventListener('click', () => { if (!sel) return; if (sel.locked) { hin
 
 /* ---------- controles ---------- */
 function setTool(t) {
-  commitText(true); tool = t; if (t !== 'move') sel = null;
+  commitText(true); if (pick) cancelPick(); tool = t; if (t !== 'move') sel = null;
   if (toolSizes[t] !== undefined) { size = toolSizes[t]; }
   $$('[data-tool]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.tool === t)));
   $$('[data-sz]').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.sz === size)));
@@ -842,7 +899,7 @@ function photoAnnotations(photo) {
 // Coloca el menú siempre dentro de la pantalla: debajo de la foto, o arriba, o al lado, o encima de ella.
 function showPhotoMenu() {
   const menu = $('#photoMenu'); if (!menu) return;
-  if (drag || !sel || sel.t !== 'p' || tool !== 'move') { menu.style.display = 'none'; return; }
+  if (pick || drag || !sel || sel.t !== 'p' || tool !== 'move') { menu.style.display = 'none'; return; }
   menu.style.display = 'flex';
   $('#pm-lock').textContent = sel.locked ? '🔓 Desbloquear foto' : '🔒 Bloquear foto';
   const delB = $('#pm-del'); delB.disabled = !!sel.locked; delB.textContent = sel.locked ? 'Eliminar (desbloquea primero)' : 'Eliminar foto…';
@@ -927,6 +984,7 @@ $('#snap').addEventListener('change', e => { snap = e.target.checked; save(); })
 $('#finger').addEventListener('change', e => { fingerDraw = e.target.checked; save(); });
 $('#holdOn').addEventListener('change', e => { holdOn = e.target.checked; save(); });
 $('#gridModeBtn').addEventListener('change', e => { gridMode = e.target.value; save(); schedule(); });
+$('#pdfArea').addEventListener('change', e => { pdfArea = e.target.value; cancelPick(); save(); });
 $('#cellPxSlider').addEventListener('input', e => {
   const newPx = +e.target.value;
   if (cellPx > 0) view.k = view.k * newPx / cellPx;
@@ -1017,13 +1075,17 @@ function renderBoard(b, pxW) {
   } finally { ctx = prevCtx; view = prevView; }
   return c;
 }
-async function buildPdf() {
+async function buildPdf(region) {
   const { jsPDF } = window.jspdf;
   await Promise.all(pendingLoads);
   await Promise.all(items.filter(i => i.t === 'p' && i.src).map(ensureImg));
-  exportNum = new Map(); let n = 0; for (const it of items) if (it.t === 'm') exportNum.set(it, ++n);
-  const zones = clusterItems().map(list => { const b = contentBounds(list), W = b[2] - b[0], H = b[3] - b[1]; return { b, W, H, land: W >= H }; });
-  const nz = zones.length, M = 28, headH = 50, TOTAL_MB = 2.4, budget = Math.max(0.3, TOTAL_MB / nz) * MB;
+  const zones = region
+    ? [(() => { const b = [Math.min(region[0], region[2]), Math.min(region[1], region[3]), Math.max(region[0], region[2]), Math.max(region[1], region[3])], W = b[2] - b[0], H = b[3] - b[1]; return { b, W, H, land: W >= H }; })()]
+    : clusterItems().map(list => { const b = contentBounds(list), W = b[2] - b[0], H = b[3] - b[1]; return { b, W, H, land: W >= H }; });
+  // Solo lo que cae dentro de lo exportado entra en las listas del final
+  const incl = items.filter(it => { const q = bounds(it), cx = (q[0] + q[2]) / 2, cy = (q[1] + q[3]) / 2; return zones.some(z => cx >= z.b[0] && cx <= z.b[2] && cy >= z.b[1] && cy <= z.b[3]); });
+  exportNum = new Map(); let n = 0; for (const it of incl) if (it.t === 'm') exportNum.set(it, ++n);
+  const nz = zones.length, M = 28, headH = 50, TOTAL_MB = 2.2, budget = Math.max(0.3, TOTAL_MB / nz) * MB;
   const ladder = [[300, 0.9], [300, 0.85], [250, 0.88], [220, 0.85], [200, 0.82], [180, 0.8], [150, 0.75], [120, 0.7]];
   // Fecha: preferir param URL, luego fecha actual
   const when = _dateParam
@@ -1061,7 +1123,7 @@ async function buildPdf() {
     for (const l of doc.splitTextToSize(String(text), DW - 2 * M)) { if (y > DH - M) { doc.addPage('a4', 'p'); y = M + 14; } doc.text(l, M, y); y += size * 1.35; }
     y += gap || 0;
   };
-  const cnt = t => items.filter(i => i.t === t).length;
+  const cnt = t => incl.filter(i => i.t === t).length;
   line('Datos del levantamiento', 16, true, 8);
   line(`Cliente / trabajo: ${job || 'sin indicar'}`, 10.5, false, 0);
   line(`Medidor: ${who || 'sin indicar'}`, 10.5, false, 0);
@@ -1073,25 +1135,37 @@ async function buildPdf() {
   exportNum.forEach((num, m) => line(`${num}.   ${m.label}`, 10.5, false, 0));
   y += 12;
   line('Notas de texto', 12, true, 4);
-  const notes = items.filter(i => i.t === 't');
+  const notes = incl.filter(i => i.t === 't');
   if (!notes.length) line('No hay notas de texto.', 10.5, false, 0, [86, 102, 122]);
   notes.forEach((t, i) => line(`${i + 1}.   ${t.s}`, 10.5, false, 0));
   const total = doc.getNumberOfPages();
-  for (let p = 1; p <= total; p++) { doc.setPage(p); const w = doc.internal.pageSize.getWidth(), h = doc.internal.pageSize.getHeight(); doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(120, 130, 142); doc.text(`Página ${p} de ${total}`, w - M, h - 14, { align: 'right' }); }
+  for (let p = 1; p <= total; p++) { doc.setPage(p); const w = doc.internal.pageSize.getWidth(), h = doc.internal.pageSize.getHeight(); doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(120, 130, 142); doc.text(`Página ${p} de ${total}`, w - M, h - 14, { align: 'right' }); doc.text(`Pizarra ${VERSION}`, M, h - 14); }
   const blob = doc.output('blob');
   const name = `Levantamiento_${slug(job) || 'sin-nombre'}_${new Date().toISOString().slice(0, 10)}.pdf`;
-  return { blob, name, dpi: pick.dpi, q: pick.q };
+  const stretched = !region && zones.some(z => Math.max(z.W / z.H, z.H / z.W) > 4);
+  return { blob, name, dpi: pick.dpi, q: pick.q, warn: stretched ? 'Aviso: hay algo muy alejado del resto y alarga la hoja. Usa «PDF: lo que veo en pantalla» o «elegir un área», o borra el trazo suelto.' : '' };
 }
 
-async function exportPdf() {
+async function exportPdf(opts) {
+  opts = (opts && opts.region !== undefined) ? opts : (opts || {});
   if (exporting) return;
   commitText(false);
   if (!items.length) { hint.textContent = 'La hoja está vacía: dibuja o mide algo antes de exportar.'; return; }
+  // Qué parte de la hoja va al PDF
+  let region = opts.region || null;
+  if (!region) {
+    if (opts.fromParent) { region = (pdfArea === 'pick' && lastPick) ? lastPick : null; }   // el formulario nunca dispara la selección interactiva
+    else if (pdfArea === 'view') region = visibleRegion();
+    else if (pdfArea === 'pick') { startPick(); return; }
+  }
+  if (region && !items.some(it => { const q = bounds(it); return q[0] < Math.max(region[0], region[2]) && q[2] > Math.min(region[0], region[2]) && q[1] < Math.max(region[1], region[3]) && q[3] > Math.min(region[1], region[3]); })) {
+    hint.textContent = 'No hay nada dentro de esa área. Muévete a donde trabajaste o elige otra área.'; return;
+  }
   if (!window.jspdf) { hint.textContent = 'No se pudo cargar el generador de PDF. Revisa la conexión.'; return; }
   exporting = true; const btn = $('#exportPdf'); btn.disabled = true; hint.textContent = 'Generando el PDF…';
   await new Promise(r => setTimeout(r, 30));
   try {
-    const r = await buildPdf(), mb = r.blob.size / MB;
+    const r = await buildPdf(region), mb = r.blob.size / MB;
     hint.textContent = `PDF listo: ${fmt(mb)} MB a ${r.dpi} ppp.`;
 
     // ── Entrega al padre por postMessage (cuando está en iframe) ──
@@ -1124,6 +1198,7 @@ async function exportPdf() {
         }
       } catch (e) { hint.textContent = 'No se pudo guardar el PDF: ' + (e && e.message || ''); }
     }
+    if (r.warn) hint.textContent += '  ' + r.warn;
   } catch (e) {
     hint.textContent = 'No se pudo generar el PDF' + (e && e.message ? ': ' + e.message : '.');
   } finally { exportNum = null; exporting = false; btn.disabled = false; schedule(); }
@@ -1132,7 +1207,7 @@ async function exportPdf() {
 // ── Escuchar mensajes del padre (React) ───────────────────────────────────
 window.addEventListener('message', e => {
   if (!e.data || typeof e.data !== 'object') return;
-  if (e.data.type === 'pizarra:requestPdf') exportPdf();
+  if (e.data.type === 'pizarra:requestPdf') exportPdf({ fromParent: true });
   if (e.data.type === 'pizarra:setParams') {
     // Permite actualizar job/who sin recargar el iframe
     if (e.data.job !== undefined) { job = e.data.job; $('#job').value = job; save(); }
@@ -1142,7 +1217,7 @@ window.addEventListener('message', e => {
 });
 // ─────────────────────────────────────────────────────────────────────────
 
-$('#exportPdf').addEventListener('click', exportPdf);
+$('#exportPdf').addEventListener('click', () => exportPdf());
 $('#job').addEventListener('input', e => { job = e.target.value; save(); });
 $('#who').addEventListener('input', e => { who = e.target.value; save(); });
 async function initDownloads(tries) {
@@ -1161,7 +1236,7 @@ matchMedia('(prefers-color-scheme: dark)').addEventListener('change', readTheme)
 new MutationObserver(readTheme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 new ResizeObserver(resize).observe(board);
 if (!load()) seedExample(); else { restorePhotos(); gcPhotos(); }
-$('#cell').value = cellVal; $('#unit').value = unit; $('#snap').checked = snap; $('#finger').checked = fingerDraw; $('#holdOn').checked = holdOn; $('#job').value = job; $('#who').value = who; $('#gridModeBtn').value = gridMode; $('#cellPxSlider').value = cellPx;
+$('#cell').value = cellVal; $('#unit').value = unit; $('#snap').checked = snap; $('#finger').checked = fingerDraw; $('#holdOn').checked = holdOn; $('#job').value = job; $('#who').value = who; $('#gridModeBtn').value = gridMode; $('#pdfArea').value = pdfArea; $('#cellPxSlider').value = cellPx;
 initDownloads(3);
 setColor(color); setTool('pen'); setSize(size); syncBtns(); resize();
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(schedule);

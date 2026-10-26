@@ -550,7 +550,7 @@ export function AccountingClosureTab() {
             <AlertDialogAction
               onClick={() => {
                 if (selectedClosureId) {
-                  revertClosure.mutate({ closureId: selectedClosureId, reason: "Reversión manual" });
+                  revertClosure.mutate({ closureId: selectedClosureId });
                 }
               }}
               disabled={isSubmitting}

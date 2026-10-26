@@ -476,7 +476,7 @@ export default function Accounting() {
           operativeCategory: expenseType === "gasto_operativo" ? operativeCategory :
                              expenseType === "materiales_proyecto" ? projectCategoryGroup : undefined,
           subcategory: expenseSubcategory || undefined,
-          generalCategory: (expenseType === "materiales_proyecto" ? (projectCategoryGroup || "materiales") : "servicios") as any,
+          generalCategory: expenseType === "materiales_proyecto" ? (projectCategoryGroup || "materiales") : "servicios",
           receiptUrl: receiptUrl || undefined,
         });
       } else {
@@ -489,7 +489,7 @@ export default function Accounting() {
           description: description.trim(),
           amount: parseFloat(amount),
           expenseDate,
-          generalCategory: (expenseType === "materiales_proyecto" ? (projectCategoryGroup || "materiales") : "servicios") as any,
+          generalCategory: expenseType === "materiales_proyecto" ? (projectCategoryGroup || "materiales") : "servicios",
           receiptUrl: receiptUrl || undefined,
         });
       }

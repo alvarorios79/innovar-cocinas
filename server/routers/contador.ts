@@ -215,7 +215,7 @@ export const contadorRouter = router({
       // Decodificar base64 y subir a S3
       const base64Data = input.fileData.replace(/^data:[^;]+;base64,/, "");
       const buffer = Buffer.from(base64Data, "base64");
-      const { url: fileUrl } = await storagePut(key, buffer, "application/pdf");
+      const fileUrl = await storagePut(key, buffer, "application/pdf");
 
       const now = new Date().toISOString();
       const [doc] = await db.insert(taxDocuments).values({
@@ -251,10 +251,10 @@ export const contadorRouter = router({
           projectTotal: projects.totalAmount,
           projectCreatedAt: projects.createdAt,
           clientName: clients.name,
-          clientDocType: (clients as any).documentType,
-          clientDocNumber: (clients as any).documentNumber,
+          clientDocType: clients.documentType,
+          clientDocNumber: clients.documentNumber,
           clientEmail: clients.email,
-          clientPhone: (clients as any).phone,
+          clientPhone: clients.phone,
         })
         .from(projects)
         .leftJoin(clients, eq(projects.clientId, clients.id))

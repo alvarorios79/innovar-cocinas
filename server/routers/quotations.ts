@@ -649,7 +649,7 @@ export const quotationsRouter = router({
               : item.hardwareSelections;
             
             // Parsear closetConfig si es string JSON (manejar doble serialización)
-            let closetConfig: any = item.closetConfig;
+            let closetConfig = item.closetConfig;
             if (closetConfig && typeof closetConfig === 'string') {
               try {
                 closetConfig = JSON.parse(closetConfig);
@@ -814,7 +814,7 @@ export const quotationsRouter = router({
             }
             // Si es baño y tiene bathroomConfig, generar descripción detallada
             else if (item.itemType === 'baño' && item.bathroomConfig) {
-              const bc: any = item.bathroomConfig;
+              const bc = item.bathroomConfig;
               const fmtCOP = (n: number) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(n);
               const typeLabel = bc.furnitureType === 'flotante' ? 'Mueble de Baño Flotante' : 'Mueble de Baño de Piso con Pata';
               const lines: string[] = [];
@@ -2093,7 +2093,7 @@ export const quotationsRouter = router({
               : item.hardwareSelections;
             
             // Parsear closetConfig si es string JSON (manejar doble serialización)
-            let closetConfig: any = item.closetConfig;
+            let closetConfig = item.closetConfig;
             if (closetConfig && typeof closetConfig === 'string') {
               try {
                 closetConfig = JSON.parse(closetConfig);
@@ -2258,7 +2258,7 @@ export const quotationsRouter = router({
             }
             // Si es baño y tiene bathroomConfig, generar descripción detallada
             else if (item.itemType === 'baño' && item.bathroomConfig) {
-              const bc: any = item.bathroomConfig;
+              const bc = item.bathroomConfig;
               const fmtCOP = (n: number) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(n);
               const typeLabel = bc.furnitureType === 'flotante' ? 'Mueble de Baño Flotante' : 'Mueble de Baño de Piso con Pata';
               const lines: string[] = [];

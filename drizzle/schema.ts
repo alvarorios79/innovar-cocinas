@@ -12,8 +12,8 @@ export const drizzleMigrations = pgTable("__drizzle_migrations__", {
 
 export const accountingClosureOperationalExpenses = pgTable("accounting_op_expenses", {
 	id: serial('id').primaryKey(),
-	closureId: integer().notNull().references(() => accountingClosures.id, { onDelete: "cascade" }),
-	expenseId: integer().notNull().references(() => expenses.id),
+	closureId: integer().notNull().references(() => accountingClosures.id, { onDelete: "cascade", name: "fk_acoe_closure" }),
+	expenseId: integer().notNull().references(() => expenses.id, { name: "fk_acoe_expense" }),
 	category: text().notNull(),
 	description: text().notNull(),
 	amount: decimal({ precision: 12, scale: 2 }).notNull(),
@@ -908,35 +908,3 @@ export const technicalVisitPdfs = pgTable("technical_visit_pdfs", {
 }, (table) => [
 	index("technicalVisitPdfs_visitId_idx").on(table.visitId),
 ]);
-
-// ── Insert type aliases (inferred from table definitions) ─────────────────────
-import { InferInsertModel } from "drizzle-orm";
-export type InsertUser = InferInsertModel<typeof users>;
-export type InsertClient = InferInsertModel<typeof clients>;
-export type InsertAppointment = InferInsertModel<typeof appointments>;
-export type InsertAppointmentWorkType = InferInsertModel<typeof appointmentWorkTypes>;
-export type InsertAdvisoryRequest = InferInsertModel<typeof advisoryRequests>;
-export type InsertPriorEstimate = InferInsertModel<typeof priorEstimates>;
-export type InsertQuotation = InferInsertModel<typeof quotations>;
-export type InsertQuotationItem = InferInsertModel<typeof quotationItems>;
-export type InsertColombianHoliday = InferInsertModel<typeof colombianHolidays>;
-export type InsertReminder = InferInsertModel<typeof reminders>;
-export type InsertProject = InferInsertModel<typeof projects>;
-export type InsertProjectPhoto = InferInsertModel<typeof projectPhotos>;
-export type InsertProjectDetail = InferInsertModel<typeof projectDetails>;
-export type InsertTask = InferInsertModel<typeof tasks>;
-export type InsertProjectStatusHistory = InferInsertModel<typeof projectStatusHistory>;
-export type InsertPushSubscription = InferInsertModel<typeof pushSubscriptions>;
-export type InsertNotification = InferInsertModel<typeof notifications>;
-export type InsertPayment = InferInsertModel<typeof payments>;
-export type InsertPricingConfig = InferInsertModel<typeof pricingConfig>;
-export type InsertPricingHistory = InferInsertModel<typeof pricingHistory>;
-export type InsertExpense = InferInsertModel<typeof expenses>;
-export type InsertClientRevisionHistory = InferInsertModel<typeof clientRevisionHistory>;
-export type InsertFinancialAlert = InferInsertModel<typeof financialAlerts>;
-export type InsertFinancialSettings = InferInsertModel<typeof financialSettings>;
-export type InsertAuditLog = InferInsertModel<typeof auditLogs>;
-export type InsertAccountingClosure = InferInsertModel<typeof accountingClosures>;
-export type InsertAccountingClosureProject = InferInsertModel<typeof accountingClosureProjects>;
-export type InsertAccountingClosureOperationalExpense = InferInsertModel<typeof accountingClosureOperationalExpenses>;
-export type InsertClosureAuditLog = InferInsertModel<typeof closureAuditLog>;

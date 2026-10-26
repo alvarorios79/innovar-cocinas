@@ -126,7 +126,7 @@ export default function Clients() {
       address: c.address ?? "",
       identificationNumber: c.identificationNumber ?? "",
       internalManagement: c.internalManagement === 1,
-    } as any);
+    });
   };
 
   const clients: Client[] = (data?.clients ?? []) as Client[];

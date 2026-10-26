@@ -1402,7 +1402,7 @@ export async function updateUserLastSignedIn(userId: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  await db.update(users).set({ lastSignedIn: new Date().toISOString() } as any).where(eq(users.id, userId));
+  await db.update(users).set({ lastSignedIn: new Date() }).where(eq(users.id, userId));
 }
 
 export async function getFinancialSettings() {
@@ -1716,9 +1716,9 @@ export async function getAllQuotationsGroupedByBase(options?: { page?: number; l
         group.hasProject = projectsForVersions.length > 0;
         if (projectsForVersions.length > 0) {
           const proj = projectsForVersions[0];
-          (group as any).projectId = proj.id;
+          group.projectId = proj.id;
           // quotationId del proyecto = versión vigente que define el precio
-          (group as any).activeProjectQuotationId = proj.quotationId;
+          group.activeProjectQuotationId = proj.quotationId;
         }
       }
     }
@@ -3101,14 +3101,24 @@ export async function createAccountingClosure(data: {
         );
       
       for (const expense of operationalExpenses) {
-        await tx.insert(accountingClosureOperationalExpenses).values({
-          closureId,
-          expenseId: expense.id,
-          category: expense.operativeCategory || 'otro',
-          description: expense.description,
-          amount: expense.amount,
-          expenseDate: expense.expenseDate,
-        });
+        const conn = await pool.getConnection();
+        try {
+          await conn.execute(
+            `INSERT INTO accountingClosureOperationalExpenses 
+            (closureId, expenseId, category, description, amount, expenseDate) 
+            VALUES (?, ?, ?, ?, ?, ?)`,
+            [
+              closureId,
+              expense.id,
+              expense.operativeCategory || 'otro',
+              expense.description,
+              expense.amount,
+              expense.expenseDate
+            ]
+          );
+        } finally {
+          conn.release();
+        }
       }
     }
     
@@ -3177,14 +3187,21 @@ export async function getAccountingClosures(filters?: {
  * Get operational expenses for a closure
  */
 export async function getClosureOperationalExpenses(closureId: number) {
-  const db = await getDb();
-  if (!db) return [];
-  const rows = await db
-    .select()
-    .from(accountingClosureOperationalExpenses)
-    .where(eq(accountingClosureOperationalExpenses.closureId, closureId))
-    .orderBy(desc(accountingClosureOperationalExpenses.expenseDate));
-  return rows;
+  const pool = await getPool();
+  if (!pool) return [];
+  
+  const conn = await pool.getConnection();
+  try {
+    const [rows] = await conn.execute(
+      `SELECT * FROM accountingClosureOperationalExpenses 
+       WHERE closureId = ? 
+       ORDER BY expenseDate DESC`,
+      [closureId]
+    );
+    return rows as any[];
+  } finally {
+    conn.release();
+  }
 }
 
 /**

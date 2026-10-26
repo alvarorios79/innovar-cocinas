@@ -20,24 +20,6 @@ import { eq, and, desc } from "drizzle-orm";
 import { projects, projectDetails, projectPhotos } from "../../drizzle/schema";
 import { randomBytes } from "crypto";
 
-// Helper stubs for missing imports used in this file
-async function sendPushToRole(role: string, payload: { title: string; body: string; url?: string }) {
-  try {
-    const { createAndSendNotification } = await import("../push-notifications");
-    // Send to all users of this role via existing notification system
-    console.log(`[sendPushToRole] role=${role}`, payload);
-  } catch (e) { /* best-effort */ }
-}
-async function generateEmailHTML(body: string, subject: string): Promise<string> {
-  return `<html><body>${body}</body></html>`;
-}
-async function sendEmail(opts: { to: string; subject: string; html: string }) {
-  try {
-    const emailModule = await import("../email");
-    await (emailModule as any).sendEmail(opts);
-  } catch (e) { /* best-effort */ }
-}
-
 
 export const projectsRouter = router({
     // Crear proyecto (Admin/Comercial)
@@ -1437,7 +1419,7 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
             toStatus: nextStatus,
             changedBy: ctx.user.id,
             notes: historyNote,
-            ...({ evidenceUrl: input.evidenceUrl } as any),
+            evidenceUrl: input.evidenceUrl,
           });
 
           // Notificar a admin/CEO y jefe_taller (si aplica) con contexto completo
@@ -2147,7 +2129,7 @@ export const projectPhotosRouter = router({
             await sendEmail({
               to: "alvarorios79@gmail.com",
               subject: `📐 ${typeLabel} listo: ${projectName}`,
-              html: await emailHtml,
+              html: emailHtml,
             });
           } catch (emailErr) {
             console.error("[Notif] Error enviando email:", emailErr);

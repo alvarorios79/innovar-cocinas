@@ -92,7 +92,7 @@ export function ProjectDesignPanel({ projectId }: { projectId: number }) {
   const canSeeVisitData =
     ["admin","super_admin","comercial"].includes(user?.role ?? "") ||
     (user?.role === "disenador" && DESIGNER_STATUSES.includes(projectStatus));
-  const { data: clientVisits } = (trpc.technicalVisits as any).listByClientId.useQuery(
+  const { data: clientVisits } = trpc.technicalVisits.listByClientId.useQuery(
     { clientId: clientId ?? 0 },
     { enabled: !!clientId && canSeeVisitData }
   );
@@ -789,7 +789,7 @@ export function ProjectDesignPanel({ projectId }: { projectId: number }) {
         </AlertDialogContent>
       </AlertDialog>
 
-      <FileViewer files={fileViewer.files} initialIndex={fileViewer.initialIndex} isOpen={fileViewer.isOpen} onClose={fileViewer.closeViewer} />
+      <FileViewer viewer={fileViewer} />
     </div>
   );
 }

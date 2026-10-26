@@ -219,7 +219,7 @@ export const accountingClosuresRouter = router({
           });
         }
 
-        const result = await (revertAccountingClosure as any)(input.closureId, ctx.user.id, input.reason);
+        const result = await revertAccountingClosure(input.closureId, ctx.user.id, input.reason);
 
         return {
           message: "Cierre contable revertido exitosamente",

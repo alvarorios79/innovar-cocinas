@@ -217,7 +217,6 @@ export function KitchenConfigurator({
       barraAlturaLateral: 90,
       incluyePedestal: false,
       incluyeHerraje: false,
-      // @ts-expect-error extended config field
       incluyeLavaplatos: false,
       lavaprecio: undefined,
       esImportado: false,

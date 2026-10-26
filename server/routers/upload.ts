@@ -98,7 +98,7 @@ export const uploadRouter = router({
             const { compressPdf } = await import('../image-utils');
             const { buffer: compressed, savedPercent } = await compressPdf(buffer);
             if (savedPercent > 0) {
-              buffer = compressed as Buffer<ArrayBuffer>;
+              buffer = compressed;
               console.log(`PDF comprimido: ${savedPercent}% de reducción`);
             }
           } catch (pdfError) {

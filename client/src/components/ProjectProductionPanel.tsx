@@ -337,7 +337,7 @@ export function ProjectProductionPanel({ projectId }: { projectId: number }) {
         </AlertDialogContent>
       </AlertDialog>
 
-      <FileViewer files={fileViewer.files} initialIndex={fileViewer.initialIndex} isOpen={fileViewer.isOpen} onClose={fileViewer.closeViewer} />
+      <FileViewer viewer={fileViewer} />
     </div>
   );
 }

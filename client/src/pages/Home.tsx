@@ -188,8 +188,8 @@ export default function Home() {
       });
 
       // Abrir WhatsApp Business para notificar
-      if ((result as any).whatsappLink) {
-        window.open((result as any).whatsappLink, "_blank");
+      if (result.whatsappLink) {
+        window.open(result.whatsappLink, "_blank");
       }
 
       // Limpiar formulario
@@ -249,8 +249,8 @@ export default function Home() {
       });
 
       // Abrir WhatsApp Business para notificar
-      if ((result as any).whatsappLink) {
-        window.open((result as any).whatsappLink, "_blank");
+      if (result.whatsappLink) {
+        window.open(result.whatsappLink, "_blank");
       }
 
       setAdvisoryForm({
@@ -304,8 +304,8 @@ export default function Home() {
       });
 
       // Abrir WhatsApp Business para notificar
-      if ((result as any).whatsappLink) {
-        window.open((result as any).whatsappLink, "_blank");
+      if (result.whatsappLink) {
+        window.open(result.whatsappLink, "_blank");
       }
 
       setEstimateForm({

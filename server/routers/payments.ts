@@ -301,7 +301,7 @@ export const paymentsRouter = router({
       const stmtData: AccountStatementData = {
         generatedDate: today,
         clientName: client.name,
-        clientPhone: (client as any).phone || client.whatsappPhone || undefined,
+        clientPhone: client.phone || client.whatsappPhone || undefined,
         clientAddress: client.address || undefined,
         projectName: project.name,
         workType: project.workType,

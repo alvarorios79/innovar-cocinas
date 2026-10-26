@@ -70,7 +70,7 @@ body {
   position: fixed; z-index: 180; background: var(--panel);
   border: 1px solid var(--line); border-radius: 14px;
   padding: 6px; box-shadow: 0 6px 24px rgba(0,0,0,.25);
-  min-width: 200px; display: flex; flex-direction: column; gap: 2px;
+  min-width: 200px; flex-direction: column; gap: 2px; display: none;
 }
 .pm-btn {
   display: block; width: 100%; text-align: left; padding: 11px 16px;
@@ -164,6 +164,14 @@ body {
   <span class="num" id="zoomLbl">100%</span>
   <button class="btn sm" id="zin" aria-label="Acercar">+</button>
   <button class="btn sm" id="fit">Ajustar vista</button>
+  <select id="gridModeBtn" title="Visibilidad de la cuadrícula" style="font-size:12px;padding:3px 6px;border-radius:6px;border:1px solid var(--line);background:var(--panel);color:var(--fg)">
+    <option value="normal">□ Cuadrícula</option>
+    <option value="dim">▫ Atenuada</option>
+    <option value="hidden">☐ Ocultar</option>
+  </select>
+  <label title="Apoya una regla: ajusta hasta que el cuadro mida exactamente 5 mm" style="display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--muted)">
+    Calibrar <input type="range" id="cellPxSlider" min="10" max="60" step="1" value="26" style="width:60px;vertical-align:middle;accent-color:var(--accent)">
+  </label>
 </div>
 
 <main id="board">
@@ -197,6 +205,8 @@ const cv = $('#cv'), board = $('#board'), txt = $('#txt');
 let ctx = cv.getContext('2d');
 const hint = $('#hint'), zoomLbl = $('#zoomLbl'), delBtn = $('#delSel');
 const CELL = 40, MAJOR = 5;
+let cellPx = (() => { const s = +localStorage.getItem('pizarra-cellPx-v1'); return (s>=10&&s<=60)?s:(window.devicePixelRatio>=3?30:window.devicePixelRatio>=2?26:20); })();
+let gridMode = 'normal';
 const TEXT_SIZES = { 2: 18, 4: 26, 8: 38 };
 // ── Umbrales del tachado — cambiar aquí para afinar la sensibilidad ────────
 const SCRATCH = {
@@ -230,7 +240,7 @@ const KEY = 'pizarra-medidor-' + _levantamientoId;
 const IDB_NAME = 'pizarra-medidor-' + _levantamientoId;
 // ───────────────────────────────────────────────────────────────────────────
 
-let view = { x: 24, y: 24, k: 1 }, items = [], hist = [], redoS = [];
+let view = { x: 24, y: 24, k: cellPx / CELL }, items = [], hist = [], redoS = [];
 let tool = 'pen', color = '#111827', size = 3, cellVal = 0.5, unit = 'm', snap = true, fingerDraw = false;
 // Grosor recordado por herramienta (pen/line/measure/erase/text)
 let toolSizes = { pen: 3, line: 1.5, measure: 1.5, erase: 12, text: 3 };
@@ -316,6 +326,8 @@ function resize() {
   schedule();
 }
 function drawGrid(w, h) {
+  if (gridMode === 'hidden') return;
+  ctx.save(); if (gridMode === 'dim') ctx.globalAlpha = 0.25;
   const step = CELL * view.k;
   const x0 = Math.floor(-view.x / view.k / CELL), x1 = Math.ceil((w - view.x) / view.k / CELL);
   const y0 = Math.floor(-view.y / view.k / CELL), y1 = Math.ceil((h - view.y) / view.k / CELL);
@@ -327,6 +339,7 @@ function drawGrid(w, h) {
     for (let j = y0; j <= y1; j++) { if ((j % MAJOR === 0) !== major) continue; const sy = Math.round(j * step + view.y) + .5; ctx.moveTo(0, sy); ctx.lineTo(w, sy); }
     ctx.stroke();
   }
+  ctx.restore();
 }
 function drawStroke(s) {
   const p = s.p; ctx.strokeStyle = s.c; ctx.fillStyle = s.c; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
@@ -436,7 +449,7 @@ function save() {
   clearTimeout(saveT);
   saveT = setTimeout(() => {
     const slim = items.map(i => (i.t === 'p' && persisted.has(i.id)) ? { ...i, src: null } : i);
-    try { localStorage.setItem(KEY, JSON.stringify({ items: slim, view, cellVal, unit, snap, fingerDraw, holdOn, color, size, toolSizes, job, who })); }
+    try { localStorage.setItem(KEY, JSON.stringify({ items: slim, view, cellVal, unit, snap, fingerDraw, holdOn, color, size, toolSizes, job, who, cellPx, gridMode })); }
     catch (e) { hint.textContent = 'No se pudo guardar en este navegador. Exporta el PDF para no perder el trabajo.'; }
   }, 700);
 }
@@ -449,7 +462,7 @@ function load() {
       // Los params de URL tienen prioridad sobre lo guardado en localStorage
       job = _jobParam || d.job || ''; who = _whoParam || d.who || '';
       color = d.color || color; size = d.size || size;
-      if (d.toolSizes) Object.assign(toolSizes, d.toolSizes); return true;
+      if (d.toolSizes) Object.assign(toolSizes, d.toolSizes); if (d.cellPx >= 10) cellPx = d.cellPx; gridMode = d.gridMode || 'normal'; return true;
     }
   } catch (e) { /* sin almacenamiento */ }
   return false;
@@ -802,8 +815,8 @@ function photoAnnotations(photo) {
   });
 }
 function showPhotoMenu() {
-  if (!photoMenu) return;
-  if (!sel || sel.t !== 'p' || tool !== 'move') { photoMenu.hidden = true; return; }
+  const menu = $('#photoMenu'); if (!menu) return;
+  if (!sel || sel.t !== 'p' || tool !== 'move') { menu.style.display = 'none'; return; }
   const br = board.getBoundingClientRect();
   const sx = sel.x * view.k + view.x, sy = sel.y * view.k + view.y;
   const sw = sel.w * view.k, sh = sel.h * view.k;
@@ -811,13 +824,18 @@ function showPhotoMenu() {
   let my = br.top  + sy + sh + 8;
   mx = Math.max(8, Math.min(mx, window.innerWidth - 210));
   if (my + 260 > window.innerHeight) my = br.top + sy - 10 - Math.min(200, my + 260 - window.innerHeight);
-  photoMenu.style.left = mx + 'px';
-  photoMenu.style.top  = my + 'px';
-  photoMenu.hidden = false;
+  menu.style.left = mx + 'px';
+  menu.style.top  = my + 'px';
+  menu.style.display = 'flex';
 }
-function hidePhotoMenu() { if (photoMenu) { photoMenu.hidden = true; if (pmConfirm) pmConfirm.hidden = true; } }
+function hidePhotoMenu() {
+  const menu = $('#photoMenu'), conf = $('#pm-confirm');
+  if (menu) menu.style.display = 'none';
+  if (conf) conf.hidden = true;
+}
 document.addEventListener('pointerdown', e => {
-  if (photoMenu && !photoMenu.hidden && !photoMenu.contains(e.target)) hidePhotoMenu();
+  const menu = $('#photoMenu');
+  if (menu && menu.style.display === 'flex' && !menu.contains(e.target)) hidePhotoMenu();
 }, true);
 $('#pm-dup').addEventListener('click', () => {
   if (!sel || sel.t !== 'p') return;
@@ -870,6 +888,13 @@ $('#unit').addEventListener('change', e => { unit = e.target.value; save(); });
 $('#snap').addEventListener('change', e => { snap = e.target.checked; save(); });
 $('#finger').addEventListener('change', e => { fingerDraw = e.target.checked; save(); });
 $('#holdOn').addEventListener('change', e => { holdOn = e.target.checked; save(); });
+$('#gridModeBtn').addEventListener('change', e => { gridMode = e.target.value; save(); schedule(); });
+$('#cellPxSlider').addEventListener('input', e => {
+  const newPx = +e.target.value;
+  if (cellPx > 0) view.k = view.k * newPx / cellPx;
+  cellPx = newPx; localStorage.setItem('pizarra-cellPx-v1', String(newPx));
+  save(); schedule();
+});
 $('#zin').addEventListener('click', () => zoomAt(board.clientWidth / 2, board.clientHeight / 2, 1.25));
 $('#zout').addEventListener('click', () => zoomAt(board.clientWidth / 2, board.clientHeight / 2, 0.8));
 $('#fit').addEventListener('click', () => {
@@ -1064,7 +1089,7 @@ matchMedia('(prefers-color-scheme: dark)').addEventListener('change', readTheme)
 new MutationObserver(readTheme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 new ResizeObserver(resize).observe(board);
 if (!load()) seedExample(); else restorePhotos();
-$('#cell').value = cellVal; $('#unit').value = unit; $('#snap').checked = snap; $('#finger').checked = fingerDraw; $('#holdOn').checked = holdOn; $('#job').value = job; $('#who').value = who;
+$('#cell').value = cellVal; $('#unit').value = unit; $('#snap').checked = snap; $('#finger').checked = fingerDraw; $('#holdOn').checked = holdOn; $('#job').value = job; $('#who').value = who; $('#gridModeBtn').value = gridMode; $('#cellPxSlider').value = cellPx;
 initDownloads(3);
 setColor(color); setTool('pen'); setSize(size); syncBtns(); resize();
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(schedule);

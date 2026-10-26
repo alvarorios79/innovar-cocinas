@@ -492,6 +492,7 @@ export default function Medidor() {
   const addPhoto = trpc.technicalVisits.addPhoto.useMutation();
   const deletePhoto = trpc.technicalVisits.deletePhoto.useMutation();
   const compressPdf = trpc.technicalVisits.compressPdf.useMutation();
+  const deletePdf = trpc.technicalVisits.deletePdf.useMutation();
   const submitVisit = trpc.technicalVisits.submit.useMutation();
   const saveSignature = trpc.technicalVisits.saveSignature.useMutation();
   const deleteVisitMutation = trpc.technicalVisits.delete.useMutation();
@@ -693,6 +694,18 @@ export default function Medidor() {
     };
     reader.onerror = () => toast.error("Error al leer el archivo PDF");
     reader.readAsDataURL(file);
+  };
+
+  const handleDeletePdf = async (pdfId: string) => {
+    if (!confirm("¿Eliminar este PDF?")) return;
+    try {
+      await deletePdf.mutateAsync({ pdfId: Number(pdfId) });
+      toast.success("PDF eliminado");
+      refetchDetail();
+      refetchVisits();
+    } catch (err: any) {
+      toast.error(`Error al eliminar PDF: ${err?.message || "Error desconocido"}`);
+    }
   };
 
   const handleExportPizarra = async () => {
@@ -1675,9 +1688,22 @@ export default function Medidor() {
                     <File className="h-4 w-4 text-[#1DB5A8]" />
                     <span className="text-sm text-white truncate">{pdf.fileName}</span>
                   </div>
-                  <a href={`${pdf.url}${pdf.url.includes("?") ? "&" : "?"}v=${encodeURIComponent(pdf.id)}`} target="_blank" rel="noopener noreferrer" className="text-[#1DB5A8] hover:underline text-sm">
-                    Ver PDF
-                  </a>
+                  <div className="flex items-center gap-2">
+                    <a href={`${pdf.url}${pdf.url.includes("?") ? "&" : "?"}v=${encodeURIComponent(pdf.id)}`} target="_blank" rel="noopener noreferrer" className="text-[#1DB5A8] hover:underline text-sm">
+                      Ver PDF
+                    </a>
+                    {isEditable && (
+                      <button
+                        type="button"
+                        onClick={() => handleDeletePdf(pdf.id)}
+                        disabled={deletePdf.isPending}
+                        className="text-red-400 hover:text-red-300 disabled:opacity-50 p-1"
+                        title="Eliminar PDF"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>

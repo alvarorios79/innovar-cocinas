@@ -38,6 +38,7 @@ import {
   Calendar,
   PenLine,
   Maximize2,
+  X,
 } from "lucide-react";
 
 // ── Tipos ────────────────────────────────────────────────────────────────────
@@ -393,6 +394,21 @@ export default function Medidor() {
   const pdfInputRef = useRef<HTMLInputElement>(null);
   const pizarraRef = useRef<PizarraRef>(null);
   const [pizarraUploading, setPizarraUploading] = useState(false);
+  const [pizarraFullscreen, setPizarraFullscreen] = useState(false);
+
+  useEffect(() => {
+    if (pizarraFullscreen) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.overscrollBehavior = 'none';
+    } else {
+      document.body.style.overflow = '';
+      document.body.style.overscrollBehavior = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.overscrollBehavior = '';
+    };
+  }, [pizarraFullscreen]);
 
   // Auto-abrir formulario nuevo si viene desde cita (URL o clic en cita asignada)
   useEffect(() => {
@@ -1690,10 +1706,16 @@ export default function Medidor() {
             )}
           </div>
 
-          {/* Pizarra del medidor */}
+          {/* Pizarra del medidor — fullscreen CSS, no nativo (evita gestos iOS) */}
           {isEditable && (
-            <div className="bg-[#162828] border border-[#1DB5A8]/20 rounded-lg overflow-hidden">
-              <div className="flex items-center justify-between px-4 py-3 border-b border-[#1DB5A8]/20">
+            <div className={pizarraFullscreen
+              ? "fixed inset-0 z-50 flex flex-col bg-white"
+              : "bg-[#162828] border border-[#1DB5A8]/20 rounded-lg overflow-hidden"
+            }>
+              <div className={pizarraFullscreen
+                ? "flex items-center justify-between px-4 py-2 bg-[#162828] border-b border-[#1DB5A8]/20 shrink-0"
+                : "flex items-center justify-between px-4 py-3 border-b border-[#1DB5A8]/20"
+              }>
                 <h2 className="text-lg font-semibold text-white flex items-center gap-2">
                   <PenLine className="h-5 w-5 text-[#1DB5A8]" />
                   Pizarra del medidor
@@ -1701,12 +1723,15 @@ export default function Medidor() {
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
-                    onClick={() => pizarraRef.current?.requestFullscreen()}
+                    onClick={() => setPizarraFullscreen(f => !f)}
                     className="text-sm font-medium px-3 py-1.5 rounded-lg border border-[#1DB5A8]/40 text-[#1DB5A8] hover:bg-[#1DB5A8]/10 flex items-center gap-1.5"
-                    title="Abrir en pantalla completa"
+                    title={pizarraFullscreen ? "Salir de pantalla completa" : "Abrir en pantalla completa"}
                   >
-                    <Maximize2 className="h-4 w-4" />
-                    Pantalla completa
+                    {pizarraFullscreen ? (
+                      <><X className="h-4 w-4" /> Cerrar</>
+                    ) : (
+                      <><Maximize2 className="h-4 w-4" /> Pantalla completa</>
+                    )}
                   </button>
                   <button
                     type="button"
@@ -1725,7 +1750,7 @@ export default function Medidor() {
                 job={visitDetail?.clientName ?? selectedVisit?.clientName ?? ""}
                 who={user?.name ?? ""}
                 date={new Date().toISOString()}
-                height="580px"
+                height={pizarraFullscreen ? "calc(100dvh - 53px)" : "580px"}
               />
             </div>
           )}

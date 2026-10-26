@@ -146,9 +146,9 @@ body {
   </div>
   <div class="grp end" role="group" aria-label="Edición">
     <select id="pdfArea" class="btn" aria-label="Qué parte de la hoja va al PDF" title="Qué parte de la hoja va al PDF" style="padding:0 8px">
+      <option value="auto">PDF: automático (donde trabajé)</option>
       <option value="view">PDF: lo que veo en pantalla</option>
       <option value="pick">PDF: elegir un área</option>
-      <option value="all">PDF: todo, por zonas</option>
     </select>
     <button class="btn primary" id="exportPdf">Exportar PDF</button>
     <button class="btn" id="undo" disabled>Deshacer</button>
@@ -264,7 +264,7 @@ let toolSizes = { pen: 3, line: 1.5, measure: 1.5, erase: 12, text: 3 };
 let cur = null, sel = null, drag = null, nav = null, eraseRing = null, txtState = null, scratchPrev = null;
 let penDown = false, lastPen = 0, dpr = 1, raf = 0, saveT = 0, confirmT = 0;
 let holdOn = true, holdT = 0, holdAnchor = null, holdShape = false;
-let pdfArea = 'view', lastPick = null, pick = null;
+let pdfArea = 'auto', lastPick = null, pick = null;
 const VERSION = 'v6-area';
 let job = _jobParam, who = _whoParam, DL = null, exporting = false, exportNum = null;
 let T = { accent: '#0b62c4', paper: '#fff', minor: '#d6e4f2', major: '#a9c4de', num: 'monospace', ui: 'sans-serif' };
@@ -498,7 +498,7 @@ function load() {
       // Los params de URL tienen prioridad sobre lo guardado en localStorage
       job = _jobParam || d.job || ''; who = _whoParam || d.who || '';
       color = d.color || color; size = d.size || size;
-      if (d.toolSizes) Object.assign(toolSizes, d.toolSizes); if (d.cellPx >= 10) cellPx = d.cellPx; gridMode = d.gridMode || 'normal'; pdfArea = d.pdfArea || 'view'; lastPick = d.lastPick || null; return true;
+      if (d.toolSizes) Object.assign(toolSizes, d.toolSizes); if (d.cellPx >= 10) cellPx = d.cellPx; gridMode = d.gridMode || 'normal'; pdfArea = (d.pdfArea === 'view' || d.pdfArea === 'pick') ? d.pdfArea : 'auto'; lastPick = d.lastPick || null; return true;
     }
   } catch (e) { /* sin almacenamiento */ }
   return false;
@@ -1028,9 +1028,23 @@ function contentBounds(list) {
 }
 // Agrupa los elementos por cercanía: cada zona de trabajo (cocina, baño, fachada…) sale en su propia página.
 // Así un elemento perdido lejos no encoge todo el resto hasta volverlo ilegible.
-function clusterItems() {
+// Modo automático: quita lo que casi seguro es un accidente (trazos gigantes o con puntos inválidos) y las
+// "motas" sueltas lejos del trabajo, para que el PDF salga solo de la parte donde se trabajó.
+function autoWorkItems() {
+  const bad = it => { const b = bounds(it); if (!b.every(isFinite)) return true; return it.t === 's' && Math.hypot(b[2] - b[0], b[3] - b[1]) > 3000; };
+  const good = items.filter(it => !bad(it));
+  const zones = clusterItems(good), keep = [];
+  for (const z of zones) {
+    // mota = una zona de 1-2 trazos diminutos (un toque accidental del lápiz); un dibujo pequeño pero real se conserva
+    const speck = z.length <= 2 && z.every(it => { const b = bounds(it); return it.t === 's' && Math.hypot(b[2] - b[0], b[3] - b[1]) < 80; });
+    if (!speck) keep.push(...z);
+  }
+  if (!keep.length) return { list: good.length ? good : items, skipped: 0 };   // nunca dejar el PDF sin contenido
+  return { list: keep, skipped: items.length - keep.length };
+}
+function clusterItems(list) {
   const pad = CELL * 3;
-  let g = items.map(it => { const b = bounds(it); return { b: [b[0] - pad, b[1] - pad, b[2] + pad, b[3] + pad], its: [it] }; });
+  let g = list.map(it => { const b = bounds(it); return { b: [b[0] - pad, b[1] - pad, b[2] + pad, b[3] + pad], its: [it] }; });
   const hits = (A, B) => A[0] <= B[2] && B[0] <= A[2] && A[1] <= B[3] && B[1] <= A[3];
   let changed = true;
   while (changed) {
@@ -1061,7 +1075,8 @@ function drawGridLines(b, s) {
     ctx.stroke();
   }
 }
-function renderBoard(b, pxW) {
+function renderBoard(b, pxW, list) {
+  list = list || items;
   const W = b[2] - b[0], H = b[3] - b[1], s = pxW / W, c = document.createElement('canvas');
   c.width = Math.round(pxW); c.height = Math.round(H * s);
   const prevCtx = ctx, prevView = view;
@@ -1070,20 +1085,22 @@ function renderBoard(b, pxW) {
     ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, c.width, c.height);
     ctx.setTransform(s, 0, 0, s, -b[0] * s, -b[1] * s);
     drawGridWorld(b, s);
-    for (const it of items) if (it.t === 'p') drawItem(it);
-    for (const it of items) if (it.t !== 'p') drawItem(it);
+    for (const it of list) if (it.t === 'p') drawItem(it);
+    for (const it of list) if (it.t !== 'p') drawItem(it);
   } finally { ctx = prevCtx; view = prevView; }
   return c;
 }
-async function buildPdf(region) {
+async function buildPdf(region, auto) {
   const { jsPDF } = window.jspdf;
   await Promise.all(pendingLoads);
   await Promise.all(items.filter(i => i.t === 'p' && i.src).map(ensureImg));
+  const aw0 = auto ? autoWorkItems() : null, src = aw0 ? aw0.list : items, skipped = aw0 ? aw0.skipped : 0;
+  if (!src.length) throw new Error('no hay trabajo que exportar');
   const zones = region
     ? [(() => { const b = [Math.min(region[0], region[2]), Math.min(region[1], region[3]), Math.max(region[0], region[2]), Math.max(region[1], region[3])], W = b[2] - b[0], H = b[3] - b[1]; return { b, W, H, land: W >= H }; })()]
-    : clusterItems().map(list => { const b = contentBounds(list), W = b[2] - b[0], H = b[3] - b[1]; return { b, W, H, land: W >= H }; });
+    : clusterItems(src).map(list => { const b = contentBounds(list), W = b[2] - b[0], H = b[3] - b[1]; return { b, W, H, land: W >= H }; });
   // Solo lo que cae dentro de lo exportado entra en las listas del final
-  const incl = items.filter(it => { const q = bounds(it), cx = (q[0] + q[2]) / 2, cy = (q[1] + q[3]) / 2; return zones.some(z => cx >= z.b[0] && cx <= z.b[2] && cy >= z.b[1] && cy <= z.b[3]); });
+  const incl = src.filter(it => { const q = bounds(it), cx = (q[0] + q[2]) / 2, cy = (q[1] + q[3]) / 2; return zones.some(z => cx >= z.b[0] && cx <= z.b[2] && cy >= z.b[1] && cy <= z.b[3]); });
   exportNum = new Map(); let n = 0; for (const it of incl) if (it.t === 'm') exportNum.set(it, ++n);
   const nz = zones.length, M = 28, headH = 50, TOTAL_MB = 2.2, budget = Math.max(0.3, TOTAL_MB / nz) * MB;
   const ladder = [[300, 0.9], [300, 0.85], [250, 0.88], [220, 0.85], [200, 0.82], [180, 0.8], [150, 0.75], [120, 0.7]];
@@ -1105,7 +1122,7 @@ async function buildPdf(region) {
     for (const [d0, q] of ladder) {
       // limita los píxeles totales para no agotar la memoria de la tablet
       const dpi = Math.min(d0, Math.sqrt(12e6 / ((iw / 72) * (ih / 72))));
-      if (canvasDpi !== dpi) { canvas = renderBoard(b, Math.round(iw * dpi / 72)); canvasDpi = dpi; await new Promise(r => setTimeout(r, 0)); }
+      if (canvasDpi !== dpi) { canvas = renderBoard(b, Math.round(iw * dpi / 72), src); canvasDpi = dpi; await new Promise(r => setTimeout(r, 0)); }
       const url = canvas.toDataURL('image/jpeg', q), bytes = Math.round((url.length - 23) * 0.75);
       pick = { url, bytes, dpi: Math.round(dpi), q }; if (bytes <= budget) break;
     }
@@ -1142,8 +1159,8 @@ async function buildPdf(region) {
   for (let p = 1; p <= total; p++) { doc.setPage(p); const w = doc.internal.pageSize.getWidth(), h = doc.internal.pageSize.getHeight(); doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(120, 130, 142); doc.text(`Página ${p} de ${total}`, w - M, h - 14, { align: 'right' }); doc.text(`Pizarra ${VERSION}`, M, h - 14); }
   const blob = doc.output('blob');
   const name = `Levantamiento_${slug(job) || 'sin-nombre'}_${new Date().toISOString().slice(0, 10)}.pdf`;
-  const stretched = !region && zones.some(z => Math.max(z.W / z.H, z.H / z.W) > 4);
-  return { blob, name, dpi: pick.dpi, q: pick.q, warn: stretched ? 'Aviso: hay algo muy alejado del resto y alarga la hoja. Usa «PDF: lo que veo en pantalla» o «elegir un área», o borra el trazo suelto.' : '' };
+  const stretched = !region && !auto && zones.some(z => Math.max(z.W / z.H, z.H / z.W) > 4);
+  return { blob, name, dpi: pick.dpi, q: pick.q, warn: (skipped ? `Se omitieron ${skipped} trazos sueltos que no eran parte del trabajo.` : '') + (stretched ? 'Aviso: hay algo muy alejado del resto y alarga la hoja. Usa «PDF: lo que veo en pantalla» o «elegir un área», o borra el trazo suelto.' : '') };
 }
 
 async function exportPdf(opts) {
@@ -1152,9 +1169,10 @@ async function exportPdf(opts) {
   commitText(false);
   if (!items.length) { hint.textContent = 'La hoja está vacía: dibuja o mide algo antes de exportar.'; return; }
   // Qué parte de la hoja va al PDF
-  let region = opts.region || null;
+  let region = opts.region || null, auto = false;
   if (!region) {
-    if (opts.fromParent) { region = (pdfArea === 'pick' && lastPick) ? lastPick : null; }   // el formulario nunca dispara la selección interactiva
+    if (opts.fromParent) { region = (pdfArea === 'pick' && lastPick) ? lastPick : null; auto = !region; }   // el formulario nunca dispara la selección interactiva
+    else if (pdfArea === 'auto') auto = true;
     else if (pdfArea === 'view') region = visibleRegion();
     else if (pdfArea === 'pick') { startPick(); return; }
   }
@@ -1165,7 +1183,7 @@ async function exportPdf(opts) {
   exporting = true; const btn = $('#exportPdf'); btn.disabled = true; hint.textContent = 'Generando el PDF…';
   await new Promise(r => setTimeout(r, 30));
   try {
-    const r = await buildPdf(region), mb = r.blob.size / MB;
+    const r = await buildPdf(region, auto), mb = r.blob.size / MB;
     hint.textContent = `PDF listo: ${fmt(mb)} MB a ${r.dpi} ppp.`;
 
     // ── Entrega al padre por postMessage (cuando está en iframe) ──

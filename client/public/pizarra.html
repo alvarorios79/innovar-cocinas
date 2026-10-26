@@ -107,6 +107,9 @@ body {
   font-family: var(--font-ui); font-weight: 600; outline: none; -webkit-user-select: text; user-select: text;
 }
 #txt.m { font-family: var(--font-num); text-align: center; transform: translate(-50%, -50%); width: 120px; }
+#toastPz { position: absolute; z-index: 6; bottom: 12px; left: 50%; transform: translateX(-50%); max-width: calc(100% - 24px); padding: 10px 16px; border-radius: 12px; background: #111827; color: #fff; font: 500 14px var(--font-ui); box-shadow: 0 4px 16px rgba(0,0,0,.3); text-align: center; pointer-events: none; }
+#toastPz[hidden] { display: none; }
+#toastPz.err { background: #b3261e; }
 #pickBar { position: absolute; z-index: 4; top: 8px; left: 50%; transform: translateX(-50%); display: flex; flex-wrap: wrap; align-items: center; gap: 8px; justify-content: center; max-width: calc(100% - 16px); padding: 8px 10px; border-radius: 12px; background: var(--panel); border: 1px solid var(--accent); box-shadow: 0 4px 16px rgba(0,0,0,.2); font-size: 13px; color: var(--fg); }
 #pickBar[hidden] { display: none; }
 #hint { font-size: 13px; color: var(--muted); min-height: 1.35em; }
@@ -145,6 +148,7 @@ body {
     <button class="btn danger" id="delSel" hidden>Quitar selección</button>
   </div>
   <div class="grp end" role="group" aria-label="Edición">
+    <span id="verBadge" title="Versión de la pizarra" style="font:500 11px var(--font-num);color:var(--muted);padding:0 4px"></span>
     <select id="pdfArea" class="btn" aria-label="Qué parte de la hoja va al PDF" title="Qué parte de la hoja va al PDF" style="padding:0 8px">
       <option value="auto">PDF: automático (donde trabajé)</option>
       <option value="view">PDF: lo que veo en pantalla</option>
@@ -186,6 +190,7 @@ body {
 
 <main id="board">
   <canvas id="cv" aria-label="Hoja de trabajo cuadriculada"></canvas>
+  <div id="toastPz" hidden role="status"></div>
   <div id="pickBar" hidden>
     <span>Arrastra para marcar el área del PDF. Dos dedos mueven y acercan la hoja.</span>
     <button type="button" class="btn sm primary" id="pickOk">Generar PDF</button>
@@ -265,7 +270,7 @@ let cur = null, sel = null, drag = null, nav = null, eraseRing = null, txtState 
 let penDown = false, lastPen = 0, dpr = 1, raf = 0, saveT = 0, confirmT = 0;
 let holdOn = true, holdT = 0, holdAnchor = null, holdShape = false;
 let pdfArea = 'auto', lastPick = null, pick = null;
-const VERSION = 'v9-memoria';
+const VERSION = 'v9.2';
 const EMBEDDED = window.parent !== window;
 const notifyParent = m => { if (EMBEDDED) { try { window.parent.postMessage({ ...m, levantamientoId: _levantamientoId }, '*'); } catch (_) {} } };
 let job = _jobParam, who = _whoParam, DL = null, exporting = false, exportNum = null;
@@ -1103,10 +1108,14 @@ function renderBoard(b, pxW, list) {
   } finally { ctx = prevCtx; view = prevView; }
   return c;
 }
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const step = t => { hint.textContent = 'Generando el PDF — ' + t; notifyParent({ type: 'pizarra:progress', step: t }); };
 async function buildPdf(region, auto) {
   const { jsPDF } = window.jspdf;
-  await Promise.all(pendingLoads);
-  await Promise.all(items.filter(i => i.t === 'p' && i.src).map(ensureImg));
+  step('paso 1 de 4: preparando las fotos…');
+  await Promise.race([Promise.all(pendingLoads), sleep(6000)]);                       // si el almacenamiento no responde, no esperar para siempre
+  await Promise.race([Promise.all(items.filter(i => i.t === 'p' && i.src).map(ensureImg)), sleep(8000)]);
+  step('paso 2 de 4: calculando el área…');
   const aw0 = auto ? autoWorkItems() : null, src = aw0 ? aw0.list : items, skipped = aw0 ? aw0.skipped : 0;
   if (!src.length) throw new Error('no hay trabajo que exportar');
   const zones = region
@@ -1132,6 +1141,7 @@ async function buildPdf(region, auto) {
     if (zi > 0) doc.addPage('a4', Z.land ? 'l' : 'p');
     const aw = pw - 2 * M, ah = ph - 2 * M - headH - 14;
     let iw = aw, ih = iw * Z.H / Z.W; if (ih > ah) { ih = ah; iw = ih * Z.W / Z.H; }
+    step(`paso 3 de 4: creando la imagen ${zi + 1} de ${nz}…`);
     let canvas = null, canvasDpi = 0; pick = null;
     for (const [d0, q] of ladder) {
       // limita los píxeles totales (~6 millones) para no agotar la memoria de la tablet
@@ -1181,15 +1191,18 @@ async function buildPdf(region, auto) {
   notes.forEach((t, i) => line(`${i + 1}.   ${t.s}`, 10.5, false, 0));
   const total = doc.getNumberOfPages();
   for (let p = 1; p <= total; p++) { doc.setPage(p); const w = doc.internal.pageSize.getWidth(), h = doc.internal.pageSize.getHeight(); doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(120, 130, 142); doc.text(`Página ${p} de ${total}`, w - M, h - 14, { align: 'right' }); doc.text(`Pizarra ${VERSION}`, M, h - 14); }
+  step('paso 4 de 4: armando el archivo…');
   const blob = doc.output('blob');
   const name = `Levantamiento_${slug(job) || 'sin-nombre'}_${new Date().toISOString().slice(0, 10)}.pdf`;
   const stretched = !region && !auto && zones.some(z => Math.max(z.W / z.H, z.H / z.W) > 4);
   return { blob, name, dpi: pick.dpi, q: pick.q, warn: (skipped ? `Se omitieron ${skipped} trazos sueltos que no eran parte del trabajo.` : '') + (stretched ? 'Aviso: hay algo muy alejado del resto y alarga la hoja. Usa «PDF: lo que veo en pantalla» o «elegir un área», o borra el trazo suelto.' : '') };
 }
 
+let exportStart = 0;
 async function exportPdf(opts) {
   opts = (opts && opts.region !== undefined) ? opts : (opts || {});
-  if (exporting) return;
+  if (exporting) { if (Date.now() - exportStart < 40000) { notifyParent({ type: 'pizarra:pdfError', reason: 'ocupado' }); return; } exporting = false; }   // un intento colgado más de 40 s no bloquea los siguientes
+  exportStart = Date.now();
   commitText(false);
   if (!items.length) { hint.textContent = 'La hoja está vacía: dibuja o mide algo antes de exportar.'; notifyParent({ type: 'pizarra:pdfError', reason: 'empty' }); return; }
   // Qué parte de la hoja va al PDF
@@ -1203,7 +1216,7 @@ async function exportPdf(opts) {
   if (region && !items.some(it => { const q = bounds(it); return q[0] < Math.max(region[0], region[2]) && q[2] > Math.min(region[0], region[2]) && q[1] < Math.max(region[1], region[3]) && q[3] > Math.min(region[1], region[3]); })) {
     hint.textContent = 'No hay nada dentro de esa área. Muévete a donde trabajaste o elige otra área.'; notifyParent({ type: 'pizarra:pdfError', reason: 'empty-area' }); return;
   }
-  if (!window.jspdf) { hint.textContent = 'No se pudo cargar el generador de PDF. Revisa la conexión.'; return; }
+  if (!window.jspdf) { hint.textContent = 'No se pudo cargar el generador de PDF (jsPDF). Revisa la conexión.'; notifyParent({ type: 'pizarra:pdfError', reason: 'jspdf-no-cargado' }); return; }
   exporting = true; const btn = $('#exportPdf'); btn.disabled = true; hint.textContent = 'Generando el PDF…';
   await new Promise(r => setTimeout(r, 30));
   try {
@@ -1268,6 +1281,18 @@ async function initDownloads(tries) {
   try { DL = (window.claude && window.claude.use) ? await window.claude.use('downloads') : null; } catch (_) { DL = null; }
   if (!DL && tries > 0) return setTimeout(() => initDownloads(tries - 1), 1200);
 }
+
+/* ---------- avisos visibles sobre la hoja (la línea de ayuda del pie puede quedar fuera de pantalla en el portal) ---------- */
+$('#verBadge').textContent = VERSION;
+(() => {
+  const tz = $('#toastPz'); let t = 0;
+  new MutationObserver(() => {
+    const x = hint.textContent || '';
+    if (!/^(Generando el PDF|Orden recibida|PDF |No se pudo|La hoja está vacía|No hay nada|Área guardada)/.test(x)) return;
+    tz.textContent = x; tz.className = /^(No se pudo|La hoja está vacía|No hay nada)/.test(x) ? 'err' : ''; tz.hidden = false;
+    clearTimeout(t); if (!/^(Generando|Orden)/.test(x)) t = setTimeout(() => { tz.hidden = true; }, 9000);
+  }).observe(hint, { childList: true, characterData: true, subtree: true });
+})();
 
 /* ---------- bloquear gestos del navegador (iPad Safari) ---------- */
 window.addEventListener('gesturestart',  e => e.preventDefault(), { passive: false });

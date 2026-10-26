@@ -265,7 +265,9 @@ let cur = null, sel = null, drag = null, nav = null, eraseRing = null, txtState 
 let penDown = false, lastPen = 0, dpr = 1, raf = 0, saveT = 0, confirmT = 0;
 let holdOn = true, holdT = 0, holdAnchor = null, holdShape = false;
 let pdfArea = 'auto', lastPick = null, pick = null;
-const VERSION = 'v6-area';
+const VERSION = 'v7-embed';
+const EMBEDDED = window.parent !== window;
+const notifyParent = m => { if (EMBEDDED) { try { window.parent.postMessage({ ...m, levantamientoId: _levantamientoId }, '*'); } catch (_) {} } };
 let job = _jobParam, who = _whoParam, DL = null, exporting = false, exportNum = null;
 let T = { accent: '#0b62c4', paper: '#fff', minor: '#d6e4f2', major: '#a9c4de', num: 'monospace', ui: 'sans-serif' };
 const ptrs = new Map(), imgs = new Map();
@@ -693,7 +695,9 @@ function drawPick() {
 $('#pickOk').addEventListener('click', () => {
   if (!pick) return;
   let r = pick.r; if (r[2] - r[0] < CELL * 2 || r[3] - r[1] < CELL * 2) { hint.textContent = 'El área es muy pequeña. Marca un recuadro más grande.'; return; }
-  lastPick = r.slice(); cancelPick(); save(); exportPdf({ region: lastPick });
+  lastPick = r.slice(); cancelPick(); save();
+  if (EMBEDDED) { hint.textContent = 'Área guardada. Usa «Guardar como PDF» del formulario para generar el PDF de esta área.'; return; }
+  exportPdf({ region: lastPick });
 });
 $('#pickCancel').addEventListener('click', () => { cancelPick(); hint.textContent = HINTS[tool]; });
 
@@ -984,7 +988,15 @@ $('#snap').addEventListener('change', e => { snap = e.target.checked; save(); })
 $('#finger').addEventListener('change', e => { fingerDraw = e.target.checked; save(); });
 $('#holdOn').addEventListener('change', e => { holdOn = e.target.checked; save(); });
 $('#gridModeBtn').addEventListener('change', e => { gridMode = e.target.value; save(); schedule(); });
-$('#pdfArea').addEventListener('change', e => { pdfArea = e.target.value; cancelPick(); save(); });
+$('#pdfArea').addEventListener('change', e => { pdfArea = e.target.value; cancelPick(); save(); if (EMBEDDED && pdfArea === 'pick') startPick(); });
+if (EMBEDDED) {
+  // Dentro del portal el botón «Guardar como PDF» del formulario es el único que genera el PDF: aquí se oculta el azul.
+  $('#exportPdf').hidden = true;
+  const vo = $('#pdfArea option[value="view"]'); if (vo) vo.remove();
+  if (pdfArea === 'view') pdfArea = 'auto';
+  $('#pdfArea').value = pdfArea;
+  $('#pdfArea').options[0].textContent = 'PDF: automático (donde trabajé)';
+}
 $('#cellPxSlider').addEventListener('input', e => {
   const newPx = +e.target.value;
   if (cellPx > 0) view.k = view.k * newPx / cellPx;
@@ -1167,7 +1179,7 @@ async function exportPdf(opts) {
   opts = (opts && opts.region !== undefined) ? opts : (opts || {});
   if (exporting) return;
   commitText(false);
-  if (!items.length) { hint.textContent = 'La hoja está vacía: dibuja o mide algo antes de exportar.'; return; }
+  if (!items.length) { hint.textContent = 'La hoja está vacía: dibuja o mide algo antes de exportar.'; notifyParent({ type: 'pizarra:pdfError', reason: 'empty' }); return; }
   // Qué parte de la hoja va al PDF
   let region = opts.region || null, auto = false;
   if (!region) {
@@ -1177,7 +1189,7 @@ async function exportPdf(opts) {
     else if (pdfArea === 'pick') { startPick(); return; }
   }
   if (region && !items.some(it => { const q = bounds(it); return q[0] < Math.max(region[0], region[2]) && q[2] > Math.min(region[0], region[2]) && q[1] < Math.max(region[1], region[3]) && q[3] > Math.min(region[1], region[3]); })) {
-    hint.textContent = 'No hay nada dentro de esa área. Muévete a donde trabajaste o elige otra área.'; return;
+    hint.textContent = 'No hay nada dentro de esa área. Muévete a donde trabajaste o elige otra área.'; notifyParent({ type: 'pizarra:pdfError', reason: 'empty-area' }); return;
   }
   if (!window.jspdf) { hint.textContent = 'No se pudo cargar el generador de PDF. Revisa la conexión.'; return; }
   exporting = true; const btn = $('#exportPdf'); btn.disabled = true; hint.textContent = 'Generando el PDF…';
@@ -1191,7 +1203,7 @@ async function exportPdf(opts) {
       const reader = new FileReader();
       reader.onload = () => {
         window.parent.postMessage({
-          type: 'pizarra:pdf',
+          type: 'pizarra:pdf', levantamientoId: _levantamientoId, version: VERSION,
           name: r.name,
           dataUrl: reader.result,   // data:application/pdf;base64,...
           mb: Math.round(mb * 100) / 100
@@ -1219,6 +1231,7 @@ async function exportPdf(opts) {
     if (r.warn) hint.textContent += '  ' + r.warn;
   } catch (e) {
     hint.textContent = 'No se pudo generar el PDF' + (e && e.message ? ': ' + e.message : '.');
+    notifyParent({ type: 'pizarra:pdfError', reason: String(e && e.message || 'error') });
   } finally { exportNum = null; exporting = false; btn.disabled = false; schedule(); }
 }
 

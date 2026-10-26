@@ -1,7 +1,7 @@
 // client/src/pages/Medidor.tsx
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useSearch } from "wouter";
-import { Pizarra, type PizarraRef } from "@/components/Pizarra";
+import { Pizarra, type PizarraRef, type PizarraStatus } from "@/components/Pizarra";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -394,6 +394,8 @@ export default function Medidor() {
   const pdfInputRef = useRef<HTMLInputElement>(null);
   const pizarraRef = useRef<PizarraRef>(null);
   const [pizarraUploading, setPizarraUploading] = useState(false);
+  // null = todavía no llegó pizarra:status; true/false = estado real
+  const [pizarraHasContent, setPizarraHasContent] = useState<boolean | null>(null);
   const [pizarraFullscreen, setPizarraFullscreen] = useState(false);
 
   useEffect(() => {
@@ -717,7 +719,12 @@ export default function Medidor() {
       // requestPdf() lanza Error si la pizarra envía pizarra:pdfError (hoja vacía, fallo, etc.)
       // Devuelve null solo en timeout (15 s sin respuesta) — no debería ocurrir normalmente
       const pdf = await pizarraRef.current?.requestPdf();
-      if (!pdf) { setPizarraUploading(false); return; }
+      if (!pdf) {
+        // Timeout de 20 s sin respuesta (pizarra no respondió)
+        toast.error("No se pudo generar el PDF — inténtalo de nuevo");
+        setPizarraUploading(false);
+        return;
+      }
       const result = await compressPdf.mutateAsync({
         visitId,
         fileName: pdf.name,
@@ -1775,7 +1782,8 @@ export default function Medidor() {
                   <button
                     type="button"
                     onClick={handleExportPizarra}
-                    disabled={pizarraUploading}
+                    disabled={pizarraUploading || pizarraHasContent === false}
+                    title={pizarraHasContent === false ? "La pizarra está vacía" : undefined}
                     className="text-sm font-medium px-3 py-1.5 rounded-lg bg-[#1DB5A8] hover:bg-[#17a396] disabled:opacity-50 text-white flex items-center gap-1.5"
                   >
                     <FileText className="h-4 w-4" />
@@ -1790,6 +1798,7 @@ export default function Medidor() {
                 who={user?.name ?? ""}
                 date={new Date().toISOString()}
                 height={pizarraFullscreen ? "calc(100dvh - 53px)" : "580px"}
+                onStatus={(s: PizarraStatus) => setPizarraHasContent(s.hasContent)}
               />
             </div>
           )}

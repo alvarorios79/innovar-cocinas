@@ -334,7 +334,8 @@ function draw() {
   ctx.fillStyle = T.paper; ctx.fillRect(0, 0, w, h);
   drawGrid(w, h);
   ctx.setTransform(dpr * view.k, 0, 0, dpr * view.k, dpr * view.x, dpr * view.y);
-  for (const it of items) drawItem(it);
+  for (const it of items) if (it.t === 'p') drawItem(it);
+  for (const it of items) if (it.t !== 'p') drawItem(it);
   if (cur) drawItem(cur);
   if (sel && tool === 'move') {
     const b = bounds(sel), k = view.k;
@@ -686,7 +687,7 @@ async function addPhotos(files) {
       pushHist(); items = [...items, last]; n++;
     } catch (_) { hint.textContent = 'No se pudo leer una de las imágenes.'; }
   }
-  if (last) { setTool('move'); sel = last; syncBtns(); hint.textContent = 'Foto lista: arrástrala para ubicarla y usa la esquina para el tamaño.'; save(); schedule(); }
+  if (last) { sel = null; syncBtns(); hint.textContent = 'Foto lista. Dibuja con Lápiz/Medida/Texto, o usa Mover para ubicarla.'; save(); schedule(); }
 }
 $('#shoot').addEventListener('click', () => $('#fileCam').click());
 $('#gallery').addEventListener('click', () => $('#fileGal').click());
@@ -768,7 +769,8 @@ function renderBoard(b, pxW) {
     ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, c.width, c.height);
     ctx.setTransform(s, 0, 0, s, -b[0] * s, -b[1] * s);
     drawGridWorld(b, s);
-    for (const it of items) drawItem(it);
+    for (const it of items) if (it.t === 'p') drawItem(it);
+    for (const it of items) if (it.t !== 'p') drawItem(it);
   } finally { ctx = prevCtx; view = prevView; }
   return c;
 }

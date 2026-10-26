@@ -72,6 +72,8 @@ export const Pizarra = forwardRef<PizarraRef, PizarraProps>(function Pizarra(
 
   // Resolvedor pendiente para requestPdf()
   const pdfResolveRef = useRef<((pdf: PizarraPdf | null) => void) | null>(null);
+  const pdfRejectRef = useRef<((err: Error) => void) | null>(null);
+  const pdfTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Recibir mensajes del iframe
   useEffect(() => {
@@ -80,6 +82,15 @@ export const Pizarra = forwardRef<PizarraRef, PizarraProps>(function Pizarra(
 
       if (e.data.type === 'pizarra:ready') {
         onReady?.();
+      }
+
+      if (e.data.type === 'pizarra:pdfError') {
+        const reason: string = e.data.reason ?? 'La pizarra está vacía o hubo un error al generar el PDF';
+        if (pdfTimeoutRef.current) { clearTimeout(pdfTimeoutRef.current); pdfTimeoutRef.current = null; }
+        pdfResolveRef.current = null;
+        const reject = pdfRejectRef.current;
+        pdfRejectRef.current = null;
+        reject?.(new Error(reason));
       }
 
       if (e.data.type === 'pizarra:pdf') {
@@ -107,16 +118,27 @@ export const Pizarra = forwardRef<PizarraRef, PizarraProps>(function Pizarra(
   // API expuesta al padre via ref
   useImperativeHandle(ref, () => ({
     requestPdf(): Promise<PizarraPdf | null> {
-      return new Promise((resolve) => {
-        // Si no hay nada que resolver en 15 s, retornar null
+      return new Promise((resolve, reject) => {
+        // Si no hay respuesta en 15 s, retornar null (pizarra vacía)
         const timeout = setTimeout(() => {
           pdfResolveRef.current = null;
+          pdfRejectRef.current = null;
+          pdfTimeoutRef.current = null;
           resolve(null);
         }, 15_000);
+        pdfTimeoutRef.current = timeout;
 
         pdfResolveRef.current = (pdf) => {
           clearTimeout(timeout);
+          pdfTimeoutRef.current = null;
+          pdfRejectRef.current = null;
           resolve(pdf);
+        };
+        pdfRejectRef.current = (err) => {
+          clearTimeout(timeout);
+          pdfTimeoutRef.current = null;
+          pdfResolveRef.current = null;
+          reject(err);
         };
 
         iframeRef.current?.contentWindow?.postMessage(

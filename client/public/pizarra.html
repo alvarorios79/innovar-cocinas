@@ -265,7 +265,7 @@ let cur = null, sel = null, drag = null, nav = null, eraseRing = null, txtState 
 let penDown = false, lastPen = 0, dpr = 1, raf = 0, saveT = 0, confirmT = 0;
 let holdOn = true, holdT = 0, holdAnchor = null, holdShape = false;
 let pdfArea = 'auto', lastPick = null, pick = null;
-const VERSION = 'v7-embed';
+const VERSION = 'v9-memoria';
 const EMBEDDED = window.parent !== window;
 const notifyParent = m => { if (EMBEDDED) { try { window.parent.postMessage({ ...m, levantamientoId: _levantamientoId }, '*'); } catch (_) {} } };
 let job = _jobParam, who = _whoParam, DL = null, exporting = false, exportNum = null;
@@ -483,8 +483,9 @@ function pushHist() { hist.push(items); if (hist.length > 100) hist.shift(); red
 function syncBtns() { $('#undo').disabled = !hist.length; $('#redo').disabled = !redoS.length; delBtn.hidden = !(tool === 'move' && sel); showPhotoMenu(); }
 function undo() { commitText(true); if (!hist.length) return; redoS.push(items); items = hist.pop(); sel = null; syncBtns(); save(); schedule(); }
 function redo() { commitText(true); if (!redoS.length) return; hist.push(items); items = redoS.pop(); sel = null; syncBtns(); save(); schedule(); }
+const sendStatus = () => notifyParent({ type: 'pizarra:status', hasContent: items.length > 0, items: items.length, photos: items.filter(i => i.t === 'p').length, version: VERSION });
 function save() {
-  clearTimeout(saveT);
+  clearTimeout(saveT); sendStatus();
   saveT = setTimeout(() => {
     const slim = items.map(i => (i.t === 'p' && persisted.has(i.id)) ? { ...i, src: null } : i);
     try { localStorage.setItem(KEY, JSON.stringify({ items: slim, view, cellVal, unit, snap, fingerDraw, holdOn, color, size, toolSizes, job, who, cellPx, gridMode, pdfArea, lastPick })); }
@@ -1115,7 +1116,8 @@ async function buildPdf(region, auto) {
   const incl = src.filter(it => { const q = bounds(it), cx = (q[0] + q[2]) / 2, cy = (q[1] + q[3]) / 2; return zones.some(z => cx >= z.b[0] && cx <= z.b[2] && cy >= z.b[1] && cy <= z.b[3]); });
   exportNum = new Map(); let n = 0; for (const it of incl) if (it.t === 'm') exportNum.set(it, ++n);
   const nz = zones.length, M = 28, headH = 50, TOTAL_MB = 2.2, budget = Math.max(0.3, TOTAL_MB / nz) * MB;
-  const ladder = [[300, 0.9], [300, 0.85], [250, 0.88], [220, 0.85], [200, 0.82], [180, 0.8], [150, 0.75], [120, 0.7]];
+  // Resolución moderada y un solo lienzo a la vez: una tablet tiene poca memoria por página (un lienzo enorme falla sin avisar).
+  const ladder = [[220, 0.88], [220, 0.82], [200, 0.82], [170, 0.8], [150, 0.76], [120, 0.7]];
   // Fecha: preferir param URL, luego fecha actual
   const when = _dateParam
     ? new Date(_dateParam).toLocaleString('es', { dateStyle: 'long' })
@@ -1132,12 +1134,22 @@ async function buildPdf(region, auto) {
     let iw = aw, ih = iw * Z.H / Z.W; if (ih > ah) { ih = ah; iw = ih * Z.W / Z.H; }
     let canvas = null, canvasDpi = 0; pick = null;
     for (const [d0, q] of ladder) {
-      // limita los píxeles totales para no agotar la memoria de la tablet
-      const dpi = Math.min(d0, Math.sqrt(12e6 / ((iw / 72) * (ih / 72))));
-      if (canvasDpi !== dpi) { canvas = renderBoard(b, Math.round(iw * dpi / 72), src); canvasDpi = dpi; await new Promise(r => setTimeout(r, 0)); }
-      const url = canvas.toDataURL('image/jpeg', q), bytes = Math.round((url.length - 23) * 0.75);
+      // limita los píxeles totales (~6 millones) para no agotar la memoria de la tablet
+      const dpi = Math.min(d0, Math.sqrt(6e6 / ((iw / 72) * (ih / 72))));
+      if (canvasDpi !== dpi) {
+        if (canvas) { canvas.width = 0; canvas.height = 0; canvas = null; }   // libera el lienzo anterior antes de crear otro
+        await new Promise(r => setTimeout(r, 20));
+        try { canvas = renderBoard(b, Math.round(iw * dpi / 72), src); } catch (_) { canvas = null; }
+        canvasDpi = dpi; await new Promise(r => setTimeout(r, 0));
+      }
+      if (!canvas) continue;
+      const url = canvas.toDataURL('image/jpeg', q);
+      if (url.length < 3000) { canvas.width = 0; canvas.height = 0; canvas = null; continue; }   // el navegador devolvió un lienzo en blanco: probar más pequeño
+      const bytes = Math.round((url.length - 23) * 0.75);
       pick = { url, bytes, dpi: Math.round(dpi), q }; if (bytes <= budget) break;
     }
+    if (canvas) { canvas.width = 0; canvas.height = 0; canvas = null; }
+    if (!pick) throw new Error('el navegador no pudo preparar la imagen (poca memoria)');
     doc.setTextColor(23, 34, 45); doc.setFont('helvetica', 'bold'); doc.setFontSize(15);
     doc.text((job || 'Levantamiento de medidas') + (nz > 1 ? `  ·  Zona ${zi + 1} de ${nz}` : ''), M, M + 14);
     doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(86, 102, 122);
@@ -1170,9 +1182,7 @@ async function buildPdf(region, auto) {
   const total = doc.getNumberOfPages();
   for (let p = 1; p <= total; p++) { doc.setPage(p); const w = doc.internal.pageSize.getWidth(), h = doc.internal.pageSize.getHeight(); doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(120, 130, 142); doc.text(`Página ${p} de ${total}`, w - M, h - 14, { align: 'right' }); doc.text(`Pizarra ${VERSION}`, M, h - 14); }
   const blob = doc.output('blob');
-  const _nd = new Date();
-  const _ts = `${_nd.getFullYear()}-${String(_nd.getMonth()+1).padStart(2,'0')}-${String(_nd.getDate()).padStart(2,'0')}_${String(_nd.getHours()).padStart(2,'0')}-${String(_nd.getMinutes()).padStart(2,'0')}`;
-  const name = `Levantamiento_${slug(job) || 'sin-nombre'}_${_ts}.pdf`;
+  const name = `Levantamiento_${slug(job) || 'sin-nombre'}_${new Date().toISOString().slice(0, 10)}.pdf`;
   const stretched = !region && !auto && zones.some(z => Math.max(z.W / z.H, z.H / z.W) > 4);
   return { blob, name, dpi: pick.dpi, q: pick.q, warn: (skipped ? `Se omitieron ${skipped} trazos sueltos que no eran parte del trabajo.` : '') + (stretched ? 'Aviso: hay algo muy alejado del resto y alarga la hoja. Usa «PDF: lo que veo en pantalla» o «elegir un área», o borra el trazo suelto.' : '') };
 }
@@ -1240,7 +1250,8 @@ async function exportPdf(opts) {
 // ── Escuchar mensajes del padre (React) ───────────────────────────────────
 window.addEventListener('message', e => {
   if (!e.data || typeof e.data !== 'object') return;
-  if (e.data.type === 'pizarra:requestPdf') exportPdf({ fromParent: true });
+  if (e.data.type === 'pizarra:requestStatus') sendStatus();
+  if (e.data.type === 'pizarra:requestPdf') { notifyParent({ type: 'pizarra:ack', request: 'requestPdf', version: VERSION, items: items.length }); hint.textContent = 'Orden recibida del formulario: generando el PDF…'; exportPdf({ fromParent: true }); }
   if (e.data.type === 'pizarra:setParams') {
     // Permite actualizar job/who sin recargar el iframe
     if (e.data.job !== undefined) { job = e.data.job; $('#job').value = job; save(); }
@@ -1268,13 +1279,14 @@ readTheme();
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', readTheme);
 new MutationObserver(readTheme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 new ResizeObserver(resize).observe(board);
-if (!load()) seedExample(); else { restorePhotos(); gcPhotos(); }
+if (!load()) { if (!EMBEDDED) seedExample(); }   // dentro del portal un levantamiento nuevo empieza en blanco
+else { restorePhotos(); gcPhotos(); }
 $('#cell').value = cellVal; $('#unit').value = unit; $('#snap').checked = snap; $('#finger').checked = fingerDraw; $('#holdOn').checked = holdOn; $('#job').value = job; $('#who').value = who; $('#gridModeBtn').value = gridMode; $('#pdfArea').value = pdfArea; $('#cellPxSlider').value = cellPx;
 initDownloads(3);
 setColor(color); setTool('pen'); setSize(size); syncBtns(); resize();
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(schedule);
 
 // Avisar al padre que la pizarra está lista
-if (window.parent !== window) window.parent.postMessage({ type: 'pizarra:ready' }, '*');
+if (window.parent !== window) { window.parent.postMessage({ type: 'pizarra:ready', levantamientoId: _levantamientoId, version: VERSION }, '*'); sendStatus(); }
 })();
 </script>

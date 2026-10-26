@@ -160,6 +160,16 @@ let ctx = cv.getContext('2d');
 const hint = $('#hint'), zoomLbl = $('#zoomLbl'), delBtn = $('#delSel');
 const CELL = 40, MAJOR = 5;
 const TEXT_SIZES = { 2: 18, 4: 26, 8: 38 };
+// ── Umbrales del tachado — cambiar aquí para afinar la sensibilidad ────────
+const SCRATCH = {
+  MIN_TURNS:  3,    // inversiones de dirección mínimas (cada una > TURN_DEG°)
+  TURN_DEG:  100,   // grados mínimos para contar una inversión
+  MIN_PX:     30,   // longitud mínima del tachado en px de pantalla
+  COMPACT:   1.8,   // pathLen debe ser > COMPACT × diagonal de la caja
+  TOL_PX:     12,   // radio de detección en px de pantalla (en coordenadas del canvas)
+  MIN_HITS:    2,   // puntos del tachado que deben tocar el elemento para marcarlo
+  COVER_FRAC: 0.30, // alternativa: ≥30 % de muestras tocan el elemento → marcarlo
+};
 const HINTS = {
   pen: 'Lápiz: dibuja con el Apple Pencil o el mouse. Al terminar un trazo, mantén el lápiz quieto y se endereza en recta, rectángulo, triángulo o círculo. Un dedo mueve la hoja y dos dedos acercan.',
   line: 'Recta: arrastra de un punto a otro para trazar una línea derecha. Se alinea sola cerca de 0°, 45° y 90°.',
@@ -184,7 +194,7 @@ const IDB_NAME = 'pizarra-medidor-' + _levantamientoId;
 
 let view = { x: 24, y: 24, k: 1 }, items = [], hist = [], redoS = [];
 let tool = 'pen', color = '#111827', size = 4, cellVal = 0.5, unit = 'm', snap = true, fingerDraw = false;
-let cur = null, sel = null, drag = null, nav = null, eraseRing = null, txtState = null;
+let cur = null, sel = null, drag = null, nav = null, eraseRing = null, txtState = null, scratchPrev = null;
 let penDown = false, lastPen = 0, dpr = 1, raf = 0, saveT = 0, confirmT = 0;
 let holdOn = true, holdT = 0, holdAnchor = null, holdShape = false;
 let job = _jobParam, who = _whoParam, DL = null, exporting = false, exportNum = null;
@@ -342,6 +352,11 @@ function draw() {
     ctx.save(); ctx.strokeStyle = T.accent; ctx.lineWidth = 1.5 / k; ctx.setLineDash([6 / k, 4 / k]);
     ctx.strokeRect(b[0], b[1], b[2] - b[0], b[3] - b[1]); ctx.restore();
     if (sel.t === 'p') { const s = 14 / k; ctx.fillStyle = T.accent; ctx.fillRect(b[2] - s / 2, b[3] - s / 2, s, s); }
+  }
+  if (scratchPrev && scratchPrev.length) {
+    ctx.save(); ctx.globalAlpha = 0.38; ctx.fillStyle = '#ef4444';
+    for (const it of scratchPrev) { const b = bounds(it), pad = 6 / view.k; ctx.fillRect(b[0]-pad, b[1]-pad, b[2]-b[0]+2*pad, b[3]-b[1]+2*pad); }
+    ctx.restore();
   }
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   if (eraseRing) { ctx.strokeStyle = T.accent; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(eraseRing[0], eraseRing[1], eraseRadius(), 0, 7); ctx.stroke(); }
@@ -512,29 +527,46 @@ function armHold() {
 }
 
 
-/* ---------- tachado inteligente (zigzag) ---------- */
+/* ---------- tachado inteligente ---------- */
 function isScratch(pts) {
-  if (pts.length < 10) return false;
-  let pathLen = 0;
-  for (let i = 1; i < pts.length; i++) pathLen += Math.hypot(pts[i][0] - pts[i-1][0], pts[i][1] - pts[i-1][1]);
-  if (pathLen * view.k < 80) return false; // demasiado corto para ser un tachado
-  let rev = 0, sdx = 0;
-  for (let i = 1; i < pts.length; i++) {
-    const dx = pts[i][0] - pts[i-1][0];
-    if (Math.abs(dx) < 2) continue;
-    const s = Math.sign(dx);
-    if (sdx && s !== sdx) rev++;
-    sdx = s;
+  if (pts.length < 6) return false;
+  let pathLen = 0, x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+  for (let i = 0; i < pts.length; i++) {
+    if (i) pathLen += Math.hypot(pts[i][0]-pts[i-1][0], pts[i][1]-pts[i-1][1]);
+    if (pts[i][0] < x0) x0 = pts[i][0]; if (pts[i][1] < y0) y0 = pts[i][1];
+    if (pts[i][0] > x1) x1 = pts[i][0]; if (pts[i][1] > y1) y1 = pts[i][1];
   }
-  if (rev < 4) return false; // necesita al menos 4 inversiones (2 zig-zags completos)
-  const net = Math.hypot(pts[pts.length-1][0] - pts[0][0], pts[pts.length-1][1] - pts[0][1]);
-  return net < pathLen * 0.4; // el desplazamiento neto es <40% del recorrido total
+  if (pathLen * view.k < SCRATCH.MIN_PX) return false;
+  // Submuestra para análisis de ángulos (≤60 puntos)
+  const sub = [], skip = Math.max(1, Math.floor(pts.length / 60));
+  for (let i = 0; i < pts.length; i += skip) sub.push(pts[i]);
+  const minRad = SCRATCH.TURN_DEG * Math.PI / 180;
+  let turns = 0;
+  for (let i = 2; i < sub.length; i++) {
+    const v1x = sub[i-1][0]-sub[i-2][0], v1y = sub[i-1][1]-sub[i-2][1];
+    const v2x = sub[i][0]-sub[i-1][0],   v2y = sub[i][1]-sub[i-1][1];
+    const l1 = Math.hypot(v1x, v1y), l2 = Math.hypot(v2x, v2y);
+    if (l1 < 0.5 || l2 < 0.5) continue;
+    if (Math.acos(Math.max(-1, Math.min(1, (v1x*v2x+v1y*v2y)/(l1*l2)))) > minRad) turns++;
+  }
+  if (turns < SCRATCH.MIN_TURNS) return false;
+  // Compacidad: el trazo cubre la misma zona múltiples veces (no avanza)
+  return pathLen > (Math.hypot(x1-x0, y1-y0) || 1) * SCRATCH.COMPACT;
+}
+function scratchTargets(pts) {
+  const tol = SCRATCH.TOL_PX / view.k;
+  const step = Math.max(1, Math.floor(pts.length / 50));
+  return items.filter(it => {
+    if (it.t === 'p') return false;
+    let hits = 0, total = 0;
+    for (let i = 0; i < pts.length; i += step) { if (hit(it, pts[i][0], pts[i][1], tol)) hits++; total++; }
+    return hits >= SCRATCH.MIN_HITS || (total && hits / total >= SCRATCH.COVER_FRAC);
+  });
 }
 function scratchErase(pts) {
-  const tol = eraseRadius() / view.k;
-  const toErase = items.filter(it => it.t !== 'p' && pts.some((q, i) => i % 4 === 0 && hit(it, q[0], q[1], tol)));
+  const toErase = scratchTargets(pts);
   if (!toErase.length) return;
-  pushHist(); items = items.filter(it => !toErase.includes(it)); save();
+  pushHist(); items = items.filter(it => !toErase.includes(it)); scratchPrev = null; save();
 }
 
 /* ---------- puntero ---------- */
@@ -598,6 +630,7 @@ cv.addEventListener('pointermove', e => {
       cur.p.push([r2(q[0]), r2(q[1]), widthFor(ev)]);
     }
     if (Math.hypot(sx - holdAnchor[0], sy - holdAnchor[1]) > 4) { holdAnchor = [sx, sy]; armHold(); }
+    scratchPrev = (!holdShape && isScratch(cur.p)) ? scratchTargets(cur.p) : null;
     schedule();
   } else if (cur && tool === 'line') {
     const b = snap ? snapPt(w) : angleSnap(cur.p[0], w); cur.p = [cur.p[0], b.map(r2)]; schedule();
@@ -650,7 +683,7 @@ function endPointer(e, cancelled) {
     }
   } else cur = null;
   if (drag) { drag = null; save(); }
-  eraseRing = null; syncBtns(); schedule();
+  eraseRing = null; scratchPrev = null; syncBtns(); schedule();
 }
 cv.addEventListener('pointerup', e => endPointer(e, false));
 cv.addEventListener('pointercancel', e => endPointer(e, true));

@@ -1675,7 +1675,7 @@ export default function Medidor() {
                     <File className="h-4 w-4 text-[#1DB5A8]" />
                     <span className="text-sm text-white truncate">{pdf.fileName}</span>
                   </div>
-                  <a href={pdf.url} target="_blank" rel="noopener noreferrer" className="text-[#1DB5A8] hover:underline text-sm">
+                  <a href={`${pdf.url}${pdf.url.includes("?") ? "&" : "?"}v=${encodeURIComponent(pdf.id)}`} target="_blank" rel="noopener noreferrer" className="text-[#1DB5A8] hover:underline text-sm">
                     Ver PDF
                   </a>
                 </div>
@@ -1746,7 +1746,7 @@ export default function Medidor() {
               </div>
               <Pizarra
                 ref={pizarraRef}
-                levantamientoId={String(visitDetail?.id ?? selectedVisit?.id ?? "new")}
+                levantamientoId={String(selectedVisit?.id ?? visitDetail?.id ?? "new")}
                 job={visitDetail?.clientName ?? selectedVisit?.clientName ?? ""}
                 who={user?.name ?? ""}
                 date={new Date().toISOString()}

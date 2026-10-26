@@ -60,21 +60,29 @@ body {
 }
 .sw i { width: 26px; height: 26px; border-radius: 50%; background: var(--c); box-shadow: 0 0 0 1px var(--line); }
 .sw[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
-.sz-btn { display: inline-flex; align-items: center; gap: 7px; min-width: 64px; }
-#szDot { display: inline-block; border-radius: 50%; background: currentColor; flex-shrink: 0; }
-#szLbl { font-variant-numeric: tabular-nums; min-width: 2ch; }
-#szPanel {
-  position: fixed; z-index: 200; background: var(--panel);
+.sz { width: 40px; padding: 4px 0; display: grid; place-items: center; }
+.sz i { border-radius: 50%; background: currentColor; }
+.sz[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
+.sz-slider { width: 76px; accent-color: var(--accent); cursor: pointer; vertical-align: middle; }
+#szLbl { font-size: 12px; color: var(--muted); min-width: 2.5ch; font-variant-numeric: tabular-nums; }
+/* ── Menu foto ───────────────────────────────────────────────────────────── */
+#photoMenu {
+  position: fixed; z-index: 180; background: var(--panel);
   border: 1px solid var(--line); border-radius: 14px;
-  padding: 14px 14px 10px; box-shadow: 0 8px 28px rgba(0,0,0,.18);
-  width: 224px; display: flex; flex-direction: column; gap: 10px;
+  padding: 6px; box-shadow: 0 6px 24px rgba(0,0,0,.25);
+  min-width: 200px; display: flex; flex-direction: column; gap: 2px;
 }
-#szPrev { display: block; width: 100%; height: 38px; border-radius: 8px; background: var(--paper); border: 1px solid var(--line); }
-.sz-presets { display: flex; gap: 6px; }
-.sz-presets .btn { flex: 1; padding: 0; font-variant-numeric: tabular-nums; font-size: 12px; }
-.sz-presets .btn[aria-pressed="true"] { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
-#szSlider { width: 100%; accent-color: var(--accent); cursor: pointer; }
-.sz-val { text-align: center; font-size: 12px; color: var(--muted); margin-top: -4px; }
+.pm-btn {
+  display: block; width: 100%; text-align: left; padding: 11px 16px;
+  border: none; background: transparent; color: var(--fg);
+  font: 500 14px var(--font-ui); border-radius: 8px; cursor: pointer;
+  touch-action: manipulation; -webkit-user-select: none; user-select: none;
+}
+.pm-btn:hover, .pm-btn:active { background: var(--accent-soft); }
+.pm-btn.pm-danger { color: var(--danger); }
+#pm-sep { height: 1px; background: var(--line); margin: 3px 0; }
+#pm-confirm { padding: 6px 4px 2px; }
+.pm-warn { font-size: 13px; color: var(--muted); margin: 0 0 8px; padding: 0 6px; line-height: 1.4; }
 .scalebar { font-size: 13px; color: var(--muted); }
 .scalebar label { display: inline-flex; align-items: center; gap: 6px; }
 .scalebar input[type="number"], .scalebar select {
@@ -118,22 +126,13 @@ body {
     <button class="sw" data-color="#b54708" style="--c:#b54708" aria-label="Naranja" aria-pressed="false"><i></i></button>
   </div>
   <div class="grp" role="group" aria-label="Grosor">
-    <button class="btn sz-btn" id="szBtn" aria-haspopup="true" aria-expanded="false" aria-label="Grosor del trazo">
-      <span id="szDot"></span><span id="szLbl">3</span>
-    </button>
-  </div>
-  <!-- Panel de grosor (GoodNotes-style) -->
-  <div id="szPanel" hidden role="dialog" aria-label="Grosor del trazo">
-    <canvas id="szPrev" width="200" height="38" aria-hidden="true"></canvas>
-    <div class="sz-presets">
-      <button class="btn sm" data-preset="1">1</button>
-      <button class="btn sm" data-preset="2">2</button>
-      <button class="btn sm" data-preset="4">4</button>
-      <button class="btn sm" data-preset="8">8</button>
-      <button class="btn sm" data-preset="16">16</button>
-    </div>
-    <input type="range" id="szSlider" min="0.5" max="24" step="0.5" value="3" aria-label="Grosor">
-    <div class="sz-val"><span id="szValLbl">3 px</span></div>
+    <button class="btn sz" data-sz="1"  aria-label="1 px"  aria-pressed="false"><i style="width:2px;height:2px"></i></button>
+    <button class="btn sz" data-sz="3"  aria-label="3 px"  aria-pressed="true" ><i style="width:5px;height:5px"></i></button>
+    <button class="btn sz" data-sz="6"  aria-label="6 px"  aria-pressed="false"><i style="width:9px;height:9px"></i></button>
+    <button class="btn sz" data-sz="12" aria-label="12 px" aria-pressed="false"><i style="width:14px;height:14px"></i></button>
+    <button class="btn sz" data-sz="20" aria-label="20 px" aria-pressed="false"><i style="width:20px;height:20px"></i></button>
+    <input type="range" id="szSlider" class="sz-slider" min="0.5" max="24" step="0.5" value="3" aria-label="Grosor exacto">
+    <span id="szLbl">3</span>
   </div>
   <div class="grp" role="group" aria-label="Fotos">
     <button class="btn" id="shoot">Tomar foto</button>
@@ -175,6 +174,19 @@ body {
 
 <input type="file" id="fileCam" accept="image/*" capture="environment" hidden>
 <input type="file" id="fileGal" accept="image/*" multiple hidden>
+<div id="photoMenu" hidden role="menu" aria-label="Opciones de foto">
+  <button class="pm-btn" id="pm-dup">Duplicar (con anotaciones)</button>
+  <button class="pm-btn" id="pm-dupclean">Duplicar sin anotaciones</button>
+  <button class="pm-btn" id="pm-front">Traer al frente</button>
+  <button class="pm-btn" id="pm-back">Enviar atrás</button>
+  <div id="pm-sep"></div>
+  <button class="pm-btn pm-danger" id="pm-del">Eliminar foto…</button>
+  <div id="pm-confirm" hidden>
+    <p class="pm-warn">¿Eliminar esta foto?<br><small>Las anotaciones encima permanecen.</small></p>
+    <button class="pm-btn pm-danger" id="pm-delok">Sí, eliminar</button>
+    <button class="pm-btn" id="pm-delno">Cancelar</button>
+  </div>
+</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
@@ -404,7 +416,7 @@ const IDB = (() => {
     const t = db.transaction('photos', mode), rq = fn(t.objectStore('photos'));
     t.oncomplete = () => res(rq && rq.result); t.onerror = () => rej(t.error); t.onabort = () => rej(t.error);
   }));
-  return { put: (id, v) => tx('readwrite', s => s.put(v, id)), get: id => tx('readonly', s => s.get(id)) };
+  return { put: (id, v) => tx('readwrite', s => s.put(v, id)), get: id => tx('readonly', s => s.get(id)), del: id => tx('readwrite', s => s.delete(id)) };
 })();
 function restorePhotos() {
   for (const p of items) {
@@ -417,7 +429,7 @@ function restorePhotos() {
 
 /* ---------- historial y guardado ---------- */
 function pushHist() { hist.push(items); if (hist.length > 100) hist.shift(); redoS = []; syncBtns(); }
-function syncBtns() { $('#undo').disabled = !hist.length; $('#redo').disabled = !redoS.length; delBtn.hidden = !(tool === 'move' && sel); }
+function syncBtns() { $('#undo').disabled = !hist.length; $('#redo').disabled = !redoS.length; delBtn.hidden = !(tool === 'move' && sel); showPhotoMenu(); }
 function undo() { commitText(true); if (!hist.length) return; redoS.push(items); items = hist.pop(); sel = null; syncBtns(); save(); schedule(); }
 function redo() { commitText(true); if (!redoS.length) return; hist.push(items); items = redoS.pop(); sel = null; syncBtns(); save(); schedule(); }
 function save() {
@@ -486,7 +498,7 @@ function rebase() { const c = centroid(); nav = { d: spread(), k0: view.k, wx: (
 function navMove() {
   const c = centroid(), d = spread();
   if (nav.d > 0 && d > 0) view.k = clamp(nav.k0 * d / nav.d, 0.25, 8);
-  view.x = c[0] - nav.wx * view.k; view.y = c[1] - nav.wy * view.k; schedule();
+  view.x = c[0] - nav.wx * view.k; view.y = c[1] - nav.wy * view.k; showPhotoMenu(); schedule();
 }
 function zoomAt(sx, sy, f) {
   const nk = clamp(view.k * f, 0.25, 8), wx = (sx - view.x) / view.k, wy = (sy - view.y) / view.k;
@@ -760,12 +772,11 @@ delBtn.addEventListener('click', () => { if (!sel) return; pushHist(); items = i
 /* ---------- controles ---------- */
 function setTool(t) {
   commitText(true); tool = t; if (t !== 'move') sel = null;
-  // Restaurar grosor de esta herramienta
   if (toolSizes[t] !== undefined) { size = toolSizes[t]; }
   $$('[data-tool]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.tool === t)));
-  $$('[data-preset]').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.preset === size)));
+  $$('[data-sz]').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.sz === size)));
   const sl = $('#szSlider'); if (sl) sl.value = size;
-  updateSzBtn(); drawSzPreview();
+  const lb = $('#szLbl'); if (lb) lb.textContent = size % 1 === 0 ? String(size) : size.toFixed(1);
   hint.textContent = HINTS[t]; cv.style.cursor = CURS[t]; syncBtns(); schedule();
 }
 $$('[data-tool]').forEach(b => b.addEventListener('click', () => setTool(b.dataset.tool)));
@@ -773,12 +784,80 @@ function setColor(c) { color = c; $$('[data-color]').forEach(b => b.setAttribute
 $$('[data-color]').forEach(b => b.addEventListener('click', () => setColor(b.dataset.color)));
 function setSize(s) {
   size = s; toolSizes[tool] = s;
-  $$('[data-preset]').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.preset === s)));
+  $$('[data-sz]').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.sz === s)));
   const sl = $('#szSlider'); if (sl) sl.value = s;
-  updateSzBtn(); drawSzPreview(); save();
+  const lb = $('#szLbl'); if (lb) lb.textContent = s % 1 === 0 ? String(s) : s.toFixed(1);
+  save();
 }
-$$('[data-preset]').forEach(b => b.addEventListener('click', () => { setSize(+b.dataset.preset); }));
+$$('[data-sz]').forEach(b => b.addEventListener('click', () => setSize(+b.dataset.sz)));
 $('#szSlider').addEventListener('input', e => setSize(+e.target.value));
+/* ── Menu contextual de foto ─────────────────────────────────────────────── */
+const photoMenu = $('#photoMenu'), pmConfirm = $('#pm-confirm');
+function photoAnnotations(photo) {
+  const px0 = photo.x, py0 = photo.y, px1 = photo.x + photo.w, py1 = photo.y + photo.h;
+  return items.filter(it => {
+    if (it.t === 'p') return false;
+    const b = bounds(it);
+    return b[0] < px1 && b[2] > px0 && b[1] < py1 && b[3] > py0;
+  });
+}
+function showPhotoMenu() {
+  if (!photoMenu) return;
+  if (!sel || sel.t !== 'p' || tool !== 'move') { photoMenu.hidden = true; return; }
+  const br = board.getBoundingClientRect();
+  const sx = sel.x * view.k + view.x, sy = sel.y * view.k + view.y;
+  const sw = sel.w * view.k, sh = sel.h * view.k;
+  let mx = br.left + sx + (sw - 200) / 2;
+  let my = br.top  + sy + sh + 8;
+  mx = Math.max(8, Math.min(mx, window.innerWidth - 210));
+  if (my + 260 > window.innerHeight) my = br.top + sy - 10 - Math.min(200, my + 260 - window.innerHeight);
+  photoMenu.style.left = mx + 'px';
+  photoMenu.style.top  = my + 'px';
+  photoMenu.hidden = false;
+}
+function hidePhotoMenu() { if (photoMenu) { photoMenu.hidden = true; if (pmConfirm) pmConfirm.hidden = true; } }
+document.addEventListener('pointerdown', e => {
+  if (photoMenu && !photoMenu.hidden && !photoMenu.contains(e.target)) hidePhotoMenu();
+}, true);
+$('#pm-dup').addEventListener('click', () => {
+  if (!sel || sel.t !== 'p') return;
+  const off = CELL;
+  const newPhoto = { ...sel, id: uid(), x: sel.x + off, y: sel.y + off };
+  if (sel.src) IDB.put(newPhoto.id, sel.src).then(() => { persisted.add(newPhoto.id); }).catch(() => {});
+  const annots = photoAnnotations(sel).map(it => moved(it, off, off));
+  pushHist(); items = [...items, newPhoto, ...annots];
+  sel = newPhoto; hidePhotoMenu(); save(); schedule(); syncBtns();
+});
+$('#pm-dupclean').addEventListener('click', () => {
+  if (!sel || sel.t !== 'p') return;
+  const off = CELL;
+  const newPhoto = { ...sel, id: uid(), x: sel.x + off, y: sel.y + off };
+  if (sel.src) IDB.put(newPhoto.id, sel.src).then(() => { persisted.add(newPhoto.id); }).catch(() => {});
+  pushHist(); items = [...items, newPhoto];
+  sel = newPhoto; hidePhotoMenu(); save(); schedule(); syncBtns();
+});
+$('#pm-front').addEventListener('click', () => {
+  if (!sel || sel.t !== 'p') return;
+  pushHist(); items = [...items.filter(i => i !== sel), sel];
+  hidePhotoMenu(); save(); schedule();
+});
+$('#pm-back').addEventListener('click', () => {
+  if (!sel || sel.t !== 'p') return;
+  pushHist();
+  const arr = [...items]; arr.splice(arr.indexOf(sel), 1); arr.unshift(sel);
+  items = arr; hidePhotoMenu(); save(); schedule();
+});
+$('#pm-del').addEventListener('click', () => { if (pmConfirm) pmConfirm.hidden = false; });
+$('#pm-delno').addEventListener('click', () => { if (pmConfirm) pmConfirm.hidden = true; });
+$('#pm-delok').addEventListener('click', () => {
+  if (!sel || sel.t !== 'p') return;
+  const id = sel.id;
+  pushHist(); items = items.filter(i => i !== sel);
+  if (!items.some(i => i.t === 'p' && i.id === id)) {
+    IDB.del(id).catch(() => {}); persisted.delete(id);
+  }
+  sel = null; hidePhotoMenu(); save(); schedule(); syncBtns();
+});
 $('#undo').addEventListener('click', undo); $('#redo').addEventListener('click', redo);
 $('#clear').addEventListener('click', e => {
   const b = e.currentTarget;
@@ -988,42 +1067,6 @@ if (!load()) seedExample(); else restorePhotos();
 $('#cell').value = cellVal; $('#unit').value = unit; $('#snap').checked = snap; $('#finger').checked = fingerDraw; $('#holdOn').checked = holdOn; $('#job').value = job; $('#who').value = who;
 initDownloads(3);
 setColor(color); setTool('pen'); setSize(size); syncBtns(); resize();
-// Panel de grosor: abrir/cerrar
-const szBtn = $('#szBtn'), szPanel = $('#szPanel');
-function updateSzBtn() {
-  const d = Math.max(3, Math.min(22, size)); // diámetro visual del dot
-  $('#szDot').style.cssText = \`width:\${d}px;height:\${d}px\`;
-  $('#szLbl').textContent = size % 1 === 0 ? size : size.toFixed(1);
-  const sl = $('#szSlider'); if (sl) { sl.value = size; $('#szValLbl').textContent = (size % 1===0?size:size.toFixed(1)) + ' px'; }
-}
-function drawSzPreview() {
-  const cv2 = $('#szPrev'); if (!cv2) return;
-  const ctx2 = cv2.getContext('2d'), W = cv2.width, H = cv2.height;
-  ctx2.clearRect(0, 0, W, H);
-  ctx2.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--paper').trim() || '#fff';
-  ctx2.fillRect(0, 0, W, H);
-  ctx2.strokeStyle = color; ctx2.lineCap = 'round'; ctx2.lineJoin = 'round';
-  const lw = tool === 'erase' ? eraseRadius() / 2.5 : size;
-  ctx2.lineWidth = Math.max(0.5, lw);
-  ctx2.beginPath(); ctx2.moveTo(14, H/2); ctx2.bezierCurveTo(W*0.3,H*0.2, W*0.7,H*0.8, W-14, H/2); ctx2.stroke();
-}
-function positionPanel() {
-  const br = szBtn.getBoundingClientRect();
-  szPanel.style.top  = (br.bottom + 6) + 'px';
-  szPanel.style.left = Math.min(br.left, window.innerWidth - 240) + 'px';
-}
-szBtn.addEventListener('click', () => {
-  const open = !szPanel.hidden;
-  szPanel.hidden = open;
-  szBtn.setAttribute('aria-expanded', String(!open));
-  if (!open) { positionPanel(); drawSzPreview(); }
-});
-document.addEventListener('pointerdown', e => {
-  if (!szPanel.hidden && !szPanel.contains(e.target) && e.target !== szBtn) {
-    szPanel.hidden = true; szBtn.setAttribute('aria-expanded', 'false');
-  }
-}, true);
-updateSzBtn(); drawSzPreview();
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(schedule);
 
 // Avisar al padre que la pizarra está lista

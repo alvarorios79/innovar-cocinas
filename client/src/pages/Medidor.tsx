@@ -37,6 +37,7 @@ import {
   Navigation,
   Calendar,
   PenLine,
+  Maximize2,
 } from "lucide-react";
 
 // ── Tipos ────────────────────────────────────────────────────────────────────
@@ -1697,15 +1698,26 @@ export default function Medidor() {
                   <PenLine className="h-5 w-5 text-[#1DB5A8]" />
                   Pizarra del medidor
                 </h2>
-                <button
-                  type="button"
-                  onClick={handleExportPizarra}
-                  disabled={pizarraUploading}
-                  className="text-sm font-medium px-3 py-1.5 rounded-lg bg-[#1DB5A8] hover:bg-[#17a396] disabled:opacity-50 text-white flex items-center gap-1.5"
-                >
-                  <FileText className="h-4 w-4" />
-                  {pizarraUploading ? "Exportando..." : "Guardar como PDF"}
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => pizarraRef.current?.requestFullscreen()}
+                    className="text-sm font-medium px-3 py-1.5 rounded-lg border border-[#1DB5A8]/40 text-[#1DB5A8] hover:bg-[#1DB5A8]/10 flex items-center gap-1.5"
+                    title="Abrir en pantalla completa"
+                  >
+                    <Maximize2 className="h-4 w-4" />
+                    Pantalla completa
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleExportPizarra}
+                    disabled={pizarraUploading}
+                    className="text-sm font-medium px-3 py-1.5 rounded-lg bg-[#1DB5A8] hover:bg-[#17a396] disabled:opacity-50 text-white flex items-center gap-1.5"
+                  >
+                    <FileText className="h-4 w-4" />
+                    {pizarraUploading ? "Exportando..." : "Guardar como PDF"}
+                  </button>
+                </div>
               </div>
               <Pizarra
                 ref={pizarraRef}

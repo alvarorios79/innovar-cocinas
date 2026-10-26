@@ -77,14 +77,32 @@ export const Pizarra = forwardRef<PizarraRef, PizarraProps>(function Pizarra(
   useEffect(() => {
     const handler = (e: MessageEvent) => {
       if (!e.data || typeof e.data !== 'object') return;
+      const { type, levantamientoId: lid } = e.data;
+
+      // Log de diagnóstico para todos los mensajes pizarra:*
+      if (typeof type === 'string' && type.startsWith('pizarra:')) {
+        const dataUrlLen = typeof e.data.dataUrl === 'string' ? e.data.dataUrl.length : null;
+        const origin = e.origin || '(mismo origen)';
+        if (dataUrlLen !== null) {
+          const sizeMB = (dataUrlLen * 0.75 / 1024 / 1024).toFixed(2);
+          console.log(`[Pizarra] ${type} | origen: ${origin} | levId: ${lid ?? '?'} | dataUrl: ${dataUrlLen} chars (~${sizeMB} MB PDF)`);
+        } else {
+          console.log(`[Pizarra] ${type} | origen: ${origin} | levId: ${lid ?? '?'} |`, JSON.stringify(e.data).slice(0, 200));
+        }
+      }
 
       // Pizarra lista
-      if (e.data.type === 'pizarra:ready') {
+      if (type === 'pizarra:ready') {
         onReady?.();
       }
 
+      // Primera carga de datos desde IndexedDB
+      if (type === 'pizarra:loaded') {
+        // solo log, ya registrado arriba
+      }
+
       // Estado en vivo: hasContent, items, photos
-      if (e.data.type === 'pizarra:status') {
+      if (type === 'pizarra:status') {
         const s: PizarraStatus = {
           hasContent: !!e.data.hasContent,
           items: e.data.items ?? 0,
@@ -96,7 +114,7 @@ export const Pizarra = forwardRef<PizarraRef, PizarraProps>(function Pizarra(
       }
 
       // Error de generación (hoja vacía, área vacía, fallo de jsPDF, etc.)
-      if (e.data.type === 'pizarra:pdfError') {
+      if (type === 'pizarra:pdfError') {
         const reason: string = e.data.reason ?? 'error';
         if (pdfTimeoutRef.current) { clearTimeout(pdfTimeoutRef.current); pdfTimeoutRef.current = null; }
         pdfResolveRef.current = null;
@@ -106,7 +124,7 @@ export const Pizarra = forwardRef<PizarraRef, PizarraProps>(function Pizarra(
       }
 
       // PDF generado correctamente
-      if (e.data.type === 'pizarra:pdf') {
+      if (type === 'pizarra:pdf') {
         const dataUrl: string = e.data.dataUrl;
         const name: string = e.data.name;
         const mb: number = e.data.mb ?? 0;
@@ -180,7 +198,7 @@ export const Pizarra = forwardRef<PizarraRef, PizarraProps>(function Pizarra(
 
   const params = new URLSearchParams({ levantamientoId, job, who });
   if (date) params.set('date', date);
-  const src = `/pizarra.html?${params.toString()}`;
+  const src = `/pizarra-v9.3.html?${params.toString()}`;
 
   return (
     <div
